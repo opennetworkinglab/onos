@@ -37,14 +37,18 @@ import org.onosproject.net.PortNumber;
 import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
 import org.onosproject.segmentrouting.config.DeviceConfiguration;
 import org.onosproject.segmentrouting.grouphandler.DefaultGroupHandler;
+import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.service.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -82,6 +86,10 @@ public class DefaultRoutingHandler {
         = newScheduledThreadPool(1, groupedThreads("retryftr", "retry-%d", log));
     private Instant lastRoutingChange;
 
+    // Keep track on which ONOS instance should program the device pair.
+    // There should be only one instance that programs the same pair.
+    Map<Set<DeviceId>, NodeId> shouldProgram;
+
     /**
      * Represents the default routing population status.
      */
@@ -105,12 +113,16 @@ public class DefaultRoutingHandler {
      *
      * @param srManager SegmentRoutingManager object
      */
-    public DefaultRoutingHandler(SegmentRoutingManager srManager) {
+    DefaultRoutingHandler(SegmentRoutingManager srManager) {
         this.srManager = srManager;
         this.rulePopulator = checkNotNull(srManager.routingRulePopulator);
         this.config = checkNotNull(srManager.deviceConfiguration);
         this.populationStatus = Status.IDLE;
         this.currentEcmpSpgMap = Maps.newHashMap();
+        this.shouldProgram = srManager.storageService.<Set<DeviceId>, NodeId>consistentMapBuilder()
+                .withName("sr-should-program")
+                .withSerializer(Serializer.using(KryoNamespaces.API))
+                .build().asJavaMap();
     }
 
     /**
@@ -203,13 +215,12 @@ public class DefaultRoutingHandler {
                     updatedEcmpSpgMap.put(pairDev.get(), ecmpSpgUpdated);
                     edgePairs.add(new EdgePair(dstSw, pairDev.get()));
                 }
-                DeviceId ret = shouldHandleRouting(dstSw);
-                if (ret == null) {
+
+                if (!shouldProgram(dstSw)) {
                     continue;
                 }
-                Set<DeviceId> devsToProcess = Sets.newHashSet(dstSw, ret);
                 // To do a full reroute, assume all routes have changed
-                for (DeviceId dev : devsToProcess) {
+                for (DeviceId dev : deviceAndItsPair(dstSw)) {
                     for (DeviceId targetSw : srManager.deviceConfiguration.getRouters()) {
                         if (targetSw.equals(dev)) {
                             continue;
@@ -301,8 +312,7 @@ public class DefaultRoutingHandler {
                         log.warn("populateSubnet: no updated graph for dev:{}"
                                 + " ... creating", cp.deviceId());
                     }
-                    DeviceId retId = shouldHandleRouting(cp.deviceId());
-                    if (retId == null) {
+                    if (!shouldProgram(cp.deviceId())) {
                         continue;
                     }
                     handleRouting = true;
@@ -317,9 +327,7 @@ public class DefaultRoutingHandler {
                     log.warn("populateSubnet: no updated graph for dev:{}"
                             + " ... creating", dstSw);
                 }
-                if (srManager.mastershipService.isLocalMaster(dstSw)) {
-                    handleRouting = true;
-                }
+                handleRouting = shouldProgram(dstSw);
             }
 
             if (!handleRouting) {
@@ -1066,7 +1074,10 @@ public class DefaultRoutingHandler {
     protected boolean revokeSubnet(Set<IpPrefix> subnets) {
         statusLock.lock();
         try {
-            return srManager.routingRulePopulator.revokeIpRuleForSubnet(subnets);
+            return Sets.newHashSet(srManager.deviceService.getAvailableDevices()).stream()
+                    .map(Device::id)
+                    .filter(this::shouldProgram)
+                    .allMatch(targetSw -> srManager.routingRulePopulator.revokeIpRuleForSubnet(targetSw, subnets));
         } finally {
             statusLock.unlock();
         }
@@ -1084,7 +1095,7 @@ public class DefaultRoutingHandler {
      */
     void populateRoute(DeviceId deviceId, IpPrefix prefix,
                        MacAddress hostMac, VlanId hostVlanId, PortNumber outPort) {
-        if (srManager.mastershipService.isLocalMaster(deviceId)) {
+        if (shouldProgram(deviceId)) {
             srManager.routingRulePopulator.populateRoute(deviceId, prefix, hostMac, hostVlanId, outPort);
         }
     }
@@ -1101,8 +1112,35 @@ public class DefaultRoutingHandler {
      */
     void revokeRoute(DeviceId deviceId, IpPrefix prefix,
                      MacAddress hostMac, VlanId hostVlanId, PortNumber outPort) {
-        if (srManager.mastershipService.isLocalMaster(deviceId)) {
+        if (shouldProgram(deviceId)) {
             srManager.routingRulePopulator.revokeRoute(deviceId, prefix, hostMac, hostVlanId, outPort);
+        }
+    }
+
+    void populateBridging(DeviceId deviceId, PortNumber port, MacAddress mac, VlanId vlanId) {
+        if (shouldProgram(deviceId)) {
+            srManager.routingRulePopulator.populateBridging(deviceId, port, mac, vlanId);
+        }
+    }
+
+    void revokeBridging(DeviceId deviceId, PortNumber port, MacAddress mac, VlanId vlanId) {
+        if (shouldProgram(deviceId)) {
+            srManager.routingRulePopulator.revokeBridging(deviceId, port, mac, vlanId);
+        }
+    }
+
+    void updateBridging(DeviceId deviceId, PortNumber portNum, MacAddress hostMac,
+                        VlanId vlanId, boolean popVlan, boolean install) {
+        if (shouldProgram(deviceId)) {
+            srManager.routingRulePopulator.updateBridging(deviceId, portNum, hostMac, vlanId, popVlan, install);
+        }
+    }
+
+    void updateFwdObj(DeviceId deviceId, PortNumber portNumber, IpPrefix prefix, MacAddress hostMac,
+                      VlanId vlanId, boolean popVlan, boolean install) {
+        if (shouldProgram(deviceId)) {
+            srManager.routingRulePopulator.updateFwdObj(deviceId, portNumber, prefix, hostMac,
+                    vlanId, popVlan, install);
         }
     }
 
@@ -1150,12 +1188,10 @@ public class DefaultRoutingHandler {
         for (Device sw : srManager.deviceService.getDevices()) {
             log.debug("Computing the impacted routes for device {} due to link fail",
                       sw.id());
-            DeviceId retId = shouldHandleRouting(sw.id());
-            if (retId == null) {
+            if (!shouldProgram(sw.id())) {
                 continue;
             }
-            Set<DeviceId> devicesToProcess = Sets.newHashSet(retId, sw.id());
-            for (DeviceId rootSw : devicesToProcess) {
+            for (DeviceId rootSw : deviceAndItsPair(sw.id())) {
                 EcmpShortestPathGraph ecmpSpg = currentEcmpSpgMap.get(rootSw);
                 if (ecmpSpg == null) {
                     log.warn("No existing ECMP graph for switch {}. Aborting optimized"
@@ -1219,12 +1255,10 @@ public class DefaultRoutingHandler {
 
         for (Device sw : srManager.deviceService.getDevices()) {
             log.debug("Computing the impacted routes for device {}", sw.id());
-            DeviceId retId = shouldHandleRouting(sw.id());
-            if (retId == null) {
+            if (!shouldProgram(sw.id())) {
                 continue;
             }
-            Set<DeviceId> devicesToProcess = Sets.newHashSet(retId, sw.id());
-            for (DeviceId rootSw : devicesToProcess) {
+            for (DeviceId rootSw : deviceAndItsPair(sw.id())) {
                 if (log.isTraceEnabled()) {
                     log.trace("Device links for dev: {}", rootSw);
                     for (Link link: srManager.linkService.getDeviceLinks(rootSw)) {
@@ -1375,47 +1409,87 @@ public class DefaultRoutingHandler {
     }
 
     /**
-     * Determines whether this controller instance should handle routing for the
+     * Determines whether this controller instance should program the
      * given {@code deviceId}, based on mastership and pairDeviceId if one exists.
-     * Returns null if this instance should not handle routing for given {@code deviceId}.
-     * Otherwise the returned value could be the given deviceId itself, or the
-     * deviceId for the paired edge device. In the latter case, this instance
-     * should handle routing for both the given device and the paired device.
+     * <p>
+     * Once an instance is elected, it will be the only instance responsible for programming
+     * both devices in the pair until it goes down.
      *
      * @param deviceId device identifier to consider for routing
-     * @return null or deviceId which could be the same as the given deviceId
-     *          or the deviceId of a paired edge device
+     * @return true if current instance should handle the routing for given device
      */
-    private DeviceId shouldHandleRouting(DeviceId deviceId) {
-        if (!srManager.mastershipService.isLocalMaster(deviceId)) {
-            log.debug("Not master for dev:{} .. skipping routing, may get handled "
-                    + "elsewhere as part of paired devices", deviceId);
-            return null;
-        }
-        NodeId myNode = srManager.mastershipService.getMasterFor(deviceId);
-        Optional<DeviceId> pairDev = srManager.getPairDeviceId(deviceId);
+    boolean shouldProgram(DeviceId deviceId) {
+        Optional<DeviceId> pairDeviceId = srManager.getPairDeviceId(deviceId);
 
-        if (pairDev.isPresent()) {
-            if (!srManager.deviceService.isAvailable(pairDev.get())) {
-                log.warn("pairedDev {} not available .. routing both this dev:{} "
-                        + "and pair without mastership check for pair",
-                          pairDev, deviceId);
-                return pairDev.get(); // handle both temporarily
-            }
-            NodeId pairMasterNode = srManager.mastershipService.getMasterFor(pairDev.get());
-            if (myNode.compareTo(pairMasterNode) <= 0) {
-                log.debug("Handling routing for both dev:{} pair-dev:{}; myNode: {}"
-                        + " pairMaster:{} compare:{}", deviceId, pairDev,
-                        myNode, pairMasterNode,
-                        myNode.compareTo(pairMasterNode));
-                return pairDev.get(); // handle both
-            } else {
-                log.debug("PairDev node: {} should handle routing for dev:{} and "
-                        + "pair-dev:{}", pairMasterNode, deviceId, pairDev);
-                return null; // handle neither
-            }
+        NodeId currentNodeId = srManager.clusterService.getLocalNode().id();
+        NodeId masterNodeId = srManager.mastershipService.getMasterFor(deviceId);
+        Optional<NodeId> pairMasterNodeId = pairDeviceId.map(srManager.mastershipService::getMasterFor);
+        log.debug("Evaluate shouldProgram {}/pair={}. current={}, master={}, pairMaster={}",
+                deviceId, pairDeviceId, currentNodeId, masterNodeId, pairMasterNodeId);
+
+        // No pair device configured. Only handle when current instance is the master of the device
+        if (!pairDeviceId.isPresent()) {
+            log.debug("No pair device. current={}, master={}", currentNodeId, masterNodeId);
+            return currentNodeId.equals(masterNodeId);
         }
-        return deviceId; // not paired, just handle given device
+
+        // Should not handle if current instance is not the master of either switch
+        if (!currentNodeId.equals(masterNodeId) &&
+                !(pairMasterNodeId.isPresent() && currentNodeId.equals(pairMasterNodeId.get()))) {
+            log.debug("Current node {} is neither the master of target device {} nor pair device {}",
+                    currentNodeId, deviceId, pairDeviceId);
+            return false;
+        }
+
+        Set<DeviceId> key = Sets.newHashSet(deviceId, pairDeviceId.get());
+
+        NodeId king = shouldProgram.compute(key, ((k, v) -> {
+            if (v == null) {
+                // There is no value in the map. Elect a node
+                return elect(Lists.newArrayList(masterNodeId, pairMasterNodeId.orElse(null)));
+            } else {
+                if (v.equals(masterNodeId) || v.equals(pairMasterNodeId.orElse(null))) {
+                    // Use the node in the map if it is still alive and is a master of any of the two switches
+                    return v;
+                } else {
+                    // Previously elected node is no longer the master of either switch. Re-elect a node.
+                    return elect(Lists.newArrayList(masterNodeId, pairMasterNodeId.orElse(null)));
+                }
+            }
+        }));
+
+        if (king != null) {
+            log.debug("{} should handle routing for {}/pair={}", king, deviceId, pairDeviceId);
+            return king.equals(currentNodeId);
+        } else {
+            log.error("Fail to elect a king for {}/pair={}. Abort.", deviceId, pairDeviceId);
+            return false;
+        }
+    }
+
+    /**
+     * Elects a node who should take responsibility of programming devices.
+     * @param nodeIds list of candidate node ID
+     *
+     * @return NodeId of the node that gets elected, or null if none of the node can be elected
+     */
+    private NodeId elect(List<NodeId> nodeIds) {
+        // Remove all null elements. This could happen when some device has no master
+        nodeIds.removeAll(Collections.singleton(null));
+        nodeIds.sort(null);
+        return nodeIds.size() == 0 ? null : nodeIds.get(0);
+    }
+
+    /**
+     * Returns a set of device ID, containing given device and its pair device if exist.
+     *
+     * @param deviceId Device ID
+     * @return a set of device ID, containing given device and its pair device if exist.
+     */
+    private Set<DeviceId> deviceAndItsPair(DeviceId deviceId) {
+        Set<DeviceId> ret = Sets.newHashSet(deviceId);
+        srManager.getPairDeviceId(deviceId).ifPresent(ret::add);
+        return ret;
     }
 
     /**

@@ -252,8 +252,7 @@ public class RouteHandler {
             Set<HostLocation> newLocations = event.subject().locations();
 
             // For each old location
-            Sets.difference(prevLocations, newLocations).stream().filter(srManager::isMasterOf)
-                    .forEach(prevLocation -> {
+            Sets.difference(prevLocations, newLocations).forEach(prevLocation -> {
                 // Redirect the flows to pair link if configured
                 // Note: Do not continue removing any rule
                 Optional<DeviceId> pairDeviceId = srManager.getPairDeviceId(prevLocation.deviceId());
@@ -276,8 +275,7 @@ public class RouteHandler {
             });
 
             // For each new location, add all new IPs.
-            Sets.difference(newLocations, prevLocations).stream().filter(srManager::isMasterOf)
-                    .forEach(newLocation -> {
+            Sets.difference(newLocations, prevLocations).forEach(newLocation -> {
                 log.debug("HostMoved. populateRoute {}, {}, {}, {}", newLocation, prefix, hostMac, hostVlanId);
                 srManager.defaultRoutingHandler.populateRoute(newLocation.deviceId(), prefix,
                         hostMac, hostVlanId, newLocation.port());

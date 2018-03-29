@@ -44,10 +44,15 @@ import org.onosproject.net.host.InterfaceIpAddress;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.segmentrouting.config.DeviceConfiguration;
 import org.onosproject.segmentrouting.config.SegmentRoutingDeviceConfig;
+import org.onosproject.store.service.StorageService;
+import org.onosproject.store.service.TestConsistentMap;
 
 import java.util.Map;
 import java.util.Set;
 
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.*;
 
 /**r
@@ -201,6 +206,9 @@ public class HostHandlerTest {
 
         // Initialize Segment Routing Manager
         SegmentRoutingManager srManager = new MockSegmentRoutingManager(NEXT_TABLE);
+        srManager.storageService = createMock(StorageService.class);
+        expect(srManager.storageService.consistentMapBuilder()).andReturn(new TestConsistentMap.Builder<>()).anyTimes();
+        replay(srManager.storageService);
         srManager.cfgService = new NetworkConfigRegistryAdapter();
         srManager.deviceConfiguration = new DeviceConfiguration(srManager);
         srManager.flowObjectiveService = new MockFlowObjectiveService(BRIDGING_TABLE, NEXT_TABLE);
@@ -845,11 +853,5 @@ public class HostHandlerTest {
         assertEquals(2, BRIDGING_TABLE.size());
         assertNotNull(BRIDGING_TABLE.get(new MockBridgingTableKey(DEV1, HOST_MAC, INTF_VLAN_UNTAGGED)));
         assertNotNull(BRIDGING_TABLE.get(new MockBridgingTableKey(DEV2, HOST_MAC, INTF_VLAN_UNTAGGED)));
-    }
-
-    @Test
-    public void testBridgingFwdObjBuilder() throws Exception {
-        assertNotNull(hostHandler.bridgingFwdObjBuilder(DEV2, HOST_MAC, HOST_VLAN_UNTAGGED, P1, false));
-        assertNull(hostHandler.bridgingFwdObjBuilder(DEV2, HOST_MAC, HOST_VLAN_UNTAGGED, P3, false));
     }
 }

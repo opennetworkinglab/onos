@@ -117,8 +117,182 @@ public class RoutingRulePopulator {
     }
 
     /**
-     * Populates IP rules for a route that has direct connection to the
-     * switch.
+     * Populate a bridging rule on given deviceId that matches given mac, given vlan and
+     * output to given port.
+     *
+     * @param deviceId device ID
+     * @param port port
+     * @param mac mac address
+     * @param vlanId VLAN ID
+     */
+    void populateBridging(DeviceId deviceId, PortNumber port, MacAddress mac, VlanId vlanId) {
+        ForwardingObjective.Builder fob = bridgingFwdObjBuilder(deviceId, mac, vlanId, port, false);
+        if (fob == null) {
+            log.warn("Fail to build fwd obj for host {}/{}. Abort.", mac, vlanId);
+            return;
+        }
+
+        ObjectiveContext context = new DefaultObjectiveContext(
+                (objective) -> log.debug("Brigding rule for {}/{} revoked", mac, vlanId),
+                (objective, error) -> log.warn("Failed to revoke bridging rule for {}/{}: {}", mac, vlanId, error));
+        srManager.flowObjectiveService.forward(deviceId, fob.add(context));
+    }
+
+    /**
+     * Revoke a bridging rule on given deviceId that matches given mac, given vlan and
+     * output to given port.
+     *
+     * @param deviceId device ID
+     * @param port port
+     * @param mac mac address
+     * @param vlanId VLAN ID
+     */
+    void revokeBridging(DeviceId deviceId, PortNumber port, MacAddress mac, VlanId vlanId) {
+        ForwardingObjective.Builder fob = bridgingFwdObjBuilder(deviceId, mac, vlanId, port, true);
+        if (fob == null) {
+            log.warn("Fail to build fwd obj for host {}/{}. Abort.", mac, vlanId);
+            return;
+        }
+
+        ObjectiveContext context = new DefaultObjectiveContext(
+                (objective) -> log.debug("Brigding rule for {}/{} populated", mac, vlanId),
+                (objective, error) -> log.warn("Failed to populate bridging rule for {}/{}: {}", mac, vlanId, error));
+        srManager.flowObjectiveService.forward(deviceId, fob.remove(context));
+    }
+
+    /**
+     * Generates a forwarding objective builder for bridging rules.
+     * <p>
+     * The forwarding objective bridges packets destined to a given MAC to
+     * given port on given device.
+     *
+     * @param deviceId Device that host attaches to
+     * @param mac MAC address of the host
+     * @param hostVlanId VLAN ID of the host
+     * @param outport Port that host attaches to
+     * @param revoke true if forwarding objective is meant to revoke forwarding rule
+     * @return Forwarding objective builder
+     */
+    private ForwardingObjective.Builder bridgingFwdObjBuilder(
+            DeviceId deviceId, MacAddress mac, VlanId hostVlanId, PortNumber outport, boolean revoke) {
+        ConnectPoint connectPoint = new ConnectPoint(deviceId, outport);
+        VlanId untaggedVlan = srManager.getUntaggedVlanId(connectPoint);
+        Set<VlanId> taggedVlans = srManager.getTaggedVlanId(connectPoint);
+        VlanId nativeVlan = srManager.getNativeVlanId(connectPoint);
+
+        // Create host selector
+        TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
+        sbuilder.matchEthDst(mac);
+
+        // Create host treatment
+        TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder();
+        tbuilder.immediate().setOutput(outport);
+
+        // Create host meta
+        TrafficSelector.Builder mbuilder = DefaultTrafficSelector.builder();
+
+        // Adjust the selector, treatment and meta according to VLAN configuration
+        if (taggedVlans.contains(hostVlanId)) {
+            sbuilder.matchVlanId(hostVlanId);
+            mbuilder.matchVlanId(hostVlanId);
+        } else if (hostVlanId.equals(VlanId.NONE)) {
+            if (untaggedVlan != null) {
+                sbuilder.matchVlanId(untaggedVlan);
+                mbuilder.matchVlanId(untaggedVlan);
+                tbuilder.immediate().popVlan();
+            } else if (nativeVlan != null) {
+                sbuilder.matchVlanId(nativeVlan);
+                mbuilder.matchVlanId(nativeVlan);
+                tbuilder.immediate().popVlan();
+            } else {
+                log.warn("Untagged host {}/{} is not allowed on {} without untagged or native" +
+                        "vlan config", mac, hostVlanId, connectPoint);
+                return null;
+            }
+        } else {
+            log.warn("Tagged host {}/{} is not allowed on {} without VLAN listed in tagged vlan",
+                    mac, hostVlanId, connectPoint);
+            return null;
+        }
+
+        // All forwarding is via Groups. Drivers can re-purpose to flow-actions if needed.
+        // If the objective is to revoke an existing rule, and for some reason
+        // the next-objective does not exist, then a new one should not be created
+        int portNextObjId = srManager.getPortNextObjectiveId(deviceId, outport,
+                tbuilder.build(), mbuilder.build(), !revoke);
+        if (portNextObjId == -1) {
+            // Warning log will come from getPortNextObjective method
+            return null;
+        }
+
+        return DefaultForwardingObjective.builder()
+                .withFlag(ForwardingObjective.Flag.SPECIFIC)
+                .withSelector(sbuilder.build())
+                .nextStep(portNextObjId)
+                .withPriority(100)
+                .fromApp(srManager.appId)
+                .makePermanent();
+    }
+
+    /**
+     * Populate or revoke a bridging rule on given deviceId that matches given vlanId,
+     * and hostMAC connected to given port, and output to given port only when
+     * vlan information is valid.
+     *
+     * @param deviceId device ID that host attaches to
+     * @param portNum port number that host attaches to
+     * @param hostMac mac address of the host connected to the switch port
+     * @param vlanId Vlan ID configured on the switch port
+     * @param popVlan true to pop Vlan tag at TrafficTreatment, false otherwise
+     * @param install true to populate the objective, false to revoke
+     */
+    // TODO Refactor. There are a lot of duplications between this method, populateBridging,
+    //      revokeBridging and bridgingFwdObjBuilder.
+    void updateBridging(DeviceId deviceId, PortNumber portNum, MacAddress hostMac,
+                        VlanId vlanId, boolean popVlan, boolean install) {
+        // Create host selector
+        TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
+        sbuilder.matchEthDst(hostMac);
+
+        // Create host meta
+        TrafficSelector.Builder mbuilder = DefaultTrafficSelector.builder();
+
+        sbuilder.matchVlanId(vlanId);
+        mbuilder.matchVlanId(vlanId);
+
+        // Create host treatment
+        TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder();
+        tbuilder.immediate().setOutput(portNum);
+
+        if (popVlan) {
+            tbuilder.immediate().popVlan();
+        }
+
+        int portNextObjId = srManager.getPortNextObjectiveId(deviceId, portNum,
+                tbuilder.build(), mbuilder.build(), install);
+        if (portNextObjId != -1) {
+            ForwardingObjective.Builder fob = DefaultForwardingObjective.builder()
+                    .withFlag(ForwardingObjective.Flag.SPECIFIC)
+                    .withSelector(sbuilder.build())
+                    .nextStep(portNextObjId)
+                    .withPriority(100)
+                    .fromApp(srManager.appId)
+                    .makePermanent();
+
+            ObjectiveContext context = new DefaultObjectiveContext(
+                    (objective) -> log.debug("Brigding rule for {}/{} {}", hostMac, vlanId,
+                            install ? "populated" : "revoked"),
+                    (objective, error) -> log.warn("Failed to {} bridging rule for {}/{}: {}",
+                            install ? "populate" : "revoke", hostMac, vlanId, error));
+            srManager.flowObjectiveService.forward(deviceId, install ? fob.add(context) : fob.remove(context));
+        } else {
+            log.warn("Failed to retrieve next objective for {}/{}", hostMac, vlanId);
+        }
+    }
+
+    /**
+     * Populates IP rules for a route that has direct connection to the switch.
+     * This method should not be invoked directly without going through DefaultRoutingHandler.
      *
      * @param deviceId device ID of the device that next hop attaches to
      * @param prefix IP prefix of the route
@@ -157,6 +331,7 @@ public class RoutingRulePopulator {
 
     /**
      * Removes IP rules for a route when the next hop is gone.
+     * This method should not be invoked directly without going through DefaultRoutingHandler.
      *
      * @param deviceId device ID of the device that next hop attaches to
      * @param prefix IP prefix of the route
@@ -293,14 +468,15 @@ public class RoutingRulePopulator {
     }
 
     /**
-     * Revokes IP flow rules for the subnets in each edge switch.
+     * Revokes IP flow rules for the subnets from given device.
      *
+     * @param targetSw target switch from which the subnets need to be removed
      * @param subnets subnet being removed
      * @return true if all rules are removed successfully, false otherwise
      */
-    boolean revokeIpRuleForSubnet(Set<IpPrefix> subnets) {
+    boolean revokeIpRuleForSubnet(DeviceId targetSw, Set<IpPrefix> subnets) {
         for (IpPrefix subnet : subnets) {
-            if (!revokeIpRuleForRouter(subnet)) {
+            if (!revokeIpRuleForRouter(targetSw, subnet)) {
                 return false;
             }
         }
@@ -419,12 +595,13 @@ public class RoutingRulePopulator {
     }
 
     /**
-     * Revokes IP flow rules for the router IP address.
+     * Revokes IP flow rules for the router IP address from given device.
      *
+     * @param targetSw target switch from which the ipPrefix need to be removed
      * @param ipPrefix the IP address of the destination router
      * @return true if all rules are removed successfully, false otherwise
      */
-    private boolean revokeIpRuleForRouter(IpPrefix ipPrefix) {
+    private boolean revokeIpRuleForRouter(DeviceId targetSw, IpPrefix ipPrefix) {
         TrafficSelector.Builder sbuilder = buildIpSelectorFromIpPrefix(ipPrefix);
         TrafficSelector selector = sbuilder.build();
         TrafficTreatment dummyTreatment = DefaultTrafficTreatment.builder().build();
@@ -438,17 +615,11 @@ public class RoutingRulePopulator {
                 .withPriority(getPriorityFromPrefix(ipPrefix))
                 .withFlag(ForwardingObjective.Flag.SPECIFIC);
 
-        srManager.deviceService.getAvailableDevices().forEach(device -> {
-            if (srManager.mastershipService.isLocalMaster(device.id())) {
-                ObjectiveContext context = new DefaultObjectiveContext(
-                        (objective) -> log.debug("IP rule for router {} revoked from {}", ipPrefix, device.id()),
-                        (objective, error) -> log.warn("Failed to revoke IP rule for router {} from {}: {}",
-                                ipPrefix, device.id(), error));
-                srManager.flowObjectiveService.forward(device.id(), fwdBuilder.remove(context));
-            } else {
-                log.debug("Not the master of {}. Abort route {} removal", device.id(), ipPrefix);
-            }
-        });
+        ObjectiveContext context = new DefaultObjectiveContext(
+                (objective) -> log.debug("IP rule for router {} revoked from {}", ipPrefix, targetSw),
+                (objective, error) -> log.warn("Failed to revoke IP rule for router {} from {}: {}",
+                        ipPrefix, targetSw, error));
+        srManager.flowObjectiveService.forward(targetSw, fwdBuilder.remove(context));
 
         return true;
     }
