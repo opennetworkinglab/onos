@@ -51,6 +51,11 @@ public class Route {
         FPM,
 
         /**
+         * Route came from the RIP route source.
+         */
+        RIP,
+
+        /**
          * Route can from the static route source.
          */
         STATIC,
