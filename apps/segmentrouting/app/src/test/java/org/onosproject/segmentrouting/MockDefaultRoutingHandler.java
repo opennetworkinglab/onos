@@ -18,6 +18,7 @@ package org.onosproject.segmentrouting;
 
 import org.onlab.packet.IpPrefix;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DeviceId;
 
 import java.util.Map;
 import java.util.Set;
@@ -60,6 +61,11 @@ public class MockDefaultRoutingHandler extends DefaultRoutingHandler {
             }
         }
         routingTable.entrySet().removeIf(e -> subnets.contains(e.getKey().ipPrefix));
+        return true;
+    }
+
+    @Override
+    protected boolean shouldProgram(DeviceId deviceId) {
         return true;
     }
 }

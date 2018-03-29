@@ -1215,7 +1215,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
         if (mastershipService.isLocalMaster(deviceId)) {
             defaultRoutingHandler.populatePortAddressingRules(deviceId);
-            hostHandler.init(deviceId);
             xConnectHandler.init(deviceId);
             DefaultGroupHandler groupHandler = groupHandlerMap.get(deviceId);
             groupHandler.createGroupsFromVlanConfig();
@@ -1223,6 +1222,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         }
 
         appCfgHandler.init(deviceId);
+        hostHandler.init(deviceId);
         routeHandler.init(deviceId);
     }
 
@@ -1555,12 +1555,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
             DeviceId deviceId = intf.connectPoint().deviceId();
             PortNumber portNum = intf.connectPoint().port();
-
-            if (!mastershipService.isLocalMaster(deviceId)) {
-                log.debug("CONFIG_UPDATED event for interfaces should be " +
-                                  "handled by master node for device {}", deviceId);
-                return;
-            }
 
             removeSubnetConfig(prevIntf.connectPoint(),
                                Sets.difference(new HashSet<>(prevIntf.ipAddressesList()),

@@ -25,15 +25,6 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.PortNumber;
-import org.onosproject.net.flow.DefaultTrafficSelector;
-import org.onosproject.net.flow.DefaultTrafficTreatment;
-import org.onosproject.net.flow.TrafficSelector;
-import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.net.flowobjective.DefaultForwardingObjective;
-import org.onosproject.net.flowobjective.DefaultObjectiveContext;
-import org.onosproject.net.flowobjective.FlowObjectiveService;
-import org.onosproject.net.flowobjective.ForwardingObjective;
-import org.onosproject.net.flowobjective.ObjectiveContext;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostLocationProbingService.ProbeMode;
 import org.onosproject.net.host.HostService;
@@ -61,7 +52,6 @@ public class HostHandler {
 
     protected final SegmentRoutingManager srManager;
     private HostService hostService;
-    private FlowObjectiveService flowObjectiveService;
 
     /**
      * Constructs the HostHandler.
@@ -71,7 +61,6 @@ public class HostHandler {
     HostHandler(SegmentRoutingManager srManager) {
         this.srManager = srManager;
         hostService = srManager.hostService;
-        flowObjectiveService = srManager.flowObjectiveService;
     }
 
     protected void init(DeviceId devId) {
@@ -108,19 +97,16 @@ public class HostHandler {
         Set<IpAddress> ips = host.ipAddresses();
         log.info("Host {}/{} is added at {}", hostMac, hostVlanId, locations);
 
-        if (srManager.isMasterOf(location)) {
-            processBridgingRule(location.deviceId(), location.port(), hostMac, hostVlanId, false);
-            ips.forEach(ip ->
-                    processRoutingRule(location.deviceId(), location.port(), hostMac, hostVlanId, ip, false)
-            );
-        }
+        processBridgingRule(location.deviceId(), location.port(), hostMac, hostVlanId, false);
+        ips.forEach(ip ->
+                processRoutingRule(location.deviceId(), location.port(), hostMac, hostVlanId, ip, false)
+        );
 
         // Use the pair link temporarily before the second location of a dual-homed host shows up.
         // This do not affect single-homed hosts since the flow will be blocked in
         // processBridgingRule or processRoutingRule due to VLAN or IP mismatch respectively
         srManager.getPairDeviceId(location.deviceId()).ifPresent(pairDeviceId -> {
-            if (srManager.mastershipService.isLocalMaster(pairDeviceId) &&
-                    host.locations().stream().noneMatch(l -> l.deviceId().equals(pairDeviceId))) {
+            if (host.locations().stream().noneMatch(l -> l.deviceId().equals(pairDeviceId))) {
                 srManager.getPairLocalPorts(pairDeviceId).ifPresent(pairRemotePort -> {
                     // NOTE: Since the pairLocalPort is trunk port, use assigned vlan of original port
                     //       when the host is untagged
@@ -150,18 +136,15 @@ public class HostHandler {
         log.info("Host {}/{} is removed from {}", hostMac, hostVlanId, locations);
 
         locations.forEach(location -> {
-            if (srManager.isMasterOf(location)) {
-                processBridgingRule(location.deviceId(), location.port(), hostMac, hostVlanId, true);
-                ips.forEach(ip ->
-                        processRoutingRule(location.deviceId(), location.port(), hostMac, hostVlanId, ip, true)
-                );
-            }
+            processBridgingRule(location.deviceId(), location.port(), hostMac, hostVlanId, true);
+            ips.forEach(ip ->
+                    processRoutingRule(location.deviceId(), location.port(), hostMac, hostVlanId, ip, true)
+            );
 
             // Also remove redirection flows on the pair device if exists.
             Optional<DeviceId> pairDeviceId = srManager.getPairDeviceId(location.deviceId());
             Optional<PortNumber> pairLocalPort = srManager.getPairLocalPorts(location.deviceId());
-            if (pairDeviceId.isPresent() && pairLocalPort.isPresent() &&
-                    srManager.mastershipService.isLocalMaster(pairDeviceId.get())) {
+            if (pairDeviceId.isPresent() && pairLocalPort.isPresent()) {
                 // NOTE: Since the pairLocalPort is trunk port, use assigned vlan of original port
                 //       when the host is untagged
                 VlanId vlanId = Optional.ofNullable(srManager.getInternalVlanId(location)).orElse(hostVlanId);
@@ -202,8 +185,7 @@ public class HostHandler {
                 .collect(Collectors.toSet());
 
         // For each old location
-        Sets.difference(prevLocations, newLocations).stream().filter(srManager::isMasterOf)
-                .forEach(prevLocation -> {
+        Sets.difference(prevLocations, newLocations).forEach(prevLocation -> {
             // Remove routing rules for old IPs
             Sets.difference(prevIps, newIps).forEach(ip ->
                     processRoutingRule(prevLocation.deviceId(), prevLocation.port(), hostMac, hostVlanId,
@@ -263,7 +245,7 @@ public class HostHandler {
         });
 
         // For each new location, add all new IPs.
-        Sets.difference(newLocations, prevLocations).stream().filter(srManager::isMasterOf)
+        Sets.difference(newLocations, prevLocations).stream()
                 .forEach(newLocation -> {
             processBridgingRule(newLocation.deviceId(), newLocation.port(), hostMac, hostVlanId, false);
             newIps.forEach(ip ->
@@ -273,7 +255,7 @@ public class HostHandler {
         });
 
         // For each unchanged location, add new IPs and remove old IPs.
-        Sets.intersection(newLocations, prevLocations).stream().filter(srManager::isMasterOf)
+        Sets.intersection(newLocations, prevLocations).stream()
                 .forEach(unchangedLocation -> {
             Sets.difference(prevIps, newIps).forEach(ip ->
                     processRoutingRule(unchangedLocation.deviceId(), unchangedLocation.port(), hostMac,
@@ -305,7 +287,7 @@ public class HostHandler {
         Set<IpAddress> newIps = host.ipAddresses();
         log.info("Host {}/{} is updated", hostMac, hostVlanId);
 
-        locations.stream().filter(srManager::isMasterOf).forEach(location -> {
+        locations.forEach(location -> {
             Sets.difference(prevIps, newIps).forEach(ip ->
                     processRoutingRule(location.deviceId(), location.port(), hostMac, hostVlanId, ip, true)
             );
@@ -319,8 +301,7 @@ public class HostHandler {
         // processBridgingRule or processRoutingRule due to VLAN or IP mismatch respectively
         locations.forEach(location ->
             srManager.getPairDeviceId(location.deviceId()).ifPresent(pairDeviceId -> {
-                if (srManager.mastershipService.isLocalMaster(pairDeviceId) &&
-                        locations.stream().noneMatch(l -> l.deviceId().equals(pairDeviceId))) {
+                if (locations.stream().noneMatch(l -> l.deviceId().equals(pairDeviceId))) {
                     Set<IpAddress> ipsToAdd = Sets.difference(newIps, prevIps);
                     Set<IpAddress> ipsToRemove = Sets.difference(prevIps, newIps);
 
@@ -408,81 +389,6 @@ public class HostHandler {
     }
 
     /**
-     * Generates a forwarding objective builder for bridging rules.
-     * <p>
-     * The forwarding objective bridges packets destined to a given MAC to
-     * given port on given device.
-     *
-     * @param deviceId Device that host attaches to
-     * @param mac MAC address of the host
-     * @param hostVlanId VLAN ID of the host
-     * @param outport Port that host attaches to
-     * @param revoke true if forwarding objective is meant to revoke forwarding rule
-     * @return Forwarding objective builder
-     */
-    ForwardingObjective.Builder bridgingFwdObjBuilder(
-            DeviceId deviceId, MacAddress mac, VlanId hostVlanId,
-            PortNumber outport, boolean revoke) {
-        ConnectPoint connectPoint = new ConnectPoint(deviceId, outport);
-        VlanId untaggedVlan = srManager.getUntaggedVlanId(connectPoint);
-        Set<VlanId> taggedVlans = srManager.getTaggedVlanId(connectPoint);
-        VlanId nativeVlan = srManager.getNativeVlanId(connectPoint);
-
-        // Create host selector
-        TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
-        sbuilder.matchEthDst(mac);
-
-        // Create host treatment
-        TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder();
-        tbuilder.immediate().setOutput(outport);
-
-        // Create host meta
-        TrafficSelector.Builder mbuilder = DefaultTrafficSelector.builder();
-
-        // Adjust the selector, treatment and meta according to VLAN configuration
-        if (taggedVlans.contains(hostVlanId)) {
-            sbuilder.matchVlanId(hostVlanId);
-            mbuilder.matchVlanId(hostVlanId);
-        } else if (hostVlanId.equals(VlanId.NONE)) {
-            if (untaggedVlan != null) {
-                sbuilder.matchVlanId(untaggedVlan);
-                mbuilder.matchVlanId(untaggedVlan);
-                tbuilder.immediate().popVlan();
-            } else if (nativeVlan != null) {
-                sbuilder.matchVlanId(nativeVlan);
-                mbuilder.matchVlanId(nativeVlan);
-                tbuilder.immediate().popVlan();
-            } else {
-                log.warn("Untagged host {}/{} is not allowed on {} without untagged or native" +
-                        "vlan config", mac, hostVlanId, connectPoint);
-                return null;
-            }
-        } else {
-            log.warn("Tagged host {}/{} is not allowed on {} without VLAN listed in tagged vlan",
-                    mac, hostVlanId, connectPoint);
-            return null;
-        }
-
-        // All forwarding is via Groups. Drivers can re-purpose to flow-actions if needed.
-        // If the objective is to revoke an existing rule, and for some reason
-        // the next-objective does not exist, then a new one should not be created
-        int portNextObjId = srManager.getPortNextObjectiveId(deviceId, outport,
-                tbuilder.build(), mbuilder.build(), !revoke);
-        if (portNextObjId == -1) {
-            // Warning log will come from getPortNextObjective method
-            return null;
-        }
-
-        return DefaultForwardingObjective.builder()
-                .withFlag(ForwardingObjective.Flag.SPECIFIC)
-                .withSelector(sbuilder.build())
-                .nextStep(portNextObjId)
-                .withPriority(100)
-                .fromApp(srManager.appId)
-                .makePermanent();
-    }
-
-    /**
      * Populate or revoke a bridging rule on given deviceId that matches given mac, given vlan and
      * output to given port.
      *
@@ -494,21 +400,14 @@ public class HostHandler {
      */
     private void processBridgingRule(DeviceId deviceId, PortNumber port, MacAddress mac,
                                      VlanId vlanId, boolean revoke) {
-        log.debug("{} bridging entry for host {}/{} at {}:{}", revoke ? "Revoking" : "Populating",
+        log.info("{} bridging entry for host {}/{} at {}:{}", revoke ? "Revoking" : "Populating",
                 mac, vlanId, deviceId, port);
 
-        ForwardingObjective.Builder fob = bridgingFwdObjBuilder(deviceId, mac, vlanId, port, revoke);
-        if (fob == null) {
-            log.warn("Fail to build fwd obj for host {}/{}. Abort.", mac, vlanId);
-            return;
+        if (!revoke) {
+            srManager.defaultRoutingHandler.populateBridging(deviceId, port, mac, vlanId);
+        } else {
+            srManager.defaultRoutingHandler.revokeBridging(deviceId, port, mac, vlanId);
         }
-
-        ObjectiveContext context = new DefaultObjectiveContext(
-                (objective) -> log.debug("Brigding rule for {}/{} {}", mac, vlanId,
-                        revoke ? "revoked" : "populated"),
-                (objective, error) -> log.warn("Failed to {} bridging rule for {}/{}: {}",
-                        revoke ? "revoked" : "populated", mac, vlanId, error));
-        flowObjectiveService.forward(deviceId, revoke ? fob.remove(context) : fob.add(context));
     }
 
     /**
@@ -538,59 +437,7 @@ public class HostHandler {
         }
     }
 
-    /**
-     * Populate or revoke a bridging rule on given deviceId that matches given vlanId,
-     * and hostMAC connected to given port, and output to given port only when
-     * vlan information is valid.
-     *
-     * @param deviceId device ID that host attaches to
-     * @param portNum port number that host attaches to
-     * @param hostMac mac address of the host connected to the switch port
-     * @param vlanId Vlan ID configured on the switch port
-     * @param popVlan true to pop Vlan tag at TrafficTreatment, false otherwise
-     * @param install true to populate the objective, false to revoke
-     */
-    private void updateBridgingRule(DeviceId deviceId, PortNumber portNum, MacAddress hostMac,
-                            VlanId vlanId, boolean popVlan, boolean install) {
-        // Create host selector
-        TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
-        sbuilder.matchEthDst(hostMac);
 
-        // Create host meta
-        TrafficSelector.Builder mbuilder = DefaultTrafficSelector.builder();
-
-        sbuilder.matchVlanId(vlanId);
-        mbuilder.matchVlanId(vlanId);
-
-        // Create host treatment
-        TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder();
-        tbuilder.immediate().setOutput(portNum);
-
-        if (popVlan) {
-            tbuilder.immediate().popVlan();
-        }
-
-        int portNextObjId = srManager.getPortNextObjectiveId(deviceId, portNum,
-                                                             tbuilder.build(), mbuilder.build(), install);
-        if (portNextObjId != -1) {
-            ForwardingObjective.Builder fob = DefaultForwardingObjective.builder()
-                    .withFlag(ForwardingObjective.Flag.SPECIFIC)
-                    .withSelector(sbuilder.build())
-                    .nextStep(portNextObjId)
-                    .withPriority(100)
-                    .fromApp(srManager.appId)
-                    .makePermanent();
-
-            ObjectiveContext context = new DefaultObjectiveContext(
-                    (objective) -> log.debug("Brigding rule for {}/{} {}", hostMac, vlanId,
-                                             install ? "populated" : "revoked"),
-                    (objective, error) -> log.warn("Failed to {} bridging rule for {}/{}: {}",
-                                                   install ? "populate" : "revoke", hostMac, vlanId, error));
-            flowObjectiveService.forward(deviceId, install ? fob.add(context) : fob.remove(context));
-        } else {
-            log.warn("Failed to retrieve next objective for {}/{}", hostMac, vlanId);
-        }
-    }
 
     /**
      * Update forwarding objective for unicast bridging and unicast routing.
@@ -618,11 +465,11 @@ public class HostHandler {
             // Check whether the host vlan is valid for new interface configuration
             if ((!popVlan && hostVlanId.equals(vlanId)) ||
                     (popVlan && hostVlanId.equals(VlanId.NONE))) {
-                updateBridgingRule(deviceId, portNum, mac, vlanId, popVlan, install);
+                srManager.defaultRoutingHandler.updateBridging(deviceId, portNum, mac, vlanId, popVlan, install);
                 // Update Forwarding objective and corresponding simple Next objective
                 // for each host and IP address connected to given port
                 host.ipAddresses().forEach(ipAddress ->
-                    srManager.routingRulePopulator.updateFwdObj(deviceId, portNum, ipAddress.toIpPrefix(),
+                    srManager.defaultRoutingHandler.updateFwdObj(deviceId, portNum, ipAddress.toIpPrefix(),
                                                                 mac, vlanId, popVlan, install)
                 );
             }
@@ -649,10 +496,10 @@ public class HostHandler {
             host.ipAddresses().forEach(hostIpAddress -> {
                 ipPrefixSet.forEach(ipPrefix -> {
                     if (install && ipPrefix.contains(hostIpAddress)) {
-                            srManager.routingRulePopulator.populateRoute(cp.deviceId(), hostIpAddress.toIpPrefix(),
+                            srManager.defaultRoutingHandler.populateRoute(cp.deviceId(), hostIpAddress.toIpPrefix(),
                                                                          host.mac(), host.vlan(), cp.port());
                     } else if (!install && ipPrefix.contains(hostIpAddress)) {
-                            srManager.routingRulePopulator.revokeRoute(cp.deviceId(), hostIpAddress.toIpPrefix(),
+                            srManager.defaultRoutingHandler.revokeRoute(cp.deviceId(), hostIpAddress.toIpPrefix(),
                                                                        host.mac(), host.vlan(), cp.port());
                     }
                 });

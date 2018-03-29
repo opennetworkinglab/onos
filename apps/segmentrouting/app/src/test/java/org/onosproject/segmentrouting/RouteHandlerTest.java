@@ -45,10 +45,13 @@ import org.onosproject.routeservice.Route;
 import org.onosproject.routeservice.RouteEvent;
 import org.onosproject.segmentrouting.config.DeviceConfiguration;
 import org.onosproject.segmentrouting.config.SegmentRoutingDeviceConfig;
+import org.onosproject.store.service.StorageService;
+import org.onosproject.store.service.TestConsistentMap;
 
 import java.util.Map;
 import java.util.Set;
 
+import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.reset;
 import static org.junit.Assert.*;
 import static org.easymock.EasyMock.createMock;
@@ -141,6 +144,9 @@ public class RouteHandlerTest {
 
         // Initialize Segment Routing Manager
         srManager = new MockSegmentRoutingManager(NEXT_TABLE);
+        srManager.storageService = createMock(StorageService.class);
+        expect(srManager.storageService.consistentMapBuilder()).andReturn(new TestConsistentMap.Builder<>()).anyTimes();
+        replay(srManager.storageService);
         srManager.cfgService = new NetworkConfigRegistryAdapter();
         srManager.deviceConfiguration = createMock(DeviceConfiguration.class);
         srManager.flowObjectiveService = new MockFlowObjectiveService(BRIDGING_TABLE, NEXT_TABLE);
