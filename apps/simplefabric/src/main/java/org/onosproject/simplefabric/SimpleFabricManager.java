@@ -221,7 +221,7 @@ public class SimpleFabricManager extends ListenerRegistry<SimpleFabricEvent, Sim
         SimpleFabricConfig config = configService.getConfig(coreService.registerApplication(APP_ID),
                                                             SimpleFabricConfig.class);
         if (config == null) {
-            log.debug("No reactive routing config available!");
+            log.debug("No simple fabric config available!");
             return false;
         }
 
@@ -520,6 +520,7 @@ public class SimpleFabricManager extends ListenerRegistry<SimpleFabricEvent, Sim
     // Refresh action thread and notifier
 
     private class InternalRefreshThread extends Thread {
+        @Override
         public void run() {
             while (true) {
                 boolean doRefreshMarked = false;
