@@ -22,7 +22,11 @@ COMPILE_DEPS = [
     '//models/openconfig:onos-models-openconfig',
     '//apps/yang:onos-apps-yang',
     '//incubator/api:onos-incubator-api',
-    '//lib:COMPILE'
+    '//lib:org.apache.karaf.shell.console',
+    '//cli:onos-cli',
+    '//lib:JACKSON',
+    '//lib:COMPILE',
+    '//protocols/netconf/api:onos-protocols-netconf-api'
 ]
 
 TEST_DEPS = [
