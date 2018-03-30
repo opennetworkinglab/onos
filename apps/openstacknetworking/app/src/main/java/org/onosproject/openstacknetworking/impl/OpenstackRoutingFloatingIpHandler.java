@@ -71,7 +71,7 @@ import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_EXTERNA
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_FLOATING_EXTERNAL;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_FLOATING_INTERNAL;
 import static org.onosproject.openstacknetworking.api.Constants.ROUTING_TABLE;
-import static org.onosproject.openstacknetworking.impl.RulePopulatorUtil.buildExtension;
+import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.buildExtension;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
 
 /**

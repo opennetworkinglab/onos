@@ -15,7 +15,6 @@
  */
 package org.onosproject.openstacknetworking.impl;
 
-
 import com.google.common.base.Strings;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;

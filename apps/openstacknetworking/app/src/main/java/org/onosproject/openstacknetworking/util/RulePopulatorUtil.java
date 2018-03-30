@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.openstacknetworking.impl;
+package org.onosproject.openstacknetworking.util;
 
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;

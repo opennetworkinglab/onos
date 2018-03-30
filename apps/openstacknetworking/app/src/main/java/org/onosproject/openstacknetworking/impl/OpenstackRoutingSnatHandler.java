@@ -48,6 +48,7 @@ import org.onosproject.openstacknetworking.api.InstancePortService;
 import org.onosproject.openstacknetworking.api.OpenstackFlowRuleService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.onosproject.openstacknetworking.api.OpenstackRouterService;
+import org.onosproject.openstacknetworking.util.RulePopulatorUtil;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
 import org.onosproject.store.serializers.KryoNamespaces;

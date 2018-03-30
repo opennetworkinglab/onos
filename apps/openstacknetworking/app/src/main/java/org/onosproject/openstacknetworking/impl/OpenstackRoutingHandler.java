@@ -59,6 +59,7 @@ import org.onosproject.openstacknetworking.api.OpenstackNetworkAdminService;
 import org.onosproject.openstacknetworking.api.OpenstackRouterEvent;
 import org.onosproject.openstacknetworking.api.OpenstackRouterListener;
 import org.onosproject.openstacknetworking.api.OpenstackRouterService;
+import org.onosproject.openstacknetworking.util.RulePopulatorUtil;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNode.NetworkMode;
 import org.onosproject.openstacknode.api.OpenstackNodeEvent;
@@ -95,7 +96,7 @@ import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_INTERNA
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_STATEFUL_SNAT_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_SWITCHING_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.ROUTING_TABLE;
-import static org.onosproject.openstacknetworking.impl.RulePopulatorUtil.buildExtension;
+import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.buildExtension;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
 
