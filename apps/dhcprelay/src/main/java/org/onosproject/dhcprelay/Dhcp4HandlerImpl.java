@@ -19,6 +19,7 @@ package org.onosproject.dhcprelay;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.Sets;
@@ -682,7 +683,7 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
             log.warn("Missing DHCP relay agent interface Ipv4 addr config for "
                             + "packet from client on port: {}. Aborting packet processing",
                     clientInterfaces.iterator().next().connectPoint());
-            return null;
+            return Lists.newArrayList();
         }
         log.debug("Multi DHCP V4 processDhcpPacketFromClient on port {}",
                    clientInterfaces.iterator().next().connectPoint());
@@ -707,7 +708,7 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
         if (clientInterfaceIp == null) {
             log.warn("Can't find interface IP for client interface for port {}",
                     context.inPacket().receivedFrom());
-            return null;
+            return Lists.newArrayList();
         }
 
         boolean isDirectlyConnected = directlyConnected(dhcpPacket);
@@ -752,7 +753,6 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
             log.debug("Interfacing server {} Mac : {} ", ipFacingServer, macFacingServer);
             if (ipFacingServer == null || macFacingServer == null) {
                 log.warn("No IP address for server Interface {}", serverInterface);
-                //return null;
                 continue;
             }
 

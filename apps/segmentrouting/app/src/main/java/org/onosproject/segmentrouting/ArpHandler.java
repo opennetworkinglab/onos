@@ -102,6 +102,11 @@ public class ArpHandler extends SegmentRoutingNeighbourHandler {
         // ARP request for router. Send ARP reply.
         if (isArpForRouter(pkt)) {
             MacAddress targetMac = config.getRouterMacForAGatewayIp(pkt.target().getIp4Address());
+            if (targetMac == null) {
+                log.warn("Router MAC of {} is not configured. Cannot handle ARP request from {}",
+                        pkt.inPort().deviceId(), pkt.sender());
+                return;
+            }
             sendResponse(pkt, targetMac, hostService);
         } else {
             // NOTE: Ignore ARP packets except those target for the router
