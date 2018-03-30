@@ -292,6 +292,9 @@ public final class OpenstackSwitchingHostProvider extends AbstractProvider imple
         public boolean isRelevant(OpenstackNodeEvent event) {
             // do not allow to proceed without mastership
             Device device = deviceService.getDevice(event.subject().intgBridge());
+            if (device == null) {
+                return false;
+            }
             return mastershipService.isLocalMaster(device.id());
         }
 
