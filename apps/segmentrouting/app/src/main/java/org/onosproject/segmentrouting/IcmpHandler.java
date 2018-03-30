@@ -328,6 +328,11 @@ public class IcmpHandler extends SegmentRoutingNeighbourHandler {
         if (isNdpForGateway(pkt)) {
             log.trace("Sending NDP reply on behalf of gateway IP for pkt: {}", pkt.target());
             MacAddress routerMac = config.getRouterMacForAGatewayIp(pkt.target());
+            if (routerMac == null) {
+                log.warn("Router MAC of {} is not configured. Cannot handle NDP request from {}",
+                        pkt.inPort().deviceId(), pkt.sender());
+                return;
+            }
             sendResponse(pkt, routerMac, hostService);
         } else {
 
