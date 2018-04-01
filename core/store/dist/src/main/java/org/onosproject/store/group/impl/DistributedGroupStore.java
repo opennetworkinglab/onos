@@ -35,6 +35,7 @@ import org.onosproject.core.GroupId;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
+import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.group.DefaultGroup;
 import org.onosproject.net.group.DefaultGroupBucket;
 import org.onosproject.net.group.DefaultGroupDescription;
@@ -129,6 +130,11 @@ public class DistributedGroupStore
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService cfgService;
+
+    // Guarantees enabling DriverService before enabling GroupStore
+    // (DriverService is used in serializing/de-serializing DefaultGroup)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DriverService driverService;
 
     private ScheduledExecutorService executor;
     private Consumer<Status> statusChangeListener;
