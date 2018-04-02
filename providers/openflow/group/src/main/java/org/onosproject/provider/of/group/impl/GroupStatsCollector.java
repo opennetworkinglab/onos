@@ -99,8 +99,8 @@ public class GroupStatsCollector implements TimerTask {
 
         if (sw.features().getCapabilities().contains(OFCapabilities.GROUP_STATS)) {
             long xid = OpenFlowGroupProvider.getXidAndAdd(2);
-            sendGroupDescStatisticRequest(xid);
-            sendGroupStatisticRequest(xid + 1);
+            sendGroupStatisticRequest(xid);
+            sendGroupDescStatisticRequest(xid + 1);
         } else {
             long xid = OpenFlowGroupProvider.getXidAndAdd(1);
             sendGroupDescStatisticRequest(xid);
