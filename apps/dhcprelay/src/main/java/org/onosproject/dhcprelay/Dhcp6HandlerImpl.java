@@ -444,7 +444,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
                     return;
                 }
                 log.info("client " + clientAddress + " is known !");
-                Route routeForIP6 = new Route(Route.Source.STATIC, clientAddress.toIpPrefix(), nextHopIp);
+                Route routeForIP6 = new Route(Route.Source.DHCP, clientAddress.toIpPrefix(), nextHopIp);
                 log.debug("updating route of Client for indirectly connected.");
                 log.debug("client ip: " + clientAddress + ", next hop ip6: " + nextHopIp);
                 routeStore.updateRoute(routeForIP6);
@@ -766,7 +766,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
                 log.debug("ip is null");
             } else {
                 if (isMsgRelease) {
-                    Route routeForIP = new Route(Route.Source.STATIC, ipInfo.ip6Address.toIpPrefix(), nextHopIp);
+                    Route routeForIP = new Route(Route.Source.DHCP, ipInfo.ip6Address.toIpPrefix(), nextHopIp);
                     log.debug("removing route of 128 address for indirectly connected.");
                     log.debug("128 ip {}, nexthop {}",
                             HexString.toHexString(ipInfo.ip6Address.toOctets(), ":"),
@@ -780,7 +780,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
                 log.debug("ipPrefix is null ");
             } else {
                 if (isMsgRelease) {
-                    Route routeForPrefix = new Route(Route.Source.STATIC, pdInfo.pdPrefix, nextHopIp);
+                    Route routeForPrefix = new Route(Route.Source.DHCP, pdInfo.pdPrefix, nextHopIp);
                     log.debug("removing route of PD for indirectly connected.");
                     log.debug("pd ip {}, nexthop {}",
                             HexString.toHexString(pdInfo.pdPrefix.address().toOctets(), ":"),
@@ -930,7 +930,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
                 log.debug("ip is null");
             } else {
                 if (isMsgReply) {
-                    Route routeForIP = new Route(Route.Source.STATIC, ipInfo.ip6Address.toIpPrefix(), nextHopIp);
+                    Route routeForIP = new Route(Route.Source.DHCP, ipInfo.ip6Address.toIpPrefix(), nextHopIp);
                     log.debug("adding Route of 128 address for indirectly connected.");
                     routeStore.updateRoute(routeForIP);
                 }
@@ -941,7 +941,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
                 log.debug("ipPrefix is null ");
             } else {
                 if (isMsgReply) {
-                    Route routeForPrefix = new Route(Route.Source.STATIC, pdInfo.pdPrefix, nextHopIp);
+                    Route routeForPrefix = new Route(Route.Source.DHCP, pdInfo.pdPrefix, nextHopIp);
                     log.debug("adding Route of PD for indirectly connected.");
                     routeStore.updateRoute(routeForPrefix);
                     if (this.dhcpFpmEnabled) {
@@ -1030,7 +1030,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
 
         // 1. only if there is a route to remove - remove it
         if (nextHopIp != null) {
-            Route routeForIP6 = new Route(Route.Source.STATIC, clientAddress.toIpPrefix(), nextHopIp);
+            Route routeForIP6 = new Route(Route.Source.DHCP, clientAddress.toIpPrefix(), nextHopIp);
             log.debug("Removing route of Client " + clientAddress +
                               " for indirectly connected - next hop ip6 " + nextHopIp);
             routeStore.removeRoute(routeForIP6);
@@ -1917,7 +1917,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
                                 IpAddress nextHopIp = getFirstIpByHost(record.directlyConnected(),
                                         gwMac,
                                         record.vlanId());
-                                Route route = new Route(Route.Source.STATIC, ip.toIpPrefix(), nextHopIp);
+                                Route route = new Route(Route.Source.DHCP, ip.toIpPrefix(), nextHopIp);
                                 routeStore.removeRoute(route);
                             }
                             record.updateAddrPrefTime(0);
@@ -1947,7 +1947,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
                                 IpAddress nextHopIp = getFirstIpByHost(record.directlyConnected(),
                                         gwMac,
                                         record.vlanId());
-                                Route route = new Route(Route.Source.STATIC, pdIpPrefix, nextHopIp);
+                                Route route = new Route(Route.Source.DHCP, pdIpPrefix, nextHopIp);
                                 routeStore.removeRoute(route);
                                 if (this.dhcpFpmEnabled) {
                                     dhcpFpmPrefixStore.removeFpmRecord(pdIpPrefix);

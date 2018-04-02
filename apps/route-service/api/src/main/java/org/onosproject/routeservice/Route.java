@@ -61,6 +61,11 @@ public class Route {
         STATIC,
 
         /**
+         * Route can from the DHCP route source.
+         */
+        DHCP,
+
+        /**
          * Route source was not defined.
          */
         UNDEFINED
