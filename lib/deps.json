@@ -200,7 +200,7 @@
     "netty-codec-http2": "mvn:io.netty:netty-codec-http2:4.1.8.Final",
     "netty-codec-http": "mvn:io.netty:netty-codec-http:4.1.8.Final",
     "objenesis": "mvn:org.objenesis:objenesis:2.6",
-    "openflowj": "mvn:org.onosproject:openflowj:3.2.0.onos",
+    "openflowj": "mvn:org.onosproject:openflowj:3.2.1.onos",
     "org.apache.felix.framework.security": "mvn:org.onosproject:org.apache.felix.framework.security:jar:2.2.0.onos",
     "org.apache.felix.scr": "mvn:org.apache.felix:org.apache.felix.scr:1.8.2",
     "org.apache.felix.scr.annotations": "mvn:org.apache.felix:org.apache.felix.scr.annotations:1.9.12",

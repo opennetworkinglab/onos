@@ -798,6 +798,7 @@ public class FlowEntryBuilder {
         case OFDPA_MPLS_TYPE:
         case OFDPA_OVID:
         case OFDPA_MPLS_L2_PORT:
+        case OFDPA_ALLOW_VLAN_TRANSLATION:
         case OFDPA_QOS_INDEX:
             if (treatmentInterpreter != null) {
                 try {
@@ -1277,6 +1278,31 @@ public class FlowEntryBuilder {
                     }
                 }
                 break;
+                case OFDPA_ALLOW_VLAN_TRANSLATION:
+                    if (selectorInterpreter != null &&
+                            selectorInterpreter.supported(
+                                    ExtensionSelectorTypes.OFDPA_MATCH_ALLOW_VLAN_TRANSLATION.type())) {
+                        if (isOF13OrLater(match)) {
+                            OFOxm oxm = ((OFMatchV3) match).getOxmList().get(MatchField.OFDPA_ALLOW_VLAN_TRANSLATION);
+                            builder.extension(selectorInterpreter.mapOxm(oxm),
+                                              deviceId);
+                        } else {
+                            break;
+                        }
+                    }
+                    break;
+                case OFDPA_ACTSET_OUTPUT:
+                    if (selectorInterpreter != null &&
+                            selectorInterpreter.supported(ExtensionSelectorTypes.OFDPA_MATCH_ACTSET_OUTPUT.type())) {
+                        if (isOF13OrLater(match)) {
+                            OFOxm oxm = ((OFMatchV3) match).getOxmList().get(MatchField.OFDPA_ACTSET_OUTPUT);
+                            builder.extension(selectorInterpreter.mapOxm(oxm),
+                                              deviceId);
+                        } else {
+                            break;
+                        }
+                    }
+                    break;
             case MPLS_TC:
             default:
                 log.warn("Match type {} not yet implemented.", field.id);

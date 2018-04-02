@@ -29,8 +29,11 @@ import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
 import org.projectfloodlight.openflow.protocol.action.OFActionExperimenter;
 import org.projectfloodlight.openflow.protocol.action.OFActionOfdpa;
+import org.projectfloodlight.openflow.protocol.action.OFActionOnf;
+import org.projectfloodlight.openflow.protocol.action.OFActionOnfCopyField;
 import org.projectfloodlight.openflow.protocol.action.OFActionSetField;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxm;
+import org.projectfloodlight.openflow.protocol.oxm.OFOxmOfdpaAllowVlanTranslation;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxmOfdpaMplsL2Port;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxmOfdpaMplsType;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxmOfdpaOvid;
@@ -51,11 +54,12 @@ public class Ofdpa3ExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
         implements ExtensionTreatmentInterpreter, ExtensionTreatmentResolver {
 
     private static final int TYPE_OFDPA = 0x1018;
+    private static final int TYPE_ONF = 0x4f4e4600;
     private static final int SUB_TYPE_PUSH_L2_HEADER = 1;
     private static final int SUB_TYPE_POP_L2_HEADER = 2;
     private static final int SUB_TYPE_PUSH_CW = 3;
     private static final int SUB_TYPE_POP_CW = 4;
-
+    private static final int SUB_TYPE_COPY_FIELD = 3200;
     private static final String TYPE = "type";
     private static final String MISSING_MEMBER_MESSAGE = " member is required in Ofdpa3ExtensionTreatmentInterpreter";
     private static final String MISSING_TREATMENT_MESSAGE = "Extension treatment cannot be null";
@@ -89,7 +93,14 @@ public class Ofdpa3ExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
         } else if (extensionTreatmentType.equals(
                 ExtensionTreatmentType.ExtensionTreatmentTypes.OFDPA_POP_CW.type())) {
             return true;
+        } else if (extensionTreatmentType.equals(
+                ExtensionTreatmentType.ExtensionTreatmentTypes.OFDPA_ALLOW_VLAN_TRANSLATION.type())) {
+            return true;
+        } else if (extensionTreatmentType.equals(
+                ExtensionTreatmentType.ExtensionTreatmentTypes.ONF_COPY_FIELD.type())) {
+            return true;
         }
+
         return false;
     }
 
@@ -141,8 +152,25 @@ public class Ofdpa3ExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
             return factory.actions().ofdpaPopL2Header();
         } else if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.OFDPA_POP_CW.type())) {
             return factory.actions().ofdpaPopCw();
+        } else if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.OFDPA_ALLOW_VLAN_TRANSLATION.type())) {
+            byte allow = ((OfdpaSetAllowVlanTranslation) extensionTreatment).getVlanTranslation();
+            return factory.actions().setField(factory.oxms().ofdpaAllowVlanTranslation(
+                    U8.ofRaw(allow)));
+       } else if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.ONF_COPY_FIELD.type())) {
+             Ofdpa3CopyField copyField = (Ofdpa3CopyField) extensionTreatment;
+
+             // this action uses the ONF experimenter id thus
+             // we differentiate here, but, we should treat the extensionTreatment
+             // as an ofdpa3 treatment, because it is ofdpa specific.
+            return factory.actions().buildOnfCopyField()
+                    .setDstOffset(copyField.getDstOffset())
+                    .setSrcOffset(copyField.getSrcOffset())
+                    .setNBits(copyField.getnBits())
+                    .setSrc(copyField.getSrc())
+                    .setDst(copyField.getDst())
+                    .build();
         }
-        throw new UnsupportedOperationException(
+            throw new UnsupportedOperationException(
                 "Unexpected ExtensionTreatment: " + extensionTreatment.toString());
     }
 
@@ -176,6 +204,13 @@ public class Ofdpa3ExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
                         return new Ofdpa3SetQosIndex(qosIndex);
                     }
                     break;
+                case OFDPA_ALLOW_VLAN_TRANSLATION:
+                    OFOxmOfdpaAllowVlanTranslation allowVlanTranslation = (OFOxmOfdpaAllowVlanTranslation) oxm;
+                    Byte allowVlan = allowVlanTranslation.getValue().getRaw();
+                    if ((allowVlan == 0) || (allowVlan == 1)) {
+                        return new OfdpaSetAllowVlanTranslation(allowVlan);
+                    }
+                    break;
                 default:
                     throw new UnsupportedOperationException(
                             "Driver does not support extension type " + oxm.getMatchField().id);
@@ -193,6 +228,19 @@ public class Ofdpa3ExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
                         return new Ofdpa3PushCw();
                     case SUB_TYPE_POP_CW:
                         return new Ofdpa3PopCw();
+                    default:
+                        throw new UnsupportedOperationException(
+                                "Unexpected OFAction: " + action.toString());
+                }
+            } else if (Long.valueOf(experimenter.getExperimenter()).intValue() == TYPE_ONF) {
+                OFActionOnf onf = (OFActionOnf) experimenter;
+                switch (onf.getExpType()) {
+                    case SUB_TYPE_COPY_FIELD:
+                        return new Ofdpa3CopyField(((OFActionOnfCopyField) onf).getNBits(),
+                                                   ((OFActionOnfCopyField) onf).getSrcOffset(),
+                                                   ((OFActionOnfCopyField) onf).getDstOffset(),
+                                                   (int) ((OFActionOnfCopyField) onf).getSrc(),
+                                                   (int) ((OFActionOnfCopyField) onf).getDst());
                     default:
                         throw new UnsupportedOperationException(
                                 "Unexpected OFAction: " + action.toString());
@@ -223,6 +271,10 @@ public class Ofdpa3ExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
             return new Ofdpa3PopL2Header();
         } else if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.OFDPA_POP_CW.type())) {
             return new Ofdpa3PopCw();
+        } else if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.OFDPA_ALLOW_VLAN_TRANSLATION.type())) {
+            return new OfdpaSetAllowVlanTranslation();
+        } else if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.ONF_COPY_FIELD.type())) {
+            return new Ofdpa3CopyField();
         }
         throw new UnsupportedOperationException(NOT_SUPPORTED_MESSAGE + type.toString());
     }
@@ -257,7 +309,12 @@ public class Ofdpa3ExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
             root.put(TYPE, ExtensionTreatmentType.ExtensionTreatmentTypes.OFDPA_POP_L2_HEADER.name());
         } else if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.OFDPA_POP_CW.type())) {
             root.put(TYPE, ExtensionTreatmentType.ExtensionTreatmentTypes.OFDPA_POP_CW.name());
+        } else if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.OFDPA_ALLOW_VLAN_TRANSLATION.type())) {
+            root.put(TYPE, ExtensionTreatmentType.ExtensionTreatmentTypes.OFDPA_ALLOW_VLAN_TRANSLATION.name());
+        } else if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.ONF_COPY_FIELD.type())) {
+            root.put(TYPE, ExtensionTreatmentType.ExtensionTreatmentTypes.ONF_COPY_FIELD.name());
         }
+
 
         return root;
     }
@@ -286,6 +343,10 @@ public class Ofdpa3ExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
             return new Ofdpa3PopL2Header();
         } else if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.OFDPA_POP_CW.name())) {
             return new Ofdpa3PopCw();
+        } else if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.OFDPA_ALLOW_VLAN_TRANSLATION.name())) {
+            return new OfdpaSetAllowVlanTranslation();
+        } else if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.ONF_COPY_FIELD.name())) {
+            return new Ofdpa3CopyField();
         } else {
             throw new UnsupportedOperationException(NOT_SUPPORTED_MESSAGE + type.toString());
         }

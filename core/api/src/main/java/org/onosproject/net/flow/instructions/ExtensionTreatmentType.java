@@ -73,7 +73,8 @@ public final class ExtensionTreatmentType {
         NICIRA_ENCAP_ETH_DST(122),
         NICIRA_ENCAP_ETH_TYPE(123),
         OPLINK_ATTENUATION(130),
-
+        OFDPA_ALLOW_VLAN_TRANSLATION(131),
+        ONF_COPY_FIELD(132),
         UNRESOLVED_TYPE(200);
 
         private ExtensionTreatmentType type;

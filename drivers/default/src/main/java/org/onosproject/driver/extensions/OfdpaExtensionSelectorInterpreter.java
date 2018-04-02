@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.onosproject.driver.extensions;
 
 import org.onlab.packet.VlanId;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.ExtensionSelectorResolver;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.flow.criteria.ExtensionSelector;
@@ -26,9 +26,13 @@ import org.onosproject.openflow.controller.ExtensionSelectorInterpreter;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.match.MatchField;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxm;
+import org.projectfloodlight.openflow.protocol.oxm.OFOxmOfdpaActsetOutput;
+import org.projectfloodlight.openflow.protocol.oxm.OFOxmOfdpaAllowVlanTranslation;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxmVlanVid;
 import org.projectfloodlight.openflow.protocol.oxm.OFOxmVlanVidMasked;
 import org.projectfloodlight.openflow.types.OFVlanVidMatch;
+import org.projectfloodlight.openflow.types.U32;
+import org.projectfloodlight.openflow.types.U8;
 import org.projectfloodlight.openflow.types.VlanVid;
 
 /**
@@ -40,6 +44,12 @@ public class OfdpaExtensionSelectorInterpreter extends AbstractHandlerBehaviour
     @Override
     public boolean supported(ExtensionSelectorType extensionSelectorType) {
         if (extensionSelectorType.equals(ExtensionSelectorTypes.OFDPA_MATCH_VLAN_VID.type())) {
+            return true;
+        } else if (extensionSelectorType.equals(
+                ExtensionSelectorType.ExtensionSelectorTypes.OFDPA_MATCH_ACTSET_OUTPUT.type())) {
+            return true;
+        } else if (extensionSelectorType.equals(
+                ExtensionSelectorTypes.OFDPA_MATCH_ALLOW_VLAN_TRANSLATION.type())) {
             return true;
         }
         return false;
@@ -61,6 +71,16 @@ public class OfdpaExtensionSelectorInterpreter extends AbstractHandlerBehaviour
             } else {
                 return factory.oxms().vlanVid(OFVlanVidMatch.ofVlanVid(VlanVid.ofVlan(vlanId.toShort())));
             }
+        } else if (type.equals(
+                ExtensionSelectorType.ExtensionSelectorTypes.OFDPA_MATCH_ACTSET_OUTPUT.type())) {
+            PortNumber port = ((OfdpaMatchActsetOutput) extensionSelector).port();
+            return factory.oxms().ofdpaActsetOutput(U32.of(port.toLong()));
+        } else if (type.equals(ExtensionSelectorTypes.OFDPA_MATCH_ALLOW_VLAN_TRANSLATION.type())) {
+
+            Short allowVlanTranslation =
+                    ((OfdpaMatchAllowVlanTranslation) extensionSelector).allowVlanTranslation();
+
+            return factory.oxms().ofdpaAllowVlanTranslation(U8.of(allowVlanTranslation));
         }
         throw new UnsupportedOperationException(
                 "Unexpected ExtensionSelector: " + extensionSelector.toString());
@@ -93,6 +113,13 @@ public class OfdpaExtensionSelectorInterpreter extends AbstractHandlerBehaviour
                 }
             }
             return new OfdpaMatchVlanVid(vlanId);
+        } else if (oxm.getMatchField().equals(MatchField.OFDPA_ACTSET_OUTPUT)) {
+            U32 portNumberU32 = ((OFOxmOfdpaActsetOutput) oxm).getValue();
+            PortNumber portNumber = PortNumber.portNumber(portNumberU32.getValue());
+            return new OfdpaMatchActsetOutput(portNumber);
+        } else if (oxm.getMatchField().equals(MatchField.OFDPA_ALLOW_VLAN_TRANSLATION)) {
+            U8 value = ((OFOxmOfdpaAllowVlanTranslation) oxm).getValue();
+            return new OfdpaMatchAllowVlanTranslation(value.getValue());
         }
         throw new UnsupportedOperationException(
                 "Unexpected OXM: " + oxm.toString());
@@ -102,6 +129,10 @@ public class OfdpaExtensionSelectorInterpreter extends AbstractHandlerBehaviour
     public ExtensionSelector getExtensionSelector(ExtensionSelectorType type) {
         if (type.equals(ExtensionSelectorType.ExtensionSelectorTypes.OFDPA_MATCH_VLAN_VID.type())) {
             return new OfdpaMatchVlanVid();
+        } else if (type.equals(ExtensionSelectorType.ExtensionSelectorTypes.OFDPA_MATCH_ACTSET_OUTPUT.type())) {
+            return new OfdpaMatchActsetOutput();
+        } else if (type.equals(ExtensionSelectorTypes.OFDPA_MATCH_ALLOW_VLAN_TRANSLATION.type())) {
+            return new OfdpaMatchAllowVlanTranslation();
         }
         throw new UnsupportedOperationException(
                 "Driver does not support extension type " + type.toString());

@@ -47,6 +47,8 @@ public class ExtensionSelectorType {
         OFDPA_MATCH_OVID(17),
         OFDPA_MATCH_MPLS_L2_PORT(18),
         EXT_MATCH_FLOW_TYPE(20),
+        OFDPA_MATCH_ACTSET_OUTPUT(19),
+        OFDPA_MATCH_ALLOW_VLAN_TRANSLATION(21),
 
         UNRESOLVED_TYPE(200);
 
