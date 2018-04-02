@@ -18,6 +18,7 @@ package org.onosproject.vtnweb.resources;
 
 import static javax.ws.rs.core.Response.Status.OK;
 import static org.onlab.util.Tools.nullIsNotFound;
+import static org.onlab.util.Tools.readTreeFromStream;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -105,7 +106,7 @@ public class PortPairWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response createPortPair(InputStream stream) {
         try {
-            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
+            ObjectNode jsonTree = readTreeFromStream(mapper(), stream);
             JsonNode port = jsonTree.get("port_pair");
             PortPair portPair = codec(PortPair.class).decode((ObjectNode) port, this);
             Boolean isSuccess = nullIsNotFound(get(PortPairService.class).createPortPair(portPair),
@@ -131,7 +132,7 @@ public class PortPairWebResource extends AbstractWebResource {
     public Response updatePortPair(@PathParam("pair_id") String id,
                                    final InputStream stream) {
         try {
-            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
+            ObjectNode jsonTree = readTreeFromStream(mapper(), stream);
             JsonNode port = jsonTree.get("port_pair");
             PortPair portPair = codec(PortPair.class).decode((ObjectNode) port, this);
             Boolean isSuccess = nullIsNotFound(get(PortPairService.class).updatePortPair(portPair),

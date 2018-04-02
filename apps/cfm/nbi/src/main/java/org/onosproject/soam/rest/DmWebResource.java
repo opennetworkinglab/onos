@@ -55,6 +55,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import static org.onlab.util.Tools.readTreeFromStream;
+
 /**
  * Layer 2 SOAM Delay Measurement web resource.
  */
@@ -199,7 +201,7 @@ public class DmWebResource extends AbstractWebResource {
             }
 
             ObjectMapper mapper = new ObjectMapper();
-            JsonNode cfg = mapper.readTree(input);
+            JsonNode cfg = readTreeFromStream(mapper, input);
             JsonCodec<DelayMeasurementCreate> dmCodec = codec(DelayMeasurementCreate.class);
 
             DelayMeasurementCreate dm = dmCodec.decode((ObjectNode) cfg, this);

@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import java.io.IOException;
 import java.io.InputStream;
 
+import static org.onlab.util.Tools.readTreeFromStream;
 import static org.slf4j.LoggerFactory.getLogger;
 
 
@@ -50,7 +51,7 @@ public final class CodecTools {
     public static ObjectNode toJson(InputStream stream) {
         ObjectNode response = null;
         try {
-            response = (ObjectNode) MAPPER.readTree(stream);
+            response = readTreeFromStream(MAPPER, stream);
         } catch (IOException e) {
             log.error("Parse json string failed {}", e.getMessage());
         }

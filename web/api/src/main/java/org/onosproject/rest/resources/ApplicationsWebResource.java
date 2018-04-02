@@ -39,6 +39,7 @@ import java.net.URL;
 import java.util.Set;
 
 import static org.onlab.util.Tools.nullIsNotFound;
+import static org.onlab.util.Tools.readTreeFromStream;
 
 /**
  * Manage inventory of applications.
@@ -96,7 +97,7 @@ public class ApplicationsWebResource extends AbstractWebResource {
     public Response installApp(InputStream raw) {
         Application app;
         try {
-            ObjectNode jsonTree = (ObjectNode) mapper().readTree(raw);
+            ObjectNode jsonTree = readTreeFromStream(mapper(), raw);
             URL url = new URL(jsonTree.get(URL).asText());
             boolean activate = false;
             if (jsonTree.has(ACTIVATE)) {

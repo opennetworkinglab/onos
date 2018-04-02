@@ -47,6 +47,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import static org.onlab.util.Tools.readTreeFromStream;
+
 /**
  * Layer 2 CFM Maintenance Association web resource.
  */
@@ -143,7 +145,7 @@ public class MaWebResource extends AbstractWebResource {
             }
 
             ObjectMapper mapper = new ObjectMapper();
-            JsonNode cfg = mapper.readTree(input);
+            JsonNode cfg = readTreeFromStream(mapper, input);
             JsonCodec<MaintenanceAssociation> maCodec =
                                             codec(MaintenanceAssociation.class);
 

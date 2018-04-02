@@ -50,6 +50,7 @@ import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.OK;
+import static org.onlab.util.Tools.readTreeFromStream;
 import static org.slf4j.LoggerFactory.getLogger;
 
 
@@ -193,7 +194,7 @@ public class RestconfWebResource extends AbstractWebResource {
         URI uri = uriInfo.getRequestUri();
 
         try {
-            ObjectNode rootNode = (ObjectNode) mapper().readTree(stream);
+            ObjectNode rootNode = readTreeFromStream(mapper(), stream);
 
             service.runPostOperationOnDataResource(uri, rootNode);
             return Response.created(uriInfo.getRequestUri()).build();
@@ -238,7 +239,7 @@ public class RestconfWebResource extends AbstractWebResource {
                                      @Context HttpServletRequest request) {
         URI uri = uriInfo.getRequestUri();
         try {
-            ObjectNode inputNode = (ObjectNode) mapper().readTree(rpcInput);
+            ObjectNode inputNode = readTreeFromStream(mapper(), rpcInput);
             CompletableFuture<RestconfRpcOutput> rpcFuture = service.runRpc(uri,
                                                                             inputNode,
                                                                             request.getRemoteAddr());
@@ -297,7 +298,7 @@ public class RestconfWebResource extends AbstractWebResource {
         URI uri = uriInfo.getRequestUri();
 
         try {
-            ObjectNode rootNode = (ObjectNode) mapper().readTree(stream);
+            ObjectNode rootNode = readTreeFromStream(mapper(), stream);
 
             service.runPutOperationOnDataResource(uri, rootNode);
             return Response.created(uriInfo.getRequestUri()).build();
@@ -374,7 +375,7 @@ public class RestconfWebResource extends AbstractWebResource {
         URI uri = uriInfo.getRequestUri();
 
         try {
-            ObjectNode rootNode = (ObjectNode) mapper().readTree(stream);
+            ObjectNode rootNode = readTreeFromStream(mapper(), stream);
 
             service.runPatchOperationOnDataResource(uri, rootNode);
             return Response.ok().build();

@@ -15,6 +15,8 @@
  */
 package org.onlab.util;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -24,6 +26,7 @@ import org.slf4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -74,6 +77,8 @@ public abstract class Tools {
     private static final Logger log = getLogger(Tools.class);
 
     private static Random random = new SecureRandom();
+
+    private static final String INPUT_JSON_CANNOT_BE_NULL = "Input JSON cannot be null";
 
     /**
      * Returns a thread factory that produces threads named according to the
@@ -215,6 +220,19 @@ public abstract class Tools {
             throw new IllegalArgumentException(message);
         }
         return item;
+    }
+
+    /**
+     * Utility to convert a mapper and an input stream into a JSON tree,
+     * and be tolerant of a null tree being returned.
+     *
+     * @param mapper JSON object mapper
+     * @param stream IO stream containing the JSON
+     * @return object node for the given
+     * @throws IOException if JSON parsing fails
+     */
+    public static ObjectNode readTreeFromStream(ObjectMapper mapper, InputStream stream) throws IOException {
+        return  nullIsIllegal((ObjectNode) mapper.readTree(stream), INPUT_JSON_CANNOT_BE_NULL);
     }
 
     /**

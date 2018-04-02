@@ -43,6 +43,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import static org.onlab.util.Tools.readTreeFromStream;
+
 /**
  * Layer 2 CFM Maintenance Domain web resource.
  */
@@ -136,7 +138,7 @@ public class MdWebResource extends AbstractWebResource {
         log.debug("POST called to Create MD");
         try {
             ObjectMapper mapper = new ObjectMapper();
-            JsonNode cfg = mapper.readTree(input);
+            JsonNode cfg = readTreeFromStream(mapper, input);
             MaintenanceDomain md = codec(MaintenanceDomain.class).decode((ObjectNode) cfg, this);
 
             if (get(CfmMdService.class).createMaintenanceDomain(md)) {

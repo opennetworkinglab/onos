@@ -18,6 +18,7 @@ package org.onosproject.vtnweb.resources;
 
 import static javax.ws.rs.core.Response.Status.OK;
 import static org.onlab.util.Tools.nullIsNotFound;
+import static org.onlab.util.Tools.readTreeFromStream;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -111,7 +112,7 @@ public class PortPairGroupWebResource extends AbstractWebResource {
 
         try {
             ObjectMapper mapper = new ObjectMapper();
-            ObjectNode jsonTree = (ObjectNode) mapper.readTree(stream);
+            ObjectNode jsonTree = readTreeFromStream(mapper, stream);
             JsonNode port = jsonTree.get("port_pair_group");
 
             PortPairGroup portPairGroup = codec(PortPairGroup.class).decode((ObjectNode) port, this);
@@ -139,7 +140,7 @@ public class PortPairGroupWebResource extends AbstractWebResource {
                                         final InputStream stream) {
         try {
             ObjectMapper mapper = new ObjectMapper();
-            ObjectNode jsonTree = (ObjectNode) mapper.readTree(stream);
+            ObjectNode jsonTree = readTreeFromStream(mapper, stream);
             JsonNode port = jsonTree.get("port_pair_group");
             PortPairGroup portPairGroup = codec(PortPairGroup.class).decode((ObjectNode) port, this);
             Boolean isSuccess = nullIsNotFound(get(PortPairGroupService.class).updatePortPairGroup(portPairGroup),

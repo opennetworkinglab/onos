@@ -38,6 +38,8 @@ import javax.ws.rs.core.UriInfo;
 import java.io.IOException;
 import java.io.InputStream;
 
+import static org.onlab.util.Tools.readTreeFromStream;
+
 /**
  * Query and manage tenants of virtual networks.
  */
@@ -116,7 +118,7 @@ public class TenantWebResource extends AbstractWebResource {
      * @throws IOException if unable to parse the request
      */
     private TenantId getTenantIdFromJsonStream(InputStream stream) throws IOException {
-        ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
+        ObjectNode jsonTree = readTreeFromStream(mapper(), stream);
         JsonNode specifiedTenantId = jsonTree.get("id");
 
         if (specifiedTenantId == null) {

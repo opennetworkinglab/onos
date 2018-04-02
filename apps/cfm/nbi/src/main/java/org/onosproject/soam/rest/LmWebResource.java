@@ -53,6 +53,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
 
+import static org.onlab.util.Tools.readTreeFromStream;
+
 /**
  * Layer 2 SOAM Loss Measurement web resource.
  */
@@ -197,7 +199,7 @@ public class LmWebResource extends AbstractWebResource {
             }
 
             ObjectMapper mapper = new ObjectMapper();
-            JsonNode cfg = mapper.readTree(input);
+            JsonNode cfg = readTreeFromStream(mapper, input);
             JsonCodec<LossMeasurementCreate> lmCodec = codec(LossMeasurementCreate.class);
 
             LossMeasurementCreate lm = lmCodec.decode((ObjectNode) cfg, this);

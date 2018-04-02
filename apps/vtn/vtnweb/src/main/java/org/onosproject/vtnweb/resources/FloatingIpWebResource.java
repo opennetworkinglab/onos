@@ -60,6 +60,7 @@ import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.CONFLICT;
 import static javax.ws.rs.core.Response.Status.CREATED;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static org.onlab.util.Tools.readTreeFromStream;
 
 @Path("floatingips")
 public class FloatingIpWebResource extends AbstractWebResource {
@@ -114,7 +115,7 @@ public class FloatingIpWebResource extends AbstractWebResource {
     public Response createFloatingIp(final InputStream input) {
         try {
             ObjectMapper mapper = new ObjectMapper();
-            JsonNode subnode = mapper.readTree(input);
+            JsonNode subnode = readTreeFromStream(mapper, input);
             Collection<FloatingIp> floatingIps = createOrUpdateByInputStream(subnode);
             Boolean result = nullIsNotFound((get(FloatingIpService.class)
                                                     .createFloatingIps(floatingIps)),
@@ -137,7 +138,7 @@ public class FloatingIpWebResource extends AbstractWebResource {
                                      final InputStream input) {
         try {
             ObjectMapper mapper = new ObjectMapper();
-            JsonNode subnode = mapper.readTree(input);
+            JsonNode subnode = readTreeFromStream(mapper, input);
             Collection<FloatingIp> floatingIps = createOrUpdateByInputStream(subnode);
             Boolean result = nullIsNotFound(get(FloatingIpService.class)
                     .updateFloatingIps(floatingIps), UPDATE_FAIL);

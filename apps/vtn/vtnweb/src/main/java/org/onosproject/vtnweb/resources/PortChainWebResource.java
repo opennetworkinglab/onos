@@ -17,6 +17,7 @@ package org.onosproject.vtnweb.resources;
 
 import static javax.ws.rs.core.Response.Status.OK;
 import static org.onlab.util.Tools.nullIsNotFound;
+import static org.onlab.util.Tools.readTreeFromStream;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -106,7 +107,7 @@ public class PortChainWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response createPortChain(InputStream stream) {
         try {
-            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
+            ObjectNode jsonTree = readTreeFromStream(mapper(), stream);
             JsonNode port = jsonTree.get("port_chain");
             PortChain portChain = codec(PortChain.class).decode((ObjectNode) port, this);
             Boolean issuccess = nullIsNotFound(get(PortChainService.class).createPortChain(portChain),
@@ -132,7 +133,7 @@ public class PortChainWebResource extends AbstractWebResource {
     public Response updatePortPain(@PathParam("chain_id") String id,
                                    final InputStream stream) {
         try {
-            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
+            ObjectNode jsonTree = readTreeFromStream(mapper(), stream);
             JsonNode port = jsonTree.get("port_chain");
             PortChain portChain = codec(PortChain.class).decode((ObjectNode) port, this);
             Boolean result = nullIsNotFound(get(PortChainService.class).updatePortChain(portChain),

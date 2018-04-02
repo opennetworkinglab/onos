@@ -33,6 +33,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+import static org.onlab.util.Tools.readTreeFromStream;
+
 /**
  * Query, create and remove segment routing tunnels.
  */
@@ -69,7 +71,7 @@ public class TunnelWebResource extends AbstractWebResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createTunnel(InputStream input) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
-        ObjectNode tunnelJson = (ObjectNode) mapper.readTree(input);
+        ObjectNode tunnelJson = readTreeFromStream(mapper, input);
         SegmentRoutingService srService = get(SegmentRoutingService.class);
         Tunnel tunnelInfo = TUNNEL_CODEC.decode(tunnelJson, this);
         srService.createTunnel(tunnelInfo);
@@ -88,7 +90,7 @@ public class TunnelWebResource extends AbstractWebResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response removeTunnel(InputStream input) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
-        ObjectNode tunnelJson = (ObjectNode) mapper.readTree(input);
+        ObjectNode tunnelJson = readTreeFromStream(mapper, input);
         SegmentRoutingService srService = get(SegmentRoutingService.class);
         Tunnel tunnelInfo = TUNNEL_CODEC.decode(tunnelJson, this);
         srService.removeTunnel(tunnelInfo);

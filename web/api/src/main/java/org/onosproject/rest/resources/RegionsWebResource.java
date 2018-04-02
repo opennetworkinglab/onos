@@ -43,6 +43,7 @@ import java.net.URISyntaxException;
 import java.util.Set;
 
 import static org.onlab.util.Tools.nullIsNotFound;
+import static org.onlab.util.Tools.readTreeFromStream;
 
 /**
  * Manages region and device membership.
@@ -119,7 +120,7 @@ public class RegionsWebResource extends AbstractWebResource {
     public Response createRegion(InputStream stream) {
         URI location;
         try {
-            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
+            ObjectNode jsonTree = readTreeFromStream(mapper(), stream);
             final Region region = codec(Region.class).decode(jsonTree, this);
             final Region resultRegion = regionAdminService.createRegion(region.id(),
                                 region.name(), region.type(), region.masters());
@@ -146,7 +147,7 @@ public class RegionsWebResource extends AbstractWebResource {
     public Response updateRegion(@PathParam("regionId") String regionId,
                                  InputStream stream) {
         try {
-            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
+            ObjectNode jsonTree = readTreeFromStream(mapper(), stream);
             JsonNode specifiedRegionId = jsonTree.get("id");
 
             if (specifiedRegionId != null &&
@@ -242,7 +243,7 @@ public class RegionsWebResource extends AbstractWebResource {
      * @throws IOException
      */
     private Set<DeviceId> extractDeviceIds(InputStream stream) throws IOException {
-        ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
+        ObjectNode jsonTree = readTreeFromStream(mapper(), stream);
         JsonNode deviceIdsJson = jsonTree.get("deviceIds");
 
         if (deviceIdsJson == null || deviceIdsJson.size() == 0) {

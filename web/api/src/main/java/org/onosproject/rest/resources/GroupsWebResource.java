@@ -46,6 +46,7 @@ import java.io.InputStream;
 
 import org.onlab.util.HexString;
 import static org.onlab.util.Tools.nullIsNotFound;
+import static org.onlab.util.Tools.readTreeFromStream;
 
 /**
  * Query and program group rules.
@@ -148,7 +149,7 @@ public class GroupsWebResource extends AbstractWebResource {
                                 InputStream stream) {
         try {
 
-            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
+            ObjectNode jsonTree = readTreeFromStream(mapper(), stream);
             JsonNode specifiedDeviceId = jsonTree.get("deviceId");
 
             if (specifiedDeviceId != null &&

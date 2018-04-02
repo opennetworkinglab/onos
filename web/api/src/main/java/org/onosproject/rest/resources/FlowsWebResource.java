@@ -52,6 +52,7 @@ import java.util.stream.StreamSupport;
 
 import static org.onlab.util.Tools.nullIsIllegal;
 import static org.onlab.util.Tools.nullIsNotFound;
+import static org.onlab.util.Tools.readTreeFromStream;
 
 /**
  * Query and program flow rules.
@@ -113,7 +114,7 @@ public class FlowsWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response createFlows(@QueryParam("appId") String appId, InputStream stream) {
         try {
-            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
+            ObjectNode jsonTree = readTreeFromStream(mapper(), stream);
             ArrayNode flowsArray = nullIsIllegal((ArrayNode) jsonTree.get(FLOWS),
                                                  FLOW_ARRAY_REQUIRED);
 
@@ -248,7 +249,7 @@ public class FlowsWebResource extends AbstractWebResource {
                                @QueryParam("appId") String appId,
                                InputStream stream) {
         try {
-            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
+            ObjectNode jsonTree = readTreeFromStream(mapper(), stream);
             JsonNode specifiedDeviceId = jsonTree.get("deviceId");
             if (specifiedDeviceId != null &&
                     !specifiedDeviceId.asText().equals(deviceId)) {
@@ -312,7 +313,7 @@ public class FlowsWebResource extends AbstractWebResource {
         List<FlowEntry> rulesToRemove = new ArrayList<>();
 
         try {
-            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
+            ObjectNode jsonTree = readTreeFromStream(mapper(), stream);
 
             JsonNode jsonFlows = jsonTree.get("flows");
 

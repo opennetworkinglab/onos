@@ -38,6 +38,7 @@ import java.util.HashSet;
 import java.util.List;
 
 import static org.onlab.util.Tools.nullIsNotFound;
+import static org.onlab.util.Tools.readTreeFromStream;
 
 /**
  * Manage cluster of ONOS instances.
@@ -92,7 +93,7 @@ public class ClusterWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response formCluster(InputStream config) throws IOException {
         JsonCodec<ControllerNode> codec = codec(ControllerNode.class);
-        ObjectNode root = (ObjectNode) mapper().readTree(config);
+        ObjectNode root = readTreeFromStream(mapper(), config);
 
         List<ControllerNode> nodes = codec.decode((ArrayNode) root.path("nodes"), this);
         JsonNode partitionSizeNode = root.get("partitionSize");

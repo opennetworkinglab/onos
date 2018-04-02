@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import static javax.ws.rs.core.Response.status;
+import static org.onlab.util.Tools.readTreeFromStream;
 
 /**
  * Handles REST API from monitoring server.
@@ -58,7 +59,7 @@ public class FlowTraceWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response flowTraceResponse(InputStream inputStream) throws IOException {
         try {
-            JsonNode jsonNode = mapper().enable(SerializationFeature.INDENT_OUTPUT).readTree(inputStream);
+            JsonNode jsonNode = readTreeFromStream(mapper().enable(SerializationFeature.INDENT_OUTPUT), inputStream);
             ObjectNode objectNode = jsonNode.deepCopy();
 
             log.debug("FlowTraceResponse: {}", jsonNode.toString());
