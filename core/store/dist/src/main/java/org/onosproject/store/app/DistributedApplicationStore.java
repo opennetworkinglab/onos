@@ -244,6 +244,10 @@ public class DistributedApplicationStore extends ApplicationArchive
         getApplicationNames().forEach(appName -> {
             Application app = loadFromDisk(appName);
             if (app != null && isActive(app.id().name())) {
+                // For now, apps loaded from disk will be marked as having been
+                // activated explicitly, which means they won't deactivate
+                // implicitly when all dependent apps have been deactivated.
+                requiredBy.put(app.id(), coreAppId);
                 activate(app.id(), false);
                 // TODO Load app permissions
             }
