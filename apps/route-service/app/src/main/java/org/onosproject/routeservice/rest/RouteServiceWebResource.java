@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.onlab.util.Tools.nullIsIllegal;
+import static org.onlab.util.Tools.readTreeFromStream;
 
 /**
  * Manage the unicast routing information.
@@ -88,7 +89,7 @@ public class RouteServiceWebResource extends AbstractWebResource {
     public Response createRoute(InputStream route) {
         RouteAdminService service = get(RouteAdminService.class);
         try {
-            ObjectNode jsonTree = (ObjectNode) mapper().readTree(route);
+            ObjectNode jsonTree = readTreeFromStream(mapper(), route);
             Route r = codec(Route.class).decode(jsonTree, this);
             service.update(Collections.singletonList(r));
         } catch (IOException ex) {
@@ -118,7 +119,7 @@ public class RouteServiceWebResource extends AbstractWebResource {
     public Response createRoutes(InputStream routesStream) {
         RouteAdminService service = get(RouteAdminService.class);
         try {
-            ObjectNode jsonTree = (ObjectNode) mapper().readTree(routesStream);
+            ObjectNode jsonTree = readTreeFromStream(mapper(), routesStream);
             ArrayNode routesArray = nullIsIllegal((ArrayNode) jsonTree.get(ROUTES),
                     ROUTES_KEY_ERROR);
             List<Route> routes = codec(Route.class).decode(routesArray, this);
@@ -146,7 +147,7 @@ public class RouteServiceWebResource extends AbstractWebResource {
     public Response deleteRoute(InputStream route) {
         RouteAdminService service = get(RouteAdminService.class);
         try {
-            ObjectNode jsonTree = (ObjectNode) mapper().readTree(route);
+            ObjectNode jsonTree = readTreeFromStream(mapper(), route);
             Route r = codec(Route.class).decode(jsonTree, this);
             service.withdraw(Collections.singletonList(r));
         } catch (IOException ex) {
@@ -168,7 +169,7 @@ public class RouteServiceWebResource extends AbstractWebResource {
     public Response deleteRoutes(InputStream routesStream) {
         RouteAdminService service = get(RouteAdminService.class);
         try {
-            ObjectNode jsonTree = (ObjectNode) mapper().readTree(routesStream);
+            ObjectNode jsonTree = readTreeFromStream(mapper(), routesStream);
             ArrayNode routesArray = nullIsIllegal((ArrayNode) jsonTree.get(ROUTES),
                     ROUTES_KEY_ERROR);
             List<Route> routes = codec(Route.class).decode(routesArray, this);

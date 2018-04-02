@@ -51,6 +51,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.onlab.util.Tools.readTreeFromStream;
+
 /**
  * Query and Manage Virtual Network elements.
  */
@@ -176,7 +178,7 @@ public class VirtualNetworkWebResource extends AbstractWebResource {
     public Response createVirtualDevice(@PathParam("networkId") long networkId,
                                         InputStream stream) {
         try {
-            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
+            ObjectNode jsonTree = readTreeFromStream(mapper(), stream);
             final VirtualDevice vdevReq = codec(VirtualDevice.class).decode(jsonTree, this);
             JsonNode specifiedNetworkId = jsonTree.get("networkId");
             if (specifiedNetworkId == null || specifiedNetworkId.asLong() != (networkId)) {
@@ -250,7 +252,7 @@ public class VirtualNetworkWebResource extends AbstractWebResource {
                                       @PathParam("deviceId") String virtDeviceId,
                                       InputStream stream) {
         try {
-            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
+            ObjectNode jsonTree = readTreeFromStream(mapper(), stream);
 //            final VirtualPort vportReq = codec(VirtualPort.class).decode(jsonTree, this);
             JsonNode specifiedNetworkId = jsonTree.get("networkId");
             JsonNode specifiedDeviceId = jsonTree.get("deviceId");
@@ -335,7 +337,7 @@ public class VirtualNetworkWebResource extends AbstractWebResource {
     public Response createVirtualLink(@PathParam("networkId") long networkId,
                                       InputStream stream) {
         try {
-            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
+            ObjectNode jsonTree = readTreeFromStream(mapper(), stream);
             JsonNode specifiedNetworkId = jsonTree.get("networkId");
             if (specifiedNetworkId == null || specifiedNetworkId.asLong() != (networkId)) {
                 throw new IllegalArgumentException(INVALID_FIELD + "networkId");
@@ -368,7 +370,7 @@ public class VirtualNetworkWebResource extends AbstractWebResource {
     public Response removeVirtualLink(@PathParam("networkId") long networkId,
                                       InputStream stream) {
         try {
-            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
+            ObjectNode jsonTree = readTreeFromStream(mapper(), stream);
             JsonNode specifiedNetworkId = jsonTree.get("networkId");
             if (specifiedNetworkId != null &&
                     specifiedNetworkId.asLong() != (networkId)) {
@@ -416,7 +418,7 @@ public class VirtualNetworkWebResource extends AbstractWebResource {
     public Response createVirtualHost(@PathParam("networkId") long networkId,
                                       InputStream stream) {
         try {
-            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
+            ObjectNode jsonTree = readTreeFromStream(mapper(), stream);
             JsonNode specifiedNetworkId = jsonTree.get("networkId");
             if (specifiedNetworkId == null || specifiedNetworkId.asLong() != (networkId)) {
                 throw new IllegalArgumentException(INVALID_FIELD + "networkId");
@@ -450,7 +452,7 @@ public class VirtualNetworkWebResource extends AbstractWebResource {
     public Response removeVirtualHost(@PathParam("networkId") long networkId,
                                       InputStream stream) {
         try {
-            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
+            ObjectNode jsonTree = readTreeFromStream(mapper(), stream);
             JsonNode specifiedNetworkId = jsonTree.get("networkId");
             if (specifiedNetworkId != null &&
                     specifiedNetworkId.asLong() != (networkId)) {
@@ -474,7 +476,7 @@ public class VirtualNetworkWebResource extends AbstractWebResource {
      * @throws IOException if unable to parse the request
      */
     private JsonNode getFromJsonStream(InputStream stream, String jsonFieldName) throws IOException {
-        ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
+        ObjectNode jsonTree = readTreeFromStream(mapper(), stream);
         JsonNode jsonNode = jsonTree.get(jsonFieldName);
 
         if (jsonNode == null) {

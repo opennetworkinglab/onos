@@ -54,6 +54,8 @@ import java.util.Map.Entry;
 import org.slf4j.Logger;
 import static org.slf4j.LoggerFactory.getLogger;
 
+import static org.onlab.util.Tools.readTreeFromStream;
+
 /**
  * Manage inventory of infrastructure devices with Power Config behaviour.
  */
@@ -119,7 +121,7 @@ public class PowerConfigWebResource extends AbstractWebResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response setTargetPower(InputStream stream) {
         try {
-            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
+            ObjectNode jsonTree = readTreeFromStream(mapper(), stream);
             decode(jsonTree);
             return Response.ok().build();
         } catch (IOException e) {

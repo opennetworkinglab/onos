@@ -47,7 +47,9 @@ import java.io.InputStream;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
+import static org.onlab.util.Tools.readTreeFromStream;
 import static org.onosproject.net.optical.util.OpticalIntentUtility.createOpticalIntent;
+
 
 /**
  * Query, submit and withdraw optical network intents.
@@ -91,7 +93,7 @@ public class OpticalIntentsWebResource extends AbstractWebResource {
     public Response createIntent(InputStream stream) {
         try {
             IntentService service = get(IntentService.class);
-            ObjectNode root = (ObjectNode) mapper().readTree(stream);
+            ObjectNode root = readTreeFromStream(mapper(), stream);
             Intent intent = decode(root);
             service.submit(intent);
             UriBuilder locationBuilder = uriInfo.getBaseUriBuilder()

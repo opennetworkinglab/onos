@@ -57,6 +57,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.onlab.util.Tools.nullIsNotFound;
+import static org.onlab.util.Tools.readTreeFromStream;
 import static org.onosproject.net.HostId.hostId;
 
 /**
@@ -139,7 +140,7 @@ public class HostsWebResource extends AbstractWebResource {
         URI location;
         try {
             // Parse the input stream
-            ObjectNode root = (ObjectNode) mapper().readTree(stream);
+            ObjectNode root = readTreeFromStream(mapper(), stream);
 
             HostProviderRegistry hostProviderRegistry = get(HostProviderRegistry.class);
             InternalHostProvider hostProvider = new InternalHostProvider();

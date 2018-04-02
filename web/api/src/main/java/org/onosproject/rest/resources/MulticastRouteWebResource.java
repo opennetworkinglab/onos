@@ -25,6 +25,7 @@ import org.onosproject.net.mcast.MulticastRouteService;
 import org.onosproject.rest.AbstractWebResource;
 
 import static org.onlab.util.Tools.nullIsNotFound;
+import static org.onlab.util.Tools.readTreeFromStream;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -79,7 +80,7 @@ public class MulticastRouteWebResource extends AbstractWebResource {
         final String ingressStr = "ingress";
         MulticastRouteService service = get(MulticastRouteService.class);
         try {
-            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
+            ObjectNode jsonTree = readTreeFromStream(mapper(), stream);
             McastRoute route = codec(McastRoute.class).decode(jsonTree, this);
             service.add(route);
             if (jsonTree.has(ingressStr)) {
@@ -110,7 +111,7 @@ public class MulticastRouteWebResource extends AbstractWebResource {
     public Response deleteRoute(InputStream stream) {
         MulticastRouteService service = get(MulticastRouteService.class);
         try {
-            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
+            ObjectNode jsonTree = readTreeFromStream(mapper(), stream);
             McastRoute route = codec(McastRoute.class).decode(jsonTree, this);
             service.remove(route);
         } catch (IOException ex) {
@@ -141,7 +142,7 @@ public class MulticastRouteWebResource extends AbstractWebResource {
         try {
             McastRoute route = new McastRoute(IpAddress.valueOf(source), IpAddress.valueOf(group),
                     McastRoute.Type.STATIC);
-            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
+            ObjectNode jsonTree = readTreeFromStream(mapper(), stream);
 
             jsonTree.path("sinks").forEach(node -> {
                 ConnectPoint sink = ConnectPoint.deviceConnectPoint(node.asText());

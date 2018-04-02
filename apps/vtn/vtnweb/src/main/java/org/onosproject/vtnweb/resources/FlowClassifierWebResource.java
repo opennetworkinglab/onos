@@ -17,6 +17,7 @@ package org.onosproject.vtnweb.resources;
 
 import static javax.ws.rs.core.Response.Status.OK;
 import static org.onlab.util.Tools.nullIsNotFound;
+import static org.onlab.util.Tools.readTreeFromStream;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -107,7 +108,7 @@ public class FlowClassifierWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response createFlowClassifier(InputStream stream) {
         try {
-            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
+            ObjectNode jsonTree = readTreeFromStream(mapper(), stream);
             JsonNode flow = jsonTree.get("flow_classifier");
 
             FlowClassifier flowClassifier = codec(FlowClassifier.class).decode((ObjectNode) flow, this);
@@ -136,7 +137,7 @@ public class FlowClassifierWebResource extends AbstractWebResource {
     public Response updateFlowClassifier(@PathParam("flow_id") String id, final InputStream stream) {
         try {
 
-            JsonNode jsonTree = mapper().readTree(stream);
+            JsonNode jsonTree = readTreeFromStream(mapper(), stream);
             JsonNode flow = jsonTree.get("flow_classifier");
             FlowClassifier flowClassifier = codec(FlowClassifier.class).decode((ObjectNode) flow, this);
             Boolean result = nullIsNotFound(get(FlowClassifierService.class).updateFlowClassifier(flowClassifier),

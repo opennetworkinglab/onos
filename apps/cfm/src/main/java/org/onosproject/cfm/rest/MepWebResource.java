@@ -55,6 +55,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import static org.onlab.util.Tools.readTreeFromStream;
+
 /**
  * Layer 2 CFM Maintenance Association Endpoint (MEP) web resource.
  */
@@ -182,7 +184,7 @@ public class MepWebResource extends AbstractWebResource {
             MaintenanceAssociation ma = get(CfmMdService.class).getMaintenanceAssociation(mdId, maId).get();
 
             ObjectMapper mapper = new ObjectMapper();
-            JsonNode cfg = mapper.readTree(input);
+            JsonNode cfg = readTreeFromStream(mapper(), input);
             JsonCodec<Mep> mepCodec = codec(Mep.class);
 
             Mep mep = ((MepCodec) mepCodec).decode((ObjectNode) cfg, this, mdName, maName);
@@ -236,7 +238,7 @@ public class MepWebResource extends AbstractWebResource {
 
         try {
             ObjectMapper mapper = new ObjectMapper();
-            JsonNode cfg = mapper.readTree(input);
+            JsonNode cfg = readTreeFromStream(mapper(), input);
             JsonCodec<MepLbCreate> mepLbCreateCodec = codec(MepLbCreate.class);
 
             MepLbCreate lbCreate = mepLbCreateCodec.decode((ObjectNode) cfg, this);
@@ -326,7 +328,7 @@ public class MepWebResource extends AbstractWebResource {
 
         try {
             ObjectMapper mapper = new ObjectMapper();
-            JsonNode cfg = mapper.readTree(input);
+            JsonNode cfg = readTreeFromStream(mapper, input);
             JsonCodec<MepLtCreate> mepLtCreateCodec = codec(MepLtCreate.class);
 
             MepLtCreate ltCreate = mepLtCreateCodec.decode((ObjectNode) cfg, this);

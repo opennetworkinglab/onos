@@ -41,6 +41,7 @@ import java.util.Set;
 
 import static org.onlab.util.Tools.emptyIsNotFound;
 import static org.onlab.util.Tools.nullIsNotFound;
+import static org.onlab.util.Tools.readTreeFromStream;
 
 /**
  * Manage network configurations.
@@ -207,7 +208,7 @@ public class NetworkConfigWebResource extends AbstractWebResource {
     @SuppressWarnings("unchecked")
     public Response upload(InputStream request) throws IOException {
         NetworkConfigService service = get(NetworkConfigService.class);
-        ObjectNode root = (ObjectNode) mapper().readTree(request);
+        ObjectNode root = readTreeFromStream(mapper(), request);
         List<String> errorMsgs = new ArrayList<String>();
         root.fieldNames()
                 .forEachRemaining(sk -> {
@@ -241,7 +242,7 @@ public class NetworkConfigWebResource extends AbstractWebResource {
     public Response upload(@PathParam("subjectClassKey") String subjectClassKey,
                            InputStream request) throws IOException {
         NetworkConfigService service = get(NetworkConfigService.class);
-        ObjectNode root = (ObjectNode) mapper().readTree(request);
+        ObjectNode root = readTreeFromStream(mapper(), request);
         SubjectFactory subjectFactory =
                 nullIsNotFound(service.getSubjectFactory(subjectClassKey),
                         subjectClassNotValidErrorString(subjectClassKey));
@@ -269,7 +270,7 @@ public class NetworkConfigWebResource extends AbstractWebResource {
                            @PathParam("subjectKey") String subjectKey,
                            InputStream request) throws IOException {
         NetworkConfigService service = get(NetworkConfigService.class);
-        ObjectNode root = (ObjectNode) mapper().readTree(request);
+        ObjectNode root = readTreeFromStream(mapper(), request);
         SubjectFactory subjectFactory =
                 nullIsNotFound(service.getSubjectFactory(subjectClassKey),
                         subjectClassNotValidErrorString(subjectClassKey));
@@ -301,7 +302,7 @@ public class NetworkConfigWebResource extends AbstractWebResource {
                            @PathParam("configKey") String configKey,
                            InputStream request) throws IOException {
         NetworkConfigService service = get(NetworkConfigService.class);
-        JsonNode root = mapper().readTree(request);
+        JsonNode root = readTreeFromStream(mapper(), request);
         SubjectFactory subjectFactory =
                 nullIsNotFound(service.getSubjectFactory(subjectClassKey),
                         subjectClassNotValidErrorString(subjectClassKey));

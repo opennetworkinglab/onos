@@ -38,6 +38,7 @@ import java.io.InputStream;
 import java.util.Date;
 import java.util.Map;
 
+import static org.onlab.util.Tools.readTreeFromStream;
 import static org.onosproject.dhcp.IpAssignment.AssignmentStatus.Option_Requested;
 
 /**
@@ -118,7 +119,7 @@ public class DhcpWebResource extends AbstractWebResource {
     public Response setMapping(InputStream stream) {
         ObjectNode root = mapper().createObjectNode();
         try {
-            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
+            ObjectNode jsonTree = readTreeFromStream(mapper(), stream);
             JsonNode macID = jsonTree.get("mac");
             JsonNode ip = jsonTree.get("ip");
             if (macID != null && ip != null) {

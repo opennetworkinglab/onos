@@ -42,6 +42,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 
+import static org.onlab.util.Tools.readTreeFromStream;
+
 /**
  * Manage ACL rules.
  */
@@ -141,7 +143,7 @@ public class AclWebResource extends AbstractWebResource {
     private AclRule jsonToRule(InputStream stream) {
         JsonNode node;
         try {
-            node = mapper().readTree(stream);
+            node = readTreeFromStream(mapper(), stream);
         } catch (IOException e) {
             throw new IllegalArgumentException("Unable to parse ACL request", e);
         }

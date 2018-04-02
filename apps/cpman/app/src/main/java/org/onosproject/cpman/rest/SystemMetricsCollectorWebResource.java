@@ -46,6 +46,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.onlab.util.Tools.nullIsIllegal;
+import static org.onlab.util.Tools.readTreeFromStream;
 
 /**
  * Collect system metrics.
@@ -90,7 +91,7 @@ public class SystemMetricsCollectorWebResource extends AbstractWebResource {
         ObjectNode root = mapper().createObjectNode();
         ControlMetric cm;
         try {
-            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
+            ObjectNode jsonTree = readTreeFromStream(mapper(), stream);
 
             if (jsonTree == null || !checkFields(jsonTree, CPU_FIELD_SET)) {
                 return ok(root).build();
@@ -151,7 +152,7 @@ public class SystemMetricsCollectorWebResource extends AbstractWebResource {
         ObjectNode root = mapper().createObjectNode();
         ControlMetric cm;
         try {
-            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
+            ObjectNode jsonTree = readTreeFromStream(mapper(), stream);
 
             if (jsonTree == null || !checkFields(jsonTree, MEMORY_FIELD_SET)) {
                 return ok(root).build();
@@ -206,7 +207,7 @@ public class SystemMetricsCollectorWebResource extends AbstractWebResource {
         ObjectNode root = mapper().createObjectNode();
         ControlMetric cm;
         try {
-            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
+            ObjectNode jsonTree = readTreeFromStream(mapper(), stream);
             ArrayNode diskRes =
                     jsonTree.get("disks") == null ?
                             mapper().createArrayNode() : (ArrayNode) jsonTree.get("disks");
@@ -252,7 +253,7 @@ public class SystemMetricsCollectorWebResource extends AbstractWebResource {
         ObjectNode root = mapper().createObjectNode();
         ControlMetric cm;
         try {
-            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
+            ObjectNode jsonTree = readTreeFromStream(mapper(), stream);
 
             ArrayNode networkRes = jsonTree.get("networks") == null
                     ? mapper().createArrayNode() : (ArrayNode) jsonTree.get("networks");
@@ -315,7 +316,7 @@ public class SystemMetricsCollectorWebResource extends AbstractWebResource {
         ObjectNode root = mapper().createObjectNode();
 
         try {
-            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
+            ObjectNode jsonTree = readTreeFromStream(mapper(), stream);
             JsonNode numOfCores = jsonTree.get("numOfCores");
             JsonNode numOfCpus = jsonTree.get("numOfCpus");
             JsonNode cpuSpeed = jsonTree.get("cpuSpeed");

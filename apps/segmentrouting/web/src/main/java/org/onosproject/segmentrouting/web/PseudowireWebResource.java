@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.onlab.util.Tools.nullIsIllegal;
+import static org.onlab.util.Tools.readTreeFromStream;
 
 /**
  * Query, create and remove pseudowires.
@@ -107,7 +108,7 @@ public class PseudowireWebResource extends AbstractWebResource {
     public Response createPseudowire(InputStream input) throws IOException {
 
         ObjectMapper mapper = new ObjectMapper();
-        ObjectNode pseudowireJson = (ObjectNode) mapper.readTree(input);
+        ObjectNode pseudowireJson = readTreeFromStream(mapper, input);
         SegmentRoutingService srService = get(SegmentRoutingService.class);
 
         DefaultL2TunnelDescription pseudowire = PSEUDOWIRE_CODEC.decode(pseudowireJson, this);
@@ -147,7 +148,7 @@ public class PseudowireWebResource extends AbstractWebResource {
     public Response createPseudowiresBulk(InputStream input) throws IOException {
 
         ObjectMapper mapper = new ObjectMapper();
-        ObjectNode pseudowireJson = (ObjectNode) mapper.readTree(input);
+        ObjectNode pseudowireJson = readTreeFromStream(mapper, input);
         SegmentRoutingService srService = get(SegmentRoutingService.class);
         List<DefaultL2TunnelDescription> pseudowires;
 
@@ -189,7 +190,7 @@ public class PseudowireWebResource extends AbstractWebResource {
     public Response removePseudowire(InputStream input) throws IOException {
 
         ObjectMapper mapper = new ObjectMapper();
-        ObjectNode pseudowireJson = (ObjectNode) mapper.readTree(input);
+        ObjectNode pseudowireJson = readTreeFromStream(mapper, input);
         SegmentRoutingService srService = get(SegmentRoutingService.class);
 
         Integer pseudowireId = PSEUDOWIRE_CODEC.decodeId(pseudowireJson);
@@ -229,7 +230,7 @@ public class PseudowireWebResource extends AbstractWebResource {
     public Response removePseudowiresBulk(InputStream input) throws IOException {
 
         ObjectMapper mapper = new ObjectMapper();
-        ObjectNode pseudowireJson = (ObjectNode) mapper.readTree(input);
+        ObjectNode pseudowireJson = readTreeFromStream(mapper, input);
         SegmentRoutingService srService = get(SegmentRoutingService.class);
 
         List<Integer> ids = new ArrayList<>();

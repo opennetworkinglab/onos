@@ -68,6 +68,7 @@ import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.CONFLICT;
 import static javax.ws.rs.core.Response.Status.CREATED;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static org.onlab.util.Tools.readTreeFromStream;
 
 @Path("routers")
 public class RouterWebResource extends AbstractWebResource {
@@ -121,7 +122,7 @@ public class RouterWebResource extends AbstractWebResource {
     public Response createRouter(final InputStream input) {
         try {
             ObjectMapper mapper = new ObjectMapper();
-            JsonNode subnode = mapper.readTree(input);
+            JsonNode subnode = readTreeFromStream(mapper, input);
             Collection<Router> routers = createOrUpdateByInputStream(subnode);
 
             Boolean result = nullIsNotFound((get(RouterService.class)
@@ -144,7 +145,7 @@ public class RouterWebResource extends AbstractWebResource {
                                  final InputStream input) {
         try {
             ObjectMapper mapper = new ObjectMapper();
-            JsonNode subnode = mapper.readTree(input);
+            JsonNode subnode = readTreeFromStream(mapper, input);
             Collection<Router> routers = changeUpdateJsonToSub(subnode, id);
             Boolean result = nullIsNotFound(get(RouterService.class)
                     .updateRouters(routers), UPDATE_FAIL);
@@ -184,7 +185,7 @@ public class RouterWebResource extends AbstractWebResource {
         }
         try {
             ObjectMapper mapper = new ObjectMapper();
-            JsonNode subnode = mapper.readTree(input);
+            JsonNode subnode = readTreeFromStream(mapper, input);
             if (!subnode.hasNonNull("id")) {
                 throw new IllegalArgumentException("id should not be null");
             } else if (subnode.get("id").asText().isEmpty()) {
@@ -233,7 +234,7 @@ public class RouterWebResource extends AbstractWebResource {
         }
         try {
             ObjectMapper mapper = new ObjectMapper();
-            JsonNode subnode = mapper.readTree(input);
+            JsonNode subnode = readTreeFromStream(mapper, input);
             if (!subnode.hasNonNull("id")) {
                 throw new IllegalArgumentException("id should not be null");
             } else if (subnode.get("id").asText().isEmpty()) {

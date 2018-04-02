@@ -4,6 +4,7 @@ COMPILE_DEPS = [
     '//lib:METRICS',
     '//lib:KRYO',
     '//lib:netty',
+    '//lib:JACKSON',
 ]
 
 osgi_jar_with_tests(

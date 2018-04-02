@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import static org.onlab.util.Tools.nullIsNotFound;
+import static org.onlab.util.Tools.readTreeFromStream;
 
 /**
  * Query and Manage Device Keys.
@@ -96,7 +97,7 @@ public class DeviceKeyWebResource extends AbstractWebResource {
     public Response addDeviceKey(InputStream stream) {
         try {
             DeviceKeyAdminService service = get(DeviceKeyAdminService.class);
-            ObjectNode root = (ObjectNode) mapper().readTree(stream);
+            ObjectNode root = readTreeFromStream(mapper(), stream);
             DeviceKey deviceKey = codec(DeviceKey.class).decode(root, this);
             service.addKey(deviceKey);
 

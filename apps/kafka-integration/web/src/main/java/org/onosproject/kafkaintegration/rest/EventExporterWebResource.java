@@ -36,6 +36,7 @@ import java.io.InputStream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static org.onlab.util.Tools.readTreeFromStream;
 
 /**
  * Rest Interfaces for subscribing/unsubscribing to event notifications.
@@ -140,7 +141,7 @@ public class EventExporterWebResource extends AbstractWebResource {
             throws IOException {
 
         ObjectMapper mapper = new ObjectMapper();
-        ObjectNode node = (ObjectNode) mapper.readTree(input);
+        ObjectNode node = readTreeFromStream(mapper, input);
         checkNotNull(node, JSON_NOT_NULL);
         EventSubscriber codec = codec(EventSubscriber.class).decode(node, this);
         checkNotNull(codec, JSON_NOT_NULL);
