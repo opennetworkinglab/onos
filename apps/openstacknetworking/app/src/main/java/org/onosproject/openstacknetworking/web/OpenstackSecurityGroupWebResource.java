@@ -37,7 +37,7 @@ import java.io.InputStream;
 
 import static javax.ws.rs.core.Response.created;
 import static javax.ws.rs.core.Response.noContent;
-import static org.onosproject.openstacknetworking.util.OpenstackUtil.jsonToModelEntity;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.jsonToModelEntity;
 
 /**
  * Handles Security Group Rest API call from Neutron ML2 plugin.

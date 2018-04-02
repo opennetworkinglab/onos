@@ -30,14 +30,14 @@ import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
 /**
  * An utility that used in openstack networking app.
  */
-public final class OpenstackUtil {
+public final class OpenstackNetworkingUtil {
 
-    protected static final Logger log = LoggerFactory.getLogger(OpenstackUtil.class);
+    protected static final Logger log = LoggerFactory.getLogger(OpenstackNetworkingUtil.class);
 
     /**
      * Prevents object instantiation from external.
      */
-    private OpenstackUtil() {
+    private OpenstackNetworkingUtil() {
     }
 
     /**

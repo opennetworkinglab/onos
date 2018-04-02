@@ -38,7 +38,7 @@ import java.io.InputStream;
 import static javax.ws.rs.core.Response.created;
 import static javax.ws.rs.core.Response.noContent;
 import static javax.ws.rs.core.Response.status;
-import static org.onosproject.openstacknetworking.util.OpenstackUtil.jsonToModelEntity;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.jsonToModelEntity;
 
 /**
  * Handles REST API call of Neutron ML2 plugin.

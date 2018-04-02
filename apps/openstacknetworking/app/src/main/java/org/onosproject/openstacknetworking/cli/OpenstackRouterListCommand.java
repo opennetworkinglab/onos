@@ -35,7 +35,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
-import static org.onosproject.openstacknetworking.util.OpenstackUtil.modelEntityToJson;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.modelEntityToJson;
 
 /**
  * Lists OpenStack routers.
