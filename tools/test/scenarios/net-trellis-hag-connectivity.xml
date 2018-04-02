@@ -1,0 +1,41 @@
+<!--
+  ~ Copyright 2018-present Open Networking Foundation
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+
+
+<scenario name="net-trellis-HAG-connectivity" description="Trellis HAG network connectivity test steps">
+
+        <group name="Net-Trellis-HAG-Connectivity">
+            <step name="Net-Trellis-HAG-Connectivity.IP4Ping1"
+                  exec="onos-mininet sendAndExpect h1 ping -c3 h2 --expect \ 0% packet loss"/>
+            <step name="Net-Trellis-HAG-Connectivity.IP4Ping2" requires="^"
+                  exec="onos-mininet sendAndExpect h2 ping -c3 h1 --expect \ 0% packet loss"/>
+            <step name="Net-Trellis-HAG-Connectivity.IP4Ping3" requires="^"
+                  exec="onos-mininet sendAndExpect h3 ping -c3 h4 --expect \ 0% packet loss"/>
+            <step name="Net-Trellis-HAG-Connectivity.IP4Ping4" requires="^"
+                  exec="onos-mininet sendAndExpect h4 ping -c3 h3 --expect \ 0% packet loss"/>
+
+            <step name="Net-Trellis-HAG-Connectivity.IP6Ping1" requires="^"
+                  exec="onos-mininet sendAndExpect h1v6 ping6 -c3 2000::201 --expect \ 0% packet loss"/>
+            <step name="Net-Trellis-HAG-Connectivity.IP6Ping2" requires="^"
+                  exec="onos-mininet sendAndExpect h1v6 ping6 -c3 2000::202 --expect \ 0% packet loss"/>
+            <step name="Net-Trellis-HAG-Connectivity.IP6Ping3" requires="^"
+                  exec="onos-mininet sendAndExpect h3v6 ping6 -c3 2000::301 --expect \ 0% packet loss"/>
+            <step name="Net-Trellis-HAG-Connectivity.IP6Ping4" requires="^"
+                  exec="onos-mininet sendAndExpect h3v6 ping6 -c3 2000::302 --expect \ 0% packet loss"/>
+        </group>
+
+</scenario>

@@ -1,0 +1,43 @@
+<!--
+  ~ Copyright 2018-present Open Networking Foundation
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+
+
+<scenario name="net-trellis-hag-smoke" description="Trellis HAG network connectivity test steps">
+
+    <import file="${ONOS_SCENARIOS}/net-setup-trellis-hag.xml"/>
+
+    <step name="Check-Summary" requires="Trellis-Net-HAG-Setup.Wait-For-Mininet" delay="15"
+          exec="onos-check-summary ${OC1} [0-9]* 10 48 22"/>
+
+    <import file="${ONOS_SCENARIOS}/net-trellis-hag-connectivity.xml"/>
+    <dependency name="Net-Trellis-HAG-Connectivity" requires="Check-Summary"/>
+
+    <import file="${ONOS_SCENARIOS}/net-trellis-hag-links.xml"/>
+    <dependency name="Net-Trellis-HAG-Links" requires="Check-Summary"/>
+
+    <import file="${ONOS_SCENARIOS}/net-trellis-hag-hosts.xml"/>
+    <dependency name="Net-Trellis-HAG-Hosts" requires="Check-Summary"/>
+
+    <import file="${ONOS_SCENARIOS}/net-teardown.xml"/>
+    <dependency name="Net-Teardown" requires="~Net-Trellis-HAG-Connectivity,~Net-Trellis-HAG-Links,~Net-Trellis-HAG-Hosts"/>
+
+    <parallel var="${OC#}">
+        <step name="Net-Smoke-Check-Logs-${#}" requires="~Net-Teardown"
+              exec="onos-check-logs ${OC#}"/>
+    </parallel>
+
+</scenario>
