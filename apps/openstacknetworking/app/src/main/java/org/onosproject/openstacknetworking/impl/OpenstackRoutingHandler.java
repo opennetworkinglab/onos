@@ -512,7 +512,7 @@ public class OpenstackRoutingHandler {
                 .build();
 
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .setOutput(PortNumber.CONTROLLER)
+                .punt()
                 .build();
 
         osFlowRuleService.setRule(
@@ -829,7 +829,7 @@ public class OpenstackRoutingHandler {
             tBuilder.popVlan();
         }
 
-        tBuilder.setOutput(PortNumber.CONTROLLER);
+        tBuilder.punt();
 
         osFlowRuleService.setRule(
                 appId,
@@ -849,7 +849,7 @@ public class OpenstackRoutingHandler {
                 .build();
 
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .setOutput(PortNumber.CONTROLLER)
+                .punt()
                 .build();
 
         osFlowRuleService.setRule(
