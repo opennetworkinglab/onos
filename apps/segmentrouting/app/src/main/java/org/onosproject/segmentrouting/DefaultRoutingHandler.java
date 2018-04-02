@@ -47,6 +47,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -195,12 +196,12 @@ public class DefaultRoutingHandler {
                 EcmpShortestPathGraph ecmpSpgUpdated =
                         new EcmpShortestPathGraph(dstSw, srManager);
                 updatedEcmpSpgMap.put(dstSw, ecmpSpgUpdated);
-                DeviceId pairDev = getPairDev(dstSw);
-                if (pairDev != null) {
+                Optional<DeviceId> pairDev = srManager.getPairDeviceId(dstSw);
+                if (pairDev.isPresent()) {
                     // pairDev may not be available yet, but we still need to add
-                    ecmpSpgUpdated = new EcmpShortestPathGraph(pairDev, srManager);
-                    updatedEcmpSpgMap.put(pairDev, ecmpSpgUpdated);
-                    edgePairs.add(new EdgePair(dstSw, pairDev));
+                    ecmpSpgUpdated = new EcmpShortestPathGraph(pairDev.get(), srManager);
+                    updatedEcmpSpgMap.put(pairDev.get(), ecmpSpgUpdated);
+                    edgePairs.add(new EdgePair(dstSw, pairDev.get()));
                 }
                 DeviceId ret = shouldHandleRouting(dstSw);
                 if (ret == null) {
@@ -283,9 +284,9 @@ public class DefaultRoutingHandler {
                 // ensure connect points are edge-pairs
                 Iterator<ConnectPoint> iter = cpts.iterator();
                 DeviceId dev1 = iter.next().deviceId();
-                DeviceId pairDev = getPairDev(dev1);
-                if (iter.next().deviceId().equals(pairDev)) {
-                    edgePairs.add(new EdgePair(dev1, pairDev));
+                Optional<DeviceId> pairDev = srManager.getPairDeviceId(dev1);
+                if (pairDev.isPresent() && iter.next().deviceId().equals(pairDev.get())) {
+                    edgePairs.add(new EdgePair(dev1, pairDev.get()));
                 } else {
                     log.warn("Connectpoints {} for subnets {} not on "
                             + "pair-devices.. aborting populateSubnet", cpts, subnets);
@@ -343,9 +344,9 @@ public class DefaultRoutingHandler {
                         log.warn(e.getMessage() + "aborting populateSubnet on targetSw {}", targetSw.id());
                         continue;
                     }
+                    Optional<DeviceId> pairDev = srManager.getPairDeviceId(dstSw);
                     if (dstSw.equals(targetSw.id()) || !isEdge ||
-                            (cpts.size() == 2 &&
-                                targetSw.id().equals(getPairDev(dstSw)))) {
+                            (cpts.size() == 2 && pairDev.isPresent() && targetSw.id().equals(pairDev.get()))) {
                         continue;
                     }
                     routeChanges.add(Lists.newArrayList(targetSw.id(), dstSw));
@@ -414,12 +415,12 @@ public class DefaultRoutingHandler {
                 EcmpShortestPathGraph ecmpSpgUpdated =
                         new EcmpShortestPathGraph(sw.id(), srManager);
                 updatedEcmpSpgMap.put(sw.id(), ecmpSpgUpdated);
-                DeviceId pairDev = getPairDev(sw.id());
-                if (pairDev != null) {
+                Optional<DeviceId> pairDev = srManager.getPairDeviceId(sw.id());
+                if (pairDev.isPresent()) {
                     // pairDev may not be available yet, but we still need to add
-                    ecmpSpgUpdated = new EcmpShortestPathGraph(pairDev, srManager);
-                    updatedEcmpSpgMap.put(pairDev, ecmpSpgUpdated);
-                    edgePairs.add(new EdgePair(sw.id(), pairDev));
+                    ecmpSpgUpdated = new EcmpShortestPathGraph(pairDev.get(), srManager);
+                    updatedEcmpSpgMap.put(pairDev.get(), ecmpSpgUpdated);
+                    edgePairs.add(new EdgePair(sw.id(), pairDev.get()));
                 }
             }
 
@@ -1256,8 +1257,8 @@ public class DefaultRoutingHandler {
         // handle clearing state for a failed switch in case the switch does
         // not have a pair, or the pair is not available
         if (failedSwitch != null) {
-            DeviceId pairDev = getPairDev(failedSwitch);
-            if (pairDev == null || !srManager.deviceService.isAvailable(pairDev)) {
+            Optional<DeviceId> pairDev = srManager.getPairDeviceId(failedSwitch);
+            if (!pairDev.isPresent() || !srManager.deviceService.isAvailable(pairDev.get())) {
                 log.debug("Proxy Route changes to downed Sw:{}", failedSwitch);
                 srManager.deviceService.getDevices().forEach(dev -> {
                     if (!dev.id().equals(failedSwitch) &&
@@ -1392,22 +1393,22 @@ public class DefaultRoutingHandler {
             return null;
         }
         NodeId myNode = srManager.mastershipService.getMasterFor(deviceId);
-        DeviceId pairDev = getPairDev(deviceId);
+        Optional<DeviceId> pairDev = srManager.getPairDeviceId(deviceId);
 
-        if (pairDev != null) {
-            if (!srManager.deviceService.isAvailable(pairDev)) {
+        if (pairDev.isPresent()) {
+            if (!srManager.deviceService.isAvailable(pairDev.get())) {
                 log.warn("pairedDev {} not available .. routing both this dev:{} "
                         + "and pair without mastership check for pair",
                           pairDev, deviceId);
-                return pairDev; // handle both temporarily
+                return pairDev.get(); // handle both temporarily
             }
-            NodeId pairMasterNode = srManager.mastershipService.getMasterFor(pairDev);
+            NodeId pairMasterNode = srManager.mastershipService.getMasterFor(pairDev.get());
             if (myNode.compareTo(pairMasterNode) <= 0) {
                 log.debug("Handling routing for both dev:{} pair-dev:{}; myNode: {}"
                         + " pairMaster:{} compare:{}", deviceId, pairDev,
                         myNode, pairMasterNode,
                         myNode.compareTo(pairMasterNode));
-                return pairDev; // handle both
+                return pairDev.get(); // handle both
             } else {
                 log.debug("PairDev node: {} should handle routing for dev:{} and "
                         + "pair-dev:{}", pairMasterNode, deviceId, pairDev);
@@ -1415,24 +1416,6 @@ public class DefaultRoutingHandler {
             }
         }
         return deviceId; // not paired, just handle given device
-    }
-
-    /**
-     * Returns the configured paired DeviceId for the given Device, or null
-     * if no such paired device has been configured.
-     *
-     * @param deviceId
-     * @return configured pair deviceId or null
-     */
-    private DeviceId getPairDev(DeviceId deviceId) {
-        DeviceId pairDev;
-        try {
-            pairDev = srManager.deviceConfiguration.getPairDeviceId(deviceId);
-        } catch (DeviceConfigNotFoundException e) {
-            log.warn(e.getMessage() + " .. cannot continue routing for dev: {}");
-            return null;
-        }
-        return pairDev;
     }
 
     /**
