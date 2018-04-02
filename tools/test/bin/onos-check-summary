@@ -6,7 +6,7 @@
 aux=/tmp/stc/stc-$$.log
 trap "rm -f $aux 2>/dev/null" EXIT
 
-for i in {1..15}; do
+for i in {1..30}; do
     onos ${1:-$OCI} "onos:summary" > $aux
     cat $aux
 

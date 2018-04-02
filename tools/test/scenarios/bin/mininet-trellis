@@ -1,0 +1,28 @@
+#!/bin/bash
+
+remote=$ONOS_USER@$OCN
+mininet="ssh -t -t $remote screen -L -S mininet"
+
+CONTROLLERS="$OC1"
+if [ "$OC2" != "" ]; then
+   CONTROLLERS=${CONTROLLERS},${OC2}
+fi
+if [ "$OC3" != "" ]; then
+   CONTROLLERS=${CONTROLLERS},${OC3}
+fi
+
+echo >/tmp/invoke_trellis_hag "cd routing/trellis && sudo ./trellis_hag.py -c '$CONTROLLERS'"
+chmod +x /tmp/invoke_trellis_hag
+scp /tmp/invoke_trellis_hag $remote:
+
+ssh $remote "rm -f $log; echo logfile flush 1 > ~/.screenrc"
+    (
+    $mininet ./invoke_trellis_hag
+    scp $remote:$log /tmp/mininet.log
+    ssh $remote rm -f $log
+    ) &
+
+
+
+
+

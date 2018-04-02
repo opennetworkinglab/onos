@@ -1,0 +1,29 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Finds a host in the system.
+# -----------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+aux=/tmp/stc/stc-$$.log
+trap "rm -f $aux 2>/dev/null" EXIT
+
+echo onos-find-host: $*
+
+target=${1:-$OCI}
+mac=$2
+locations=$3
+ips=$4
+set -x
+
+onos $target "onos:hosts" | tee $aux
+cat $aux | fgrep "mac=$mac" | fgrep "locations=[$locations]" | grep "ip.*[.*$ips.*]"
+
+if [ $? -ne 0 ]
+then
+    exit 1;
+fi
+
+exit 0
+

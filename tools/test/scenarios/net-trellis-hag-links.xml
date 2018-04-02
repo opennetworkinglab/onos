@@ -1,0 +1,88 @@
+<!--
+  ~ Copyright 2018-present Open Networking Foundation
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+
+
+<scenario name="net-trellis-HAG-links" description="Trellis network link check steps">
+
+        <group name="Net-Trellis-HAG-Links">
+            <!-- Verify some links using the REST API -->
+
+            <!-- Two Bi-Directional links between s206 and s226 -->
+            <!-- Link 1 -->
+            <step name="Net-Trellis-HAG-Links.Query-206-226-Link-1"
+                  exec="find-link.py ${OC1} link_206_226_1_ of:0000000000000206 1 of:0000000000000226 7"/>
+            <step name="Net-Trellis-HAG-Links.Validate-206-226-Link-1-State" requires="^"
+                  exec="test '${link_206_226_1_State}' == 'ACTIVE'"/>
+            <step name="Net-Trellis-HAG-Links.Validate-206-226-Link-1-Type" requires="^"
+                  exec="test '${link_206_226_1_Type}' == 'DIRECT'"/>
+            <step name="Net-Trellis-HAG-Links.Validate-206-226-Link-1-Src-Device" requires="^"
+                  exec="test '${link_206_226_1_SrcDevice}' == 'of:0000000000000206'"/>
+            <step name="Net-Trellis-HAG-Links.Validate-206-226-Link-1-Dst-Device" requires="^"
+                  exec="test '${link_206_226_1_DstDevice}' == 'of:0000000000000226'"/>
+            <step name="Net-Trellis-HAG-Links.Validate-206-226-Link-1-Src-Port" requires="^"
+                  exec="test '${link_206_226_1_SrcPort}' == '1'"/>
+            <step name="Net-Trellis-HAG-Links.Validate-206-226-Link-1-Dst-Port" requires="^"
+                  exec="test '${link_206_226_1_DstPort}' == '7'"/>
+
+            <step name="Net-Trellis-HAG-Links.Query-226-206-Link-1"
+                  exec="find-link.py ${OC1} link_226_206_1_ of:0000000000000226 7 of:0000000000000206 1"/>
+            <step name="Net-Trellis-HAG-Links.Validate-226-206-Link-1-State" requires="^"
+                  exec="test '${link_226_206_1_State}' == 'ACTIVE'"/>
+            <step name="Net-Trellis-HAG-Links.Validate-226-206-Link-1-Type" requires="^"
+                  exec="test '${link_226_206_1_Type}' == 'DIRECT'"/>
+            <step name="Net-Trellis-HAG-Links.Validate-226-206-Link-1-Src-Device" requires="^"
+                  exec="test '${link_226_206_1_SrcDevice}' == 'of:0000000000000226'"/>
+            <step name="Net-Trellis-HAG-Links.Validate-226-206-Link-1-Dst-Device" requires="^"
+                  exec="test '${link_226_206_1_DstDevice}' == 'of:0000000000000206'"/>
+            <step name="Net-Trellis-HAG-Links.Validate-226-206-Link-1-Src-Port" requires="^"
+                  exec="test '${link_226_206_1_SrcPort}' == '7'"/>
+            <step name="Net-Trellis-HAG-Links.Validate-226-206-Link-1-Dst-Port" requires="^"
+                  exec="test '${link_226_206_1_DstPort}' == '1'"/>
+
+            <!-- Link 2 -->
+            <step name="Net-Trellis-HAG-Links.Query-206-226-Link-2"
+                  exec="find-link.py ${OC1} link_206_226_2_ of:0000000000000206 2 of:0000000000000226 8"/>
+            <step name="Net-Trellis-HAG-Links.Validate-206-226-Link-2-State" requires="^"
+                  exec="test '${link_206_226_2_State}' == 'ACTIVE'"/>
+            <step name="Net-Trellis-HAG-Links.Validate-206-226-Link-2-Type" requires="^"
+                  exec="test '${link_206_226_2_Type}' == 'DIRECT'"/>
+            <step name="Net-Trellis-HAG-Links.Validate-206-226-Link-2-Src-Device" requires="^"
+                  exec="test '${link_206_226_2_SrcDevice}' == 'of:0000000000000206'"/>
+            <step name="Net-Trellis-HAG-Links.Validate-206-226-Link-2-Dst-Device" requires="^"
+                  exec="test '${link_206_226_2_DstDevice}' == 'of:0000000000000226'"/>
+            <step name="Net-Trellis-HAG-Links.Validate-206-226-Link-2-Src-Port" requires="^"
+                  exec="test '${link_206_226_2_SrcPort}' == '2'"/>
+            <step name="Net-Trellis-HAG-Links.Validate-206-226-Link-2-Dst-Port" requires="^"
+                  exec="test '${link_206_226_2_DstPort}' == '8'"/>
+
+            <step name="Net-Trellis-HAG-Links.Query-226-206-Link-2"
+                  exec="find-link.py ${OC1} link_226_206_2_ of:0000000000000226 8 of:0000000000000206 2"/>
+            <step name="Net-Trellis-HAG-Links.Validate-226-206-Link-2-State" requires="^"
+                  exec="test '${link_226_206_2_State}' == 'ACTIVE'"/>
+            <step name="Net-Trellis-HAG-Links.Validate-226-206-Link-2-Type" requires="^"
+                  exec="test '${link_226_206_2_Type}' == 'DIRECT'"/>
+            <step name="Net-Trellis-HAG-Links.Validate-226-206-Link-2-Src-Device" requires="^"
+                  exec="test '${link_226_206_2_SrcDevice}' == 'of:0000000000000226'"/>
+            <step name="Net-Trellis-HAG-Links.Validate-226-206-Link-2-Dst-Device" requires="^"
+                  exec="test '${link_226_206_2_DstDevice}' == 'of:0000000000000206'"/>
+            <step name="Net-Trellis-HAG-Links.Validate-226-206-Link-2-Src-Port" requires="^"
+                  exec="test '${link_226_206_2_SrcPort}' == '8'"/>
+            <step name="Net-Trellis-HAG-Links.Validate-226-206-Link-2-Dst-Port" requires="^"
+                  exec="test '${link_226_206_2_DstPort}' == '2'"/>
+        </group>
+
+</scenario>
