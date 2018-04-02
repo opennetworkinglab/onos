@@ -40,6 +40,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.onlab.util.Tools.readTreeFromStream;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -292,7 +293,7 @@ public class DpisWebResource extends AbstractWebResource {
         ObjectNode result;
 
         try {
-            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
+            ObjectNode jsonTree = readTreeFromStream(mapper(), stream);
             log.debug("jsonTree={}", jsonTree);
 
             DpiStatistics ds = codec(DpiStatistics.class).decode(jsonTree, this);

@@ -50,6 +50,8 @@ import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 import static javax.ws.rs.core.Response.Status.OK;
 import static javax.ws.rs.core.Response.Status.REQUEST_TIMEOUT;
+import static org.onlab.util.Tools.readTreeFromStream;
+
 
 /**
  * Utilities used by the RESTCONF app.
@@ -82,7 +84,7 @@ public final class RestconfUtils {
         ObjectNode rootNode;
         ObjectMapper mapper = new ObjectMapper();
         try {
-            rootNode = (ObjectNode) mapper.readTree(inputStream);
+            rootNode = readTreeFromStream(mapper, inputStream);
         } catch (IOException e) {
             throw new RestconfUtilsException("ERROR: InputStream failed to parse");
         }

@@ -39,6 +39,8 @@ import org.onosproject.routeservice.RouteService;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import static org.onlab.util.Tools.readTreeFromStream;
+
 /**
  * Manage the unicast routing information.
  */
@@ -84,7 +86,7 @@ public class RouteServiceWebResource extends AbstractWebResource {
     public Response createRoute(InputStream route) {
         RouteAdminService service = get(RouteAdminService.class);
         try {
-            ObjectNode jsonTree = (ObjectNode) mapper().readTree(route);
+            ObjectNode jsonTree = readTreeFromStream(mapper(), route);
             Route r = codec(Route.class).decode(jsonTree, this);
             service.update(Collections.singletonList(r));
         } catch (IOException ex) {
@@ -109,7 +111,7 @@ public class RouteServiceWebResource extends AbstractWebResource {
     public Response deleteRoute(InputStream route) {
         RouteAdminService service = get(RouteAdminService.class);
         try {
-            ObjectNode jsonTree = (ObjectNode) mapper().readTree(route);
+            ObjectNode jsonTree = readTreeFromStream(mapper(), route);
             Route r = codec(Route.class).decode(jsonTree, this);
             service.withdraw(Collections.singletonList(r));
         } catch (IOException ex) {

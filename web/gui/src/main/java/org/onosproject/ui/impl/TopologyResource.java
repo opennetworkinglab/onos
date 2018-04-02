@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 
+import static org.onlab.util.Tools.readTreeFromStream;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -114,7 +115,7 @@ public class TopologyResource extends BaseResource {
     @Consumes("application/json")
     @Deprecated
     public Response setSprites(InputStream stream) throws IOException {
-        JsonNode root = mapper.readTree(stream);
+        JsonNode root = readTreeFromStream(mapper, stream);
         String name = root.path("defn_name").asText("sprites");
         get(SpriteService.class).put(name, root);
         return Response.ok().build();

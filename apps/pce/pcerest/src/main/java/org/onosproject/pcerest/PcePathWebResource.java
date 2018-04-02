@@ -17,6 +17,7 @@ package org.onosproject.pcerest;
 
 import static javax.ws.rs.core.Response.Status.OK;
 import static org.onlab.util.Tools.nullIsNotFound;
+import static org.onlab.util.Tools.readTreeFromStream;
 
 import java.util.Collection;
 import java.io.IOException;
@@ -130,7 +131,7 @@ public class PcePathWebResource extends AbstractWebResource {
     public Response setupPath(InputStream stream) {
         log.debug("Setup path.");
         try {
-            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
+            ObjectNode jsonTree = readTreeFromStream(mapper(), stream);
             JsonNode port = jsonTree.get("path");
             TunnelService tunnelService = get(TunnelService.class);
             PcePath path = codec(PcePath.class).decode((ObjectNode) port, this);
@@ -190,7 +191,7 @@ public class PcePathWebResource extends AbstractWebResource {
             final InputStream stream) {
         log.debug("Update path by identifier {}.", id);
         try {
-            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
+            ObjectNode jsonTree = readTreeFromStream(mapper(), stream);
             JsonNode pathNode = jsonTree.get("path");
             PcePath path = codec(PcePath.class).decode((ObjectNode) pathNode, this);
             if (path == null) {

@@ -1,5 +1,6 @@
 COMPILE_DEPS = [
     '//lib:COMPILE',
+    '//lib:jackson-core',
 ]
 
 osgi_jar_with_tests(

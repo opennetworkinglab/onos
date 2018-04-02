@@ -57,6 +57,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static org.onlab.util.Tools.nullIsNotFound;
+import static org.onlab.util.Tools.readTreeFromStream;
 import static org.onosproject.net.intent.IntentState.FAILED;
 import static org.onosproject.net.intent.IntentState.WITHDRAWN;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -297,7 +298,7 @@ public class IntentsWebResource extends AbstractWebResource {
     public Response createIntent(InputStream stream) {
         try {
             IntentService service = get(IntentService.class);
-            ObjectNode root = (ObjectNode) mapper().readTree(stream);
+            ObjectNode root = readTreeFromStream(mapper(), stream);
             Intent intent = codec(Intent.class).decode(root, this);
             service.submit(intent);
             UriBuilder locationBuilder = uriInfo.getBaseUriBuilder()

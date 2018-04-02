@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import static javax.ws.rs.core.Response.Status.*;
+import static org.onlab.util.Tools.readTreeFromStream;
 
 
 /**
@@ -117,7 +118,7 @@ public class OFAgentWebResource extends AbstractWebResource {
     public Response createOFAgent(InputStream stream) throws IOException {
         OFAgentAdminService adminService = get(OFAgentAdminService.class);
 
-        OFAgent ofAgent = (new OFAgentCodec()).decode((ObjectNode) mapper().readTree(stream), this);
+        OFAgent ofAgent = (new OFAgentCodec()).decode(readTreeFromStream(mapper(), stream), this);
         if (ofAgent == null) {
             return Response.status(BAD_REQUEST)
                     .entity(OFAGENT_NOT_CREATED).build();
@@ -141,7 +142,7 @@ public class OFAgentWebResource extends AbstractWebResource {
     public Response startOFAgent(InputStream stream) throws IOException {
         OFAgentAdminService adminService = get(OFAgentAdminService.class);
 
-        ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
+        ObjectNode jsonTree = readTreeFromStream(mapper(), stream);
         JsonNode networkId = jsonTree.get("networkId");
 
         if (networkId == null) {
@@ -170,7 +171,7 @@ public class OFAgentWebResource extends AbstractWebResource {
     public Response updateOFAgent(InputStream stream) throws IOException {
         OFAgentAdminService adminService = get(OFAgentAdminService.class);
 
-        OFAgent ofAgent = (new OFAgentCodec()).decode((ObjectNode) mapper().readTree(stream), this);
+        OFAgent ofAgent = (new OFAgentCodec()).decode(readTreeFromStream(mapper(), stream), this);
 
         if (ofAgent == null) {
             return Response.status(NOT_FOUND)
@@ -199,7 +200,7 @@ public class OFAgentWebResource extends AbstractWebResource {
     public Response stopOFAgent(InputStream stream) throws IOException {
 
         OFAgentAdminService adminService = get(OFAgentAdminService.class);
-        ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
+        ObjectNode jsonTree = readTreeFromStream(mapper(), stream);
         JsonNode networkId = jsonTree.get("networkId");
 
         if (get(OFAgentService.class).agent(NetworkId.networkId(networkId.asLong())) == null) {

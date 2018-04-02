@@ -19,6 +19,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static org.onlab.util.Tools.readTreeFromStream;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -109,7 +110,7 @@ public class SubnetWebResource extends AbstractWebResource {
 
         try {
             ObjectMapper mapper = new ObjectMapper();
-            JsonNode subnode = mapper.readTree(input);
+            JsonNode subnode = readTreeFromStream(mapper, input);
             Iterable<Subnet> subnets = createOrUpdateByInputStream(subnode);
             Boolean result = nullIsNotFound((get(SubnetService.class)
                                                     .createSubnets(subnets)),
@@ -134,7 +135,7 @@ public class SubnetWebResource extends AbstractWebResource {
                                  final InputStream input) {
         try {
             ObjectMapper mapper = new ObjectMapper();
-            JsonNode subnode = mapper.readTree(input);
+            JsonNode subnode = readTreeFromStream(mapper, input);
             Iterable<Subnet> subnets = createOrUpdateByInputStream(subnode);
             Boolean result = nullIsNotFound(get(SubnetService.class)
                     .updateSubnets(subnets), SUBNET_NOT_FOUND);

@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Set;
 
 import static org.onlab.util.Tools.nullIsNotFound;
+import static org.onlab.util.Tools.readTreeFromStream;
 
 /**
  * Manage component configurations.
@@ -105,7 +106,7 @@ public class ComponentConfigWebResource extends AbstractWebResource {
                                @DefaultValue("false") @QueryParam("preset") boolean preset,
                                InputStream request) throws IOException {
         ComponentConfigService service = get(ComponentConfigService.class);
-        ObjectNode props = (ObjectNode) mapper().readTree(request);
+        ObjectNode props = readTreeFromStream(mapper(), request);
         List<String> errorMsgs = new ArrayList<String>();
         if (preset) {
                 props.fieldNames().forEachRemaining(k -> {
@@ -151,7 +152,7 @@ public class ComponentConfigWebResource extends AbstractWebResource {
     public Response unsetConfigs(@PathParam("component") String component,
                                  InputStream request) throws IOException {
         ComponentConfigService service = get(ComponentConfigService.class);
-        ObjectNode props = (ObjectNode) mapper().readTree(request);
+        ObjectNode props = readTreeFromStream(mapper(), request);
         props.fieldNames().forEachRemaining(k -> service.unsetProperty(component, k));
         return Response.noContent().build();
     }

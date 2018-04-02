@@ -39,6 +39,8 @@ import javax.ws.rs.core.UriInfo;
 import java.io.IOException;
 import java.io.InputStream;
 
+import static org.onlab.util.Tools.readTreeFromStream;
+
 /**
  * Manage flow objectives.
  */
@@ -74,7 +76,7 @@ public class FlowObjectiveWebResource extends AbstractWebResource {
                                              InputStream stream) {
         try {
             UriBuilder locationBuilder = null;
-            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
+            ObjectNode jsonTree = readTreeFromStream(mapper(), stream);
             validateDeviceId(deviceId, jsonTree);
 
             if (appId != null) {

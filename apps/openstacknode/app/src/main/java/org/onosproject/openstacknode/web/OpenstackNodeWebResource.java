@@ -46,6 +46,11 @@ import java.util.Set;
 
 import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
 import static javax.ws.rs.core.Response.created;
+import static org.onlab.util.Tools.readTreeFromStream;
+
+/**
+ * Handles REST API call of openstack node config.
+ */
 
 @Path("configure")
 public class OpenstackNodeWebResource extends AbstractWebResource {
@@ -140,7 +145,7 @@ public class OpenstackNodeWebResource extends AbstractWebResource {
     private Set<OpenstackNode> readNodeConfiguration(InputStream input) {
         Set<OpenstackNode> nodeSet = Sets.newHashSet();
         try {
-             JsonNode jsonTree = mapper().enable(INDENT_OUTPUT).readTree(input);
+             JsonNode jsonTree = readTreeFromStream(mapper().enable(INDENT_OUTPUT), input);
              ArrayNode nodes = (ArrayNode) jsonTree.path(NODES);
              nodes.forEach(node -> {
                  try {

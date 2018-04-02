@@ -34,6 +34,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+import static org.onlab.util.Tools.readTreeFromStream;
+
 /**
  * Query, create and remove segment routing plicies.
  */
@@ -70,7 +72,7 @@ public class PolicyWebResource extends AbstractWebResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createPolicy(InputStream input) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
-        ObjectNode policyJson = (ObjectNode) mapper.readTree(input);
+        ObjectNode policyJson = readTreeFromStream(mapper, input);
         SegmentRoutingService srService = get(SegmentRoutingService.class);
         Policy policyInfo = POLICY_CODEC.decode(policyJson, this);
 
@@ -93,7 +95,7 @@ public class PolicyWebResource extends AbstractWebResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response removePolicy(InputStream input) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
-        ObjectNode policyJson = (ObjectNode) mapper.readTree(input);
+        ObjectNode policyJson = readTreeFromStream(mapper, input);
         SegmentRoutingService srService = get(SegmentRoutingService.class);
         Policy policyInfo = POLICY_CODEC.decode(policyJson, this);
         // TODO: Check the result

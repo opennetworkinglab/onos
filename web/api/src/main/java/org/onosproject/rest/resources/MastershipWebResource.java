@@ -40,6 +40,7 @@ import java.io.InputStream;
 import java.util.Set;
 
 import static org.onlab.util.Tools.nullIsNotFound;
+import static org.onlab.util.Tools.readTreeFromStream;
 
 /**
  * Manage the mastership of ONOS instances.
@@ -190,7 +191,7 @@ public final class MastershipWebResource extends AbstractWebResource {
     public Response setRole(InputStream stream) {
 
         try {
-            ObjectNode jsonTree = (ObjectNode) mapper().readTree(stream);
+            ObjectNode jsonTree = readTreeFromStream(mapper(), stream);
             JsonNode deviceIdJson = jsonTree.get(DEVICE_ID);
             JsonNode nodeIdJson = jsonTree.get(NODE_ID);
             MastershipRole role = codec(MastershipRole.class).decode(jsonTree, this);
