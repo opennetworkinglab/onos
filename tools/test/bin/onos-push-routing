@@ -1,0 +1,26 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Remotely pushes routing scripts a remote mininet test machine.
+# -----------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+routing="${ONOS_ROUTING:-}"
+routing_root="${ONOS_ROUTING:-}"
+
+if [ -z "$routing_root" ]; then
+    routing_root=$(mktemp -d /tmp/routing.XXXXX)
+    ( cd $routing_root && git init && git clone https://gerrit.onosproject.org/routing )
+    routing=$routing_root/routing
+fi
+
+[ ! -d "$routing" ] && echo "routing source tree not found" >&2 && exit 1
+
+node=${1:-$OCN}
+
+ssh $ONOS_USER@$node sudo rm -rf routing
+scp -qr $routing $ONOS_USER@$node:
+
+echo "@stc routing_root=$routing_root"
+echo "@stc routing=$routing"

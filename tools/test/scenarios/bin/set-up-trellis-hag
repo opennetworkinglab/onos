@@ -1,0 +1,41 @@
+#!/bin/bash
+
+remote=$ONOS_USER@$OCN
+
+ssh -t $remote "
+
+    set -euxo pipefail
+
+    sudo killall -9 dhclient || true
+    sudo killall -9 zebra || true
+    sudo killall -9 bgpd || true
+    sudo killall -9 dhcpd || true
+    sudo killall -9 screen || true
+
+    # Preconfigure isc-dhcp-relay for headless install
+    echo isc-dhcp-relay isc-dhcp-relay/interfaces string "" | sudo debconf-set-selections
+    echo isc-dhcp-relay isc-dhcp-relay/options string "" | sudo debconf-set-selections
+    echo isc-dhcp-relay isc-dhcp-relay/servers string "" | sudo debconf-set-selections
+    sudo apt-get update
+    sudo apt-get install -y linux-image-\$(uname -r) gawk texinfo python-pip build-essential iptables isc-dhcp-server isc-dhcp-relay
+
+    # Make sure python dependencies are installed
+    sudo pip install ipaddress configobj
+
+    # Setup quagga
+    # make sure quagga user exists
+    if ! grep -q -E "^quagga" /etc/group ; then
+        sudo groupadd quagga
+    fi
+    if ! id -u quagga > /dev/null 2>&1 ; then
+        sudo useradd -g quagga -s /bin/false quagga
+    fi
+    rm -rf quagga
+    git clone -b onos-1.11 https://gerrit.opencord.org/quagga
+    cd quagga
+    ./bootstrap.sh
+    ./configure --enable-fpm --sbindir=/usr/lib/quagga
+    make
+    sudo make install
+    cd ..
+"

@@ -1,0 +1,13 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Cleans up /tmp if a local copy of the routing repo was created
+# -----------------------------------------------------------------------------
+
+
+routing="$1"
+
+[ ! -d "$routing" ] && echo "routing source tree not found" >&2 && exit 1
+
+if [[ $routing = *"/tmp/routing."* ]]; then
+  rm -rf $routing
+fi
