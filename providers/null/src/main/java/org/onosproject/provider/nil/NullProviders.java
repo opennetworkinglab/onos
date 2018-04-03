@@ -39,6 +39,8 @@ import org.onosproject.net.device.DeviceProviderRegistry;
 import org.onosproject.net.device.DeviceProviderService;
 import org.onosproject.net.flow.FlowRuleProviderRegistry;
 import org.onosproject.net.flow.FlowRuleProviderService;
+import org.onosproject.net.group.GroupProviderRegistry;
+import org.onosproject.net.group.GroupProviderService;
 import org.onosproject.net.host.HostProvider;
 import org.onosproject.net.host.HostProviderRegistry;
 import org.onosproject.net.host.HostProviderService;
@@ -116,12 +118,16 @@ public class NullProviders {
     protected FlowRuleProviderRegistry flowRuleProviderRegistry;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected GroupProviderRegistry groupProviderRegistry;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected PacketProviderRegistry packetProviderRegistry;
 
     private final NullDeviceProvider deviceProvider = new NullDeviceProvider();
     private final NullLinkProvider linkProvider = new NullLinkProvider();
     private final NullHostProvider hostProvider = new NullHostProvider();
     private final NullFlowRuleProvider flowRuleProvider = new NullFlowRuleProvider();
+    private final NullGroupProvider groupProvider = new NullGroupProvider();
     private final NullPacketProvider packetProvider = new NullPacketProvider();
     private final TopologyMutationDriver topologyMutationDriver = new TopologyMutationDriver();
 
@@ -129,6 +135,7 @@ public class NullProviders {
     private HostProviderService hostProviderService;
     private LinkProviderService linkProviderService;
     private FlowRuleProviderService flowRuleProviderService;
+    private GroupProviderService groupProviderService;
     private PacketProviderService packetProviderService;
 
     private TopologySimulator simulator;
@@ -176,6 +183,7 @@ public class NullProviders {
         hostProviderService = hostProviderRegistry.register(hostProvider);
         linkProviderService = linkProviderRegistry.register(linkProvider);
         flowRuleProviderService = flowRuleProviderRegistry.register(flowRuleProvider);
+        groupProviderService = groupProviderRegistry.register(groupProvider);
         packetProviderService = packetProviderRegistry.register(packetProvider);
         log.info("Started");
     }
@@ -189,12 +197,14 @@ public class NullProviders {
         hostProviderRegistry.unregister(hostProvider);
         linkProviderRegistry.unregister(linkProvider);
         flowRuleProviderRegistry.unregister(flowRuleProvider);
+        groupProviderRegistry.unregister(groupProvider);
         packetProviderRegistry.unregister(packetProvider);
 
         deviceProviderService = null;
         hostProviderService = null;
         linkProviderService = null;
         flowRuleProviderService = null;
+        groupProviderService = null;
         packetProviderService = null;
 
         log.info("Stopped");
@@ -339,9 +349,11 @@ public class NullProviders {
                        deviceProviderService, hostProviderService,
                        linkProviderService);
         flowRuleProvider.start(flowRuleProviderService);
+        groupProvider.start(groupProviderService);
         packetProvider.start(packetRate, hostService, deviceService,
                              packetProviderService);
         simulator.setUpTopology();
+        groupProvider.initDevicesGroupTable(simulator.deviceIds);
         topologyMutationDriver.start(mutationRate, linkService, deviceService,
                                      linkProviderService, deviceProviderService,
                                      simulator);
@@ -382,6 +394,7 @@ public class NullProviders {
             topologyMutationDriver.stop();
             packetProvider.stop();
             flowRuleProvider.stop();
+            groupProvider.stop();
             delay(500);
             simulator.tearDownTopology();
             simulator = null;
