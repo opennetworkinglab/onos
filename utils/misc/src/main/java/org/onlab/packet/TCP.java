@@ -416,7 +416,7 @@ public class TCP extends BasePacket {
             tcp.urgentPointer = bb.getShort();
             if (tcp.dataOffset > 5) {
                 int optLength = (tcp.dataOffset << 2) - 20;
-                checkHeaderLength(length, TCP_HEADER_LENGTH + tcp.dataOffset);
+                checkHeaderLength(length, TCP_HEADER_LENGTH + optLength);
                 tcp.options = new byte[optLength];
                 bb.get(tcp.options, 0, optLength);
             }
