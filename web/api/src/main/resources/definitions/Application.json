@@ -44,7 +44,7 @@
     },
     "origin": {
       "type": "string",
-      "example": "ON.Lab"
+      "example": "Open Networking Foundation"
     },
     "url": {
       "type": "string",

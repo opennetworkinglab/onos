@@ -352,7 +352,7 @@ public final class KryoNamespaces {
             .build("BASIC");
 
     /**
-     * KryoNamespace which can serialize ON.lab misc classes.
+     * KryoNamespace which can serialize ONF misc classes.
      */
     public static final int MISC_MAX_SIZE = 30;
 

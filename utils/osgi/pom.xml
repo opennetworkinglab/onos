@@ -28,7 +28,7 @@
     <artifactId>onlab-osgi</artifactId>
     <packaging>bundle</packaging>
 
-    <description>ON.Lab OSGI utilities</description>
+    <description>Open Networking Foundation OSGI utilities</description>
 
     <dependencies>
         <dependency>

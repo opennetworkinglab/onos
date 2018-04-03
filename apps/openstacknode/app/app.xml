@@ -14,7 +14,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<app name="org.onosproject.openstacknode" origin="ON.Lab" version="${project.version}"
+<app name="org.onosproject.openstacknode" origin="Open Networking Foundation" version="${project.version}"
      category="Utility" url="https://wiki.onosproject.org/display/ONOS/SONA%3A+DC+Network+Virtualization"
      title="OpenStack Node App" features="${project.artifactId}"
      apps="org.onosproject.ovsdb-base,org.onosproject.drivers.ovsdb"

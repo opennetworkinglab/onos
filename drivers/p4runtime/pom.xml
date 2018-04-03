@@ -55,7 +55,7 @@
 
     <properties>
         <onos.app.name>org.onosproject.drivers.p4runtime</onos.app.name>
-        <onos.app.origin>ON.Lab</onos.app.origin>
+        <onos.app.origin>ONOS Community</onos.app.origin>
         <onos.app.title>P4Runtime Device Drivers</onos.app.title>
         <onos.app.category>Drivers</onos.app.category>
         <onos.app.url>http://onosproject.org</onos.app.url>

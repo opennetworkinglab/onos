@@ -88,7 +88,7 @@ ssh -tt $remote "
         echo '.upgrade' >> $ONOS_INSTALL_DIR/VERSION
     fi
 
-    # Remove any previous ON.Lab bits from ~/.m2 repo.
+    # Remove any previous Open Networking Foundation bits from ~/.m2 repo.
     rm -fr ~/.m2/repository/org/onosproject
 
     [ ! -z $mvn_settings ] && cp /tmp/settings.xml ~/.m2/settings.xml

@@ -34,7 +34,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <onos.version>${project.version}</onos.version>
         <onos.app.name>org.onosproject.netconfsb</onos.app.name>
-        <onos.app.origin>ON.Lab</onos.app.origin>
+        <onos.app.origin>ONOS Community</onos.app.origin>
         <onos.app.requires>org.onosproject.yang,org.onosproject.config,org.onosproject.netconf</onos.app.requires>
         <onos.app.category>Protocols</onos.app.category>
         <onos.app.title>NETCONF Device Configuration</onos.app.title>

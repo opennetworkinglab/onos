@@ -14,7 +14,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<app name="org.onosproject.bgprouter" origin="ON.Lab" version="${project.version}"
+<app name="org.onosproject.bgprouter" origin="Open Networking Foundation" version="${project.version}"
      category="Traffic Steering" url="http://onosproject.org" title="BGP Router App"
      featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
      features="${project.artifactId}" apps="fibinstaller">

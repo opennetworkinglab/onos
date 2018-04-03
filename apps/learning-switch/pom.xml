@@ -34,7 +34,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <onos.app.name>org.onosproject.learningswitch</onos.app.name>
         <onos.app.title>Learning Switch</onos.app.title>
-        <onos.app.origin>ON.Lab</onos.app.origin>
+        <onos.app.origin>ONOS Community</onos.app.origin>
         <onos.app.category>Tutorial</onos.app.category>
         <onos.app.url>http://onosproject.org</onos.app.url>
         <onos.app.readme>Learning Switch Tutorial Implementation.</onos.app.readme>

@@ -206,7 +206,7 @@ public abstract class TopologySimulator {
     public void createDevice(DeviceId id, int chassisId, Device.Type type, int portCount) {
         DeviceDescription desc =
                 new DefaultDeviceDescription(id.uri(), type,
-                                             "ON.Lab", "0.1", "0.1", "1234",
+                                             "ONF", "0.1", "0.1", "1234",
                                              new ChassisId(chassisId));
         deviceIds.add(id);
         mastershipAdminService.setRoleSync(localNode, id, MASTER);

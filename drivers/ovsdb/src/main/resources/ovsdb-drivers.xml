@@ -16,7 +16,7 @@
   -->
 <drivers>
     <driver name="default"
-            manufacturer="ON.Lab" hwVersion="0.0.1" swVersion="0.0.1">
+            manufacturer="Open Networking Foundation" hwVersion="0.0.1" swVersion="0.0.1">
         <behaviour api="org.onosproject.net.behaviour.BridgeConfig"
                    impl="org.onosproject.drivers.ovsdb.OvsdbBridgeConfig"/>
         <behaviour api="org.onosproject.net.behaviour.InterfaceConfig"

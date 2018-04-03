@@ -27,7 +27,7 @@ public final class DistributedStoreSerializers {
     public static final int STORE_CUSTOM_BEGIN = KryoNamespaces.BEGIN_USER_CUSTOM_ID + 10;
 
     /**
-     * KryoNamespace which can serialize ON.lab misc classes.
+     * KryoNamespace which can serialize ONF misc classes.
      */
     public static final KryoNamespace STORE_COMMON = KryoNamespace.newBuilder()
             .register(KryoNamespaces.API)

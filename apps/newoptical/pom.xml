@@ -35,7 +35,7 @@
         <onos.app.title>Packet/Optical Use-Case App</onos.app.title>
         <onos.app.category>Traffic Steering</onos.app.category>
         <onos.app.url>https://wiki.onosproject.org/display/ONOS/Packet+Optical+Convergence</onos.app.url>
-        <onos.app.origin>ON.Lab</onos.app.origin>
+        <onos.app.origin>ONOS Community</onos.app.origin>
         <onos.app.requires>
             org.onosproject.optical-model
         </onos.app.requires>

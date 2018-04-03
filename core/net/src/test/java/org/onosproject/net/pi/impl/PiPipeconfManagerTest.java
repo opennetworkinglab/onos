@@ -250,7 +250,7 @@ public class PiPipeconfManagerTest {
 
         @Override
         public String manufacturer() {
-            return "On.Lab";
+            return "Open Networking Foundation";
         }
 
         @Override

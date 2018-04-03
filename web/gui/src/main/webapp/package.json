@@ -11,7 +11,7 @@
     "dev-server": "node --harmony_destructuring dev_server.js",
     "start": "parallelshell \"npm run dev-server\" \"npm run bs\""
   },
-  "author": "ON.Lab",
+  "author": "Open Networking Foundation",
   "license": "Apache 2.0",
   "devDependencies": {
     "browser-sync": "^2.12.8",

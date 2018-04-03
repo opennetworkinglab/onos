@@ -32,7 +32,7 @@
 
     <properties>
         <onos.app.name>org.onosproject.drivers.hp</onos.app.name>
-        <onos.app.origin>ON.Lab</onos.app.origin>
+        <onos.app.origin>ONOS Community</onos.app.origin>
         <onos.app.title>HP Driver</onos.app.title>
         <onos.app.category>Drivers</onos.app.category>
         <onos.app.url>http://onosproject.org</onos.app.url>

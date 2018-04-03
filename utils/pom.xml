@@ -28,7 +28,7 @@
     <artifactId>onlab-utils</artifactId>
     <packaging>pom</packaging>
 
-    <description>Domain agnostic ON.Lab utilities</description>
+    <description>Domain agnostic Open Networking Foundation utilities</description>
 
     <modules>
         <module>junit</module>

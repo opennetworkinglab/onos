@@ -32,7 +32,7 @@
 
     <properties>
         <onos.app.name>org.onosproject.drivers.lisp</onos.app.name>
-        <onos.app.origin>ON.Lab</onos.app.origin>
+        <onos.app.origin>ONOS Community</onos.app.origin>
         <onos.app.category>Drivers</onos.app.category>
         <onos.app.title>LISP Device Drivers</onos.app.title>
         <onos.app.url>https://wiki.onosproject.org/display/ONOS/LISP+as+SBI</onos.app.url>

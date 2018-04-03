@@ -31,7 +31,7 @@
 
     <properties>
         <onos.app.name>org.onosproject.optical-model</onos.app.name>
-        <onos.app.origin>ON.Lab</onos.app.origin>
+        <onos.app.origin>ONOS Community</onos.app.origin>
         <onos.app.category>Optical</onos.app.category>
         <onos.app.title>Optical information model</onos.app.title>
         <onos.app.url>https://wiki.onosproject.org/x/C4m</onos.app.url>

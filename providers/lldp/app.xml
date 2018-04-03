@@ -14,7 +14,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<app name="org.onosproject.lldpprovider" origin="ON.Lab" version="${project.version}"
+<app name="org.onosproject.lldpprovider" origin="Open Networking Foundation" version="${project.version}"
      category="Provider" url="http://onosproject.org" title="LLDP Link Provider"
      featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
      features="${project.artifactId}">

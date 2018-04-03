@@ -14,7 +14,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<app name="org.onosproject.routeservice" origin="ON.Lab" version="${project.version}"
+<app name="org.onosproject.routeservice" origin="Open Networking Foundation" version="${project.version}"
      category="Utility" url="http://onosproject.org" title="Route Service App"
      featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
      features="${project.artifactId}">

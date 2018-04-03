@@ -32,7 +32,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <onos.version>${project.version}</onos.version>
-        <onos.app.origin>ON.Lab</onos.app.origin>
+        <onos.app.origin>ONOS Community</onos.app.origin>
         <onos.app.requires>org.onosproject.config</onos.app.requires>
         <onos.app.category>Utility</onos.app.category>
         <onos.app.title>Dynamic Device Config device synchronizer</onos.app.title>

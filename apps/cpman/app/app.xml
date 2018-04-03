@@ -14,7 +14,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<app name="org.onosproject.cpman" origin="ON.Lab" version="${project.version}"
+<app name="org.onosproject.cpman" origin="Open Networking Foundation" version="${project.version}"
      category="Monitoring" url="http://onosproject.org" title="Control Plane Management App"
      featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
      features="${project.artifactId}" apps="org.onosproject.openflow-message">

@@ -4,7 +4,7 @@
   "main": "index.html",
   "directory": "./vendor",
   "authors": [
-    "ON.Lab"
+    "Open Networking Foundation"
   ],
   "license": "Apache 2.0",
   "homepage": "",

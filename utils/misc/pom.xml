@@ -28,7 +28,7 @@
     <artifactId>onlab-misc</artifactId>
     <packaging>bundle</packaging>
 
-    <description>Miscellaneous ON.Lab utilities</description>
+    <description>Miscellaneous Open Networking Foundation utilities</description>
 
     <properties>
     </properties>
