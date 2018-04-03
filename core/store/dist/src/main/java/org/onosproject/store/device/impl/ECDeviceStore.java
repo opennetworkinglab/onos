@@ -363,12 +363,14 @@ public class ECDeviceStore
     }
 
     // FIXME publicization of markOnline -- trigger some action independently?
-    public boolean markOnline(DeviceId deviceId) {
+    public DeviceEvent markOnline(DeviceId deviceId) {
         if (devices.containsKey(deviceId)) {
-            return availableDevices.add(deviceId);
+            if (availableDevices.add(deviceId)) {
+                return new DeviceEvent(DEVICE_AVAILABILITY_CHANGED, devices.get(deviceId), null);
+            }
         }
         log.warn("Device {} does not exist in store", deviceId);
-        return false;
+        return null;
     }
 
     @Override

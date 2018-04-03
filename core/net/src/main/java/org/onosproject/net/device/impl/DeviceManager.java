@@ -878,7 +878,7 @@ public class DeviceManager
             case MASTER:
                 final Device device = getDevice(did);
                 if ((device != null) && !isAvailable(did)) {
-                    store.markOnline(did);
+                    post(store.markOnline(did));
                 }
                 // TODO: should apply role only if there is mismatch
                 log.debug("Applying role {} to {}", myNextRole, did);

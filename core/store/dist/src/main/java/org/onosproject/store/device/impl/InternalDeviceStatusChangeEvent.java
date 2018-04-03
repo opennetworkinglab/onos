@@ -24,19 +24,22 @@ import com.google.common.base.MoreObjects;
  * Information published by GossipDeviceStore to notify peers of a device
  * going offline.
  */
-public class InternalDeviceOfflineEvent {
+public class InternalDeviceStatusChangeEvent {
 
     private final DeviceId deviceId;
     private final Timestamp timestamp;
+    private final Boolean available;
 
     /**
-     * Creates a InternalDeviceOfflineEvent.
-     * @param deviceId identifier of device going offline.
-     * @param timestamp timestamp of when the device went offline.
+     * Creates a InternalDeviceStatusChangeEvent.
+     * @param deviceId identifier of device.
+     * @param timestamp timestamp of when the device status is changed.
+     * @param available device status is available or not.
      */
-    public InternalDeviceOfflineEvent(DeviceId deviceId, Timestamp timestamp) {
+    public InternalDeviceStatusChangeEvent(DeviceId deviceId, Timestamp timestamp, Boolean available) {
         this.deviceId = deviceId;
         this.timestamp = timestamp;
+        this.available = available;
     }
 
     public DeviceId deviceId() {
@@ -47,18 +50,24 @@ public class InternalDeviceOfflineEvent {
         return timestamp;
     }
 
+    public Boolean available() {
+        return available;
+    }
+
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                 .add("deviceId", deviceId)
                 .add("timestamp", timestamp)
+                .add("available", available)
                 .toString();
     }
 
     // for serializer
     @SuppressWarnings("unused")
-    private InternalDeviceOfflineEvent() {
+    private InternalDeviceStatusChangeEvent() {
         deviceId = null;
         timestamp = null;
+        available = null;
     }
 }

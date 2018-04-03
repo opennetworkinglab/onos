@@ -25,30 +25,32 @@ import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 
 /**
- * Kryo Serializer for {@link InternalDeviceOfflineEvent}.
+ * Kryo Serializer for {@link InternalDeviceStatusChangeEvent}.
  */
-public class InternalDeviceOfflineEventSerializer extends Serializer<InternalDeviceOfflineEvent> {
+public class InternalDeviceStatusChangeEventSerializer extends Serializer<InternalDeviceStatusChangeEvent> {
 
     /**
-     * Creates a serializer for {@link InternalDeviceOfflineEvent}.
+     * Creates a serializer for {@link InternalDeviceStatusChangeEvent}.
      */
-    public InternalDeviceOfflineEventSerializer() {
+    public InternalDeviceStatusChangeEventSerializer() {
         // does not accept null
         super(false);
     }
 
     @Override
-    public void write(Kryo kryo, Output output, InternalDeviceOfflineEvent event) {
+    public void write(Kryo kryo, Output output, InternalDeviceStatusChangeEvent event) {
         kryo.writeObject(output, event.deviceId(), deviceIdSerializer());
         kryo.writeClassAndObject(output, event.timestamp());
+        kryo.writeClassAndObject(output, event.available());
     }
 
     @Override
-    public InternalDeviceOfflineEvent read(Kryo kryo, Input input,
-                               Class<InternalDeviceOfflineEvent> type) {
+    public InternalDeviceStatusChangeEvent read(Kryo kryo, Input input,
+                                                Class<InternalDeviceStatusChangeEvent> type) {
         DeviceId deviceId = kryo.readObject(input, DeviceId.class, deviceIdSerializer());
         Timestamp timestamp = (Timestamp) kryo.readClassAndObject(input);
+        Boolean available = (Boolean) kryo.readClassAndObject(input);
 
-        return new InternalDeviceOfflineEvent(deviceId, timestamp);
+        return new InternalDeviceStatusChangeEvent(deviceId, timestamp, available);
     }
 }

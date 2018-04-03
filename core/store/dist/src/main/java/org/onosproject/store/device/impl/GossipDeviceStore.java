@@ -106,7 +106,7 @@ import static org.onosproject.net.device.DeviceEvent.Type.PORT_REMOVED;
 import static org.onosproject.net.device.DeviceEvent.Type.PORT_STATS_UPDATED;
 import static org.onosproject.net.device.DeviceEvent.Type.PORT_UPDATED;
 import static org.onosproject.store.device.impl.GossipDeviceStoreMessageSubjects.DEVICE_ADVERTISE;
-import static org.onosproject.store.device.impl.GossipDeviceStoreMessageSubjects.DEVICE_OFFLINE;
+import static org.onosproject.store.device.impl.GossipDeviceStoreMessageSubjects.DEVICE_STATUS_CHANGE;
 import static org.onosproject.store.device.impl.GossipDeviceStoreMessageSubjects.DEVICE_REMOVED;
 import static org.onosproject.store.device.impl.GossipDeviceStoreMessageSubjects.DEVICE_REMOVE_REQ;
 import static org.onosproject.store.device.impl.GossipDeviceStoreMessageSubjects.DEVICE_UPDATE;
@@ -176,7 +176,7 @@ public class GossipDeviceStore
                     .register(DistributedStoreSerializers.STORE_COMMON)
                     .nextId(DistributedStoreSerializers.STORE_CUSTOM_BEGIN)
                     .register(new InternalDeviceEventSerializer(), InternalDeviceEvent.class)
-                    .register(new InternalDeviceOfflineEventSerializer(), InternalDeviceOfflineEvent.class)
+                    .register(new InternalDeviceStatusChangeEventSerializer(), InternalDeviceStatusChangeEvent.class)
                     .register(InternalDeviceRemovedEvent.class)
                     .register(new InternalPortEventSerializer(), InternalPortEvent.class)
                     .register(new InternalPortStatusEventSerializer(), InternalPortStatusEvent.class)
@@ -201,7 +201,7 @@ public class GossipDeviceStore
                 newSingleThreadScheduledExecutor(minPriority(groupedThreads("onos/device", "bg-%d", log)));
 
         addSubscriber(DEVICE_UPDATE, this::handleDeviceEvent);
-        addSubscriber(DEVICE_OFFLINE, this::handleDeviceOfflineEvent);
+        addSubscriber(DEVICE_STATUS_CHANGE, this::handleDeviceStatusChangeEvent);
         addSubscriber(DEVICE_REMOVE_REQ, this::handleRemoveRequest);
         addSubscriber(DEVICE_REMOVED, this::handleDeviceRemovedEvent);
         addSubscriber(PORT_UPDATE, this::handlePortEvent);
@@ -263,7 +263,7 @@ public class GossipDeviceStore
         devicePorts.clear();
         availableDevices.clear();
         clusterCommunicator.removeSubscriber(DEVICE_UPDATE);
-        clusterCommunicator.removeSubscriber(DEVICE_OFFLINE);
+        clusterCommunicator.removeSubscriber(DEVICE_STATUS_CHANGE);
         clusterCommunicator.removeSubscriber(DEVICE_REMOVE_REQ);
         clusterCommunicator.removeSubscriber(DEVICE_REMOVED);
         clusterCommunicator.removeSubscriber(PORT_UPDATE);
@@ -400,7 +400,7 @@ public class GossipDeviceStore
                providerId, oldDevice, newDevice);
 
         if (!providerId.isAncillary()) {
-            markOnline(newDevice.id(), timestamp);
+            markOnline(newDevice.id(), timestamp, false);
         }
 
         log.debug("Device {} added", newDevice.id());
@@ -439,11 +439,7 @@ public class GossipDeviceStore
         }
 
         if (!providerId.isAncillary() && forceAvailable) {
-            boolean wasOnline = availableDevices.contains(newDevice.id());
-            markOnline(newDevice.id(), newTimestamp);
-            if (!wasOnline) {
-                notifyDelegateIfNotNull(new DeviceEvent(DEVICE_AVAILABILITY_CHANGED, newDevice, null));
-            }
+            notifyDelegateIfNotNull(markOnline(newDevice.id(), newTimestamp, false));
         }
         return event;
     }
@@ -472,7 +468,7 @@ public class GossipDeviceStore
         if (event != null) {
             log.debug("Notifying peers of a device offline topology event for deviceId: {} {}",
                      deviceId, timestamp);
-            notifyPeers(new InternalDeviceOfflineEvent(deviceId, timestamp));
+            notifyPeers(new InternalDeviceStatusChangeEvent(deviceId, timestamp, false));
         }
         return event;
     }
@@ -512,22 +508,8 @@ public class GossipDeviceStore
     }
 
     @Override
-    public boolean markOnline(DeviceId deviceId) {
-        if (devices.containsKey(deviceId)) {
-            final Timestamp timestamp = deviceClockService.getTimestamp(deviceId);
-            Map<?, ?> deviceLock = getOrCreateDeviceDescriptionsMap(deviceId);
-            synchronized (deviceLock) {
-                if (markOnline(deviceId, timestamp)) {
-                    notifyDelegate(new DeviceEvent(DEVICE_AVAILABILITY_CHANGED, getDevice(deviceId), null));
-                    return true;
-                } else {
-                    return false;
-                }
-            }
-        }
-        log.warn("Device {} does not exist in store", deviceId);
-        return false;
-
+    public DeviceEvent markOnline(DeviceId deviceId) {
+        return markOnline(deviceId, deviceClockService.getTimestamp(deviceId), true);
     }
 
     /**
@@ -536,20 +518,40 @@ public class GossipDeviceStore
      *
      * @param deviceId  identifier of the device
      * @param timestamp of the event triggering this change.
-     * @return true if availability change request was accepted and changed the state
+     * @param notifyPeers if the event needs to be notified to peers.
+     * @return ready to send event describing what occurred; null if no change
      */
-    // Guarded by deviceDescs value (=Device lock)
-    private boolean markOnline(DeviceId deviceId, Timestamp timestamp) {
-        // accept on-line if given timestamp is newer than
-        // the latest offline request Timestamp
-        Timestamp offlineTimestamp = offline.get(deviceId);
-        if (offlineTimestamp == null ||
-                offlineTimestamp.compareTo(timestamp) < 0) {
-
-            offline.remove(deviceId);
-            return availableDevices.add(deviceId);
+    private DeviceEvent markOnline(DeviceId deviceId, Timestamp timestamp, boolean notifyPeers) {
+        final DeviceEvent event = markOnlineInternal(deviceId, timestamp);
+        if (event != null && notifyPeers) {
+            log.debug("Notifying peers of a device online topology event for deviceId: {} {}",
+                      deviceId, timestamp);
+            notifyPeers(new InternalDeviceStatusChangeEvent(deviceId, timestamp, true));
         }
-        return false;
+        return event;
+    }
+
+    // Guarded by deviceDescs value (=Device lock)
+    private DeviceEvent markOnlineInternal(DeviceId deviceId, Timestamp timestamp) {
+        if (devices.containsKey(deviceId)) {
+            Map<?, ?> deviceLock = getOrCreateDeviceDescriptionsMap(deviceId);
+            synchronized (deviceLock) {
+                // accept on-line if given timestamp is newer than
+                // the latest offline request Timestamp
+                Timestamp offlineTimestamp = offline.get(deviceId);
+                if (offlineTimestamp == null ||
+                        offlineTimestamp.compareTo(timestamp) < 0) {
+                    offline.remove(deviceId);
+                    Device device = devices.get(deviceId);
+                    boolean add = availableDevices.add(deviceId);
+                    if (add) {
+                        return new DeviceEvent(DEVICE_AVAILABILITY_CHANGED, device, null);
+                    }
+                }
+            }
+        }
+        log.warn("Device {} does not exist in store", deviceId);
+        return null;
     }
 
     @Override
@@ -1271,8 +1273,8 @@ public class GossipDeviceStore
         broadcastMessage(DEVICE_UPDATE, event);
     }
 
-    private void notifyPeers(InternalDeviceOfflineEvent event) {
-        broadcastMessage(GossipDeviceStoreMessageSubjects.DEVICE_OFFLINE, event);
+    private void notifyPeers(InternalDeviceStatusChangeEvent event) {
+        broadcastMessage(GossipDeviceStoreMessageSubjects.DEVICE_STATUS_CHANGE, event);
     }
 
     private void notifyPeers(InternalDeviceRemovedEvent event) {
@@ -1295,9 +1297,9 @@ public class GossipDeviceStore
         }
     }
 
-    private void notifyPeer(NodeId recipient, InternalDeviceOfflineEvent event) {
+    private void notifyPeer(NodeId recipient, InternalDeviceStatusChangeEvent event) {
         try {
-            unicastMessage(recipient, GossipDeviceStoreMessageSubjects.DEVICE_OFFLINE, event);
+            unicastMessage(recipient, GossipDeviceStoreMessageSubjects.DEVICE_STATUS_CHANGE, event);
         } catch (IOException e) {
             log.error("Failed to send" + event + " to " + recipient, e);
         }
@@ -1466,7 +1468,7 @@ public class GossipDeviceStore
                 Timestamp lOffline = offline.get(deviceId);
                 if (lOffline != null && rOffline == null) {
                     // locally offline, but remote is online, suggest offline
-                    notifyPeer(sender, new InternalDeviceOfflineEvent(deviceId, lOffline));
+                    notifyPeer(sender, new InternalDeviceStatusChangeEvent(deviceId, lOffline, false));
                 }
 
                 // remove device offline Ad already processed
@@ -1575,14 +1577,19 @@ public class GossipDeviceStore
         }
     }
 
-    private void handleDeviceOfflineEvent(InternalDeviceOfflineEvent event) {
+    private void handleDeviceStatusChangeEvent(InternalDeviceStatusChangeEvent event) {
         DeviceId deviceId = event.deviceId();
         Timestamp timestamp = event.timestamp();
+        Boolean available = event.available();
 
         try {
-            notifyDelegateIfNotNull(markOfflineInternal(deviceId, timestamp));
+            if (available) {
+                notifyDelegateIfNotNull(markOnlineInternal(deviceId, timestamp));
+            } else {
+                notifyDelegateIfNotNull(markOfflineInternal(deviceId, timestamp));
+            }
         } catch (Exception e) {
-            log.warn("Exception thrown handling device offline", e);
+            log.warn("Exception thrown handling device status change event", e);
         }
     }
 

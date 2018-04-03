@@ -25,7 +25,7 @@ public final class GossipDeviceStoreMessageSubjects {
     private GossipDeviceStoreMessageSubjects() {}
 
     public static final MessageSubject DEVICE_UPDATE = new MessageSubject("peer-device-update");
-    public static final MessageSubject DEVICE_OFFLINE = new MessageSubject("peer-device-offline");
+    public static final MessageSubject DEVICE_STATUS_CHANGE = new MessageSubject("peer-device-status-change");
     public static final MessageSubject DEVICE_REMOVE_REQ = new MessageSubject("peer-device-remove-request");
     public static final MessageSubject DEVICE_REMOVED = new MessageSubject("peer-device-removed");
     public static final MessageSubject PORT_UPDATE = new MessageSubject("peer-port-update");

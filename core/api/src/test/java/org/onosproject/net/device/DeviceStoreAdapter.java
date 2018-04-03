@@ -62,8 +62,8 @@ public class DeviceStoreAdapter implements DeviceStore {
     }
 
     @Override
-    public boolean markOnline(DeviceId deviceId) {
-        return false;
+    public DeviceEvent markOnline(DeviceId deviceId) {
+        return null;
     }
 
     @Override
