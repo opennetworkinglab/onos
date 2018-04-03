@@ -250,9 +250,9 @@ public class SimpleDeviceStore
 
     // implement differently if desired
     @Override
-    public boolean markOnline(DeviceId deviceId) {
+    public DeviceEvent markOnline(DeviceId deviceId) {
         log.warn("Mark online not supported");
-        return false;
+        return null;
     }
 
     @Override

@@ -93,9 +93,9 @@ public interface DeviceStore extends Store<DeviceEvent, DeviceStoreDelegate> {
      * Marks the device as available.
      *
      * @param deviceId device identifier
-     * @return true if availability change request was accepted and changed the state
+     * @return ready to send event describing what occurred; null if no change
      */
-    boolean markOnline(DeviceId deviceId);
+    DeviceEvent markOnline(DeviceId deviceId);
 
     /**
      * Updates the ports of the specified infrastructure device using the given
