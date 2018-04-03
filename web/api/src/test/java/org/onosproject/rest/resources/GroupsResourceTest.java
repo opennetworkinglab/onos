@@ -19,6 +19,7 @@ package org.onosproject.rest.resources;
 import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.hamcrest.Description;
 import org.hamcrest.Matchers;
@@ -47,6 +48,7 @@ import org.onosproject.net.group.GroupBuckets;
 import org.onosproject.net.group.GroupDescription;
 import org.onosproject.net.group.GroupKey;
 import org.onosproject.net.group.GroupService;
+import org.onosproject.net.group.GroupServiceAdapter;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
@@ -528,4 +530,122 @@ public class GroupsResourceTest extends ResourceTest {
         assertThat(deleteResponse.getStatus(),
                 is(HttpURLConnection.HTTP_NO_CONTENT));
     }
+
+    private JsonArray fetchAndCheckBuckets(DeviceId deviceId, int expectedBucketCount) {
+        WebTarget wt = target();
+        final String fetchGroupPath = wt.path("groups/" + deviceId).request().get(String.class);
+        final JsonObject result = Json.parse(fetchGroupPath).asObject();
+        assertThat(result, notNullValue());
+        assertThat(result.names(), hasSize(1));
+        assertThat(result.names().get(0), is("groups"));
+        JsonArray jsonGroups = result.get("groups").asArray();
+        assertThat(jsonGroups, notNullValue());
+        JsonObject group = jsonGroups.get(0).asObject();
+        JsonArray buckets = group.get("buckets").asArray();
+        assertThat(buckets.size(), is(expectedBucketCount));
+        return buckets;
+    }
+
+    private void removeBucketsViaRest(String endpointPath) {
+        WebTarget wt = target();
+        Response removeResponse = wt.path(endpointPath)
+                .request(MediaType.APPLICATION_JSON_TYPE)
+                .delete();
+        assertThat(removeResponse.getStatus(), is(HttpURLConnection.HTTP_NO_CONTENT));
+    }
+
+
+    class TestGroupService extends GroupServiceAdapter {
+        @Override
+        public void addBucketsToGroup(DeviceId deviceId, GroupKey oldCookie, GroupBuckets buckets,
+                                      GroupKey newCookie, ApplicationId appId) {
+            group1.buckets = buckets;
+        }
+
+        @Override
+        public void removeBucketsFromGroup(DeviceId deviceId, GroupKey oldCookie, GroupBuckets buckets,
+                                      GroupKey newCookie, ApplicationId appId) {
+            if (!group1.buckets.buckets().isEmpty()) {
+                ArrayList<GroupBucket> newList = new ArrayList<>(group1.buckets.buckets());
+                for (GroupBucket bucketToRemove : buckets.buckets()) {
+                    for (GroupBucket bucketToCheck : group1.buckets.buckets()) {
+                        if (bucketToCheck.equals(bucketToRemove)) {
+                            newList.remove(bucketToCheck);
+                        }
+                    }
+                }
+                group1.buckets = new GroupBuckets(newList);
+            }
+        }
+
+        @Override
+        public Group getGroup(DeviceId deviceId, GroupKey appCookie) {
+            return group1;
+        }
+
+        @Override
+        public Iterable<Group> getGroups(DeviceId deviceId) {
+            return ImmutableList.of(group1);
+        }
+    }
+
+    /**
+     * Tests adding and removing buckets.
+     */
+    @Test
+    public void testAddRemoveBucket() {
+        String deviceIdBasePath = "groups/%s/";
+        String endpointBasePath = deviceIdBasePath + "%s/buckets/";
+        TestGroupService groupService = new TestGroupService();
+        expect(mockGroupService.getGroup(anyObject(), anyObject()))
+                .andDelegateTo(groupService).anyTimes();
+        expect(mockGroupService.getGroups(anyObject()))
+                .andDelegateTo(groupService).anyTimes();
+        mockGroupService.addBucketsToGroup(anyObject(), anyObject(), anyObject(), anyObject(), anyObject());
+        expectLastCall().andDelegateTo(groupService).anyTimes();
+        mockGroupService.removeBucketsFromGroup(anyObject(), anyObject(), anyObject(), anyObject(), anyObject());
+        expectLastCall().andDelegateTo(groupService).anyTimes();
+        replay(mockGroupService);
+
+        WebTarget wt = target();
+
+        // Add buckets
+        String addEndpointPath = String.format(endpointBasePath, group1.deviceId(), group1.appCookie());
+        InputStream addJsonStream = GroupsResourceTest.class
+                .getResourceAsStream("post-group-add-buckets.json");
+
+        Response addResponse = wt.path(addEndpointPath)
+                .request(MediaType.APPLICATION_JSON_TYPE)
+                .post(Entity.json(addJsonStream));
+        assertThat(addResponse.getStatus(), is(HttpURLConnection.HTTP_NO_CONTENT));
+
+        // Check that buckets are there
+        JsonArray bucketsAfterAdd = fetchAndCheckBuckets(deviceId1, 4);
+
+        String bucketId1 = Long.toString(bucketsAfterAdd.get(0).asObject().get("bucketId").asLong());
+        String bucketId2 = Long.toString(bucketsAfterAdd.get(1).asObject().get("bucketId").asLong());
+        String bucketId3 = Long.toString(bucketsAfterAdd.get(2).asObject().get("bucketId").asLong());
+        String bucketId4 = Long.toString(bucketsAfterAdd.get(3).asObject().get("bucketId").asLong());
+
+        // Remove one bucket
+        String removeEndpointPath = addEndpointPath + bucketId1;
+        removeBucketsViaRest(removeEndpointPath);
+        fetchAndCheckBuckets(deviceId1, 3);
+
+        // Remove two buckets
+        String removeTwoEndpointPath = addEndpointPath + bucketId2 + ',' + bucketId3;
+        removeBucketsViaRest(removeTwoEndpointPath);
+        fetchAndCheckBuckets(deviceId1, 1);
+
+        // Remove nothing - non-existent bucket id
+        String removeNothingEndpointPath = addEndpointPath + "no-such-bucket";
+        removeBucketsViaRest(removeNothingEndpointPath);
+        fetchAndCheckBuckets(deviceId1, 1);
+
+        // Remove last bucket - bucket list should be empty
+        String lastOneEndpointPath = addEndpointPath + bucketId4;
+        removeBucketsViaRest(lastOneEndpointPath);
+        fetchAndCheckBuckets(deviceId1, 0);
+    }
+
 }

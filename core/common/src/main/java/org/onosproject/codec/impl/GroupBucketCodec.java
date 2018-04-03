@@ -39,6 +39,7 @@ public class GroupBucketCodec extends JsonCodec<GroupBucket> {
     private static final String WATCH_GROUP = "watchGroup";
     private static final String PACKETS = "packets";
     private static final String BYTES = "bytes";
+    private static final String BUCKET_ID = "bucketId";
     private static final String MISSING_MEMBER_MESSAGE =
             " member is required in Group";
 
@@ -50,7 +51,8 @@ public class GroupBucketCodec extends JsonCodec<GroupBucket> {
                 .put(TYPE, bucket.type().toString())
                 .put(WEIGHT, bucket.weight())
                 .put(PACKETS, bucket.packets())
-                .put(BYTES, bucket.bytes());
+                .put(BYTES, bucket.bytes())
+                .put(BUCKET_ID, bucket.hashCode());
 
         if (bucket.watchPort() != null) {
             result.put(WATCH_PORT, bucket.watchPort().toString());

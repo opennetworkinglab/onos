@@ -1,0 +1,49 @@
+{
+  "appCookie": "0x1",
+  "buckets": [
+    {
+      "type": "ALL",
+      "treatment": {
+        "instructions": [
+          {
+            "type": "OUTPUT",
+            "port": 21
+          }
+        ]
+      }
+    },
+    {
+      "type": "ALL",
+      "treatment": {
+        "instructions": [
+          {
+            "type": "OUTPUT",
+            "port": 22
+          }
+        ]
+      }
+    },
+    {
+      "type": "ALL",
+      "treatment": {
+        "instructions": [
+          {
+            "type": "OUTPUT",
+            "port": 23
+          }
+        ]
+      }
+    },
+    {
+      "type": "ALL",
+      "treatment": {
+        "instructions": [
+          {
+            "type": "OUTPUT",
+            "port": 24
+          }
+        ]
+      }
+    }
+  ]
+}
