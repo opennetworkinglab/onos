@@ -25,6 +25,7 @@ import org.onosproject.openstacknetworking.api.OpenstackRouterAdminService;
 import org.onosproject.openstacknetworking.api.OpenstackSecurityGroupAdminService;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.api.exceptions.AuthenticationException;
+import org.openstack4j.core.transport.Config;
 import org.openstack4j.model.common.Identifier;
 import org.openstack4j.model.network.IP;
 import org.openstack4j.model.network.NetFloatingIP;
@@ -36,10 +37,17 @@ import org.openstack4j.model.network.Subnet;
 import org.openstack4j.openstack.OSFactory;
 import org.openstack4j.openstack.networking.domain.NeutronRouterInterface;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+import javax.net.ssl.X509TrustManager;
+import java.security.cert.X509Certificate;
 
 import static org.openstack4j.core.transport.ObjectMapperSingleton.getContext;
 
@@ -89,13 +97,39 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
 
         OSClient osClient;
 
+        Config config = Config.newConfig().withSSLVerificationDisabled();
+
+        TrustManager[] trustAllCerts = new TrustManager[]{
+            new X509TrustManager() {
+                public X509Certificate[] getAcceptedIssuers() {
+                    return null;
+                }
+
+                public void checkClientTrusted(X509Certificate[] certs, String authType) {
+                }
+
+                public void checkServerTrusted(X509Certificate[] certs, String authType) {
+                }
+            }
+        };
+
+        HostnameVerifier allHostsValid = (hostname, session) -> true;
+
         try {
+            SSLContext sc = SSLContext.getInstance("SSL");
+            sc.init(null, trustAllCerts, new java.security.SecureRandom());
+            HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+            HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
+
+            config.withSSLContext(sc);
+
             if (endpoint != null) {
                 if (endpoint.contains(KEYSTONE_V2)) {
                     osClient = OSFactory.builderV2()
                             .endpoint(this.endpoint)
                             .tenantName(this.tenant)
                             .credentials(this.user, this.password)
+                            .withConfig(config)
                             .authenticate();
                 } else if (endpoint.contains(KEYSTONE_V3)) {
 
@@ -106,6 +140,7 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
                             .endpoint(this.endpoint)
                             .credentials(this.user, this.password, domain)
                             .scopeToProject(project, domain)
+                            .withConfig(config)
                             .authenticate();
                 } else {
                     print("Unrecognized keystone version type");
