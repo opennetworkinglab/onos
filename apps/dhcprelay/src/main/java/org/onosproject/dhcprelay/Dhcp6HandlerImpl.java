@@ -1228,6 +1228,8 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
             dhcpRelayCountersStore.incrementCounter(gCount, DhcpRelayCounters.NO_MATCHING_INTF);
             return null;
         }
+        etherReply.setVlanID(vlanIdInUse.toShort());
+
         MacAddress relayAgentMac = clientInterface.mac();
         if (relayAgentMac == null) {
             log.warn("Can not get client interface mac, abort packet..");
