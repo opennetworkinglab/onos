@@ -36,6 +36,7 @@ import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onlab.util.ItemNotFoundException;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.DeviceId;
@@ -382,12 +383,18 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
      * @return the boolean value of groupCapable property, or true if it is not configured.
      */
     private boolean isGroupCapable(OpenFlowSwitch sw) {
-        Driver driver = driverService.getDriver(DeviceId.deviceId(Dpid.uri(sw.getDpid())));
+        Driver driver;
+        try {
+            driver = driverService.getDriver(DeviceId.deviceId(Dpid.uri(sw.getDpid())));
+        } catch (ItemNotFoundException e) {
+            driver = driverService.getDriver(sw.manufacturerDescription(),
+                                             sw.hardwareDescription(),
+                                             sw.softwareDescription());
+        }
         if (driver == null) {
             return true;
         }
-        String isGroupCapable = driver.getProperty(GROUP_CAPABLE);
-        return isGroupCapable == null || Boolean.parseBoolean(isGroupCapable);
+        return Boolean.parseBoolean(driver.getProperty(GROUP_CAPABLE));
     }
 
     private class InternalGroupProvider
