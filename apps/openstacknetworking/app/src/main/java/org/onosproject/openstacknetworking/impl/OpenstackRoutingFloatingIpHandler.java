@@ -382,32 +382,6 @@ public class OpenstackRoutingFloatingIpHandler {
     }
 
     private ExternalPeerRouter externalPeerRouter(Network network) {
-        Subnet subnet = osNetworkService.subnet(network.getId());
-
-        if (subnet == null) {
-            return null;
-        }
-
-        RouterInterface osRouterIface = osRouterService.routerInterfaces().stream()
-                .filter(i -> Objects.equals(i.getSubnetId(), subnet.getId()))
-                .findAny().orElse(null);
-        if (osRouterIface == null) {
-            return null;
-        }
-
-        Router osRouter = osRouterService.router(osRouterIface.getId());
-        if (osRouter == null) {
-            return null;
-        }
-        if (osRouter.getExternalGatewayInfo() == null) {
-            return null;
-        }
-
-        ExternalGateway exGatewayInfo = osRouter.getExternalGatewayInfo();
-        return osNetworkService.externalPeerRouter(exGatewayInfo);
-    }
-
-    private MacAddress externalPeerRouterMac(Network network) {
         if (network == null) {
             return null;
         }
@@ -434,9 +408,9 @@ public class OpenstackRoutingFloatingIpHandler {
         }
 
         ExternalGateway exGatewayInfo = osRouter.getExternalGatewayInfo();
-
-        return osNetworkService.externalPeerRouterMac(exGatewayInfo);
+        return osNetworkService.externalPeerRouter(exGatewayInfo);
     }
+
     private class InternalFloatingIpListener implements OpenstackRouterListener {
 
         @Override
