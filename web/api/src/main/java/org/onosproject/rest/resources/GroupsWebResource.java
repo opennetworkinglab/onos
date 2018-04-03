@@ -18,12 +18,17 @@ package org.onosproject.rest.resources;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.ImmutableList;
+import org.onlab.util.HexString;
+import org.onosproject.codec.JsonCodec;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.group.DefaultGroupDescription;
 import org.onosproject.net.group.DefaultGroupKey;
 import org.onosproject.net.group.Group;
+import org.onosproject.net.group.GroupBucket;
+import org.onosproject.net.group.GroupBuckets;
 import org.onosproject.net.group.GroupDescription;
 import org.onosproject.net.group.GroupKey;
 import org.onosproject.net.group.GroupService;
@@ -43,8 +48,10 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.IntStream;
 
-import org.onlab.util.HexString;
 import static org.onlab.util.Tools.nullIsNotFound;
 import static org.onlab.util.Tools.readTreeFromStream;
 
@@ -64,6 +71,14 @@ public class GroupsWebResource extends AbstractWebResource {
     private final GroupService groupService = get(GroupService.class);
     private final ObjectNode root = mapper().createObjectNode();
     private final ArrayNode groupsNode = root.putArray("groups");
+
+    private GroupKey createKey(String appCookieString) {
+        if (!appCookieString.startsWith("0x")) {
+            throw new IllegalArgumentException("APP_COOKIE must be a hex string starts with 0x");
+        }
+        return  new DefaultGroupKey(HexString.fromHexString(
+                appCookieString.split("0x")[1], ""));
+    }
 
     /**
      * Returns all groups of all devices.
@@ -118,11 +133,7 @@ public class GroupsWebResource extends AbstractWebResource {
                                                    @PathParam("appCookie") String appCookie) {
         final DeviceId deviceIdInstance = DeviceId.deviceId(deviceId);
 
-        if (!appCookie.startsWith("0x")) {
-            throw new IllegalArgumentException("APP_COOKIE must be a hex string starts with 0x");
-        }
-        final GroupKey appCookieInstance = new DefaultGroupKey(HexString.fromHexString(
-                appCookie.split("0x")[1], ""));
+        final GroupKey appCookieInstance = createKey(appCookie);
 
         Group group = nullIsNotFound(groupService.getGroup(deviceIdInstance, appCookieInstance),
                 GROUP_NOT_FOUND);
@@ -187,13 +198,120 @@ public class GroupsWebResource extends AbstractWebResource {
                                                       @PathParam("appCookie") String appCookie) {
         DeviceId deviceIdInstance = DeviceId.deviceId(deviceId);
 
-        if (!appCookie.startsWith("0x")) {
-            throw new IllegalArgumentException("APP_COOKIE must be a hex string starts with 0x");
-        }
-        GroupKey appCookieInstance = new DefaultGroupKey(HexString.fromHexString(
-                appCookie.split("0x")[1], ""));
+        final GroupKey appCookieInstance = createKey(appCookie);
 
         groupService.removeGroup(deviceIdInstance, appCookieInstance, null);
         return Response.noContent().build();
+    }
+
+    /**
+     * Adds buckets to a group using the group service.
+     *
+     * @param deviceIdString device Id
+     * @param appCookieString application cookie
+     * @param stream JSON stream
+     */
+    private void updateGroupBuckets(String deviceIdString, String appCookieString, InputStream stream)
+                 throws IOException {
+        DeviceId deviceId = DeviceId.deviceId(deviceIdString);
+        final GroupKey groupKey = createKey(appCookieString);
+
+        Group group = nullIsNotFound(groupService.getGroup(deviceId, groupKey), GROUP_NOT_FOUND);
+
+        ObjectNode jsonTree = readTreeFromStream(mapper(), stream);
+
+        GroupBuckets buckets = null;
+        List<GroupBucket> groupBucketList = new ArrayList<>();
+        JsonNode bucketsJson = jsonTree.get("buckets");
+        final JsonCodec<GroupBucket> groupBucketCodec = codec(GroupBucket.class);
+        if (bucketsJson != null) {
+            IntStream.range(0, bucketsJson.size())
+                    .forEach(i -> {
+                        ObjectNode bucketJson = (ObjectNode) bucketsJson.get(i);
+                        groupBucketList.add(groupBucketCodec.decode(bucketJson, this));
+                    });
+            buckets = new GroupBuckets(groupBucketList);
+        }
+        groupService.addBucketsToGroup(deviceId, groupKey, buckets, groupKey, group.appId());
+    }
+
+    /**
+     * Adds buckets to an existing group.
+     *
+     * @param deviceIdString device identifier
+     * @param appCookieString application cookie
+     * @param stream  buckets JSON
+     * @return status of the request - NO_CONTENT if the JSON is correct,
+     * BAD_REQUEST if the JSON is invalid
+     * @onos.rsModel GroupsBucketsPost
+     */
+    @POST
+    @Path("{deviceId}/{appCookie}/buckets")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response addBucket(@PathParam("deviceId") String deviceIdString,
+                              @PathParam("appCookie") String appCookieString,
+                              InputStream stream) {
+        try {
+            updateGroupBuckets(deviceIdString, appCookieString, stream);
+
+            return Response
+                    .noContent()
+                    .build();
+        } catch (IOException ex) {
+            throw new IllegalArgumentException(ex);
+        }
+    }
+
+    /**
+     * Removes buckets from a group using the group service.
+     *
+     * @param deviceIdString device Id
+     * @param appCookieString application cookie
+     * @param bucketIds comma separated list of bucket Ids to remove
+     */
+    private void removeGroupBuckets(String deviceIdString, String appCookieString, String bucketIds) {
+        DeviceId deviceId = DeviceId.deviceId(deviceIdString);
+        final GroupKey groupKey = createKey(appCookieString);
+
+        Group group = nullIsNotFound(groupService.getGroup(deviceId, groupKey), GROUP_NOT_FOUND);
+
+        List<GroupBucket> groupBucketList = new ArrayList<>();
+
+        List<String> bucketsToRemove = ImmutableList.copyOf(bucketIds.split(","));
+
+        bucketsToRemove.forEach(
+                bucketIdToRemove -> {
+                    group.buckets().buckets().stream()
+                            .filter(bucket -> Integer.toString(bucket.hashCode()).equals(bucketIdToRemove))
+                            .forEach(groupBucketList::add);
+                }
+        );
+        groupService.removeBucketsFromGroup(deviceId, groupKey,
+                                            new GroupBuckets(groupBucketList), groupKey,
+                                            group.appId());
+    }
+
+    /**
+     * Removes buckets from an existing group.
+     *
+     * @param deviceIdString device identifier
+     * @param appCookieString application cookie
+     * @param bucketIds comma separated list of identifiers of buckets to remove from this group
+     * @return status of the request - NO_CONTENT if the JSON is correct,
+     * BAD_REQUEST if the JSON is invalid
+     */
+    @DELETE
+    @Path("{deviceId}/{appCookie}/buckets/{bucketIds}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deleteBuckets(@PathParam("deviceId") String deviceIdString,
+                                  @PathParam("appCookie") String appCookieString,
+                                  @PathParam("bucketIds") String bucketIds) {
+        removeGroupBuckets(deviceIdString, appCookieString, bucketIds);
+
+        return Response
+                .noContent()
+                .build();
     }
 }
