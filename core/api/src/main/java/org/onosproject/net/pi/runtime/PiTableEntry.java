@@ -168,7 +168,7 @@ public final class PiTableEntry implements PiEntity {
     public static final class Builder {
 
         private PiTableId tableId;
-        private PiMatchKey matchKey;
+        private PiMatchKey matchKey = PiMatchKey.EMPTY;
         private PiTableAction tableAction;
         private long cookie = 0;
         private int priority = NO_PRIORITY;
@@ -185,7 +185,7 @@ public final class PiTableEntry implements PiEntity {
          * @return this
          */
         public Builder forTable(PiTableId tableId) {
-            this.tableId = checkNotNull(tableId);
+            this.tableId = checkNotNull(tableId, "Table ID cannot be null");
             return this;
         }
 
@@ -196,18 +196,19 @@ public final class PiTableEntry implements PiEntity {
          * @return this
          */
         public Builder withAction(PiTableAction tableAction) {
-            this.tableAction = checkNotNull(tableAction);
+            this.tableAction = checkNotNull(tableAction, "Action cannot be null");
             return this;
         }
 
         /**
-         * Sets the match key of this table entry.
+         * Sets the match key of this table entry. By default, the match key is
+         * {@link PiMatchKey#EMPTY}, i.e. any match.
          *
          * @param matchKey match key
          * @return this
          */
         public Builder withMatchKey(PiMatchKey matchKey) {
-            this.matchKey = matchKey;
+            this.matchKey = checkNotNull(matchKey, "Match key cannot be null");
             return this;
         }
 
@@ -253,6 +254,7 @@ public final class PiTableEntry implements PiEntity {
          */
         public PiTableEntry build() {
             checkNotNull(tableId);
+            checkNotNull(matchKey);
             checkNotNull(tableAction);
             return new PiTableEntry(tableId, matchKey, tableAction, cookie, priority, timeout);
         }
