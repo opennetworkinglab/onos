@@ -626,7 +626,7 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
                               pw.l2TunnelPolicy().cP1InnerTag(),
                               pw.l2TunnelPolicy().cP1OuterTag(),
                               egressVlan,
-                              result.nextId);
+                              result.getNextId());
         if (result != SUCCESS) {
             log.info("Deploying process : Error in deploying pseudowire policy for CP1");
             return Result.INTERNAL_ERROR.appendError("Error in deploying pseudowire policy for CP1");
@@ -673,7 +673,7 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
                                pw.l2TunnelPolicy().cP2InnerTag(),
                                pw.l2TunnelPolicy().cP2OuterTag(),
                                egressVlan,
-                               result.nextId);
+                               result.getNextId());
         if (result != SUCCESS) {
             log.info("Deploying process : Error in deploying policy for CP2");
             return Result.INTERNAL_ERROR
@@ -1020,7 +1020,7 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
         log.debug("Initiation next objective for {} not found. Creating new NextObj with id={}",
                   l2Tunnel.tunnelId(), nextObjective.id());
         Result result = SUCCESS;
-        result.nextId = nextObjective.id();
+        result.setNextId(nextObjective.id());
         return result;
     }
 
