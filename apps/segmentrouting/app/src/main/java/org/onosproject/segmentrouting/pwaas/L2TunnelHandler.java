@@ -137,7 +137,7 @@ public interface L2TunnelHandler {
         private final String description;
 
         private String specificError;
-        public int nextId;
+        private int nextId;
 
         Result(int code, String description) {
             this.code = code;
@@ -155,6 +155,14 @@ public interface L2TunnelHandler {
 
         public String getDescription() {
             return description;
+        }
+
+        public int getNextId() {
+            return nextId;
+        }
+
+        public void setNextId(int nextId) {
+            this.nextId = nextId;
         }
 
         @Override
