@@ -449,7 +449,7 @@ public class DhcpRelayManagerTest {
         Route route = mockRouteStore.routes.get(0);
         assertEquals(OUTER_RELAY_IP, route.nextHop());
         assertEquals(IP_FOR_CLIENT.toIpPrefix(), route.prefix());
-        assertEquals(Route.Source.STATIC, route.source());
+        assertEquals(Route.Source.DHCP, route.source());
     }
 
     @Test
