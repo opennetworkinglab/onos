@@ -24,7 +24,7 @@ import static java.lang.Integer.parseInt;
 /**
  * Representation of the product version.
  */
-public final class Version {
+public final class Version implements Comparable<Version> {
 
     public static final String FORMAT_MINIMAL = "%d.%d";
     public static final String FORMAT_SHORT = "%d.%d.%s";
@@ -85,6 +85,26 @@ public final class Version {
     }
 
     /**
+     * Returns an version from integer.
+     * <p>
+     * The version integer must be in the following format (big endian):
+     * <ul>
+     *     <li>8-bit unsigned major version</li>
+     *     <li>8-bit unsigned minor version</li>
+     *     <li>16-bit unsigned patch version</li>
+     * </ul>
+     *
+     * @param version the version integer
+     * @return the version instance
+     */
+    public static Version fromInt(int version) {
+        int major = (version >> 24) & 0xff;
+        int minor = (version >> 16) & 0xff;
+        int patch = (version) & 0xffff;
+        return new Version(major, minor, String.valueOf(patch), null);
+    }
+
+    /**
      * Returns the major version number.
      *
      * @return major version number
@@ -118,6 +138,37 @@ public final class Version {
      */
     public String build() {
         return build;
+    }
+
+    /**
+     * Returns an integer representation of the version.
+     * <p>
+     * The version integer can be used to compare two versions to one another.
+     * The integer representation of the version number is in the following format (big endian):
+     * <ul>
+     *     <li>8-bit unsigned major version</li>
+     *     <li>8-bit unsigned minor version</li>
+     *     <li>16-bit unsigned patch version</li>
+     * </ul>
+     * If the {@link #patch()} is not a number, it will default to {@code 0}.
+     *
+     * @return an integer representation of the version
+     */
+    public int toInt() {
+        byte major = (byte) this.major;
+        byte minor = (byte) this.minor;
+        short patch;
+        try {
+            patch = (short) Integer.parseInt(this.patch);
+        } catch (NumberFormatException e) {
+            patch = 0;
+        }
+        return major << 24 | (minor & 0xff) << 16 | (patch & 0xffff);
+    }
+
+    @Override
+    public int compareTo(Version other) {
+        return Integer.compare(toInt(), other.toInt());
     }
 
     @Override

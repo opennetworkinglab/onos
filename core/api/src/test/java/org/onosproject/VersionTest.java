@@ -15,6 +15,10 @@
  */
 package org.onosproject;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 import com.google.common.testing.EqualsTester;
 import org.junit.Test;
 import org.onosproject.core.Version;
@@ -71,6 +75,52 @@ public class VersionTest {
         assertEquals("wrong patch", null, v.patch());
         assertEquals("wrong build", null, v.build());
     }
+
+    @Test
+    public void testToFromInt() {
+        Version version1;
+        Version version2;
+
+        version1 = version("1.2");
+        version2 = Version.fromInt(version1.toInt());
+        assertEquals(version2, version(1, 2, "0", null));
+
+        version1 = version("1.2.foo.bar");
+        version2 = Version.fromInt(version1.toInt());
+        assertEquals(version2, version(1, 2, "0", null));
+
+        version1 = version("1.2.3");
+        version2 = Version.fromInt(version1.toInt());
+        assertEquals(version2, version(1, 2, "3", null));
+
+        version1 = version("255.254.65535.252");
+        version2 = Version.fromInt(version1.toInt());
+        assertEquals(version2, version(255, 254, "65535", null));
+
+        assertTrue(version("0.0.2").toInt() > version("0.0.1").toInt());
+        assertTrue(version("0.1.0").toInt() > version("0.0.1").toInt());
+        assertTrue(version("1.0.0").toInt() > version("0.1.0").toInt());
+        assertTrue(version("1.1.0").toInt() > version("1.0.1").toInt());
+        assertTrue(version("2.1.1").toInt() > version("1.10.10").toInt());
+    }
+
+    @Test
+    public void testOrder() {
+        List<Version> versions = Arrays.asList(
+            version("0.1.0"),
+            version("1.0.1"),
+            version("0.0.1"),
+            version("1.0.0"),
+            version("1.1.1"));
+        Collections.sort(versions);
+        assertEquals(versions, Arrays.asList(
+            version("0.0.1"),
+            version("0.1.0"),
+            version("1.0.0"),
+            version("1.0.1"),
+            version("1.1.1")));
+    }
+
     @Test
     public void testEquals() {
         new EqualsTester()
