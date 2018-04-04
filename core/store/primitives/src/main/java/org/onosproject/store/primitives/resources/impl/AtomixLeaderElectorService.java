@@ -341,16 +341,16 @@ public class AtomixLeaderElectorService extends AbstractRaftService {
 
     private void onSessionEnd(RaftSession session) {
         listeners.remove(session.sessionId().id());
-        Set<String> topics = elections.keySet();
+        Set<String> topics = ImmutableSet.copyOf(elections.keySet());
         List<Change<Leadership>> changes = Lists.newArrayList();
-        topics.forEach(topic -> {
+        for (String topic: topics) {
             Leadership oldLeadership = leadership(topic);
             elections.compute(topic, (k, v) -> v.cleanup(session, termCounter(topic)::incrementAndGet));
             Leadership newLeadership = leadership(topic);
             if (!Objects.equal(oldLeadership, newLeadership)) {
                 changes.add(new Change<>(oldLeadership, newLeadership));
             }
-        });
+        }
         notifyLeadershipChanges(changes);
     }
 
