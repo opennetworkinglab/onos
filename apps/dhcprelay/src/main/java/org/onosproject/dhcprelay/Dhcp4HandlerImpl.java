@@ -566,7 +566,7 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
         }
 
         log.debug("LQ: *NEW* NH IP for host is " + nextHopIp.getIp4Address());
-        Route route = new Route(Route.Source.STATIC, clientIP.toIpPrefix(), nextHopIp);
+        Route route = new Route(Route.Source.DHCP, clientIP.toIpPrefix(), nextHopIp);
         routeStore.updateRoute(route);
 
         // and forward to client
@@ -651,7 +651,7 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
         }
 
         log.debug("LQ: *Existing* NH IP for host is " + nextHopIp.getIp4Address() + " removing route for it");
-        Route route = new Route(Route.Source.STATIC, clientIP.toIpPrefix(), nextHopIp);
+        Route route = new Route(Route.Source.DHCP, clientIP.toIpPrefix(), nextHopIp);
         routeStore.removeRoute(route);
 
         // remove from temp store
@@ -1373,7 +1373,7 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
                 return;
             }
 
-            Route route = new Route(Route.Source.STATIC, ip.toIpPrefix(), nextHopIp);
+            Route route = new Route(Route.Source.DHCP, ip.toIpPrefix(), nextHopIp);
             routeStore.updateRoute(route);
         }
     }
