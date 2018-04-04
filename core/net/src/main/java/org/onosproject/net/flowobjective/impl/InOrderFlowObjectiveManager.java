@@ -23,6 +23,8 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.util.Tools;
+import org.onlab.util.Tools.LogLevel;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.criteria.Criterion;
@@ -151,32 +153,29 @@ public class InOrderFlowObjectiveManager extends FlowObjectiveManager {
         int queueSize;
         int priority = obj.priority();
 
+        LogLevel logLevel = (obj.op() == Objective.Operation.VERIFY) ? LogLevel.TRACE : LogLevel.DEBUG;
+        Tools.log(log, logLevel, "Enqueue {}", obj);
+
         if (obj instanceof FilteringObjective) {
-            log.debug("Enqueue filtering objective {}", obj);
             FiltObjQueueKey k = new FiltObjQueueKey(deviceId, priority, ((FilteringObjective) obj).key());
             filtObjQueue.put(k, obj);
             queueSize = filtObjQueue.get(k).size();
-            log.debug("Filtering objective queue size {}", queueSize);
         } else if (obj instanceof ForwardingObjective) {
-            log.debug("Enqueue forwarding objective {}", obj);
             FwdObjQueueKey k = new FwdObjQueueKey(deviceId, priority, ((ForwardingObjective) obj).selector());
             fwdObjQueue.put(k, obj);
             queueSize = fwdObjQueue.get(k).size();
-            log.debug("Forwarding objective queue size {}", queueSize);
         } else if (obj instanceof NextObjective) {
-            log.debug("Enqueue next objective {}", obj);
             NextObjQueueKey k = new NextObjQueueKey(deviceId, obj.id());
             nextObjQueue.put(k, obj);
             queueSize = nextObjQueue.get(k).size();
-            log.debug("Next objective queue size {}", queueSize);
         } else {
             log.error("Unknown flow objective instance: {}", obj.getClass().getName());
             return;
         }
+        log.trace("{} queue size {}", obj.getClass().getSimpleName(), queueSize);
 
         // Execute immediately if there is no pending obj ahead
         if (queueSize == 1) {
-            log.debug("First one. Submit objective installer, deviceId {}, obj {}", deviceId, obj);
             execute(deviceId, obj);
         }
     }
@@ -191,32 +190,29 @@ public class InOrderFlowObjectiveManager extends FlowObjectiveManager {
         List<Objective> remaining;
         int priority = obj.priority();
 
+        LogLevel logLevel = (obj.op() == Objective.Operation.VERIFY) ? LogLevel.TRACE : LogLevel.DEBUG;
+        Tools.log(log, logLevel, "Dequeue {}", obj);
+
         if (obj instanceof FilteringObjective) {
-            log.debug("Dequeue filtering objective {}", obj);
             FiltObjQueueKey k = new FiltObjQueueKey(deviceId, priority, ((FilteringObjective) obj).key());
             filtObjQueue.remove(k, obj);
             remaining = filtObjQueue.get(k);
-            log.debug("Filtering objective queue size {}", remaining.size());
         } else if (obj instanceof ForwardingObjective) {
-            log.debug("Dequeue forwarding objective {}", obj);
             FwdObjQueueKey k = new FwdObjQueueKey(deviceId, priority, ((ForwardingObjective) obj).selector());
             fwdObjQueue.remove(k, obj);
             remaining = fwdObjQueue.get(k);
-            log.debug("Forwarding objective queue size {}", remaining.size());
         } else if (obj instanceof NextObjective) {
-            log.debug("Dequeue next objective {}", obj);
             NextObjQueueKey k = new NextObjQueueKey(deviceId, obj.id());
             nextObjQueue.remove(k, obj);
             remaining = nextObjQueue.get(k);
-            log.debug("Next objective queue size {}", remaining.size());
         } else {
             log.error("Unknown flow objective instance: {}", obj.getClass().getName());
             return;
         }
+        log.trace("{} queue size {}", obj.getClass().getSimpleName(), remaining.size());
 
         // Submit the next one in the queue, if any
         if (remaining.size() > 0) {
-            log.debug("Next one. Submit objective installer, deviceId {}, obj {}", deviceId, obj);
             execute(deviceId, remaining.get(0));
         }
     }
@@ -229,6 +225,9 @@ public class InOrderFlowObjectiveManager extends FlowObjectiveManager {
      * @param obj Flow objective
      */
     private void execute(DeviceId deviceId, Objective obj) {
+        LogLevel logLevel = (obj.op() == Objective.Operation.VERIFY) ? LogLevel.TRACE : LogLevel.DEBUG;
+        Tools.log(log, logLevel, "Submit objective installer, deviceId {}, obj {}", deviceId, obj);
+
         if (obj instanceof FilteringObjective) {
             super.filter(deviceId, (FilteringObjective) obj);
         } else if (obj instanceof ForwardingObjective) {
@@ -253,8 +252,7 @@ public class InOrderFlowObjectiveManager extends FlowObjectiveManager {
                     pending = pendingForwards.remove(event.subject());
                 }
                 if (pending == null) {
-                    log.debug("No forwarding objectives pending for this "
-                            + "obj event {}", event);
+                    log.debug("No forwarding objectives pending for this obj event {}", event);
                 } else {
                     log.debug("Processing {} pending forwarding objectives for nextId {}",
                             pending.size(), event.subject());
@@ -272,8 +270,7 @@ public class InOrderFlowObjectiveManager extends FlowObjectiveManager {
                     pendNexts = pendingNexts.remove(event.subject());
                 }
                 if (pendNexts == null) {
-                    log.debug("No next objectives pending for this "
-                            + "obj event {}", event);
+                    log.debug("No next objectives pending for this obj event {}", event);
                 } else {
                     log.debug("Processing {} pending next objectives for nextId {}",
                             pendNexts.size(), event.subject());
