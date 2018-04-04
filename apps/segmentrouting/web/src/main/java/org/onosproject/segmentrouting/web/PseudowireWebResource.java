@@ -19,7 +19,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import javafx.util.Pair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.onlab.util.ItemNotFoundException;
 import org.onosproject.rest.AbstractWebResource;
 import org.onosproject.segmentrouting.SegmentRoutingService;
@@ -168,7 +168,7 @@ public class PseudowireWebResource extends AbstractWebResource {
             L2TunnelHandler.Result res = srService.addPseudowire(pw);
             if (!(res == L2TunnelHandler.Result.SUCCESS)) {
                 log.trace("Could not create pseudowire {} : {}", pw.l2Tunnel().tunnelId(), res.getSpecificError());
-                failed.add(new Pair<>(pw, res.getSpecificError()));
+                failed.add(Pair.of(pw, res.getSpecificError()));
             }
         }
 

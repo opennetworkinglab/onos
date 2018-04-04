@@ -17,7 +17,7 @@ package org.onosproject.segmentrouting.web;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import javafx.util.Pair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onosproject.codec.CodecContext;
