@@ -35,6 +35,9 @@ import org.onlab.packet.UDP;
 import org.onlab.packet.dhcp.DhcpOption;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.LeadershipService;
+import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.ConnectPoint;
@@ -51,6 +54,9 @@ import org.onosproject.openstacknetworking.api.InstancePort;
 import org.onosproject.openstacknetworking.api.InstancePortService;
 import org.onosproject.openstacknetworking.api.OpenstackFlowRuleService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
+import org.onosproject.openstacknode.api.OpenstackNode;
+import org.onosproject.openstacknode.api.OpenstackNodeEvent;
+import org.onosproject.openstacknode.api.OpenstackNodeListener;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
 import org.openstack4j.model.network.IP;
 import org.openstack4j.model.network.Port;
@@ -61,6 +67,7 @@ import org.slf4j.Logger;
 import java.nio.ByteBuffer;
 import java.util.Dictionary;
 import java.util.List;
+import java.util.Objects;
 
 import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_BroadcastAddress;
 import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_DHCPServerIp;
@@ -75,7 +82,7 @@ import static org.onlab.packet.DHCP.MsgType.DHCPOFFER;
 import static org.onosproject.openstacknetworking.api.Constants.DEFAULT_GATEWAY_MAC_STR;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_DHCP_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.SRC_VNI_TABLE;
-import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
+import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -117,6 +124,12 @@ public class OpenstackSwitchingDhcpHandler {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OpenstackFlowRuleService osFlowRuleService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ClusterService clusterService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected LeadershipService leadershipService;
+
     @Property(name = DHCP_SERVER_MAC, value = DEFAULT_GATEWAY_MAC_STR,
             label = "Fake MAC address for virtual network subnet gateway")
     private String dhcpServerMac = DEFAULT_GATEWAY_MAC_STR;
@@ -126,24 +139,29 @@ public class OpenstackSwitchingDhcpHandler {
     private int dhcpDataMtu = DHCP_DATA_MTU_DEFAULT;
 
     private final PacketProcessor packetProcessor = new InternalPacketProcessor();
+    private final OpenstackNodeListener osNodeListener = new InternalNodeEventListener();
 
     private ApplicationId appId;
+    private NodeId localNodeId;
 
     @Activate
     protected void activate() {
         appId = coreService.registerApplication(Constants.OPENSTACK_NETWORKING_APP_ID);
+        localNodeId = clusterService.getLocalNode().id();
+        osNodeService.addListener(osNodeListener);
         configService.registerProperties(getClass());
         packetService.addProcessor(packetProcessor, PacketProcessor.director(0));
-        setDhcpRule(true);
+        leadershipService.runForLeadership(appId.name());
 
         log.info("Started");
     }
 
     @Deactivate
     protected void deactivate() {
-        setDhcpRule(false);
         packetService.removeProcessor(packetProcessor);
+        osNodeService.removeListener(osNodeListener);
         configService.unregisterProperties(getClass(), false);
+        leadershipService.withdraw(appId.name());
 
         log.info("Stopped");
     }
@@ -166,30 +184,6 @@ public class OpenstackSwitchingDhcpHandler {
         }
 
         log.info("Modified");
-    }
-
-    private void setDhcpRule(boolean install) {
-        TrafficSelector selector = DefaultTrafficSelector.builder()
-                .matchEthType(Ethernet.TYPE_IPV4)
-                .matchIPProtocol(IPv4.PROTOCOL_UDP)
-                .matchUdpDst(TpPort.tpPort(UDP.DHCP_SERVER_PORT))
-                .matchUdpSrc(TpPort.tpPort(UDP.DHCP_CLIENT_PORT))
-                .build();
-
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .punt()
-                .build();
-
-        osNodeService.completeNodes(COMPUTE).forEach(node -> {
-            osFlowRuleService.setRule(
-                    appId,
-                    node.intgBridge(),
-                    selector,
-                    treatment,
-                    PRIORITY_DHCP_RULE,
-                    SRC_VNI_TABLE,
-                    install);
-        });
     }
 
     private class InternalPacketProcessor implements PacketProcessor {
@@ -246,7 +240,7 @@ public class OpenstackSwitchingDhcpHandler {
                             reqInstPort);
                     sendReply(context, discoverReply);
                     log.trace("DHCP OFFER({}) is sent for {}",
-                              reqInstPort.ipAddress(), clientMac);
+                            reqInstPort.ipAddress(), clientMac);
                     break;
                 case DHCPREQUEST:
                     log.trace("DHCP REQUEST received from {}", clientMac);
@@ -256,7 +250,7 @@ public class OpenstackSwitchingDhcpHandler {
                             reqInstPort);
                     sendReply(context, requestReply);
                     log.trace("DHCP ACK({}) is sent for {}",
-                              reqInstPort.ipAddress(), clientMac);
+                            reqInstPort.ipAddress(), clientMac);
                     break;
                 case DHCPRELEASE:
                     log.trace("DHCP RELEASE received from {}", clientMac);
@@ -295,7 +289,8 @@ public class OpenstackSwitchingDhcpHandler {
 
             IPv4 ipv4Request = (IPv4) ethRequest.getPayload();
             IPv4 ipv4Reply = new IPv4();
-            ipv4Reply.setSourceAddress(Ip4Address.valueOf(osSubnet.getGateway()).toInt());
+
+            ipv4Reply.setSourceAddress(clusterService.getLocalNode().ip().getIp4Address().toString());
             ipv4Reply.setDestinationAddress(reqInstPort.ipAddress().getIp4Address().toInt());
             ipv4Reply.setTtl(PACKET_TTL);
 
@@ -337,7 +332,7 @@ public class OpenstackSwitchingDhcpHandler {
 
         private DHCP buildDhcpReply(DHCP request, byte msgType, Ip4Address yourIp,
                                     Subnet osSubnet) {
-            Ip4Address gatewayIp = Ip4Address.valueOf(osSubnet.getGateway());
+            Ip4Address gatewayIp = clusterService.getLocalNode().ip().getIp4Address();
             int subnetPrefixLen = IpPrefix.valueOf(osSubnet.getCidr()).prefixLength();
 
             DHCP dhcpReply = new DHCP();
@@ -417,6 +412,58 @@ public class OpenstackSwitchingDhcpHandler {
 
             dhcpReply.setOptions(options);
             return dhcpReply;
+        }
+    }
+
+    private class InternalNodeEventListener implements OpenstackNodeListener {
+        @Override
+        public boolean isRelevant(OpenstackNodeEvent event) {
+            // do not allow to proceed without leadership
+            NodeId leader = leadershipService.getLeader(appId.name());
+            return Objects.equals(localNodeId, leader);
+        }
+
+        @Override
+        public void event(OpenstackNodeEvent event) {
+            OpenstackNode osNode = event.subject();
+            switch (event.type()) {
+                case OPENSTACK_NODE_COMPLETE:
+                    setDhcpRule(osNode, true);
+                    break;
+                case OPENSTACK_NODE_INCOMPLETE:
+                    setDhcpRule(osNode, false);
+                    break;
+                case OPENSTACK_NODE_CREATED:
+                case OPENSTACK_NODE_UPDATED:
+                case OPENSTACK_NODE_REMOVED:
+                default:
+                    break;
+            }
+        }
+
+        private void setDhcpRule(OpenstackNode openstackNode, boolean install) {
+            if (openstackNode.type().equals(GATEWAY)) {
+                return;
+            }
+            TrafficSelector selector = DefaultTrafficSelector.builder()
+                    .matchEthType(Ethernet.TYPE_IPV4)
+                    .matchIPProtocol(IPv4.PROTOCOL_UDP)
+                    .matchUdpDst(TpPort.tpPort(UDP.DHCP_SERVER_PORT))
+                    .matchUdpSrc(TpPort.tpPort(UDP.DHCP_CLIENT_PORT))
+                    .build();
+
+            TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                    .punt()
+                    .build();
+
+            osFlowRuleService.setRule(
+                    appId,
+                    openstackNode.intgBridge(),
+                    selector,
+                    treatment,
+                    PRIORITY_DHCP_RULE,
+                    SRC_VNI_TABLE,
+                    install);
         }
     }
 }
