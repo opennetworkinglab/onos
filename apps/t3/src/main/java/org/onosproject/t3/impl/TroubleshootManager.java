@@ -918,12 +918,13 @@ public class TroubleshootManager implements TroubleshootService {
         } else if (trace.getInitialPacket().getCriterion(Criterion.Type.IPV6_DST) != null) {
             ip = ((IPCriterion) trace.getInitialPacket().getCriterion(Criterion.Type.IPV6_DST)).ip().address();
         }
-
-        Optional<ResolvedRoute> optionalRoute = routeService.longestPrefixLookup(ip);
-        if (ip != null && optionalRoute.isPresent()) {
-            ResolvedRoute route = optionalRoute.get();
-            route.prefix();
-            multipleRoutes = routeService.getAllResolvedRoutes(route.prefix()).size() > 1;
+        if (ip != null) {
+            Optional<ResolvedRoute> optionalRoute = routeService.longestPrefixLookup(ip);
+            if (optionalRoute.isPresent()) {
+                ResolvedRoute route = optionalRoute.get();
+                route.prefix();
+                multipleRoutes = routeService.getAllResolvedRoutes(route.prefix()).size() > 1;
+            }
         }
         return multipleRoutes;
     }
