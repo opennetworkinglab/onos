@@ -72,6 +72,7 @@ CLI_COMMANDS=(
     "devices"
     "links"
     "hosts"
+    "interfaces"
 
     "ports -e"
     "portstats -nz"
@@ -99,6 +100,9 @@ CLI_COMMANDS=(
     "sr-next-hops"
     "sr-pw-list"
     "dhcp-relay"
+
+    "mcast-host-routes"
+    "mcast-host-show"
 )
 
 # Scan arguments for user/password or other options...
