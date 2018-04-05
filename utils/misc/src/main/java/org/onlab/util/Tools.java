@@ -894,4 +894,42 @@ public abstract class Tools {
         checkNotNull(r, "r cannot be null");
         return l.compareTo(r) >= 0 ? l : r;
     }
+
+    /**
+     * Log level for the customized logger.
+     */
+    public enum LogLevel {
+        TRACE, DEBUG, INFO, WARN, ERROR
+    }
+
+    /**
+     * Wrapper function that enables logger invocation with log level as a parameter.
+     *
+     * @param logger logger
+     * @param level log level
+     * @param format format string
+     * @param args objects
+     */
+    public static void log(Logger logger, LogLevel level, String format, Object... args) {
+        switch (level) {
+            case TRACE:
+                logger.trace(format, args);
+                break;
+            case DEBUG:
+                logger.debug(format, args);
+                break;
+            case INFO:
+                logger.info(format, args);
+                break;
+            case WARN:
+                logger.warn(format, args);
+                break;
+            case ERROR:
+                logger.error(format, args);
+                break;
+            default:
+                log.error("Unknown log level {}", level);
+                break;
+        }
+    }
 }
