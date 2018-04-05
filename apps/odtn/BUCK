@@ -7,7 +7,7 @@ APPS = [
 
     # strictly speaking following are not mandatory
     'org.onosproject.restconf',
-    'org.onosproject.drivers.netconf',
+    'org.onosproject.drivers.netconf',# probably don't need this
     'org.onosproject.netconf',
     'org.onosproject.configsync-netconf',
     'org.onosproject.protocols.restconfserver'

@@ -57,6 +57,7 @@
         <module>hp</module>
         <module>microsemi/ea1000</module>
         <module>gnmi</module>
+        <module>odtn-driver</module>
     </modules>
 
     <!--<properties>
