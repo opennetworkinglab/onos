@@ -203,7 +203,7 @@ final class MeterEntryCodec {
 
         PiMeterId piMeterId = meterIdMap.get(meterId);
         if (!pipeconf.pipelineModel().meter(piMeterId).isPresent()) {
-            throw new EncodeException(format("Unable to find meter '{}' in pipeline model",  meterId));
+            throw new EncodeException(format("Unable to find meter '%s' in pipeline model",  meterId));
         }
 
         PiMeterType piMeterType = pipeconf.pipelineModel().meter(piMeterId).get().meterType();
