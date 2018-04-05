@@ -25,6 +25,7 @@ import org.onosproject.openstacknetworking.api.OpenstackRouterAdminService;
 import org.onosproject.openstacknetworking.api.OpenstackSecurityGroupAdminService;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.api.exceptions.AuthenticationException;
+import org.openstack4j.api.types.Facing;
 import org.openstack4j.core.transport.Config;
 import org.openstack4j.model.common.Identifier;
 import org.openstack4j.model.network.IP;
@@ -62,15 +63,19 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
             required = true, multiValued = false)
     private String endpoint = null;
 
-    @Argument(index = 1, name = "tenant", description = "OpenStack admin tenant name",
+    @Argument(index = 1, name = "perspective", description = "OpenStack endpoint perspective",
+            required = true, multiValued = false)
+    private String perspective = null;
+
+    @Argument(index = 2, name = "tenant", description = "OpenStack admin tenant name",
             required = true, multiValued = false)
     private String tenant = null;
 
-    @Argument(index = 2, name = "user", description = "OpenStack admin user name",
+    @Argument(index = 3, name = "user", description = "OpenStack admin user name",
             required = true, multiValued = false)
     private String user = null;
 
-    @Argument(index = 3, name = "password", description = "OpenStack admin user password",
+    @Argument(index = 4, name = "password", description = "OpenStack admin user password",
             required = true, multiValued = false)
     private String password = null;
 
@@ -97,6 +102,8 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
 
         OSClient osClient;
 
+        // we bypass the SSL certification verification for now
+        // TODO: verify server side SSL using a given certification
         Config config = Config.newConfig().withSSLVerificationDisabled();
 
         TrustManager[] trustAllCerts = new TrustManager[]{
@@ -123,6 +130,12 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
 
             config.withSSLContext(sc);
 
+            Facing facing = getFacing(perspective);
+            if (facing == null) {
+                error("Perspective is invalid. Use public | internal | admin ");
+                return;
+            }
+
             if (endpoint != null) {
                 if (endpoint.contains(KEYSTONE_V2)) {
                     osClient = OSFactory.builderV2()
@@ -130,6 +143,7 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
                             .tenantName(this.tenant)
                             .credentials(this.user, this.password)
                             .withConfig(config)
+                            .perspective(facing)
                             .authenticate();
                 } else if (endpoint.contains(KEYSTONE_V3)) {
 
@@ -141,6 +155,7 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
                             .credentials(this.user, this.password, domain)
                             .scopeToProject(project, domain)
                             .withConfig(config)
+                            .perspective(facing)
                             .authenticate();
                 } else {
                     print("Unrecognized keystone version type");
@@ -313,5 +328,23 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
                 Strings.isNullOrEmpty(floatingIp.getFixedIpAddress()) ?
                         "" : floatingIp.getFixedIpAddress());
         print(strFloating);
+    }
+
+    private Facing getFacing(String strFacing) {
+
+        if (strFacing == null) {
+            return null;
+        }
+
+        switch (strFacing) {
+            case "public":
+                return Facing.PUBLIC;
+            case "admin":
+                return Facing.ADMIN;
+            case "internal":
+                return Facing.INTERNAL;
+            default:
+                return null;
+        }
     }
 }

@@ -28,9 +28,9 @@ import java.util.SortedSet;
 public class OpenStackEndPointCompleter implements Completer {
 
     private static final String OPENSTACK_ENDPOINT_EXAMPLE_V2 =
-            "http://IP address of OpenStack end point:35357/v2.0 ProjectName ID Password";
+            "http://IP address of OpenStack end point:35357/v2.0 Perspective ProjectName ID Password";
     private static final String OPENSTACK_ENDPOINT_EXAMPLE_V3 =
-            "http://IP address of OpenStack end point/identity/v3 ProjectName ID Password";
+            "http://IP address of OpenStack end point/identity/v3 Perspective ProjectName ID Password";
     private static final String SEPARATOR = "\n or \n";
 
     @Override
