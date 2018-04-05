@@ -83,25 +83,30 @@ public class VersionTest {
 
         version1 = version("1.2");
         version2 = Version.fromInt(version1.toInt());
-        assertEquals(version2, version(1, 2, "0", null));
+        assertEquals(version2, version(1, 2, "0", "0"));
 
         version1 = version("1.2.foo.bar");
         version2 = Version.fromInt(version1.toInt());
-        assertEquals(version2, version(1, 2, "0", null));
+        assertEquals(version2, version(1, 2, "0", "0"));
 
         version1 = version("1.2.3");
         version2 = Version.fromInt(version1.toInt());
-        assertEquals(version2, version(1, 2, "3", null));
+        assertEquals(version2, version(1, 2, "3", "0"));
 
-        version1 = version("255.254.65535.252");
+        version1 = version("1.2.3-SNAPSHOT");
         version2 = Version.fromInt(version1.toInt());
-        assertEquals(version2, version(255, 254, "65535", null));
+        assertEquals(version2, version(1, 2, "3", "0"));
+
+        version1 = version("255.254.253.252");
+        version2 = Version.fromInt(version1.toInt());
+        assertEquals(version2, version(255, 254, "253", "252"));
 
         assertTrue(version("0.0.2").toInt() > version("0.0.1").toInt());
         assertTrue(version("0.1.0").toInt() > version("0.0.1").toInt());
         assertTrue(version("1.0.0").toInt() > version("0.1.0").toInt());
         assertTrue(version("1.1.0").toInt() > version("1.0.1").toInt());
         assertTrue(version("2.1.1").toInt() > version("1.10.10").toInt());
+        assertTrue(version("0.1.0-rc2").toInt() > version("0.1.0-rc1").toInt());
     }
 
     @Test

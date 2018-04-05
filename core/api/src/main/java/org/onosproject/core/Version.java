@@ -100,8 +100,9 @@ public final class Version implements Comparable<Version> {
     public static Version fromInt(int version) {
         int major = (version >> 24) & 0xff;
         int minor = (version >> 16) & 0xff;
-        int patch = (version) & 0xffff;
-        return new Version(major, minor, String.valueOf(patch), null);
+        int patch = (version >> 8) & 0xff;
+        int build = version & 0xff;
+        return new Version(major, minor, String.valueOf(patch), String.valueOf(build));
     }
 
     /**
@@ -157,13 +158,30 @@ public final class Version implements Comparable<Version> {
     public int toInt() {
         byte major = (byte) this.major;
         byte minor = (byte) this.minor;
-        short patch;
-        try {
-            patch = (short) Integer.parseInt(this.patch);
-        } catch (NumberFormatException e) {
+
+        byte patch;
+        if (this.patch != null) {
+            try {
+                patch = (byte) Integer.parseInt(this.patch.replaceAll("[^0-9]", ""));
+            } catch (NumberFormatException e) {
+                patch = 0;
+            }
+        } else {
             patch = 0;
         }
-        return major << 24 | (minor & 0xff) << 16 | (patch & 0xffff);
+
+        byte build;
+        if (this.build != null) {
+            try {
+                build = (byte) Integer.parseInt(this.build.replaceAll("[^0-9]", ""));
+            } catch (NumberFormatException e) {
+                build = 0;
+            }
+        } else {
+            build = 0;
+        }
+
+        return major << 24 | (minor & 0xff) << 16 | (patch & 0xff) << 8 | (build & 0xff);
     }
 
     @Override

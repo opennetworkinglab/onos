@@ -105,13 +105,6 @@ public class UpgradeManager
 
         Upgrade upgrade = getState();
 
-        // If the upgrade state is not initialized, ensure this node matches the version of the cluster.
-        if (!upgrade.status().active() && !Objects.equals(upgrade.source(), localVersion)) {
-            log.error("Node version {} inconsistent with cluster version {}", localVersion, upgrade.source());
-            throw new IllegalStateException("Node version " + localVersion +
-                    " inconsistent with cluster version " + upgrade.source());
-        }
-
         // If the upgrade state is initialized then check the node version.
         if (upgrade.status() == Upgrade.Status.INITIALIZED) {
             // If the source version equals the target version, attempt to update the target version.

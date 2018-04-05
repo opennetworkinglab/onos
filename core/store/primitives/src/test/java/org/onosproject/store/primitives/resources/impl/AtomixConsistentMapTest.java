@@ -19,11 +19,17 @@ import com.google.common.collect.Sets;
 import io.atomix.protocols.raft.proxy.RaftProxy;
 import io.atomix.protocols.raft.service.RaftService;
 import org.junit.Test;
+import org.onlab.util.HexString;
 import org.onlab.util.Tools;
 import org.onosproject.store.primitives.MapUpdate;
 import org.onosproject.store.primitives.TransactionId;
+import org.onosproject.store.primitives.impl.CompatibleValue;
+import org.onosproject.store.primitives.impl.DistributedPrimitives;
+import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapEventListener;
+import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.TransactionLog;
 import org.onosproject.store.service.Version;
 import org.onosproject.store.service.Versioned;
@@ -582,6 +588,50 @@ public class AtomixConsistentMapTest extends AtomixTestBase<AtomixConsistentMap>
         assertNotNull(event);
         assertEquals(MapEvent.Type.INSERT, event.type());
         assertTrue(Arrays.equals(value2, event.newValue().value()));
+    }
+
+    @Test
+    public void testCompatibilityFunction() throws Throwable {
+        AtomixConsistentMap atomixMap = newPrimitive("testCompatibilityFunction");
+
+        Serializer rawSerializer = Serializer.using(KryoNamespaces.API, CompatibleValue.class);
+        Serializer valueSerializer = Serializer.using(KryoNamespaces.BASIC);
+
+        // Convert the byte[] value to CompatibleValue<byte[]>
+        AsyncConsistentMap<String, CompatibleValue<byte[]>> rawMap = DistributedPrimitives.newTranscodingMap(
+            atomixMap,
+            key -> HexString.toHexString(rawSerializer.encode(key)),
+            string -> rawSerializer.decode(HexString.fromHexString(string)),
+            value -> value == null ? null : rawSerializer.encode(value),
+            bytes -> rawSerializer.decode(bytes));
+
+        // Convert the CompatibleValue<byte[]> value to CompatibleValue<V> using the user-provided serializer.
+        AsyncConsistentMap<String, CompatibleValue<String>> compatibleMap =
+            DistributedPrimitives.newTranscodingMap(
+                rawMap,
+                key -> key,
+                key -> key,
+                value -> value == null ? null :
+                    new CompatibleValue<byte[]>(valueSerializer.encode(value.value()), value.version()),
+                value -> value == null ? null :
+                    new CompatibleValue<String>(valueSerializer.decode(value.value()), value.version()));
+
+        AsyncConsistentMap<String, String> map1 = DistributedPrimitives.newCompatibleMap(
+            compatibleMap,
+            (value, version) -> version + ":" + value,
+            org.onosproject.core.Version.version("1.0.0"));
+        AsyncConsistentMap<String, String> map2 = DistributedPrimitives.newCompatibleMap(
+            compatibleMap,
+            (value, version) -> version + ":" + value,
+            org.onosproject.core.Version.version("1.0.1"));
+
+        map1.put("foo", "Hello world!").join();
+        assertEquals("Hello world!", map1.get("foo").join().value());
+        assertEquals("1.0.0:Hello world!", map2.get("foo").join().value());
+
+        map2.put("bar", "Hello world again!").join();
+        assertEquals("Hello world again!", map2.get("bar").join().value());
+        assertEquals("1.0.1:Hello world again!", map1.get("bar").join().value());
     }
 
     private static class TestMapEventListener implements MapEventListener<String, byte[]> {

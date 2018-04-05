@@ -1,0 +1,82 @@
+<!--
+  ~ Copyright 2018-present Open Networking Foundation
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<scenario name="rolling-upgrade" description="ONOS cluster rolling upgrade">
+    <import file="${ONOS_SCENARIOS}/dist-setup.xml"/>
+    <dependency name="Distributed-Primitives-Setup"/>
+
+    <group name="Upgrade" requires="Distributed-Primitives-Setup">
+        <step name="Push-Bits" exec="onos-push-bits-through-proxy" if="${OCT}"/>
+
+        <group name="Perform-Upgrade">
+            <sequential var="${OC#}"
+                        starts="Stop-Service-${#}"
+                        ends="Wait-for-Start-${#-1}">
+                <step name="Stop-Service-${#}"
+                      exec="onos-service ${OC#} stop"/>
+
+                <step name="Wait-for-Stop-${#}"
+                      exec="onos-wait-for-stop ${OC#}"
+                      requires="~Stop-Service-${#}"/>
+
+                <step name="Uninstall-${#}"
+                      exec="onos-uninstall ${OC#}"
+                      requires="~Wait-for-Stop-${#}"/>
+
+                <step name="Push-Bits-${#}"
+                      exec="onos-push-bits ${OC#}"
+                      unless="${OCT}"
+                      requires="~Stop-Service-${#}"/>
+
+                <step name="Install-Upgrade-${#}"
+                      exec="onos-install -v ${OC#}"
+                      requires="Push-Bits-${#},Push-Bits,Uninstall-${#}"/>
+
+                <step name="Secure-SSH-${#}"
+                      exec="onos-secure-ssh -u ${ONOS_WEB_USER} -p ${ONOS_WEB_PASS} ${OC#}"
+                      requires="~Install-Upgrade-${#}"/>
+
+                <step name="Wait-for-Start-${#}"
+                      exec="onos-wait-for-start ${OC#}"
+                      requires="Secure-SSH-${#}"/>
+
+                <step name="Distributed-Primitives-Check-Apps-${#}"
+                      exec="onos-check-apps ${OC#} distributedprimitives includes"
+                      requires="Wait-for-Start-${#}"/>
+            </sequential>
+        </group>
+
+        <group name="Verify-Upgrade" requires="Perform-Upgrade">
+            <parallel var="${OC#}">
+                <step name="Check-Nodes-${#}"
+                      exec="onos-check-nodes ${OC#}"
+                      delay="3"/>
+
+                <step name="Check-Components-${#}"
+                      exec="onos-check-components ${OC#}"
+                      delay="5"
+                      requires="~Check-Nodes-${#}"/>
+
+                <step name="Check-Logs-${#}"
+                      exec="onos-check-logs ${OC#}"
+                      requires="~Check-Components-${#}"/>
+
+                <step name="Check-Apps-${#}"
+                      exec="onos-check-apps ${OC#} ${ONOS_APPS},distributedprimitives includes"
+                      requires="~Check-Components-${#}"/>
+            </parallel>
+        </group>
+    </group>
+</scenario>
