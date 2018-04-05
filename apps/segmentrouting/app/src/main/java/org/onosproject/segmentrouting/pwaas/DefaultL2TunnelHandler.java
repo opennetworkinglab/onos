@@ -45,6 +45,8 @@ import org.onosproject.net.flowobjective.NextObjective;
 import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.flowobjective.ObjectiveContext;
 import org.onosproject.net.flowobjective.ObjectiveError;
+import org.onosproject.net.topology.LinkWeigher;
+import org.onosproject.segmentrouting.SRLinkWeigher;
 import org.onosproject.segmentrouting.SegmentRoutingManager;
 import org.onosproject.segmentrouting.SegmentRoutingService;
 import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
@@ -57,6 +59,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -568,6 +571,16 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
             return Result.INTERNAL_ERROR
                     .appendError("Device for pseudowire connection points does not exist in the configuration");
         }
+
+        // reverse the policy in order for leaf switch to be at CP1
+        // this will help us for re-using SRLinkWeigher for computing valid paths
+        L2TunnelPolicy reversedPolicy = reverseL2TunnelPolicy(pw.l2TunnelPolicy());
+        if (reversedPolicy == null) {
+            log.error("Error in reversing policy, device configuration was not found!");
+            return  INTERNAL_ERROR
+                    .appendError("Device configuration not found when reversing the policy.");
+        }
+        pw.setL2TunnelPolicy(reversedPolicy);
 
         // get path here, need to use the same for fwd and rev direction
         List<Link> path = getPath(pw.l2TunnelPolicy().cP1(),
@@ -1360,6 +1373,37 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
     }
 
     /**
+     * Reverse an l2 tunnel policy in order to have as CP1 the leaf switch,
+     * in case one of the switches is a spine.
+     *
+     * This makes possible the usage of SRLinkWeigher for computing valid paths,
+     * which cuts leaf-spine links from the path computation with a src different
+     * than the source leaf.
+     *
+     * @param policy The policy to reverse, if needed
+     * @return a l2TunnelPolicy containing the leaf at CP1, suitable for usage with
+     *         current SRLinkWeigher
+     */
+    private L2TunnelPolicy reverseL2TunnelPolicy(L2TunnelPolicy policy) {
+        try {
+            // if cp1 is a leaf, just return
+            if (srManager.deviceConfiguration().isEdgeDevice(policy.cP1().deviceId())) {
+                return policy;
+            } else {
+                // return a policy with reversed cp1 and cp2, and also with reversed tags
+                return new DefaultL2TunnelPolicy(policy.tunnelId(),
+                                                 policy.cP2(), policy.cP2InnerTag(), policy.cP2OuterTag(),
+                                                 policy.cP1(), policy.cP1InnerTag(), policy.cP1OuterTag());
+
+            }
+        } catch (DeviceConfigNotFoundException e) {
+            // should never come here, since it has been checked before
+            log.error("Configuration for device {}, does not exist!");
+            return null;
+        }
+    }
+
+    /**
      * Reverses a link.
      *
      * @param link link to be reversed
@@ -1385,9 +1429,15 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
      * @return the path
      */
     private List<Link> getPath(ConnectPoint srcCp, ConnectPoint dstCp) {
-        Set<Path> paths = srManager.topologyService.getPaths(
-                srManager.topologyService.currentTopology(),
-                srcCp.deviceId(), dstCp.deviceId());
+
+        // use SRLinkWeigher to avoid pair links, and also
+        // avoid going from the spine to the leaf and to the
+        // spine again, we need to have the leaf as CP1 here.
+        LinkWeigher srLw = new SRLinkWeigher(srManager, srcCp.deviceId(), new HashSet<Link>());
+
+        Set<Path> paths = srManager.topologyService.
+                getPaths(srManager.topologyService.currentTopology(),
+                srcCp.deviceId(), dstCp.deviceId(), srLw);
 
         log.debug("Paths obtained from topology service {}", paths);
 
