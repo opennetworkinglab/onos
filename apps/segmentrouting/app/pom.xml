@@ -82,12 +82,12 @@
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-mcast-api</artifactId>
+            <artifactId>onos-apps-mcast-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-mcast-cli</artifactId>
+            <artifactId>onos-apps-mcast-cli</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>
