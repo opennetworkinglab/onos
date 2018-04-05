@@ -127,7 +127,7 @@ public class McastRouteWebResource extends AbstractWebResource {
     }
 
     /**
-     * Get all sinks connect points for a multicast route.
+     * Get all HostId sinks and their connect points for a multicast route.
      *
      * @param group group IP address
      * @param srcIp source IP address
