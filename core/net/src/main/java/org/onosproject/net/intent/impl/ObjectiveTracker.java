@@ -111,7 +111,9 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
     protected HostService hostService;
 
     @Reference(cardinality = ReferenceCardinality.OPTIONAL_UNARY,
-               policy = ReferencePolicy.DYNAMIC)
+                bind = "bindComponentConfigService",
+                unbind = "unbindComponentConfigService",
+                policy = ReferencePolicy.DYNAMIC)
     protected IntentService intentService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -131,6 +133,29 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
 
     protected final AtomicBoolean updateScheduled = new AtomicBoolean(false);
 
+    /**
+     * Hook for wiring up optional reference to a service.
+     *
+     * @param service service being announced
+     */
+    protected void bindComponentConfigService(IntentService service) {
+        if (intentService == null) {
+            intentService = service;
+            scheduleIntentUpdate(1);
+        }
+    }
+
+    /**
+     * Hook for unwiring optional reference to a service.
+     *
+     * @param service service being withdrawn
+     */
+    protected void unbindComponentConfigService(IntentService service) {
+        if (intentService == service) {
+            intentService = null;
+        }
+    }
+
     @Activate
     public void activate() {
         topologyService.addListener(listener);
@@ -138,6 +163,7 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
         deviceService.addListener(deviceListener);
         hostService.addListener(hostListener);
         partitionService.addListener(partitionListener);
+        scheduleIntentUpdate(1);
         log.info("Started");
     }
 
@@ -394,22 +420,24 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
     }
 
     private void doIntentUpdate() {
-        updateScheduled.set(false);
-        if (intentService == null) {
-            log.warn("Intent service is not bound yet");
-            return;
-        }
-        try {
-            //FIXME very inefficient
-            for (IntentData intentData : intentService.getIntentData()) {
-                try {
-                    trackIntent(intentData);
-                } catch (NullPointerException npe) {
-                    log.warn("intent error {}", intentData.key(), npe);
-                }
+        synchronized (this) {
+            updateScheduled.set(false);
+            if (intentService == null) {
+                log.warn("Intent service is not bound yet");
+                return;
             }
-        } catch (Exception e) {
-            log.warn("Exception caught during update task", e);
+            try {
+                //FIXME very inefficient
+                for (IntentData intentData : intentService.getIntentData()) {
+                    try {
+                        trackIntent(intentData);
+                    } catch (NullPointerException npe) {
+                        log.warn("intent error {}", intentData.key(), npe);
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("Exception caught during update task", e);
+            }
         }
     }
 
