@@ -1,0 +1,156 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Creates a hierarchical access spine-leaf fabric with large number of hosts
+# using null providers.
+#
+# Default setup as follows:
+#   2 primary spines (or more if needed, but this is typically not the case)
+#   2 aggregating spines per access headend
+#   ~3 access leaves per headend
+#   2 leaf pairs for connecting gateways and compute (services/caching/etc.)
+# -----------------------------------------------------------------------------
+
+function usage {
+    echo "usage: $(basename $0) [options] [onos-ip]"
+    echo ""
+    echo "Options:"
+    echo "  -s spines"
+    echo "  -l spineLinks"
+    echo "  -S serviceHosts"
+    echo "  -G gateways"
+    echo "  -f fieldOffices"
+    echo "  -a accessLeaves"
+    echo "  -A accessHosts"
+    exit 1
+}
+
+spines=2
+spineLinks=2
+serviceLeafGroups="A B"
+serviceHosts=10
+fieldOffices=3
+accessLeaves=3
+accessHosts=60
+gateways=2
+
+# Scan arguments for user/password or other options...
+while getopts s:l:a:f:A:S:G:?h o; do
+    case "$o" in
+        s) spines=$OPTARG;;
+        l) spineLinks=$OPTARG;;
+        a) accessLeaves=$OPTARG;;
+        f) fieldOffices=$OPTARG;;
+        A) accessHosts=$OPTARG;;
+        S) serviceHosts=$OPTARG;;
+        G) gateways=$OPTARG;;
+        *) usage $0;;
+    esac
+done
+
+spinePorts=48
+let leafPorts=serviceHosts+8     # derive service ports from service hosts
+let accessPorts=accessHosts+8    # derive access ports from access hosts
+let hagPorts=accessLeaves+8      # derive hag ports from access leaves
+
+let totalHags=fieldOffices*spines
+let totalAccess=fieldOffices*accessLeaves
+
+let OPC=$OPTIND-1
+shift $OPC
+
+# Optional ONOS node IP
+node=${1:-$OCI}
+
+# Create the script of ONOS commands first and then execute it all at once.
+export CMDS="/tmp/access-onos.cmds"
+rm -f $CMDS 2>/dev/null
+
+function sim {
+    echo "$@" >> $CMDS
+}
+
+function y {
+    let p="${3:-400} * ($1 - 1) - (${3:-400} * ($2 - 1)) / 2 + ${4:-0}"
+    echo $p
+}
+
+# Create central office spines
+for spine in $(seq 1 $spines); do
+    sim "null-create-device switch Spine-${spine} ${spinePorts} 0 $(y $spine $spines) grid"
+done
+
+# Create 2 leaf pairs with dual links to the spines and a link between the pair
+for pair in $serviceLeafGroups; do
+    [ $pair = A ] && l1=1 || l1=3
+    [ $pair = A ] && l2=2 || l2=4
+    sim "null-create-device switch Leaf-${pair}1 ${leafPorts} -200 $(y $l1 4) grid"
+    sim "null-create-device switch Leaf-${pair}2 ${leafPorts} -200 $(y $l2 4) grid"
+    sim "null-create-link direct Leaf-${pair}1 Leaf-${pair}2"
+
+    for spine in $(seq 1 $spines); do
+        for link in $(seq 1 $spineLinks); do
+            sim "null-create-link direct Spine-${spine} Leaf-${pair}1"
+            sim "null-create-link direct Spine-${spine} Leaf-${pair}2"
+        done
+    done
+
+    # Create gateways attached to each leaf group; multi-homed to each leaf in the pair
+    [ $pair = A ] && pn=1 || pn=2
+    [ $pair = A ] && gwy=-800 || gwy=800
+    for gw in $(seq 1 $gateways); do
+        sim "null-create-host Leaf-${pair}1,Leaf-${pair}2 10.${pn}.0.${gw} $(y $gw $gateways 200 -200) ${gwy} grid"
+    done
+
+    # Create hosts for each leaf group; multi-homed to each leaf in the pair
+    [ $pair = A ] && offset=-400 || offset=400
+    for host in $(seq 1 $serviceHosts); do
+        sim "null-create-host Leaf-${pair}1,Leaf-${pair}2 10.${pn}.1.${host} -400 $(y $host $serviceHosts 60 $offset) grid"
+    done
+done
+
+# Indexes for HAG and access leaves across all field offices
+let iagg=1
+let iacc=1
+
+# Create field offices
+for field in $(seq $fieldOffices); do
+    # Create HAG spines for each office and connect it to central office spines
+    for spine in $(seq $spines); do
+        sim "null-create-device switch Spine-${field}-${spine} ${hagPorts} 200 $(y $iagg $totalHags) grid"
+        sim "null-create-link direct Spine-${spine} Spine-${field}-${spine}"
+        let iagg=iagg+1
+    done
+
+    # Create single access leafs with links to the spines
+    for access in $(seq $accessLeaves); do
+        sim "null-create-device switch Access-${field}-${access} ${accessPorts} 400 $(y $iacc $totalAccess) grid"
+        for spine in $(seq 1 $spines); do
+            sim "null-create-link direct Spine-${field}-${spine} Access-${field}-${access}"
+        done
+
+        # Create hosts for each access single leaf
+        sim "null-create-hosts Access-${field}-${access} 10.${field}${access}.1.*" $accessHosts 700 $(y $iacc $totalAccess) 6
+
+        let iacc=iacc+1
+    done
+done
+
+# make sure null providers are activated and any running simulation is stopped
+onos ${node} app activate org.onosproject.null
+sleep 2
+onos ${node} null-simulation stop
+
+# wait until the masterships clear-out across the cluster
+while onos ${node} masters | grep -qv " 0 devices"; do sleep 1; done
+
+# clean-up
+onos ${node} wipe-out please
+sleep 1
+
+# start custom simulation..
+onos ${node} null-simulation start custom
+sleep 2
+
+# Add devices, links, and hosts
+cat $CMDS | onos ${node}
+

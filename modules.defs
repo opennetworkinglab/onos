@@ -232,6 +232,7 @@ ONOS_APPS = [
     '//apps/t3:onos-apps-t3-oar',
     '//apps/simplefabric:onos-apps-simplefabric-oar',
     '//apps/mcast:onos-apps-mcast-oar',
+    '//apps/layout:onos-apps-layout-oar',
 ]
 
 PROTOCOL_APPS = [

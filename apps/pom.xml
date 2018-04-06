@@ -101,6 +101,7 @@
         <module>routeradvertisement</module>
         <module>simplefabric</module>
         <module>mcast</module>
+        <module>layout</module>
     </modules>
 
     <properties>

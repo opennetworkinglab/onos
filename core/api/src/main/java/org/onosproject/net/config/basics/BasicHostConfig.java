@@ -40,8 +40,8 @@ public final class BasicHostConfig extends BasicElementConfig<HostId> {
         // ipAddresses can be absent, but if present must be valid
         this.locations();
         this.ipAddresses();
-        return hasOnlyFields(ALLOWED, NAME, LOC_TYPE, LATITUDE, LONGITUDE,
-                             GRID_Y, GRID_Y, UI_TYPE, RACK_ADDRESS, OWNER, IPS, LOCATIONS);
+        return hasOnlyFields(ALLOWED, NAME, LOC_TYPE, LATITUDE, LONGITUDE, ROLES,
+                             GRID_X, GRID_Y, UI_TYPE, RACK_ADDRESS, OWNER, IPS, LOCATIONS);
     }
 
     @Override
