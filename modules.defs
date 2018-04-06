@@ -241,6 +241,7 @@ ONOS_APPS = [
     '//apps/rabbitmq:onos-apps-rabbitmq-oar',
     '//apps/odtn:onos-apps-odtn-oar',
     '//apps/mcast:onos-apps-mcast-oar',
+    '//apps/layout:onos-apps-layout-oar',
 ]
 
 PROTOCOL_APPS = [

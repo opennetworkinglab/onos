@@ -50,7 +50,7 @@ public final class BasicDeviceConfig extends BasicElementConfig<DeviceId> {
 
         return super.isValid()
                 && hasOnlyFields(ALLOWED, NAME, LOC_TYPE, LATITUDE, LONGITUDE,
-                GRID_Y, GRID_X, UI_TYPE, RACK_ADDRESS, OWNER, TYPE, DRIVER,
+                GRID_Y, GRID_X, UI_TYPE, RACK_ADDRESS, OWNER, TYPE, DRIVER, ROLES,
                 MANUFACTURER, HW_VERSION, SW_VERSION, SERIAL,
                 MANAGEMENT_ADDRESS, DEVICE_KEY_ID)
                 && isValidLength(DRIVER, DRIVER_MAX_LENGTH)

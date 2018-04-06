@@ -102,6 +102,7 @@
         <module>simplefabric</module>
         <module>odtn</module>
         <module>mcast</module>
+        <module>layout</module>
     </modules>
 
     <properties>

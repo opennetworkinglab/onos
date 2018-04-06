@@ -1,14 +1,13 @@
 #!/bin/bash
 # -----------------------------------------------------------------------------
-# Creates a spine-leaf fabric with large number of hosts using null providers
+# Creates a hierarchical access spine-leaf fabric with large number of hosts
+# using null providers.
 #
 # Default setup as follows:
-#   2 spines, can potentially be few more
-#   12 leaves in total
-#       2 leaf pair
-#       8 non-paired
-#   Host per leaf up to 1K
-#
+#   2 primary spines (or more if needed, but this is typically not the case)
+#   2 aggregating spines per access headend
+#   ~3 access leaves per headend
+#   2 leaf pairs for connecting gateways and compute (services/caching/etc.)
 # -----------------------------------------------------------------------------
 
 function usage {
@@ -18,6 +17,7 @@ function usage {
     echo "  -s spines"
     echo "  -l spineLinks"
     echo "  -S serviceHosts"
+    echo "  -G gateways"
     echo "  -f fieldOffices"
     echo "  -a accessLeaves"
     echo "  -A accessHosts"
@@ -31,9 +31,10 @@ serviceHosts=10
 fieldOffices=3
 accessLeaves=3
 accessHosts=60
+gateways=2
 
 # Scan arguments for user/password or other options...
-while getopts s:l:a:f:A:S:?h o; do
+while getopts s:l:a:f:A:S:G:?h o; do
     case "$o" in
         s) spines=$OPTARG;;
         l) spineLinks=$OPTARG;;
@@ -41,6 +42,7 @@ while getopts s:l:a:f:A:S:?h o; do
         f) fieldOffices=$OPTARG;;
         A) accessHosts=$OPTARG;;
         S) serviceHosts=$OPTARG;;
+        G) gateways=$OPTARG;;
         *) usage $0;;
     esac
 done
@@ -60,8 +62,8 @@ shift $OPC
 node=${1:-$OCI}
 
 # Create the script of ONOS commands first and then execute it all at once.
-export CMDS="/tmp/fab-onos.cmds"
-rm $CMDS
+export CMDS="/tmp/access-onos.cmds"
+rm -f $CMDS 2>/dev/null
 
 function sim {
     echo "$@" >> $CMDS
@@ -92,8 +94,14 @@ for pair in $serviceLeafGroups; do
         done
     done
 
-    # Create hosts for each leaf group; multi-homed to each leaf in the pair
+    # Create gateways attached to each leaf group; multi-homed to each leaf in the pair
     [ $pair = A ] && pn=1 || pn=2
+    [ $pair = A ] && gwy=-800 || gwy=800
+    for gw in $(seq 1 $gateways); do
+        sim "null-create-host Leaf-${pair}1,Leaf-${pair}2 10.${pn}.0.${gw} $(y $gw $gateways 200 -200) ${gwy} grid"
+    done
+
+    # Create hosts for each leaf group; multi-homed to each leaf in the pair
     [ $pair = A ] && offset=-400 || offset=400
     for host in $(seq 1 $serviceHosts); do
         sim "null-create-host Leaf-${pair}1,Leaf-${pair}2 10.${pn}.1.${host} -400 $(y $host $serviceHosts 60 $offset) grid"
