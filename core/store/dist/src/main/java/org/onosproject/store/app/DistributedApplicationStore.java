@@ -177,8 +177,13 @@ public class DistributedApplicationStore extends ApplicationArchive
                 .withCompatibilityFunction(this::convertApplication)
                 .build();
 
-        appActivationTopic = storageService.getTopic("onos-apps-activation-topic",
-                Serializer.using(KryoNamespaces.API));
+        appActivationTopic = storageService.<Application>topicBuilder()
+            .withName("onos-apps-activation-topic")
+            .withSerializer(Serializer.using(KryoNamespaces.API))
+            .withVersion(versionService.version())
+            .withRevisionType(RevisionType.PROPAGATE)
+            .withCompatibilityFunction(this::convertApplication)
+            .build();
 
         activationExecutor = newSingleThreadExecutor(groupedThreads("onos/store/app",
                 "app-activation", log));
@@ -206,13 +211,28 @@ public class DistributedApplicationStore extends ApplicationArchive
         // version, update the stored application with the new version.
         ApplicationDescription appDesc = getApplicationDescription(appHolder.app.id().name());
         if (!appDesc.version().equals(appHolder.app().version())) {
-            Application newApplication = DefaultApplication.builder(appHolder.app())
-                .withVersion(appDesc.version())
+            Application newApplication = DefaultApplication.builder(appDesc)
+                .withAppId(appHolder.app.id())
                 .build();
             return new InternalApplicationHolder(
                 newApplication, appHolder.state, appHolder.permissions);
         }
         return appHolder;
+    }
+
+    /**
+     * Converts the versions of stored applications propagated from the prior version to the local application versions.
+     */
+    private Application convertApplication(Application app, Version version) {
+        // Load the application description from disk. If the version doesn't match the persisted
+        // version, update the stored application with the new version.
+        ApplicationDescription appDesc = getApplicationDescription(app.id().name());
+        if (!appDesc.version().equals(app.version())) {
+            return DefaultApplication.builder(appDesc)
+                .withAppId(app.id())
+                .build();
+        }
+        return app;
     }
 
     /**

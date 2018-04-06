@@ -70,6 +70,11 @@ public class StorageServiceAdapter implements StorageService {
     }
 
     @Override
+    public <T> TopicBuilder<T> topicBuilder() {
+        return null;
+    }
+
+    @Override
     public <E> WorkQueue<E> getWorkQueue(String name, Serializer serializer) {
         return null;
     }

@@ -15,16 +15,17 @@
  */
 package org.onosproject.store.primitives.impl;
 
+import java.util.function.BiFunction;
+import java.util.function.Function;
+
 import org.onosproject.core.Version;
 import org.onosproject.store.service.AsyncAtomicCounterMap;
+import org.onosproject.store.service.AsyncAtomicValue;
 import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.AsyncConsistentMultimap;
 import org.onosproject.store.service.AsyncConsistentTreeMap;
 import org.onosproject.store.service.AsyncDistributedSet;
 import org.onosproject.store.service.AsyncDocumentTree;
-
-import java.util.function.BiFunction;
-import java.util.function.Function;
 
 /**
  * Misc utilities for working with {@code DistributedPrimitive}s.
@@ -117,6 +118,45 @@ public final class DistributedPrimitives {
     }
 
     /**
+     * Creates an instance of {@code AsyncAtomicValue} that transforms value types.
+     *
+     * @param value backing value
+     * @param valueEncoder transformer for value type of returned value to value type of input value
+     * @param valueDecoder transformer for value type of input value to value type of returned value
+     * @param <V1> returned value type
+     * @param <V2> input value type
+     * @return new counter map
+     */
+    public static <V1, V2> AsyncAtomicValue<V1> newTranscodingAtomicValue(AsyncAtomicValue<V2> value,
+        Function<V1, V2> valueEncoder,
+        Function<V2, V1> valueDecoder) {
+        return new TranscodingAsyncAtomicValue<>(value, valueEncoder, valueDecoder);
+    }
+
+    /**
+     * Creates an instance of {@code AsyncAtomicValue} that converts values from other versions.
+     *
+     * @param atomicValue backing value
+     * @param compatibilityFunction the compatibility function
+     * @param version local node version
+     * @param <V> value type
+     * @return compatible map
+     */
+    public static <V> AsyncAtomicValue<V> newCompatibleAtomicValue(
+        AsyncAtomicValue<CompatibleValue<V>> atomicValue,
+        BiFunction<V, Version, V> compatibilityFunction,
+        Version version) {
+        Function<V, CompatibleValue<V>> encoder = value -> new CompatibleValue<>(value, version);
+        Function<CompatibleValue<V>, V> decoder = value -> {
+            if (!value.version().equals(version)) {
+                return compatibilityFunction.apply(value.value(), value.version());
+            }
+            return value.value();
+        };
+        return new TranscodingAsyncAtomicValue<>(atomicValue, encoder, decoder);
+    }
+
+    /**
      * Creates an instance of {@code AsyncAtomicCounterMap} that transforms key types.
      *
      * @param map backing map
@@ -127,8 +167,8 @@ public final class DistributedPrimitives {
      * @return new counter map
      */
     public static <K1, K2> AsyncAtomicCounterMap<K1> newTranscodingAtomicCounterMap(AsyncAtomicCounterMap<K2> map,
-            Function<K1, K2> keyEncoder,
-            Function<K2, K1> keyDecoder) {
+        Function<K1, K2> keyEncoder,
+        Function<K2, K1> keyDecoder) {
         return new TranscodingAsyncAtomicCounterMap<>(map, keyEncoder, keyDecoder);
     }
 

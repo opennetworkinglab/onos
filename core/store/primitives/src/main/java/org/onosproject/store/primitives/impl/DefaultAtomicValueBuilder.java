@@ -17,9 +17,11 @@ package org.onosproject.store.primitives.impl;
 
 import java.util.function.Supplier;
 
+import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.AsyncAtomicValue;
 import org.onosproject.store.service.AtomicValueBuilder;
 import org.onosproject.store.service.ConsistentMapBuilder;
+import org.onosproject.store.service.Serializer;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -38,8 +40,24 @@ public class DefaultAtomicValueBuilder<V> extends AtomicValueBuilder<V> {
 
     @Override
     public AsyncAtomicValue<V> build() {
-        return new DefaultAsyncAtomicValue<>(checkNotNull(name()),
-                                             checkNotNull(serializer()),
-                                             mapBuilder.buildAsyncMap());
+        if (compatibilityFunction != null) {
+            Serializer serializer = Serializer.using(KryoNamespaces.API, CompatibleValue.class);
+
+            AsyncAtomicValue<CompatibleValue<byte[]>> rawValue = new DefaultAsyncAtomicValue<>(
+                checkNotNull(name()), serializer, mapBuilder.buildAsyncMap());
+
+            AsyncAtomicValue<CompatibleValue<V>> compatibleValue =
+                DistributedPrimitives.newTranscodingAtomicValue(
+                    rawValue,
+                    value -> value == null ? null :
+                        new CompatibleValue<byte[]>(serializer().encode(value.value()), value.version()),
+                    value -> value == null ? null :
+                        new CompatibleValue<V>(serializer().decode(value.value()), value.version()));
+            return DistributedPrimitives.newCompatibleAtomicValue(compatibleValue, compatibilityFunction, version());
+        }
+        return new DefaultAsyncAtomicValue<>(
+            checkNotNull(name()),
+            checkNotNull(serializer()),
+            mapBuilder.buildAsyncMap());
     }
 }

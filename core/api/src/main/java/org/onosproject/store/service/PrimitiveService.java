@@ -114,6 +114,14 @@ public interface PrimitiveService {
     LeaderElectorBuilder leaderElectorBuilder();
 
     /**
+     * Creates a new TopicBuilder.
+     *
+     * @param <T> topic value type
+     * @return topic builder
+     */
+    <T> TopicBuilder<T> topicBuilder();
+
+    /**
      * Creates a new transaction context builder.
      *
      * @return a builder for a transaction context.

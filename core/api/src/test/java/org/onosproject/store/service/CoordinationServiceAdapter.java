@@ -75,6 +75,11 @@ public class CoordinationServiceAdapter implements CoordinationService {
     }
 
     @Override
+    public <T> TopicBuilder<T> topicBuilder() {
+        return null;
+    }
+
+    @Override
     public TransactionContextBuilder transactionContextBuilder() {
         return null;
     }

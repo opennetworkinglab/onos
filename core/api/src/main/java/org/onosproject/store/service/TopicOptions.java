@@ -20,15 +20,17 @@ import java.util.function.BiFunction;
 import org.onosproject.store.primitives.DistributedPrimitiveOptions;
 
 /**
- * Builder for constructing new AtomicValue instances.
+ * Builder for {@link Topic} instances.
  *
- * @param <V> atomic value type
+ * @param <T> type for topic value
  */
-public abstract class AtomicValueOptions<O extends AtomicValueOptions<O, V>, V> extends DistributedPrimitiveOptions<O> {
-    protected BiFunction<V, org.onosproject.core.Version, V> compatibilityFunction;
+public abstract class TopicOptions<O extends TopicOptions<O, T>, T>
+    extends DistributedPrimitiveOptions<O> {
 
-    public AtomicValueOptions() {
-        super(DistributedPrimitive.Type.VALUE);
+    protected BiFunction<T, org.onosproject.core.Version, T> compatibilityFunction;
+
+    public TopicOptions() {
+        super(DistributedPrimitive.Type.TOPIC);
     }
 
     /**
@@ -39,8 +41,9 @@ public abstract class AtomicValueOptions<O extends AtomicValueOptions<O, V>, V> 
      */
     @SuppressWarnings("unchecked")
     public O withCompatibilityFunction(
-        BiFunction<V, org.onosproject.core.Version, V> compatibilityFunction) {
+        BiFunction<T, org.onosproject.core.Version, T> compatibilityFunction) {
         this.compatibilityFunction = compatibilityFunction;
         return (O) this;
     }
+
 }

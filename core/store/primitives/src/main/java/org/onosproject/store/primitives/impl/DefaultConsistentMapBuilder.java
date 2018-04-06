@@ -15,7 +15,6 @@
  */
 package org.onosproject.store.primitives.impl;
 
-import org.onosproject.core.Version;
 import org.onosproject.store.primitives.DistributedPrimitiveCreator;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.AsyncConsistentMap;
@@ -32,11 +31,9 @@ import org.onosproject.store.service.Serializer;
 public class DefaultConsistentMapBuilder<K, V> extends ConsistentMapBuilder<K, V> {
 
     private final DistributedPrimitiveCreator primitiveCreator;
-    private final Version version;
 
-    public DefaultConsistentMapBuilder(DistributedPrimitiveCreator primitiveCreator, Version version) {
+    public DefaultConsistentMapBuilder(DistributedPrimitiveCreator primitiveCreator) {
         this.primitiveCreator = primitiveCreator;
-        this.version = version;
     }
 
     @Override

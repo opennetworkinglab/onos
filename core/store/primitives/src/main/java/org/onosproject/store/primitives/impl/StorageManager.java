@@ -35,7 +35,6 @@ import org.onosproject.cluster.Member;
 import org.onosproject.cluster.MembershipService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.PartitionId;
-import org.onosproject.core.VersionService;
 import org.onosproject.persistence.PersistenceService;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.primitives.DistributedPrimitiveCreator;
@@ -66,6 +65,7 @@ import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageAdminService;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.Topic;
+import org.onosproject.store.service.TopicBuilder;
 import org.onosproject.store.service.TransactionContextBuilder;
 import org.onosproject.store.service.WorkQueue;
 import org.onosproject.store.service.WorkQueueStats;
@@ -103,9 +103,6 @@ public class StorageManager implements StorageService, StorageAdminService {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MembershipService membershipService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected VersionService versionService;
 
     private final Supplier<TransactionId> transactionIdGenerator =
             () -> TransactionId.from(UUID.randomUUID().toString());
@@ -177,7 +174,7 @@ public class StorageManager implements StorageService, StorageAdminService {
     @Override
     public <K, V> ConsistentMapBuilder<K, V> consistentMapBuilder() {
         checkPermission(STORAGE_WRITE);
-        return new DefaultConsistentMapBuilder<>(federatedPrimitiveCreator, versionService.version());
+        return new DefaultConsistentMapBuilder<>(federatedPrimitiveCreator);
     }
 
     @Override
@@ -249,6 +246,12 @@ public class StorageManager implements StorageService, StorageAdminService {
     public LeaderElectorBuilder leaderElectorBuilder() {
         checkPermission(STORAGE_WRITE);
         return new DefaultLeaderElectorBuilder(federatedPrimitiveCreator);
+    }
+
+    @Override
+    public <T> TopicBuilder<T> topicBuilder() {
+        checkPermission(STORAGE_WRITE);
+        return new DefaultDistributedTopicBuilder<>(atomicValueBuilder());
     }
 
     @Override
