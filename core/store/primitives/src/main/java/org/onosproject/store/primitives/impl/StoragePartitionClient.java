@@ -69,6 +69,37 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
     private static final int MAX_RETRIES = 8;
     private static final String ATOMIC_VALUES_CONSISTENT_MAP_NAME = "onos-atomic-values";
 
+    private static final String MIN_TIMEOUT_PROPERTY = "onos.cluster.raft.client.minTimeoutMillis";
+    private static final String MAX_TIMEOUT_PROPERTY = "onos.cluster.raft.client.maxTimeoutMillis";
+
+    private static final Duration MIN_TIMEOUT;
+    private static final Duration MAX_TIMEOUT;
+
+    private static final long DEFAULT_MIN_TIMEOUT_MILLIS = 5000;
+    private static final long DEFAULT_MAX_TIMEOUT_MILLIS = 30000;
+
+    static {
+        Duration minTimeout;
+        try {
+            minTimeout = Duration.ofMillis(Long.parseLong(
+                System.getProperty(MIN_TIMEOUT_PROPERTY,
+                    String.valueOf(DEFAULT_MIN_TIMEOUT_MILLIS))));
+        } catch (NumberFormatException e) {
+            minTimeout = Duration.ofMillis(DEFAULT_MIN_TIMEOUT_MILLIS);
+        }
+        MIN_TIMEOUT = minTimeout;
+
+        Duration maxTimeout;
+        try {
+            maxTimeout = Duration.ofMillis(Long.parseLong(
+                System.getProperty(MAX_TIMEOUT_PROPERTY,
+                    String.valueOf(DEFAULT_MAX_TIMEOUT_MILLIS))));
+        } catch (NumberFormatException e) {
+            maxTimeout = Duration.ofMillis(DEFAULT_MAX_TIMEOUT_MILLIS);
+        }
+        MAX_TIMEOUT = maxTimeout;
+    }
+
     private final Logger log = getLogger(getClass());
 
     private final StoragePartition partition;
@@ -113,7 +144,8 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
                         .withServiceType(DistributedPrimitive.Type.CONSISTENT_MAP.name())
                         .withReadConsistency(ReadConsistency.SEQUENTIAL)
                         .withCommunicationStrategy(CommunicationStrategy.ANY)
-                        .withTimeout(Duration.ofSeconds(30))
+                        .withMinTimeout(MIN_TIMEOUT)
+                        .withMaxTimeout(MAX_TIMEOUT)
                         .withMaxRetries(MAX_RETRIES)
                         .build()
                         .open()
@@ -138,7 +170,8 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
                         .withServiceType(DistributedPrimitive.Type.CONSISTENT_TREEMAP.name())
                         .withReadConsistency(ReadConsistency.SEQUENTIAL)
                         .withCommunicationStrategy(CommunicationStrategy.ANY)
-                        .withTimeout(Duration.ofSeconds(30))
+                        .withMinTimeout(MIN_TIMEOUT)
+                        .withMaxTimeout(MAX_TIMEOUT)
                         .withMaxRetries(MAX_RETRIES)
                         .build()
                         .open()
@@ -162,7 +195,8 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
                         .withServiceType(DistributedPrimitive.Type.CONSISTENT_MULTIMAP.name())
                         .withReadConsistency(ReadConsistency.SEQUENTIAL)
                         .withCommunicationStrategy(CommunicationStrategy.ANY)
-                        .withTimeout(Duration.ofSeconds(30))
+                        .withMinTimeout(MIN_TIMEOUT)
+                        .withMaxTimeout(MAX_TIMEOUT)
                         .withMaxRetries(MAX_RETRIES)
                         .build()
                         .open()
@@ -192,7 +226,8 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
                 .withServiceType(DistributedPrimitive.Type.COUNTER_MAP.name())
                 .withReadConsistency(ReadConsistency.LINEARIZABLE_LEASE)
                 .withCommunicationStrategy(CommunicationStrategy.LEADER)
-                .withTimeout(Duration.ofSeconds(30))
+                .withMinTimeout(MIN_TIMEOUT)
+                .withMaxTimeout(MAX_TIMEOUT)
                 .withMaxRetries(MAX_RETRIES)
                 .build()
                 .open()
@@ -214,7 +249,8 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
                 .withServiceType(DistributedPrimitive.Type.COUNTER.name())
                 .withReadConsistency(ReadConsistency.LINEARIZABLE_LEASE)
                 .withCommunicationStrategy(CommunicationStrategy.LEADER)
-                .withTimeout(Duration.ofSeconds(30))
+                .withMinTimeout(MIN_TIMEOUT)
+                .withMaxTimeout(MAX_TIMEOUT)
                 .withMaxRetries(MAX_RETRIES)
                 .build()
                 .open()
@@ -238,7 +274,8 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
                 .withServiceType(DistributedPrimitive.Type.WORK_QUEUE.name())
                 .withReadConsistency(ReadConsistency.LINEARIZABLE_LEASE)
                 .withCommunicationStrategy(CommunicationStrategy.LEADER)
-                .withTimeout(Duration.ofSeconds(5))
+                .withMinTimeout(MIN_TIMEOUT)
+                .withMaxTimeout(MAX_TIMEOUT)
                 .withMaxRetries(MAX_RETRIES)
                 .build()
                 .open()
@@ -253,7 +290,8 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
                 .withServiceType(String.format("%s-%s", DistributedPrimitive.Type.DOCUMENT_TREE.name(), ordering))
                 .withReadConsistency(ReadConsistency.SEQUENTIAL)
                 .withCommunicationStrategy(CommunicationStrategy.ANY)
-                .withTimeout(Duration.ofSeconds(30))
+                .withMinTimeout(MIN_TIMEOUT)
+                .withMaxTimeout(MAX_TIMEOUT)
                 .withMaxRetries(MAX_RETRIES)
                 .build()
                 .open()
@@ -268,8 +306,8 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
                 .withServiceType(DistributedPrimitive.Type.LOCK.name())
                 .withReadConsistency(ReadConsistency.LINEARIZABLE)
                 .withCommunicationStrategy(CommunicationStrategy.LEADER)
-                .withMinTimeout(Duration.ofSeconds(1))
-                .withMaxTimeout(Duration.ofSeconds(5))
+                .withMinTimeout(MIN_TIMEOUT)
+                .withMaxTimeout(MIN_TIMEOUT)
                 .withMaxRetries(MAX_RETRIES)
                 .build()
                 .open()
@@ -284,7 +322,7 @@ public class StoragePartitionClient implements DistributedPrimitiveCreator, Mana
                 .withReadConsistency(ReadConsistency.LINEARIZABLE)
                 .withCommunicationStrategy(CommunicationStrategy.LEADER)
                 .withMinTimeout(Duration.ofMillis(timeUnit.toMillis(leaderTimeout)))
-                .withMaxTimeout(Duration.ofSeconds(5))
+                .withMaxTimeout(MIN_TIMEOUT)
                 .withMaxRetries(MAX_RETRIES)
                 .build()
                 .open()
