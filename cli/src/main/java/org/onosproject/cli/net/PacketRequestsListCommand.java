@@ -32,7 +32,7 @@ import java.util.List;
         description = "Lists packet requests")
 public class PacketRequestsListCommand extends AbstractShellCommand {
 
-    private static final String FMT = "nodeId=%s appId=%s, priority=%s, criteria=%s";
+    private static final String FMT = "nodeId=%s appId=%s, priority=%s, criteria=%s, deviceId=%s";
 
     @Override
     protected void execute() {
@@ -53,14 +53,16 @@ public class PacketRequestsListCommand extends AbstractShellCommand {
                     .put("nodeId", r.nodeId().toString())
                     .put("appId", r.appId().name())
                     .put("priority", r.priority().toString())
-                    .put("criteria", r.selector().criteria().toString()));
+                    .put("criteria", r.selector().criteria().toString())
+                    .put("deviceId", r.deviceId().isPresent() ? r.deviceId().get().toString() : "ALL"));
         }
 
         return result;
     }
 
     private void print(PacketRequest request) {
-        print(FMT, request.nodeId(), request.appId().name(), request.priority(), request.selector().criteria());
+        print(FMT, request.nodeId(), request.appId().name(), request.priority(), request.selector().criteria(),
+                request.deviceId().isPresent() ? request.deviceId().get().toString() : "ALL");
     }
 
 }
