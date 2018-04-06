@@ -8,7 +8,6 @@
 .buckd
 buck-out
 bucklets/plugins
-.git
 bin
 
 web/gui/src/main/webapp/tests/node_modules

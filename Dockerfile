@@ -22,7 +22,7 @@ RUN apt-get update && apt-get install -y zip python git bzip2 && \
         mkdir -p /src/tar && \
         cd /src/tar && \
         tar -xf /src/onos/buck-out/gen/tools/package/onos-package/onos.tar.gz --strip-components=1 && \
-        rm -rf /src/onos/buck-out
+        rm -rf /src/onos/buck-out .git
 
 
 # Second stage is the runtime environment
