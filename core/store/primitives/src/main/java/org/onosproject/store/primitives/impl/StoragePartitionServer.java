@@ -47,10 +47,101 @@ public class StoragePartitionServer implements Managed<StoragePartitionServer> {
 
     private final Logger log = getLogger(getClass());
 
-    private static final int MAX_SEGMENT_SIZE = 1024 * 1024 * 64;
-    private static final long ELECTION_TIMEOUT_MILLIS = 2500;
-    private static final int ELECTION_THRESHOLD = 5;
-    private static final long HEARTBEAT_INTERVAL_MILLIS = 500;
+    private static final String ELECTION_TIMEOUT_MILLIS_PROPERTY = "onos.cluster.raft.electionTimeoutMillis";
+    private static final String ELECTION_THRESHOLD_PROPERTY = "onos.cluster.raft.electionFailureThreshold";
+    private static final String SESSION_THRESHOLD_PROPERTY = "onos.cluster.raft.sessionFailureThreshold";
+    private static final String HEARTBEAT_INTERVAL_MILLIS_PROPERTY = "onos.cluster.raft.heartbeatIntervalMillis";
+    private static final String MAX_SEGMENT_SIZE_PROPERTY = "onos.cluster.raft.storage.maxSegmentSize";
+    private static final String STORAGE_LEVEL_PROPERTY = "onos.cluster.raft.storage.level";
+    private static final String FLUSH_ON_COMMIT_PROPERTY = "onos.cluster.raft.storage.flushOnCommit";
+
+    private static final long ELECTION_TIMEOUT_MILLIS;
+    private static final int ELECTION_THRESHOLD;
+    private static final int SESSION_THRESHOLD;
+    private static final long HEARTBEAT_INTERVAL_MILLIS;
+    private static final int MAX_SEGMENT_SIZE;
+    private static final StorageLevel STORAGE_LEVEL;
+    private static final boolean FLUSH_ON_COMMIT;
+
+    private static final int DEFAULT_MAX_SEGMENT_SIZE = 1024 * 1024 * 64;
+    private static final long DEFAULT_ELECTION_TIMEOUT_MILLIS = 2500;
+    private static final int DEFAULT_ELECTION_THRESHOLD = 12;
+    private static final int DEFAULT_SESSION_THRESHOLD = 10;
+    private static final long DEFAULT_HEARTBEAT_INTERVAL_MILLIS = 500;
+    private static final StorageLevel DEFAULT_STORAGE_LEVEL = StorageLevel.MAPPED;
+    private static final boolean DEFAULT_FLUSH_ON_COMMIT = false;
+
+    static {
+        int maxSegmentSize;
+        try {
+            maxSegmentSize = Integer.parseInt(System.getProperty(
+                MAX_SEGMENT_SIZE_PROPERTY,
+                String.valueOf(DEFAULT_MAX_SEGMENT_SIZE)));
+        } catch (NumberFormatException e) {
+            maxSegmentSize = DEFAULT_MAX_SEGMENT_SIZE;
+        }
+        MAX_SEGMENT_SIZE = maxSegmentSize;
+
+        long electionTimeoutMillis;
+        try {
+            electionTimeoutMillis = Long.parseLong(System.getProperty(
+                ELECTION_TIMEOUT_MILLIS_PROPERTY,
+                String.valueOf(DEFAULT_ELECTION_TIMEOUT_MILLIS)));
+        } catch (NumberFormatException e) {
+            electionTimeoutMillis = DEFAULT_ELECTION_TIMEOUT_MILLIS;
+        }
+        ELECTION_TIMEOUT_MILLIS = electionTimeoutMillis;
+
+        int electionFailureThreshold;
+        try {
+            electionFailureThreshold = Integer.parseInt(System.getProperty(
+                ELECTION_THRESHOLD_PROPERTY,
+                String.valueOf(DEFAULT_ELECTION_THRESHOLD)));
+        } catch (NumberFormatException e) {
+            electionFailureThreshold = DEFAULT_ELECTION_THRESHOLD;
+        }
+        ELECTION_THRESHOLD = electionFailureThreshold;
+
+        int sessionFailureThreshold;
+        try {
+            sessionFailureThreshold = Integer.parseInt(System.getProperty(
+                SESSION_THRESHOLD_PROPERTY,
+                String.valueOf(DEFAULT_SESSION_THRESHOLD)));
+        } catch (NumberFormatException e) {
+            sessionFailureThreshold = DEFAULT_SESSION_THRESHOLD;
+        }
+        SESSION_THRESHOLD = sessionFailureThreshold;
+
+        long heartbeatIntervalMillis;
+        try {
+            heartbeatIntervalMillis = Long.parseLong(System.getProperty(
+                HEARTBEAT_INTERVAL_MILLIS_PROPERTY,
+                String.valueOf(DEFAULT_HEARTBEAT_INTERVAL_MILLIS)));
+        } catch (NumberFormatException e) {
+            heartbeatIntervalMillis = DEFAULT_HEARTBEAT_INTERVAL_MILLIS;
+        }
+        HEARTBEAT_INTERVAL_MILLIS = heartbeatIntervalMillis;
+
+        StorageLevel storageLevel;
+        try {
+            storageLevel = StorageLevel.valueOf(System.getProperty(
+                STORAGE_LEVEL_PROPERTY,
+                DEFAULT_STORAGE_LEVEL.name()).toUpperCase());
+        } catch (IllegalArgumentException e) {
+            storageLevel = DEFAULT_STORAGE_LEVEL;
+        }
+        STORAGE_LEVEL = storageLevel;
+
+        boolean flushOnCommit;
+        try {
+            flushOnCommit = Boolean.parseBoolean(System.getProperty(
+                FLUSH_ON_COMMIT_PROPERTY,
+                String.valueOf(DEFAULT_FLUSH_ON_COMMIT)));
+        } catch (Exception e) {
+            flushOnCommit = DEFAULT_FLUSH_ON_COMMIT;
+        }
+        FLUSH_ON_COMMIT = flushOnCommit;
+    }
 
     private final MemberId localMemberId;
     private final StoragePartition partition;
@@ -145,10 +236,11 @@ public class StoragePartitionServer implements Managed<StoragePartitionServer> {
                 .withElectionTimeout(Duration.ofMillis(ELECTION_TIMEOUT_MILLIS))
                 .withHeartbeatInterval(Duration.ofMillis(HEARTBEAT_INTERVAL_MILLIS))
                 .withElectionThreshold(ELECTION_THRESHOLD)
+                .withSessionFailureThreshold(SESSION_THRESHOLD)
                 .withStorage(RaftStorage.newBuilder()
                         .withPrefix(String.format("partition-%s", partition.getId()))
-                        .withStorageLevel(StorageLevel.DISK)
-                        .withFlushOnCommit()
+                        .withStorageLevel(STORAGE_LEVEL)
+                        .withFlushOnCommit(FLUSH_ON_COMMIT)
                         .withSerializer(new AtomixSerializerAdapter(Serializer.using(StorageNamespaces.RAFT_STORAGE)))
                         .withDirectory(partition.getDataFolder())
                         .withMaxSegmentSize(MAX_SEGMENT_SIZE)
@@ -204,10 +296,11 @@ public class StoragePartitionServer implements Managed<StoragePartitionServer> {
                 .withElectionTimeout(Duration.ofMillis(ELECTION_TIMEOUT_MILLIS))
                 .withHeartbeatInterval(Duration.ofMillis(HEARTBEAT_INTERVAL_MILLIS))
                 .withElectionThreshold(ELECTION_THRESHOLD)
+                .withSessionFailureThreshold(SESSION_THRESHOLD)
                 .withStorage(RaftStorage.newBuilder()
                         .withPrefix(String.format("partition-%s", partition.getId()))
-                        .withStorageLevel(StorageLevel.MAPPED)
-                        .withFlushOnCommit(false)
+                        .withStorageLevel(STORAGE_LEVEL)
+                        .withFlushOnCommit(FLUSH_ON_COMMIT)
                         .withSerializer(new AtomixSerializerAdapter(Serializer.using(StorageNamespaces.RAFT_STORAGE)))
                         .withDirectory(partition.getDataFolder())
                         .withMaxSegmentSize(MAX_SEGMENT_SIZE)
