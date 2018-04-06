@@ -8,6 +8,7 @@ from tarfile import TarFile, TarInfo
 import tarfile
 import time
 from cStringIO import StringIO
+import subprocess
 
 
 written_files = set()
@@ -34,8 +35,17 @@ def addString(tar, dest, string):
         file.close()
         written_files.add(dest)
 
+def getHash():
+    p = subprocess.Popen('git rev-parse --verify HEAD --short', stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    (output, err) = p.communicate()
+    return output if p.wait() == 0 else '0000000000'
+
 def stageOnos(output, version, files=[]):
     base = 'onos-%s/' % version
+
+    runtimeVersion = version
+    if version.endswith('-SNAPSHOT'):
+        runtimeVersion = version.replace('-SNAPSHOT', '.%s' % getHash())
 
     # Note this is not a compressed zip
     with tarfile.open(output, 'w:gz') as output:
@@ -68,7 +78,7 @@ def stageOnos(output, version, files=[]):
                 with open(file) as f:
                     addFile(output, dest, f, os.stat(file).st_size)
         addString(output, base + 'apps/org.onosproject.drivers/active', '')
-        addString(output, base + 'VERSION', version)
+        addString(output, base + 'VERSION', runtimeVersion)
 
 if __name__ == '__main__':
     import sys
