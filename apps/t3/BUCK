@@ -9,6 +9,7 @@ COMPILE_DEPS = [
     '//drivers/default:onos-drivers-default',
     '//apps/segmentrouting/app:onos-apps-segmentrouting-app',
     '//apps/route-service/api:onos-apps-route-service-api',
+    '//apps/mcast/api:onos-apps-mcast-api',
 ]
 
 TEST_DEPS = [
@@ -28,5 +29,9 @@ onos_app (
     url = 'https://wiki.opencord.org/pages/viewpage.action?pageId=4456974',
     description = 'Provides static analysis of flows and groups ' +
     'to determine the possible paths a packet may take.',
-    required_apps = [ 'org.onosproject.segmentrouting', 'org.onosproject.route-service' ],
+    required_apps = [
+        'org.onosproject.segmentrouting',
+        'org.onosproject.route-service',
+        'org.onosproject.mcast',
+    ],
 )

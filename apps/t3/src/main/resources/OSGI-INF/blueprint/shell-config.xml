@@ -34,6 +34,9 @@
                 <entry key="-et" value-ref="ethTypeCompleter"/>
             </optional-completers>
         </command>
+        <command>
+            <action class="org.onosproject.t3.cli.TroubleshootMcastCommand"/>
+        </command>
     </command-bundle>
 
     <bean id="hostIdCompleter" class="org.onosproject.cli.net.HostIdCompleter"/>
