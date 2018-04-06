@@ -30,6 +30,7 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.mastership.MastershipService;
+import org.onosproject.mcast.api.MulticastRouteService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
@@ -139,6 +140,9 @@ public class TroubleshootManager implements TroubleshootService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected RouteService routeService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected MulticastRouteService mcastService;
+
     @Override
     public List<StaticPacketTrace> pingAll(EtherType type) {
         ImmutableList.Builder<StaticPacketTrace> tracesBuilder = ImmutableList.builder();
@@ -168,6 +172,11 @@ public class TroubleshootManager implements TroubleshootService {
     @Override
     public Generator<Set<StaticPacketTrace>> pingAllGenerator(EtherType type) {
         return new PingAllGenerator(type, hostService, this);
+    }
+
+    @Override
+    public Generator<Set<StaticPacketTrace>> traceMcast(VlanId vlanId) {
+        return new McastGenerator(mcastService, this, vlanId);
     }
 
     @Override

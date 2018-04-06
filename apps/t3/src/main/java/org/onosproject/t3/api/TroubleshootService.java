@@ -17,6 +17,7 @@
 package org.onosproject.t3.api;
 
 import org.onlab.packet.EthType;
+import org.onlab.packet.VlanId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.HostId;
 import org.onosproject.net.flow.TrafficSelector;
@@ -46,6 +47,14 @@ public interface TroubleshootService {
      * @return a trace result
      */
     Generator<Set<StaticPacketTrace>> pingAllGenerator(EthType.EtherType type);
+
+    /**
+     * Requests a static trace be performed for all mcast Routes in the network.
+     *
+     * @param vlanId the vlanId configured for multicast.
+     * @return a set of trace result yielded one by one.
+     */
+    Generator<Set<StaticPacketTrace>> traceMcast(VlanId vlanId);
 
     /**
      * Requests a static trace be performed between the two hosts in the network, given a type of traffic.
