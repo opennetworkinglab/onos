@@ -20,11 +20,24 @@ module tapi-virtual-network {
         License: This module is distributed under the Apache License 2.0";
     revision 2018-03-07 {
         description "ONF Transport API version 2.0.2
-        This YANG module has been generated from the TAPI UML Model using the IISOMI-Eagle xmi2yang mapping tool version .
-        <https://wiki.opennetworking.org/display/OIMT/IISOMI>
-        Changes in this revision: <https://github.com/OpenNetworkingFoundation/TAPI/blob/develop/change-log.md>";
+        This YANG module has been generated from the TAPI UML Model using the IISOMI-Eagle xmi2yang mapping tool.
+        Changes in this revision: <https://github.com/OpenNetworkingFoundation/TAPI/blob/develop/CHANGE_LOG/change-log.2.0.2.md>";
         reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 6020, RFC 6087 and ONF TAPI UML model
-                  <https://github.com/OpenNetworkingFoundation/TAPI/tree/develop/UML>";
+                  <https://github.com/OpenNetworkingFoundation/TAPI/tree/v2.0.2/UML>";
+    }
+    revision 2018-02-16 {
+        description "ONF Transport API version 2.0.1
+        This YANG module has been generated from the TAPI UML Model using the IISOMI-Eagle xmi2yang mapping tool.
+        Changes in this revision: <https://github.com/OpenNetworkingFoundation/TAPI/blob/develop/CHANGE_LOG/change-log.2.0.1.md>";
+        reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 6020, RFC 6087 and ONF TAPI UML model
+                  <https://github.com/OpenNetworkingFoundation/TAPI/tree/v2.0.1/UML>";
+    }
+    revision 2018-01-02 {
+        description "ONF Transport API version 2.0.0
+        This YANG module has been generated from the TAPI UML Model using the IISOMI-Eagle xmi2yang mapping tool.
+        Changes in this revision: <https://github.com/OpenNetworkingFoundation/TAPI/blob/develop/CHANGE_LOG/change-log.2.0.0.md>";
+        reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 6020, RFC 6087 and ONF TAPI UML model
+                  <https://github.com/OpenNetworkingFoundation/TAPI/tree/v2.0.0/UML>";
     }
     augment "/tapi-common:context" {
         uses virtual-network-context;
