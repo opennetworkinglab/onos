@@ -19,6 +19,7 @@ import org.onosproject.net.Annotations;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -140,6 +141,20 @@ public interface Driver extends Annotations {
      *         or null if the property is not defined in this driver nor in any of its ancestors
      */
     String getProperty(String name);
+
+    /**
+     * Gets the value of given property name.
+     * If the driver does not define the property, a BFS will be performed to search its ancestors.
+     *
+     * @param name property name
+     * @param defaultValue to use if the property is not defined in this driver nor in any of its ancestors
+     * @return the value of the property,
+     *         or {@code defaultValue} if the property is not defined in this driver nor in any of its ancestors
+     * @return
+     */
+    default String getProperty(String name, String defaultValue) {
+        return Optional.ofNullable(getProperty(name)).orElse(defaultValue);
+    }
 
     /**
      * Merges the specified driver behaviours and properties into this one,
