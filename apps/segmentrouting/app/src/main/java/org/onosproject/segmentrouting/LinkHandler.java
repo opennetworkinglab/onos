@@ -46,7 +46,6 @@ import com.google.common.collect.Sets;
 public class LinkHandler {
     private static final Logger log = LoggerFactory.getLogger(LinkHandler.class);
     protected final SegmentRoutingManager srManager;
-    protected LinkService linkService;
 
     // Local store for all links seen and their present status, used for
     // optimized routing. The existence of the link in the keys is enough to know
@@ -65,7 +64,6 @@ public class LinkHandler {
      */
     LinkHandler(SegmentRoutingManager srManager) {
         this.srManager = srManager;
-        linkService = srManager.linkService;
         log.debug("Creating EC map downedportstore");
         EventuallyConsistentMapBuilder<DeviceId, Set<PortNumber>> downedPortsMapBuilder
                 = srManager.storageService.eventuallyConsistentMapBuilder();
@@ -84,7 +82,6 @@ public class LinkHandler {
      */
     LinkHandler(SegmentRoutingManager srManager, LinkService linkService) {
         this.srManager = srManager;
-        this.linkService = linkService;
     }
 
     /**
@@ -112,18 +109,12 @@ public class LinkHandler {
         // device. Also update local groupHandler stores.
         DefaultGroupHandler groupHandler = srManager.groupHandlerMap
                                                 .get(link.src().deviceId());
-        if (groupHandler != null) {
-            groupHandler.portUpForLink(link);
-        } else {
+        if (groupHandler == null) {
             Device device = srManager.deviceService.getDevice(link.src().deviceId());
             if (device != null) {
                 log.warn("processLinkAdded: Link Added notification without "
                         + "Device Added event, still handling it");
                 srManager.processDeviceAdded(device);
-                groupHandler = srManager.groupHandlerMap.get(link.src().deviceId());
-                if (groupHandler != null) {
-                    groupHandler.portUpForLink(link);
-                }
             }
         }
 
@@ -148,10 +139,20 @@ public class LinkHandler {
                     "src {} --> dst {} ", link.dst(), link.src());
             return;
         }
-        log.info("processing bidi links {} <--> {} UP", link.src(), link.dst());
 
-        for (Link ulink : getBidiComponentLinks(link)) {
-            log.info("Starting optimized route-path processing for component "
+        log.info("processing bidi links {} <--> {} UP", link.src(), link.dst());
+        // update groupHandler internal port state for both directions
+        List<Link> ulinks = getBidiComponentLinks(link);
+        for (Link ulink : ulinks) {
+            DefaultGroupHandler gh = srManager.groupHandlerMap
+                                         .get(ulink.src().deviceId());
+            if (gh != null) {
+                gh.portUpForLink(ulink);
+            }
+        }
+
+        for (Link ulink : ulinks) {
+            log.info("-- Starting optimized route-path processing for component "
                     + "unidirectional link {} --> {} UP", ulink.src(), ulink.dst());
             srManager.defaultRoutingHandler
                     .populateRoutingRulesForLinkStatusChange(null, ulink, null,
@@ -165,19 +166,21 @@ public class LinkHandler {
                 // not change if the link is a parallel link (same src-dst as
                 // another link). However we still need to update ECMP hash
                 // groups to include new buckets for the link that has come up.
-                if (groupHandler != null) {
+                DefaultGroupHandler gh = srManager.groupHandlerMap
+                                            .get(ulink.src().deviceId());
+                if (gh != null) {
                     if (!seenBefore.contains(ulink) && isParallelLink(ulink)) {
                         // if link seen first time, we need to ensure hash-groups have
                         // all ports
                         log.debug("Attempting retryHash for paralled first-time link {}",
                                   ulink);
-                        groupHandler.retryHash(ulink, false, true);
+                        gh.retryHash(ulink, false, true);
                     } else {
                         // seen before-link
                         if (isParallelLink(ulink)) {
                             log.debug("Attempting retryHash for paralled seen-before "
                                     + "link {}", ulink);
-                            groupHandler.retryHash(ulink, false, false);
+                            gh.retryHash(ulink, false, false);
                         }
                     }
                 }
@@ -231,7 +234,7 @@ public class LinkHandler {
         log.info("processing bidi links {} <--> {} DOWN", link.src(), link.dst());
 
         for (Link ulink : getBidiComponentLinks(link)) {
-            log.info("Starting optimized route-path processing for component "
+            log.info("-- Starting optimized route-path processing for component "
                     + "unidirectional link {} --> {} DOWN", ulink.src(), ulink.dst());
             srManager.defaultRoutingHandler
                 .populateRoutingRulesForLinkStatusChange(ulink, null, null, true);
@@ -333,20 +336,30 @@ public class LinkHandler {
      * @param added true if link was added, false if link was removed
      */
     private void updateDualHomedHostPorts(Link link, boolean added) {
-        if (!onlyUplink(link)) {
-            return;
-        }
         if (added) {
-            // re-enable previously disabled ports on this dev
+            DeviceConfiguration devConfig = srManager.deviceConfiguration;
+            try {
+                if (!devConfig.isEdgeDevice(link.src().deviceId())
+                        || devConfig.isEdgeDevice(link.dst().deviceId())) {
+                    return;
+                }
+            } catch (DeviceConfigNotFoundException e) {
+                log.warn("Unable to determine if link is a valid uplink"
+                        + e.getMessage());
+            }
+            // re-enable previously disabled ports on this edge-device if any
             Set<PortNumber> p = downedPortStore.remove(link.src().deviceId());
             if (p != null) {
-                log.warn("Link src {} -->dst {} added is the first uplink, "
-                        + "enabling dual homed ports: {}", link.src().deviceId(),
-                     link.dst().deviceId(), (p.isEmpty()) ? "no ports" : p);
+                log.warn("Link src {} --> dst {} added is an edge-device uplink, "
+                        + "enabling dual homed ports if any: {}", link.src().deviceId(),
+                        link.dst().deviceId(), (p.isEmpty()) ? "no ports" : p);
                 p.forEach(pnum -> srManager.deviceAdminService
                         .changePortState(link.src().deviceId(), pnum, true));
             }
         } else {
+            if (!lastUplink(link)) {
+                return;
+            }
             // find dual homed hosts on this dev to disable
             Set<PortNumber> dhp = srManager.hostHandler
                     .getDualHomedHostPorts(link.src().deviceId());
@@ -369,15 +382,14 @@ public class LinkHandler {
     }
 
     /**
-     * Returns true if given link is the only active uplink from src-device of
+     * Returns true if given link was the last active uplink from src-device of
      * link. An uplink is defined as a unidirectional link with src as
      * edgeRouter and dst as non-edgeRouter.
      *
      * @param link
-     * @return true if given link is-the-first/was-the-last uplink from the src
-     *         device
+     * @return true if given link was the last uplink from the src device
      */
-    private boolean onlyUplink(Link link) {
+    private boolean lastUplink(Link link) {
         DeviceConfiguration devConfig = srManager.deviceConfiguration;
         try {
             if (!devConfig.isEdgeDevice(link.src().deviceId())
@@ -398,14 +410,13 @@ public class LinkHandler {
                 if (devConfig.isEdgeDevice(l.dst().deviceId())) {
                     continue;
                 }
-                log.debug("Link {} is not the only active uplink. Found another"
-                        + "link {}", link, l);
+                log.debug("Found another active uplink {}", l);
                 return false;
             }
-            log.debug("Link {} is the only uplink", link);
+            log.debug("No active uplink found");
             return true;
         } catch (DeviceConfigNotFoundException e) {
-            log.warn("Unable to determine if link is only uplink"
+            log.warn("Unable to determine if link was the last uplink"
                     + e.getMessage());
         }
         return false;
@@ -495,7 +506,8 @@ public class LinkHandler {
      *         direction, has been seen-before and is up
      */
     boolean isBidirectionalLinkUp(Link link) {
-        Link reverseLink = linkService.getLink(link.dst(), link.src());
+        // cannot call linkService as link may be gone
+        Link reverseLink = getReverseLink(link);
         if (reverseLink == null) {
             return false;
         }

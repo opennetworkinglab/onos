@@ -884,7 +884,7 @@ public class DefaultGroupHandler {
         // should always update as neighbor could have changed on this port
         DeviceId prev = portDeviceMap.put(portToNeighbor, neighborId);
         if (prev != null) {
-            log.debug("Device/port: {}/{} previous neighbor: {}, current neighbor: {} ",
+            log.warn("Device/port: {}/{} previous neighbor: {}, current neighbor: {} ",
                       deviceId, portToNeighbor, prev, neighborId);
         }
     }

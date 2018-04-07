@@ -1274,6 +1274,10 @@ public class DefaultRoutingHandler {
                     continue;
                 }
                 EcmpShortestPathGraph newEcmpSpg = updatedEcmpSpgMap.get(rootSw);
+                if (newEcmpSpg == null) {
+                    log.warn("Cannot find updated ECMP graph for dev:{}", rootSw);
+                    continue;
+                }
                 if (log.isDebugEnabled()) {
                     log.debug("Root switch: {}", rootSw);
                     log.debug("  Current/Existing SPG: {}", currEcmpSpg);
