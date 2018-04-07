@@ -81,16 +81,6 @@ public class PiTableEntryTest {
     }
 
     /**
-     * Tests equality of the empty table entry.
-     */
-    @Test
-    public void testEmptyEquals() {
-        new EqualsTester()
-                .addEqualityGroup(PiTableEntry.EMTPY, PiTableEntry.EMTPY)
-                .testEquals();
-    }
-
-    /**
      * Tests creation of a DefaultFlowRule using a FlowRule constructor.
      */
     @Test

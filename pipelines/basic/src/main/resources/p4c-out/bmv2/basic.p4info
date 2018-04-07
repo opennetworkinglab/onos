@@ -1,7 +1,7 @@
 tables {
   preamble {
-    id: 33571508
-    name: "table0_control.table0"
+    id: 33561568
+    name: "ingress.table0_control.table0"
     alias: "table0"
   }
   match_fields {
@@ -65,19 +65,19 @@ tables {
     id: 16829080
   }
   action_refs {
-    id: 16802895
+    id: 16777316
   }
   action_refs {
     id: 16784184
   }
   const_default_action_id: 16784184
-  direct_resource_ids: 302046050
+  direct_resource_ids: 302038973
   size: 1024
 }
 tables {
   preamble {
-    id: 33597882
-    name: "host_meter_control.host_meter_table"
+    id: 33571781
+    name: "ingress.host_meter_control.host_meter_table"
     alias: "host_meter_table"
   }
   match_fields {
@@ -87,18 +87,18 @@ tables {
     match_type: LPM
   }
   action_refs {
-    id: 16832719
+    id: 16823832
   }
   action_refs {
     id: 16800567
   }
-  direct_resource_ids: 318776014
+  direct_resource_ids: 318783457
   size: 1024
 }
 tables {
   preamble {
-    id: 33592597
-    name: "wcmp_control.wcmp_table"
+    id: 33594717
+    name: "ingress.wcmp_control.wcmp_table"
     alias: "wcmp_table"
   }
   match_fields {
@@ -114,8 +114,8 @@ tables {
     id: 16800567
     annotations: "@defaultonly()"
   }
-  implementation_id: 285259294
-  direct_resource_ids: 302001091
+  implementation_id: 285253634
+  direct_resource_ids: 302034578
   size: 1024
 }
 actions {
@@ -153,8 +153,8 @@ actions {
 }
 actions {
   preamble {
-    id: 16802895
-    name: "table0_control.set_next_hop_id"
+    id: 16777316
+    name: "ingress.table0_control.set_next_hop_id"
     alias: "set_next_hop_id"
   }
   params {
@@ -165,25 +165,25 @@ actions {
 }
 actions {
   preamble {
-    id: 16832719
-    name: "host_meter_control.read_meter"
+    id: 16823832
+    name: "ingress.host_meter_control.read_meter"
     alias: "read_meter"
   }
 }
 action_profiles {
   preamble {
-    id: 285259294
-    name: "wcmp_control.wcmp_selector"
+    id: 285253634
+    name: "ingress.wcmp_control.wcmp_selector"
     alias: "wcmp_selector"
   }
-  table_ids: 33592597
+  table_ids: 33594717
   with_selector: true
   size: 64
 }
 counters {
   preamble {
-    id: 302012579
-    name: "port_counters_ingress.ingress_port_counter"
+    id: 302004684
+    name: "ingress.port_counters_ingress.ingress_port_counter"
     alias: "ingress_port_counter"
   }
   spec {
@@ -193,8 +193,8 @@ counters {
 }
 counters {
   preamble {
-    id: 302012501
-    name: "port_counters_egress.egress_port_counter"
+    id: 302040487
+    name: "egress.port_counters_egress.egress_port_counter"
     alias: "egress_port_counter"
   }
   spec {
@@ -204,30 +204,30 @@ counters {
 }
 direct_counters {
   preamble {
-    id: 302046050
-    name: "table0_control.table0_counter"
+    id: 302038973
+    name: "ingress.table0_control.table0_counter"
     alias: "table0_counter"
   }
   spec {
     unit: BOTH
   }
-  direct_table_id: 33571508
+  direct_table_id: 33561568
 }
 direct_counters {
   preamble {
-    id: 302001091
-    name: "wcmp_control.wcmp_table_counter"
+    id: 302034578
+    name: "ingress.wcmp_control.wcmp_table_counter"
     alias: "wcmp_table_counter"
   }
   spec {
     unit: BOTH
   }
-  direct_table_id: 33592597
+  direct_table_id: 33594717
 }
 meters {
   preamble {
-    id: 318770010
-    name: "port_meters_ingress.ingress_port_meter"
+    id: 318803935
+    name: "ingress.port_meters_ingress.ingress_port_meter"
     alias: "ingress_port_meter"
   }
   spec {
@@ -237,8 +237,8 @@ meters {
 }
 meters {
   preamble {
-    id: 318779497
-    name: "port_meters_egress.egress_port_meter"
+    id: 318792425
+    name: "egress.port_meters_egress.egress_port_meter"
     alias: "egress_port_meter"
   }
   spec {
@@ -248,14 +248,14 @@ meters {
 }
 direct_meters {
   preamble {
-    id: 318776014
-    name: "host_meter_control.host_meter"
+    id: 318783457
+    name: "ingress.host_meter_control.host_meter"
     alias: "host_meter"
   }
   spec {
     unit: BYTES
   }
-  direct_table_id: 33597882
+  direct_table_id: 33571781
 }
 controller_packet_metadata {
   preamble {

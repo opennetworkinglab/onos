@@ -182,7 +182,6 @@ public class PiTranslatorServiceTest {
                 .addEqualityGroup(entry1, entry2)
                 .testEquals();
 
-        int numMatchParams = pipeconf.pipelineModel().table(TBL_TABLE0_ID).get().matchFields().size();
         // parse values stored in entry1
         PiTernaryFieldMatch inPortParam = (PiTernaryFieldMatch) entry1.matchKey().fieldMatch(HDR_IN_PORT_ID).get();
         PiTernaryFieldMatch ethDstParam = (PiTernaryFieldMatch) entry1.matchKey().fieldMatch(HDR_ETH_DST_ID).get();
@@ -190,10 +189,6 @@ public class PiTranslatorServiceTest {
         PiTernaryFieldMatch ethTypeParam = (PiTernaryFieldMatch) entry1.matchKey().fieldMatch(HDR_ETH_TYPE_ID).get();
         Optional<Double> expectedTimeout = pipeconf.pipelineModel().table(TBL_TABLE0_ID).get().supportsAging()
                 ? Optional.of((double) rule1.timeout()) : Optional.empty();
-
-        // check that the number of parameters in the entry is the same as the number of table keys
-        assertThat("Incorrect number of match parameters",
-                   entry1.matchKey().fieldMatches().size(), is(equalTo(numMatchParams)));
 
         // check that values stored in entry are the same used for the flow rule
         assertThat("Incorrect inPort match param value",

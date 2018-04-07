@@ -59,6 +59,7 @@ import java.util.StringJoiner;
 
 import static java.lang.String.format;
 import static org.onlab.util.ImmutableByteSequence.ByteSequenceTrimException;
+import static org.onlab.util.ImmutableByteSequence.prefixOnes;
 import static org.onosproject.net.flow.criteria.Criterion.Type.PROTOCOL_INDEPENDENT;
 import static org.onosproject.net.pi.impl.CriterionTranslatorHelper.translateCriterion;
 import static org.onosproject.net.pi.impl.PiUtils.getInterpreterOrNull;
@@ -128,7 +129,17 @@ final class PiFlowRuleTranslatorImpl {
         }
 
         if (needPriority) {
-            tableEntryBuilder.withPriority(rule.priority());
+            // In the P4 world 0 is the highest priority, in ONOS the lowest one.
+            // FIXME: move priority conversion to the P4Runtime driver
+            final int newPriority;
+            if (rule.priority() > MAX_PI_PRIORITY) {
+                log.warn("Flow rule priority too big, setting translated priority to max value {}: {}",
+                         MAX_PI_PRIORITY, rule);
+                newPriority = 0;
+            } else {
+                newPriority = MAX_PI_PRIORITY - rule.priority();
+            }
+            tableEntryBuilder.withPriority(newPriority);
         }
 
         if (!rule.isPermanent()) {
@@ -290,7 +301,6 @@ final class PiFlowRuleTranslatorImpl {
             PiMatchFieldId fieldId = fieldModel.id();
 
             int bitWidth = fieldModel.bitWidth();
-            int fieldByteWidth = (int) Math.ceil((double) bitWidth / 8);
 
             Optional<Criterion.Type> criterionType =
                     interpreter == null
@@ -304,17 +314,8 @@ final class PiFlowRuleTranslatorImpl {
                 // Can ignore if the match is ternary or LPM.
                 switch (fieldModel.matchType()) {
                     case TERNARY:
-                        // Wildcard the whole field.
-                        fieldMatches.put(fieldId, new PiTernaryFieldMatch(
-                                fieldId,
-                                ImmutableByteSequence.ofZeros(fieldByteWidth),
-                                ImmutableByteSequence.ofZeros(fieldByteWidth)));
-                        break;
                     case LPM:
-                        // LPM with prefix 0
-                        fieldMatches.put(fieldId, new PiLpmFieldMatch(fieldId,
-                                                                      ImmutableByteSequence.ofZeros(fieldByteWidth),
-                                                                      0));
+                        // Skip field.
                         break;
                     // FIXME: Can we handle the case of RANGE or VALID match?
                     default:
@@ -404,7 +405,9 @@ final class PiFlowRuleTranslatorImpl {
         /*
         Here we try to be robust against wrong size fields with the goal of having PiCriterion independent of the
         pipeline model. We duplicate the field match, fitting the byte sequences to the bit-width specified in the
-        model. This operation is expensive when performed for each field match of each flow rule, but should be
+        model. We also normalize ternary (and LPM) field matches by setting to 0 unused bits, as required by P4Runtime.
+
+        These operations are expensive when performed for each field match of each flow rule, but should be
         mitigated by the translation cache provided by PiFlowRuleTranslationServiceImpl.
         */
 
@@ -414,9 +417,12 @@ final class PiFlowRuleTranslatorImpl {
                     return new PiExactFieldMatch(fieldMatch.fieldId(),
                                                  ((PiExactFieldMatch) fieldMatch).value().fit(modelBitWidth));
                 case TERNARY:
-                    return new PiTernaryFieldMatch(fieldMatch.fieldId(),
-                                                   ((PiTernaryFieldMatch) fieldMatch).value().fit(modelBitWidth),
-                                                   ((PiTernaryFieldMatch) fieldMatch).mask().fit(modelBitWidth));
+                    PiTernaryFieldMatch ternField = (PiTernaryFieldMatch) fieldMatch;
+                    ImmutableByteSequence ternMask = ternField.mask().fit(modelBitWidth);
+                    ImmutableByteSequence ternValue = ternField.value()
+                            .fit(modelBitWidth)
+                            .bitwiseAnd(ternMask);
+                    return new PiTernaryFieldMatch(fieldMatch.fieldId(), ternValue, ternMask);
                 case LPM:
                     PiLpmFieldMatch lpmfield = (PiLpmFieldMatch) fieldMatch;
                     if (lpmfield.prefixLength() > modelBitWidth) {
@@ -424,9 +430,13 @@ final class PiFlowRuleTranslatorImpl {
                                 "Invalid prefix length for LPM field '%s', found %d but field has bit-width %d",
                                 fieldMatch.fieldId(), lpmfield.prefixLength(), modelBitWidth));
                     }
+                    ImmutableByteSequence lpmMask = prefixOnes(modelBitWidth * Byte.SIZE,
+                                                               lpmfield.prefixLength());
+                    ImmutableByteSequence lpmValue = lpmfield.value()
+                            .fit(modelBitWidth)
+                            .bitwiseAnd(lpmMask);
                     return new PiLpmFieldMatch(fieldMatch.fieldId(),
-                                               lpmfield.value().fit(modelBitWidth),
-                                               lpmfield.prefixLength());
+                                               lpmValue, lpmfield.prefixLength());
                 case RANGE:
                     return new PiRangeFieldMatch(fieldMatch.fieldId(),
                                                  ((PiRangeFieldMatch) fieldMatch).lowValue().fit(modelBitWidth),

@@ -56,7 +56,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static java.util.Collections.singleton;
 import static org.onosproject.drivers.p4runtime.P4RuntimeFlowRuleProgrammable.Operation.APPLY;
 import static org.onosproject.drivers.p4runtime.P4RuntimeFlowRuleProgrammable.Operation.REMOVE;
 import static org.onosproject.net.flow.FlowEntry.FlowEntryState.ADDED;
@@ -78,8 +77,8 @@ public class P4RuntimeFlowRuleProgrammable
     private static final String DELETE_BEFORE_UPDATE = "tableDeleteBeforeUpdate";
     private static final boolean DEFAULT_DELETE_BEFORE_UPDATE = false;
 
-    // If true, we ignore re-installing rules that already exist the
-    // device, i.e. same match key and action.
+    // If true, we ignore re-installing rules that already exist in the
+    // device mirror, i.e. same match key and action.
     private static final String IGNORE_SAME_ENTRY_UPDATE = "tableIgnoreSameEntryUpdate";
     private static final boolean DEFAULT_IGNORE_SAME_ENTRY_UPDATE = false;
 
@@ -233,7 +232,7 @@ public class P4RuntimeFlowRuleProgrammable
 
         if (cellData != null) {
             return new DefaultFlowEntry(translatedEntity.get().original(),
-                                        ADDED, timedEntry.lifeSec(), cellData.bytes(),
+                                        ADDED, timedEntry.lifeSec(), cellData.packets(),
                                         cellData.bytes());
         } else {
             return new DefaultFlowEntry(translatedEntity.get().original(),
@@ -397,11 +396,14 @@ public class P4RuntimeFlowRuleProgrammable
         try {
             if (driverBoolProperty(READ_ALL_DIRECT_COUNTERS,
                                    DEFAULT_READ_ALL_DIRECT_COUNTERS)) {
-                cellDatas = client.readAllCounterCells(
-                        singleton(counterId), pipeconf).get();
+                // FIXME: re-implement reading all counters ONOS-7595, or
+                // (even better) read counters when dumping table entries ONOS-7596
+                // cellDatas = client.readAllCounterCells(
+                //        singleton(counterId), pipeconf).get();
+                cellDatas = Collections.emptyList();
             } else {
                 Set<PiCounterCellId> cellIds = tableEntries.stream()
-                        .map(entry -> PiCounterCellId.ofDirect(counterId, entry))
+                        .map(PiCounterCellId::ofDirect)
                         .collect(Collectors.toSet());
                 cellDatas = client.readCounterCells(cellIds, pipeconf).get();
             }

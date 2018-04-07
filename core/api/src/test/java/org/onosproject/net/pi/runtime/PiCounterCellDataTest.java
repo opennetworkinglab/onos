@@ -19,7 +19,6 @@ package org.onosproject.net.pi.runtime;
 import com.google.common.testing.EqualsTester;
 import org.junit.Test;
 import org.onosproject.net.pi.model.PiActionId;
-import org.onosproject.net.pi.model.PiCounterId;
 import org.onosproject.net.pi.model.PiTableId;
 
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
@@ -29,9 +28,6 @@ import static org.onosproject.net.pi.runtime.PiConstantsTest.DROP;
  * Unit tests for PiCounterCellData class.
  */
 public class PiCounterCellDataTest {
-
-    private static final PiCounterId PI_COUNTER_ID_1 = PiCounterId.of("Name1");
-    private static final PiCounterId PI_COUNTER_ID_2 = PiCounterId.of("Name2");
 
     private static final PiTableEntry PI_TABLE_ENTRY_1 = PiTableEntry.builder()
             .forTable(PiTableId.of("T10"))
@@ -49,9 +45,9 @@ public class PiCounterCellDataTest {
             .build();
 
     private static final PiCounterCellId PI_COUNTER_CELL_ID_1 =
-            PiCounterCellId.ofDirect(PI_COUNTER_ID_1, PI_TABLE_ENTRY_1);
+            PiCounterCellId.ofDirect(PI_TABLE_ENTRY_1);
     private static final PiCounterCellId PI_COUNTER_CELL_ID_2 =
-            PiCounterCellId.ofDirect(PI_COUNTER_ID_2, PI_TABLE_ENTRY_2);
+            PiCounterCellId.ofDirect(PI_TABLE_ENTRY_2);
 
     private static final long PACKETS_1 = 10;
     private static final long PACKETS_2 = 20;

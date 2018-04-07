@@ -17,6 +17,7 @@
 package org.onosproject.p4runtime.ctl;
 
 import com.google.protobuf.ByteString;
+import p4.P4RuntimeOuterClass;
 
 import static java.lang.String.format;
 
@@ -47,5 +48,9 @@ public final class P4RuntimeUtils {
                     "wrong prefix length for %s, field size is %d bits, but found one is %d",
                     entityDescr, bitWidth, prefixLength));
         }
+    }
+
+    static P4RuntimeOuterClass.Index indexMsg(long index) {
+        return P4RuntimeOuterClass.Index.newBuilder().setIndex(index).build();
     }
 }

@@ -112,12 +112,14 @@
         ["deq_timedelta", 32, false],
         ["deq_qdepth", 19, false],
         ["ingress_global_timestamp", 48, false],
+        ["egress_global_timestamp", 48, false],
         ["lf_field_list", 32, false],
         ["mcast_grp", 16, false],
-        ["resubmit_flag", 1, false],
+        ["resubmit_flag", 32, false],
         ["egress_rid", 16, false],
         ["checksum_error", 1, false],
-        ["_padding_1", 4, false]
+        ["recirculate_flag", 32, false],
+        ["_padding_1", 5, false]
       ]
     }
   ],
@@ -214,6 +216,7 @@
           "parser_ops" : [],
           "transitions" : [
             {
+              "type" : "hexstr",
               "value" : "0x00ff",
               "mask" : null,
               "next_state" : "parse_packet_out"
@@ -270,6 +273,7 @@
           ],
           "transitions" : [
             {
+              "type" : "hexstr",
               "value" : "0x0800",
               "mask" : null,
               "next_state" : "parse_ipv4"
@@ -303,11 +307,13 @@
           ],
           "transitions" : [
             {
+              "type" : "hexstr",
               "value" : "0x06",
               "mask" : null,
               "next_state" : "parse_tcp"
             },
             {
+              "type" : "hexstr",
               "value" : "0x11",
               "mask" : null,
               "next_state" : "parse_udp"
@@ -426,6 +432,7 @@
       ]
     }
   ],
+  "parse_vsets" : [],
   "deparsers" : [
     {
       "name" : "deparser",
@@ -441,7 +448,7 @@
   ],
   "meter_arrays" : [
     {
-      "name" : "port_meters_ingress.ingress_port_meter",
+      "name" : "ingress.port_meters_ingress.ingress_port_meter",
       "id" : 0,
       "source_info" : {
         "filename" : "include/port_meters.p4",
@@ -455,7 +462,7 @@
       "type" : "bytes"
     },
     {
-      "name" : "host_meter_control.host_meter",
+      "name" : "ingress.host_meter_control.host_meter",
       "id" : 1,
       "source_info" : {
         "filename" : "include/host_meter_table.p4",
@@ -467,11 +474,11 @@
       "rate_count" : 2,
       "type" : "bytes",
       "size" : 1024,
-      "binding" : "host_meter_control.host_meter_table",
+      "binding" : "ingress.host_meter_control.host_meter_table",
       "result_target" : ["scalars", "local_metadata_t.meter_tag"]
     },
     {
-      "name" : "port_meters_egress.egress_port_meter",
+      "name" : "egress.port_meters_egress.egress_port_meter",
       "id" : 2,
       "source_info" : {
         "filename" : "include/port_meters.p4",
@@ -487,7 +494,7 @@
   ],
   "counter_arrays" : [
     {
-      "name" : "port_counters_ingress.ingress_port_counter",
+      "name" : "ingress.port_counters_ingress.ingress_port_counter",
       "id" : 0,
       "source_info" : {
         "filename" : "include/port_counters.p4",
@@ -499,19 +506,19 @@
       "is_direct" : false
     },
     {
-      "name" : "table0_control.table0_counter",
+      "name" : "ingress.table0_control.table0_counter",
       "id" : 1,
       "is_direct" : true,
-      "binding" : "table0_control.table0"
+      "binding" : "ingress.table0_control.table0"
     },
     {
-      "name" : "wcmp_control.wcmp_table_counter",
+      "name" : "ingress.wcmp_control.wcmp_table_counter",
       "id" : 2,
       "is_direct" : true,
-      "binding" : "wcmp_control.wcmp_table"
+      "binding" : "ingress.wcmp_control.wcmp_table"
     },
     {
-      "name" : "port_counters_egress.egress_port_counter",
+      "name" : "egress.port_counters_egress.egress_port_counter",
       "id" : 3,
       "source_info" : {
         "filename" : "include/port_counters.p4",
@@ -645,7 +652,7 @@
       "primitives" : []
     },
     {
-      "name" : "table0_control.set_next_hop_id",
+      "name" : "ingress.table0_control.set_next_hop_id",
       "id" : 6,
       "runtime_data" : [
         {
@@ -676,7 +683,7 @@
       ]
     },
     {
-      "name" : "host_meter_control.read_meter",
+      "name" : "ingress.host_meter_control.read_meter",
       "id" : 7,
       "runtime_data" : [],
       "primitives" : []
@@ -734,7 +741,7 @@
           "parameters" : [
             {
               "type" : "counter_array",
-              "value" : "port_counters_ingress.ingress_port_counter"
+              "value" : "ingress.port_counters_ingress.ingress_port_counter"
             },
             {
               "type" : "field",
@@ -779,7 +786,7 @@
           "parameters" : [
             {
               "type" : "meter_array",
-              "value" : "port_meters_ingress.ingress_port_meter"
+              "value" : "ingress.port_meters_ingress.ingress_port_meter"
             },
             {
               "type" : "field",
@@ -1052,7 +1059,7 @@
           "parameters" : [
             {
               "type" : "counter_array",
-              "value" : "port_counters_egress.egress_port_counter"
+              "value" : "egress.port_counters_egress.egress_port_counter"
             },
             {
               "type" : "field",
@@ -1097,7 +1104,7 @@
           "parameters" : [
             {
               "type" : "meter_array",
-              "value" : "port_meters_egress.egress_port_meter"
+              "value" : "egress.port_meters_egress.egress_port_meter"
             },
             {
               "type" : "field",
@@ -1241,7 +1248,7 @@
           }
         },
         {
-          "name" : "table0_control.table0",
+          "name" : "ingress.table0_control.table0",
           "id" : 3,
           "source_info" : {
             "filename" : "include/table0.p4",
@@ -1252,46 +1259,55 @@
           "key" : [
             {
               "match_type" : "ternary",
+              "name" : "standard_metadata.ingress_port",
               "target" : ["standard_metadata", "ingress_port"],
               "mask" : null
             },
             {
               "match_type" : "ternary",
+              "name" : "hdr.ethernet.src_addr",
               "target" : ["ethernet", "src_addr"],
               "mask" : null
             },
             {
               "match_type" : "ternary",
+              "name" : "hdr.ethernet.dst_addr",
               "target" : ["ethernet", "dst_addr"],
               "mask" : null
             },
             {
               "match_type" : "ternary",
+              "name" : "hdr.ethernet.ether_type",
               "target" : ["ethernet", "ether_type"],
               "mask" : null
             },
             {
               "match_type" : "ternary",
+              "name" : "hdr.ipv4.src_addr",
               "target" : ["ipv4", "src_addr"],
               "mask" : null
             },
             {
               "match_type" : "ternary",
+              "name" : "hdr.ipv4.dst_addr",
               "target" : ["ipv4", "dst_addr"],
               "mask" : null
             },
             {
               "match_type" : "ternary",
+              "name" : "hdr.ipv4.protocol",
               "target" : ["ipv4", "protocol"],
               "mask" : null
             },
             {
               "match_type" : "ternary",
+              "name" : "local_metadata.l4_src_port",
               "target" : ["scalars", "local_metadata_t.l4_src_port"],
               "mask" : null
             },
             {
               "match_type" : "ternary",
+              "name" : "local_metadata.l4_dst_port",
               "target" : ["scalars", "local_metadata_t.l4_dst_port"],
               "mask" : null
             }
@@ -1303,13 +1319,13 @@
           "support_timeout" : false,
           "direct_meters" : null,
           "action_ids" : [0, 2, 6, 3],
-          "actions" : ["set_egress_port", "send_to_cpu", "table0_control.set_next_hop_id", "_drop"],
-          "base_default_next" : "host_meter_control.host_meter_table",
+          "actions" : ["set_egress_port", "send_to_cpu", "ingress.table0_control.set_next_hop_id", "_drop"],
+          "base_default_next" : "ingress.host_meter_control.host_meter_table",
           "next_tables" : {
-            "set_egress_port" : "host_meter_control.host_meter_table",
-            "send_to_cpu" : "host_meter_control.host_meter_table",
-            "table0_control.set_next_hop_id" : "host_meter_control.host_meter_table",
-            "_drop" : "host_meter_control.host_meter_table"
+            "set_egress_port" : "ingress.host_meter_control.host_meter_table",
+            "send_to_cpu" : "ingress.host_meter_control.host_meter_table",
+            "ingress.table0_control.set_next_hop_id" : "ingress.host_meter_control.host_meter_table",
+            "_drop" : "ingress.host_meter_control.host_meter_table"
           },
           "default_entry" : {
             "action_id" : 3,
@@ -1319,7 +1335,7 @@
           }
         },
         {
-          "name" : "host_meter_control.host_meter_table",
+          "name" : "ingress.host_meter_control.host_meter_table",
           "id" : 4,
           "source_info" : {
             "filename" : "include/host_meter_table.p4",
@@ -1330,6 +1346,7 @@
           "key" : [
             {
               "match_type" : "lpm",
+              "name" : "hdr.ethernet.src_addr",
               "target" : ["ethernet", "src_addr"],
               "mask" : null
             }
@@ -1339,9 +1356,9 @@
           "max_size" : 1024,
           "with_counters" : false,
           "support_timeout" : false,
-          "direct_meters" : "host_meter_control.host_meter",
+          "direct_meters" : "ingress.host_meter_control.host_meter",
           "action_ids" : [7, 4],
-          "actions" : ["host_meter_control.read_meter", "NoAction"],
+          "actions" : ["ingress.host_meter_control.read_meter", "NoAction"],
           "base_default_next" : null,
           "next_tables" : {
             "__HIT__" : "tbl_act_2",
@@ -1470,7 +1487,7 @@
           }
         },
         {
-          "name" : "wcmp_control.wcmp_table",
+          "name" : "ingress.wcmp_control.wcmp_table",
           "id" : 10,
           "source_info" : {
             "filename" : "include/wcmp.p4",
@@ -1481,13 +1498,14 @@
           "key" : [
             {
               "match_type" : "exact",
+              "name" : "local_metadata.next_hop_id",
               "target" : ["scalars", "local_metadata_t.next_hop_id"],
               "mask" : null
             }
           ],
           "match_type" : "exact",
           "type" : "indirect_ws",
-          "action_profile" : "wcmp_control.wcmp_selector",
+          "action_profile" : "ingress.wcmp_control.wcmp_selector",
           "max_size" : 1024,
           "with_counters" : true,
           "support_timeout" : false,
@@ -1503,7 +1521,7 @@
       ],
       "action_profiles" : [
         {
-          "name" : "wcmp_control.wcmp_selector",
+          "name" : "ingress.wcmp_control.wcmp_selector",
           "id" : 0,
           "max_size" : 64,
           "selector" : {
@@ -1584,7 +1602,7 @@
             }
           },
           "true_next" : "tbl_act_1",
-          "false_next" : "table0_control.table0"
+          "false_next" : "ingress.table0_control.table0"
         },
         {
           "name" : "node_11",
@@ -1651,7 +1669,7 @@
             }
           },
           "false_next" : null,
-          "true_next" : "wcmp_control.wcmp_table"
+          "true_next" : "ingress.wcmp_control.wcmp_table"
         }
       ]
     },
@@ -1818,6 +1836,10 @@
       ["standard_metadata", "ingress_global_timestamp"]
     ],
     [
+      "intrinsic_metadata.egress_global_timestamp",
+      ["standard_metadata", "egress_global_timestamp"]
+    ],
+    [
       "intrinsic_metadata.lf_field_list",
       ["standard_metadata", "lf_field_list"]
     ],
@@ -1832,6 +1854,10 @@
     [
       "intrinsic_metadata.egress_rid",
       ["standard_metadata", "egress_rid"]
+    ],
+    [
+      "intrinsic_metadata.recirculate_flag",
+      ["standard_metadata", "recirculate_flag"]
     ]
   ]
 }

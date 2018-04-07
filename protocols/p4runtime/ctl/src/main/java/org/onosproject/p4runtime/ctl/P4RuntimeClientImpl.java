@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.grpc.Context;
@@ -36,7 +35,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.pi.model.PiActionProfileId;
 import org.onosproject.net.pi.model.PiCounterId;
-import org.onosproject.net.pi.model.PiCounterType;
+import org.onosproject.net.pi.model.PiMeterId;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiTableId;
 import org.onosproject.net.pi.runtime.PiActionGroup;
@@ -46,8 +45,6 @@ import org.onosproject.net.pi.runtime.PiCounterCellId;
 import org.onosproject.net.pi.runtime.PiEntity;
 import org.onosproject.net.pi.runtime.PiMeterCellConfig;
 import org.onosproject.net.pi.runtime.PiMeterCellId;
-import org.onosproject.net.pi.model.PiMeterType;
-import org.onosproject.net.pi.model.PiMeterId;
 import org.onosproject.net.pi.runtime.PiPacketOperation;
 import org.onosproject.net.pi.runtime.PiTableEntry;
 import org.onosproject.net.pi.service.PiPipeconfService;
@@ -130,8 +127,6 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
 
     private Map<Uint128, CompletableFuture<Boolean>> arbitrationUpdateMap = Maps.newConcurrentMap();
     protected Uint128 p4RuntimeElectionId;
-
-    private static final long DEFAULT_INDEX = 0;
 
     /**
      * Default constructor.
@@ -219,39 +214,8 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
     @Override
     public CompletableFuture<Collection<PiCounterCellData>> readAllCounterCells(Set<PiCounterId> counterIds,
                                                                                 PiPipeconf pipeconf) {
-
-        /*
-        From p4runtime.proto, the scope of a ReadRequest is defined as follows:
-        CounterEntry:
-            - All counter cells for all meters if counter_id = 0 (default).
-            - All counter cells for given counter_id if index = 0 (default).
-        DirectCounterEntry:
-            - All counter cells for all meters if counter_id = 0 (default).
-            - All counter cells for given counter_id if table_entry.match is empty.
-         */
-
-        Set<PiCounterCellId> cellIds = Sets.newHashSet();
-
-        for (PiCounterId counterId : counterIds) {
-            if (!pipeconf.pipelineModel().counter(counterId).isPresent()) {
-                log.warn("Unable to find counter '{}' in pipeline model",  counterId);
-                continue;
-            }
-            PiCounterType counterType = pipeconf.pipelineModel().counter(counterId).get().counterType();
-            switch (counterType) {
-                case INDIRECT:
-                    cellIds.add(PiCounterCellId.ofIndirect(counterId, 0));
-                    break;
-                case DIRECT:
-                    cellIds.add(PiCounterCellId.ofDirect(counterId, PiTableEntry.EMTPY));
-                    break;
-                default:
-                    log.warn("Unrecognized PI counter type '{}'", counterType);
-            }
-        }
-
-        return supplyInContext(() -> doReadCounterCells(cellIds, pipeconf),
-                               "readAllCounterCells-" + cellIds.hashCode());
+        return supplyInContext(() -> doReadAllCounterCells(counterIds, pipeconf),
+                               "readAllCounterCells-" + counterIds.hashCode());
     }
 
     @Override
@@ -297,34 +261,8 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
     @Override
     public CompletableFuture<Collection<PiMeterCellConfig>> readAllMeterCells(Set<PiMeterId> meterIds,
                                                                                 PiPipeconf pipeconf) {
-
-        /*
-        From p4runtime.proto, the scope of a ReadRequest is defined as follows:
-        MeterEntry:
-            - All meter cells for all meters if meter_id = 0 (default).
-            - All meter cells for given meter_id if index = 0 (default).
-        DirectCounterEntry:
-            - All meter cells for all meters if meter_id = 0 (default).
-            - All meter cells for given meter_id if table_entry.match is empty.
-         */
-
-        Set<PiMeterCellId> cellIds = Sets.newHashSet();
-        for (PiMeterId meterId : meterIds) {
-            PiMeterType meterType = pipeconf.pipelineModel().meter(meterId).get().meterType();
-            switch (meterType) {
-                case INDIRECT:
-                    cellIds.add(PiMeterCellId.ofIndirect(meterId, DEFAULT_INDEX));
-                    break;
-                case DIRECT:
-                    cellIds.add(PiMeterCellId.ofDirect(meterId, PiTableEntry.EMTPY));
-                    break;
-                default:
-                    log.warn("Unrecognized PI meter type '{}'", meterType);
-            }
-        }
-
-        return supplyInContext(() -> doReadMeterCells(cellIds, pipeconf),
-                               "readAllMeterCells-" + cellIds.hashCode());
+        return supplyInContext(() -> doReadAllMeterCells(meterIds, pipeconf),
+                               "readAllMeterCells-" + meterIds.hashCode());
     }
 
     /* Blocking method implementations below */
@@ -416,7 +354,7 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
             return true;
         }
 
-        Collection<Update> updateMsgs = null;
+        Collection<Update> updateMsgs;
         try {
             updateMsgs = TableEntryEncoder.encode(piTableEntries, pipeconf)
                     .stream()
@@ -566,19 +504,31 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
         controller.postEvent(event);
     }
 
-    private Collection<PiCounterCellData> doReadCounterCells(Collection<PiCounterCellId> cellIds, PiPipeconf pipeconf) {
+    private Collection<PiCounterCellData> doReadAllCounterCells(
+            Collection<PiCounterId> counterIds, PiPipeconf pipeconf) {
+        return doReadCounterEntities(
+                CounterEntryCodec.readAllCellsEntities(counterIds, pipeconf),
+                pipeconf);
+    }
 
-        // We use this map to remember the original PI counter IDs of the returned response.
-        final Map<Integer, PiCounterId> counterIdMap = Maps.newHashMap();
+    private Collection<PiCounterCellData> doReadCounterCells(
+            Collection<PiCounterCellId> cellIds, PiPipeconf pipeconf) {
+        return doReadCounterEntities(
+                CounterEntryCodec.encodePiCounterCellIds(cellIds, pipeconf),
+                pipeconf);
+    }
+
+    private Collection<PiCounterCellData> doReadCounterEntities(
+            Collection<Entity> counterEntities, PiPipeconf pipeconf) {
+
+        if (counterEntities.size() == 0) {
+            return Collections.emptyList();
+        }
 
         final ReadRequest request = ReadRequest.newBuilder()
                 .setDeviceId(p4DeviceId)
-                .addAllEntities(CounterEntryCodec.encodePiCounterCellIds(cellIds, counterIdMap, pipeconf))
+                .addAllEntities(counterEntities)
                 .build();
-
-        if (request.getEntitiesList().size() == 0) {
-            return Collections.emptyList();
-        }
 
         final Iterable<ReadResponse> responses;
         try {
@@ -593,7 +543,7 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
                 .flatMap(List::stream)
                 .collect(Collectors.toList());
 
-        return CounterEntryCodec.decodeCounterEntities(entities, counterIdMap, pipeconf);
+        return CounterEntryCodec.decodeCounterEntities(entities, pipeconf);
     }
 
     private boolean doWriteActionGroupMembers(PiActionGroup group, WriteOperationType opType, PiPipeconf pipeconf) {
@@ -789,47 +739,60 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
         }
     }
 
-    private Collection<PiMeterCellConfig> doReadMeterCells(Collection<PiMeterCellId> cellIds, PiPipeconf pipeconf) {
+    private Collection<PiMeterCellConfig> doReadAllMeterCells(
+            Collection<PiMeterId> meterIds, PiPipeconf pipeconf) {
+        return doReadMeterEntities(MeterEntryCodec.readAllCellsEntities(
+                meterIds, pipeconf), pipeconf);
+    }
 
-        // We use this map to remember the original PI meter IDs of the returned response.
-        Map<Integer, PiMeterId> meterIdMap = Maps.newHashMap();
-        Collection<PiMeterCellConfig> piMeterCellConfigs = cellIds.stream()
+    private Collection<PiMeterCellConfig> doReadMeterCells(
+            Collection<PiMeterCellId> cellIds, PiPipeconf pipeconf) {
+
+        final Collection<PiMeterCellConfig> piMeterCellConfigs = cellIds.stream()
                 .map(cellId -> PiMeterCellConfig.builder()
-                        .withMeterCellId(cellId).build())
+                        .withMeterCellId(cellId)
+                        .build())
                 .collect(Collectors.toList());
+
+        return doReadMeterEntities(MeterEntryCodec.encodePiMeterCellConfigs(
+                piMeterCellConfigs, pipeconf), pipeconf);
+    }
+
+    private Collection<PiMeterCellConfig> doReadMeterEntities(
+            Collection<Entity> entitiesToRead, PiPipeconf pipeconf) {
+
+        if (entitiesToRead.size() == 0) {
+            return Collections.emptyList();
+        }
 
         final ReadRequest request = ReadRequest.newBuilder()
                 .setDeviceId(p4DeviceId)
-                .addAllEntities(MeterEntryCodec.encodePiMeterCellConfigs(piMeterCellConfigs, meterIdMap, pipeconf))
+                .addAllEntities(entitiesToRead)
                 .build();
-
-        if (request.getEntitiesList().size() == 0) {
-            return Collections.emptyList();
-        }
 
         final Iterable<ReadResponse> responses;
         try {
             responses = () -> blockingStub.read(request);
         } catch (StatusRuntimeException e) {
-            log.warn("Unable to read meters config: {}", e.getMessage());
+            log.warn("Unable to read meter cells: {}", e.getMessage());
             log.debug("exception", e);
             return Collections.emptyList();
         }
 
-        List<Entity> entities = StreamSupport.stream(responses.spliterator(), false)
+        List<Entity> responseEntities = StreamSupport
+                .stream(responses.spliterator(), false)
                 .map(ReadResponse::getEntitiesList)
                 .flatMap(List::stream)
                 .collect(Collectors.toList());
 
-        return MeterEntryCodec.decodeMeterEntities(entities, meterIdMap, pipeconf);
+        return MeterEntryCodec.decodeMeterEntities(responseEntities, pipeconf);
     }
 
     private boolean doWriteMeterCells(Collection<PiMeterCellConfig> cellIds, PiPipeconf pipeconf) {
 
-        final Map<Integer, PiMeterId> meterIdMap = Maps.newHashMap();
         WriteRequest.Builder writeRequestBuilder = WriteRequest.newBuilder();
 
-        Collection<Update> updateMsgs = MeterEntryCodec.encodePiMeterCellConfigs(cellIds, meterIdMap, pipeconf)
+        Collection<Update> updateMsgs = MeterEntryCodec.encodePiMeterCellConfigs(cellIds, pipeconf)
                 .stream()
                 .map(meterEntryMsg ->
                              Update.newBuilder()

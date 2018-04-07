@@ -32,8 +32,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Beta
 public final class PiTableEntry implements PiEntity {
 
-    public static final PiTableEntry EMTPY = new PiTableEntry();
-
     private static final int NO_PRIORITY = -1;
     private static final double NO_TIMEOUT = -1;
 
@@ -43,15 +41,6 @@ public final class PiTableEntry implements PiEntity {
     private final long cookie;
     private final int priority;
     private final double timeout;
-
-    private PiTableEntry() {
-        this.tableId = null;
-        this.matchKey = null;
-        this.tableAction = null;
-        this.cookie = 0;
-        this.priority = NO_PRIORITY;
-        this.timeout = NO_TIMEOUT;
-    }
 
     private PiTableEntry(PiTableId tableId, PiMatchKey matchKey,
                          PiTableAction tableAction, long cookie, int priority, double timeout) {

@@ -46,6 +46,7 @@ public final class PiMeterCellId implements MeterCellId {
 
     /**
      * Returns the identifier of the meter instance where this cell is contained.
+     * Meaningful only if the meter is of type {@link PiMeterType#DIRECT}, otherwise returns null.
      *
      * @return meter identifier
      */
@@ -90,14 +91,12 @@ public final class PiMeterCellId implements MeterCellId {
     /**
      * Return a direct meter cell ID for the given meter ID and table entry.
      *
-     * @param meterId  meter ID
      * @param tableEntry table entry
      * @return meter cell ID
      */
-    public static PiMeterCellId ofDirect(PiMeterId meterId, PiTableEntry tableEntry) {
-        checkNotNull(meterId);
+    public static PiMeterCellId ofDirect(PiTableEntry tableEntry) {
         checkNotNull(tableEntry);
-        return new PiMeterCellId(meterId, PiMeterType.DIRECT, -1, tableEntry);
+        return new PiMeterCellId(null, PiMeterType.DIRECT, -1, tableEntry);
     }
 
     /**
@@ -135,7 +134,8 @@ public final class PiMeterCellId implements MeterCellId {
 
     @Override
     public String toString() {
-        return meterId.toString() + ':'
-                + (meterType == PiMeterType.DIRECT ? tableEntry.toString() : String.valueOf(index));
+        return meterType == PiMeterType.DIRECT
+                ? tableEntry.toString()
+                : meterId.toString() + ':' + String.valueOf(index);
     }
 }

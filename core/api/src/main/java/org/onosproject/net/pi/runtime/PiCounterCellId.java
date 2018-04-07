@@ -35,8 +35,8 @@ public final class PiCounterCellId {
     private final long index;
     private final PiTableEntry tableEntry;
 
-    private PiCounterCellId(PiCounterId counterId, PiCounterType counterType, long index,
-                            PiTableEntry tableEntry) {
+    private PiCounterCellId(PiCounterId counterId, PiCounterType counterType,
+                            long index, PiTableEntry tableEntry) {
         this.counterId = counterId;
         this.counterType = counterType;
         this.index = index;
@@ -44,7 +44,9 @@ public final class PiCounterCellId {
     }
 
     /**
-     * Returns the identifier of the counter instance where this cell is contained.
+     * Returns the identifier of the counter instance where this cell is
+     * contained. Meaningful only if the counter is of type {@link
+     * PiCounterType#INDIRECT}.
      *
      * @return counter identifier
      */
@@ -62,8 +64,8 @@ public final class PiCounterCellId {
     }
 
     /**
-     * Returns the counter index to which this cell ID is associated. Meaningful only if the counter is of type {@link
-     * PiCounterType#INDIRECT}.
+     * Returns the counter index to which this cell ID is associated. Meaningful
+     * only if the counter is of type {@link PiCounterType#INDIRECT}.
      *
      * @return counter index
      */
@@ -72,8 +74,9 @@ public final class PiCounterCellId {
     }
 
     /**
-     * Returns the table entry to which this cell ID is associated. Meaningful only if the counter is of type {@link
-     * PiCounterType#DIRECT}, otherwise returns null.
+     * Returns the table entry to which this cell ID is associated. Meaningful
+     * only if the counter is of type {@link PiCounterType#DIRECT}, otherwise
+     * returns null.
      *
      * @return PI table entry or null
      */
@@ -82,16 +85,15 @@ public final class PiCounterCellId {
     }
 
     /**
-     * Return a direct counter cell ID for the given counter ID and table entry.
+     * Return a direct counter cell ID for the given counter ID and table
+     * entry.
      *
-     * @param counterId  counter ID
      * @param tableEntry table entry
      * @return counter cell ID
      */
-    public static PiCounterCellId ofDirect(PiCounterId counterId, PiTableEntry tableEntry) {
-        checkNotNull(counterId);
+    public static PiCounterCellId ofDirect(PiTableEntry tableEntry) {
         checkNotNull(tableEntry);
-        return new PiCounterCellId(counterId, PiCounterType.DIRECT, -1, tableEntry);
+        return new PiCounterCellId(null, PiCounterType.DIRECT, -1, tableEntry);
     }
 
     /**
@@ -129,7 +131,8 @@ public final class PiCounterCellId {
 
     @Override
     public String toString() {
-        return counterId.toString() + ':'
-                + (counterType == PiCounterType.DIRECT ? tableEntry.toString() : String.valueOf(index));
+        return counterType == PiCounterType.DIRECT
+                ? tableEntry.toString()
+                : counterId.toString() + ':' + String.valueOf(index);
     }
 }
