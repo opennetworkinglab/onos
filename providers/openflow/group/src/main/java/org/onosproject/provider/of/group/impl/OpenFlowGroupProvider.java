@@ -394,7 +394,8 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
         if (driver == null) {
             return true;
         }
-        return Boolean.parseBoolean(driver.getProperty(GROUP_CAPABLE));
+        String isGroupCapable = driver.getProperty(GROUP_CAPABLE);
+        return isGroupCapable == null || Boolean.parseBoolean(isGroupCapable);
     }
 
     private class InternalGroupProvider
