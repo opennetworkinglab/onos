@@ -573,6 +573,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         return l2TunnelHandler.getL2Policies();
     }
 
+    @Override
     @Deprecated
     public L2TunnelHandler.Result addPseudowiresBulk(List<DefaultL2TunnelDescription> bulkPseudowires) {
 
@@ -1223,7 +1224,10 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         }
         // Note that a switch going down is associated with all of its links
         // going down as well, but it is treated as a single switch down event
-        // while the link-downs are ignored.
+        // while the link-downs are ignored. We cannot rely on the ordering of
+        // events - i.e we cannot expect all link-downs to come before the
+        // switch down - so we purge all seen-links for the switch before
+        // handling route-path changes for the switch-down
         defaultRoutingHandler
             .populateRoutingRulesForLinkStatusChange(null, null, device.id(), true);
         defaultRoutingHandler.purgeEcmpGraph(device.id());
