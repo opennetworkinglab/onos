@@ -263,7 +263,6 @@ public final class OfdpaGroupHandlerUtility {
         return indices;
     }
 
-
     /**
      * Get indices to remove comparing next group with next objective.
      *
@@ -635,22 +634,53 @@ public final class OfdpaGroupHandlerUtility {
             // GroupChecker execution needs to be protected
             // from unhandled exceptions
             try {
-                if (groupHandler.pendingGroups().size() != 0) {
-                    log.debug("pending groups being checked: {}", groupHandler.pendingGroups().asMap().keySet());
+                if (groupHandler.pendingGroups.size() != 0) {
+                    log.debug("pending groups being checked: {}",
+                              groupHandler.pendingGroups.asMap().keySet());
                 }
-                if (groupHandler.pendingAddNextObjectives().size() != 0) {
+                if (groupHandler.pendingAddNextObjectives.size() != 0) {
                     log.debug("pending add-next-obj being checked: {}",
-                              groupHandler.pendingAddNextObjectives().asMap().keySet());
+                              groupHandler.pendingAddNextObjectives.asMap().keySet());
                 }
-                Set<GroupKey> keys = groupHandler.pendingGroups().asMap().keySet().stream()
-                        .filter(key -> groupHandler.groupService.getGroup(groupHandler.deviceId, key) != null)
+                if (groupHandler.pendingRemoveNextObjectives.size() != 0) {
+                    log.debug("pending remove-next-obj being checked: {}",
+                              groupHandler.pendingRemoveNextObjectives.asMap().values());
+                }
+                if (groupHandler.pendingUpdateNextObjectives.size() != 0) {
+                    log.debug("pending update-next-obj being checked: {}",
+                              groupHandler.pendingUpdateNextObjectives.keySet());
+                }
+
+                Set<GroupKey> keys = groupHandler.pendingGroups.asMap().keySet()
+                        .stream()
+                        .filter(key -> groupHandler.groupService
+                                .getGroup(groupHandler.deviceId, key) != null)
                         .collect(Collectors.toSet());
-                Set<GroupKey> otherkeys = groupHandler.pendingAddNextObjectives().asMap().keySet().stream()
-                        .filter(otherkey -> groupHandler.groupService.getGroup(groupHandler.deviceId, otherkey) != null)
+                Set<GroupKey> otherkeys = groupHandler.pendingAddNextObjectives
+                        .asMap().keySet().stream()
+                        .filter(otherkey -> groupHandler.groupService
+                                .getGroup(groupHandler.deviceId, otherkey) != null)
                         .collect(Collectors.toSet());
                 keys.addAll(otherkeys);
-
                 keys.forEach(key -> groupHandler.processPendingAddGroupsOrNextObjs(key, false));
+
+                keys = groupHandler.pendingUpdateNextObjectives.keySet()
+                        .stream()
+                        .filter(key -> groupHandler.groupService
+                                .getGroup(groupHandler.deviceId, key) != null)
+                        .collect(Collectors.toSet());
+                keys.forEach(key -> groupHandler.processPendingUpdateNextObjs(key));
+
+                Set<GroupKey> k = Sets.newHashSet();
+                groupHandler.pendingRemoveNextObjectives
+                    .asMap().values().stream().forEach(keylist -> {
+                        k.addAll(keylist.stream()
+                                 .filter(key -> groupHandler.groupService
+                                         .getGroup(groupHandler.deviceId, key) == null)
+                                 .collect(Collectors.toSet()));
+                    });
+                k.forEach(key -> groupHandler.processPendingRemoveNextObjs(key));
+
             } catch (Exception exception) {
                 // Just log. It is safe for now.
                 log.warn("Uncaught exception is detected: {}", exception.getMessage());
