@@ -23,7 +23,6 @@ import org.onosproject.net.pi.model.PiMatchType;
 import java.util.Optional;
 
 import static org.onlab.util.ImmutableByteSequence.ByteSequenceTrimException;
-import static org.onlab.util.ImmutableByteSequence.fit;
 
 /**
  * Abstract implementation of a criterion translator that opportunistically tries to generate different types of match
@@ -48,7 +47,7 @@ abstract class AbstractCriterionTranslator implements CriterionTranslator {
     void initAsExactMatch(ImmutableByteSequence value, int bitWidth)
             throws ByteSequenceTrimException {
         this.initType = PiMatchType.EXACT;
-        this.value = fit(value, bitWidth);
+        this.value = value.fit(bitWidth);
         this.bitWidth = bitWidth;
     }
 
@@ -63,8 +62,8 @@ abstract class AbstractCriterionTranslator implements CriterionTranslator {
     void initAsTernaryMatch(ImmutableByteSequence value, ImmutableByteSequence mask, int bitWidth)
             throws ByteSequenceTrimException {
         this.initType = PiMatchType.TERNARY;
-        this.value = fit(value, bitWidth);
-        this.mask = fit(mask, bitWidth);
+        this.value = value.fit(bitWidth);
+        this.mask = mask.fit(bitWidth);
         this.bitWidth = bitWidth;
     }
 
@@ -79,7 +78,7 @@ abstract class AbstractCriterionTranslator implements CriterionTranslator {
     void initAsLpm(ImmutableByteSequence value, int prefixLength, int bitWidth)
             throws ByteSequenceTrimException {
         this.initType = PiMatchType.LPM;
-        this.value = fit(value, bitWidth);
+        this.value = value.fit(bitWidth);
         this.prefixLength = prefixLength;
         this.bitWidth = bitWidth;
     }

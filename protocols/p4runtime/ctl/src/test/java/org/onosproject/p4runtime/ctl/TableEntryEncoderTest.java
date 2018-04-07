@@ -47,7 +47,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.onlab.util.ImmutableByteSequence.copyFrom;
-import static org.onlab.util.ImmutableByteSequence.fit;
 import static org.onlab.util.ImmutableByteSequence.ofOnes;
 import static org.onosproject.net.pi.model.PiPipeconf.ExtensionType.P4_INFO_TEXT;
 import static org.onosproject.p4runtime.ctl.TableEntryEncoder.decode;
@@ -84,7 +83,7 @@ public class TableEntryEncoderTest {
             .build();
 
     private final P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(defaultPipeconf);
-    private final ImmutableByteSequence ethAddr = fit(copyFrom(rand.nextInt()), 48);
+    private final ImmutableByteSequence ethAddr = copyFrom(rand.nextInt()).fit(48);
     private final ImmutableByteSequence portValue = copyFrom((short) rand.nextInt());
     private final PiMatchFieldId ethDstAddrFieldId = PiMatchFieldId.of(HDR + DOT + ETHERNET + DOT + DST_ADDR);
     private final PiMatchFieldId ethSrcAddrFieldId = PiMatchFieldId.of(HDR + DOT + ETHERNET + DOT + SRC_ADDR);

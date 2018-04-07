@@ -250,7 +250,7 @@ final class FabricTreatmentInterpreter {
                 MplsLabel mplsLabel = modMplsInst.label();
                 try {
                     ImmutableByteSequence mplsValue =
-                            ImmutableByteSequence.fit(ImmutableByteSequence.copyFrom(mplsLabel.toInt()), 20);
+                            ImmutableByteSequence.copyFrom(mplsLabel.toInt()).fit(20);
                     PiActionParam mplsParam = new PiActionParam(FabricConstants.ACT_PRM_LABEL_ID, mplsValue);
                     return PiAction.builder()
                             // FIXME: fins a way to determine v4 or v6

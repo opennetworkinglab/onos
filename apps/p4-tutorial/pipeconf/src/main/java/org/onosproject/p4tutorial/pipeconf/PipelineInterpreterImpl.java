@@ -54,7 +54,6 @@ import java.util.Optional;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static org.onlab.util.ImmutableByteSequence.copyFrom;
-import static org.onlab.util.ImmutableByteSequence.fit;
 import static org.onosproject.net.PortNumber.CONTROLLER;
 import static org.onosproject.net.PortNumber.FLOOD;
 import static org.onosproject.net.flow.instructions.Instruction.Type.OUTPUT;
@@ -219,7 +218,7 @@ public final class PipelineInterpreterImpl extends AbstractHandlerBehaviour impl
         try {
             return PiControlMetadata.builder()
                     .withId(PiControlMetadataId.of(EGRESS_PORT))
-                    .withValue(fit(copyFrom(portNumber), PORT_FIELD_BITWIDTH))
+                    .withValue(copyFrom(portNumber).fit(PORT_FIELD_BITWIDTH))
                     .build();
         } catch (ImmutableByteSequence.ByteSequenceTrimException e) {
             throw new PiInterpreterException(format("Port number %d too big, %s", portNumber, e.getMessage()));

@@ -65,7 +65,6 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.onlab.util.ImmutableByteSequence.copyFrom;
-import static org.onlab.util.ImmutableByteSequence.fit;
 import static org.onosproject.net.group.GroupDescription.Type.SELECT;
 import static org.onosproject.pipelines.basic.BasicConstants.ACT_PRF_WCMP_SELECTOR_ID;
 import static org.onosproject.pipelines.basic.BasicConstants.ACT_PRM_PORT_ID;
@@ -237,7 +236,7 @@ public class PiTranslatorServiceTest {
 
     private static PiActionGroupMember outputMember(int portNum)
             throws ImmutableByteSequence.ByteSequenceTrimException {
-        PiActionParam param = new PiActionParam(ACT_PRM_PORT_ID, fit(copyFrom(portNum), PORT_BITWIDTH));
+        PiActionParam param = new PiActionParam(ACT_PRM_PORT_ID, copyFrom(portNum).fit(PORT_BITWIDTH));
         PiAction piAction = PiAction.builder()
                 .withId(ACT_SET_EGRESS_PORT_ID)
                 .withParameter(param).build();

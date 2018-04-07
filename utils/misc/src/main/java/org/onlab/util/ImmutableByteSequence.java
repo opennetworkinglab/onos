@@ -28,8 +28,8 @@ import static java.lang.String.format;
 import static org.apache.commons.lang3.ArrayUtils.reverse;
 
 /**
- * Immutable sequence of bytes, assumed to represent a value in
- * {@link ByteOrder#BIG_ENDIAN BIG_ENDIAN} order.
+ * Immutable sequence of bytes, assumed to represent a value in {@link
+ * ByteOrder#BIG_ENDIAN BIG_ENDIAN} order.
  * <p>
  * Sequences can be created copying from an already existing representation of a
  * sequence of bytes, such as {@link ByteBuffer} or {@code byte[]}; or by
@@ -40,6 +40,12 @@ import static org.apache.commons.lang3.ArrayUtils.reverse;
  */
 public final class ImmutableByteSequence {
 
+    private enum BitwiseOp {
+        AND,
+        OR,
+        XOR
+    }
+
     /*
     Actual bytes are backed by a byte buffer.
     The order of a newly-created byte buffer is always BIG_ENDIAN.
@@ -47,8 +53,8 @@ public final class ImmutableByteSequence {
     private ByteBuffer value;
 
     /**
-     * Private constructor.
-     * Creates a new byte sequence object backed by the passed ByteBuffer.
+     * Private constructor. Creates a new byte sequence object backed by the
+     * passed ByteBuffer.
      *
      * @param value a byte buffer
      */
@@ -210,7 +216,8 @@ public final class ImmutableByteSequence {
     }
 
     /**
-     * Creates a new byte sequence that is prefixed with specified number of zeros.
+     * Creates a new byte sequence that is prefixed with specified number of
+     * zeros.
      *
      * @param size       number of total bytes
      * @param prefixBits number of bits in prefix
@@ -221,7 +228,8 @@ public final class ImmutableByteSequence {
     }
 
     /**
-     * Creates a new byte sequence that is prefixed with specified number of ones.
+     * Creates a new byte sequence that is prefixed with specified number of
+     * ones.
      *
      * @param size       number of total bytes
      * @param prefixBits number of bits in prefix
@@ -266,6 +274,73 @@ public final class ImmutableByteSequence {
         return bytes;
     }
 
+    private ImmutableByteSequence doBitwiseOp(ImmutableByteSequence other, BitwiseOp op) {
+        checkArgument(other != null && this.size() == other.size(),
+                      "Other sequence must be non null and with same size as this");
+        byte[] newBytes = new byte[this.size()];
+        byte[] thisBytes = this.asArray();
+        byte[] otherBytes = other.asArray();
+        for (int i = 0; i < this.size(); i++) {
+            switch (op) {
+                case AND:
+                    newBytes[i] = (byte) (thisBytes[i] & otherBytes[i]);
+                    break;
+                case OR:
+                    newBytes[i] = (byte) (thisBytes[i] | otherBytes[i]);
+                    break;
+                case XOR:
+                    newBytes[i] = (byte) (thisBytes[i] ^ otherBytes[i]);
+                    break;
+                default:
+                    throw new IllegalArgumentException(
+                            "Unknown bitwise operator " + op.name());
+            }
+        }
+        return ImmutableByteSequence.copyFrom(newBytes);
+    }
+
+    /**
+     * Returns a new byte sequence corresponding to the result of a bitwise AND
+     * operation between this sequence and the given other, i.e. {@code this &
+     * other}.
+     *
+     * @param other other byte sequence
+     * @return new byte sequence
+     * @throws IllegalArgumentException if other sequence is null or its size is
+     *                                  different than this sequence size
+     */
+    public ImmutableByteSequence bitwiseAnd(ImmutableByteSequence other) {
+        return doBitwiseOp(other, BitwiseOp.AND);
+    }
+
+    /**
+     * Returns a new byte sequence corresponding to the result of a bitwise OR
+     * operation between this sequence and the given other, i.e. {@code this |
+     * other}.
+     *
+     * @param other other byte sequence
+     * @return new byte sequence
+     * @throws IllegalArgumentException if other sequence is null or its size is
+     *                                  different than this sequence size
+     */
+    public ImmutableByteSequence bitwiseOr(ImmutableByteSequence other) {
+        return doBitwiseOp(other, BitwiseOp.OR);
+    }
+
+    /**
+     * Returns a new byte sequence corresponding to the result of a bitwise XOR
+     * operation between this sequence and the given other, i.e. {@code this ^
+     * other}.
+     *
+     * @param other other byte sequence
+     * @return new byte sequence
+     * @throws IllegalArgumentException if other sequence is null or its size is
+     *                                  different than this sequence size
+     */
+    public ImmutableByteSequence bitwiseXor(ImmutableByteSequence other) {
+        return doBitwiseOp(other, BitwiseOp.XOR);
+    }
+
     @Override
     public int hashCode() {
         return value.hashCode();
@@ -284,19 +359,18 @@ public final class ImmutableByteSequence {
     }
 
     /**
-     * Returns the index of the most significant bit (MSB), assuming a bit numbering scheme of type "LSB 0", i.e. the
-     * bit numbering starts at zero for the least significant bit (LSB). The MSB index of a byte sequence of zeros will
-     * be -1.
+     * Returns the index of the most significant bit (MSB), assuming a bit
+     * numbering scheme of type "LSB 0", i.e. the bit numbering starts at zero
+     * for the least significant bit (LSB). The MSB index of a byte sequence of
+     * zeros will be -1.
      * <p>
-     * As an example, the following conditions always hold true:
-     * {@code
+     * As an example, the following conditions always hold true: {@code
      * ImmutableByteSequence.copyFrom(0).msbIndex() == -1
      * ImmutableByteSequence.copyFrom(1).msbIndex() == 0
      * ImmutableByteSequence.copyFrom(2).msbIndex() == 1
      * ImmutableByteSequence.copyFrom(3).msbIndex() == 1
      * ImmutableByteSequence.copyFrom(4).msbIndex() == 2
-     * ImmutableByteSequence.copyFrom(512).msbIndex() == 9
-     * }
+     * ImmutableByteSequence.copyFrom(512).msbIndex() == 9 }
      *
      * @return index of the MSB, -1 if the sequence has all bytes set to 0
      */
@@ -325,17 +399,45 @@ public final class ImmutableByteSequence {
     }
 
     /**
-     * Trims or expands the given byte sequence so to fit a given bit-width. When trimming, the operations is deemed to
-     * be safe only if the trimmed bits are zero, i.e. it is safe to trim only when {@code bitWidth > msbIndex()},
-     * otherwise an exception will be thrown. When expanding, the sequence will be padded with zeros. The returned byte
-     * sequence will have minimum size to contain the given bit-width.
+     * Trims or expands a copy of this byte sequence so to fit the given
+     * bit-width. When trimming, the operations is deemed to be safe only if the
+     * trimmed bits are zero, i.e. it is safe to trim only when {@code bitWidth
+     * > msbIndex()}, otherwise an exception will be thrown. When expanding, the
+     * sequence will be padded with zeros. The returned byte sequence will have
+     * minimum size to contain the given bit-width.
+     *
+     * @param bitWidth a non-zero positive integer
+     * @return a new byte sequence
+     * @throws ByteSequenceTrimException if the byte sequence cannot be fitted
+     */
+    public ImmutableByteSequence fit(int bitWidth) throws ByteSequenceTrimException {
+        return doFit(this, bitWidth);
+    }
+
+    /**
+     * Trims or expands the given byte sequence so to fit a given bit-width.
+     * When trimming, the operations is deemed to be safe only if the trimmed
+     * bits are zero, i.e. it is safe to trim only when {@code bitWidth >
+     * msbIndex()}, otherwise an exception will be thrown. When expanding, the
+     * sequence will be padded with zeros. The returned byte sequence will have
+     * minimum size to contain the given bit-width.
      *
      * @param original a byte sequence
      * @param bitWidth a non-zero positive integer
      * @return a new byte sequence
      * @throws ByteSequenceTrimException if the byte sequence cannot be fitted
+     * @deprecated in ONOS 1.13, use {@link ImmutableByteSequence#fit(int)}
+     * instead.
      */
-    public static ImmutableByteSequence fit(ImmutableByteSequence original, int bitWidth)
+    @Deprecated
+    public static ImmutableByteSequence fit(ImmutableByteSequence original,
+                                            int bitWidth)
+            throws ByteSequenceTrimException {
+        return doFit(original, bitWidth);
+    }
+
+    private static ImmutableByteSequence doFit(ImmutableByteSequence original,
+                                               int bitWidth)
             throws ByteSequenceTrimException {
 
         checkNotNull(original, "byte sequence cannot be null");

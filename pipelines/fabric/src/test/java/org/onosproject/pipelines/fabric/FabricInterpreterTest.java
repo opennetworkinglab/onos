@@ -233,7 +233,7 @@ public class FabricInterpreterTest {
         PiActionParam portParam = new PiActionParam(FabricConstants.ACT_PRM_PORT_NUM_ID,
                                                     ImmutableByteSequence.copyFrom(portNumVal));
         ImmutableByteSequence mplsVal =
-                ImmutableByteSequence.fit(ImmutableByteSequence.copyFrom(MPLS_10.toInt()), 20);
+                ImmutableByteSequence.copyFrom(MPLS_10.toInt()).fit(20);
         PiActionParam mplsParam = new PiActionParam(FabricConstants.ACT_PRM_LABEL_ID, mplsVal);
         PiAction expectedAction = PiAction.builder()
                 .withId(FabricConstants.ACT_NEXT_MPLS_ROUTING_V4_ID)

@@ -58,7 +58,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import static org.onlab.util.ImmutableByteSequence.copyFrom;
-import static org.onlab.util.ImmutableByteSequence.fit;
 import static org.onlab.util.ImmutableByteSequence.ofZeros;
 import static org.onosproject.net.pi.model.PiPacketOperationType.PACKET_OUT;
 import static org.onosproject.net.pi.model.PiPipeconf.ExtensionType.BMV2_JSON;
@@ -98,7 +97,7 @@ public class P4RuntimeTest {
             .usePlaintext(true);
     private P4RuntimeClientImpl client;
 
-    private final ImmutableByteSequence ethAddr = fit(copyFrom(1), 48);
+    private final ImmutableByteSequence ethAddr = copyFrom(1).fit(48);
     private final ImmutableByteSequence portValue = copyFrom((short) 1);
     private final PiMatchFieldId ethDstAddrFieldId = PiMatchFieldId.of(ETHERNET + DOT + DST_ADDR);
     private final PiMatchFieldId ethSrcAddrFieldId = PiMatchFieldId.of(ETHERNET + DOT + SRC_ADDR);
@@ -198,11 +197,11 @@ public class P4RuntimeTest {
             InterruptedException, ImmutableByteSequence.ByteSequenceTrimException {
 
         PiPacketOperation packetOperation = PiPacketOperation.builder()
-                .withData(fit(copyFrom(1), 48 + 48 + 16))
+                .withData(copyFrom(1).fit(48 + 48 + 16))
                 .withType(PACKET_OUT)
                 .withMetadata(PiControlMetadata.builder()
                                       .withId(PiControlMetadataId.of("egress_port"))
-                                      .withValue(fit(copyFrom(255), 9))
+                                      .withValue(copyFrom(255).fit(9))
                                       .build())
                 .build();
 

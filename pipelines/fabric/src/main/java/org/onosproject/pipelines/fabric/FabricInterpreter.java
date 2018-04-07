@@ -53,7 +53,6 @@ import java.util.Set;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static org.onlab.util.ImmutableByteSequence.copyFrom;
-import static org.onlab.util.ImmutableByteSequence.fit;
 import static org.onosproject.net.PortNumber.FLOOD;
 import static org.onosproject.net.flow.instructions.Instruction.Type.OUTPUT;
 import static org.onosproject.net.pi.model.PiPacketOperationType.PACKET_OUT;
@@ -208,7 +207,7 @@ public class FabricInterpreter extends AbstractHandlerBehaviour
         try {
             return PiControlMetadata.builder()
                     .withId(FabricConstants.CTRL_META_EGRESS_PORT_ID)
-                    .withValue(fit(copyFrom(portNumber), FabricConstants.PORT_BITWIDTH))
+                    .withValue(copyFrom(portNumber).fit(FabricConstants.PORT_BITWIDTH))
                     .build();
         } catch (ImmutableByteSequence.ByteSequenceTrimException e) {
             throw new PiInterpreterException(format(

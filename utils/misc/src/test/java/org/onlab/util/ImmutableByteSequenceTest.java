@@ -17,7 +17,6 @@
 package org.onlab.util;
 
 import com.google.common.testing.EqualsTester;
-
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -207,7 +206,7 @@ public class ImmutableByteSequenceTest {
 
     private void checkIllegalFit(ImmutableByteSequence bytes, int bitWidth) {
         try {
-            ImmutableByteSequence.fit(bytes, bitWidth);
+            bytes.fit(bitWidth);
             Assert.fail(format("Except ByteSequenceTrimException due to value = %s and bitWidth %d",
                                bytes.toString(), bitWidth));
         } catch (ImmutableByteSequence.ByteSequenceTrimException e) {
@@ -217,8 +216,8 @@ public class ImmutableByteSequenceTest {
 
     private void checkLegalFit(ImmutableByteSequence bytes, int bitWidth)
             throws ImmutableByteSequence.ByteSequenceTrimException {
-        ImmutableByteSequence fitBytes = ImmutableByteSequence.fit(bytes, bitWidth);
-        ImmutableByteSequence sameBytes = ImmutableByteSequence.fit(fitBytes, bytes.size() * 8);
+        ImmutableByteSequence fitBytes = bytes.fit(bitWidth);
+        ImmutableByteSequence sameBytes = fitBytes.fit(bytes.size() * 8);
         assertThat(format("Fitted value %s (re-extended to %s) not equal to original value %s",
                           fitBytes, sameBytes, bytes),
                    sameBytes,
@@ -253,5 +252,26 @@ public class ImmutableByteSequenceTest {
             // Fit to same bit-width of original value.
             checkLegalFit(bytes, msbIndex + 1);
         }
+    }
+
+    @Test
+    public void testBitwiseOperations() {
+        Random random = new Random();
+        long long1 = random.nextLong();
+        long long2 = random.nextLong();
+
+        ImmutableByteSequence bs1 = ImmutableByteSequence.copyFrom(long1);
+        ImmutableByteSequence bs2 = ImmutableByteSequence.copyFrom(long2);
+
+        ImmutableByteSequence andBs = bs1.bitwiseAnd(bs2);
+        ImmutableByteSequence orBs = bs1.bitwiseOr(bs2);
+        ImmutableByteSequence xorBs = bs1.bitwiseXor(bs2);
+
+        assertThat("Invalid bitwise AND result",
+                   andBs.asReadOnlyBuffer().getLong(), is(long1 & long2));
+        assertThat("Invalid bitwise OR result",
+                   orBs.asReadOnlyBuffer().getLong(), is(long1 | long2));
+        assertThat("Invalid bitwise XOR result",
+                   xorBs.asReadOnlyBuffer().getLong(), is(long1 ^ long2));
     }
 }

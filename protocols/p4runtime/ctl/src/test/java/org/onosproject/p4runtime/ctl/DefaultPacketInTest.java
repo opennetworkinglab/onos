@@ -21,14 +21,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.util.ImmutableByteSequence;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.pi.runtime.PiControlMetadata;
 import org.onosproject.net.pi.model.PiControlMetadataId;
+import org.onosproject.net.pi.runtime.PiControlMetadata;
 import org.onosproject.net.pi.runtime.PiPacketOperation;
 
 import static org.onlab.util.ImmutableByteSequence.copyFrom;
-import static org.onlab.util.ImmutableByteSequence.fit;
-import static org.onosproject.net.pi.model.PiPacketOperationType.PACKET_OUT;
 import static org.onosproject.net.pi.model.PiPacketOperationType.PACKET_IN;
+import static org.onosproject.net.pi.model.PiPacketOperationType.PACKET_OUT;
 
 /**
  * Test for DefaultPacketIn class.
@@ -65,7 +64,7 @@ public class DefaultPacketInTest {
                 .withType(PACKET_OUT)
                 .withMetadata(PiControlMetadata.builder()
                                       .withId(PiControlMetadataId.of("egress_port"))
-                                      .withValue(fit(copyFrom(DEFAULT_ORIGINAL_VALUE), DEFAULT_BIT_WIDTH))
+                                      .withValue(copyFrom(DEFAULT_ORIGINAL_VALUE).fit(DEFAULT_BIT_WIDTH))
                                       .build())
                 .build();
 
@@ -75,7 +74,7 @@ public class DefaultPacketInTest {
                 .withType(PACKET_IN)
                 .withMetadata(PiControlMetadata.builder()
                                       .withId(PiControlMetadataId.of("ingress_port"))
-                                      .withValue(fit(copyFrom(DEFAULT_ORIGINAL_VALUE), DEFAULT_BIT_WIDTH))
+                                      .withValue(copyFrom(DEFAULT_ORIGINAL_VALUE).fit(DEFAULT_BIT_WIDTH))
                                       .build())
                 .build();
 

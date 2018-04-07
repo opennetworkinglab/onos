@@ -49,7 +49,6 @@ import java.util.Optional;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static org.onlab.util.ImmutableByteSequence.copyFrom;
-import static org.onlab.util.ImmutableByteSequence.fit;
 import static org.onosproject.net.PortNumber.CONTROLLER;
 import static org.onosproject.net.PortNumber.FLOOD;
 import static org.onosproject.net.flow.instructions.Instruction.Type.OUTPUT;
@@ -130,7 +129,7 @@ public class BasicInterpreterImpl extends AbstractHandlerBehaviour
                 return PiAction.builder()
                         .withId(ACT_SET_EGRESS_PORT_ID)
                         .withParameter(new PiActionParam(ACT_PRM_PORT_ID,
-                                                         fit(copyFrom(port.toLong()), PORT_BITWIDTH)))
+                                                         copyFrom(port.toLong()).fit(PORT_BITWIDTH)))
                         .build();
             } catch (ImmutableByteSequence.ByteSequenceTrimException e) {
                 throw new PiInterpreterException(e.getMessage());
@@ -231,7 +230,7 @@ public class BasicInterpreterImpl extends AbstractHandlerBehaviour
         try {
             return PiControlMetadata.builder()
                     .withId(PKT_META_EGRESS_PORT_ID)
-                    .withValue(fit(copyFrom(portNumber), PORT_BITWIDTH))
+                    .withValue(copyFrom(portNumber).fit(PORT_BITWIDTH))
                     .build();
         } catch (ImmutableByteSequence.ByteSequenceTrimException e) {
             throw new PiInterpreterException(format(

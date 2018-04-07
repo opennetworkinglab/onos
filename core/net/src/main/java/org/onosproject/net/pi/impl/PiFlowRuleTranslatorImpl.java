@@ -59,7 +59,6 @@ import java.util.StringJoiner;
 
 import static java.lang.String.format;
 import static org.onlab.util.ImmutableByteSequence.ByteSequenceTrimException;
-import static org.onlab.util.ImmutableByteSequence.fit;
 import static org.onosproject.net.flow.criteria.Criterion.Type.PROTOCOL_INDEPENDENT;
 import static org.onosproject.net.pi.impl.CriterionTranslatorHelper.translateCriterion;
 import static org.onosproject.net.pi.impl.PiUtils.getInterpreterOrNull;
@@ -247,7 +246,7 @@ final class PiFlowRuleTranslatorImpl {
                             "Not such parameter '%s' for action '%s'", param.id(), actionModel)));
             try {
                 newActionBuilder.withParameter(new PiActionParam(param.id(),
-                                                                 fit(param.value(), paramModel.bitWidth())));
+                                                                 param.value().fit(paramModel.bitWidth())));
             } catch (ByteSequenceTrimException e) {
                 throw new PiTranslationException(format(
                         "Size mismatch for parameter '%s' of action '%s': %s",
@@ -413,11 +412,11 @@ final class PiFlowRuleTranslatorImpl {
             switch (fieldModel.matchType()) {
                 case EXACT:
                     return new PiExactFieldMatch(fieldMatch.fieldId(),
-                                                 fit(((PiExactFieldMatch) fieldMatch).value(), modelBitWidth));
+                                                 ((PiExactFieldMatch) fieldMatch).value().fit(modelBitWidth));
                 case TERNARY:
                     return new PiTernaryFieldMatch(fieldMatch.fieldId(),
-                                                   fit(((PiTernaryFieldMatch) fieldMatch).value(), modelBitWidth),
-                                                   fit(((PiTernaryFieldMatch) fieldMatch).mask(), modelBitWidth));
+                                                   ((PiTernaryFieldMatch) fieldMatch).value().fit(modelBitWidth),
+                                                   ((PiTernaryFieldMatch) fieldMatch).mask().fit(modelBitWidth));
                 case LPM:
                     PiLpmFieldMatch lpmfield = (PiLpmFieldMatch) fieldMatch;
                     if (lpmfield.prefixLength() > modelBitWidth) {
@@ -426,12 +425,12 @@ final class PiFlowRuleTranslatorImpl {
                                 fieldMatch.fieldId(), lpmfield.prefixLength(), modelBitWidth));
                     }
                     return new PiLpmFieldMatch(fieldMatch.fieldId(),
-                                               fit(lpmfield.value(), modelBitWidth),
+                                               lpmfield.value().fit(modelBitWidth),
                                                lpmfield.prefixLength());
                 case RANGE:
                     return new PiRangeFieldMatch(fieldMatch.fieldId(),
-                                                 fit(((PiRangeFieldMatch) fieldMatch).lowValue(), modelBitWidth),
-                                                 fit(((PiRangeFieldMatch) fieldMatch).highValue(), modelBitWidth));
+                                                 ((PiRangeFieldMatch) fieldMatch).lowValue().fit(modelBitWidth),
+                                                 ((PiRangeFieldMatch) fieldMatch).highValue().fit(modelBitWidth));
                 case VALID:
                     return fieldMatch;
                 default:
