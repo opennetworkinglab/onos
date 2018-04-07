@@ -106,10 +106,10 @@ public class Ofdpa2GroupHandler {
     private AtomicCounter nextIndex;
 
     protected DeviceId deviceId;
-    private Cache<GroupKey, List<OfdpaGroupHandlerUtility.OfdpaNextGroup>> pendingAddNextObjectives;
-    private Cache<NextObjective, List<GroupKey>> pendingRemoveNextObjectives;
-    private Cache<GroupKey, Set<OfdpaGroupHandlerUtility.GroupChainElem>> pendingGroups;
-    private ConcurrentHashMap<GroupKey, Set<NextObjective>> pendingUpdateNextObjectives;
+    Cache<GroupKey, List<OfdpaGroupHandlerUtility.OfdpaNextGroup>> pendingAddNextObjectives;
+    Cache<NextObjective, List<GroupKey>> pendingRemoveNextObjectives;
+    Cache<GroupKey, Set<OfdpaGroupHandlerUtility.GroupChainElem>> pendingGroups;
+    ConcurrentHashMap<GroupKey, Set<NextObjective>> pendingUpdateNextObjectives;
 
     // local store for pending bucketAdds - by design there can be multiple
     // pending bucket for a group
@@ -118,14 +118,6 @@ public class Ofdpa2GroupHandler {
 
     private ScheduledExecutorService groupCheckerExecutor =
             Executors.newScheduledThreadPool(2, groupedThreads("onos/pipeliner", "ofdpa-%d", log));
-
-    public Cache<GroupKey, List<OfdpaNextGroup>> pendingAddNextObjectives() {
-        return pendingAddNextObjectives;
-    }
-
-    public Cache<GroupKey, Set<GroupChainElem>> pendingGroups() {
-        return pendingGroups;
-    }
 
     /**
      * Determines whether this pipeline support copy ttl instructions or not.
@@ -1849,22 +1841,27 @@ public class Ofdpa2GroupHandler {
         });
     }
 
-    private void processPendingUpdateNextObjs(GroupKey groupKey) {
-        pendingUpdateNextObjectives.compute(groupKey, (gKey, nextObjs) -> {
-            if (nextObjs != null) {
-
-                nextObjs.forEach(nextObj -> {
-                    log.debug("Group {} updated, update pending next objective {}.",
-                              groupKey, nextObj);
-
-                    pass(nextObj);
-                });
-            }
-            return Sets.newHashSet();
-        });
+    protected void addPendingRemoveNextObjective(NextObjective nextObjective,
+                                                 List<GroupKey> groupKeys) {
+        pendingRemoveNextObjectives.put(nextObjective, groupKeys);
     }
 
-    private void processPendingRemoveNextObjs(GroupKey key) {
+    protected int getNextAvailableIndex() {
+        return (int) nextIndex.incrementAndGet();
+    }
+
+    protected void processPendingUpdateNextObjs(GroupKey groupKey) {
+        Set<NextObjective> nextObjs = pendingUpdateNextObjectives.remove(groupKey);
+        if (nextObjs != null) {
+            nextObjs.forEach(nextObj -> {
+                log.debug("Group {} updated, update pending next objective {}.",
+                          groupKey, nextObj);
+                pass(nextObj);
+            });
+        }
+    }
+
+    protected void processPendingRemoveNextObjs(GroupKey key) {
         pendingRemoveNextObjectives.asMap().forEach((nextObjective, groupKeys) -> {
             if (groupKeys.isEmpty()) {
                 pendingRemoveNextObjectives.invalidate(nextObjective);
@@ -1873,10 +1870,6 @@ public class Ofdpa2GroupHandler {
                 groupKeys.remove(key);
             }
         });
-    }
-
-    protected int getNextAvailableIndex() {
-        return (int) nextIndex.incrementAndGet();
     }
 
     protected void processPendingAddGroupsOrNextObjs(GroupKey key, boolean added) {
@@ -1949,11 +1942,6 @@ public class Ofdpa2GroupHandler {
         } else {
             groupService.addGroup(gce.groupDescription());
         }
-    }
-
-    protected void addPendingRemoveNextObjective(NextObjective nextObjective,
-                                                 List<GroupKey> groupKeys) {
-        pendingRemoveNextObjectives.put(nextObjective, groupKeys);
     }
 
     private void updateFlowObjectiveStore(Integer nextId, OfdpaNextGroup nextGrp) {

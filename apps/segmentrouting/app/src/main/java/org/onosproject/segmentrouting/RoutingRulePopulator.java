@@ -133,8 +133,8 @@ public class RoutingRulePopulator {
         }
 
         ObjectiveContext context = new DefaultObjectiveContext(
-                (objective) -> log.debug("Brigding rule for {}/{} revoked", mac, vlanId),
-                (objective, error) -> log.warn("Failed to revoke bridging rule for {}/{}: {}", mac, vlanId, error));
+                (objective) -> log.debug("Brigding rule for {}/{} populated", mac, vlanId),
+                (objective, error) -> log.warn("Failed to populate bridging rule for {}/{}: {}", mac, vlanId, error));
         srManager.flowObjectiveService.forward(deviceId, fob.add(context));
     }
 
@@ -155,8 +155,8 @@ public class RoutingRulePopulator {
         }
 
         ObjectiveContext context = new DefaultObjectiveContext(
-                (objective) -> log.debug("Brigding rule for {}/{} populated", mac, vlanId),
-                (objective, error) -> log.warn("Failed to populate bridging rule for {}/{}: {}", mac, vlanId, error));
+                (objective) -> log.debug("Brigding rule for {}/{} revoked", mac, vlanId),
+                (objective, error) -> log.warn("Failed to revoke bridging rule for {}/{}: {}", mac, vlanId, error));
         srManager.flowObjectiveService.forward(deviceId, fob.remove(context));
     }
 
