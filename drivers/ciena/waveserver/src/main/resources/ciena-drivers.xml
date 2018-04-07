@@ -16,19 +16,19 @@
   -->
 <drivers>
     <!-- Waveserver supports flex grid, although this driver only enables 50 GHz fixed grid. -->
-    <driver name="restCiena" manufacturer="Ciena" hwVersion="1.0.0" swVersion="1.0.0">
+    <driver name="ciena-waveserver-rest" manufacturer="Ciena" hwVersion="1.0.0" swVersion="1.0.0">
         <behaviour api="org.onosproject.net.optical.OpticalDevice"
                    impl="org.onosproject.net.optical.DefaultOpticalDevice"/>
         <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
-                   impl="org.onosproject.drivers.ciena.CienaWaveserverDeviceDescription"/>
+                   impl="org.onosproject.drivers.ciena.waveserver.rest.CienaWaveserverDeviceDescription"/>
         <behaviour api="org.onosproject.net.behaviour.PortAdmin"
-                   impl="org.onosproject.drivers.ciena.CienaWaveserverPortAdmin"/>
+                   impl="org.onosproject.drivers.ciena.waveserver.rest.CienaWaveserverPortAdmin"/>
         <behaviour api="org.onosproject.net.flow.FlowRuleProgrammable"
-                   impl="org.onosproject.drivers.ciena.CienaFlowRuleProgrammable"/>
+                   impl="org.onosproject.drivers.ciena.waveserver.rest.CienaFlowRuleProgrammable"/>
         <behaviour api="org.onosproject.net.behaviour.LambdaQuery"
-                   impl="org.onosproject.drivers.ciena.CienaWaveServerLambdaQuery"/>
+                   impl="org.onosproject.drivers.ciena.waveserver.rest.CienaWaveServerLambdaQuery"/>
         <behaviour api="org.onosproject.incubator.net.faultmanagement.alarm.AlarmConsumer"
-                   impl="org.onosproject.drivers.ciena.CienaWaveServerAlarmConsumer"/>
+                   impl="org.onosproject.drivers.ciena.waveserver.rest.CienaWaveServerAlarmConsumer"/>
     </driver>
 </drivers>
 

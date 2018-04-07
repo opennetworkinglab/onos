@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.drivers.ciena;
+package org.onosproject.drivers.ciena.waveserver.rest;
 
 import org.onlab.util.Tools;
 import org.onosproject.net.PortNumber;

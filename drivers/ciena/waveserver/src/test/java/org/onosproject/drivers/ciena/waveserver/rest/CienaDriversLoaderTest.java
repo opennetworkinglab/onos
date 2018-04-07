@@ -14,7 +14,18 @@
  * limitations under the License.
  */
 
+package org.onosproject.drivers.ciena.waveserver.rest;
+
+import org.junit.Before;
+import org.onosproject.net.driver.AbstractDriverLoaderTest;
+
 /**
- * Package for Ciena device drivers.
+ * Ciena drivers loader test.
  */
-package org.onosproject.drivers.ciena;
+public class CienaDriversLoaderTest extends AbstractDriverLoaderTest {
+
+    @Before
+    public void setUp() {
+        loader = new CienaDriversLoader();
+    }
+}

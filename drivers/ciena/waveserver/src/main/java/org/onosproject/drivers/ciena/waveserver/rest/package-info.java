@@ -14,23 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.drivers.ciena;
-
-import org.apache.felix.scr.annotations.Component;
-import org.onosproject.net.driver.AbstractDriverLoader;
-import org.onosproject.net.optical.OpticalDevice;
-
 /**
- * Loader for Ciena device drivers.
+ * Package for Ciena device drivers.
  */
-@Component(immediate = true)
-public class CienaDriversLoader extends AbstractDriverLoader {
-
-    // OSGI: help bundle plugin discover runtime package dependency.
-    @SuppressWarnings("unused")
-    private OpticalDevice optical;
-
-    public CienaDriversLoader() {
-        super("/ciena-drivers.xml");
-    }
-}
+package org.onosproject.drivers.ciena.waveserver.rest;

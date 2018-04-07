@@ -16,7 +16,7 @@ TEST_DEPS = [
 ]
 
 BUNDLES = [
-    ':onos-drivers-ciena',
+    ':onos-drivers-ciena-waveserver',
     '//drivers/utilities:onos-drivers-utilities',
 ]
 
@@ -34,11 +34,11 @@ osgi_jar_with_tests (
 )
 
 onos_app (
-    app_name = 'org.onosproject.drivers.ciena',
-    title = 'Ciena Drivers',
+    app_name = 'org.onosproject.drivers.ciena.waveserver.rest',
+    title = 'Ciena Waveserver Drivers',
     category = 'Drivers',
     url = 'http://onosproject.org',
-    description = 'Adds support for Ciena devices.',
+    description = 'Adds support for Ciena Waveserver devices.',
     included_bundles = BUNDLES,
     required_apps = REQUIRED_APPS,
 )

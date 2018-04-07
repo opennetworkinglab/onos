@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.drivers.ciena;
+package org.onosproject.drivers.ciena.waveserver.rest;
 
 import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.OchSignal;
