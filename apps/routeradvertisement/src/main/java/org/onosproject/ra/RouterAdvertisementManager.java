@@ -36,6 +36,8 @@ import org.onlab.packet.ndp.RouterAdvertisement;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.mastership.MastershipEvent;
+import org.onosproject.mastership.MastershipListener;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
@@ -326,7 +328,6 @@ public class RouterAdvertisementManager implements RoutingAdvertisementService {
 
     // Handler for device updates
     private class InternalDeviceListener implements DeviceListener {
-
         @Override
         public void event(DeviceEvent event) {
             switch (event.type()) {
@@ -344,8 +345,25 @@ public class RouterAdvertisementManager implements RoutingAdvertisementService {
         }
     }
 
-    private final InternalDeviceListener internalDeviceListener =
-            new InternalDeviceListener();
+    private class InternalMastershipListener implements MastershipListener {
+        @Override
+        public void event(MastershipEvent event) {
+            switch (event.type()) {
+                case MASTER_CHANGED:
+                    clearTxWorkers();
+                    setupTxWorkers();
+                    log.trace("Processed mastership event {} on {}", event.type(), event.subject());
+                    break;
+                case BACKUPS_CHANGED:
+                case SUSPENDED:
+                default:
+                    break;
+            }
+        }
+    }
+
+    private final InternalDeviceListener internalDeviceListener = new InternalDeviceListener();
+    private final InternalMastershipListener internalMastershipListener = new InternalMastershipListener();
 
     // Processor for Solicited RA packets
     private class InternalPacketProcessor implements PacketProcessor {
@@ -394,8 +412,9 @@ public class RouterAdvertisementManager implements RoutingAdvertisementService {
         networkConfigRegistry.registerConfigFactory(deviceConfigFactory);
         loadGlobalPrefixConfig();
 
-        // Dynamic device updates handling
+        // Register device and mastership event listener
         deviceService.addListener(internalDeviceListener);
+        mastershipService.addListener(internalMastershipListener);
 
         // Setup pool and worker threads for existing interfaces
         setupPoolAndTxWorkers();
@@ -478,6 +497,7 @@ public class RouterAdvertisementManager implements RoutingAdvertisementService {
         networkConfigRegistry.unregisterConfigFactory(deviceConfigFactory);
         packetService.removeProcessor(processor);
         deviceService.removeListener(internalDeviceListener);
+        mastershipService.removeListener(internalMastershipListener);
 
         // Clear pool & threads
         clearPoolAndTxWorkers();
