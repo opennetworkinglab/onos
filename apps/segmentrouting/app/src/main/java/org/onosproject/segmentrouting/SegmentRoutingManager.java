@@ -1383,7 +1383,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 case CONFIG_UPDATED:
                 case CONFIG_REMOVED:
                     log.trace("Schedule Network Config event {}", event);
-                    mainEventExecutor.schedule(new InternalEventHandler(event), 100, TimeUnit.MILLISECONDS);
+                    mainEventExecutor.execute(new InternalEventHandler(event));
                     break;
                 default:
                     break;
@@ -1429,7 +1429,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                     event.type() == LinkEvent.Type.LINK_UPDATED ||
                     event.type() == LinkEvent.Type.LINK_REMOVED) {
                 log.trace("Schedule Link event {}", event);
-                mainEventExecutor.schedule(new InternalEventHandler(event), 100, TimeUnit.MILLISECONDS);
+                mainEventExecutor.execute(new InternalEventHandler(event));
             }
         }
     }
@@ -1444,7 +1444,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 case DEVICE_UPDATED:
                 case DEVICE_AVAILABILITY_CHANGED:
                     log.trace("Schedule Device event {}", event);
-                    mainEventExecutor.schedule(new InternalEventHandler(event), 100, TimeUnit.MILLISECONDS);
+                    mainEventExecutor.execute(new InternalEventHandler(event));
                     break;
                 default:
             }
@@ -1457,7 +1457,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             switch (event.type()) {
                 case TOPOLOGY_CHANGED:
                     log.trace("Schedule Topology event {}", event);
-                    mainEventExecutor.schedule(new InternalEventHandler(event), 100, TimeUnit.MILLISECONDS);
+                    mainEventExecutor.execute(new InternalEventHandler(event));
                     break;
                 default:
             }
@@ -1473,7 +1473,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 case HOST_REMOVED:
                 case HOST_UPDATED:
                     log.trace("Schedule Host event {}", event);
-                    hostEventExecutor.schedule(new InternalEventHandler(event), 100, TimeUnit.MILLISECONDS);
+                    hostEventExecutor.execute(new InternalEventHandler(event));
                     break;
                 default:
                     log.warn("Unsupported host event type: {}", event.type());
@@ -1492,7 +1492,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 case SINKS_REMOVED:
                 case ROUTE_REMOVED:
                     log.trace("Schedule Mcast event {}", event);
-                    mcastEventExecutor.schedule(new InternalEventHandler(event), 100, TimeUnit.MILLISECONDS);
+                    mcastEventExecutor.execute(new InternalEventHandler(event));
                     break;
                 case ROUTE_ADDED:
                 default:
@@ -1511,7 +1511,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 case ROUTE_REMOVED:
                 case ALTERNATIVE_ROUTES_CHANGED:
                     log.trace("Schedule Route event {}", event);
-                    routeEventExecutor.schedule(new InternalEventHandler(event), 100, TimeUnit.MILLISECONDS);
+                    routeEventExecutor.execute(new InternalEventHandler(event));
                     break;
                 default:
                     log.warn("Unsupported route event type: {}", event.type());
