@@ -131,7 +131,18 @@ public class PacketManager
         store.setDelegate(delegate);
         deviceService.addListener(deviceListener);
         defaultProvider.init(deviceService);
-        store.existingRequests().forEach(this::pushToAllDevices);
+        store.existingRequests().forEach(request -> {
+            if (request.deviceId().isPresent()) {
+                Device device = deviceService.getDevice(request.deviceId().get());
+                if (device != null) {
+                    pushRule(device, request);
+                } else {
+                    log.info("Device is not ready yet. Skip processing packet requests {}", request);
+                }
+            } else {
+                pushToAllDevices(request);
+            }
+        });
         log.info("Started");
     }
 
