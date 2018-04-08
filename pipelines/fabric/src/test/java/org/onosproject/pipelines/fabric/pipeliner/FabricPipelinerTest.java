@@ -31,6 +31,7 @@ import org.onosproject.net.behaviour.PipelinerContext;
 import org.onosproject.net.driver.Driver;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.flow.criteria.PiCriterion;
+import org.onosproject.net.group.GroupService;
 import org.onosproject.pipelines.fabric.FabricConstants;
 import org.onosproject.pipelines.fabric.FabricInterpreter;
 
@@ -82,6 +83,7 @@ public abstract class FabricPipelinerTest {
     public void setup() {
         pipeliner = new FabricPipeliner();
 
+        GroupService mockGroupService = createNiceMock(GroupService.class);
         ServiceDirectory serviceDirectory = createNiceMock(ServiceDirectory.class);
         PipelinerContext pipelinerContext = createNiceMock(PipelinerContext.class);
         DriverHandler driverHandler = createNiceMock(DriverHandler.class);
@@ -90,6 +92,7 @@ public abstract class FabricPipelinerTest {
         expect(mockDriver.getProperty("noHashedTable")).andReturn("false").anyTimes();
         expect(driverHandler.driver()).andReturn(mockDriver).anyTimes();
         expect(pipelinerContext.directory()).andReturn(serviceDirectory).anyTimes();
+        expect(serviceDirectory.get(GroupService.class)).andReturn(mockGroupService).anyTimes();
         replay(serviceDirectory, pipelinerContext, driverHandler, mockDriver);
         TestUtils.setField(pipeliner, "handler", driverHandler);
 
