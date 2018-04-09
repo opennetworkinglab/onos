@@ -14,6 +14,6 @@
  * limitations under the License.
  */
 /**
- * sub-package for ODTN related CLI.
+ * Utilities to deal with onos-yang-tools OpenConfig objects..
  */
-package org.onosproject.odtn.cli.impl.sub;
+package org.onosproject.odtn.utils.openconfig;

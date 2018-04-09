@@ -18,8 +18,6 @@ package org.onosproject.odtn.cli.impl;
 import static org.onosproject.odtn.utils.YangToolUtil.toCharSequence;
 import static org.onosproject.odtn.utils.YangToolUtil.toCompositeData;
 import static org.onosproject.odtn.utils.YangToolUtil.toDocument;
-import static org.onosproject.odtn.utils.YangToolUtil.toJsonCompositeStream;
-import static org.onosproject.odtn.utils.YangToolUtil.toJsonNode;
 import static org.onosproject.odtn.utils.YangToolUtil.toResourceData;
 import static org.onosproject.odtn.utils.YangToolUtil.toXmlCompositeStream;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -41,18 +39,22 @@ import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cli.net.DeviceIdCompleter;
 import org.onosproject.config.DynamicConfigService;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.netconf.NetconfController;
 import org.onosproject.netconf.NetconfDevice;
 import org.onosproject.netconf.NetconfException;
-import org.onosproject.odtn.cli.impl.sub.OpticalChannel;
-import org.onosproject.odtn.cli.impl.sub.Transceiver;
+import org.onosproject.odtn.behaviour.ConfigurableTransceiver;
+import org.onosproject.odtn.behaviour.PlainTransceiver;
+import org.onosproject.odtn.utils.openconfig.OpticalChannel;
+import org.onosproject.odtn.utils.openconfig.Transceiver;
 import org.onosproject.yang.model.DataNode;
 import org.onosproject.yang.model.ResourceId;
 import org.slf4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Lists;
+import com.google.common.io.CharSource;
 
 
 
@@ -90,6 +92,7 @@ public class OdtnManualTestCommand extends AbstractShellCommand {
 
     // OSGi Services to be filled in at the beginning.
     private DynamicConfigService dcs;
+    private DeviceService deviceService;
 
 
     void printlog(String format, Object... objs) {
@@ -97,9 +100,17 @@ public class OdtnManualTestCommand extends AbstractShellCommand {
         log.info(format, objs);
     }
 
+    List<CharSequence> transform(List<DataNode> input) {
+        ResourceId empty = ResourceId.builder().build();
+        return Lists.transform(input,
+                   node -> toCharSequence(toXmlCompositeStream(toCompositeData(toResourceData(empty, node)))));
+    }
+
+
     @Override
     protected void execute() {
         dcs = get(DynamicConfigService.class);
+        deviceService = get(DeviceService.class);
 
         try {
             mode = Mode.valueOf(modeStr);
@@ -112,23 +123,36 @@ public class OdtnManualTestCommand extends AbstractShellCommand {
         }
 
         // effectively configuration context
-        List<DataNode> nodes = new ArrayList<>();
+        List<CharSequence> nodes = new ArrayList<>();
+
+        // driver selection with fallback to plain OpenConfig
+        DeviceId did = Optional.ofNullable(uri)
+                        .map(DeviceId::deviceId)
+                        .orElse(null);
+        ConfigurableTransceiver transceiver =
+            Optional.ofNullable(did)
+            .map(deviceService::getDevice)
+            .filter(device -> device.is(ConfigurableTransceiver.class))
+            .map(device -> device.as(ConfigurableTransceiver.class))
+            .orElseGet(() -> new PlainTransceiver());
 
         switch (mode) {
         case PRECONF_TRANSCEIVER:
-            nodes.addAll(Transceiver.preconf(componentName));
+            // note: these doesn't support driver
+            nodes.addAll(transform(Transceiver.preconf(componentName)));
             break;
 
         case ENABLE_TRANSCEIVER:
-            nodes.addAll(Transceiver.enable(componentName, true));
+            nodes.addAll(transceiver.enable(componentName, true));
             break;
 
         case DISABLE_TRANSCEIVER:
-            nodes.addAll(Transceiver.enable(componentName, false));
+            nodes.addAll(transceiver.enable(componentName, false));
             break;
 
         case PRECONF_OPTICAL_CHANNEL:
-            nodes.addAll(OpticalChannel.preconf(componentName));
+            // note: these doesn't support driver
+            nodes.addAll(transform(OpticalChannel.preconf(componentName)));
             break;
 
         default:
@@ -140,7 +164,7 @@ public class OdtnManualTestCommand extends AbstractShellCommand {
         doTheMagic(nodes);
     }
 
-    void doTheMagic(List<DataNode> nodes) {
+    void doTheMagic(List<CharSequence> nodes) {
 
         Document doc;
         try {
@@ -167,10 +191,8 @@ public class OdtnManualTestCommand extends AbstractShellCommand {
         editConfig.appendChild(config);
 
 
-        for (DataNode node : nodes) {
-            // empty resourceId assuming node is root of cfg tree
-            ResourceId resourceId = ResourceId.builder().build();
-            Document ldoc = toDocument(toXmlCompositeStream(toCompositeData(toResourceData(resourceId, node))));
+        for (CharSequence node : nodes) {
+            Document ldoc = toDocument(CharSource.wrap(node));
             Element cfgRoot = ldoc.getDocumentElement();
 
             // is everything as merge, ok?
@@ -178,11 +200,11 @@ public class OdtnManualTestCommand extends AbstractShellCommand {
 
             // move (or copy) node to another Document
             config.appendChild(Optional.ofNullable(doc.adoptNode(cfgRoot))
-                             .orElseGet(() -> doc.importNode(cfgRoot, true)));
+                                  .orElseGet(() -> doc.importNode(cfgRoot, true)));
 
             // don't have good use for JSON for now
-            JsonNode json = toJsonNode(toJsonCompositeStream(toCompositeData(toResourceData(resourceId, node))));
-            printlog("JSON:\n{}", toCharSequence(json));
+            //JsonNode json = toJsonNode(toJsonCompositeStream(toCompositeData(toResourceData(resourceId, node))));
+            //printlog("JSON:\n{}", toCharSequence(json));
         }
 
         printlog("XML:\n{}", XmlString.prettifyXml(toCharSequence(doc)));

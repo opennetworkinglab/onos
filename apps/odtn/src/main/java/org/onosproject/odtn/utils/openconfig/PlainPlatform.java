@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.odtn.cli.impl.sub;
+package org.onosproject.odtn.utils.openconfig;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 

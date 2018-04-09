@@ -63,6 +63,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.annotations.Beta;
+import com.google.common.io.CharSource;
 import com.google.common.io.CharStreams;
 
 @Beta
@@ -146,7 +147,7 @@ public class YangToolUtil {
 
         try {
             return mapper.writerWithDefaultPrettyPrinter()
-                        .writeValueAsString(jsonInput);
+                         .writeValueAsString(jsonInput);
         } catch (JsonProcessingException e) {
             log.error("Exception thrown", e);
             return null;
@@ -197,6 +198,23 @@ public class YangToolUtil {
             return DocumentBuilderFactory.newInstance()
                     .newDocumentBuilder()
                 .parse(new InputSource(new InputStreamReader(xmlInput.resourceData(), UTF_8)));
+        } catch (ParserConfigurationException | SAXException | IOException e) {
+            log.error("Exception thrown", e);
+            return null;
+        }
+    }
+
+    /**
+     * Converts XML source into XML Document.
+     *
+     * @param xmlInput to convert
+     * @return Document
+     */
+    public static Document toDocument(CharSource xmlInput) {
+        try {
+            return DocumentBuilderFactory.newInstance()
+                    .newDocumentBuilder()
+                .parse(new InputSource(xmlInput.openStream()));
         } catch (ParserConfigurationException | SAXException | IOException e) {
             log.error("Exception thrown", e);
             return null;
@@ -268,7 +286,6 @@ public class YangToolUtil {
         }
         return builder.build();
     }
-
 
     /**
      * Converts ModelObject into a DataNode.
