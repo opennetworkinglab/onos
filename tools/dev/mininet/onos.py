@@ -249,17 +249,21 @@ class ONOSNode( Controller ):
     # pylint: disable=arguments-differ
 
 
-    def start( self, env=None, nodes=() ):
+    def start( self, env=None, nodes=(), debug=False ):
         """Start ONOS on node
            env: environment var dict
            nodes: all nodes in cluster"""
         if env is not None:
             self.genStartConfig(env, nodes)
         self.cmd( 'cd', self.ONOS_HOME )
-        info( '(starting %s)' % self )
+        info( '(starting %s debug: %s)' % ( self, debug ) )
         service = join( self.ONOS_HOME, 'bin/onos-service' )
-        self.ucmd( service, 'server 1>../onos.log 2>../onos.log'
+        if debug:
+            self.ucmd( service, 'server debug 1>../onos.log 2>../onos.log'
                             ' & echo $! > onos.pid; ln -s `pwd`/onos.pid ..' )
+        else:
+            self.ucmd( service, 'server 1>../onos.log 2>../onos.log'
+                                ' & echo $! > onos.pid; ln -s `pwd`/onos.pid ..' )
         self.onosPid = int( self.cmd( 'cat onos.pid' ).strip() )
         self.warningCount = 0
 
@@ -424,6 +428,7 @@ class ONOSCluster( Controller ):
            portOffset: offset to port base (optional)
            topo: topology class or instance
            nodeOpts: ONOSNode options
+           debug: enabling debug mode or not
            **kwargs: additional topology parameters
         By default, multiple ONOSClusters will increment
         the portOffset automatically; alternately, it can
@@ -450,6 +455,8 @@ class ONOSCluster( Controller ):
         self.ipBase = kwargs.pop( 'ipBase', '192.168.123.0/24' )
         self.forward = kwargs.pop( 'forward',
                                    [ KarafPort, GUIPort, OpenFlowPort ] )
+        self.debug = kwargs.pop('debug', 'False') == 'True'
+
         super( ONOSCluster, self ).__init__( name, inNamespace=False )
         fixIPTables()
         self.env = initONOSEnv()
@@ -469,7 +476,7 @@ class ONOSCluster( Controller ):
         info( '*** ONOS_APPS = %s\n' % ONOS_APPS )
         self.net.start()
         for node in self.nodes():
-            node.start( self.env, self.nodes() )
+            node.start( self.env, self.nodes(), self.debug )
         info( '\n' )
         self.configPortForwarding( ports=self.forward, action='A' )
         self.waitStarted()
@@ -684,7 +691,7 @@ class ONOSCLI( OldCLI ):
             onos = c0.getONOSNode( instance )
             if onos:
                 info('Starting %s...\n' % ( instance ) )
-                onos.start()
+                onos.start( debug=c0.debug )
 
     def do_kill( self, instance=None ):
         """Kill ONOS instance"""
