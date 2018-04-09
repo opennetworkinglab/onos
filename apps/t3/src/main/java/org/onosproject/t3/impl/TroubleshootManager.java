@@ -424,7 +424,7 @@ public class TroubleshootManager implements TroubleshootService {
             return trace;
         }
 
-        //If the trace has ouputs we analyze them all
+        //If the trace has outputs we analyze them all
         for (GroupsInDevice outputPath : trace.getGroupOuputs(in.deviceId())) {
 
             ConnectPoint cp = outputPath.getOutput();
@@ -678,6 +678,12 @@ public class TroubleshootManager implements TroubleshootService {
         if (!completePath.contains(trace.getInitialConnectPoint())) {
             traverseList.add(trace.getInitialConnectPoint());
         }
+
+        if (output != null && trace.getInitialConnectPoint().deviceId().equals(output.deviceId())) {
+            trace.addCompletePath(ImmutableList.of(trace.getInitialConnectPoint(), output));
+            return true;
+        }
+
         traverseList.addAll(completePath);
         if (output != null && !completePath.contains(output)) {
             traverseList.add(output);
