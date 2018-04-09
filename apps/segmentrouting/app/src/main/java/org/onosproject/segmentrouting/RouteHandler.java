@@ -111,6 +111,11 @@ public class RouteHandler {
 
         log.info("processRouteAddedInternal. routes={}", routes);
 
+        if (routes.size() > 2) {
+            log.info("Route {} has more than two next hops. Do not process route change", routes);
+            return;
+        }
+
         Set<ConnectPoint> allLocations = Sets.newHashSet();
         Set<IpPrefix> allPrefixes = Sets.newHashSet();
         routes.forEach(route -> {
@@ -152,12 +157,26 @@ public class RouteHandler {
 
         log.info("processRouteUpdatedInternal. routes={}, oldRoutes={}", routes, oldRoutes);
 
+        if (routes.size() > 2) {
+            log.info("Route {} has more than two next hops. Do not process route change", routes);
+            return;
+        }
+
         Set<ConnectPoint> allLocations = Sets.newHashSet();
         Set<IpPrefix> allPrefixes = Sets.newHashSet();
         routes.forEach(route -> {
             allLocations.addAll(srManager.nextHopLocations(route));
             allPrefixes.add(route.prefix());
         });
+
+        // Just come back from an invalid next hop count
+        // Revoke subnet from all locations and reset oldRoutes such that system will be reprogrammed from scratch
+        if (oldRoutes.size() > 2) {
+            log.info("Revoke subnet {} and reset oldRoutes");
+            srManager.defaultRoutingHandler.revokeSubnet(allPrefixes);
+            oldRoutes = Sets.newHashSet();
+        }
+
         log.debug("RouteUpdated. populateSubnet {}, {}", allLocations, allPrefixes);
         srManager.defaultRoutingHandler.populateSubnet(allLocations, allPrefixes);
 

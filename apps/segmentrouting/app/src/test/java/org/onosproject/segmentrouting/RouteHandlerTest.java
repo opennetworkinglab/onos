@@ -101,6 +101,14 @@ public class RouteHandlerTest {
     private static final Route R3 = new Route(Route.Source.STATIC, P1, N3);
     private static final ResolvedRoute RR3 = new ResolvedRoute(R3, M3, V3);
 
+    // Single homed router 3
+    private static final IpAddress N4 = IpAddress.valueOf("10.0.4.254");
+    private static final MacAddress M4 = MacAddress.valueOf("00:00:00:00:00:04");
+    private static final VlanId V4 = VlanId.vlanId((short) 4);
+    private static final ConnectPoint CP4 = ConnectPoint.deviceConnectPoint("of:0000000000000004/4");
+    private static final Route R4 = new Route(Route.Source.STATIC, P1, N4);
+    private static final ResolvedRoute RR4 = new ResolvedRoute(R4, M4, V4);
+
     // Hosts
     private static final Host H1 = new DefaultHost(ProviderId.NONE, HostId.hostId(M1, V1), M1, V1,
             Sets.newHashSet(new HostLocation(CP1, 0)), Sets.newHashSet(N1), false);
@@ -110,12 +118,14 @@ public class RouteHandlerTest {
             Sets.newHashSet(new HostLocation(CP1, 0), new HostLocation(CP2, 0)), Sets.newHashSet(N3), false);
     private static final Host H3S = new DefaultHost(ProviderId.NONE, HostId.hostId(M3, V3), M3, V3,
             Sets.newHashSet(new HostLocation(CP1, 0)), Sets.newHashSet(N3), false);
+    private static final Host H4 = new DefaultHost(ProviderId.NONE, HostId.hostId(M4, V4), M4, V4,
+            Sets.newHashSet(new HostLocation(CP4, 0)), Sets.newHashSet(N4), false);
 
     // Pair Local Port
     private static final PortNumber P9 = PortNumber.portNumber(9);
 
     // A set of hosts
-    private static final Set<Host> HOSTS = Sets.newHashSet(H1, H2, H3D);
+    private static final Set<Host> HOSTS = Sets.newHashSet(H1, H2, H3D, H4);
     private static final Set<Host> HOSTS_ONE_FAIL = Sets.newHashSet(H1, H2, H3S);
     private static final Set<Host> HOSTS_BOTH_FAIL = Sets.newHashSet(H1, H2);
     // A set of devices of which we have mastership
@@ -124,7 +134,7 @@ public class RouteHandlerTest {
     private static final Set<Interface> INTERFACES = Sets.newHashSet();
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         ObjectMapper mapper = new ObjectMapper();
         ConfigApplyDelegate delegate = config -> { };
 
@@ -173,7 +183,7 @@ public class RouteHandlerTest {
     }
 
     @Test
-    public void init() throws Exception {
+    public void init() {
         MockRoutingTableKey rtk = new MockRoutingTableKey(CP1.deviceId(), P1);
         MockRoutingTableValue rtv = new MockRoutingTableValue(CP1.port(), M1, V1);
         ROUTING_TABLE.put(rtk, rtv);
@@ -191,7 +201,7 @@ public class RouteHandlerTest {
     }
 
     @Test
-    public void processRouteAdded() throws Exception {
+    public void processRouteAdded() {
         reset(srManager.deviceConfiguration);
         srManager.deviceConfiguration.addSubnet(CP1, P1);
         expectLastCall().once();
@@ -213,7 +223,7 @@ public class RouteHandlerTest {
     }
 
     @Test
-    public void processRouteUpdated() throws Exception {
+    public void processRouteUpdated() {
         processRouteAdded();
 
         reset(srManager.deviceConfiguration);
@@ -242,7 +252,7 @@ public class RouteHandlerTest {
     }
 
     @Test
-    public void processRouteRemoved() throws Exception {
+    public void processRouteRemoved() {
         processRouteAdded();
 
         reset(srManager.deviceConfiguration);
@@ -260,7 +270,7 @@ public class RouteHandlerTest {
     }
 
     @Test
-    public void testTwoSingleHomedAdded() throws Exception {
+    public void testTwoSingleHomedAdded() {
         reset(srManager.deviceConfiguration);
         srManager.deviceConfiguration.addSubnet(CP1, P1);
         expectLastCall().once();
@@ -289,7 +299,7 @@ public class RouteHandlerTest {
     }
 
     @Test
-    public void testOneDualHomedAdded() throws Exception {
+    public void testOneDualHomedAdded() {
         reset(srManager.deviceConfiguration);
         srManager.deviceConfiguration.addSubnet(CP1, P1);
         expectLastCall().once();
@@ -318,7 +328,7 @@ public class RouteHandlerTest {
     }
 
     @Test
-    public void testOneSingleHomedToTwoSingleHomed() throws Exception {
+    public void testOneSingleHomedToTwoSingleHomed() {
         processRouteAdded();
 
         reset(srManager.deviceConfiguration);
@@ -348,7 +358,7 @@ public class RouteHandlerTest {
     }
 
     @Test
-    public void testTwoSingleHomedToOneSingleHomed() throws Exception {
+    public void testTwoSingleHomedToOneSingleHomed() {
         testTwoSingleHomedAdded();
 
         reset(srManager.deviceConfiguration);
@@ -377,7 +387,7 @@ public class RouteHandlerTest {
     // TODO Add test cases for two single homed next hop at same location
 
     @Test
-    public void testDualHomedSingleLocationFail() throws Exception {
+    public void testDualHomedSingleLocationFail() {
         testOneDualHomedAdded();
 
         HostEvent he = new HostEvent(HostEvent.Type.HOST_MOVED, H3S, H3D);
@@ -400,7 +410,7 @@ public class RouteHandlerTest {
     }
 
     @Test
-    public void testDualHomedBothLocationFail() throws Exception {
+    public void testDualHomedBothLocationFail() {
         testDualHomedSingleLocationFail();
 
         hostService = new MockHostService(HOSTS_ONE_FAIL);
@@ -422,7 +432,7 @@ public class RouteHandlerTest {
     }
 
     @Test
-    public void testTwoSingleHomedRemoved() throws Exception {
+    public void testTwoSingleHomedRemoved() {
         testTwoSingleHomedAdded();
 
         hostService = new MockHostService(HOSTS_BOTH_FAIL);
@@ -444,7 +454,7 @@ public class RouteHandlerTest {
     }
 
     @Test
-    public void testOneDualHomeRemoved() throws Exception {
+    public void testOneDualHomeRemoved() {
         testOneDualHomedAdded();
 
         reset(srManager.deviceConfiguration);
@@ -459,6 +469,81 @@ public class RouteHandlerTest {
 
         assertEquals(0, ROUTING_TABLE.size());
         assertEquals(0, SUBNET_TABLE.size());
+
+        verify(srManager.deviceConfiguration);
+    }
+
+    @Test
+    public void testMoreThanTwoNextHop() {
+        // next hop = CP1, CP2
+        reset(srManager.deviceConfiguration);
+        srManager.deviceConfiguration.addSubnet(CP1, P1);
+        srManager.deviceConfiguration.addSubnet(CP2, P1);
+        expectLastCall().once();
+        replay(srManager.deviceConfiguration);
+
+        RouteEvent re = new RouteEvent(RouteEvent.Type.ROUTE_ADDED, RR1, Sets.newHashSet(RR1, RR2));
+        routeHandler.processRouteAdded(re);
+
+        assertEquals(2, ROUTING_TABLE.size());
+        MockRoutingTableValue rtv1 = ROUTING_TABLE.get(new MockRoutingTableKey(CP1.deviceId(), P1));
+        assertEquals(M1, rtv1.macAddress);
+        assertEquals(V1, rtv1.vlanId);
+        assertEquals(CP1.port(), rtv1.portNumber);
+        MockRoutingTableValue rtv2 = ROUTING_TABLE.get(new MockRoutingTableKey(CP2.deviceId(), P1));
+        assertEquals(M2, rtv2.macAddress);
+        assertEquals(V2, rtv2.vlanId);
+        assertEquals(CP2.port(), rtv2.portNumber);
+
+        assertEquals(2, SUBNET_TABLE.size());
+        assertTrue(SUBNET_TABLE.get(CP1).contains(P1));
+        assertTrue(SUBNET_TABLE.get(CP2).contains(P1));
+
+        verify(srManager.deviceConfiguration);
+
+        // next hop = CP1, CP2, CP4 (invalid)
+        re = new RouteEvent(RouteEvent.Type.ALTERNATIVE_ROUTES_CHANGED, RR1, null,
+                Sets.newHashSet(RR1, RR2, RR4), Sets.newHashSet(RR1, RR2));
+        routeHandler.processAlternativeRoutesChanged(re);
+
+        assertEquals(2, ROUTING_TABLE.size());
+        rtv1 = ROUTING_TABLE.get(new MockRoutingTableKey(CP1.deviceId(), P1));
+        assertEquals(M1, rtv1.macAddress);
+        assertEquals(V1, rtv1.vlanId);
+        assertEquals(CP1.port(), rtv1.portNumber);
+        rtv2 = ROUTING_TABLE.get(new MockRoutingTableKey(CP2.deviceId(), P1));
+        assertEquals(M2, rtv2.macAddress);
+        assertEquals(V2, rtv2.vlanId);
+        assertEquals(CP2.port(), rtv2.portNumber);
+
+        assertEquals(2, SUBNET_TABLE.size());
+        assertTrue(SUBNET_TABLE.get(CP1).contains(P1));
+        assertTrue(SUBNET_TABLE.get(CP2).contains(P1));
+
+        // next hop = CP2, CP4
+        reset(srManager.deviceConfiguration);
+        srManager.deviceConfiguration.addSubnet(CP2, P1);
+        srManager.deviceConfiguration.addSubnet(CP4, P1);
+        expectLastCall().once();
+        replay(srManager.deviceConfiguration);
+
+        re = new RouteEvent(RouteEvent.Type.ALTERNATIVE_ROUTES_CHANGED, RR1, null,
+                Sets.newHashSet(RR2, RR4), Sets.newHashSet(RR1, RR2, RR4));
+        routeHandler.processAlternativeRoutesChanged(re);
+
+        assertEquals(2, ROUTING_TABLE.size());
+        rtv1 = ROUTING_TABLE.get(new MockRoutingTableKey(CP2.deviceId(), P1));
+        assertEquals(M2, rtv1.macAddress);
+        assertEquals(V2, rtv1.vlanId);
+        assertEquals(CP2.port(), rtv1.portNumber);
+        rtv2 = ROUTING_TABLE.get(new MockRoutingTableKey(CP4.deviceId(), P1));
+        assertEquals(M4, rtv2.macAddress);
+        assertEquals(V4, rtv2.vlanId);
+        assertEquals(CP4.port(), rtv2.portNumber);
+
+        assertEquals(2, SUBNET_TABLE.size());
+        assertTrue(SUBNET_TABLE.get(CP2).contains(P1));
+        assertTrue(SUBNET_TABLE.get(CP4).contains(P1));
 
         verify(srManager.deviceConfiguration);
     }
