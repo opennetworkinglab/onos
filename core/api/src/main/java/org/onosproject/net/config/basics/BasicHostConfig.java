@@ -147,7 +147,7 @@ public final class BasicHostConfig extends BasicElementConfig<HostId> {
     }
 
     public EthType outerTpid() {
-        short tpid = (short) (Integer.decode(get(OUTER_TPID, "0")) & 0xFFFF);
+        short tpid = (short) (Integer.decode(get(OUTER_TPID, "0x8100")) & 0xFFFF);
         if (!(tpid == EthType.EtherType.VLAN.ethType().toShort() ||
                 tpid == EthType.EtherType.QINQ.ethType().toShort())) {
             return EthType.EtherType.UNKNOWN.ethType();

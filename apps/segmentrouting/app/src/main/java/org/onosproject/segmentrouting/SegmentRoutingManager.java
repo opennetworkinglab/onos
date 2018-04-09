@@ -41,6 +41,7 @@ import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.ClusterEvent;
 import org.onosproject.cluster.ClusterEventListener;
 import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.LeadershipService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -118,6 +119,7 @@ import org.onosproject.segmentrouting.pwaas.L2TunnelPolicy;
 import org.onosproject.segmentrouting.pwaas.L2TunnelDescription;
 
 import org.onosproject.segmentrouting.storekey.DestinationSetNextObjectiveStoreKey;
+import org.onosproject.segmentrouting.storekey.DummyVlanIdStoreKey;
 import org.onosproject.segmentrouting.storekey.McastStoreKey;
 import org.onosproject.segmentrouting.storekey.PortNextObjectiveStoreKey;
 import org.onosproject.segmentrouting.storekey.VlanNextObjectiveStoreKey;
@@ -148,6 +150,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static com.google.common.base.Preconditions.checkState;
 import static org.onlab.packet.Ethernet.TYPE_ARP;
@@ -222,6 +225,9 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     public WorkPartitionService workPartitionService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    public LeadershipService leadershipService;
+
     @Property(name = "activeProbing", boolValue = true,
             label = "Enable active probing to discover dual-homed hosts.")
     boolean activeProbing = true;
@@ -287,6 +293,13 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     private EventuallyConsistentMap<PortNextObjectiveStoreKey, Integer>
             portNextObjStore = null;
 
+    /**
+     * Per port dummy VLAN ID store with (connect point + ip address) as key.
+     * Used to keep track on dummy VLAN ID allocation.
+     */
+    private EventuallyConsistentMap<DummyVlanIdStoreKey, VlanId>
+            dummyVlanIdStore = null;
+
     private EventuallyConsistentMap<String, Tunnel> tunnelStore = null;
     private EventuallyConsistentMap<String, Policy> policyStore = null;
 
@@ -342,6 +355,12 @@ public class SegmentRoutingManager implements SegmentRoutingService {
      */
     public static final VlanId INTERNAL_VLAN = VlanId.vlanId((short) 4094);
 
+    /**
+     * Minumum and maximum value of dummy VLAN ID to be allocated.
+     */
+    public static final int MIN_DUMMY_VLAN_ID = 2;
+    public static final int MAX_DUMMY_VLAN_ID = 4093;
+
     @Activate
     protected void activate(ComponentContext context) {
         appId = coreService.registerApplication(APP_NAME);
@@ -375,6 +394,14 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 portNextObjMapBuilder = storageService.eventuallyConsistentMapBuilder();
         portNextObjStore = portNextObjMapBuilder
                 .withName("portnextobjectivestore")
+                .withSerializer(createSerializer())
+                .withTimestampProvider((k, v) -> new WallClockTimestamp())
+                .build();
+
+        EventuallyConsistentMapBuilder<DummyVlanIdStoreKey, VlanId>
+                dummyVlanIdMapBuilder = storageService.eventuallyConsistentMapBuilder();
+        dummyVlanIdStore = dummyVlanIdMapBuilder
+                .withName("dummyvlanidstore")
                 .withSerializer(createSerializer())
                 .withTimestampProvider((k, v) -> new WallClockTimestamp())
                 .build();
@@ -484,7 +511,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                           L2Tunnel.class,
                           L2TunnelPolicy.class,
                           DefaultL2Tunnel.class,
-                          DefaultL2TunnelPolicy.class
+                          DefaultL2TunnelPolicy.class,
+                          DummyVlanIdStoreKey.class
                 );
     }
 
@@ -524,6 +552,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         dsNextObjStore.destroy();
         vlanNextObjStore.destroy();
         portNextObjStore.destroy();
+        dummyVlanIdStore.destroy();
         tunnelStore.destroy();
         policyStore.destroy();
 
@@ -774,6 +803,16 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     }
 
     /**
+     * Per port dummy VLAN ID store with (connect point + ip address) as key.
+     * Used to keep track on dummy VLAN ID allocation.
+     *
+     * @return dummy vlan id store.
+     */
+    public EventuallyConsistentMap<DummyVlanIdStoreKey, VlanId> dummyVlanIdStore() {
+        return dummyVlanIdStore;
+    }
+
+    /**
      * Returns the MPLS-ECMP configuration which indicates whether ECMP on
      * labeled packets should be programmed or not.
      *
@@ -985,6 +1024,35 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     public DefaultRoutingHandler getRoutingHandler() {
         return defaultRoutingHandler;
     }
+
+    /**
+     * Returns new dummy VLAN ID.
+     * Dummy VLAN ID should be unique in each connect point.
+     *
+     * @param cp connect point
+     * @param ipAddress IP address
+     * @return new dummy VLAN ID. Returns VlanId.NONE if no VLAN ID is available.
+     */
+    public synchronized VlanId allocateDummyVlanId(ConnectPoint cp, IpAddress ipAddress) {
+        Set<VlanId> usedVlanId = Sets.union(getVlanPortMap(cp.deviceId()).keySet(),
+                                            dummyVlanIdStore.entrySet().stream().filter(entry ->
+                                                (entry.getKey()).connectPoint().equals(cp))
+                                            .map(Map.Entry::getValue)
+                                            .collect(Collectors.toSet()));
+
+        VlanId dummyVlanId = IntStream.range(MIN_DUMMY_VLAN_ID, MAX_DUMMY_VLAN_ID).mapToObj(
+                i -> VlanId.vlanId((short) (i & 0xFFFF))
+        ).filter(vlanId -> !usedVlanId.contains(vlanId)).findFirst().orElse(VlanId.NONE);
+
+        if (!dummyVlanId.equals(VlanId.NONE)) {
+            this.dummyVlanIdStore.put(new DummyVlanIdStoreKey(cp, ipAddress), dummyVlanId);
+            log.debug("Dummy VLAN ID {} is allocated to {}, {}", dummyVlanId, cp, ipAddress);
+        } else {
+            log.error("Failed to allocate dummy VLAN ID for {}, {}", cp, ipAddress);
+        }
+        return dummyVlanId;
+    }
+
 
     private class InternalPacketProcessor implements PacketProcessor {
         @Override

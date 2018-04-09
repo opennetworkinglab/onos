@@ -18,6 +18,7 @@ package org.onosproject.driver.pipeline.ofdpa;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import org.onlab.osgi.ServiceDirectory;
+import org.onlab.packet.EthType;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.EthType.EtherType;
 import org.onlab.packet.IpAddress;
@@ -27,8 +28,11 @@ import org.onlab.packet.VlanId;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.driver.extensions.Ofdpa3CopyField;
 import org.onosproject.driver.extensions.Ofdpa3MplsType;
 import org.onosproject.driver.extensions.Ofdpa3SetMplsType;
+import org.onosproject.driver.extensions.OfdpaMatchActsetOutput;
+import org.onosproject.driver.extensions.OfdpaMatchAllowVlanTranslation;
 import org.onosproject.driver.extensions.OfdpaMatchVlanVid;
 import org.onosproject.driver.extensions.OfdpaSetVlanVid;
 import org.onosproject.net.DeviceId;
@@ -90,6 +94,7 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -99,6 +104,8 @@ import static org.onlab.packet.MacAddress.IPV4_MULTICAST;
 import static org.onlab.packet.MacAddress.IPV6_MULTICAST;
 import static org.onlab.packet.MacAddress.NONE;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.driver.extensions.Ofdpa3CopyField.OXM_ID_PACKET_REG_1;
+import static org.onosproject.driver.extensions.Ofdpa3CopyField.OXM_ID_VLAN_VID;
 import static org.onosproject.driver.pipeline.ofdpa.OfdpaGroupHandlerUtility.*;
 import static org.onosproject.net.flow.criteria.Criterion.Type.ETH_TYPE;
 import static org.onosproject.net.group.GroupDescription.Type.SELECT;
@@ -123,6 +130,9 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
     protected static final int MPLS_TYPE_TABLE = 29;
     protected static final int BRIDGING_TABLE = 50;
     protected static final int ACL_TABLE = 60;
+    protected static final int EGRESS_VLAN_FLOW_TABLE = 210;
+    protected static final int EGRESS_DSCP_PCP_REMARK_FLOW_TABLE = 230;
+    protected static final int EGRESS_TPID_FLOW_TABLE = 235;
     protected static final int MAC_LEARNING_TABLE = 254;
     protected static final long OFPP_MAX = 0xffffff00L;
 
@@ -137,6 +147,10 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
     protected static final int MPLS_UNI_PORT_MAX = 0x0000FFFF;
     protected static final int MPLS_NNI_PORT_BASE = 0x00020000;
     protected static final int MPLS_NNI_PORT_MAX = 0x0002FFFF;
+
+    protected static final short ALLOW_VLAN_TRANSLATION = 1;
+    protected static final int COPY_FIELD_NBITS = 12;
+    protected static final int COPY_FIELD_OFFSET = 0;
 
     private final Logger log = getLogger(getClass());
     protected ServiceDirectory serviceDirectory;
@@ -1016,11 +1030,110 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 return processSpecific(fwd);
             case VERSATILE:
                 return processVersatile(fwd);
+            case EGRESS:
+                return processEgress(fwd);
             default:
                 fail(fwd, ObjectiveError.UNKNOWN);
                 log.warn("Unknown forwarding flag {}", fwd.flag());
         }
         return Collections.emptySet();
+    }
+
+    /**
+     * In the OF-DPA 2.0 pipeline, egress forwarding objectives go to the
+     * egress tables.
+     * @param fwd  the forwarding objective of type 'egress'
+     * @return     a collection of flow rules to be sent to the switch. An empty
+     *             collection may be returned if there is a problem in processing
+     *             the flow rule
+     */
+    protected Collection<FlowRule> processEgress(ForwardingObjective fwd) {
+        log.debug("Processing egress forwarding objective:{} in dev:{}",
+                 fwd, deviceId);
+
+        List<FlowRule> rules = new ArrayList<>();
+
+        // Build selector
+        TrafficSelector.Builder sb = DefaultTrafficSelector.builder();
+        VlanIdCriterion vlanIdCriterion = (VlanIdCriterion) fwd.selector().getCriterion(Criterion.Type.VLAN_VID);
+        if (vlanIdCriterion == null) {
+            log.error("Egress forwarding objective:{} must include vlanId", fwd.id());
+            fail(fwd, ObjectiveError.BADPARAMS);
+            return rules;
+        }
+
+        Optional<Instruction> outInstr = fwd.treatment().allInstructions().stream()
+                           .filter(instruction -> instruction instanceof OutputInstruction).findFirst();
+        if (!outInstr.isPresent()) {
+            log.error("Egress forwarding objective:{} must include output port", fwd.id());
+            fail(fwd, ObjectiveError.BADPARAMS);
+            return rules;
+        }
+
+        PortNumber portNumber = ((OutputInstruction) outInstr.get()).port();
+
+        sb.matchVlanId(vlanIdCriterion.vlanId());
+        OfdpaMatchActsetOutput actsetOutput = new OfdpaMatchActsetOutput(portNumber);
+        sb.extension(actsetOutput, deviceId);
+
+        sb.extension(new OfdpaMatchAllowVlanTranslation(ALLOW_VLAN_TRANSLATION), deviceId);
+
+        // Build a flow rule for Egress VLAN Flow table
+        TrafficTreatment.Builder tb = DefaultTrafficTreatment.builder();
+        tb.transition(EGRESS_DSCP_PCP_REMARK_FLOW_TABLE);
+        if (fwd.treatment() != null) {
+            for (Instruction instr : fwd.treatment().allInstructions()) {
+                if (instr instanceof L2ModificationInstruction &&
+                        ((L2ModificationInstruction) instr).subtype() == L2SubType.VLAN_ID) {
+                    tb.immediate().add(instr);
+                }
+                if (instr instanceof L2ModificationInstruction &&
+                        ((L2ModificationInstruction) instr).subtype() == L2SubType.VLAN_PUSH) {
+                    tb.immediate().pushVlan();
+                    EthType ethType = ((L2ModificationInstruction.ModVlanHeaderInstruction) instr).ethernetType();
+                    if (ethType.equals(EtherType.QINQ.ethType())) {
+                        // Build a flow rule for Egress TPID Flow table
+                        TrafficSelector tpidSelector = DefaultTrafficSelector.builder()
+                                .extension(actsetOutput, deviceId)
+                                .matchVlanId(VlanId.ANY).build();
+
+                        TrafficTreatment tpidTreatment = DefaultTrafficTreatment.builder()
+                                .extension(new Ofdpa3CopyField(COPY_FIELD_NBITS, COPY_FIELD_OFFSET,
+                                                               COPY_FIELD_OFFSET, OXM_ID_VLAN_VID,
+                                                               OXM_ID_PACKET_REG_1),
+                                           deviceId)
+                                .popVlan()
+                                .pushVlan(EtherType.QINQ.ethType())
+                                .extension(new Ofdpa3CopyField(COPY_FIELD_NBITS, COPY_FIELD_OFFSET,
+                                                               COPY_FIELD_OFFSET, OXM_ID_PACKET_REG_1,
+                                                               OXM_ID_VLAN_VID),
+                                           deviceId)
+                                .build();
+
+                        FlowRule.Builder tpidRuleBuilder = DefaultFlowRule.builder()
+                                .fromApp(fwd.appId())
+                                .withPriority(fwd.priority())
+                                .forDevice(deviceId)
+                                .withSelector(tpidSelector)
+                                .withTreatment(tpidTreatment)
+                                .makePermanent()
+                                .forTable(EGRESS_TPID_FLOW_TABLE);
+                        rules.add(tpidRuleBuilder.build());
+                    }
+                }
+            }
+        }
+
+        FlowRule.Builder ruleBuilder = DefaultFlowRule.builder()
+                .fromApp(fwd.appId())
+                .withPriority(fwd.priority())
+                .forDevice(deviceId)
+                .withSelector(sb.build())
+                .withTreatment(tb.build())
+                .makePermanent()
+                .forTable(EGRESS_VLAN_FLOW_TABLE);
+        rules.add(ruleBuilder.build());
+        return rules;
     }
 
     /**
@@ -1745,7 +1858,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         return null;
     }
 
-    private static MacAddress readEthDstFromTreatment(TrafficTreatment treatment) {
+    protected static MacAddress readEthDstFromTreatment(TrafficTreatment treatment) {
         if (treatment == null) {
             return null;
         }

@@ -66,6 +66,7 @@ public final class OfdpaGroupHandlerUtility {
      * L3 VPN Groups have <4bits-9><4bits-2><24bits-index>
      */
     static final int L2_INTERFACE_TYPE = 0x00000000;
+    static final int L2_UNFILTERED_TYPE = 0xb0000000;
     static final int L3_INTERFACE_TYPE = 0x50000000;
     static final int L3_UNICAST_TYPE = 0x20000000;
     static final int L3_MULTICAST_TYPE = 0x60000000;
@@ -452,6 +453,10 @@ public final class OfdpaGroupHandlerUtility {
         return L2_INTERFACE_TYPE | (vlanId.toShort() << 16) | (int) portNum;
     }
 
+    public static int l2UnfilteredGroupId(long portNum) {
+        return L2_UNFILTERED_TYPE | (int) portNum;
+    }
+
     /**
      * Returns a hash as the L2 Interface Group Key.
      *
@@ -468,6 +473,23 @@ public final class OfdpaGroupHandlerUtility {
         long portHigherBits = portNumber & PORT_HIGHER_BITS_MASK;
         int hash = Objects.hash(deviceId, vlanId, portHigherBits);
         return L2_INTERFACE_TYPE | (TYPE_MASK & hash << 6) | portLowerBits;
+    }
+
+    /**
+     * Returns a hash as the L2 Unfiltered Interface Group Key.
+     *
+     * Keep the lower 6-bit for port since port number usually smaller than 64.
+     * Hash other information into remaining 28 bits.
+     *
+     * @param deviceId Device ID
+     * @param portNumber Port number
+     * @return L2 unfiltered interface group key
+     */
+    public static int l2UnfilteredGroupKey(DeviceId deviceId, long portNumber) {
+        int portLowerBits = (int) portNumber & PORT_LOWER_BITS_MASK;
+        long portHigherBits = portNumber & PORT_HIGHER_BITS_MASK;
+        int hash = Objects.hash(deviceId, portHigherBits);
+        return L2_UNFILTERED_TYPE | (TYPE_MASK & hash << 6) | portLowerBits;
     }
 
     /**
