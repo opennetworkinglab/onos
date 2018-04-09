@@ -32,7 +32,7 @@
 
     <modules>
         <module>default</module>
-        <module>ciena</module>
+        <module>ciena/waveserver</module>
         <module>fujitsu</module>
         <module>cisco</module>
         <module>netconf</module>
