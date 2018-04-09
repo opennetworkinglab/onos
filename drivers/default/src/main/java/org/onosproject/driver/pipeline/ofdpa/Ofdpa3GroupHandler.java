@@ -17,14 +17,22 @@
 package org.onosproject.driver.pipeline.ofdpa;
 
 import com.google.common.collect.Lists;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.GroupId;
+import org.onosproject.driver.extensions.Ofdpa3AllowVlanTranslationType;
 import org.onosproject.driver.extensions.Ofdpa3PushCw;
 import org.onosproject.driver.extensions.Ofdpa3PushL2Header;
+import org.onosproject.driver.extensions.OfdpaSetAllowVlanTranslation;
+import org.onosproject.driver.extensions.OfdpaSetVlanVid;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.criteria.Criterion;
+import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flow.instructions.Instruction;
+import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction;
 import org.onosproject.net.flowobjective.NextObjective;
@@ -62,7 +70,9 @@ public class Ofdpa3GroupHandler extends Ofdpa2GroupHandler {
     protected GroupInfo createL2L3Chain(TrafficTreatment treatment, int nextId,
                                         ApplicationId appId, boolean mpls,
                                         TrafficSelector meta) {
-        return createL2L3ChainInternal(treatment, nextId, appId, mpls, meta, false);
+        return isUnfiltered(treatment, meta) ?
+                createUnfilteredL2L3Chain(treatment, nextId, appId, false) :
+                createL2L3ChainInternal(treatment, nextId, appId, mpls, meta, false);
     }
 
     @Override
@@ -369,4 +379,136 @@ public class Ofdpa3GroupHandler extends Ofdpa2GroupHandler {
         }
     }
     // TODO Introduce in the future an inner class to return two treatments
+
+    /**
+     * Internal implementation of createL2L3Chain for L2 unfiltered interface group.
+     *
+     * @param treatment that needs to be broken up to create the group chain
+     * @param nextId of the next objective that needs this group chain
+     * @param appId of the application that sent this next objective
+     * @param useSetVlanExtension use the setVlanVid extension that has is_present bit set to 0.
+     * @return GroupInfo containing the GroupDescription of the
+     *         L2 Unfiltered Interface group(inner) and the GroupDescription of the (outer)
+     *         L3Unicast group. May return null if there is an error in processing the chain.
+     */
+    private GroupInfo createUnfilteredL2L3Chain(TrafficTreatment treatment, int nextId,
+                                                  ApplicationId appId, boolean useSetVlanExtension) {
+        // for the l2 unfiltered interface group, get port info
+        // for the l3 unicast group, get the src/dst mac, and vlan info
+        TrafficTreatment.Builder outerTtb = DefaultTrafficTreatment.builder();
+        TrafficTreatment.Builder innerTtb = DefaultTrafficTreatment.builder();
+        VlanId vlanId;
+        long portNum = 0;
+        MacAddress srcMac;
+        MacAddress dstMac;
+        for (Instruction ins : treatment.allInstructions()) {
+            if (ins.type() == Instruction.Type.L2MODIFICATION) {
+                L2ModificationInstruction l2ins = (L2ModificationInstruction) ins;
+                switch (l2ins.subtype()) {
+                    case ETH_DST:
+                        dstMac = ((L2ModificationInstruction.ModEtherInstruction) l2ins).mac();
+                        outerTtb.setEthDst(dstMac);
+                        break;
+                    case ETH_SRC:
+                        srcMac = ((L2ModificationInstruction.ModEtherInstruction) l2ins).mac();
+                        outerTtb.setEthSrc(srcMac);
+                        break;
+                    case VLAN_ID:
+                        vlanId = ((L2ModificationInstruction.ModVlanIdInstruction) l2ins).vlanId();
+                        if (useSetVlanExtension) {
+                            OfdpaSetVlanVid ofdpaSetVlanVid = new OfdpaSetVlanVid(vlanId);
+                            outerTtb.extension(ofdpaSetVlanVid, deviceId);
+                        } else {
+                            outerTtb.setVlanId(vlanId);
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            } else if (ins.type() == Instruction.Type.OUTPUT) {
+                portNum = ((Instructions.OutputInstruction) ins).port().toLong();
+                innerTtb.add(ins);
+            } else {
+                log.debug("Driver does not handle this type of TrafficTreatment"
+                                  + " instruction in l2l3chain:  {} - {}", ins.type(),
+                          ins);
+            }
+        }
+
+        innerTtb.extension(new OfdpaSetAllowVlanTranslation(
+                Ofdpa3AllowVlanTranslationType.ALLOW), deviceId);
+
+        // assemble information for ofdpa l2 unfiltered interface group
+        int l2groupId = l2UnfilteredGroupId(portNum);
+        // a globally unique groupkey that is different for ports in the same device,
+        // but different for the same portnumber on different devices. Also different
+        // for the various group-types created out of the same next objective.
+        int l2gk = l2UnfilteredGroupKey(deviceId, portNum);
+        final GroupKey l2groupkey = new DefaultGroupKey(Ofdpa3Pipeline.appKryo.serialize(l2gk));
+
+        // assemble information for outer group (L3Unicast)
+        GroupDescription outerGrpDesc;
+        int l3unicastIndex = getNextAvailableIndex();
+        int l3groupId = L3_UNICAST_TYPE | (TYPE_MASK & l3unicastIndex);
+        final GroupKey l3groupkey = new DefaultGroupKey(
+                Ofdpa3Pipeline.appKryo.serialize(l3unicastIndex));
+        outerTtb.group(new GroupId(l2groupId));
+        // create the l3unicast group description to wait for the
+        // l2 unfiltered interface group to be processed
+        GroupBucket l3unicastGroupBucket =
+                DefaultGroupBucket.createIndirectGroupBucket(outerTtb.build());
+        outerGrpDesc = new DefaultGroupDescription(
+                deviceId,
+                GroupDescription.Type.INDIRECT,
+                new GroupBuckets(Collections.singletonList(l3unicastGroupBucket)),
+                l3groupkey,
+                l3groupId,
+                appId);
+        log.debug("Trying L3Unicast: device:{} gid:{} gkey:{} nextid:{}",
+                  deviceId, Integer.toHexString(l3groupId),
+                  l3groupkey, nextId);
+
+        // store l2groupkey with the groupChainElem for the outer-group that depends on it
+        GroupChainElem gce = new GroupChainElem(outerGrpDesc, 1, false, deviceId);
+        updatePendingGroups(l2groupkey, gce);
+
+        // create group description for the inner l2 unfiltered interface group
+        GroupBucket l2InterfaceGroupBucket =
+                DefaultGroupBucket.createIndirectGroupBucket(innerTtb.build());
+        GroupDescription l2groupDescription =
+                new DefaultGroupDescription(deviceId,
+                                            GroupDescription.Type.INDIRECT,
+                                            new GroupBuckets(Collections.singletonList(l2InterfaceGroupBucket)),
+                                            l2groupkey,
+                                            l2groupId,
+                                            appId);
+        log.debug("Trying L2Unfiltered: device:{} gid:{} gkey:{} nextId:{}",
+                  deviceId, Integer.toHexString(l2groupId), l2groupkey, nextId);
+        return new GroupInfo(l2groupDescription, outerGrpDesc);
+    }
+
+    /**
+     * Helper method to decide whether L2 Interface group or L2 Unfiltered group needs to be created.
+     * L2 Unfiltered group will be created if meta has VlanIdCriterion with VlanId.ANY, and
+     * treatment has set Vlan ID action.
+     *
+     * @param treatment  treatment passed in by the application as part of the nextObjective
+     * @param meta       metadata passed in by the application as part of the nextObjective
+     * @return true if L2 Unfiltered group needs to be created, false otherwise.
+     */
+    private boolean isUnfiltered(TrafficTreatment treatment, TrafficSelector meta) {
+        if (meta == null || treatment == null) {
+            return false;
+        }
+        VlanIdCriterion vlanIdCriterion = (VlanIdCriterion) meta.getCriterion(Criterion.Type.VLAN_VID);
+        if (vlanIdCriterion == null || !vlanIdCriterion.vlanId().equals(VlanId.ANY)) {
+            return false;
+        }
+
+        return treatment.allInstructions().stream()
+                .filter(i -> (i.type() == Instruction.Type.L2MODIFICATION
+                        && ((L2ModificationInstruction) i).subtype() == L2ModificationInstruction.L2SubType.VLAN_ID))
+                .count() == 1;
+    }
+
 }

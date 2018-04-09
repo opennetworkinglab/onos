@@ -16,6 +16,7 @@
 
 package org.onosproject.segmentrouting;
 
+import org.onlab.packet.EthType;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
@@ -94,10 +95,17 @@ public class HostHandler {
         Set<IpAddress> ips = host.ipAddresses();
         log.info("Host {}/{} is added at {}", hostMac, hostVlanId, locations);
 
-        processBridgingRule(location.deviceId(), location.port(), hostMac, hostVlanId, false);
-        ips.forEach(ip ->
+        if (isDoubleTaggedHost(host)) {
+            ips.forEach(ip ->
+                processDoubleTaggedRoutingRule(location.deviceId(), location.port(), hostMac,
+                                               host.innerVlan(), hostVlanId, host.tpid(), ip, false)
+            );
+        } else {
+            processBridgingRule(location.deviceId(), location.port(), hostMac, hostVlanId, false);
+            ips.forEach(ip ->
                 processRoutingRule(location.deviceId(), location.port(), hostMac, hostVlanId, ip, false)
-        );
+            );
+        }
 
         // Use the pair link temporarily before the second location of a dual-homed host shows up.
         // This do not affect single-homed hosts since the flow will be blocked in
@@ -133,10 +141,17 @@ public class HostHandler {
         log.info("Host {}/{} is removed from {}", hostMac, hostVlanId, locations);
 
         locations.forEach(location -> {
-            processBridgingRule(location.deviceId(), location.port(), hostMac, hostVlanId, true);
-            ips.forEach(ip ->
+            if (isDoubleTaggedHost(host)) {
+                ips.forEach(ip ->
+                    processDoubleTaggedRoutingRule(location.deviceId(), location.port(), hostMac,
+                                                   host.innerVlan(), hostVlanId, host.tpid(), ip, true)
+                );
+            } else {
+                processBridgingRule(location.deviceId(), location.port(), hostMac, hostVlanId, true);
+                ips.forEach(ip ->
                     processRoutingRule(location.deviceId(), location.port(), hostMac, hostVlanId, ip, true)
-            );
+                );
+            }
 
             // Also remove redirection flows on the pair device if exists.
             Optional<DeviceId> pairDeviceId = srManager.getPairDeviceId(location.deviceId());
@@ -155,18 +170,20 @@ public class HostHandler {
     }
 
     void processHostMovedEvent(HostEvent event) {
-        MacAddress hostMac = event.subject().mac();
-        VlanId hostVlanId = event.subject().vlan();
         Set<HostLocation> prevLocations = event.prevSubject().locations();
         Set<IpAddress> prevIps = event.prevSubject().ipAddresses();
         Set<HostLocation> newLocations = event.subject().locations();
         Set<IpAddress> newIps = event.subject().ipAddresses();
 
-        processHostMoved(hostMac, hostVlanId, prevLocations, prevIps, newLocations, newIps);
+        processHostMoved(event.subject(), prevLocations, prevIps, newLocations, newIps);
     }
 
-    private void processHostMoved(MacAddress hostMac, VlanId hostVlanId, Set<HostLocation> prevLocations,
-                                  Set<IpAddress> prevIps, Set<HostLocation> newLocations, Set<IpAddress> newIps) {
+    private void processHostMoved(Host host, Set<HostLocation> prevLocations, Set<IpAddress> prevIps,
+                                  Set<HostLocation> newLocations, Set<IpAddress> newIps) {
+        MacAddress hostMac = host.mac();
+        VlanId hostVlanId = host.vlan();
+        EthType hostTpid = host.tpid();
+        boolean doubleTaggedHost = isDoubleTaggedHost(host);
         log.info("Host {}/{} is moved from {} to {}", hostMac, hostVlanId, prevLocations, newLocations);
         Set<DeviceId> newDeviceIds = newLocations.stream().map(HostLocation::deviceId)
                 .collect(Collectors.toSet());
@@ -174,10 +191,15 @@ public class HostHandler {
         // For each old location
         Sets.difference(prevLocations, newLocations).forEach(prevLocation -> {
             // Remove routing rules for old IPs
-            Sets.difference(prevIps, newIps).forEach(ip ->
+            Sets.difference(prevIps, newIps).forEach(ip -> {
+                if (doubleTaggedHost) {
+                    processDoubleTaggedRoutingRule(prevLocation.deviceId(), prevLocation.port(),
+                                                   hostMac, host.innerVlan(), hostVlanId, hostTpid, ip, true);
+                } else {
                     processRoutingRule(prevLocation.deviceId(), prevLocation.port(), hostMac, hostVlanId,
-                            ip, true)
-            );
+                                       ip, true);
+                }
+            });
 
             // Redirect the flows to pair link if configured
             // Note: Do not continue removing any rule
@@ -200,10 +222,15 @@ public class HostHandler {
             // Otherwise, do not remove and let the adding part update the old flow
             if (!newDeviceIds.contains(prevLocation.deviceId())) {
                 processBridgingRule(prevLocation.deviceId(), prevLocation.port(), hostMac, hostVlanId, true);
-                Sets.intersection(prevIps, newIps).forEach(ip ->
-                        processRoutingRule(prevLocation.deviceId(), prevLocation.port(), hostMac, hostVlanId,
-                                ip, true)
-                );
+                Sets.intersection(prevIps, newIps).forEach(ip -> {
+                    if (doubleTaggedHost) {
+                        processDoubleTaggedRoutingRule(prevLocation.deviceId(), prevLocation.port(),
+                                                       hostMac, host.innerVlan(), hostVlanId, hostTpid, ip, true);
+                    } else {
+                        processRoutingRule(prevLocation.deviceId(), prevLocation.port(),
+                                           hostMac, hostVlanId, ip, true);
+                    }
+                });
             }
 
             // Remove bridging rules if new interface vlan is different from old interface vlan
@@ -225,8 +252,13 @@ public class HostHandler {
             Sets.intersection(prevIps, newIps).forEach(ip -> {
                 if (newLocations.stream().noneMatch(newLocation ->
                         srManager.deviceConfiguration.inSameSubnet(newLocation, ip))) {
-                    processRoutingRule(prevLocation.deviceId(), prevLocation.port(), hostMac, hostVlanId,
-                            ip, true);
+                    if (doubleTaggedHost) {
+                        processDoubleTaggedRoutingRule(prevLocation.deviceId(), prevLocation.port(),
+                                                       hostMac, host.innerVlan(), hostVlanId, hostTpid, ip, true);
+                    } else {
+                        processRoutingRule(prevLocation.deviceId(), prevLocation.port(),
+                                           hostMac, hostVlanId, ip, true);
+                    }
                 }
             });
         });
@@ -234,23 +266,38 @@ public class HostHandler {
         // For each new location, add all new IPs.
         Sets.difference(newLocations, prevLocations).forEach(newLocation -> {
             processBridgingRule(newLocation.deviceId(), newLocation.port(), hostMac, hostVlanId, false);
-            newIps.forEach(ip ->
+            newIps.forEach(ip -> {
+                if (doubleTaggedHost) {
+                    processDoubleTaggedRoutingRule(newLocation.deviceId(), newLocation.port(),
+                                                   hostMac, host.innerVlan(), hostVlanId, hostTpid, ip, false);
+                } else {
                     processRoutingRule(newLocation.deviceId(), newLocation.port(), hostMac, hostVlanId,
-                            ip, false)
-            );
+                                       ip, false);
+                }
+            });
         });
 
         // For each unchanged location, add new IPs and remove old IPs.
         Sets.intersection(newLocations, prevLocations).forEach(unchangedLocation -> {
-            Sets.difference(prevIps, newIps).forEach(ip ->
-                    processRoutingRule(unchangedLocation.deviceId(), unchangedLocation.port(), hostMac,
-                            hostVlanId, ip, true)
-            );
+            Sets.difference(prevIps, newIps).forEach(ip -> {
+                 if (doubleTaggedHost) {
+                     processDoubleTaggedRoutingRule(unchangedLocation.deviceId(), unchangedLocation.port(),
+                                                    hostMac, host.innerVlan(), hostVlanId, hostTpid, ip, true);
+                 } else {
+                     processRoutingRule(unchangedLocation.deviceId(), unchangedLocation.port(),
+                                        hostMac, hostVlanId, ip, true);
+                 }
+            });
 
-            Sets.difference(newIps, prevIps).forEach(ip ->
-                    processRoutingRule(unchangedLocation.deviceId(), unchangedLocation.port(), hostMac,
-                        hostVlanId, ip, false)
-            );
+            Sets.difference(newIps, prevIps).forEach(ip -> {
+                if (doubleTaggedHost) {
+                    processDoubleTaggedRoutingRule(unchangedLocation.deviceId(), unchangedLocation.port(),
+                                                   hostMac, host.innerVlan(), hostVlanId, hostTpid, ip, false);
+                } else {
+                    processRoutingRule(unchangedLocation.deviceId(), unchangedLocation.port(),
+                                       hostMac, hostVlanId, ip, false);
+                }
+            });
         });
 
         // ensure dual-homed host locations have viable uplinks
@@ -267,18 +314,31 @@ public class HostHandler {
         Host host = event.subject();
         MacAddress hostMac = host.mac();
         VlanId hostVlanId = host.vlan();
+        EthType hostTpid = host.tpid();
         Set<HostLocation> locations = host.locations();
         Set<IpAddress> prevIps = event.prevSubject().ipAddresses();
         Set<IpAddress> newIps = host.ipAddresses();
         log.info("Host {}/{} is updated", hostMac, hostVlanId);
 
         locations.forEach(location -> {
-            Sets.difference(prevIps, newIps).forEach(ip ->
-                    processRoutingRule(location.deviceId(), location.port(), hostMac, hostVlanId, ip, true)
-            );
-            Sets.difference(newIps, prevIps).forEach(ip ->
-                    processRoutingRule(location.deviceId(), location.port(), hostMac, hostVlanId, ip, false)
-            );
+            Sets.difference(prevIps, newIps).forEach(ip -> {
+                if (isDoubleTaggedHost(host)) {
+                    processDoubleTaggedRoutingRule(location.deviceId(), location.port(), hostMac,
+                                                   host.innerVlan(), hostVlanId, hostTpid, ip, true);
+                } else {
+                    processRoutingRule(location.deviceId(), location.port(), hostMac,
+                                       hostVlanId, ip, true);
+                }
+            });
+            Sets.difference(newIps, prevIps).forEach(ip -> {
+                if (isDoubleTaggedHost(host)) {
+                    processDoubleTaggedRoutingRule(location.deviceId(), location.port(), hostMac,
+                                                   host.innerVlan(), hostVlanId, hostTpid, ip, false);
+                } else {
+                    processRoutingRule(location.deviceId(), location.port(), hostMac,
+                                       hostVlanId, ip, false);
+                }
+            });
         });
 
         // Use the pair link temporarily before the second location of a dual-homed host shows up.
@@ -374,8 +434,8 @@ public class HostHandler {
     }
 
     /**
-     * Populate or revoke a bridging rule on given deviceId that matches given mac, given vlan and
-     * output to given port.
+     * Populates or revokes a bridging rule on given deviceId that matches given mac,
+     * given vlan and output to given port.
      *
      * @param deviceId device ID
      * @param port port
@@ -422,7 +482,39 @@ public class HostHandler {
         }
     }
 
-
+    /**
+     * Populate or revoke a routing rule and egress rules on given deviceId that matches given IP,
+     * to set destination mac to given mac, set inner vlan and outer vlan to given vlans,
+     * set outer TPID, and output to given port.
+     *
+     * @param deviceId  device ID
+     * @param port      port
+     * @param mac       mac address
+     * @param innerVlan inner VLAN ID
+     * @param outerVlan outer VLAN ID
+     * @param outerTpid outer TPID
+     * @param ip        IP address
+     * @param revoke    true to revoke the rule; false to populate
+     */
+    private void processDoubleTaggedRoutingRule(DeviceId deviceId, PortNumber port,
+                                                MacAddress mac, VlanId innerVlan,
+                                                VlanId outerVlan, EthType outerTpid,
+                                                IpAddress ip, boolean revoke) {
+        ConnectPoint location = new ConnectPoint(deviceId, port);
+        if (!srManager.deviceConfiguration.inSameSubnet(location, ip)) {
+            log.info("{} is not included in the subnet config of {}/{}. Ignored.", ip, deviceId, port);
+            return;
+        }
+        log.info("{} routing rule for double-tagged host {} at {}",
+                 revoke ? "Revoking" : "Populating", ip, location);
+        if (revoke) {
+            srManager.defaultRoutingHandler.revokeDoubleTaggedRoute(
+                    deviceId, ip.toIpPrefix(), mac, innerVlan, outerVlan, outerTpid, port);
+        } else {
+            srManager.defaultRoutingHandler.populateDoubleTaggedRoute(
+                    deviceId, ip.toIpPrefix(), mac, innerVlan, outerVlan, outerTpid, port);
+        }
+    }
 
     /**
      * Update forwarding objective for unicast bridging and unicast routing.
@@ -510,4 +602,15 @@ public class HostHandler {
                         .forEach(loc -> dualHomedLocations.add(loc.port())));
         return dualHomedLocations;
     }
+
+    /**
+     * Checks if the given host is double-tagged or not.
+     *
+     * @param host host to check
+     * @return true if it is double-tagged, false otherwise
+     */
+    private boolean isDoubleTaggedHost(Host host) {
+        return !host.innerVlan().equals(VlanId.NONE);
+    }
+
 }

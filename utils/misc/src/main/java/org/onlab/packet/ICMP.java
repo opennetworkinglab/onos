@@ -250,6 +250,8 @@ public class ICMP extends BasePacket {
         ipReply.setPayload(icmpReply);
 
         ethReply.setEtherType(Ethernet.TYPE_IPV4);
+        ethReply.setQinQVID(ethRequest.getQinQVID());
+        ethReply.setQinQTPID(ethRequest.getQinQTPID());
         ethReply.setVlanID(ethRequest.getVlanID());
         ethReply.setDestinationMACAddress(ethRequest.getSourceMACAddress());
         ethReply.setSourceMACAddress(ethRequest.getDestinationMACAddress());

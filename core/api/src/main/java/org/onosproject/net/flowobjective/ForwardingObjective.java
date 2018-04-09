@@ -37,6 +37,14 @@ import org.onosproject.net.flow.TrafficTreatment;
  * A specific forwarding objective represents a specific rule matching one or
  * more header fields. The installation of this rule may result in several rules
  * at the device. For example, one per table type.
+ *
+ * There is one additional type of forwarding objective:
+ *
+ *   - Egress
+ *
+ * An egress forwarding objecrive represents a flow rule that is inserted into
+ * egress tables, only if they exist in the device.
+ *
  */
 @Beta
 public interface ForwardingObjective extends Objective {
@@ -54,7 +62,12 @@ public interface ForwardingObjective extends Objective {
         /**
          * A monolithic objective.
          */
-        VERSATILE
+        VERSATILE,
+
+        /**
+         * An objective to program egress pipeline.
+         */
+        EGRESS
     }
 
     /**

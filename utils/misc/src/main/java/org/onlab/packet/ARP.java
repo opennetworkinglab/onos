@@ -399,6 +399,8 @@ public class ARP extends BasePacket {
         eth.setDestinationMACAddress(request.getSourceMAC());
         eth.setSourceMACAddress(srcMac);
         eth.setEtherType(Ethernet.TYPE_ARP);
+        eth.setQinQVID(request.getQinQVID());
+        eth.setQinQTPID(request.getQinQTPID());
         eth.setVlanID(request.getVlanID());
 
         ARP arp = new ARP();

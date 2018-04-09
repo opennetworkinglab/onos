@@ -28,6 +28,11 @@ import java.util.Objects;
  * OFDPA copy field extension instruction.
  */
 public class Ofdpa3CopyField extends AbstractExtension implements ExtensionTreatment {
+    // OXM ID of VLAN_VID field from OF-DPA spec.
+    public static final int OXM_ID_VLAN_VID = 0x80000c02;
+    // OXM ID of PACKET_REG(1) field from OF-DPA spec.
+    public static final int OXM_ID_PACKET_REG_1 = 0x80010200;
+
     private int nBits;
     private int srcOffset;
     private int dstOffset;
@@ -42,10 +47,8 @@ public class Ofdpa3CopyField extends AbstractExtension implements ExtensionTreat
         nBits = 0;
         srcOffset = 0;
         dstOffset = 0;
-        // this default value corresponds to the vlan-id from ofdpa spec.
-        src = 0x80000c02;
-        // this default value corresponds to register 1 from ofdpa spec.
-        dst = 0x80010200;
+        src = OXM_ID_VLAN_VID;
+        dst = OXM_ID_PACKET_REG_1;
 
     }
 

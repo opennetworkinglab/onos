@@ -19,6 +19,7 @@ package org.onosproject.segmentrouting;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 import org.onosproject.net.neighbour.NeighbourMessageContext;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
@@ -113,7 +114,9 @@ public class SegmentRoutingNeighbourHandler {
      * @param hostService the host service
      */
     protected void sendResponse(NeighbourMessageContext pkt, MacAddress targetMac, HostService hostService) {
-        HostId dstId = HostId.hostId(pkt.srcMac(), pkt.vlan());
+        short vlanId = pkt.packet().getQinQVID();
+        HostId dstId = HostId.hostId(pkt.srcMac(), vlanId == Ethernet.VLAN_UNTAGGED
+                ? pkt.vlan() : VlanId.vlanId(vlanId));
         Host dst = hostService.getHost(dstId);
         if (dst == null) {
             log.warn("Cannot send {} response to host {} - does not exist in the store",

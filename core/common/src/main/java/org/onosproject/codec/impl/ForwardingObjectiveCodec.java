@@ -125,9 +125,12 @@ public final class ForwardingObjectiveCodec extends JsonCodec<ForwardingObjectiv
             case "VERSATILE":
                 builder.withFlag(ForwardingObjective.Flag.VERSATILE);
                 break;
+            case "EGRESS":
+                builder.withFlag(ForwardingObjective.Flag.EGRESS);
+                break;
             default:
                 throw new IllegalArgumentException("The requested flag " + flagStr +
-                " is not defined for FilteringObjective.");
+                " is not defined for ForwardingObjective.");
         }
 
         // decode selector

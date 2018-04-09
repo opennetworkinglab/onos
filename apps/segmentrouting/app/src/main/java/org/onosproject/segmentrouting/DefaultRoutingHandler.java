@@ -23,6 +23,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
+import org.onlab.packet.EthType;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpPrefix;
@@ -38,6 +39,7 @@ import org.onosproject.net.PortNumber;
 import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
 import org.onosproject.segmentrouting.config.DeviceConfiguration;
 import org.onosproject.segmentrouting.grouphandler.DefaultGroupHandler;
+import org.onosproject.segmentrouting.storekey.DummyVlanIdStoreKey;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.Serializer;
 import org.slf4j.Logger;
@@ -1177,6 +1179,81 @@ public class DefaultRoutingHandler {
                     vlanId, popVlan, install);
         }
     }
+
+    /**
+     * Populates IP rules for a route when the next hop is double-tagged.
+     *
+     * @param deviceId  device ID that next hop attaches to
+     * @param prefix    IP prefix of the route
+     * @param hostMac   MAC address of the next hop
+     * @param innerVlan Inner Vlan ID of the next hop
+     * @param outerVlan Outer Vlan ID of the next hop
+     * @param outerTpid Outer TPID of the next hop
+     * @param outPort   port that the next hop attaches to
+     */
+    void populateDoubleTaggedRoute(DeviceId deviceId, IpPrefix prefix, MacAddress hostMac, VlanId innerVlan,
+                                   VlanId outerVlan, EthType outerTpid, PortNumber outPort) {
+        if (srManager.mastershipService.isLocalMaster(deviceId)) {
+            VlanId dummyVlan = srManager.allocateDummyVlanId(
+                    new ConnectPoint(deviceId, outPort), prefix.address());
+            if (!dummyVlan.equals(VlanId.NONE)) {
+                srManager.routingRulePopulator.populateDoubleTaggedRoute(
+                        deviceId, prefix, hostMac, dummyVlan, innerVlan, outerVlan, outerTpid, outPort);
+                srManager.routingRulePopulator.processDoubleTaggedFilter(
+                        deviceId, outPort, outerVlan, innerVlan, true);
+            } else {
+                log.error("Failed to allocate dummy VLAN ID for host {} at {}/{}",
+                          prefix.address(), deviceId, outPort);
+            }
+        }
+    }
+
+    /**
+     * Revokes IP rules for a route when the next hop is double-tagged.
+     *
+     * @param deviceId  device ID that next hop attaches to
+     * @param prefix    IP prefix of the route
+     * @param hostMac   MAC address of the next hop
+     * @param innerVlan Inner Vlan ID of the next hop
+     * @param outerVlan Outer Vlan ID of the next hop
+     * @param outerTpid Outer TPID of the next hop
+     * @param outPort   port that the next hop attaches to
+     */
+    void revokeDoubleTaggedRoute(DeviceId deviceId, IpPrefix prefix, MacAddress hostMac, VlanId innerVlan,
+                                 VlanId outerVlan, EthType outerTpid, PortNumber outPort) {
+        // Revoke route either if this node have the mastership (when device is available) or
+        // if this node is the leader (even when device is unavailable)
+        if (!srManager.mastershipService.isLocalMaster(deviceId)) {
+            if (srManager.deviceService.isAvailable(deviceId)) {
+                // Master node will revoke specified rule.
+                log.debug("This node is not a master for {}, stop revoking route.", deviceId);
+                return;
+            }
+
+            // isLocalMaster will return false when the device is unavailable.
+            // Verify if this node is the leader in that case.
+            NodeId leader = srManager.leadershipService.runForLeadership(
+                    deviceId.toString()).leaderNodeId();
+            if (!srManager.clusterService.getLocalNode().id().equals(leader)) {
+                // Leader node will revoke specified rule.
+                log.debug("This node is not a master for {}, stop revoking route.", deviceId);
+                return;
+            }
+        }
+
+        VlanId dummyVlan = srManager.dummyVlanIdStore().get(new DummyVlanIdStoreKey(
+                new ConnectPoint(deviceId, outPort), prefix.address()));
+        if (dummyVlan == null) {
+            log.error("Failed to get dummyVlanId for host {} at {}/{}.",
+                      prefix.address(), deviceId, outPort);
+        } else {
+            srManager.routingRulePopulator.revokeDoubleTaggedRoute(
+                    deviceId, prefix, hostMac, dummyVlan, innerVlan, outerVlan, outerTpid, outPort);
+            srManager.routingRulePopulator.processDoubleTaggedFilter(
+                    deviceId, outPort, outerVlan, innerVlan, false);
+        }
+    }
+
 
     /**
      * Remove ECMP graph entry for the given device. Typically called when

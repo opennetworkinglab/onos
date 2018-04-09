@@ -385,6 +385,8 @@ public class ICMP6 extends BasePacket {
         ipv6Reply.setPayload(icmpv6Reply);
 
         ethReply.setEtherType(Ethernet.TYPE_IPV6);
+        ethReply.setQinQVID(ethRequest.getQinQVID());
+        ethReply.setQinQTPID(ethRequest.getQinQTPID());
         ethReply.setVlanID(ethRequest.getVlanID());
         ethReply.setDestinationMACAddress(ethRequest.getSourceMACAddress());
         ethReply.setSourceMACAddress(ethRequest.getDestinationMACAddress());
