@@ -113,9 +113,12 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.ArrayList;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
+import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.flowobjective.Objective.Operation.ADD;
 import static org.onosproject.net.flowobjective.Objective.Operation.REMOVE;
 import java.util.concurrent.Semaphore;
@@ -199,6 +202,10 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
     private Dhcp6HandlerUtil dhcp6HandlerUtil = new Dhcp6HandlerUtil();
     private List<DhcpServerInfo> defaultServerInfoList = new CopyOnWriteArrayList<>();
     private List<DhcpServerInfo> indirectServerInfoList = new CopyOnWriteArrayList<>();
+
+    private Executor hostEventExecutor = newSingleThreadExecutor(
+        groupedThreads("dhcp6-event-host", "%d", log));
+
     private class IpAddressInfo {
         Ip6Address ip6Address;
         long    prefTime;
@@ -1392,10 +1399,12 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
             switch (event.type()) {
                 case HOST_ADDED:
                 case HOST_UPDATED:
-                    hostUpdated(event.subject());
+                    log.trace("Scheduled host event {}", event);
+                    hostEventExecutor.execute(() -> hostUpdated(event.subject()));
                     break;
                 case HOST_REMOVED:
-                    hostRemoved(event.subject());
+                    log.trace("Scheduled host event {}", event);
+                    hostEventExecutor.execute(() -> hostRemoved(event.subject()));
                     break;
                 default:
                     break;

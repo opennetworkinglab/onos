@@ -99,16 +99,19 @@ import java.util.ArrayList;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_CircuitID;
 import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_END;
 import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_MessageType;
 import static org.onlab.packet.MacAddress.valueOf;
 import static org.onlab.packet.dhcp.DhcpRelayAgentOption.RelayAgentInfoOptions.CIRCUIT_ID;
+import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.flowobjective.Objective.Operation.ADD;
 import static org.onosproject.net.flowobjective.Objective.Operation.REMOVE;
 
@@ -178,6 +181,9 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
     private List<DhcpServerInfo> defaultServerInfoList = new CopyOnWriteArrayList<>();
     private List<DhcpServerInfo> indirectServerInfoList = new CopyOnWriteArrayList<>();
     private Dhcp4HandlerUtil dhcp4HandlerUtil = new Dhcp4HandlerUtil();
+
+    private Executor hostEventExecutor = newSingleThreadExecutor(
+        groupedThreads("dhcp4-event-host", "%d", log));
 
     @Activate
     protected void activate() {
@@ -1487,10 +1493,12 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
             switch (event.type()) {
                 case HOST_ADDED:
                 case HOST_UPDATED:
-                    hostUpdated(event.subject());
+                    log.trace("Scheduled host event {}", event);
+                    hostEventExecutor.execute(() -> hostUpdated(event.subject()));
                     break;
                 case HOST_REMOVED:
-                    hostRemoved(event.subject());
+                    log.trace("Scheduled host event {}", event);
+                    hostEventExecutor.execute(() -> hostRemoved(event.subject()));
                     break;
                 default:
                     break;

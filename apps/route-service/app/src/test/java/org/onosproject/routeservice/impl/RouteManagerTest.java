@@ -19,6 +19,7 @@ package org.onosproject.routeservice.impl;
 import java.util.Collection;
 import java.util.Collections;
 
+import com.google.common.util.concurrent.MoreExecutors;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.Ip4Address;
@@ -103,6 +104,7 @@ public class RouteManagerTest {
 
         routeManager = new TestRouteManager();
         routeManager.hostService = hostService;
+        routeManager.hostEventExecutor = MoreExecutors.directExecutor();
 
         routeManager.clusterService = createNiceMock(ClusterService.class);
         replay(routeManager.clusterService);
