@@ -348,8 +348,8 @@ function check_and_do {
     proj_dir="$2"
     func_name="$3"
     simple_name="$4"
-    if ${MUST_DO_ALL} = true \
-        || ${commit_id} = "master" \
+    if [ ${MUST_DO_ALL} = true ] \
+        || [ ${commit_id} = "master" ] \
         || check_commit ${commit_id} ${proj_dir}/.last_built_commit; then
         echo "#"
         echo "# Building ${simple_name} (${commit_id})"
