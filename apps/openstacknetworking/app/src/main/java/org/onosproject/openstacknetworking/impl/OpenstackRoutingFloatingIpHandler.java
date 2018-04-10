@@ -153,6 +153,7 @@ public class OpenstackRoutingFloatingIpHandler {
         }
 
         MacAddress srcMac = MacAddress.valueOf(osPort.getMacAddress());
+        log.trace("Mac address of openstack port: {}", srcMac);
         InstancePort instPort = instancePortService.instancePort(srcMac);
         if (instPort == null) {
             final String errorFormat = ERR_FLOW + "no host(MAC:%s) found";
@@ -164,12 +165,17 @@ public class OpenstackRoutingFloatingIpHandler {
 
         ExternalPeerRouter externalPeerRouter = externalPeerRouter(osNet);
         if (externalPeerRouter == null) {
-            return;
+            final String errorFormat = ERR_FLOW + "no external peer router found";
+            throw new IllegalStateException(errorFormat);
         }
 
         setComputeNodeToGateway(instPort, osNet, install);
         setDownstreamRules(floatingIp, osNet, instPort, externalPeerRouter, install);
         setUpstreamRules(floatingIp, osNet, instPort, externalPeerRouter, install);
+        log.trace("Succeeded to set flow rules for floating ip {}:{} and install: {}",
+                floatingIp.getFloatingIpAddress(),
+                floatingIp.getFixedIpAddress(),
+                install);
     }
 
     private void setComputeNodeToGateway(InstancePort instPort, Network osNet, boolean install) {
@@ -196,7 +202,8 @@ public class OpenstackRoutingFloatingIpHandler {
 
         OpenstackNode selectedGatewayNode = selectGatewayNode();
         if (selectedGatewayNode == null) {
-            return;
+            final String errorFormat = ERR_FLOW + "no gateway node selected";
+            throw new IllegalStateException(errorFormat);
         }
         treatment = DefaultTrafficTreatment.builder()
                 .extension(buildExtension(
@@ -215,6 +222,7 @@ public class OpenstackRoutingFloatingIpHandler {
                 PRIORITY_EXTERNAL_FLOATING_ROUTING_RULE,
                 ROUTING_TABLE,
                 install);
+        log.trace("Succeeded to set flow rules from compute node to gateway on compute node");
     }
 
     private OpenstackNode selectGatewayNode() {
@@ -332,6 +340,7 @@ public class OpenstackRoutingFloatingIpHandler {
                     GW_COMMON_TABLE,
                     install);
         });
+        log.trace("Succeeded to set flow rules for downstream on gateway nodes");
     }
 
     private void setUpstreamRules(NetFloatingIP floatingIp, Network osNet,
@@ -379,6 +388,7 @@ public class OpenstackRoutingFloatingIpHandler {
                     GW_COMMON_TABLE,
                     install);
         });
+        log.trace("Succeeded to set flow rules for upstream on gateway nodes");
     }
 
     private ExternalPeerRouter externalPeerRouter(Network network) {
