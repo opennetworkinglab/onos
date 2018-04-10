@@ -22,7 +22,7 @@
               exec="onos ${OCI} onos:app activate org.onosproject.openflow"/>
 
         <!-- Check initial state of openflow apps -->
-        <group name="MetaAppInitialVerification" requies="InitialActivateOpenflowMetaApp">
+        <group name="MetaAppInitialVerification" requires="InitialActivateOpenflowMetaApp">
             <parallel var="${OC#}" starts="MetaAppTest.FindOpenflowInitial-${#}" ends="MetaAppTest.CheckLldpProviderInitial-${#-1}">
                 <step name="MetaAppTest.FindOpenflowInitial-${#}"
                       exec="onos-find-app ${OC#} org.onosproject.openflow openflowAppInitial" />
