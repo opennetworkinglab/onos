@@ -23,7 +23,11 @@ import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onosproject.cfg.ComponentConfigAdapter;
+import org.onosproject.cluster.ClusterServiceAdapter;
+import org.onosproject.cluster.LeadershipServiceAdapter;
+import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreServiceAdapter;
+import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.packet.DefaultInboundPacket;
@@ -41,6 +45,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.onosproject.net.NetTestTools.connectPoint;
+import static org.onosproject.openstacknetworking.api.Constants.ARP_PROXY_MODE;
 
 public class OpenstackSwitchingArpHandlerTest {
 
@@ -61,6 +66,11 @@ public class OpenstackSwitchingArpHandlerTest {
         arpHandler.instancePortService = new TestInstancePortService();
         arpHandler.packetService = new TestPacketService();
         arpHandler.osNetworkService = new TestOpenstackNetworkService();
+        arpHandler.osNodeService = new TestOpenstackNodeService();
+        arpHandler.osFlowRuleService = new TestOpenstackFlowRuleService();
+        arpHandler.arpMode = ARP_PROXY_MODE;
+        arpHandler.clusterService = new TestClusterService();
+        arpHandler.leadershipService = new TestLeadershipService();
         arpHandler.activate();
     }
 
@@ -132,12 +142,40 @@ public class OpenstackSwitchingArpHandlerTest {
      * Mocks the CoreService.
      */
     private class TestCoreService extends CoreServiceAdapter {
+        @Override
+        public ApplicationId registerApplication(String name) {
+            return new DefaultApplicationId(100, "arpTestApp");
+        }
     }
 
     /**
      * Mocks the ComponentConfigRegistry.
      */
     private class TestConfigService extends ComponentConfigAdapter {
+    }
+
+    /**
+     * Mocks the ClusterService.
+     */
+    private class TestClusterService extends ClusterServiceAdapter {
+    }
+
+    /**
+     * Mocks the LeadershipService.
+     */
+    private class TestLeadershipService extends LeadershipServiceAdapter {
+    }
+
+    /**
+     * Mocks the OpenstackNodeService.
+     */
+    private class TestOpenstackNodeService extends OpenstackNodeServiceAdapter {
+    }
+
+    /**
+     * Mocks the OpenstackFlowRuleService.
+     */
+    private class TestOpenstackFlowRuleService extends OpenstackFlowRuleServiceAdapter {
     }
 
     /**

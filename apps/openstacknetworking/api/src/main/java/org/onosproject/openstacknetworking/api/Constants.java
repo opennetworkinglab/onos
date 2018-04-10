@@ -27,7 +27,11 @@ public final class Constants {
 
     public static final String OPENSTACK_NETWORKING_APP_ID = "org.onosproject.openstacknetworking";
 
+    public static final String ARP_BROADCAST_MODE = "broadcast";
+    public static final String ARP_PROXY_MODE = "proxy";
+
     public static final String DEFAULT_GATEWAY_MAC_STR = "fe:00:00:00:00:02";
+    public static final String DEFAULT_ARP_MODE_STR = ARP_BROADCAST_MODE;
     public static final MacAddress DEFAULT_GATEWAY_MAC = MacAddress.valueOf(DEFAULT_GATEWAY_MAC_STR);
     public static final MacAddress DEFAULT_EXTERNAL_ROUTER_MAC = MacAddress.valueOf("fe:00:00:00:00:01");
 
@@ -48,7 +52,13 @@ public final class Constants {
     public static final int PRIORITY_CT_HOOK_RULE = 30500;
     public static final int PRIORITY_CT_RULE = 32000;
     public static final int PRIORITY_CT_DROP_RULE = 32500;
+    public static final int PRIORITY_ARP_GATEWAY_RULE = 41000;
+    public static final int PRIORITY_ARP_SUBNET_RULE = 40000;
+    public static final int PRIORITY_ARP_CONTROL_RULE = 40000;
+    public static final int PRIORITY_ARP_REPLY_RULE = 40000;
+    public static final int PRIORITY_ARP_REQUEST_RULE = 40000;
 
+    public static final int DHCP_ARP_TABLE = 0;
     public static final int SRC_VNI_TABLE = 0;
     public static final int ACL_TABLE = 1;
     public static final int CT_TABLE = 2;
