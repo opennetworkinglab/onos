@@ -55,6 +55,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
@@ -95,6 +96,9 @@ public class RouteManager implements RouteService, RouteAdminService {
     private Map<RouteListener, ListenerQueue> listeners = new HashMap<>();
 
     private ThreadFactory threadFactory;
+
+    protected Executor hostEventExecutor = newSingleThreadExecutor(
+        groupedThreads("rm-event-host", "%d", log));
 
     @Activate
     protected void activate() {
@@ -386,10 +390,12 @@ public class RouteManager implements RouteService, RouteAdminService {
             switch (event.type()) {
             case HOST_ADDED:
             case HOST_UPDATED:
-                hostUpdated(event.subject());
+                log.trace("Scheduled host event {}", event);
+                hostEventExecutor.execute(() -> hostUpdated(event.subject()));
                 break;
             case HOST_REMOVED:
-                hostRemoved(event.subject());
+                log.trace("Scheduled host event {}", event);
+                hostEventExecutor.execute(() -> hostRemoved(event.subject()));
                 break;
             case HOST_MOVED:
                 break;
