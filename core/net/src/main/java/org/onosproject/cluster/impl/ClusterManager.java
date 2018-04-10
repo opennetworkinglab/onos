@@ -166,6 +166,12 @@ public class ClusterManager
         checkNotNull(nodes, "Nodes cannot be null");
         checkArgument(!nodes.isEmpty(), "Nodes cannot be empty");
 
+        // Validate that the given nodes intersect with the currently configured nodes.
+        Set<ControllerNode> existingNodes = Sets.newHashSet(clusterMetadataService.getClusterMetadata().getNodes());
+        checkArgument(
+            !Sets.intersection(nodes, existingNodes).isEmpty(),
+            "Nodes must intersect with current cluster configuration");
+
         ClusterMetadata metadata = new ClusterMetadata("default", nodes, buildDefaultPartitions(nodes, partitionSize));
         clusterMetadataAdminService.setClusterMetadata(metadata);
         try {
