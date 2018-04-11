@@ -32,7 +32,6 @@ import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.packet.DefaultInboundPacket;
 import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
-import org.onosproject.net.pi.model.PiCounterId;
 import org.onosproject.net.pi.model.PiMatchFieldId;
 import org.onosproject.net.pi.model.PiPipelineInterpreter;
 import org.onosproject.net.pi.model.PiTableId;
@@ -59,8 +58,6 @@ import static org.onosproject.pipelines.basic.BasicConstants.ACT_NOACTION_ID;
 import static org.onosproject.pipelines.basic.BasicConstants.ACT_PRM_PORT_ID;
 import static org.onosproject.pipelines.basic.BasicConstants.ACT_SEND_TO_CPU_ID;
 import static org.onosproject.pipelines.basic.BasicConstants.ACT_SET_EGRESS_PORT_ID;
-import static org.onosproject.pipelines.basic.BasicConstants.CNT_TABLE0_ID;
-import static org.onosproject.pipelines.basic.BasicConstants.CNT_WCMP_TABLE_ID;
 import static org.onosproject.pipelines.basic.BasicConstants.HDR_ETH_DST_ID;
 import static org.onosproject.pipelines.basic.BasicConstants.HDR_ETH_SRC_ID;
 import static org.onosproject.pipelines.basic.BasicConstants.HDR_ETH_TYPE_ID;
@@ -71,7 +68,6 @@ import static org.onosproject.pipelines.basic.BasicConstants.PKT_META_EGRESS_POR
 import static org.onosproject.pipelines.basic.BasicConstants.PKT_META_INGRESS_PORT_ID;
 import static org.onosproject.pipelines.basic.BasicConstants.PORT_BITWIDTH;
 import static org.onosproject.pipelines.basic.BasicConstants.TBL_TABLE0_ID;
-import static org.onosproject.pipelines.basic.BasicConstants.TBL_WCMP_TABLE_ID;
 
 /**
  * Interpreter implementation for basic.p4.
@@ -83,11 +79,7 @@ public class BasicInterpreterImpl extends AbstractHandlerBehaviour
             new ImmutableBiMap.Builder<Integer, PiTableId>()
                     .put(0, TBL_TABLE0_ID)
                     .build();
-    private static final ImmutableBiMap<PiTableId, PiCounterId> TABLE_COUNTER_MAP =
-            new ImmutableBiMap.Builder<PiTableId, PiCounterId>()
-                    .put(TBL_TABLE0_ID, CNT_TABLE0_ID)
-                    .put(TBL_WCMP_TABLE_ID, CNT_WCMP_TABLE_ID)
-                    .build();
+
     private static final ImmutableBiMap<Criterion.Type, PiMatchFieldId> CRITERION_MAP =
             new ImmutableBiMap.Builder<Criterion.Type, PiMatchFieldId>()
                     .put(Criterion.Type.IN_PORT, HDR_IN_PORT_ID)
@@ -140,11 +132,6 @@ public class BasicInterpreterImpl extends AbstractHandlerBehaviour
             throw new PiInterpreterException(format(
                     "Egress on logical port '%s' not supported", port));
         }
-    }
-
-    @Override
-    public Optional<PiCounterId> mapTableCounter(PiTableId piTableId) {
-        return Optional.ofNullable(TABLE_COUNTER_MAP.get(piTableId));
     }
 
     @Override

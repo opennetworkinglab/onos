@@ -100,7 +100,7 @@ public final class PipeconfLoader {
         return DefaultPiPipeconf.builder()
                 .withId(INT_PIPECONF_ID)
                 .withPipelineModel(parseP4Info(p4InfoUrl))
-                .addBehaviour(PiPipelineInterpreter.class, IntInterpreterImpl.class)
+                .addBehaviour(PiPipelineInterpreter.class, BasicInterpreterImpl.class)
                 .addBehaviour(Pipeliner.class, DefaultSingleTablePipeline.class)
                 .addBehaviour(PortStatisticsDiscovery.class, PortStatisticsDiscoveryImpl.class)
                 .addExtension(P4_INFO_TEXT, p4InfoUrl)

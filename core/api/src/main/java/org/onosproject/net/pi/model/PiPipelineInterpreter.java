@@ -85,17 +85,6 @@ public interface PiPipelineInterpreter extends HandlerBehaviour {
             throws PiInterpreterException;
 
     /**
-     * Returns a PI direct counter ID for the given table to be used to to compute flow entry statistics, if present. If
-     * not present, it means that the given table does not offer any counter suitable for the purpose of computing flow
-     * rule statistics. Other direct counters might be defined for the given table (check pipeline model), however none
-     * of them should be used for flow entry statistics except for this one.
-     *
-     * @param piTableId table ID
-     * @return optional direct counter ID
-     */
-    Optional<PiCounterId> mapTableCounter(PiTableId piTableId);
-
-    /**
      * Returns a collection of PI packet operations equivalent to the given outbound packet instance.
      *
      * @param packet outbound packet

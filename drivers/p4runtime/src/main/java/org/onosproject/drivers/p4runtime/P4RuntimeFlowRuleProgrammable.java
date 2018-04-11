@@ -29,7 +29,6 @@ import org.onosproject.net.flow.DefaultFlowEntry;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleProgrammable;
-import org.onosproject.net.pi.model.PiCounterId;
 import org.onosproject.net.pi.model.PiPipelineInterpreter;
 import org.onosproject.net.pi.model.PiPipelineModel;
 import org.onosproject.net.pi.model.PiTableId;
@@ -86,6 +85,11 @@ public class P4RuntimeFlowRuleProgrammable
     // the ONOS store.
     private static final String READ_FROM_MIRROR = "tableReadFromMirror";
     private static final boolean DEFAULT_READ_FROM_MIRROR = false;
+
+    // If true, we read counters when reading table entries (if table has
+    // counters). Otherwise, we don't.
+    private static final String SUPPORT_TABLE_COUNTERS = "supportTableCounters";
+    private static final boolean DEFAULT_SUPPORT_TABLE_COUNTERS = true;
 
     // If true, we read all direct counters of a table with one request.
     // Otherwise, we send as many requests as the number of table entries.
@@ -166,13 +170,8 @@ public class P4RuntimeFlowRuleProgrammable
             }
 
             // Read table direct counters (if any).
-            final Map<PiTableEntry, PiCounterCellData> counterCellMap;
-            if (interpreter.mapTableCounter(piTableId).isPresent()) {
-                PiCounterId piCounterId = interpreter.mapTableCounter(piTableId).get();
-                counterCellMap = readEntryCounters(piCounterId, installedEntries);
-            } else {
-                counterCellMap = Collections.emptyMap();
-            }
+            final Map<PiTableEntry, PiCounterCellData> counterCellMap =
+                    readEntryCounters(installedEntries);
 
             // Forge flow entries with counter values.
             for (PiTableEntry installedEntry : installedEntries) {
@@ -391,7 +390,12 @@ public class P4RuntimeFlowRuleProgrammable
     }
 
     private Map<PiTableEntry, PiCounterCellData> readEntryCounters(
-            PiCounterId counterId, Collection<PiTableEntry> tableEntries) {
+            Collection<PiTableEntry> tableEntries) {
+        if (!driverBoolProperty(SUPPORT_TABLE_COUNTERS,
+                                DEFAULT_SUPPORT_TABLE_COUNTERS)) {
+            return Collections.emptyMap();
+        }
+
         Collection<PiCounterCellData> cellDatas;
         try {
             if (driverBoolProperty(READ_ALL_DIRECT_COUNTERS,
@@ -403,6 +407,7 @@ public class P4RuntimeFlowRuleProgrammable
                 cellDatas = Collections.emptyList();
             } else {
                 Set<PiCounterCellId> cellIds = tableEntries.stream()
+                        .filter(e -> tableHasCounter(e.table()))
                         .map(PiCounterCellId::ofDirect)
                         .collect(Collectors.toSet());
                 cellDatas = client.readCounterCells(cellIds, pipeconf).get();
@@ -412,11 +417,16 @@ public class P4RuntimeFlowRuleProgrammable
         } catch (InterruptedException | ExecutionException e) {
             if (!(e.getCause() instanceof StatusRuntimeException)) {
                 // gRPC errors are logged in the client.
-                log.error("Exception while reading counter '{}' from {}: {}",
-                          counterId, deviceId, e);
+                log.error("Exception while reading table counters from {}: {}",
+                          deviceId, e);
             }
             return Collections.emptyMap();
         }
+    }
+
+    private boolean tableHasCounter(PiTableId tableId) {
+        return pipelineModel.table(tableId).isPresent() &&
+                !pipelineModel.table(tableId).get().counters().isEmpty();
     }
 
     enum Operation {

@@ -37,7 +37,6 @@ import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.pi.model.PiActionId;
 import org.onosproject.net.pi.model.PiActionParamId;
 import org.onosproject.net.pi.model.PiControlMetadataId;
-import org.onosproject.net.pi.model.PiCounterId;
 import org.onosproject.net.pi.model.PiMatchFieldId;
 import org.onosproject.net.pi.model.PiPipelineInterpreter;
 import org.onosproject.net.pi.model.PiTableId;
@@ -134,11 +133,6 @@ public final class PipelineInterpreterImpl extends AbstractHandlerBehaviour impl
             default:
                 throw new PiInterpreterException(format("Instruction of type '%s' not supported", instruction.type()));
         }
-    }
-
-    @Override
-    public Optional<PiCounterId> mapTableCounter(PiTableId piTableId) {
-        return Optional.empty();
     }
 
     @Override
