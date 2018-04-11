@@ -49,11 +49,13 @@ public class PseudowireRemoveCommand extends AbstractShellCommand {
         int pwIntId;
         try {
             pwIntId = parsePwId(pwId);
-        } catch (Exception e) {
-            print("Exception while parsing pseudowire id : {}", e);
+        } catch (IllegalArgumentException e) {
+            log.error("Exception while parsing pseudowire id : \n\t %s", e.getMessage());
+            print("Exception while parsing pseudowire id : \n\t %s", e.getMessage());
             return;
         }
 
+        log.info("Removing pseudowire {} from the command line.", pwIntId);
         L2TunnelHandler.Result res = mngr.removePseudowire(pwIntId);
         switch (res) {
             case WRONG_PARAMETERS:

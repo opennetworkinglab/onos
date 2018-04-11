@@ -32,6 +32,8 @@ import org.onosproject.net.intf.InterfaceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 /**
  * Utility class with static methods that help
  * parse pseudowire related information and also
@@ -63,12 +65,7 @@ public final class PwaasUtil {
         } else if (vlan.equals("") || vlan.equals("None")) {
             return VlanId.vlanId("None");
         } else {
-            try {
-                VlanId newVlan = VlanId.vlanId(vlan);
-                return newVlan;
-            } catch (IllegalArgumentException e) {
-                return null;
-            }
+            return VlanId.vlanId(vlan);
         }
     }
 
@@ -78,11 +75,8 @@ public final class PwaasUtil {
      * @return the L2Mode if input is correct
      */
     public static L2Mode parseMode(String mode) {
-
-        if (!mode.equals("RAW") && !mode.equals("TAGGED")) {
-            return null;
-        }
-
+        checkArgument(mode.equals("RAW") || mode.equals("TAGGED"),
+                      "Invalid pseudowire mode of operation, should be TAGGED or RAW.");
         return L2Mode.valueOf(mode);
     }
 
@@ -93,13 +87,7 @@ public final class PwaasUtil {
      * @throws IllegalArgumentException if label is invalid
      */
     public static MplsLabel parsePWLabel(String label) {
-
-        try {
-            MplsLabel pwLabel = MplsLabel.mplsLabel(label);
-            return pwLabel;
-        } catch (Exception e) {
-            return null;
-        }
+        return MplsLabel.mplsLabel(label);
     }
 
     /**
@@ -109,13 +97,8 @@ public final class PwaasUtil {
      * @return The id of pw as an Integer or null if it failed the conversion.
      */
     public static Integer parsePwId(String id) {
-        try {
-            return Integer.parseInt(id);
-        } catch (Exception e) {
-            return null;
-        }
+        return Integer.parseInt(id);
     }
-
 
     /**
      * Helper method to verify if the tunnel is whether or not
