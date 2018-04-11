@@ -24,6 +24,7 @@ import org.onlab.util.ItemNotFoundException;
 import org.onosproject.rest.AbstractWebResource;
 import org.onosproject.segmentrouting.SegmentRoutingService;
 import org.onosproject.segmentrouting.pwaas.DefaultL2TunnelDescription;
+import org.onosproject.segmentrouting.pwaas.L2TunnelDescription;
 import org.onosproject.segmentrouting.pwaas.L2TunnelPolicy;
 import org.onosproject.segmentrouting.pwaas.L2Tunnel;
 import org.onosproject.segmentrouting.pwaas.L2TunnelHandler;
@@ -111,28 +112,36 @@ public class PseudowireWebResource extends AbstractWebResource {
         ObjectMapper mapper = new ObjectMapper();
         ObjectNode pseudowireJson = readTreeFromStream(mapper, input);
         SegmentRoutingService srService = get(SegmentRoutingService.class);
+        List<Pair<DefaultL2TunnelDescription, String>> failed = new ArrayList<>();
+        List<Pair<JsonNode, String>> undecoded = new ArrayList<>();
 
-        DefaultL2TunnelDescription pseudowire = PSEUDOWIRE_CODEC.decode(pseudowireJson, this);
-        if (pseudowire == null) {
-            return Response.serverError().status(Response.Status.BAD_REQUEST).build();
+        DefaultL2TunnelDescription pseudowire;
+        try {
+            pseudowire = PSEUDOWIRE_CODEC.decode(pseudowireJson, this);
+
+            // pseudowire decoded, try to instantiate it, if we fail add it to failed list
+            long tunId = pseudowire.l2Tunnel().tunnelId();
+            log.debug("Creating pseudowire {} from rest api!", tunId);
+
+            L2TunnelHandler.Result res = srService.addPseudowire(pseudowire);
+            if (res != L2TunnelHandler.Result.SUCCESS) {
+                log.error("Could not create pseudowire {} : {}", pseudowire.l2Tunnel().tunnelId(),
+                          res.getSpecificError());
+                failed.add(Pair.of(pseudowire, res.getSpecificError()));
+            }
+        } catch (IllegalArgumentException e) {
+            log.debug("Pseudowire could not be decoded : {}", e.getMessage());
+            undecoded.add(Pair.of(pseudowireJson, e.getMessage()));
         }
 
-        long tunId = pseudowire.l2Tunnel().tunnelId();
-        log.debug("Creating pseudowire {} from rest api!", tunId);
-
-        L2TunnelHandler.Result res = srService.addPseudowire(pseudowire);
-        switch (res) {
-            case WRONG_PARAMETERS:
-            case CONFIGURATION_ERROR:
-            case PATH_NOT_FOUND:
-            case INTERNAL_ERROR:
-                log.error("Pseudowire {} could not be added : {}", tunId, res.getSpecificError());
-                return Response.serverError().status(Response.Status.INTERNAL_SERVER_ERROR).build();
-            case SUCCESS:
-                log.info("Pseudowire {} succesfully deployed!", pseudowire.l2Tunnel().tunnelId());
-                return Response.ok().build();
-            default:
-                return Response.ok().build();
+        if ((failed.size() == 0) && (undecoded.size() == 0)) {
+            // pseudowire instantiated correctly
+            return Response.ok().build();
+        } else {
+            // failed to decode or instantiate pseudowire, return the reason
+            PseudowireCodec pwCodec = new PseudowireCodec();
+            ObjectNode result = pwCodec.encodeFailedPseudowires(failed, undecoded, this);
+            return Response.serverError().entity(result).build();
         }
     }
 
@@ -152,33 +161,36 @@ public class PseudowireWebResource extends AbstractWebResource {
         ObjectMapper mapper = new ObjectMapper();
         ObjectNode pseudowireJson = readTreeFromStream(mapper, input);
         SegmentRoutingService srService = get(SegmentRoutingService.class);
-        List<DefaultL2TunnelDescription> pseudowires;
+        Pair<List<Pair<JsonNode, String>>, List<L2TunnelDescription>> pseudowires;
 
         try {
             ArrayNode pseudowiresArray = nullIsIllegal((ArrayNode) pseudowireJson.get(PWS), PWS_KEY_ERROR);
-            pseudowires = PSEUDOWIRE_CODEC.decode(pseudowiresArray, this);
+            // get two lists, first one contains pseudowires that we were unable to decode
+            // that have faulty arguments, second one contains pseudowires that we decoded
+            // succesfully
+            pseudowires = PSEUDOWIRE_CODEC.decodePws(pseudowiresArray, this);
         } catch (ItemNotFoundException e) {
             return Response.serverError().status(Response.Status.BAD_REQUEST).build();
         }
 
         log.debug("Creating pseudowires {} from rest api!", pseudowires);
         List<Pair<DefaultL2TunnelDescription, String>> failed = new ArrayList<>();
-
-        for (DefaultL2TunnelDescription pw : pseudowires) {
+        for (L2TunnelDescription pw : pseudowires.getRight()) {
             L2TunnelHandler.Result res = srService.addPseudowire(pw);
-            if (!(res == L2TunnelHandler.Result.SUCCESS)) {
-                log.trace("Could not create pseudowire {} : {}", pw.l2Tunnel().tunnelId(), res.getSpecificError());
-                failed.add(Pair.of(pw, res.getSpecificError()));
+            if (res != L2TunnelHandler.Result.SUCCESS) {
+                log.error("Could not create pseudowire {} : {}", pw.l2Tunnel().tunnelId(), res.getSpecificError());
+                failed.add(Pair.of((DefaultL2TunnelDescription) pw, res.getSpecificError()));
             }
         }
+        List<Pair<JsonNode, String>> undecodedPws = pseudowires.getLeft();
 
-        if (failed.size() == 0) {
-            // all pseudowires were instantiated
+        if ((failed.size() == 0) && (undecodedPws.size() == 0)) {
+            // all pseudowires were decoded and instantiated succesfully
             return Response.ok().build();
         } else {
             PseudowireCodec pwCodec = new PseudowireCodec();
             // some failed, need to report them to user
-            ObjectNode result = pwCodec.encodeFailedPseudowires(failed, this);
+            ObjectNode result = pwCodec.encodeFailedPseudowires(failed, undecodedPws, this);
             return Response.serverError().entity(result).build();
         }
     }
