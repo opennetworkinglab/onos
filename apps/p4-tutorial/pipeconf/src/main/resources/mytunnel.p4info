@@ -1,0 +1,202 @@
+tables {
+  preamble {
+    id: 33606914
+    name: "c_ingress.t_l2_fwd"
+    alias: "t_l2_fwd"
+  }
+  match_fields {
+    id: 1
+    name: "standard_metadata.ingress_port"
+    bitwidth: 9
+    match_type: TERNARY
+  }
+  match_fields {
+    id: 2
+    name: "hdr.ethernet.dst_addr"
+    bitwidth: 48
+    match_type: TERNARY
+  }
+  match_fields {
+    id: 3
+    name: "hdr.ethernet.src_addr"
+    bitwidth: 48
+    match_type: TERNARY
+  }
+  match_fields {
+    id: 4
+    name: "hdr.ethernet.ether_type"
+    bitwidth: 16
+    match_type: TERNARY
+  }
+  action_refs {
+    id: 16831479
+  }
+  action_refs {
+    id: 16822540
+  }
+  action_refs {
+    id: 16808599
+  }
+  action_refs {
+    id: 16800567
+  }
+  direct_resource_ids: 302001589
+  size: 1024
+}
+tables {
+  preamble {
+    id: 33565612
+    name: "c_ingress.t_tunnel_ingress"
+    alias: "t_tunnel_ingress"
+  }
+  match_fields {
+    id: 1
+    name: "hdr.ipv4.dst_addr"
+    bitwidth: 32
+    match_type: LPM
+  }
+  action_refs {
+    id: 16835665
+  }
+  action_refs {
+    id: 16808599
+  }
+  size: 1024
+}
+tables {
+  preamble {
+    id: 33556067
+    name: "c_ingress.t_tunnel_fwd"
+    alias: "t_tunnel_fwd"
+  }
+  match_fields {
+    id: 1
+    name: "hdr.my_tunnel.tun_id"
+    bitwidth: 32
+    match_type: EXACT
+  }
+  action_refs {
+    id: 16831479
+  }
+  action_refs {
+    id: 16800149
+  }
+  action_refs {
+    id: 16808599
+  }
+  size: 1024
+}
+actions {
+  preamble {
+    id: 16800567
+    name: "NoAction"
+    alias: "NoAction"
+  }
+}
+actions {
+  preamble {
+    id: 16822540
+    name: "c_ingress.send_to_cpu"
+    alias: "send_to_cpu"
+  }
+}
+actions {
+  preamble {
+    id: 16831479
+    name: "c_ingress.set_out_port"
+    alias: "set_out_port"
+  }
+  params {
+    id: 1
+    name: "port"
+    bitwidth: 9
+  }
+}
+actions {
+  preamble {
+    id: 16808599
+    name: "c_ingress._drop"
+    alias: "_drop"
+  }
+}
+actions {
+  preamble {
+    id: 16835665
+    name: "c_ingress.my_tunnel_ingress"
+    alias: "my_tunnel_ingress"
+  }
+  params {
+    id: 1
+    name: "tun_id"
+    bitwidth: 32
+  }
+}
+actions {
+  preamble {
+    id: 16800149
+    name: "c_ingress.my_tunnel_egress"
+    alias: "my_tunnel_egress"
+  }
+  params {
+    id: 1
+    name: "port"
+    bitwidth: 9
+  }
+}
+counters {
+  preamble {
+    id: 302003196
+    name: "c_ingress.tx_port_counter"
+    alias: "tx_port_counter"
+  }
+  spec {
+    unit: BOTH
+  }
+  size: 255
+}
+counters {
+  preamble {
+    id: 302045227
+    name: "c_ingress.rx_port_counter"
+    alias: "rx_port_counter"
+  }
+  spec {
+    unit: BOTH
+  }
+  size: 255
+}
+direct_counters {
+  preamble {
+    id: 302001589
+    name: "c_ingress.l2_fwd_counter"
+    alias: "l2_fwd_counter"
+  }
+  spec {
+    unit: BOTH
+  }
+  direct_table_id: 33606914
+}
+controller_packet_metadata {
+  preamble {
+    id: 2868941301
+    name: "packet_in"
+    annotations: "@controller_header(\"packet_in\")"
+  }
+  metadata {
+    id: 1
+    name: "ingress_port"
+    bitwidth: 9
+  }
+}
+controller_packet_metadata {
+  preamble {
+    id: 2868916615
+    name: "packet_out"
+    annotations: "@controller_header(\"packet_out\")"
+  }
+  metadata {
+    id: 1
+    name: "egress_port"
+    bitwidth: 9
+  }
+}

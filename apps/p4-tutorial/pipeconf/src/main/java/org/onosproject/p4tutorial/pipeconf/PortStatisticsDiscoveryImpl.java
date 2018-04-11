@@ -44,15 +44,15 @@ import java.util.stream.Collectors;
 import static org.onosproject.net.pi.model.PiCounterType.INDIRECT;
 
 /**
- * Implementation of the PortStatisticsDiscovery behaviour for the main.p4 program. This behaviour works by using a
+ * Implementation of the PortStatisticsDiscovery behaviour for the mytunnel.p4 program. This behaviour works by using a
  * P4Runtime client to read the values of the ingress/egress port counters defined in the P4 program.
  */
 public final class PortStatisticsDiscoveryImpl extends AbstractHandlerBehaviour implements PortStatisticsDiscovery {
 
     private static final Logger log = LoggerFactory.getLogger(PortStatisticsDiscoveryImpl.class);
 
-    private static final PiCounterId INGRESS_COUNTER_ID = PiCounterId.of("igr_port_counter");
-    private static final PiCounterId EGRESS_COUNTER_ID = PiCounterId.of("egr_port_counter");
+    private static final PiCounterId INGRESS_COUNTER_ID = PiCounterId.of("c_ingress.rx_port_counter");
+    private static final PiCounterId EGRESS_COUNTER_ID = PiCounterId.of("c_ingress.tx_port_counter");
 
     @Override
     public Collection<PortStatistics> discoverPortStatistics() {

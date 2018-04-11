@@ -45,8 +45,8 @@ import static org.onosproject.net.pi.model.PiPipeconf.ExtensionType.P4_INFO_TEXT
 public final class PipeconfFactory {
 
     public static final PiPipeconfId PIPECONF_ID = new PiPipeconfId("p4-tutorial-pipeconf");
-    private static final URL P4INFO_URL = PipeconfFactory.class.getResource("/main.p4info");
-    private static final URL BMV2_JSON_URL = PipeconfFactory.class.getResource("/main.json");
+    private static final URL P4INFO_URL = PipeconfFactory.class.getResource("/mytunnel.p4info");
+    private static final URL BMV2_JSON_URL = PipeconfFactory.class.getResource("/mytunnel.json");
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private PiPipeconfService piPipeconfService;
@@ -75,7 +75,7 @@ public final class PipeconfFactory {
                 .withPipelineModel(pipelineModel)
                 .addBehaviour(PiPipelineInterpreter.class, PipelineInterpreterImpl.class)
                 .addBehaviour(PortStatisticsDiscovery.class, PortStatisticsDiscoveryImpl.class)
-                // Since main.p4 defines only 1 table, we re-use the existing single-table pipeliner.
+                // Since mytunnel.p4 defines only 1 table, we re-use the existing single-table pipeliner.
                 .addBehaviour(Pipeliner.class, DefaultSingleTablePipeline.class)
                 .addExtension(P4_INFO_TEXT, P4INFO_URL)
                 .addExtension(BMV2_JSON, BMV2_JSON_URL)

@@ -17,12 +17,13 @@
 #include <core.p4>
 #include <v1model.p4>
 
-#define ETH_TYPE_IPV4 0x0800
-#define MAX_PORTS 511
+#define MAX_PORTS 255
+
+const bit<16> ETH_TYPE_MYTUNNEL = 0x1212;
+const bit<16> ETH_TYPE_IPV4 = 0x800;
 
 typedef bit<9> port_t;
 const port_t CPU_PORT = 255;
-const port_t DROP_PORT = 511;
 
 //------------------------------------------------------------------------------
 // HEADERS
@@ -32,6 +33,11 @@ header ethernet_t {
     bit<48> dst_addr;
     bit<48> src_addr;
     bit<16> ether_type;
+}
+
+header my_tunnel_t {
+    bit<16> proto_id;
+    bit<32> tun_id;
 }
 
 header ipv4_t {
@@ -49,46 +55,39 @@ header ipv4_t {
     bit<32> dst_addr;
 }
 
-/*
-Packet-in header. Prepended to packets sent to the controller and used to carry
-the original ingress port where the packet was received.
- */
+// Packet-in header. Prepended to packets sent to the controller and used to
+// carry the original ingress port where the packet was received.
 @controller_header("packet_in")
 header packet_in_header_t {
     bit<9> ingress_port;
 }
 
-/*
-Packet-out header. Prepended to packets received by the controller and used to
-tell the switch on which physical port this packet should be forwarded.
- */
+// Packet-out header. Prepended to packets received by the controller and used
+// to tell the switch on which port this packet should be forwarded.
 @controller_header("packet_out")
 header packet_out_header_t {
     bit<9> egress_port;
 }
 
-/*
-For convenience we collect all headers under the same struct.
- */
+// For convenience we collect all headers under the same struct.
 struct headers_t {
     ethernet_t ethernet;
+    my_tunnel_t my_tunnel;
     ipv4_t ipv4;
     packet_out_header_t packet_out;
     packet_in_header_t packet_in;
 }
 
-/*
-Metadata can be used to carry information from one table to another.
- */
+// Metadata can be used to carry information from one table to another.
 struct metadata_t {
-    /* Empty. We don't use it in this program. */
+    // Empty. We don't use it in this program.
 }
 
 //------------------------------------------------------------------------------
 // PARSER
 //------------------------------------------------------------------------------
 
-parser ParserImpl(packet_in packet,
+parser c_parser(packet_in packet,
                   out headers_t hdr,
                   inout metadata_t meta,
                   inout standard_metadata_t standard_metadata) {
@@ -108,6 +107,15 @@ parser ParserImpl(packet_in packet,
     state parse_ethernet {
         packet.extract(hdr.ethernet);
         transition select(hdr.ethernet.ether_type) {
+            ETH_TYPE_MYTUNNEL: parse_my_tunnel;
+            ETH_TYPE_IPV4: parse_ipv4;
+            default: accept;
+        }
+    }
+
+    state parse_my_tunnel {
+        packet.extract(hdr.my_tunnel);
+        transition select(hdr.my_tunnel.proto_id) {
             ETH_TYPE_IPV4: parse_ipv4;
             default: accept;
         }
@@ -123,30 +131,48 @@ parser ParserImpl(packet_in packet,
 // INGRESS PIPELINE
 //------------------------------------------------------------------------------
 
-control IngressImpl(inout headers_t hdr,
+control c_ingress(inout headers_t hdr,
                     inout metadata_t meta,
                     inout standard_metadata_t standard_metadata) {
 
+    // We use these counters to count packets/bytes received/sent on each port.
+    // For each counter we instantiate a number of cells equal to MAX_PORTS.
+    counter(MAX_PORTS, CounterType.packets_and_bytes) tx_port_counter;
+    counter(MAX_PORTS, CounterType.packets_and_bytes) rx_port_counter;
+
     action send_to_cpu() {
         standard_metadata.egress_spec = CPU_PORT;
-        /*
-        Packets sent to the controller needs to be prepended with the packet-in
-        header. By setting it valid we make sure it will be deparsed before the
-        ethernet header (see DeparserImpl).
-         */
+        // Packets sent to the controller needs to be prepended with the
+        // packet-in header. By setting it valid we make sure it will be
+        // deparsed on the wire (see c_deparser).
         hdr.packet_in.setValid();
         hdr.packet_in.ingress_port = standard_metadata.ingress_port;
     }
 
-    action set_egress_port(port_t port) {
+    action set_out_port(port_t port) {
         standard_metadata.egress_spec = port;
     }
 
     action _drop() {
-        standard_metadata.egress_spec = DROP_PORT;
+        mark_to_drop();
     }
 
-    table table0 {
+    action my_tunnel_ingress(bit<32> tun_id) {
+        hdr.my_tunnel.setValid();
+        hdr.my_tunnel.tun_id = tun_id;
+        hdr.my_tunnel.proto_id = hdr.ethernet.ether_type;
+        hdr.ethernet.ether_type = ETH_TYPE_MYTUNNEL;
+    }
+
+    action my_tunnel_egress(bit<9> port) {
+        standard_metadata.egress_spec = port;
+        hdr.ethernet.ether_type = hdr.my_tunnel.proto_id;
+        hdr.my_tunnel.setInvalid();
+    }
+
+    direct_counter(CounterType.packets_and_bytes) l2_fwd_counter;
+
+    table t_l2_fwd {
         key = {
             standard_metadata.ingress_port  : ternary;
             hdr.ethernet.dst_addr           : ternary;
@@ -154,71 +180,73 @@ control IngressImpl(inout headers_t hdr,
             hdr.ethernet.ether_type         : ternary;
         }
         actions = {
-            set_egress_port();
+            set_out_port();
             send_to_cpu();
+            _drop();
+            NoAction;
+        }
+        default_action = NoAction();
+        counters = l2_fwd_counter;
+    }
+
+    table t_tunnel_ingress {
+        key = {
+            hdr.ipv4.dst_addr: lpm;
+        }
+        actions = {
+            my_tunnel_ingress;
             _drop();
         }
         default_action = _drop();
     }
 
-    table ip_proto_filter_table {
+    table t_tunnel_fwd {
         key = {
-            hdr.ipv4.src_addr : ternary;
-            hdr.ipv4.protocol : exact;
+            hdr.my_tunnel.tun_id: exact;
         }
         actions = {
+            set_out_port;
+            my_tunnel_egress;
             _drop();
         }
+        default_action = _drop();
     }
 
-    /*
-    Port counters.
-    We use these counter instances to count packets/bytes received/sent on each
-    port. BMv2 always counts both packets and bytes, even if the counter is
-    instantiated as "packets". For each counter we instantiate a number of cells
-    equal to MAX_PORTS.
-     */
-    counter(MAX_PORTS, CounterType.packets) egr_port_counter;
-    counter(MAX_PORTS, CounterType.packets) igr_port_counter;
-
-    /*
-    We define here the processing to be executed by this ingress pipeline.
-     */
+    // Define processing applied by this control block.
     apply {
         if (standard_metadata.ingress_port == CPU_PORT) {
-            /*
-            Packet received from CPU_PORT, this is a packet-out sent by the
-            controller. Skip pipeline processing, set the egress port as
-            requested by the controller (packet_out header) and remove the
-            packet_out header.
-             */
+            // Packet received from CPU_PORT, this is a packet-out sent by the
+            // controller. Skip table processing, set the egress port as
+            // requested by the controller (packet_out header) and remove the
+            // packet_out header.
             standard_metadata.egress_spec = hdr.packet_out.egress_port;
             hdr.packet_out.setInvalid();
         } else {
-            /*
-            Packet received from switch port. Apply table0, if action is
-            set_egress_port and packet is IPv4, then apply
-            ip_proto_filter_table.
-             */
-            switch(table0.apply().action_run) {
-                set_egress_port: {
-                    if (hdr.ipv4.isValid()) {
-                        ip_proto_filter_table.apply();
-                    }
-                }
+            // Packet received from data plane port.
+            if (t_l2_fwd.apply().hit) {
+                // Packet hit an entry in t_l2_fwd table. A forwarding action
+                // has already been taken. No need to apply other tables, exit
+                // this control block.
+                return;
+            }
+
+            if (hdr.ipv4.isValid() && !hdr.my_tunnel.isValid()) {
+                // Process only non-tunneled IPv4 packets.
+                t_tunnel_ingress.apply();
+            }
+
+            if (hdr.my_tunnel.isValid()) {
+                // Process all tunneled packets.
+                t_tunnel_fwd.apply();
             }
         }
 
-        /*
-        For each port counter, we update the cell at index = ingress/egress
-        port. We avoid counting packets sent/received on CPU_PORT or dropped
-        (DROP_PORT).
-         */
+        // Update port counters at index = ingress or egress port.
         if (standard_metadata.egress_spec < MAX_PORTS) {
-            egr_port_counter.count((bit<32>) standard_metadata.egress_spec);
+            tx_port_counter.count((bit<32>) standard_metadata.egress_spec);
         }
         if (standard_metadata.ingress_port < MAX_PORTS) {
-            igr_port_counter.count((bit<32>) standard_metadata.ingress_port);
+            rx_port_counter.count((bit<32>) standard_metadata.ingress_port);
         }
      }
 }
@@ -227,13 +255,11 @@ control IngressImpl(inout headers_t hdr,
 // EGRESS PIPELINE
 //------------------------------------------------------------------------------
 
-control EgressImpl(inout headers_t hdr,
-                   inout metadata_t meta,
-                   inout standard_metadata_t standard_metadata) {
+control c_egress(inout headers_t hdr,
+                 inout metadata_t meta,
+                 inout standard_metadata_t standard_metadata) {
     apply {
-        /*
-        Nothing to do on the egress pipeline.
-        */
+        // Nothing to do on the egress pipeline.
     }
 }
 
@@ -241,19 +267,15 @@ control EgressImpl(inout headers_t hdr,
 // CHECKSUM HANDLING
 //------------------------------------------------------------------------------
 
-control VerifyChecksumImpl(in headers_t hdr, inout metadata_t meta) {
+control c_verify_checksum(inout headers_t hdr, inout metadata_t meta) {
     apply {
-        /*
-        Nothing to do here, we assume checksum is always correct.
-        */
+        // Nothing to do here, we assume checksum is always correct.
     }
 }
 
-control ComputeChecksumImpl(inout headers_t hdr, inout metadata_t meta) {
+control c_compute_checksum(inout headers_t hdr, inout metadata_t meta) {
     apply {
-        /*
-        Nothing to do here, as we do not modify packet headers.
-        */
+        // No need to compute checksum as we do not modify packet headers.
     }
 }
 
@@ -261,13 +283,13 @@ control ComputeChecksumImpl(inout headers_t hdr, inout metadata_t meta) {
 // DEPARSER
 //------------------------------------------------------------------------------
 
-control DeparserImpl(packet_out packet, in headers_t hdr) {
+control c_deparser(packet_out packet, in headers_t hdr) {
     apply {
-        /*
-        Deparse headers in order. Only valid headers are emitted.
-        */
+        // Emit headers on the wire in the following order.
+        // Only valid headers are emitted.
         packet.emit(hdr.packet_in);
         packet.emit(hdr.ethernet);
+        packet.emit(hdr.my_tunnel);
         packet.emit(hdr.ipv4);
     }
 }
@@ -276,9 +298,9 @@ control DeparserImpl(packet_out packet, in headers_t hdr) {
 // SWITCH INSTANTIATION
 //------------------------------------------------------------------------------
 
-V1Switch(ParserImpl(),
-         VerifyChecksumImpl(),
-         IngressImpl(),
-         EgressImpl(),
-         ComputeChecksumImpl(),
-         DeparserImpl()) main;
+V1Switch(c_parser(),
+         c_verify_checksum(),
+         c_ingress(),
+         c_egress(),
+         c_compute_checksum(),
+         c_deparser()) main;

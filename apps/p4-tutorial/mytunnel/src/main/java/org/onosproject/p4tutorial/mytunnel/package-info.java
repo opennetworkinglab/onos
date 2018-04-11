@@ -16,4 +16,4 @@
 /**
  * P4 tutorial application classes.
  */
-package org.onosproject.p4tutorial.icmpdropper;
+package org.onosproject.p4tutorial.mytunnel;
