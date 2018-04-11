@@ -36,8 +36,6 @@ public class DefaultEventSinkRegistry implements EventSinkRegistry {
     public <E extends Event> void addSink(Class<E> eventClass, EventSink<E> sink) {
         checkNotNull(eventClass, "Event class cannot be null");
         checkNotNull(sink, "Event sink cannot be null");
-        checkArgument(!sinks.containsKey(eventClass),
-                      "Event sink already registered for %s", eventClass.getName());
         sinks.put(eventClass, sink);
     }
 
