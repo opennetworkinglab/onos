@@ -100,8 +100,9 @@ public class PseudowireAddCommand extends AbstractShellCommand {
 
         try {
             tun = new DefaultL2Tunnel(parseMode(mode), parseVlan(sDTag), parsePwId(pwId), parsePWLabel(pwLabel));
-        } catch (Exception e) {
-            print("Exception while parsing L2Tunnel : {}", e);
+        } catch (IllegalArgumentException e) {
+            log.error("Exception while parsing L2Tunnel : \n\t %s", e.getMessage());
+            print("Exception while parsing L2Tunnel : \n\t %s", e.getMessage());
             return;
         }
 
@@ -111,13 +112,15 @@ public class PseudowireAddCommand extends AbstractShellCommand {
                                                parseVlan(cP1OuterVlan), ConnectPoint.deviceConnectPoint(cP2),
                                                parseVlan(cP2InnerVlan), parseVlan(cP2OuterVlan));
 
-        } catch (Exception e) {
-            print("Exception while parsing L2TunnelPolicy : {}", e);
+        } catch (IllegalArgumentException e) {
+            log.error("Exception while parsing L2TunnelPolicy : \n\t %s", e.getMessage());
+            print("Exception while parsing L2TunnelPolicy : \n\t %s", e.getMessage());
             return;
         }
 
         L2TunnelDescription pw = new DefaultL2TunnelDescription(tun, policy);
         L2TunnelHandler.Result res = srService.addPseudowire(pw);
+        log.info("Deploying pseudowire {} via the command line.", pw);
         switch (res) {
             case WRONG_PARAMETERS:
                 print("Pseudowire could not be added , error in the parameters : \n\t%s",
