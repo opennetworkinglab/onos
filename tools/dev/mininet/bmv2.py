@@ -81,19 +81,19 @@ class ONOSBmv2Switch(Switch):
     deviceId = 0
 
     def __init__(self, name, json=None, debugger=False, loglevel="warn",
-                 elogger=False, grpcPort=None, cpuPort=255,
-                 thriftPort=None, netcfg=True, dryrun=False, pipeconfId="",
-                 pktdump=False, valgrind=False, withGnmi=False,
-                 injectPorts=True, **kwargs):
+                 elogger=False, grpcport=None, cpuport=255,
+                 thriftport=None, netcfg=True, dryrun=False, pipeconf="",
+                 pktdump=False, valgrind=False, gnmi=False,
+                 portcfg=True, **kwargs):
         Switch.__init__(self, name, **kwargs)
-        self.grpcPort = pickUnusedPort() if not grpcPort else grpcPort
-        self.thriftPort = pickUnusedPort() if not thriftPort else thriftPort
+        self.grpcPort = pickUnusedPort() if not grpcport else grpcport
+        self.thriftPort = pickUnusedPort() if not thriftport else thriftport
         if self.dpid:
             self.deviceId = int(self.dpid, 0 if 'x' in self.dpid else 16)
         else:
             self.deviceId = ONOSBmv2Switch.deviceId
             ONOSBmv2Switch.deviceId += 1
-        self.cpuPort = cpuPort
+        self.cpuPort = cpuport
         self.json = json
         self.debugger = parseBoolean(debugger)
         self.loglevel = loglevel
@@ -107,9 +107,9 @@ class ONOSBmv2Switch(Switch):
         self.dryrun = parseBoolean(dryrun)
         self.valgrind = parseBoolean(valgrind)
         self.netcfgfile = '/tmp/bmv2-%d-netcfg.json' % self.deviceId
-        self.pipeconfId = pipeconfId
-        self.injectPorts = parseBoolean(injectPorts)
-        self.withGnmi = parseBoolean(withGnmi)
+        self.pipeconfId = pipeconf
+        self.injectPorts = parseBoolean(portcfg)
+        self.withGnmi = parseBoolean(gnmi)
         self.longitude = kwargs['longitude'] if 'longitude' in kwargs else None
         self.latitude = kwargs['latitude'] if 'latitude' in kwargs else None
         self.onosDeviceId = "device:bmv2:%d" % self.deviceId
