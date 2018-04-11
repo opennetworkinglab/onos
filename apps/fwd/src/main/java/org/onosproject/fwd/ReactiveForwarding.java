@@ -259,8 +259,6 @@ public class ReactiveForwarding {
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         selector.matchEthType(Ethernet.TYPE_IPV4);
         packetService.requestPackets(selector.build(), PacketPriority.REACTIVE, appId);
-        selector.matchEthType(Ethernet.TYPE_ARP);
-        packetService.requestPackets(selector.build(), PacketPriority.REACTIVE, appId);
 
         selector.matchEthType(Ethernet.TYPE_IPV6);
         if (ipv6Forwarding) {
@@ -276,8 +274,6 @@ public class ReactiveForwarding {
     private void withdrawIntercepts() {
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         selector.matchEthType(Ethernet.TYPE_IPV4);
-        packetService.cancelPackets(selector.build(), PacketPriority.REACTIVE, appId);
-        selector.matchEthType(Ethernet.TYPE_ARP);
         packetService.cancelPackets(selector.build(), PacketPriority.REACTIVE, appId);
         selector.matchEthType(Ethernet.TYPE_IPV6);
         packetService.cancelPackets(selector.build(), PacketPriority.REACTIVE, appId);
