@@ -1,0 +1,33 @@
+{
+    "type": "PROTOCOL_INDEPENDENT",
+    "matches": [
+        {
+            "field": "ingress_port",
+            "match": "exact",
+            "value": "10"
+        },
+        {
+            "field": "src_addr",
+            "match": "lpm",
+            "value": "0a010101",
+            "prefixLength": 24
+        },
+        {
+            "field": "dst_addr",
+            "match": "ternary",
+            "value": "0a010101",
+            "mask": "0fffffff"
+        },
+        {
+            "field": "egress_port",
+            "match": "range",
+            "highValue": "20",
+            "lowValue": "10"
+        },
+        {
+            "field": "ethernet_t.etherType",
+            "match": "valid",
+            "value": true
+        }
+    ]
+}

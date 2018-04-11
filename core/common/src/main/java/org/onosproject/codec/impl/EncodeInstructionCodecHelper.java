@@ -33,6 +33,11 @@ import org.onosproject.net.flow.instructions.L1ModificationInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction;
 import org.onosproject.net.flow.instructions.L4ModificationInstruction;
+import org.onosproject.net.flow.instructions.PiInstruction;
+import org.onosproject.net.pi.runtime.PiAction;
+import org.onosproject.net.pi.runtime.PiActionGroupId;
+import org.onosproject.net.pi.runtime.PiActionGroupMemberId;
+import org.onosproject.net.pi.runtime.PiActionParam;
 import org.slf4j.Logger;
 
 import static org.onlab.util.Tools.toHexWithPrefix;
@@ -240,6 +245,38 @@ public final class EncodeInstructionCodecHelper {
         }
     }
 
+    /**
+     * Encode a protocol-independent instruction.
+     *
+     * @param result json node that the instruction attributes are added to
+     */
+    private void encodePi(ObjectNode result) {
+        PiInstruction piInstruction = (PiInstruction) instruction;
+        result.put(InstructionCodec.SUBTYPE, piInstruction.action().type().name());
+        switch (piInstruction.action().type()) {
+            case ACTION:
+                final PiAction piAction = (PiAction) piInstruction.action();
+                result.put(InstructionCodec.PI_ACTION_ID, piAction.id().id());
+                final ObjectNode jsonActionParams = context.mapper().createObjectNode();
+                for (PiActionParam actionParam : piAction.parameters()) {
+                    jsonActionParams.put(actionParam.id().id(),
+                                         HexString.toHexString(actionParam.value().asArray(), null));
+                }
+                result.set(InstructionCodec.PI_ACTION_PARAMS, jsonActionParams);
+                break;
+            case ACTION_GROUP_ID:
+                final PiActionGroupId piActionGroupId = (PiActionGroupId) piInstruction.action();
+                result.put(InstructionCodec.PI_ACTION_GROUP_ID, piActionGroupId.id());
+                break;
+            case GROUP_MEMBER_ID:
+                final PiActionGroupMemberId piActionGroupMemberId = (PiActionGroupMemberId) piInstruction.action();
+                result.put(InstructionCodec.PI_ACTION_GROUP_MEMBER_ID, piActionGroupMemberId.id());
+                break;
+            default:
+                throw new IllegalArgumentException("Cannot convert protocol-independent subtype of" +
+                                                           piInstruction.action().type().name());
+        }
+    }
 
     /**
      * Encodes a extension instruction.
@@ -334,6 +371,10 @@ public final class EncodeInstructionCodecHelper {
 
             case L4MODIFICATION:
                 encodeL4(result);
+                break;
+
+            case PROTOCOL_INDEPENDENT:
+                encodePi(result);
                 break;
 
             case EXTENSION:

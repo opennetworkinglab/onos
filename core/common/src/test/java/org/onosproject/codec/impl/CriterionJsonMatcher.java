@@ -15,6 +15,7 @@
  */
 package org.onosproject.codec.impl;
 
+import java.util.Collection;
 import java.util.Objects;
 
 import org.hamcrest.Description;
@@ -43,6 +44,7 @@ import org.onosproject.net.flow.criteria.OchSignalCriterion;
 import org.onosproject.net.flow.criteria.OchSignalTypeCriterion;
 import org.onosproject.net.flow.criteria.OduSignalIdCriterion;
 import org.onosproject.net.flow.criteria.OduSignalTypeCriterion;
+import org.onosproject.net.flow.criteria.PiCriterion;
 import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.SctpPortCriterion;
 import org.onosproject.net.flow.criteria.TcpPortCriterion;
@@ -52,6 +54,14 @@ import org.onosproject.net.flow.criteria.VlanPcpCriterion;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Joiner;
+import org.onosproject.net.pi.runtime.PiExactFieldMatch;
+import org.onosproject.net.pi.runtime.PiFieldMatch;
+import org.onosproject.net.pi.runtime.PiLpmFieldMatch;
+import org.onosproject.net.pi.runtime.PiRangeFieldMatch;
+import org.onosproject.net.pi.runtime.PiTernaryFieldMatch;
+import org.onosproject.net.pi.runtime.PiValidFieldMatch;
+
+import static org.onlab.util.ImmutableByteSequence.copyFrom;
 
 /**
  * Hamcrest matcher for criterion objects.
@@ -537,6 +547,101 @@ public final class CriterionJsonMatcher extends
         return true;
     }
 
+    /**
+     * Matches a protocol-independent Type criterion object.
+     *
+     * @param criterion criterion to match
+     * @return true if the JSON matches the criterion, false otherwise.
+     */
+    private boolean matchCriterion(PiCriterion criterion) {
+        Collection<PiFieldMatch> piFieldMatches = criterion.fieldMatches();
+        JsonNode jsonMathes = jsonCriterion.get("matches");
+        if (!jsonMathes.isArray()) {
+            return false;
+        }
+        for (JsonNode matchNode : jsonMathes) {
+            for (PiFieldMatch fieldMatch : piFieldMatches) {
+
+                if (!Objects.equals(matchNode.get("field").textValue(), fieldMatch.fieldId().id())) {
+                    description.appendText("match field was " + fieldMatch.fieldId().id());
+                    return false;
+                }
+
+                if (!Objects.equals(matchNode.get("match").textValue(),
+                                    fieldMatch.type().name().toLowerCase())) {
+                    description.appendText("match type was " + fieldMatch.type().name().toLowerCase());
+                    return false;
+                }
+
+                switch (fieldMatch.type()) {
+                    case EXACT:
+                        if (!Objects.equals(copyFrom(HexString.fromHexString(matchNode.get("value")
+                                                                             .textValue(), null)),
+                                                     ((PiExactFieldMatch) fieldMatch).value())) {
+                            description.appendText("match value was " + ((PiExactFieldMatch) fieldMatch).value());
+                            return false;
+                        }
+                        break;
+                    case LPM:
+                        if (!Objects.equals(copyFrom(HexString.fromHexString(matchNode.get("value")
+                                                                             .textValue(), null)),
+                                            ((PiLpmFieldMatch) fieldMatch).value())) {
+                            description.appendText("match value was " + ((PiLpmFieldMatch) fieldMatch).value());
+                            return false;
+                        }
+                        if (!Objects.equals(matchNode.get("prefixLength").intValue(),
+                                            ((PiLpmFieldMatch) fieldMatch).prefixLength())) {
+                            description.appendText("match prefix was " +
+                                                           ((PiLpmFieldMatch) fieldMatch).prefixLength());
+                            return false;
+                        }
+                        break;
+                    case TERNARY:
+                        if (!Objects.equals(copyFrom(HexString.fromHexString(matchNode.get("value")
+                                                                             .textValue(), null)),
+                                            ((PiTernaryFieldMatch) fieldMatch).value())) {
+                            description.appendText("match value was " + ((PiTernaryFieldMatch) fieldMatch).value());
+                            return false;
+                        }
+                        if (!Objects.equals(copyFrom(HexString.fromHexString(matchNode.get("mask")
+                                                                             .textValue(), null)),
+                                            ((PiTernaryFieldMatch) fieldMatch).mask())) {
+                            description.appendText("match mask was " + ((PiTernaryFieldMatch) fieldMatch).mask());
+                            return false;
+                        }
+                        break;
+                    case RANGE:
+                        if (!Objects.equals(copyFrom(HexString.fromHexString(matchNode.get("highValue")
+                                                                             .textValue(), null)),
+                                            ((PiRangeFieldMatch) fieldMatch).highValue())) {
+                            description.appendText("match high value was " +
+                                                           ((PiRangeFieldMatch) fieldMatch).highValue());
+                            return false;
+                        }
+                        if (!Objects.equals(copyFrom(HexString.fromHexString(matchNode.get("lowValue")
+                                                                             .textValue(), null)),
+                                            ((PiRangeFieldMatch) fieldMatch).lowValue())) {
+                            description.appendText("match low value was " +
+                                                           ((PiRangeFieldMatch) fieldMatch).lowValue());
+                            return false;
+                        }
+                        break;
+                    case VALID:
+                        if (!Objects.equals(matchNode.get("value").asBoolean(),
+                                            ((PiValidFieldMatch) fieldMatch).isValid())) {
+                            description.appendText("match value was " + ((PiValidFieldMatch) fieldMatch).isValid());
+                            return false;
+                        }
+                        break;
+                    default:
+                        description.appendText("match type was " + fieldMatch.type().name().toLowerCase());
+                        return false;
+                }
+            }
+        }
+
+        return true;
+    }
 
     @Override
     public boolean matchesSafely(JsonNode jsonCriterion,
@@ -641,6 +746,8 @@ public final class CriterionJsonMatcher extends
 
             case ODU_SIGTYPE:
                 return matchCriterion((OduSignalTypeCriterion) criterion);
+            case PROTOCOL_INDEPENDENT:
+                return matchCriterion((PiCriterion) criterion);
 
             default:
                 // Don't know how to format this type

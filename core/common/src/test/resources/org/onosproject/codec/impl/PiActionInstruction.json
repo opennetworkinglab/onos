@@ -1,0 +1,8 @@
+{
+    "type":"PROTOCOL_INDEPENDENT",
+    "subtype":"ACTION",
+    "actionId": "set_egress_port",
+    "actionParams":{
+      "port": "1"
+    }
+}

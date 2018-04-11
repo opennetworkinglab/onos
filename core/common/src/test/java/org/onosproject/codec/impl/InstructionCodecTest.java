@@ -15,7 +15,10 @@
  */
 package org.onosproject.codec.impl;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.hamcrest.MatcherAssert;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.Ip4Address;
@@ -23,6 +26,7 @@ import org.onlab.packet.Ip6Address;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
+import org.onlab.util.ImmutableByteSequence;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.net.ChannelSpacing;
@@ -36,9 +40,23 @@ import org.onosproject.net.flow.instructions.L0ModificationInstruction;
 import org.onosproject.net.flow.instructions.L1ModificationInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction;
+import org.onosproject.net.flow.instructions.PiInstruction;
+import org.onosproject.net.pi.model.PiActionId;
+import org.onosproject.net.pi.model.PiActionParamId;
+import org.onosproject.net.pi.runtime.PiAction;
+import org.onosproject.net.pi.runtime.PiActionGroupId;
+import org.onosproject.net.pi.runtime.PiActionGroupMemberId;
+import org.onosproject.net.pi.runtime.PiActionParam;
+import org.onosproject.net.pi.runtime.PiTableAction;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Collection;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.onlab.util.ImmutableByteSequence.copyFrom;
 import static org.onosproject.codec.impl.InstructionJsonMatcher.matchesInstruction;
 
 /**
@@ -230,6 +248,79 @@ public class InstructionCodecTest {
         final ObjectNode instructionJson =
                 instructionCodec.encode(instruction, context);
         assertThat(instructionJson, matchesInstruction(instruction));
+    }
+
+    /**
+     * Tests the encoding of protocol-independent instructions.
+     */
+    @Test
+    public void piInstructionEncodingTest() {
+        PiActionId actionId = PiActionId.of("set_egress_port");
+        PiActionParamId actionParamId = PiActionParamId.of("port");
+        PiActionParam actionParam = new PiActionParam(actionParamId, ImmutableByteSequence.copyFrom(10));
+        PiTableAction action = PiAction.builder().withId(actionId).withParameter(actionParam).build();
+        final PiInstruction actionInstruction = Instructions.piTableAction(action);
+        final ObjectNode actionInstructionJson =
+                instructionCodec.encode(actionInstruction, context);
+        assertThat(actionInstructionJson, matchesInstruction(actionInstruction));
+
+        PiTableAction actionGroupId = PiActionGroupId.of(10);
+        final PiInstruction actionGroupIdInstruction = Instructions.piTableAction(actionGroupId);
+        final ObjectNode actionGroupIdInstructionJson =
+                instructionCodec.encode(actionGroupIdInstruction, context);
+        assertThat(actionGroupIdInstructionJson, matchesInstruction(actionGroupIdInstruction));
+
+        PiTableAction actionGroupMemberId = PiActionGroupMemberId.of(10);
+        final PiInstruction actionGroupMemberIdInstruction = Instructions.piTableAction(actionGroupMemberId);
+        final ObjectNode actionGroupMemberIdInstructionJson =
+                instructionCodec.encode(actionGroupMemberIdInstruction, context);
+        assertThat(actionGroupMemberIdInstructionJson, matchesInstruction(actionGroupMemberIdInstruction));
+    }
+
+    /**
+     * Tests the decoding of protocol-independent instructions.
+     */
+    @Test
+    public void piInstructionDecodingTest() throws IOException {
+
+        Instruction actionInstruction = getInstruction("PiActionInstruction.json");
+        Assert.assertThat(actionInstruction.type(), is(Instruction.Type.PROTOCOL_INDEPENDENT));
+        PiTableAction action = ((PiInstruction) actionInstruction).action();
+        Assert.assertThat(action.type(), is(PiTableAction.Type.ACTION));
+        Assert.assertThat(((PiAction) action).id().id(), is("set_egress_port"));
+        Assert.assertThat(((PiAction) action).parameters().size(), is(1));
+        Collection<PiActionParam> actionParams = ((PiAction) action).parameters();
+        PiActionParam actionParam = actionParams.iterator().next();
+        Assert.assertThat(actionParam.id().id(), is("port"));
+        Assert.assertThat(actionParam.value(), is(copyFrom((byte) 0x1)));
+
+        Instruction actionGroupIdInstruction = getInstruction("PiActionGroupIdInstruction.json");
+        Assert.assertThat(actionInstruction.type(), is(Instruction.Type.PROTOCOL_INDEPENDENT));
+        PiTableAction actionGroupId = ((PiInstruction) actionGroupIdInstruction).action();
+        Assert.assertThat(actionGroupId.type(), is(PiTableAction.Type.ACTION_GROUP_ID));
+        Assert.assertThat(((PiActionGroupId) actionGroupId).id(), is(100));
+
+        Instruction actionMemberIdInstruction = getInstruction("PiActionMemberIdInstruction.json");
+        Assert.assertThat(actionInstruction.type(), is(Instruction.Type.PROTOCOL_INDEPENDENT));
+        PiTableAction actionMemberId = ((PiInstruction) actionMemberIdInstruction).action();
+        Assert.assertThat(actionMemberId.type(), is(PiTableAction.Type.GROUP_MEMBER_ID));
+        Assert.assertThat(((PiActionGroupMemberId) actionMemberId).id(), is(100));
+    }
+
+    /**
+     * Reads in an instruction from the given resource and decodes it.
+     *
+     * @param resourceName resource to use to read the JSON for the rule
+     * @return decoded instruction
+     * @throws IOException if processing the resource fails
+     */
+    private Instruction getInstruction(String resourceName) throws IOException {
+        InputStream jsonStream = InstructionCodecTest.class.getResourceAsStream(resourceName);
+        JsonNode json = context.mapper().readTree(jsonStream);
+        MatcherAssert.assertThat(json, notNullValue());
+        Instruction instruction = instructionCodec.decode((ObjectNode) json, context);
+        Assert.assertThat(instruction, notNullValue());
+        return instruction;
     }
 
 }

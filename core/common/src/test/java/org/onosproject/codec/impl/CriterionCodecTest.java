@@ -15,8 +15,14 @@
  */
 package org.onosproject.codec.impl;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Collection;
 import java.util.EnumMap;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import org.hamcrest.MatcherAssert;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.Ip6Address;
@@ -38,10 +44,20 @@ import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.criteria.Criterion;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.onosproject.net.flow.criteria.PiCriterion;
+import org.onosproject.net.pi.model.PiMatchFieldId;
+import org.onosproject.net.pi.runtime.PiExactFieldMatch;
+import org.onosproject.net.pi.runtime.PiFieldMatch;
+import org.onosproject.net.pi.runtime.PiLpmFieldMatch;
+import org.onosproject.net.pi.runtime.PiRangeFieldMatch;
+import org.onosproject.net.pi.runtime.PiTernaryFieldMatch;
+import org.onosproject.net.pi.runtime.PiValidFieldMatch;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.onlab.junit.TestUtils.getField;
+import static org.onlab.util.ImmutableByteSequence.copyFrom;
 import static org.onosproject.codec.impl.CriterionJsonMatcher.matchesCriterion;
 
 /**
@@ -460,4 +476,102 @@ public class CriterionCodecTest {
         assertThat(result, matchesCriterion(criterion));
     }
 
+    /**
+     * Tests protocol-independent type criterion encoding.
+     */
+    @Test
+    public void matchPiTypeEncodingTest() {
+
+        PiMatchFieldId ethMatchFieldId = PiMatchFieldId.of("ethernet_t.etherType");
+        byte[] matchExactBytes1 = {0x08, 0x00};
+        Criterion exactBytesCriterion = PiCriterion.builder().matchExact(ethMatchFieldId, matchExactBytes1).build();
+        ObjectNode exactResult = criterionCodec.encode(exactBytesCriterion, context);
+        assertThat(exactResult, matchesCriterion(exactBytesCriterion));
+
+        PiMatchFieldId ipv4MatchFieldId = PiMatchFieldId.of("ipv4_t.dstAddr");
+        int mask = 0x00ffffff;
+        byte[] matchLpmBytes1 = {0x0a, 0x01, 0x01, 0x01};
+        Criterion lpmBytesCriterion = PiCriterion.builder().matchLpm(ipv4MatchFieldId, matchLpmBytes1, mask).build();
+        ObjectNode lpmResult = criterionCodec.encode(lpmBytesCriterion, context);
+        assertThat(lpmResult, matchesCriterion(lpmBytesCriterion));
+
+        byte[] matchTernaryBytes1 = {0x0a, 0x01, 0x01, 0x01};
+        byte[] matchTernaryMaskBytes = {0x7f, 0x7f, 0x7f, 0x00};
+        Criterion ternaryBytesCriterion = PiCriterion.builder().matchTernary(ipv4MatchFieldId, matchTernaryBytes1,
+                                                                    matchTernaryMaskBytes).build();
+        ObjectNode ternaryResult = criterionCodec.encode(ternaryBytesCriterion, context);
+        assertThat(ternaryResult, matchesCriterion(ternaryBytesCriterion));
+
+        byte[] matchRangeBytes1 = {0x10};
+        byte[] matchRangeHighBytes = {0x30};
+        Criterion rangeBytesCriterion = PiCriterion.builder()
+                .matchRange(ipv4MatchFieldId, matchRangeBytes1, matchRangeHighBytes).build();
+        ObjectNode rangeResult = criterionCodec.encode(rangeBytesCriterion, context);
+        assertThat(rangeResult, matchesCriterion(rangeBytesCriterion));
+
+        Criterion validCriterion = PiCriterion.builder().matchValid(ipv4MatchFieldId, false).build();
+        ObjectNode validResult = criterionCodec.encode(validCriterion, context);
+        assertThat(validResult, matchesCriterion(validCriterion));
+    }
+
+    /**
+     * Tests protocol-independent type criterion decoding.
+     */
+    @Test
+    public void matchPiTypeDecodingTest() throws IOException {
+        Criterion criterion = getCriterion("PiCriterion.json");
+        Assert.assertThat(criterion.type(), is(Criterion.Type.PROTOCOL_INDEPENDENT));
+        Collection<PiFieldMatch> piFieldMatches = ((PiCriterion) criterion).fieldMatches();
+        for (PiFieldMatch piFieldMatch : piFieldMatches) {
+            switch (piFieldMatch.type()) {
+                case EXACT:
+                    Assert.assertThat(piFieldMatch.fieldId().id(), is("ingress_port"));
+                    Assert.assertThat(((PiExactFieldMatch) piFieldMatch).value(), is(
+                            copyFrom((byte) 0x10)));
+                    break;
+                case LPM:
+                    Assert.assertThat(piFieldMatch.fieldId().id(), is("src_addr"));
+                    Assert.assertThat(((PiLpmFieldMatch) piFieldMatch).value(),
+                                      is(copyFrom(0xa010101)));
+                    Assert.assertThat(((PiLpmFieldMatch) piFieldMatch).prefixLength(), is(24));
+                    break;
+                case TERNARY:
+                    Assert.assertThat(piFieldMatch.fieldId().id(), is("dst_addr"));
+                    Assert.assertThat(((PiTernaryFieldMatch) piFieldMatch).value(),
+                                      is(copyFrom(0xa010101)));
+                    Assert.assertThat(((PiTernaryFieldMatch) piFieldMatch).mask(),
+                                      is(copyFrom(0xfffffff)));
+                    break;
+                case RANGE:
+                    Assert.assertThat(piFieldMatch.fieldId().id(), is("egress_port"));
+                    Assert.assertThat(((PiRangeFieldMatch) piFieldMatch).highValue(),
+                                      is(copyFrom((byte) 0x20)));
+                    Assert.assertThat(((PiRangeFieldMatch) piFieldMatch).lowValue(),
+                                      is(copyFrom((byte) 0x10)));
+                    break;
+                case VALID:
+                    Assert.assertThat(piFieldMatch.fieldId().id(), is("ethernet_t.etherType"));
+                    Assert.assertThat(((PiValidFieldMatch) piFieldMatch).isValid(), is(true));
+                    break;
+                default:
+                    Assert.assertTrue(false);
+            }
+        }
+    }
+
+    /**
+     * Reads in a criterion from the given resource and decodes it.
+     *
+     * @param resourceName resource to use to read the JSON for the rule
+     * @return decoded criterion
+     * @throws IOException if processing the resource fails
+     */
+    private Criterion getCriterion(String resourceName) throws IOException {
+        InputStream jsonStream = CriterionCodecTest.class.getResourceAsStream(resourceName);
+        JsonNode json = context.mapper().readTree(jsonStream);
+        MatcherAssert.assertThat(json, notNullValue());
+        Criterion criterion = criterionCodec.decode((ObjectNode) json, context);
+        Assert.assertThat(criterion, notNullValue());
+        return criterion;
+    }
 }

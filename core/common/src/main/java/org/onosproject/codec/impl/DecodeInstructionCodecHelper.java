@@ -27,6 +27,7 @@ import org.onlab.packet.MplsLabel;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onlab.util.HexString;
+import org.onlab.util.ImmutableByteSequence;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.net.flow.ExtensionTreatmentCodec;
 import org.onosproject.core.GroupId;
@@ -49,6 +50,13 @@ import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction;
 import org.onosproject.net.flow.instructions.L4ModificationInstruction;
 import org.onosproject.net.meter.MeterId;
+import org.onosproject.net.pi.model.PiActionId;
+import org.onosproject.net.pi.model.PiActionParamId;
+import org.onosproject.net.pi.runtime.PiAction;
+import org.onosproject.net.pi.runtime.PiActionGroupId;
+import org.onosproject.net.pi.runtime.PiActionGroupMemberId;
+import org.onosproject.net.pi.runtime.PiActionParam;
+import org.onosproject.net.pi.runtime.PiTableAction;
 import org.slf4j.Logger;
 
 import java.util.Map;
@@ -267,6 +275,54 @@ public final class DecodeInstructionCodecHelper {
                 + subType + " is not supported");
     }
 
+    /**
+     * Decodes a protocol-independent instruction.
+     *
+     * @return instruction object decoded from the JSON
+     * @throws IllegalArgumentException if the JSON is invalid
+     */
+    private Instruction decodePi() {
+        String subType = nullIsIllegal(json.get(InstructionCodec.SUBTYPE),
+                                       InstructionCodec.SUBTYPE + InstructionCodec.ERROR_MESSAGE).asText();
+
+        if (subType.equals(PiTableAction.Type.ACTION.name())) {
+            PiActionId piActionId = PiActionId.of(nullIsIllegal(
+                    json.get(InstructionCodec.PI_ACTION_ID),
+                    InstructionCodec.PI_ACTION_ID + InstructionCodec.MISSING_MEMBER_MESSAGE).asText());
+            JsonNode params = json.get(InstructionCodec.PI_ACTION_PARAMS);
+
+            PiAction.Builder builder = PiAction.builder();
+            PiActionParam piActionParam;
+            PiActionParamId piActionParamId;
+            if (params != null) {
+                for (Map.Entry<String, String> param : ((Map<String, String>)
+                        (context.mapper().convertValue(params, Map.class))).entrySet()) {
+                    piActionParamId = PiActionParamId.of(param.getKey());
+                    piActionParam = new PiActionParam(piActionParamId,
+                                                      ImmutableByteSequence.copyFrom(
+                                                              HexString.fromHexString(param.getValue(), null)));
+                    builder.withParameter(piActionParam);
+                }
+            }
+
+            return Instructions.piTableAction(builder.withId(piActionId).build());
+        } else if (subType.equals(PiTableAction.Type.ACTION_GROUP_ID.name())) {
+            PiActionGroupId piActionGroupId = PiActionGroupId.of(nullIsIllegal(
+                    json.get(InstructionCodec.PI_ACTION_GROUP_ID),
+                    InstructionCodec.PI_ACTION_GROUP_ID + InstructionCodec.MISSING_MEMBER_MESSAGE).asInt());
+
+            return Instructions.piTableAction(piActionGroupId);
+        } else if (subType.equals(PiTableAction.Type.GROUP_MEMBER_ID.name())) {
+            PiActionGroupMemberId piActionGroupMemberId = PiActionGroupMemberId.of(nullIsIllegal(
+                    json.get(InstructionCodec.PI_ACTION_GROUP_MEMBER_ID),
+                    InstructionCodec.PI_ACTION_GROUP_MEMBER_ID + InstructionCodec.MISSING_MEMBER_MESSAGE).asInt());
+
+            return Instructions.piTableAction(piActionGroupMemberId);
+        }
+        throw new IllegalArgumentException("Protocol-independent Instruction subtype "
+                                                   + subType + " is not supported");
+    }
+
     private Instruction decodeStatTrigger() {
         String statTriggerFlag = nullIsIllegal(json.get(InstructionCodec.STAT_TRIGGER_FLAG),
                 InstructionCodec.STAT_TRIGGER_FLAG + InstructionCodec.ERROR_MESSAGE).asText();
@@ -450,8 +506,11 @@ public final class DecodeInstructionCodecHelper {
             return decodeExtension();
         } else if (type.equals(Instruction.Type.STAT_TRIGGER.name())) {
             return decodeStatTrigger();
+        } else if (type.equals(Instruction.Type.PROTOCOL_INDEPENDENT.name())) {
+            return decodePi();
         }
+
         throw new IllegalArgumentException("Instruction type "
-                + type + " is not supported");
+                                                   + type + " is not supported");
     }
 }

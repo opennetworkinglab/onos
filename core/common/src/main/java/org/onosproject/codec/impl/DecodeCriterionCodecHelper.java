@@ -33,6 +33,9 @@ import org.onosproject.net.OduSignalType;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.criteria.Criterion;
+import org.onosproject.net.flow.criteria.PiCriterion;
+import org.onosproject.net.pi.model.PiMatchFieldId;
+import org.onosproject.net.pi.model.PiMatchType;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -109,6 +112,7 @@ public final class DecodeCriterionCodecHelper {
         decoderMap.put(Criterion.Type.TUNNEL_ID.name(), new TunnelIdDecoder());
         decoderMap.put(Criterion.Type.ODU_SIGID.name(), new OduSigIdDecoder());
         decoderMap.put(Criterion.Type.ODU_SIGTYPE.name(), new OduSigTypeDecoder());
+        decoderMap.put(Criterion.Type.PROTOCOL_INDEPENDENT.name(), new PiDecoder());
     }
 
     private class EthTypeDecoder implements CriterionDecoder {
@@ -579,6 +583,89 @@ public final class DecodeCriterionCodecHelper {
             OduSignalType oduSignalType = OduSignalType.valueOf(nullIsIllegal(json.get(CriterionCodec.ODU_SIGNAL_TYPE),
                     CriterionCodec.ODU_SIGNAL_TYPE + MISSING_MEMBER_MESSAGE).asText());
             return Criteria.matchOduSignalType(oduSignalType);
+        }
+    }
+
+    private class PiDecoder implements CriterionDecoder {
+        @Override
+        public Criterion decodeCriterion(ObjectNode json) {
+            PiCriterion.Builder builder = PiCriterion.builder();
+            JsonNode matchesNode = nullIsIllegal(json.get(CriterionCodec.PI_MATCHES),
+                                                 CriterionCodec.PI_MATCHES + MISSING_MEMBER_MESSAGE);
+            if (matchesNode.isArray()) {
+                for (JsonNode node : matchesNode) {
+                    String type = nullIsIllegal(node.get(CriterionCodec.PI_MATCH_TYPE),
+                                                CriterionCodec.PI_MATCH_TYPE + MISSING_MEMBER_MESSAGE).asText();
+                    switch (PiMatchType.valueOf(type.toUpperCase())) {
+                        case EXACT:
+                            builder.matchExact(
+                                    PiMatchFieldId.of(
+                                            nullIsIllegal(node.get(CriterionCodec.PI_MATCH_FIELD_ID),
+                                                          CriterionCodec.PI_MATCH_FIELD_ID +
+                                                                  MISSING_MEMBER_MESSAGE).asText()),
+                                    HexString.fromHexString(nullIsIllegal(node.get(CriterionCodec.PI_MATCH_VALUE),
+                                                                    CriterionCodec.PI_MATCH_VALUE +
+                                                                            MISSING_MEMBER_MESSAGE).asText(), null));
+                            break;
+                        case LPM:
+                            builder.matchLpm(
+                                    PiMatchFieldId.of(
+                                            nullIsIllegal(node.get(CriterionCodec.PI_MATCH_FIELD_ID),
+                                                          CriterionCodec.PI_MATCH_FIELD_ID +
+                                                                  MISSING_MEMBER_MESSAGE).asText()),
+                                    HexString.fromHexString(nullIsIllegal(node.get(CriterionCodec.PI_MATCH_VALUE),
+                                                                    CriterionCodec.PI_MATCH_VALUE +
+                                                                            MISSING_MEMBER_MESSAGE).asText(), null),
+                                    nullIsIllegal(node.get(CriterionCodec.PI_MATCH_PREFIX),
+                                                  CriterionCodec.PI_MATCH_PREFIX +
+                                                          MISSING_MEMBER_MESSAGE).asInt());
+                            break;
+                        case TERNARY:
+                            builder.matchTernary(
+                                    PiMatchFieldId.of(
+                                            nullIsIllegal(node.get(CriterionCodec.PI_MATCH_FIELD_ID),
+                                                          CriterionCodec.PI_MATCH_FIELD_ID +
+                                                                  MISSING_MEMBER_MESSAGE).asText()),
+                                    HexString.fromHexString(nullIsIllegal(node.get(CriterionCodec.PI_MATCH_VALUE),
+                                                                    CriterionCodec.PI_MATCH_VALUE +
+                                                                            MISSING_MEMBER_MESSAGE).asText(), null),
+                                    HexString.fromHexString(nullIsIllegal(node.get(CriterionCodec.PI_MATCH_MASK),
+                                                                    CriterionCodec.PI_MATCH_MASK +
+                                                                            MISSING_MEMBER_MESSAGE).asText(), null));
+                            break;
+                        case RANGE:
+                            builder.matchRange(
+                                    PiMatchFieldId.of(
+                                            nullIsIllegal(node.get(CriterionCodec.PI_MATCH_FIELD_ID),
+                                                          CriterionCodec.PI_MATCH_FIELD_ID +
+                                                                  MISSING_MEMBER_MESSAGE).asText()),
+                                    HexString.fromHexString(nullIsIllegal(node.get(CriterionCodec.PI_MATCH_LOW_VALUE),
+                                                                    CriterionCodec.PI_MATCH_LOW_VALUE +
+                                                                            MISSING_MEMBER_MESSAGE).asText(), null),
+                                    HexString.fromHexString(nullIsIllegal(node.get(CriterionCodec.PI_MATCH_HIGH_VALUE),
+                                                                    CriterionCodec.PI_MATCH_HIGH_VALUE +
+                                                                            MISSING_MEMBER_MESSAGE).asText(), null)
+                                    );
+                            break;
+                        case VALID:
+                            builder.matchValid(
+                                    PiMatchFieldId.of(
+                                            nullIsIllegal(node.get(CriterionCodec.PI_MATCH_FIELD_ID),
+                                                          CriterionCodec.PI_MATCH_FIELD_ID +
+                                                                  MISSING_MEMBER_MESSAGE).asText()),
+                                    nullIsIllegal(node.get(CriterionCodec.PI_MATCH_VALUE),
+                                                  CriterionCodec.PI_MATCH_VALUE +
+                                                          MISSING_MEMBER_MESSAGE).asBoolean());
+                            break;
+                        default:
+                            throw new IllegalArgumentException("Type " + type + " is unsupported");
+                    }
+                }
+            } else {
+                throw new IllegalArgumentException("Protocol-independent matches must be in an array.");
+            }
+
+            return builder.build();
         }
     }
 

@@ -65,6 +65,11 @@ public final class InstructionCodec extends JsonCodec<Instruction> {
     static final String STAT_PACKET_COUNT = "packetCount";
     static final String STAT_DURATION = "duration";
 
+    static final String PI_ACTION_ID = "actionId";
+    static final String PI_ACTION_GROUP_ID = "groupId";
+    static final String PI_ACTION_GROUP_MEMBER_ID = "memberId";
+    static final String PI_ACTION_PARAMS = "actionParams";
+
     static final String MISSING_MEMBER_MESSAGE =
             " member is required in Instruction";
     static final String ERROR_MESSAGE =

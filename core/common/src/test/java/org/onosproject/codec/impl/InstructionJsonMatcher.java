@@ -35,6 +35,16 @@ import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanId
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanPcpInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPv6FlowLabelInstruction;
+import org.onosproject.net.flow.instructions.PiInstruction;
+import org.onosproject.net.pi.runtime.PiAction;
+import org.onosproject.net.pi.runtime.PiActionGroupId;
+import org.onosproject.net.pi.runtime.PiActionGroupMemberId;
+import org.onosproject.net.pi.runtime.PiActionParam;
+
+import java.util.Collection;
+import java.util.Objects;
+
+import static org.onlab.util.ImmutableByteSequence.copyFrom;
 
 /**
  * Hamcrest matcher for instructions.
@@ -503,6 +513,71 @@ public final class InstructionJsonMatcher extends TypeSafeDiagnosingMatcher<Json
         return true;
     }
 
+    /**
+     * Matches the contents of a protocol-independent instruction.
+     *
+     * @param instructionJson JSON instruction to match
+     * @param description Description object used for recording errors
+     * @return true if contents match, false otherwise
+     */
+    private boolean matchPiInstruction(JsonNode instructionJson,
+                                                 Description description) {
+        PiInstruction instructionToMatch = (PiInstruction) instruction;
+
+        final String jsonSubtype = instructionJson.get("subtype").textValue();
+        if (!instructionToMatch.action().type().name().equals(jsonSubtype)) {
+            description.appendText("subtype was " + jsonSubtype);
+            return false;
+        }
+
+        final String jsonType = instructionJson.get("type").textValue();
+        if (!instructionToMatch.type().name().equals(jsonType)) {
+            description.appendText("type was " + jsonType);
+            return false;
+        }
+
+        switch (instructionToMatch.action().type()) {
+            case ACTION:
+                if (!Objects.equals(instructionJson.get("actionId").textValue(),
+                                    ((PiAction) instructionToMatch.action()).id().id())) {
+                    description.appendText("action was " + ((PiAction) instructionToMatch.action()).id().id());
+                    return false;
+                }
+                Collection<PiActionParam> piActionParams = ((PiAction) instructionToMatch.action()).parameters();
+                JsonNode jsonParams = instructionJson.get("actionParams");
+                for (PiActionParam actionParam : piActionParams) {
+                    if (!Objects.equals(copyFrom(HexString.fromHexString(jsonParams.get(actionParam.id().id())
+                                                                         .textValue(), null)),
+                                        actionParam.value())) {
+                        description.appendText("action param value was " + actionParam.value());
+                        return false;
+                    }
+                }
+                break;
+            case ACTION_GROUP_ID:
+                if (!Objects.equals(instructionJson.get("groupId").asInt(),
+                                    ((PiActionGroupId) instructionToMatch.action()).id())) {
+                    description.appendText("action group id was " +
+                                                   ((PiActionGroupId) instructionToMatch.action()).id());
+                    return false;
+                }
+                break;
+            case GROUP_MEMBER_ID:
+                if (!Objects.equals(instructionJson.get("memberId").asInt(),
+                                    ((PiActionGroupMemberId) instructionToMatch.action()).id())) {
+                    description.appendText("action member id was " +
+                                                   ((PiActionGroupMemberId) instructionToMatch.action()).id());
+                    return false;
+                }
+                break;
+            default:
+                description.appendText("type was " + jsonType);
+                return false;
+        }
+
+        return true;
+    }
+
     @Override
     public boolean matchesSafely(JsonNode jsonInstruction, Description description) {
 
@@ -541,6 +616,8 @@ public final class InstructionJsonMatcher extends TypeSafeDiagnosingMatcher<Json
             return matchModMplsLabelInstruction(jsonInstruction, description);
         } else if (instruction instanceof ModOduSignalIdInstruction) {
             return matchModOduSingalIdInstruction(jsonInstruction, description);
+        } else if (instruction instanceof PiInstruction) {
+            return matchPiInstruction(jsonInstruction, description);
         } else if (instruction instanceof NoActionInstruction) {
             return true;
         }
