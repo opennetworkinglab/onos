@@ -254,7 +254,7 @@ public class FabricForwardingPipeliner {
             PiActionParam nextIdParam = new PiActionParam(FabricConstants.ACT_PRM_NEXT_ID_ID,
                                                           ImmutableByteSequence.copyFrom(fwd.nextId().byteValue()));
             PiAction nextIdAction = PiAction.builder()
-                    .withId(FabricConstants.ACT_FORWARDING_POP_MPLS_AND_NEXT_ID)
+                    .withId(FabricConstants.ACT_FABRICINGRESS_FORWARDING_POP_MPLS_AND_NEXT_ID)
                     .withParameter(nextIdParam)
                     .build();
             treatment = DefaultTrafficTreatment.builder()
@@ -290,7 +290,7 @@ public class FabricForwardingPipeliner {
         PiActionParam nextIdParam = new PiActionParam(FabricConstants.ACT_PRM_NEXT_ID_ID,
                                                       ImmutableByteSequence.copyFrom(nextId.byteValue()));
         PiAction nextIdAction = PiAction.builder()
-                .withId(FabricConstants.ACT_FORWARDING_SET_NEXT_ID_ID)
+                .withId(FabricConstants.ACT_FABRICINGRESS_FORWARDING_SET_NEXT_ID_ID)
                 .withParameter(nextIdParam)
                 .build();
 

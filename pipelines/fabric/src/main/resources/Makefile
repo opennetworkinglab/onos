@@ -5,7 +5,7 @@ BMV2_OPTIONS=-DTARGET_BMV2 -DCPU_PORT=$(BMV2_CPU_PORT)
 all: bmv2 bmv2-spgw
 
 bmv2:
-	p4c -v -x p4-16 -b bmv2-ss-p4org \
+	p4c -v -x p4-16 -b bmv2-v1model \
 	$(BMV2_OPTIONS) -o p4c-out/bmv2 \
 	--p4runtime-file p4c-out/bmv2/fabric.p4info \
 	--p4runtime-format text fabric.p4

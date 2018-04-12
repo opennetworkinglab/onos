@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.onosproject.pipelines.fabric.FabricConstants.ACT_PRF_NEXT_ECMP_SELECTOR_ID;
+import static org.onosproject.pipelines.fabric.FabricConstants.ACT_PRF_FABRICINGRESS_NEXT_ECMP_SELECTOR_ID;
 import static org.onosproject.pipelines.fabric.FabricConstants.TBL_HASHED_ID;
 
 /**
@@ -190,7 +190,7 @@ public class FabricNextPipelinerTest extends FabricPipelinerTest {
                 .map(DefaultGroupBucket::createSelectGroupBucket)
                 .collect(Collectors.toList());
         GroupBuckets groupBuckets = new GroupBuckets(buckets);
-        PiGroupKey groupKey = new PiGroupKey(TBL_HASHED_ID, ACT_PRF_NEXT_ECMP_SELECTOR_ID, NEXT_ID_1);
+        PiGroupKey groupKey = new PiGroupKey(TBL_HASHED_ID, ACT_PRF_FABRICINGRESS_NEXT_ECMP_SELECTOR_ID, NEXT_ID_1);
         GroupDescription expectedGroup = new DefaultGroupDescription(
                 DEVICE_ID,
                 GroupDescription.Type.SELECT,

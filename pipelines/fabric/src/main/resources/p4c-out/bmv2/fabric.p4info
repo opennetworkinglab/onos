@@ -1,7 +1,7 @@
 tables {
   preamble {
-    id: 33578399
-    name: "filtering.ingress_port_vlan"
+    id: 33611649
+    name: "FabricIngress.filtering.ingress_port_vlan"
     alias: "ingress_port_vlan"
   }
   match_fields {
@@ -23,25 +23,25 @@ tables {
     match_type: TERNARY
   }
   action_refs {
-    id: 16794505
+    id: 16835546
   }
   action_refs {
-    id: 16782367
+    id: 16793253
   }
   action_refs {
     id: 16819938
   }
   action_refs {
-    id: 16826365
+    id: 16798734
   }
   const_default_action_id: 16819938
-  direct_resource_ids: 302015144
+  direct_resource_ids: 302038285
   size: 1024
 }
 tables {
   preamble {
-    id: 33619540
-    name: "filtering.fwd_classifier"
+    id: 33596298
+    name: "FabricIngress.filtering.fwd_classifier"
     alias: "fwd_classifier"
   }
   match_fields {
@@ -63,16 +63,16 @@ tables {
     match_type: EXACT
   }
   action_refs {
-    id: 16838162
+    id: 16840921
   }
-  const_default_action_id: 16838162
-  direct_resource_ids: 302033694
+  const_default_action_id: 16840921
+  direct_resource_ids: 302050110
   size: 1024
 }
 tables {
   preamble {
-    id: 33569146
-    name: "forwarding.bridging"
+    id: 33596749
+    name: "FabricIngress.forwarding.bridging"
     alias: "bridging"
   }
   match_fields {
@@ -88,19 +88,19 @@ tables {
     match_type: TERNARY
   }
   action_refs {
-    id: 16829931
+    id: 16839692
   }
   action_refs {
     id: 16800567
     annotations: "@defaultonly()"
   }
-  direct_resource_ids: 302047449
+  direct_resource_ids: 301993073
   size: 1024
 }
 tables {
   preamble {
-    id: 33565386
-    name: "forwarding.mpls"
+    id: 33574274
+    name: "FabricIngress.forwarding.mpls"
     alias: "mpls"
   }
   match_fields {
@@ -110,19 +110,19 @@ tables {
     match_type: EXACT
   }
   action_refs {
-    id: 16842717
+    id: 16827758
   }
   action_refs {
     id: 16800567
     annotations: "@defaultonly()"
   }
-  direct_resource_ids: 302001577
+  direct_resource_ids: 302053291
   size: 1024
 }
 tables {
   preamble {
-    id: 33589684
-    name: "forwarding.unicast_v4"
+    id: 33586372
+    name: "FabricIngress.forwarding.unicast_v4"
     alias: "unicast_v4"
   }
   match_fields {
@@ -132,19 +132,97 @@ tables {
     match_type: LPM
   }
   action_refs {
-    id: 16829931
+    id: 16839692
   }
   action_refs {
     id: 16800567
     annotations: "@defaultonly()"
   }
-  direct_resource_ids: 302038636
+  direct_resource_ids: 301991276
   size: 1024
 }
 tables {
   preamble {
-    id: 33587782
-    name: "forwarding.acl"
+    id: 33578363
+    name: "FabricIngress.forwarding.multicast_v4"
+    alias: "multicast_v4"
+  }
+  match_fields {
+    id: 1
+    name: "hdr.vlan_tag.vlan_id"
+    bitwidth: 12
+    match_type: EXACT
+  }
+  match_fields {
+    id: 2
+    name: "hdr.ipv4.dst_addr"
+    bitwidth: 32
+    match_type: LPM
+  }
+  action_refs {
+    id: 16839692
+  }
+  action_refs {
+    id: 16800567
+    annotations: "@defaultonly()"
+  }
+  direct_resource_ids: 302020680
+  size: 1024
+}
+tables {
+  preamble {
+    id: 33568751
+    name: "FabricIngress.forwarding.unicast_v6"
+    alias: "unicast_v6"
+  }
+  match_fields {
+    id: 1
+    name: "hdr.ipv6.dst_addr"
+    bitwidth: 128
+    match_type: LPM
+  }
+  action_refs {
+    id: 16839692
+  }
+  action_refs {
+    id: 16800567
+    annotations: "@defaultonly()"
+  }
+  direct_resource_ids: 302043649
+  size: 1024
+}
+tables {
+  preamble {
+    id: 33581295
+    name: "FabricIngress.forwarding.multicast_v6"
+    alias: "multicast_v6"
+  }
+  match_fields {
+    id: 1
+    name: "hdr.vlan_tag.vlan_id"
+    bitwidth: 12
+    match_type: EXACT
+  }
+  match_fields {
+    id: 2
+    name: "hdr.ipv6.dst_addr"
+    bitwidth: 128
+    match_type: LPM
+  }
+  action_refs {
+    id: 16839692
+  }
+  action_refs {
+    id: 16800567
+    annotations: "@defaultonly()"
+  }
+  direct_resource_ids: 302038094
+  size: 1024
+}
+tables {
+  preamble {
+    id: 33574876
+    name: "FabricIngress.forwarding.acl"
     alias: "acl"
   }
   match_fields {
@@ -220,25 +298,25 @@ tables {
     match_type: TERNARY
   }
   action_refs {
-    id: 16829931
+    id: 16839692
   }
   action_refs {
-    id: 16805452
+    id: 16801739
   }
   action_refs {
-    id: 16815978
+    id: 16833260
   }
   action_refs {
     id: 16819938
   }
   const_default_action_id: 16819938
-  direct_resource_ids: 302000008
+  direct_resource_ids: 301995056
   size: 256
 }
 tables {
   preamble {
-    id: 33615740
-    name: "next.simple"
+    id: 33571723
+    name: "FabricIngress.next.simple"
     alias: "simple"
   }
   match_fields {
@@ -248,28 +326,28 @@ tables {
     match_type: EXACT
   }
   action_refs {
-    id: 16818315
+    id: 16832750
   }
   action_refs {
-    id: 16837690
+    id: 16808391
   }
   action_refs {
-    id: 16804266
+    id: 16812135
   }
   action_refs {
-    id: 16841192
+    id: 16780811
   }
   action_refs {
     id: 16800567
     annotations: "@defaultonly()"
   }
-  direct_resource_ids: 301991179
+  direct_resource_ids: 301991880
   size: 1024
 }
 tables {
   preamble {
-    id: 33569488
-    name: "next.hashed"
+    id: 33608588
+    name: "FabricIngress.next.hashed"
     alias: "hashed"
   }
   match_fields {
@@ -279,20 +357,42 @@ tables {
     match_type: EXACT
   }
   action_refs {
-    id: 16804266
+    id: 16812135
   }
   action_refs {
-    id: 16841192
+    id: 16780811
   }
   action_refs {
-    id: 16788519
+    id: 16827088
   }
   action_refs {
     id: 16800567
     annotations: "@defaultonly()"
   }
-  implementation_id: 285225078
-  direct_resource_ids: 301993193
+  implementation_id: 285233747
+  direct_resource_ids: 302023316
+  size: 1024
+}
+tables {
+  preamble {
+    id: 33606828
+    name: "FabricIngress.next.multicast"
+    alias: "multicast"
+  }
+  match_fields {
+    id: 1
+    name: "fabric_metadata.next_id"
+    bitwidth: 32
+    match_type: EXACT
+  }
+  action_refs {
+    id: 16789575
+  }
+  action_refs {
+    id: 16800567
+    annotations: "@defaultonly()"
+  }
+  direct_resource_ids: 302024536
   size: 1024
 }
 actions {
@@ -311,15 +411,15 @@ actions {
 }
 actions {
   preamble {
-    id: 16826365
-    name: "filtering.drop"
+    id: 16798734
+    name: "FabricIngress.filtering.drop"
     alias: "filtering.drop"
   }
 }
 actions {
   preamble {
-    id: 16782367
-    name: "filtering.set_vlan"
+    id: 16793253
+    name: "FabricIngress.filtering.set_vlan"
     alias: "set_vlan"
   }
   params {
@@ -330,8 +430,8 @@ actions {
 }
 actions {
   preamble {
-    id: 16794505
-    name: "filtering.push_internal_vlan"
+    id: 16835546
+    name: "FabricIngress.filtering.push_internal_vlan"
     alias: "push_internal_vlan"
   }
   params {
@@ -342,8 +442,8 @@ actions {
 }
 actions {
   preamble {
-    id: 16838162
-    name: "filtering.set_forwarding_type"
+    id: 16840921
+    name: "FabricIngress.filtering.set_forwarding_type"
     alias: "set_forwarding_type"
   }
   params {
@@ -354,15 +454,15 @@ actions {
 }
 actions {
   preamble {
-    id: 16815978
-    name: "forwarding.drop"
+    id: 16833260
+    name: "FabricIngress.forwarding.drop"
     alias: "forwarding.drop"
   }
 }
 actions {
   preamble {
-    id: 16829931
-    name: "forwarding.set_next_id"
+    id: 16839692
+    name: "FabricIngress.forwarding.set_next_id"
     alias: "set_next_id"
   }
   params {
@@ -373,8 +473,8 @@ actions {
 }
 actions {
   preamble {
-    id: 16842717
-    name: "forwarding.pop_mpls_and_next"
+    id: 16827758
+    name: "FabricIngress.forwarding.pop_mpls_and_next"
     alias: "pop_mpls_and_next"
   }
   params {
@@ -385,15 +485,15 @@ actions {
 }
 actions {
   preamble {
-    id: 16805452
-    name: "forwarding.duplicate_to_controller"
+    id: 16801739
+    name: "FabricIngress.forwarding.duplicate_to_controller"
     alias: "duplicate_to_controller"
   }
 }
 actions {
   preamble {
-    id: 16818315
-    name: "next.output"
+    id: 16832750
+    name: "FabricIngress.next.output"
     alias: "output"
   }
   params {
@@ -404,8 +504,8 @@ actions {
 }
 actions {
   preamble {
-    id: 16837690
-    name: "next.set_vlan_output"
+    id: 16808391
+    name: "FabricIngress.next.set_vlan_output"
     alias: "set_vlan_output"
   }
   params {
@@ -421,8 +521,8 @@ actions {
 }
 actions {
   preamble {
-    id: 16804266
-    name: "next.l3_routing"
+    id: 16812135
+    name: "FabricIngress.next.l3_routing"
     alias: "l3_routing"
   }
   params {
@@ -443,8 +543,8 @@ actions {
 }
 actions {
   preamble {
-    id: 16841192
-    name: "next.mpls_routing_v4"
+    id: 16780811
+    name: "FabricIngress.next.mpls_routing_v4"
     alias: "mpls_routing_v4"
   }
   params {
@@ -470,8 +570,8 @@ actions {
 }
 actions {
   preamble {
-    id: 16788519
-    name: "next.mpls_routing_v6"
+    id: 16827088
+    name: "FabricIngress.next.mpls_routing_v6"
     alias: "mpls_routing_v6"
   }
   params {
@@ -495,20 +595,37 @@ actions {
     bitwidth: 20
   }
 }
+actions {
+  preamble {
+    id: 16789575
+    name: "FabricIngress.next.set_mcast_group"
+    alias: "set_mcast_group"
+  }
+  params {
+    id: 1
+    name: "gid"
+    bitwidth: 16
+  }
+  params {
+    id: 2
+    name: "smac"
+    bitwidth: 48
+  }
+}
 action_profiles {
   preamble {
-    id: 285225078
-    name: "next.ecmp_selector"
+    id: 285233747
+    name: "FabricIngress.next.ecmp_selector"
     alias: "ecmp_selector"
   }
-  table_ids: 33569488
+  table_ids: 33608588
   with_selector: true
   size: 64
 }
 counters {
   preamble {
-    id: 302025528
-    name: "port_counters_control.egress_port_counter"
+    id: 302011205
+    name: "FabricIngress.port_counters_control.egress_port_counter"
     alias: "egress_port_counter"
   }
   spec {
@@ -518,8 +635,8 @@ counters {
 }
 counters {
   preamble {
-    id: 301999025
-    name: "port_counters_control.ingress_port_counter"
+    id: 302002771
+    name: "FabricIngress.port_counters_control.ingress_port_counter"
     alias: "ingress_port_counter"
   }
   spec {
@@ -529,91 +646,135 @@ counters {
 }
 direct_counters {
   preamble {
-    id: 302015144
-    name: "filtering.ingress_port_vlan_counter"
+    id: 302038285
+    name: "FabricIngress.filtering.ingress_port_vlan_counter"
     alias: "ingress_port_vlan_counter"
   }
   spec {
     unit: BOTH
   }
-  direct_table_id: 33578399
+  direct_table_id: 33611649
 }
 direct_counters {
   preamble {
-    id: 302033694
-    name: "filtering.fwd_classifier_counter"
+    id: 302050110
+    name: "FabricIngress.filtering.fwd_classifier_counter"
     alias: "fwd_classifier_counter"
   }
   spec {
     unit: BOTH
   }
-  direct_table_id: 33619540
+  direct_table_id: 33596298
 }
 direct_counters {
   preamble {
-    id: 302047449
-    name: "forwarding.bridging_counter"
+    id: 301993073
+    name: "FabricIngress.forwarding.bridging_counter"
     alias: "bridging_counter"
   }
   spec {
     unit: BOTH
   }
-  direct_table_id: 33569146
+  direct_table_id: 33596749
 }
 direct_counters {
   preamble {
-    id: 302001577
-    name: "forwarding.mpls_counter"
+    id: 302053291
+    name: "FabricIngress.forwarding.mpls_counter"
     alias: "mpls_counter"
   }
   spec {
     unit: BOTH
   }
-  direct_table_id: 33565386
+  direct_table_id: 33574274
 }
 direct_counters {
   preamble {
-    id: 302038636
-    name: "forwarding.unicast_v4_counter"
+    id: 301991276
+    name: "FabricIngress.forwarding.unicast_v4_counter"
     alias: "unicast_v4_counter"
   }
   spec {
     unit: BOTH
   }
-  direct_table_id: 33589684
+  direct_table_id: 33586372
 }
 direct_counters {
   preamble {
-    id: 302000008
-    name: "forwarding.acl_counter"
+    id: 302020680
+    name: "FabricIngress.forwarding.multicast_v4_counter"
+    alias: "multicast_v4_counter"
+  }
+  spec {
+    unit: BOTH
+  }
+  direct_table_id: 33578363
+}
+direct_counters {
+  preamble {
+    id: 302043649
+    name: "FabricIngress.forwarding.unicast_v6_counter"
+    alias: "unicast_v6_counter"
+  }
+  spec {
+    unit: BOTH
+  }
+  direct_table_id: 33568751
+}
+direct_counters {
+  preamble {
+    id: 302038094
+    name: "FabricIngress.forwarding.multicast_v6_counter"
+    alias: "multicast_v6_counter"
+  }
+  spec {
+    unit: BOTH
+  }
+  direct_table_id: 33581295
+}
+direct_counters {
+  preamble {
+    id: 301995056
+    name: "FabricIngress.forwarding.acl_counter"
     alias: "acl_counter"
   }
   spec {
     unit: BOTH
   }
-  direct_table_id: 33587782
+  direct_table_id: 33574876
 }
 direct_counters {
   preamble {
-    id: 301991179
-    name: "next.simple_counter"
+    id: 301991880
+    name: "FabricIngress.next.simple_counter"
     alias: "simple_counter"
   }
   spec {
     unit: BOTH
   }
-  direct_table_id: 33615740
+  direct_table_id: 33571723
 }
 direct_counters {
   preamble {
-    id: 301993193
-    name: "next.hashed_counter"
+    id: 302023316
+    name: "FabricIngress.next.hashed_counter"
     alias: "hashed_counter"
   }
   spec {
     unit: BOTH
   }
-  direct_table_id: 33569488
+  direct_table_id: 33608588
+}
+direct_counters {
+  preamble {
+    id: 302024536
+    name: "FabricIngress.next.multicast_counter"
+    alias: "multicast_counter"
+  }
+  spec {
+    unit: BOTH
+  }
+  direct_table_id: 33606828
 }
 controller_packet_metadata {
   preamble {

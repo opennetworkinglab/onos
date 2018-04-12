@@ -103,9 +103,9 @@ final class FabricTreatmentInterpreter {
         PiActionId actionId;
         if (pushVlanInst != null) {
             // push_internal_vlan
-            actionId = FabricConstants.ACT_FILTERING_PUSH_INTERNAL_VLAN_ID;
+            actionId = FabricConstants.ACT_FABRICINGRESS_FILTERING_PUSH_INTERNAL_VLAN_ID;
         } else {
-            actionId = FabricConstants.ACT_FILTERING_SET_VLAN_ID;
+            actionId = FabricConstants.ACT_FABRICINGRESS_FILTERING_SET_VLAN_ID;
         }
 
         // set_vlan
@@ -150,7 +150,7 @@ final class FabricTreatmentInterpreter {
         }
 
         return PiAction.builder()
-                .withId(FabricConstants.ACT_FORWARDING_DUPLICATE_TO_CONTROLLER_ID)
+                .withId(FabricConstants.ACT_FABRICINGRESS_FORWARDING_DUPLICATE_TO_CONTROLLER_ID)
                 .build();
     }
 
@@ -225,13 +225,13 @@ final class FabricTreatmentInterpreter {
                                           ImmutableByteSequence.copyFrom(vlanId.toShort()));
                 // set_vlan_output
                 return PiAction.builder()
-                        .withId(FabricConstants.ACT_NEXT_SET_VLAN_OUTPUT_ID)
+                        .withId(FabricConstants.ACT_FABRICINGRESS_NEXT_SET_VLAN_OUTPUT_ID)
                         .withParameters(ImmutableList.of(portNumParam, vlanParam))
                         .build();
             } else {
                 // output
                 return PiAction.builder()
-                        .withId(FabricConstants.ACT_NEXT_OUTPUT_ID)
+                        .withId(FabricConstants.ACT_FABRICINGRESS_NEXT_OUTPUT_ID)
                         .withParameter(portNumParam)
                         .build();
             }
@@ -254,7 +254,7 @@ final class FabricTreatmentInterpreter {
                     PiActionParam mplsParam = new PiActionParam(FabricConstants.ACT_PRM_LABEL_ID, mplsValue);
                     return PiAction.builder()
                             // FIXME: fins a way to determine v4 or v6
-                            .withId(FabricConstants.ACT_NEXT_MPLS_ROUTING_V4_ID)
+                            .withId(FabricConstants.ACT_FABRICINGRESS_NEXT_MPLS_ROUTING_V4_ID)
                             .withParameters(ImmutableList.of(portNumParam,
                                                              srcMacParam,
                                                              dstMacParam,
@@ -269,7 +269,7 @@ final class FabricTreatmentInterpreter {
 
             // L3 routing
             return PiAction.builder()
-                    .withId(FabricConstants.ACT_NEXT_L3_ROUTING_ID)
+                    .withId(FabricConstants.ACT_FABRICINGRESS_NEXT_L3_ROUTING_ID)
                     .withParameters(ImmutableList.of(portNumParam,
                                                      srcMacParam,
                                                      dstMacParam))

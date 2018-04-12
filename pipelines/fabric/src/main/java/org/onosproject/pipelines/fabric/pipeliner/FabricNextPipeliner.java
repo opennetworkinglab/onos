@@ -42,7 +42,7 @@ import org.slf4j.Logger;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.onosproject.pipelines.fabric.FabricConstants.ACT_PRF_NEXT_ECMP_SELECTOR_ID;
+import static org.onosproject.pipelines.fabric.FabricConstants.ACT_PRF_FABRICINGRESS_NEXT_ECMP_SELECTOR_ID;
 import static org.onosproject.pipelines.fabric.FabricConstants.HF_FABRIC_METADATA_NEXT_ID_ID;
 import static org.onosproject.pipelines.fabric.FabricConstants.TBL_HASHED_ID;
 import static org.onosproject.pipelines.fabric.FabricConstants.TBL_SIMPLE_ID;
@@ -159,7 +159,7 @@ public class FabricNextPipeliner {
 
         GroupBuckets buckets = new GroupBuckets(bucketList);
         PiGroupKey groupKey = new PiGroupKey(TBL_HASHED_ID,
-                                             ACT_PRF_NEXT_ECMP_SELECTOR_ID,
+                                             ACT_PRF_FABRICINGRESS_NEXT_ECMP_SELECTOR_ID,
                                              groupId);
 
         resultBuilder.addGroup(new DefaultGroupDescription(deviceId,

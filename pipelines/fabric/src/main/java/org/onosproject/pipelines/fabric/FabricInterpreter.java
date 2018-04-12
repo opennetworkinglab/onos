@@ -76,7 +76,7 @@ public class FabricInterpreter extends AbstractHandlerBehaviour
                     // Next
                     .put(9, FabricConstants.TBL_SIMPLE_ID)
                     .put(10, FabricConstants.TBL_HASHED_ID)
-                    .put(11, FabricConstants.TBL_BROADCAST_ID)
+                    .put(11, FabricConstants.TBL_MULTICAST_ID)
                     .build();
 
     private static final Set<PiTableId> FILTERING_CTRL_TBLS = ImmutableSet.of(FabricConstants.TBL_INGRESS_PORT_VLAN_ID,
@@ -90,7 +90,7 @@ public class FabricInterpreter extends AbstractHandlerBehaviour
                                                                                FabricConstants.TBL_ACL_ID);
     private static final Set<PiTableId> NEXT_CTRL_TBLS = ImmutableSet.of(FabricConstants.TBL_SIMPLE_ID,
                                                                          FabricConstants.TBL_HASHED_ID,
-                                                                         FabricConstants.TBL_BROADCAST_ID);
+                                                                         FabricConstants.TBL_MULTICAST_ID);
 
     private static final ImmutableMap<Criterion.Type, PiMatchFieldId> CRITERION_MAP =
             ImmutableMap.<Criterion.Type, PiMatchFieldId>builder()

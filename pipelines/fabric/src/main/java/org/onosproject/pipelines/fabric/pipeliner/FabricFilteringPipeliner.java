@@ -16,7 +16,7 @@
 
 package org.onosproject.pipelines.fabric.pipeliner;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.Lists;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
@@ -156,7 +156,7 @@ public class FabricFilteringPipeliner {
     private Collection<FlowRule> createFwdClassifierRules(PortCriterion inPortCriterion,
                                                           EthCriterion ethDstCriterion,
                                                           FilteringObjective filterObjective) {
-        Collection<FlowRule> flowRules = Sets.newHashSet();
+        Collection<FlowRule> flowRules = Lists.newArrayList();
         if (ethDstCriterion == null) {
             // Bridging table, do nothing
             return flowRules;
@@ -192,7 +192,7 @@ public class FabricFilteringPipeliner {
     private Collection<FlowRule> createIpFwdClassifierRules(PortNumber inPort,
                                                             MacAddress dstMac,
                                                             FilteringObjective filterObjective) {
-        Collection<FlowRule> flowRules = Sets.newHashSet();
+        Collection<FlowRule> flowRules = Lists.newArrayList();
         TrafficTreatment treatment;
         treatment = createFwdClassifierTreatment(FWD_IPV4_UNICAST);
         flowRules.add(createFwdClassifierRule(inPort, Ethernet.TYPE_IPV4, dstMac, treatment, filterObjective));
@@ -233,7 +233,7 @@ public class FabricFilteringPipeliner {
         PiActionParam param = new PiActionParam(FabricConstants.ACT_PRM_FWD_TYPE_ID,
                                                 ImmutableByteSequence.copyFrom(fwdType));
         PiAction action = PiAction.builder()
-                .withId(FabricConstants.ACT_FILTERING_SET_FORWARDING_TYPE_ID)
+                .withId(FabricConstants.ACT_FABRICINGRESS_FILTERING_SET_FORWARDING_TYPE_ID)
                 .withParameter(param)
                 .build();
         return DefaultTrafficTreatment.builder()
