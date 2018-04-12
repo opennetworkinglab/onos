@@ -30,7 +30,7 @@ import java.util.List;
  * Representation of a path in terms of list of elements that it has to traverse
  * and weight.
  */
-public class Path implements Comparable {
+public class Path {
     private List<ElementId> path;
     private float weight;
 
@@ -75,22 +75,5 @@ public class Path implements Comparable {
         return MoreObjects.toStringHelper(this)
                 .add("Path", this.path())
                 .toString();
-    }
-
-    /**
-     * Compare two paths in terms of weight.
-     * @param o Object to compare
-     * @return the comparison result
-     */
-    @Override
-    public int compareTo(Object o) {
-        Path s = (Path) o;
-        if (this.weight < s.weight) {
-            return -1;
-        }
-        if (this.weight > s.weight) {
-            return 1;
-        }
-        return 0;
     }
 }

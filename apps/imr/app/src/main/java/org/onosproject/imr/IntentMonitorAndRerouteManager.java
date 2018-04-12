@@ -65,6 +65,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -303,7 +304,7 @@ public class IntentMonitorAndRerouteManager implements IntentMonitorAndRerouteSe
         // TODO: now we manage only the unsplittable routing
         Path currentPath = route.paths()
                 .stream()
-                .max(Path::compareTo)
+                .max(Comparator.comparing(Path::weight))
                 .get();
 
         // Check if the last and first element of the path are HostId
@@ -437,6 +438,7 @@ public class IntentMonitorAndRerouteManager implements IntentMonitorAndRerouteSe
         return path;
     }
 
+    @Override
     public Map<ApplicationId, Map<Key, Pair<Set<ElementId>, Set<ElementId>>>> getMonitoredIntents() {
         Map<ApplicationId, Map<Key, Pair<Set<ElementId>, Set<ElementId>>>> currentMonitoredIntents
                 = new ConcurrentHashMap<>();
@@ -452,6 +454,7 @@ public class IntentMonitorAndRerouteManager implements IntentMonitorAndRerouteSe
         return currentMonitoredIntents;
     }
 
+    @Override
     public Map<ApplicationId, Map<Key, Pair<Set<ElementId>, Set<ElementId>>>> getMonitoredIntents(
             ApplicationId appId) {
         Map<ApplicationId, Map<Key, Pair<Set<ElementId>, Set<ElementId>>>> currentMonitoredIntents
