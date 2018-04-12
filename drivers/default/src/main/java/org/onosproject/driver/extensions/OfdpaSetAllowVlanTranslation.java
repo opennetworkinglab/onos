@@ -23,8 +23,6 @@ import org.onosproject.net.flow.instructions.ExtensionTreatmentType;
 
 import java.util.Objects;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * OFDPA set Allow  Vlan Translation extension instruction.
  */
@@ -40,7 +38,6 @@ public class OfdpaSetAllowVlanTranslation extends AbstractExtension implements E
     }
 
     public OfdpaSetAllowVlanTranslation(byte allow) {
-        checkNotNull(allow);
         this.vlanTranslation = allow;
     }
 
