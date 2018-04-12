@@ -430,11 +430,11 @@ final class PiFlowRuleTranslatorImpl {
                                 "Invalid prefix length for LPM field '%s', found %d but field has bit-width %d",
                                 fieldMatch.fieldId(), lpmfield.prefixLength(), modelBitWidth));
                     }
-                    ImmutableByteSequence lpmMask = prefixOnes(modelBitWidth * Byte.SIZE,
-                                                               lpmfield.prefixLength());
                     ImmutableByteSequence lpmValue = lpmfield.value()
-                            .fit(modelBitWidth)
-                            .bitwiseAnd(lpmMask);
+                            .fit(modelBitWidth);
+                    ImmutableByteSequence lpmMask = prefixOnes(lpmValue.size(),
+                                                               lpmfield.prefixLength());
+                    lpmValue = lpmValue.bitwiseAnd(lpmMask);
                     return new PiLpmFieldMatch(fieldMatch.fieldId(),
                                                lpmValue, lpmfield.prefixLength());
                 case RANGE:
