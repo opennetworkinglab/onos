@@ -83,10 +83,9 @@ public class McastHostDeleteCommand extends AbstractShellCommand {
             print("Route is not present, store it first");
             return;
         }
-        // Otherwise remove the entire host id
-        if (host != null) {
-            mcastRouteManager.removeSink(mRoute, hostId);
-        }
+        // Remove the entire host id
+        mcastRouteManager.removeSink(mRoute, hostId);
+
         // We have done
         printMcastRoute(U_FORMAT_MAPPING, mRoute);
     }

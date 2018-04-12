@@ -172,7 +172,7 @@ public class OdtnManualTestCommand extends AbstractShellCommand {
                     .newDocumentBuilder().newDocument();
         } catch (ParserConfigurationException e) {
             printlog("Unexpected error", e);
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         }
 
         // netconf rpc boilerplate part without message-id

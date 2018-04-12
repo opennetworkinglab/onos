@@ -161,7 +161,7 @@ public interface L2TunnelHandler {
             return nextId;
         }
 
-        public void setNextId(int nextId) {
+        protected void setNextId(int nextId) {
             this.nextId = nextId;
         }
 
