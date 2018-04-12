@@ -330,7 +330,8 @@ public final class OpenstackSwitchingArpHandler {
                 return false;
             }
 
-            Network network = osNetworkService.network(event.port().getNetworkId());
+            Network network = osNetworkService.network(osSubnet.getNetworkId());
+
             if (network == null) {
                 log.warn("Network is not specified.");
                 return false;
