@@ -42,9 +42,6 @@ import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.onosproject.pipelines.fabric.FabricConstants.ACT_PRF_FABRICINGRESS_NEXT_ECMP_SELECTOR_ID;
-import static org.onosproject.pipelines.fabric.FabricConstants.TBL_HASHED_ID;
-import static org.onosproject.pipelines.fabric.FabricConstants.TBL_VLAN_META_ID;
 
 /**
  * Test cases for fabric.p4 pipeline next control block.
@@ -54,7 +51,7 @@ public class FabricNextPipelinerTest extends FabricPipelinerTest {
 
     public FabricNextPipelinerTest() {
         PiCriterion nextIdCriterion = PiCriterion.builder()
-                .matchExact(FabricConstants.HF_FABRIC_METADATA_NEXT_ID_ID, NEXT_ID_1)
+                .matchExact(FabricConstants.FABRIC_METADATA_NEXT_ID, NEXT_ID_1)
                 .build();
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchPi(nextIdCriterion)
@@ -66,7 +63,7 @@ public class FabricNextPipelinerTest extends FabricPipelinerTest {
         vlanMetaFlowRule = DefaultFlowRule.builder()
                 .withSelector(selector)
                 .withTreatment(treatment)
-                .forTable(TBL_VLAN_META_ID)
+                .forTable(FabricConstants.FABRIC_INGRESS_NEXT_VLAN_META)
                 .makePermanent()
                 // FIXME: currently next objective doesn't support priority, ignore this
                 .withPriority(0)
@@ -145,7 +142,7 @@ public class FabricNextPipelinerTest extends FabricPipelinerTest {
 
         // Simple table
         PiCriterion nextIdCriterion = PiCriterion.builder()
-                .matchExact(FabricConstants.HF_FABRIC_METADATA_NEXT_ID_ID, NEXT_ID_1)
+                .matchExact(FabricConstants.FABRIC_METADATA_NEXT_ID, NEXT_ID_1)
                 .build();
         TrafficSelector nextIdSelector = DefaultTrafficSelector.builder()
                 .matchPi(nextIdCriterion)
@@ -162,7 +159,7 @@ public class FabricNextPipelinerTest extends FabricPipelinerTest {
                 .makePermanent()
                 // FIXME: currently next objective doesn't support priority, ignore this
                 .withPriority(0)
-                .forTable(FabricConstants.TBL_SIMPLE_ID)
+                .forTable(FabricConstants.FABRIC_INGRESS_NEXT_SIMPLE)
                 .withSelector(nextIdSelector)
                 .withTreatment(treatment)
                 .build();
@@ -206,7 +203,7 @@ public class FabricNextPipelinerTest extends FabricPipelinerTest {
 
         // Hashed table
         PiCriterion nextIdCriterion = PiCriterion.builder()
-                .matchExact(FabricConstants.HF_FABRIC_METADATA_NEXT_ID_ID, NEXT_ID_1)
+                .matchExact(FabricConstants.FABRIC_METADATA_NEXT_ID, NEXT_ID_1)
                 .build();
         TrafficSelector nextIdSelector = DefaultTrafficSelector.builder()
                 .matchPi(nextIdCriterion)
@@ -227,7 +224,7 @@ public class FabricNextPipelinerTest extends FabricPipelinerTest {
                 .makePermanent()
                 // FIXME: currently next objective doesn't support priority, ignore this
                 .withPriority(0)
-                .forTable(TBL_HASHED_ID)
+                .forTable(FabricConstants.FABRIC_INGRESS_NEXT_HASHED)
                 .withSelector(nextIdSelector)
                 .withTreatment(treatment)
                 .build();
@@ -241,7 +238,9 @@ public class FabricNextPipelinerTest extends FabricPipelinerTest {
                 .map(DefaultGroupBucket::createSelectGroupBucket)
                 .collect(Collectors.toList());
         GroupBuckets groupBuckets = new GroupBuckets(buckets);
-        PiGroupKey groupKey = new PiGroupKey(TBL_HASHED_ID, ACT_PRF_FABRICINGRESS_NEXT_ECMP_SELECTOR_ID, NEXT_ID_1);
+        PiGroupKey groupKey = new PiGroupKey(FabricConstants.FABRIC_INGRESS_NEXT_HASHED,
+                                             FabricConstants.FABRIC_INGRESS_NEXT_ECMP_SELECTOR,
+                                             NEXT_ID_1);
         GroupDescription expectedGroup = new DefaultGroupDescription(
                 DEVICE_ID,
                 GroupDescription.Type.SELECT,

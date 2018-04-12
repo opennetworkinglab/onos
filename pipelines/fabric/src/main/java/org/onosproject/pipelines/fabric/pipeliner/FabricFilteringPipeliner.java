@@ -58,10 +58,10 @@ public class FabricFilteringPipeliner {
     private static final byte FWD_IPV6_UNICAST = 4;
     private static final byte FWD_IPV6_MULTICAST = 5;
     private static final PiCriterion VLAN_VALID = PiCriterion.builder()
-            .matchExact(FabricConstants.HF_VLAN_TAG_IS_VALID_ID, new byte[]{1})
+            .matchExact(FabricConstants.HDR_VLAN_TAG_IS_VALID, new byte[]{1})
             .build();
     private static final PiCriterion VLAN_INVALID = PiCriterion.builder()
-            .matchExact(FabricConstants.HF_VLAN_TAG_IS_VALID_ID, new byte[]{0})
+            .matchExact(FabricConstants.HDR_VLAN_TAG_IS_VALID, new byte[]{0})
             .build();
 
     protected DeviceId deviceId;
@@ -147,7 +147,7 @@ public class FabricFilteringPipeliner {
                 .withSelector(selector.build())
                 .withTreatment(treatment)
                 .withPriority(filterObjective.priority())
-                .forTable(FabricConstants.TBL_INGRESS_PORT_VLAN_ID)
+                .forTable(FabricConstants.FABRIC_INGRESS_FILTERING_INGRESS_PORT_VLAN)
                 .forDevice(deviceId)
                 .makePermanent()
                 .build();
@@ -225,15 +225,15 @@ public class FabricFilteringPipeliner {
                 .withPriority(filterObjective.priority())
                 .forDevice(deviceId)
                 .makePermanent()
-                .forTable(FabricConstants.TBL_FWD_CLASSIFIER_ID)
+                .forTable(FabricConstants.FABRIC_INGRESS_FILTERING_FWD_CLASSIFIER)
                 .build();
     }
 
     private TrafficTreatment createFwdClassifierTreatment(byte fwdType) {
-        PiActionParam param = new PiActionParam(FabricConstants.ACT_PRM_FWD_TYPE_ID,
+        PiActionParam param = new PiActionParam(FabricConstants.FWD_TYPE,
                                                 ImmutableByteSequence.copyFrom(fwdType));
         PiAction action = PiAction.builder()
-                .withId(FabricConstants.ACT_FABRICINGRESS_FILTERING_SET_FORWARDING_TYPE_ID)
+                .withId(FabricConstants.FABRIC_INGRESS_FILTERING_SET_FORWARDING_TYPE)
                 .withParameter(param)
                 .build();
         return DefaultTrafficTreatment.builder()

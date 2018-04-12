@@ -79,7 +79,7 @@ public class FabricForwardingPipelineTest extends FabricPipelinerTest {
         FlowRule actualFlowRule = flowRulesInstalled.get(0);
         FlowRule expectedFlowRule = DefaultFlowRule.builder()
                 .forDevice(DEVICE_ID)
-                .forTable(FabricConstants.TBL_ACL_ID)
+                .forTable(FabricConstants.FABRIC_INGRESS_FORWARDING_ACL)
                 .withPriority(PRIORITY)
                 .makePermanent()
                 .withSelector(selector)
@@ -125,7 +125,7 @@ public class FabricForwardingPipelineTest extends FabricPipelinerTest {
         FlowRule actualFlowRule = flowRulesInstalled.get(0);
         FlowRule expectedFlowRule = DefaultFlowRule.builder()
                 .forDevice(DEVICE_ID)
-                .forTable(FabricConstants.TBL_ACL_ID)
+                .forTable(FabricConstants.FABRIC_INGRESS_FORWARDING_ACL)
                 .withPriority(PRIORITY)
                 .makePermanent()
                 .withSelector(selector)
@@ -145,7 +145,8 @@ public class FabricForwardingPipelineTest extends FabricPipelinerTest {
                 .matchVlanId(VLAN_100)
                 .matchEthDst(HOST_MAC)
                 .build();
-        testSpecificForward(FabricConstants.TBL_BRIDGING_ID, selector, selector, NEXT_ID_1);
+        testSpecificForward(FabricConstants.FABRIC_INGRESS_FORWARDING_BRIDGING,
+                            selector, selector, NEXT_ID_1);
     }
 
     @Test
@@ -153,7 +154,8 @@ public class FabricForwardingPipelineTest extends FabricPipelinerTest {
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchVlanId(VLAN_100)
                 .build();
-        testSpecificForward(FabricConstants.TBL_BRIDGING_ID, selector, selector, NEXT_ID_1);
+        testSpecificForward(FabricConstants.FABRIC_INGRESS_FORWARDING_BRIDGING,
+                            selector, selector, NEXT_ID_1);
     }
 
     @Test
@@ -165,7 +167,8 @@ public class FabricForwardingPipelineTest extends FabricPipelinerTest {
         TrafficSelector expectedSelector = DefaultTrafficSelector.builder()
                 .matchIPDst(IPV4_UNICAST_ADDR)
                 .build();
-        testSpecificForward(FabricConstants.TBL_UNICAST_V4_ID, expectedSelector, selector, NEXT_ID_1);
+        testSpecificForward(FabricConstants.FABRIC_INGRESS_FORWARDING_UNICAST_V4,
+                            expectedSelector, selector, NEXT_ID_1);
     }
 
     @Test
@@ -177,7 +180,8 @@ public class FabricForwardingPipelineTest extends FabricPipelinerTest {
         TrafficSelector expectedSelector = DefaultTrafficSelector.builder()
                 .matchIPDst(IPV4_UNICAST_ADDR)
                 .build();
-        testSpecificForward(FabricConstants.TBL_UNICAST_V4_ID, expectedSelector, selector, null);
+        testSpecificForward(FabricConstants.FABRIC_INGRESS_FORWARDING_UNICAST_V4,
+                            expectedSelector, selector, null);
     }
 
     @Test
@@ -191,7 +195,8 @@ public class FabricForwardingPipelineTest extends FabricPipelinerTest {
         TrafficSelector expectedSelector = DefaultTrafficSelector.builder()
                 .matchIPDst(IPV4_MCAST_ADDR)
                 .build();
-        testSpecificForward(FabricConstants.TBL_MULTICAST_V4_ID, expectedSelector, selector, NEXT_ID_1);
+        testSpecificForward(FabricConstants.FABRIC_INGRESS_FORWARDING_UNICAST_V4,
+                            expectedSelector, selector, NEXT_ID_1);
     }
 
     @Test
@@ -204,7 +209,9 @@ public class FabricForwardingPipelineTest extends FabricPipelinerTest {
         TrafficSelector expectedSelector = DefaultTrafficSelector.builder()
                 .matchIPDst(IPV6_UNICAST_ADDR)
                 .build();
-        testSpecificForward(FabricConstants.TBL_UNICAST_V6_ID, expectedSelector, selector, NEXT_ID_1);
+        testSpecificForward(FabricConstants.FABRIC_INGRESS_FORWARDING_UNICAST_V6,
+                            expectedSelector, selector, NEXT_ID_1);
+
     }
 
     @Test
@@ -218,7 +225,8 @@ public class FabricForwardingPipelineTest extends FabricPipelinerTest {
         TrafficSelector expectedSelector = DefaultTrafficSelector.builder()
                 .matchIPDst(IPV6_MCAST_ADDR)
                 .build();
-        testSpecificForward(FabricConstants.TBL_MULTICAST_V6_ID, expectedSelector, selector, NEXT_ID_1);
+        testSpecificForward(FabricConstants.FABRIC_INGRESS_FORWARDING_UNICAST_V6,
+                            expectedSelector, selector, NEXT_ID_1);
     }
 
     @Test
@@ -232,16 +240,17 @@ public class FabricForwardingPipelineTest extends FabricPipelinerTest {
                 .matchMplsLabel(MPLS_10)
                 .build();
 
-        PiActionParam nextIdParam = new PiActionParam(FabricConstants.ACT_PRM_NEXT_ID_ID,
+        PiActionParam nextIdParam = new PiActionParam(FabricConstants.NEXT_ID,
                                                       ImmutableByteSequence.copyFrom(NEXT_ID_1.byteValue()));
         PiAction setNextIdAction = PiAction.builder()
-                .withId(FabricConstants.ACT_FABRICINGRESS_FORWARDING_POP_MPLS_AND_NEXT_ID)
+                .withId(FabricConstants.FABRIC_INGRESS_FORWARDING_POP_MPLS_AND_NEXT)
                 .withParameter(nextIdParam)
                 .build();
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                 .piTableAction(setNextIdAction)
                 .build();
-        testSpecificForward(FabricConstants.TBL_MPLS_ID, expectedSelector, selector, NEXT_ID_1, treatment);
+        testSpecificForward(FabricConstants.FABRIC_INGRESS_FORWARDING_MPLS,
+                            expectedSelector, selector, NEXT_ID_1, treatment);
     }
 
     private void testSpecificForward(PiTableId expectedTableId, TrafficSelector expectedSelector,
@@ -251,10 +260,10 @@ public class FabricForwardingPipelineTest extends FabricPipelinerTest {
             // Ref: RoutingRulePopulator.java->revokeIpRuleForRouter
             setNextIdTreatment = DefaultTrafficTreatment.builder().build();
         } else {
-            PiActionParam nextIdParam = new PiActionParam(FabricConstants.ACT_PRM_NEXT_ID_ID,
+            PiActionParam nextIdParam = new PiActionParam(FabricConstants.NEXT_ID,
                                                           ImmutableByteSequence.copyFrom(nextId.byteValue()));
             PiAction setNextIdAction = PiAction.builder()
-                    .withId(FabricConstants.ACT_FABRICINGRESS_FORWARDING_SET_NEXT_ID_ID)
+                    .withId(FabricConstants.FABRIC_INGRESS_FORWARDING_SET_NEXT_ID)
                     .withParameter(nextIdParam)
                     .build();
             setNextIdTreatment = DefaultTrafficTreatment.builder()

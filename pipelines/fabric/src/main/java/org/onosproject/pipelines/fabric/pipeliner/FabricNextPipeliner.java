@@ -42,18 +42,12 @@ import org.onosproject.net.group.GroupBuckets;
 import org.onosproject.net.group.GroupDescription;
 import org.onosproject.net.pi.runtime.PiActionGroupId;
 import org.onosproject.net.pi.runtime.PiGroupKey;
+import org.onosproject.pipelines.fabric.FabricConstants;
 import org.slf4j.Logger;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.onosproject.pipelines.fabric.FabricConstants.ACT_PRF_FABRICINGRESS_NEXT_ECMP_SELECTOR_ID;
-import static org.onosproject.pipelines.fabric.FabricConstants.HF_FABRIC_METADATA_NEXT_ID_ID;
-import static org.onosproject.pipelines.fabric.FabricConstants.HF_STANDARD_METADATA_EGRESS_PORT_ID;
-import static org.onosproject.pipelines.fabric.FabricConstants.TBL_EGRESS_VLAN_ID;
-import static org.onosproject.pipelines.fabric.FabricConstants.TBL_HASHED_ID;
-import static org.onosproject.pipelines.fabric.FabricConstants.TBL_SIMPLE_ID;
-import static org.onosproject.pipelines.fabric.FabricConstants.TBL_VLAN_META_ID;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -116,7 +110,7 @@ public class FabricNextPipeliner {
         resultBuilder.addFlowRule(DefaultFlowRule.builder()
                                           .withSelector(selector)
                                           .withTreatment(treatment)
-                                          .forTable(TBL_VLAN_META_ID)
+                                          .forTable(FabricConstants.FABRIC_INGRESS_NEXT_VLAN_META)
                                           .makePermanent()
                                           .withPriority(next.priority())
                                           .forDevice(deviceId)
@@ -146,7 +140,7 @@ public class FabricNextPipeliner {
         resultBuilder.addFlowRule(DefaultFlowRule.builder()
                                           .withSelector(selector)
                                           .withTreatment(treatment)
-                                          .forTable(TBL_SIMPLE_ID)
+                                          .forTable(FabricConstants.FABRIC_INGRESS_NEXT_SIMPLE)
                                           .makePermanent()
                                           .withPriority(next.priority())
                                           .forDevice(deviceId)
@@ -184,7 +178,7 @@ public class FabricNextPipeliner {
         VlanId vlanId = vlanIdCriterion.vlanId();
 
         PiCriterion egressVlanTableMatch = PiCriterion.builder()
-                .matchExact(HF_STANDARD_METADATA_EGRESS_PORT_ID,
+                .matchExact(FabricConstants.STANDARD_METADATA_EGRESS_PORT,
                             (short) port.toLong())
                 .build();
         // Add VLAN pop rule to egress pipeline table
@@ -198,7 +192,7 @@ public class FabricNextPipeliner {
         resultBuilder.addFlowRule(DefaultFlowRule.builder()
                                           .withSelector(selector)
                                           .withTreatment(treatment)
-                                          .forTable(TBL_EGRESS_VLAN_ID)
+                                          .forTable(FabricConstants.FABRIC_EGRESS_EGRESS_NEXT_EGRESS_VLAN)
                                           .makePermanent()
                                           .withPriority(next.priority())
                                           .forDevice(deviceId)
@@ -256,8 +250,8 @@ public class FabricNextPipeliner {
         }
 
         GroupBuckets buckets = new GroupBuckets(bucketList);
-        PiGroupKey groupKey = new PiGroupKey(TBL_HASHED_ID,
-                                             ACT_PRF_FABRICINGRESS_NEXT_ECMP_SELECTOR_ID,
+        PiGroupKey groupKey = new PiGroupKey(FabricConstants.FABRIC_INGRESS_NEXT_HASHED,
+                                             FabricConstants.FABRIC_INGRESS_NEXT_ECMP_SELECTOR,
                                              groupId);
 
         resultBuilder.addGroup(new DefaultGroupDescription(deviceId,
@@ -282,7 +276,7 @@ public class FabricNextPipeliner {
         resultBuilder.addFlowRule(DefaultFlowRule.builder()
                                           .withSelector(selector)
                                           .withTreatment(treatment)
-                                          .forTable(TBL_HASHED_ID)
+                                          .forTable(FabricConstants.FABRIC_INGRESS_NEXT_HASHED)
                                           .makePermanent()
                                           .withPriority(next.priority())
                                           .forDevice(deviceId)
@@ -292,7 +286,7 @@ public class FabricNextPipeliner {
 
     private TrafficSelector buildNextIdSelector(int nextId) {
         PiCriterion nextIdCriterion = PiCriterion.builder()
-                .matchExact(HF_FABRIC_METADATA_NEXT_ID_ID, nextId)
+                .matchExact(FabricConstants.FABRIC_METADATA_NEXT_ID, nextId)
                 .build();
         return DefaultTrafficSelector.builder()
                 .matchPi(nextIdCriterion)

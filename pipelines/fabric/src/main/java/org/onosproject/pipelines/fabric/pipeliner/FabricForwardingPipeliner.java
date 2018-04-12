@@ -84,7 +84,7 @@ public class FabricForwardingPipeliner {
         FlowRule flowRule = DefaultFlowRule.builder()
                 .withSelector(fwd.selector())
                 .withTreatment(fwd.treatment())
-                .forTable(FabricConstants.TBL_ACL_ID)
+                .forTable(FabricConstants.FABRIC_INGRESS_FORWARDING_ACL)
                 .withPriority(fwd.priority())
                 .forDevice(deviceId)
                 .makePermanent()
@@ -188,7 +188,7 @@ public class FabricForwardingPipeliner {
                 .withPriority(fwd.priority())
                 .makePermanent()
                 .forDevice(deviceId)
-                .forTable(FabricConstants.TBL_BRIDGING_ID)
+                .forTable(FabricConstants.FABRIC_INGRESS_FORWARDING_BRIDGING)
                 .build();
 
         resultBuilder.addFlowRule(flowRule);
@@ -215,7 +215,7 @@ public class FabricForwardingPipeliner {
                 .withPriority(fwd.priority())
                 .makePermanent()
                 .forDevice(deviceId)
-                .forTable(FabricConstants.TBL_BRIDGING_ID)
+                .forTable(FabricConstants.FABRIC_INGRESS_FORWARDING_BRIDGING)
                 .build();
 
         resultBuilder.addFlowRule(flowRule);
@@ -238,7 +238,7 @@ public class FabricForwardingPipeliner {
                 .withPriority(fwd.priority())
                 .makePermanent()
                 .forDevice(deviceId)
-                .forTable(FabricConstants.TBL_UNICAST_V4_ID)
+                .forTable(FabricConstants.FABRIC_INGRESS_FORWARDING_UNICAST_V4)
                 .build();
 
         resultBuilder.addFlowRule(flowRule);
@@ -251,10 +251,10 @@ public class FabricForwardingPipeliner {
 
         treatment = fwd.treatment();
         if (fwd.nextId() != null) {
-            PiActionParam nextIdParam = new PiActionParam(FabricConstants.ACT_PRM_NEXT_ID_ID,
+            PiActionParam nextIdParam = new PiActionParam(FabricConstants.NEXT_ID,
                                                           ImmutableByteSequence.copyFrom(fwd.nextId().byteValue()));
             PiAction nextIdAction = PiAction.builder()
-                    .withId(FabricConstants.ACT_FABRICINGRESS_FORWARDING_POP_MPLS_AND_NEXT_ID)
+                    .withId(FabricConstants.FABRIC_INGRESS_FORWARDING_POP_MPLS_AND_NEXT)
                     .withParameter(nextIdParam)
                     .build();
             treatment = DefaultTrafficTreatment.builder()
@@ -273,7 +273,7 @@ public class FabricForwardingPipeliner {
                 .withPriority(fwd.priority())
                 .makePermanent()
                 .forDevice(deviceId)
-                .forTable(FabricConstants.TBL_MPLS_ID)
+                .forTable(FabricConstants.FABRIC_INGRESS_FORWARDING_MPLS)
                 .build();
 
         resultBuilder.addFlowRule(flowRule);
@@ -287,10 +287,10 @@ public class FabricForwardingPipeliner {
      * @return treatment with set_next_id action; empty treatment if next id is null
      */
     private static TrafficTreatment buildSetNextIdTreatment(Integer nextId) {
-        PiActionParam nextIdParam = new PiActionParam(FabricConstants.ACT_PRM_NEXT_ID_ID,
+        PiActionParam nextIdParam = new PiActionParam(FabricConstants.NEXT_ID,
                                                       ImmutableByteSequence.copyFrom(nextId.byteValue()));
         PiAction nextIdAction = PiAction.builder()
-                .withId(FabricConstants.ACT_FABRICINGRESS_FORWARDING_SET_NEXT_ID_ID)
+                .withId(FabricConstants.FABRIC_INGRESS_FORWARDING_SET_NEXT_ID)
                 .withParameter(nextIdParam)
                 .build();
 

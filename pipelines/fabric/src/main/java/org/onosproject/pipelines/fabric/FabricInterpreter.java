@@ -63,75 +63,79 @@ public class FabricInterpreter extends AbstractHandlerBehaviour
     private static final ImmutableBiMap<Integer, PiTableId> TABLE_ID_MAP =
             ImmutableBiMap.<Integer, PiTableId>builder()
                     // Filtering
-                    .put(0, FabricConstants.TBL_INGRESS_PORT_VLAN_ID)
-                    .put(1, FabricConstants.TBL_FWD_CLASSIFIER_ID)
+                    .put(0, FabricConstants.FABRIC_INGRESS_FILTERING_INGRESS_PORT_VLAN)
+                    .put(1, FabricConstants.FABRIC_INGRESS_FILTERING_FWD_CLASSIFIER)
                     // Forwarding
-                    .put(2, FabricConstants.TBL_MPLS_ID)
-                    .put(3, FabricConstants.TBL_UNICAST_V4_ID)
-                    .put(4, FabricConstants.TBL_UNICAST_V6_ID)
-                    .put(5, FabricConstants.TBL_MULTICAST_V4_ID)
-                    .put(6, FabricConstants.TBL_MULTICAST_V6_ID)
-                    .put(7, FabricConstants.TBL_BRIDGING_ID)
-                    .put(8, FabricConstants.TBL_ACL_ID)
+                    .put(2, FabricConstants.FABRIC_INGRESS_FORWARDING_MPLS)
+                    .put(3, FabricConstants.FABRIC_INGRESS_FORWARDING_UNICAST_V4)
+                    .put(4, FabricConstants.FABRIC_INGRESS_FORWARDING_UNICAST_V6)
+                    .put(5, FabricConstants.FABRIC_INGRESS_FORWARDING_MULTICAST_V4)
+                    .put(6, FabricConstants.FABRIC_INGRESS_FORWARDING_MULTICAST_V6)
+                    .put(7, FabricConstants.FABRIC_INGRESS_FORWARDING_BRIDGING)
+                    .put(8, FabricConstants.FABRIC_INGRESS_FORWARDING_ACL)
                     // Next
-                    .put(9, FabricConstants.TBL_SIMPLE_ID)
-                    .put(10, FabricConstants.TBL_HASHED_ID)
-                    .put(11, FabricConstants.TBL_MULTICAST_ID)
+                    .put(9, FabricConstants.FABRIC_INGRESS_NEXT_VLAN_META)
+                    .put(10, FabricConstants.FABRIC_INGRESS_NEXT_SIMPLE)
+                    .put(11, FabricConstants.FABRIC_INGRESS_NEXT_HASHED)
+                    .put(12, FabricConstants.FABRIC_INGRESS_NEXT_MULTICAST)
+                    .put(13, FabricConstants.FABRIC_EGRESS_EGRESS_NEXT_EGRESS_VLAN)
                     .build();
 
-    private static final Set<PiTableId> FILTERING_CTRL_TBLS = ImmutableSet.of(FabricConstants.TBL_INGRESS_PORT_VLAN_ID,
-                                                                              FabricConstants.TBL_FWD_CLASSIFIER_ID);
-    private static final Set<PiTableId> FORWARDING_CTRL_TBLS = ImmutableSet.of(FabricConstants.TBL_MPLS_ID,
-                                                                               FabricConstants.TBL_UNICAST_V4_ID,
-                                                                               FabricConstants.TBL_UNICAST_V6_ID,
-                                                                               FabricConstants.TBL_MULTICAST_V4_ID,
-                                                                               FabricConstants.TBL_MULTICAST_V6_ID,
-                                                                               FabricConstants.TBL_BRIDGING_ID,
-                                                                               FabricConstants.TBL_ACL_ID);
-    private static final Set<PiTableId> NEXT_CTRL_TBLS = ImmutableSet.of(FabricConstants.TBL_SIMPLE_ID,
-                                                                         FabricConstants.TBL_HASHED_ID,
-                                                                         FabricConstants.TBL_MULTICAST_ID,
-                                                                         FabricConstants.TBL_VLAN_META_ID);
-
-    private static final Set<PiTableId> E_NEXT_CTRL_TBLS = ImmutableSet.of(FabricConstants.TBL_EGRESS_VLAN_ID);
+    private static final Set<PiTableId> FILTERING_CTRL_TBLS =
+            ImmutableSet.of(FabricConstants.FABRIC_INGRESS_FILTERING_INGRESS_PORT_VLAN,
+                            FabricConstants.FABRIC_INGRESS_FILTERING_FWD_CLASSIFIER);
+    private static final Set<PiTableId> FORWARDING_CTRL_TBLS =
+            ImmutableSet.of(FabricConstants.FABRIC_INGRESS_FORWARDING_MPLS,
+                            FabricConstants.FABRIC_INGRESS_FORWARDING_UNICAST_V4,
+                            FabricConstants.FABRIC_INGRESS_FORWARDING_UNICAST_V6,
+                            FabricConstants.FABRIC_INGRESS_FORWARDING_MULTICAST_V4,
+                            FabricConstants.FABRIC_INGRESS_FORWARDING_MULTICAST_V6,
+                            FabricConstants.FABRIC_INGRESS_FORWARDING_BRIDGING,
+                            FabricConstants.FABRIC_INGRESS_FORWARDING_ACL);
+    private static final Set<PiTableId> NEXT_CTRL_TBLS =
+            ImmutableSet.of(FabricConstants.FABRIC_INGRESS_NEXT_SIMPLE,
+                            FabricConstants.FABRIC_INGRESS_NEXT_HASHED,
+                            FabricConstants.FABRIC_INGRESS_NEXT_MULTICAST);
+    private static final Set<PiTableId> E_NEXT_CTRL_TBLS =
+            ImmutableSet.of(FabricConstants.FABRIC_EGRESS_EGRESS_NEXT_EGRESS_VLAN);
 
     private static final ImmutableMap<Criterion.Type, PiMatchFieldId> CRITERION_MAP =
             ImmutableMap.<Criterion.Type, PiMatchFieldId>builder()
-                    .put(Criterion.Type.IN_PORT, FabricConstants.HF_STANDARD_METADATA_INGRESS_PORT_ID)
-                    .put(Criterion.Type.ETH_DST, FabricConstants.HF_ETHERNET_DST_ADDR_ID)
-                    .put(Criterion.Type.ETH_SRC, FabricConstants.HF_ETHERNET_SRC_ADDR_ID)
-                    .put(Criterion.Type.ETH_TYPE, FabricConstants.HF_FABRIC_METADATA_ORIGINAL_ETHER_TYPE_ID)
-                    .put(Criterion.Type.MPLS_LABEL, FabricConstants.HF_MPLS_LABEL_ID)
-                    .put(Criterion.Type.VLAN_VID, FabricConstants.HF_VLAN_TAG_VLAN_ID_ID)
-                    .put(Criterion.Type.IPV4_DST, FabricConstants.HF_IPV4_DST_ADDR_ID)
-                    .put(Criterion.Type.IPV4_SRC, FabricConstants.HF_IPV4_SRC_ADDR_ID)
-                    .put(Criterion.Type.IPV6_DST, FabricConstants.HF_IPV6_DST_ADDR_ID)
-                    .put(Criterion.Type.TCP_SRC, FabricConstants.HF_FABRIC_METADATA_L4_SRC_PORT_ID)
-                    .put(Criterion.Type.TCP_DST, FabricConstants.HF_FABRIC_METADATA_L4_DST_PORT_ID)
-                    .put(Criterion.Type.UDP_SRC, FabricConstants.HF_FABRIC_METADATA_L4_SRC_PORT_ID)
-                    .put(Criterion.Type.UDP_DST, FabricConstants.HF_FABRIC_METADATA_L4_DST_PORT_ID)
-                    .put(Criterion.Type.IP_PROTO, FabricConstants.HF_FABRIC_METADATA_IP_PROTO_ID)
-                    .put(Criterion.Type.ICMPV6_TYPE, FabricConstants.HF_ICMP_ICMP_TYPE_ID)
-                    .put(Criterion.Type.ICMPV6_CODE, FabricConstants.HF_ICMP_ICMP_CODE_ID)
+                    .put(Criterion.Type.IN_PORT, FabricConstants.STANDARD_METADATA_INGRESS_PORT)
+                    .put(Criterion.Type.ETH_DST, FabricConstants.HDR_ETHERNET_DST_ADDR)
+                    .put(Criterion.Type.ETH_SRC, FabricConstants.HDR_ETHERNET_SRC_ADDR)
+                    .put(Criterion.Type.ETH_TYPE, FabricConstants.FABRIC_METADATA_ORIGINAL_ETHER_TYPE)
+                    .put(Criterion.Type.MPLS_LABEL, FabricConstants.HDR_MPLS_LABEL)
+                    .put(Criterion.Type.VLAN_VID, FabricConstants.HDR_VLAN_TAG_VLAN_ID)
+                    .put(Criterion.Type.IPV4_DST, FabricConstants.HDR_IPV4_DST_ADDR)
+                    .put(Criterion.Type.IPV4_SRC, FabricConstants.HDR_IPV4_SRC_ADDR)
+                    .put(Criterion.Type.IPV6_DST, FabricConstants.HDR_IPV6_DST_ADDR)
+                    .put(Criterion.Type.TCP_SRC, FabricConstants.FABRIC_METADATA_L4_SRC_PORT)
+                    .put(Criterion.Type.TCP_DST, FabricConstants.FABRIC_METADATA_L4_DST_PORT)
+                    .put(Criterion.Type.UDP_SRC, FabricConstants.FABRIC_METADATA_L4_SRC_PORT)
+                    .put(Criterion.Type.UDP_DST, FabricConstants.FABRIC_METADATA_L4_DST_PORT)
+                    .put(Criterion.Type.IP_PROTO, FabricConstants.FABRIC_METADATA_IP_PROTO)
+                    .put(Criterion.Type.ICMPV6_TYPE, FabricConstants.HDR_ICMP_ICMP_TYPE)
+                    .put(Criterion.Type.ICMPV6_CODE, FabricConstants.HDR_ICMP_ICMP_CODE)
                     .build();
 
     private static final ImmutableMap<PiMatchFieldId, Criterion.Type> INVERSE_CRITERION_MAP =
             ImmutableMap.<PiMatchFieldId, Criterion.Type>builder()
-                    .put(FabricConstants.HF_STANDARD_METADATA_INGRESS_PORT_ID, Criterion.Type.IN_PORT)
-                    .put(FabricConstants.HF_ETHERNET_DST_ADDR_ID, Criterion.Type.ETH_DST)
-                    .put(FabricConstants.HF_ETHERNET_SRC_ADDR_ID, Criterion.Type.ETH_SRC)
-                    .put(FabricConstants.HF_FABRIC_METADATA_ORIGINAL_ETHER_TYPE_ID, Criterion.Type.ETH_TYPE)
-                    .put(FabricConstants.HF_MPLS_LABEL_ID, Criterion.Type.MPLS_LABEL)
-                    .put(FabricConstants.HF_VLAN_TAG_VLAN_ID_ID, Criterion.Type.VLAN_VID)
-                    .put(FabricConstants.HF_IPV4_DST_ADDR_ID, Criterion.Type.IPV4_DST)
-                    .put(FabricConstants.HF_IPV4_SRC_ADDR_ID, Criterion.Type.IPV4_SRC)
-                    .put(FabricConstants.HF_IPV6_DST_ADDR_ID, Criterion.Type.IPV6_DST)
+                    .put(FabricConstants.STANDARD_METADATA_INGRESS_PORT, Criterion.Type.IN_PORT)
+                    .put(FabricConstants.HDR_ETHERNET_DST_ADDR, Criterion.Type.ETH_DST)
+                    .put(FabricConstants.HDR_ETHERNET_SRC_ADDR, Criterion.Type.ETH_SRC)
+                    .put(FabricConstants.FABRIC_METADATA_ORIGINAL_ETHER_TYPE, Criterion.Type.ETH_TYPE)
+                    .put(FabricConstants.HDR_MPLS_LABEL, Criterion.Type.MPLS_LABEL)
+                    .put(FabricConstants.HDR_VLAN_TAG_VLAN_ID, Criterion.Type.VLAN_VID)
+                    .put(FabricConstants.HDR_IPV4_DST_ADDR, Criterion.Type.IPV4_DST)
+                    .put(FabricConstants.HDR_IPV4_SRC_ADDR, Criterion.Type.IPV4_SRC)
+                    .put(FabricConstants.HDR_IPV6_DST_ADDR, Criterion.Type.IPV6_DST)
                     // FIXME: might be incorrect if we inverse the map....
-                    .put(FabricConstants.HF_FABRIC_METADATA_L4_SRC_PORT_ID, Criterion.Type.UDP_SRC)
-                    .put(FabricConstants.HF_FABRIC_METADATA_L4_DST_PORT_ID, Criterion.Type.UDP_DST)
-                    .put(FabricConstants.HF_FABRIC_METADATA_IP_PROTO_ID, Criterion.Type.IP_PROTO)
-                    .put(FabricConstants.HF_ICMP_ICMP_TYPE_ID, Criterion.Type.ICMPV6_TYPE)
-                    .put(FabricConstants.HF_ICMP_ICMP_CODE_ID, Criterion.Type.ICMPV6_CODE)
+                    .put(FabricConstants.FABRIC_METADATA_L4_SRC_PORT, Criterion.Type.UDP_SRC)
+                    .put(FabricConstants.FABRIC_METADATA_L4_DST_PORT, Criterion.Type.UDP_DST)
+                    .put(FabricConstants.FABRIC_METADATA_IP_PROTO, Criterion.Type.IP_PROTO)
+                    .put(FabricConstants.HDR_ICMP_ICMP_TYPE, Criterion.Type.ICMPV6_TYPE)
+                    .put(FabricConstants.HDR_ICMP_ICMP_CODE, Criterion.Type.ICMPV6_CODE)
                     .build();
 
     @Override
@@ -185,7 +189,7 @@ public class FabricInterpreter extends AbstractHandlerBehaviour
     private PiControlMetadata createPacketMetadata(long portNumber) throws PiInterpreterException {
         try {
             return PiControlMetadata.builder()
-                    .withId(FabricConstants.CTRL_META_EGRESS_PORT_ID)
+                    .withId(FabricConstants.EGRESS_PORT)
                     .withValue(copyFrom(portNumber).fit(FabricConstants.PORT_BITWIDTH))
                     .build();
         } catch (ImmutableByteSequence.ByteSequenceTrimException e) {
@@ -247,7 +251,7 @@ public class FabricInterpreter extends AbstractHandlerBehaviour
 
         // Returns the ingress port packet metadata.
         Optional<PiControlMetadata> packetMetadata = packetIn.metadatas()
-                .stream().filter(m -> m.id().equals(FabricConstants.CTRL_META_INGRESS_PORT_ID))
+                .stream().filter(m -> m.id().equals(FabricConstants.INGRESS_PORT))
                 .findFirst();
 
         if (packetMetadata.isPresent()) {
@@ -259,7 +263,7 @@ public class FabricInterpreter extends AbstractHandlerBehaviour
         } else {
             throw new PiInterpreterException(format(
                     "Missing metadata '%s' in packet-in received from '%s': %s",
-                    FabricConstants.CTRL_META_INGRESS_PORT_ID, deviceId, packetIn));
+                    FabricConstants.INGRESS_PORT, deviceId, packetIn));
         }
     }
 }

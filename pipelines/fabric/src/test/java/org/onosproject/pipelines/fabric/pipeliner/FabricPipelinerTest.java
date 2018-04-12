@@ -68,17 +68,11 @@ public abstract class FabricPipelinerTest {
     static final byte FWD_IPV6_UNICAST = 4;
     static final byte FWD_IPV6_MULTICAST = 5;
 
-    // Next types
-    static final byte NEXT_TYPE_SIMPLE = 0;
-    static final byte NEXT_TYPE_HASHED = 1;
-    static final byte NEXT_TYPE_BROADCAST = 2;
-    static final byte NEXT_TYPE_PUNT = 3;
-
     static final PiCriterion VLAN_VALID = PiCriterion.builder()
-            .matchExact(FabricConstants.HF_VLAN_TAG_IS_VALID_ID, new byte[]{1})
+            .matchExact(FabricConstants.HDR_VLAN_TAG_IS_VALID, new byte[]{1})
             .build();
     static final PiCriterion VLAN_INVALID = PiCriterion.builder()
-            .matchExact(FabricConstants.HF_VLAN_TAG_IS_VALID_ID, new byte[]{0})
+            .matchExact(FabricConstants.HDR_VLAN_TAG_IS_VALID, new byte[]{0})
             .build();
 
     FabricPipeliner pipeliner;

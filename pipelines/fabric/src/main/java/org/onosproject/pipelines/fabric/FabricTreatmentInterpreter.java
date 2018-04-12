@@ -51,11 +51,11 @@ final class FabricTreatmentInterpreter {
     private static final Logger log = getLogger(FabricTreatmentInterpreter.class);
     private static final String INVALID_TREATMENT = "Invalid treatment for %s block: %s";
     private static final PiAction NOP = PiAction.builder()
-            .withId(FabricConstants.ACT_NOP_ID)
+            .withId(FabricConstants.NOP)
             .build();
 
     private static final PiAction POP_VLAN = PiAction.builder()
-            .withId(FabricConstants.ACT_FABRICEGRESS_EGRESS_NEXT_POP_VLAN_ID)
+            .withId(FabricConstants.FABRIC_EGRESS_EGRESS_NEXT_POP_VLAN)
             .build();
 
     // Hide default constructor
@@ -103,14 +103,14 @@ final class FabricTreatmentInterpreter {
         }
 
         VlanId vlanId = setVlanInst.vlanId();
-        PiActionParam param = new PiActionParam(FabricConstants.ACT_PRM_NEW_VLAN_ID_ID,
+        PiActionParam param = new PiActionParam(FabricConstants.NEW_VLAN_ID,
                                                 ImmutableByteSequence.copyFrom(vlanId.toShort()));
         PiActionId actionId;
         if (pushVlanInst != null) {
             // push_internal_vlan
-            actionId = FabricConstants.ACT_FABRICINGRESS_FILTERING_PUSH_INTERNAL_VLAN_ID;
+            actionId = FabricConstants.FABRIC_INGRESS_FILTERING_PUSH_INTERNAL_VLAN;
         } else {
-            actionId = FabricConstants.ACT_FABRICINGRESS_FILTERING_SET_VLAN_ID;
+            actionId = FabricConstants.FABRIC_INGRESS_FILTERING_SET_VLAN;
         }
 
         // set_vlan
@@ -155,7 +155,7 @@ final class FabricTreatmentInterpreter {
         }
 
         return PiAction.builder()
-                .withId(FabricConstants.ACT_FABRICINGRESS_FORWARDING_DUPLICATE_TO_CONTROLLER_ID)
+                .withId(FabricConstants.FABRIC_INGRESS_FORWARDING_DUPLICATE_TO_CONTROLLER)
                 .build();
     }
 
@@ -219,11 +219,10 @@ final class FabricTreatmentInterpreter {
                 // set_vlan
                 VlanId vlanId = modVlanIdInst.vlanId();
                 PiActionParam newVlanParam =
-                        new PiActionParam(FabricConstants.ACT_PRM_NEW_VLAN_ID_ID,
+                        new PiActionParam(FabricConstants.NEW_VLAN_ID,
                                           ImmutableByteSequence.copyFrom(vlanId.toShort()));
-                // set_vlan_output
                 return PiAction.builder()
-                        .withId(FabricConstants.ACT_FABRICINGRESS_NEXT_SET_VLAN_ID)
+                        .withId(FabricConstants.FABRIC_INGRESS_NEXT_SET_VLAN)
                         .withParameter(newVlanParam)
                         .build();
             } else {
@@ -232,23 +231,23 @@ final class FabricTreatmentInterpreter {
         }
 
         short portNum = (short) outInst.port().toLong();
-        PiActionParam portNumParam = new PiActionParam(FabricConstants.ACT_PRM_PORT_NUM_ID,
+        PiActionParam portNumParam = new PiActionParam(FabricConstants.PORT_NUM,
                                                        ImmutableByteSequence.copyFrom(portNum));
         if (modEthDstInst == null && modEthSrcInst == null) {
             if (modVlanIdInst != null) {
                 VlanId vlanId = modVlanIdInst.vlanId();
                 PiActionParam vlanParam =
-                        new PiActionParam(FabricConstants.ACT_PRM_NEW_VLAN_ID_ID,
+                        new PiActionParam(FabricConstants.NEW_VLAN_ID,
                                           ImmutableByteSequence.copyFrom(vlanId.toShort()));
                 // set_vlan_output
                 return PiAction.builder()
-                        .withId(FabricConstants.ACT_FABRICINGRESS_NEXT_SET_VLAN_OUTPUT_ID)
+                        .withId(FabricConstants.FABRIC_INGRESS_NEXT_SET_VLAN_OUTPUT)
                         .withParameters(ImmutableList.of(portNumParam, vlanParam))
                         .build();
             } else {
                 // output
                 return PiAction.builder()
-                        .withId(FabricConstants.ACT_FABRICINGRESS_NEXT_OUTPUT_ID)
+                        .withId(FabricConstants.FABRIC_INGRESS_NEXT_OUTPUT)
                         .withParameter(portNumParam)
                         .build();
             }
@@ -257,9 +256,9 @@ final class FabricTreatmentInterpreter {
         if (modEthDstInst != null && modEthSrcInst != null) {
             MacAddress srcMac = modEthSrcInst.mac();
             MacAddress dstMac = modEthDstInst.mac();
-            PiActionParam srcMacParam = new PiActionParam(FabricConstants.ACT_PRM_SMAC_ID,
+            PiActionParam srcMacParam = new PiActionParam(FabricConstants.SMAC,
                                                           ImmutableByteSequence.copyFrom(srcMac.toBytes()));
-            PiActionParam dstMacParam = new PiActionParam(FabricConstants.ACT_PRM_DMAC_ID,
+            PiActionParam dstMacParam = new PiActionParam(FabricConstants.DMAC,
                                                           ImmutableByteSequence.copyFrom(dstMac.toBytes()));
 
             if (modMplsInst != null) {
@@ -268,10 +267,10 @@ final class FabricTreatmentInterpreter {
                 try {
                     ImmutableByteSequence mplsValue =
                             ImmutableByteSequence.copyFrom(mplsLabel.toInt()).fit(20);
-                    PiActionParam mplsParam = new PiActionParam(FabricConstants.ACT_PRM_LABEL_ID, mplsValue);
+                    PiActionParam mplsParam = new PiActionParam(FabricConstants.LABEL, mplsValue);
                     return PiAction.builder()
                             // FIXME: fins a way to determine v4 or v6
-                            .withId(FabricConstants.ACT_FABRICINGRESS_NEXT_MPLS_ROUTING_V4_ID)
+                            .withId(FabricConstants.FABRIC_INGRESS_NEXT_MPLS_ROUTING_V4)
                             .withParameters(ImmutableList.of(portNumParam,
                                                              srcMacParam,
                                                              dstMacParam,
@@ -287,17 +286,17 @@ final class FabricTreatmentInterpreter {
             if (modVlanIdInst != null) {
                 VlanId vlanId = modVlanIdInst.vlanId();
                 PiActionParam vlanParam =
-                        new PiActionParam(FabricConstants.ACT_PRM_NEW_VLAN_ID_ID,
+                        new PiActionParam(FabricConstants.NEW_VLAN_ID,
                                           ImmutableByteSequence.copyFrom(vlanId.toShort()));
                 // L3 routing and set VLAN
                 return PiAction.builder()
-                        .withId(FabricConstants.ACT_FABRICINGRESS_NEXT_L3_ROUTING_VLAN_ID)
+                        .withId(FabricConstants.FABRIC_INGRESS_NEXT_L3_ROUTING_VLAN)
                         .withParameters(ImmutableList.of(srcMacParam, dstMacParam, portNumParam, vlanParam))
                         .build();
             } else {
                 // L3 routing
                 return PiAction.builder()
-                        .withId(FabricConstants.ACT_FABRICINGRESS_NEXT_L3_ROUTING_ID)
+                        .withId(FabricConstants.FABRIC_INGRESS_NEXT_L3_ROUTING)
                         .withParameters(ImmutableList.of(portNumParam,
                                                          srcMacParam,
                                                          dstMacParam))

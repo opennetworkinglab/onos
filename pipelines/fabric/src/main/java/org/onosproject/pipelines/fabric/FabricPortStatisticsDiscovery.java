@@ -32,7 +32,7 @@ public class FabricPortStatisticsDiscovery extends PortStatisticsDiscoveryImpl {
      */
     @Override
     public PiCounterId ingressCounterId() {
-        return FabricConstants.CNT_INGRESS_PORT_COUNTER_ID;
+        return FabricConstants.FABRIC_INGRESS_PORT_COUNTERS_CONTROL_INGRESS_PORT_COUNTER;
     }
 
     /**
@@ -42,6 +42,6 @@ public class FabricPortStatisticsDiscovery extends PortStatisticsDiscoveryImpl {
      */
     @Override
     public PiCounterId egressCounterId() {
-        return FabricConstants.CNT_EGRESS_PORT_COUNTER_ID;
+        return FabricConstants.FABRIC_INGRESS_PORT_COUNTERS_CONTROL_EGRESS_PORT_COUNTER;
     }
 }
