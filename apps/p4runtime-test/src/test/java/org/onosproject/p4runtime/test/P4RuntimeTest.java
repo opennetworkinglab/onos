@@ -269,7 +269,8 @@ public class P4RuntimeTest {
                 .withId(groupId)
                 .addMembers(members)
                 .build();
-        CompletableFuture<Boolean> success = client.writeActionGroupMembers(actionGroup,
+        CompletableFuture<Boolean> success = client.writeActionGroupMembers(actionGroup.actionProfileId(),
+                                                                            actionGroup.members(),
                                                                             P4RuntimeClient.WriteOperationType.INSERT,
                                                                             bmv2DefaultPipeconf);
         assert (success.get());
