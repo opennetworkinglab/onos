@@ -26,7 +26,6 @@ import org.onosproject.net.pi.model.PiActionProfileId;
 import java.util.Collection;
 import java.util.Map;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -179,7 +178,6 @@ public final class PiActionGroup implements PiEntity {
          */
         public PiActionGroup build() {
             checkNotNull(id);
-            checkArgument(!members.isEmpty(), "Members cannot be empty");
             checkNotNull(piActionProfileId);
             return new PiActionGroup(id, ImmutableSet.copyOf(members.values()),
                                      piActionProfileId);

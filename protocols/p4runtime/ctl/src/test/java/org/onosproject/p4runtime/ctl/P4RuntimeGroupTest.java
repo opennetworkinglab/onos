@@ -191,7 +191,7 @@ public class P4RuntimeGroupTest {
     @Test
     public void testInsertPiActionMembers() throws Exception {
         CompletableFuture<Void> complete = p4RuntimeServerImpl.expectRequests(1);
-        client.writeActionGroupMembers(GROUP, INSERT, PIPECONF);
+        client.writeActionGroupMembers(ACT_PROF_ID, GROUP_MEMBERS, INSERT, PIPECONF);
         complete.get(DEFAULT_TIMEOUT_TIME, TimeUnit.SECONDS);
         WriteRequest result = p4RuntimeServerImpl.getWriteReqs().get(0);
         assertEquals(1, result.getDeviceId());

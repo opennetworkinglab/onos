@@ -219,12 +219,14 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
     }
 
     @Override
-    public CompletableFuture<Boolean> writeActionGroupMembers(PiActionGroup group,
+    public CompletableFuture<Boolean> writeActionGroupMembers(PiActionProfileId profileId,
+                                                              Collection<PiActionGroupMember> members,
                                                               WriteOperationType opType,
                                                               PiPipeconf pipeconf) {
-        return supplyInContext(() -> doWriteActionGroupMembers(group, opType, pipeconf),
+        return supplyInContext(() -> doWriteActionGroupMembers(profileId, members, opType, pipeconf),
                                "writeActionGroupMembers-" + opType.name());
     }
+
 
     @Override
     public CompletableFuture<Boolean> writeActionGroup(PiActionGroup group,
@@ -548,12 +550,13 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
         return CounterEntryCodec.decodeCounterEntities(entities, pipeconf);
     }
 
-    private boolean doWriteActionGroupMembers(PiActionGroup group, WriteOperationType opType, PiPipeconf pipeconf) {
+    private boolean doWriteActionGroupMembers(PiActionProfileId profileId, Collection<PiActionGroupMember> members,
+                                              WriteOperationType opType, PiPipeconf pipeconf) {
         final Collection<ActionProfileMember> actionProfileMembers = Lists.newArrayList();
 
-        for (PiActionGroupMember member : group.members()) {
+        for (PiActionGroupMember member : members) {
             try {
-                actionProfileMembers.add(ActionProfileMemberEncoder.encode(group, member, pipeconf));
+                actionProfileMembers.add(ActionProfileMemberEncoder.encode(profileId, member, pipeconf));
             } catch (EncodeException | P4InfoBrowser.NotFoundException e) {
                 log.warn("Unable to encode group member, aborting {} operation: {} [{}]",
                          opType.name(), e.getMessage(), member.toString());
@@ -585,7 +588,7 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
             blockingStub.write(writeRequestMsg);
             return true;
         } catch (StatusRuntimeException e) {
-            logWriteErrors(group.members(), e, opType, "group member");
+            logWriteErrors(members, e, opType, "group member");
             return false;
         }
     }

@@ -16,8 +16,8 @@
 
 package org.onosproject.p4runtime.ctl;
 
+import org.onosproject.net.pi.model.PiActionProfileId;
 import org.onosproject.net.pi.model.PiPipeconf;
-import org.onosproject.net.pi.runtime.PiActionGroup;
 import org.onosproject.net.pi.runtime.PiActionGroupMember;
 import org.onosproject.net.pi.runtime.PiActionGroupMemberId;
 import p4.P4RuntimeOuterClass;
@@ -47,14 +47,14 @@ public final class ActionProfileMemberEncoder {
     /**
      * Encode a PiActionGroupMember to a ActionProfileMember.
      *
-     * @param group the PI action group of members
+     * @param profileId the PI action group profile ID of members
      * @param member the member to encode
      * @param pipeconf the pipeconf, as encode spec
      * @return encoded member
      * @throws P4InfoBrowser.NotFoundException can't find action profile from P4Info browser
      * @throws EncodeException can't find P4Info from pipeconf
      */
-    static ActionProfileMember encode(PiActionGroup group,
+    static ActionProfileMember encode(PiActionProfileId profileId,
                                       PiActionGroupMember member,
                                       PiPipeconf pipeconf)
             throws P4InfoBrowser.NotFoundException, EncodeException {
@@ -73,7 +73,7 @@ public final class ActionProfileMemberEncoder {
 
         // action profile id
         P4InfoOuterClass.ActionProfile actionProfile =
-                browser.actionProfiles().getByName(group.actionProfileId().id());
+                browser.actionProfiles().getByName(profileId.id());
 
         int actionProfileId = actionProfile.getPreamble().getId();
         actionProfileMemberBuilder.setActionProfileId(actionProfileId);
