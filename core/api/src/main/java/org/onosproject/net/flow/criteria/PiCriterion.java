@@ -94,7 +94,7 @@ public final class PiCriterion implements Criterion {
 
     @Override
     public String toString() {
-        StringJoiner stringParams = new StringJoiner(", ", "{", "}");
+        StringJoiner stringParams = new StringJoiner(", ");
         fieldMatchMap.forEach((key, value) -> stringParams.add(value.toString()));
         return stringParams.toString();
     }

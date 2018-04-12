@@ -17,7 +17,6 @@
 package org.onosproject.net.pi.runtime;
 
 import com.google.common.annotations.Beta;
-import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
@@ -96,9 +95,7 @@ public final class PiAction implements PiTableAction {
     public String toString() {
         StringJoiner stringParams = new StringJoiner(", ", "(", ")");
         this.parameters().forEach(p -> stringParams.add(p.toString()));
-        return MoreObjects.toStringHelper(this)
-                .addValue(this.id().toString() + stringParams.toString())
-                .toString();
+        return this.id().toString() + stringParams.toString();
     }
 
     /**

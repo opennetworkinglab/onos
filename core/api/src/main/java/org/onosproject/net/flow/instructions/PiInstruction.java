@@ -19,9 +19,9 @@ package org.onosproject.net.flow.instructions;
 
 import com.google.common.annotations.Beta;
 import com.google.common.base.Objects;
+import org.onosproject.net.pi.runtime.PiActionGroupId;
+import org.onosproject.net.pi.runtime.PiActionGroupMemberId;
 import org.onosproject.net.pi.runtime.PiTableAction;
-
-import static java.lang.String.format;
 
 /**
  * Representation of a protocol-independent instruction.
@@ -75,9 +75,9 @@ public final class PiInstruction implements Instruction {
     public String toString() {
         switch (tableAction.type()) {
             case ACTION_GROUP_ID:
+                return "GROUP:" + ((PiActionGroupId) tableAction).id().toString();
             case GROUP_MEMBER_ID:
-                // e.g. PiActionGroupId(1)
-                return format("%s{%s}", tableAction.getClass().getSimpleName(), tableAction.toString());
+                return "GROUP_MEMBER:" + ((PiActionGroupMemberId) tableAction).id().toString();
             default:
                 return tableAction.toString();
         }
