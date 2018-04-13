@@ -17,18 +17,15 @@
 package org.onosproject.segmentrouting;
 
 import com.google.common.collect.Sets;
-import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
-import org.onlab.packet.MacAddress;
-import org.onlab.packet.VlanId;
 import org.onosproject.routeservice.ResolvedRoute;
-import org.onosproject.routeservice.Route;
 import org.onosproject.routeservice.RouteInfo;
 import org.onosproject.routeservice.RouteServiceAdapter;
 import org.onosproject.routeservice.RouteTableId;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -36,23 +33,19 @@ import java.util.stream.Collectors;
  * We assume there is only one routing table named "default".
  */
 public class MockRouteService extends RouteServiceAdapter {
-    private Map<MockRoutingTableKey, MockRoutingTableValue> routingTable;
+    private Map<IpPrefix, Set<ResolvedRoute>> routeStore;
 
-    MockRouteService(Map<MockRoutingTableKey, MockRoutingTableValue> routingTable) {
-        this.routingTable = routingTable;
+    MockRouteService(Map<IpPrefix, Set<ResolvedRoute>> routeStore) {
+        this.routeStore = routeStore;
     }
 
     @Override
     public Collection<RouteInfo> getRoutes(RouteTableId id) {
-        return routingTable.entrySet().stream().map(e -> {
-            IpPrefix prefix = e.getKey().ipPrefix;
-            IpAddress nextHop = IpAddress.valueOf(0); // dummy
-            MacAddress mac = e.getValue().macAddress;
-            VlanId vlan = e.getValue().vlanId;
-            Route route = new Route(Route.Source.STATIC, prefix, nextHop);
-            ResolvedRoute rr = new ResolvedRoute(route, mac, vlan);
-
-            return new RouteInfo(prefix, rr, Sets.newHashSet(rr));
+        return routeStore.entrySet().stream().map(e -> {
+            IpPrefix prefix = e.getKey();
+            Set<ResolvedRoute> resolvedRoutes = e.getValue();
+            ResolvedRoute bestRoute =  resolvedRoutes.stream().findFirst().orElse(null);
+            return new RouteInfo(prefix, bestRoute, resolvedRoutes);
         }).collect(Collectors.toSet());
     }
 
