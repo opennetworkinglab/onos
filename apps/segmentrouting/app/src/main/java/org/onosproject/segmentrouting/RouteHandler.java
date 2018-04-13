@@ -83,24 +83,22 @@ public class RouteHandler {
     }
 
     protected void init(DeviceId deviceId) {
-        srManager.routeService.getRouteTables().forEach(routeTableId ->
-            srManager.routeService.getRoutes(routeTableId).forEach(routeInfo ->
-                routeInfo.allRoutes().forEach(resolvedRoute ->
-                    srManager.nextHopLocations(resolvedRoute).stream()
-                            .filter(location -> deviceId.equals(location.deviceId()))
-                            .forEach(location -> processRouteAddedInternal(resolvedRoute)
-                    )
-                )
-            )
-        );
+        Optional<DeviceId> pairDeviceId = srManager.getPairDeviceId(deviceId);
+
+        srManager.routeService.getRouteTables().stream()
+                .map(srManager.routeService::getRoutes)
+                .flatMap(Collection::stream)
+                .map(RouteInfo::allRoutes)
+                .filter(allRoutes -> allRoutes.stream().allMatch(resolvedRoute ->
+                        srManager.nextHopLocations(resolvedRoute).stream().allMatch(cp ->
+                            deviceId.equals(cp.deviceId()) ||
+                                    (pairDeviceId.isPresent() && pairDeviceId.get().equals(cp.deviceId()))
+                        )))
+                .forEach(this::processRouteAddedInternal);
     }
 
     void processRouteAdded(RouteEvent event) {
         enqueueRouteEvent(event);
-    }
-
-    private void processRouteAddedInternal(ResolvedRoute route) {
-        processRouteAddedInternal(Sets.newHashSet(route));
     }
 
     private void processRouteAddedInternal(Collection<ResolvedRoute> routes) {
