@@ -1001,7 +1001,8 @@ public class TroubleshootManager implements TroubleshootService {
         if (packetVlanIdCriterion.vlanId().equals(entryModVlanIdInstruction.vlanId())) {
             //find a rule on the same table that matches the vlan and
             // also all the other elements of the flow such as input port
-            secondVlanFlow = Lists.newArrayList(flowRuleService.getFlowEntries(in.deviceId()).iterator())
+            secondVlanFlow = Lists.newArrayList(flowRuleService.getFlowEntriesByState(in.deviceId(),
+                    FlowEntry.FlowEntryState.ADDED).iterator())
                     .stream()
                     .filter(entry -> {
                         return entry.table().equals(IndexTableId.of(10));
@@ -1054,8 +1055,9 @@ public class TroubleshootManager implements TroubleshootService {
 
         final Comparator<FlowEntry> comparator = Comparator.comparing((FlowEntry f) -> ((IndexTableId) f.table()).id());
 
-        return Lists.newArrayList(flowRuleService.getFlowEntries(deviceId).iterator())
-                .stream().filter(f -> ((IndexTableId) f.table()).id() > currentId).min(comparator).orElse(null);
+        return Lists.newArrayList(flowRuleService.getFlowEntriesByState(deviceId, FlowEntry.FlowEntryState.ADDED)
+                .iterator()).stream()
+                .filter(f -> ((IndexTableId) f.table()).id() > currentId).min(comparator).orElse(null);
     }
 
     private Builder handleDeferredActions(StaticPacketTrace trace, TrafficSelector packet,
@@ -1290,8 +1292,8 @@ public class TroubleshootManager implements TroubleshootService {
     private FlowEntry matchHighestPriority(TrafficSelector packet, ConnectPoint in, TableId tableId) {
         //Computing the possible match rules.
         final Comparator<FlowEntry> comparator = Comparator.comparing(FlowRule::priority);
-        return Lists.newArrayList(flowRuleService.getFlowEntries(in.deviceId()).iterator())
-                .stream()
+        return Lists.newArrayList(flowRuleService.getFlowEntriesByState(in.deviceId(), FlowEntry.FlowEntryState.ADDED)
+                .iterator()).stream()
                 .filter(flowEntry -> {
                     return flowEntry.table().equals(tableId);
                 })

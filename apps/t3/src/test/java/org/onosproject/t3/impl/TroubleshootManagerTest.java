@@ -416,7 +416,7 @@ public class TroubleshootManagerTest {
 
     private class TestFlowRuleService extends FlowRuleServiceAdapter {
         @Override
-        public Iterable<FlowEntry> getFlowEntries(DeviceId deviceId) {
+        public Iterable<FlowEntry> getFlowEntriesByState(DeviceId deviceId, FlowEntry.FlowEntryState state) {
             if (deviceId.equals(SINGLE_FLOW_DEVICE)) {
                 return ImmutableList.of(SINGLE_FLOW_ENTRY);
             } else if (deviceId.equals(DUAL_FLOW_DEVICE)) {
