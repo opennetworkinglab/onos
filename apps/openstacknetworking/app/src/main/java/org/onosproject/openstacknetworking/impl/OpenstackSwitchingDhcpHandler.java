@@ -80,8 +80,8 @@ import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_SubnetMask;
 import static org.onlab.packet.DHCP.MsgType.DHCPACK;
 import static org.onlab.packet.DHCP.MsgType.DHCPOFFER;
 import static org.onosproject.openstacknetworking.api.Constants.DEFAULT_GATEWAY_MAC_STR;
+import static org.onosproject.openstacknetworking.api.Constants.DHCP_ARP_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_DHCP_RULE;
-import static org.onosproject.openstacknetworking.api.Constants.SRC_VNI_TABLE;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -462,7 +462,7 @@ public class OpenstackSwitchingDhcpHandler {
                     selector,
                     treatment,
                     PRIORITY_DHCP_RULE,
-                    SRC_VNI_TABLE,
+                    DHCP_ARP_TABLE,
                     install);
         }
     }
