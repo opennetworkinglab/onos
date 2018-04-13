@@ -69,6 +69,7 @@ import org.onosproject.net.flow.instructions.ExtensionTreatment;
 import org.onosproject.net.flow.instructions.ExtensionTreatmentType;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.openstacknode.api.NodeState;
+import org.onosproject.openstacknode.api.OpenstackAuth;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackPhyInterface;
 import org.onosproject.ovsdb.controller.OvsdbClientService;
@@ -407,7 +408,7 @@ public class DefaultOpenstackNodeHandlerTest {
                 intgBridge.id(),
                 ipAddr,
                 ipAddr,
-                null, null, state, phyIntfs);
+                null, null, state, phyIntfs, null);
     }
 
     private static OpenstackNode createGatewayNode(String hostname,
@@ -422,7 +423,7 @@ public class DefaultOpenstackNodeHandlerTest {
                 intgBridge.id(),
                 ipAddr,
                 ipAddr,
-                null, uplinkPort, state, null);
+                null, uplinkPort, state, null, null);
     }
 
     private static final class TestDevice extends DefaultDevice {
@@ -480,7 +481,8 @@ public class DefaultOpenstackNodeHandlerTest {
                                   String vlanIntf,
                                   String uplinkPort,
                                   NodeState state,
-                                  Set<OpenstackPhyInterface> phyIntfs) {
+                                  Set<OpenstackPhyInterface> phyIntfs,
+                                  OpenstackAuth auth) {
             super(hostname,
                     type,
                     intgBridge,
@@ -489,7 +491,8 @@ public class DefaultOpenstackNodeHandlerTest {
                     vlanIntf,
                     uplinkPort,
                     state,
-                    phyIntfs);
+                    phyIntfs,
+                    auth);
         }
 
         @Override

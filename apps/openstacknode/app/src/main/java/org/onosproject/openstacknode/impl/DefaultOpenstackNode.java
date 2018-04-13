@@ -28,6 +28,7 @@ import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.group.DefaultGroupKey;
 import org.onosproject.net.group.GroupKey;
 import org.onosproject.openstacknode.api.NodeState;
+import org.onosproject.openstacknode.api.OpenstackAuth;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackPhyInterface;
 
@@ -56,6 +57,7 @@ public class DefaultOpenstackNode implements OpenstackNode {
     private final String uplinkPort;
     private final NodeState state;
     private final Collection<OpenstackPhyInterface> phyIntfs;
+    private final OpenstackAuth auth;
 
     private static final String NOT_NULL_MSG = "Node % cannot be null";
 
@@ -73,6 +75,7 @@ public class DefaultOpenstackNode implements OpenstackNode {
      * @param uplinkPort    uplink port name
      * @param state         node state
      * @param phyIntfs      physical interfaces
+     * @param auth          keystone authentication info
      */
     protected DefaultOpenstackNode(String hostname, NodeType type,
                                    DeviceId intgBridge,
@@ -81,7 +84,8 @@ public class DefaultOpenstackNode implements OpenstackNode {
                                    String vlanIntf,
                                    String uplinkPort,
                                    NodeState state,
-                                   Collection<OpenstackPhyInterface> phyIntfs) {
+                                   Collection<OpenstackPhyInterface> phyIntfs,
+                                   OpenstackAuth auth) {
         this.hostname = hostname;
         this.type = type;
         this.intgBridge = intgBridge;
@@ -91,6 +95,7 @@ public class DefaultOpenstackNode implements OpenstackNode {
         this.uplinkPort = uplinkPort;
         this.state = state;
         this.phyIntfs = phyIntfs;
+        this.auth = auth;
     }
 
     @Override
@@ -229,7 +234,8 @@ public class DefaultOpenstackNode implements OpenstackNode {
                     Objects.equals(dataIp, that.dataIp) &&
                     Objects.equals(uplinkPort, that.uplinkPort) &&
                     Objects.equals(vlanIntf, that.vlanIntf) &&
-                    Objects.equals(phyIntfs, that.phyIntfs);
+                    Objects.equals(phyIntfs, that.phyIntfs) &&
+                    Objects.equals(auth, that.auth);
         }
         return false;
     }
@@ -243,7 +249,8 @@ public class DefaultOpenstackNode implements OpenstackNode {
                 dataIp,
                 vlanIntf,
                 uplinkPort,
-                phyIntfs);
+                phyIntfs,
+                auth);
     }
 
     @Override
@@ -258,6 +265,7 @@ public class DefaultOpenstackNode implements OpenstackNode {
                 .add("uplinkPort", uplinkPort)
                 .add("state", state)
                 .add("phyIntfs", phyIntfs)
+                .add("auth", auth)
                 .toString();
     }
 
@@ -273,6 +281,7 @@ public class DefaultOpenstackNode implements OpenstackNode {
                 .uplinkPort(uplinkPort)
                 .state(newState)
                 .phyIntfs(phyIntfs)
+                .authentication(auth)
                 .build();
     }
 
@@ -304,6 +313,12 @@ public class DefaultOpenstackNode implements OpenstackNode {
         }
 
     }
+
+    @Override
+    public OpenstackAuth authentication() {
+        return auth;
+    }
+
     /**
      * Returns new builder instance.
      *
@@ -329,7 +344,8 @@ public class DefaultOpenstackNode implements OpenstackNode {
                 .vlanIntf(osNode.vlanIntf())
                 .uplinkPort(osNode.uplinkPort())
                 .state(osNode.state())
-                .phyIntfs(osNode.phyIntfs());
+                .phyIntfs(osNode.phyIntfs())
+                .authentication(osNode.authentication());
     }
 
     /**
@@ -346,6 +362,7 @@ public class DefaultOpenstackNode implements OpenstackNode {
         private String uplinkPort;
         private NodeState state;
         private Collection<OpenstackPhyInterface> phyIntfs;
+        private OpenstackAuth auth;
 
         // private constructor not intended to use from external
         private Builder() {
@@ -355,15 +372,23 @@ public class DefaultOpenstackNode implements OpenstackNode {
         public DefaultOpenstackNode build() {
             checkArgument(hostname != null, NOT_NULL_MSG, "hostname");
             checkArgument(type != null, NOT_NULL_MSG, "type");
-            checkArgument(intgBridge != null, NOT_NULL_MSG, "integration bridge");
+
             checkArgument(managementIp != null, NOT_NULL_MSG, "management IP");
             checkArgument(state != null, NOT_NULL_MSG, "state");
 
+            if (type != NodeType.CONTROLLER) {
+                checkArgument(intgBridge != null, NOT_NULL_MSG, "integration bridge");
+
+                if (dataIp == null && Strings.isNullOrEmpty(vlanIntf)) {
+                    throw new IllegalArgumentException("Either data IP or VLAN interface is required");
+                }
+            } else {
+                // we force controller node to have COMPLETE state for now
+                state = NodeState.COMPLETE;
+            }
+
             if (type == NodeType.GATEWAY && uplinkPort == null) {
                 throw new IllegalArgumentException("Uplink port is required for gateway node");
-            }
-            if (dataIp == null && Strings.isNullOrEmpty(vlanIntf)) {
-                throw new IllegalArgumentException("Either data IP or VLAN interface is required");
             }
 
             return new DefaultOpenstackNode(hostname,
@@ -374,7 +399,8 @@ public class DefaultOpenstackNode implements OpenstackNode {
                     vlanIntf,
                     uplinkPort,
                     state,
-                    phyIntfs);
+                    phyIntfs,
+                    auth);
         }
 
         @Override
@@ -430,6 +456,12 @@ public class DefaultOpenstackNode implements OpenstackNode {
         @Override
         public Builder phyIntfs(Collection<OpenstackPhyInterface> phyIntfs) {
             this.phyIntfs = phyIntfs;
+            return this;
+        }
+
+        @Override
+        public Builder authentication(OpenstackAuth auth) {
+            this.auth = auth;
             return this;
         }
     }

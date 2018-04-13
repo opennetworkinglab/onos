@@ -40,6 +40,20 @@
                                 ]
                         },
                         {
+                                "hostname" : "controller",
+                                "type" : "CONTROLLER",
+                                "managementIp" : "172.16.130.10",
+                                "authentication" : {
+                                        "version" : "v2.0",
+                                        "port" : 35357,
+                                        "protocol" : "HTTP",
+                                        "project" : "admin",
+                                        "username" : "admin",
+                                        "password" : "nova",
+                                        "perspective" : "PUBLIC"
+                                }
+                        },
+                        {
                                 "hostname" : "gateway-01",
                                 "type" : "GATEWAY",
                                 "managementIp" : "172.16.130.8",

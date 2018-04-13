@@ -29,8 +29,10 @@ import org.onosproject.codec.impl.CodecManager;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.openstacknode.api.NodeState;
+import org.onosproject.openstacknode.api.OpenstackAuth;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackPhyInterface;
+import org.onosproject.openstacknode.impl.DefaultOpenstackAuth;
 import org.onosproject.openstacknode.impl.DefaultOpenstackNode;
 import org.onosproject.openstacknode.impl.DefaultOpenstackPhyInterface;
 
@@ -55,6 +57,7 @@ public class OpenstackNodeCodecTest {
     MockCodecContext context;
     JsonCodec<OpenstackNode> openstackNodeCodec;
     JsonCodec<OpenstackPhyInterface> openstackPhyIntfJsonCodec;
+    JsonCodec<OpenstackAuth> openstackAuthJsonCodec;
     final CoreService mockCoreService = createMock(CoreService.class);
     private static final String REST_APP_ID = "org.onosproject.rest";
 
@@ -63,9 +66,11 @@ public class OpenstackNodeCodecTest {
         context = new MockCodecContext();
         openstackNodeCodec = new OpenstackNodeCodec();
         openstackPhyIntfJsonCodec = new OpenstackPhyInterfaceCodec();
+        openstackAuthJsonCodec = new OpenstackAuthCodec();
 
         assertThat(openstackNodeCodec, notNullValue());
         assertThat(openstackPhyIntfJsonCodec, notNullValue());
+        assertThat(openstackAuthJsonCodec, notNullValue());
 
         expect(mockCoreService.registerApplication(REST_APP_ID))
                 .andReturn(APP_ID).anyTimes();
@@ -73,8 +78,11 @@ public class OpenstackNodeCodecTest {
         context.registerService(CoreService.class, mockCoreService);
     }
 
+    /**
+     * Tests the openstack compute node encoding.
+     */
     @Test
-    public void testOpenstackNodeEncode() {
+    public void testOpenstackComputeNodeEncode() {
 
         OpenstackPhyInterface phyIntf1 = DefaultOpenstackPhyInterface.builder()
                                 .network("mgmtnetwork")
@@ -100,9 +108,14 @@ public class OpenstackNodeCodecTest {
         assertThat(nodeJson, matchesOpenstackNode(node));
     }
 
+    /**
+     * Tests the openstack compute node decoding.
+     *
+     * @throws IOException
+     */
     @Test
-    public void testOpenstackNodeDecode() throws IOException {
-        OpenstackNode node = getOpenstackNode("OpenstackNode.json");
+    public void testOpenstackComputeNodeDecode() throws IOException {
+        OpenstackNode node = getOpenstackNode("OpenstackComputeNode.json");
 
         assertThat(node.hostname(), is("compute-01"));
         assertThat(node.type().name(), is("COMPUTE"));
@@ -120,6 +133,55 @@ public class OpenstackNodeCodecTest {
                 assertThat(intf.intf(), is("eth4"));
             }
         });
+    }
+
+    /**
+     * Tests the openstack controller node encoding.
+     */
+    @Test
+    public void testOpenstackControllerNodeEncode() {
+        OpenstackAuth auth = DefaultOpenstackAuth.builder()
+                .version("v2.0")
+                .port(35357)
+                .protocol(OpenstackAuth.Protocol.HTTP)
+                .project("admin")
+                .username("admin")
+                .password("nova")
+                .perspective(OpenstackAuth.Perspective.PUBLIC)
+                .build();
+
+        OpenstackNode node = DefaultOpenstackNode.builder()
+                .hostname("controller")
+                .type(OpenstackNode.NodeType.CONTROLLER)
+                .state(NodeState.INIT)
+                .managementIp(IpAddress.valueOf("172.16.130.10"))
+                .authentication(auth)
+                .build();
+
+        ObjectNode nodeJson = openstackNodeCodec.encode(node, context);
+        assertThat(nodeJson, matchesOpenstackNode(node));
+    }
+
+    /**
+     * Tests the openstack controller node decoding.
+     */
+    @Test
+    public void testOpenstackControllerNodeDecode() throws IOException {
+        OpenstackNode node = getOpenstackNode("OpenstackControllerNode.json");
+
+        assertThat(node.hostname(), is("controller"));
+        assertThat(node.type().name(), is("CONTROLLER"));
+        assertThat(node.managementIp().toString(), is("172.16.130.10"));
+
+        OpenstackAuth auth = node.authentication();
+
+        assertThat(auth.version(), is("v2.0"));
+        assertThat(auth.port(), is(35357));
+        assertThat(auth.protocol(), is(OpenstackAuth.Protocol.HTTP));
+        assertThat(auth.username(), is("admin"));
+        assertThat(auth.password(), is("nova"));
+        assertThat(auth.project(), is("admin"));
+        assertThat(auth.perspective(), is(OpenstackAuth.Perspective.PUBLIC));
     }
 
     /**
@@ -163,6 +225,9 @@ public class OpenstackNodeCodecTest {
         public <T> JsonCodec<T> codec(Class<T> entityClass) {
             if (entityClass == OpenstackPhyInterface.class) {
                 return (JsonCodec<T>) openstackPhyIntfJsonCodec;
+            }
+            if (entityClass == OpenstackAuth.class) {
+                return (JsonCodec<T>) openstackAuthJsonCodec;
             }
             return manager.getCodec(entityClass);
         }

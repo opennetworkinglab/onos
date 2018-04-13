@@ -51,7 +51,6 @@ import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.instructions.ExtensionPropertyException;
 import org.onosproject.net.flow.instructions.ExtensionTreatment;
-
 import org.onosproject.openstacknode.api.NodeState;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeAdminService;

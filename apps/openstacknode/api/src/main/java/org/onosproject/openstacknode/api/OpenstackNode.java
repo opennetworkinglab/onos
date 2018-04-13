@@ -44,7 +44,8 @@ public interface OpenstackNode {
      */
     enum NodeType {
         COMPUTE,
-        GATEWAY
+        GATEWAY,
+        CONTROLLER
     }
 
     /**
@@ -185,6 +186,13 @@ public interface OpenstackNode {
     PortNumber phyIntfPortNum(String providerPhysnet);
 
     /**
+     * Returns the keystone authentication info.
+     *
+     * @return keystone authentication info
+     */
+    OpenstackAuth authentication();
+
+    /**
      * Builder of new node entities.
      */
     interface Builder {
@@ -267,6 +275,14 @@ public interface OpenstackNode {
          * @return openstack node builder
          */
         Builder phyIntfs(Collection<OpenstackPhyInterface> phyIntfs);
+
+        /**
+         * Returns openstack node builder with supplied authentication info.
+         *
+         * @param auth keystone authentication info
+         * @return openstack node builder
+         */
+        Builder authentication(OpenstackAuth auth);
     }
 }
 

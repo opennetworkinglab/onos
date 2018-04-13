@@ -23,6 +23,7 @@ import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.net.DeviceId;
 import org.onosproject.openstacknode.api.NodeState;
+import org.onosproject.openstacknode.api.OpenstackAuth;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackPhyInterface;
 import org.onosproject.openstacknode.impl.DefaultOpenstackNode;
@@ -34,6 +35,7 @@ import java.util.stream.IntStream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.util.Tools.nullIsIllegal;
+import static org.onosproject.openstacknode.api.Constants.CONTROLLER;
 import static org.onosproject.openstacknode.api.Constants.DATA_IP;
 import static org.onosproject.openstacknode.api.Constants.GATEWAY;
 import static org.onosproject.openstacknode.api.Constants.HOST_NAME;
@@ -53,6 +55,7 @@ public final class OpenstackNodeCodec extends JsonCodec<OpenstackNode> {
     private static final String INTEGRATION_BRIDGE = "integrationBridge";
     private static final String STATE = "state";
     private static final String PHYSICAL_INTERFACES = "phyIntfs";
+    private static final String AUTHENTICATION = "authentication";
 
     private static final String MISSING_MESSAGE = " is required in OpenstackNode";
 
@@ -64,13 +67,16 @@ public final class OpenstackNodeCodec extends JsonCodec<OpenstackNode> {
                 .put(HOST_NAME, node.hostname())
                 .put(TYPE, node.type().name())
                 .put(MANAGEMENT_IP, node.managementIp().toString())
-                .put(INTEGRATION_BRIDGE, node.intgBridge().toString())
                 .put(STATE, node.state().name());
 
         OpenstackNode.NodeType type = node.type();
 
         if (type == OpenstackNode.NodeType.GATEWAY) {
             result.put(UPLINK_PORT, node.uplinkPort());
+        }
+
+        if (type != OpenstackNode.NodeType.CONTROLLER) {
+            result.put(INTEGRATION_BRIDGE, node.intgBridge().toString());
         }
 
         if (node.vlanIntf() != null) {
@@ -91,6 +97,12 @@ public final class OpenstackNodeCodec extends JsonCodec<OpenstackNode> {
         });
         result.set(PHYSICAL_INTERFACES, phyIntfs);
 
+        if (node.authentication() != null) {
+            ObjectNode authJson = context.codec(OpenstackAuth.class)
+                    .encode(node.authentication(), context);
+            result.put(AUTHENTICATION, authJson);
+        }
+
         return result;
     }
 
@@ -100,27 +112,27 @@ public final class OpenstackNodeCodec extends JsonCodec<OpenstackNode> {
             return null;
         }
 
-        final JsonCodec<OpenstackPhyInterface> phyIntfCodec = context.codec(OpenstackPhyInterface.class);
-
         String hostname = nullIsIllegal(json.get(HOST_NAME).asText(),
                 HOST_NAME + MISSING_MESSAGE);
         String type = nullIsIllegal(json.get(TYPE).asText(),
                 TYPE + MISSING_MESSAGE);
         String mIp = nullIsIllegal(json.get(MANAGEMENT_IP).asText(),
                 MANAGEMENT_IP + MISSING_MESSAGE);
-        String iBridge = nullIsIllegal(json.get(INTEGRATION_BRIDGE).asText(),
-                INTEGRATION_BRIDGE + MISSING_MESSAGE);
 
         DefaultOpenstackNode.Builder nodeBuilder = DefaultOpenstackNode.builder()
                 .hostname(hostname)
                 .type(OpenstackNode.NodeType.valueOf(type))
                 .managementIp(IpAddress.valueOf(mIp))
-                .intgBridge(DeviceId.deviceId(iBridge))
                 .state(NodeState.INIT);
 
         if (type.equals(GATEWAY)) {
             nodeBuilder.uplinkPort(nullIsIllegal(json.get(UPLINK_PORT).asText(),
                     UPLINK_PORT + MISSING_MESSAGE));
+        }
+        if (!type.equals(CONTROLLER)) {
+            String iBridge = nullIsIllegal(json.get(INTEGRATION_BRIDGE).asText(),
+                    INTEGRATION_BRIDGE + MISSING_MESSAGE);
+            nodeBuilder.intgBridge(DeviceId.deviceId(iBridge));
         }
         if (json.get(VLAN_INTF_NAME) != null) {
             nodeBuilder.vlanIntf(json.get(VLAN_INTF_NAME).asText());
@@ -133,12 +145,26 @@ public final class OpenstackNodeCodec extends JsonCodec<OpenstackNode> {
         List<OpenstackPhyInterface> phyIntfs = new ArrayList<>();
         JsonNode phyIntfsJson = json.get(PHYSICAL_INTERFACES);
         if (phyIntfsJson != null) {
+
+            final JsonCodec<OpenstackPhyInterface>
+                    phyIntfCodec = context.codec(OpenstackPhyInterface.class);
+
             IntStream.range(0, phyIntfsJson.size()).forEach(i -> {
                 ObjectNode intfJson = get(phyIntfsJson, i);
                 phyIntfs.add(phyIntfCodec.decode(intfJson, context));
             });
         }
         nodeBuilder.phyIntfs(phyIntfs);
+
+        // parse authentication
+        JsonNode authJson = json.get(AUTHENTICATION);
+        if (json.get(AUTHENTICATION) != null) {
+
+            final JsonCodec<OpenstackAuth> authCodec = context.codec(OpenstackAuth.class);
+
+            OpenstackAuth auth = authCodec.decode((ObjectNode) authJson.deepCopy(), context);
+            nodeBuilder.authentication(auth);
+        }
 
         log.trace("node is {}", nodeBuilder.build().toString());
 

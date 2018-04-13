@@ -91,21 +91,6 @@ public class DefaultOpenstackNodeTest extends OpenstackNodeTest {
     }
 
     /**
-     * Checks building a node without integration bridge ID fails with
-     * proper exception.
-     */
-    @Test(expected = IllegalArgumentException.class)
-    public void testBuildWithoutIntegrationBridgeId() {
-        DefaultOpenstackNode.builder()
-                .hostname(HOSTNAME_1)
-                .type(OpenstackNode.NodeType.COMPUTE)
-                .managementIp(TEST_IP)
-                .dataIp(TEST_IP)
-                .state(NodeState.INIT)
-                .build();
-    }
-
-    /**
      * Checks building a node without management IP address fails with
      * proper exception.
      */

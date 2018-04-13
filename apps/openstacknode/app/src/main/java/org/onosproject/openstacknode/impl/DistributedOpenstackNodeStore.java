@@ -50,11 +50,14 @@ import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.openstacknode.api.NodeState.COMPLETE;
 import static org.onosproject.openstacknode.api.NodeState.INCOMPLETE;
+import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.CONTROLLER;
 import static org.onosproject.openstacknode.api.OpenstackNodeEvent.Type.OPENSTACK_NODE_COMPLETE;
 import static org.onosproject.openstacknode.api.OpenstackNodeEvent.Type.OPENSTACK_NODE_CREATED;
 import static org.onosproject.openstacknode.api.OpenstackNodeEvent.Type.OPENSTACK_NODE_INCOMPLETE;
 import static org.onosproject.openstacknode.api.OpenstackNodeEvent.Type.OPENSTACK_NODE_REMOVED;
 import static org.onosproject.openstacknode.api.OpenstackNodeEvent.Type.OPENSTACK_NODE_UPDATED;
+import static org.onosproject.store.service.MapEvent.Type.INSERT;
+import static org.onosproject.store.service.MapEvent.Type.UPDATE;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -79,6 +82,9 @@ public class DistributedOpenstackNodeStore
             .register(NodeState.class)
             .register(OpenstackPhyInterface.class)
             .register(DefaultOpenstackPhyInterface.class)
+            .register(DefaultOpenstackAuth.class)
+            .register(DefaultOpenstackAuth.Perspective.class)
+            .register(DefaultOpenstackAuth.Protocol.class)
             .register(Collection.class)
             .build();
 
@@ -159,6 +165,24 @@ public class DistributedOpenstackNodeStore
 
         @Override
         public void event(MapEvent<String, OpenstackNode> event) {
+
+            OpenstackNode node;
+
+            if (event.type() == INSERT || event.type() == UPDATE) {
+                node = event.newValue().value();
+            } else {
+                node = event.oldValue().value();
+            }
+
+            // we do not notify the controller node related event
+            // controller node event should be handled in different way
+            if (node.type() == CONTROLLER) {
+                // TODO: need to find a way to check the controller node availability
+                log.info("node {} is detected", node.hostname());
+
+                return;
+            }
+
             switch (event.type()) {
                 case INSERT:
                     log.debug("OpenStack node created {}", event.newValue());

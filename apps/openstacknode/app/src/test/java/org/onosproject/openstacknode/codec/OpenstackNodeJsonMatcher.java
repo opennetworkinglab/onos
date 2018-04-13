@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
 import org.onosproject.openstacknode.api.Constants;
+import org.onosproject.openstacknode.api.OpenstackAuth;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackPhyInterface;
 
@@ -27,7 +28,7 @@ import static org.onosproject.openstacknode.api.Constants.MANAGEMENT_IP;
 import static org.onosproject.openstacknode.api.Constants.VLAN_INTF_NAME;
 
 /**
- * Hamcrest matcher for meters.
+ * Hamcrest matcher for openstack node.
  */
 public final class OpenstackNodeJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNode> {
 
@@ -35,6 +36,7 @@ public final class OpenstackNodeJsonMatcher extends TypeSafeDiagnosingMatcher<Js
     private static final String INTEGRATION_BRIDGE = "integrationBridge";
     private static final String STATE = "state";
     private static final String PHYSICAL_INTERFACES = "phyIntfs";
+    private static final String AUTHENTICATION = "authentication";
 
     private OpenstackNodeJsonMatcher(OpenstackNode node) {
         this.node = node;
@@ -67,11 +69,13 @@ public final class OpenstackNodeJsonMatcher extends TypeSafeDiagnosingMatcher<Js
         }
 
         // check integration bridge
-        String jsonIntgBridge = jsonNode.get(INTEGRATION_BRIDGE).asText();
-        String intgBridge = node.intgBridge().toString();
-        if (!jsonIntgBridge.equals(intgBridge)) {
-            description.appendText("integration bridge was " + jsonIntgBridge);
-            return false;
+        JsonNode jsonIntgBridge = jsonNode.get(INTEGRATION_BRIDGE);
+        if (jsonIntgBridge != null) {
+            String intgBridge = node.intgBridge().toString();
+            if (!jsonIntgBridge.asText().equals(intgBridge)) {
+                description.appendText("integration bridge was " + jsonIntgBridge);
+                return false;
+            }
         }
 
         // check state
@@ -98,6 +102,17 @@ public final class OpenstackNodeJsonMatcher extends TypeSafeDiagnosingMatcher<Js
             String dataIp = node.dataIp().toString();
             if (!jsonDataIp.asText().equals(dataIp)) {
                 description.appendText("Data IP was " + jsonDataIp.asText());
+                return false;
+            }
+        }
+
+        // check openstack auth
+        JsonNode jsonAuth = jsonNode.get(AUTHENTICATION);
+        if (jsonAuth != null) {
+            OpenstackAuth auth = node.authentication();
+            OpenstackAuthJsonMatcher authMatcher =
+                    OpenstackAuthJsonMatcher.matchOpenstackAuth(auth);
+            if (!authMatcher.matches(jsonAuth)) {
                 return false;
             }
         }

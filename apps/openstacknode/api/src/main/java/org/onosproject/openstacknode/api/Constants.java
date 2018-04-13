@@ -29,6 +29,7 @@ public final class Constants {
     public static final String PATCH_INTG_BRIDGE = "patch-intg";
     public static final String PATCH_ROUT_BRIDGE = "patch-rout";
     public static final String GATEWAY = "GATEWAY";
+    public static final String CONTROLLER = "CONTROLLER";
     public static final String HOST_NAME = "hostname";
     public static final String TYPE = "type";
     public static final String MANAGEMENT_IP = "managementIp";
