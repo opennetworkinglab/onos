@@ -75,6 +75,7 @@ public class RouteHandlerTest {
     private static final Map<ConnectPoint, Set<IpPrefix>> SUBNET_TABLE = Maps.newConcurrentMap();
     // Mocked Next Id
     private static final Map<Integer, TrafficTreatment> NEXT_TABLE = Maps.newConcurrentMap();
+    private static final Map<IpPrefix, Set<ResolvedRoute>> ROUTE_STORE = Maps.newConcurrentMap();
 
     private static final IpPrefix P1 = IpPrefix.valueOf("10.0.0.0/24");
 
@@ -167,7 +168,7 @@ public class RouteHandlerTest {
         hostService = new MockHostService(HOSTS);
         srManager.hostService = hostService;
         srManager.cfgService = mockNetworkConfigRegistry;
-        srManager.routeService = new MockRouteService(ROUTING_TABLE);
+        srManager.routeService = new MockRouteService(ROUTE_STORE);
 
         routeHandler = new RouteHandler(srManager) {
             // routeEventCache is not necessary for unit tests
@@ -184,9 +185,7 @@ public class RouteHandlerTest {
 
     @Test
     public void init() {
-        MockRoutingTableKey rtk = new MockRoutingTableKey(CP1.deviceId(), P1);
-        MockRoutingTableValue rtv = new MockRoutingTableValue(CP1.port(), M1, V1);
-        ROUTING_TABLE.put(rtk, rtv);
+        ROUTE_STORE.put(P1, Sets.newHashSet(RR1));
 
         routeHandler.init(CP1.deviceId());
 
@@ -198,6 +197,27 @@ public class RouteHandlerTest {
 
         assertEquals(1, SUBNET_TABLE.size());
         assertTrue(SUBNET_TABLE.get(CP1).contains(P1));
+    }
+
+    @Test
+    public void initTwoNextHops() {
+        ROUTE_STORE.put(P1, Sets.newHashSet(RR1, RR2));
+
+        routeHandler.init(CP1.deviceId());
+
+        assertEquals(2, ROUTING_TABLE.size());
+        MockRoutingTableValue rtv1 = ROUTING_TABLE.get(new MockRoutingTableKey(CP1.deviceId(), P1));
+        assertEquals(M1, rtv1.macAddress);
+        assertEquals(V1, rtv1.vlanId);
+        assertEquals(CP1.port(), rtv1.portNumber);
+        MockRoutingTableValue rtv2 = ROUTING_TABLE.get(new MockRoutingTableKey(CP2.deviceId(), P1));
+        assertEquals(M2, rtv2.macAddress);
+        assertEquals(V2, rtv2.vlanId);
+        assertEquals(CP2.port(), rtv2.portNumber);
+
+        assertEquals(2, SUBNET_TABLE.size());
+        assertTrue(SUBNET_TABLE.get(CP1).contains(P1));
+        assertTrue(SUBNET_TABLE.get(CP2).contains(P1));
     }
 
     @Test
@@ -389,6 +409,8 @@ public class RouteHandlerTest {
     @Test
     public void testDualHomedSingleLocationFail() {
         testOneDualHomedAdded();
+
+        ROUTE_STORE.put(P1, Sets.newHashSet(RR3));
 
         HostEvent he = new HostEvent(HostEvent.Type.HOST_MOVED, H3S, H3D);
         routeHandler.processHostMovedEvent(he);
