@@ -143,7 +143,8 @@ public class OpenstackFlowRuleManager implements OpenstackFlowRuleService {
     }
 
     private void initializePipeline(DeviceId deviceId) {
-        connectTables(deviceId, Constants.SRC_VNI_TABLE, Constants.ACL_TABLE);
+        connectTables(deviceId, Constants.DHCP_ARP_TABLE, Constants.VTAG_TABLE);
+        connectTables(deviceId, Constants.VTAG_TABLE, Constants.ACL_TABLE);
         connectTables(deviceId, Constants.ACL_TABLE, Constants.JUMP_TABLE);
         setupJumpTable(deviceId);
     }

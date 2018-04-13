@@ -56,13 +56,15 @@ import java.util.concurrent.ExecutorService;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.openstacknetworking.api.Constants.ACL_TABLE;
+import static org.onosproject.openstacknetworking.api.Constants.DHCP_ARP_TABLE;
+import static org.onosproject.openstacknetworking.api.Constants.FLAT_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.FORWARDING_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ADMIN_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_FLAT_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_SWITCHING_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_TUNNEL_TAG_RULE;
-import static org.onosproject.openstacknetworking.api.Constants.SRC_VNI_TABLE;
+import static org.onosproject.openstacknetworking.api.Constants.VTAG_TABLE;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.buildExtension;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -146,6 +148,7 @@ public final class OpenstackSwitchingHandler {
                 setForwardingRulesForVlan(instPort, install);
                 break;
             case FLAT:
+                setFlatJumpRules(instPort, install);
                 setDownstreamRules(instPort, install);
                 setUpstreamRules(instPort, install);
                 break;
@@ -153,6 +156,50 @@ public final class OpenstackSwitchingHandler {
                 log.warn("Unsupported network tunnel type {}", type.name());
                 break;
         }
+    }
+
+    private void setFlatJumpRules(InstancePort port, boolean install) {
+        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+        selector.matchInPort(port.portNumber());
+
+        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
+        treatment.transition(FLAT_TABLE);
+
+        osFlowRuleService.setRule(
+                appId,
+                port.deviceId(),
+                selector.build(),
+                treatment.build(),
+                PRIORITY_FLAT_RULE,
+                DHCP_ARP_TABLE,
+                install);
+
+        Network network = osNetworkService.network(port.networkId());
+
+        if (network == null) {
+            log.warn("The network does not exist");
+            return;
+        }
+
+        PortNumber portNumber = osNodeService.node(port.deviceId())
+                .phyIntfPortNum(network.getProviderPhyNet());
+
+        if (portNumber == null) {
+            log.warn("The port number does not exist");
+            return;
+        }
+
+        selector = DefaultTrafficSelector.builder();
+        selector.matchInPort(portNumber);
+
+        osFlowRuleService.setRule(
+                appId,
+                port.deviceId(),
+                selector.build(),
+                treatment.build(),
+                PRIORITY_FLAT_RULE,
+                DHCP_ARP_TABLE,
+                install);
     }
 
     private void setDownstreamRules(InstancePort instPort, boolean install) {
@@ -170,7 +217,7 @@ public final class OpenstackSwitchingHandler {
                 selector,
                 treatment,
                 PRIORITY_FLAT_RULE,
-                SRC_VNI_TABLE,
+                FLAT_TABLE,
                 install);
 
         selector = DefaultTrafficSelector.builder()
@@ -184,7 +231,7 @@ public final class OpenstackSwitchingHandler {
                 selector,
                 treatment,
                 PRIORITY_FLAT_RULE,
-                SRC_VNI_TABLE,
+                FLAT_TABLE,
                 install);
     }
 
@@ -218,7 +265,7 @@ public final class OpenstackSwitchingHandler {
                 selector,
                 treatment,
                 PRIORITY_FLAT_RULE,
-                SRC_VNI_TABLE,
+                FLAT_TABLE,
                 install);
     }
 
@@ -371,7 +418,7 @@ public final class OpenstackSwitchingHandler {
                 selector,
                 tb.build(),
                 PRIORITY_TUNNEL_TAG_RULE,
-                SRC_VNI_TABLE,
+                VTAG_TABLE,
                 install);
     }
 
@@ -402,7 +449,7 @@ public final class OpenstackSwitchingHandler {
                 selector,
                 treatment,
                 PRIORITY_TUNNEL_TAG_RULE,
-                SRC_VNI_TABLE,
+                VTAG_TABLE,
                 install);
     }
 
@@ -437,6 +484,7 @@ public final class OpenstackSwitchingHandler {
                 );
     }
 
+    // TODO: need to be purged sooner or later
     private void setPortAdminRules(Port port, boolean install) {
         InstancePort instancePort =
                 instancePortService.instancePort(MacAddress.valueOf(port.getMacAddress()));
@@ -454,7 +502,7 @@ public final class OpenstackSwitchingHandler {
                 selector,
                 treatment,
                 PRIORITY_ADMIN_RULE,
-                SRC_VNI_TABLE,
+                VTAG_TABLE,
                 install);
     }
 
