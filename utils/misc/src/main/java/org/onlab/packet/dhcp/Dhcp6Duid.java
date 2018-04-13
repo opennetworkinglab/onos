@@ -28,10 +28,13 @@ public class Dhcp6Duid extends BasePacket {
     private static final int DEFAULT_LLT_LEN = 8;
     private static final int DEFAULT_EN_LEN = 6;
     private static final int DEFAULT_LL_LEN = 4;
+    private static final int DEFAULT_UUID_LEN = 2;
+
     public enum DuidType {
         DUID_LLT((short) 1),
         DUID_EN((short) 2),
-        DUID_LL((short) 3);
+        DUID_LL((short) 3),
+        DUID_UUID((short) 4); // RFC6355
 
         private short value;
         DuidType(short value) {
@@ -50,6 +53,8 @@ public class Dhcp6Duid extends BasePacket {
                     return DUID_EN;
                 case 3:
                     return DUID_LL;
+                case 4:
+                    return DUID_UUID;
                 default:
                     throw new IllegalArgumentException("Unknown type: " + type);
             }
@@ -66,6 +71,9 @@ public class Dhcp6Duid extends BasePacket {
     // fields for DUID_EN
     private int enterpriseNumber;
     private byte[] identifier;
+
+    // fields for DUID_UUID
+    private byte[] uuid;
 
     public DuidType getDuidType() {
         return duidType;
@@ -96,7 +104,7 @@ public class Dhcp6Duid extends BasePacket {
     }
 
     public void setLinkLayerAddress(byte[] linkLayerAddress) {
-        this.linkLayerAddress = linkLayerAddress;
+        this.linkLayerAddress = Arrays.copyOf(linkLayerAddress, linkLayerAddress.length);
     }
 
     public int getEnterpriseNumber() {
@@ -112,7 +120,15 @@ public class Dhcp6Duid extends BasePacket {
     }
 
     public void setIdentifier(byte[] identifier) {
-        this.identifier = identifier;
+        this.identifier = Arrays.copyOf(identifier, identifier.length);
+    }
+
+    public byte[] getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(byte[] uuid) {
+        this.uuid = Arrays.copyOf(uuid, uuid.length);
     }
 
     @Override
@@ -136,6 +152,11 @@ public class Dhcp6Duid extends BasePacket {
                 byteBuffer = ByteBuffer.allocate(DEFAULT_LL_LEN + linkLayerAddress.length);
                 byteBuffer.putShort(duidType.value);
                 byteBuffer.putShort(hardwareType);
+                byteBuffer.put(linkLayerAddress);
+                break;
+            case DUID_UUID:
+                byteBuffer = ByteBuffer.allocate(DEFAULT_UUID_LEN + uuid.length);
+                byteBuffer.putShort(duidType.value);
                 byteBuffer.put(linkLayerAddress);
                 break;
             default:
@@ -170,6 +191,10 @@ public class Dhcp6Duid extends BasePacket {
                     duid.linkLayerAddress = new byte[length - DEFAULT_LL_LEN];
                     byteBuffer.get(duid.linkLayerAddress);
                     break;
+                case DUID_UUID:
+                    duid.uuid = new byte[length - DEFAULT_LL_LEN];
+                    byteBuffer.get(duid.uuid);
+                    break;
                 default:
                     throw new IllegalArgumentException("Unknown type: " + duidType);
             }
@@ -197,6 +222,10 @@ public class Dhcp6Duid extends BasePacket {
                 helper.add("type", "DUID_LL");
                 helper.add("hardwareType", hardwareType);
                 helper.add("linkLayerAddress", Arrays.toString(linkLayerAddress));
+                break;
+            case DUID_UUID:
+                helper.add("type", "DUID_UUID");
+                helper.add("uuid", Arrays.toString(uuid));
                 break;
             default:
                 helper.add("type", "Unknown");
