@@ -61,7 +61,7 @@
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-core-net</artifactId>
+            <artifactId>onos-core-dist</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
