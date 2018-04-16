@@ -15,6 +15,7 @@
   -->
 <scenario name="wrapup" description="ONOS test wrapup">
     <group name="Wrapup">
+        <step name="Final-Diagnostics" exec="onos-diagnostics -n onos-stc-diags ${OCI}"/>
         <parallel var="${OC#}">
             <step name="Final-Check-Logs-${#}" exec="onos-check-logs ${OC#}"/>
             <step name="Fetch-Logs-${#}" exec="onos-fetch-logs ${OC#}"

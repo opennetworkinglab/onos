@@ -19,23 +19,20 @@
 # -----------------------------------------------------------------------------
 # Tool to compile the specified YANG file(s) using the ONOS live compilation.
 # -----------------------------------------------------------------------------
+function usage {
+    echo "usage: onos-compile-yang [-P port] [-u user] [-p password] [-v] \\"
+    echo "          <yang-file|zip-file|jar-file|directory>" >&2
+    exit 1
+}
 
-ONOS_WEB_USER=${ONOS_WEB_USER:-onos}  # ONOS WEB User defaults to 'onos'
-ONOS_WEB_PASS=${ONOS_WEB_PASS:-rocks} # ONOS WEB Password defaults to 'rocks'
-
+. $(dirname $0)/_rest-port
 . $(dirname $0)/_find-node
 
 node=$(find_node $1)
 yang=$2
 
-export URL=http://$node:8181/onos/yang/models
-export curl="curl -sS --user $ONOS_WEB_USER:$ONOS_WEB_PASS --noproxy localhost "
-
-# Prints usage help
-function usage {
-    echo "usage: onos-compile-yang <yang-file|zip-file|jar-file|directory>" >&2
-    exit 1
-}
+export URL=http://$node:$port/onos/yang/models
+export curl="curl $fail -sSL --user $user:$password --noproxy ${node} "
 
 [ -z $node -o "$node" = "-h" -o "$node" = "--help" -o "$node" = "-?" ] && usage
 

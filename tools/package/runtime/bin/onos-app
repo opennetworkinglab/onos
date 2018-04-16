@@ -19,29 +19,28 @@
 # -----------------------------------------------------------------------------
 # Tool to manage ONOS applications using REST API.
 # -----------------------------------------------------------------------------
+function usage {
+    echo "usage: onos-app [options] <node-ip> list" >&2
+    echo "       onos-app [options] <node-ip> {install|install!} <app-file>" >&2
+    echo "       onos-app [options] <node-ip> {reinstall|reinstall!} [<app-name>] <app-file>" >&2
+    echo "       onos-app [options] <node-ip> {activate|deactivate|uninstall} <app-name>" >&2
+    echo ""
+    echo "options: [-P port] [-u user] [-p password] [-v]"
+    exit 1
+}
 
-ONOS_WEB_USER=${ONOS_WEB_USER:-onos}  # ONOS WEB User defaults to 'onos'
-ONOS_WEB_PASS=${ONOS_WEB_PASS:-rocks} # ONOS WEB Password defaults to 'rocks'
-
+. $(dirname $0)/_rest-port
 . $(dirname $0)/_find-node
 
 node=$(find_node $1)
 cmd=${2:-list}
 app=${3}
 
-export URL=http://$node:8181/onos/v1/applications
+export URL=http://$node:$port/onos/v1/applications
 export HDR="-HContent-Type:application/octet-stream"
 export HAJ="-HContent-Type:application/json"
-export curl="curl -sS --user $ONOS_WEB_USER:$ONOS_WEB_PASS --noproxy localhost "
+export curl="curl $fail -sSL --user $user:$password --noproxy ${node} "
 
-# Prints usage help
-function usage {
-    echo "usage: onos-app <node-ip> list" >&2
-    echo "       onos-app <node-ip> {install|install!} <app-file>" >&2
-    echo "       onos-app <node-ip> {reinstall|reinstall!} [<app-name>] <app-file>" >&2
-    echo "       onos-app <node-ip> {activate|deactivate|uninstall} <app-name>" >&2
-    exit 1
-}
 
 # Extract app name from the specified *.oar file
 function appName {
