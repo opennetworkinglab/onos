@@ -7,10 +7,10 @@ aux=/tmp/wua.$$.json
 
 host=${1:-$OCI}
 
-onos $host netcfg devices | sed -E 's/("grid[XY]")( : )([-0-9.]*)/\1\20.0/' > $aux
+onos $host netcfg devices | sed -E 's/("locType")( : )(".*")/\1\2"none"/;s/("grid[XY]")( : )([-0-9.]*)/\1\20.0/' > $aux
 onos-netcfg $host $aux devices
 
-onos $host netcfg hosts | sed -E 's/("grid[XY]")( : )([-0-9.]*)/\1\20.0/' > $aux
+onos $host netcfg hosts | sed -E 's/("locType")( : )(".*")/\1\2"none"/;s/("grid[XY]")( : )([-0-9.]*)/\1\20.0/' > $aux
 onos-netcfg $host $aux hosts
 
 rm -f $aux
