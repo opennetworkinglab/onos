@@ -75,7 +75,7 @@ class ClosTopo(Topo):
                                                     netcfgDelay=0.5,
                                                     longitude=longitude,
                                                     latitude=latitude,
-                                                    pipeconfId=args.pipeconf_id)
+                                                    pipeconf=args.pipeconf_id)
 
         for i in range(1, args.size + 1):
             for j in range(1, args.size + 1):
