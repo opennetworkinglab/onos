@@ -56,8 +56,8 @@ public final class BasicHostConfig extends BasicElementConfig<HostId> {
                               EthType.EtherType.VLAN.ethType().toShort());
         this.locations();
         this.ipAddresses();
-        return hasOnlyFields(ALLOWED, NAME, LOC_TYPE, LATITUDE, LONGITUDE,
-                             GRID_Y, GRID_Y, UI_TYPE, RACK_ADDRESS, OWNER, IPS, LOCATIONS,
+        return hasOnlyFields(ALLOWED, NAME, LOC_TYPE, LATITUDE, LONGITUDE, ROLES,
+                             GRID_X, GRID_Y, UI_TYPE, RACK_ADDRESS, OWNER, IPS, LOCATIONS,
                              INNER_VLAN, OUTER_TPID);
     }
 
