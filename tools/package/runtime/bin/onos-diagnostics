@@ -19,14 +19,8 @@
 # -----------------------------------------------------------------------------
 # Tool to collect cluster-wide diagnostics into a single tar stream.
 # -----------------------------------------------------------------------------
-
-ONOS_WEB_USER=${ONOS_WEB_USER:-onos}  # ONOS WEB User defaults to 'onos'
-ONOS_WEB_PASS=${ONOS_WEB_PASS:-rocks} # ONOS WEB Password defaults to 'rocks'
-
-. $(dirname $0)/_find-node
-
 function usage() {
-    echo "usage: $(basename $0) [-x] [-n name] [-u user] [-p password] [ip1 ip2...]"
+    echo "usage: $(basename $0) [-x] [-n name] [-P port] [-u user] [-p password] [ip1 ip2...]"
     echo ""
     echo "Environment Variables:"
     echo "    ONOS_INSTANCES    IPs or hostnames of ONOS cluster machines"
@@ -55,6 +49,12 @@ function usage() {
 
     exit 1
 }
+
+ONOS_WEB_USER=${ONOS_WEB_USER:-onos}  # ONOS WEB User defaults to 'onos'
+ONOS_WEB_PASS=${ONOS_WEB_PASS:-rocks} # ONOS WEB Password defaults to 'rocks'
+ONOS_WEB_PORT=${ONOS_WEB_PORT:-8181}  # REST API port defaults to '8181'
+
+. $(dirname $0)/_find-node
 
 # TODO We should make SR commands optional
 CLI_COMMANDS=(
@@ -105,10 +105,15 @@ CLI_COMMANDS=(
     "mcast-host-show"
 )
 
+port=${ONOS_WEB_PORT}
+user=${ONOS_WEB_USER}
+password=${ONOS_WEB_PASS}
+
 # Scan arguments for user/password or other options...
-while getopts n:u:p:x?h o; do
+while getopts n:P:u:p:x?h o; do
     case "$o" in
         n) name=$OPTARG;;
+        P) port=$OPTARG;;
         u) user=$OPTARG;;
         p) password=$OPTARG;;
         x) extract=true;;
@@ -116,8 +121,6 @@ while getopts n:u:p:x?h o; do
     esac
 done
 
-user=${user:-$ONOS_WEB_USER}
-password=${password:-$ONOS_WEB_PASS}
 let OPC=$OPTIND-1
 shift $OPC
 
@@ -138,7 +141,7 @@ for node in $nodes; do
     # Acquire locally obtained diagnostics via REST API and extract them
     printf "logs "
     curl -sS --fail --user $user:$password  \
-        http://$node:8181/onos/v1/diagnostics > ../$node.tar.gz
+        http://$node:$port/onos/v1/diagnostics > ../$node.tar.gz
     tar zxf ../$node.tar.gz && rm ../$node.tar.gz
 
     # Acquire remotely obtained diagnostics via ssh CLI

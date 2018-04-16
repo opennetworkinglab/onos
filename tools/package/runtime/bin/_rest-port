@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 #
 # Copyright 2015-present Open Networking Foundation
 #
@@ -17,32 +18,27 @@
 #
 
 # -----------------------------------------------------------------------------
-# ONOS network configuration uploader.
+# Utility for handling common REST API usage.
 # -----------------------------------------------------------------------------
-function usage() {
-     echo "usage: onos-netcfg [-v] [-P port] [-u user] [-p password] node file|DELETE [url]"
-     exit 1
-}
 
-. $(dirname $0)/_rest-port
-. $(dirname $0)/_find-node
-. $(dirname $0)/_check-json
+ONOS_WEB_USER=${ONOS_WEB_USER:-onos}  # ONOS WEB User defaults to 'onos'
+ONOS_WEB_PASS=${ONOS_WEB_PASS:-rocks} # ONOS WEB Password defaults to 'rocks'
+ONOS_WEB_PORT=${ONOS_WEB_PORT:-8181}  # REST API port defaults to '8181'
 
-node=$(find_node $1)
-file="${2}"
-url="${3}"
+port=${ONOS_WEB_PORT}
+user=${ONOS_WEB_USER}
+password=${ONOS_WEB_PASS}
+fail="--fail"
 
-export URL="http://$node:$port/onos/v1/network/configuration/${url}"
-export curl="curl ${fail} -sSL --user $user:$password --noproxy ${node} "
+while getopts P:u:p:v?h o; do
+    case "$o" in
+        P) port=$OPTARG;;
+        u) user=$OPTARG;;
+        p) password=$OPTARG;;
+        v) fail="";;
+        *) usage;;
+    esac
+done
 
-[ "$node" == "" -o "$file" == "" ] && usage;
-
-method="POST"
-[ $(echo $file | awk '{print tolower($0)}') == "delete" ] && method="DELETE"
-
-if [ $method == "POST" ]; then
-    checkJson $file
-    $curl -X POST -H 'Content-Type:application/json' $URL -d@$file
-elif [ $method == "DELETE" ]; then
-    $curl -X DELETE $URL
-fi
+let OPC=$OPTIND-1
+shift $OPC

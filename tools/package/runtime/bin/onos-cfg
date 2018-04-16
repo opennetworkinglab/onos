@@ -19,10 +19,12 @@
 # -----------------------------------------------------------------------------
 # Tool to manage ONOS component configurations using REST API.
 # -----------------------------------------------------------------------------
+usage() {
+    echo "usage: onos-cfg [-P port] [-u user] [-p password] [-v] \\"
+    echo "          node [list|post|delete] component [JSON file if posting or deleting]"
+}
 
-ONOS_WEB_USER=${ONOS_WEB_USER:-onos}  # ONOS WEB User defaults to 'onos'
-ONOS_WEB_PASS=${ONOS_WEB_PASS:-rocks} # ONOS WEB Password defaults to 'rocks'
-
+. $(dirname $0)/_rest-port
 . $(dirname $0)/_find-node
 . $(dirname $0)/_check-json
 
@@ -34,12 +36,8 @@ cmd=${2:-list}
 component=${3}
 file=${4}
 
-export URL=http://$node:8181/onos/v1/configuration/${component}
-export curl="curl ${fail} -sS --user $ONOS_WEB_USER:$ONOS_WEB_PASS --noproxy ${node} "
-
-usage() {
-    echo "Usage: onos-cfg node [list|post|delete] component [JSON file if posting or deleting]"
-}
+export URL=http://$node:$port/onos/v1/configuration/${component}
+export curl="curl ${fail} -sSL --user $user:$password --noproxy ${node} "
 
 if [ "$node" == "" -o "$component" == "" ]; then
      usage && exit 1
@@ -50,8 +48,7 @@ case $cmd in
         ${curl} -X GET ${URL} && echo;;
     post|delete)
         checkJson "$file"
-        $curl -X $cmd -H 'Content-Type:application/json' \
-            ${URL} -d@$file && echo;;
+        $curl -X $cmd -H 'Content-Type:application/json' ${URL} -d@$file && echo;;
     *) usage && exit 1;;
 esac
 
