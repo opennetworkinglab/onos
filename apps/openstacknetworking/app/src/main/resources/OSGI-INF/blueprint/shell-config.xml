@@ -32,9 +32,6 @@
         </command>
         <command>
             <action class="org.onosproject.openstacknetworking.cli.OpenstackSyncStateCommand"/>
-            <completers>
-                <ref component-id="openStackEndPointCompleter"/>
-            </completers>
         </command>
         <command>
             <action class="org.onosproject.openstacknetworking.cli.OpenstackSecurityGroupListCommand"/>
@@ -73,5 +70,4 @@
     <bean id="ipAddressCompleter" class="org.onosproject.openstacknetworking.cli.IpAddressCompleter"/>
     <bean id="macAddressCompleter" class="org.onosproject.openstacknetworking.cli.MacAddressCompleter"/>
     <bean id="vlanIdCompleter" class="org.onosproject.openstacknetworking.cli.VlanIdCompleter"/>
-    <bean id="openStackEndPointCompleter" class="org.onosproject.openstacknetworking.cli.OpenStackEndPointCompleter"/>
 </blueprint>

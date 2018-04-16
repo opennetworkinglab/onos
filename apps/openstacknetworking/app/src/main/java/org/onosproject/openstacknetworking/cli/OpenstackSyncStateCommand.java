@@ -17,12 +17,14 @@ package org.onosproject.openstacknetworking.cli;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Strings;
-import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkAdminService;
 import org.onosproject.openstacknetworking.api.OpenstackRouterAdminService;
 import org.onosproject.openstacknetworking.api.OpenstackSecurityGroupAdminService;
+import org.onosproject.openstacknode.api.OpenstackAuth;
+import org.onosproject.openstacknode.api.OpenstackNode;
+import org.onosproject.openstacknode.api.OpenstackNodeService;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.api.client.IOSClientBuilder;
 import org.openstack4j.api.exceptions.AuthenticationException;
@@ -43,14 +45,15 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
+import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
-import javax.net.ssl.X509TrustManager;
-import java.security.cert.X509Certificate;
-
+import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.CONTROLLER;
 import static org.openstack4j.core.transport.ObjectMapperSingleton.getContext;
 
 /**
@@ -59,26 +62,6 @@ import static org.openstack4j.core.transport.ObjectMapperSingleton.getContext;
 @Command(scope = "onos", name = "openstack-sync-states",
         description = "Synchronizes all OpenStack network states")
 public class OpenstackSyncStateCommand extends AbstractShellCommand {
-
-    @Argument(index = 0, name = "endpoint", description = "OpenStack service endpoint",
-            required = true, multiValued = false)
-    private String endpoint = null;
-
-    @Argument(index = 1, name = "tenant", description = "OpenStack admin tenant name",
-            required = true, multiValued = false)
-    private String tenant = null;
-
-    @Argument(index = 2, name = "user", description = "OpenStack admin user name",
-            required = true, multiValued = false)
-    private String user = null;
-
-    @Argument(index = 3, name = "password", description = "OpenStack admin user password",
-            required = true, multiValued = false)
-    private String password = null;
-
-    @Argument(index = 4, name = "perspective", description = "OpenStack endpoint perspective",
-            required = false, multiValued = false)
-    private String perspective = null;
 
     private static final String DOMAIN_DEFUALT = "default";
 
@@ -100,47 +83,56 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
         OpenstackSecurityGroupAdminService osSgAdminService = get(OpenstackSecurityGroupAdminService.class);
         OpenstackNetworkAdminService osNetAdminService = get(OpenstackNetworkAdminService.class);
         OpenstackRouterAdminService osRouterAdminService = get(OpenstackRouterAdminService.class);
+        OpenstackNodeService osNodeService = get(OpenstackNodeService.class);
+
+        Optional<OpenstackNode> node = osNodeService.nodes(CONTROLLER).stream().findFirst();
+        if (!node.isPresent()) {
+            error("Keystone auth info has not been configured. " +
+                    "Please specify auth info via network-cfg.json.");
+            return;
+        }
+
+        OpenstackAuth auth = node.get().authentication();
+        String endpoint = buildEndpoint(node.get());
+        OpenstackAuth.Perspective perspective = auth.perspective();
+
+        log.info("Access the ENDPOINT: {}, with AUTH_INFO username: {}, password: {}, project: {}",
+                endpoint, auth.username(), auth.password(), auth.project());
 
         OSClient osClient;
-
         Config config = getSslConfig();
 
         try {
-            if (endpoint != null) {
-                if (endpoint.contains(KEYSTONE_V2)) {
-                    IOSClientBuilder.V2 builder = OSFactory.builderV2()
-                            .endpoint(this.endpoint)
-                            .tenantName(this.tenant)
-                            .credentials(this.user, this.password)
-                            .withConfig(config);
+            if (endpoint.contains(KEYSTONE_V2)) {
+                IOSClientBuilder.V2 builder = OSFactory.builderV2()
+                        .endpoint(endpoint)
+                        .tenantName(auth.project())
+                        .credentials(auth.username(), auth.password())
+                        .withConfig(config);
 
-                    if (perspective != null) {
-                        builder.perspective(getFacing(perspective));
-                    }
-
-                    osClient = builder.authenticate();
-                } else if (endpoint.contains(KEYSTONE_V3)) {
-
-                    Identifier project = Identifier.byName(this.tenant);
-                    Identifier domain = Identifier.byName(DOMAIN_DEFUALT);
-
-                    IOSClientBuilder.V3 builder = OSFactory.builderV3()
-                            .endpoint(this.endpoint)
-                            .credentials(this.user, this.password, domain)
-                            .scopeToProject(project, domain)
-                            .withConfig(config);
-
-                    if (perspective != null) {
-                        builder.perspective(getFacing(perspective));
-                    }
-
-                    osClient = builder.authenticate();
-                } else {
-                    print("Unrecognized keystone version type");
-                    return;
+                if (perspective != null) {
+                    builder.perspective(getFacing(perspective));
                 }
+
+                osClient = builder.authenticate();
+            } else if (endpoint.contains(KEYSTONE_V3)) {
+
+                Identifier project = Identifier.byName(auth.project());
+                Identifier domain = Identifier.byName(DOMAIN_DEFUALT);
+
+                IOSClientBuilder.V3 builder = OSFactory.builderV3()
+                        .endpoint(endpoint)
+                        .credentials(auth.username(), auth.password(), domain)
+                        .scopeToProject(project, domain)
+                        .withConfig(config);
+
+                if (perspective != null) {
+                    builder.perspective(getFacing(perspective));
+                }
+
+                osClient = builder.authenticate();
             } else {
-                print("Need to specify a valid endpoint");
+                print("Unrecognized keystone version type");
                 return;
             }
         } catch (AuthenticationException e) {
@@ -244,6 +236,27 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
         });
     }
 
+    private String buildEndpoint(OpenstackNode node) {
+
+        OpenstackAuth auth = node.authentication();
+
+        StringBuilder endpointSb = new StringBuilder();
+        endpointSb.append(auth.protocol().name().toLowerCase());
+        endpointSb.append("://");
+        endpointSb.append(node.managementIp());
+        endpointSb.append(":");
+        endpointSb.append(auth.port());
+        endpointSb.append("/");
+
+        // in case the version is v3, we need to append identity path into endpoint
+        if (auth.version().equals("v3")) {
+            endpointSb.append("identity/");
+        }
+
+        endpointSb.append(auth.version());
+        return endpointSb.toString();
+    }
+
     private void printNetwork(Network osNet) {
         final String strNet = String.format(NETWORK_FORMAT,
                 osNet.getId(),
@@ -341,18 +354,14 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
         return config;
     }
 
-    private Facing getFacing(String strFacing) {
+    private Facing getFacing(OpenstackAuth.Perspective perspective) {
 
-        if (strFacing == null) {
-            return null;
-        }
-
-        switch (strFacing) {
-            case "public":
+        switch (perspective) {
+            case PUBLIC:
                 return Facing.PUBLIC;
-            case "admin":
+            case ADMIN:
                 return Facing.ADMIN;
-            case "internal":
+            case INTERNAL:
                 return Facing.INTERNAL;
             default:
                 return null;
