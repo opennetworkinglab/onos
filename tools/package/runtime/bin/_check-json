@@ -21,7 +21,6 @@
 # Utility for checking syntax of JSON files
 # -----------------------------------------------------------------------------
 
-
 checkJson() {
     cat ${1} | python -m json.tool >> /dev/null
     if [ "$?" -ne "0" ]; then
