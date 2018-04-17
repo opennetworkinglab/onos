@@ -81,6 +81,12 @@
                 <entry key="-gAddr" value-ref="mcastGroupCompleter"/>
             </optional-completers>
         </command>
+        <command>
+            <action class="org.onosproject.segmentrouting.cli.McastLeaderListCommand"/>
+            <optional-completers>
+                <entry key="-gAddr" value-ref="mcastGroupCompleter"/>
+            </optional-completers>
+        </command>
     </command-bundle>
 
     <bean id="nullCompleter" class="org.apache.karaf.shell.console.completer.NullCompleter"/>
