@@ -245,6 +245,8 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
     public CompletableFuture<Boolean> sendMasterArbitrationUpdate() {
         return supplyInContext(this::doArbitrationUpdate, "arbitrationUpdate");
     }
+
+    @Override
     public CompletableFuture<Boolean> writeMeterCells(Collection<PiMeterCellConfig> cellIds, PiPipeconf pipeconf) {
 
         return supplyInContext(() -> doWriteMeterCells(cellIds, pipeconf),
