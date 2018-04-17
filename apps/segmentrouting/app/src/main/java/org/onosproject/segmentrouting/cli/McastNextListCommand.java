@@ -57,7 +57,6 @@ public class McastNextListCommand extends AbstractShellCommand {
         IpAddress mcastGroup = null;
         if (!isNullOrEmpty(gAddr)) {
             mcastGroup = IpAddress.valueOf(gAddr);
-
         }
         // Get SR service
         SegmentRoutingService srService = get(SegmentRoutingService.class);

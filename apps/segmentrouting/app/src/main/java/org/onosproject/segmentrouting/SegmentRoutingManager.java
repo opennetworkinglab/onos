@@ -675,6 +675,12 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     }
 
     @Override
+    public Multimap<ConnectPoint, List<ConnectPoint>> getMcastTrees(IpAddress mcastIp,
+                                                                    ConnectPoint sourcecp) {
+        return mcastHandler.getMcastTrees(mcastIp, sourcecp);
+    }
+
+    @Override
     public Map<IpAddress, NodeId> getMcastLeaders(IpAddress mcastIp) {
         return mcastHandler.getMcastLeaders(mcastIp);
     }

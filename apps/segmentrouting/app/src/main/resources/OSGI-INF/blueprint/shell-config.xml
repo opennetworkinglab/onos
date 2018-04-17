@@ -79,6 +79,7 @@
             <action class="org.onosproject.segmentrouting.cli.McastTreeListCommand"/>
             <optional-completers>
                 <entry key="-gAddr" value-ref="mcastGroupCompleter"/>
+                <entry key="-src" value-ref="connectpointCompleter"/>
             </optional-completers>
         </command>
         <command>
@@ -93,6 +94,7 @@
     <bean id="deviceIdCompleter" class="org.onosproject.cli.net.DeviceIdCompleter"/>
     <bean id="pseudowireIdCompleter" class="org.onosproject.segmentrouting.cli.PseudowireIdCompleter"/>
     <bean id="mcastGroupCompleter" class="org.onosproject.mcast.cli.McastGroupCompleter"/>
+    <bean id="connectpointCompleter" class="org.onosproject.cli.net.ConnectPointCompleter"/>
 
 </blueprint>
 

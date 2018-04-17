@@ -15,6 +15,7 @@
  */
 package org.onosproject.segmentrouting;
 
+import com.google.common.collect.Multimap;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onosproject.cluster.NodeId;
@@ -237,7 +238,10 @@ public interface SegmentRoutingService {
      *
      * @param mcastIp the group ip
      * @return the mapping mcastIp-device to mcast role
+     *
+     * @deprecated in 1.12 ("Magpie") release.
      */
+    @Deprecated
     Map<McastStoreKey, McastRole> getMcastRoles(IpAddress mcastIp);
 
     /**
@@ -245,8 +249,22 @@ public interface SegmentRoutingService {
      *
      * @param mcastIp the group ip
      * @return the mapping egress point to mcast path
+     *
+     * @deprecated in 1.12 ("Magpie") release.
      */
+    @Deprecated
     Map<ConnectPoint, List<ConnectPoint>> getMcastPaths(IpAddress mcastIp);
+
+
+    /**
+     * Returns the associated trees to the mcast group.
+     *
+     * @param mcastIp the group ip
+     * @param sourcecp the source connect point
+     * @return the mapping egress point to mcast path
+     */
+    Multimap<ConnectPoint, List<ConnectPoint>> getMcastTrees(IpAddress mcastIp,
+                                                             ConnectPoint sourcecp);
 
     /**
      * Return the leaders of the mcast groups.
