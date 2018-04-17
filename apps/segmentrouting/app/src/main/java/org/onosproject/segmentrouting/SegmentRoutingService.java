@@ -17,6 +17,7 @@ package org.onosproject.segmentrouting;
 
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
+import org.onosproject.cluster.NodeId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
@@ -247,4 +248,11 @@ public interface SegmentRoutingService {
      */
     Map<ConnectPoint, List<ConnectPoint>> getMcastPaths(IpAddress mcastIp);
 
+    /**
+     * Return the leaders of the mcast groups.
+     *
+     * @param mcastIp the group ip
+     * @return the mapping group-node
+     */
+    Map<IpAddress, NodeId> getMcastLeaders(IpAddress mcastIp);
 }
