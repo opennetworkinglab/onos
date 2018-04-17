@@ -20,10 +20,12 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalCause;
 import com.google.common.cache.RemovalNotification;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.VlanId;
@@ -1767,6 +1769,16 @@ public class McastHandler {
                                           entry -> entry.getValue().value().id()));
     }
 
+    /**
+     * Returns the associated roles to the mcast groups or to the single
+     * group if mcastIp is present.
+     *
+     * @param mcastIp the group ip
+     * @return the mapping mcastIp-device to mcast role
+     *
+     * @deprecated in 1.12 ("Magpie") release.
+     */
+    @Deprecated
     public Map<McastStoreKey, McastRole> getMcastRoles(IpAddress mcastIp) {
         // If mcast ip is present
         if (mcastIp != null) {
@@ -1781,6 +1793,15 @@ public class McastHandler {
                                           entry -> entry.getValue().value()));
     }
 
+    /**
+     * Returns the associated paths to the mcast group.
+     *
+     * @param mcastIp the group ip
+     * @return the mapping egress point to mcast path
+     *
+     * @deprecated in 1.12 ("Magpie") release.
+     */
+    @Deprecated
     public Map<ConnectPoint, List<ConnectPoint>> getMcastPaths(IpAddress mcastIp) {
         Map<ConnectPoint, List<ConnectPoint>> mcastPaths = Maps.newHashMap();
         // Get the source
@@ -1798,6 +1819,50 @@ public class McastHandler {
         return mcastPaths;
     }
 
+    /**
+     * Returns the associated trees to the mcast group.
+     *
+     * @param mcastIp the group ip
+     * @param sourcecp the source connect point
+     * @return the mapping egress point to mcast path
+     */
+    public Multimap<ConnectPoint, List<ConnectPoint>> getMcastTrees(IpAddress mcastIp,
+                                                                    ConnectPoint sourcecp) {
+        Multimap<ConnectPoint, List<ConnectPoint>> mcastTrees = HashMultimap.create();
+        // Get the sources
+        Set<ConnectPoint> sources = mcastUtils.getSources(mcastIp);
+
+        // If we are providing the source, let's filter out
+        if (sourcecp != null) {
+            sources = sources.stream()
+                    .filter(source -> source.equals(sourcecp))
+                    .collect(Collectors.toSet());
+        }
+
+        // Source cannot be null, we don't know the starting point
+        if (!sources.isEmpty()) {
+            sources.forEach(source -> {
+                // Init steps
+                Map<ConnectPoint, List<ConnectPoint>> mcastPaths = Maps.newHashMap();
+                Set<DeviceId> visited = Sets.newHashSet();
+                List<ConnectPoint> currentPath = Lists.newArrayList(source);
+                // Build recursively the mcast paths
+                buildMcastPaths(source.deviceId(), visited, mcastPaths, currentPath, mcastIp);
+                mcastPaths.forEach(mcastTrees::put);
+            });
+        }
+        return mcastTrees;
+    }
+
+    /**
+     * Build recursively the mcast paths.
+     *
+     * @param toVisit the node to visit
+     * @param visited the visited nodes
+     * @param mcastPaths the current mcast paths
+     * @param currentPath the current path
+     * @param mcastIp the group ip
+     */
     private void buildMcastPaths(DeviceId toVisit, Set<DeviceId> visited,
                                  Map<ConnectPoint, List<ConnectPoint>> mcastPaths,
                                  List<ConnectPoint> currentPath, IpAddress mcastIp) {

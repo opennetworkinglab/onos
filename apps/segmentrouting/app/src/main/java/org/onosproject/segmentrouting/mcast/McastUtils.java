@@ -55,7 +55,6 @@ import org.onosproject.segmentrouting.config.SegmentRoutingAppConfig;
 import org.slf4j.Logger;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -234,16 +233,32 @@ class McastUtils {
      *
      * @param mcastIp multicast IP
      * @return source connect point or null if not found
+     *
+     * @deprecated in 1.12 ("Magpie") release.
      */
-    // FIXME To be addressed with multiple sources support
+    @Deprecated
     ConnectPoint getSource(IpAddress mcastIp) {
-        // FIXME we should support different types of routes
         McastRoute mcastRoute = srManager.multicastRouteService.getRoutes().stream()
                 .filter(mcastRouteInternal -> mcastRouteInternal.group().equals(mcastIp))
                 .findFirst().orElse(null);
         return mcastRoute == null ? null : srManager.multicastRouteService.sources(mcastRoute)
                 .stream()
                 .findFirst().orElse(null);
+    }
+
+    /**
+     * Gets sources connect points of given multicast group.
+     *
+     * @param mcastIp multicast IP
+     * @return sources connect points or empty set if not found
+     */
+    Set<ConnectPoint> getSources(IpAddress mcastIp) {
+        // FIXME we should support different types of routes
+        McastRoute mcastRoute = srManager.multicastRouteService.getRoutes().stream()
+                .filter(mcastRouteInternal -> mcastRouteInternal.group().equals(mcastIp))
+                .findFirst().orElse(null);
+        return mcastRoute == null ? ImmutableSet.of() :
+                srManager.multicastRouteService.sources(mcastRoute);
     }
 
     /**
@@ -258,7 +273,7 @@ class McastUtils {
                 .filter(mcastRouteInternal -> mcastRouteInternal.group().equals(mcastIp))
                 .findFirst().orElse(null);
         return mcastRoute == null ?
-                Collections.emptyMap() :
+                ImmutableMap.of() :
                 srManager.multicastRouteService.routeData(mcastRoute).sinks();
     }
 
