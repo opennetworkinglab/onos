@@ -14,6 +14,15 @@
  * limitations under the License.
  */
 
+ /*
+  * This program describes a pipeline implementing a very simple
+  * tunneling protocol called MyTunnel. The pipeline defines also table called
+  * t_l2_fwd that provides basic L2 forwarding capabilities and actions to
+  * send packets to the controller. This table is needed to provide
+  * compatibility with existing ONOS applications such as Proxy-ARP, LLDP Link
+  * Discovery and Reactive Forwarding.
+  */
+
 #include <core.p4>
 #include <v1model.p4>
 
@@ -92,6 +101,9 @@ parser c_parser(packet_in packet,
                   inout metadata_t meta,
                   inout standard_metadata_t standard_metadata) {
 
+    // A P4 parser is described as a state machine, with initial state "start"
+    // and final one "accept". Each intermediate state can specify the next
+    // state by using a select statement over the header fields extracted.
     state start {
         transition select(standard_metadata.ingress_port) {
             CPU_PORT: parse_packet_out;
@@ -150,6 +162,8 @@ control c_ingress(inout headers_t hdr,
     }
 
     action set_out_port(port_t port) {
+        // Specifies the output port for this packet by setting the
+        // corresponding metadata.
         standard_metadata.egress_spec = port;
     }
 
@@ -170,6 +184,8 @@ control c_ingress(inout headers_t hdr,
         hdr.my_tunnel.setInvalid();
     }
 
+    // Table counter used to count packets and bytes matched by each entry of
+    // t_l2_fwd table.
     direct_counter(CounterType.packets_and_bytes) l2_fwd_counter;
 
     table t_l2_fwd {
@@ -212,7 +228,8 @@ control c_ingress(inout headers_t hdr,
         default_action = _drop();
     }
 
-    // Define processing applied by this control block.
+    // Defines the processing applied by this control block. You can see this as
+    // the main function applied to every packet received by the switch.
     apply {
         if (standard_metadata.ingress_port == CPU_PORT) {
             // Packet received from CPU_PORT, this is a packet-out sent by the
@@ -223,6 +240,7 @@ control c_ingress(inout headers_t hdr,
             hdr.packet_out.setInvalid();
         } else {
             // Packet received from data plane port.
+            // Applies table t_l2_fwd to the packet.
             if (t_l2_fwd.apply().hit) {
                 // Packet hit an entry in t_l2_fwd table. A forwarding action
                 // has already been taken. No need to apply other tables, exit

@@ -1,0 +1,3 @@
+Exercise 2:
+ 
+The goal of exercise 2 is to showcase how a pipeline aware application can be used with P4 devices...
