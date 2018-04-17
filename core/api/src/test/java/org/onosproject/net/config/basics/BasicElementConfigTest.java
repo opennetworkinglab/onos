@@ -32,8 +32,8 @@ public class BasicElementConfigTest {
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private static final String E1 = "e1";
-    private static final String GEO = "geo";
-    private static final String GRID = "grid";
+    private static final String GEO = BasicElementConfig.LOC_TYPE_GEO;
+    private static final String GRID = BasicElementConfig.LOC_TYPE_GRID;
     public static final ImmutableSet<String> ROLES = ImmutableSet.of("spine", "primary");
 
     // concrete subclass of abstract class we are testing
@@ -128,7 +128,7 @@ public class BasicElementConfigTest {
     @Test
     public void defaultLocationType() {
         print(cfg);
-        assertEquals("not geo", GEO, cfg.locType());
+        assertEquals("not none", BasicElementConfig.LOC_TYPE_NONE, cfg.locType());
     }
 
     @Test
@@ -149,7 +149,7 @@ public class BasicElementConfigTest {
     public void otherLocationType() {
         cfg.locType("foobar");
         print(cfg);
-        assertEquals("not geo", GEO, cfg.locType());
+        assertEquals("not none", BasicElementConfig.LOC_TYPE_NONE, cfg.locType());
     }
 
     @Test

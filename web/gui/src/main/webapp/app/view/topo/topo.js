@@ -527,6 +527,11 @@
         ps.setPrefs('topo_prefs', prefsState);
     }
 
+    function applyPreferences(evt) {
+        if (ps.getPrefs('topo_prefs', null)) {
+            restoreConfigFromPrefs();
+        }
+    }
 
     function restoreConfigFromPrefs() {
         // NOTE: toolbar will have set this for us..
@@ -545,6 +550,7 @@
         togglePorts(prefsState.porthl);
         toggleMap(prefsState.bg);
         toggleSprites(prefsState.spr);
+        ttbs.setToolbar(prefsState.toolbar);
         t3s.setDevLabIndex(prefsState.dlbls);
         t3s.setHostLabIndex(prefsState.hlbls);
         flash.enable(true);
@@ -695,6 +701,8 @@
             // set the svg size to match that of the window, less the masthead
             svg.attr(fs.windowSize(mast.mastHeight()));
             dim = [svg.attr('width'), svg.attr('height')];
+
+            ps.addListener(applyPreferences);
 
             setUpKeys();
             setUpToolbar();

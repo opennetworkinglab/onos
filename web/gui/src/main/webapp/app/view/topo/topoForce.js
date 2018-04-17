@@ -111,6 +111,13 @@
     // ==========================
     // === EVENT HANDLERS
 
+    function mergeNodeData(o, n) {
+        angular.extend(o, n);
+        if (!n.location) {
+            delete o.location;
+        }
+    }
+
     function addDevice(data) {
         var id = data.id,
             d;
@@ -138,15 +145,17 @@
 
         if (d) {
             wasOnline = d.online;
-            angular.extend(d, data);
+            mergeNodeData(d, data);
             if (tms.positionNode(d, true)) {
                 sendUpdateMeta(d);
             }
             updateNodes();
+            tick();
             if (wasOnline !== d.online) {
                 tms.findAttachedLinks(d.id).forEach(restyleLinkElement);
                 updateOfflineVisibility(d);
             }
+            fStart();
         }
     }
 
@@ -187,11 +196,13 @@
         var id = data.id,
             d = lu[id];
         if (d) {
-            angular.extend(d, data);
+            mergeNodeData(d, data);
             if (tms.positionNode(d, true)) {
                 sendUpdateMeta(d);
             }
             updateNodes();
+            tick();
+            fStart();
         }
     }
 
@@ -726,6 +737,7 @@
         // exiting node specifics:
         exiting.filter('.host').each(td3.hostExit);
         exiting.filter('.device').each(td3.deviceExit);
+        tick();
     }
 
     // ==========================
