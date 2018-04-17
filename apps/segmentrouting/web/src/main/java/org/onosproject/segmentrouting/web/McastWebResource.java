@@ -13,22 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.onosproject.segmentrouting.cli;
+package org.onosproject.segmentrouting.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
 import org.onlab.packet.IpAddress;
-import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.mcast.cli.McastGroupCompleter;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.rest.AbstractWebResource;
 import org.onosproject.segmentrouting.SegmentRoutingService;
 
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -36,38 +38,15 @@ import java.util.stream.Collectors;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
- * Command to show the list of mcast trees.
+ * Query multicast trees.
  */
-@Command(scope = "onos", name = "sr-mcast-tree",
-        description = "Lists all mcast trees")
-public class McastTreeListCommand extends AbstractShellCommand {
+@Path("mcast")
+public class McastWebResource extends AbstractWebResource {
 
-    // OSGi workaround to introduce package dependency
-    McastGroupCompleter completer;
-
-    // Format for group line
-    private static final String G_FORMAT_MAPPING = "group=%s";
-    // Format for sink line
-    private static final String S_FORMAT_MAPPING = "  sink=%s\tpath=%s";
-
-    @Option(name = "-gAddr", aliases = "--groupAddress",
-            description = "IP Address of the multicast group",
-            valueToShowInHelp = "224.0.0.0",
-            required = false, multiValued = false)
-    String gAddr = null;
-
-    @Option(name = "-src", aliases = "--connectPoint",
-            description = "Source port of:XXXXXXXXXX/XX",
-            valueToShowInHelp = "of:0000000000000001/1",
-            required = false, multiValued = false)
-    String source = null;
-
-    @Override
-    protected void execute() {
-        // Get SR service and the handled mcast groups
+    private ObjectNode encodeMcastTrees(String gAddr, String source) {
         SegmentRoutingService srService = get(SegmentRoutingService.class);
         Set<IpAddress> mcastGroups = ImmutableSet.copyOf(srService.getMcastLeaders(null)
-                                                                         .keySet());
+                                                                 .keySet());
 
         if (!isNullOrEmpty(gAddr)) {
             mcastGroups = mcastGroups.stream()
@@ -86,31 +65,12 @@ public class McastTreeListCommand extends AbstractShellCommand {
                     !isNullOrEmpty(gAddr)) {
                 sourcecp = ConnectPoint.deviceConnectPoint(source);
             }
-            Multimap<ConnectPoint, List<ConnectPoint>> mcastTree = srService.getMcastTrees(group,
-                                                                                           sourcecp);
+            Multimap<ConnectPoint, List<ConnectPoint>> mcastTree = srService.getMcastTrees(group, sourcecp);
             // Build a json object for each group
-            if (outputJson()) {
-                root.putPOJO(group.toString(), json(mcastTree));
-            } else {
-                // Banner and then the trees
-                printMcastGroup(group);
-                mcastTree.forEach(this::printMcastSink);
-            }
+            root.putPOJO(group.toString(), json(mcastTree));
+
         });
-
-        // Print the json object at the end
-        if (outputJson()) {
-            print("%s", root);
-        }
-
-    }
-
-    private void printMcastGroup(IpAddress mcastGroup) {
-        print(G_FORMAT_MAPPING, mcastGroup);
-    }
-
-    private void printMcastSink(ConnectPoint sink, List<ConnectPoint> path) {
-        print(S_FORMAT_MAPPING, sink, path);
+        return root;
     }
 
     private ObjectNode json(Multimap<ConnectPoint, List<ConnectPoint>> mcastTree) {
@@ -126,6 +86,49 @@ public class McastTreeListCommand extends AbstractShellCommand {
             jsonSinks.putPOJO(sink.toString(), jsonPaths);
         });
         return jsonSinks;
+    }
+
+    /**
+     * Get all multicast trees.
+     * Returns an object of the multicast trees.
+     *
+     * @return status of OK
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getMcastTrees() {
+        ObjectNode root = encodeMcastTrees(null, null);
+        return ok(root).build();
+    }
+
+    /**
+     * Get the multicast trees of a group.
+     *
+     * @param group group IP address
+     * @return 200 OK with a multicast routes
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("{group}")
+    public Response getRoute(@PathParam("group") String group) {
+        ObjectNode root = encodeMcastTrees(group, null);
+        return ok(root).build();
+    }
+
+    /**
+     * Get the multicast tree of a group.
+     *
+     * @param group group IP address
+     * @param sourcecp source connect point
+     * @return 200 OK with a multicast routes
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("{group}/{sourcecp}")
+    public Response getRoute(@PathParam("group") String group,
+                             @PathParam("sourcecp") String sourcecp) {
+        ObjectNode root = encodeMcastTrees(group, sourcecp);
+        return ok(root).build();
     }
 
 }

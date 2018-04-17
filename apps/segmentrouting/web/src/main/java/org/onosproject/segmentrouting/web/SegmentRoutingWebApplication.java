@@ -26,6 +26,6 @@ import java.util.Set;
 public class SegmentRoutingWebApplication extends AbstractWebApplication {
     @Override
     public Set<Class<?>> getClasses() {
-        return getClasses(PseudowireWebResource.class);
+        return getClasses(PseudowireWebResource.class, McastWebResource.class);
     }
 }

@@ -45,6 +45,7 @@ class McastCacheKey {
      *
      * @deprecated in 1.12 ("Magpie") release.
      */
+    @Deprecated
     public McastCacheKey(IpAddress mcastIp, ConnectPoint sink) {
         checkNotNull(mcastIp, "mcastIp cannot be null");
         checkNotNull(sink, "sink cannot be null");
@@ -85,6 +86,7 @@ class McastCacheKey {
      *
      * @deprecated in 1.12 ("Magpie") release.
      */
+    @Deprecated
     public ConnectPoint sink() {
         return sink;
     }
