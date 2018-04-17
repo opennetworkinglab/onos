@@ -39,7 +39,7 @@ import org.onlab.util.KryoNamespace;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.ClusterService;
-import org.onosproject.cluster.LeadershipService;
+import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.event.Event;
@@ -75,6 +75,7 @@ import org.onosproject.net.host.HostListener;
 import org.onosproject.net.host.HostLocationProbingService;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.host.InterfaceIpAddress;
+import org.onosproject.net.intent.WorkPartitionService;
 import org.onosproject.net.intf.Interface;
 import org.onosproject.net.intf.InterfaceService;
 import org.onosproject.net.link.LinkEvent;
@@ -212,7 +213,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     public ClusterService clusterService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    public LeadershipService leadershipService;
+    public WorkPartitionService workPartitionService;
 
     @Property(name = "activeProbing", boolValue = true,
             label = "Enable active probing to discover dual-homed hosts.")
@@ -671,6 +672,11 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     @Override
     public Map<ConnectPoint, List<ConnectPoint>> getMcastPaths(IpAddress mcastIp) {
         return mcastHandler.getMcastPaths(mcastIp);
+    }
+
+    @Override
+    public Map<IpAddress, NodeId> getMcastLeaders(IpAddress mcastIp) {
+        return mcastHandler.getMcastLeaders(mcastIp);
     }
 
     /**
@@ -1491,10 +1497,10 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 case SINKS_ADDED:
                 case SINKS_REMOVED:
                 case ROUTE_REMOVED:
+                case ROUTE_ADDED:
                     log.trace("Schedule Mcast event {}", event);
                     mcastEventExecutor.execute(new InternalEventHandler(event));
                     break;
-                case ROUTE_ADDED:
                 default:
                     log.warn("Unsupported mcast event type: {}", event.type());
                     break;
