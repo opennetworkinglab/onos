@@ -304,6 +304,14 @@
         persistTopoPrefs('toolbar');
     }
 
+    function setToolbar(state) {
+        if (state) {
+            toolbar.show();
+        } else {
+            toolbar.hide();
+        }
+     }
+
     function selectOverlay(ovid) {
         var idx = ovIndex[defaultOverlay] || 0,
             pidx = (ovid === null) ? 0 : ovIndex[ovid] || -1;
@@ -339,6 +347,7 @@
                 destroyToolbar: destroyToolbar,
                 keyListener: keyListener,
                 toggleToolbar: toggleToolbar,
+                setToolbar: setToolbar,
                 selectOverlay: selectOverlay,
                 defaultPrefs: defaultPrefsState,
                 fnkey: fnkey,

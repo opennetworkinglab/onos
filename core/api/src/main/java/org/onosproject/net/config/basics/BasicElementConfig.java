@@ -84,8 +84,10 @@ public abstract class BasicElementConfig<S> extends AllowedEntityConfig<S> {
     protected static final double ZERO_THRESHOLD = Double.MIN_VALUE * 2.0;
 
     private static final double DEFAULT_COORD = 0.0;
-    private static final String LOC_TYPE_GEO = "geo";
-    private static final String LOC_TYPE_GRID = "grid";
+
+    public static final String LOC_TYPE_GEO = "geo";
+    public static final String LOC_TYPE_GRID = "grid";
+    public static final String LOC_TYPE_NONE = "none";
 
     private static final int NAME_MAX_LENGTH = 256;
     private static final int UI_TYPE_MAX_LENGTH = 128;
@@ -137,23 +139,29 @@ public abstract class BasicElementConfig<S> extends AllowedEntityConfig<S> {
 
     /**
      * Returns the location type (geo or grid) for the element in
-     * the Topology View. If not set, returns the default of "geo".
+     * the Topology View. If not set, the type will be determined implicitly
+     * by latitude being set ("geo") or gridX being set ("grid");
+     * otherwise returns the default of "none".
      *
      * @return location type (string)
      */
     public String locType() {
-        return get(LOC_TYPE, LOC_TYPE_GEO);
+        String l = get(LATITUDE, null);
+        String x = get(GRID_X, null);
+        String def = l != null ? LOC_TYPE_GEO : (x != null ? LOC_TYPE_GRID : LOC_TYPE_NONE);
+        return get(LOC_TYPE, def);
     }
 
     /**
      * Sets the location type (geo or grid) for the element in
-     * the Topology View. If null is passsed, it will default to "geo".
+     * the Topology View. If null is passed, it will default to "geo".
      *
      * @param locType the UI type; null for default
      * @return self
      */
     public BasicElementConfig locType(String locType) {
-        String lt = LOC_TYPE_GRID.equals(locType) ? LOC_TYPE_GRID : LOC_TYPE_GEO;
+        String lt = Objects.equals(LOC_TYPE_GRID, locType) || Objects.equals(LOC_TYPE_GEO, locType)
+                ? locType : LOC_TYPE_NONE;
         return (BasicElementConfig) setOrClear(LOC_TYPE, lt);
     }
 
