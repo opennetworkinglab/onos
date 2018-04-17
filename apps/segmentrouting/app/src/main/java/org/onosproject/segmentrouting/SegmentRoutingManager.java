@@ -137,7 +137,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -249,6 +251,9 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     private final InternalRouteEventListener routeListener = new InternalRouteEventListener();
     private final InternalTopologyListener topologyListener = new InternalTopologyListener();
     private final InternalMastershipListener mastershipListener = new InternalMastershipListener();
+    //Completable future for network configuration process to buffer config events handling during activation
+    private CompletableFuture<Boolean> networkConfigCompletion = null;
+    private List<Event> quequedEvents = new CopyOnWriteArrayList<>();
 
     // Handles device, link, topology and network config events
     private ScheduledExecutorService mainEventExecutor;
@@ -430,6 +435,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         cfgService.registerConfigFactory(xConnectConfigFactory);
         cfgService.registerConfigFactory(mcastConfigFactory);
         log.info("Configuring network before adding listeners");
+
         cfgListener.configureNetwork();
 
         hostService.addListener(hostListener);
@@ -443,6 +449,15 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
         linkHandler.init();
         l2TunnelHandler.init();
+
+        networkConfigCompletion.whenComplete((value, ex) -> {
+            //setting to null for easier fall through
+            networkConfigCompletion = null;
+            //process all queued events
+            quequedEvents.forEach(event -> {
+                mainEventExecutor.execute(new InternalEventHandler(event));
+            });
+        });
 
         log.info("Started");
     }
@@ -1377,6 +1392,20 @@ public class SegmentRoutingManager implements SegmentRoutingService {
          */
         void configureNetwork() {
             log.info("Configuring network ...");
+
+            // Setting handling of network configuration events completable future
+            // The completable future is needed because of the async behaviour of the configureNetwork,
+            // listener registration and event arrival
+            // Enables us to buffer the events and execute them when the configure network is done.
+            networkConfigCompletion = new CompletableFuture<>();
+
+            // add a small delay to absorb multiple network config added notifications
+            if (!programmingScheduled.get()) {
+                log.info("Buffering config calls for {} secs", PROGRAM_DELAY);
+                programmingScheduled.set(true);
+                mainEventExecutor.schedule(new ConfigChange(), PROGRAM_DELAY, TimeUnit.SECONDS);
+            }
+
             createOrUpdateDeviceConfiguration();
 
             arpHandler = new ArpHandler(srManager);
@@ -1390,13 +1419,10 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             policyHandler = new PolicyHandler(appId, deviceConfiguration,
                                               flowObjectiveService,
                                               tunnelHandler, policyStore);
-            // add a small delay to absorb multiple network config added notifications
-            if (!programmingScheduled.get()) {
-                log.info("Buffering config calls for {} secs", PROGRAM_DELAY);
-                programmingScheduled.set(true);
-                mainEventExecutor.schedule(new ConfigChange(), PROGRAM_DELAY, TimeUnit.SECONDS);
-            }
+            networkConfigCompletion.complete(true);
+
             mcastHandler.init();
+
         }
 
         @Override
@@ -1408,7 +1434,11 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 case CONFIG_UPDATED:
                 case CONFIG_REMOVED:
                     log.trace("Schedule Network Config event {}", event);
-                    mainEventExecutor.execute(new InternalEventHandler(event));
+                    if (networkConfigCompletion == null || networkConfigCompletion.isDone()) {
+                        mainEventExecutor.execute(new InternalEventHandler(event));
+                    } else {
+                        quequedEvents.add(event);
+                    }
                     break;
                 default:
                     break;
@@ -1454,7 +1484,11 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                     event.type() == LinkEvent.Type.LINK_UPDATED ||
                     event.type() == LinkEvent.Type.LINK_REMOVED) {
                 log.trace("Schedule Link event {}", event);
-                mainEventExecutor.execute(new InternalEventHandler(event));
+                if (networkConfigCompletion == null || networkConfigCompletion.isDone()) {
+                    mainEventExecutor.execute(new InternalEventHandler(event));
+                } else {
+                    quequedEvents.add(event);
+                }
             }
         }
     }
@@ -1469,7 +1503,11 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 case DEVICE_UPDATED:
                 case DEVICE_AVAILABILITY_CHANGED:
                     log.trace("Schedule Device event {}", event);
-                    mainEventExecutor.execute(new InternalEventHandler(event));
+                    if (networkConfigCompletion == null || networkConfigCompletion.isDone()) {
+                        mainEventExecutor.execute(new InternalEventHandler(event));
+                    } else {
+                        quequedEvents.add(event);
+                    }
                     break;
                 default:
             }
@@ -1482,7 +1520,11 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             switch (event.type()) {
                 case TOPOLOGY_CHANGED:
                     log.trace("Schedule Topology event {}", event);
-                    mainEventExecutor.execute(new InternalEventHandler(event));
+                    if (networkConfigCompletion == null || networkConfigCompletion.isDone()) {
+                        mainEventExecutor.execute(new InternalEventHandler(event));
+                    } else {
+                        quequedEvents.add(event);
+                    }
                     break;
                 default:
             }
@@ -1575,6 +1617,12 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             if (intfs.size() != 1 || prevIntfs.size() != 1) {
                 log.warn("Interface update aborted - one at a time is allowed, " +
                                  "but {} / {}(prev) received.", intfs.size(), prevIntfs.size());
+                return;
+            }
+
+            //The system is in an incoherent state, abort
+            if (defaultRoutingHandler == null) {
+                log.warn("Interface update aborted, defaultRoutingHandler is null");
                 return;
             }
 
