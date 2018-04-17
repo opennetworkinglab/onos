@@ -290,7 +290,7 @@ final class MeterEntryCodec {
 
         if (entity.getEntityCase() == METER_ENTRY) {
             String meterName = browser.meters()
-                    .getById(entity.getCounterEntry().getCounterId())
+                    .getById(entity.getMeterEntry().getMeterId())
                     .getPreamble()
                     .getName();
             piCellId = PiMeterCellId.ofIndirect(
