@@ -17,6 +17,7 @@ package org.onosproject.rest.resources;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.app.ApplicationAdminService;
+import org.onosproject.app.ApplicationException;
 import org.onosproject.core.Application;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -131,11 +132,15 @@ public class ApplicationsWebResource extends AbstractWebResource {
                                @DefaultValue("false") boolean activate,
                                InputStream stream) {
         ApplicationAdminService service = get(ApplicationAdminService.class);
-        Application app = service.install(stream);
-        if (activate) {
-            service.activate(app.id());
+        try {
+            Application app = service.install(stream);
+            if (activate) {
+                service.activate(app.id());
+            }
+            return ok(codec(Application.class).encode(app, this)).build();
+        } catch (ApplicationException appEx) {
+            throw new IllegalArgumentException(appEx);
         }
-        return ok(codec(Application.class).encode(app, this)).build();
     }
 
     /**
