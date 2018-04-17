@@ -78,20 +78,20 @@
         // if the device contains explicit LONG/LAT data, use that to position
         if (setLongLat(node)) {
             // indicate we want to update cached meta data...
-            return true;
+            return false;
         }
 
         // else if we have [x,y] cached in meta data, use that...
-        if (x !== undefined && y !== undefined) {
+        if (x != undefined && y != undefined) {
             node.fixed = true;
             node.px = node.x = x;
             node.py = node.y = y;
-            return;
+            return true;
         }
 
         // if this is a node update (not a node add).. skip randomizer
-        if (forUpdate) {
-            return;
+        if (forUpdate && node.x != undefined && node.y != undefined) {
+            return false;
         }
 
         // Note: Placing incoming unpinned nodes at exactly the same point
@@ -120,21 +120,27 @@
             return d || rand();
         }
 
+        node.fixed = false;
         xy = (node.class === 'host') ? near(getDevice(node.cp)) : rand();
         angular.extend(node, xy);
+        return false;
     }
 
     function setLongLat(node) {
         var loc = node.location,
             coord;
 
-        if (loc) {
+        if (!loc || loc.locType === 'none') {
+            node.fixed = false;
+
+        } else if (loc) {
             coord = loc.locType === 'geo' ? coordFromLngLat(loc) : coordFromXY(loc);
             node.fixed = true;
             node.px = node.x = coord[0];
             node.py = node.y = coord[1];
             return true;
         }
+        return false;
     }
 
     function resetAllLocations() {

@@ -43,6 +43,9 @@
         <command>
             <action class="org.onosproject.ui.impl.topo.cli.UiGeoMapListCommand"/>
         </command>
+        <command>
+            <action class="org.onosproject.ui.impl.topo.cli.UiClearMetaCommand"/>
+        </command>
     </command-bundle>
 
     <!--<bean id="macIDCompleter" class="org.onosproject.dhcp.cli.MacIdCompleter"/>-->

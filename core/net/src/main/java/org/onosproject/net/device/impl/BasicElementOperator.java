@@ -21,6 +21,8 @@ import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.config.ConfigOperator;
 import org.onosproject.net.config.basics.BasicElementConfig;
 
+import java.util.Objects;
+
 /**
  * Abstract base implementation for element operators.
  */
@@ -46,12 +48,18 @@ public abstract class BasicElementOperator implements ConfigOperator {
         if (cfg.locType() != null) {
             builder.set(AnnotationKeys.LOC_TYPE, cfg.locType());
         }
-        if (cfg.geoCoordsSet()) {
+
+        if (Objects.equals(cfg.locType(), BasicElementConfig.LOC_TYPE_NONE)) {
+            builder.remove(AnnotationKeys.GRID_X).remove(AnnotationKeys.GRID_Y);
+            builder.remove(AnnotationKeys.LATITUDE).remove(AnnotationKeys.LONGITUDE);
+        } else if (cfg.geoCoordsSet()) {
             builder.set(AnnotationKeys.LATITUDE, Double.toString(cfg.latitude()));
             builder.set(AnnotationKeys.LONGITUDE, Double.toString(cfg.longitude()));
+            builder.remove(AnnotationKeys.GRID_X).remove(AnnotationKeys.GRID_Y);
         } else if (cfg.gridCoordsSet()) {
             builder.set(AnnotationKeys.GRID_Y, Double.toString(cfg.gridY()));
             builder.set(AnnotationKeys.GRID_X, Double.toString(cfg.gridX()));
+            builder.remove(AnnotationKeys.LATITUDE).remove(AnnotationKeys.LONGITUDE);
         }
 
         if (cfg.rackAddress() != null) {

@@ -60,12 +60,15 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onosproject.net.PortNumber.portNumber;
+import static org.onosproject.net.config.basics.BasicElementConfig.LOC_TYPE_GEO;
+import static org.onosproject.net.config.basics.BasicElementConfig.LOC_TYPE_GRID;
 import static org.onosproject.ui.topo.TopoConstants.CoreButtons;
 import static org.onosproject.ui.topo.TopoConstants.Properties.DEVICES;
 import static org.onosproject.ui.topo.TopoConstants.Properties.FLOWS;
@@ -196,6 +199,13 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         return Collections.unmodifiableMap(metaUi);
     }
 
+    /**
+     * Clears any meta-ui information.
+     */
+    public static void clearMetaUi() {
+        metaUi.clear();
+    }
+
     private static final String LION_TOPO = "core.view.Topo";
 
     private static final Set<String> REQ_LION_BUNDLES = ImmutableSet.of(
@@ -310,9 +320,10 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
 
         payload.set("labels", labels("", name, device.id().toString()));
         payload.set("props", props(device.annotations()));
-        addGeoLocation(device, payload);
-        addGridLocation(device, payload);
-        addMetaUi(device.id().toString(), payload);
+
+        if (!addGeoLocation(device, payload) && !addGridLocation(device, payload)) {
+            addMetaUi(device.id().toString(), payload);
+        }
 
         String type = DEVICE_EVENT.get(event.type());
         return JsonUtils.envelope(type, payload);
@@ -357,9 +368,10 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
 
         payload.set("labels", labels(nameForHost(host), ip, host.mac().toString(), ""));
         payload.set("props", props(host.annotations()));
-        addGeoLocation(host, payload);
-        addGridLocation(host, payload);
-        addMetaUi(host.id().toString(), payload);
+
+        if (!addGeoLocation(host, payload) && !addGridLocation(host, payload)) {
+            addMetaUi(host.id().toString(), payload);
+        }
 
         String type = HOST_EVENT.get(event.type());
         return JsonUtils.envelope(type, payload);
@@ -408,53 +420,57 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     }
 
     // Adds a geo location JSON to the specified payload object.
-    private void addGeoLocation(Annotated annotated, ObjectNode payload) {
+    private boolean addGeoLocation(Annotated annotated, ObjectNode payload) {
         Annotations annotations = annotated.annotations();
-        if (annotations == null) {
-            return;
-        }
+        if (annotations != null) {
+            String locType = annotations.value(AnnotationKeys.LOC_TYPE);
+            String slat = annotations.value(AnnotationKeys.LATITUDE);
+            String slng = annotations.value(AnnotationKeys.LONGITUDE);
+            boolean validLat = slat != null && !slat.equals(NO_GEO_VALUE);
+            boolean validLng = slng != null && !slng.equals(NO_GEO_VALUE);
 
-        String slat = annotations.value(AnnotationKeys.LATITUDE);
-        String slng = annotations.value(AnnotationKeys.LONGITUDE);
-        boolean validLat = slat != null && !slat.equals(NO_GEO_VALUE);
-        boolean validLng = slng != null && !slng.equals(NO_GEO_VALUE);
-        if (validLat && validLng) {
-            try {
-                double lat = Double.parseDouble(slat);
-                double lng = Double.parseDouble(slng);
-                ObjectNode loc = objectNode()
-                        .put("locType", "geo")
-                        .put("latOrY", lat)
-                        .put("longOrX", lng);
-                payload.set("location", loc);
-            } catch (NumberFormatException e) {
-                log.warn("Invalid geo data: latitude={}, longitude={}", slat, slng);
+            if (Objects.equals(locType, LOC_TYPE_GEO) && validLat && validLng) {
+                try {
+                    double lat = Double.parseDouble(slat);
+                    double lng = Double.parseDouble(slng);
+                    ObjectNode loc = objectNode()
+                            .put("locType", "geo")
+                            .put("latOrY", lat)
+                            .put("longOrX", lng);
+                    payload.set("location", loc);
+                    return true;
+                } catch (NumberFormatException e) {
+                    log.warn("Invalid geo data: latitude={}, longitude={}", slat, slng);
+                }
             }
         }
+        return false;
     }
 
     // Adds a grid location JSON to the specified payload object.
-    private void addGridLocation(Annotated annotated, ObjectNode payload) {
+    private boolean addGridLocation(Annotated annotated, ObjectNode payload) {
         Annotations annotations = annotated.annotations();
-        if (annotations == null) {
-            return;
-        }
+        if (annotations != null) {
+            String locType = annotations.value(AnnotationKeys.LOC_TYPE);
+            String xs = annotations.value(AnnotationKeys.GRID_X);
+            String ys = annotations.value(AnnotationKeys.GRID_Y);
 
-        String xs = annotations.value(AnnotationKeys.GRID_X);
-        String ys = annotations.value(AnnotationKeys.GRID_Y);
-        if (xs != null && ys != null) {
-            try {
-                double x = Double.parseDouble(xs);
-                double y = Double.parseDouble(ys);
-                ObjectNode loc = objectNode()
-                        .put("locType", "grid")
-                        .put("latOrY", y)
-                        .put("longOrX", x);
-                payload.set("location", loc);
-            } catch (NumberFormatException e) {
-                log.warn("Invalid grid data: x={}, y={}", xs, ys);
+            if (Objects.equals(locType, LOC_TYPE_GRID) && xs != null && ys != null) {
+                try {
+                    double x = Double.parseDouble(xs);
+                    double y = Double.parseDouble(ys);
+                    ObjectNode loc = objectNode()
+                            .put("locType", "grid")
+                            .put("latOrY", y)
+                            .put("longOrX", x);
+                    payload.set("location", loc);
+                    return true;
+                } catch (NumberFormatException e) {
+                    log.warn("Invalid grid data: x={}, y={}", xs, ys);
+                }
             }
         }
+        return false;
     }
 
     // Updates meta UI information for the specified object.
