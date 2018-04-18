@@ -94,6 +94,7 @@ CLI_COMMANDS=(
 
     "sr-device-subnets"
     "sr-ecmp-spg"
+    "sr-should-program"
     "sr-link-state"
     "sr-mcast-next"
     "sr-mcast-tree"
