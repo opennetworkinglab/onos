@@ -32,7 +32,7 @@ import static org.onosproject.net.topology.ClusterId.clusterId;
 /**
  * Lists devices of the specified topology cluster in the current topology.
  */
-@Command(scope = "onos", name = "cluster-devices",
+@Command(scope = "onos", name = "topo-cluster-devices",
          description = "Lists devices of the specified topology cluster in the current topology")
 public class ClusterDevicesCommand extends ClustersListCommand {
 
