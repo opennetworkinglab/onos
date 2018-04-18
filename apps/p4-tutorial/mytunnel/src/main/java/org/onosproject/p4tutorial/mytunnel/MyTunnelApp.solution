@@ -247,17 +247,11 @@ public class MyTunnelApp {
         } else {
             // Tunnel transit action.
             // Forward the packet as is to outPort.
-            /*
-             * TODO EXERCISE: create action object for the transit case.
-             * Look at the t_tunnel_fwd table in the P4 program. Which of the 3
-             * actions can be used to simply set the output port? Get the full
-             * action name from the P4Info file, and use that when creating the
-             * PiActionId object. When creating the PiAction object, remember to
-             * add all action parameters as defined in the P4 program.
-             *
-             * Hint: the code will be similar to the case when isEgress = false.
-             */
-            action = null;
+            PiActionId egressActionId = PiActionId.of("c_ingress.set_out_port");
+            action = PiAction.builder()
+                    .withId(egressActionId)
+                    .withParameter(portParam)
+                    .build();
         }
 
         log.info("Inserting {} rule on switch {}: table={}, match={}, action={}",

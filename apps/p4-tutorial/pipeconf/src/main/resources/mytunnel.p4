@@ -196,9 +196,9 @@ control c_ingress(inout headers_t hdr,
             hdr.ethernet.ether_type         : ternary;
         }
         actions = {
-            set_out_port();
-            send_to_cpu();
-            _drop();
+            set_out_port;
+            send_to_cpu;
+            _drop;
             NoAction;
         }
         default_action = NoAction();
@@ -211,7 +211,7 @@ control c_ingress(inout headers_t hdr,
         }
         actions = {
             my_tunnel_ingress;
-            _drop();
+            _drop;
         }
         default_action = _drop();
     }
@@ -223,7 +223,7 @@ control c_ingress(inout headers_t hdr,
         actions = {
             set_out_port;
             my_tunnel_egress;
-            _drop();
+            _drop;
         }
         default_action = _drop();
     }
