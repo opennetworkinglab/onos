@@ -528,8 +528,13 @@
     }
 
     function applyPreferences(evt) {
+        var zoomPrefs = ps.getPrefs('topo_zoom', null);
         if (ps.getPrefs('topo_prefs', null)) {
             restoreConfigFromPrefs();
+        }
+        if (zoomPrefs) {
+            $log.debug('TOPO- Zoom State:', zoomPrefs);
+            zoomer.panZoom([zoomPrefs.tx, zoomPrefs.ty], zoomPrefs.sc, 100);
         }
     }
 

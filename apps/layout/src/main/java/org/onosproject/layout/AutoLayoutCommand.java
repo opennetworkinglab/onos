@@ -20,28 +20,25 @@ import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 
 /**
- * Lists all the default lease parameters offered by the DHCP Server.
+ * Lays out the elements in the topology using the specified algorithm.
  */
 @Command(scope = "onos", name = "topo-layout",
         description = "Lays out the elements in the topology using the specified algorithm")
 public class AutoLayoutCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "algorithm",
-            description = "Layout algorithm to use for the layout")
+            description = "Layout algorithm to use for the layout; defaults to 'access'")
     String algorithm = "access";
 
     @Override
     protected void execute() {
         RoleBasedLayoutManager mgr = get(RoleBasedLayoutManager.class);
         switch (algorithm) {
-            case "spine-leaf":
-                mgr.layout(new AccessNetworkLayout());
-                break;
             case "access":
                 mgr.layout(new AccessNetworkLayout());
                 break;
-            case "hag-access":
-                mgr.layout(new AccessNetworkLayout());
+            case "default":
+                mgr.layout(new DefaultForceLayout());
                 break;
             default:
                 print("Unsupported layout algorithm %s", algorithm);
