@@ -195,17 +195,16 @@ public class OpenstackRoutingIcmpHandler {
             return;
         }
 
-        ExternalPeerRouter externalPeerRouter = externalPeerRouter(srcSubnet);
-        if (externalPeerRouter == null) {
-            log.info(ERR_REQ + "failed to get external peer router");
-            return;
-        }
-
         if (isForSubnetGateway(IpAddress.valueOf(ipPacket.getDestinationAddress()),
                 srcSubnet)) {
             // this is a request for the subnet gateway
             processRequestForGateway(ipPacket, instPort);
         } else {
+            ExternalPeerRouter externalPeerRouter = externalPeerRouter(srcSubnet);
+            if (externalPeerRouter == null) {
+                log.info(ERR_REQ + "failed to get external peer router");
+                return;
+            }
             // this is a request for the external network
             IpAddress externalIp = getExternalIp(srcSubnet);
             if (externalIp == null) {
