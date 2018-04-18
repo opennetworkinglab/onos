@@ -207,7 +207,7 @@ by executing the following command:
 
         ```
         deviceId=device:bmv2:1, flowRuleCount=3
-            ADDED, bytes=798, packets=19, table=0, priority=40000, selector=[ETH_TYPE:arp], treatment=[immediate=[OUTPUT:CONTROLLER], clearDeferred]
+            ADDED, bytes=0, packets=0, table=0, priority=40000, selector=[ETH_TYPE:arp], treatment=[immediate=[OUTPUT:CONTROLLER], clearDeferred]
             ADDED, bytes=0, packets=0, table=0, priority=40000, selector=[ETH_TYPE:bddp], treatment=[immediate=[OUTPUT:CONTROLLER], clearDeferred]
             ADDED, bytes=0, packets=0, table=0, priority=40000, selector=[ETH_TYPE:lldp], treatment=[immediate=[OUTPUT:CONTROLLER], clearDeferred]
         ```
@@ -271,8 +271,8 @@ by executing the following command:
         the action `c_ingress.send_to_cpu`.
 
         **Important:** The BMv2 CLI is a powerful tool to debug the state of a
-        *BMv2 switch. Type `help` to show a list of possible commands. This CLI
-        *provides also auto-completion when pressing the `tab` key.
+        BMv2 switch. Type `help` to show a list of possible commands. This CLI
+        provides also auto-completion when pressing the `tab` key.
 
 4. It is finally time to **test connectivity between the hosts** of our Mininet
     network.
@@ -313,7 +313,7 @@ by executing the following command:
 
 5. Congratulations, you completed the first exercise of the ONOS+P4 tutorial!
 
-    To kill ONOS, press `ctrl-d` in the ONOS log terminal window. To kill
+    To kill ONOS, press `ctrl-c` in the ONOS log terminal window. To kill
     Mininet, press `ctrl-d` in the Mininet CLI or type `exit`.
 
 ## Bonus exercise

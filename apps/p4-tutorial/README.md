@@ -7,7 +7,30 @@ For help, please write to the mailing list
 [brigade-p4@onosproject.org](mailto:brigade-p4@onosproject.org) or check the
 [mailing list archives](https://groups.google.com/a/onosproject.org/forum/#!forum/brigade-p4).
 
-## mytunnel.p4
+## Tutorial VM
+
+To complete the exercises, you will need to download and run the following VM
+(in .ova format):
+
+<http://onlab.vicci.org/onos/onos-p4-tutorial.ova>
+
+To run the VM you can use any modern virtualization system, although we
+recommend using VirtualBox. To download VirtualBox and import the VM use the
+following links:
+
+* <https://www.virtualbox.org/wiki/Downloads>
+* <https://docs.oracle.com/cd/E26217_01/E26796/html/qs-import-vm.html>
+
+For more information on the content of the VM, and minimum system requirements,
+[click here](/tools/dev/p4vm/README.md).
+
+### VM credentials
+
+The VM comes with one user with sudo privileges named `sdn` with password `rocks`.
+
+## Overview
+
+### mytunnel.p4
 
 These exercises are based on a simple P4 program called
 [mytunnel.p4](./pipeconf/src/main/resources/mytunnel.p4) designed for this
@@ -32,7 +55,7 @@ to the following questions:
 * What happens if a matching entry is not found in table `t_l2_fwd`? What's the
     next table applied to the packet?
 
-## MyTunnel Pipeconf
+### MyTunnel Pipeconf
 
 The `mytunnel.p4` program is provided to ONOS as part of a "pipeconf", along
 with the Java implementations of some ONOS driver behaviors necessary to
@@ -62,7 +85,7 @@ ONOS, e.g. number of packets/bytes received and transmitted for each port. This
 implementation works by reading the value of two P4 counters defined in
 `mytunnel.p4`, `tx_port_counter` and `rx_port_counter`.
 
-## MyTunnel App
+### MyTunnel App
 
 This application is used to provide connectivity between each pair of hosts via
 the MyTunnel protocol. The implementation can be found
