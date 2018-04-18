@@ -689,6 +689,18 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         return mcastHandler.getMcastLeaders(mcastIp);
     }
 
+    @Override
+    public Map<Set<DeviceId>, NodeId> getShouldProgram() {
+        return defaultRoutingHandler == null ? ImmutableMap.of() :
+                ImmutableMap.copyOf(defaultRoutingHandler.shouldProgram);
+    }
+
+    @Override
+    public Map<DeviceId, Boolean> getShouldProgramCache() {
+        return defaultRoutingHandler == null ? ImmutableMap.of() :
+                ImmutableMap.copyOf(defaultRoutingHandler.shouldProgramCache);
+    }
+
     /**
      * Extracts the application ID from the manager.
      *

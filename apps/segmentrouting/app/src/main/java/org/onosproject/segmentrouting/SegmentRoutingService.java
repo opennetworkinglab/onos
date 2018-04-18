@@ -273,4 +273,18 @@ public interface SegmentRoutingService {
      * @return the mapping group-node
      */
     Map<IpAddress, NodeId> getMcastLeaders(IpAddress mcastIp);
+
+    /**
+     * Returns shouldProgram map.
+     *
+     * @return shouldProgram map
+     */
+    Map<Set<DeviceId>, NodeId> getShouldProgram();
+
+    /**
+     * Returns shouldProgram local cache.
+     *
+     * @return shouldProgram local cache
+     */
+    Map<DeviceId, Boolean> getShouldProgramCache();
 }
