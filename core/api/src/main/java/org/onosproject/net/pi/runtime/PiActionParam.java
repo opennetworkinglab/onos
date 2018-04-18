@@ -23,9 +23,11 @@ import org.onosproject.net.pi.model.PiActionParamId;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onlab.util.ImmutableByteSequence.copyFrom;
 
 /**
- * Instance of an action runtime parameter in a match+action table of a protocol-independent pipeline.
+ * Instance of an action runtime parameter in a match+action table of a
+ * protocol-independent pipeline.
  */
 @Beta
 public final class PiActionParam {
@@ -34,7 +36,8 @@ public final class PiActionParam {
     private final ImmutableByteSequence value;
 
     /**
-     * Creates an action's runtime parameter.
+     * Creates an action's runtime parameter for the given param ID and byte
+     * sequence value.
      *
      * @param id    parameter identifier
      * @param value value
@@ -43,6 +46,61 @@ public final class PiActionParam {
         this.id = checkNotNull(id);
         this.value = checkNotNull(value);
         checkArgument(value.size() > 0, "Value can't have size 0");
+    }
+
+    /**
+     * Creates an action's runtime parameter for the given param ID and byte
+     * value.
+     *
+     * @param id    parameter identifier
+     * @param value value
+     */
+    public PiActionParam(PiActionParamId id, byte value) {
+        this(id, copyFrom(value));
+    }
+
+    /**
+     * Creates an action's runtime parameter for the given param ID and short
+     * value.
+     *
+     * @param id    parameter identifier
+     * @param value value
+     */
+    public PiActionParam(PiActionParamId id, short value) {
+        this(id, copyFrom(value));
+    }
+
+    /**
+     * Creates an action's runtime parameter for the given param ID and int
+     * value.
+     *
+     * @param id    parameter identifier
+     * @param value value
+     */
+    public PiActionParam(PiActionParamId id, int value) {
+        this(id, copyFrom(value));
+    }
+
+    /**
+     * Creates an action's runtime parameter for the given param ID and long
+     * value.
+     *
+     * @param id    parameter identifier
+     * @param value value
+     */
+    public PiActionParam(PiActionParamId id, long value) {
+        this(id, copyFrom(value));
+    }
+
+    /**
+     * Creates an action's runtime parameter for the given param ID and byte
+     * array value.
+     *
+     * @param id    parameter identifier
+     * @param value value
+     */
+    public PiActionParam(PiActionParamId id, byte[] value) {
+        this(id, copyFrom(value));
     }
 
     /**
