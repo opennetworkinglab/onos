@@ -29,7 +29,7 @@ import java.util.List;
 /**
  * Lists all clusters in the current topology.
  */
-@Command(scope = "onos", name = "clusters",
+@Command(scope = "onos", name = "topo-clusters",
          description = "Lists all clusters in the current topology")
 public class ClustersListCommand extends TopologyCommand {
 

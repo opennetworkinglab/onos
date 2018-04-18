@@ -27,7 +27,7 @@ import static org.onosproject.net.topology.ClusterId.clusterId;
 /**
  * Lists links of the specified topology cluster in the current topology.
  */
-@Command(scope = "onos", name = "cluster-links",
+@Command(scope = "onos", name = "topo-cluster-links",
          description = "Lists links of the specified topology cluster in the current topology")
 public class ClusterLinksCommand extends ClustersListCommand {
 
