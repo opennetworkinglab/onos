@@ -97,6 +97,7 @@ CLI_COMMANDS=(
     "sr-link-state"
     "sr-mcast-next"
     "sr-mcast-tree"
+    "sr-mcast-leader"
     "sr-next-hops"
     "sr-pw-list"
     "dhcp-relay"
