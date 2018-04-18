@@ -2,6 +2,8 @@
 
 set -xe
 
+VM_TYPE=${P4_VM_TYPE:-dev}
+
 # Remove references to the existing vagrant-built VM (if any).
 # We want to build a new one from scratch, not start an existing one.
 rm -rf .vagrant/
@@ -24,5 +26,5 @@ sleep 30
 # Remove vagrant shared folder
 vboxmanage sharedfolder remove ${VB_UUID} -name "vagrant"
 
-rm -rf onos-p4-dev.ova
-vboxmanage export ${VB_UUID} -o onos-p4-dev.ova
+rm -rf onos-p4-${VM_TYPE}.ova
+vboxmanage export ${VB_UUID} -o onos-p4-${VM_TYPE}.ova

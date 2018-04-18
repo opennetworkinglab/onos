@@ -15,4 +15,6 @@ rm -rf ~/p4tools/p4c/build
 rm -rf ~/p4tools/libyang/build
 rm -rf ~/p4tools/sysrepo/build
 
+sudo apt-get -y autoremove
+
 cat /dev/null > ~/.bash_history

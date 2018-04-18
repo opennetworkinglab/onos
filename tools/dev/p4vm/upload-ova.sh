@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
 
-python $ONOS_ROOT/tools/build/uploadToS3.py -f onos-p4-dev.ova ./onos-p4-dev.ova
+VM_TYPE=${P4_VM_TYPE:-dev}
+
+python $ONOS_ROOT/tools/build/uploadToS3.py -f onos-p4-${VM_TYPE}.ova ./onos-p4-${VM_TYPE}.ova
 

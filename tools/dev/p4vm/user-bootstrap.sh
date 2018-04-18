@@ -7,7 +7,7 @@ cp /etc/skel/.bash_logout ~/
 
 # ONOS
 git clone https://github.com/opennetworkinglab/onos.git
-tee -a ~/.profile <<EOF
+tee -a ~/.bashrc <<EOF
 
 # ONOS
 export ONOS_ROOT=~/onos

@@ -1,14 +1,24 @@
+P4_VM_TYPE = ENV['P4_VM_TYPE'] || "dev"
+
 Vagrant.configure(2) do |config|
   config.vm.box = "bento/ubuntu-16.04"
   config.vm.provider "virtualbox" do |vb|
-    vb.name = "ONOS-P4 Dev " + Time.now.strftime("(%Y-%m-%d)")
+    vb.name = "ONOS+P4 " + P4_VM_TYPE + " " + Time.now.strftime("(%Y-%m-%d)")
     vb.gui = true
-    vb.cpus = 2
+    vb.cpus = P4_VM_TYPE == "tutorial" ? 4 : 2
     vb.memory = 4096
+    if P4_VM_TYPE == "tutorial"
+        vb.customize ["storageattach", :id,
+                        "--storagectl", "IDE Controller",
+                        "--port", "0", "--device", "1",
+                        "--type", "dvddrive",
+                        "--medium", "emptydrive"]
+        vb.customize ['modifyvm', :id, '--clipboard', 'bidirectional']
+    end
   end
-  config.vm.hostname = "onos-p4-dev"
+  config.vm.hostname = "onos-p4-" + P4_VM_TYPE
   # By default vagrant creates a NAT interface.
   # Create a second one host-only.
   config.vm.network "private_network", :type => 'dhcp', :adapter => 2
-  config.vm.provision "shell", path: "root-bootstrap.sh"
+  config.vm.provision "shell", path: "root-bootstrap.sh", :args => P4_VM_TYPE
 end
