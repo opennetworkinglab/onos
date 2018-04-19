@@ -47,10 +47,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.slf4j.Logger;
 
+import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.d.config.DeviceResourceIds.DCS_NAMESPACE;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -67,12 +69,15 @@ public class DynamicConfigManager
     private final Logger log = getLogger(getClass());
     private final DynamicConfigStoreDelegate storeDelegate = new InternalStoreDelegate();
 
+    private ExecutorService executor;
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DynamicConfigStore store;
     private ConcurrentHashMap<String, RpcService> handlerRegistry = new ConcurrentHashMap<>();
 
     @Activate
     public void activate() {
+        executor = Executors.newSingleThreadExecutor(groupedThreads("onos/dyncfg", "exec", log));
         initStore();
         store.setDelegate(storeDelegate);
         eventDispatcher.addSink(DynamicConfigEvent.class, listenerRegistry);
@@ -106,6 +111,7 @@ public class DynamicConfigManager
 
     @Deactivate
     public void deactivate() {
+        executor.shutdown();
         store.unsetDelegate(storeDelegate);
         eventDispatcher.removeSink(DynamicConfigEvent.class);
         handlerRegistry.clear();
@@ -197,7 +203,7 @@ public class DynamicConfigManager
         }
         return CompletableFuture.supplyAsync(
                 new RpcExecutor(handler, getSvcId(handler, ctxt[0]), ctxt[1], RpcMessageId.generate(), input),
-                Executors.newSingleThreadExecutor());
+                executor);
     }
 
     /**
