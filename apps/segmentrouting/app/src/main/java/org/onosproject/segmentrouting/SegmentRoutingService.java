@@ -25,6 +25,7 @@ import org.onosproject.net.Link;
 import org.onosproject.net.PortNumber;
 import org.onosproject.segmentrouting.grouphandler.NextNeighbors;
 import org.onosproject.segmentrouting.mcast.McastRole;
+import org.onosproject.segmentrouting.mcast.McastRoleStoreKey;
 import org.onosproject.segmentrouting.pwaas.DefaultL2TunnelDescription;
 import org.onosproject.segmentrouting.pwaas.L2Tunnel;
 import org.onosproject.segmentrouting.pwaas.L2TunnelHandler;
@@ -33,7 +34,7 @@ import org.onosproject.segmentrouting.pwaas.L2TunnelDescription;
 import org.onosproject.segmentrouting.storekey.DestinationSetNextObjectiveStoreKey;
 
 import com.google.common.collect.ImmutableMap;
-import org.onosproject.segmentrouting.storekey.McastStoreKey;
+import org.onosproject.segmentrouting.mcast.McastStoreKey;
 
 import java.util.List;
 import java.util.Map;
@@ -223,7 +224,7 @@ public interface SegmentRoutingService {
      */
     ImmutableMap<DeviceId, Set<PortNumber>> getDownedPortState();
 
-   /**
+    /**
      * Returns the associated next ids to the mcast groups or to the single
      * group if mcastIp is present.
      *
@@ -245,6 +246,16 @@ public interface SegmentRoutingService {
     Map<McastStoreKey, McastRole> getMcastRoles(IpAddress mcastIp);
 
     /**
+     * Returns the associated roles to the mcast groups.
+     *
+     * @param mcastIp the group ip
+     * @param sourcecp the source connect point
+     * @return the mapping mcastIp-device to mcast role
+     */
+    Map<McastRoleStoreKey, McastRole> getMcastRoles(IpAddress mcastIp,
+                                                    ConnectPoint sourcecp);
+
+    /**
      * Returns the associated paths to the mcast group.
      *
      * @param mcastIp the group ip
@@ -254,7 +265,6 @@ public interface SegmentRoutingService {
      */
     @Deprecated
     Map<ConnectPoint, List<ConnectPoint>> getMcastPaths(IpAddress mcastIp);
-
 
     /**
      * Returns the associated trees to the mcast group.

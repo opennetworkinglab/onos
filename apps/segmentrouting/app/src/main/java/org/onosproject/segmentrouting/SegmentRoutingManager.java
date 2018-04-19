@@ -108,6 +108,7 @@ import org.onosproject.segmentrouting.grouphandler.DestinationSet;
 import org.onosproject.segmentrouting.grouphandler.NextNeighbors;
 import org.onosproject.segmentrouting.mcast.McastHandler;
 import org.onosproject.segmentrouting.mcast.McastRole;
+import org.onosproject.segmentrouting.mcast.McastRoleStoreKey;
 import org.onosproject.segmentrouting.pwaas.DefaultL2Tunnel;
 import org.onosproject.segmentrouting.pwaas.DefaultL2TunnelDescription;
 import org.onosproject.segmentrouting.pwaas.DefaultL2TunnelHandler;
@@ -120,7 +121,7 @@ import org.onosproject.segmentrouting.pwaas.L2TunnelDescription;
 
 import org.onosproject.segmentrouting.storekey.DestinationSetNextObjectiveStoreKey;
 import org.onosproject.segmentrouting.storekey.DummyVlanIdStoreKey;
-import org.onosproject.segmentrouting.storekey.McastStoreKey;
+import org.onosproject.segmentrouting.mcast.McastStoreKey;
 import org.onosproject.segmentrouting.storekey.PortNextObjectiveStoreKey;
 import org.onosproject.segmentrouting.storekey.VlanNextObjectiveStoreKey;
 import org.onosproject.segmentrouting.storekey.XConnectStoreKey;
@@ -748,6 +749,11 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     @Override
     public Map<McastStoreKey, McastRole> getMcastRoles(IpAddress mcastIp) {
         return mcastHandler.getMcastRoles(mcastIp);
+    }
+
+    @Override
+    public Map<McastRoleStoreKey, McastRole> getMcastRoles(IpAddress mcastIp, ConnectPoint sourcecp) {
+        return mcastHandler.getMcastRoles(mcastIp, sourcecp);
     }
 
     @Override

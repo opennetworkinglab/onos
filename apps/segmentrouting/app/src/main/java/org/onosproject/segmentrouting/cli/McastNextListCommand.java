@@ -20,11 +20,13 @@ import com.google.common.collect.Maps;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.VlanId;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.mcast.cli.McastGroupCompleter;
 import org.onosproject.net.DeviceId;
 import org.onosproject.segmentrouting.SegmentRoutingService;
-import org.onosproject.segmentrouting.storekey.McastStoreKey;
+import org.onosproject.segmentrouting.mcast.McastStoreKey;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Map;
 import java.util.Set;
@@ -69,19 +71,20 @@ public class McastNextListCommand extends AbstractShellCommand {
         // Print the nextids for each group
         mcastGroups.forEach(group -> {
             // Create a new map for the group
-            Map<DeviceId, Integer> deviceIdNextMap = Maps.newHashMap();
+            Map<Pair<DeviceId, VlanId>, Integer> deviceIdNextMap = Maps.newHashMap();
             keyToNextId.entrySet()
                     .stream()
                     // Filter only the elements related to this group
                     .filter(entry -> entry.getKey().mcastIp().equals(group))
                     // For each create a new entry in the group related map
-                    .forEach(entry -> deviceIdNextMap.put(entry.getKey().deviceId(), entry.getValue()));
+                    .forEach(entry -> deviceIdNextMap.put(Pair.of(entry.getKey().deviceId(),
+                                                          entry.getKey().vlanId()), entry.getValue()));
             // Print the map
             printMcastNext(group, deviceIdNextMap);
         });
     }
 
-    private void printMcastNext(IpAddress mcastGroup, Map<DeviceId, Integer> deviceIdNextMap) {
+    private void printMcastNext(IpAddress mcastGroup, Map<Pair<DeviceId, VlanId>, Integer> deviceIdNextMap) {
         print(FORMAT_MAPPING, mcastGroup, deviceIdNextMap);
     }
 }
