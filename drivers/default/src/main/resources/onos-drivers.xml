@@ -99,6 +99,10 @@
                    impl="org.onosproject.driver.handshaker.Ofdpa3SwitchHandshaker"/>
     </driver>
 
+    <driver name="liquidio" extends="ovs"
+            manufacturer="Cavium, Inc\." hwVersion="LiquidIO-II 210 SVN" swVersion="2\..*">
+    </driver>
+    
     <driver name="xpliant" extends="ofdpa3"
             manufacturer="Cavium, Inc\." hwVersion=".*" swVersion=".*">
         <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
