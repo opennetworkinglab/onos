@@ -260,7 +260,7 @@ class McastUtils {
      * @return sources connect points or empty set if not found
      */
     Set<ConnectPoint> getSources(IpAddress mcastIp) {
-        // FIXME we should support different types of routes
+        // TODO we should support different types of routes
         McastRoute mcastRoute = srManager.multicastRouteService.getRoutes().stream()
                 .filter(mcastRouteInternal -> mcastRouteInternal.group().equals(mcastIp))
                 .findFirst().orElse(null);
@@ -275,7 +275,7 @@ class McastUtils {
      * @return map of sinks or empty map if not found
      */
     Map<HostId, Set<ConnectPoint>> getSinks(IpAddress mcastIp) {
-        // FIXME we should support different types of routes
+        // TODO we should support different types of routes
         McastRoute mcastRoute = srManager.multicastRouteService.getRoutes().stream()
                 .filter(mcastRouteInternal -> mcastRouteInternal.group().equals(mcastIp))
                 .findFirst().orElse(null);
@@ -292,7 +292,7 @@ class McastUtils {
      * @return the map of the sinks affected
      */
     Map<HostId, Set<ConnectPoint>> getAffectedSinks(DeviceId egressDevice,
-                                                            IpAddress mcastIp) {
+                                                    IpAddress mcastIp) {
         return getSinks(mcastIp).entrySet()
                 .stream()
                 .filter(hostIdSetEntry -> hostIdSetEntry.getValue().stream()
