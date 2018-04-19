@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-present Open Networking Foundation
+ * Copyright 2018-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,34 +14,49 @@
  * limitations under the License.
  */
 
-package org.onosproject.segmentrouting.storekey;
+package org.onosproject.segmentrouting.mcast;
 
 import org.onlab.packet.IpAddress;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
+
+import java.util.Objects;
+
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import java.util.Objects;
 
 /**
- * Key of multicast next objective store.
+ * Key of multicast role store.
  */
-public class McastStoreKey {
+public class McastRoleStoreKey {
+    // Identify role using group address, deviceId and source
     private final IpAddress mcastIp;
     private final DeviceId deviceId;
+    private final ConnectPoint source;
 
     /**
-     * Constructs the key of multicast next objective store.
+     * Constructs the key of multicast role store.
      *
      * @param mcastIp multicast group IP address
      * @param deviceId device ID
+     * @param source source connect point
      */
-    public McastStoreKey(IpAddress mcastIp, DeviceId deviceId) {
+    public McastRoleStoreKey(IpAddress mcastIp, DeviceId deviceId, ConnectPoint source) {
         checkNotNull(mcastIp, "mcastIp cannot be null");
         checkNotNull(deviceId, "deviceId cannot be null");
+        checkNotNull(source, "source cannot be null");
         checkArgument(mcastIp.isMulticast(), "mcastIp must be a multicast address");
         this.mcastIp = mcastIp;
         this.deviceId = deviceId;
+        this.source = source;
+    }
+
+    // Constructor for serialization
+    private McastRoleStoreKey() {
+        this.mcastIp = null;
+        this.deviceId = null;
+        this.source = null;
     }
 
     /**
@@ -62,23 +77,33 @@ public class McastStoreKey {
         return deviceId;
     }
 
+    /**
+     * Returns the source connect point of this key.
+     *
+     * @return the source connect point
+     */
+    public ConnectPoint source() {
+        return source;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof McastStoreKey)) {
+        if (!(o instanceof McastRoleStoreKey)) {
             return false;
         }
-        McastStoreKey that =
-                (McastStoreKey) o;
-        return (Objects.equals(this.mcastIp, that.mcastIp) &&
-                Objects.equals(this.deviceId, that.deviceId));
+        final McastRoleStoreKey that = (McastRoleStoreKey) o;
+
+        return Objects.equals(this.mcastIp, that.mcastIp) &&
+                Objects.equals(this.deviceId, that.deviceId) &&
+                Objects.equals(this.source, that.source);
     }
 
     @Override
     public int hashCode() {
-         return Objects.hash(mcastIp, deviceId);
+        return Objects.hash(mcastIp, deviceId, source);
     }
 
     @Override
@@ -86,6 +111,7 @@ public class McastStoreKey {
         return toStringHelper(getClass())
                 .add("mcastIp", mcastIp)
                 .add("deviceId", deviceId)
+                .add("source", source)
                 .toString();
     }
 }

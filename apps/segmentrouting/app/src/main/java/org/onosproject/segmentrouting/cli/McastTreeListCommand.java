@@ -88,13 +88,15 @@ public class McastTreeListCommand extends AbstractShellCommand {
             }
             Multimap<ConnectPoint, List<ConnectPoint>> mcastTree = srService.getMcastTrees(group,
                                                                                            sourcecp);
-            // Build a json object for each group
-            if (outputJson()) {
-                root.putPOJO(group.toString(), json(mcastTree));
-            } else {
-                // Banner and then the trees
-                printMcastGroup(group);
-                mcastTree.forEach(this::printMcastSink);
+            if (!mcastTree.isEmpty()) {
+                // Build a json object for each group
+                if (outputJson()) {
+                    root.putPOJO(group.toString(), json(mcastTree));
+                } else {
+                    // Banner and then the trees
+                    printMcastGroup(group);
+                    mcastTree.forEach(this::printMcastSink);
+                }
             }
         });
 
