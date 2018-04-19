@@ -972,9 +972,12 @@ public class McastHandler {
             // If previously it had two locations, we need to recover it
             // Filter out if the remaining location is already served
             if (prevSinks.containsKey(hostId) && prevSinks.get(hostId).size() == 2) {
-                sinksToBeProcessed.add(connectPoints.stream()
-                                               .filter(connectPoint -> !isSink(mcastIp, connectPoint))
-                                               .findFirst().orElseGet(null));
+                ConnectPoint sinkToBeProcessed = connectPoints.stream()
+                        .filter(connectPoint -> !isSink(mcastIp, connectPoint))
+                        .findFirst().orElse(null);
+                if (sinkToBeProcessed != null) {
+                    sinksToBeProcessed.add(sinkToBeProcessed);
+                }
             }
         });
         return sinksToBeProcessed;
@@ -1004,7 +1007,7 @@ public class McastHandler {
             // If it has one location, just use it
             if (connectPoints.size() == 1) {
                 sinksToBeProcessed.add(connectPoints.stream()
-                                               .findFirst().orElseGet(null));
+                                               .findFirst().orElse(null));
                 return;
             }
             // We prefer to reuse existing flows
@@ -1034,7 +1037,7 @@ public class McastHandler {
             }
             // Finally, we randomly pick a new location
             sinksToBeProcessed.add(connectPoints.stream()
-                                           .findFirst().orElseGet(null));
+                                           .findFirst().orElse(null));
         }));
         // We have done, return the set
         return sinksToBeProcessed;
