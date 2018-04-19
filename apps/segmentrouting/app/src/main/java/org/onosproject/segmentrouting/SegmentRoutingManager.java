@@ -43,6 +43,8 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.event.Event;
+import org.onosproject.mastership.MastershipEvent;
+import org.onosproject.mastership.MastershipListener;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.mcast.api.McastEvent;
 import org.onosproject.mcast.api.McastListener;
@@ -246,19 +248,15 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     private final InternalMcastListener mcastListener = new InternalMcastListener();
     private final InternalRouteEventListener routeListener = new InternalRouteEventListener();
     private final InternalTopologyListener topologyListener = new InternalTopologyListener();
+    private final InternalMastershipListener mastershipListener = new InternalMastershipListener();
 
     // Handles device, link, topology and network config events
-    private ScheduledExecutorService mainEventExecutor = Executors
-            .newScheduledThreadPool(1, groupedThreads("sr-event-main", "%d", log));
+    private ScheduledExecutorService mainEventExecutor;
 
-    // Handles host, route, mcast events
-    private ScheduledExecutorService hostEventExecutor = Executors
-            .newScheduledThreadPool(1, groupedThreads("sr-event-host", "%d", log));
-    private ScheduledExecutorService routeEventExecutor = Executors
-            .newScheduledThreadPool(1, groupedThreads("sr-event-route", "%d", log));
-    private ScheduledExecutorService mcastEventExecutor = Executors
-            .newScheduledThreadPool(1, groupedThreads("sr-event-mcast", "%d", log));
-
+    // Handles host, route and mcast events respectively
+    private ScheduledExecutorService hostEventExecutor;
+    private ScheduledExecutorService routeEventExecutor;
+    private ScheduledExecutorService mcastEventExecutor;
 
     Map<DeviceId, DefaultGroupHandler> groupHandlerMap = new ConcurrentHashMap<>();
     /**
@@ -325,12 +323,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 }
             };
 
-    private static final Object THREAD_SCHED_LOCK = new Object();
-    private static int numOfEventsQueued = 0;
-    private static int numOfEventsExecuted = 0;
-    private static int numOfHandlerExecution = 0;
-    private static int numOfHandlerScheduled = 0;
-
     /**
      * Segment Routing App ID.
      */
@@ -344,6 +336,11 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     @Activate
     protected void activate(ComponentContext context) {
         appId = coreService.registerApplication(APP_NAME);
+
+        mainEventExecutor = Executors.newSingleThreadScheduledExecutor(groupedThreads("sr-event-main", "%d", log));
+        hostEventExecutor = Executors.newSingleThreadScheduledExecutor(groupedThreads("sr-event-host", "%d", log));
+        routeEventExecutor = Executors.newSingleThreadScheduledExecutor(groupedThreads("sr-event-route", "%d", log));
+        mcastEventExecutor = Executors.newSingleThreadScheduledExecutor(groupedThreads("sr-event-mcast", "%d", log));
 
         log.debug("Creating EC map nsnextobjectivestore");
         EventuallyConsistentMapBuilder<DestinationSetNextObjectiveStoreKey, NextNeighbors>
@@ -442,6 +439,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         multicastRouteService.addListener(mcastListener);
         routeService.addListener(routeListener);
         topologyService.addListener(topologyListener);
+        mastershipService.addListener(mastershipListener);
 
         linkHandler.init();
         l2TunnelHandler.init();
@@ -472,6 +470,11 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
     @Deactivate
     protected void deactivate() {
+        mainEventExecutor.shutdown();
+        hostEventExecutor.shutdown();
+        routeEventExecutor.shutdown();
+        mcastEventExecutor.shutdown();
+
         cfgService.removeListener(cfgListener);
         cfgService.unregisterConfigFactory(deviceConfigFactory);
         cfgService.unregisterConfigFactory(appConfigFactory);
@@ -486,6 +489,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         multicastRouteService.removeListener(mcastListener);
         routeService.removeListener(routeListener);
         topologyService.removeListener(topologyListener);
+        mastershipService.removeListener(mastershipListener);
 
         neighbourResolutionService.unregisterNeighbourHandlers(appId);
 
@@ -844,20 +848,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         SegmentRoutingDeviceConfig deviceConfig =
                 cfgService.getConfig(deviceId, SegmentRoutingDeviceConfig.class);
         return Optional.ofNullable(deviceConfig).map(SegmentRoutingDeviceConfig::pairLocalPort);
-    }
-
-    /**
-     * Determine if current instance is the master of given connect point.
-     *
-     * @param cp connect point
-     * @return true if current instance is the master of given connect point
-     */
-    public boolean isMasterOf(ConnectPoint cp) {
-        boolean isMaster = mastershipService.isLocalMaster(cp.deviceId());
-        if (!isMaster) {
-            log.debug(NOT_MASTER, cp);
-        }
-        return isMaster;
     }
 
     /**
@@ -1332,6 +1322,16 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         }
     }
 
+    private void createOrUpdateDefaultRoutingHandler() {
+        if (defaultRoutingHandler == null) {
+            log.info("Creating new DefaultRoutingHandler");
+            defaultRoutingHandler = new DefaultRoutingHandler(this);
+        } else {
+            log.info("Updating DefaultRoutingHandler");
+            defaultRoutingHandler.update(this);
+        }
+    }
+
     /**
      * Registers the given connect point with the NRS, this is necessary
      * to receive the NDP and ARP packets from the NRS.
@@ -1370,7 +1370,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             icmpHandler = new IcmpHandler(srManager);
             ipHandler = new IpHandler(srManager);
             routingRulePopulator = new RoutingRulePopulator(srManager);
-            defaultRoutingHandler = new DefaultRoutingHandler(srManager);
+            createOrUpdateDefaultRoutingHandler();
 
             tunnelHandler = new TunnelHandler(linkService, deviceConfiguration,
                                               groupHandlerMap, tunnelStore);
@@ -1527,6 +1527,27 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                     break;
                 default:
                     log.warn("Unsupported route event type: {}", event.type());
+                    break;
+            }
+        }
+    }
+
+    private class InternalMastershipListener implements MastershipListener {
+        @Override
+        public void event(MastershipEvent event) {
+            DeviceId deviceId = event.subject();
+            Optional<DeviceId> pairDeviceId = getPairDeviceId(deviceId);
+
+            switch (event.type()) {
+                case MASTER_CHANGED:
+                    log.info("Invalidating shouldProgram cache for {}/pair={} due to mastership change",
+                            deviceId, pairDeviceId);
+                    defaultRoutingHandler.invalidateShouldProgramCache(deviceId);
+                    pairDeviceId.ifPresent(defaultRoutingHandler::invalidateShouldProgramCache);
+                    break;
+                case BACKUPS_CHANGED:
+                case SUSPENDED:
+                default:
                     break;
             }
         }
