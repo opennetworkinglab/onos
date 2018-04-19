@@ -89,6 +89,7 @@ public class DefaultRoutingHandler {
     // Keep track on which ONOS instance should program the device pair.
     // There should be only one instance that programs the same pair.
     Map<Set<DeviceId>, NodeId> shouldProgram;
+    Map<DeviceId, Boolean> shouldProgramCache;
 
     /**
      * Represents the default routing population status.
@@ -114,15 +115,26 @@ public class DefaultRoutingHandler {
      * @param srManager SegmentRoutingManager object
      */
     DefaultRoutingHandler(SegmentRoutingManager srManager) {
+        this.shouldProgram = srManager.storageService.<Set<DeviceId>, NodeId>consistentMapBuilder()
+                .withName("sr-should-program")
+                .withSerializer(Serializer.using(KryoNamespaces.API))
+                .withRelaxedReadConsistency()
+                .build().asJavaMap();
+        this.shouldProgramCache = Maps.newConcurrentMap();
+        update(srManager);
+    }
+
+    /**
+     * Updates a DefaultRoutingHandler object.
+     *
+     * @param srManager SegmentRoutingManager object
+     */
+    void update(SegmentRoutingManager srManager) {
         this.srManager = srManager;
         this.rulePopulator = checkNotNull(srManager.routingRulePopulator);
         this.config = checkNotNull(srManager.deviceConfiguration);
         this.populationStatus = Status.IDLE;
         this.currentEcmpSpgMap = Maps.newHashMap();
-        this.shouldProgram = srManager.storageService.<Set<DeviceId>, NodeId>consistentMapBuilder()
-                .withName("sr-should-program")
-                .withSerializer(Serializer.using(KryoNamespaces.API))
-                .build().asJavaMap();
     }
 
     /**
@@ -1150,7 +1162,7 @@ public class DefaultRoutingHandler {
      *
      * @param deviceId the device for which graphs need to be purged
      */
-    protected void purgeEcmpGraph(DeviceId deviceId) {
+    void purgeEcmpGraph(DeviceId deviceId) {
         statusLock.lock();
         try {
 
@@ -1423,6 +1435,11 @@ public class DefaultRoutingHandler {
      * @return true if current instance should handle the routing for given device
      */
     boolean shouldProgram(DeviceId deviceId) {
+        Boolean cached = shouldProgramCache.get(deviceId);
+        if (cached != null) {
+            return cached;
+        }
+
         Optional<DeviceId> pairDeviceId = srManager.getPairDeviceId(deviceId);
 
         NodeId currentNodeId = srManager.clusterService.getLocalNode().id();
@@ -1464,9 +1481,11 @@ public class DefaultRoutingHandler {
 
         if (king != null) {
             log.debug("{} should handle routing for {}/pair={}", king, deviceId, pairDeviceId);
+            shouldProgramCache.put(deviceId, king.equals(currentNodeId));
             return king.equals(currentNodeId);
         } else {
             log.error("Fail to elect a king for {}/pair={}. Abort.", deviceId, pairDeviceId);
+            shouldProgramCache.remove(deviceId);
             return false;
         }
     }
@@ -1482,6 +1501,10 @@ public class DefaultRoutingHandler {
         nodeIds.removeAll(Collections.singleton(null));
         nodeIds.sort(null);
         return nodeIds.size() == 0 ? null : nodeIds.get(0);
+    }
+
+    void invalidateShouldProgramCache(DeviceId deviceId) {
+        shouldProgramCache.remove(deviceId);
     }
 
     /**
@@ -1625,7 +1648,7 @@ public class DefaultRoutingHandler {
      *
      * @param deviceId Switch ID to set the rules
      */
-    public void populatePortAddressingRules(DeviceId deviceId) {
+    void populatePortAddressingRules(DeviceId deviceId) {
         // Although device is added, sometimes device store does not have the
         // ports for this device yet. It results in missing filtering rules in the
         // switch. We will attempt it a few times. If it still does not work,

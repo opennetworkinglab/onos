@@ -358,14 +358,9 @@ public class HostHandlerTest {
         hostHandler.processHostMovedEvent(new HostEvent(HostEvent.Type.HOST_MOVED, host2, host1));
         assertEquals(2, ROUTING_TABLE.size());
         assertEquals(P1, ROUTING_TABLE.get(new MockRoutingTableKey(DEV3, HOST_IP11.toIpPrefix())).portNumber);
-        assertEquals(P9, ROUTING_TABLE.get(new MockRoutingTableKey(DEV4, HOST_IP11.toIpPrefix())).portNumber);
+        assertEquals(P1, ROUTING_TABLE.get(new MockRoutingTableKey(DEV4, HOST_IP11.toIpPrefix())).portNumber);
         assertEquals(2, BRIDGING_TABLE.size());
         assertEquals(P1, BRIDGING_TABLE.get(new MockBridgingTableKey(DEV3, HOST_MAC, INTF_VLAN_UNTAGGED)).portNumber);
-        assertEquals(P9, BRIDGING_TABLE.get(new MockBridgingTableKey(DEV4, HOST_MAC, INTF_VLAN_UNTAGGED)).portNumber);
-        // FIXME: Delay event handling a little bit to wait for the previous redirection flows to be completed
-        //        The permanent solution would be introducing CompletableFuture and wait for it
-        Thread.sleep(HostHandler.HOST_MOVED_DELAY_MS + 50);
-        assertEquals(P1, ROUTING_TABLE.get(new MockRoutingTableKey(DEV4, HOST_IP11.toIpPrefix())).portNumber);
         assertEquals(P1, BRIDGING_TABLE.get(new MockBridgingTableKey(DEV4, HOST_MAC, INTF_VLAN_UNTAGGED)).portNumber);
     }
 
@@ -633,16 +628,10 @@ public class HostHandlerTest {
         assertEquals(4, ROUTING_TABLE.size());
         assertEquals(P1, ROUTING_TABLE.get(new MockRoutingTableKey(DEV3, HOST_IP11.toIpPrefix())).portNumber);
         assertEquals(P1, ROUTING_TABLE.get(new MockRoutingTableKey(DEV3, HOST_IP12.toIpPrefix())).portNumber);
-        assertEquals(P9, ROUTING_TABLE.get(new MockRoutingTableKey(DEV4, HOST_IP11.toIpPrefix())).portNumber);
-        assertEquals(P9, ROUTING_TABLE.get(new MockRoutingTableKey(DEV4, HOST_IP12.toIpPrefix())).portNumber);
-        assertEquals(2, BRIDGING_TABLE.size());
-        assertEquals(P1, BRIDGING_TABLE.get(new MockBridgingTableKey(DEV3, HOST_MAC, INTF_VLAN_UNTAGGED)).portNumber);
-        assertEquals(P9, BRIDGING_TABLE.get(new MockBridgingTableKey(DEV4, HOST_MAC, INTF_VLAN_UNTAGGED)).portNumber);
-        // FIXME: Delay event handling a little bit to wait for the previous redirection flows to be completed
-        //        The permanent solution would be introducing CompletableFuture and wait for it
-        Thread.sleep(HostHandler.HOST_MOVED_DELAY_MS + 50);
         assertEquals(P1, ROUTING_TABLE.get(new MockRoutingTableKey(DEV4, HOST_IP11.toIpPrefix())).portNumber);
         assertEquals(P1, ROUTING_TABLE.get(new MockRoutingTableKey(DEV4, HOST_IP12.toIpPrefix())).portNumber);
+        assertEquals(2, BRIDGING_TABLE.size());
+        assertEquals(P1, BRIDGING_TABLE.get(new MockBridgingTableKey(DEV3, HOST_MAC, INTF_VLAN_UNTAGGED)).portNumber);
         assertEquals(P1, BRIDGING_TABLE.get(new MockBridgingTableKey(DEV4, HOST_MAC, INTF_VLAN_UNTAGGED)).portNumber);
     }
 
@@ -756,13 +745,10 @@ public class HostHandlerTest {
         hostHandler.processHostMovedEvent(new HostEvent(HostEvent.Type.HOST_MOVED, host3, host2));
         assertEquals(2, ROUTING_TABLE.size());
         assertEquals(P1, ROUTING_TABLE.get(new MockRoutingTableKey(DEV3, HOST_IP11.toIpPrefix())).portNumber);
-        assertEquals(P9, ROUTING_TABLE.get(new MockRoutingTableKey(DEV4, HOST_IP11.toIpPrefix())).portNumber);
+        assertEquals(P1, ROUTING_TABLE.get(new MockRoutingTableKey(DEV4, HOST_IP11.toIpPrefix())).portNumber);
         assertEquals(2, BRIDGING_TABLE.size());
         assertEquals(P1, BRIDGING_TABLE.get(new MockBridgingTableKey(DEV3, HOST_MAC, INTF_VLAN_UNTAGGED)).portNumber);
-        assertEquals(P9, BRIDGING_TABLE.get(new MockBridgingTableKey(DEV4, HOST_MAC, INTF_VLAN_UNTAGGED)).portNumber);
-        // FIXME: Delay event handling a little bit to wait for the previous redirection flows to be completed
-        //        The permanent solution would be introducing CompletableFuture and wait for it
-        Thread.sleep(HostHandler.HOST_MOVED_DELAY_MS + 50);
+        assertEquals(P1, BRIDGING_TABLE.get(new MockBridgingTableKey(DEV4, HOST_MAC, INTF_VLAN_UNTAGGED)).portNumber);
         assertEquals(P1, ROUTING_TABLE.get(new MockRoutingTableKey(DEV4, HOST_IP11.toIpPrefix())).portNumber);
         assertEquals(P1, BRIDGING_TABLE.get(new MockBridgingTableKey(DEV4, HOST_MAC, INTF_VLAN_UNTAGGED)).portNumber);
     }
