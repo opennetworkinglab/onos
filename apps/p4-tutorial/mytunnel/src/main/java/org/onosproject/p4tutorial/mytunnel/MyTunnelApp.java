@@ -79,7 +79,7 @@ public class MyTunnelApp {
     private static final Logger log = getLogger(MyTunnelApp.class);
 
     //--------------------------------------------------------------------------
-    // ONOS services needed by this application.
+    // ONOS core services needed by this application.
     //--------------------------------------------------------------------------
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)

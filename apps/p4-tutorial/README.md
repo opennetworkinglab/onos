@@ -57,26 +57,33 @@ to the following questions:
 
 ### MyTunnel Pipeconf
 
-The `mytunnel.p4` program is provided to ONOS as part of a "pipeconf", along
-with the Java implementations of some ONOS driver behaviors necessary to
-control this pipeline.
+The `mytunnel.p4` program is provided to ONOS as part of a "pipeconf".
 
-The following Java classes are provided:
-
-* [PipeconfFactory.java](./pipeconf/src/main/java/org/onosproject/p4tutorial/pipeconf/PipeconfFactory.java):
+The main class used to implement the pipeconf is
+[PipeconfFactory.java](./pipeconf/src/main/java/org/onosproject/p4tutorial/pipeconf/PipeconfFactory.java).
 This class is declared as an OSGi component which is "activated" once the
-pipeconf application is loaded in ONOS. The main purpose of this class is to
+pipeconf app is loaded in ONOS. The main purpose of this class is to
 instantiate the Pipeconf object and register that with the corresponding service
 in ONOS. This is where we associate ONOS driver behaviors with the pipeconf, and
-also define the necessary pipeconf extensions to be able to program and control
-a BMv2 switch via P4Runtime, namelly the BMv2 JSON configuration and the P4Info
-file.
+also define the necessary pipeconf extensions to be able to deploy the P4
+program to a device.
+
+This pipeconf contains:
+ 
+* [mytunnel.json](/apps/p4-tutorial/pipeconf/src/main/resources/mytunnel.json): 
+The BMv2 JSON configuration used to execute the P4 program. This is an output of
+the P4 compiler for BMv2.
+
+* [mytunnel.p4info](/apps/p4-tutorial/pipeconf/src/main/resources/mytunnel.p4info):
+P4Info file obtained from the P4 compiler.
 
 * [PipelineInterpreterImple.java](./pipeconf/src/main/java/org/onosproject/p4tutorial/pipeconf/PipelineInterpreterImpl.java):
 Implementation of the `PipelineInterpreter` ONOS driver behavior. The main
 purpose of this class is to provide a mapping between ONOS constructs and P4
 program-specific ones, for example methods to map ONOS well-known header fields
-and actions to those defined in the P4 program.
+and actions to those defined in the P4 program. For a more detailed explanation
+of each method, check the
+[PipelineInterpreter interface](./core/api/src/main/java/org/onosproject/net/pi/model/PiPipelineInterpreter.java).
 
 * [PortStatisticsDiscoveryImpl.java](./pipeconf/src/main/java/org/onosproject/p4tutorial/pipeconf/PipelineInterpreterImpl.java):
 Implementation of the `PortStatisticsDiscovery` ONOS driver behavior. As the
@@ -87,14 +94,10 @@ implementation works by reading the value of two P4 counters defined in
 
 ### MyTunnel App
 
-This application is used to provide connectivity between each pair of hosts via
+This app is used to provide connectivity between each pair of hosts via
 the MyTunnel protocol. The implementation can be found
-[here](./mytunnel/src/main/java/org/onosproject/p4tutorial/mytunnel/MyTunnelApp.java).
-
-The application works by registering an host listener with the ONOS Host
-Service. Every time a new host is discovered, the application creates two
-unidirectional tunnels between that host and any other host previously
-discovered.
+[here](./mytunnel/src/main/java/org/onosproject/p4tutorial/mytunnel/MyTunnelApp.java),
+and it will be discussed in more details on Exercise 2.
 
 ## Tutorial exercises
 
@@ -103,7 +106,7 @@ discovered.
 [Click here to go to this exercise instructions](./exercise-1.md)
 
 This exercise shows how to start ONOS and Mininet with BMv2, it also
-demonstrates connectivity between hosts using the pipeline-agnostic application
+demonstrates connectivity between hosts using the pipeline-agnostic app
 Reactive Forwarding, in combination with other well known ONOS services such as
 Proxy ARP, Host Location Provider, and LLDP Link Discovery.
 
@@ -112,4 +115,4 @@ Proxy ARP, Host Location Provider, and LLDP Link Discovery.
 [Click here to go to this exercise instructions](./exercise-2.md)
 
 Similar to exercise 1, but here connectivity between hosts is demonstrated using
-pipeline-specific application "MyTunnel".
+pipeline-specific app "MyTunnel".
