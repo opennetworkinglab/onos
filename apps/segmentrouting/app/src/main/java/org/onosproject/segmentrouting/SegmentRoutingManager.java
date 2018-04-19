@@ -492,6 +492,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         processor = null;
         linkListener = null;
         deviceListener = null;
+        groupHandlerMap.forEach((k, v) -> v.shutdown());
         groupHandlerMap.clear();
 
         dsNextObjStore.destroy();
