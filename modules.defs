@@ -110,6 +110,7 @@ ONOS_DRIVERS = [
     '//drivers/oplink:onos-drivers-oplink-oar',
     '//drivers/bmv2:onos-drivers-bmv2-oar',
     '//drivers/barefoot:onos-drivers-barefoot-oar',
+    '//drivers/mellanox:onos-drivers-mellanox-oar',
     '//drivers/hp:onos-drivers-hp-oar',
     '//drivers/p4runtime:onos-drivers-p4runtime-oar',
     '//drivers/gnmi:onos-drivers-gnmi-oar',
