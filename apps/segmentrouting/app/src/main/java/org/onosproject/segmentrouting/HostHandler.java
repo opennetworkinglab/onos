@@ -36,9 +36,6 @@ import com.google.common.collect.Sets;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -165,17 +162,7 @@ public class HostHandler {
         Set<HostLocation> newLocations = event.subject().locations();
         Set<IpAddress> newIps = event.subject().ipAddresses();
 
-        // FIXME: Delay event handling a little bit to wait for the previous redirection flows to be completed
-        //        The permanent solution would be introducing CompletableFuture and wait for it
-        if (prevLocations.size() == 1 && newLocations.size() == 2) {
-            log.debug("Delay event handling when host {}/{} moves from 1 to 2 locations", hostMac, hostVlanId);
-            ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
-            executorService.schedule(() ->
-                    processHostMoved(hostMac, hostVlanId, prevLocations, prevIps, newLocations, newIps),
-                    HOST_MOVED_DELAY_MS, TimeUnit.MILLISECONDS);
-        } else {
-            processHostMoved(hostMac, hostVlanId, prevLocations, prevIps, newLocations, newIps);
-        }
+        processHostMoved(hostMac, hostVlanId, prevLocations, prevIps, newLocations, newIps);
     }
 
     private void processHostMoved(MacAddress hostMac, VlanId hostVlanId, Set<HostLocation> prevLocations,
@@ -209,7 +196,7 @@ public class HostHandler {
                 return;
             }
 
-            // Remove bridging rule and routing rules for unchanged IPs if the host moves from a switch to another.
+            // Remove flows for unchanged IPs only when the host moves from a switch to another.
             // Otherwise, do not remove and let the adding part update the old flow
             if (!newDeviceIds.contains(prevLocation.deviceId())) {
                 processBridgingRule(prevLocation.deviceId(), prevLocation.port(), hostMac, hostVlanId, true);
@@ -245,8 +232,7 @@ public class HostHandler {
         });
 
         // For each new location, add all new IPs.
-        Sets.difference(newLocations, prevLocations).stream()
-                .forEach(newLocation -> {
+        Sets.difference(newLocations, prevLocations).forEach(newLocation -> {
             processBridgingRule(newLocation.deviceId(), newLocation.port(), hostMac, hostVlanId, false);
             newIps.forEach(ip ->
                     processRoutingRule(newLocation.deviceId(), newLocation.port(), hostMac, hostVlanId,
@@ -255,8 +241,7 @@ public class HostHandler {
         });
 
         // For each unchanged location, add new IPs and remove old IPs.
-        Sets.intersection(newLocations, prevLocations).stream()
-                .forEach(unchangedLocation -> {
+        Sets.intersection(newLocations, prevLocations).forEach(unchangedLocation -> {
             Sets.difference(prevIps, newIps).forEach(ip ->
                     processRoutingRule(unchangedLocation.deviceId(), unchangedLocation.port(), hostMac,
                             hostVlanId, ip, true)

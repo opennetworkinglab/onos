@@ -16,10 +16,6 @@
 
 package org.onosproject.segmentrouting;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.RemovalCause;
-import com.google.common.cache.RemovalNotification;
 import com.google.common.collect.Sets;
 
 import org.onlab.packet.IpPrefix;
@@ -40,8 +36,6 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -51,35 +45,8 @@ public class RouteHandler {
     private static final Logger log = LoggerFactory.getLogger(RouteHandler.class);
     private final SegmentRoutingManager srManager;
 
-    private static final int WAIT_TIME_MS = 1000;
-    /**
-     * The routeEventCache is implemented to avoid race condition by giving more time to the
-     * underlying flow subsystem to process previous populateSubnet call.
-     */
-    private Cache<IpPrefix, RouteEvent> routeEventCache = CacheBuilder.newBuilder()
-            .expireAfterWrite(WAIT_TIME_MS, TimeUnit.MILLISECONDS)
-            .removalListener((RemovalNotification<IpPrefix, RouteEvent> notification) -> {
-                IpPrefix prefix = notification.getKey();
-                RouteEvent routeEvent = notification.getValue();
-                RemovalCause cause = notification.getCause();
-                log.debug("routeEventCache removal event. prefix={}, routeEvent={}, cause={}",
-                        prefix, routeEvent, cause);
-
-                switch (notification.getCause()) {
-                    case REPLACED:
-                    case EXPIRED:
-                        dequeueRouteEvent(routeEvent);
-                        break;
-                    default:
-                        break;
-                }
-            }).build();
-
     RouteHandler(SegmentRoutingManager srManager) {
         this.srManager = srManager;
-
-        Executors.newSingleThreadScheduledExecutor()
-                .scheduleAtFixedRate(routeEventCache::cleanUp, 0, WAIT_TIME_MS, TimeUnit.MILLISECONDS);
     }
 
     protected void init(DeviceId deviceId) {
@@ -98,7 +65,7 @@ public class RouteHandler {
     }
 
     void processRouteAdded(RouteEvent event) {
-        enqueueRouteEvent(event);
+        processRouteAddedInternal(event.alternatives());
     }
 
     private void processRouteAddedInternal(Collection<ResolvedRoute> routes) {
@@ -140,11 +107,13 @@ public class RouteHandler {
     }
 
     void processRouteUpdated(RouteEvent event) {
-        enqueueRouteEvent(event);
+        processRouteUpdatedInternal(Sets.newHashSet(event.alternatives()),
+                Sets.newHashSet(event.prevAlternatives()));
     }
 
     void processAlternativeRoutesChanged(RouteEvent event) {
-        enqueueRouteEvent(event);
+        processRouteUpdatedInternal(Sets.newHashSet(event.alternatives()),
+                Sets.newHashSet(event.prevAlternatives()));
     }
 
     private void processRouteUpdatedInternal(Set<ResolvedRoute> routes, Set<ResolvedRoute> oldRoutes) {
@@ -212,7 +181,7 @@ public class RouteHandler {
     }
 
     void processRouteRemoved(RouteEvent event) {
-        enqueueRouteEvent(event);
+        processRouteRemovedInternal(event.alternatives());
     }
 
     private void processRouteRemovedInternal(Collection<ResolvedRoute> routes) {
@@ -268,6 +237,9 @@ public class RouteHandler {
             Set<HostLocation> prevLocations = event.prevSubject().locations();
             Set<HostLocation> newLocations = event.subject().locations();
 
+            Set<DeviceId> newDeviceIds = newLocations.stream().map(HostLocation::deviceId)
+                    .collect(Collectors.toSet());
+
             // For each old location
             Sets.difference(prevLocations, newLocations).forEach(prevLocation -> {
                 // Redirect the flows to pair link if configured
@@ -285,10 +257,14 @@ public class RouteHandler {
                     return;
                 }
 
-                // No pair information supplied. Remove route
-                log.debug("HostMoved. revokeRoute {}, {}, {}, {}", prevLocation, prefix, hostMac, hostVlanId);
-                srManager.defaultRoutingHandler.revokeRoute(prevLocation.deviceId(), prefix,
-                        hostMac, hostVlanId, prevLocation.port());
+                // No pair information supplied.
+                // Remove flows for unchanged IPs only when the host moves from a switch to another.
+                // Otherwise, do not remove and let the adding part update the old flow
+                if (!newDeviceIds.contains(prevLocation.deviceId())) {
+                    log.debug("HostMoved. revokeRoute {}, {}, {}, {}", prevLocation, prefix, hostMac, hostVlanId);
+                    srManager.defaultRoutingHandler.revokeRoute(prevLocation.deviceId(), prefix,
+                            hostMac, hostVlanId, prevLocation.port());
+                }
             });
 
             // For each new location, add all new IPs.
@@ -314,29 +290,5 @@ public class RouteHandler {
     private boolean isReady() {
         return Objects.nonNull(srManager.deviceConfiguration) &&
                 Objects.nonNull(srManager.defaultRoutingHandler);
-    }
-
-    void enqueueRouteEvent(RouteEvent routeEvent) {
-        log.debug("Enqueue routeEvent {}", routeEvent);
-        routeEventCache.put(routeEvent.subject().prefix(), routeEvent);
-    }
-
-    void dequeueRouteEvent(RouteEvent routeEvent) {
-        log.debug("Dequeue routeEvent {}", routeEvent);
-        switch (routeEvent.type()) {
-            case ROUTE_ADDED:
-                processRouteAddedInternal(routeEvent.alternatives());
-                break;
-            case ROUTE_REMOVED:
-                processRouteRemovedInternal(routeEvent.alternatives());
-                break;
-            case ROUTE_UPDATED:
-            case ALTERNATIVE_ROUTES_CHANGED:
-                processRouteUpdatedInternal(Sets.newHashSet(routeEvent.alternatives()),
-                        Sets.newHashSet(routeEvent.prevAlternatives()));
-                break;
-            default:
-                break;
-        }
     }
 }

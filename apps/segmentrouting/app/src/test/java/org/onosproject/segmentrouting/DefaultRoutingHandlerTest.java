@@ -66,6 +66,12 @@ public class DefaultRoutingHandlerTest {
         dfh = new DefaultRoutingHandler(srManager);
     }
 
+    private void clearCache() {
+        dfh.invalidateShouldProgramCache(DEV1A);
+        dfh.invalidateShouldProgramCache(DEV1B);
+        dfh.invalidateShouldProgramCache(DEV2);
+    }
+
     // Node 1 is the master of switch 1A, 1B, and 2
     @Test
     public void testShouldHandleRoutingCase1() {
@@ -87,6 +93,7 @@ public class DefaultRoutingHandlerTest {
         assertTrue(dfh.shouldProgram(DEV2));
 
         reset(srManager.clusterService);
+        clearCache();
 
         // Node 2 should program no device
         expect(srManager.clusterService.getLocalNode()).andReturn(new DefaultControllerNode(NODE2, IP2)).anyTimes();
@@ -96,6 +103,7 @@ public class DefaultRoutingHandlerTest {
         assertFalse(dfh.shouldProgram(DEV2));
 
         reset(srManager.clusterService);
+        clearCache();
 
         // Node 3 should program no device
         expect(srManager.clusterService.getLocalNode()).andReturn(new DefaultControllerNode(NODE3, IP3)).anyTimes();
@@ -127,6 +135,7 @@ public class DefaultRoutingHandlerTest {
         assertFalse(dfh.shouldProgram(DEV2));
 
         reset(srManager.clusterService);
+        clearCache();
 
         // Node 2 should program 2
         expect(srManager.clusterService.getLocalNode()).andReturn(new DefaultControllerNode(NODE2, IP2)).anyTimes();
@@ -136,6 +145,7 @@ public class DefaultRoutingHandlerTest {
         assertTrue(dfh.shouldProgram(DEV2));
 
         reset(srManager.clusterService);
+        clearCache();
 
         // Node 3 should program no device
         expect(srManager.clusterService.getLocalNode()).andReturn(new DefaultControllerNode(NODE3, IP3)).anyTimes();
@@ -168,6 +178,7 @@ public class DefaultRoutingHandlerTest {
         assertFalse(dfh.shouldProgram(DEV2));
 
         reset(srManager.clusterService);
+        clearCache();
 
         // Node 2 should program no device
         expect(srManager.clusterService.getLocalNode()).andReturn(new DefaultControllerNode(NODE2, IP2)).anyTimes();
@@ -177,6 +188,7 @@ public class DefaultRoutingHandlerTest {
         assertFalse(dfh.shouldProgram(DEV2));
 
         reset(srManager.clusterService);
+        clearCache();
 
         // Node 3 should program 2
         expect(srManager.clusterService.getLocalNode()).andReturn(new DefaultControllerNode(NODE3, IP3)).anyTimes();
@@ -208,6 +220,7 @@ public class DefaultRoutingHandlerTest {
         assertFalse(dfh.shouldProgram(DEV2));
 
         reset(srManager.clusterService);
+        clearCache();
 
         // Node 2 should program no device
         expect(srManager.clusterService.getLocalNode()).andReturn(new DefaultControllerNode(NODE2, IP2)).anyTimes();
@@ -217,6 +230,7 @@ public class DefaultRoutingHandlerTest {
         assertFalse(dfh.shouldProgram(DEV2));
 
         reset(srManager.clusterService);
+        clearCache();
 
         // Node 3 should program 1A, 1B and 2
         expect(srManager.clusterService.getLocalNode()).andReturn(new DefaultControllerNode(NODE3, IP3)).anyTimes();
@@ -233,6 +247,7 @@ public class DefaultRoutingHandlerTest {
         replay(srManager.mastershipService);
 
         reset(srManager.clusterService);
+        clearCache();
 
         // Node 1 should program 1A, 1B
         expect(srManager.clusterService.getLocalNode()).andReturn(new DefaultControllerNode(NODE1, IP1)).anyTimes();
@@ -242,6 +257,7 @@ public class DefaultRoutingHandlerTest {
         assertFalse(dfh.shouldProgram(DEV2));
 
         reset(srManager.clusterService);
+        clearCache();
 
         // Node 2 should program no device
         expect(srManager.clusterService.getLocalNode()).andReturn(new DefaultControllerNode(NODE2, IP2)).anyTimes();
@@ -251,6 +267,7 @@ public class DefaultRoutingHandlerTest {
         assertFalse(dfh.shouldProgram(DEV2));
 
         reset(srManager.clusterService);
+        clearCache();
 
         // Node 3 should program 2
         expect(srManager.clusterService.getLocalNode()).andReturn(new DefaultControllerNode(NODE3, IP3)).anyTimes();
@@ -279,6 +296,7 @@ public class DefaultRoutingHandlerTest {
         assertTrue(dfh.shouldProgram(DEV1B));
 
         reset(srManager.clusterService);
+        clearCache();
 
         // Node 2 should program no device
         expect(srManager.clusterService.getLocalNode()).andReturn(new DefaultControllerNode(NODE2, IP2)).anyTimes();
@@ -293,6 +311,7 @@ public class DefaultRoutingHandlerTest {
         replay(srManager.mastershipService);
 
         reset(srManager.clusterService);
+        clearCache();
 
         // Node 1 should program 1A, 1B
         expect(srManager.clusterService.getLocalNode()).andReturn(new DefaultControllerNode(NODE1, IP1)).anyTimes();
@@ -301,6 +320,7 @@ public class DefaultRoutingHandlerTest {
         assertTrue(dfh.shouldProgram(DEV1B));
 
         reset(srManager.clusterService);
+        clearCache();
 
         // Node 2 should program no device
         expect(srManager.clusterService.getLocalNode()).andReturn(new DefaultControllerNode(NODE2, IP2)).anyTimes();
@@ -327,6 +347,7 @@ public class DefaultRoutingHandlerTest {
         assertFalse(dfh.shouldProgram(DEV1B));
 
         reset(srManager.clusterService);
+        clearCache();
 
         // Node 2 should program no device
         expect(srManager.clusterService.getLocalNode()).andReturn(new DefaultControllerNode(NODE2, IP2)).anyTimes();

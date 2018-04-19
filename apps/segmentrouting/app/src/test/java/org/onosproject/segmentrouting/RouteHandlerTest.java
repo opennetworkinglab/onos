@@ -170,13 +170,7 @@ public class RouteHandlerTest {
         srManager.cfgService = mockNetworkConfigRegistry;
         srManager.routeService = new MockRouteService(ROUTE_STORE);
 
-        routeHandler = new RouteHandler(srManager) {
-            // routeEventCache is not necessary for unit tests
-            @Override
-            void enqueueRouteEvent(RouteEvent routeEvent) {
-                dequeueRouteEvent(routeEvent);
-            }
-        };
+        routeHandler = new RouteHandler(srManager);
 
         ROUTING_TABLE.clear();
         BRIDGING_TABLE.clear();
