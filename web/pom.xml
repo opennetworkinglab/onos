@@ -32,6 +32,7 @@
 
     <modules>
         <module>gui</module>
+        <module>gui2</module>
         <module>api</module>
     </modules>
 

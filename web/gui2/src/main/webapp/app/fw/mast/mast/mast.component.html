@@ -1,0 +1,25 @@
+<div id="mast" align="left">
+    <span class="nav-menu-button clickable" (click)="ns.toggleNav()">
+        <img src="data/img/nav-menu-mojo.png"/>
+    </span>
+    <img class="logo" src="data/img/masthead-logo-mojo.png">
+    <div id="mast-right">
+        <nav>
+            <div class="dropdown-parent">
+                <a class="clickable user-menu__name">{{username}} <i class="dropdown-icon"></i></a>
+                <div class="dropdown">
+                    <!--<a href="rs/logout"> {{getLion('logout')}} </a> !!FIXME-->
+                    <a href="rs/logout">logout</a>
+                </div>
+            </div>
+            <div class="ctrl-btns">
+                <div class="active clickable icon"
+                     tooltip tt-msg="helpTip"
+                     ng-click="directTo()">
+                    <onos-icon iconId="query" iconSize="32"></onos-icon>
+                </div>
+            </div>
+        </nav>
+
+    </div>
+</div>

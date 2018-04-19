@@ -129,6 +129,17 @@ osgi_feature (
 )
 
 osgi_feature (
+  name = 'onos-gui2',
+  title = 'ONOS GUI2 console components',
+  required_features = ['onos-api', 'onos-thirdparty-web'],
+  included_bundles = [
+    '//lib:jetty-websocket',
+    '//utils/rest:onlab-rest',
+    '//web/gui2:onos-gui2',
+  ]
+)
+
+osgi_feature (
   name = 'onos-cli',
   title="ONOS admin command console components",
   required_features = ['onos-api'],

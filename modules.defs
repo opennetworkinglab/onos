@@ -79,6 +79,7 @@ CORE = UTILS + API + [
     '//providers/p4runtime/packet:onos-providers-p4runtime-packet',
 
     '//web/api:onos-rest',
+    '//web/gui2:onos-gui2',
     '//web/gui:onos-gui',
 
     '//incubator/protobuf/models:onos-incubator-protobuf-models',

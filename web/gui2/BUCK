@@ -1,0 +1,76 @@
+
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:JACKSON',
+    '//lib:KRYO',
+    '//lib:javax.ws.rs-api',
+    '//lib:servlet-api',
+    '//lib:jetty-websocket',
+    '//lib:jetty-util',
+    '//lib:jersey-media-multipart',
+    '//lib:org.apache.karaf.shell.console',
+    '//cli:onos-cli',
+    '//lib:jersey-server',
+    '//incubator/api:onos-incubator-api',
+    '//incubator/net:onos-incubator-net',
+    '//utils/rest:onlab-rest',
+    '//core/store/serializers:onos-core-serializers',
+    ':node-release-v8.11.1',
+    ':node-bin-v8.11.1',
+    '//web/gui2:onos-web-gui2-build',
+]
+
+TEST_DEPS = [
+    '//lib:TEST',
+    '//core/api:onos-api-tests',
+    '//drivers/default:onos-drivers-default',
+]
+
+include_defs('//bucklets/node.bucklet')
+
+fetch_node(version = 'v8.11.1')
+
+genrule(
+    name = 'onos-web-gui2-build',
+    srcs = glob([
+            './**/*.json',
+            'src/main/webapp/**/*.ts',
+            'src/main/webapp/**/*.html',
+            'src/main/webapp/**/*.css',
+            'src/main/webapp/**/*.png'
+        ], excludes = [
+            'dist/**/*',
+            'node_modules/**/*',
+            'src/main/webapp/dist/**/*'
+        ]),
+    bash =
+#To avoid any older 'NodeJS' installations it is necessary to use only the one
+# associated with this project - Angular 6 won't work on older releases
+        'export PATH=$(location :node-bin-v8.11.1)/bin:$PATH; '
+        + 'echo $PATH;'
+        + '$(location :node-bin-v8.11.1)/bin/node -v;'
+        + 'ORIGPATH=`pwd`;'
+        + 'cd $(location :node-bin-v8.11.1)/bin &&'
+        + 'ln -sf ../lib/node_modules/npm/bin/npm-cli.js npm5 &&'
+        + 'cd $ORIGPATH &&'
+# The symlink to npm is not always created properly by the BUCK job that
+# untars it. It's safer to have our own symlink 'npm5'
+        + 'npm5 -v;'
+        + 'npm5 install -g @angular/cli@6.0.0 2>&1;'
+        + 'npm5 install -g @compodoc/compodoc 2>&1;'
+        + 'npm5 install 2>&1;'
+        + 'ng -v;'
+        + 'ng build --preserve-symlinks --base-href /onos/ui2/dist/ --deploy-url /onos/ui2/dist/ --output-path=$OUT 2>&1;',
+    out = 'dist',
+    visibility = [ 'PUBLIC' ],
+)
+
+osgi_jar_with_tests (
+    name = 'onos-gui2',
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
+    resources = [':onos-web-gui2-build'],
+    resources_root = '.',
+    web_context = '/onos/ui2',
+    do_javadocs = False,
+)

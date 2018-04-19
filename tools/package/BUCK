@@ -10,6 +10,7 @@ FEATURES = [
   '//features:onos-incubator',
   '//features:onos-rest',
   '//features:onos-gui',
+  '//features:onos-gui2',
   '//features:onos-cli',
   '//features:onos-security',
 ]
