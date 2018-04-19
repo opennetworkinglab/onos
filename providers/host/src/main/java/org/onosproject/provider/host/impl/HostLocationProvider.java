@@ -93,12 +93,12 @@ import java.util.Dictionary;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import java.util.Set;
 
+import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -175,9 +175,8 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
 
     private int probeInitDelayMs = 1000;
 
-    protected ExecutorService eventHandler;
-
-    private int probeDelayMs = 1000;
+    ExecutorService eventHandler;
+    private ScheduledExecutorService hostProber;
 
     /**
      * Creates an OpenFlow host provider.
@@ -190,8 +189,8 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
     public void activate(ComponentContext context) {
         cfgService.registerProperties(getClass());
         appId = coreService.registerApplication("org.onosproject.provider.host");
-        eventHandler = newSingleThreadScheduledExecutor(
-                groupedThreads("onos/host-loc-provider", "event-handler", log));
+        eventHandler = newSingleThreadScheduledExecutor(groupedThreads("onos/host-loc-provider", "event-handler", log));
+        hostProber = newScheduledThreadPool(32, groupedThreads("onos/host-loc-probe", "%d", log));
         providerService = providerRegistry.register(this);
         packetService.addProcessor(processor, PacketProcessor.advisor(1));
         deviceService.addListener(deviceListener);
@@ -211,6 +210,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
         packetService.removeProcessor(processor);
         deviceService.removeListener(deviceListener);
         eventHandler.shutdown();
+        hostProber.shutdown();
         providerService = null;
         log.info("Stopped");
     }
@@ -370,8 +370,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
             }
 
             // NOTE: delay the probe a little bit to wait for the store synchronization is done
-            ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
-            executorService.schedule(() ->
+            hostProber.schedule(() ->
                     sendLocationProbe(probe, connectPoint), probeInitDelayMs, TimeUnit.MILLISECONDS);
         });
     }
