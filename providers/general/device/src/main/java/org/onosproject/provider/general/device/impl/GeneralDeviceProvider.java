@@ -790,18 +790,18 @@ public class GeneralDeviceProvider extends AbstractProvider
             DeviceId deviceId = event.subject().id();
             if (type.equals((Type.DEVICE_ADDED))) {
 
+                // FIXME handling for mastership change scenario missing?
+
                 //For now this is scheduled periodically, when streaming API will
                 // be available we check and base it on the streaming API (e.g. gNMI)
                 if (mastershipService.isLocalMaster(deviceId)) {
                     scheduledTasks.put(deviceId, schedulePolling(deviceId, false));
-                    updatePortStatistics(deviceId);
                 }
 
             } else if (type.equals(Type.DEVICE_REMOVED)) {
 
                 //Passing the whole device object to get driver information
-                connectionExecutor.submit(exceptionSafe(() ->
-                        disconnectDevice(event.subject())));
+                connectionExecutor.execute(() -> disconnectDevice(event.subject()));
             }
         }
 
