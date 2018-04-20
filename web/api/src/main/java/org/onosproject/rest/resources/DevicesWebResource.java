@@ -15,24 +15,33 @@
  */
 package org.onosproject.rest.resources;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceAdminService;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.rest.AbstractWebResource;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.util.Tools.nullIsNotFound;
+import static org.onlab.util.Tools.readTreeFromStream;
 import static org.onosproject.net.DeviceId.deviceId;
 
 /**
@@ -41,7 +50,10 @@ import static org.onosproject.net.DeviceId.deviceId;
 @Path("devices")
 public class DevicesWebResource extends AbstractWebResource {
 
+    private static final String ENABLED = "enabled";
+
     private static final String DEVICE_NOT_FOUND = "Device is not found";
+    private static final String INVALID_JSON = "Invalid JSON data";
 
     /**
      * Gets all infrastructure devices.
@@ -111,6 +123,43 @@ public class DevicesWebResource extends AbstractWebResource {
         ObjectNode result = codec(Device.class).encode(device, this);
         result.set("ports", codec(Port.class).encode(ports, this));
         return ok(result).build();
+    }
+
+    /**
+     * Changes the administrative state of a port.
+     *
+     * @onos.rsModel PortAdministrativeState
+     * @param id device identifier
+     * @param portId port number
+     * @param stream input JSON
+     * @return 200 OK if the port state was set to the given value
+     */
+    @POST
+    @Path("{id}/portstate/{port_id}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response setPortState(@PathParam("id") String id,
+                                 @PathParam("port_id") String portId,
+                                 InputStream stream) {
+        try {
+            DeviceId deviceId = deviceId(id);
+            PortNumber portNumber = PortNumber.portNumber(portId);
+            nullIsNotFound(get(DeviceService.class).getPort(
+                    new ConnectPoint(deviceId, portNumber)), DEVICE_NOT_FOUND);
+
+            ObjectNode root = readTreeFromStream(mapper(), stream);
+            JsonNode node = root.path(ENABLED);
+
+            if (!node.isMissingNode()) {
+                get(DeviceAdminService.class)
+                        .changePortState(deviceId, portNumber, node.asBoolean());
+                return Response.ok().build();
+            }
+
+            throw new IllegalArgumentException(INVALID_JSON);
+        } catch (IOException ioe) {
+            throw new IllegalArgumentException(ioe);
+        }
     }
 
 }
