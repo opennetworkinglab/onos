@@ -53,6 +53,14 @@
         </command>
 
         <command>
+            <action class="org.onosproject.cli.net.FlowObjectiveQueueListCommand"/>
+        </command>
+
+        <command>
+            <action class="org.onosproject.cli.net.FlowObjectiveQueueClearCommand"/>
+        </command>
+
+        <command>
             <action class="org.onosproject.cli.net.FlowObjectiveCompositionCommand"/>
         </command>
 

@@ -18,7 +18,12 @@ package org.onosproject.net.flowobjective;
 import com.google.common.annotations.Beta;
 
 import java.util.List;
+import java.util.Map;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Maps;
+import org.apache.commons.lang.NotImplementedException;
 import org.onosproject.net.DeviceId;
 
 /**
@@ -111,14 +116,48 @@ public interface FlowObjectiveService {
     List<String> getPendingFlowObjectives();
 
     /**
-     * Retrieve all nextObjectives that are waiting to hear back from device
-     * drivers, and the forwarding-objectives or next-objectives that are waiting
-     * on the successful completion of the original next-objectives.
+     * Returns all filtering objective that are waiting for the completion of previous objective
+     * with the same FilteringObjQueueKey.
      *
-     * @return a list of strings preformatted by the device-drivers to provide
-     *         information on next-id to group-id mapping.
+     * @return Filtering objective queue as map
      */
-    @Deprecated
-    List<String> getPendingNexts();
+    default ListMultimap<FilteringObjQueueKey, Objective> getFilteringObjQueue() {
+        return ArrayListMultimap.create();
+    }
 
+    /**
+     * Returns all forwarding objective that are waiting for the completion of previous objective
+     * with the same ForwardingObjQueueKey.
+     *
+     * @return Forwarding objective queue as map
+     */
+    default ListMultimap<ForwardingObjQueueKey, Objective> getForwardingObjQueue() {
+        return ArrayListMultimap.create();
+    }
+
+    /**
+     * Returns all next objective that are waiting for the completion of previous objective
+     * with the same NextObjQueueKey.
+     *
+     * @return Next objective queue as map
+     */
+    default ListMultimap<NextObjQueueKey, Objective> getNextObjQueue() {
+        return ArrayListMultimap.create();
+    }
+
+    default Map<FilteringObjQueueKey, Objective> getFilteringObjQueueHead() {
+        return Maps.newHashMap();
+    }
+
+    default Map<ForwardingObjQueueKey, Objective> getForwardingObjQueueHead() {
+        return Maps.newHashMap();
+    }
+
+    default Map<NextObjQueueKey, Objective> getNextObjQueueHead() {
+        return Maps.newHashMap();
+    }
+
+    default void clearQueue() {
+        throw new NotImplementedException("clearQueue is not implemented");
+    }
 }
