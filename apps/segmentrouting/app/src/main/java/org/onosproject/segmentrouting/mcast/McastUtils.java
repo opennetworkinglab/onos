@@ -93,6 +93,13 @@ class McastUtils {
     }
 
     /**
+     * Clean up when deactivating the application.
+     */
+    public void terminate() {
+        mcastLeaderCache.clear();
+    }
+
+    /**
      * Get router mac using application config and the connect point.
      *
      * @param deviceId the device id
