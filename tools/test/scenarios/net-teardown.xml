@@ -17,6 +17,8 @@
     <group name="Net-Teardown">
         <step name="Stop-Mininet" exec="onos-mininet stop"/>
         <step name="Cleanup-Mininet" exec="onos-mininet cleanup" requires="~Stop-Mininet"/>
-        <XXXstep name="Wipe-Out-Data-After" requires="~Stop-Mininet" exec="onos-wipe-out"/>
+        <!--
+        <step name="Wipe-Out-Data-After" requires="~Stop-Mininet" exec="onos-wipe-out"/>
+        -->
     </group>
 </scenario>

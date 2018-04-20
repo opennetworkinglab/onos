@@ -5,7 +5,7 @@
 
 . $ONOS_ROOT/tools/build/envDefaults
 
-VER=${STC_VERSION:-2.4}
+VER=${STC_VERSION:-2.5}
 MVN_JAR=org/onosproject/onos-stc/$VER/onos-stc-$VER.jar
 JAR=${MAVEN_REPO:-$HOME/.m2/repository}/$MVN_JAR
 SCENARIOS=$ONOS_ROOT/tools/test/scenarios
