@@ -1,0 +1,22 @@
+<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <get>
+    <filter type="subtree">
+      <oc-platform:components xmlns:oc-platform="http://openconfig.net/yang/platform">
+        <oc-platform:component>
+          <oc-platform:name>CN5170</oc-platform:name>
+          <oc-platform:state>
+            <oc-platform:name/>
+            <oc-platform:mfg-name/>
+            <oc-platform:serial-no/>
+            <oc-platform:version/>
+          </oc-platform:state>
+          <oc-platform:properties>
+            <oc-platform:property>
+                <oc-platform:name>base-mac</oc-platform:name>
+            </oc-platform:property>
+          </oc-platform:properties>
+        </oc-platform:component>
+      </oc-platform:components>
+    </filter>
+  </get>
+</rpc>

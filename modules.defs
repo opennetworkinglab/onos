@@ -92,6 +92,8 @@ ONOS_DRIVERS = [
     # TODO ONOS-5554 excluding from the build
     #'//drivers/bti:onos-drivers-bti-oar',
     '//drivers/ciena/waveserver:onos-drivers-ciena-waveserver-oar',
+    '//drivers/ciena/c5162:onos-drivers-ciena-c5162-oar',
+    '//drivers/ciena/c5170:onos-drivers-ciena-c5170-oar',
     # TODO in-progress '//drivers/ciena/waveserverai:onos-drivers-ciena-waveserverai-oar',
     '//drivers/cisco/netconf:onos-drivers-cisco-netconf-oar',
     '//drivers/cisco/rest:onos-drivers-cisco-rest-oar',

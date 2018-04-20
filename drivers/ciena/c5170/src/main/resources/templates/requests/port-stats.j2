@@ -1,0 +1,16 @@
+<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+    <get>
+        <filter type="subtree">
+            <oc-if:interfaces xmlns:oc-if="http://openconfig.net/yang/interfaces">
+                <oc-if:interface>
+                    <oc-if:config>
+                        <tt:type xmlns:tt="http://ciena.com/ns/yang/ciena-openconfig-interfaces" />
+                    </oc-if:config>
+                    <oc-if:state>
+                        <oc-if:counters />
+                    </oc-if:state>
+                </oc-if:interface>
+            </oc-if:interfaces>
+        </filter>
+    </get>
+</rpc>

@@ -1,0 +1,17 @@
+<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+    <edit-config>
+        <target>
+            <running />
+        </target>
+        <config>
+            <interfaces xmlns="http://openconfig.net/yang/interfaces" xmlns:ncx="http://netconfcentral.org/ns/yuma-ncx">
+                <interface>
+                    <name>{{port-number}}</name>
+                    <config>
+                        <admin-status xmlns="http://ciena.com/ns/yang/ciena-openconfig-interfaces">{{admin-state}}</admin-status>
+                    </config>
+                </interface>
+            </interfaces>
+        </config>
+    </edit-config>
+</rpc>

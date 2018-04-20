@@ -1,0 +1,11 @@
+<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <get>
+    <filter type="subtree">
+      <ciena-software-mgmt:software-state xmlns:ciena-software-mgmt="http://www.ciena.com/ns/yang/ciena-software-mgmt">
+        <ciena-software-mgmt:running-package>
+          <ciena-software-mgmt:package-version/>
+        </ciena-software-mgmt:running-package>
+      </ciena-software-mgmt:software-state>
+    </filter>
+  </get>
+</rpc>
