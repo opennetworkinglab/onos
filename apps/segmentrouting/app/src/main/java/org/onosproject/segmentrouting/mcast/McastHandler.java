@@ -351,7 +351,12 @@ public class McastHandler {
      * Clean up when deactivating the application.
      */
     public void terminate() {
+        mcastEventCache.invalidateAll();
         executorService.shutdown();
+        mcastNextObjStore.destroy();
+        mcastRoleStore.destroy();
+        mcastUtils.terminate();
+        log.info("Terminated");
     }
 
     /**
@@ -371,7 +376,6 @@ public class McastHandler {
             enqueueMcastEvent(event);
         }
     }
-
 
     /**
      * Process the ROUTE_ADDED event.
