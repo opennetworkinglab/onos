@@ -241,11 +241,6 @@ public class VirtualNetworkFlowObjectiveManager extends AbstractVnetService
         return pendingFlowObjectives;
     }
 
-    @Override
-    public List<String> getPendingNexts() {
-        return getPendingFlowObjectives();
-    }
-
     private boolean queueFwdObjective(DeviceId deviceId, ForwardingObjective fwd) {
         boolean queued = false;
         synchronized (pendingForwards) {

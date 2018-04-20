@@ -29,11 +29,12 @@ import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.Tools;
 import org.onlab.util.Tools.LogLevel;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.flow.TrafficSelector;
-import org.onosproject.net.flow.criteria.Criterion;
+import org.onosproject.net.flowobjective.FilteringObjQueueKey;
 import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveStoreDelegate;
+import org.onosproject.net.flowobjective.ForwardingObjQueueKey;
 import org.onosproject.net.flowobjective.ForwardingObjective;
+import org.onosproject.net.flowobjective.NextObjQueueKey;
 import org.onosproject.net.flowobjective.NextObjective;
 import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.flowobjective.ObjectiveContext;
@@ -43,7 +44,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
@@ -60,14 +61,14 @@ public class InOrderFlowObjectiveManager extends FlowObjectiveManager {
     // TODO Make queue timeout configurable
     static final int OBJ_TIMEOUT_MS = 5000;
 
-    private Cache<FiltObjQueueKey, Objective> filtObjQueueHead;
-    private Cache<FwdObjQueueKey, Objective> fwdObjQueueHead;
+    private Cache<FilteringObjQueueKey, Objective> filtObjQueueHead;
+    private Cache<ForwardingObjQueueKey, Objective> fwdObjQueueHead;
     private Cache<NextObjQueueKey, Objective> nextObjQueueHead;
     private ScheduledExecutorService cacheCleaner;
 
-    private ListMultimap<FiltObjQueueKey, Objective> filtObjQueue =
+    private ListMultimap<FilteringObjQueueKey, Objective> filtObjQueue =
             Multimaps.synchronizedListMultimap(ArrayListMultimap.create());
-    private ListMultimap<FwdObjQueueKey, Objective> fwdObjQueue =
+    private ListMultimap<ForwardingObjQueueKey, Objective> fwdObjQueue =
             Multimaps.synchronizedListMultimap(ArrayListMultimap.create());
     private ListMultimap<NextObjQueueKey, Objective> nextObjQueue =
             Multimaps.synchronizedListMultimap(ArrayListMultimap.create());
@@ -81,7 +82,7 @@ public class InOrderFlowObjectiveManager extends FlowObjectiveManager {
         // TODO Clean up duplicated code
         filtObjQueueHead = CacheBuilder.newBuilder()
                 .expireAfterWrite(OBJ_TIMEOUT_MS, TimeUnit.MILLISECONDS)
-                .removalListener((RemovalNotification<FiltObjQueueKey, Objective> notification) -> {
+                .removalListener((RemovalNotification<FilteringObjQueueKey, Objective> notification) -> {
                     Objective obj = notification.getValue();
                     switch (notification.getCause()) {
                         case EXPIRED:
@@ -97,7 +98,7 @@ public class InOrderFlowObjectiveManager extends FlowObjectiveManager {
                 }).build();
         fwdObjQueueHead = CacheBuilder.newBuilder()
                 .expireAfterWrite(OBJ_TIMEOUT_MS, TimeUnit.MILLISECONDS)
-                .removalListener((RemovalNotification<FwdObjQueueKey, Objective> notification) -> {
+                .removalListener((RemovalNotification<ForwardingObjQueueKey, Objective> notification) -> {
                     Objective obj = notification.getValue();
                     switch (notification.getCause()) {
                         case EXPIRED:
@@ -144,9 +145,7 @@ public class InOrderFlowObjectiveManager extends FlowObjectiveManager {
     @Deactivate
     protected void deactivate() {
         cacheCleaner.shutdown();
-        filtObjQueueHead.invalidateAll();
-        fwdObjQueueHead.invalidateAll();
-        nextObjQueueHead.invalidateAll();
+        clearQueue();
 
         super.deactivate();
     }
@@ -221,6 +220,51 @@ public class InOrderFlowObjectiveManager extends FlowObjectiveManager {
         process(deviceId, nextObjective);
     }
 
+    @Override
+    public ListMultimap<FilteringObjQueueKey, Objective> getFilteringObjQueue() {
+        return filtObjQueue;
+    }
+
+    @Override
+    public ListMultimap<ForwardingObjQueueKey, Objective> getForwardingObjQueue() {
+        return fwdObjQueue;
+    }
+
+    @Override
+    public ListMultimap<NextObjQueueKey, Objective> getNextObjQueue() {
+        return nextObjQueue;
+    }
+
+    @Override
+    public Map<FilteringObjQueueKey, Objective> getFilteringObjQueueHead() {
+        return filtObjQueueHead.asMap();
+    }
+
+    @Override
+    public Map<ForwardingObjQueueKey, Objective> getForwardingObjQueueHead() {
+        return fwdObjQueueHead.asMap();
+    }
+
+    @Override
+    public Map<NextObjQueueKey, Objective> getNextObjQueueHead() {
+        return nextObjQueueHead.asMap();
+    }
+
+    @Override
+    public void clearQueue() {
+        filtObjQueueHead.invalidateAll();
+        fwdObjQueueHead.invalidateAll();
+        nextObjQueueHead.invalidateAll();
+
+        filtObjQueueHead.cleanUp();
+        fwdObjQueueHead.cleanUp();
+        nextObjQueueHead.cleanUp();
+
+        filtObjQueue.clear();
+        fwdObjQueue.clear();
+        nextObjQueue.clear();
+    }
+
     /**
      * Enqueue flow objective. Execute the flow objective if there is no pending objective ahead.
      *
@@ -235,11 +279,12 @@ public class InOrderFlowObjectiveManager extends FlowObjectiveManager {
         Tools.log(log, logLevel, "Enqueue {}", obj);
 
         if (obj instanceof FilteringObjective) {
-            FiltObjQueueKey k = new FiltObjQueueKey(deviceId, priority, ((FilteringObjective) obj).key());
+            FilteringObjQueueKey k = new FilteringObjQueueKey(deviceId, priority, ((FilteringObjective) obj).key());
             filtObjQueue.put(k, obj);
             queueSize = filtObjQueue.get(k).size();
         } else if (obj instanceof ForwardingObjective) {
-            FwdObjQueueKey k = new FwdObjQueueKey(deviceId, priority, ((ForwardingObjective) obj).selector());
+            ForwardingObjQueueKey k =
+                    new ForwardingObjQueueKey(deviceId, priority, ((ForwardingObjective) obj).selector());
             fwdObjQueue.put(k, obj);
             queueSize = fwdObjQueue.get(k).size();
         } else if (obj instanceof NextObjective) {
@@ -272,12 +317,13 @@ public class InOrderFlowObjectiveManager extends FlowObjectiveManager {
         Tools.log(log, logLevel, "Dequeue {}", obj);
 
         if (obj instanceof FilteringObjective) {
-            FiltObjQueueKey k = new FiltObjQueueKey(deviceId, priority, ((FilteringObjective) obj).key());
+            FilteringObjQueueKey k = new FilteringObjQueueKey(deviceId, priority, ((FilteringObjective) obj).key());
             filtObjQueueHead.invalidate(k);
             filtObjQueue.remove(k, obj);
             remaining = filtObjQueue.get(k);
         } else if (obj instanceof ForwardingObjective) {
-            FwdObjQueueKey k = new FwdObjQueueKey(deviceId, priority, ((ForwardingObjective) obj).selector());
+            ForwardingObjQueueKey k =
+                    new ForwardingObjQueueKey(deviceId, priority, ((ForwardingObjective) obj).selector());
             fwdObjQueueHead.invalidate(k);
             fwdObjQueue.remove(k, obj);
             remaining = fwdObjQueue.get(k);
@@ -311,11 +357,12 @@ public class InOrderFlowObjectiveManager extends FlowObjectiveManager {
 
         int priority = obj.priority();
         if (obj instanceof FilteringObjective) {
-            FiltObjQueueKey k = new FiltObjQueueKey(deviceId, priority, ((FilteringObjective) obj).key());
+            FilteringObjQueueKey k = new FilteringObjQueueKey(deviceId, priority, ((FilteringObjective) obj).key());
             filtObjQueueHead.put(k, obj);
             super.filter(deviceId, (FilteringObjective) obj);
         } else if (obj instanceof ForwardingObjective) {
-            FwdObjQueueKey k = new FwdObjQueueKey(deviceId, priority, ((ForwardingObjective) obj).selector());
+            ForwardingObjQueueKey k =
+                    new ForwardingObjQueueKey(deviceId, priority, ((ForwardingObjective) obj).selector());
             fwdObjQueueHead.put(k, obj);
             super.forward(deviceId, (ForwardingObjective) obj);
         } else if (obj instanceof NextObjective) {
@@ -366,96 +413,6 @@ public class InOrderFlowObjectiveManager extends FlowObjectiveManager {
                     pendNexts.forEach(p -> execute(p.deviceId(), p.flowObjective()));
                 }
             }
-        }
-    }
-
-    private static class FiltObjQueueKey {
-        private DeviceId deviceId;
-        private int priority;
-        private Criterion key;
-
-        FiltObjQueueKey(DeviceId deviceId, int priority, Criterion key) {
-            this.deviceId = deviceId;
-            this.priority = priority;
-            this.key = key;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(deviceId, priority, key);
-        }
-
-        @Override
-        public boolean equals(Object other) {
-            if (this == other) {
-                return true;
-            }
-            if (!(other instanceof FiltObjQueueKey)) {
-                return false;
-            }
-            FiltObjQueueKey that = (FiltObjQueueKey) other;
-            return Objects.equals(this.deviceId, that.deviceId) &&
-                    Objects.equals(this.priority, that.priority) &&
-                    Objects.equals(this.key, that.key);
-        }
-    }
-
-    private static class FwdObjQueueKey {
-        private DeviceId deviceId;
-        private int priority;
-        private TrafficSelector selector;
-
-        FwdObjQueueKey(DeviceId deviceId, int priority, TrafficSelector selector) {
-            this.deviceId = deviceId;
-            this.priority = priority;
-            this.selector = selector;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(deviceId, priority, selector);
-        }
-
-        @Override
-        public boolean equals(Object other) {
-            if (this == other) {
-                return true;
-            }
-            if (!(other instanceof FwdObjQueueKey)) {
-                return false;
-            }
-            FwdObjQueueKey that = (FwdObjQueueKey) other;
-            return Objects.equals(this.deviceId, that.deviceId) &&
-                    Objects.equals(this.priority, that.priority) &&
-                    Objects.equals(this.selector, that.selector);
-        }
-    }
-
-    private static class NextObjQueueKey {
-        private DeviceId deviceId;
-        private int id;
-
-        NextObjQueueKey(DeviceId deviceId, int id) {
-            this.deviceId = deviceId;
-            this.id = id;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(deviceId, id);
-        }
-
-        @Override
-        public boolean equals(Object other) {
-            if (this == other) {
-                return true;
-            }
-            if (!(other instanceof NextObjQueueKey)) {
-                return false;
-            }
-            NextObjQueueKey that = (NextObjQueueKey) other;
-            return Objects.equals(this.deviceId, that.deviceId) &&
-                    Objects.equals(this.id, that.id);
         }
     }
 }

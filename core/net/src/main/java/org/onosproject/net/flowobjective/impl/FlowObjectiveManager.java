@@ -684,9 +684,4 @@ public class FlowObjectiveManager implements FlowObjectiveService {
 
         return pendingFlowObjectives;
     }
-
-    @Override
-    public List<String> getPendingNexts() {
-        return getPendingFlowObjectives();
-    }
 }
