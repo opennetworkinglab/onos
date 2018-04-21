@@ -596,6 +596,9 @@ public class DhcpRelayManager implements DhcpRelayService {
                         log.info("{} removed", config.getClass().getSimpleName());
                     });
                     break;
+                case CONFIG_REGISTERED:
+                case CONFIG_UNREGISTERED:
+                    break;
                 default:
                     log.warn("Unsupported event type {}", event.type());
                     break;
