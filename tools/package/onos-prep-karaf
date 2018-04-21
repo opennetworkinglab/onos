@@ -9,6 +9,7 @@ OUT=$1
 KARAF_TAR=$2
 ONOS_VERSION=$3
 BRANDING=$4
+KARAF_PATCHES=$5
 #FIXME karaf version
 KARAF_VERSION="3.0.8"
 ONOS_SECURITY_MODE="false"
@@ -17,6 +18,7 @@ PREFIX="onos-$ONOS_VERSION"
 
 # Unroll the Apache Karaf bits, prune them and make ONOS top-level directories.
 tar xf $KARAF_TAR
+tar xf $KARAF_PATCHES
 
 # Unroll the Apache Karaf bits, prune them and make ONOS top-level directories.
 KARAF_DIR=$(ls -d apache*)

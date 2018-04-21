@@ -1,5 +1,6 @@
 KARAF = '//lib:apache-karaf'
 BRANDING = '//tools/package/branding:onos-tools-package-branding'
+PATCHES = '//lib:apache-karaf-patches'
 
 FEATURES = [
   '//features:onos-thirdparty-base',
@@ -21,8 +22,8 @@ export_file (
 genrule(
   name = 'onos-karaf',
   srcs = glob(['bin/*', 'etc/*', 'init/*', 'runtime/bin/*']),
-  bash = '$(location :onos-prep-karaf) $OUT $(location %s) %s $(location %s)'\
-            % (KARAF, ONOS_VERSION, BRANDING),
+  bash = '$(location :onos-prep-karaf) $OUT $(location %s) %s $(location %s) $(location %s)'\
+            % (KARAF, ONOS_VERSION, BRANDING, PATCHES),
   out = 'karaf.zip',
 )
 
