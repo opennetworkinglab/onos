@@ -440,6 +440,7 @@ public class HostHandler {
         Set<Host> hosts = hostService.getConnectedHosts(connectPoint);
 
         if (hosts == null || hosts.size() == 0) {
+            log.debug("processIntfVlanUpdatedEvent: No hosts connected to {}", connectPoint);
             return;
         }
 
@@ -472,7 +473,7 @@ public class HostHandler {
         Set<Host> hosts = hostService.getConnectedHosts(cp);
 
         if (hosts == null || hosts.size() == 0) {
-            log.warn("processIntfIpUpdatedEvent: No hosts connected to {}", cp);
+            log.debug("processIntfIpUpdatedEvent: No hosts connected to {}", cp);
             return;
         }
 

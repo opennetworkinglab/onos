@@ -253,7 +253,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     private final InternalMastershipListener mastershipListener = new InternalMastershipListener();
     //Completable future for network configuration process to buffer config events handling during activation
     private CompletableFuture<Boolean> networkConfigCompletion = null;
-    private List<Event> quequedEvents = new CopyOnWriteArrayList<>();
+    private List<Event> queuedEvents = new CopyOnWriteArrayList<>();
 
     // Handles device, link, topology and network config events
     private ScheduledExecutorService mainEventExecutor;
@@ -454,7 +454,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             //setting to null for easier fall through
             networkConfigCompletion = null;
             //process all queued events
-            quequedEvents.forEach(event -> {
+            queuedEvents.forEach(event -> {
                 mainEventExecutor.execute(new InternalEventHandler(event));
             });
         });
@@ -1437,7 +1437,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                     if (networkConfigCompletion == null || networkConfigCompletion.isDone()) {
                         mainEventExecutor.execute(new InternalEventHandler(event));
                     } else {
-                        quequedEvents.add(event);
+                        queuedEvents.add(event);
                     }
                     break;
                 default:
@@ -1487,7 +1487,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 if (networkConfigCompletion == null || networkConfigCompletion.isDone()) {
                     mainEventExecutor.execute(new InternalEventHandler(event));
                 } else {
-                    quequedEvents.add(event);
+                    queuedEvents.add(event);
                 }
             }
         }
@@ -1506,7 +1506,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                     if (networkConfigCompletion == null || networkConfigCompletion.isDone()) {
                         mainEventExecutor.execute(new InternalEventHandler(event));
                     } else {
-                        quequedEvents.add(event);
+                        queuedEvents.add(event);
                     }
                     break;
                 default:
@@ -1523,7 +1523,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                     if (networkConfigCompletion == null || networkConfigCompletion.isDone()) {
                         mainEventExecutor.execute(new InternalEventHandler(event));
                     } else {
-                        quequedEvents.add(event);
+                        queuedEvents.add(event);
                     }
                     break;
                 default:
