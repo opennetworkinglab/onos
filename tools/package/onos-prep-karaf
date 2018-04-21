@@ -9,6 +9,7 @@ OUT=$1
 KARAF_TAR=$2
 ONOS_VERSION=$3
 BRANDING=$4
+KARAF_PATCHES=$5
 #FIXME karaf version
 KARAF_VERSION="3.0.8"
 ONOS_SECURITY_MODE="false"
@@ -20,6 +21,8 @@ tar xf $KARAF_TAR
 
 # rename path name to match what was distributed with vicci
 mv "$(ls -d apache*)" "apache-karaf-$KARAF_VERSION" || true
+
+tar xf $KARAF_PATCHES
 
 # Unroll the Apache Karaf bits, prune them and make ONOS top-level directories.
 KARAF_DIR=$(ls -d apache*)
