@@ -29,6 +29,7 @@ import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.cluster.NodeId;
+import org.onosproject.mastership.MastershipEvent;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -73,6 +74,7 @@ public class DefaultRoutingHandler {
     private static final long RETRY_INTERVAL_MS = 250L;
     private static final int RETRY_INTERVAL_SCALE = 1;
     private static final long STABLITY_THRESHOLD = 10; //secs
+    private static final long MASTER_CHANGE_DELAY = 1000; // ms
     private static Logger log = LoggerFactory.getLogger(DefaultRoutingHandler.class);
 
     private SegmentRoutingManager srManager;
@@ -84,12 +86,17 @@ public class DefaultRoutingHandler {
     private volatile Status populationStatus;
     private ScheduledExecutorService executorService
         = newScheduledThreadPool(1, groupedThreads("retryftr", "retry-%d", log));
-    private Instant lastRoutingChange;
+    private Instant lastRoutingChange = Instant.EPOCH;
 
-    // Keep track on which ONOS instance should program the device pair.
-    // There should be only one instance that programs the same pair.
+    // Distributed store to keep track of ONOS instance that should program the
+    // device pair. There should be only one instance (the king) that programs the same pair.
     Map<Set<DeviceId>, NodeId> shouldProgram;
     Map<DeviceId, Boolean> shouldProgramCache;
+
+    // Local store to keep track of all devices that this instance was responsible
+    // for programming in the last run. Helps to determine if mastership changed
+    // during a run - only relevant for programming as a result of topo change.
+    Set<DeviceId> lastProgrammed;
 
     /**
      * Represents the default routing population status.
@@ -135,6 +142,7 @@ public class DefaultRoutingHandler {
         this.config = checkNotNull(srManager.deviceConfiguration);
         this.populationStatus = Status.IDLE;
         this.currentEcmpSpgMap = Maps.newHashMap();
+        this.lastProgrammed = Sets.newConcurrentHashSet();
     }
 
     /**
@@ -229,9 +237,12 @@ public class DefaultRoutingHandler {
                 }
 
                 if (!shouldProgram(dstSw)) {
+                    lastProgrammed.remove(dstSw);
                     continue;
+                } else {
+                    lastProgrammed.add(dstSw);
                 }
-                // To do a full reroute, assume all routes have changed
+                // To do a full reroute, assume all route-paths have changed
                 for (DeviceId dev : deviceAndItsPair(dstSw)) {
                     for (DeviceId targetSw : srManager.deviceConfiguration.getRouters()) {
                         if (targetSw.equals(dev)) {
@@ -1181,6 +1192,90 @@ public class DefaultRoutingHandler {
         }
     }
 
+    /**
+     * Attempts a full reroute of route-paths if topology has changed relatively
+     * close to a mastership change event. Does not do a reroute if mastership
+     * change is due to reasons other than a ONOS cluster event - for example a
+     * call to balance-masters, or a switch up/down event.
+     *
+     * @param devId the device identifier for which mastership has changed
+     * @param me the mastership event
+     */
+    void checkFullRerouteForMasterChange(DeviceId devId, MastershipEvent me) {
+        // give small delay to absorb mastership events that are caused by
+        // device that has disconnected from cluster
+        executorService.schedule(new MasterChange(devId, me),
+                                 MASTER_CHANGE_DELAY, TimeUnit.MILLISECONDS);
+    }
+
+    protected final class MasterChange implements Runnable {
+        private DeviceId devId;
+        private MastershipEvent me;
+        private static final long CLUSTER_EVENT_THRESHOLD = 4500; // ms
+        private static final long DEVICE_EVENT_THRESHOLD = 2000; // ms
+
+        MasterChange(DeviceId devId, MastershipEvent me) {
+            this.devId = devId;
+            this.me = me;
+        }
+
+        @Override
+        public void run() {
+            long lce = srManager.clusterListener.timeSinceLastClusterEvent();
+            boolean clusterEvent = lce < CLUSTER_EVENT_THRESHOLD;
+
+            // ignore event for lost switch if cluster event hasn't happened -
+            // device down event will handle it
+            if ((me.roleInfo().master() == null
+                    || !srManager.deviceService.isAvailable(devId))
+                    && !clusterEvent) {
+                log.debug("Full reroute not required for lost device: {}/{} "
+                        + "clusterEvent/timeSince: {}/{}",
+                          devId, me.roleInfo(), clusterEvent, lce);
+                return;
+            }
+
+            long update = srManager.deviceService.getLastUpdatedInstant(devId);
+            long lde = Instant.now().toEpochMilli() - update;
+            boolean deviceEvent = lde < DEVICE_EVENT_THRESHOLD;
+
+            // ignore event for recently connected switch if cluster event hasn't
+            // happened - link up events will handle it
+            if (srManager.deviceService.isAvailable(devId) && deviceEvent
+                    && !clusterEvent) {
+                log.debug("Full reroute not required for recently available"
+                        + " device: {}/{} deviceEvent/timeSince: {}/{} "
+                        + "clusterEvent/timeSince: {}/{}",
+                        devId, me.roleInfo(), deviceEvent, lde, clusterEvent, lce);
+                return;
+            }
+
+            // if it gets here, then mastership change is likely due to onos
+            // instance failure, or network partition in onos cluster
+            // normally a mastership change like this does not require re-programming
+            // but if topology changes happen at the same time then we may miss events
+            if (!isRoutingStable() && clusterEvent) {
+                log.warn("Mastership changed for dev: {}/{} while programming "
+                        + "due to clusterEvent {} ms ago .. attempting full reroute",
+                         devId, me.roleInfo(), lce);
+                if (srManager.mastershipService.isLocalMaster(devId)) {
+                    // old master could have died when populating filters
+                    populatePortAddressingRules(devId);
+                }
+                // old master could have died when creating groups
+                srManager.purgeHashedNextObjectiveStore(devId);
+                // XXX right now we have no fine-grained way to only make changes
+                // for the route paths affected by this device.
+                populateAllRoutingRules();
+            } else {
+                log.debug("Stable route-paths .. full reroute not attempted for "
+                        + "mastership change {}/{} deviceEvent/timeSince: {}/{} "
+                        + "clusterEvent/timeSince: {}/{}", devId, me.roleInfo(),
+                        deviceEvent, lde, clusterEvent, lce);
+            }
+        }
+    }
+
     //////////////////////////////////////
     //  Routing helper methods and classes
     //////////////////////////////////////
@@ -1201,9 +1296,17 @@ public class DefaultRoutingHandler {
             log.debug("Computing the impacted routes for device {} due to link fail",
                       sw.id());
             if (!shouldProgram(sw.id())) {
+                lastProgrammed.remove(sw.id());
                 continue;
             }
             for (DeviceId rootSw : deviceAndItsPair(sw.id())) {
+                // check for mastership change since last run
+                if (!lastProgrammed.contains(sw.id())) {
+                    lastProgrammed.add(sw.id());
+                    log.warn("New reponsibility for this node to program dev:{}"
+                            + " ... nuking current ECMPspg", sw.id());
+                    currentEcmpSpgMap.remove(sw.id());
+                }
                 EcmpShortestPathGraph ecmpSpg = currentEcmpSpgMap.get(rootSw);
                 if (ecmpSpg == null) {
                     log.warn("No existing ECMP graph for switch {}. Aborting optimized"
@@ -1268,6 +1371,7 @@ public class DefaultRoutingHandler {
         for (Device sw : srManager.deviceService.getDevices()) {
             log.debug("Computing the impacted routes for device {}", sw.id());
             if (!shouldProgram(sw.id())) {
+                lastProgrammed.remove(sw.id());
                 continue;
             }
             for (DeviceId rootSw : deviceAndItsPair(sw.id())) {
@@ -1277,6 +1381,13 @@ public class DefaultRoutingHandler {
                         log.trace("{} -> {} ", link.src().deviceId(),
                                   link.dst().deviceId());
                     }
+                }
+                // check for mastership change since last run
+                if (!lastProgrammed.contains(sw.id())) {
+                    lastProgrammed.add(sw.id());
+                    log.warn("New reponsibility for this node to program dev:{}"
+                            + " ... nuking current ECMPspg", sw.id());
+                    currentEcmpSpgMap.remove(sw.id());
                 }
                 EcmpShortestPathGraph currEcmpSpg = currentEcmpSpgMap.get(rootSw);
                 if (currEcmpSpg == null) {
@@ -1437,6 +1548,7 @@ public class DefaultRoutingHandler {
     boolean shouldProgram(DeviceId deviceId) {
         Boolean cached = shouldProgramCache.get(deviceId);
         if (cached != null) {
+            log.debug("shouldProgram dev:{} cached:{}", deviceId, cached);
             return cached;
         }
 
