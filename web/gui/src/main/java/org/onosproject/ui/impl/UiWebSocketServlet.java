@@ -16,6 +16,7 @@
 package org.onosproject.ui.impl;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Sets;
 import org.eclipse.jetty.websocket.WebSocket;
 import org.eclipse.jetty.websocket.WebSocketServlet;
 import org.onlab.osgi.DefaultServiceDirectory;
@@ -24,7 +25,6 @@ import org.onlab.osgi.ServiceDirectory;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import java.security.Principal;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.Timer;
@@ -42,7 +42,7 @@ public class UiWebSocketServlet extends WebSocketServlet {
 
     private ServiceDirectory directory = new DefaultServiceDirectory();
 
-    private final Set<UiWebSocket> sockets = new HashSet<>();
+    private final Set<UiWebSocket> sockets = Sets.newConcurrentHashSet();
     private final Timer timer = new Timer();
     private final TimerTask pruner = new Pruner();
     private boolean isStopped = false;
