@@ -35,5 +35,8 @@
         <behaviour api="org.onosproject.net.behaviour.QueueConfigBehaviour"
                    impl="org.onosproject.drivers.ovsdb.OvsdbQueueConfig"/>
     </driver>
+    <driver name="liquidio" extends="ovs"
+            manufacturer="Cavium, Inc\." hwVersion="LiquidIO-II 210 SVN" swVersion="2\..*">
+    </driver>
 </drivers>
 
