@@ -157,7 +157,7 @@ public class Dhcp6Duid extends BasePacket {
             case DUID_UUID:
                 byteBuffer = ByteBuffer.allocate(DEFAULT_UUID_LEN + uuid.length);
                 byteBuffer.putShort(duidType.value);
-                byteBuffer.put(linkLayerAddress);
+                byteBuffer.put(uuid);
                 break;
             default:
                 throw new IllegalArgumentException("Unknown duidType: " + duidType.toString());
