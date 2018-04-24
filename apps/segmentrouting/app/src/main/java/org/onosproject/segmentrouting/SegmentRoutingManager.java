@@ -519,6 +519,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         deviceListener = null;
         groupHandlerMap.forEach((k, v) -> v.shutdown());
         groupHandlerMap.clear();
+        defaultRoutingHandler.shutdown();
 
         dsNextObjStore.destroy();
         vlanNextObjStore.destroy();
@@ -1284,7 +1285,14 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             .forEach(entry -> entry.getValue().cleanUpForNeighborDown(device.id()));
     }
 
+    /**
+     * Purge the destinationSet nextObjective store of entries with this device
+     * as key. Erases app-level knowledge of hashed groups in this device.
+     *
+     * @param devId the device identifier
+     */
     void purgeHashedNextObjectiveStore(DeviceId devId) {
+        log.debug("Purging hashed next-obj store for dev:{}", devId);
         dsNextObjStore.entrySet().stream()
                 .filter(entry -> entry.getKey().deviceId().equals(devId))
                 .forEach(entry -> dsNextObjStore.remove(entry.getKey()));

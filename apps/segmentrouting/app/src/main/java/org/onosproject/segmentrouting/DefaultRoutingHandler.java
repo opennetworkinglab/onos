@@ -86,6 +86,9 @@ public class DefaultRoutingHandler {
     private volatile Status populationStatus;
     private ScheduledExecutorService executorService
         = newScheduledThreadPool(1, groupedThreads("retryftr", "retry-%d", log));
+    private ScheduledExecutorService executorServiceMstChg
+        = newScheduledThreadPool(1, groupedThreads("masterChg", "mstch-%d", log));
+
     private Instant lastRoutingChange = Instant.EPOCH;
 
     // Distributed store to keep track of ONOS instance that should program the
@@ -189,6 +192,14 @@ public class DefaultRoutingHandler {
        return (now - last) > STABLITY_THRESHOLD;
    }
 
+    /**
+     * Gracefully shuts down the defaultRoutingHandler. Typically called when
+     * the app is deactivated
+     */
+    public void shutdown() {
+        executorService.shutdown();
+        executorServiceMstChg.shutdown();
+    }
 
     //////////////////////////////////////
     //  Route path handling
@@ -1204,8 +1215,8 @@ public class DefaultRoutingHandler {
     void checkFullRerouteForMasterChange(DeviceId devId, MastershipEvent me) {
         // give small delay to absorb mastership events that are caused by
         // device that has disconnected from cluster
-        executorService.schedule(new MasterChange(devId, me),
-                                 MASTER_CHANGE_DELAY, TimeUnit.MILLISECONDS);
+        executorServiceMstChg.schedule(new MasterChange(devId, me),
+                                       MASTER_CHANGE_DELAY, TimeUnit.MILLISECONDS);
     }
 
     protected final class MasterChange implements Runnable {
@@ -1261,9 +1272,9 @@ public class DefaultRoutingHandler {
                 if (srManager.mastershipService.isLocalMaster(devId)) {
                     // old master could have died when populating filters
                     populatePortAddressingRules(devId);
+                    // old master could have died when creating groups
+                    srManager.purgeHashedNextObjectiveStore(devId);
                 }
-                // old master could have died when creating groups
-                srManager.purgeHashedNextObjectiveStore(devId);
                 // XXX right now we have no fine-grained way to only make changes
                 // for the route paths affected by this device.
                 populateAllRoutingRules();
@@ -1663,11 +1674,13 @@ public class DefaultRoutingHandler {
                 if (!target.equals(targetSw)) {
                     continue;
                 }
-                if (!targetIsEdge && itrIdx > 1) {
-                    // optimization for spines to not use leaves to get
-                    // to a spine or other leaves
+                // optimization for spines to not use leaves to get
+                // to a spine or other leaves. Also leaves should not use other
+                // leaves to get to the destination
+                if ((!targetIsEdge && itrIdx > 1) || targetIsEdge) {
                     boolean pathdevIsEdge = false;
                     for (ArrayList<DeviceId> via : swViaMap.get(targetSw)) {
+                        log.debug("Evaluating next-hop in path: {}", via);
                         for (DeviceId pathdev : via) {
                             try {
                                 pathdevIsEdge = srManager.deviceConfiguration
@@ -1695,9 +1708,12 @@ public class DefaultRoutingHandler {
                         nextHops.add(via.get(0));
                     }
                 }
+                log.debug("target {} --> dst: {} has next-hops:{}", targetSw,
+                          dstSw, nextHops);
                 return nextHops;
             }
         }
+        log.debug("No next hops found for target:{} --> dst: {}", targetSw, dstSw);
         return ImmutableSet.of(); //no next-hops found
     }
 
