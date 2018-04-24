@@ -91,6 +91,7 @@ CLI_COMMANDS=(
     "routes"
     "obj-next-ids"
     "obj-pending-nexts"
+    "obj-queues"
 
     "sr-device-subnets"
     "sr-ecmp-spg"
