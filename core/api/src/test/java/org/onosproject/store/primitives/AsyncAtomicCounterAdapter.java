@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-present Open Networking Foundation
+ * Copyright 2018-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.store.service;
+package org.onosproject.store.primitives;
+
+import org.onosproject.store.service.AsyncAtomicCounter;
+import org.onosproject.store.service.AtomicCounterBuilder;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicLong;
@@ -21,15 +24,15 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * Test implementation of atomic counter.
  */
-public final class TestAtomicCounter implements AsyncAtomicCounter {
-    final AtomicLong value;
+public class AsyncAtomicCounterAdapter implements AsyncAtomicCounter {
+    private final AtomicLong value;
 
     @Override
     public String name() {
         return null;
     }
 
-    private TestAtomicCounter() {
+    AsyncAtomicCounterAdapter() {
         value = new AtomicLong();
     }
 
@@ -76,7 +79,7 @@ public final class TestAtomicCounter implements AsyncAtomicCounter {
     public static class Builder extends AtomicCounterBuilder {
         @Override
         public AsyncAtomicCounter build() {
-            return new TestAtomicCounter();
+            return new AsyncAtomicCounterAdapter();
         }
     }
 }

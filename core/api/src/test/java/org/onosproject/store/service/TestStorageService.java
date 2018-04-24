@@ -15,6 +15,8 @@
  */
 package org.onosproject.store.service;
 
+import org.onosproject.store.primitives.AsyncAtomicCounterAdapter;
+
 public class TestStorageService extends StorageServiceAdapter {
 
 
@@ -35,7 +37,7 @@ public class TestStorageService extends StorageServiceAdapter {
 
     @Override
     public AtomicCounterBuilder atomicCounterBuilder() {
-        return TestAtomicCounter.builder();
+        return AsyncAtomicCounterAdapter.builder();
     }
 
     @Override
