@@ -55,6 +55,20 @@
         return p ? p.invert(coord) : [0, 0];
     }
 
+    function coordFromXY(loc) {
+        var bgWidth = 1000,
+            bgHeight = 1000;
+
+        var scale = 1000 / bgWidth,
+            yOffset = (1000 - (bgHeight * scale)) / 2;
+
+        // 1000 is a hardcoded HTML value of the SVG element (topo2.html)
+        var x = scale * loc.longOrX,
+            y = (scale * loc.latOrY) + yOffset;
+
+        return [x, y];
+    }
+
     function positionNode(node, forUpdate) {
         var meta = node.metaUi,
             x = meta && meta.x,
