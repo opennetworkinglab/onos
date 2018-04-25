@@ -157,24 +157,30 @@ public class AccessNetworkLayout extends LayoutAlgorithm {
 
         aggregation = 1;
         accessLeaf = 1;
-        spines.stream().sorted(Comparators.ELEMENT_ID_COMPARATOR).forEach(id -> {
-            place(id, c(aggregation++, spines.size()), AGGREGATION_Y);
-            linkService.getDeviceEgressLinks(id).stream()
-                    .map(l -> l.dst().deviceId())
-                    .filter(leaves::contains)
-                    .filter(lid -> !placed.contains(lid))
-                    .sorted(Comparators.ELEMENT_ID_COMPARATOR)
-                    .forEach(lid -> {
-                        double x = c(accessLeaf++, leaves.size());
-                        place(lid, x, ACCESS_Y);
-                        placed.add(lid);
-                        placeHostBlock(hostService.getConnectedHosts(lid).stream()
-                                               .map(Host::id)
-                                               .sorted(Comparators.ELEMENT_ID_COMPARATOR)
-                                               .collect(Collectors.toList()), x, HOSTS_Y,
-                                       HOSTS_PER_ROW, ROW_GAP, COL_GAP);
-                    });
-        });
+        if (spines.isEmpty()) {
+            leaves.forEach(lid -> placeAccessLeafAndHosts(lid, leaves.size(), placed));
+        } else {
+            spines.stream().sorted(Comparators.ELEMENT_ID_COMPARATOR).forEach(id -> {
+                place(id, c(aggregation++, spines.size()), AGGREGATION_Y);
+                linkService.getDeviceEgressLinks(id).stream()
+                        .map(l -> l.dst().deviceId())
+                        .filter(leaves::contains)
+                        .filter(lid -> !placed.contains(lid))
+                        .sorted(Comparators.ELEMENT_ID_COMPARATOR)
+                        .forEach(lid -> placeAccessLeafAndHosts(lid, leaves.size(), placed));
+            });
+        }
+    }
+
+    private void placeAccessLeafAndHosts(DeviceId leafId, int leafCount, Set<DeviceId> placed) {
+        double x = c(accessLeaf++, leafCount);
+        place(leafId, x, ACCESS_Y);
+        placed.add(leafId);
+        placeHostBlock(hostService.getConnectedHosts(leafId).stream()
+                               .map(Host::id)
+                               .sorted(Comparators.ELEMENT_ID_COMPARATOR)
+                               .collect(Collectors.toList()), x, HOSTS_Y,
+                       HOSTS_PER_ROW, ROW_GAP, COL_GAP);
     }
 
 }
