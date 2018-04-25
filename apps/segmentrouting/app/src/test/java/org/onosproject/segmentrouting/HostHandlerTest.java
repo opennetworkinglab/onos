@@ -455,6 +455,9 @@ public class HostHandlerTest {
                 Sets.newHashSet(HOST_LOC11, HOST_LOC21), Sets.newHashSet(HOST_IP13, HOST_IP14), false);
         Host host4 = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
                 Sets.newHashSet(HOST_LOC11, HOST_LOC22), Sets.newHashSet(HOST_IP12, HOST_IP13), false);
+        Host host5 = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
+                Sets.newHashSet(HOST_LOC12, HOST_LOC21), Sets.newHashSet(HOST_IP11, HOST_IP12), false);
+
 
         // Add a host with IP11, IP12 and LOC11, LOC21
         // Expect: 4 routing rules and 2 bridging rules
@@ -468,9 +471,21 @@ public class HostHandlerTest {
         assertEquals(P1, BRIDGING_TABLE.get(new MockBridgingTableKey(DEV1, HOST_MAC, INTF_VLAN_UNTAGGED)).portNumber);
         assertEquals(P1, BRIDGING_TABLE.get(new MockBridgingTableKey(DEV2, HOST_MAC, INTF_VLAN_UNTAGGED)).portNumber);
 
+        // Move the host to LOC12, LOC21 and keep the IP
+        // Expect: 4 routing rules and 2 bridging rules all at the new location
+        hostHandler.processHostMovedEvent(new HostEvent(HostEvent.Type.HOST_MOVED, host5, host1));
+        assertEquals(4, ROUTING_TABLE.size());
+        assertEquals(P2, ROUTING_TABLE.get(new MockRoutingTableKey(DEV1, HOST_IP11.toIpPrefix())).portNumber);
+        assertEquals(P2, ROUTING_TABLE.get(new MockRoutingTableKey(DEV1, HOST_IP12.toIpPrefix())).portNumber);
+        assertEquals(P1, ROUTING_TABLE.get(new MockRoutingTableKey(DEV2, HOST_IP11.toIpPrefix())).portNumber);
+        assertEquals(P1, ROUTING_TABLE.get(new MockRoutingTableKey(DEV2, HOST_IP12.toIpPrefix())).portNumber);
+        assertEquals(2, BRIDGING_TABLE.size());
+        assertEquals(P2, BRIDGING_TABLE.get(new MockBridgingTableKey(DEV1, HOST_MAC, INTF_VLAN_UNTAGGED)).portNumber);
+        assertEquals(P1, BRIDGING_TABLE.get(new MockBridgingTableKey(DEV2, HOST_MAC, INTF_VLAN_UNTAGGED)).portNumber);
+
         // Move the host to LOC12, LOC22 and keep the IP
         // Expect: 4 routing rules and 2 bridging rules all at the new location
-        hostHandler.processHostMovedEvent(new HostEvent(HostEvent.Type.HOST_MOVED, host2, host1));
+        hostHandler.processHostMovedEvent(new HostEvent(HostEvent.Type.HOST_MOVED, host2, host5));
         assertEquals(4, ROUTING_TABLE.size());
         assertEquals(P2, ROUTING_TABLE.get(new MockRoutingTableKey(DEV1, HOST_IP11.toIpPrefix())).portNumber);
         assertEquals(P2, ROUTING_TABLE.get(new MockRoutingTableKey(DEV1, HOST_IP12.toIpPrefix())).portNumber);
