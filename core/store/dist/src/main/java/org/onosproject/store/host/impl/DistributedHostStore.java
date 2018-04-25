@@ -336,12 +336,15 @@ public class DistributedHostStore
                 checkState(Objects.equals(hostId.vlanId(), existingHost.vlan()),
                         "Existing and new VLANs differ.");
 
-                Set<HostLocation> locations = new HashSet<>(existingHost.locations());
-                locations.add(location);
+                // Move within the same switch
+                // Simply replace old location that is on the same device
+                Set<HostLocation> newLocations = Sets.newHashSet(location);
+                existingHost.locations().stream().filter(loc -> !loc.deviceId().equals(location.deviceId()))
+                        .forEach(newLocations::add);
 
                 return new DefaultHost(existingHost.providerId(),
                                 hostId, existingHost.mac(), existingHost.vlan(),
-                                locations, existingHost.ipAddresses(),
+                                newLocations, existingHost.ipAddresses(),
                                 existingHost.configured(), existingHost.annotations());
             }
             return null;
