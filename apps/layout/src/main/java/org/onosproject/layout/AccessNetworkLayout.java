@@ -44,14 +44,16 @@ public class AccessNetworkLayout extends LayoutAlgorithm {
     private static final double GATEWAY_X = 900.0;
 
     private static final int HOSTS_PER_ROW = 6;
+    private static final int COMPUTE_PER_ROW = 12;
+
     private static final double ROW_GAP = 70;
-    private static final double COL_GAP = 50;
-    private static final double COMPUTE_GAP = 60.0;
+    private static final double COMPUTE_ROW_GAP = -120;
+    private static final double COL_GAP = 54;
     private static final double COMPUTE_OFFSET = 400.0;
     private static final double GATEWAY_GAP = 200.0;
     private static final double GATEWAY_OFFSET = -200.0;
 
-    private int spine, aggregation, accessLeaf, serviceLeaf, compute, gateway;
+    private int spine, aggregation, accessLeaf, serviceLeaf, gateway;
 
     @Override
     protected boolean classify(Device device) {
@@ -132,7 +134,6 @@ public class AccessNetworkLayout extends LayoutAlgorithm {
                 placed.add(hid);
             });
 
-            compute = 1;
             List<HostId> hosts = hostService.getConnectedHosts(id).stream()
                     .map(Host::id)
                     .filter(computes::contains)
@@ -140,13 +141,10 @@ public class AccessNetworkLayout extends LayoutAlgorithm {
                     .sorted(Comparators.ELEMENT_ID_COMPARATOR)
                     .collect(Collectors.toList());
 
-            hosts.forEach(hid -> {
-                place(hid, c(compute++, hosts.size(), COMPUTE_GAP,
-                             serviceLeaf <= 2 ? -COMPUTE_OFFSET : COMPUTE_OFFSET),
-                      COMPUTE_Y);
-                placed.add(hid);
-            });
-
+            placeHostBlock(hosts, serviceLeaf <= 2 ? -COMPUTE_OFFSET : COMPUTE_OFFSET,
+                           COMPUTE_Y, COMPUTE_PER_ROW, COMPUTE_ROW_GAP,
+                           serviceLeaf <= 2 ? -COL_GAP : COL_GAP);
+            placed.addAll(hosts);
         });
     }
 
@@ -158,7 +156,8 @@ public class AccessNetworkLayout extends LayoutAlgorithm {
         aggregation = 1;
         accessLeaf = 1;
         if (spines.isEmpty()) {
-            leaves.forEach(lid -> placeAccessLeafAndHosts(lid, leaves.size(), placed));
+            leaves.stream().sorted(Comparators.ELEMENT_ID_COMPARATOR)
+                    .forEach(lid -> placeAccessLeafAndHosts(lid, leaves.size(), placed));
         } else {
             spines.stream().sorted(Comparators.ELEMENT_ID_COMPARATOR).forEach(id -> {
                 place(id, c(aggregation++, spines.size()), AGGREGATION_Y);
