@@ -16,6 +16,7 @@
 package org.onosproject.ui.impl;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.eclipse.jetty.websocket.WebSocket;
 import org.eclipse.jetty.websocket.WebSocketServlet;
@@ -25,7 +26,6 @@ import org.onlab.osgi.ServiceDirectory;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import java.security.Principal;
-import java.util.Iterator;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -82,9 +82,7 @@ public class UiWebSocketServlet extends WebSocketServlet {
         String userName = p != null ? p.getName() : FAKE_USERNAME;
 
         UiWebSocket socket = new UiWebSocket(directory, userName);
-        synchronized (sockets) {
-            sockets.add(socket);
-        }
+        sockets.add(socket);
         return socket;
     }
 
@@ -125,16 +123,11 @@ public class UiWebSocketServlet extends WebSocketServlet {
     private class Pruner extends TimerTask {
         @Override
         public void run() {
-            synchronized (sockets) {
-                Iterator<UiWebSocket> it = sockets.iterator();
-                while (it.hasNext()) {
-                    UiWebSocket socket = it.next();
-                    if (socket.isIdle()) {
-                        it.remove();
-                        socket.close();
-                    }
-                }
-            }
+            ImmutableSet<UiWebSocket> set = ImmutableSet.copyOf(sockets);
+            set.stream().filter(UiWebSocket::isIdle).forEach(s -> {
+                sockets.remove(s);
+                s.close();
+            });
         }
     }
 }
