@@ -46,7 +46,6 @@ import static com.google.common.base.Preconditions.checkArgument;
  */
 public class HostHandler {
     private static final Logger log = LoggerFactory.getLogger(HostHandler.class);
-    static final int HOST_MOVED_DELAY_MS = 1000;
 
     protected final SegmentRoutingManager srManager;
     private HostService hostService;
@@ -170,20 +169,16 @@ public class HostHandler {
     }
 
     void processHostMovedEvent(HostEvent event) {
-        Set<HostLocation> prevLocations = event.prevSubject().locations();
-        Set<IpAddress> prevIps = event.prevSubject().ipAddresses();
-        Set<HostLocation> newLocations = event.subject().locations();
-        Set<IpAddress> newIps = event.subject().ipAddresses();
-
-        processHostMoved(event.subject(), prevLocations, prevIps, newLocations, newIps);
-    }
-
-    private void processHostMoved(Host host, Set<HostLocation> prevLocations, Set<IpAddress> prevIps,
-                                  Set<HostLocation> newLocations, Set<IpAddress> newIps) {
+        Host host = event.subject();
         MacAddress hostMac = host.mac();
         VlanId hostVlanId = host.vlan();
+        Set<HostLocation> prevLocations = event.prevSubject().locations();
+        Set<IpAddress> prevIps = event.prevSubject().ipAddresses();
+        Set<HostLocation> newLocations = host.locations();
+        Set<IpAddress> newIps = host.ipAddresses();
         EthType hostTpid = host.tpid();
         boolean doubleTaggedHost = isDoubleTaggedHost(host);
+
         log.info("Host {}/{} is moved from {} to {}", hostMac, hostVlanId, prevLocations, newLocations);
         Set<DeviceId> newDeviceIds = newLocations.stream().map(HostLocation::deviceId)
                 .collect(Collectors.toSet());
@@ -275,6 +270,17 @@ public class HostHandler {
                                        ip, false);
                 }
             });
+
+            // Probe on pair device when host move
+            // Majorly for the 2nd step of [1A/x, 1B/x] -> [1A/x, 1B/y] -> [1A/y, 1B/y]
+            // But will also cover [1A/x] -> [1A/y] -> [1A/y, 1B/y]
+            if (srManager.activeProbing) {
+                srManager.getPairDeviceId(newLocation.deviceId()).ifPresent(pairDeviceId ->
+                        srManager.getPairLocalPort(pairDeviceId).ifPresent(pairRemotePort ->
+                                probe(host, newLocation, pairDeviceId, pairRemotePort)
+                        )
+                );
+            }
         });
 
         // For each unchanged location, add new IPs and remove old IPs.
