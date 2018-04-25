@@ -100,7 +100,7 @@ public class AtomixConsistentSetMultimapTest extends AtomixTestBase<AtomixConsis
                 thenAccept(result -> assertTrue(result)).join();
         map.size().thenAccept(result -> assertEquals(3, (int) result))
                 .join();
-        //Check behavior under remove of non-existant key
+        //Check behavior under remove of non-existent key
         map.remove(keyOne, valueOne).
                 thenAccept(result -> assertFalse(result)).join();
         map.size().thenAccept(result -> assertEquals(3, (int) result))

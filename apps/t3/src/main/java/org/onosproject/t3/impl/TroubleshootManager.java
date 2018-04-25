@@ -568,7 +568,7 @@ public class TroubleshootManager implements TroubleshootService {
                 computePath(completePath, trace, cp);
                 trace.setSuccess(false);
                 if (deviceService.getPort(cp) == null) {
-                    //Port is not existant on device.
+                    //Port is not existent on device.
                     log.warn("Port {} is not available on device.", cp);
                     trace.addResultMessage("Port " + cp + "is not available on device. Packet is dropped");
                 } else {

@@ -467,7 +467,7 @@ public class AtomixConsistentTreeMapTest extends AtomixTestBase<AtomixConsistent
                 .join();
         //adding to highest key so there is no acceptable response
         map.ceilingKey(keyFour + "a")
-                .thenAccept(reslt -> assertNull(reslt))
+                .thenAccept(result -> assertNull(result))
                 .join();
         map.higherKey(keyThree).thenAccept(
                 result -> assertEquals(keyFour, result))
