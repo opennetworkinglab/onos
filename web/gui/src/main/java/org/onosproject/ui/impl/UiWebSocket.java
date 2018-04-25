@@ -346,7 +346,8 @@ public class UiWebSocket
 
     private void authenticate(String type, ObjectNode message) {
         if (!AUTHENTICATION.equals(type)) {
-            log.warn("Non-Authenticated Web Socket: {}", message);
+            log.warn("WebSocket not authenticated: {}", message);
+            close();
             return;
         }
 
