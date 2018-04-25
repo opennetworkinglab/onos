@@ -25,13 +25,14 @@ function usage {
 }
 
 name=query      # default name
+onlyts=0
 
 while getopts n:f:t:x?h o; do
     case "$o" in
         n) name="$OPTARG";;
         f) from="$OPTARG";;
         t) to="$OPTARG";;
-        x) nostt=1;;
+        x) onlyts=1;;
         *) usage;;
     esac
 done
@@ -42,14 +43,16 @@ shift $OPC
 [ "$name" = "karaf" ] && echo "Name cannot be karaf" && usage
 
 function stitchLogs {
-    awk -v from="${from}" -v to="${to}" -v nostt=${nostt:-0} \
+    awk -v from="${from}" -v to="${to}" -v onlyts=${onlyts} \
         -v TS="[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3}" '
+        BEGIN { on = 0; FS="|"; }
         TS {
             on = (from == "" || $1 >= from) && (to == "" || $1 <= to);
-            if (on) { print $0; next; }
+            if (on) { print $0; }
+            next;
         }
-        { if (on && !nostt) { print $0; } }
-    ' FS='|' $(ls -r1 karaf.log*) > ${name}.log
+        { if (on && !onlyts) { print $0; } }
+    ' $(ls -r1 karaf.log*) > ${name}.log
 }
 
 function stitchNodeLogs {
@@ -59,12 +62,12 @@ function stitchNodeLogs {
 }
 
 if [ $# -eq 1 -a -d "$1" ]; then
-    stitchNodeLogs $1 && cat $1/${name}.log
+    stitchNodeLogs $1
 elif [ $# -ge 1 ]; then
     echo "No node directory for $1" >&2
     usage
 elif ls karaf.log &>/dev/null; then
-    stitchLogs && cat ${name}.log
+    stitchLogs
 elif ls */karaf.log &>/dev/null; then
     for node in $(ls */karaf.log | cut -d/ -f1); do
         stitchNodeLogs $node &
@@ -72,5 +75,4 @@ elif ls */karaf.log &>/dev/null; then
     wait
     awk '{ print FILENAME " | " $0; }' */${name}.log | \
         sed "s:/${name}.log::" | sort -t\| -k2,2 > ${name}.log
-    cat ${name}.log
 fi
