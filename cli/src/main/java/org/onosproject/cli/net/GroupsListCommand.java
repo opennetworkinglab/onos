@@ -17,6 +17,7 @@ package org.onosproject.cli.net;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.google.common.collect.Lists;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
@@ -34,11 +35,11 @@ import org.onosproject.utils.Comparators;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
-
-import static com.google.common.collect.Lists.newArrayList;
+import java.util.stream.Stream;
 
 /**
  * Lists all groups in the system.
@@ -66,6 +67,11 @@ public class GroupsListCommand extends AbstractShellCommand {
             description = "Print group count only",
             required = false, multiValued = false)
     private boolean countOnly = false;
+
+    @Option(name = "-r", aliases = "--referenced",
+            description = "Print referenced groups only",
+            required = false, multiValued = false)
+    private boolean referencedOnly = false;
 
     @Option(name = "-t", aliases = "--type",
             description = "Print groups with specified type",
@@ -102,43 +108,30 @@ public class GroupsListCommand extends AbstractShellCommand {
      * @param groupService group service
      * @return sorted device list
      */
-    protected SortedMap<Device, List<Group>>
-        getSortedGroups(DeviceService deviceService,
-                        GroupService groupService) {
-        SortedMap<Device, List<Group>> sortedGroups =
-                new TreeMap<>(Comparators.ELEMENT_COMPARATOR);
-        List<Group> groups;
-        GroupState s = null;
-        if (state != null && !"any".equals(state)) {
-            s = GroupState.valueOf(state.toUpperCase());
-        }
-        Iterable<Device> devices = deviceService.getDevices();
-        if (uri != null) {
-            Device dev = deviceService.getDevice(DeviceId.deviceId(uri));
-            if (dev != null) {
-                devices = Collections.singletonList(dev);
-            }
-        }
+    protected SortedMap<Device, List<Group>> getSortedGroups(DeviceService deviceService, GroupService groupService) {
+        final GroupState groupsState = (this.state != null && !"any".equals(this.state)) ?
+                GroupState.valueOf(this.state.toUpperCase()) :
+                null;
+        final Iterable<Device> devices = Optional.ofNullable(uri)
+                .map(DeviceId::deviceId)
+                .map(deviceService::getDevice)
+                .map(dev -> (Iterable<Device>) Collections.singletonList(dev))
+                .orElse(deviceService.getDevices());
+
+        SortedMap<Device, List<Group>> sortedGroups = new TreeMap<>(Comparators.ELEMENT_COMPARATOR);
         for (Device d : devices) {
-            if (s == null) {
-                groups = newArrayList(groupService.getGroups(d.id()));
-            } else {
-                groups = newArrayList();
-                for (Group g : groupService.getGroups(d.id())) {
-                    if (g.state().equals(s)) {
-                        groups.add(g);
-                    }
-                }
+            Stream<Group> groupStream = Lists.newArrayList(groupService.getGroups(d.id())).stream();
+            if (groupsState != null) {
+                groupStream = groupStream.filter(g -> g.state().equals(groupsState));
             }
-            groups.sort(Comparators.GROUP_COMPARATOR);
-            sortedGroups.put(d, groups);
-        }
-        if (type != null && !"any".equals(type))  {
-            for (Device device : sortedGroups.keySet()) {
-                sortedGroups.put(device, sortedGroups.get(device).stream()
-                        .filter(group -> GroupDescription.Type.valueOf(type.toUpperCase()).equals(group.type()))
-                        .collect(Collectors.toList()));
+            if (referencedOnly) {
+                groupStream = groupStream.filter(g -> g.referenceCount() != 0);
             }
+            if (type != null && !"any".equals(type)) {
+                groupStream = groupStream.filter(g ->
+                        g.type().equals(GroupDescription.Type.valueOf(type.toUpperCase())));
+            }
+            sortedGroups.put(d, groupStream.sorted(Comparators.GROUP_COMPARATOR).collect(Collectors.toList()));
         }
         return sortedGroups;
     }
