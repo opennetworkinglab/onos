@@ -170,7 +170,7 @@ public class InOrderFlowObjectiveManager extends FlowObjectiveManager {
             }
             @Override
             public void onError(Objective objective, ObjectiveError error) {
-                log.warn("Flow objective onError {}", objective);
+                log.warn("Flow objective onError {}. {}", objective, error);
                 dequeue(deviceId, objective);
                 originalContext.ifPresent(c -> c.onError(objective, error));
             }
