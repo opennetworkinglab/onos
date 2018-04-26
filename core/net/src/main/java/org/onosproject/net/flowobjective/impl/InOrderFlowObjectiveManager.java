@@ -59,7 +59,7 @@ public class InOrderFlowObjectiveManager extends FlowObjectiveManager {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     // TODO Make queue timeout configurable
-    static final int OBJ_TIMEOUT_MS = 5000;
+    static final int OBJ_TIMEOUT_MS = 15000;
 
     private Cache<FilteringObjQueueKey, Objective> filtObjQueueHead;
     private Cache<ForwardingObjQueueKey, Objective> fwdObjQueueHead;
@@ -165,13 +165,13 @@ public class InOrderFlowObjectiveManager extends FlowObjectiveManager {
             @Override
             public void onSuccess(Objective objective) {
                 log.trace("Flow objective onSuccess {}", objective);
-                dequeue(deviceId, objective);
+                dequeue(deviceId, objective, null);
                 originalContext.ifPresent(c -> c.onSuccess(objective));
             }
             @Override
             public void onError(Objective objective, ObjectiveError error) {
-                log.warn("Flow objective onError {}. {}", objective, error);
-                dequeue(deviceId, objective);
+                log.warn("Flow objective onError {}. Reason = {}", objective, error);
+                dequeue(deviceId, objective, error);
                 originalContext.ifPresent(c -> c.onError(objective, error));
             }
         };
@@ -308,8 +308,9 @@ public class InOrderFlowObjectiveManager extends FlowObjectiveManager {
      *
      * @param deviceId Device ID
      * @param obj Flow objective
+     * @param error ObjectiveError that triggers this dequeue. Null if this is not triggered by an error.
      */
-    private synchronized void dequeue(DeviceId deviceId, Objective obj) {
+    private synchronized void dequeue(DeviceId deviceId, Objective obj, ObjectiveError error) {
         List<Objective> remaining;
         int priority = obj.priority();
 
@@ -328,6 +329,22 @@ public class InOrderFlowObjectiveManager extends FlowObjectiveManager {
             fwdObjQueue.remove(k, obj);
             remaining = fwdObjQueue.get(k);
         } else if (obj instanceof NextObjective) {
+            if (error != null) {
+                // Remove pendingForwards and pendingNexts if next objective failed
+                Set<PendingFlowObjective> removedForwards = pendingForwards.remove(obj.id());
+                List<PendingFlowObjective> removedNexts = pendingNexts.remove(obj.id());
+
+                if (removedForwards != null) {
+                    removedForwards.stream().map(PendingFlowObjective::flowObjective)
+                            .forEach(pendingObj -> pendingObj.context().ifPresent(c ->
+                                    c.onError(pendingObj, error)));
+                }
+                if (removedNexts != null) {
+                    removedNexts.stream().map(PendingFlowObjective::flowObjective)
+                            .forEach(pendingObj -> pendingObj.context().ifPresent(c ->
+                                    c.onError(pendingObj, error)));
+                }
+            }
             NextObjQueueKey k = new NextObjQueueKey(deviceId, obj.id());
             nextObjQueueHead.invalidate(k);
             nextObjQueue.remove(k, obj);
