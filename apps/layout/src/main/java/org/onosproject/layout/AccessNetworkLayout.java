@@ -43,15 +43,20 @@ public class AccessNetworkLayout extends LayoutAlgorithm {
     private static final double HOSTS_Y = +700.0;
     private static final double GATEWAY_X = 900.0;
 
-    private static final int HOSTS_PER_ROW = 6;
-    private static final int COMPUTE_PER_ROW = 12;
-
     private static final double ROW_GAP = 70;
     private static final double COMPUTE_ROW_GAP = -120;
     private static final double COL_GAP = 54;
-    private static final double COMPUTE_OFFSET = 400.0;
+    private static final double COMPUTE_OFFSET = 800.0;
     private static final double GATEWAY_GAP = 200.0;
     private static final double GATEWAY_OFFSET = -200.0;
+
+    private static final double SERVICE_GAP = 800;
+    private static final int COMPUTE_PER_ROW = 25;
+
+    private static final double SPINES_GAP = 800;
+    private static final double AGGREGATION_GAP = 400;
+    private static final double ACCESS_GAP = 400;
+    private static final int HOSTS_PER_ROW = 6;
 
     private int spine, aggregation, accessLeaf, serviceLeaf, gateway;
 
@@ -107,7 +112,7 @@ public class AccessNetworkLayout extends LayoutAlgorithm {
         spine = 1;
         List<DeviceId> spines = deviceCategories.get(SPINE);
         spines.stream().sorted(Comparators.ELEMENT_ID_COMPARATOR)
-                .forEach(d -> place(d, c(spine++, spines.size()), SPINE_Y));
+                .forEach(d -> place(d, c(spine++, spines.size(), SPINES_GAP), SPINE_Y));
     }
 
     private void placeServiceLeavesAndHosts() {
@@ -119,7 +124,7 @@ public class AccessNetworkLayout extends LayoutAlgorithm {
         serviceLeaf = 1;
         leaves.stream().sorted(Comparators.ELEMENT_ID_COMPARATOR).forEach(id -> {
             gateway = 1;
-            place(id, c(serviceLeaf++, leaves.size()), SERVICE_Y);
+            place(id, c(serviceLeaf++, leaves.size(), SERVICE_GAP), SERVICE_Y);
 
             List<HostId> gwHosts = hostService.getConnectedHosts(id).stream()
                     .map(Host::id)
@@ -160,7 +165,7 @@ public class AccessNetworkLayout extends LayoutAlgorithm {
                     .forEach(lid -> placeAccessLeafAndHosts(lid, leaves.size(), placed));
         } else {
             spines.stream().sorted(Comparators.ELEMENT_ID_COMPARATOR).forEach(id -> {
-                place(id, c(aggregation++, spines.size()), AGGREGATION_Y);
+                place(id, c(aggregation++, spines.size(), AGGREGATION_GAP), AGGREGATION_Y);
                 linkService.getDeviceEgressLinks(id).stream()
                         .map(l -> l.dst().deviceId())
                         .filter(leaves::contains)
@@ -172,7 +177,7 @@ public class AccessNetworkLayout extends LayoutAlgorithm {
     }
 
     private void placeAccessLeafAndHosts(DeviceId leafId, int leafCount, Set<DeviceId> placed) {
-        double x = c(accessLeaf++, leafCount);
+        double x = c(accessLeaf++, leafCount, ACCESS_GAP);
         place(leafId, x, ACCESS_Y);
         placed.add(leafId);
         placeHostBlock(hostService.getConnectedHosts(leafId).stream()
