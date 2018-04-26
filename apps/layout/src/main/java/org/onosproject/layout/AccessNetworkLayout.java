@@ -60,8 +60,10 @@ public class AccessNetworkLayout extends LayoutAlgorithm {
         if (!super.classify(device)) {
             String role;
 
-            // Does the device have any hosts attached? If not, it's a spine
-            if (hostService.getConnectedHosts(device.id()).isEmpty()) {
+            // Does the device have any links and any hosts attached?
+            // If it has links, but no hosts, it's a spine
+            if (!linkService.getDeviceLinks(device.id()).isEmpty() &&
+                    hostService.getConnectedHosts(device.id()).isEmpty()) {
                 // Does the device have any aggregate links to other devices?
                 Multiset<DeviceId> destinations = HashMultiset.create();
                 linkService.getDeviceEgressLinks(device.id()).stream()
