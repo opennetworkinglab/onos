@@ -56,10 +56,15 @@ public class McastHostRouteCodec extends JsonCodec<McastRoute> {
             root.put(SOURCE, "*");
         }
 
-        ArrayNode sources = context.mapper().createArrayNode();
-        context.getService(MulticastRouteService.class).sources(route).forEach(source -> {
-            sources.add(source.toString());
+        ObjectNode sources = context.mapper().createObjectNode();
+        context.getService(MulticastRouteService.class).routeData(route).sources().forEach((k, v) -> {
+            ArrayNode node = context.mapper().createArrayNode();
+            v.forEach(source -> {
+                node.add(source.toString());
+            });
+            sources.putPOJO(k.toString(), node);
         });
+
         root.putPOJO(SOURCES, sources);
 
         ObjectNode sinks = context.mapper().createObjectNode();

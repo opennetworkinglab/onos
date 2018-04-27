@@ -19,7 +19,6 @@ package org.onosproject.mcast.web;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.Beta;
-import com.google.common.collect.ImmutableSet;
 import org.onlab.packet.IpAddress;
 import org.onosproject.mcast.api.McastRoute;
 import org.onosproject.mcast.api.MulticastRouteService;
@@ -115,12 +114,15 @@ public class McastRouteWebResource extends AbstractWebResource {
                                @PathParam("srcIp") String srcIp) {
         Optional<McastRoute> route = getMcastRoute(group, srcIp);
         if (route.isPresent()) {
-            get(MulticastRouteService.class).sources(route.get());
-            ArrayNode node = this.mapper().createArrayNode();
-            get(MulticastRouteService.class).sources(route.get()).forEach(source -> {
-                node.add(source.toString());
+            ObjectNode sources = this.mapper().createObjectNode();
+            get(MulticastRouteService.class).routeData(route.get()).sources().forEach((k, v) -> {
+                ArrayNode node = this.mapper().createArrayNode();
+                v.forEach(source -> {
+                    node.add(source.toString());
+                });
+                sources.putPOJO(k.toString(), node);
             });
-            ObjectNode root = this.mapper().createObjectNode().putPOJO(SOURCES, node);
+            ObjectNode root = this.mapper().createObjectNode().putPOJO(SOURCES, sources);
             return ok(root).build();
         }
         return Response.noContent().build();
@@ -140,7 +142,6 @@ public class McastRouteWebResource extends AbstractWebResource {
                              @PathParam("srcIp") String srcIp) {
         Optional<McastRoute> route = getMcastRoute(group, srcIp);
         if (route.isPresent()) {
-            get(MulticastRouteService.class).sources(route.get());
             ObjectNode sinks = this.mapper().createObjectNode();
             get(MulticastRouteService.class).routeData(route.get()).sinks().forEach((k, v) -> {
                 ArrayNode node = this.mapper().createArrayNode();
@@ -150,6 +151,33 @@ public class McastRouteWebResource extends AbstractWebResource {
                 sinks.putPOJO(k.toString(), node);
             });
             ObjectNode root = this.mapper().createObjectNode().putPOJO(SINKS, sinks);
+            return ok(root).build();
+        }
+        return Response.noContent().build();
+    }
+
+    /**
+     * Get all source connect points for a given sink host in a multicast route.
+     *
+     * @param group  group IP address
+     * @param srcIp  source IP address
+     * @param hostId host Id
+     * @return 200 OK with array of all sources for multicast route
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("sources/{group}/{srcIp}/{hostId}")
+    public Response getHostSources(@PathParam("group") String group,
+                                   @PathParam("srcIp") String srcIp,
+                                   @PathParam("hostId") String hostId) {
+        Optional<McastRoute> route = getMcastRoute(group, srcIp);
+        if (route.isPresent()) {
+            ArrayNode node = this.mapper().createArrayNode();
+            get(MulticastRouteService.class).sources(route.get(), HostId.hostId(hostId))
+                    .forEach(source -> {
+                        node.add(source.toString());
+                    });
+            ObjectNode root = this.mapper().createObjectNode().putPOJO(SOURCES, node);
             return ok(root).build();
         }
         return Response.noContent().build();
@@ -171,7 +199,6 @@ public class McastRouteWebResource extends AbstractWebResource {
                                  @PathParam("hostId") String hostId) {
         Optional<McastRoute> route = getMcastRoute(group, srcIp);
         if (route.isPresent()) {
-            get(MulticastRouteService.class).sources(route.get());
             ArrayNode node = this.mapper().createArrayNode();
             get(MulticastRouteService.class).sinks(route.get(), HostId.hostId(hostId))
                     .forEach(source -> {
@@ -204,9 +231,9 @@ public class McastRouteWebResource extends AbstractWebResource {
                 McastRoute route = codec(McastRoute.class).decode((ObjectNode) routeJson, this);
                 service.add(route);
 
-                Set<ConnectPoint> sources = new HashSet<>();
+                Set<HostId> sources = new HashSet<>();
                 routeJson.path(SOURCES).elements().forEachRemaining(src -> {
-                    sources.add(ConnectPoint.deviceConnectPoint(src.asText()));
+                    sources.add(HostId.hostId(src.asText()));
                 });
                 Set<HostId> sinks = new HashSet<>();
                 routeJson.path(SINKS).elements().forEachRemaining(sink -> {
@@ -214,7 +241,9 @@ public class McastRouteWebResource extends AbstractWebResource {
                 });
 
                 if (!sources.isEmpty()) {
-                    service.addSources(route, sources);
+                    sources.forEach(source -> {
+                        service.addSource(route, source);
+                    });
                 }
                 if (!sinks.isEmpty()) {
                     sinks.forEach(sink -> {
@@ -248,9 +277,9 @@ public class McastRouteWebResource extends AbstractWebResource {
             McastRoute route = codec(McastRoute.class).decode(jsonTree, this);
             service.add(route);
 
-            Set<ConnectPoint> sources = new HashSet<>();
+            Set<HostId> sources = new HashSet<>();
             jsonTree.path(SOURCES).elements().forEachRemaining(src -> {
-                sources.add(ConnectPoint.deviceConnectPoint(src.asText()));
+                sources.add(HostId.hostId(src.asText()));
             });
             Set<HostId> sinks = new HashSet<>();
             jsonTree.path(SINKS).elements().forEachRemaining(sink -> {
@@ -258,7 +287,9 @@ public class McastRouteWebResource extends AbstractWebResource {
             });
 
             if (!sources.isEmpty()) {
-                service.addSources(route, sources);
+                sources.forEach(source -> {
+                    service.addSource(route, source);
+                });
             }
             if (!sinks.isEmpty()) {
                 sinks.forEach(sink -> {
@@ -298,12 +329,14 @@ public class McastRouteWebResource extends AbstractWebResource {
             ArrayNode jsonTree;
             try {
                 jsonTree = (ArrayNode) mapper().readTree(stream).get(SOURCES);
-                Set<ConnectPoint> sources = new HashSet<>();
+                Set<HostId> sources = new HashSet<>();
                 jsonTree.elements().forEachRemaining(src -> {
-                    sources.add(ConnectPoint.deviceConnectPoint(src.asText()));
+                    sources.add(HostId.hostId(src.asText()));
                 });
                 if (!sources.isEmpty()) {
-                    service.addSources(route.get(), sources);
+                    sources.forEach(src -> {
+                        service.addSource(route.get(), src);
+                    });
                 }
             } catch (IOException e) {
                 throw new IllegalArgumentException(e);
@@ -354,6 +387,45 @@ public class McastRouteWebResource extends AbstractWebResource {
         return Response.noContent().build();
     }
 
+    /**
+     * Adds a new set of connect points for an existing host source in a given multicast route.
+     *
+     * @param group  group IP address
+     * @param srcIp  source IP address
+     * @param hostId the host Id
+     * @param stream source connect points JSON
+     * @return status of the request - CREATED if the JSON is correct,
+     * BAD_REQUEST if the JSON is invalid
+     * @onos.rsModel McastHostSourcesAdd
+     */
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("source/{group}/{srcIp}/{hostId}")
+    public Response addHostSource(@PathParam("group") String group,
+                                  @PathParam("srcIp") String srcIp,
+                                  @PathParam("hostId") String hostId,
+                                  InputStream stream) {
+        MulticastRouteService service = get(MulticastRouteService.class);
+        Optional<McastRoute> route = getMcastRoute(group, srcIp);
+        if (route.isPresent()) {
+            ArrayNode jsonTree;
+            try {
+                jsonTree = (ArrayNode) mapper().readTree(stream).get(SOURCES);
+                Set<ConnectPoint> sources = new HashSet<>();
+                jsonTree.elements().forEachRemaining(src -> {
+                    sources.add(ConnectPoint.deviceConnectPoint(src.asText()));
+                });
+                if (!sources.isEmpty()) {
+                    service.addSources(route.get(), HostId.hostId(hostId), sources);
+                }
+            } catch (IOException e) {
+                throw new IllegalArgumentException(e);
+            }
+            return Response.ok().build();
+        }
+        return Response.noContent().build();
+    }
 
     /**
      * Adds a new sink for an existing host in a given multicast route.
@@ -467,23 +539,23 @@ public class McastRouteWebResource extends AbstractWebResource {
     }
 
     /**
-     * Deletes a source connect point for a specific route.
+     * Deletes a source hostId for a specific route.
      * If the sources are empty the entire route is removed.
      *
-     * @param group group IP address
-     * @param srcIp source IP address
-     * @param srcCp source connect point
+     * @param group  group IP address
+     * @param srcIp  source IP address
+     * @param hostId source host id
      * @return 204 NO CONTENT
      */
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
-    @Path("sources/{group}/{srcIp}/{srcCp}")
+    @Path("sources/{group}/{srcIp}/{hostId}")
     public Response deleteSource(@PathParam("group") String group,
                                  @PathParam("srcIp") String srcIp,
-                                 @PathParam("srcCp") String srcCp) {
+                                 @PathParam("hostId") String hostId) {
         Optional<McastRoute> route = getMcastRoute(group, srcIp);
         route.ifPresent(mcastRoute -> get(MulticastRouteService.class)
-                .removeSources(mcastRoute, ImmutableSet.of(ConnectPoint.deviceConnectPoint(srcCp))));
+                .removeSource(mcastRoute, HostId.hostId(hostId)));
         return Response.noContent().build();
     }
 

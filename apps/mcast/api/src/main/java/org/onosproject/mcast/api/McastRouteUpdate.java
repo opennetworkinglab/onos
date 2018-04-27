@@ -37,12 +37,14 @@ public final class McastRouteUpdate {
     private static final String SINK_NOT_NULL = "Sink cannot be null";
 
     private final McastRoute route;
-    private final Set<ConnectPoint> sources;
+    private final Map<HostId, Set<ConnectPoint>> sources;
     private final Map<HostId, Set<ConnectPoint>> sinks;
 
-    private McastRouteUpdate(McastRoute route, Set<ConnectPoint> source, Map<HostId, Set<ConnectPoint>> sinks) {
+    private McastRouteUpdate(McastRoute route,
+                             Map<HostId, Set<ConnectPoint>> sources,
+                             Map<HostId, Set<ConnectPoint>> sinks) {
         this.route = checkNotNull(route, ROUTE_NOT_NULL);
-        this.sources = checkNotNull(source, SOURCE_NOT_NULL);
+        this.sources = checkNotNull(sources, SOURCE_NOT_NULL);
         this.sinks = checkNotNull(sinks, SINK_NOT_NULL);
     }
 
@@ -55,7 +57,7 @@ public final class McastRouteUpdate {
      * @return the McastRouteUpdate object.
      */
     public static McastRouteUpdate mcastRouteUpdate(McastRoute route,
-                                                    Set<ConnectPoint> sources,
+                                                    Map<HostId, Set<ConnectPoint>> sources,
                                                     Map<HostId, Set<ConnectPoint>> sinks) {
         return new McastRouteUpdate(route, sources, sinks);
     }
@@ -72,9 +74,9 @@ public final class McastRouteUpdate {
     /**
      * The sources.
      *
-     * @return an optional connect point
+     * @return a set of connect points
      */
-    public Set<ConnectPoint> sources() {
+    public Map<HostId, Set<ConnectPoint>> sources() {
         return sources;
     }
 

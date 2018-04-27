@@ -57,9 +57,10 @@ public class McastRoute {
 
     /**
      * Creates the McastRoute object. The source Ip can be null if this route is intent for ASM.
+     *
      * @param source source Ip. Null if ASM route. Will translate in Optional.empty.
-     * @param group the multicast group
-     * @param type the route type.
+     * @param group  the multicast group
+     * @param type   the route type.
      */
     public McastRoute(IpAddress source, IpAddress group, Type type) {
         checkNotNull(group, "Multicast route must specify a group address");

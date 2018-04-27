@@ -63,25 +63,27 @@ public class McastGenerator extends Generator<Set<StaticPacketTrace>> {
         mcastService.getRoutes().forEach(route -> {
             McastRouteData routeData = mcastService.routeData(route);
             IpAddress group = route.group();
-            routeData.sources().forEach(source -> {
-                TrafficSelector.Builder selector = DefaultTrafficSelector.builder()
-                        .matchVlanId(vlanId)
-                        .matchInPort(source.port());
-                if (group.isIp4()) {
-                    selector.matchEthDst(IPV4_ADDRESS)
-                            .matchIPDst(group.toIpPrefix())
-                            .matchEthType(EthType.EtherType.IPV4.ethType().toShort());
-                } else {
-                    selector.matchEthDst(IPV6_ADDRESS)
-                            .matchIPv6Dst(group.toIpPrefix())
-                            .matchEthType(EthType.EtherType.IPV6.ethType().toShort());
-                }
-                try {
-                    yield(ImmutableSet.of(manager.trace(selector.build(), source)));
-                } catch (InterruptedException e) {
-                    log.warn("Interrupted generator", e.getMessage());
-                    log.debug("exception", e);
-                }
+            routeData.sources().forEach((host, sources) -> {
+                sources.forEach(source -> {
+                    TrafficSelector.Builder selector = DefaultTrafficSelector.builder()
+                            .matchVlanId(vlanId)
+                            .matchInPort(source.port());
+                    if (group.isIp4()) {
+                        selector.matchEthDst(IPV4_ADDRESS)
+                                .matchIPDst(group.toIpPrefix())
+                                .matchEthType(EthType.EtherType.IPV4.ethType().toShort());
+                    } else {
+                        selector.matchEthDst(IPV6_ADDRESS)
+                                .matchIPv6Dst(group.toIpPrefix())
+                                .matchEthType(EthType.EtherType.IPV6.ethType().toShort());
+                    }
+                    try {
+                        yield(ImmutableSet.of(manager.trace(selector.build(), source)));
+                    } catch (InterruptedException e) {
+                        log.warn("Interrupted generator", e.getMessage());
+                        log.debug("exception", e);
+                    }
+                });
             });
 
         });
