@@ -155,6 +155,33 @@ class McastUtils {
     }
 
     /**
+     * Adds filtering objectives to drop any unknown multicast.
+     *
+     * @param deviceId      device ID
+     * @param ipv4          install a drop for Ipv4 addresses or Ipv6 addresses
+     * @param assignedVlans the vlans for wich to drop the mcast traffic
+     */
+    void addDropFiltersToDevice(DeviceId deviceId, boolean ipv4, Set<VlanId> assignedVlans) {
+        MacAddress routerMac;
+        try {
+            routerMac = srManager.deviceConfiguration().getDeviceMac(deviceId);
+        } catch (DeviceConfigNotFoundException dcnfe) {
+            log.warn("Fail to push filtering objective since device is not configured. Abort");
+            return;
+        }
+        assignedVlans.forEach(assignedVlan -> {
+            FilteringObjective.Builder filtObjBuilder = filterObjBuilderDrop(ipv4, routerMac, assignedVlan);
+            ObjectiveContext context = new DefaultObjectiveContext(
+                    (objective) -> log.debug("Successfully add filter on {}",
+                            deviceId),
+                    (objective, error) ->
+                            log.warn("Failed to add filter on {}: {}",
+                                    deviceId, error));
+            srManager.flowObjectiveService.filter(deviceId, filtObjBuilder.add(context));
+        });
+    }
+
+    /**
      * Removes filtering objective for given device and port.
      *
      * @param deviceId device ID
@@ -387,7 +414,7 @@ class McastUtils {
      * @return filtering objective builder
      */
     private FilteringObjective.Builder filterObjBuilder(PortNumber ingressPort, VlanId assignedVlan,
-                                                IpAddress mcastIp, MacAddress routerMac, McastRole mcastRole) {
+                                                        IpAddress mcastIp, MacAddress routerMac, McastRole mcastRole) {
         FilteringObjective.Builder filtBuilder = DefaultFilteringObjective.builder();
         // Let's add the in port matching and the priority
         filtBuilder.withKey(Criteria.matchInPort(ingressPort))
@@ -402,14 +429,48 @@ class McastUtils {
         // According to the IP type we set the proper match on the mac address
         if (mcastIp.isIp4()) {
             filtBuilder.addCondition(Criteria.matchEthDstMasked(MacAddress.IPV4_MULTICAST,
-                                                                MacAddress.IPV4_MULTICAST_MASK));
+                    MacAddress.IPV4_MULTICAST_MASK));
         } else {
             filtBuilder.addCondition(Criteria.matchEthDstMasked(MacAddress.IPV6_MULTICAST,
-                                                                MacAddress.IPV6_MULTICAST_MASK));
+                    MacAddress.IPV6_MULTICAST_MASK));
         }
         // We finally build the meta treatment
         TrafficTreatment tt = DefaultTrafficTreatment.builder()
                 .pushVlan().setVlanId(assignedVlan)
+                .setEthDst(routerMac)
+                .build();
+        filtBuilder.withMeta(tt);
+        // Done, we return a permit filtering objective
+        return filtBuilder.permit().fromApp(srManager.appId());
+    }
+
+    /**
+     * Creates a filtering objective builder for multicast drop.
+     *
+     * @param ipv4         do we need to install IPv4 or v6 ?
+     * @param routerMac    router MAC. This is carried in metadata and used from some switches that
+     *                     need to put unicast entry before multicast entry in TMAC table.
+     * @param assignedVlan the vlanId to drop
+     * @return filtering objective builder
+     */
+    private FilteringObjective.Builder filterObjBuilderDrop(boolean ipv4, MacAddress routerMac, VlanId assignedVlan) {
+
+        FilteringObjective.Builder filtBuilder = DefaultFilteringObjective.builder();
+        // We match on the given vlan.
+        // If the traffic comes in tagged with an mcast specific vlan there is no rule
+        // in table 10 to handle it goes directly to 60 and it's dropped there.
+        filtBuilder.addCondition(Criteria.matchVlanId(assignedVlan));
+
+        // According to the IP type we set the proper match on the mac address
+        if (ipv4) {
+            filtBuilder.addCondition(Criteria.matchEthDstMasked(MacAddress.IPV4_MULTICAST,
+                    MacAddress.IPV4_MULTICAST_MASK));
+        } else {
+            filtBuilder.addCondition(Criteria.matchEthDstMasked(MacAddress.IPV6_MULTICAST,
+                    MacAddress.IPV6_MULTICAST_MASK));
+        }
+        // We finally build the meta treatment
+        TrafficTreatment tt = DefaultTrafficTreatment.builder()
                 .setEthDst(routerMac)
                 .build();
         filtBuilder.withMeta(tt);
