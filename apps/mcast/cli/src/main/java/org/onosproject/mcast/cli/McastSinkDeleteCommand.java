@@ -26,9 +26,9 @@ import org.onosproject.net.HostId;
 /**
  * Deletes a multicast route.
  */
-@Command(scope = "onos", name = "mcast-host-delete",
-        description = "Delete a multicast route flow")
-public class McastHostDeleteCommand extends AbstractShellCommand {
+@Command(scope = "onos", name = "mcast-sink-delete",
+        description = "Delete a sink from multicast route flow. If no sin is specified removes the whole route.")
+public class McastSinkDeleteCommand extends AbstractShellCommand {
 
     // Delete format for group line
     private static final String D_FORMAT_MAPPING = "Deleted the mcast route: " +
@@ -50,7 +50,7 @@ public class McastHostDeleteCommand extends AbstractShellCommand {
             required = true, multiValued = false)
     String gAddr = null;
 
-    @Option(name = "-h", aliases = "--host",
+    @Option(name = "-s", aliases = "--sinks",
             description = "Host sink format: MAC/VLAN",
             valueToShowInHelp = "00:00:00:00:00:00/None")
     String host = null;
@@ -70,7 +70,7 @@ public class McastHostDeleteCommand extends AbstractShellCommand {
             sAddrIp = IpAddress.valueOf(sAddr);
         }
         McastRoute mRoute = new McastRoute(sAddrIp, IpAddress.valueOf(gAddr),
-                                           McastRoute.Type.STATIC);
+                McastRoute.Type.STATIC);
         // If the user provides only sAddr and gAddr, we have to remove the route
         if (host == null || host.isEmpty()) {
             mcastRouteManager.remove(mRoute);
@@ -93,6 +93,6 @@ public class McastHostDeleteCommand extends AbstractShellCommand {
     private void printMcastRoute(String format, McastRoute mcastRoute) {
         // If the source is present let's use it, otherwise we need to print *
         print(format, mcastRoute.type(), mcastRoute.group(),
-              mcastRoute.source().isPresent() ? mcastRoute.source().get() : "*");
+                mcastRoute.source().isPresent() ? mcastRoute.source().get() : "*");
     }
 }

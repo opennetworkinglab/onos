@@ -43,10 +43,22 @@ public interface McastStore extends Store<McastEvent, McastStoreDelegate> {
     void removeRoute(McastRoute route);
 
     /**
-     * Add to the store with source information for the given route.
+     * Updates the store with a host based source information for a given route. There may be
+     * multiple source connect points for the given host.
      *
-     * @param route   a Multicast route
-     * @param sources a set of sources
+     * @param route         a Multicast route
+     * @param hostId        the host source
+     * @param connectPoints the sources connect point
+     */
+    void storeSource(McastRoute route, HostId hostId, Set<ConnectPoint> connectPoints);
+
+    /**
+     * Updates the store with source information for a given route.
+     * The source stored with this method are not tied with any host.
+     * Traffic will be sent from all of them.
+     *
+     * @param route a Multicast route
+     * @param sources set of specific connect points
      */
     void storeSources(McastRoute route, Set<ConnectPoint> sources);
 
@@ -59,12 +71,20 @@ public interface McastStore extends Store<McastEvent, McastStoreDelegate> {
 
     /**
      * Removes from the store the source information for the given route.
-     * value.
      *
-     * @param route   a Multicast route
-     * @param sources a set of sources
+     * @param route  a Multicast route
+     * @param source a source
      */
-    void removeSources(McastRoute route, Set<ConnectPoint> sources);
+    void removeSource(McastRoute route, HostId source);
+
+    /**
+     * Removes a set of source connect points for a given host the route.
+     *
+     * @param route         the multicast route
+     * @param hostId        a source host
+     * @param connectPoints a given set of connect points to remove
+     */
+    void removeSources(McastRoute route, HostId hostId, Set<ConnectPoint> connectPoints);
 
     /**
      * Updates the store with a host based sink information for a given route. There may be
@@ -125,6 +145,15 @@ public interface McastStore extends Store<McastEvent, McastStoreDelegate> {
      * @return a connect point
      */
     Set<ConnectPoint> sourcesFor(McastRoute route);
+
+    /**
+     * Obtains the sources for a given host for a given Multicast route.
+     *
+     * @param route  a Multicast route
+     * @param hostId the host
+     * @return a set of sources
+     */
+    Set<ConnectPoint> sourcesFor(McastRoute route, HostId hostId);
 
     /**
      * Obtains the sinks for a Multicast route.

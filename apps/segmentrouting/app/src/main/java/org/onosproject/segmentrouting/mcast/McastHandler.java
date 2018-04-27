@@ -183,7 +183,9 @@ public class McastHandler {
         // Get source, mcast group
         // FIXME To be addressed with multiple sources support
         final ConnectPoint source = mcastPrevUpdate.sources()
+                .values()
                 .stream()
+                .flatMap(Collection::stream)
                 .findFirst()
                 .orElse(null);
         IpAddress mcastIp = mcastPrevUpdate.route().group();
