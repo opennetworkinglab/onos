@@ -143,7 +143,7 @@ egress behaviors.
 
         ```
         $ cd $ONOS_ROOT
-        $ ONOS_APPS=proxyarp,hostprovider,lldpprovider,drivers.bmv2,p4tutorial.pipeconf,p4tutorial.pipeconf ok clean
+        $ ONOS_APPS=proxyarp,hostprovider,lldpprovider,drivers.bmv2,p4tutorial.pipeconf,p4tutorial.mytunnel ok clean
         ```
 
     3. **Check that all apps have been activated successfully**:
