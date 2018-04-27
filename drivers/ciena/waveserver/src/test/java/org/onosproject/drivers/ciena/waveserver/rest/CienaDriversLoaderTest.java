@@ -17,6 +17,7 @@
 package org.onosproject.drivers.ciena.waveserver.rest;
 
 import org.junit.Before;
+import org.onosproject.drivers.ciena.waveserver.CienaDriversLoader;
 import org.onosproject.net.driver.AbstractDriverLoaderTest;
 
 /**

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rpc-reply>
+<data xmlns="urn:ietf:params:xml:ns:netconf:base:1.0"
+      xmlns:ncx="http://netconfcentral.org/ns/yuma-ncx">
+    <waveserver-chassis xmlns="urn:ciena:params:xml:ns:yang:ciena-ws:ciena-waveserver-chassis">
+        <identification>
+            <type>waveserver chassis</type>
+            <model>Waveserver Ai Chassis</model>
+            <description>Waveserver Ai Chassis 3-slot, 1RU</description>
+            <serial-number>M000</serial-number>
+            <part-number>186-1010-900</part-number>
+            <revision>001</revision>
+            <manufacture-date>05032017</manufacture-date>
+        </identification>
+        <mac-addresses>
+            <chassis>
+                <base>00:23:8a:fa:45:52</base>
+                <block-size>5</block-size>
+            </chassis>
+        </mac-addresses>
+    </waveserver-chassis>
+    <waveserver-software xmlns="urn:ciena:params:xml:ns:yang:ciena-ws:ciena-waveserver-software">
+        <status>
+            <software-operational-state>normal</software-operational-state>
+            <upgrade-operational-state>idle</upgrade-operational-state>
+            <committed-version>waveserver-1.1.0.302</committed-version>
+            <active-version>waveserver-1.1.0.302</active-version>
+            <upgrade-to-version/>
+            <last-operation/>
+            <upgrade-log>https://10.132.241.91/upgrade_log/sw.log</upgrade-log>
+        </status>
+    </waveserver-software>
+    <waveserver-system xmlns="urn:ciena:params:xml:ns:yang:ciena-ws:ciena-waveserver-system">
+        <host-name>
+            <current-host-name>hostnameWaveServer</current-host-name>
+            <config-host-name>hostnameWaveServer</config-host-name>
+            <dhcp-host-name/>
+        </host-name>
+    </waveserver-system>
+</data>
+</rpc-reply>

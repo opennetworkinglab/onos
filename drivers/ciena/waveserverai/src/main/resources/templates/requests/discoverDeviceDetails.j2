@@ -1,0 +1,18 @@
+<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+<get>
+  <filter type="subtree">
+    <system:waveserver-system xmlns:system="urn:ciena:params:xml:ns:yang:ciena-ws:ciena-waveserver-system">
+      <system:host-name/>
+    </system:waveserver-system>
+    <software:waveserver-software xmlns:software="urn:ciena:params:xml:ns:yang:ciena-ws:ciena-waveserver-software">
+      <software:status/>
+    </software:waveserver-software>
+    <chassis:waveserver-chassis xmlns:chassis="urn:ciena:params:xml:ns:yang:ciena-ws:ciena-waveserver-chassis">
+        <chassis:identification/>
+        <chassis:mac-addresses>
+          <chassis:chassis/>
+        </chassis:mac-addresses>
+    </chassis:waveserver-chassis>
+  </filter>
+</get>
+</rpc>

@@ -1,0 +1,745 @@
+module ciena-waveserver-typedefs {
+  namespace "urn:ciena:params:xml:ns:yang:ciena-ws:ciena-waveserver-typedefs";
+  prefix cienawstypes;
+
+  organization
+    "Ciena Corporation";
+  contact
+    "Web URL: http://www.ciena.com/
+     Postal:  7035 Ridge Road
+             Hanover, Maryland 21076
+             U.S.A.
+     Phone:   +1 800-921-1144
+     Fax:     +1 410-694-5750";
+  description
+    "This YANG module defines Ciena's commonly used typedefs";
+
+  revision 2018-01-04 {
+    description
+      "Updated 'modem-frequency' range values for C-Band and L-Band capabilities.
+       Added 'otn' enum value to 'conditioning-type' typedef.
+       Removed unused OTUCn 'xcvr-mode' enum values and added OTL4.4/OTLC.4 support.
+       Added 'ipaddr-or-hostname' typedef.";
+    reference "Waveserver Ai user's guide.";
+  }
+  revision 2017-09-05 {
+    description
+      "Waveserver Platform Data Model
+       Migrated from Waveserver Classic R1.4 YANG model.
+       Updated namespace to 'ciena-waveserver'.
+       Added 'xcvr-mode' enum values.
+       Added 'power-state' typedef.
+       Renamed 'channels-number' typedef to 'lanes-number'.
+       Removed 'xcvr-id', 'ptp-id', 'port-id' types; use string types instead.
+       Added 'conditioning-type' and 'conditioning-holdoff' typedefs.
+       Remove line-module-type-bits typedef.
+       Added 'trace-mismatch-mode' and 'trace-mismatch-fail-mode'.
+       Added 'restart-reason'.
+       Removed several unused typedefs.";
+    reference "Waveserver Ai user's guide.";
+  }
+
+  typedef mac-string {
+    type string {
+      length "1..20";
+    }
+    description
+      "MAC address string.";
+  }
+
+  typedef name-string {
+    type string {
+      length "1..32";
+    }
+    description
+      "String type for object names used in Ciena defined modules. It must be a non empty string that is at most 32 characters long.";
+  }
+
+  typedef description-string {
+    type string {
+      length "0..128";
+    }
+    description
+      "String type for description used in Ciena defined modules. Max length of 128 characters, plus null.";
+  }
+
+  typedef on-off-enum {
+    type enumeration {
+      enum "off" {
+        description
+          "Off";
+      }
+      enum "on" {
+        description
+          "On";
+      }
+    }
+    description
+      "Off and On enum toggle used in Ciena defined modules.";
+  }
+
+  typedef power-state {
+    type enumeration {
+      enum "automatic" {
+        description
+          "Power state is automatic (on/normal).";
+      }
+      enum "shutdown" {
+        description
+          "Power state is shutdown (off/low-power-mode).";
+      }
+    }
+    description
+      "Power state automatic (on/normal) or shutdown (off/low-power-mode).";
+  }
+
+  typedef yes-no-enum {
+    type enumeration {
+      enum "no" {
+        description
+          "No";
+      }
+      enum "yes" {
+        description
+          "Yes";
+      }
+    }
+    description
+      "No and Yes enum toggle used in Ciena defined modules.";
+  }
+
+  typedef up-down-enum {
+    type enumeration {
+      enum "down" {
+        description
+          "Object is down/disabled/failed.";
+      }
+      enum "up" {
+        description
+          "Object is up/operational.";
+      }
+    }
+    description
+      "Down and Up enum toggle used in Ciena defined modules.";
+  }
+
+  typedef enabled-disabled-enum {
+    type enumeration {
+      enum "disabled" {
+        description
+          "Object or attribute is disabled.";
+      }
+      enum "enabled" {
+        description
+          "Object or attribute is enabled.";
+      }
+    }
+    description
+      "Enabled and Disabled enum toggle used in Ciena defined modules.";
+  }
+
+  typedef yes-no-na-enum {
+    type enumeration {
+      enum "no" {
+        description
+          "No";
+      }
+      enum "yes" {
+        description
+          "Yes";
+      }
+      enum "not-applicable" {
+        description
+          "Not applicable";
+      }
+    }
+    description
+      "No and Yes enum toggle used in Ciena defined modules.";
+  }
+
+  typedef enabled-disabled-na-enum {
+    type enumeration {
+      enum "disabled" {
+        description
+          "Disabled";
+      }
+      enum "enabled" {
+        description
+          "Enabled";
+      }
+      enum "not-applicable" {
+        description
+          "Not applicable";
+      }
+    }
+    description
+      "Enabled, Disabled, and not-applicable enum used in Ciena defined modules.";
+  }
+
+  typedef wl-spacing {
+    type enumeration {
+      enum "50GHz" {
+        description
+          "50GHz wavelength spacing.";
+      }
+      enum "100GHz" {
+        description
+          "100GHz wavelength spacing.";
+      }
+      enum "200GHz" {
+        description
+          "200GHz wavelength spacing.";
+      }
+      enum "flex-grid" {
+        description
+          "Flex-grid wavelength spacing.";
+      }
+    }
+    description
+      "Wavelength spacing, 50GHz, 100GHz, 200GHz, or flex-grid. Only 'flex-grid' supported in Waveserver Ai R1.0.";
+  }
+
+  typedef decimal-3-dig {
+    type decimal64 {
+      fraction-digits 3;
+      range "-2147483.0 .. 2147483.0";
+    }
+    description
+      "Decimal value up to 3 digits.";
+  }
+
+  typedef decimal-2-dig-small {
+    type decimal64 {
+      fraction-digits 2;
+      range "-30000.0 .. 30000.0";
+    }
+    description
+      "Decimal value up to 2 digits.";
+  }
+
+  typedef decimal-2-dig {
+    type decimal64 {
+      fraction-digits 2;
+      range "-21474836.0 .. 21474836.0";
+    }
+    description
+      "Decimal value up to 2 digits.";
+  }
+
+  typedef decimal-1-dig {
+    type decimal64 {
+      fraction-digits 1;
+      range "-214748364.0 .. 214748364.0";
+    }
+    description
+      "Decimal value up to 1 digits.";
+  }
+
+  typedef string-sci {
+    type string {
+      length "0..32";
+      pattern "[-+]?[0-9](\\.[0-9]+)?([eE][-+]?[0-9]+)?";
+    }
+    description
+      "String in Scientific Notation format with a max length of 32 characters.";
+  }
+
+  typedef string-maxl-15 {
+    type string {
+      length "0..15";
+    }
+    description
+      "Standard string that has a max length of 15 characters. Can be used for various nodes that may require string of this length.";
+  }
+
+  typedef string-maxl-16 {
+    type string {
+      length "0..16";
+    }
+    description
+      "Standard string that has a max length of 16 characters. Can be used for various nodes that may require string of this length.";
+  }
+
+  typedef string-maxl-32 {
+    type string {
+      length "0..32";
+    }
+    description
+      "Standard string that has a max length of 32 characters. Can be used for various nodes that may require string of this length.";
+  }
+
+  typedef string-maxl-44 {
+    type string {
+      length "0..44";
+    }
+    description
+      "Standard string that has a max length of 44 characters. Can be used for various nodes that may require string of this length.";
+  }
+
+  typedef string-maxl-50 {
+    type string {
+      length "0..50";
+    }
+    description
+      "Standard string that has a max length of 50 characters. Can be used for various nodes that may require string of this length.";
+  }
+
+  typedef string-maxl-64 {
+    type string {
+      length "0..64";
+    }
+    description
+      "Standard string that has a max length of 64 characters. Can be used for various nodes that may require string of this length.";
+  }
+
+  typedef string-maxl-128 {
+    type string {
+      length "0..128";
+    }
+    description
+      "Standard string that has a max length of 128 characters. Can be used for various nodes that may require string of this length.";
+  }
+
+  typedef string-maxl-254 {
+    type string {
+      length "0..254";
+    }
+    description
+      "Standard string that has a max length of 254 characters. Can be used for various nodes that may require string of this length.";
+  }
+
+  typedef string-maxl-256 {
+    type string {
+      length "0..256";
+    }
+    description
+      "Standard string that has a max length of 256 characters. Can be used for various nodes that may require string of this length.";
+  }
+
+  typedef ipaddr-or-hostname {
+    type string {
+      length "1..63";
+    }
+    description
+      "IP address or hostname string.";
+  }
+
+  typedef port-name {
+    type string {
+      length "1..32";
+    }
+    description
+      "A string representing a port interface name. Format is: '<slot>-<port>' or '<slot>-<majorport>.<minorport>'.";
+  }
+
+  typedef service-idx {
+    type uint32 {
+      range "0 .. 1000";
+    }
+    description
+      "Service Index";
+  }
+
+  typedef service-domain-idx {
+    type uint32 {
+      range "0 .. 20";
+    }
+    description
+      "Service Domain Index";
+  }
+
+  typedef xcvr-type {
+    type enumeration {
+      enum "not-available" {
+        value 0;
+        description
+          "XCVR type not available.";
+      }
+      enum "unsupported" {
+        value 1;
+        description
+          "XCVR type unsupported.";
+      }
+      enum "QSFPplus" {
+        value 2;
+        description
+          "XCVR type QSFP+.";
+      }
+      enum "QSFP28" {
+        value 3;
+        description
+          "XCVR type QSFP28.";
+      }
+      enum "WaveLogic 3 Extreme" {
+        value 4;
+        description
+          "XCVR type WL3e.";
+      }
+      enum "WaveLogic Ai" {
+        value 5;
+        description
+          "XCVR type WLAi.";
+      }
+    }
+    description
+      "Transceiver type.";
+  }
+
+  typedef xcvr-mode {
+    type enumeration {
+      enum "blank" {
+        value 0;
+        description
+          "XCVR/slot is blank.";
+      }
+      enum "10GE" {
+        value 10;
+        description
+          "XCVR mode 10 Gigabit Ethernet.";
+      }
+      enum "40GE" {
+        value 40;
+        description
+          "XCVR mode 40 Gigabit Ethernet.";
+      }
+      enum "100GE" {
+        value 100;
+        description
+          "XCVR mode 100 Gigabit Ethernet.";
+      }
+      enum "400GE" {
+        value 400;
+        description
+          "XCVR mode 400 Gigabit Ethernet.";
+      }
+      enum "OTL4.4" {
+        value 58044;
+        description
+          "XCVR mode OTL4.4.";
+      }
+      enum "OTLC.4" {
+        value 58104;
+        description
+          "XCVR mode OTLC.4.";
+      }
+      enum "56-200" {
+        value 560200;
+        description
+          "XCVR mode 56Gbaud, 200Gbps.";
+      }
+      enum "56-300" {
+        value 560300;
+        description
+          "XCVR mode 56Gbaud, 300Gbps.";
+      }
+      enum "56-400" {
+        value 560400;
+        description
+          "XCVR mode 56Gbaud, 400Gbps.";
+      }
+    }
+    description
+      "Transceiver mode.";
+  }
+
+  typedef line-sys-enum {
+    type enumeration {
+      enum "coloured" {
+        description
+          "Line system coloured.";
+      }
+      enum "colourless" {
+        description
+          "Line system colourless.";
+      }
+      enum "contentionless" {
+        description
+          "Line system contentionless.";
+      }
+      enum "cs-coloured" {
+        description
+          "Line system cs-coloured.";
+      }
+      enum "cs-colourless" {
+        description
+          "Line system cs-colourless.";
+      }
+    }
+    description
+      "Line system type.";
+  }
+
+  typedef lanes-number {
+    type uint16 {
+      range "0 .. 4";
+    }
+    description
+      "Lane number common type, lane range is defined from 0 to 4.";
+  }
+
+  typedef connector-type-desc-enum {
+    type enumeration {
+      enum "Unknown or unspecified" {
+        value 0;
+        description
+          "Unknown or unspecified.";
+      }
+      enum "SC - Subscriber Connector" {
+        value 1;
+        description
+          "SC - Subscriber Connector.";
+      }
+      enum "Fibre Channel Style 1 copper connector" {
+        value 2;
+        description
+          "Fibre Channel Style 1 copper connector.";
+      }
+      enum "Fibre Channel Style 2 copper connector" {
+        value 3;
+        description
+          "Fibre Channel Style 2 copper connector.";
+      }
+      enum "BNC/TNC - Bayonet/Threaded Neill-Concelman" {
+        value 4;
+        description
+          "BNC/TNC - Bayonet/Threaded Neill-Concelman.";
+      }
+      enum "Fibre Channel coax headers" {
+        value 5;
+        description
+          "Fibre Channel coax headers.";
+      }
+      enum "Fiber Jack" {
+        value 6;
+        description
+          "Fiber Jack.";
+      }
+      enum "LC - Lucent Connector" {
+        value 7;
+        description
+          "LC - Lucent Connector.";
+      }
+      enum "MT-RJ - Mechanical Transfer - Registered Jack" {
+        value 8;
+        description
+          "MT-RJ - Mechanical Transfer - Registered Jack.";
+      }
+      enum "MU - Multiple Optical" {
+        value 9;
+        description
+          "MU - Multiple Optical.";
+      }
+      enum "SG" {
+        value 10;
+        description
+          "SG.";
+      }
+      enum "Optical Pigtail" {
+        value 11;
+        description
+          "Optical Pigtail.";
+      }
+      enum "MPO 1x12 - Multifiber Parallel Optic" {
+        value 12;
+        description
+          "MPO 1x12 - Multifiber Parallel Optic.";
+      }
+      enum "MPO 2x16" {
+        value 13;
+        description
+          "MPO 2x16.";
+      }
+      enum "HSSDC II - High Speed Serial Data Connector" {
+        value 32;
+        description
+          "HSSDC II - High Speed Serial Data Connector.";
+      }
+      enum "Copper pigtail" {
+        value 33;
+        description
+          "Copper pigtail.";
+      }
+      enum "RJ45 - Registered Jack" {
+        value 34;
+        description
+          "RJ45 - Registered Jack.";
+      }
+      enum "No separable connector" {
+        value 35;
+        description
+          "No separable connector.";
+      }
+      enum "MXC 2x16" {
+        value 36;
+        description
+          "MXC 2x16.";
+      }
+    }
+    description
+      "Human readable description of Vendor's connector type byte value. Reference SFF-8024, table 4-3";
+  }
+
+  typedef modem-frequency {
+    type decimal64 {
+      fraction-digits 1;
+      range "0.0 | 186087.5 .. 190956.2 | 191342.5 .. 196107.5";
+    }
+    units "GHz";
+    description
+      "Modem frequency, in GHz. 0.0 indicates unprovisioned (default) value. L-Band range is 186087.5 - 190956.2 GHz, and C-Band range is 191342.5 - 196107.5 GHz.";
+  }
+
+  typedef tx-power-lvl {
+    type decimal64 {
+      fraction-digits 1;
+      range "-214748364.0 .. 214748364.0";
+    }
+    description
+      "Modem Tx Power Level.";
+  }
+
+  typedef module-type-enum {
+    type enumeration {
+      enum "unknown" {
+        description
+          "Module type unknown.";
+      }
+      enum "integrated" {
+        description
+          "Module type integrated.";
+      }
+      enum "field-replaceable" {
+        description
+          "Module type field-replaceable.";
+      }
+    }
+    description
+      "Module type enum.";
+  }
+
+  typedef module-type-bits {
+    type bits {
+      bit integrated {
+        position 0;
+        description
+          "Module type integrated.";
+      }
+      bit field-replaceable {
+        position 1;
+        description
+          "Module type field-replaceable.";
+      }
+    }
+    description
+      "Module type bits.";
+  }
+
+  typedef restart-reason {
+    type enumeration {
+      enum "unknown" {
+        description
+          "Unknown restart reason.";
+      }
+      enum "user-warm" {
+        description
+          "User-initiated warm restart.";
+      }
+      enum "user-cold" {
+        description
+          "User-initiated cold restart.";
+      }
+      enum "system-warm" {
+        description
+          "System-initiated warm restart.";
+      }
+      enum "system-cold" {
+        description
+          "System-initiated cold restart.";
+      }
+      enum "power-on" {
+        description
+          "Device inserted or powered on.";
+      }
+    }
+    description
+      "Chassis/Module last restart reason.";
+  }
+
+  typedef conditioning-type {
+    type enumeration {
+      enum "none" {
+        value 0;
+        description
+          "No consequent action.";
+      }
+      enum "laser-off" {
+        value 1;
+        description
+          "Disable the transmitter consequent action.";
+      }
+      enum "ethernet" {
+        value 2;
+        description
+          "Ethernet Local Fault consequent action.";
+      }
+      enum "otn" {
+        value 3;
+        description
+          "OTN consequent action as defined in ITU-T G.798.";
+      }
+    }
+    description
+      "Egress UNI port consequent action for an EPL service to be applied on a far-end ingress UNI failure or network failure.";
+  }
+
+  typedef conditioning-holdoff {
+    type int16 {
+      range "0|10|20|30|40|50|60|70|80|90|100|200|300|400|500|600|700|800|900|1000";
+    }
+    units "ms";
+    description
+      "Number of milliseconds to delay Egress UNI port consequent action for an EPL service.";
+  }
+
+  typedef trace-mismatch-mode {
+    type enumeration {
+      enum "operator-only" {
+        value 1;
+        description
+          "Trace mismatch detection criteria includes operator-specific trace string only. Other fields are ignored.";
+      }
+      enum "sapi" {
+        value 2;
+        description
+          "Trace mismatch detection criteria includes source access point identifier (SAPI) trace string only. Other fields are ignored.";
+      }
+      enum "dapi" {
+        value 3;
+        description
+          "Trace mismatch detection criteria includes destination access point identifier (DAPI) trace string only. Other fields are ignored.";
+      }
+      enum "sapi-and-dapi" {
+        value 4;
+        description
+          "Trace mismatch detection criteria includes SAPI and DAPI strings. A mismatch of either of these fields will result in TTI mismatch. The operator specific field is ignored.";
+      }
+    }
+    description
+      "The trail trace identifier (TTI) mismatch mode, indicating which fields of the TTI overhead are used for trace mismatch detection.";
+  }
+
+  typedef trace-mismatch-fail-mode {
+    type enumeration {
+      enum "none" {
+        description
+          "TTI mismatch detection is disable or ignored. Do not raise an alarm on TTI mismatch condition.";
+      }
+      enum "alarm-only" {
+        description
+          "Raise an alarm when TTI mismatch occurs, but do not squelch traffic.";
+      }
+    }
+    description
+      "The trail trace identifier (TTI) mismatch failure mode. When TTI mismatch condition occurs, this indicates the consequent action taken, e.g. whether or not to raise an alarm.";
+  }
+}

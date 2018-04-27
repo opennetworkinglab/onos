@@ -94,7 +94,7 @@ ONOS_DRIVERS = [
     '//drivers/ciena/waveserver:onos-drivers-ciena-waveserver-oar',
     '//drivers/ciena/c5162:onos-drivers-ciena-c5162-oar',
     '//drivers/ciena/c5170:onos-drivers-ciena-c5170-oar',
-    # TODO in-progress '//drivers/ciena/waveserverai:onos-drivers-ciena-waveserverai-oar',
+    '//drivers/ciena/waveserverai:onos-drivers-ciena-waveserverai-oar',
     '//drivers/cisco/netconf:onos-drivers-cisco-netconf-oar',
     '//drivers/cisco/rest:onos-drivers-cisco-rest-oar',
     '//drivers/corsa:onos-drivers-corsa-oar',
@@ -267,6 +267,7 @@ MODELS = [
     '//models/l3vpn:onos-models-l3vpn-oar',
     '//models/microsemi:onos-models-microsemi-oar',
     '//models/polatis:onos-models-polatis-oar',
+    '//models/ciena/waveserverai:onos-models-ciena-waveserverai-oar',
 ]
 
 PIPELINES = [

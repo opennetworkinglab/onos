@@ -1,0 +1,267 @@
+module ciena-waveserver-xcvr-modem {
+  namespace "urn:ciena:params:xml:ns:yang:ciena-ws:ciena-waveserver-xcvr-modem";
+  prefix xcvr-modem;
+
+  import ciena-waveserver-typedefs {
+    prefix cienawstypes;
+  }
+  import ciena-waveserver-xcvr {
+    prefix xcvr;
+  }
+
+  organization
+    "Ciena Corporation";
+  contact
+    "Web URL: http://www.ciena.com/
+     Postal:  7035 Ridge Road
+             Hanover, Maryland 21076
+             U.S.A.
+     Phone:   +1 800-921-1144
+     Fax:     +1 410-694-5750";
+  description
+    "This YANG module defines Ciena's XCVR modem specific data for the NETCONF protocol. It will augment the ciena-waveserver-xcvr module.";
+
+  revision 2017-10-24 {
+    description
+      "Changed type for 'frequency-min' and 'frequency-max' leafs from int to decimal.
+       Changed type for 'tx-dispersion-min' and 'tx-dispersion-max' from unsigned to signed int.";
+    reference "Waveserver Ai user's guide.";
+  }
+  revision 2017-08-28 {
+    description
+      "Waveserver Platform Data Model
+       Migrated from Waveserver Classic R1.4 YANG model.
+       Updated namespace to 'ciena-waveserver'.
+       Added 'c-band', 'l-band', and 'frequency-resolution' to 'transmitter-technology' container.
+       Removed 'modulation-support' container and added 'supported-modes' to 'vendor-data/properties' container.
+       Added 'temperature-critical' and 'temperature-warning' to 'diagnostics/device' container.
+       Removed 'wavelength-control' and 'wavelength-tolerance' attributes.
+       Removed 'transport-protocols' and 'line-system-support' containers.";
+    reference "Waveserver Ai user's guide.";
+  }
+
+  augment "/xcvr:waveserver-xcvrs/xcvr:xcvrs/xcvr:properties/xcvr:vendor-data/xcvr:properties/xcvr:diagnostic-monitoring" {
+    when "../../../xcvr:type = 'WaveLogic Ai'" {
+      description
+        "XCVR vendor diagnostic-monitoring properties specific to modem XCVRs.";
+    }
+    description
+      "XCVR vendor diagnostic-monitoring properties specific to modem XCVRs.";
+    leaf diagnostic-support {
+      type cienawstypes:yes-no-enum;
+      config false;
+      description
+        "Diagnostic Monitoring, is Diagnostic Support turned on.";
+    }
+    leaf dispersion-measurement {
+      type cienawstypes:yes-no-enum;
+      config false;
+      description
+        "Diagnostic Monitoring, is Dispersion Measurement turned on.";
+    }
+  }
+  augment "/xcvr:waveserver-xcvrs/xcvr:xcvrs/xcvr:properties/xcvr:vendor-data/xcvr:properties" {
+    when "../../xcvr:type = 'WaveLogic Ai'" {
+      description
+        "XCVR vendor properties specific to modem XCVRs.";
+    }
+    description
+      "XCVR vendor properties specific to modem XCVRs.";
+    leaf supported-modes {
+      type bits {
+        bit mode-35-100 {
+          description
+            "Modem is capable of 35Gbaud / 100Gbps transmission.";
+        }
+        bit mode-35-150 {
+          description
+            "Modem is capable of 35Gbaud / 150Gbps transmission.";
+        }
+        bit mode-35-200 {
+          description
+            "Modem is capable of 35Gbaud / 200Gbps transmission.";
+        }
+        bit mode-35-250 {
+          description
+            "Modem is capable of 35Gbaud / 250Gbps transmission.";
+        }
+        bit mode-56-100 {
+          description
+            "Modem is capable of 56Gbaud / 100Gbps transmission.";
+        }
+        bit mode-56-150 {
+          description
+            "Modem is capable of 56Gbaud / 150Gbps transmission.";
+        }
+        bit mode-56-200 {
+          description
+            "Modem is capable of 56Gbaud / 200Gbps transmission.";
+        }
+        bit mode-56-250 {
+          description
+            "Modem is capable of 56Gbaud / 250Gbps transmission.";
+        }
+        bit mode-56-300 {
+          description
+            "Modem is capable of 56Gbaud / 300Gbps transmission.";
+        }
+        bit mode-56-350 {
+          description
+            "Modem is capable of 56Gbaud / 350Gbps transmission.";
+        }
+        bit mode-56-400 {
+          description
+            "Modem is capable of 56Gbaud / 400Gbps transmission.";
+        }
+      }
+      config false;
+      description
+        "Supported baud/line-rate modes on this modem.";
+    }
+    container transmitter-technology {
+      config false;
+      description
+        "Modem Transmitter Technology properties/capabilities.";
+      leaf tunable {
+        type cienawstypes:yes-no-enum;
+        config false;
+        description
+          "Modem Transmitter Technology, Tunable.";
+      }
+      leaf wavelength-min {
+        type cienawstypes:decimal-2-dig;
+        units "nm";
+        config false;
+        description
+          "Modem Transmitter Technology, Wavelength Min value, in nanometers.";
+      }
+      leaf wavelength-max {
+        type cienawstypes:decimal-2-dig;
+        units "nm";
+        config false;
+        description
+          "Modem Transmitter Technology, Wavelength Max value, in nanometers.";
+      }
+      leaf frequency-min {
+        type cienawstypes:modem-frequency;
+        units "GHz";
+        config false;
+        description
+          "Modem Transmitter Technology, minimum supported frequency, in GHz.";
+      }
+      leaf frequency-max {
+        type cienawstypes:modem-frequency;
+        units "GHz";
+        config false;
+        description
+          "Modem Transmitter Technology, maximum supported frequency, in GHz.";
+      }
+      leaf frequency-resolution {
+        type uint32;
+        units "MHz";
+        config false;
+        description
+          "Modem Transmitter Technology, frequency resolution, in MHz.";
+      }
+      leaf tx-dispersion-min {
+        type int32;
+        units "ps/nm";
+        config false;
+        description
+          "Modem Transmitter Technology, Tx Dispersion Min (ps/nm).";
+      }
+      leaf tx-dispersion-max {
+        type int32;
+        units "ps/nm";
+        config false;
+        description
+          "Modem Transmitter Technology, Tx Dispersion Max (ps/nm).";
+      }
+      leaf edfa {
+        type cienawstypes:yes-no-enum;
+        config false;
+        description
+          "Whether this modem is an EDFA modem.";
+      }
+      leaf c-band {
+        type cienawstypes:yes-no-enum;
+        config false;
+        description
+          "Whether this modem supports C-Band frequencies.";
+      }
+      leaf l-band {
+        type cienawstypes:yes-no-enum;
+        config false;
+        description
+          "Whether this modem supports L-Band frequencies.";
+      }
+    }
+  }
+  augment "/xcvr:waveserver-xcvrs/xcvr:xcvrs/xcvr:properties/xcvr:diagnostics/xcvr:device" {
+    when "../../xcvr:type = 'WaveLogic Ai'" {
+      description
+        "XCVR device diagnostic properties specific to modem XCVRs.";
+    }
+    description
+      "XCVR device diagnostic properties specific to modem XCVRs.";
+    container equipment-status {
+      config false;
+      description
+        "XCVR modem equipment status properties.";
+      leaf transmitter-state {
+        type cienawstypes:enabled-disabled-enum;
+        config false;
+        description
+          "Transmitter State of the Modem.";
+      }
+      leaf equipment-out-of-spec {
+        type cienawstypes:yes-no-enum;
+        config false;
+        description
+          "Is the alarm associated with Equipment Out of Spec raised.";
+      }
+      leaf temperature-critical {
+        type cienawstypes:yes-no-enum;
+        config false;
+        description
+          "Is there a critical temperature alarm currently raised.";
+      }
+      leaf temperature-warning {
+        type cienawstypes:yes-no-enum;
+        config false;
+        description
+          "Is there a temperature warning currently raised.";
+      }
+      leaf equipment-failure {
+        type cienawstypes:yes-no-enum;
+        config false;
+        description
+          "Is the alarm associated with Equipment Failure raised.";
+      }
+      leaf data-link-suspect {
+        type cienawstypes:yes-no-enum;
+        config false;
+        description
+          "Is the alarm associated with Data Link Suspect raised.";
+      }
+      leaf comms-link-suspect {
+        type cienawstypes:yes-no-enum;
+        config false;
+        description
+          "Is the alarm associated with Comms Link Suspect raised.";
+      }
+      leaf clock-suspect {
+        type cienawstypes:yes-no-enum;
+        config false;
+        description
+          "Is the alarm associated with Clock Suspect raised.";
+      }
+      leaf loss-of-synchronization-tick {
+        type cienawstypes:yes-no-enum;
+        config false;
+        description
+          "Is the alarm associated with Loss of Synchronization Tick raised.";
+      }
+    }
+  }
+}

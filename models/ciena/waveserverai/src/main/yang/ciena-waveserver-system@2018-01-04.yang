@@ -1,0 +1,939 @@
+module ciena-waveserver-system {
+  namespace "urn:ciena:params:xml:ns:yang:ciena-ws:ciena-waveserver-system";
+  prefix system;
+
+  import ciena-waveserver-typedefs {
+    prefix cienawstypes;
+  }
+
+  organization
+    "Ciena Corporation";
+  contact
+    "Web URL: http://www.ciena.com/
+     Postal:  7035 Ridge Road
+             Hanover, Maryland 21076
+             U.S.A.
+     Phone:   +1 800-921-1144
+     Fax:     +1 410-694-5750";
+  description
+    "This YANG module defines Ciena's Waveserver System representation.";
+
+  revision 2018-01-04 {
+    description
+      "Changed site 'latitude' and 'longitude' precision from 5 to 6 digits.
+       Updated 'server-config' attribute permissions.
+       Added 'domain-name' container support.
+       Added 'server-config/ssh' container support.
+       Added 'client-config' container support with 'dhcp' and 'ntp' sub-containers.
+       Added 'shell' container for Waveserver CLI shell/session configuration attributes. 
+       Added 'secret' read-only attribute to the environment/root container.
+       Remove 'include-datapath' and 'include-optics' attributes from 'state-dump' command.";
+    reference "Waveserver Ai user's guide.";
+  }
+  revision 2017-06-30 {
+    description
+      "Waveserver Platform Data Model
+       Migrated from Waveserver Classic R1.4 YANG model.
+       Updated namespace to 'ciena-waveserver'.
+       Added scp server support (from WS 1.5).
+       Remove bandplan, front-display, fcs-error-forwarding, low-power-mode as not supported on WS Ai R1.0.
+       Updated xftp-config/tftp 'dhcp-host-name' and 'current-host-name' to be config false.
+       Added 'default-settings' container with leafs to configure 'conditioning-type' and 'conditioning-holdoff' system defaults.
+       Added 'grpc-server-state' and 'scp-server-state' to server-config container.
+       Combined several boolean leafs in 'server-settings-group' into a single enum.";
+    reference "Waveserver Ai user's guide.";
+  }
+
+  typedef line-protection-enum {
+    type enumeration {
+      enum "unprotected" {
+        value 0;
+        description
+          "Line protection is disabled.";
+      }
+      enum "trunk-ops" {
+        value 1;
+        description
+          "Line protection is enabled.";
+      }
+    }
+    description
+      "Enum for line protection options.";
+  }
+
+  grouping server-settings-group {
+    description
+      "Grouping for common server settings attributes used in various RPCs.";
+    leaf server-to-use {
+      type enumeration {
+        enum "none" {
+          description
+            "Don't specify a remote server for the file transfer.";
+        }
+        enum "default-server" {
+          description
+            "Use the default server for the file transfer.";
+        }
+        enum "default-tftp-server" {
+          description
+            "Use the default TFTP server for the file transfer.";
+        }
+        enum "default-ftp-server" {
+          description
+            "Use the default FTP server for the file transfer.";
+        }
+        enum "default-sftp-server" {
+          description
+            "Use the default SFTP server for the file transfer.";
+        }
+        enum "default-scp-server" {
+          description
+            "Use the default SCP server for the file transfer.";
+        }
+        enum "specified-tftp-server" {
+          description
+            "Use the user-specified TFTP server for the file transfer. A tftp-server value must also be specified in the request.";
+        }
+        enum "specified-ftp-server" {
+          description
+            "Use the user-specified FTP server for the file transfer. An ftp-server value must also be specified in the request.";
+        }
+        enum "specified-sftp-server" {
+          description
+            "Use the user-specified SFTP server for the file transfer. An sftp-server value must also be specified in the request.";
+        }
+        enum "specified-scp-server" {
+          description
+            "Use the user-specified SCP server for the file transfer. A scp-server value must also be specified in the request.";
+        }
+      }
+      description
+        "If server-to-use is specified with a value other than 'none; in the RPC request, then the system will use the specified server for the file transfer.";
+    }
+    leaf tftp-server-address {
+      type cienawstypes:string-maxl-64;
+      description
+        "The TFTP server IP address to use for the file transfer if server-to-use is 'specified-tftp-server'. Otherwise this attribute is ignored.";
+    }
+    leaf ftp-server-address {
+      type cienawstypes:string-maxl-64;
+      description
+        "The FTP server IP address to use for the file transfer if server-to-use is 'specified-ftp-server'. Otherwise this attribute is ignored.";
+    }
+    leaf ftp-login-id {
+      type cienawstypes:string-maxl-32;
+      description
+        "The FTP username.";
+    }
+    leaf ftp-password {
+      type cienawstypes:string-maxl-128;
+      description
+        "The FTP password.";
+    }
+    leaf ftp-secret {
+      type cienawstypes:string-maxl-256;
+      description
+        "The FTP secret(pre-encrypted) string.";
+    }
+    leaf sftp-server-address {
+      type cienawstypes:string-maxl-64;
+      description
+        "The SFTP server IP address to use for the file transfer if server-to-use is 'specified-sftp-server'. Otherwise this attribute is ignored.";
+    }
+    leaf sftp-login-id {
+      type cienawstypes:string-maxl-32;
+      description
+        "The SFTP login ID.";
+    }
+    leaf sftp-password {
+      type cienawstypes:string-maxl-128;
+      description
+        "The SFTP password.";
+    }
+    leaf sftp-secret {
+      type cienawstypes:string-maxl-256;
+      description
+        "The SFTP secret(pre-encrypted) string.";
+    }
+    leaf scp-server-address {
+      type cienawstypes:string-maxl-64;
+      description
+        "The SCP server IP address to use for the file transfer if server-to-use is 'specified-scp-server'. Otherwise this attribute is ignored.";
+    }
+    leaf scp-login-id {
+      type cienawstypes:string-maxl-32;
+      description
+        "The SCP login ID.";
+    }
+    leaf scp-password {
+      type cienawstypes:string-maxl-128;
+      description
+        "The SCP password.";
+    }
+    leaf scp-secret {
+      type cienawstypes:string-maxl-256;
+      description
+        "The SCP secret(pre-encrypted) string.";
+    }
+  }
+
+  container waveserver-system {
+    description
+      "Waveserver System configuration data and operational data.";
+    container id {
+      description
+        "Waveserver system identification attributes.";
+      container site {
+        description
+          "Waveserver system site attributes.";
+        leaf id {
+          type uint16 {
+            range "0..65535";
+          }
+          description
+            "An integer to uniquely identify the site where this Waveserver is located. This is used to help group Waveservers together with line system equipment. All equipment in a common site should share the same site identifier. ";
+        }
+        leaf name {
+          type string {
+            length "0..32";
+          }
+          description
+            "The name for the site where the Waveserver is located.";
+        }
+        leaf description {
+          type string {
+            length "0..64";
+          }
+          description
+            "The site description";
+        }
+        leaf latitude {
+          type decimal64 {
+            fraction-digits 6;
+            range "-90.0 .. 90.0";
+          }
+          description
+            "Geographic coordinate for the site location in degrees.";
+        }
+        leaf longitude {
+          type decimal64 {
+            fraction-digits 6;
+            range "-180.0 .. 180.0";
+          }
+          description
+            "Geographic coordinate for the site location in degrees.";
+        }
+        leaf address {
+          type string {
+            length "0..128";
+          }
+          description
+            "The street address of the site.";
+        }
+      }
+      container group {
+        description
+          "Waveserver system group attributes.";
+        leaf id {
+          type uint8 {
+            range "0..99";
+          }
+          description
+            "An integer to uniquely identify a group of Waveservers within a site.";
+        }
+        leaf name {
+          type string {
+            length "0..32";
+          }
+          description
+            "A name for the group of Waveservers.";
+        }
+        leaf description {
+          type string {
+            length "0..64";
+          }
+          description
+            "A description for the group of Waveservers. ";
+        }
+      }
+      container member {
+        description
+          "Waveserver system member attributes.";
+        leaf id {
+          type uint8 {
+            range "0..254";
+          }
+          description
+            "An integer to uniquely identify a Waveserver chassis within a group of Waveservers.";
+        }
+        leaf name {
+          type string {
+            length "0..32";
+          }
+          description
+            "A name for the Waveserver chassis.";
+        }
+        leaf description {
+          type string {
+            length "0..64";
+          }
+          description
+            "A description for the Waveserver chassis.";
+        }
+        leaf frame-identification {
+          type string {
+            length "0..128";
+          }
+          description
+            "A description to identify the location of the Waveserver chassis within the data center. For example, the building, floor, aisle, frame number, etc.";
+        }
+        leaf rack-unit-number {
+          type uint8 {
+            range "0..50";
+          }
+          description
+            "A logical identifier for the Waveservers location within the frame or rack. For example, the device at the top could be labelled unit 1.";
+        }
+      }
+    }
+    container host-name {
+      description
+        "Waveserver system host name attributes.";
+      leaf current-host-name {
+        type cienawstypes:string-maxl-64;
+        config false;
+        description
+          "Current host name.";
+      }
+      leaf config-host-name {
+        type cienawstypes:string-maxl-64;
+        description
+          "User configured host name.";
+      }
+      leaf dhcp-host-name {
+        type cienawstypes:string-maxl-64;
+        config false;
+        description
+          "DHCP configured host name.";
+      }
+    }
+    container domain-name {
+      description
+        "Waveserver system domain name attributes.";
+      leaf current-domain-name {
+        type cienawstypes:string-maxl-64;
+        config false;
+        description
+          "Current domain name. This will either be the DHCP-assigned domain name, or the user-configured value, respectively.";
+      }
+      leaf config-domain-name {
+        type cienawstypes:string-maxl-64;
+        description
+          "User configured domain name.";
+      }
+      leaf dhcp-domain-name {
+        type cienawstypes:string-maxl-64;
+        config false;
+        description
+          "DHCP configured domain name, if assigned. DHCP Client must be enabled with Option 15 support in order to obtain a domain name from the server.";
+      }
+    }
+    container time-config {
+      description
+        "Waveserver system time configuration attributes.";
+      leaf date {
+        type string {
+          length "1..11";
+          pattern "\\d{4}-\\d{2}-\\d{2}|\\d{2}-\\d{2}-\\d{2}|\\d{2}-\\d{2}";
+        }
+        description
+          "Date: must be in format: yyyy-mm-dd, or yy-mm-dd, or mm-dd.";
+      }
+      leaf time {
+        type string {
+          length "1..9";
+          pattern "\\d{2}:\\d{2}:\\d{2}|\\d{2}:\\d{2}";
+        }
+        description
+          "Time: must be in format: hh:mm:ss";
+      }
+      leaf time-offset {
+        type decimal64 {
+          fraction-digits 2;
+          range "-43200.0 .. 50400.0";
+        }
+        description
+          "System time-offset from UTC in seconds.";
+      }
+      leaf time-stamp {
+        type enumeration {
+          enum "utc" {
+            description
+              "Timestamp is indicated in Coordinated Universal Time (UTC) format.";
+          }
+          enum "local" {
+            description
+              "Timestamp is indicated in local time format.";
+          }
+        }
+        description
+          "System time stamp format: local time or UTC time.";
+      }
+      leaf local-date-time {
+        type string {
+          length "1..41";
+        }
+        config false;
+        description
+          "Local date and time Time";
+      }
+      leaf coordinated-universal-time {
+        type string {
+          length "1..41";
+        }
+        config false;
+        description
+          "UTC date and time Time";
+      }
+      leaf system-uptime {
+        type string {
+          length "1..17";
+        }
+        config false;
+        description
+          "Time since last reboot, in format: xxxd xxh xxm xxs";
+      }
+    }
+    container server-config {
+      description
+        "Waveserver system server configuration attributes.";
+      leaf sftp-server-state {
+        type cienawstypes:enabled-disabled-enum;
+        description
+          "Indicate whether SFTP server is enabled.";
+      }
+      leaf scp-server-state {
+        type cienawstypes:enabled-disabled-enum;
+        description
+          "Indicate whether SCP server is enabled.";
+      }
+      leaf web-server-state {
+        type cienawstypes:enabled-disabled-enum;
+        description
+          "Indicate whether web server is enabled, HTTPS only.";
+      }
+      leaf netconf-server-state {
+        type cienawstypes:enabled-disabled-enum;
+        description
+          "Indicate whether NETCONF server is enabled.";
+      }
+      leaf restconf-server-state {
+        type cienawstypes:enabled-disabled-enum;
+        config false;
+        description
+          "Indicate whether RESTCONF server is enabled, HTTPS only.";
+      }
+      leaf grpc-server-state {
+        type cienawstypes:enabled-disabled-enum;
+        description
+          "Indicate whether gRPC server is enabled.";
+      }
+      container ssh {
+        description
+          "SSH server configuration.";
+        leaf admin-state {
+          type cienawstypes:enabled-disabled-enum;
+          config false;
+          description
+            "SSH server administrative state. Currently a read-only attribute.
+             SSH server is enabled by default and cannot be explicitly disabled.";
+        }
+        leaf operational-state {
+          type cienawstypes:up-down-enum;
+          config false;
+          description
+            "SSH server operational state.";
+        }
+        leaf authentication-retries {
+          type uint8 {
+            range "1..3";
+          }
+          description
+            "Number of authentication retries allowed before the SSH connection
+             is dropped.";
+        }
+        leaf listener-port {
+          type uint16 {
+            range "22..65535";
+          }
+          description
+            "Configured SSH listener port. Default is port 22.";
+        }
+        leaf session-limit {
+          type uint16;
+          config false;
+          description
+            "SSH session limit. Read-only attribute.";
+        }
+      }
+    }
+    container client-config {
+      description
+        "Waveserver client configuration attributes.";
+      container dhcp {
+        description
+          "Waveserver DHCP client configuration attributes.";
+        leaf admin-state {
+          type cienawstypes:enabled-disabled-enum;
+          description
+            "DHCP client administrative atate";
+        }
+        leaf operational-state {
+          type cienawstypes:up-down-enum;
+          config false;
+          description
+            "DHCP client operational state.";
+        }
+      }
+      container ntp {
+        description
+          "Waveserver NTP client configuration attributes.";
+        leaf admin-state {
+          type cienawstypes:enabled-disabled-enum;
+          description
+            "NTP client administrative state.";
+        }
+        leaf operational-state {
+          type cienawstypes:up-down-enum;
+          config false;
+          description
+            "NTP client operational state.";
+        }
+        leaf authentication-state {
+          type cienawstypes:enabled-disabled-enum;
+          description
+            "NTP client authentication state. When enabled, only MD5 
+             authenticated packets will be used to synchronize the time.";
+        }
+        leaf mode {
+          type enumeration {
+            enum "polling" {
+              description
+                "NTP client is in polling mode.";
+            }
+            enum "broadcast" {
+              description
+                "NTP client is in broadcast mode.";
+            }
+            enum "multicast" {
+              description
+                "NTP client is in multicast mode.";
+            }
+          }
+          description
+            "NTP client mode.";
+        }
+        leaf polling-interval {
+          type uint32 {
+            range "16|32|64|128|256|512|1024|2048|4096|8192|16384|32768|65536";
+          }
+          units "seconds";
+          description
+            "The NTP client polling interval, in seconds. Applicable only when
+             NTP client mode is set to 'polling'. This is a global setting that
+             applies to all configured NTP peer servers.";
+        }
+        leaf delay {
+          type cienawstypes:decimal-3-dig;
+          units "ms";
+          config false;
+          description
+            "Round trip delay to the active NTP peer, in milliseconds.";
+        }
+        leaf offset {
+          type cienawstypes:decimal-3-dig;
+          units "ms";
+          config false;
+          description
+            "The time offset between the NTP client and server, in milliseconds.";
+        }
+        leaf jitter {
+          type cienawstypes:decimal-3-dig;
+          units "ms";
+          config false;
+          description
+            "The mean deviation/dispersion of multiple time samples from the
+             active NTP peer, in milliseconds.";
+        }
+        leaf synchronized {
+          type boolean;
+          config false;
+          description
+            "Specifies whether NTP client has synchronized the system time
+             with a remote peer server.";
+        }
+        list ntp-key {
+          key "key-id";
+          max-elements "32";
+          description
+            "List of NTP authentication keys.";
+          leaf key-id {
+            type uint16;
+            mandatory true;
+            description
+              "Unique index value for the NTP authentication key.";
+          }
+          leaf key-type {
+            type enumeration {
+              enum "MD5" {
+                description
+                  "Authentication key uses MD5 encryption.";
+              }
+            }
+            config false;
+            description
+              "Encryption type used for the NTP authentication key.";
+          }
+          leaf key-value {
+            type string {
+              length "2..31";
+            }
+            description
+              "NTP authentication key value.";
+          }
+        }
+        list server {
+          key "address";
+          max-elements "10";
+          description
+            "List of NTP servers to use for time synchronization.";
+          leaf address {
+            type cienawstypes:ipaddr-or-hostname;
+            mandatory true;
+            description
+              "Configured IP address or Domain Name of the remote NTP server.";
+          }
+          leaf ip-address {
+            type cienawstypes:string-maxl-64;
+            config false;
+            description
+              "Operational IP address associated with the remote NTP server, 
+               if configured/available, or 'Unresolved' otherwise.";
+          }
+          leaf admin-state {
+            type cienawstypes:enabled-disabled-enum;
+            description
+              "NTP remote server administrative state.";
+          }
+          leaf operational-state {
+            type cienawstypes:up-down-enum;
+            config false;
+            description
+              "NTP remote server operational state.";
+          }
+          leaf key-id {
+            type leafref {
+              path "../../ntp-key/key-id";
+            }
+            description
+              "Leafref to 'ntp-key' list 'key-id' values.";
+          }
+          leaf offset {
+            type cienawstypes:decimal-3-dig;
+            units "ms";
+            config false;
+            description
+              "Estimated current time offset between the NTP client and server, in milliseconds.";
+          }
+        }
+      }
+    }
+    container xftp-config {
+      description
+        "Waveserver system XFTP configuration attributes.";
+      leaf mode {
+        type enumeration {
+          enum "none" {
+            value 0;
+            description
+              "No FTP mode is specified.";
+          }
+          enum "tftp" {
+            value 1;
+            description
+              "Trivial File Transfer Protocol (TFTP) mode.";
+          }
+          enum "ftp" {
+            value 2;
+            description
+              "File Transfer Protocol (FTP) mode.";
+          }
+          enum "sftp" {
+            value 3;
+            description
+              "Secure File Transfer Protocol (SFTP) mode.";
+          }
+          enum "scp" {
+            value 4;
+            description
+              "Secure Copy Protocol (SCP) mode.";
+          }
+        }
+        description
+          "Identifies which file transfer protocol to user when default-server is specified in a command - FTP, SFTP, TFTP or SCP.";
+      }
+      container tftp {
+        description
+          "Waveserver system TFTP configuration.";
+        leaf config-host-name {
+          type cienawstypes:string-maxl-64;
+          description
+            "TFTP host name configured by user. Format is an IP address (with optional port) or host name.";
+        }
+        leaf dhcp-host-name {
+          type cienawstypes:string-maxl-64;
+          config false;
+          description
+            "TFTP DHCP host name.";
+        }
+        leaf current-host-name {
+          type cienawstypes:string-maxl-64;
+          config false;
+          description
+            "TFTP current host name.";
+        }
+      }
+      container ftp {
+        description
+          "Waveserver system FTP configuration.";
+        leaf host-name {
+          type cienawstypes:string-maxl-64;
+          description
+            "FTP host name. Format is an IP address (with optional port) or host name.";
+        }
+        leaf user-name {
+          type cienawstypes:string-maxl-32;
+          description
+            "FTP user name.";
+        }
+        leaf password {
+          type cienawstypes:string-maxl-128;
+          description
+            "FTP password string.";
+        }
+        leaf secret {
+          type cienawstypes:string-maxl-256;
+          description
+            "FTP secret string.";
+        }
+      }
+      container sftp {
+        description
+          "Waveserver system SFTP configuration.";
+        leaf host-name {
+          type cienawstypes:string-maxl-64;
+          description
+            "SFTP host name. Format is an IP address (with optional port) or host name.";
+        }
+        leaf user-name {
+          type cienawstypes:string-maxl-32;
+          description
+            "SFTP user name.";
+        }
+        leaf password {
+          type cienawstypes:string-maxl-128;
+          description
+            "SFTP password string.";
+        }
+        leaf secret {
+          type cienawstypes:string-maxl-256;
+          description
+            "SFTP secret string.";
+        }
+      }
+      container scp {
+        description
+          "Waveserver system SCP configuration.";
+        leaf host-name {
+          type cienawstypes:string-maxl-64;
+          description
+            "SCP host name. Format is an IP address (with optional port) or host name.";
+        }
+        leaf user-name {
+          type cienawstypes:string-maxl-32;
+          description
+            "SCP user name.";
+        }
+        leaf password {
+          type cienawstypes:string-maxl-128;
+          description
+            "SCP password string.";
+        }
+        leaf secret {
+          type cienawstypes:string-maxl-256;
+          description
+            "SCP secret string.";
+        }
+      }
+    }
+    container global-provisioning {
+      description
+        "Waveserver system global provisioning attributes.";
+      leaf reset-to-factory-default-button {
+        type cienawstypes:enabled-disabled-enum;
+        description
+          "Indicate whether the reset button for reset to factory default is enabled. If enabled, the reset button on the faceplate will trigger a reset to factory default settings.";
+      }
+      container line-config {
+        description
+          "Waveserver system line configuration.";
+        leaf line-protection {
+          type line-protection-enum;
+          description
+            "Line protection settings. If line protection is enabled, this means that the photonic line the Waveserver is connected to has protection enabled. In the event of a line side fault, the protection card on the line side will select the protection path and the modems will reacquire the signal on the alternate path. While the switch is occuring, link state messaging will be disabled to the clients so that the connected devices do not attempt a switch or a restoration.";
+        }
+      }
+    }
+    container environment {
+      description
+        "Waveserver system linux environment attributes.";
+      container root {
+        description
+          "Waveserver system user root configuration.";
+        leaf password {
+          type cienawstypes:string-maxl-128;
+          description
+            "User root password string.";
+        }
+        leaf secret {
+          type cienawstypes:string-maxl-256;
+          config false;
+          description
+            "The encrypted user password string, supplied as a hashed value.";
+        }
+      }
+    }
+    container shell {
+      description
+        "Waveserver system CLI shell/session attributes.";
+      leaf inactivity-timer {
+        type cienawstypes:enabled-disabled-enum;
+        description
+          "Global CLI/shell session inactivity timer state.";
+      }
+      leaf inactivity-timeout {
+        type uint16 {
+          range "1..1500";
+        }
+        units "minutes";
+        description
+          "Global CLI/shell session inactivity timeout period, in minutes.";
+      }
+    }
+    container default-settings {
+      description
+        "Waveserver system default configuration values.";
+      container conditioning {
+        description
+          "Waveserver system default conditioning values. Ports are created with these values. When the system defaults are set, all existing ports have their values updated.";
+        leaf type {
+          type cienawstypes:conditioning-type;
+          description
+            "Egress UNI port consequent action for an EPL service to be applied on a far-end ingress UNI failure or network failure.";
+        }
+        leaf holdoff {
+          type cienawstypes:conditioning-holdoff;
+          description
+            "Number of milliseconds the failure must be present before applying Egress UNI port consequent action for an EPL service.";
+        }
+      }
+    }
+  }
+  rpc waveserver-system-state-dump {
+    description
+      "Dump system state information.";
+    input {
+      leaf file-name {
+        type cienawstypes:string-maxl-254;
+        description
+          "The file name to store the system state data.";
+      }
+      leaf include-corefiles {
+        type boolean;
+        description
+          "Indicate whether core files are included (true) or not (false) in the system state dump data.";
+      }
+      uses server-settings-group;
+    }
+    output {
+      leaf return-code {
+        type uint32;
+        description
+          "return code: 0 is success; non-zero is failure";
+      }
+      leaf return-string {
+        type cienawstypes:string-maxl-254;
+        description
+          "Return code description";
+      }
+    }
+  }
+  rpc waveserver-system-putfile {
+    description
+      "Transfer file to a specified destination.";
+    input {
+      leaf local-file-name {
+        type cienawstypes:string-maxl-254;
+        description
+          "The local file name.";
+      }
+      leaf remote-file-name {
+        type cienawstypes:string-maxl-254;
+        description
+          "The remote file name.";
+      }
+      uses server-settings-group;
+    }
+    output {
+      leaf return-code {
+        type uint32;
+        description
+          "return code: 0 is success; non-zero is failure";
+      }
+      leaf return-string {
+        type cienawstypes:string-maxl-254;
+        description
+          "Return code description";
+      }
+    }
+  }
+  rpc waveserver-system-getfile {
+    description
+      "Get file from a specified source.";
+    input {
+      leaf local-file-name {
+        type cienawstypes:string-maxl-254;
+        description
+          "The local file name.";
+      }
+      leaf remote-file-name {
+        type cienawstypes:string-maxl-254;
+        description
+          "The remote file name.";
+      }
+      uses server-settings-group;
+    }
+    output {
+      leaf return-code {
+        type uint32;
+        description
+          "return code: 0 is success; non-zero is failure";
+      }
+      leaf return-string {
+        type cienawstypes:string-maxl-254;
+        description
+          "Return code description";
+      }
+    }
+  }
+}

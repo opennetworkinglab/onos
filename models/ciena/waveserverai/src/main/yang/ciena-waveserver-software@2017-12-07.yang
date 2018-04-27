@@ -1,0 +1,466 @@
+module ciena-waveserver-software {
+  namespace "urn:ciena:params:xml:ns:yang:ciena-ws:ciena-waveserver-software";
+  prefix software;
+
+  import ciena-waveserver-typedefs {
+    prefix cienawstypes;
+  }
+
+  organization
+    "Ciena Corporation";
+  contact
+    "Web URL: http://www.ciena.com/
+     Postal:  7035 Ridge Road
+             Hanover, Maryland 21076
+             U.S.A.
+     Phone:   +1 800-921-1144
+     Fax:     +1 410-694-5750";
+  description
+    "This module defines Software Status and Upgrade support for Ciena's Waveserver Platform.";
+
+  revision 2017-12-07 {
+    description
+      "Added support for multi-step upgrade RPCs for 'download', 'activate', and 'commit'.
+       Added 'upgrade-log' attribute support.";
+    reference "Waveserver Ai user's guide.";
+  }
+  revision 2017-09-07 {
+    description
+      "Waveserver Platform Data Model
+       Migrated from Waveserver Classic R1.4 YANG model.
+       Updated namespace to 'ciena-waveserver'.
+       Updated 'software-op-state' and 'upgrade-op-state' enum values.
+       Removed several unsupported attributes/containers/RPCs.
+       Added WCS and Module status containers/attributes.
+       Moved some common attributes into groupings.";
+    reference "Waveserver Ai user's guide.";
+  }
+
+  grouping software-device-status-group {
+    description
+      "Grouping for WCS and Module software status attributes.";
+    leaf boot-zone {
+      type boot-zone;
+      description
+        "The boot zone for the specified device.";
+    }
+    leaf last-restart {
+      type cienawstypes:string-maxl-32;
+      description
+        "The date and time of last restart in the format of a human readable string. e.g 'Wed Jun 30 21:49:08 2015'";
+    }
+    leaf last-restart-reason {
+      type cienawstypes:restart-reason;
+      description
+        "Cause for the last restart.";
+    }
+    leaf boot-image-a {
+      type cienawstypes:string-maxl-64;
+      description
+        "The boot image or firmware image name for zone A.";
+    }
+    leaf boot-image-b {
+      type cienawstypes:string-maxl-64;
+      description
+        "The boot image or firmware image name for zone B.";
+    }
+  }
+
+  grouping software-release-group {
+    description
+      "Grouping for active and installed software release attributes.";
+    leaf version {
+      type cienawstypes:string-maxl-32;
+      description
+        "The software release version.";
+    }
+    leaf build-number {
+      type cienawstypes:string-maxl-32;
+      description
+        "The software release build number.";
+    }
+    leaf build-tag {
+      type cienawstypes:string-maxl-32;
+      description
+        "The software release build tag.";
+    }
+    leaf build-date {
+      type cienawstypes:string-maxl-32;
+      description
+        "The software release build date.";
+    }
+  }
+
+  typedef software-rtncode {
+    type uint32;
+    description
+      "Return code value used in the software module. 0 indicate success. None-zero indicate failure.";
+  }
+
+  typedef software-op-state {
+    type enumeration {
+      enum "unknown" {
+        description
+          "Software operational state is unknown.";
+      }
+      enum "normal" {
+        description
+          "Software operational state is normal.";
+      }
+      enum "upgrade-in-progress" {
+        description
+          "Software upgrade is in progress.";
+      }
+      enum "automatic-upgrade-in-progress" {
+        description
+          "Automatic software upgrade is in progress.";
+      }
+      enum "restart-in-progress" {
+        description
+          "System restart is in progress. WCS is initializing but not yet in 'boot-complete' state.";
+      }
+      enum "module-restart-in-progress" {
+        description
+          "One or more modules is initializing and has not yet reached run-mode 'run' state.";
+      }
+      enum "application-failed" {
+        description
+          "One or more required applications is not running.";
+      }
+    }
+    description
+      "Software operational state.";
+  }
+
+  typedef upgrade-op-state {
+    type enumeration {
+      enum "unknown" {
+        description
+          "Upgrade operational state is unknown.";
+      }
+      enum "idle" {
+        description
+          "Software upgrade is idle.";
+      }
+      enum "download-in-progress" {
+        description
+          "Software download is in progress.";
+      }
+      enum "download-complete" {
+        description
+          "Software download is complete.";
+      }
+      enum "download-failed" {
+        description
+          "Software download failed.";
+      }
+      enum "activation-in-progress" {
+        description
+          "Software activation is in progress.";
+      }
+      enum "activation-complete" {
+        description
+          "Software activation is complete.";
+      }
+      enum "activation-failed" {
+        description
+          "Software activation failed.";
+      }
+      enum "installation-in-progress" {
+        description
+          "Software installation is in progress.";
+      }
+      enum "installation-failed" {
+        description
+          "Software installation failed.";
+      }
+      enum "commit-in-progress" {
+        description
+          "Software commit is in progress.";
+      }
+      enum "commit-failed" {
+        description
+          "Software commit failed.";
+      }
+      enum "cancel-in-progress" {
+        description
+          "Software cancel operation is in progress.";
+      }
+      enum "cancel-failed" {
+        description
+          "Software cancel operation failed.";
+      }
+      enum "delete-in-progress" {
+        description
+          "Software delete operation is in progress.";
+      }
+      enum "delete-failed" {
+        description
+          "Software delete operation failed.";
+      }
+      enum "automatic-upgrade-in-progress" {
+        description
+          "Automatic software upgrade is in progress.";
+      }
+      enum "automatic-upgrade-failed" {
+        description
+          "Automatic software upgrade failed.";
+      }
+      enum "module-cold-restart-required" {
+        description
+          "A cold restart is required on one or more modules.";
+      }
+    }
+    description
+      "Software upgrade operational state.";
+  }
+
+  typedef boot-zone {
+    type enumeration {
+      enum "unknown" {
+        description
+          "Boot zone is unknown.";
+      }
+      enum "a" {
+        description
+          "Boot zone A.";
+      }
+      enum "b" {
+        description
+          "Boot zone B.";
+      }
+    }
+    description
+      "The boot zone type.";
+  }
+
+  container waveserver-software {
+    config false;
+    description
+      "Waveserver software upgrade and load management.";
+    container status {
+      description
+        "Waveserver software status information.";
+      leaf software-operational-state {
+        type software-op-state;
+        description
+          "The current software operational state.";
+      }
+      leaf upgrade-operational-state {
+        type upgrade-op-state;
+        description
+          "The current upgrade operational state.";
+      }
+      leaf committed-version {
+        type cienawstypes:string-maxl-64;
+        description
+          "The committed software release version.";
+      }
+      leaf active-version {
+        type cienawstypes:string-maxl-64;
+        description
+          "The active software release version.";
+      }
+      leaf upgrade-to-version {
+        type cienawstypes:string-maxl-64;
+        description
+          "The software release version currently being upgraded to, if applicable.";
+      }
+      leaf last-operation {
+        type cienawstypes:string-maxl-128;
+        description
+          "The software upgrade last operation.";
+      }
+      leaf upgrade-log {
+        type cienawstypes:string-maxl-128;
+        description
+          "The software upgrade log file URI on the Waveserver.";
+      }
+    }
+    container wcs-status {
+      description
+        "Software status information for the Waveserver Control Subsystem control module.";
+      leaf boot-image-version {
+        type cienawstypes:string-maxl-32;
+        description
+          "The current boot image version for the WCS.";
+      }
+      leaf fpga-id {
+        type cienawstypes:string-maxl-64;
+        description
+          "The current FPGA image identifier for the WCS.";
+      }
+      uses software-device-status-group;
+    }
+    container module-status {
+      description
+        "Module software status information.";
+      list module {
+        key "module-id";
+        description
+          "List containing module-specific software status information.";
+        leaf module-id {
+          type cienawstypes:name-string;
+          mandatory true;
+          description
+            "Unique access identifier string of the Module, which may just be a slot number (e.g. '1'). Key value for the Module list. Read-only attribute.";
+        }
+        uses software-device-status-group;
+      }
+    }
+    container active {
+      description
+        "Waveserver active software information.";
+      uses software-release-group;
+    }
+    container installed {
+      description
+        "Waveserver installed software release information.";
+      list versions {
+        key "index";
+        description
+          "A list of installed software releases on this Waveserver.";
+        leaf index {
+          type uint8;
+          description
+            "Unique id, read-only attribute.";
+        }
+        uses software-release-group;
+      }
+    }
+  }
+  rpc waveserver-software-install {
+    description
+      "Perform one-step software upgrade (download, activate, and commit) via url string.";
+    input {
+      leaf url {
+        type cienawstypes:string-maxl-254;
+        mandatory true;
+        description
+          "The URL specifying the remote location and package name to be installed. Example format is 'scp://<uid>:<pwd>@<ip-address>/<path>/<filename>'.";
+      }
+    }
+    output {
+      leaf return-code {
+        type software-rtncode;
+        description
+          "return code: 0 is success; non-zero is failure";
+      }
+      leaf return-string {
+        type cienawstypes:string-maxl-254;
+        description
+          "Return code description";
+      }
+    }
+  }
+  rpc waveserver-software-download {
+    description
+      "Download software load via url string.";
+    input {
+      leaf url {
+        type cienawstypes:string-maxl-254;
+        mandatory true;
+        description
+          "The URL specifying the remote location and package name to be installed. Example format is 'scp://<uid>:<pwd>@<ip-address>/<path>/<filename>'.";
+      }
+    }
+    output {
+      leaf return-code {
+        type software-rtncode;
+        description
+          "return code: 0 is success; non-zero is failure";
+      }
+      leaf return-string {
+        type cienawstypes:string-maxl-254;
+        description
+          "Return code description";
+      }
+    }
+  }
+  rpc waveserver-software-activate {
+    description
+      "Perform software activate via version string.";
+    input {
+      leaf version {
+        type cienawstypes:string-maxl-32;
+        mandatory true;
+        description
+          "The load version string.";
+      }
+      leaf auto-commit {
+        type boolean;
+        default "false";
+        description
+          "Optionally specify that the software load be automatically committed after activation.";
+      }
+    }
+    output {
+      leaf return-code {
+        type software-rtncode;
+        description
+          "return code: 0 is success; non-zero is failure";
+      }
+      leaf return-string {
+        type cienawstypes:string-maxl-254;
+        description
+          "Return code description";
+      }
+    }
+  }
+  rpc waveserver-software-delete {
+    description
+      "Perform software delete via version string.";
+    input {
+      leaf version {
+        type cienawstypes:string-maxl-32;
+        mandatory true;
+        description
+          "The load version string.";
+      }
+    }
+    output {
+      leaf return-code {
+        type software-rtncode;
+        description
+          "return code: 0 is success; non-zero is failure";
+      }
+      leaf return-string {
+        type cienawstypes:string-maxl-254;
+        description
+          "Return code description";
+      }
+    }
+  }
+  rpc waveserver-software-commit {
+    description
+      "Perform software commit operation in the current load has not been committed and it is in boot completion state.";
+    output {
+      leaf return-code {
+        type software-rtncode;
+        description
+          "return code: 0 is success; non-zero is failure";
+      }
+      leaf return-string {
+        type cienawstypes:string-maxl-254;
+        description
+          "Return code description";
+      }
+    }
+  }
+  rpc waveserver-software-cancel {
+    description
+      "Cancel an existing software upgrade operation that is in a failed state.";
+    output {
+      leaf return-code {
+        type software-rtncode;
+        description
+          "return code: 0 is success; non-zero is failure";
+      }
+      leaf return-string {
+        type cienawstypes:string-maxl-254;
+        description
+          "Return code description";
+      }
+    }
+  }
+}

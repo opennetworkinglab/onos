@@ -1,0 +1,18 @@
+<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+  <edit-config>
+    <target>
+      <running/>
+    </target>
+    <config>
+      <waveserver-ports xmlns="urn:ciena:params:xml:ns:yang:ciena-ws:ciena-waveserver-port"
+                        xmlns:ncx="http://netconfcentral.org/ns/yuma-ncx">
+        <ports>
+          <port-id>{{port-number}}</port-id>
+          <state>
+            <admin-state>{{admin-state}}</admin-state>
+          </state>
+        </ports>
+      </waveserver-ports>
+    </config>
+  </edit-config>
+</rpc>]]>]]>

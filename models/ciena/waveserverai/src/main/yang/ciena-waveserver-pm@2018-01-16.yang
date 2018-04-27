@@ -1,0 +1,1624 @@
+module ciena-waveserver-pm {
+  namespace "urn:ciena:params:xml:ns:yang:ciena-ws:ciena-waveserver-pm";
+  prefix pm;
+
+  import ciena-waveserver-typedefs {
+    prefix cienawstypes;
+  }
+
+  organization
+    "Ciena Corporation";
+  contact
+    "Web URL: http://www.ciena.com/
+     Postal:  7035 Ridge Road
+            Hanover, Maryland 21076
+            U.S.A.
+     Phone:   +1 800-921-1144
+     Fax:     +1 410-694-5750";
+  description
+    "This module defines performance monitoring data for the Waveserver.";
+
+  revision 2018-01-16 {
+    description
+      "Added DGD max/avg and PDL max/avg PM counters to PTP modem performance instances.
+       Updated Valid range for history bin-numbers are defined.";
+    reference "";
+  }
+  revision 2017-09-18 {
+    description
+      "Waveserver Platform Data Model
+       Migrated from Waveserver Classic R1.4 YANG model.
+       Updated namespace to 'ciena-waveserver'.
+       Update 'pm-interface-type' enum values to { ptp | port | channel }.
+       Updated 'pm-profile-type' enum values to { optical-power | modem-performance | otu-performance | odu-performance | ethernet-performance }.
+       Removed obsolete 'mac-layer' containers.
+       Removed 'instance-type' leafs and typedef.
+       Removed 'pm-bin-state' leafs and typedef.
+       Removed 'actual' from power-counts grouping.
+       Removed 'post-fec-bit-error-rate' leafs.
+       Removed 'alignment' from 'instance-properties' grouping.
+       Restructured pm bin and instance data into nested groupings.
+       Changed pm counters from leafs to containers with 'value', 'invalid-data-flag', and 'supported' leafs for each.
+       Updated several counter attributes to match the Waveserver Ai data model.
+       Removed 'current-bin-id' from pm instance state container.
+       Removed 'bin-number' from the current bin id containers, only needed for history bins list.
+       Removed 'persistence-interval' and 'persistence-storage-location' from 'global-config' container.";
+    reference "";
+  }
+
+  grouping pm-instance-id-container {
+    description
+      "Grouping for PM instance id container and attributes.";
+    container id {
+      config false;
+      description
+        "PM instance identification.";
+      leaf instance-id {
+        type uint32;
+        description
+          "ID of the PM instance.";
+      }
+      leaf profile-type {
+        type pm-profile-type;
+        description
+          "The PM profile type.";
+      }
+    }
+  }
+
+  grouping pm-instance-state-container {
+    description
+      "Grouping for PM instance state container and attributes.";
+    container state {
+      description
+        "PM instance state.";
+      leaf admin-state {
+        type cienawstypes:enabled-disabled-enum;
+        description
+          "The configured administrative state of the port.";
+      }
+      leaf operational-state {
+        type cienawstypes:enabled-disabled-enum;
+        config false;
+        description
+          "The operational state of the PM instance.";
+      }
+      leaf collection-start-date-time {
+        type cienawstypes:string-maxl-64;
+        config false;
+        description
+          "The PM stats collection starting date and time.";
+      }
+      leaf collection-end-date-time {
+        type cienawstypes:string-maxl-64;
+        config false;
+        description
+          "The PM stats collection ending date and time.";
+      }
+    }
+  }
+
+  grouping pm-instance-properties-container {
+    description
+      "Grouping for PM instance properties container and attributes.";
+    container properties {
+      config false;
+      description
+        "PM instance properties.";
+      leaf configuration-mode {
+        type pm-configuration-mode;
+        description
+          "The PM instance configuration mode";
+      }
+      leaf configured-bin-count {
+        type uint32;
+        description
+          "The configured number of history bins.";
+      }
+      leaf configured-bin-duration {
+        type uint32;
+        units "minutes";
+        description
+          "The configured PM bin duration in minutes.";
+      }
+    }
+    container attached-interface {
+      config false;
+      description
+        "Attached interface.";
+      leaf type {
+        type pm-interface-type;
+        description
+          "Attached interface type.";
+      }
+      leaf name {
+        type cienawstypes:string-maxl-32;
+        description
+          "Attached interface name.";
+      }
+      leaf operational-state {
+        type cienawstypes:enabled-disabled-enum;
+        description
+          "Attached interface operational state.";
+      }
+    }
+  }
+
+  grouping pm-bin-id-container {
+    description
+      "Grouping for PM bin id container and attributes.";
+    container id {
+      config false;
+      description
+        "PM Bin identification.";
+      leaf bin-name {
+        type cienawstypes:string-maxl-32;
+        description
+          "The PM bin name.";
+      }
+    }
+  }
+
+  grouping pm-current-bin-state-container {
+    description
+      "Grouping for PM current bin state container and attributes.";
+    container state {
+      config false;
+      description
+        "PM bin state.";
+      leaf start-date-time {
+        type cienawstypes:string-maxl-32;
+        description
+          "Start date and time.";
+      }
+      leaf cleared-date-time {
+        type cienawstypes:string-maxl-32;
+        description
+          "Cleared date and time.";
+      }
+    }
+  }
+
+  grouping pm-history-bin-state-container {
+    description
+      "Grouping for PM history bin state container and attributes.";
+    container state {
+      config false;
+      description
+        "PM bin state.";
+      leaf start-date-time {
+        type cienawstypes:string-maxl-32;
+        description
+          "Start date and time.";
+      }
+      leaf end-date-time {
+        type cienawstypes:string-maxl-32;
+        description
+          "End date and time.";
+      }
+    }
+  }
+
+  grouping pm-counter-meta {
+    description
+      "Grouping for PM counter metadata, including IDF and supported flags.";
+    leaf invalid-data-flag {
+      type boolean;
+      description
+        "Invalid Data Flag (IDF) value. Reports the validity of the corresponding
+         PM data. Reported only with previous interval PM counters. A value of true
+         indicates the PM data for the specified counter or interval is incomplete
+         or invalid.";
+      reference "ITU-T G.997.2, sections 7.7.2 and 7.8.2.";
+    }
+    leaf supported {
+      type boolean;
+      description
+        "Indicates whether the specified counter is supported on associated
+         hardware version and interface type.";
+    }
+  }
+
+  grouping pm-counter-group {
+    description
+      "Grouping for basic PM counters, including count value and metadata.";
+    leaf value {
+      type uint64;
+      description
+        "PM counter value.";
+    }
+    uses pm-counter-meta;
+  }
+
+  grouping pm-counter-percent-group {
+    description
+      "Grouping for PM counters with percent units, including count value and metadata.";
+    leaf value {
+      type cienawstypes:decimal-1-dig;
+      units "percent";
+      description
+        "PM value, as a percentage.";
+    }
+    uses pm-counter-meta;
+  }
+
+  grouping pm-counter-dbm-group {
+    description
+      "Grouping for PM counters with dBm units, including count value and metadata.";
+    leaf value {
+      type cienawstypes:decimal-3-dig;
+      units "dBm";
+      description
+        "PM value, as a power level in dBm.";
+    }
+    uses pm-counter-meta;
+  }
+
+  grouping pm-counter-db-group {
+    description
+      "Grouping for PM counters with dB units, including count value and metadata.";
+    leaf value {
+      type cienawstypes:decimal-3-dig;
+      units "dB";
+      description
+        "PM value, as loss or gain in dB.";
+    }
+    uses pm-counter-meta;
+  }
+
+  grouping pm-counter-qfac-group {
+    description
+      "Grouping for q-factor PMs, including count value and metadata.";
+    leaf value {
+      type cienawstypes:decimal-3-dig;
+      description
+        "PM value, as a q-factor.";
+    }
+    uses pm-counter-meta;
+  }
+
+  grouping pm-counter-ber-group {
+    description
+      "Grouping for BER PM counters in scientific notation, including count value and metadata.";
+    leaf value {
+      type cienawstypes:string-sci;
+      description
+        "PM value, as a bit error rate in scientific notation.";
+    }
+    uses pm-counter-meta;
+  }
+
+  grouping ethernet-pm-counts-rx {
+    description
+      "Grouping for Ethernet port PM Rx counters.";
+    container bytes {
+      description
+        "Number of bytes received including good and bad packets. This includes
+         FCS bytes, but excludes framing bits.";
+      uses pm-counter-group;
+    }
+    container packets {
+      description
+        "Number of packets received, including all unicast, multicast, broadcast, MAC control, and bad packets";
+      uses pm-counter-group;
+    }
+    container crc-errored-packets {
+      description
+        "Number of packets received which contained an FCS error and were between 64 and 1518 bytes in length.";
+      uses pm-counter-group;
+    }
+    container multicast-packets {
+      description
+        "Number of good multicast packets received that were between 64 and 1518 bytes in length. Excludes MAC control frames";
+      uses pm-counter-group;
+    }
+    container broadcast-packets {
+      description
+        "Number of good broadcast packets received that were between 64 and 1518 bytes in length. Excludes MAC control frames";
+      uses pm-counter-group;
+    }
+    container undersized-packets {
+      description
+        "Number of packets received that were less than 64 bytes (excluding framing bits but including FCS bytes) and were otherwise well formed. This counter also includes the number of packets discarded because of Ethernet length check errors. Undersize packets are discarded.";
+      uses pm-counter-group;
+    }
+    container oversized-packets {
+      description
+        "Number of packets received (including unicast, multicast, and broadcast packets) that were longer than 1518 bytes up to the configured maximum frame size, that contained a valid FCS (excluding framing bits but including FCS bytes), and that were otherwise well formed";
+      uses pm-counter-group;
+    }
+    container fragment-packets {
+      description
+        "Number of packets received between 10 and 63 bytes in length (excluding framing bits but including FCS bytes) that had either a bad FCS with an integral number of bytes (FCS Error) or a bad FCS with a non-integral number of bytes (Alignment Error). Fragment packets are discarded.";
+      uses pm-counter-group;
+    }
+    container jabber-packets {
+      description
+        "Number of packets received that were longer than 1518 bytes up to the configured maximum frame size (excluding framing bits, but including FCS bytes), and had either a bad FCS with an integral number of bytes (FCS Error) or a bad FCS with a non-integral number of bytes (Alignment Error). Jabber packets are discarded";
+      uses pm-counter-group;
+    }
+    container length-out-of-range-packets {
+      description
+        "Number of Rx length out-of-range packets transmitted";
+      uses pm-counter-group;
+    }
+    container pause-packets {
+      description
+        "Number of received valid pause packets that were between 64 and 1518 bytes in length";
+      uses pm-counter-group;
+    }
+    container packets-64-octet {
+      description
+        "Number of packets (including bad packets) received that were 64 bytes in length (excluding framing bits but including FCS bytes).";
+      uses pm-counter-group;
+    }
+    container packets-65-127-octet {
+      description
+        "Number of good and bad packets received that were between 65 and 127 bytes in length (excluding framing bits but including FCS bytes).";
+      uses pm-counter-group;
+    }
+    container packets-128-255-octet {
+      description
+        "Number of good and bad packets received that were between 128 and 255 bytes in length inclusive (excluding framing bits but including FCS bytes).";
+      uses pm-counter-group;
+    }
+    container packets-256-511-octet {
+      description
+        "Number of good and bad packets received that were between 256 and 511 bytes in length inclusive (excluding framing bits but including FCS bytes).";
+      uses pm-counter-group;
+    }
+    container packets-512-1023-octet {
+      description
+        "Number of good and bad packets received that were between 512 and 1023 bytes in length inclusive (excluding framing bits but including FCS bytes).";
+      uses pm-counter-group;
+    }
+    container packets-1024-1518-octet {
+      description
+        "Number of good and bad packets received that were between 1024 and 1518 bytes in length inclusive (excluding framing bits but including FCS bytes).";
+      uses pm-counter-group;
+    }
+    container packets-1519-jumbo-octet {
+      description
+        "Number of good and bad packets received that were between 1519 bytes in length up to MTU size (excluding framing bits but including FCS bytes).";
+      uses pm-counter-group;
+    }
+    container jumbo-octet-packets {
+      description
+        "Number of good and bad packets received that were greater than MTU size.";
+      uses pm-counter-group;
+    }
+    container bytes-per-second {
+      description
+        "Average number bytes received per second during this period.";
+      uses pm-counter-group;
+    }
+    container frames-per-second {
+      description
+        "Average number frames received per second during this period.";
+      uses pm-counter-group;
+    }
+    container average-link-utilization {
+      description
+        "Average percent utilization derived from Rx bytes and port speed.";
+      uses pm-counter-percent-group;
+    }
+    container minimum-link-utilization {
+      description
+        "Minimum percent utilization derived from Rx bytes and port speed.";
+      uses pm-counter-percent-group;
+    }
+    container maximum-link-utilization {
+      description
+        "Maximum percent utilization derived from Rx bytes and port speed.";
+      uses pm-counter-percent-group;
+    }
+    container block-errors {
+      description
+        "PCS block errors.";
+      uses pm-counter-group;
+    }
+    container multilane-bip-errors {
+      description
+        "PCS lane BIP errors.";
+      uses pm-counter-group;
+    }
+    container frame-error-ratio {
+      description
+        "Frame error ratio.";
+      uses pm-counter-group;
+    }
+  }
+
+  grouping ethernet-pm-counts-tx {
+    description
+      "Grouping for Ethernet port PM Tx counters.";
+    container bytes {
+      description
+        "Number of transmitted bytes in good and bad packets including FCS bytes and excluding frame bits.";
+      uses pm-counter-group;
+    }
+    container packets {
+      description
+        "Number of transmitted packets, including all unicast, multicast, broadcast, MAC control, and bad packets";
+      uses pm-counter-group;
+    }
+    container excessive-deferred-packets {
+      description
+        "Number of transmitted packets experiencing two or more deferrals. Applicable to copper ports only";
+      uses pm-counter-group;
+    }
+    container underrun-packets {
+      description
+        "Number of underrun packets transmitted";
+      uses pm-counter-group;
+    }
+    container crc-errored-packets {
+      description
+        "Number of transmitted packets with an FCS error";
+      uses pm-counter-group;
+    }
+    container length-check-error-packets {
+      description
+        "Number of length check packets transmitted";
+      uses pm-counter-group;
+    }
+    container length-out-of-range-packets {
+      description
+        "Number of Tx length out-of-range packets transmitted";
+      uses pm-counter-group;
+    }
+    container pause-packets {
+      description
+        "Number of pause packets transmitted";
+      uses pm-counter-group;
+    }
+    container giant-packets {
+      description
+        "Number of well-formed packets larger than 1518 bytes, including FCS bytes but excluding framing bits.";
+      uses pm-counter-group;
+    }
+    container multicast-packets {
+      description
+        "Number of good multicast packets transmitted";
+      uses pm-counter-group;
+    }
+    container broadcast-packets {
+      description
+        "Number of good broadcast packets transmitted";
+      uses pm-counter-group;
+    }
+    container packets-64-octet {
+      description
+        "Number of packets (including bad packets) transmitted that were 64 bytes in length (excluding framing bits but including FCS bytes).";
+      uses pm-counter-group;
+    }
+    container packets-65-127-octet {
+      description
+        "Number of good and bad packets transmitted that were between 65 and 127 bytes in length (excluding framing bits but including FCS bytes).";
+      uses pm-counter-group;
+    }
+    container packets-128-255-octet {
+      description
+        "Number of good and bad packets transmitted that were between 128 and 255 bytes in length inclusive (excluding framing bits but including FCS bytes).";
+      uses pm-counter-group;
+    }
+    container packets-256-511-octet {
+      description
+        "Number of good and bad packets transmitted that were between 256 and 511 bytes in length inclusive (excluding framing bits but including FCS bytes).";
+      uses pm-counter-group;
+    }
+    container packets-512-1023-octet {
+      description
+        "Number of good and bad packets transmitted that were between 512 and 1023 bytes in length inclusive (excluding framing bits but including FCS bytes).";
+      uses pm-counter-group;
+    }
+    container packets-1024-1518-octet {
+      description
+        "Number of good and bad packets transmitted that were between 1024 and 1518 bytes in length inclusive (excluding framing bits but including FCS bytes).";
+      uses pm-counter-group;
+    }
+    container packets-1519-jumbo-octet {
+      description
+        "Number of good and bad packets transmitted that were between 1519 bytes in length up to MTU size (excluding framing bits but including FCS bytes).";
+      uses pm-counter-group;
+    }
+    container jumbo-octet-packets {
+      description
+        "Number of good and bad packets transmitted that were greater than MTU size.";
+      uses pm-counter-group;
+    }
+    container bytes-per-second {
+      description
+        "Average number bytes transmitted per second during this period.";
+      uses pm-counter-group;
+    }
+    container frames-per-second {
+      description
+        "Average number frames transmitted per second during this period.";
+      uses pm-counter-group;
+    }
+    container average-link-utilization {
+      description
+        "Average percent utilization derived from Tx bytes and port speed.";
+      uses pm-counter-percent-group;
+    }
+    container minimum-link-utilization {
+      description
+        "Minimum percent utilization derived from Tx bytes and port speed.";
+      uses pm-counter-percent-group;
+    }
+    container maximum-link-utilization {
+      description
+        "Maximum percent utilization derived from Tx bytes and port speed.";
+      uses pm-counter-percent-group;
+    }
+    container block-errors {
+      description
+        "PCS block errors.";
+      uses pm-counter-group;
+    }
+    container multilane-bip-errors {
+      description
+        "PCS lane BIP errors.";
+      uses pm-counter-group;
+    }
+    container frame-error-ratio {
+      description
+        "Frame error ratio.";
+      uses pm-counter-group;
+    }
+  }
+
+  grouping error-counts {
+    description
+      "Grouping for common PM error counts (ES, SES, UAS).";
+    container errored-seconds {
+      description
+        "Number of seconds that error happened.";
+      uses pm-counter-group;
+    }
+    container severely-errored-seconds {
+      description
+        "Number of seconds that severe error happened.";
+      uses pm-counter-group;
+    }
+    container unavailable-seconds {
+      description
+        "Number of seconds that the interface was unavailable.";
+      uses pm-counter-group;
+    }
+  }
+
+  grouping fec-layer-counts {
+    description
+      "Grouping for Ethernet port FEC layer counts.";
+    container corrected-codeword-count {
+      description
+        "FEC layer corrected codeword count";
+      uses pm-counter-group;
+    }
+    container uncorrected-codeword-count {
+      description
+        "FEC layer uncorrected codeword count";
+      uses pm-counter-group;
+    }
+    container symbol-error-count {
+      description
+        "FEC layer symbol error count. This is the total of error counts across all PMA lanes on this interface.";
+      uses pm-counter-group;
+    }
+  }
+
+  grouping dgd-counts {
+    description
+      "Differential Group Delay (DGD) Grouping.";
+    container maximum {
+      description
+        "Maximum differential group delay (in ps).";
+      uses pm-counter-group;
+    }
+    container average {
+      description
+        "Average differential group delay (in ps).";
+      uses pm-counter-group;
+    }
+  }
+
+  grouping pdl-counts {
+    description
+      "Polarization Dependent Loss (PDL) Grouping.";
+    container maximum {
+      description
+        "Maximum polarization dependent loss (in dB).";
+      uses pm-counter-db-group;
+    }
+    container average {
+      description
+        "Average polarization dependent loss (in dB).";
+      uses pm-counter-db-group;
+    }
+  }
+
+  grouping power-counts {
+    description
+      "Optical Power Grouping. Can be used for Tx or Rx optical power PM instances.";
+    container minimum {
+      description
+        "Minimum power reading.";
+      uses pm-counter-dbm-group;
+    }
+    container maximum {
+      description
+        "Maximum power reading.";
+      uses pm-counter-dbm-group;
+    }
+    container average {
+      description
+        "Average power reading.";
+      uses pm-counter-dbm-group;
+    }
+  }
+
+  grouping ber-counts {
+    description
+      "Grouping for common PM Bit-Error-Rate values.";
+    container bit-error-rate {
+      description
+        "Bit error rate reading.";
+      uses pm-counter-ber-group;
+    }
+    container maximum {
+      description
+        "Maximum BER reading.";
+      uses pm-counter-ber-group;
+    }
+  }
+
+  grouping q-factor-counts {
+    description
+      "Grouping for PM modem Q-Factor values.";
+    container q-factor {
+      description
+        "Q-Factor reading.";
+      uses pm-counter-qfac-group;
+    }
+    container minimum {
+      description
+        "Minimum Q-Factor reading.";
+      uses pm-counter-qfac-group;
+    }
+    container maximum {
+      description
+        "Maximum Q-Factor reading.";
+      uses pm-counter-qfac-group;
+    }
+  }
+
+  grouping fec-error-counts {
+    description
+      "Grouping for line PTP FEC counts.";
+    container frame-error-count {
+      description
+        "FEC Frame error counts.";
+      uses pm-counter-group;
+    }
+    container frame-error-count-second {
+      description
+        "FEC Frame error count second.";
+      uses pm-counter-group;
+    }
+    container uncorrected-block-count {
+      description
+        "FEC uncorrected block count.";
+      uses pm-counter-group;
+    }
+    container high-correction-count-seconds {
+      description
+        "FEC high correction count seconds.";
+      uses pm-counter-group;
+    }
+  }
+
+  grouping pm-ethernet-stats-group {
+    description
+      "Grouping for Ethernet port statistics containers and attributes.";
+    container interface-counts {
+      description
+        "Ethernet PM interface counts.";
+      container rx {
+        description
+          "Ethernet interface Rx counts.";
+        uses ethernet-pm-counts-rx;
+      }
+      container tx {
+        description
+          "Ethernet interface Tx counts.";
+        uses ethernet-pm-counts-tx;
+      }
+    }
+    container pcs-layer {
+      description
+        "PCS layer statistics.";
+      container sync-header-errors {
+        description
+          "PCS sync header errors.";
+        uses pm-counter-group;
+      }
+      uses error-counts;
+    }
+    container fec-layer {
+      description
+        "Ethernet FEC layer PM statistics.";
+      uses fec-layer-counts;
+    }
+  }
+
+  grouping pm-optical-power-stats-group {
+    description
+      "Grouping for PTP optical power statistics containers and attributes.";
+    leaf number-of-lanes {
+      type uint16;
+      description
+        "Number of optical lanes.";
+    }
+    list optical-power {
+      key "lane-number";
+      config false;
+      max-elements "4";
+      description
+        "Statistics for a PTP optical lane.";
+      leaf lane-number {
+        type cienawstypes:lanes-number;
+        config false;
+        description
+          "Lane number.";
+      }
+      container rx-power {
+        config false;
+        uses power-counts;
+        description
+          "Rx power reading.";
+      }
+      container tx-power {
+        config false;
+        uses power-counts;
+        description
+          "Tx power reading.";
+      }
+    }
+    container channel-power {
+      config false;
+      description
+        "Total optical channel power readings. Only applies to line PTP in 'colourless' mode.";
+      container rx-power {
+        config false;
+        uses power-counts;
+        description
+          "Rx power reading.";
+      }
+    }
+  }
+
+  grouping pm-modem-stats-group {
+    description
+      "Grouping for PTP modem statistics containers and attributes.";
+    container pre-fec-bit-error-rate {
+      config false;
+      uses ber-counts;
+      description
+        "Pre-FEC BER counts.";
+    }
+    container q-factor {
+      config false;
+      uses q-factor-counts;
+      description
+        "Q-Factor count.";
+    }
+    container fec-error {
+      config false;
+      uses fec-error-counts;
+      description
+        "FEC error counts.";
+    }
+    container dgd {
+      description
+        "Differential group delay (DGD) counts.";
+      uses dgd-counts;
+    }
+    container pdl {
+      description
+        "Polarization dependent loss (PDL) counts.";
+      uses pdl-counts;
+    }
+  }
+
+  grouping pm-otn-stats-group {
+    description
+      "Grouping for OTN port/channel statistics containers and attributes.";
+    container background-block-errors {
+      description
+        "Background Block Errors (BBE).";
+      uses pm-counter-group;
+    }
+    uses error-counts;
+    container far-end {
+      description
+        "Far-end statistics.";
+      container background-block-errors {
+        description
+          "Background Block Errors (BBE).";
+        uses pm-counter-group;
+      }
+      uses error-counts;
+    }
+  }
+
+  typedef pm-persistence-status {
+    type enumeration {
+      enum "none" {
+        description
+          "Save to persistence not attempted.";
+      }
+      enum "inprogress" {
+        description
+          "Save to persistence in progress.";
+      }
+      enum "complete" {
+        description
+          "Save to persistence complete.";
+      }
+      enum "not-found" {
+        description
+          "File not found.";
+      }
+      enum "inaccessible" {
+        description
+          "Unable to access persistence storage location.";
+      }
+      enum "aborted" {
+        description
+          "Save to persistence aborted.";
+      }
+      enum "corrupt" {
+        description
+          "Persistence file is corrupt.";
+      }
+      enum "failed" {
+        description
+          "Save to persistence failed.";
+      }
+      enum "partial" {
+        description
+          "Save to persistence was only partially successful.";
+      }
+      enum "not-ready" {
+        description
+          "Persistence not ready.";
+      }
+    }
+    description
+      "PM persistence status.";
+  }
+
+  typedef pm-persistence-state {
+    type enumeration {
+      enum "not-initialized" {
+        description
+          "PM persistence not-initialized";
+      }
+      enum "initialized" {
+        description
+          "PM persistence initialized";
+      }
+    }
+    description
+      "PM persistence state.";
+  }
+
+  typedef pm-configuration-mode {
+    type enumeration {
+      enum "unknown" {
+        description
+          "Unknown PM instance configuration mode.";
+      }
+      enum "auto-created" {
+        description
+          "PM instance is auto-created (default).";
+      }
+      enum "user-created" {
+        description
+          "PM instance is user-created.";
+      }
+    }
+    description
+      "PM configuration mode.";
+  }
+
+  typedef pm-interface-type {
+    type enumeration {
+      enum "ptp" {
+        description
+          "Associated interface is a PTP.";
+      }
+      enum "port" {
+        description
+          "Associated interface is an Ethernet or OTN port.";
+      }
+      enum "channel" {
+        description
+          "Associated interface is an ODU channel.";
+      }
+    }
+    description
+      "PM interface type. The object type on which the PMs are being collected/reported.";
+  }
+
+  typedef pm-profile-type {
+    type enumeration {
+      enum "optical-power" {
+        description
+          "PTP Optical Power PM profile type.";
+      }
+      enum "modem-performance" {
+        description
+          "PTP Modem PM profile type.";
+      }
+      enum "otu-performance" {
+        description
+          "Port OTU PM profile type.";
+      }
+      enum "odu-performance" {
+        description
+          "Port/Channel ODU profile type.";
+      }
+      enum "ethernet-performance" {
+        description
+          "Port Ethernet PM profile type.";
+      }
+    }
+    description
+      "PM profile type.";
+  }
+
+  container waveserver-pm {
+    description
+      "Waveserver performance monitoring configuration and operational data.";
+    container global-config {
+      description
+        "Performance monitoring global configuration on the Waveserver.";
+      leaf admin-state {
+        type cienawstypes:enabled-disabled-enum;
+        description
+          "Global admin state.";
+      }
+    }
+    container persistence-state {
+      config false;
+      description
+        "Performance monitoring persistence state on the Waveserver.";
+      leaf state {
+        type pm-persistence-state;
+        description
+          "Persistence state initialized or not.";
+      }
+      leaf next-history-bin-save {
+        type uint32;
+        units "seconds";
+        description
+          "Number of seconds left before current bin is saved to history.";
+      }
+      leaf current-file-size {
+        type uint32;
+        units "bytes";
+        description
+          "Current file size.";
+      }
+      leaf save-status {
+        type pm-persistence-status;
+        description
+          "Persistence storage setting.";
+      }
+      leaf instances-saved {
+        type uint32;
+        description
+          "Number of the PM instances saved.";
+      }
+      leaf elapsed-save-time {
+        type uint32;
+        units "seconds";
+        description
+          "Number of seconds passed since the save begin.";
+      }
+      leaf load-status {
+        type pm-persistence-status;
+        description
+          "Persistence load status.";
+      }
+      leaf instances-in-file {
+        type uint32;
+        description
+          "Total number of PM instances in file.";
+      }
+      leaf instances-loaded {
+        type uint32;
+        description
+          "Number of loaded instances.";
+      }
+      leaf elapsed-load-time {
+        type uint32;
+        units "seconds";
+        description
+          "Elaspsed Load Time.";
+      }
+    }
+    container auto-created {
+      config false;
+      description
+        "PM auto created instances.";
+      list instances {
+        key "instance-id";
+        config false;
+        description
+          "PM auto-created instance list.";
+        leaf instance-id {
+          type uint32;
+          description
+            "ID of the PM instance.";
+        }
+        leaf instance-name {
+          type cienawstypes:string-maxl-32;
+          description
+            "The PM instance name.";
+        }
+        leaf admin-state {
+          type cienawstypes:enabled-disabled-enum;
+          description
+            "The configured administrative state of the PM instance.";
+        }
+        leaf operational-state {
+          type cienawstypes:enabled-disabled-enum;
+          description
+            "The operational state of the PM instance.";
+        }
+        leaf bin-count {
+          type uint32;
+          description
+            "The number of history bins.";
+        }
+        leaf bin-duration {
+          type uint32;
+          units "minutes";
+          description
+            "The PM bin duration in minutes.";
+        }
+        leaf attached-interface-type {
+          type pm-interface-type;
+          description
+            "Attached interface type.";
+        }
+        leaf attached-interface-name {
+          type cienawstypes:string-maxl-32;
+          description
+            "Attached interface name.";
+        }
+      }
+    }
+    list ethernet-performance-instances {
+      key "instance-name";
+      description
+        "Ethernet port PM instances.";
+      leaf instance-name {
+        type cienawstypes:string-maxl-32;
+        description
+          "Unique name for PM instance.";
+      }
+      uses pm-instance-id-container;
+      uses pm-instance-state-container;
+      uses pm-instance-properties-container;
+      container current-bin {
+        config false;
+        description
+          "PM current 15-minute bin.";
+        uses pm-bin-id-container;
+        uses pm-current-bin-state-container;
+        container statistics {
+          config false;
+          description
+            "Statistics data.";
+          uses pm-ethernet-stats-group;
+        }
+      }
+      container current-24-hour-bin {
+        config false;
+        description
+          "PM current 24-hour bin.";
+        uses pm-bin-id-container;
+        uses pm-current-bin-state-container;
+        container statistics {
+          config false;
+          description
+            "Statistics data.";
+          uses pm-ethernet-stats-group;
+        }
+      }
+      container untimed-bin {
+        config false;
+        description
+          "PM untimed bin.";
+        uses pm-bin-id-container;
+        uses pm-current-bin-state-container;
+        container statistics {
+          config false;
+          description
+            "Statistics data.";
+          uses pm-ethernet-stats-group;
+        }
+      }
+      container history {
+        config false;
+        description
+          "PM 15-minute bin history";
+        list bins {
+          key "bin-number";
+          config false;
+          description
+            "PM history 15-minute bin list.";
+          leaf bin-number {
+            type uint32 {
+              range "1..96";
+            }
+            description
+              "The PM bin number, an index value representing the current position in the list of historical PM bins at the time the data is requested. 1 is the most recent history bin, and 96 is the oldest.";
+          }
+          uses pm-bin-id-container;
+          uses pm-history-bin-state-container;
+          container statistics {
+            config false;
+            description
+              "Statistics data.";
+            uses pm-ethernet-stats-group;
+          }
+        }
+      }
+      container history-24-hour-bin {
+        config false;
+        description
+          "PM History 24-hour bin.";
+        uses pm-bin-id-container;
+        uses pm-history-bin-state-container;
+        container statistics {
+          config false;
+          description
+            "Statistics data.";
+          uses pm-ethernet-stats-group;
+        }
+      }
+    }
+    list optical-power-instances {
+      key "instance-name";
+      description
+        "PTP Optical Power PM instances.";
+      leaf instance-name {
+        type cienawstypes:string-maxl-32;
+        description
+          "Unique name for PM instance.";
+      }
+      uses pm-instance-id-container;
+      uses pm-instance-state-container;
+      uses pm-instance-properties-container;
+      container current-bin {
+        config false;
+        description
+          "PM current 15-minute bin.";
+        uses pm-bin-id-container;
+        uses pm-current-bin-state-container;
+        container statistics {
+          config false;
+          description
+            "Statistics data.";
+          uses pm-optical-power-stats-group;
+        }
+      }
+      container current-24-hour-bin {
+        config false;
+        description
+          "PM current 24-hour bin.";
+        uses pm-bin-id-container;
+        uses pm-current-bin-state-container;
+        container statistics {
+          config false;
+          description
+            "Statistics data.";
+          uses pm-optical-power-stats-group;
+        }
+      }
+      container untimed-bin {
+        config false;
+        description
+          "PM untimed bin.";
+        uses pm-bin-id-container;
+        uses pm-current-bin-state-container;
+        container statistics {
+          config false;
+          description
+            "Statistics data.";
+          uses pm-optical-power-stats-group;
+        }
+      }
+      container history {
+        config false;
+        description
+          "PM 15-minute bin history.";
+        list bins {
+          key "bin-number";
+          config false;
+          description
+            "PM history 15-minute bin list.";
+          leaf bin-number {
+            type uint32 {
+              range "1..96";
+            }
+            description
+              "The PM bin number, an index value representing the current position in the list of historical PM bins at the time the data is requested. 1 is the most recent history bin, and 96 is the oldest.";
+          }
+          uses pm-bin-id-container;
+          uses pm-history-bin-state-container;
+          container statistics {
+            config false;
+            description
+              "Statistics data.";
+            uses pm-optical-power-stats-group;
+          }
+        }
+      }
+      container history-24-hour-bin {
+        config false;
+        description
+          "PM History 24-hour bin.";
+        uses pm-bin-id-container;
+        uses pm-history-bin-state-container;
+        container statistics {
+          config false;
+          description
+            "Statistics data.";
+          uses pm-optical-power-stats-group;
+        }
+      }
+    }
+    list modem-performance-instances {
+      key "instance-name";
+      description
+        "PTP Modem PM instances.";
+      leaf instance-name {
+        type cienawstypes:string-maxl-32;
+        description
+          "Unique name for PM instance.";
+      }
+      uses pm-instance-id-container;
+      uses pm-instance-state-container;
+      uses pm-instance-properties-container;
+      container current-bin {
+        config false;
+        description
+          "PM current 15-minute bin.";
+        uses pm-bin-id-container;
+        uses pm-current-bin-state-container;
+        container statistics {
+          config false;
+          description
+            "Statistics data.";
+          uses pm-modem-stats-group;
+        }
+      }
+      container current-24-hour-bin {
+        config false;
+        description
+          "PM current 24-hour bin.";
+        uses pm-bin-id-container;
+        uses pm-current-bin-state-container;
+        container statistics {
+          config false;
+          description
+            "Statistics data.";
+          uses pm-modem-stats-group;
+        }
+      }
+      container untimed-bin {
+        config false;
+        description
+          "PM untimed bin.";
+        uses pm-bin-id-container;
+        uses pm-current-bin-state-container;
+        container statistics {
+          config false;
+          description
+            "Statistics data.";
+          uses pm-modem-stats-group;
+        }
+      }
+      container history {
+        config false;
+        description
+          "PM 15-minute bin history.";
+        list bins {
+          key "bin-number";
+          config false;
+          description
+            "PM history 15-minute bin list.";
+          leaf bin-number {
+            type uint32 {
+              range "1..96";
+            }
+            description
+              "The PM bin number, an index value representing the current position in the list of historical PM bins at the time the data is requested. 1 is the most recent history bin, and 96 is the oldest.";
+          }
+          uses pm-bin-id-container;
+          uses pm-history-bin-state-container;
+          container statistics {
+            config false;
+            description
+              "Statistics data.";
+            uses pm-modem-stats-group;
+          }
+        }
+      }
+      container history-24-hour-bin {
+        config false;
+        description
+          "PM History 24-hour bin.";
+        uses pm-bin-id-container;
+        uses pm-history-bin-state-container;
+        container statistics {
+          config false;
+          description
+            "Statistics data.";
+          uses pm-modem-stats-group;
+        }
+      }
+    }
+    list otu-performance-instances {
+      key "instance-name";
+      description
+        "Port OTU PM instances.";
+      leaf instance-name {
+        type cienawstypes:string-maxl-32;
+        description
+          "Unique name for PM instance.";
+      }
+      uses pm-instance-id-container;
+      uses pm-instance-state-container;
+      uses pm-instance-properties-container;
+      container current-bin {
+        config false;
+        description
+          "PM current 15-minute bin.";
+        uses pm-bin-id-container;
+        uses pm-current-bin-state-container;
+        container statistics {
+          config false;
+          description
+            "Statistics data.";
+          uses pm-otn-stats-group;
+        }
+      }
+      container current-24-hour-bin {
+        config false;
+        description
+          "PM current 24-hour bin.";
+        uses pm-bin-id-container;
+        uses pm-current-bin-state-container;
+        container statistics {
+          config false;
+          description
+            "Statistics data.";
+          uses pm-otn-stats-group;
+        }
+      }
+      container untimed-bin {
+        config false;
+        description
+          "PM untimed bin.";
+        uses pm-bin-id-container;
+        uses pm-current-bin-state-container;
+        container statistics {
+          config false;
+          description
+            "Statistics data.";
+          uses pm-otn-stats-group;
+        }
+      }
+      container history {
+        config false;
+        description
+          "PM 15-minute bin history.";
+        list bins {
+          key "bin-number";
+          config false;
+          description
+            "PM history 15-minute bin list.";
+          leaf bin-number {
+            type uint32 {
+              range "1..96";
+            }
+            description
+              "The PM bin number, an index value representing the current position in the list of historical PM bins at the time the data is requested. 1 is the most recent history bin, and 96 is the oldest.";
+          }
+          uses pm-bin-id-container;
+          uses pm-history-bin-state-container;
+          container statistics {
+            config false;
+            description
+              "Statistics data.";
+            uses pm-otn-stats-group;
+          }
+        }
+      }
+      container history-24-hour-bin {
+        config false;
+        description
+          "PM History 24-hour bin.";
+        uses pm-bin-id-container;
+        uses pm-history-bin-state-container;
+        container statistics {
+          config false;
+          description
+            "Statistics data.";
+          uses pm-otn-stats-group;
+        }
+      }
+    }
+    list odu-performance-instances {
+      key "instance-name";
+      description
+        "Port/channel ODU PM instances.";
+      leaf instance-name {
+        type cienawstypes:string-maxl-32;
+        description
+          "Unique name for PM instance.";
+      }
+      uses pm-instance-id-container;
+      uses pm-instance-state-container;
+      uses pm-instance-properties-container;
+      container current-bin {
+        config false;
+        description
+          "PM current 15-minute bin.";
+        uses pm-bin-id-container;
+        uses pm-current-bin-state-container;
+        container statistics {
+          config false;
+          description
+            "Statistics data.";
+          uses pm-otn-stats-group;
+        }
+      }
+      container current-24-hour-bin {
+        config false;
+        description
+          "PM current 24-hour bin.";
+        uses pm-bin-id-container;
+        uses pm-current-bin-state-container;
+        container statistics {
+          config false;
+          description
+            "Statistics data.";
+          uses pm-otn-stats-group;
+        }
+      }
+      container untimed-bin {
+        config false;
+        description
+          "PM untimed bin.";
+        uses pm-bin-id-container;
+        uses pm-current-bin-state-container;
+        container statistics {
+          config false;
+          description
+            "Statistics data.";
+          uses pm-otn-stats-group;
+        }
+      }
+      container history {
+        config false;
+        description
+          "PM 15-minute bin history.";
+        list bins {
+          key "bin-number";
+          config false;
+          description
+            "PM history 15-minute bin list.";
+          leaf bin-number {
+            type uint32 {
+              range "1..96";
+            }
+            description
+              "The PM bin number, an index value representing the current position in the list of historical PM bins at the time the data is requested. 1 is the most recent history bin, and 96 is the oldest.";
+          }
+          uses pm-bin-id-container;
+          uses pm-history-bin-state-container;
+          container statistics {
+            config false;
+            description
+              "Statistics data.";
+            uses pm-otn-stats-group;
+          }
+        }
+      }
+      container history-24-hour-bin {
+        config false;
+        description
+          "PM History 24-hour bin.";
+        uses pm-bin-id-container;
+        uses pm-history-bin-state-container;
+        container statistics {
+          config false;
+          description
+            "Statistics data.";
+          uses pm-otn-stats-group;
+        }
+      }
+    }
+  }
+  rpc waveserver-pm-clear-instance {
+    description
+      "Clear statistics for the specified instance.";
+    input {
+      leaf instance-name {
+        type cienawstypes:string-maxl-32;
+        description
+          "Unique name for PM instance.";
+      }
+      leaf history {
+        type boolean;
+        description
+          "Whether to clear history.";
+      }
+    }
+    output {
+      leaf return-code {
+        type uint32 {
+          range "0..990";
+        }
+        description
+          "return code: 0 is success; non-zero is failure";
+      }
+    }
+  }
+  rpc waveserver-pm-clear-interface {
+    description
+      "Clear statistics for the specified interface.";
+    input {
+      leaf interface-name {
+        type cienawstypes:string-maxl-32;
+        mandatory true;
+        description
+          "Interface name.";
+      }
+      leaf interface-type {
+        type pm-interface-type;
+        mandatory true;
+        description
+          "Interface type (PTP, Port, Channel)";
+      }
+      leaf profile-type {
+        type pm-profile-type;
+        description
+          "The PM profile type. Can be optionally specified to clear only a specific profile on this interface.";
+      }
+      leaf history {
+        type boolean;
+        description
+          "Whether to clear history.";
+      }
+    }
+    output {
+      leaf return-code {
+        type uint32 {
+          range "0..990";
+        }
+        description
+          "return code: 0 is success; non-zero is failure";
+      }
+    }
+  }
+}

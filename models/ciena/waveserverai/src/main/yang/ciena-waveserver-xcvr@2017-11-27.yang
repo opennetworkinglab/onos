@@ -1,0 +1,627 @@
+module ciena-waveserver-xcvr {
+  namespace "urn:ciena:params:xml:ns:yang:ciena-ws:ciena-waveserver-xcvr";
+  prefix xcvr;
+
+  import ciena-waveserver-typedefs {
+    prefix cienawstypes;
+  }
+
+  organization
+    "Ciena Corporation";
+  contact
+    "Web URL: http://www.ciena.com/
+     Postal:  7035 Ridge Road
+              Hanover, Maryland 21076
+              U.S.A.
+     Phone:   +1 800-921-1144
+     Fax:     +1 410-694-5750";
+  description
+    "This module defines the common XCVR model. The XCVR is augmented by specific types of transceiver modules if applicable. XCVR objects are permanently available for all ports and reported as empty if the device is not physically present. Attributes read from the device are only available while the device is present.";
+
+  revision 2017-11-27 {
+    description
+      "Added 'mandatory' statement to 'properties/mode' leaf.";
+    reference "Waveserver Ai user's guide.";
+  }
+  revision 2017-08-27 {
+    description
+      "Waveserver Platform Data Model
+       Migrated from Waveserver Classic R1.4 YANG model.
+       Updated namespace to 'ciena-waveserver'.
+       Changed 'xcvrs' list key from 'xcvr-index' (integer type) to 'xcvr-id' (string type) to accommodate '<slot>-<port>' format.
+       Changed 'child-ptp-id' type from integer to string to accommodate '<slot>-<port>' format.
+       Changed 'power-state' enum values to use common typedef.
+       Renamed 'channels' to 'lanes'.
+       Updated description strings, fixed several lint errors/warnings.
+       Updated 'operational-state' enum values.
+       Removed 'description' attribute from 'id' container.
+       Removed 'xcvr-delete' RPC (deletes will be handled via native delete operation instead).";
+    reference "Waveserver Ai user's guide.";
+  }
+
+  typedef xcvr-op-enum {
+    type enumeration {
+      enum "unknown" {
+        description
+          "Unknown operational state.";
+      }
+      enum "up" {
+        description
+          "XCVR is up/operational.";
+      }
+      enum "down" {
+        description
+          "XCVR is down/failed.";
+      }
+      enum "fault" {
+        description
+          "There is an active alarm associated with the XCVR.";
+      }
+      enum "shutdown" {
+        description
+          "XCVR is shutdown/off.";
+      }
+      enum "lower-layer-down" {
+        description
+          "The XCVR is enabled, but a parent object is faulted.";
+      }
+      enum "unequipped" {
+        description
+          "XCVR is unequipped.";
+      }
+      enum "uncertified" {
+        description
+          "XCVR is uncertified.";
+      }
+    }
+    description
+      "XCVR operational state values.";
+  }
+
+  grouping optical-power-group {
+    description
+      "Group of optical power related operational data leafs. Can be used for Rx or Tx";
+    leaf actual {
+      type cienawstypes:decimal-1-dig;
+      units "dBm";
+      config false;
+      description
+        "Actual Tx or Rx optical power in dBm.";
+    }
+    leaf maximum {
+      type cienawstypes:decimal-1-dig;
+      units "dBm";
+      config false;
+      description
+        "Maximum actual recorded Tx or Rx optical power in dBm.";
+    }
+    leaf minimum {
+      type cienawstypes:decimal-1-dig;
+      units "dBm";
+      config false;
+      description
+        "Minimum actual recorded Tx or Rx optical power in dBm.";
+    }
+    leaf maximum-recorded-time {
+      type cienawstypes:string-maxl-32;
+      config false;
+      description
+        "The exact date and time when the maximum optical power (Tx or Rx) was recorded. In the format of a date time string.";
+    }
+    leaf minimum-recorded-time {
+      type cienawstypes:string-maxl-32;
+      config false;
+      description
+        "The exact date and time when the minimum optical power (Tx or Rx) was recorded. In the format of a date time string.";
+    }
+  }
+
+  grouping optical-power-threshold-group {
+    description
+      "Group of optical power alarm related operational data leafs. Can be used for Rx or Tx.";
+    leaf high-alarm-threshold {
+      type cienawstypes:decimal-1-dig;
+      units "dBm";
+      config false;
+      description
+        "Optical power high alarm threshold, in dBm. If it is modem Tx-power, the threshold can change based on provisioned tx power. High threshold = target power + 3.";
+    }
+    leaf low-alarm-threshold {
+      type cienawstypes:decimal-1-dig;
+      units "dBm";
+      config false;
+      description
+        "Optical power low alarm threshold, in dBm. If it is modem Tx-power, the threshold can change based on provisioned tx power. Low threshold = target power - 10.";
+    }
+    leaf high-warning-threshold {
+      type cienawstypes:decimal-1-dig;
+      units "dBm";
+      config false;
+      description
+        "Optical power high warning threshold, in dBm.";
+    }
+    leaf low-warning-threshold {
+      type cienawstypes:decimal-1-dig;
+      units "dBm";
+      config false;
+      description
+        "Optical power low warning threshold, in dBm.";
+    }
+  }
+
+  grouping optical-power-status-group {
+    description
+      "Group of optical power status related operational data leafs. Can be used for Rx or Tx";
+    leaf high-alarm-status {
+      type boolean;
+      config false;
+      description
+        "Optical power high alarm status, boolean, true if alarm is raised, false if alarm is not raised.";
+    }
+    leaf low-alarm-status {
+      type boolean;
+      config false;
+      description
+        "Optical power low alarm status, boolean, true if alarm is raised, false if alarm is not raised.";
+    }
+    leaf high-warning-status {
+      type boolean;
+      config false;
+      description
+        "Optical power high warning status, boolean, true if warning is raised, false if warning is not raised.";
+    }
+    leaf low-warning-status {
+      type boolean;
+      config false;
+      description
+        "Optical power low warning status, boolean, true if warning is raised, false if warning is not raised.";
+    }
+  }
+
+  grouping optical-bias-status-group {
+    description
+      "Group of optical bias related operational data leafs.";
+    leaf high-alarm-status {
+      type boolean;
+      config false;
+      description
+        "Optical bias high alarm status, boolean, true if alarm is raised, false if alarm is not raised.";
+    }
+    leaf low-alarm-status {
+      type boolean;
+      config false;
+      description
+        "Optical bias low alarm status, boolean, true if alarm is raised, false if alarm is not raised.";
+    }
+    leaf high-warning-status {
+      type boolean;
+      config false;
+      description
+        "Optical bias high warning status, boolean, true if warning is raised, false if warning is not raised.";
+    }
+    leaf low-warning-status {
+      type boolean;
+      config false;
+      description
+        "Optical bias low warning status, boolean, true if warning is raised, false if warning is not raised.";
+    }
+  }
+
+  grouping temperature-threshold-group {
+    description
+      "Group of XCVR temperature alarm and warning operational data leafs.";
+    leaf high-alarm-threshold {
+      type int16;
+      units "C";
+      config false;
+      description
+        "Temperature high alarm threshold, in degrees Celsius (C).";
+    }
+    leaf low-alarm-threshold {
+      type int16;
+      units "C";
+      config false;
+      description
+        "Temperature low alarm threshold, in degrees Celsius (C)";
+    }
+    leaf high-warning-threshold {
+      type int16;
+      units "C";
+      config false;
+      description
+        "Temperature high warning threshold, in degrees Celsius (C)";
+    }
+    leaf low-warning-threshold {
+      type int16;
+      units "C";
+      config false;
+      description
+        "Temperature low warning threshold, in degrees Celsius (C)";
+    }
+  }
+
+  grouping temperature-status-group {
+    description
+      "Group of XCVR temperature related operational data leafs.";
+    leaf high-alarm-status {
+      type boolean;
+      config false;
+      description
+        "Temperature high alarm status, boolean, true if alarm is raised, false if alarm is not raised.";
+    }
+    leaf low-alarm-status {
+      type boolean;
+      config false;
+      description
+        "Temperature low alarm status, boolean, true if alarm is raised, false if alarm is not raised.";
+    }
+    leaf high-warning-status {
+      type boolean;
+      config false;
+      description
+        "Temperature high warning status, boolean, true if warning is raised, false if warning is not raised.";
+    }
+    leaf low-warning-status {
+      type boolean;
+      config false;
+      description
+        "Temperature low warning status, boolean, true if warning is raised, false if warning is not raised.";
+    }
+  }
+
+  grouping supply-voltage-threshold-group {
+    description
+      "Group of Supply Voltage alarm and warning operational data leafs.";
+    leaf high-alarm-threshold {
+      type cienawstypes:decimal-2-dig;
+      units "V";
+      config false;
+      description
+        "Supply voltage high alarm threshold, in volts (V).";
+    }
+    leaf low-alarm-threshold {
+      type cienawstypes:decimal-2-dig;
+      units "V";
+      config false;
+      description
+        "Supply oltage low alarm threshold, in volts (V).";
+    }
+    leaf high-warning-threshold {
+      type cienawstypes:decimal-2-dig;
+      units "V";
+      config false;
+      description
+        "Supply voltage high warning threshold, in volts (V).";
+    }
+    leaf low-warning-threshold {
+      type cienawstypes:decimal-2-dig;
+      units "V";
+      config false;
+      description
+        "Supply voltage low warning threshold, in volts (V).";
+    }
+  }
+
+  grouping supply-voltage-status-group {
+    description
+      "group of Supply Voltage related operational data leafs. The grouping may be used by various XCVR containers, lists, and augments.";
+    leaf high-alarm-status {
+      type boolean;
+      config false;
+      description
+        "Supply voltage high alarm status, boolean, true if alarm is raised, false if alarm is not raised.";
+    }
+    leaf low-alarm-status {
+      type boolean;
+      config false;
+      description
+        "Supply voltage low alarm status, boolean, true if alarm is raised, false if alarm is not raised.";
+    }
+    leaf high-warning-status {
+      type boolean;
+      config false;
+      description
+        "Supply voltage high warning status, boolean, true if warning is raised, false if warning is not raised.";
+    }
+    leaf low-warning-status {
+      type boolean;
+      config false;
+      description
+        "Supply voltage low warning status, boolean, true if warning is raised, false if warning is not raised.";
+    }
+  }
+
+  container waveserver-xcvrs {
+    description
+      "Waveserver transceivers (XCVR) configuration and operational data.";
+    list xcvrs {
+      key "xcvr-id";
+      description
+        "Waveserver transceiver (XCVR) list.";
+      leaf xcvr-id {
+        type cienawstypes:name-string;
+        mandatory true;
+        description
+          "Unique, access identifier string of the XCVR (e.g. '1-1'). Key value for the XCVR List.";
+      }
+      container id {
+        config false;
+        description
+          "Identification information of this XCVR instance.";
+        leaf name {
+          type cienawstypes:name-string;
+          config false;
+          description
+            "Name of the XCVR transceiver. Auto generated, and cannot be modified.";
+        }
+      }
+      container state {
+        description
+          "State information of this XCVR instance.";
+        leaf admin-state {
+          type cienawstypes:enabled-disabled-enum;
+          description
+            "Whether Admin State is enabled or disabled for this XCVR's PTP.";
+        }
+        leaf operational-state {
+          type xcvr-op-enum;
+          config false;
+          description
+            "Operational state of this XCVR, for Waveserver, it will be empty by default.";
+        }
+        leaf power-state {
+          type cienawstypes:power-state;
+          config false;
+          description
+            "Power State of the XCVR. If it is in automatic (normal) or shutdown (low power).";
+        }
+      }
+      container properties {
+        description
+          "All the Configurable and operational data of this XCVR instance.";
+        leaf type {
+          type cienawstypes:xcvr-type;
+          config false;
+          description
+            "Transceiver type, different transceiver types will have different operational data. Type depends on what is physically plugged in.";
+        }
+        leaf mode {
+          type cienawstypes:xcvr-mode;
+          mandatory true;
+          description
+            "Mode of the XCVR.";
+        }
+        leaf number-of-lanes {
+          type cienawstypes:lanes-number;
+          config false;
+          description
+            "Number of lanes this tranceiver has. Only applicable if a transceiver is plugged in.";
+        }
+        leaf-list child-ptp-id {
+          type cienawstypes:name-string;
+          config false;
+          description
+            "The child ptp this xcvr is associated with.";
+        }
+        container vendor-data {
+          config false;
+          description
+            "vendor-data, the container or its subcontainers may be augmented by pluggable or modem specific yang modules, depending on transceiver type.";
+          container id {
+            description
+              "XCVR Vendor ID";
+            container ciena-id {
+              description
+                "If the plugged transceiver is a Ciena product, display the Ciena product information. The leafs in this container will be blank if the transceiver is not plugged in or if it is not a Ciena product.";
+              leaf ciena-item-number {
+                type cienawstypes:string-maxl-32;
+                config false;
+                description
+                  "If the plugged transceiver is a Ciena product, display the product item number. If it is not a Ciena product or if nothing is plugged in, this field will be blank";
+              }
+              leaf revision {
+                type cienawstypes:string-maxl-32;
+                config false;
+                description
+                  "If the plugged transceiver is a Ciena product, display the Ciena revision in the format of <prefix>.<number>.<suffix>. If it is not a Ciena product or if nothing is plugged in, this field will be blank";
+              }
+              leaf description {
+                type cienawstypes:string-maxl-254;
+                config false;
+                description
+                  "If the plugged transceiver is a Ciena product, display the Ciena description. If it is not a Ciena product or if nothing is plugged in, this field will be blank";
+              }
+            }
+            container vendor-id {
+              description
+                "Display the transceiver vendor identification information.";
+              leaf name {
+                type cienawstypes:string-maxl-32;
+                config false;
+                description
+                  "Name of the Vendor that produced this transceiver. For Ciena transceiver, the value will be Ciena.";
+              }
+              leaf part-number {
+                type cienawstypes:string-maxl-32;
+                config false;
+                description
+                  "Vendor part number of the transceiver.";
+              }
+              leaf revision {
+                type cienawstypes:string-maxl-32;
+                config false;
+                description
+                  "Vendor Revision of the transceiver.";
+              }
+              leaf serial-number {
+                type cienawstypes:string-maxl-32;
+                config false;
+                description
+                  "Vendor serial number of the XCVR transceiver.";
+              }
+              leaf manufactured-date {
+                type cienawstypes:string-maxl-16;
+                config false;
+                description
+                  "Manufactured Date, in the format of mm/dd/yy.";
+              }
+            }
+          }
+          container properties {
+            description
+              "XCVR vendor data properties.";
+            container device-id {
+              description
+                "Vendor Device ID properties.";
+              leaf connector-type {
+                type cienawstypes:connector-type-desc-enum;
+                config false;
+                description
+                  "Human readable description of Vendor's connector type byte value. Reference SFF-8024, table 4-3";
+              }
+            }
+            container transmitter {
+              description
+                "Transmitter properties.";
+              leaf nominal-bit-rate {
+                type cienawstypes:string-maxl-16;
+                units "Gbps";
+                config false;
+                description
+                  "Bit rate, nominal, in Gbps for pluggable XCVRs. For modem XCVR objects, this will be OTUCn.";
+              }
+            }
+            container diagnostic-monitoring {
+              description
+                "XCVR diagnostic monitoring properties.";
+              leaf rx-power-measurement {
+                type enumeration {
+                  enum "OMA" {
+                    description
+                      "Optical Modulation Amplitude (OMA) Rx measurement type.";
+                  }
+                  enum "average-power" {
+                    description
+                      "Average Power Rx measurement type.";
+                  }
+                  enum "yes" {
+                    description
+                      "yes";
+                  }
+                  enum "no" {
+                    description
+                      "no";
+                  }
+                }
+                config false;
+                description
+                  "Rx power measurement, bit 3 of diagnostic monitoring type. Reference SFF 8472 section 8.8 and table 8-5 for detail.";
+              }
+              leaf tx-power-measurement {
+                type enumeration {
+                  enum "yes" {
+                    description
+                      "yes";
+                  }
+                  enum "no" {
+                    description
+                      "no";
+                  }
+                }
+                config false;
+                description
+                  "Tx power measurement, related to diagnostic monitoring type.";
+              }
+            }
+          }
+        }
+        container diagnostics {
+          config false;
+          description
+            "XCVR diagnostic data, the container or its subcontainers may be augmented by pluggable or modem specific yang modules, depending on the transceiver type.";
+          container device {
+            config false;
+            description
+              "container for all common device diagnostic data fields for the XCVR.";
+            container temperature {
+              description
+                "XCVR temperature measurements.";
+              leaf actual {
+                type int16;
+                units "C";
+                config false;
+                description
+                  "Temperature Status, actual temperature in degrees Celsius (C). Range must be between -128 and 128.";
+              }
+              container status {
+                description
+                  "XCVR temperature status.";
+                uses xcvr:temperature-status-group;
+              }
+              container threshold {
+                description
+                  "XCVR temperature threshold.";
+                uses xcvr:temperature-threshold-group;
+              }
+            }
+          }
+          list lane {
+            key "lane-number";
+            config false;
+            max-elements "4";
+            description
+              "List of common xcvr lane diagnostic data fields of the XCVR.";
+            leaf lane-number {
+              type cienawstypes:lanes-number;
+              config false;
+              description
+                "Lane number of XCVR.";
+            }
+            container rx-power {
+              description
+                "Lane Tx power measurements.";
+              leaf actual {
+                type cienawstypes:decimal-1-dig;
+                units "dBm";
+                config false;
+                description
+                  "Actual Rx optical power in dBm.";
+              }
+              container status {
+                description
+                  "Rx power status.";
+                uses xcvr:optical-power-status-group;
+              }
+              container threshold {
+                description
+                  "Rx power threshold.";
+                uses xcvr:optical-power-threshold-group;
+              }
+            }
+            container tx-power {
+              description
+                "Lane Tx power measurements.";
+              leaf actual {
+                type cienawstypes:decimal-1-dig;
+                units "dBm";
+                config false;
+                description
+                  "Actual Tx optical power in dBm.";
+              }
+              container status {
+                description
+                  "Tx power status.";
+                uses xcvr:optical-power-status-group;
+              }
+              container threshold {
+                description
+                  "Tx power threshold.";
+                uses xcvr:optical-power-threshold-group;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

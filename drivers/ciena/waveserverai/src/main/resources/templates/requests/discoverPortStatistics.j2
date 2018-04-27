@@ -1,0 +1,24 @@
+<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+    <get>
+      <filter type="subtree">
+        <pm:waveserver-pm xmlns:pm="urn:ciena:params:xml:ns:yang:ciena-ws:ciena-waveserver-pm">
+          <pm:ethernet-performance-instances>
+            <pm:current-bin>
+              <pm:statistics>
+                <pm:interface-counts>
+                  <pm:tx>
+                    <pm:bytes/>
+                    <pm:packets/>
+                  </pm:tx>
+                  <pm:rx>
+                    <pm:bytes/>
+                    <pm:packets/>
+                  </pm:rx>
+                </pm:interface-counts>
+              </pm:statistics>
+            </pm:current-bin>
+          </pm:ethernet-performance-instances>
+        </pm:waveserver-pm>
+      </filter>
+    </get>
+</rpc>]]>]]>

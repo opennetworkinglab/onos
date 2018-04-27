@@ -9,10 +9,10 @@ COMPILE_DEPS = [
     '//apps/optical-model:onos-apps-optical-model',
     '//drivers/optical:onos-drivers-optical',
 ]
-
 TEST_DEPS = [
     '//lib:TEST_ADAPTERS',
     '//core/api:onos-api-tests',
+    '//utils/osgi:onlab-osgi-tests',
 ]
 
 BUNDLES = [
@@ -34,7 +34,7 @@ osgi_jar_with_tests (
 )
 
 onos_app (
-    app_name = 'org.onosproject.drivers.ciena.waveserver.rest',
+    app_name = 'org.onosproject.drivers.ciena.waveserver',
     title = 'Ciena Waveserver Drivers',
     category = 'Drivers',
     url = 'http://onosproject.org',

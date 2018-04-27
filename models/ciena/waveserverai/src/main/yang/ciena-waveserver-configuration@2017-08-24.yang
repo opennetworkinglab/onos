@@ -1,0 +1,229 @@
+module ciena-waveserver-configuration {
+  namespace "urn:ciena:params:xml:ns:yang:ciena-ws:ciena-waveserver-configuration";
+  prefix configuration;
+
+  import ciena-waveserver-typedefs {
+    prefix cienawstypes;
+  }
+  import ciena-waveserver-system {
+    prefix system;
+  }
+
+  organization
+    "Ciena Corporation";
+  contact
+    "Web URL: http://www.ciena.com/
+     Postal:  7035 Ridge Road
+             Hanover, Maryland 21076
+             U.S.A.
+     Phone:   +1 800-921-1144
+     Fax:     +1 410-694-5750";
+  description
+    "This module defines configuration data for the Waveserver.";
+
+  revision 2017-08-24 {
+    description
+      "Waveserver Platform Data Model
+       Migrated from Waveserver Classic R1.4 YANG model.
+       Updated namespace to 'ciena-waveserver'.
+       Added 'include-default-settings' option to waveserver-configuration-save RPC (from WS 1.5).
+       Added 'include-default-settings' option to waveserver-configuration-backup RPC (from WS 1.5).
+       Remove 'max-elements' from the configuration-files/file-list.";
+    reference "";
+  }
+
+  container waveserver-configuration {
+    description
+      "Waveserver Configuration: configuration data and operational data.";
+    container configuration-files {
+      config false;
+      description
+        "List of saved configuration files on the Waveserver.";
+      leaf-list file-list {
+        type cienawstypes:string-maxl-254;
+        config false;
+        description
+          "The filename list for all the saved configuration files.";
+      }
+    }
+    container default-files {
+      description
+        "Waveserver Configuration: default configuration files.";
+      leaf save-filename {
+        type cienawstypes:string-maxl-254;
+        description
+          "The filename for the default save configuration file.";
+      }
+      leaf load-filename {
+        type cienawstypes:string-maxl-254;
+        description
+          "The filename for the default load configuration file.";
+      }
+      leaf backup-load-filename {
+        type cienawstypes:string-maxl-254;
+        description
+          "The filename for the backup load configuration file.";
+      }
+    }
+  }
+  rpc waveserver-configuration-save {
+    description
+      "Save configuration.";
+    input {
+      leaf filename {
+        type cienawstypes:string-maxl-254;
+        description
+          "The name of the configuration file.";
+      }
+      leaf strip-user-comments {
+        type boolean;
+        description
+          "Indicates whether to remove user comments when saving the configuration file.";
+      }
+      leaf include-default-settings {
+        type boolean;
+        description
+          "Indicates whether to include the default settings when saving the configuration file.";
+      }
+    }
+    output {
+      leaf return-code {
+        type uint32;
+        description
+          "return code: 0 is success; non-zero is failure";
+      }
+      leaf return-string {
+        type cienawstypes:string-maxl-254;
+        description
+          "Return code description";
+      }
+    }
+  }
+  rpc waveserver-configuration-backup {
+    description
+      "Backup configuration to the specified file.";
+    input {
+      leaf filename {
+        type cienawstypes:string-maxl-254;
+        mandatory true;
+        description
+          "The name of the backup configuration file.";
+      }
+      leaf strip-user-comments {
+        type boolean;
+        description
+          "Indicates whether to remove user comments when saving the backup configuration file.";
+      }
+      leaf include-default-settings {
+        type boolean;
+        description
+          "Indicates whether to include the default settings when saving the backup configuration file.";
+      }
+    }
+    output {
+      leaf return-code {
+        type uint32;
+        description
+          "return code: 0 is success; non-zero is failure";
+      }
+      leaf return-string {
+        type cienawstypes:string-maxl-254;
+        description
+          "Return code description";
+      }
+    }
+  }
+  rpc waveserver-configuration-install {
+    description
+      "Install configuration from specified file.";
+    input {
+      leaf filename {
+        type cienawstypes:string-maxl-254;
+        mandatory true;
+        description
+          "The name of the configuration file to install.";
+      }
+      uses system:server-settings-group;
+    }
+    output {
+      leaf return-code {
+        type uint32;
+        description
+          "return code: 0 is success; non-zero is failure";
+      }
+      leaf return-string {
+        type cienawstypes:string-maxl-254;
+        description
+          "Return code description";
+      }
+    }
+  }
+  rpc waveserver-configuration-check {
+    description
+      "Check the configuration file for errors.";
+    input {
+      leaf filename {
+        type cienawstypes:string-maxl-254;
+        description
+          "The name of the configuration file to check.";
+      }
+      uses system:server-settings-group;
+    }
+    output {
+      leaf return-code {
+        type uint32;
+        description
+          "return code: 0 is success; non-zero is failure";
+      }
+      leaf return-string {
+        type cienawstypes:string-maxl-254;
+        description
+          "Return code description";
+      }
+    }
+  }
+  rpc waveserver-configuration-reset-to-user-config {
+    description
+      "Restart the Waveserver and apply the user-specified configuration file.";
+    input {
+      leaf filename {
+        type cienawstypes:string-maxl-254;
+        description
+          "The name of the user-specified configuration file.";
+      }
+      leaf revert-timeout {
+        type cienawstypes:string-maxl-32;
+        description
+          "The amount of time before auto-reversion to the previous configuration file after the Waveserver restarts. Must follow format: number/time: N[ymwdhms], e.g 1h10m3s for 1 hour 10 minutes and 3 seconds.";
+      }
+    }
+    output {
+      leaf return-code {
+        type uint32;
+        description
+          "return code: 0 is success; non-zero is failure";
+      }
+      leaf return-string {
+        type cienawstypes:string-maxl-254;
+        description
+          "Return code description";
+      }
+    }
+  }
+  rpc waveserver-configuration-cancel-revert {
+    description
+      "Cancel the configuration automatic revert when the auto-revert timer is running.";
+    output {
+      leaf return-code {
+        type uint32;
+        description
+          "return code: 0 is success; non-zero is failure";
+      }
+      leaf return-string {
+        type cienawstypes:string-maxl-254;
+        description
+          "Return code description";
+      }
+    }
+  }
+}

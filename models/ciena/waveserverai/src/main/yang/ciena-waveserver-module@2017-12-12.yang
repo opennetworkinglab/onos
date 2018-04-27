@@ -1,0 +1,221 @@
+module ciena-waveserver-module {
+  namespace "urn:ciena:params:xml:ns:yang:ciena-ws:ciena-waveserver-module";
+  prefix mod;
+
+  import ciena-waveserver-typedefs {
+    prefix cienawstypes;
+  }
+  import ciena-waveserver-chassis {
+    prefix ciena-ws-chassis;
+  }
+  import ciena-waveserver-xcvr {
+    prefix xcvr;
+  }
+
+  organization
+    "Ciena Corporation";
+  contact
+    "Web URL: http://www.ciena.com/
+     Postal:  7035 Ridge Road
+             Hanover, Maryland 21076
+             U.S.A.
+     Phone:   +1 800-921-1144
+     Fax:     +1 410-694-5750";
+  description
+    "This module defines Module data for the Waveserver Platform.";
+
+  revision 2017-12-12 {
+    description
+      "Added 'cmd-4' module type support.
+       Renamed 'faulted' operational-state to 'fault' and add 'down' state.
+       Renamed 'motr-8x100' enum to 'motr-100-2'.";
+    reference "Waveserver Ai user's guide.";
+  }
+  revision 2017-09-05 {
+    description
+      "Waveserver Platform Data Model
+       Initial revision.";
+    reference "Waveserver Ai user's guide.";
+  }
+
+  typedef module-type {
+    type enumeration {
+      enum "unknown" {
+        description
+          "Unknown module type.";
+      }
+      enum "filler" {
+        description
+          "Filler card. Operational only, cannot be used for user create.";
+      }
+      enum "motr-100-2" {
+        description
+          "MOTR service module with 2 WaveLogic Ai line ports and 8 100G capable client ports.";
+      }
+      enum "cmd-4" {
+        description
+          "CMD-4 passive photonics module.";
+      }
+    }
+    description
+      "Module type.";
+  }
+
+  typedef module-operational-state {
+    type enumeration {
+      enum "unequipped" {
+        value 0;
+        description
+          "Module is not detected.";
+      }
+      enum "deprovisioned" {
+        value 1;
+        description
+          "Module is detected but uninitialized.";
+      }
+      enum "initializing" {
+        value 2;
+        description
+          "Module initialization started.";
+      }
+      enum "up" {
+        value 3;
+        description
+          "Module is up/operational.";
+      }
+      enum "fault" {
+        value 4;
+        description
+          "Module is faulted.";
+      }
+      enum "shutdown" {
+        value 5;
+        description
+          "Module is shutdown/powered off.";
+      }
+      enum "shutting-down" {
+        value 6;
+        description
+          "Module is shutting down.";
+      }
+      enum "unsupported" {
+        value 7;
+        description
+          "Module type is not supported.";
+      }
+      enum "mismatched" {
+        value 8;
+        description
+          "Detected module type does not match provisioned module type.";
+      }
+      enum "down" {
+        value 9;
+        description
+          "Module is down/disabled.";
+      }
+    }
+    description
+      "Module operational state.";
+  }
+
+  container waveserver-modules {
+    description
+      "Waveserver service module configuration data and operational data.";
+    list modules {
+      key "module-id";
+      description
+        "Module list.";
+      leaf module-id {
+        type cienawstypes:name-string;
+        mandatory true;
+        description
+          "Unique access identifier string of the Module, which may just be a slot number (e.g. '1'). Key value for the Module list. Read-only attribute.";
+      }
+      container id {
+        description
+          "ID information of this Module instance.";
+        leaf type {
+          type module-type;
+          mandatory true;
+          description
+            "The service module type. Must be specified on creation, and cannot be modified.";
+        }
+        leaf label {
+          type cienawstypes:description-string;
+          description
+            "The user-specified label string for this module.";
+        }
+        uses ciena-ws-chassis:device-id-group;
+      }
+      container state {
+        description
+          "State information of this Module instance.";
+        leaf admin-state {
+          type cienawstypes:enabled-disabled-enum;
+          description
+            "Whether Admin State is enabled or disabled for this Module.";
+        }
+        leaf operational-state {
+          type module-operational-state;
+          config false;
+          description
+            "Operational state of this Module.";
+        }
+        leaf last-restart {
+          type cienawstypes:string-maxl-32;
+          config false;
+          description
+            "The date and time of last restart in the format of a human readable string. e.g 'Wed Jun 30 21:49:08 2015', or 'N/A' if unavailable.";
+        }
+        leaf last-restart-reason {
+          type cienawstypes:restart-reason;
+          config false;
+          description
+            "Cause for the last restart.";
+        }
+        leaf uptime {
+          type cienawstypes:string-maxl-32;
+          config false;
+          description
+            "The time since last restart of the module, in the format of a human readable string. e.g '041d 11h 29m 53s', or 'N/A' if unavailable.";
+        }
+      }
+      container subcomponents {
+        config false;
+        description
+          "Module subcomponent (XCVR) references.";
+        leaf-list xcvrs {
+          type leafref {
+            path "/xcvr:waveserver-xcvrs/xcvr:xcvrs/xcvr:xcvr-id";
+          }
+          description
+            "Module subcomponent (XCVR) reference list.";
+        }
+      }
+    }
+  }
+  rpc waveserver-module-restart {
+    description
+      "Initiates a module warm restart.";
+    input {
+      leaf module-id {
+        type cienawstypes:name-string;
+        mandatory true;
+        description
+          "Unique Module ID string.";
+      }
+    }
+  }
+  rpc waveserver-module-restart-cold {
+    description
+      "Initiates a module cold restart.";
+    input {
+      leaf module-id {
+        type cienawstypes:name-string;
+        mandatory true;
+        description
+          "Unique Module ID string.";
+      }
+    }
+  }
+}

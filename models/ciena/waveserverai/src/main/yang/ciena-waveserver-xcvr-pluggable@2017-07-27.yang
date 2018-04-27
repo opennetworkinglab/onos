@@ -1,0 +1,638 @@
+module ciena-waveserver-xcvr-pluggable {
+  namespace "urn:ciena:params:xml:ns:yang:ciena-ws:ciena-waveserver-xcvr-pluggable";
+  prefix xcvr-pluggable;
+
+  import ciena-waveserver-typedefs {
+    prefix cienawstypes;
+  }
+  import ciena-waveserver-xcvr {
+    prefix xcvr;
+  }
+
+  organization
+    "Ciena Corporation";
+  contact
+    "Web URL: http://www.ciena.com/
+     Postal:  7035 Ridge Road
+             Hanover, Maryland 21076
+             U.S.A.
+     Phone:   +1 800-921-1144
+     Fax:     +1 410-694-5750";
+  description
+    "This YANG module defines Ciena's XCVR common pluggable specific data for the NETCONF protocol. It will augment the ciena-waveserver-xcvr module.";
+
+  revision 2017-07-27 {
+    description
+      "Waveserver Platform Data Model
+       Migrated from Waveserver Classic R1.4 YANG model.
+       Updated namespace to 'ciena-waveserver'.
+       Updated description strings, fixed several lint errors/warnings.";
+    reference "";
+  }
+
+  augment "/xcvr:waveserver-xcvrs/xcvr:xcvrs/xcvr:properties/xcvr:vendor-data/xcvr:id/xcvr:vendor-id" {
+    when "../../../xcvr:type = 'QSFPplus' or ../../../xcvr:type = 'QSFP28' or ../../../xcvr:type = 'unsupported'" {
+      description
+        "XCVR vendor-id properties specific to pluggable XCVRs.";
+    }
+    description
+      "XCVR vendor-id properties specific to pluggable XCVRs.";
+    leaf revision-compliance {
+      type enumeration {
+        enum "not-specified" {
+          description
+            "Revision compliance not specified.";
+        }
+        enum "RV4.7" {
+          description
+            "Revision compliance RV4.7.";
+        }
+        enum "RV4.7-2h" {
+          description
+            "Revision compliance RV4.7-2h.";
+        }
+        enum "RV1.3" {
+          description
+            "Revision compliance RV1.3.";
+        }
+        enum "RV1.4" {
+          description
+            "Revision compliance RV1.4.";
+        }
+        enum "RV1.5" {
+          description
+            "Revision compliance RV1.5.";
+        }
+        enum "RV2.0" {
+          description
+            "Revision compliance RV2.0.";
+        }
+        enum "RV2.0 and 2.6 and 2.7" {
+          description
+            "Revision compliance RV2.0 and 2.6 and 2.7.";
+        }
+      }
+      config false;
+      description
+        "Revision Compliance flags, as defined in documentation for Common Management Interface, SFF-8636, table 6-3.";
+    }
+    leaf-list vendor-oui {
+      type uint8;
+      config false;
+      max-elements "3";
+      ordered-by system;
+      description
+        "Free side device vendor IEEE company ID. Defined in Common Management Interface, SFF-8636, table 6-15. 3 bytes of data.";
+    }
+  }
+  augment "/xcvr:waveserver-xcvrs/xcvr:xcvrs/xcvr:properties/xcvr:vendor-data/xcvr:properties/xcvr:device-id" {
+    when "../../../xcvr:type = 'QSFPplus' or ../../../xcvr:type = 'QSFP28' or ../../../xcvr:type = 'unsupported'" {
+      description
+        "XCVR device-id properties specific to pluggable XCVRs.";
+    }
+    description
+      "XCVR device-id properties specific to pluggable XCVRs.";
+    leaf identifier {
+      type enumeration {
+        enum "Unknown or unspecified" {
+          value 0;
+          description
+            "Identifier value 0x00, Unknown or unspecified.";
+        }
+        enum "GBIC" {
+          value 1;
+          description
+            "Identifier value 0x01, GBIC.";
+        }
+        enum "Module/connector soldered to motherboard" {
+          value 2;
+          description
+            "Identifier value 0x02, Module/connector soldered to motherboard.";
+        }
+        enum "SFP/SFP+/SFP28" {
+          value 3;
+          description
+            "Identifier value 0x03, SFP/SFP+/SFP28.";
+        }
+        enum "300 pin XBI" {
+          value 4;
+          description
+            "Identifier value 0x04, 300 pin XBI.";
+        }
+        enum "XENPAK" {
+          value 5;
+          description
+            "Identifier value 0x05, XENPAK.";
+        }
+        enum "XFP" {
+          value 6;
+          description
+            "Identifier value 0x06, XFP.";
+        }
+        enum "XFF" {
+          value 7;
+          description
+            "Identifier value 0x07, XFF.";
+        }
+        enum "XFP-E" {
+          value 8;
+          description
+            "Identifier value 0x08, XFP-E.";
+        }
+        enum "XPAK" {
+          value 9;
+          description
+            "Identifier value 0x09, XPAK.";
+        }
+        enum "X2" {
+          value 10;
+          description
+            "Identifier value 0x0A, X2.";
+        }
+        enum "DWDM-SFP/SFP+" {
+          value 11;
+          description
+            "Identifier value 0x0B, DWDM-SFP/SFP+.";
+        }
+        enum "QSFP INF-8438" {
+          value 12;
+          description
+            "Identifier value 0x0C, QSFP (INF-8438).";
+        }
+        enum "QSFP+ SFF-8436" {
+          value 13;
+          description
+            "Identifier value 0x0D, QSFP+ (SFF-8436) or later.";
+        }
+        enum "CXP" {
+          value 14;
+          description
+            "Identifier value 0x0E, CXP or later.";
+        }
+        enum "Shielded Mini Multilane HD 4X" {
+          value 15;
+          description
+            "Identifier value 0x0F, Shielded Mini Multilane HD 4X.";
+        }
+        enum "Shielded Mini Multilane HD 8X" {
+          value 16;
+          description
+            "Identifier value 0x0F, Shielded Mini Multilane HD 8X.";
+        }
+        enum "QSFP28 SFF-8636" {
+          value 17;
+          description
+            "Identifier value 0x11, QSFP28 (SFF-8636) or later.";
+        }
+        enum "CXP2 aka CXP28" {
+          value 18;
+          description
+            "Identifier value 0x12, CXP2 (aka CXP28) or later.";
+        }
+        enum "CDFP Style1/Style2" {
+          value 19;
+          description
+            "Identifier value 0x13, CDFP (Style 1 / Style 2).";
+        }
+        enum "Shielded Mini Multilane HD 4X Fanout" {
+          value 20;
+          description
+            "Identifier value 0x14, Shielded Mini Multilane HD 4X Fanout.";
+        }
+        enum "Shielded Mini Multilane HD 8X Fanout" {
+          value 21;
+          description
+            "Identifier value 0x15, Shielded Mini Multilane HD 8X Fanout.";
+        }
+        enum "CDFP Style 3" {
+          value 22;
+          description
+            "Identifier value 0x16, CDFP (Style 3).";
+        }
+      }
+      config false;
+      description
+        "Human readable description of Vendor's identifier byte value. Reference SFF-8024, table 4-1";
+    }
+    leaf identifier-raw {
+      type cienawstypes:string-maxl-32;
+      config false;
+      description
+        "Vendor's identifier raw byte value. In the format of a HEX string. Reference SFF-8024, table 4-1";
+    }
+    leaf extended-identifier-raw {
+      type cienawstypes:string-maxl-32;
+      config false;
+      description
+        "Vendor's extended identifier raw byte value. In the format of a HEX string. Reference SFF-8436, table 4-1";
+    }
+    leaf power-consumption {
+      type enumeration {
+        enum "Class 1 Module 1.5W max" {
+          description
+            "Class 1 Module 1.5W max.";
+        }
+        enum "Class 2 Module 2.0W max" {
+          description
+            "Class 2 Module 2.0W max.";
+        }
+        enum "Class 3 Module 2.5W max" {
+          description
+            "Class 3 Module 2.5W max.";
+        }
+        enum "Class 4 Module 3.5W max" {
+          description
+            "Class 4 Module 3.5W max.";
+        }
+      }
+      config false;
+      description
+        "The class of Power Consumption portion of the extended identifier byte, bit 7 to 6. Reference SFF-8436, section 7.6.2.2";
+    }
+    leaf clei {
+      type cienawstypes:string-maxl-16;
+      config false;
+      description
+        "CLEI code. If bit4 in extended identifier is set to 1, show the CLEI code. If bit4 in extended identifier is set to 0, 'No CLEI code' will be shown. Reference SFF-8436, section 7.6.2.2 and section 7.6.4";
+    }
+    leaf connector-type-raw {
+      type cienawstypes:string-maxl-32;
+      config false;
+      description
+        "Vendor's connector type raw byte value. In the format of a HEX string. Reference SFF-8024, table 4-3";
+    }
+  }
+  augment "/xcvr:waveserver-xcvrs/xcvr:xcvrs/xcvr:properties/xcvr:vendor-data/xcvr:properties/xcvr:transmitter" {
+    when "../../../xcvr:type = 'QSFPplus' or ../../../xcvr:type = 'QSFP28' or ../../../xcvr:type = 'unsupported'" {
+      description
+        "XCVR transmitter properties specific to pluggable XCVRs.";
+    }
+    description
+      "XCVR transmitter properties specific to pluggable XCVRs.";
+    leaf wavelength {
+      type cienawstypes:decimal-2-dig;
+      units "nm";
+      config false;
+      description
+        "Wave length value, in nanometers.";
+    }
+    leaf wavelength-raw {
+      type cienawstypes:string-maxl-32;
+      config false;
+      description
+        "Raw byte value of Wavelength, before any multiplier operation is done. In the format of a HEX string.";
+    }
+    leaf encoding-description {
+      type enumeration {
+        enum "Unspecified" {
+          value 0;
+          description
+            "Unspecified encoding.";
+        }
+        enum "8B/10B" {
+          value 1;
+          description
+            "8B/10B encoding.";
+        }
+        enum "4B/5B" {
+          value 2;
+          description
+            "4B/5B encoding.";
+        }
+        enum "NRZ" {
+          value 3;
+          description
+            "NRZ encoding.";
+        }
+        enum "SONET Scrambled" {
+          value 4;
+          description
+            "SONET Scrambled encoding.";
+        }
+        enum "64B/66B" {
+          value 5;
+          description
+            "64B/66B encoding.";
+        }
+        enum "Manchester" {
+          value 6;
+          description
+            "Manchester encoding.";
+        }
+        enum "256B/257B" {
+          value 7;
+          description
+            "256B/257B encoding.";
+        }
+      }
+      config false;
+      description
+        "Human readable description of Device encoding mechanism. Some values may differ depending on if it is 8472 or 8x36. Reference SFF-8024, TABLE 4-2.";
+    }
+    leaf encoding-raw {
+      type cienawstypes:string-maxl-32;
+      config false;
+      description
+        "Raw byte value of Device encoding mechanism. Some values may differ depending on if it is 8472 or 8x36. In the format of a HEX string. Reference SFF-8024, TABLE 4-2.";
+    }
+  }
+  augment "/xcvr:waveserver-xcvrs/xcvr:xcvrs/xcvr:properties/xcvr:vendor-data/xcvr:properties/xcvr:diagnostic-monitoring" {
+    when "../../../xcvr:type = 'QSFPplus' or ../../../xcvr:type = 'QSFP28' or ../../../xcvr:type = 'unsupported'" {
+      description
+        "XCVR diagnostic properties specific to pluggable XCVRs.";
+    }
+    description
+      "XCVR diagnostic properties specific to pluggable XCVRs.";
+    leaf diagnostic-monitoring-type-raw {
+      type cienawstypes:string-maxl-32;
+      config false;
+      description
+        "Display the raw byte value of Diagnostic Monitoring Type, in the format of a HEX string. Reference SFF 8472 section 8.8 and table 9.5 for detail.";
+    }
+    leaf diagnostic-monitoring-implemented {
+      type boolean;
+      config false;
+      description
+        "If Digital diagnostic monitoring is implemented, determined by bit 6 of diagnostic monitoring type. Reference SFF 8472 section 8.8 and table 9.5 for detail.";
+    }
+  }
+  augment "/xcvr:waveserver-xcvrs/xcvr:xcvrs/xcvr:properties/xcvr:vendor-data/xcvr:properties" {
+    when "../../xcvr:type = 'QSFPplus' or ../../xcvr:type = 'QSFP28' or ../../xcvr:type = 'unsupported'" {
+      description
+        "XCVR vendor-data properties specific to pluggable XCVRs.";
+    }
+    description
+      "XCVR vendor-data properties specific to pluggable XCVRs.";
+    container transceiver-code {
+      description
+        "XCVR vendor data transceiver code properties.";
+      leaf specification-compliance {
+        type bits {
+          bit Spec-Compliance-40G-Active-Cable-XLPPI {
+            position 0;
+            description
+              "Spec Compliance 40G Active Cable XLPPI";
+          }
+          bit Spec-Compliance-40GBASE-LR4 {
+            position 1;
+            description
+              "Spec Compliance 40GBASE-LR4";
+          }
+          bit Spec-Compliance-40GBASE-SR4 {
+            position 2;
+            description
+              "Spec Compliance 40GBASE-SR4";
+          }
+          bit Spec-Compliance-40GBASE-CR4 {
+            position 3;
+            description
+              "Spec Compliance 40GBASE-CR4";
+          }
+          bit Spec-Compliance-10GBASE-SR {
+            position 4;
+            description
+              "Spec Compliance 10GBASE-SR";
+          }
+          bit Spec-Compliance-10GBASE-LR {
+            position 5;
+            description
+              "Spec Compliance 10GBASE-LR";
+          }
+          bit Spec-Compliance-10GBASE-LRM {
+            position 6;
+            description
+              "Spec Compliance 10GBASE-LRM";
+          }
+          bit Extended-Spec-Compliance-100G-Active-Optical-Cable {
+            position 8;
+            description
+              "Extended Spec Compliance 100G Active Optical Cable";
+          }
+          bit Extended-Spec-Compliance-100GBASE-SR4 {
+            position 9;
+            description
+              "Extended Spec Compliance 100GBASE-SR4";
+          }
+          bit Extended-Spec-Compliance-100GBASE-LR4 {
+            position 10;
+            description
+              "Extended-Spec Compliance 100GBASE-LR4";
+          }
+          bit Extended-Spec-Compliance-100GBASE-ER4 {
+            position 11;
+            description
+              "Extended Spec Compliance 100GBASE-ER4";
+          }
+          bit Extended-Spec-Compliance-100GBASE-SR10 {
+            position 12;
+            description
+              "Extended Spec Compliance 100GBASE-SR10";
+          }
+          bit Extended-Spec-Compliance-100G-CWDM4-MSA-with-FEC {
+            position 13;
+            description
+              "Extended Spec Compliance 100G CWDM4 MSA with FEC";
+          }
+          bit Extended-Spec-Compliance-100G-PSM4-Parallel-SMF {
+            position 14;
+            description
+              "Extended Spec Compliance 100G PSM4 Parallel SMF";
+          }
+          bit Extended-Spec-Compliance-100G-Active-Copper-Cable {
+            position 15;
+            description
+              "Extended Spec Compliance 100G Active Copper Cable";
+          }
+          bit Extended-Spec-Compliance-100G-CWDM-MSA-without-FEC {
+            position 16;
+            description
+              "Extended Spec Compliance 100G CWDM MSA without FEC";
+          }
+          bit Extended-Spec-Compliance-100GBASE-CR4 {
+            position 18;
+            description
+              "Extended Spec Compliance 100GBASE-CR4";
+          }
+          bit Extended-Spec-Compliance-40GBASE-ER4 {
+            position 23;
+            description
+              "Extended Spec Compliance 40GBASE-ER4";
+          }
+          bit Extended-Spec-Compliance-4x10GBASE-SR {
+            position 24;
+            description
+              "Extended Spec Compliance 4x10GBASE-SR";
+          }
+          bit Extended-Spec-Compliance-40G-PSM4-Parallel-SMF {
+            position 25;
+            description
+              "Extended Spec Compliance 40G PSM4 Parallel SMF";
+          }
+          bit Extended-Spec-Compliance-G.959.1-P1I1-2D1 {
+            position 26;
+            description
+              "Extended Spec Compliance G.959.1 P1I1 2D1";
+          }
+          bit Extended-Spec-Compliance-G.959.1-P1S1-2D2 {
+            position 27;
+            description
+              "Extended Spec Compliance G.959.1 P1S1 2D2";
+          }
+          bit Extended-Spec-Compliance-G.959.1-P1L1-2D2 {
+            position 28;
+            description
+              "Extended Spec Compliance G.959.1 P1L1 2D2";
+          }
+          bit ExtSpecCode-10GBASE-T-with-SFI {
+            position 29;
+            description
+              "ExtSpecCode 10GBASE-T with SFI";
+          }
+          bit ExtSpecCode-100G-CLR4 {
+            position 30;
+            description
+              "ExtSpecCode 100G-CLR4";
+          }
+        }
+        description
+          "10 GbE ethernet, 40 GbE ethernet, and 100 GbE extended specification compliance of the transceiver. In the form of a YANG bit field. Note, the bit field in this node is not mapped with the SFF tables. Reference SFF-8436 table 33 for specification compliance of 10 GbE and 40 GbE Ethernet. Reference SFF-8024, TABLE 4-4 for extended specification compliance of 100 GbE.";
+      }
+      leaf transceiver-code-raw {
+        type cienawstypes:string-maxl-32;
+        config false;
+        description
+          "Specification Compliance/Transceiver Code raw byte value. In the format of a HEX string. Reference SFF-8436 table 33 for specification compliance";
+      }
+    }
+    container device-technology {
+      description
+        "XCVR vendor data device technology properties.";
+      leaf device-technology-raw {
+        type cienawstypes:string-maxl-32;
+        config false;
+        description
+          "Display the raw byte value of Device Technology, in the format of a HEX string. Reference SFF 8636 table 6-19.";
+      }
+      leaf transmitter-tunable {
+        type boolean;
+        config false;
+        description
+          "Device Technology Transmitter tuneable value. Reference SFF 8636 table 6-19, bit 0.";
+      }
+      leaf max-case-temperature {
+        type uint8;
+        units "C";
+        config false;
+        description
+          "Maximum Case Temperature. In degrees C.";
+      }
+    }
+    container options {
+      description
+        "XCVR device options, as described in reference SFF 8636.";
+      leaf options-raw {
+        type cienawstypes:string-maxl-32;
+        config false;
+        description
+          "Raw byte value of 'options' field. In the format of a HEX string. Reference SFF 8636 table 6-22.";
+      }
+      leaf tx-input-equalization-auto-adaptive-capable {
+        type boolean;
+        config false;
+        description
+          "A bit flag in 'options', reference SFF 8636 table 6-22.";
+      }
+      leaf tx-input-equalization-fixed-programmable-setting {
+        type boolean;
+        config false;
+        description
+          "A bit flag in 'options', reference SFF 8636 table 6-22.";
+      }
+      leaf rx-output-emphasis-fixed-programmable-setting {
+        type boolean;
+        config false;
+        description
+          "A bit flag in 'options', reference SFF 8636 table 6-22.";
+      }
+      leaf rx-output-amplitude-fixed-programmable-setting {
+        type boolean;
+        config false;
+        description
+          "A bit flag in 'options', reference SFF 8636 table 6-22.";
+      }
+      leaf tx-cdr-loss-of-lock-flag {
+        type boolean;
+        config false;
+        description
+          "A bit flag in 'options', reference SFF 8636 table 6-22.";
+      }
+      leaf rx-cdr-loss-of-lock-flag {
+        type boolean;
+        config false;
+        description
+          "A bit flag in 'options', reference SFF 8636 table 6-22.";
+      }
+      leaf user-eeprom-page-02h-provided {
+        type boolean;
+        config false;
+        description
+          "A bit flag in 'options', reference SFF 8636 table 6-22.";
+      }
+      leaf ast-page-01h-provided {
+        type boolean;
+        config false;
+        description
+          "A bit flag in 'options', reference SFF 8636 table 6-22.";
+      }
+    }
+  }
+  augment "/xcvr:waveserver-xcvrs/xcvr:xcvrs/xcvr:properties/xcvr:diagnostics/xcvr:device" {
+    when "../../xcvr:type = 'QSFPplus' or ../../xcvr:type = 'QSFP28'" {
+      description
+        "XCVR diagnostics device properties specific to pluggable XCVRs.";
+    }
+    description
+      "XCVR diagnostics device properties specific to pluggable XCVRs.";
+    container supply-voltage {
+      description
+        "XCVR supply voltage readings and thresholds.";
+      leaf actual {
+        type cienawstypes:decimal-2-dig;
+        units "V";
+        config false;
+        description
+          "Supply voltage, actual supply voltage in volts (V). Range must be between 0 and 6.55V.";
+      }
+      container status {
+        description
+          "Supply voltage status.";
+        uses xcvr:supply-voltage-status-group;
+      }
+      container threshold {
+        description
+          "Supply voltage thresholds.";
+        uses xcvr:supply-voltage-threshold-group;
+      }
+    }
+  }
+  augment "/xcvr:waveserver-xcvrs/xcvr:xcvrs/xcvr:properties/xcvr:diagnostics/xcvr:lane" {
+    when "../../xcvr:type = 'QSFPplus' or ../../xcvr:type = 'QSFP28'" {
+      description
+        "XCVR lane properties specific to pluggable XCVRs.";
+    }
+    description
+      "XCVR lane properties specific to pluggable XCVRs.";
+    leaf transmitter-fault {
+      type boolean;
+      config false;
+      description
+        "If the xcvr channel transmitter has detected a fault.";
+    }
+    leaf tx-adaptive-eq-fault {
+      type boolean;
+      config false;
+      description
+        "If the xcvr channel Tx Adaptive EQ Fault has detected a fault. Only applicable for QSFP28. For QSFP+, default value of FALSE will be returned.";
+    }
+  }
+}

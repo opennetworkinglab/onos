@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.onosproject.drivers.ciena.waveserver.rest;
+package org.onosproject.drivers.ciena.waveserverai;
 
 import org.apache.felix.scr.annotations.Component;
 import org.onosproject.net.driver.AbstractDriverLoader;
 import org.onosproject.net.optical.OpticalDevice;
 
 /**
- * Loader for Ciena device drivers.
+ * Loader for Ciena Waveserver Ai device drivers.
  */
 @Component(immediate = true)
 public class CienaDriversLoader extends AbstractDriverLoader {

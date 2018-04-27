@@ -35,6 +35,7 @@
         <module>ciena/waveserver</module>
         <module>ciena/c5162</module>
         <module>ciena/c5170</module>
+        <module>ciena/waveserverai</module>
         <module>fujitsu</module>
         <module>cisco</module>
         <module>netconf</module>

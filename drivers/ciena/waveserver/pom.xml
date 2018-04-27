@@ -26,15 +26,14 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>onos-drivers-ciena-waveserver-rest</artifactId>
+    <artifactId>onos-drivers-ciena-waveserver</artifactId>
     <packaging>bundle</packaging>
 
-    <description>Ciena Waveserver device drivers</description>
+    <description>Ciena device drivers</description>
 
     <properties>
-        <onos.app.name>org.onosproject.drivers.ciena.waveserver.rest</onos.app.name>
         <onos.app.origin>ONOS Community</onos.app.origin>
-        <onos.app.title>Ciena Waveserver Device Drivers</onos.app.title>
+        <onos.app.title>Ciena Device Drivers</onos.app.title>
         <onos.app.category>Drivers</onos.app.category>
         <onos.app.url>http://onosproject.org</onos.app.url>
         <onos.app.requires>
@@ -55,11 +54,13 @@
             <artifactId>onos-drivers-utilities</artifactId>
             <version>${project.version}</version>
         </dependency>
+
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-restsb-api</artifactId>
             <version>${project.version}</version>
         </dependency>
+
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-drivers-optical</artifactId>

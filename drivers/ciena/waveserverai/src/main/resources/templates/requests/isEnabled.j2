@@ -1,0 +1,13 @@
+<rpc xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+    <get xmlns="urn:ietf:params:xml:ns:netconf:base:1.0">
+      <filter type="subtree">
+        <port:waveserver-ports xmlns:port="urn:ciena:params:xml:ns:yang:ciena-ws:ciena-waveserver-port">
+          <port:ports>
+            <port-id>{{port-number}}</port-id>
+            <port:state/>
+            <port:id/>
+          </port:ports>
+        </port:waveserver-ports>
+      </filter>
+    </get>
+</rpc>

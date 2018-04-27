@@ -13,7 +13,7 @@ Currently this driver is built using BUCK and uses version 2.1 of onos-yang-tool
 All that is required to activate the driver is to run the following at the ONOS CLI
 
 ```bash
-app activate org.onosproject.drivers.ciena.waveserver.rest
+app activate org.onosproject.drivers.ciena.waveserver
 ```
 
 ## Usage
@@ -48,8 +48,6 @@ curl -X POST
     }
 }'
 ```
-
-
 
 #### Verify Connected Device
 

@@ -1,0 +1,1098 @@
+module ciena-waveserver-lldp {
+  namespace "urn:ciena:params:xml:ns:yang:ciena-ws:ciena-waveserver-lldp";
+  prefix lldp;
+
+  import ciena-waveserver-typedefs {
+    prefix cienawstypes;
+  }
+
+  organization
+    "Ciena Corporation";
+  contact
+    "Web URL: http://www.ciena.com/
+     Postal:  7035 Ridge Road
+             Hanover, Maryland 21076
+             U.S.A.
+     Phone:   +1 800-921-1144
+     Fax:     +1 410-694-5750";
+  description
+    "This module defines the configuration and operational data for Link Layer Discovery Protocol (LLDP) on the Waveserver.";
+
+  revision 2017-06-16 {
+    description
+      "Waveserver Platform Data Model
+       Migrated from Waveserver Classic R1.4 YANG model.
+       Updated namespace to 'ciena-waveserver'.
+       Changed 'port-id' from integer to string format.";
+    reference "";
+  }
+
+  typedef chassis-id {
+    type string {
+      length "1..256";
+    }
+    description
+      "Chassis Identifier";
+  }
+
+  typedef chassis-id-subtype {
+    type enumeration {
+      enum "unknown" {
+        value 0;
+      }
+      enum "chassis-component" {
+        value 1;
+      }
+      enum "interface-alias" {
+        value 2;
+      }
+      enum "port-component" {
+        value 3;
+      }
+      enum "mac-address" {
+        value 4;
+      }
+      enum "network-address" {
+        value 5;
+      }
+      enum "interface-name" {
+        value 6;
+      }
+      enum "local" {
+        value 7;
+      }
+    }
+  }
+
+  typedef lldp-system-capability-bits {
+    type bits {
+      bit other {
+        position 0;
+      }
+      bit repeater {
+        position 1;
+      }
+      bit bridge {
+        position 2;
+      }
+      bit wlan-access-point {
+        position 3;
+      }
+      bit router {
+        position 4;
+      }
+      bit telephone {
+        position 5;
+      }
+      bit docsis {
+        position 6;
+      }
+      bit station-only {
+        position 7;
+      }
+    }
+  }
+
+  typedef lldp-management-address-subtype {
+    type enumeration {
+      enum "reserved" {
+        value 0;
+      }
+      enum "ipv4" {
+        value 1;
+      }
+      enum "ipv6" {
+        value 2;
+      }
+      enum "nsap" {
+        value 3;
+      }
+      enum "hdlc" {
+        value 4;
+      }
+      enum "bbn-1822" {
+        value 5;
+      }
+      enum "ieee-802" {
+        value 6;
+      }
+      enum "e-163" {
+        value 7;
+      }
+      enum "e164-smds-atm" {
+        value 8;
+      }
+      enum "f69-telex" {
+        value 9;
+      }
+      enum "x121-x25-fr" {
+        value 10;
+      }
+      enum "ipx" {
+        value 11;
+      }
+      enum "appletalk" {
+        value 12;
+      }
+      enum "decnet-iv" {
+        value 13;
+      }
+      enum "banyan-vines" {
+        value 14;
+      }
+      enum "e164-w-nsap" {
+        value 15;
+      }
+      enum "dns" {
+        value 16;
+      }
+      enum "distinguish-name" {
+        value 17;
+      }
+      enum "as-number" {
+        value 18;
+      }
+      enum "xtp-over-ipv4" {
+        value 19;
+      }
+      enum "xtp-over-ipv6" {
+        value 20;
+      }
+      enum "xtp-native-mode" {
+        value 21;
+      }
+      enum "fibre-ch-ww-port" {
+        value 22;
+      }
+      enum "fibre-ch-ww-node" {
+        value 23;
+      }
+      enum "gwid" {
+        value 24;
+      }
+    }
+    description
+      "";
+  }
+
+  typedef lldp-management-address-interface-subtype {
+    type enumeration {
+      enum "unknown" {
+        value 0;
+      }
+      enum "un-known" {
+        value 1;
+      }
+      enum "if-index" {
+        value 2;
+      }
+      enum "system-port-number" {
+        value 3;
+      }
+    }
+    description
+      "";
+  }
+
+  typedef lldp-port-id-sub-type {
+    type enumeration {
+      enum "unknown" {
+        value 0;
+      }
+      enum "interface-alias" {
+        value 1;
+      }
+      enum "port-component" {
+        value 2;
+      }
+      enum "mac-address" {
+        value 3;
+      }
+      enum "network-address" {
+        value 4;
+      }
+      enum "interface-name" {
+        value 5;
+      }
+      enum "agent-circuit-id" {
+        value 6;
+      }
+      enum "local" {
+        value 7;
+      }
+    }
+    description
+      "Local port id sub-type.";
+  }
+
+  typedef lldp-auto-neg-capability {
+    type enumeration {
+      enum "unknown" {
+        value 0;
+      }
+      enum "b-10base-t" {
+        value 1;
+      }
+      enum "b-10base-t-fd" {
+        value 2;
+      }
+      enum "b-100base-t4" {
+        value 3;
+      }
+      enum "b-100base-tx" {
+        value 4;
+      }
+      enum "b-100base-tx-full-duplex" {
+        value 5;
+      }
+      enum "b-100base-t2" {
+        value 6;
+      }
+      enum "b-100base-t2-full-duplex" {
+        value 7;
+      }
+      enum "b-full-duplex-pause" {
+        value 8;
+      }
+      enum "b-full-duplex-asymmetric-pause" {
+        value 9;
+      }
+      enum "b-full-duplex-symmetric-pause" {
+        value 10;
+      }
+      enum "b-full-duplex-asymmetric-symmetric-pause" {
+        value 11;
+      }
+      enum "b-1000base-x" {
+        value 12;
+      }
+      enum "b-1000base-x-full-duplex" {
+        value 13;
+      }
+      enum "b-1000base-t" {
+        value 14;
+      }
+      enum "b-1000base-t-full-duplex" {
+        value 15;
+      }
+    }
+  }
+
+  typedef lldp-operational-mau-type {
+    type enumeration {
+      enum "unknown" {
+        value 0;
+      }
+      enum "dot3-mau-type-aui" {
+        value 1;
+      }
+      enum "dot3-mau-type-10-base-5" {
+        value 2;
+      }
+      enum "dot3-mau-type-foirl" {
+        value 3;
+      }
+      enum "dot3-mau-type-10-base-2" {
+        value 4;
+      }
+      enum "dot3-mau-type-10-base-t" {
+        value 5;
+      }
+      enum "dot3-mau-type-10-base-fp" {
+        value 6;
+      }
+      enum "dot3-mau-type-10-base-fb" {
+        value 7;
+      }
+      enum "dot3-mau-type-10-base-fl" {
+        value 8;
+      }
+      enum "dot3-mau-type-10-broad36" {
+        value 9;
+      }
+      enum "dot3-mau-type-10-base-thd" {
+        value 10;
+      }
+      enum "dot3-mau-type-10-base-tfd" {
+        value 11;
+      }
+      enum "dot3-mau-type-10-base-flhd" {
+        value 12;
+      }
+      enum "dot3-mau-type-10-base-flfd" {
+        value 13;
+      }
+      enum "dot3-mau-type-100-base-t4" {
+        value 14;
+      }
+      enum "dot3-mau-type-100-base-txhd" {
+        value 15;
+      }
+      enum "dot3-mau-type-100-base-txfd" {
+        value 16;
+      }
+      enum "dot3-mau-type-100-base-fxhd" {
+        value 17;
+      }
+      enum "dot3-mau-type-100-base-fxfd" {
+        value 18;
+      }
+      enum "dot3-mau-type-100-base-t2hd" {
+        value 19;
+      }
+      enum "dot3-mau-type-100-base-t2fd" {
+        value 20;
+      }
+      enum "dot3-mau-type-1000-base-xhd" {
+        value 21;
+      }
+      enum "dot3-mau-type-1000-base-xfd" {
+        value 22;
+      }
+      enum "dot3-mau-type-1000-base-lxhd" {
+        value 23;
+      }
+      enum "dot3-mau-type-1000-base-lxfd" {
+        value 24;
+      }
+      enum "dot3-mau-type-1000-base-sxhd" {
+        value 25;
+      }
+      enum "dot3-mau-type-1000-base-sxfd" {
+        value 26;
+      }
+      enum "dot3-mau-type-1000-base-cxhd" {
+        value 27;
+      }
+      enum "dot3-mau-type-1000-base-cxfd" {
+        value 28;
+      }
+      enum "dot3-mau-type-1000-base-thd" {
+        value 29;
+      }
+      enum "dot3-mau-type-1000-base-tfd" {
+        value 30;
+      }
+      enum "dot3-mau-type-10Gig-base-x" {
+        value 31;
+      }
+      enum "dot3-mau-type-10Gig-base-lx4" {
+        value 32;
+      }
+      enum "dot3-mau-type-10Gig-base-r" {
+        value 33;
+      }
+      enum "dot3-mau-type-10Gig-base-er" {
+        value 34;
+      }
+      enum "dot3-mau-type-10Gig-base-lr" {
+        value 35;
+      }
+      enum "dot3-mau-type-10Gig-base-sr" {
+        value 36;
+      }
+      enum "dot3-mau-type-10Gig-base-w" {
+        value 37;
+      }
+      enum "dot3-mau-type-10Gig-base-ew" {
+        value 38;
+      }
+      enum "dot3-mau-type-10Gig-base-lw" {
+        value 39;
+      }
+      enum "dot3-mau-type-10Gig-base-sw" {
+        value 40;
+      }
+      enum "dot3-mau-type-10Gig-base-cx4" {
+        value 41;
+      }
+      enum "dot3-mau-type-2-base-tl" {
+        value 42;
+      }
+      enum "dot3-mau-type-10-pass-ts" {
+        value 43;
+      }
+      enum "dot3-mau-type-100-base-bx10D" {
+        value 44;
+      }
+      enum "dot3-mau-type-100-base-bx10u" {
+        value 45;
+      }
+      enum "dot3-mau-type-100-base-lx10" {
+        value 46;
+      }
+      enum "dot3-mau-type-1000-base-bx10d" {
+        value 47;
+      }
+      enum "dot3-mau-type-1000-base-bx10u" {
+        value 48;
+      }
+      enum "dot3-mau-type-1000-base-lx10" {
+        value 49;
+      }
+      enum "dot3-mau-type-1000-base-px10d" {
+        value 50;
+      }
+      enum "dot3-mau-type-1000-base-px10u" {
+        value 51;
+      }
+      enum "dot3-mau-type-1000-base-px20d" {
+        value 52;
+      }
+      enum "dot3-mau-type-1000-base-px20u" {
+        value 53;
+      }
+      enum "invalid" {
+        value 54;
+      }
+    }
+  }
+
+  typedef supported-notsupported-enum {
+    type enumeration {
+      enum "not-supported" {
+        value 0;
+      }
+      enum "supported" {
+        value 1;
+      }
+    }
+  }
+
+  typedef lldp-port-class {
+    type enumeration {
+      enum "pd" {
+        value 0;
+      }
+      enum "pse" {
+        value 1;
+      }
+    }
+  }
+
+  typedef lldp-pair-control {
+    type enumeration {
+      enum "cannot" {
+        value 0;
+      }
+      enum "can" {
+        value 1;
+      }
+    }
+  }
+
+  typedef lldp-power-pair {
+    type enumeration {
+      enum "not-support" {
+        value 0;
+      }
+      enum "signal" {
+        value 1;
+      }
+      enum "spare" {
+        value 2;
+      }
+      enum "unknown" {
+        value 3;
+      }
+    }
+  }
+
+  typedef lldp-power-class {
+    type enumeration {
+      enum "not-support" {
+        value 0;
+      }
+      enum "class-0" {
+        value 1;
+      }
+      enum "class-1" {
+        value 2;
+      }
+      enum "class-2" {
+        value 3;
+      }
+      enum "class-3" {
+        value 4;
+      }
+      enum "class-4" {
+        value 5;
+      }
+      enum "unknown" {
+        value 6;
+      }
+    }
+    description
+      "Power class.";
+  }
+
+  grouping system-capability-group {
+    description
+      "group of LLDP system capability data.";
+    leaf capabilities {
+      type lldp-system-capability-bits;
+      description
+        "LLDP system capabilities.";
+    }
+    leaf capability-enabled {
+      type lldp-system-capability-bits;
+      description
+        "Enabled LLDP system capability.";
+    }
+  }
+
+  grouping management-address-group {
+    description
+      "group of LLDP management address data.";
+    leaf address {
+      type cienawstypes:string-maxl-256;
+      config false;
+      description
+        "Management address.";
+    }
+    leaf subtype {
+      type lldp-management-address-subtype;
+      config false;
+      description
+        "Management adress subtype.";
+    }
+  }
+
+  grouping management-address-interface-group {
+    description
+      "group of LLDP management address data.";
+    leaf interface-subtype {
+      type lldp-management-address-interface-subtype;
+      config false;
+      description
+        "Management address interface subtype.";
+    }
+    leaf oid-if-number {
+      type uint32;
+      config false;
+      description
+        "Management address interface OID interface number.";
+    }
+    leaf oid {
+      type cienawstypes:string-maxl-128;
+      config false;
+      description
+        "Management address interface OID.";
+    }
+  }
+
+  grouping port-id-group {
+    description
+      "group of port identification data.";
+    leaf id {
+      type cienawstypes:string-maxl-32;
+      config false;
+      description
+        "port identifier.";
+    }
+    leaf sub-type {
+      type lldp-port-id-sub-type;
+      config false;
+      description
+        "Port identificer sub-type.";
+    }
+    leaf descriptor {
+      type cienawstypes:string-maxl-256;
+      config false;
+      description
+        "Port descriptor";
+    }
+  }
+
+  container waveserver-lldp {
+    description
+      "Waveserver LLDP configuration and operational data.";
+    container chassis {
+      container state {
+        leaf admin-state {
+          type cienawstypes:enabled-disabled-enum;
+          description
+            "Administrative state of chassis level LLDP.";
+        }
+        leaf notification-interval {
+          type uint16 {
+            range "5 .. 32768";
+          }
+          description
+            "LLDP Notification interval.";
+        }
+      }
+      container id {
+        config false;
+        leaf chassis-id {
+          type chassis-id;
+          description
+            "Chassis ID.";
+        }
+        leaf chassis-id-subtype {
+          type chassis-id-subtype;
+          description
+            "Chassis Id subtype.";
+        }
+        leaf system-name {
+          type cienawstypes:string-maxl-256;
+          description
+            "System Name. Max string length of 255 characters.";
+        }
+        leaf system-description {
+          type cienawstypes:string-maxl-256;
+          description
+            "System escription. Max string length of 255 characters.";
+        }
+      }
+      leaf time-to-live {
+        type uint16;
+        config false;
+        description
+          "Time To Live.";
+      }
+      container system-capabilities {
+        config false;
+        description
+          "LLDP system capabilities.";
+        uses system-capability-group;
+      }
+      container local-management-address-table {
+        config false;
+        description
+          "LLDP local management address table.";
+        list address-table {
+          key "index";
+          config false;
+          max-elements "4";
+          leaf index {
+            type uint32;
+            description
+              "Unique id, read-only attribute.";
+          }
+          uses management-address-group;
+          uses management-address-interface-group;
+        }
+      }
+      container statistics {
+        config false;
+        leaf last-change {
+          type uint32;
+          description
+            "remote table last change in 1/100 seconds.";
+        }
+        leaf inserts {
+          type uint32;
+          description
+            "Inserts.";
+        }
+        leaf deletes {
+          type uint32;
+          description
+            "Deletes.";
+        }
+        leaf drops {
+          type uint32;
+          description
+            "Drops.";
+        }
+        leaf age-outs {
+          type uint32;
+          description
+            "Age outs.";
+        }
+      }
+    }
+    list port {
+      key "port-id";
+      leaf port-id {
+        type cienawstypes:port-name;
+        mandatory true;
+        description
+          "Port ID/name string.";
+      }
+      container properties {
+        description
+          "LLDP port level properties.";
+        leaf mode {
+          type enumeration {
+            enum "unknown" {
+              value 0;
+            }
+            enum "tx-only" {
+              value 1;
+            }
+            enum "snoop" {
+              value 2;
+            }
+            enum "tx-rx" {
+              value 3;
+            }
+            enum "disabled" {
+              value 4;
+            }
+          }
+          description
+            "LLDP port admin state";
+        }
+        leaf notification {
+          type cienawstypes:on-off-enum;
+          description
+            "Turn notification on or off";
+        }
+      }
+      container statistics {
+        config false;
+        description
+          "Port level statistics.";
+        leaf out-packets-total {
+          type uint32;
+          config false;
+          description
+            "Out packets.";
+        }
+        leaf in-packets-total {
+          type uint32;
+          config false;
+          description
+            "In packets";
+        }
+        leaf in-err-packets-discarded {
+          type uint32;
+          config false;
+          description
+            "Discarded in error packets";
+        }
+        leaf in-errored-tlv {
+          type uint32;
+          config false;
+          description
+            "In errored TLV";
+        }
+        leaf tlv-discarded {
+          type uint32;
+          config false;
+          description
+            "Discarded TLV.";
+        }
+        leaf unknown-tlv {
+          type uint32;
+          config false;
+          description
+            "Unknown TLV";
+        }
+        leaf aged-out-total {
+          type uint32;
+          config false;
+          description
+            "Aged out total.";
+        }
+      }
+      container local {
+        config false;
+        description
+          "Port LLDP local data.";
+        container id {
+          description
+            "LLDP port identification.";
+          uses port-id-group;
+        }
+        container specification-802-3 {
+          config false;
+          description
+            "LLDP Specification 802.3.";
+          container mac-physical-config {
+            config false;
+            description
+              "Mac physical configuration.";
+            leaf auto-negotiation-support {
+              type supported-notsupported-enum;
+              description
+                "Auto-negotiation support.";
+            }
+            leaf auto-negotiation-status {
+              type cienawstypes:enabled-disabled-enum;
+              description
+                "Auto-negotiation status.";
+            }
+            leaf pmd-auto-negotiation-advertised-capability {
+              type lldp-auto-neg-capability;
+              description
+                "PMD Auto-negotiation advertised capability.";
+            }
+            leaf operational-mau-type {
+              type lldp-operational-mau-type;
+              description
+                "Operational MAU type.";
+            }
+          }
+          container power-via-mdi {
+            config false;
+            description
+              "Power Via MDI.";
+            leaf port-class {
+              type lldp-port-class;
+              description
+                "Port class";
+            }
+            leaf mdi {
+              type supported-notsupported-enum;
+              description
+                "mdi";
+            }
+            leaf mdi-power-support {
+              type cienawstypes:enabled-disabled-enum;
+              description
+                "MDI power support.";
+            }
+            leaf pair-control {
+              type lldp-pair-control;
+              description
+                "Pair control.";
+            }
+            leaf power-pair {
+              type lldp-power-pair;
+              description
+                "Power pair.";
+            }
+            leaf power-class {
+              type lldp-power-class;
+              description
+                "Power class.";
+            }
+          }
+          leaf max-frame-size {
+            type uint16;
+            description
+              "Maximum frame size.";
+          }
+        }
+        list local-management-address-table {
+          key "index";
+          config false;
+          max-elements "4";
+          leaf index {
+            type uint32;
+            description
+              "Unique id, read-only attribute.";
+          }
+          uses management-address-group;
+          uses management-address-interface-group;
+        }
+      }
+      container remote {
+        config false;
+        description
+          "LLDP port level remote data.";
+        container chassis {
+          config false;
+          container chassis-id {
+            leaf chassis-id {
+              type chassis-id;
+              description
+                "Chassis ID. Read only attribute.";
+            }
+            leaf chassis-id-subtype {
+              type chassis-id-subtype;
+              description
+                "Chassis Id subtype.";
+            }
+            leaf system-name {
+              type cienawstypes:string-maxl-256;
+              description
+                "System Name. Max string length of 255 characters.";
+            }
+            leaf system-description {
+              type cienawstypes:string-maxl-256;
+              description
+                "System escription. Max string length of 255 characters.";
+            }
+          }
+          leaf time-to-live {
+            type uint16;
+            config false;
+            description
+              "Time to live.";
+          }
+          container system-capabilities {
+            config false;
+            uses system-capability-group;
+          }
+          list management-address-table {
+            key "index";
+            config false;
+            max-elements "4";
+            leaf index {
+              type uint32;
+              description
+                "Unique id, read-only attribute.";
+            }
+            uses management-address-group;
+            uses management-address-interface-group;
+          }
+        }
+        container port {
+          config false;
+          container id {
+            config false;
+            description
+              "LLDP port identification.";
+            uses port-id-group;
+          }
+          container specification-802-3 {
+            config false;
+            description
+              "LLDP Specification 802.3.";
+            container mac-physical-config {
+              config false;
+              description
+                "Mac physical configuration.";
+              leaf auto-negotiation-support {
+                type supported-notsupported-enum;
+                description
+                  "Auto-negotiation support.";
+              }
+              leaf auto-negotiation-status {
+                type cienawstypes:enabled-disabled-enum;
+                description
+                  "Auto-negotiation status.";
+              }
+              leaf pmd-auto-negotiation-advertised-capability {
+                type lldp-auto-neg-capability;
+                description
+                  "PMD Auto-negotiation advertised capability.";
+              }
+              leaf operational-mau-type {
+                type lldp-operational-mau-type;
+                description
+                  "Operational MAU type.";
+              }
+            }
+            container power-via-mdi {
+              config false;
+              description
+                "Power Via MDI.";
+              leaf port-class {
+                type lldp-port-class;
+                description
+                  "Port class";
+              }
+              leaf mdi {
+                type supported-notsupported-enum;
+                description
+                  "mdi";
+              }
+              leaf mdi-power-support {
+                type cienawstypes:enabled-disabled-enum;
+                description
+                  "MDI power support.";
+              }
+              leaf pair-control {
+                type lldp-pair-control;
+                description
+                  "Pair control.";
+              }
+              leaf power-pair {
+                type lldp-power-pair;
+                description
+                  "Power pair.";
+              }
+              leaf power-class {
+                type lldp-power-class;
+                description
+                  "Power class.";
+              }
+            }
+            leaf max-frame-size {
+              type uint16;
+              description
+                "Maximum frame size.";
+            }
+          }
+          list organization-definition-information-table {
+            key "index";
+            config false;
+            description
+              "Remote organization definition information table.";
+            leaf index {
+              type uint32;
+              description
+                "Unique id, read-only attribute.";
+            }
+            leaf oui {
+              type cienawstypes:string-maxl-16;
+              description
+                "OUI.";
+            }
+            leaf subtype {
+              type uint8;
+              description
+                "Sub-Type.";
+            }
+            leaf information {
+              type cienawstypes:string-maxl-256;
+              description
+                "Information.";
+            }
+          }
+          list unrecognized-tlv-table {
+            key "index";
+            config false;
+            description
+              "Remote unrecognized TLV table.";
+            leaf index {
+              type uint32;
+              description
+                "Unique id, read-only attribute.";
+            }
+            leaf type {
+              type uint8;
+              description
+                "Type.";
+            }
+            leaf length {
+              type uint32;
+              description
+                "Length.";
+            }
+            leaf value {
+              type cienawstypes:string-maxl-256;
+              description
+                "Value.";
+            }
+          }
+        }
+      }
+    }
+  }
+  rpc waveserver-lldp-clear-statistics {
+    description
+      "Clear the LLDP statistics.";
+    output {
+      leaf return-code {
+        type uint32;
+        description
+          "return code: 0 is success; non-zero is failure";
+      }
+    }
+  }
+  rpc waveserver-lldp-clear-port-statistics {
+    description
+      "Clear the LLDP statistics for the specified port.";
+    input {
+      leaf port-id {
+        type cienawstypes:port-name;
+        mandatory true;
+        description
+          "The port ID/name string.";
+      }
+    }
+    output {
+      leaf return-code {
+        type uint32;
+        description
+          "return code: 0 is success; non-zero is failure";
+      }
+    }
+  }
+}
