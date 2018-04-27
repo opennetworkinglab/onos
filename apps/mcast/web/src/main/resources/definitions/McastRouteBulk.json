@@ -27,10 +27,10 @@
             },
             "items": {
               "type": "string",
-              "example": "of:0000000000000206/8",
-              "description": "A source connect point for the route"
+              "example": "00:CC:00:00:00:02/None",
+              "description": "A host source for the route"
             },
-            "description": "Source connect points for the route"
+            "description": "Host source for the route"
           },
           "sinks": {
             "type": "array",

@@ -21,7 +21,7 @@
             <action class="org.onosproject.mcast.cli.McastHostJoinCommand"/>
             <optional-completers>
                 <entry key="-gAddr" value-ref="mcastGroupCompleter"/>
-                <entry key="-srcs" value-ref="connectpointCompleter"/>
+                <entry key="-srcs" value-ref="hostIdCompleter"/>
                 <entry key="-sinks" value-ref="hostIdCompleter"/>
             </optional-completers>
         </command>
@@ -32,18 +32,18 @@
             </optional-completers>
         </command>
         <command>
-            <action class="org.onosproject.mcast.cli.McastHostDeleteCommand"/>
+            <action class="org.onosproject.mcast.cli.McastSinkDeleteCommand"/>
             <optional-completers>
                 <entry key="-gAddr" value-ref="mcastGroupCompleter"/>
                 <entry key="-cps" value-ref="connectpointCompleter"/>
-                <entry key="-h" value-ref="hostIdCompleter"/>
+                <entry key="-s" value-ref="hostIdCompleter"/>
             </optional-completers>
         </command>
         <command>
             <action class="org.onosproject.mcast.cli.McastSourceDeleteCommand"/>
             <optional-completers>
                 <entry key="-gAddr" value-ref="mcastGroupCompleter"/>
-                <entry key="-src" value-ref="connectpointCompleter"/>
+                <entry key="-src" value-ref="hostIdCompleter"/>
             </optional-completers>
         </command>
         <command>

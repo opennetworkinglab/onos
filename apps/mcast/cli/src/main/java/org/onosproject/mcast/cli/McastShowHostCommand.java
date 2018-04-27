@@ -89,7 +89,7 @@ public class McastShowHostCommand extends AbstractShellCommand {
 
     private void printRoute(MulticastRouteService mcastService, McastRoute route) {
         Map<HostId, Set<ConnectPoint>> sinks = mcastService.routeData(route).sinks();
-        Set<ConnectPoint> sources = mcastService.sources(route);
+        Map<HostId, Set<ConnectPoint>> sources = mcastService.routeData(route).sources();
         String srcIp = "*";
         if (route.source().isPresent()) {
             srcIp = route.source().get().toString();

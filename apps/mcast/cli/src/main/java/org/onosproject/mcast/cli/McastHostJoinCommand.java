@@ -21,12 +21,7 @@ import org.onlab.packet.IpAddress;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.mcast.api.McastRoute;
 import org.onosproject.mcast.api.MulticastRouteService;
-import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.HostId;
-
-import java.util.Arrays;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Installs a source, multicast group flow.
@@ -52,8 +47,8 @@ public class McastHostJoinCommand extends AbstractShellCommand {
     String gAddr = null;
 
     @Option(name = "-srcs", aliases = "--sources",
-            description = "Ingress port of:XXXXXXXXXX/XX",
-            valueToShowInHelp = "of:0000000000000001/1",
+            description = "Host sink format: MAC/VLAN",
+            valueToShowInHelp = "00:00:00:00:00:00/None",
             multiValued = true)
     String[] sources = null;
 
@@ -62,7 +57,7 @@ public class McastHostJoinCommand extends AbstractShellCommand {
             description = "Host sink format: MAC/VLAN",
             valueToShowInHelp = "00:00:00:00:00:00/None",
             multiValued = true)
-    String[] hosts = null;
+    String[] sinks = null;
 
     @Override
     protected void execute() {
@@ -78,16 +73,14 @@ public class McastHostJoinCommand extends AbstractShellCommand {
         mcastRouteManager.add(mRoute);
 
         if (sources != null) {
-            Set<ConnectPoint> sourcesSet = Arrays.stream(sources)
-                    .map(ConnectPoint::deviceConnectPoint)
-                    .collect(Collectors.toSet());
-            mcastRouteManager.addSources(mRoute, sourcesSet);
+            for (String hostId : sources) {
+                mcastRouteManager.addSource(mRoute, HostId.hostId(hostId));
+            }
         }
 
-        if (hosts != null) {
-            for (String hostId : hosts) {
+        if (sinks != null) {
+            for (String hostId : sinks) {
                 mcastRouteManager.addSink(mRoute, HostId.hostId(hostId));
-
             }
         }
         printMcastRoute(mRoute);
@@ -96,7 +89,7 @@ public class McastHostJoinCommand extends AbstractShellCommand {
     private void printMcastRoute(McastRoute mcastRoute) {
         // If the source is present let's use it, otherwise we need to print *
         print(FORMAT_MAPPING, mcastRoute.type(), mcastRoute.group(),
-              mcastRoute.source().isPresent() ? mcastRoute.source().get() : "*");
+                mcastRoute.source().isPresent() ? mcastRoute.source().get() : "*");
     }
 
 }

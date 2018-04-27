@@ -21,11 +21,7 @@ import org.onlab.packet.IpAddress;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.mcast.api.McastRoute;
 import org.onosproject.mcast.api.MulticastRouteService;
-import org.onosproject.net.ConnectPoint;
-
-import java.util.Arrays;
-import java.util.Set;
-import java.util.stream.Collectors;
+import org.onosproject.net.HostId;
 
 /**
  * Deletes a multicast route.
@@ -55,8 +51,8 @@ public class McastSourceDeleteCommand extends AbstractShellCommand {
     String gAddr = null;
 
     @Option(name = "-src", aliases = "--connectPoint",
-            description = "Source port of:XXXXXXXXXX/XX",
-            valueToShowInHelp = "of:0000000000000001/1",
+            description = "Host sink format: MAC/VLAN",
+            valueToShowInHelp = "00:00:00:00:00:00/None",
             multiValued = true)
     String[] sourceList = null;
 
@@ -76,7 +72,7 @@ public class McastSourceDeleteCommand extends AbstractShellCommand {
             sAddrIp = IpAddress.valueOf(sAddr);
         }
         McastRoute mRoute = new McastRoute(sAddrIp, IpAddress.valueOf(gAddr),
-                                           McastRoute.Type.STATIC);
+                McastRoute.Type.STATIC);
         // No specific connect points, we have to remove everything
         if (sourceList == null) {
             mcastRouteManager.remove(mRoute);
@@ -88,16 +84,16 @@ public class McastSourceDeleteCommand extends AbstractShellCommand {
             print("Route is not present, store it first");
             return;
         }
-        Set<ConnectPoint> sourcesSet = Arrays.stream(sourceList)
-                .map(ConnectPoint::deviceConnectPoint)
-                .collect(Collectors.toSet());
-        mcastRouteManager.removeSources(mRoute, sourcesSet);
+        for (String hostId : sourceList) {
+            mcastRouteManager.removeSource(mRoute, HostId.hostId(hostId));
+
+        }
         printMcastRoute(U_FORMAT_MAPPING, mRoute);
     }
 
     private void printMcastRoute(String format, McastRoute mcastRoute) {
         // If the source is present let's use it, otherwise we need to print *
         print(format, mcastRoute.type(), mcastRoute.group(),
-              mcastRoute.source().isPresent() ? mcastRoute.source().get() : "*");
+                mcastRoute.source().isPresent() ? mcastRoute.source().get() : "*");
     }
 }
