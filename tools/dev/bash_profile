@@ -64,6 +64,9 @@ alias obd='onos-build-docs'
 alias op='onos-package'
 alias ot='onos-test'
 
+alias obr='while ! ob; do echo "retrying"; done'
+alias opr='while ! op; do echo "retrying"; done'
+
 alias deprecatedAlias='echo "This alias has been deprecated."'
 alias obi=deprecatedAlias
 alias obs=deprecatedAlias
@@ -195,9 +198,13 @@ function setMinorityMajority {
     done
 }
 
-# ON.Lab shared test cell warden address
+# Open Networking Foundation shared test cell warden address
 export CELL_WARDEN="10.192.19.72"
-export CELL_SLAVES="$CELL_WARDEN 10.192.19.71 10.192.19.70"
+export CELL_SLAVE_1=$CELL_WARDEN
+export CELL_SLAVE_2="10.192.19.71"
+export CELL_SLAVE_3="10.192.19.70"
+export CELL_SLAVE_4="10.192.19.77"
+export CELL_SLAVES="$CELL_SLAVE_1 $CELL_SLAVE_2 $CELL_SLAVE_3 $CELL_SLAVE_4"
 
 # Clears cell environment
 function clearCell {

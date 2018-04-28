@@ -11,6 +11,10 @@ echo $status
 for slave in $CELL_SLAVES; do
     echo "========================================================"
     echo "$slave:"
+    ssh sdn@$slave "touch foo && echo 'Disk OK' || echo 'Disk READ-ONLY'"
+    let ok=ok+$?
+    ssh sdn@$slave "df -h /"
+    let ok=ok+$?
     ssh sdn@$slave sudo lxc-ls --fancy
     let ok=ok+$?
 done

@@ -16,6 +16,7 @@
 
 package org.onosproject.layout;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -26,8 +27,17 @@ import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.link.LinkService;
+import org.onosproject.ui.UiExtension;
+import org.onosproject.ui.UiExtensionService;
+import org.onosproject.ui.UiMessageHandlerFactory;
+import org.onosproject.ui.UiTopoOverlay;
+import org.onosproject.ui.UiTopoOverlayFactory;
+import org.onosproject.ui.UiView;
+import org.onosproject.ui.UiViewHidden;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 /**
  * Manages automatic layout of the current network elements into one of several
@@ -39,6 +49,30 @@ import org.slf4j.LoggerFactory;
 public class RoleBasedLayoutManager {
 
     private Logger log = LoggerFactory.getLogger(getClass());
+
+    private static final String VIEW_ID = "tlTopov";
+    private static final String OVERLAY_ID = "tl-overlay";
+
+    // List of application views
+    private final List<UiView> uiViews = ImmutableList.of(
+            new UiViewHidden(VIEW_ID)
+    );
+
+    // Factory for UI message handlers
+    private final UiMessageHandlerFactory messageHandlerFactory =
+            () -> ImmutableList.of(new LayoutOverlayMessageHandler());
+
+    // Factory for UI topology overlays
+    private final UiTopoOverlayFactory topoOverlayFactory =
+            () -> ImmutableList.of(new UiTopoOverlay(OVERLAY_ID));
+
+    // Application UI extension
+    protected UiExtension extension =
+            new UiExtension.Builder(getClass().getClassLoader(), uiViews)
+                    .resourcePath(VIEW_ID)
+                    .messageHandlerFactory(messageHandlerFactory)
+                    .topoOverlayFactory(topoOverlayFactory)
+                    .build();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetworkConfigService networkConfigService;
@@ -52,16 +86,20 @@ public class RoleBasedLayoutManager {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected LinkService linkService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected UiExtensionService uiExtensionService;
+
     @Activate
     protected void activate() {
+        uiExtensionService.register(extension);
         log.info("Started");
     }
 
     @Deactivate
     protected void deactivate() {
+        uiExtensionService.unregister(extension);
         log.info("Stopped");
     }
-
 
     /**
      * Executes the specified layout algorithm.
