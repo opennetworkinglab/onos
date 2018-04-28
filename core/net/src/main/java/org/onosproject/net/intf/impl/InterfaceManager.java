@@ -168,6 +168,23 @@ public class InterfaceManager extends ListenerRegistry<InterfaceEvent, Interface
                 .collect(collectingAndThen(toSet(), ImmutableSet::copyOf));
     }
 
+    @Override
+    public boolean isConfigured(ConnectPoint connectPoint) {
+        Set<Interface> intfs = interfaces.get(connectPoint);
+        if (intfs == null) {
+            return false;
+        }
+        for (Interface intf : intfs) {
+            if (!intf.ipAddressesList().isEmpty() || intf.vlan() != VlanId.NONE
+                    || intf.vlanNative() != VlanId.NONE
+                    || intf.vlanUntagged() != VlanId.NONE
+                    || !intf.vlanTagged().isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private void updateInterfaces(InterfaceConfig intfConfig) {
         try {
             Set<Interface> old = interfaces.put(intfConfig.subject(),
@@ -268,4 +285,5 @@ public class InterfaceManager extends ListenerRegistry<InterfaceEvent, Interface
             }
         }
     }
+
 }

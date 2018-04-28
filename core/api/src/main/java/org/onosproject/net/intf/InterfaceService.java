@@ -87,4 +87,13 @@ public interface InterfaceService
      * @return a set of interfaces
      */
     Set<Interface> getMatchingInterfaces(IpAddress ip);
+
+    /**
+     * Returns true if given connectPoint has an IP address or vlan configured
+     * on any of its interfaces.
+     *
+     * @param connectPoint the port on a device
+     * @return true if connectpoint has a configured interface
+     */
+    boolean isConfigured(ConnectPoint connectPoint);
 }

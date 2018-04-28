@@ -1190,6 +1190,7 @@ public class HostLocationProviderTest {
             return null;
         }
 
+        @Override
         public Set<Interface> getInterfacesByIp(IpAddress ip) {
             if (ip.equals(GW_IFACE_ADDR.ipAddress())) {
                 return ImmutableSet.of(GW_IFACE);
@@ -1221,6 +1222,11 @@ public class HostLocationProviderTest {
         @Override
         public void removeListener(InterfaceListener listener) {
 
+        }
+
+        @Override
+        public boolean isConfigured(ConnectPoint connectPoint) {
+            return false;
         }
     }
 }

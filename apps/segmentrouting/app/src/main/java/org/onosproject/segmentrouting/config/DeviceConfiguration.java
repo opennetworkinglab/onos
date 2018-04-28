@@ -725,4 +725,7 @@ public class DeviceConfiguration implements DeviceProperties {
         }
     }
 
+    public boolean isPairLocalPort(DeviceId devId, PortNumber pnum) {
+        return pnum.equals(srManager.getPairLocalPort(devId).orElse(null));
+    }
 }

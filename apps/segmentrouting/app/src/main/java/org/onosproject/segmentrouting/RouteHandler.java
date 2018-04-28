@@ -213,7 +213,7 @@ public class RouteHandler {
 
                 // Also remove redirection flows on the pair device if exists.
                 Optional<DeviceId> pairDeviceId = srManager.getPairDeviceId(location.deviceId());
-                Optional<PortNumber> pairLocalPort = srManager.getPairLocalPorts(location.deviceId());
+                Optional<PortNumber> pairLocalPort = srManager.getPairLocalPort(location.deviceId());
                 if (pairDeviceId.isPresent() && pairLocalPort.isPresent()) {
                     // NOTE: Since the pairLocalPort is trunk port, use assigned vlan of original port
                     //       when the host is untagged
@@ -245,7 +245,7 @@ public class RouteHandler {
                 // Redirect the flows to pair link if configured
                 // Note: Do not continue removing any rule
                 Optional<DeviceId> pairDeviceId = srManager.getPairDeviceId(prevLocation.deviceId());
-                Optional<PortNumber> pairLocalPort = srManager.getPairLocalPorts(prevLocation.deviceId());
+                Optional<PortNumber> pairLocalPort = srManager.getPairLocalPort(prevLocation.deviceId());
                 if (pairDeviceId.isPresent() && pairLocalPort.isPresent() && newLocations.stream()
                         .anyMatch(location -> location.deviceId().equals(pairDeviceId.get()))) {
                     // NOTE: Since the pairLocalPort is trunk port, use assigned vlan of original port

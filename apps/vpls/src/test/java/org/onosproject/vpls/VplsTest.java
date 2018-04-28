@@ -421,6 +421,23 @@ public abstract class VplsTest {
                     .filter(intf -> intf.ipAddressesList().contains(ip))
                     .collect(Collectors.toSet());
         }
+
+        @Override
+        public boolean isConfigured(ConnectPoint connectPoint) {
+            for (Interface intf : AVAILABLE_INTERFACES) {
+                if (!intf.connectPoint().equals(connectPoint)) {
+                    continue;
+                }
+                if (!intf.ipAddressesList().isEmpty()
+                        || intf.vlan() != VlanId.NONE
+                        || intf.vlanNative() != VlanId.NONE
+                        || intf.vlanUntagged() != VlanId.NONE
+                        || !intf.vlanTagged().isEmpty()) {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 
     /**
