@@ -232,6 +232,11 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             label = "Enable active probing to discover dual-homed hosts.")
     boolean activeProbing = true;
 
+    @Property(name = "singleHomedDown", boolValue = false,
+            label = "Enable administratively taking down single-homed hosts "
+                    + "when all uplinks are gone")
+    boolean singleHomedDown = false;
+
     ArpHandler arpHandler = null;
     IcmpHandler icmpHandler = null;
     IpHandler ipHandler = null;
@@ -360,6 +365,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
      */
     public static final int MIN_DUMMY_VLAN_ID = 2;
     public static final int MAX_DUMMY_VLAN_ID = 4093;
+
+    Instant lastEdgePortEvent = Instant.EPOCH;
 
     @Activate
     protected void activate(ComponentContext context) {
@@ -569,10 +576,28 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
         String strActiveProving = Tools.get(properties, "activeProbing");
         boolean expectActiveProbing = Boolean.parseBoolean(strActiveProving);
-
         if (expectActiveProbing != activeProbing) {
             activeProbing = expectActiveProbing;
             log.info("{} active probing", activeProbing ? "Enabling" : "Disabling");
+        }
+
+        String strSingleHomedDown = Tools.get(properties, "singleHomedDown");
+        boolean expectSingleHomedDown = Boolean.parseBoolean(strSingleHomedDown);
+        if (expectSingleHomedDown != singleHomedDown) {
+            singleHomedDown = expectSingleHomedDown;
+            log.info("{} downing of single homed hosts for lost uplinks",
+                     singleHomedDown ? "Enabling" : "Disabling");
+            if (singleHomedDown && linkHandler != null) {
+                hostService.getHosts().forEach(host -> host.locations()
+                        .forEach(loc -> {
+                            if (interfaceService.isConfigured(loc)) {
+                                linkHandler.checkUplinksForHost(loc);
+                            }
+                        }));
+            } else {
+                log.warn("Disabling singleHomedDown does not re-enable already "
+                        + "downed ports for single-homed hosts");
+            }
         }
     }
 
@@ -866,7 +891,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
      * @param deviceId device ID
      * @return optional pair device ID. Might be empty if pair device is not configured
      */
-    Optional<PortNumber> getPairLocalPorts(DeviceId deviceId) {
+    public Optional<PortNumber> getPairLocalPort(DeviceId deviceId) {
         SegmentRoutingDeviceConfig deviceConfig =
                 cfgService.getConfig(deviceId, SegmentRoutingDeviceConfig.class);
         return Optional.ofNullable(deviceConfig).map(SegmentRoutingDeviceConfig::pairLocalPort);
@@ -1103,7 +1128,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                              event.subject(),
                              ((DeviceEvent) event).port(),
                              event.type());
-                    processPortUpdated(((Device) event.subject()),
+                    processPortUpdatedInternal(((Device) event.subject()),
                                        ((DeviceEvent) event).port());
                 } else if (event.type() == TopologyEvent.Type.TOPOLOGY_CHANGED) {
                     // Process topology event, needed for all modules relying on
@@ -1314,11 +1339,15 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 .forEach(entry -> dsNextObjStore.remove(entry.getKey()));
     }
 
-    private void processPortUpdated(Device device, Port port) {
+    private void processPortUpdatedInternal(Device device, Port port) {
         if (deviceConfiguration == null || !deviceConfiguration.isConfigured(device.id())) {
             log.warn("Device configuration uploading. Not handling port event for"
                     + "dev: {} port: {}", device.id(), port.number());
             return;
+        }
+
+        if (interfaceService.isConfigured(new ConnectPoint(device.id(), port.number()))) {
+            lastEdgePortEvent = Instant.now();
         }
 
         if (!mastershipService.isLocalMaster(device.id()))  {
@@ -1326,61 +1355,72 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                     + "for port {}", device.id(), port.number());
             return;
         }
+        processPortUpdated(device.id(), port);
+    }
 
+    /**
+     * Adds or remove filtering rules for the given switchport. If switchport is
+     * an edge facing port, additionally handles host probing and broadcast
+     * rules. Must be called by local master of device.
+     *
+     * @param deviceId the device identifier
+     * @param port the port to update
+     */
+    void processPortUpdated(DeviceId deviceId, Port port) {
         // first we handle filtering rules associated with the port
         if (port.isEnabled()) {
             log.info("Switchport {}/{} enabled..programming filters",
-                     device.id(), port.number());
-            routingRulePopulator.processSinglePortFilters(device.id(), port.number(), true);
+                     deviceId, port.number());
+            routingRulePopulator.processSinglePortFilters(deviceId, port.number(), true);
         } else {
             log.info("Switchport {}/{} disabled..removing filters",
-                     device.id(), port.number());
-            routingRulePopulator.processSinglePortFilters(device.id(), port.number(), false);
+                     deviceId, port.number());
+            routingRulePopulator.processSinglePortFilters(deviceId, port.number(), false);
         }
 
         // portUpdated calls are for ports that have gone down or up. For switch
         // to switch ports, link-events should take care of any re-routing or
         // group editing necessary for port up/down. Here we only process edge ports
         // that are already configured.
-        ConnectPoint cp = new ConnectPoint(device.id(), port.number());
+        ConnectPoint cp = new ConnectPoint(deviceId, port.number());
         VlanId untaggedVlan = interfaceService.getUntaggedVlanId(cp);
         VlanId nativeVlan = interfaceService.getNativeVlanId(cp);
         Set<VlanId> taggedVlans = interfaceService.getTaggedVlanId(cp);
 
         if (untaggedVlan == null && nativeVlan == null && taggedVlans.isEmpty()) {
             log.debug("Not handling port updated event for non-edge port (unconfigured) "
-                    + "dev/port: {}/{}", device.id(), port.number());
+                    + "dev/port: {}/{}", deviceId, port.number());
             return;
         }
         if (untaggedVlan != null) {
-            processEdgePort(device, port, untaggedVlan, true);
+            processEdgePort(deviceId, port, untaggedVlan, true);
         }
         if (nativeVlan != null) {
-            processEdgePort(device, port, nativeVlan, true);
+            processEdgePort(deviceId, port, nativeVlan, true);
         }
         if (!taggedVlans.isEmpty()) {
-            taggedVlans.forEach(tag -> processEdgePort(device, port, tag, false));
+            taggedVlans.forEach(tag -> processEdgePort(deviceId, port, tag, false));
         }
     }
 
-    private void processEdgePort(Device device, Port port, VlanId vlanId,
+    private void processEdgePort(DeviceId deviceId, Port port, VlanId vlanId,
                                  boolean popVlan) {
         boolean portUp = port.isEnabled();
         if (portUp) {
-            log.info("Device:EdgePort {}:{} is enabled in vlan: {}", device.id(),
+            log.info("Device:EdgePort {}:{} is enabled in vlan: {}", deviceId,
                      port.number(), vlanId);
-            hostHandler.processPortUp(new ConnectPoint(device.id(), port.number()));
+            hostHandler.processPortUp(new ConnectPoint(deviceId, port.number()));
         } else {
-            log.info("Device:EdgePort {}:{} is disabled in vlan: {}", device.id(),
+            log.info("Device:EdgePort {}:{} is disabled in vlan: {}", deviceId,
                      port.number(), vlanId);
         }
 
-        DefaultGroupHandler groupHandler = groupHandlerMap.get(device.id());
+        DefaultGroupHandler groupHandler = groupHandlerMap.get(deviceId);
         if (groupHandler != null) {
             groupHandler.processEdgePort(port.number(), vlanId, popVlan, portUp);
         } else {
             log.warn("Group handler not found for dev:{}. Not handling edge port"
-                    + " {} event for port:{}", device.id(),
+                    + " {} event for port:{}", deviceId,
                     (portUp) ? "UP" : "DOWN", port.number());
         }
     }

@@ -70,4 +70,9 @@ public class InterfaceServiceAdapter implements InterfaceService {
     public void removeListener(InterfaceListener listener) {
 
     }
+
+    @Override
+    public boolean isConfigured(ConnectPoint connectPoint) {
+        return false;
+    }
 }

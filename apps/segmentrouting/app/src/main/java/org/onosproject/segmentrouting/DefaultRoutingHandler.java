@@ -1301,6 +1301,7 @@ public class DefaultRoutingHandler {
         private MastershipEvent me;
         private static final long CLUSTER_EVENT_THRESHOLD = 4500; // ms
         private static final long DEVICE_EVENT_THRESHOLD = 2000; // ms
+        private static final long EDGE_PORT_EVENT_THRESHOLD = 10000; //ms
 
         MasterChange(DeviceId devId, MastershipEvent me) {
             this.devId = devId;
@@ -1338,12 +1339,16 @@ public class DefaultRoutingHandler {
                 return;
             }
 
+            long lepe = Instant.now().toEpochMilli()
+                    - srManager.lastEdgePortEvent.toEpochMilli();
+            boolean edgePortEvent = lepe < EDGE_PORT_EVENT_THRESHOLD;
+
             // if it gets here, then mastership change is likely due to onos
             // instance failure, or network partition in onos cluster
             // normally a mastership change like this does not require re-programming
             // but if topology changes happen at the same time then we may miss events
             if (!isRoutingStable() && clusterEvent) {
-                log.warn("Mastership changed for dev: {}/{} while programming "
+                log.warn("Mastership changed for dev: {}/{} while programming route-paths "
                         + "due to clusterEvent {} ms ago .. attempting full reroute",
                          devId, me.roleInfo(), lce);
                 if (srManager.mastershipService.isLocalMaster(devId)) {
@@ -1355,6 +1360,19 @@ public class DefaultRoutingHandler {
                 // XXX right now we have no fine-grained way to only make changes
                 // for the route paths affected by this device.
                 populateAllRoutingRules();
+
+            } else if (edgePortEvent && clusterEvent) {
+                log.warn("Mastership changed for dev: {}/{} due to clusterEvent {} ms ago "
+                        + "while edge-port event happened {} ms ago "
+                        + " .. reprogramming all edge-ports",
+                         devId, me.roleInfo(), lce, lepe);
+                if (shouldProgram(devId)) {
+                    srManager.deviceService.getPorts(devId).stream()
+                        .filter(p -> srManager.interfaceService
+                                .isConfigured(new ConnectPoint(devId, p.number())))
+                        .forEach(p -> srManager.processPortUpdated(devId, p));
+                }
+
             } else {
                 log.debug("Stable route-paths .. full reroute not attempted for "
                         + "mastership change {}/{} deviceEvent/timeSince: {}/{} "

@@ -23,6 +23,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.HostLocation;
@@ -160,7 +161,7 @@ public class LinkHandler {
 
             if (srManager.mastershipService.isLocalMaster(ulink.src().deviceId())) {
                 // handle edge-ports for dual-homed hosts
-                updateDualHomedHostPorts(ulink, true);
+                updateHostPorts(ulink, true);
 
                 // It's possible that linkUp causes no route-path change as ECMP graph does
                 // not change if the link is a parallel link (same src-dst as
@@ -207,7 +208,7 @@ public class LinkHandler {
         updateSeenLink(link, false);
         // handle edge-ports for dual-homed hosts
         if (srManager.mastershipService.isLocalMaster(link.src().deviceId())) {
-            updateDualHomedHostPorts(link, false);
+            updateHostPorts(link, false);
         }
 
         // device availability check helps to ensure that multiple link-removed
@@ -329,13 +330,15 @@ public class LinkHandler {
 
     /**
      * Administratively enables or disables edge ports if the link that was
-     * added or removed was the only uplink port from an edge device. Only edge
-     * ports that belong to dual-homed hosts are considered.
+     * added or removed was the only uplink port from an edge device. Edge ports
+     * that belong to dual-homed hosts are always processed. In addition,
+     * single-homed host ports are optionally processed depending on the
+     * singleHomedDown property.
      *
      * @param link the link to be processed
      * @param added true if link was added, false if link was removed
      */
-    private void updateDualHomedHostPorts(Link link, boolean added) {
+    private void updateHostPorts(Link link, boolean added) {
         if (added) {
             DeviceConfiguration devConfig = srManager.deviceConfiguration;
             try {
@@ -361,20 +364,38 @@ public class LinkHandler {
                 return;
             }
             // find dual homed hosts on this dev to disable
-            Set<PortNumber> dhp = srManager.hostHandler
-                    .getDualHomedHostPorts(link.src().deviceId());
-            log.warn("Link src {} -->dst {} removed was the last uplink, "
-                    + "disabling  dual homed ports:  {}", link.src().deviceId(),
-                     link.dst().deviceId(), (dhp.isEmpty()) ? "no ports" : dhp);
-            dhp.forEach(pnum -> srManager.deviceAdminService
-                        .changePortState(link.src().deviceId(), pnum, false));
-            if (!dhp.isEmpty()) {
+            DeviceId dev = link.src().deviceId();
+            Set<PortNumber> dp = srManager.hostHandler
+                    .getDualHomedHostPorts(dev);
+            log.warn("Link src {} --> dst {} removed was the last uplink, "
+                    + "disabling  dual homed ports:  {}", dev,
+                     link.dst().deviceId(), (dp.isEmpty()) ? "no ports" : dp);
+            dp.forEach(pnum -> srManager.deviceAdminService
+                        .changePortState(dev, pnum, false));
+            if (srManager.singleHomedDown) {
+                // get all configured ports and down them if they haven't already
+                // been downed
+                srManager.deviceService.getPorts(dev).stream()
+                    .filter(p -> p.isEnabled() && !dp.contains(p.number()))
+                    .filter(p -> srManager.interfaceService
+                            .isConfigured(new ConnectPoint(dev, p.number())))
+                    .filter(p -> !srManager.deviceConfiguration
+                            .isPairLocalPort(dev, p.number()))
+                    .forEach(p -> {
+                        log.warn("Last uplink gone src {} -> dst {} .. removing "
+                                + "configured port {}", p.number());
+                        srManager.deviceAdminService
+                            .changePortState(dev, p.number(), false);
+                        dp.add(p.number());
+                    });
+            }
+            if (!dp.isEmpty()) {
                 // update global store
-                Set<PortNumber> p = downedPortStore.get(link.src().deviceId());
+                Set<PortNumber> p = downedPortStore.get(dev);
                 if (p == null) {
-                    p = dhp;
+                    p = dp;
                 } else {
-                    p.addAll(dhp);
+                    p.addAll(dp);
                 }
                 downedPortStore.put(link.src().deviceId(), p);
             }
@@ -632,11 +653,12 @@ public class LinkHandler {
 
     /**
      * Administratively disables the host location switchport if the edge device
-     * has no viable uplinks.
+     * has no viable uplinks. The caller needs to determine if such behavior is
+     * desired for the single or dual-homed host.
      *
-     * @param loc one of the locations of the dual-homed host
+     * @param loc the host location
      */
-    void checkUplinksForDualHomedHosts(HostLocation loc) {
+    void checkUplinksForHost(HostLocation loc) {
         try {
             for (Link l : srManager.linkService.getDeviceLinks(loc.deviceId())) {
                 if (srManager.deviceConfiguration.isEdgeDevice(l.dst().deviceId())
@@ -651,8 +673,7 @@ public class LinkHandler {
                     + "config " + e.getMessage());
             return;
         }
-        log.warn("Dual homed host location {} has no valid uplinks; "
-                + "disabling  dual homed port", loc);
+        log.warn("Host location {} has no valid uplinks disabling port", loc);
         srManager.deviceAdminService.changePortState(loc.deviceId(), loc.port(),
                                                      false);
         Set<PortNumber> p = downedPortStore.get(loc.deviceId());
