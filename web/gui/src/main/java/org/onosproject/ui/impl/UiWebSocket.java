@@ -251,18 +251,18 @@ public class UiWebSocket
             ObjectNode message = (ObjectNode) mapper.reader().readTree(data);
             String type = message.path(EVENT).asText(UNKNOWN);
 
-            if (sessionToken == null) {
-                authenticate(type, message);
-
+//            if (sessionToken == null) {
+//                authenticate(type, message);
+//
+//            } else {
+            UiMessageHandler handler = handlers.get(type);
+            if (handler != null) {
+                log.debug("RX message: {}", message);
+                handler.process(message);
             } else {
-                UiMessageHandler handler = handlers.get(type);
-                if (handler != null) {
-                    log.debug("RX message: {}", message);
-                    handler.process(message);
-                } else {
-                    log.warn("No GUI message handler for type {}", type);
-                }
+                log.warn("No GUI message handler for type {}", type);
             }
+//            }
 
         } catch (Exception e) {
             log.warn("Unable to parse GUI message {} due to {}", data, e);
