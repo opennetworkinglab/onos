@@ -27,6 +27,7 @@ import org.onosproject.net.HostId;
 import org.onosproject.utils.Comparators;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -35,30 +36,61 @@ import java.util.stream.Collectors;
  */
 public class AccessNetworkLayout extends LayoutAlgorithm {
 
-    private static final double COMPUTE_Y = -400.0;
-    private static final double SERVICE_Y = -200.0;
-    private static final double SPINE_Y = 0.0;
-    private static final double AGGREGATION_Y = +200.0;
-    private static final double ACCESS_Y = +400.0;
-    private static final double HOSTS_Y = +700.0;
-    private static final double GATEWAY_X = 900.0;
+    private double computeY = -350.0;
+    private double serviceY = -200.0;
+    private double spineY = 0.0;
+    private double aggregationY = +200.0;
+    private double accessY = +400.0;
+    private double hostsY = +550.0;
 
-    private static final double ROW_GAP = 70;
-    private static final double COMPUTE_ROW_GAP = -120;
-    private static final double COL_GAP = 54;
-    private static final double COMPUTE_OFFSET = 800.0;
-    private static final double GATEWAY_GAP = 200.0;
-    private static final double GATEWAY_OFFSET = -200.0;
-
-    private static final double SERVICE_GAP = 800;
-    private static final int COMPUTE_PER_ROW = 25;
-
-    private static final double SPINES_GAP = 800;
-    private static final double AGGREGATION_GAP = 400;
-    private static final double ACCESS_GAP = 400;
-    private static final int HOSTS_PER_ROW = 6;
+    private double gatewayX = 900.0;
+    private double rowGap = 70;
+    private double computeRowGap = -120;
+    private double colGap = 54;
+    private double computeOffset = 800.0;
+    private double gatewayGap = 200.0;
+    private double gatewayOffset = -200.0;
+    private double serviceGap = 800;
+    private int computePerRow = 25;
+    private double spinesGap = 800;
+    private double aggregationGap = 400;
+    private double accessGap = 400;
+    private int hostsPerRow = 6;
 
     private int spine, aggregation, accessLeaf, serviceLeaf, gateway;
+
+    /**
+     * Creates the network layout using default layout options.
+     */
+    public AccessNetworkLayout() {
+    }
+
+    /**
+     * Creates the network layout using the specified layout property overrides.
+     *
+     * @param custom overrides of the default layout properties
+     */
+    public AccessNetworkLayout(Map<String, Object> custom) {
+        computeY = (double) custom.getOrDefault("computeY", computeY);
+        serviceY = (double) custom.getOrDefault("serviceY", serviceY);
+        spineY = (double) custom.getOrDefault("spineY", spineY);
+        aggregationY = (double) custom.getOrDefault("aggregationY", aggregationY);
+        accessY = (double) custom.getOrDefault("accessY", accessY);
+        hostsY = (double) custom.getOrDefault("hostsY", hostsY);
+        gatewayX = (double) custom.getOrDefault("gatewayX", gatewayX);
+        rowGap = (double) custom.getOrDefault("rowGap", rowGap);
+        computeRowGap = (double) custom.getOrDefault("computeRowGap", computeRowGap);
+        colGap = (double) custom.getOrDefault("colGap", colGap);
+        computeOffset = (double) custom.getOrDefault("computeOffset", computeOffset);
+        gatewayGap = (double) custom.getOrDefault("gatewayGap", gatewayGap);
+        gatewayOffset = (double) custom.getOrDefault("gatewayOffset", gatewayOffset);
+        serviceGap = (double) custom.getOrDefault("serviceGap", serviceGap);
+        computePerRow = (int) custom.getOrDefault("computePerRow", computePerRow);
+        spinesGap = (double) custom.getOrDefault("spinesGap", spinesGap);
+        aggregationGap = (double) custom.getOrDefault("aggregationGap", aggregationGap);
+        accessGap = (double) custom.getOrDefault("accessGap", accessGap);
+        hostsPerRow = (int) custom.getOrDefault("hostsPerRow", hostsPerRow);
+    }
 
     @Override
     protected boolean classify(Device device) {
@@ -112,7 +144,7 @@ public class AccessNetworkLayout extends LayoutAlgorithm {
         spine = 1;
         List<DeviceId> spines = deviceCategories.get(SPINE);
         spines.stream().sorted(Comparators.ELEMENT_ID_COMPARATOR)
-                .forEach(d -> place(d, c(spine++, spines.size(), SPINES_GAP), SPINE_Y));
+                .forEach(d -> place(d, c(spine++, spines.size(), spinesGap), spineY));
     }
 
     private void placeServiceLeavesAndHosts() {
@@ -124,7 +156,7 @@ public class AccessNetworkLayout extends LayoutAlgorithm {
         serviceLeaf = 1;
         leaves.stream().sorted(Comparators.ELEMENT_ID_COMPARATOR).forEach(id -> {
             gateway = 1;
-            place(id, c(serviceLeaf++, leaves.size(), SERVICE_GAP), SERVICE_Y);
+            place(id, c(serviceLeaf++, leaves.size(), serviceGap), serviceY);
 
             List<HostId> gwHosts = hostService.getConnectedHosts(id).stream()
                     .map(Host::id)
@@ -134,8 +166,8 @@ public class AccessNetworkLayout extends LayoutAlgorithm {
                     .collect(Collectors.toList());
 
             gwHosts.forEach(hid -> {
-                place(hid, serviceLeaf <= 2 ? -GATEWAY_X : GATEWAY_X,
-                      c(gateway++, gwHosts.size(), GATEWAY_GAP, GATEWAY_OFFSET));
+                place(hid, serviceLeaf <= 2 ? -gatewayX : gatewayX,
+                      c(gateway++, gwHosts.size(), gatewayGap, gatewayOffset));
                 placed.add(hid);
             });
 
@@ -146,9 +178,9 @@ public class AccessNetworkLayout extends LayoutAlgorithm {
                     .sorted(Comparators.ELEMENT_ID_COMPARATOR)
                     .collect(Collectors.toList());
 
-            placeHostBlock(hosts, serviceLeaf <= 2 ? -COMPUTE_OFFSET : COMPUTE_OFFSET,
-                           COMPUTE_Y, COMPUTE_PER_ROW, COMPUTE_ROW_GAP,
-                           serviceLeaf <= 2 ? -COL_GAP : COL_GAP);
+            placeHostBlock(hosts, serviceLeaf <= 2 ? -computeOffset : computeOffset,
+                           computeY, computePerRow, computeRowGap,
+                           serviceLeaf <= 2 ? -colGap : colGap);
             placed.addAll(hosts);
         });
     }
@@ -165,7 +197,7 @@ public class AccessNetworkLayout extends LayoutAlgorithm {
                     .forEach(lid -> placeAccessLeafAndHosts(lid, leaves.size(), placed));
         } else {
             spines.stream().sorted(Comparators.ELEMENT_ID_COMPARATOR).forEach(id -> {
-                place(id, c(aggregation++, spines.size(), AGGREGATION_GAP), AGGREGATION_Y);
+                place(id, c(aggregation++, spines.size(), aggregationGap), aggregationY);
                 linkService.getDeviceEgressLinks(id).stream()
                         .map(l -> l.dst().deviceId())
                         .filter(leaves::contains)
@@ -177,14 +209,14 @@ public class AccessNetworkLayout extends LayoutAlgorithm {
     }
 
     private void placeAccessLeafAndHosts(DeviceId leafId, int leafCount, Set<DeviceId> placed) {
-        double x = c(accessLeaf++, leafCount, ACCESS_GAP);
-        place(leafId, x, ACCESS_Y);
+        double x = c(accessLeaf++, leafCount, accessGap);
+        place(leafId, x, accessY);
         placed.add(leafId);
         placeHostBlock(hostService.getConnectedHosts(leafId).stream()
                                .map(Host::id)
                                .sorted(Comparators.ELEMENT_ID_COMPARATOR)
-                               .collect(Collectors.toList()), x, HOSTS_Y,
-                       HOSTS_PER_ROW, ROW_GAP, COL_GAP);
+                               .collect(Collectors.toList()), x, hostsY,
+                       hostsPerRow, rowGap, colGap);
     }
 
 }
