@@ -1270,7 +1270,7 @@ public class RoutingRulePopulator {
             srManager.flowObjectiveService.forward(deviceId, obj);
         });
 
-        srManager.getPairLocalPorts(deviceId).ifPresent(port -> {
+        srManager.getPairLocalPort(deviceId).ifPresent(port -> {
             ForwardingObjective pairFwdObj;
             // Do not punt ARP packets from pair port
             pairFwdObj = arpFwdObjective(port, false, PacketPriority.CONTROL.priorityValue() + 1)

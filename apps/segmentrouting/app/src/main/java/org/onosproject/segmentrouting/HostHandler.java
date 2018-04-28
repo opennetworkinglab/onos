@@ -77,10 +77,10 @@ public class HostHandler {
     private void processHostAdded(Host host) {
         host.locations().forEach(location -> processHostAddedAtLocation(host, location));
         // ensure dual-homed host locations have viable uplinks
-        if (host.locations().size() > 1) {
+        if (host.locations().size() > 1 || srManager.singleHomedDown) {
             host.locations().forEach(loc -> {
                 if (srManager.mastershipService.isLocalMaster(loc.deviceId())) {
-                    srManager.linkHandler.checkUplinksForDualHomedHosts(loc);
+                    srManager.linkHandler.checkUplinksForHost(loc);
                 }
             });
         }
@@ -112,7 +112,7 @@ public class HostHandler {
         // processBridgingRule or processRoutingRule due to VLAN or IP mismatch respectively
         srManager.getPairDeviceId(location.deviceId()).ifPresent(pairDeviceId -> {
             if (host.locations().stream().noneMatch(l -> l.deviceId().equals(pairDeviceId))) {
-                srManager.getPairLocalPorts(pairDeviceId).ifPresent(pairRemotePort -> {
+                srManager.getPairLocalPort(pairDeviceId).ifPresent(pairRemotePort -> {
                     // NOTE: Since the pairLocalPort is trunk port, use assigned vlan of original port
                     //       when the host is untagged
                     VlanId vlanId = Optional.ofNullable(srManager.getInternalVlanId(location)).orElse(hostVlanId);
@@ -155,7 +155,7 @@ public class HostHandler {
 
             // Also remove redirection flows on the pair device if exists.
             Optional<DeviceId> pairDeviceId = srManager.getPairDeviceId(location.deviceId());
-            Optional<PortNumber> pairLocalPort = srManager.getPairLocalPorts(location.deviceId());
+            Optional<PortNumber> pairLocalPort = srManager.getPairLocalPort(location.deviceId());
             if (pairDeviceId.isPresent() && pairLocalPort.isPresent()) {
                 // NOTE: Since the pairLocalPort is trunk port, use assigned vlan of original port
                 //       when the host is untagged
@@ -204,7 +204,7 @@ public class HostHandler {
             // Redirect the flows to pair link if configured
             // Note: Do not continue removing any rule
             Optional<DeviceId> pairDeviceId = srManager.getPairDeviceId(prevLocation.deviceId());
-            Optional<PortNumber> pairLocalPort = srManager.getPairLocalPorts(prevLocation.deviceId());
+            Optional<PortNumber> pairLocalPort = srManager.getPairLocalPort(prevLocation.deviceId());
             if (pairDeviceId.isPresent() && pairLocalPort.isPresent() && newLocations.stream()
                     .anyMatch(location -> location.deviceId().equals(pairDeviceId.get()))) {
                 // NOTE: Since the pairLocalPort is trunk port, use assigned vlan of original port
@@ -301,10 +301,10 @@ public class HostHandler {
         });
 
         // ensure dual-homed host locations have viable uplinks
-        if (newLocations.size() > prevLocations.size()) {
+        if (newLocations.size() > prevLocations.size() || srManager.singleHomedDown) {
             newLocations.forEach(loc -> {
                 if (srManager.mastershipService.isLocalMaster(loc.deviceId())) {
-                    srManager.linkHandler.checkUplinksForDualHomedHosts(loc);
+                    srManager.linkHandler.checkUplinksForHost(loc);
                 }
             });
         }
@@ -350,7 +350,7 @@ public class HostHandler {
                     Set<IpAddress> ipsToAdd = Sets.difference(newIps, prevIps);
                     Set<IpAddress> ipsToRemove = Sets.difference(prevIps, newIps);
 
-                    srManager.getPairLocalPorts(pairDeviceId).ifPresent(pairRemotePort -> {
+                    srManager.getPairLocalPort(pairDeviceId).ifPresent(pairRemotePort -> {
                         // NOTE: Since the pairLocalPort is trunk port, use assigned vlan of original port
                         //       when the host is untagged
                         VlanId vlanId = Optional.ofNullable(srManager.getInternalVlanId(location)).orElse(hostVlanId);
@@ -379,7 +379,7 @@ public class HostHandler {
      * @param cp connect point
      */
     void processPortUp(ConnectPoint cp) {
-        if (cp.port().equals(srManager.getPairLocalPorts(cp.deviceId()).orElse(null))) {
+        if (cp.port().equals(srManager.getPairLocalPort(cp.deviceId()).orElse(null))) {
             return;
         }
         if (srManager.activeProbing) {

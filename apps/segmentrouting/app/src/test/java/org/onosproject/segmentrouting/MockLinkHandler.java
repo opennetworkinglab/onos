@@ -29,7 +29,7 @@ public class MockLinkHandler extends LinkHandler {
     }
 
     @Override
-    void checkUplinksForDualHomedHosts(HostLocation loc) {
+    void checkUplinksForHost(HostLocation loc) {
         // currently does nothing - can be extended to be a useful mock when
         // implementing unit tests for link handling
     }
