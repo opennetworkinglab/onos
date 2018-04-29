@@ -3,9 +3,13 @@
 # Clones the Mininet repository and does a full Mininet installation, including Wireshark
 #
 - name: Cloning the mininet repository
-  git: repo=https://github.com/mininet/mininet.git dest=mininet
+  git: repo=https://github.com/mininet/mininet.git dest=/home/ubuntu/mininet
   become: true
   become_user: ubuntu
 
 - name: Installing mininet
   command: mininet/util/install.sh -a
+  args:
+    chdir: /home/ubuntu
+  become: true
+  become_user: ubuntu

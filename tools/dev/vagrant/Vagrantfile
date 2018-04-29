@@ -53,6 +53,25 @@ Vagrant.configure(2) do |config|
       v.cpus = 2
     end
   end
+ 
+  # Creates an ONOS VM.
+  # It contains Mininet and three LXC containers used as ONOS target machines.
+  config.vm.define "onosvm" do |d|
+    d.vm.box = "ubuntu/xenial64"
+    d.vm.hostname = "onosvm"
+    d.vm.network "private_network", ip: "10.100.198.200"
+    d.vm.provision :shell, path: "scripts/bootstrap_ansible.sh"
+    d.vm.provision :shell, inline: "PYTHONUNBUFFERED=1 ansible-playbook /vagrant/ansible/basic.yml -c local"
+    d.vm.provision :shell, inline: "PYTHONUNBUFFERED=1 ansible-playbook /vagrant/ansible/onos-dev-clean.yml -c local"
+    d.vm.provision :shell, inline: "PYTHONUNBUFFERED=1 ansible-playbook /vagrant/ansible/mn.yml -c local"
+    d.vm.provision :shell, inline: "PYTHONUNBUFFERED=1 ansible-playbook /vagrant/ansible/onos-install.yml -c local"
+    d.vm.provision :shell, inline: "PYTHONUNBUFFERED=1 ansible-playbook /vagrant/ansible/machine-restart.yml -c local"
+    d.vm.provider "virtualbox" do |v|
+      v.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+      v.memory = 4096
+      v.cpus = 2
+    end
+  end
 
   # Creates a VM with three LXC containers inside, to be used as ONOS target machines.
   config.vm.define "onosdev" do |d|

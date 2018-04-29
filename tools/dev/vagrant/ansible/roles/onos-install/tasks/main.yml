@@ -15,6 +15,7 @@
     owner: ubuntu
     group: ubuntu
     mode: 0777
+    recurse: yes
 
 - name: Exporting ONOS variables
   lineinfile:
@@ -24,8 +25,12 @@
 
 - name: Compiling ONOS
   shell: "{{ item }}"
+  environment:
+    ONOS_ROOT: /home/ubuntu/onos
   args:
     chdir: "/home/ubuntu/onos/tools/build"
+  become: yes
+  become_user: ubuntu
   with_items:
     - "./onos-buck build onos"
 
