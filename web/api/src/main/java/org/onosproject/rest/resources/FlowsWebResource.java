@@ -73,10 +73,6 @@ public class FlowsWebResource extends AbstractWebResource {
     private static final String DEVICE_ID = "deviceId";
     private static final String FLOW_ID = "flowId";
 
-    private final FlowRuleService service = get(FlowRuleService.class);
-    private final ObjectNode root = mapper().createObjectNode();
-    private final ArrayNode flowsNode = root.putArray(FLOWS);
-
     /**
      * Gets all flow entries. Returns array of all flow rules in the system.
      *
@@ -86,11 +82,14 @@ public class FlowsWebResource extends AbstractWebResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getFlows() {
-        final Iterable<Device> devices = get(DeviceService.class).getDevices();
-        for (final Device device : devices) {
-            final Iterable<FlowEntry> flowEntries = service.getFlowEntries(device.id());
+        ObjectNode root = mapper().createObjectNode();
+        ArrayNode flowsNode = root.putArray(FLOWS);
+        FlowRuleService service = get(FlowRuleService.class);
+        Iterable<Device> devices = get(DeviceService.class).getDevices();
+        for (Device device : devices) {
+            Iterable<FlowEntry> flowEntries = service.getFlowEntries(device.id());
             if (flowEntries != null) {
-                for (final FlowEntry entry : flowEntries) {
+                for (FlowEntry entry : flowEntries) {
                     flowsNode.add(codec(FlowEntry.class).encode(entry, this));
                 }
             }
@@ -109,11 +108,14 @@ public class FlowsWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("pending")
     public Response getPendingFlows() {
-        final Iterable<Device> devices = get(DeviceService.class).getDevices();
-        for (final Device device : devices) {
-            final Iterable<FlowEntry> flowEntries = service.getFlowEntries(device.id());
+        ObjectNode root = mapper().createObjectNode();
+        ArrayNode flowsNode = root.putArray(FLOWS);
+        FlowRuleService service = get(FlowRuleService.class);
+        Iterable<Device> devices = get(DeviceService.class).getDevices();
+        for (Device device : devices) {
+            Iterable<FlowEntry> flowEntries = service.getFlowEntries(device.id());
             if (flowEntries != null) {
-                for (final FlowEntry entry : flowEntries) {
+                for (FlowEntry entry : flowEntries) {
                     if ((entry.state() == FlowEntry.FlowEntryState.PENDING_ADD) ||
                        (entry.state() == FlowEntry.FlowEntryState.PENDING_REMOVE)) {
                        flowsNode.add(codec(FlowEntry.class).encode(entry, this));
@@ -135,11 +137,14 @@ public class FlowsWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("table/{tableId}")
     public Response getTableFlows(@PathParam("tableId") int tableId) {
-        final Iterable<Device> devices = get(DeviceService.class).getDevices();
-        for (final Device device : devices) {
-            final Iterable<FlowEntry> flowEntries = service.getFlowEntries(device.id());
+        ObjectNode root = mapper().createObjectNode();
+        ArrayNode flowsNode = root.putArray(FLOWS);
+        FlowRuleService service = get(FlowRuleService.class);
+        Iterable<Device> devices = get(DeviceService.class).getDevices();
+        for (Device device : devices) {
+            Iterable<FlowEntry> flowEntries = service.getFlowEntries(device.id());
             if (flowEntries != null) {
-                for (final FlowEntry entry : flowEntries) {
+                for (FlowEntry entry : flowEntries) {
                     if (((IndexTableId) entry.table()).id() == tableId) {
                        flowsNode.add(codec(FlowEntry.class).encode(entry, this));
                     }
@@ -165,6 +170,8 @@ public class FlowsWebResource extends AbstractWebResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response createFlows(@QueryParam("appId") String appId, InputStream stream) {
+        ObjectNode root = mapper().createObjectNode();
+        ArrayNode flowsNode = root.putArray(FLOWS);
         try {
             ObjectNode jsonTree = readTreeFromStream(mapper(), stream);
             ArrayNode flowsArray = nullIsIllegal((ArrayNode) jsonTree.get(FLOWS),
@@ -176,7 +183,7 @@ public class FlowsWebResource extends AbstractWebResource {
 
             List<FlowRule> rules = codec(FlowRule.class).decode(flowsArray, this);
 
-            service.applyFlowRules(rules.toArray(new FlowRule[rules.size()]));
+            get(FlowRuleService.class).applyFlowRules(rules.toArray(new FlowRule[rules.size()]));
             rules.forEach(flowRule -> {
                 ObjectNode flowNode = mapper().createObjectNode();
                 flowNode.put(DEVICE_ID, flowRule.deviceId().toString())
@@ -202,13 +209,15 @@ public class FlowsWebResource extends AbstractWebResource {
     // TODO: we need to add "/device" suffix to the path to differentiate with appId
     @Path("{deviceId}")
     public Response getFlowByDeviceId(@PathParam("deviceId") String deviceId) {
-        final Iterable<FlowEntry> flowEntries =
-                service.getFlowEntries(DeviceId.deviceId(deviceId));
+        ObjectNode root = mapper().createObjectNode();
+        ArrayNode flowsNode = root.putArray(FLOWS);
+        Iterable<FlowEntry> flowEntries =
+                get(FlowRuleService.class).getFlowEntries(DeviceId.deviceId(deviceId));
 
         if (flowEntries == null || !flowEntries.iterator().hasNext()) {
             throw new ItemNotFoundException(DEVICE_NOT_FOUND);
         }
-        for (final FlowEntry entry : flowEntries) {
+        for (FlowEntry entry : flowEntries) {
             flowsNode.add(codec(FlowEntry.class).encode(entry, this));
         }
         return ok(root).build();
@@ -228,13 +237,15 @@ public class FlowsWebResource extends AbstractWebResource {
     @Path("{deviceId}/{flowId}")
     public Response getFlowByDeviceIdAndFlowId(@PathParam("deviceId") String deviceId,
                                                @PathParam("flowId") long flowId) {
-        final Iterable<FlowEntry> flowEntries =
-                service.getFlowEntries(DeviceId.deviceId(deviceId));
+        ObjectNode root = mapper().createObjectNode();
+        ArrayNode flowsNode = root.putArray(FLOWS);
+        Iterable<FlowEntry> flowEntries =
+                get(FlowRuleService.class).getFlowEntries(DeviceId.deviceId(deviceId));
 
         if (flowEntries == null || !flowEntries.iterator().hasNext()) {
             throw new ItemNotFoundException(DEVICE_NOT_FOUND);
         }
-        for (final FlowEntry entry : flowEntries) {
+        for (FlowEntry entry : flowEntries) {
             if (entry.id().value() == flowId) {
                 flowsNode.add(codec(FlowEntry.class).encode(entry, this));
             }
@@ -254,9 +265,11 @@ public class FlowsWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("application/{appId}")
     public Response getFlowByAppId(@PathParam("appId") String appId) {
-        final ApplicationService appService = get(ApplicationService.class);
-        final ApplicationId idInstant = nullIsNotFound(appService.getId(appId), APP_ID_NOT_FOUND);
-        final Iterable<FlowEntry> flowEntries = service.getFlowEntriesById(idInstant);
+        ObjectNode root = mapper().createObjectNode();
+        ArrayNode flowsNode = root.putArray(FLOWS);
+        ApplicationService appService = get(ApplicationService.class);
+        ApplicationId idInstant = nullIsNotFound(appService.getId(appId), APP_ID_NOT_FOUND);
+        Iterable<FlowEntry> flowEntries = get(FlowRuleService.class).getFlowEntriesById(idInstant);
 
         flowEntries.forEach(flow -> flowsNode.add(codec(FlowEntry.class).encode(flow, this)));
         return ok(root).build();
@@ -274,9 +287,9 @@ public class FlowsWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("application/{appId}")
     public Response removeFlowByAppId(@PathParam("appId") String appId) {
-        final ApplicationService appService = get(ApplicationService.class);
-        final ApplicationId idInstant = nullIsNotFound(appService.getId(appId), APP_ID_NOT_FOUND);
-        service.removeFlowRulesById(idInstant);
+        ApplicationService appService = get(ApplicationService.class);
+        ApplicationId idInstant = nullIsNotFound(appService.getId(appId), APP_ID_NOT_FOUND);
+        get(FlowRuleService.class).removeFlowRulesById(idInstant);
         return Response.noContent().build();
     }
 
@@ -315,7 +328,7 @@ public class FlowsWebResource extends AbstractWebResource {
             }
 
             FlowRule rule = codec(FlowRule.class).decode(jsonTree, this);
-            service.applyFlowRules(rule);
+            get(FlowRuleService.class).applyFlowRules(rule);
             UriBuilder locationBuilder = uriInfo.getBaseUriBuilder()
                     .path("flows")
                     .path(deviceId)
@@ -340,7 +353,8 @@ public class FlowsWebResource extends AbstractWebResource {
     @Path("{deviceId}/{flowId}")
     public Response deleteFlowByDeviceIdAndFlowId(@PathParam("deviceId") String deviceId,
                                                   @PathParam("flowId") long flowId) {
-        final Iterable<FlowEntry> flowEntries =
+        FlowRuleService service = get(FlowRuleService.class);
+        Iterable<FlowEntry> flowEntries =
                 service.getFlowEntries(DeviceId.deviceId(deviceId));
 
         if (!flowEntries.iterator().hasNext()) {
@@ -361,6 +375,7 @@ public class FlowsWebResource extends AbstractWebResource {
      */
     @DELETE
     public Response deleteFlows(InputStream stream) {
+        FlowRuleService service = get(FlowRuleService.class);
         ListMultimap<DeviceId, Long> deviceMap = ArrayListMultimap.create();
         List<FlowEntry> rulesToRemove = new ArrayList<>();
 
