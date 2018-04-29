@@ -303,6 +303,12 @@
             <action class="org.onosproject.cli.net.IntentsListCommand"/>
         </command>
         <command>
+            <action class="org.onosproject.cli.net.IntentsDiagnosisCommand"/>
+            <completers>
+                <ref component-id="intentKeyCompleter"/>
+            </completers>
+        </command>
+        <command>
             <action class="org.onosproject.cli.net.IntentListCompilers"/>
         </command>
         <command>
