@@ -52,6 +52,7 @@ import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
 import org.onosproject.segmentrouting.config.DeviceConfiguration;
 import org.onosproject.segmentrouting.grouphandler.DefaultGroupHandler;
 import org.onosproject.segmentrouting.grouphandler.DestinationSet;
+import org.onosproject.net.intf.Interface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -985,7 +986,23 @@ public class RoutingRulePopulator {
 
     private boolean processSinglePortFiltersInternal(DeviceId deviceId, PortNumber portnum,
                                                       boolean pushVlan, VlanId vlanId, boolean install) {
-        FilteringObjective.Builder fob = buildFilteringObjective(deviceId, portnum, pushVlan, vlanId);
+        boolean doTMAC = true;
+
+        if (!pushVlan) {
+            // Skip the tagged vlans belonging to an interface without an IP address
+            Set<Interface> ifaces = srManager.interfaceService
+                    .getInterfacesByPort(new ConnectPoint(deviceId, portnum))
+                    .stream()
+                    .filter(intf -> intf.vlanTagged().contains(vlanId) && intf.ipAddressesList().isEmpty())
+                    .collect(Collectors.toSet());
+            if (!ifaces.isEmpty()) {
+                log.debug("processSinglePortFiltersInternal: skipping TMAC for vlan {} at {}/{} - no IP",
+                          vlanId, deviceId, portnum);
+                doTMAC = false;
+            }
+        }
+
+        FilteringObjective.Builder fob = buildFilteringObjective(deviceId, portnum, pushVlan, vlanId, doTMAC);
         if (fob == null) {
             // error encountered during build
             return false;
@@ -1006,7 +1023,7 @@ public class RoutingRulePopulator {
     }
 
     private FilteringObjective.Builder buildFilteringObjective(DeviceId deviceId, PortNumber portnum,
-                                                               boolean pushVlan, VlanId vlanId) {
+                                                               boolean pushVlan, VlanId vlanId, boolean doTMAC) {
         MacAddress deviceMac;
         try {
             deviceMac = config.getDeviceMac(deviceId);
@@ -1015,9 +1032,15 @@ public class RoutingRulePopulator {
             return null;
         }
         FilteringObjective.Builder fob = DefaultFilteringObjective.builder();
-        fob.withKey(Criteria.matchInPort(portnum))
-            .addCondition(Criteria.matchEthDst(deviceMac))
-            .withPriority(SegmentRoutingService.DEFAULT_PRIORITY);
+
+        if (doTMAC) {
+            fob.withKey(Criteria.matchInPort(portnum))
+                    .addCondition(Criteria.matchEthDst(deviceMac))
+                    .withPriority(SegmentRoutingService.DEFAULT_PRIORITY);
+        } else {
+            fob.withKey(Criteria.matchInPort(portnum))
+                    .withPriority(SegmentRoutingService.DEFAULT_PRIORITY);
+        }
 
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
 
