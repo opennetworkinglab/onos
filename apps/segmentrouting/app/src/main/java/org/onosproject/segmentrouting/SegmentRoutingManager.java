@@ -1289,8 +1289,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         }
 
         appCfgHandler.init(deviceId);
-        hostHandler.init(deviceId);
-        routeHandler.init(deviceId);
+        hostEventExecutor.execute(() -> hostHandler.init(deviceId));
+        routeEventExecutor.execute(() -> routeHandler.init(deviceId));
     }
 
     private void processDeviceRemoved(Device device) {
@@ -1409,7 +1409,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         if (portUp) {
             log.info("Device:EdgePort {}:{} is enabled in vlan: {}", deviceId,
                      port.number(), vlanId);
-            hostHandler.processPortUp(new ConnectPoint(deviceId, port.number()));
+            hostEventExecutor.execute(() -> hostHandler.processPortUp(new ConnectPoint(deviceId, port.number())));
         } else {
             log.info("Device:EdgePort {}:{} is disabled in vlan: {}", deviceId,
                      port.number(), vlanId);
@@ -1861,7 +1861,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             // Remove a single port from L2FG
             grpHandler.updateGroupFromVlanConfiguration(vlanId, portNum, nextId, install);
             // Remove L2 Bridging rule and L3 Unicast rule to the host
-            hostHandler.processIntfVlanUpdatedEvent(deviceId, portNum, vlanId, pushVlan, install);
+            hostEventExecutor.execute(() -> hostHandler.processIntfVlanUpdatedEvent(deviceId, portNum,
+                    vlanId, pushVlan, install));
             // Remove broadcast forwarding rule and corresponding L2FG for VLAN
             // only if there is no port configured on that VLAN ID
             if (!getVlanPortMap(deviceId).containsKey(vlanId)) {
@@ -1882,7 +1883,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 grpHandler.createBcastGroupFromVlan(vlanId, Collections.singleton(portNum));
                 routingRulePopulator.updateSubnetBroadcastRule(deviceId, vlanId, install);
             }
-            hostHandler.processIntfVlanUpdatedEvent(deviceId, portNum, vlanId, pushVlan, install);
+            hostEventExecutor.execute(() -> hostHandler.processIntfVlanUpdatedEvent(deviceId, portNum,
+                    vlanId, pushVlan, install));
         } else {
             log.warn("Failed to retrieve next objective for vlan {} in device {}:{}", vlanId, deviceId, portNum);
         }
@@ -1923,7 +1925,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
         // 3. Host unicast routing rule
         // Remove unicast routing rule
-        hostHandler.processIntfIpUpdatedEvent(cp, ipPrefixSet, false);
+        hostEventExecutor.execute(() -> hostHandler.processIntfIpUpdatedEvent(cp, ipPrefixSet, false));
     }
 
     private void addSubnetConfig(ConnectPoint cp, Set<InterfaceIpAddress> ipAddressSet) {
@@ -1962,6 +1964,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
         // 3. Host unicast routing rule
         // Add unicast routing rule
-        hostHandler.processIntfIpUpdatedEvent(cp, ipPrefixSet, true);
+        hostEventExecutor.execute(() -> hostHandler.processIntfIpUpdatedEvent(cp, ipPrefixSet, true));
     }
 }
