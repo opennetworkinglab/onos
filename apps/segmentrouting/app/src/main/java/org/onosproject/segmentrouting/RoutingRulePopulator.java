@@ -28,16 +28,6 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.flowobjective.DefaultObjectiveContext;
-import org.onosproject.net.flowobjective.Objective;
-import org.onosproject.net.flowobjective.ObjectiveContext;
-import org.onosproject.net.flowobjective.ObjectiveError;
-import org.onosproject.net.packet.PacketPriority;
-import org.onosproject.segmentrouting.DefaultRoutingHandler.PortFilterInfo;
-import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
-import org.onosproject.segmentrouting.config.DeviceConfiguration;
-import org.onosproject.segmentrouting.grouphandler.DefaultGroupHandler;
-import org.onosproject.segmentrouting.grouphandler.DestinationSet;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
@@ -48,10 +38,20 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flowobjective.DefaultFilteringObjective;
 import org.onosproject.net.flowobjective.DefaultForwardingObjective;
+import org.onosproject.net.flowobjective.DefaultObjectiveContext;
 import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.ForwardingObjective.Builder;
 import org.onosproject.net.flowobjective.ForwardingObjective.Flag;
+import org.onosproject.net.flowobjective.Objective;
+import org.onosproject.net.flowobjective.ObjectiveContext;
+import org.onosproject.net.flowobjective.ObjectiveError;
+import org.onosproject.net.packet.PacketPriority;
+import org.onosproject.segmentrouting.DefaultRoutingHandler.PortFilterInfo;
+import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
+import org.onosproject.segmentrouting.config.DeviceConfiguration;
+import org.onosproject.segmentrouting.grouphandler.DefaultGroupHandler;
+import org.onosproject.segmentrouting.grouphandler.DestinationSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -1294,6 +1294,75 @@ public class RoutingRulePopulator {
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
         tBuilder.wipeDeferred();
         return fwdObjBuilder(sBuilder.build(), tBuilder.build(), priority);
+    }
+
+    /**
+     * Populates a forwarding objective to send packets that miss other high
+     * priority Bridging Table entries to a group that contains all ports of
+     * its subnet.
+     *
+     * @param address the address to block
+     * @param deviceId switch ID to set the rules
+     */
+    void populateDefaultRouteBlackhole(DeviceId deviceId, IpPrefix address) {
+        updateDefaultRouteBlackhole(deviceId, address, true);
+    }
+
+    /**
+     * Populates a forwarding objective to send packets that miss other high
+     * priority Bridging Table entries to a group that contains all ports of
+     * its subnet.
+     *
+     * @param address the address to block
+     * @param deviceId switch ID to set the rules
+     */
+    void removeDefaultRouteBlackhole(DeviceId deviceId, IpPrefix address) {
+        updateDefaultRouteBlackhole(deviceId, address, false);
+    }
+
+    private void updateDefaultRouteBlackhole(DeviceId deviceId, IpPrefix address, boolean install) {
+        try {
+            if (srManager.deviceConfiguration.isEdgeDevice(deviceId)) {
+
+                TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
+                if (address.isIp4()) {
+                    sbuilder.matchIPDst(address);
+                    sbuilder.matchEthType(EthType.EtherType.IPV4.ethType().toShort());
+                } else {
+                    sbuilder.matchIPv6Dst(address);
+                    sbuilder.matchEthType(EthType.EtherType.IPV6.ethType().toShort());
+                }
+
+                TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
+
+                tBuilder.transition(60);
+                tBuilder.wipeDeferred();
+
+                ForwardingObjective.Builder fob = DefaultForwardingObjective.builder();
+                fob.withFlag(Flag.SPECIFIC)
+                        .withSelector(sbuilder.build())
+                        .withTreatment(tBuilder.build())
+                        .withPriority(getPriorityFromPrefix(address))
+                        .fromApp(srManager.appId)
+                        .makePermanent();
+
+                log.debug("{} blackhole forwarding objectives for dev: {}",
+                        install ? "Installing" : "Removing", deviceId);
+                ObjectiveContext context = new DefaultObjectiveContext(
+                        (objective) -> log.debug("Forward for {} {}", deviceId,
+                                install ? "installed" : "removed"),
+                        (objective, error) -> log.warn("Failed to {} forward for {}: {}",
+                                install ? "install" : "remove", deviceId, error));
+                if (install) {
+                    srManager.flowObjectiveService.forward(deviceId, fob.add(context));
+                } else {
+                    srManager.flowObjectiveService.forward(deviceId, fob.remove(context));
+                }
+            }
+        } catch (DeviceConfigNotFoundException e) {
+            log.info("Not populating blackhole for un-configured device {}", deviceId);
+        }
+
     }
 
     /**
