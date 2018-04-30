@@ -511,7 +511,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
 
         if (ethCriterion == null || ethCriterion.mac().equals(NONE)) {
             // NOTE: it is possible that a filtering objective only has vidCriterion
-            log.warn("filtering objective missing dstMac, cannot program TMAC table");
+            log.debug("filtering objective missing dstMac, won't program TMAC table");
         } else {
             MacAddress unicastMac = readEthDstFromTreatment(filt.meta());
             List<List<FlowRule>> allStages = processEthDstFilter(portCriterion, ethCriterion,
