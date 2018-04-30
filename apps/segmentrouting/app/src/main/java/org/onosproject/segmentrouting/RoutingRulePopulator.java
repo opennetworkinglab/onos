@@ -32,6 +32,7 @@ import org.onosproject.net.flowobjective.DefaultObjectiveContext;
 import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.flowobjective.ObjectiveContext;
 import org.onosproject.net.flowobjective.ObjectiveError;
+import org.onosproject.net.intf.Interface;
 import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.segmentrouting.DefaultRoutingHandler.PortFilterInfo;
 import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
@@ -969,7 +970,7 @@ public class RoutingRulePopulator {
             if (!processSinglePortFiltersInternal(deviceId, portnum, true, untaggedVlan, install)) {
                 return false;
             }
-        } else if (srManager.linkService.getLinks(connectPoint).size() == 0) {
+        } else if (!hasIPConfiguration(connectPoint)) {
             // Filter for unconfigured upstream port, using INTERNAL_VLAN
             if (!processSinglePortFiltersInternal(deviceId, portnum, true, INTERNAL_VLAN, install)) {
                 return false;
@@ -1649,4 +1650,14 @@ public class RoutingRulePopulator {
         srManager.flowObjectiveService.forward(deviceId, fob.remove(context));
     }
 
+    /**
+     * Checks whether the specified port has IP configuration or not.
+     *
+     * @param cp ConnectPoint to check the existance of IP configuration
+     * @return true if the port has IP configuration; false otherwise.
+     */
+    private boolean hasIPConfiguration(ConnectPoint cp) {
+        Set<Interface> interfaces = srManager.interfaceService.getInterfacesByPort(cp);
+        return interfaces.stream().anyMatch(intf -> intf.ipAddressesList().size() > 0);
+    }
 }
