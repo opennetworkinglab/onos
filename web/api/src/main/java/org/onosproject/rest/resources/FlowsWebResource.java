@@ -98,6 +98,32 @@ public class FlowsWebResource extends AbstractWebResource {
         return ok(root).build();
     }
 
+     /**
+     * Gets all pending flow entries. Returns array of all pending flow rules in the system.
+     *
+     * @return 200 OK with a collection of flows
+     * @onos.rsModel FlowEntries
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("pending")
+    public Response getPendingFlows() {
+        final Iterable<Device> devices = get(DeviceService.class).getDevices();
+        for (final Device device : devices) {
+            final Iterable<FlowEntry> flowEntries = service.getFlowEntries(device.id());
+            if (flowEntries != null) {
+                for (final FlowEntry entry : flowEntries) {
+                    if ((entry.state() == FlowEntry.FlowEntryState.PENDING_ADD) ||
+                       (entry.state() == FlowEntry.FlowEntryState.PENDING_REMOVE)) {
+                       flowsNode.add(codec(FlowEntry.class).encode(entry, this));
+                    }
+                }
+            }
+        }
+
+        return ok(root).build();
+    }
+
     /**
      * Creates new flow rules. Creates and installs a new flow rules.<br>
      * Flow rule criteria and instruction description:
