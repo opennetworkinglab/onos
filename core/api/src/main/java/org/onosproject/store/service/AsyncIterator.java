@@ -35,5 +35,4 @@ public interface AsyncIterator<T> {
      * @return the next item in the iterator
      */
     CompletableFuture<T> next();
-
 }

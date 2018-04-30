@@ -28,5 +28,4 @@ public interface AsyncIterable<T> {
      * @return an asynchronous iterator
      */
     CompletableFuture<AsyncIterator<T>> iterator();
-
 }

@@ -25,12 +25,12 @@ import org.onosproject.store.service.ConsistentMultimapBuilder;
  * Default {@link AsyncConsistentMultimap} builder.
  */
 public class DefaultConsistentMultimapBuilder<K, V>
-        extends ConsistentMultimapBuilder<K, V> {
+    extends ConsistentMultimapBuilder<K, V> {
 
     private final DistributedPrimitiveCreator primitiveCreator;
 
     public DefaultConsistentMultimapBuilder(
-            DistributedPrimitiveCreator primitiveCreator) {
+        DistributedPrimitiveCreator primitiveCreator) {
         this.primitiveCreator = primitiveCreator;
     }
 
@@ -41,6 +41,10 @@ public class DefaultConsistentMultimapBuilder<K, V>
 
     @Override
     public ConsistentMultimap<K, V> build() {
-        return buildMultimap().asMultimap();
+        AsyncConsistentMultimap<K, V> multimap = buildMultimap();
+        if (relaxedReadConsistency()) {
+            multimap = new CachingAsyncConsistentMultimap<>(multimap);
+        }
+        return multimap.asMultimap();
     }
 }
