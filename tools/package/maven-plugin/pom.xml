@@ -26,7 +26,7 @@
 
     <groupId>org.onosproject</groupId>
     <artifactId>onos-maven-plugin</artifactId>
-    <version>1.12</version>
+    <version>1.13-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
 
     <description>Maven plugin for packaging ONOS applications or generating
