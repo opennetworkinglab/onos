@@ -167,7 +167,7 @@ public class AtomixConsistentSetMultimapTest extends AtomixTestBase<AtomixConsis
 
         //Check that contains key works properly for removed keys
         map.containsKey(removedKey[0])
-                .thenAccept(result -> assertFalse(result));
+                .thenAccept(result -> assertFalse(result)).join();
 
         //Check that contains value works correctly for removed values
         allValues.forEach(value -> {
