@@ -1378,6 +1378,75 @@ public class RoutingRulePopulator {
      * priority Bridging Table entries to a group that contains all ports of
      * its subnet.
      *
+     * @param address the address to block
+     * @param deviceId switch ID to set the rules
+     */
+    void populateDefaultRouteBlackhole(DeviceId deviceId, IpPrefix address) {
+        updateDefaultRouteBlackhole(deviceId, address, true);
+    }
+
+    /**
+     * Populates a forwarding objective to send packets that miss other high
+     * priority Bridging Table entries to a group that contains all ports of
+     * its subnet.
+     *
+     * @param address the address to block
+     * @param deviceId switch ID to set the rules
+     */
+    void removeDefaultRouteBlackhole(DeviceId deviceId, IpPrefix address) {
+        updateDefaultRouteBlackhole(deviceId, address, false);
+    }
+
+    private void updateDefaultRouteBlackhole(DeviceId deviceId, IpPrefix address, boolean install) {
+        try {
+            if (srManager.deviceConfiguration.isEdgeDevice(deviceId)) {
+
+                TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
+                if (address.isIp4()) {
+                    sbuilder.matchIPDst(address);
+                    sbuilder.matchEthType(EthType.EtherType.IPV4.ethType().toShort());
+                } else {
+                    sbuilder.matchIPv6Dst(address);
+                    sbuilder.matchEthType(EthType.EtherType.IPV6.ethType().toShort());
+                }
+
+                TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
+
+                tBuilder.transition(60);
+                tBuilder.wipeDeferred();
+
+                ForwardingObjective.Builder fob = DefaultForwardingObjective.builder();
+                fob.withFlag(Flag.SPECIFIC)
+                        .withSelector(sbuilder.build())
+                        .withTreatment(tBuilder.build())
+                        .withPriority(getPriorityFromPrefix(address))
+                        .fromApp(srManager.appId)
+                        .makePermanent();
+
+                log.debug("{} blackhole forwarding objectives for dev: {}",
+                        install ? "Installing" : "Removing", deviceId);
+                ObjectiveContext context = new DefaultObjectiveContext(
+                        (objective) -> log.debug("Forward for {} {}", deviceId,
+                                install ? "installed" : "removed"),
+                        (objective, error) -> log.warn("Failed to {} forward for {}: {}",
+                                install ? "install" : "remove", deviceId, error));
+                if (install) {
+                    srManager.flowObjectiveService.forward(deviceId, fob.add(context));
+                } else {
+                    srManager.flowObjectiveService.forward(deviceId, fob.remove(context));
+                }
+            }
+        } catch (DeviceConfigNotFoundException e) {
+            log.info("Not populating blackhole for un-configured device {}", deviceId);
+        }
+
+    }
+
+    /**
+     * Populates a forwarding objective to send packets that miss other high
+     * priority Bridging Table entries to a group that contains all ports of
+     * its subnet.
+     *
      * @param deviceId switch ID to set the rules
      */
     void populateSubnetBroadcastRule(DeviceId deviceId) {

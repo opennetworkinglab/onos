@@ -284,6 +284,15 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         return false;
     }
 
+    /**
+     * Determines whether this driver supports installing a clearDeferred action on table 30.
+     *
+     * @return true if required
+     */
+    protected boolean supportsUnicastBlackHole() {
+        return true;
+    }
+
     //////////////////////////////////////
     //  Flow Objectives
     //////////////////////////////////////
@@ -1460,6 +1469,15 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             tb.transition(mplsNextTable);
         } else {
             tb.transition(ACL_TABLE);
+        }
+
+        if (fwd.treatment() != null && fwd.treatment().clearedDeferred()) {
+            if (supportsUnicastBlackHole()) {
+                tb.wipeDeferred();
+            } else {
+                log.warn("Clear Deferred is not supported Unicast Routing Table on device {}", deviceId);
+                return Collections.emptySet();
+            }
         }
 
         FlowRule.Builder ruleBuilder = DefaultFlowRule.builder()
