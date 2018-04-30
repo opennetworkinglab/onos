@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableSet;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.TestApplicationId;
@@ -55,6 +56,8 @@ public class SegmentRoutingAppConfigTest {
     private static final String PROVIDER_1 = "org.onosproject.provider.host";
     private static final String PROVIDER_2 = "org.onosproject.netcfghost";
     private static final String PROVIDER_3 = "org.onosproject.anotherprovider";
+    private static final IpPrefix BLACKHOLE_IP = IpPrefix.valueOf("10.0.0.0/8");
+    private static final IpPrefix BLACKHOLE_IP_2 = IpPrefix.valueOf("20.0.0.0/8");
 
     /**
      * Initialize test related variables.
@@ -261,6 +264,34 @@ public class SegmentRoutingAppConfigTest {
         assertNotNull("suppressHostByProvider should not be null", supprsuppressHostByProvider);
         assertThat(supprsuppressHostByProvider.size(), is(1));
         assertTrue(supprsuppressHostByProvider.contains(PROVIDER_3));
+    }
+
+    /**
+     * Tests BlackHoleIps getter.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testBlackHoleIps() throws Exception {
+        Set<IpPrefix> blackHoleIps = config.blackholeIPs();
+        assertNotNull("BlackHoleIps should not be null", blackHoleIps);
+        assertThat(blackHoleIps.size(), is(1));
+        assertTrue(blackHoleIps.contains(BLACKHOLE_IP));
+    }
+
+    /**
+     * Tests BlackHoleIps setter.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testSetBlackHoleIps() throws Exception {
+
+        config.setBalckholeIps(ImmutableSet.of(BLACKHOLE_IP_2));
+
+        Set<IpPrefix> blackHoleIps = config.blackholeIPs();
+        assertThat(blackHoleIps.size(), is(1));
+        assertTrue(blackHoleIps.contains(BLACKHOLE_IP_2));
     }
 
     private class MockDelegate implements ConfigApplyDelegate {

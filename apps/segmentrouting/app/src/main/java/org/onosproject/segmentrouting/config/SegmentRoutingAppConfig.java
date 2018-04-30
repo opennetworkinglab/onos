@@ -19,6 +19,7 @@ package org.onosproject.segmentrouting.config;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.ImmutableSet;
+import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
@@ -38,14 +39,68 @@ public class SegmentRoutingAppConfig extends Config<ApplicationId> {
     // TODO We might want to move SUPPRESS_HOST_BY_PROVIDER to Component Config
     private static final String SUPPRESS_HOST_BY_PROVIDER = "suppressHostByProvider";
     private static final String MPLS_ECMP = "MPLS-ECMP";
+    private static final String BLACKHOLE_IPS = "blackholeIps";
 
     @Override
     public boolean isValid() {
         return hasOnlyFields(VROUTER_MACS, SUPPRESS_SUBNET,
-                SUPPRESS_HOST_BY_PORT, SUPPRESS_HOST_BY_PROVIDER, MPLS_ECMP) &&
+                SUPPRESS_HOST_BY_PORT, SUPPRESS_HOST_BY_PROVIDER, MPLS_ECMP, BLACKHOLE_IPS) &&
                 vRouterMacs() != null &&
                 suppressSubnet() != null && suppressHostByPort() != null &&
-                suppressHostByProvider() != null;
+                suppressHostByProvider() != null &&
+                blackholeIPs() != null;
+    }
+
+    /**
+     * Gets ips to blackhole from the config.
+     *
+     * @return Set of ips to blackhole, empty is not specified,
+     *         or null if not valid
+     */
+    public Set<IpPrefix> blackholeIPs() {
+        if (!object.has(BLACKHOLE_IPS)) {
+            return ImmutableSet.of();
+        }
+
+        ImmutableSet.Builder<IpPrefix> builder = ImmutableSet.builder();
+        ArrayNode arrayNode = (ArrayNode) object.path(BLACKHOLE_IPS);
+        for (JsonNode jsonNode : arrayNode) {
+            IpPrefix address;
+
+            String addrStr = jsonNode.asText(null);
+            if (addrStr == null) {
+                return null;
+            }
+            try {
+                address = IpPrefix.valueOf(addrStr);
+            } catch (IllegalArgumentException e) {
+                return null;
+            }
+
+            builder.add(address);
+        }
+        return builder.build();
+    }
+
+    /**
+     * Sets ips to blackhole to the config.
+     *
+     * @param blackholeIps a set of ips to blackhole
+     * @return this {@link SegmentRoutingAppConfig}
+     */
+    public SegmentRoutingAppConfig setBalckholeIps(Set<IpPrefix> blackholeIps) {
+        if (blackholeIps == null) {
+            object.remove(BLACKHOLE_IPS);
+        } else {
+            ArrayNode arrayNode = mapper.createArrayNode();
+
+            blackholeIps.forEach(ip -> {
+                arrayNode.add(ip.toString());
+            });
+
+            object.set(BLACKHOLE_IPS, arrayNode);
+        }
+        return this;
     }
 
     /**
@@ -262,6 +317,7 @@ public class SegmentRoutingAppConfig extends Config<ApplicationId> {
                 .add("suppressHostByPort", suppressHostByPort())
                 .add("suppressHostByProvider", suppressHostByProvider())
                 .add("mplsEcmp", mplsEcmp())
+                .add("blackholeIps", blackholeIPs())
                 .toString();
     }
 }

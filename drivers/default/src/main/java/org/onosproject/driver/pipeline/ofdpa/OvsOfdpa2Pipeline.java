@@ -50,4 +50,9 @@ public class OvsOfdpa2Pipeline extends CpqdOfdpa2Pipeline {
     protected boolean supportPuntGroup() {
         return true;
     }
+
+    @Override
+    protected boolean supportsUnicastBlackHole() {
+        return true;
+    }
 }

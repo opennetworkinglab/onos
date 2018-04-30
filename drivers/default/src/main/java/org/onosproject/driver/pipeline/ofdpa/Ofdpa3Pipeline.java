@@ -65,7 +65,10 @@ import java.util.List;
 
 import static org.onlab.packet.MacAddress.NONE;
 import static org.onosproject.driver.extensions.Ofdpa3MplsType.VPWS;
-import static org.onosproject.net.flow.criteria.Criterion.Type.*;
+import static org.onosproject.net.flow.criteria.Criterion.Type.INNER_VLAN_VID;
+import static org.onosproject.net.flow.criteria.Criterion.Type.IN_PORT;
+import static org.onosproject.net.flow.criteria.Criterion.Type.TUNNEL_ID;
+import static org.onosproject.net.flow.criteria.Criterion.Type.VLAN_VID;
 import static org.onosproject.net.flow.instructions.Instruction.Type.L2MODIFICATION;
 import static org.onosproject.net.flow.instructions.L2ModificationInstruction.ModTunnelIdInstruction;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -97,6 +100,11 @@ public class Ofdpa3Pipeline extends Ofdpa2Pipeline {
     @Override
     protected boolean shouldRetry() {
         return false;
+    }
+
+    @Override
+    protected boolean supportsUnicastBlackHole() {
+        return true;
     }
 
     @Override

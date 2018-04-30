@@ -16,6 +16,8 @@
 package org.onosproject.segmentrouting;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
+import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
@@ -62,6 +64,9 @@ public class AppConfigHandler {
         SegmentRoutingAppConfig config = (SegmentRoutingAppConfig) event.config().get();
         deviceService.getAvailableDevices().forEach(device -> {
             populateVRouter(device.id(), getMacAddresses(config));
+            config.blackholeIPs().forEach(ipPrefix -> {
+                srManager.routingRulePopulator.populateDefaultRouteBlackhole(device.id(), ipPrefix);
+            });
         });
     }
 
@@ -86,6 +91,14 @@ public class AppConfigHandler {
 
             revokeVRouter(device.id(), prevMacAddresses);
             populateVRouter(device.id(), macAddresses);
+            Set<IpPrefix> toRemove = Sets.difference(prevConfig.blackholeIPs(), config.blackholeIPs());
+            toRemove.forEach(ipPrefix -> {
+                srManager.routingRulePopulator.removeDefaultRouteBlackhole(device.id(), ipPrefix);
+            });
+            Set<IpPrefix> toAdd = Sets.difference(config.blackholeIPs(), prevConfig.blackholeIPs());
+            toAdd.forEach(ipPrefix -> {
+                srManager.routingRulePopulator.populateDefaultRouteBlackhole(device.id(), ipPrefix);
+            });
         });
 
     }
@@ -100,11 +113,14 @@ public class AppConfigHandler {
         SegmentRoutingAppConfig prevConfig = (SegmentRoutingAppConfig) event.prevConfig().get();
         deviceService.getAvailableDevices().forEach(device -> {
             revokeVRouter(device.id(), getMacAddresses(prevConfig));
+            prevConfig.blackholeIPs().forEach(ipPrefix -> {
+                srManager.routingRulePopulator.removeDefaultRouteBlackhole(device.id(), ipPrefix);
+            });
         });
     }
 
     /**
-     * Populates initial vRouter rules.
+     * Populates initial vRouter and blackhole rules.
      *
      * @param deviceId device ID
      */
@@ -112,6 +128,9 @@ public class AppConfigHandler {
         SegmentRoutingAppConfig config =
                 srManager.cfgService.getConfig(srManager.appId, SegmentRoutingAppConfig.class);
         populateVRouter(deviceId, getMacAddresses(config));
+        config.blackholeIPs().forEach(ipPrefix -> {
+            srManager.routingRulePopulator.populateDefaultRouteBlackhole(deviceId, ipPrefix);
+        });
     }
 
     private void populateVRouter(DeviceId deviceId, Set<MacAddress> pendingAdd) {
@@ -166,7 +185,9 @@ public class AppConfigHandler {
             if (srManager.deviceConfiguration.isEdgeDevice(deviceId)) {
                 return true;
             }
-        } catch (DeviceConfigNotFoundException e) { }
+        } catch (DeviceConfigNotFoundException e) {
+            log.warn("Device configuration for {} is not present.", deviceId);
+        }
         return false;
     }
 }
