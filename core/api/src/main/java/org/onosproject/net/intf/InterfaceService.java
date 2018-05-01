@@ -18,6 +18,7 @@ package org.onosproject.net.intf;
 
 import java.util.Set;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.event.ListenerService;
@@ -95,5 +96,7 @@ public interface InterfaceService
      * @param connectPoint the port on a device
      * @return true if connectpoint has a configured interface
      */
-    boolean isConfigured(ConnectPoint connectPoint);
+    default boolean isConfigured(ConnectPoint connectPoint) {
+        throw new NotImplementedException("isConfigured is not implemented");
+    }
 }
