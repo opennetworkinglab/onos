@@ -150,7 +150,6 @@ public interface Driver extends Annotations {
      * @param defaultValue to use if the property is not defined in this driver nor in any of its ancestors
      * @return the value of the property,
      *         or {@code defaultValue} if the property is not defined in this driver nor in any of its ancestors
-     * @return
      */
     default String getProperty(String name, String defaultValue) {
         return Optional.ofNullable(getProperty(name)).orElse(defaultValue);

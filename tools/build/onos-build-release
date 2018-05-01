@@ -4,7 +4,7 @@
 # -----------------------------------------------------------------------------
 
 if [ $# -ne 3  -a $# -ne 4 ]; then
-    echo "Usage: onos-build-release version next-version branch [--dry-run]"
+    echo "Usage: onos-build-release branch version next-version [--dry-run]"
     echo "For example, to build rc2 on the 1.8 branch - onos-build-release onos-1.8 1.8.0-rc2 1.8.0-SNAPSHOT"
     exit 1
 fi
@@ -42,4 +42,3 @@ if [ ${IS_DRY_RUN} -eq 0 ]; then
     # Unblock commits
     ssh -p 29418 gerrit.onosproject.org projectlock unlock onos ${BRANCH}
 fi
-
