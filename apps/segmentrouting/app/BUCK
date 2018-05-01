@@ -14,6 +14,7 @@ COMPILE_DEPS = [
 
 TEST_DEPS = [
     '//lib:TEST_ADAPTERS',
+    '//core/net:onos-core-net',
     '//incubator/api:onos-incubator-api-tests',
     '//apps/route-service/api:onos-apps-route-service-api-tests',
 ]

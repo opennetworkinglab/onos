@@ -19,7 +19,7 @@ package org.onosproject.segmentrouting;
 import com.google.common.collect.ImmutableSet;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.intf.Interface;
-import org.onosproject.net.intf.InterfaceServiceAdapter;
+import org.onosproject.net.intf.impl.InterfaceManager;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 /**
  * Mock Interface Service.
  */
-public class MockInterfaceService extends InterfaceServiceAdapter {
+public class MockInterfaceService extends InterfaceManager {
     private Set<Interface> interfaces;
 
     MockInterfaceService(Set<Interface> interfaces) {

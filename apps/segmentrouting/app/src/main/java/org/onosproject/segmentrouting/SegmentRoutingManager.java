@@ -834,58 +834,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         return tunnelHandler.getTunnel(tunnelId);
     }
 
-    // TODO Consider moving these to InterfaceService
-    /**
-     * Returns untagged VLAN configured on given connect point.
-     * <p>
-     * Only returns the first match if there are multiple untagged VLAN configured
-     * on the connect point.
-     *
-     * @param connectPoint connect point
-     * @return untagged VLAN or null if not configured
-     */
-    VlanId getUntaggedVlanId(ConnectPoint connectPoint) {
-        return interfaceService.getInterfacesByPort(connectPoint).stream()
-                .filter(intf -> !intf.vlanUntagged().equals(VlanId.NONE))
-                .map(Interface::vlanUntagged)
-                .findFirst().orElse(null);
-    }
-
-    /**
-     * Returns tagged VLAN configured on given connect point.
-     * <p>
-     * Returns all matches if there are multiple tagged VLAN configured
-     * on the connect point.
-     *
-     * @param connectPoint connect point
-     * @return tagged VLAN or empty set if not configured
-     */
-    Set<VlanId> getTaggedVlanId(ConnectPoint connectPoint) {
-        Set<Interface> interfaces = interfaceService.getInterfacesByPort(connectPoint);
-        return interfaces.stream()
-                .map(Interface::vlanTagged)
-                .flatMap(Set::stream)
-                .collect(Collectors.toSet());
-    }
-
-    /**
-     * Returns native VLAN configured on given connect point.
-     * <p>
-     * Only returns the first match if there are multiple native VLAN configured
-     * on the connect point.
-     *
-     * @param connectPoint connect point
-     * @return native VLAN or null if not configured
-     */
-    VlanId getNativeVlanId(ConnectPoint connectPoint) {
-        Set<Interface> interfaces = interfaceService.getInterfacesByPort(connectPoint);
-        return interfaces.stream()
-                .filter(intf -> !intf.vlanNative().equals(VlanId.NONE))
-                .map(Interface::vlanNative)
-                .findFirst()
-                .orElse(null);
-    }
-
     /**
      * Returns internal VLAN for untagged hosts on given connect point.
      * <p>
@@ -896,8 +844,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
      * @return internal VLAN or null if both vlan-untagged and vlan-native are undefined
      */
     public VlanId getInternalVlanId(ConnectPoint connectPoint) {
-        VlanId untaggedVlanId = getUntaggedVlanId(connectPoint);
-        VlanId nativeVlanId = getNativeVlanId(connectPoint);
+        VlanId untaggedVlanId = interfaceService.getUntaggedVlanId(connectPoint);
+        VlanId nativeVlanId = interfaceService.getNativeVlanId(connectPoint);
         return untaggedVlanId != null ? untaggedVlanId : nativeVlanId;
     }
 
@@ -1395,9 +1343,9 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         // group editing necessary for port up/down. Here we only process edge ports
         // that are already configured.
         ConnectPoint cp = new ConnectPoint(device.id(), port.number());
-        VlanId untaggedVlan = getUntaggedVlanId(cp);
-        VlanId nativeVlan = getNativeVlanId(cp);
-        Set<VlanId> taggedVlans = getTaggedVlanId(cp);
+        VlanId untaggedVlan = interfaceService.getUntaggedVlanId(cp);
+        VlanId nativeVlan = interfaceService.getNativeVlanId(cp);
+        Set<VlanId> taggedVlans = interfaceService.getTaggedVlanId(cp);
 
         if (untaggedVlan == null && nativeVlan == null && taggedVlans.isEmpty()) {
             log.debug("Not handling port updated event for non-edge port (unconfigured) "

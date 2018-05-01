@@ -179,9 +179,9 @@ public class RoutingRulePopulator {
     private ForwardingObjective.Builder bridgingFwdObjBuilder(
             DeviceId deviceId, MacAddress mac, VlanId hostVlanId, PortNumber outport, boolean revoke) {
         ConnectPoint connectPoint = new ConnectPoint(deviceId, outport);
-        VlanId untaggedVlan = srManager.getUntaggedVlanId(connectPoint);
-        Set<VlanId> taggedVlans = srManager.getTaggedVlanId(connectPoint);
-        VlanId nativeVlan = srManager.getNativeVlanId(connectPoint);
+        VlanId untaggedVlan = srManager.interfaceService.getUntaggedVlanId(connectPoint);
+        Set<VlanId> taggedVlans = srManager.interfaceService.getTaggedVlanId(connectPoint);
+        VlanId nativeVlan = srManager.interfaceService.getNativeVlanId(connectPoint);
 
         // Create host selector
         TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
@@ -390,9 +390,9 @@ public class RoutingRulePopulator {
         deviceMac = config.getDeviceMac(deviceId);
 
         ConnectPoint connectPoint = new ConnectPoint(deviceId, outPort);
-        VlanId untaggedVlan = srManager.getUntaggedVlanId(connectPoint);
-        Set<VlanId> taggedVlans = srManager.getTaggedVlanId(connectPoint);
-        VlanId nativeVlan = srManager.getNativeVlanId(connectPoint);
+        VlanId untaggedVlan = srManager.interfaceService.getUntaggedVlanId(connectPoint);
+        Set<VlanId> taggedVlans = srManager.interfaceService.getTaggedVlanId(connectPoint);
+        VlanId nativeVlan = srManager.interfaceService.getNativeVlanId(connectPoint);
 
         // Create route selector
         TrafficSelector.Builder sbuilder = buildIpSelectorFromIpPrefix(prefix);
@@ -948,14 +948,14 @@ public class RoutingRulePopulator {
      */
     boolean processSinglePortFilters(DeviceId deviceId, PortNumber portnum, boolean install) {
         ConnectPoint connectPoint = new ConnectPoint(deviceId, portnum);
-        VlanId untaggedVlan = srManager.getUntaggedVlanId(connectPoint);
-        Set<VlanId> taggedVlans = srManager.getTaggedVlanId(connectPoint);
-        VlanId nativeVlan = srManager.getNativeVlanId(connectPoint);
+        VlanId untaggedVlan = srManager.interfaceService.getUntaggedVlanId(connectPoint);
+        Set<VlanId> taggedVlans = srManager.interfaceService.getTaggedVlanId(connectPoint);
+        VlanId nativeVlan = srManager.interfaceService.getNativeVlanId(connectPoint);
 
         // Do not configure filter for edge ports where double-tagged hosts are connected.
         if (taggedVlans.size() != 0) {
             // Filter for tagged vlans
-            if (!srManager.getTaggedVlanId(connectPoint).stream().allMatch(taggedVlanId ->
+            if (!srManager.interfaceService.getTaggedVlanId(connectPoint).stream().allMatch(taggedVlanId ->
                     processSinglePortFiltersInternal(deviceId, portnum, false, taggedVlanId, install))) {
                 return false;
             }
@@ -1516,9 +1516,9 @@ public class RoutingRulePopulator {
 
         return enabledPorts.stream().noneMatch(cp ->
             // Given vlanId is included in the vlan-tagged configuration
-            srManager.getTaggedVlanId(cp).contains(vlanId) ||
+            srManager.interfaceService.getTaggedVlanId(cp).contains(vlanId) ||
             // Given vlanId is INTERNAL_VLAN and the interface is not configured
-            (srManager.getTaggedVlanId(cp).isEmpty() && srManager.getInternalVlanId(cp) == null &&
+            (srManager.interfaceService.getTaggedVlanId(cp).isEmpty() && srManager.getInternalVlanId(cp) == null &&
                     vlanId.equals(INTERNAL_VLAN)) ||
             // interface is configured and either vlan-untagged or vlan-native matches given vlanId
             (srManager.getInternalVlanId(cp) != null && srManager.getInternalVlanId(cp).equals(vlanId))
