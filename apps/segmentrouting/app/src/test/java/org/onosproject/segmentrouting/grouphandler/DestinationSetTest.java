@@ -33,14 +33,13 @@ public class DestinationSetTest {
         d202 = DeviceId.deviceId("of:0000000000000202");
         el201 = 201;
         el202 = 202;
-        ds1 = new DestinationSet(false, false, d201);
-        ds2 = new DestinationSet(false, false, el201, d201);
-        ds3 = new DestinationSet(false, false, el201, d201, el202, d202);
-        ds4 = new DestinationSet(false, false,
-                                 DestinationSet.NO_EDGE_LABEL, d201,
-                                 DestinationSet.NO_EDGE_LABEL, d202);
-        ds5 = new DestinationSet(true, false, d201); // not-bos
-        ds6 = new DestinationSet(false, true, el201, d201); // swap group
+        ds1 = DestinationSet.createTypePushNone(d201);
+        ds2 = DestinationSet.createTypePushBos(el201, d201);
+        ds3 = DestinationSet.createTypePushBos(el201, d201, el202, d202);
+        ds4 = DestinationSet.createTypePushBos(DestinationSet.NO_EDGE_LABEL, d201,
+                                               DestinationSet.NO_EDGE_LABEL, d202);
+        ds5 = DestinationSet.createTypePopNotBos(d201);
+        ds6 = DestinationSet.createTypeSwapBos(el201, d201);
     }
 
     @Test
@@ -80,33 +79,27 @@ public class DestinationSetTest {
 
     @Test
     public void testOneDestinationWithoutLabel() {
-        DestinationSet testds = new DestinationSet(false, false, d201);
+        DestinationSet testds = DestinationSet.createTypePushNone(d201);
         assertTrue(testds.equals(ds1)); // match
 
-        testds = new DestinationSet(true, false, d201);
+        testds = DestinationSet.createTypePopNotBos(d201);
         assertFalse(testds.equals(ds1)); // wrong notBos
         assertTrue(testds.equals(ds5)); // correct notBos
 
-        testds = new DestinationSet(false, false, d202);
+        testds = DestinationSet.createTypePushNone(d202);
         assertFalse(testds.equals(ds1)); //wrong device
 
-        testds = new DestinationSet(false, false, el201, d201);
+        testds = DestinationSet.createTypePushBos(el201, d201);
         assertFalse(testds.equals(ds1)); // wrong label
 
-        testds = new DestinationSet(false, false, -1, d201, -1, d202);
+        testds = DestinationSet.createTypePushBos(-1, d201, -1, d202);
         assertFalse(testds.equals(ds1)); // 2-devs should not match
 
-        testds = new DestinationSet(false, true, d201);
-        assertFalse(testds.equals(ds1)); // wrong swap
-        assertFalse(testds.equals(ds6)); // wrong label
-
-        testds = new DestinationSet(false, true, el201, d201);
+        testds = DestinationSet.createTypeSwapBos(el201, d201);
+        assertFalse(testds.equals(ds1)); // wrong type and label
         assertTrue(testds.equals(ds6)); // correct swap
 
-        testds = new DestinationSet(false, true, DestinationSet.NO_EDGE_LABEL, d201);
-        assertFalse(testds.equals(ds6)); // wrong label
-
-        testds = new DestinationSet(true, true, el201, d201);
+        testds = DestinationSet.createTypeSwapNotBos(el201, d201);
         assertFalse(testds.equals(ds6)); // wrong notbos
     }
 
@@ -114,61 +107,53 @@ public class DestinationSetTest {
 
     @Test
     public void testOneDestinationWithLabel() {
-        DestinationSet testds = new DestinationSet(false, false, 203, d202);
+        DestinationSet testds = DestinationSet.createTypePushBos(203, d202);
         assertFalse(testds.equals(ds2)); //wrong label
 
-        testds = new DestinationSet(true, false, 201, d201);
-        assertFalse(testds.equals(ds2)); // wrong notBos
-
-        testds = new DestinationSet(false, false, 201, d202);
+        testds = DestinationSet.createTypePushBos(201, d202);
         assertFalse(testds.equals(ds2)); //wrong device
 
-        testds = new DestinationSet(false, false, 201,
-                                    DeviceId.deviceId("of:0000000000000201"));
+        testds = DestinationSet.createTypePushBos(201,  DeviceId.deviceId("of:0000000000000201"));
         assertTrue(testds.equals(ds2)); // match
 
-        testds = new DestinationSet(false, false, d201);
+        testds = DestinationSet.createTypePushNone(d201);
         assertFalse(testds.equals(ds2)); // wrong label
 
-        testds = new DestinationSet(false, false, el201, d201, el202, d202);
+        testds = DestinationSet.createTypePushBos(el201, d201, el202, d202);
         assertFalse(testds.equals(ds1)); // 2-devs should not match
     }
 
     @Test
     public void testDestPairWithLabel() {
-        DestinationSet testds = new DestinationSet(false, false, el201, d201, el202, d202);
+        DestinationSet testds = DestinationSet.createTypePushBos(el201, d201, el202, d202);
         assertTrue(testds.equals(ds3)); // match same switches, same order
         assertTrue(testds.hashCode() == ds3.hashCode());
 
-        testds = new DestinationSet(false, false, el202, d202, el201, d201);
+        testds = DestinationSet.createTypePushBos(el202, d202, el201, d201);
         assertTrue(testds.equals(ds3)); // match same switches, order reversed
         assertTrue(testds.hashCode() == ds3.hashCode());
 
-        testds = new DestinationSet(false, false, el202, d202);
+        testds = DestinationSet.createTypePushBos(el202, d202);
         assertFalse(testds.equals(ds3)); // one less switch should not match
         assertFalse(testds.hashCode() == ds3.hashCode());
 
-        testds = new DestinationSet(false, false, el201, d201);
+        testds = DestinationSet.createTypePushBos(el201, d201);
         assertFalse(testds.equals(ds3)); // one less switch should not match
         assertFalse(testds.hashCode() == ds3.hashCode());
 
-        testds = new DestinationSet(false, false, el201, d201, 0, DeviceId.NONE);
+        testds = DestinationSet.createTypePushBos(el201, d201, 0, DeviceId.NONE);
         assertFalse(testds.equals(ds3)); // one less switch should not match
         assertFalse(testds.hashCode() == ds3.hashCode());
 
-        testds = new DestinationSet(false, false, el201, d202, el201, d201);
+        testds = DestinationSet.createTypePushBos(el201, d202, el201, d201);
         assertFalse(testds.equals(ds3)); // wrong labels
         assertFalse(testds.hashCode() == ds3.hashCode());
 
-        testds = new DestinationSet(true, false, el202, d202, el201, d201);
-        assertFalse(testds.equals(ds3)); // wrong not bos
-        assertFalse(testds.hashCode() == ds3.hashCode());
-
-        testds = new DestinationSet(false, false, el202, d202, el201, d202);
+        testds = DestinationSet.createTypePushBos(el202, d202, el201, d202);
         assertFalse(testds.equals(ds3)); // wrong device
         assertFalse(testds.hashCode() == ds3.hashCode());
 
-        testds = new DestinationSet(false, false,
+        testds = DestinationSet.createTypePushBos(
                                     el202, DeviceId.deviceId("of:0000000000000205"),
                                     el201, d201);
         assertFalse(testds.equals(ds3)); // wrong device
@@ -177,39 +162,35 @@ public class DestinationSetTest {
 
     @Test
     public void testDestPairWithoutLabel() {
-        DestinationSet testds = new DestinationSet(false, false, -1, d201, -1, d202);
+        DestinationSet testds = DestinationSet.createTypePushBos(-1, d201, -1, d202);
         assertTrue(testds.equals(ds4)); // match same switches, same order
         assertTrue(testds.hashCode() == ds4.hashCode());
 
-        testds = new DestinationSet(false, false, -1, d202, -1, d201);
+        testds = DestinationSet.createTypePushBos(-1, d202, -1, d201);
         assertTrue(testds.equals(ds4)); // match same switches, order reversed
         assertTrue(testds.hashCode() == ds4.hashCode());
 
-        testds = new DestinationSet(false, false, -1, d202);
+        testds = DestinationSet.createTypePushBos(-1, d202);
         assertFalse(testds.equals(ds4)); // one less switch should not match
         assertFalse(testds.hashCode() == ds4.hashCode());
 
-        testds = new DestinationSet(false, false, -1, d201);
+        testds = DestinationSet.createTypePushBos(-1, d201);
         assertFalse(testds.equals(ds4)); // one less switch should not match
         assertFalse(testds.hashCode() == ds4.hashCode());
 
-        testds = new DestinationSet(false, false, -1, d201, 0, DeviceId.NONE);
+        testds = DestinationSet.createTypePushBos(-1, d201, 0, DeviceId.NONE);
         assertFalse(testds.equals(ds4)); // one less switch should not match
         assertFalse(testds.hashCode() == ds4.hashCode());
 
-        testds = new DestinationSet(false, false, el201, d201, -1, d202);
+        testds = DestinationSet.createTypePushBos(el201, d201, -1, d202);
         assertFalse(testds.equals(ds4)); // wrong labels
         assertFalse(testds.hashCode() == ds4.hashCode());
 
-        testds = new DestinationSet(true, false, -1, d202, -1, d201);
-        assertFalse(testds.equals(ds4)); // wrong mpls set
-        assertFalse(testds.hashCode() == ds4.hashCode());
-
-        testds = new DestinationSet(false, false, -1, d202, -1, d202);
+        testds = DestinationSet.createTypePushBos(-1, d202, -1, d202);
         assertFalse(testds.equals(ds4)); // wrong device
         assertFalse(testds.hashCode() == ds4.hashCode());
 
-        testds = new DestinationSet(false, false,
+        testds = DestinationSet.createTypePushBos(
                                     -1, DeviceId.deviceId("of:0000000000000205"),
                                     -1, d201);
         assertFalse(testds.equals(ds4)); // wrong device

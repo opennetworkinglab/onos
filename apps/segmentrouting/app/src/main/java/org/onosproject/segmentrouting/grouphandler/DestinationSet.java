@@ -34,59 +34,52 @@ import static org.slf4j.LoggerFactory.getLogger;
  * paired-destination switches. May also be used to represent cases where the
  * forwarding does not use ECMP groups (ie SIMPLE next objectives)
  */
-public class DestinationSet {
+public final class DestinationSet {
     public static final int NO_EDGE_LABEL = -1;
     private static final int NOT_ASSIGNED = 0;
-    private boolean notBos; // XXX replace with enum
-    private boolean swap; // XXX replace with enum
     private final DeviceId dstSw1;
     private final int edgeLabel1;
     private final DeviceId dstSw2;
     private final int edgeLabel2;
-
+    private final DestinationSetType typeOfDstSet;
 
     private static final Logger log = getLogger(DestinationSet.class);
 
     /**
      * Constructor for a single destination with no Edge label.
      *
-     * @param isNotBos indicates if it is meant for a non bottom-of-stack label
-     * @param isSwap indicates if it is meant for a swap action
+     * @param dsType type of next objective
      * @param dstSw the destination switch
      */
-    public DestinationSet(boolean isNotBos, boolean isSwap, DeviceId dstSw) {
+    private DestinationSet(DestinationSetType dsType, DeviceId dstSw) {
         this.edgeLabel1 = NO_EDGE_LABEL;
-        this.notBos = isNotBos;
-        this.swap = isSwap;
         this.dstSw1 = dstSw;
         this.edgeLabel2 = NOT_ASSIGNED;
         this.dstSw2 = null;
+        this.typeOfDstSet = dsType;
     }
 
     /**
      * Constructor for a single destination with Edge label.
      *
-     * @param isNotBos indicates if it is meant for a non bottom-of-stack label
-     * @param isSwap indicates if it is meant for a swap action
+     * @param dsType type of next objective
      * @param edgeLabel label to be pushed as part of group operation
      * @param dstSw the destination switch
      */
-    public DestinationSet(boolean isNotBos, boolean isSwap,
-                       int edgeLabel, DeviceId dstSw) {
-        this.notBos = isNotBos;
-        this.swap = isSwap;
+    private DestinationSet(DestinationSetType dsType,
+                          int edgeLabel, DeviceId dstSw) {
         this.edgeLabel1 = edgeLabel;
         this.dstSw1 = dstSw;
         this.edgeLabel2 = NOT_ASSIGNED;
         this.dstSw2 = null;
+        this.typeOfDstSet = dsType;
     }
 
     /**
      * Constructor for paired destination switches and their associated edge
      * labels.
      *
-     * @param isNotBos indicates if it is meant for a non bottom-of-stack label
-     * @param isSwap indicates if it is meant for a swap action
+     * @param dsType type of next objective
      * @param edgeLabel1 label to be pushed as part of group operation for
      *            dstSw1
      * @param dstSw1 one of the paired destination switches
@@ -94,11 +87,9 @@ public class DestinationSet {
      *            dstSw2
      * @param dstSw2 the other paired destination switch
      */
-    public DestinationSet(boolean isNotBos, boolean isSwap,
+    private DestinationSet(DestinationSetType dsType,
                           int edgeLabel1, DeviceId dstSw1,
                           int edgeLabel2, DeviceId dstSw2) {
-        this.notBos = isNotBos;
-        this.swap = isSwap;
         if (dstSw1.toString().compareTo(dstSw2.toString()) <= 0) {
             this.edgeLabel1 = edgeLabel1;
             this.dstSw1 = dstSw1;
@@ -110,18 +101,17 @@ public class DestinationSet {
             this.edgeLabel2 = edgeLabel1;
             this.dstSw2 = dstSw1;
         }
+        this.typeOfDstSet = dsType;
     }
-
     /**
      * Default constructor for kryo serialization.
      */
-    public DestinationSet() {
+    private DestinationSet() {
         this.edgeLabel1 = NOT_ASSIGNED;
         this.edgeLabel2 = NOT_ASSIGNED;
-        this.notBos = true;
-        this.swap = true;
         this.dstSw1 = DeviceId.NONE;
         this.dstSw2 = DeviceId.NONE;
+        this.typeOfDstSet = null;
     }
 
     /**
@@ -154,21 +144,38 @@ public class DestinationSet {
     }
 
     /**
-     * Gets the value of notBos.
+     * Returns the type of this ds.
+     *
+     * @return the type of the destination set
+     */
+    public DestinationSetType getTypeOfDstSet() {
+        return typeOfDstSet;
+    }
+
+    /**
+     * Returns true if the next objective represented by this destination set
+     * is of type SWAP_NOT_BOS or POP_NOT_BOS.
      *
      * @return the value of notBos
      */
     public boolean notBos() {
-        return notBos;
+        if ((typeOfDstSet == DestinationSetType.SWAP_NOT_BOS) || (typeOfDstSet == DestinationSetType.POP_NOT_BOS)) {
+            return true;
+        }
+        return false;
     }
 
     /**
-     * Gets the value of swap.
+     * Returns true if the next objective represented by this destination set
+     * is of type SWAP_NOT_BOS or SWAP_BOS.
      *
      * @return the value of swap
      */
     public boolean swap() {
-        return swap;
+        if ((typeOfDstSet == DestinationSetType.SWAP_BOS) || (typeOfDstSet == DestinationSetType.SWAP_NOT_BOS)) {
+            return true;
+        }
+        return false;
     }
 
     // The list of destination ids and label are used for comparison.
@@ -181,9 +188,10 @@ public class DestinationSet {
             return false;
         }
         DestinationSet that = (DestinationSet) o;
+        if (this.typeOfDstSet != that.typeOfDstSet) {
+            return false;
+        }
         boolean equal = (this.edgeLabel1 == that.edgeLabel1 &&
-                            this.notBos == that.notBos &&
-                            this.swap == that.swap &&
                             this.dstSw1.equals(that.dstSw1));
         if (this.dstSw2 != null && that.dstSw2 == null ||
                 this.dstSw2 == null && that.dstSw2 != null) {
@@ -200,26 +208,16 @@ public class DestinationSet {
     @Override
     public int hashCode() {
         if (dstSw2 == null) {
-            return Objects.hash(notBos, swap, edgeLabel1, dstSw1);
+            return Objects.hash(typeOfDstSet, edgeLabel1, dstSw1);
         }
-        return Objects.hash(notBos, swap, edgeLabel1, dstSw1, edgeLabel2,
+        return Objects.hash(typeOfDstSet, edgeLabel1, dstSw1, edgeLabel2,
                             dstSw2);
     }
 
     @Override
     public String toString() {
-        String type;
-        if (!notBos && !swap) {
-            type = "default";
-        } else if (!notBos) {
-            type = "swapbos";
-        } else if (!swap) {
-            type = "not-bos";
-        } else {
-            type = "swap-nb";
-        }
         ToStringHelper h = toStringHelper(this)
-                                .add("Type", type)
+                                .add("Type", typeOfDstSet.getType())
                                 .add("DstSw1", dstSw1)
                                 .add("Label1", edgeLabel1);
         if (dstSw2 != null) {
@@ -227,5 +225,130 @@ public class DestinationSet {
              .add("Label2", edgeLabel2);
         }
         return h.toString();
+    }
+
+    public enum DestinationSetType {
+        /**
+         * Used to represent DestinationSetType where the next hop
+         * is the same as the final destination.
+         */
+        PUSH_NONE("pushnon"),
+        /**
+         * Used to represent DestinationSetType where we need to
+         * push a single mpls label, that of the destination.
+         */
+        PUSH_BOS("pushbos"),
+        /**
+         * Used to represent DestinationSetType where we need to pop
+         * an mpls label which has the bos bit set.
+         */
+        POP_BOS("pop-bos"),
+        /**
+         * Used to represent DestinationSetType where we swap the outer
+         * mpls label with a new one, and where the outer label has the
+         * bos bit set.
+         */
+        SWAP_BOS("swapbos"),
+        /**
+         * Used to represent DestinationSetType where we need to pop
+         * an mpls label which does not have the bos bit set.
+         */
+        POP_NOT_BOS("popnbos"),
+        /**
+         * Used to represent DestinationSetType where we swap the outer
+         * mpls label with a new one, and where the outer label does not
+         * have the bos bit set.
+         */
+        SWAP_NOT_BOS("swap-nb");
+
+        private final String typeOfDstDest;
+        DestinationSetType(String s) {
+            typeOfDstDest = s;
+        }
+
+        public String getType() {
+            return typeOfDstDest;
+        }
+    }
+
+    /*
+     * Static methods for creating DestinationSet objects in
+     * order to remove ambiquity with multiple constructors.
+     */
+
+    /**
+     * Returns a DestinationSet with type PUSH_NONE.
+     *
+     * @param destSw The deviceId for this next objective.
+     * @return The DestinationSet of this type.
+     */
+    public static DestinationSet createTypePushNone(DeviceId destSw) {
+        return new DestinationSet(DestinationSetType.PUSH_NONE, destSw);
+    }
+
+    /**
+     * Returns a DestinationSet with type PUSH_BOS.
+     *
+     * @param edgeLabel1 The mpls label to push.
+     * @param destSw1 The device on which the label is assigned.
+     * @return The DestinationSet of this type.
+     */
+    public static DestinationSet createTypePushBos(int edgeLabel1, DeviceId destSw1) {
+        return new DestinationSet(DestinationSetType.PUSH_BOS, edgeLabel1, destSw1);
+    }
+
+    /**
+     * Returns a DestinationSet with type PUSH_BOS used for paired leafs.
+     *
+     * @param edgeLabel1 The label of first paired leaf.
+     * @param destSw1 The device id of first paired leaf.
+     * @param edgeLabel2 The label of the second leaf.
+     * @param destSw2 The device id of the second leaf.
+     * @return The DestinationSet of this type.
+     */
+    public static DestinationSet createTypePushBos(int edgeLabel1, DeviceId destSw1, int edgeLabel2, DeviceId destSw2) {
+        return new DestinationSet(DestinationSetType.PUSH_BOS, edgeLabel1, destSw1, edgeLabel2, destSw2);
+    }
+
+    /**
+     * Returns a DestinationSet with type POP_BOS.
+     *
+     * @param deviceId The deviceId for this next objective.
+     * @return The DestinationSet of this type.
+     */
+    public static DestinationSet createTypePopBos(DeviceId deviceId) {
+        return new DestinationSet(DestinationSetType.POP_BOS, deviceId);
+    }
+
+    /**
+     * Returns a DestinationSet with type SWAP_BOS.
+     *
+     * @param edgeLabel The edge label to swap with.
+     * @param deviceId The deviceId for this next objective.
+     * @return The DestinationSet of this type.
+     */
+    public static DestinationSet createTypeSwapBos(int edgeLabel, DeviceId deviceId) {
+        return new DestinationSet(DestinationSetType.SWAP_BOS, edgeLabel, deviceId);
+    }
+
+    /**
+     * Returns a DestinationSet with type POP_NOT_BOS.
+     *
+     * @param deviceId The device-id this next objective should be installed.
+     * @return The DestinationSet of this type.
+     */
+    public static DestinationSet createTypePopNotBos(DeviceId deviceId) {
+        return new DestinationSet(DestinationSetType.POP_NOT_BOS, deviceId);
+    }
+
+    /**
+     * Returns a DestinationSet with type SWAP_NOT_BOS.
+     *
+     * @param edgeLabel The edge label to swap with.
+     * @param deviceId The deviceId for this next objective.
+     * @return The DestinationSet of this type.
+     */
+    public static DestinationSet createTypeSwapNotBos(int edgeLabel, DeviceId deviceId) {
+        return new DestinationSet(DestinationSetType.SWAP_NOT_BOS, edgeLabel, deviceId);
     }
 }

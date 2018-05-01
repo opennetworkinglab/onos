@@ -80,6 +80,8 @@ import static org.onlab.packet.IPv6.PROTOCOL_ICMP6;
 import static org.onosproject.segmentrouting.SegmentRoutingManager.INTERNAL_VLAN;
 import static org.onosproject.segmentrouting.SegmentRoutingService.DEFAULT_PRIORITY;
 
+import static org.onosproject.segmentrouting.SegmentRoutingManager.PSEUDOWIRE_VLAN;
+
 /**
  * Populator of segment routing flow rules.
  */
@@ -539,6 +541,7 @@ public class RoutingRulePopulator {
         TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder();
         DestinationSet ds;
         TrafficTreatment treatment;
+        DestinationSet.DestinationSetType dsType;
 
         if (destSw2 == null) {
             // single dst - create destination set based on next-hop
@@ -547,18 +550,17 @@ public class RoutingRulePopulator {
             Set<DeviceId> nhd1 = nextHops.get(destSw1);
             if (nhd1.size() == 1 && nhd1.iterator().next().equals(destSw1)) {
                 tbuilder.immediate().decNwTtl();
-                ds = new DestinationSet(false, false, destSw1);
+                ds = DestinationSet.createTypePushNone(destSw1);
                 treatment = tbuilder.build();
             } else {
-                ds = new DestinationSet(false, false, segmentId1, destSw1);
+                ds = DestinationSet.createTypePushBos(segmentId1, destSw1);
                 treatment = null;
             }
         } else {
             // dst pair - IP rules for dst-pairs are always from other edge nodes
             // the destination set needs to have both destinations, even if there
             // are no next hops to one of them
-            ds = new DestinationSet(false, false, segmentId1, destSw1,
-                                    segmentId2, destSw2);
+            ds = DestinationSet.createTypePushBos(segmentId1, destSw1, segmentId2, destSw2);
             treatment = null;
         }
 
@@ -827,6 +829,7 @@ public class RoutingRulePopulator {
 
         TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder();
         DestinationSet ds = null;
+        DestinationSet.DestinationSetType dstType = null;
         boolean simple = false;
         if (phpRequired) {
             // php case - pop should always be flow-action
@@ -841,17 +844,15 @@ public class RoutingRulePopulator {
                 tbuilder.decNwTtl();
                 // standard case -> BoS == True; pop results in IP packet and forwarding
                 // is via an ECMP group
-                ds = new DestinationSet(false, false, destSw);
+                ds = DestinationSet.createTypePopBos(destSw);
             } else {
                 tbuilder.deferred().popMpls(EthType.EtherType.MPLS_UNICAST.ethType())
                     .decMplsTtl();
                 // double-label case -> BoS == False, pop results in MPLS packet
                 // depending on configuration we can ECMP this packet or choose one output
-                if (srManager.getMplsEcmp()) {
-                    ds = new DestinationSet(true, false, destSw);
-                } else {
-                    ds = new DestinationSet(true, false, destSw);
-                    simple = true;
+                ds = DestinationSet.createTypePopNotBos(destSw);
+                if (!srManager.getMplsEcmp()) {
+                   simple = true;
                 }
             }
         } else {
@@ -860,11 +861,10 @@ public class RoutingRulePopulator {
             tbuilder.deferred().decMplsTtl();
             // swap results in MPLS packet with same BoS bit regardless of bit value
             // depending on configuration we can ECMP this packet or choose one output
-            // XXX reconsider types
-            if (srManager.getMplsEcmp()) {
-                ds = new DestinationSet(false, true, segmentId, destSw);
-            } else {
-                ds = new DestinationSet(false, true, segmentId, destSw);
+            // differentiate here between swap with not bos or swap with bos
+            ds = isBos ? DestinationSet.createTypeSwapBos(segmentId, destSw) :
+                    DestinationSet.createTypeSwapNotBos(segmentId, destSw);
+            if (!srManager.getMplsEcmp()) {
                 simple = true;
             }
         }
@@ -973,6 +973,10 @@ public class RoutingRulePopulator {
         } else if (!hasIPConfiguration(connectPoint)) {
             // Filter for unconfigured upstream port, using INTERNAL_VLAN
             if (!processSinglePortFiltersInternal(deviceId, portnum, true, INTERNAL_VLAN, install)) {
+                return false;
+            }
+            // Filter for receiveing pseudowire traffic
+            if (!processSinglePortFiltersInternal(deviceId, portnum, false, PSEUDOWIRE_VLAN, install)) {
                 return false;
             }
         }
