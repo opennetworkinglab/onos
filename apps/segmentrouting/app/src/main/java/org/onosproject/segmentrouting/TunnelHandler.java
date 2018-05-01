@@ -222,9 +222,10 @@ public class TunnelHandler {
             deviceIds.add(config.getDeviceId(sid));
         }
         // For these NeighborSet isMpls is meaningless.
-        DestinationSet ns = new DestinationSet(false, false,
-                                         tunnel.labelIds().get(2),
-                                         DeviceId.NONE);
+        // TODO : Revisit this, the code and also the type
+        DestinationSet ns = DestinationSet.createTypePushBos(
+                                               tunnel.labelIds().get(2),
+                                               DeviceId.NONE);
 
         // If the tunnel reuses any existing groups, then tunnel handler
         // should not remove the group.

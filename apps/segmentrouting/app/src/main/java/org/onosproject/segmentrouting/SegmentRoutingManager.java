@@ -357,11 +357,14 @@ public class SegmentRoutingManager implements SegmentRoutingService {
      * Segment Routing App ID.
      */
     public static final String APP_NAME = "org.onosproject.segmentrouting";
-
     /**
      * The default VLAN ID assigned to the interfaces without subnet config.
      */
     public static final VlanId INTERNAL_VLAN = VlanId.vlanId((short) 4094);
+    /**
+     * The Vlan id used to transport pseudowire traffic across the network.
+     */
+    public static final VlanId PSEUDOWIRE_VLAN = VlanId.vlanId((short) 4093);
 
     /**
      * Minumum and maximum value of dummy VLAN ID to be allocated.
