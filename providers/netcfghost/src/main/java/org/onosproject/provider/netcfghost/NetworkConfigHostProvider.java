@@ -194,12 +194,17 @@ public class NetworkConfigHostProvider extends AbstractProvider implements HostP
             BasicHostConfig hostConfig =
                     networkConfigRegistry.getConfig(hostId, BasicHostConfig.class);
             Set<IpAddress> ipAddresses = hostConfig.ipAddresses();
-            Set<HostLocation> locations = hostConfig.locations().stream()
-                    .map(hostLocation -> new HostLocation(hostLocation, System.currentTimeMillis()))
-                    .collect(Collectors.toSet());
-            VlanId innerVlan = hostConfig.innerVlan();
-            EthType outerTpid = hostConfig.outerTpid();
-            addHost(mac, vlan, locations, ipAddresses, innerVlan, outerTpid);
+            Set<HostLocation> locs = hostConfig.locations();
+            if (locs != null) {
+                Set<HostLocation> locations = locs.stream()
+                        .map(hostLocation -> new HostLocation(hostLocation, System.currentTimeMillis()))
+                        .collect(Collectors.toSet());
+                VlanId innerVlan = hostConfig.innerVlan();
+                EthType outerTpid = hostConfig.outerTpid();
+                addHost(mac, vlan, locations, ipAddresses, innerVlan, outerTpid);
+            } else {
+                log.warn("Host {} configuration {} is missing locations", hostId, hostConfig);
+            }
         });
     }
 
