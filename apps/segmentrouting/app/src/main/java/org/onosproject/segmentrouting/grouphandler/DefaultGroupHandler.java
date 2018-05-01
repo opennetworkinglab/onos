@@ -984,6 +984,10 @@ public class DefaultGroupHandler {
                                     .setMpls(MplsLabel.mplsLabel(edgeLabel));
                         }
                     }
+                    if ((ds.getTypeOfDstSet() == DestinationSet.DestinationSetType.SWAP_NOT_BOS) ||
+                         (ds.getTypeOfDstSet() == DestinationSet.DestinationSetType.POP_NOT_BOS)) {
+                        tBuilder.setVlanId(srManager.PSEUDOWIRE_VLAN);
+                    }
                     tBuilder.setOutput(sp);
                     nextObjBuilder.addTreatment(tBuilder.build());
                     treatmentAdded = true;
