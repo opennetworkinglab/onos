@@ -239,7 +239,7 @@ public class HostHandler {
                 VlanId oldAssignedVlan = srManager.getInternalVlanId(prevLocation);
                 VlanId newAssignedVlan = srManager.getInternalVlanId(newLocation);
                 // Host is tagged and the new location has the host vlan in vlan-tagged
-                return srManager.getTaggedVlanId(newLocation).contains(hostVlanId) ||
+                return srManager.interfaceService.getTaggedVlanId(newLocation).contains(hostVlanId) ||
                         (oldAssignedVlan != null && newAssignedVlan != null &&
                         // Host is untagged and the new location has the same assigned vlan
                         oldAssignedVlan.equals(newAssignedVlan));
@@ -401,7 +401,7 @@ public class HostHandler {
      */
     private boolean isHostInVlanOfPort(Host host, DeviceId deviceId, ConnectPoint cp) {
         VlanId internalVlan = srManager.getInternalVlanId(cp);
-        Set<VlanId> taggedVlan = srManager.getTaggedVlanId(cp);
+        Set<VlanId> taggedVlan = srManager.interfaceService.getTaggedVlanId(cp);
 
         return taggedVlan.contains(host.vlan()) ||
                 (internalVlan != null && host.locations().stream()

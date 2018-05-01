@@ -18,6 +18,7 @@ package org.onosproject.net.intf;
 
 import java.util.Set;
 
+import com.google.common.collect.ImmutableSet;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.event.ListenerService;
@@ -87,4 +88,43 @@ public interface InterfaceService
      * @return a set of interfaces
      */
     Set<Interface> getMatchingInterfaces(IpAddress ip);
+
+    /**
+     * Returns untagged VLAN configured on given connect point.
+     * <p>
+     * Only returns the first match if there are multiple untagged VLAN configured
+     * on the connect point.
+     *
+     * @param connectPoint connect point
+     * @return untagged VLAN or null if not configured
+     */
+    default VlanId getUntaggedVlanId(ConnectPoint connectPoint) {
+        return null;
+    }
+
+    /**
+     * Returns tagged VLAN configured on given connect point.
+     * <p>
+     * Returns all matches if there are multiple tagged VLAN configured
+     * on the connect point.
+     *
+     * @param connectPoint connect point
+     * @return tagged VLAN or empty set if not configured
+     */
+    default Set<VlanId> getTaggedVlanId(ConnectPoint connectPoint) {
+        return ImmutableSet.of();
+    }
+
+    /**
+     * Returns native VLAN configured on given connect point.
+     * <p>
+     * Only returns the first match if there are multiple native VLAN configured
+     * on the connect point.
+     *
+     * @param connectPoint connect point
+     * @return native VLAN or null if not configured
+     */
+    default VlanId getNativeVlanId(ConnectPoint connectPoint) {
+        return null;
+    }
 }
