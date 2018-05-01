@@ -178,6 +178,7 @@ public class InterfaceManager extends ListenerRegistry<InterfaceEvent, Interface
      * @param connectPoint connect point
      * @return untagged VLAN or null if not configured
      */
+    @Override
     public VlanId getUntaggedVlanId(ConnectPoint connectPoint) {
         return getInterfacesByPort(connectPoint).stream()
                 .filter(intf -> !intf.vlanUntagged().equals(VlanId.NONE))
@@ -194,6 +195,7 @@ public class InterfaceManager extends ListenerRegistry<InterfaceEvent, Interface
      * @param connectPoint connect point
      * @return tagged VLAN or empty set if not configured
      */
+    @Override
     public Set<VlanId> getTaggedVlanId(ConnectPoint connectPoint) {
         Set<Interface> interfaces = getInterfacesByPort(connectPoint);
         return interfaces.stream()
@@ -211,6 +213,7 @@ public class InterfaceManager extends ListenerRegistry<InterfaceEvent, Interface
      * @param connectPoint connect point
      * @return native VLAN or null if not configured
      */
+    @Override
     public VlanId getNativeVlanId(ConnectPoint connectPoint) {
         Set<Interface> interfaces = getInterfacesByPort(connectPoint);
         return interfaces.stream()
