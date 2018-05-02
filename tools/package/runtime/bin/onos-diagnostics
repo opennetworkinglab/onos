@@ -87,6 +87,8 @@ CLI_COMMANDS=(
     "roles"
     "masters"
 
+    "maps"
+
     "fpm-connections"
     "routes"
     "obj-next-ids"
@@ -100,6 +102,7 @@ CLI_COMMANDS=(
     "sr-mcast-next"
     "sr-mcast-tree"
     "sr-mcast-leader"
+    "sr-mcast-role"
     "sr-next-hops"
     "sr-pw-list"
     "dhcp-relay"
