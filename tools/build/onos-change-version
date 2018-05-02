@@ -46,7 +46,7 @@ done
 sed -i".VERBACK" -E "s/-DarchetypeVersion=[^\"]*/-DarchetypeVersion=$NEW_VERSION/g" $ONOS_ROOT/tools/test/bin/onos-archetypes-test
 
 # Fix the onos-build-conf version
-sed -i".VERBACK" -E "s/\<onos-build-conf.version\>.*\<.onos-build-conf.version\>/\<onos-build-conf.version\>$NEW_VERSION\<\/onos-build-conf.version\>/g" $ONOS_ROOT/lib/pom.xml
+sed -i".VERBACK" -E "s/<onos-build-conf.version>.*<\/onos-build-conf.version>/<onos-build-conf.version>$NEW_VERSION<\/onos-build-conf.version>/g" $ONOS_ROOT/lib/pom.xml
 mvn -f tools/build/conf/pom.xml versions:set -DnewVersion=$NEW_VERSION versions:commit
 
 # Version the BUCK artifacts
