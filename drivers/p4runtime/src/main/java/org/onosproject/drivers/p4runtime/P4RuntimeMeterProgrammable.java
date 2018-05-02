@@ -83,6 +83,10 @@ public class P4RuntimeMeterProgrammable extends AbstractP4RuntimeHandlerBehaviou
     @Override
     public CompletableFuture<Boolean> performMeterOperation(MeterOperation meterOp) {
 
+        if (!setupBehaviour()) {
+            return CompletableFuture.completedFuture(false);
+        }
+
         return CompletableFuture.completedFuture(processMeterOp(meterOp));
     }
 
