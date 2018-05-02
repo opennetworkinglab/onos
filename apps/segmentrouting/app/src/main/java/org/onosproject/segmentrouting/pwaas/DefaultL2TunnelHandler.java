@@ -53,7 +53,6 @@ import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.DistributedLock;
-import org.onosproject.store.service.DistributedSet;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageException;
 import org.onosproject.store.service.Versioned;
@@ -116,23 +115,11 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
     private final KryoNamespace.Builder l2TunnelKryo;
 
     /**
-     * Contains transport vlans used for spine-leaf pseudowires.
-     */
-    private final DistributedSet<VlanId> vlanStore;
-
-    /**
      * Lock used when creating or removing pseudowires.
      */
     private final DistributedLock pwLock;
 
     private static final long LOCK_TIMEOUT = 2000;
-
-    /**
-     * Used for determining transport vlans for leaf-spine.
-     */
-    private short transportVlanUpper = 4093, transportVlanLower = 3500;
-
-    private static final VlanId UNTAGGED_TRANSPORT_VLAN = VlanId.vlanId((short) 4094);
 
     /**
      * Create a l2 tunnel handler for the deploy and
@@ -189,15 +176,6 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
                 .withName("onos-l2-pending-tunnel-store")
                 .withSerializer(Serializer.using(l2TunnelKryo.build()))
                 .build();
-
-        vlanStore = srManager.storageService.<VlanId>setBuilder()
-                .withName("onos-transport-vlan-store")
-                .withSerializer(Serializer.using(
-                        new KryoNamespace.Builder()
-                                .register(KryoNamespaces.API)
-                                .build()))
-                .build()
-                .asDistributedSet();
 
         pwLock = srManager.storageService.lockBuilder()
                 .withName(LOCK_NAME)
@@ -286,88 +264,6 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
     }
 
     /**
-     * Manages intermediate filtering rules.
-     *
-     * For leaf-spine-spine pseudowires we need to install a special filtering
-     * rule in the intermediate spine for the appropriate transport vlan.
-     *
-     * @param pw The pseudowire, it will have the path and the transport vlan.
-     */
-    private Result manageIntermediateFiltering(L2TunnelDescription pw, boolean leafSpinePw) {
-
-        // only leaf-spine-spine should need intermediate rules for now
-        if (!leafSpinePw || (pw.l2Tunnel().pathUsed().size() != 2)) {
-            return Result.SUCCESS;
-        }
-
-        List<Link> path = pw.l2Tunnel().pathUsed();
-        DeviceId intermediateSpineId = pw.l2Tunnel().pathUsed().get(0).dst().deviceId();
-        L2Tunnel l2Tunnel = pw.l2Tunnel();
-
-        log.debug("Installing intermediate filtering rules for spine {} , for pseudowire {}",
-                 intermediateSpineId, pw.l2Tunnel().tunnelId());
-
-        MacAddress dstMac;
-        try {
-            dstMac = srManager.deviceConfiguration().getDeviceMac(intermediateSpineId);
-        } catch (Exception e) {
-            log.info("Device not found in configuration, no programming of MAC address");
-            dstMac = null;
-        }
-
-        PortNumber inPort;
-
-        inPort = path.get(0).dst().port();
-
-        log.debug("Populating filtering objective for pseudowire transport" +
-                         " with vlan = {}, port = {}, mac = {} for device {}",
-                 l2Tunnel.transportVlan(),
-                 inPort,
-                 dstMac,
-                 intermediateSpineId);
-
-        FilteringObjective.Builder filteringObjectiveBuilder =
-                createNormalPipelineFiltObjective(inPort, l2Tunnel.transportVlan(), dstMac);
-        DefaultObjectiveContext context = new DefaultObjectiveContext((objective) ->
-                                                                              log.debug("Special filtObj for  " +
-                                                                                                "for {} populated",
-                                                                                        l2Tunnel.tunnelId()),
-                                                                      (objective, error) ->
-                                                                              log.warn("Failed to populate " +
-                                                                                               "special filtObj " +
-                                                                                               "rule for {}: {}",
-                                                                                       l2Tunnel.tunnelId(), error));
-        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
-        filteringObjectiveBuilder.withMeta(treatment.build());
-        srManager.flowObjectiveService.filter(intermediateSpineId, filteringObjectiveBuilder.add(context));
-
-        inPort = path.get(1).src().port();
-
-        log.debug("Populating filtering objective for pseudowire transport" +
-                         " with vlan = {}, port = {}, mac = {} for device {}",
-                 l2Tunnel.transportVlan(),
-                 inPort,
-                 dstMac,
-                 intermediateSpineId);
-
-        filteringObjectiveBuilder =
-                createNormalPipelineFiltObjective(inPort, l2Tunnel.transportVlan(), dstMac);
-        context = new DefaultObjectiveContext((objective) ->
-                                                      log.debug("Special filtObj for  " + "for {} populated",
-                                                                l2Tunnel.tunnelId()),
-                                              (objective, error) ->
-                                                      log.warn("Failed to populate " +
-                                                                       "special filtObj " +
-                                                                       "rule for {}: {}",
-                                                               l2Tunnel.tunnelId(), error));
-        treatment = DefaultTrafficTreatment.builder();
-        filteringObjectiveBuilder.withMeta(treatment.build());
-        srManager.flowObjectiveService.filter(intermediateSpineId, filteringObjectiveBuilder.add(context));
-
-        return Result.SUCCESS;
-    }
-
-    /**
      * Returns the new vlan id for an ingress point of a
      * pseudowire. For double tagged, it is the outer,
      * For single tagged it is the single tag, and for
@@ -388,41 +284,6 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
             return egressInner;
         } else {
             return VlanId.vlanId("None");
-        }
-    }
-
-    /**
-     * Determines vlan used for transporting the pw traffic.
-     *
-     * Leaf-Leaf traffic is transferred untagged, thus we choose the UNTAGGED_TRANSPORT_VLAN
-     * and also make sure to add the popVlan instruction.
-     * For spine-leaf pws we choose the highest vlan value available from a certain range.
-     *
-     * @param spinePw if the pw is leaf-spine.
-     * @return The vlan id chossen to transport this pseudowire. If vlan is UNTAGGED_TRANSPORT_VLAN
-     *         then the pw is transported untagged.
-     */
-    private VlanId determineTransportVlan(boolean spinePw) {
-
-        if (!spinePw) {
-
-            log.debug("Untagged transport with internal vlan {} for pseudowire!", UNTAGGED_TRANSPORT_VLAN);
-            return UNTAGGED_TRANSPORT_VLAN;
-        } else {
-            for (short i = transportVlanUpper; i > transportVlanLower; i--) {
-
-                VlanId vlanToUse = VlanId.vlanId(i);
-                if (!vlanStore.contains(vlanToUse)) {
-
-                    vlanStore.add(vlanToUse);
-                    log.debug("Transport vlan {} for pseudowire!", vlanToUse);
-                    return vlanToUse;
-                }
-            }
-
-            log.warn("No available transport vlan found, pseudowire traffic will be carried untagged " +
-                             "with internal vlan {}!", UNTAGGED_TRANSPORT_VLAN);
-            return UNTAGGED_TRANSPORT_VLAN;
         }
     }
 
@@ -622,7 +483,7 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
             revNextHop = reverseLink(path.get(path.size() - 1));
 
             pw.l2Tunnel().setPath(path);
-            pw.l2Tunnel().setTransportVlan(determineTransportVlan(leafSpinePw));
+            pw.l2Tunnel().setTransportVlan(srManager.PSEUDOWIRE_VLAN);
 
             // next hops for next objectives
             log.info("Deploying process : Establishing forward direction for pseudowire {}", l2TunnelId);
@@ -636,7 +497,6 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
                                           pw.l2TunnelPolicy().cP2(),
                                           FWD,
                                           fwdNextHop,
-                                          leafSpinePw,
                                           oneHop,
                                           egressVlan);
             if (result != SUCCESS) {
@@ -655,14 +515,11 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
                 return Result.INTERNAL_ERROR.appendError("Error in deploying pseudowire policy for CP1");
             }
 
-            PortNumber termPort = pw.l2Tunnel().pathUsed().get(pw.l2Tunnel().pathUsed().size() - 1).dst().port();
             result = deployPseudoWireTerm(pw.l2Tunnel(),
                                           pw.l2TunnelPolicy().cP2(),
                                           egressVlan,
                                           FWD,
-                                          leafSpinePw,
-                                          oneHop,
-                                          termPort);
+                                          oneHop);
 
             if (result != SUCCESS) {
                 log.error("Deploying process : Error in deploying pseudowire {} termination for CP1", l2TunnelId);
@@ -681,7 +538,6 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
                                           pw.l2TunnelPolicy().cP1(),
                                           REV,
                                           revNextHop,
-                                          leafSpinePw,
                                           oneHop,
                                           egressVlan);
             if (result != SUCCESS) {
@@ -702,25 +558,15 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
                         .appendError("Deploying process : Error in deploying policy for CP2");
             }
 
-            termPort = pw.l2Tunnel().pathUsed().get(0).src().port();
             result = deployPseudoWireTerm(pw.l2Tunnel(),
                                           pw.l2TunnelPolicy().cP1(),
                                           egressVlan,
                                           REV,
-                                          leafSpinePw,
-                                          oneHop,
-                                          termPort);
+                                          oneHop);
 
             if (result != SUCCESS) {
                 log.error("Deploying process : Error in deploying pseudowire {} termination for CP2", l2TunnelId);
                 return Result.INTERNAL_ERROR.appendError("Error in deploying pseudowire termination for CP2");
-            }
-
-            result = manageIntermediateFiltering(pw, leafSpinePw);
-            if (result != SUCCESS) {
-                log.error("Deploying process : Error in installing intermediate rules for " +
-                                  "tagged transport for pseudowire {}", l2TunnelId);
-                return Result.INTERNAL_ERROR.appendError("Error in installing intermediate rules for tagged transport");
             }
 
             log.info("Deploying process : Updating relevant information for pseudowire {}", l2TunnelId);
@@ -749,7 +595,7 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
 
         if (pseudowires.size() == 0) {
             String store = ((pending) ? "pending" : "installed");
-            log.error("Pseudowire {} does not exist in {} store", tunnelId, store);
+            log.debug("Pseudowire {} does not exist in {} store", tunnelId, store);
             return Result.WRONG_PARAMETERS.
                     appendError("Pseudowire " + tunnelId + " does not exist in " + store);
         } else {
@@ -805,11 +651,6 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
         L2TunnelDescription pwToRemove = new DefaultL2TunnelDescription(l2TunnelVersioned.value(),
                                                                         l2TunnelPolicyVersioned.value());
 
-        // remove the reserved transport vlan
-        if (!pwToRemove.l2Tunnel().transportVlan().equals(UNTAGGED_TRANSPORT_VLAN)) {
-            vlanStore.remove(pwToRemove.l2Tunnel().transportVlan());
-        }
-
         if (pending) {
             // no need to remove flows / groups for a pseudowire
             // in pending state
@@ -844,13 +685,10 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
 
             fwdTermNextFuture.thenAcceptAsync(status -> {
                 if (status == null) {
-                    PortNumber termPort = pwToRemove.l2Tunnel().pathUsed()
-                            .get(pwToRemove.l2Tunnel().pathUsed().size() - 1).dst().port();
                     tearDownPseudoWireTerm(pwToRemove.l2Tunnel(),
                                            pwToRemove.l2TunnelPolicy().cP2(),
                                            null,
-                                           FWD,
-                                           termPort);
+                                           FWD);
                 }
             });
         }
@@ -883,12 +721,10 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
 
             revTermNextFuture.thenAcceptAsync(status -> {
                 if (status == null) {
-                    PortNumber termPort = pwToRemove.l2Tunnel().pathUsed().get(0).src().port();
                     tearDownPseudoWireTerm(pwToRemove.l2Tunnel(),
                                            pwToRemove.l2TunnelPolicy().cP1(),
                                            null,
-                                           REV,
-                                           termPort);
+                                           REV);
                 }
             });
         }
@@ -1017,12 +853,14 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
      * @param ingress   the ingress connect point
      * @param egress    the egress connect point
      * @param direction the direction of the pw
-     * @param spinePw if the pseudowire involves a spine switch
+     * @param nextHop next hop of the initiation point
+     * @param oneHop if this pseudowire has only one link
+     * @param termVlanId the termination vlan id
      * @return the result of the operation
      */
     private Result deployPseudoWireInit(L2Tunnel l2Tunnel, ConnectPoint ingress,
                                         ConnectPoint egress, Direction direction,
-                                        Link nextHop, boolean spinePw, boolean oneHop, VlanId termVlanId) {
+                                        Link nextHop, boolean oneHop, VlanId termVlanId) {
         log.debug("Started deploying init next objectives for pseudowire {} for tunnel {} -> {}.",
                   l2Tunnel.tunnelId(), ingress, egress);
         if (nextHop == null) {
@@ -1038,7 +876,6 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
                                                                          nextHop.dst(),
                                                                          l2Tunnel,
                                                                          egress.deviceId(),
-                                                                         spinePw,
                                                                          oneHop,
                                                                          termVlanId);
 
@@ -1085,21 +922,17 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
      * @param egress     the egress point
      * @param egressVlan the expected vlan at egress
      * @param direction  the direction
-     * @param spinePw if the pseudowire involves a spine switch
-     * @param inputTermPort the input port at the termination point for the pseudowire, used for installing special
-     *                      filtering rules at the termination
      * @return the result of the operation
      */
     private Result deployPseudoWireTerm(L2Tunnel l2Tunnel, ConnectPoint egress,
                                         VlanId egressVlan, Direction direction,
-                                        boolean spinePw, boolean oneHop, PortNumber inputTermPort) {
+                                        boolean oneHop) {
         log.debug("Started deploying termination objectives for pseudowire {} , direction {}.",
                   l2Tunnel.tunnelId(), direction == FWD ? "forward" : "reverse");
 
         // We create the group relative to the termination.
         NextObjective.Builder nextObjectiveBuilder = createNextObjective(TERMINATION, egress, null,
                                                                          l2Tunnel, egress.deviceId(),
-                                                                         spinePw,
                                                                          oneHop,
                                                                          egressVlan);
         if (nextObjectiveBuilder == null) {
@@ -1143,72 +976,9 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
         log.debug("Creating new FwdObj for termination NextObj with id={} for tunnel {}",
                   nextId, l2Tunnel.tunnelId());
 
-        if (spinePw) {
-
-            MacAddress dstMac;
-            try {
-                dstMac = srManager.deviceConfiguration().getDeviceMac(egress.deviceId());
-            } catch (Exception e) {
-                log.info("Device not found in configuration, no programming of MAC address");
-                dstMac = null;
-            }
-
-            log.info("Populating filtering objective for pseudowire transport" +
-                             " with vlan = {}, port = {}, mac = {}",
-                     l2Tunnel.transportVlan(),
-                     inputTermPort,
-                     dstMac);
-            FilteringObjective.Builder filteringObjectiveBuilder =
-                    createNormalPipelineFiltObjective(inputTermPort, l2Tunnel.transportVlan(), dstMac);
-            context = new DefaultObjectiveContext((objective) ->
-                                                          log.debug("Special filtObj for  " + "for {} populated",
-                                                                    l2Tunnel.tunnelId()),
-                                                  (objective, error) ->
-                                                          log.warn("Failed to populate " +
-                                                                           "special filtObj " +
-                                                                           "rule for {}: {}",
-                                                                                   l2Tunnel.tunnelId(), error));
-            TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
-            filteringObjectiveBuilder.withMeta(treatment.build());
-            srManager.flowObjectiveService.filter(egress.deviceId(), filteringObjectiveBuilder.add(context));
-            log.debug("Creating new special FiltObj for termination point with tunnel {} for port {}",
-                      l2Tunnel.tunnelId(),
-                      inputTermPort);
-        }
-
         return SUCCESS;
     }
 
-
-    /**
-     * Creates the filtering objective according to a given port and vlanid.
-     *
-     * @param inPort   the in port
-     * @param vlanId the inner vlan tag
-     * @return the filtering objective
-     */
-    private FilteringObjective.Builder createNormalPipelineFiltObjective(PortNumber inPort,
-                                                                         VlanId vlanId,
-                                                                         MacAddress dstMac) {
-
-        log.debug("Creating filtering objective for pseudowire intermediate transport with vlan={}, port={}, mac={}",
-                 vlanId,
-                 inPort,
-                 dstMac);
-        FilteringObjective.Builder fwdBuilder = DefaultFilteringObjective
-                .builder()
-                .withKey(Criteria.matchInPort(inPort))
-                .addCondition(Criteria.matchVlanId(vlanId))
-                .withPriority(SegmentRoutingService.DEFAULT_PRIORITY)
-                .permit()
-                .fromApp(srManager.appId());
-
-        if (dstMac != null) {
-            fwdBuilder.addCondition(Criteria.matchEthDst(dstMac));
-        }
-
-        return fwdBuilder;
-    }
 
     /**
      * Creates the filtering objective according to a given policy.
@@ -1311,14 +1081,13 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
      * @param l2Tunnel the tunnel to support
      * @param egressId the egress device id
      * @param oneHop if the pw only has one hop, push only pw label
-     * @param leafSpinePw true if we want instantiate a leaf-spine or leaf-spine-spine pw
      * @param termVlanId the outer vlan id of the packet exiting a termination point
      * @return the next objective to support the pipeline
      */
     private NextObjective.Builder createNextObjective(Pipeline pipeline, ConnectPoint srcCp,
                                                       ConnectPoint dstCp,  L2Tunnel l2Tunnel,
-                                                      DeviceId egressId, boolean leafSpinePw,
-                                                      boolean oneHop, VlanId termVlanId) {
+                                                      DeviceId egressId, boolean oneHop,
+                                                      VlanId termVlanId) {
         log.debug("Creating {} next objective for pseudowire {}.",
                   pipeline == TERMINATION ? "termination" : "inititation");
 
@@ -1386,13 +1155,6 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
             }
             treatmentBuilder.setEthDst(neighborMac);
 
-            // if true we need to pop the vlan because
-            // we instantiate a leaf to leaf pseudowire
-            if (!leafSpinePw) {
-                log.debug("We should carry traffic UNTAGGED for pseudowire {}", l2Tunnel.tunnelId());
-                treatmentBuilder.popVlan();
-            }
-
             // set the appropriate transport vlan from tunnel information
             treatmentBuilder.setVlanId(l2Tunnel.transportVlan());
         } else {
@@ -1404,7 +1166,7 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
                     .fromApp(srManager.appId());
 
             // for termination point we use the outer vlan of the
-            // encapsulated packet
+            // encapsulated packet for the vlan
             treatmentBuilder.setVlanId(termVlanId);
         }
 
@@ -1625,8 +1387,7 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
     private void tearDownPseudoWireTerm(L2Tunnel l2Tunnel,
                                         ConnectPoint egress,
                                         CompletableFuture<ObjectiveError> future,
-                                        Direction direction,
-                                        PortNumber inPort) {
+                                        Direction direction) {
         log.debug("Starting tearing down termination for pseudowire {} direction {}.",
                   l2Tunnel.tunnelId(), direction == FWD ? "forward" : "reverse");
         String key = generateKey(l2Tunnel.tunnelId(), direction);
@@ -1681,40 +1442,6 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
         };
         srManager.flowObjectiveService.next(egress.deviceId(), (NextObjective) nextObjective.copy().remove(context));
         */
-
-        // delete the extra filtering objective for terminating
-        // spine-spine pws
-        if (!l2Tunnel.transportVlan().equals(UNTAGGED_TRANSPORT_VLAN)) {
-
-            MacAddress dstMac;
-            try {
-                dstMac = srManager.deviceConfiguration().getDeviceMac(egress.deviceId());
-            } catch (Exception e) {
-                log.error("Device not found in configuration, no programming of MAC address");
-                dstMac = null;
-            }
-
-            log.info("Removing filtering objective for pseudowire transport" +
-                             " with vlan = {}, port = {}, mac = {}",
-                     l2Tunnel.transportVlan(),
-                     inPort,
-                     dstMac);
-            FilteringObjective.Builder filteringObjectiveBuilder =
-                    createNormalPipelineFiltObjective(inPort, l2Tunnel.transportVlan(), dstMac);
-            context = new DefaultObjectiveContext((objective) ->
-                                                          log.debug("Special filtObj for  " + "for {} removed",
-                                                                    l2Tunnel.tunnelId()),
-                                                  (objective, error) ->
-                                                          log.warn("Failed to populate " + "special filtObj " +
-                                                                           "rule for {}: {}",
-                                                                   l2Tunnel.tunnelId(), error));
-            TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
-            filteringObjectiveBuilder.withMeta(treatment.build());
-            srManager.flowObjectiveService.filter(egress.deviceId(), filteringObjectiveBuilder.remove(context));
-            log.debug("Removing special FiltObj for termination point with tunnel {} for port {}",
-                      l2Tunnel.tunnelId(),
-                      inPort);
-        }
 
         l2TerminationNextObjStore.remove(key);
         future.complete(null);
