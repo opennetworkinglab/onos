@@ -101,7 +101,7 @@ public class NetconfDeviceConfig extends Config<DeviceId> {
 
     /**
      * Gets the NETCONF SSH Client implementation.
-     * Expecting "apache-mina" or "ethz-ssh2"
+     * Expecting "apache-mina"
      *
      * @return sshClient
      */
@@ -192,7 +192,7 @@ public class NetconfDeviceConfig extends Config<DeviceId> {
 
     /**
      * Sets the NETCONF Ssh client implementation for the Device.
-     * Must be 'apache-mina' or 'ethz-ssh2'
+     * Must be 'apache-mina'
      * When specified, overrides NetconfControllerImpl.sshLibrary for this device
      *
      * @param sshimpl sshimpl as string

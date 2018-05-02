@@ -71,8 +71,6 @@ import static org.onlab.util.Tools.groupedThreads;
 @Service
 public class NetconfControllerImpl implements NetconfController {
 
-    private static final String ETHZ_SSH2 = "ethz-ssh2";
-
     protected static final int DEFAULT_CONNECT_TIMEOUT_SECONDS = 5;
     private static final String PROP_NETCONF_CONNECT_TIMEOUT = "netconfConnectTimeout";
     // FIXME @Property should not be static
@@ -97,7 +95,7 @@ public class NetconfControllerImpl implements NetconfController {
     private static final String SSH_LIBRARY = "sshLibrary";
     private static final String APACHE_MINA_STR = "apache-mina";
     @Property(name = SSH_LIBRARY, value = APACHE_MINA_STR,
-            label = "Ssh Library instead of apache_mina (i.e. ethz-ssh2")
+            label = "Ssh client library to use")
     protected NetconfSshClientLib sshLibrary = NetconfSshClientLib.APACHE_MINA;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -351,13 +349,6 @@ public class NetconfControllerImpl implements NetconfController {
         @Override
         public NetconfDevice createNetconfDevice(NetconfDeviceInfo netconfDeviceInfo)
                 throws NetconfException {
-            if (NetconfSshClientLib.ETHZ_SSH2.equals(netconfDeviceInfo.sshClientLib().orElse(null)) ||
-                    NetconfSshClientLib.ETHZ_SSH2.equals(sshLibrary)) {
-                log.info("Creating NETCONF session to {} with {}",
-                            netconfDeviceInfo.name(), NetconfSshClientLib.ETHZ_SSH2);
-                return new DefaultNetconfDevice(netconfDeviceInfo,
-                            new NetconfSessionImpl.SshNetconfSessionFactory());
-            }
             log.info("Creating NETCONF session to {} with {}",
                     netconfDeviceInfo.getDeviceId(), NetconfSshClientLib.APACHE_MINA);
             return new DefaultNetconfDevice(netconfDeviceInfo);

@@ -30,6 +30,7 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.sshd.common.NamedFactory;
@@ -39,6 +40,7 @@ import org.apache.sshd.server.Environment;
 import org.apache.sshd.server.ExitCallback;
 import org.apache.sshd.server.SessionAware;
 import org.apache.sshd.server.session.ServerSession;
+import org.onosproject.netconf.DatastoreId;
 import org.onosproject.netconf.ctl.impl.NetconfStreamThread.NetconfMessageState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,7 +73,7 @@ public class NetconfSshdTestSubsystem extends Thread implements Command, Runnabl
          *                        <B>Note:</B> the service will <U>not</U> be shutdown when the
          *                        subsystem is closed - unless it is the ad-hoc service, which will be
          *                        shutdown regardless
-         * @see Factory(ExecutorService, boolean)}
+         * @see #Factory(ExecutorService, boolean)
          */
         public Factory(ExecutorService executorService) {
             this(executorService, false);
@@ -132,6 +134,92 @@ public class NetconfSshdTestSubsystem extends Thread implements Command, Runnabl
     private boolean closed = false;
     private NetconfMessageState state;
     private PrintWriter outputStream;
+
+    private static final String SAMPLE_REQUEST =
+    "<some-yang-element xmlns=\"some-namespace\">"
+            + "<some-child-element/>"
+            + "</some-yang-element>";
+    public static final Pattern GET_REQ_PATTERN =
+    Pattern.compile("(<\\?xml version=\"1.0\" encoding=\"UTF-8\"\\?>)\\R?"
+            + "(<rpc message-id=\")[0-9]*(\"  xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\">)\\R?"
+            + "(<get>)\\R?"
+            + "(<filter type=\"subtree\">).*(</filter>)\\R?"
+            + "(</get>)\\R?(</rpc>)\\R?", Pattern.DOTALL);
+    public static final Pattern GET_CONFIG_REQ_PATTERN =
+    Pattern.compile("(<\\?xml version=\"1.0\" encoding=\"UTF-8\"\\?>)\\R?"
+            + "(<rpc message-id=\")[0-9]*(\"  xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\">)\\R?"
+            + "(<get-config>)\\R?" + "(<source>)\\R?((<"
+            + DatastoreId.CANDIDATE.toString()
+            + "/>)|(<" + DatastoreId.RUNNING.toString()
+            + "/>)|(<" + DatastoreId.STARTUP.toString()
+            + "/>))\\R?(</source>)\\R?"
+            + "(<filter type=\"subtree\">).*(</filter>)\\R?"
+            + "(</get-config>)\\R?(</rpc>)\\R?", Pattern.DOTALL);
+    public static final Pattern COPY_CONFIG_REQ_PATTERN =
+    Pattern.compile("(<\\?xml version=\"1.0\" encoding=\"UTF-8\"\\?>)\\R?"
+            + "(<rpc xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\" message-id=\")[0-9]*(\">)\\R?"
+            + "(<copy-config>)\\R?"
+            + "(<target>\\R?"
+            + "("
+            + "(<" + DatastoreId.CANDIDATE.toString() + "/>)|"
+            + "(<" + DatastoreId.RUNNING.toString() + "/>)|"
+            + "(<" + DatastoreId.STARTUP.toString() + "/>)"
+            + ")\\R?"
+            + "</target>)\\R?"
+            + "(<source>)\\R?"
+            + "("
+            + "(<config>)(.*)(</config>)|"
+            + "(<" + DatastoreId.CANDIDATE.toString() + "/>)|"
+            + "(<" + DatastoreId.RUNNING.toString() + "/>)|"
+            + "(<" + DatastoreId.STARTUP.toString() + "/>)"
+            + ")\\R?"
+            + "(</source>)\\R?"
+            + "(</copy-config>)\\R?(</rpc>)\\R?", Pattern.DOTALL);
+    public static final Pattern UNLOCK_REQ_PATTERN =
+    Pattern.compile("(<\\?xml version=\"1.0\" encoding=\"UTF-8\"\\?>)\\R?"
+            + "(<rpc xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\" "
+            + "message-id=\")[0-9]*(\">)\\R?"
+            + "(<unlock>)\\R?"
+            + "(<target>\\R?((<" + DatastoreId.CANDIDATE.toString() + "/>)|"
+            + "(<" + DatastoreId.RUNNING.toString() + "/>)|"
+            + "(<" + DatastoreId.STARTUP.toString() + "/>))\\R?</target>)\\R?"
+            + "(</unlock>)\\R?(</rpc>)\\R?", Pattern.DOTALL);
+    public static final Pattern LOCK_REQ_PATTERN =
+    Pattern.compile("(<\\?xml version=\"1.0\" encoding=\"UTF-8\"\\?>)\\R?"
+            + "(<rpc xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\" "
+            + "message-id=\")[0-9]*(\">)\\R?"
+            + "(<lock>)\\R?"
+            + "(<target>\\R?((<" + DatastoreId.CANDIDATE.toString() + "/>)|"
+            + "(<" + DatastoreId.RUNNING.toString() + "/>)|"
+            + "(<" + DatastoreId.STARTUP.toString() + "/>))\\R?</target>)\\R?"
+            + "(</lock>)\\R?(</rpc>)\\R?", Pattern.DOTALL);
+    public static final Pattern EDIT_CONFIG_REQ_PATTERN =
+    Pattern.compile("(<\\?xml version=\"1.0\" encoding=\"UTF-8\"\\?>)\\R?"
+            + "(<rpc message-id=\")[0-9]*(\") *(xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\">)\\R?"
+            + "(<edit-config>)\\R?"
+            + "(<target>\\R?((<" + DatastoreId.CANDIDATE.toString() + "/>)|"
+            + "(<" + DatastoreId.RUNNING.toString() + "/>)|"
+            + "(<" + DatastoreId.STARTUP.toString() + "/>))\\R?</target>)\\R?"
+            + "(<config xmlns:nc=\"urn:ietf:params:xml:ns:netconf:base:1.0\">)\\R?"
+            + ".*"
+            + "(</config>)\\R?(</edit-config>)\\R?(</rpc>)\\R?", Pattern.DOTALL);
+    public static final Pattern HELLO_REQ_PATTERN_1_1 =
+    Pattern.compile("(<\\?xml version=\"1.0\" encoding=\"UTF-8\"\\?>)\\R?"
+                    + "(<hello xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\">)\\R?"
+                    + "( *)(<capabilities>)\\R?"
+                    + "( *)(<capability>urn:ietf:params:netconf:base:1.0</capability>)\\R?"
+                    + "( *)(<capability>urn:ietf:params:netconf:base:1.1</capability>)\\R?"
+                    + "( *)(</capabilities>)\\R?"
+                    + "(</hello>)\\R? *",
+            Pattern.DOTALL);
+    public static final Pattern HELLO_REQ_PATTERN =
+    Pattern.compile("(<\\?xml).*"
+                    + "(<hello xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\">)\\R?"
+                    + "( *)(<capabilities>)\\R?"
+                    + "( *)(<capability>urn:ietf:params:netconf:base:1.0</capability>)\\R?"
+                    + "( *)(</capabilities>)\\R?"
+                    + "(</hello>)\\R? *",
+            Pattern.DOTALL);
 
     public NetconfSshdTestSubsystem() {
         this(null);
@@ -200,25 +288,25 @@ public class NetconfSshdTestSubsystem extends Thread implements Command, Runnabl
                                 session.getSessionId(), messageId, deviceRequest);
                         synchronized (outputStream) {
 
-                            if (NetconfSessionImplTest.HELLO_REQ_PATTERN.matcher(deviceRequest).matches()) {
+                            if (HELLO_REQ_PATTERN.matcher(deviceRequest).matches()) {
 
                                 String helloReply =
-                                        NetconfSessionImplTest.getTestHelloReply(Optional.of(ByteBuffer.wrap(
+                                        getTestHelloReply(Optional.of(ByteBuffer.wrap(
                                                 session.getSessionId()).asLongBuffer().get()), false);
                                 outputStream.write(helloReply + END_PATTERN);
                                 outputStream.flush();
-                            } else if (NetconfSessionImplTest.HELLO_REQ_PATTERN_1_1.matcher(deviceRequest).matches()) {
+                            } else if (HELLO_REQ_PATTERN_1_1.matcher(deviceRequest).matches()) {
 
                                 String helloReply =
-                                        NetconfSessionImplTest.getTestHelloReply(Optional.of(ByteBuffer.wrap(
+                                        getTestHelloReply(Optional.of(ByteBuffer.wrap(
                                                 session.getSessionId()).asLongBuffer().get()), true);
                                 outputStream.write(helloReply + END_PATTERN);
                                 outputStream.flush();
                             } else {
-                                Pair replyClosedPair = dealWithRequest(deviceRequest, messageId);
-                                String reply = (String) replyClosedPair.getLeft();
+                                Pair<String, Boolean> replyClosedPair = dealWithRequest(deviceRequest, messageId);
+                                String reply = replyClosedPair.getLeft();
                                 if (reply != null) {
-                                    Boolean newSockedClosed = (Boolean) replyClosedPair.getRight();
+                                    Boolean newSockedClosed = replyClosedPair.getRight();
                                     socketClosed = newSockedClosed.booleanValue();
                                     outputStream.write(reply + END_PATTERN);
                                     outputStream.flush();
@@ -241,17 +329,17 @@ public class NetconfSshdTestSubsystem extends Thread implements Command, Runnabl
 
                         synchronized (outputStream) {
 
-                            if (NetconfSessionImplTest.HELLO_REQ_PATTERN.matcher(deviceRequest).matches()) {
+                            if (HELLO_REQ_PATTERN.matcher(deviceRequest).matches()) {
                                 String helloReply =
-                                        NetconfSessionImplTest.getTestHelloReply(Optional.of(ByteBuffer.wrap(
+                                        getTestHelloReply(Optional.of(ByteBuffer.wrap(
                                                 session.getSessionId()).asLongBuffer().get()), true);
                                 outputStream.write(helloReply + END_PATTERN);
                                 outputStream.flush();
                             } else {
-                                Pair replyClosedPair = dealWithRequest(deviceRequest, messageId);
-                                String reply = (String) replyClosedPair.getLeft();
+                                Pair<String, Boolean> replyClosedPair = dealWithRequest(deviceRequest, messageId);
+                                String reply = replyClosedPair.getLeft();
                                 if (reply != null) {
-                                    Boolean newSockedClosed = (Boolean) replyClosedPair.getRight();
+                                    Boolean newSockedClosed = replyClosedPair.getRight();
                                     socketClosed = newSockedClosed.booleanValue();
                                     outputStream.write(formatChunkedMessage(reply));
                                     outputStream.flush();
@@ -307,17 +395,17 @@ public class NetconfSshdTestSubsystem extends Thread implements Command, Runnabl
     }
 
     private Pair<String, Boolean> dealWithRequest(String deviceRequest, Optional<Integer> messageId) {
-        if (NetconfSessionImplTest.EDIT_CONFIG_REQ_PATTERN.matcher(deviceRequest).matches()
-                || NetconfSessionImplTest.COPY_CONFIG_REQ_PATTERN.matcher(deviceRequest).matches()
-                || NetconfSessionImplTest.LOCK_REQ_PATTERN.matcher(deviceRequest).matches()
-                || NetconfSessionImplTest.UNLOCK_REQ_PATTERN.matcher(deviceRequest).matches()) {
-            return Pair.of(NetconfSessionImplTest.getOkReply(messageId), false);
+        if (EDIT_CONFIG_REQ_PATTERN.matcher(deviceRequest).matches()
+                || COPY_CONFIG_REQ_PATTERN.matcher(deviceRequest).matches()
+                || LOCK_REQ_PATTERN.matcher(deviceRequest).matches()
+                || UNLOCK_REQ_PATTERN.matcher(deviceRequest).matches()) {
+            return Pair.of(getOkReply(messageId), false);
 
-        } else if (NetconfSessionImplTest.GET_CONFIG_REQ_PATTERN.matcher(deviceRequest).matches()
-                || NetconfSessionImplTest.GET_REQ_PATTERN.matcher(deviceRequest).matches()) {
-            return Pair.of(NetconfSessionImplTest.getGetReply(messageId), false);
+        } else if (GET_CONFIG_REQ_PATTERN.matcher(deviceRequest).matches()
+                || GET_REQ_PATTERN.matcher(deviceRequest).matches()) {
+            return Pair.of(getGetReply(messageId), false);
         } else if (deviceRequest.contains(CLOSE_SESSION)) {
-            return Pair.of(NetconfSessionImplTest.getOkReply(messageId), true);
+            return Pair.of(getOkReply(messageId), true);
         } else {
             log.error("Unexpected NETCONF message structure on session {} : {}",
                     ByteBuffer.wrap(
@@ -414,5 +502,60 @@ public class NetconfSshdTestSubsystem extends Thread implements Command, Runnabl
 
     protected void process(Buffer buffer) throws IOException {
         log.warn("Receieved buffer:" + buffer);
+    }
+
+    public static String getTestHelloReply(Collection<String> capabilities, Optional<Long> sessionId) {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("<hello xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\">");
+        sb.append("<capabilities>");
+        capabilities.forEach(capability -> {
+            sb.append("<capability>").append(capability).append("</capability>");
+        });
+        sb.append("</capabilities>");
+        if (sessionId.isPresent()) {
+            sb.append("<session-id>");
+            sb.append(sessionId.get().toString());
+            sb.append("</session-id>");
+        }
+        sb.append("</hello>");
+
+        return sb.toString();
+    }
+
+    public static String getTestHelloReply(Optional<Long> sessionId, boolean useChunkedFraming) {
+        if (useChunkedFraming) {
+            return getTestHelloReply(NetconfSessionMinaImplTest.DEFAULT_CAPABILITIES_1_1, sessionId);
+        } else {
+            return getTestHelloReply(NetconfSessionMinaImplTest.DEFAULT_CAPABILITIES, sessionId);
+        }
+    }
+
+    public static String getGetReply(Optional<Integer> messageId) {
+        StringBuilder sb = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+        sb.append("<rpc-reply xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\" ");
+        if (messageId.isPresent()) {
+            sb.append("message-id=\"");
+            sb.append(String.valueOf(messageId.get()));
+            sb.append("\">");
+        }
+        sb.append("<data>\n");
+        sb.append(SAMPLE_REQUEST);
+        sb.append("</data>\n");
+        sb.append("</rpc-reply>");
+        return sb.toString();
+    }
+
+    public static String getOkReply(Optional<Integer> messageId) {
+        StringBuilder sb = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+        sb.append("<rpc-reply xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\" ");
+        if (messageId.isPresent()) {
+            sb.append("message-id=\"");
+            sb.append(String.valueOf(messageId.get()));
+            sb.append("\">");
+        }
+        sb.append("<ok/>");
+        sb.append("</rpc-reply>");
+        return sb.toString();
     }
 }

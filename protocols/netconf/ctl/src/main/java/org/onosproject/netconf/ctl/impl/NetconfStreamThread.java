@@ -62,13 +62,10 @@ public class NetconfStreamThread extends Thread implements NetconfStreamHandler 
     // pattern to verify whole Chunked-Message format
     private static final Pattern CHUNKED_FRAMING_PATTERN =
             Pattern.compile("(\\n#([1-9][0-9]*)\\n(.+))+\\n##\\n", Pattern.DOTALL);
-    private static final String MSGLEN_PART_REGEX_PATTERN = "\\d+\n";
     private static final String CHUNKED_END_REGEX_PATTERN = "\n##\n";
     // pattern to parse each chunk-size in ChunkedMessage chunk
     private static final Pattern CHUNKED_SIZE_PATTERN = Pattern.compile("\\n#([1-9][0-9]*)\\n");
-    private static final String HASH = "#";
     private static final char HASH_CHAR = '#';
-    private static final String LF = "\n";
     private static final char LF_CHAR = '\n';
 
     private OutputStreamWriter outputStream;
