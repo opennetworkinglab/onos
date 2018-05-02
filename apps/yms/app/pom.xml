@@ -22,7 +22,7 @@
     <parent>
         <artifactId>onos-yms</artifactId>
         <groupId>org.onosproject</groupId>
-        <version>1.12.1-SNAPSHOT</version>
+        <version>1.12.1-rc5</version>
     </parent>
 
     <artifactId>onos-app-yms</artifactId>
