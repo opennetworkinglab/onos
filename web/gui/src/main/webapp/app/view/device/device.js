@@ -88,7 +88,7 @@
             'URI': device.id,
             'Type': device.type,
             'Master ID': details['masterid'],
-            'Chassis ID': details['chassid'],
+            'Chassis ID': details['chassisid'],
             'Vendor': device.mfr,
             'H/W Version': device.hw,
             'S/W Version': device.sw,
