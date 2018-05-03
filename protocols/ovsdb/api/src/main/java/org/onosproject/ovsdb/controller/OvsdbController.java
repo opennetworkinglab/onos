@@ -86,4 +86,13 @@ public interface OvsdbController {
      * @param failhandler connection failure handler
      */
     void connect(IpAddress ip, TpPort port, Consumer<Exception> failhandler);
+
+    /**
+     * Configure the OVSDB instance to run as a server mode.
+     * If this mode is configured as true, then OVSDB will run as both OVSDB client and server.
+     * If this mode is configured as false, then OVSDB will run as OVS client only.
+     *
+     * @param serverMode server mode flag
+     */
+    void setServerMode(boolean serverMode);
 }
