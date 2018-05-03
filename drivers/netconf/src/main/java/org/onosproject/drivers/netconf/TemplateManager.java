@@ -47,7 +47,7 @@ public final class TemplateManager {
     private static final Logger log = getLogger(TemplateManager.class);
     private final Map<String, String> templates = new HashMap<String, String>();
     private TemplateRequestDriver requestDriver;
-    public static final Map<String, Object> EMPTY_TEMPLATE_CONTEXT = new HashMap<String, Object>();
+    private static final Map<String, Object> EMPTY_TEMPLATE_CONTEXT = new HashMap<String, Object>();
 
     /**
      * Internal implementation of the request driver that implements a NETCONF
