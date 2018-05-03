@@ -7,7 +7,7 @@ The User Guide for this product is available on request from Microsemi, and give
 Currently only a subset of it's functionality is supported through ONOS, but this will expand to full functionality in future releases.
 
 # Compile and Installation
-Currently this driver is built using BUCK and uses version 2.1 of onos-yang-tools<br/>
+Currently this driver is built using BUCK<br/>
 
 All that is required to activate the driver is to run the following at the ONOS CLI<br/>
 **`onos:app activate org.onosproject.drivers.microsemi`**<br/>
@@ -39,7 +39,7 @@ EA1000 Devices will not be automatically discovered at present in ONOS. They hav
         "port": 830,
         "connect-timeout": 50,
         "reply-timeout": 50,
-        "idle-timeout": 40 
+        "idle-timeout": 40
       },
       "basic": {
         "driver": "microsemi-netconf",
@@ -58,7 +58,7 @@ When the EA1000 is configured and connected is should be visible in ONOS through
 
 ```
 onos> devices
-id=netconf:192.168.56.10:830, available=true, local-status=connected 33s ago, role=MASTER, type=SWITCH, mfr=Microsemi, hw=EA1000, sw=4.4.0-53-generic, serial=Eagle Simulator., driver=microsemi-netconf, ipaddress=192.168.56.10, latitude=51.8865467, locType=geo, longitude=-8.4040440, name=netconf:192.168.56.10:830, port=830, protocol=NETCONF 
+id=netconf:192.168.56.10:830, available=true, local-status=connected 33s ago, role=MASTER, type=SWITCH, mfr=Microsemi, hw=EA1000, sw=4.4.0-53-generic, serial=Eagle Simulator., driver=microsemi-netconf, ipaddress=192.168.56.10, latitude=51.8865467, locType=geo, longitude=-8.4040440, name=netconf:192.168.56.10:830, port=830, protocol=NETCONF
 ```
 
 Note how the
@@ -404,7 +404,7 @@ In ONOS Maintenance Domains and Maintenance Associations beneath them are create
 
 The Maintenance Association Endpoint - MEP (the child of the Maintenance Association, and grandchild of the Maintenance Domain) is also a logical entity but has a hard many:1 association to a device that supports the CfmMepProgrammable behaviour. EA1000 is one such device, and so one to many MEPs can be associated with an EA1000 device.
 
-For example to create an Maintenance Domain in ONOS the following might be POSTed to 
+For example to create an Maintenance Domain in ONOS the following might be POSTed to
 `POST http://localhost:8181/onos/cfm/md HTTP/1.1`</br>
 ```js
 {"md": {
@@ -474,7 +474,7 @@ When the MEP is created a configuration is written down to the EA1000 device at 
    <name-type>CHARACTER_STRING</name-type>
    <component-list>
      <tag-type>vlan-stag</tag-type>
-     <vid>1</vid> 
+     <vid>1</vid>
    </component-list>
    <remote-mep>10</remote-mep>
    <remote-mep>20</remote-mep>

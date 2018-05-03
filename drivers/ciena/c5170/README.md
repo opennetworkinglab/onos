@@ -10,7 +10,7 @@ More information about ONOS's NETCONF support can be found at `https://wiki.onos
 
 ## Compile and Installation
 
-Currently this driver is built using BUCK and uses version 2.1 of onos-yang-tools<br/>
+Currently this driver is built using BUCK<br/>
 
 All that is required to activate the driver is to run the following at the ONOS CLI
 
@@ -60,7 +60,7 @@ curl -X POST
 
 When the 5170 is configured and connected is should be visible in ONOS through the `devices` command.
 
-```bash 
-onos> devices 
+```bash
+onos> devices
 id=netconf:10.184.136.181:830, available=true, local-status=connected 1s ago, role=MASTER, type=SWITCH, mfr=Ciena, hw=CN5170, sw=saos-01-01-00-0025, serial=1C1161D18800, driver=ciena-5170-netconf, gridX=null, gridY=null, ipaddress=10.184.136.181, latitude=null, locType=none, longitude=null, name=s6, port=830, protocol=NETCONF
 ```
