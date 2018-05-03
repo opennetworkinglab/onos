@@ -36,7 +36,7 @@
         <module>openroadm</module>
         <module>l3vpn</module>
         <module>tapi</module>
-        <module>ciena</module>
+        <module>ciena/waveserverai</module>
     </modules>
 
 </project>
