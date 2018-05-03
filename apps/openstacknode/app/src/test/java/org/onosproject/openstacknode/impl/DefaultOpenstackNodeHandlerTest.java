@@ -82,9 +82,11 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.easymock.EasyMock.anyBoolean;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
@@ -238,6 +240,9 @@ public class DefaultOpenstackNodeHandlerTest {
         expect(mockOvsdbController.getOvsdbClient(anyObject()))
                 .andReturn(mockOvsdbClient)
                 .anyTimes();
+        mockOvsdbController.setServerMode(anyBoolean());
+        expectLastCall();
+
         replay(mockOvsdbController);
 
         testNodeManager = new TestOpenstackNodeManager();
