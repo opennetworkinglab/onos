@@ -29,6 +29,7 @@ import java.util.Set;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.onlab.packet.EthType.EtherType;
 import org.onlab.packet.IpPrefix;
@@ -59,10 +60,16 @@ import com.google.common.collect.Maps;
 public class EA1000FlowRuleProgrammableTest {
     EA1000FlowRuleProgrammable frProgramable;
 
+    private static MockEa1000DriverHandler mockHandler;
+
+    @BeforeClass
+    public static void setUpBeforeClass() throws Exception {
+        mockHandler = new MockEa1000DriverHandler();
+    }
     @Before
     public void setUp() throws Exception {
         frProgramable = new EA1000FlowRuleProgrammable();
-        frProgramable.setHandler(new MockEa1000DriverHandler());
+        frProgramable.setHandler(mockHandler);
         assertNotNull(frProgramable.handler().data().deviceId());
     }
 
@@ -142,7 +149,7 @@ public class EA1000FlowRuleProgrammableTest {
 
         TrafficTreatment treatmentDrop = DefaultTrafficTreatment.builder().drop().build();
 
-        Collection<FlowRule> frAddedList = new HashSet<FlowRule>();
+        Collection<FlowRule> frAddedList = new HashSet<>();
 
         FlowRule fr4 = new DefaultFlowRule.Builder()
             .forDevice(frProgramable.handler().data().deviceId())
@@ -279,7 +286,7 @@ public class EA1000FlowRuleProgrammableTest {
         TrafficTreatment.Builder trDropBuilder = DefaultTrafficTreatment.builder();
         TrafficTreatment treatmentDrop = trDropBuilder.drop().build();
 
-        Collection<FlowRule> frRemoveList = new HashSet<FlowRule>();
+        Collection<FlowRule> frRemoveList = new HashSet<>();
         ApplicationId app = new DefaultApplicationId(1, "org.onosproject.rest");
 
         Criterion matchIpSrc1 = Criteria.matchIPSrc(IpPrefix.valueOf("10.10.10.10/16"));

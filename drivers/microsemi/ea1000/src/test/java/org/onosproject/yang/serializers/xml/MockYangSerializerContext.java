@@ -23,27 +23,35 @@ import org.onosproject.yang.runtime.DefaultAnnotation;
 import org.onosproject.yang.runtime.YangSerializerContext;
 import org.onosproject.yang.runtime.impl.DefaultYangModelRegistry;
 
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
+
 import java.util.LinkedList;
 import java.util.List;
 
 public class MockYangSerializerContext implements YangSerializerContext {
 
-    private static MockMicrosemiRegistrator schemaProviderMicrosemi =
-            new MockMicrosemiRegistrator();
     private static MockYangRegistrator schemaProviderYang =
             new MockYangRegistrator();
+
+    private static Supplier<MockMicrosemiRegistrator> schemaProviderMicrosemi =
+            Suppliers.memoize(() -> {
+                MockMicrosemiRegistrator r = new MockMicrosemiRegistrator();
+                r.addAppInfo(schemaProviderYang.getAppInfo());
+                r.activate();
+                return r;
+            });
+
     private static final String NETCONF_NS =
             "urn:ietf:params:xml:ns:netconf:base:1.0";
     private static final String XMNLS_NC = "xmlns:xc";
 
     public MockYangSerializerContext() {
-        schemaProviderMicrosemi.addAppInfo(schemaProviderYang.getAppInfo());
-        schemaProviderMicrosemi.activate();
     }
 
     @Override
     public SchemaContext getContext() {
-        DefaultYangModelRegistry registry = (DefaultYangModelRegistry) schemaProviderMicrosemi.registry();
+        DefaultYangModelRegistry registry = (DefaultYangModelRegistry) schemaProviderMicrosemi.get().registry();
         return registry;
     }
 

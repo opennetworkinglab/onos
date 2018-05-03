@@ -23,6 +23,7 @@ import static org.junit.Assert.assertTrue;
 import static org.onosproject.drivers.microsemi.yang.utils.MdNameUtil.getYangMdNameFromApiMdId;
 
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.onosproject.drivers.microsemi.yang.utils.MaNameUtil;
@@ -58,10 +59,17 @@ public class EA1000CfmMepProgrammableTest {
 
     private CfmMepProgrammable cfmProgrammable;
 
+    private static MockEa1000DriverHandler mockHandler;
+
+    @BeforeClass
+    public static void setUpBeforeClass() throws Exception {
+        mockHandler = new MockEa1000DriverHandler();
+    }
+
     @Before
     public void setUp() throws Exception {
         cfmProgrammable = new EA1000CfmMepProgrammable();
-        cfmProgrammable.setHandler(new MockEa1000DriverHandler());
+        cfmProgrammable.setHandler(mockHandler);
         assertNotNull(cfmProgrammable.handler().data().deviceId());
     }
 
@@ -118,8 +126,7 @@ public class EA1000CfmMepProgrammableTest {
         assertNotNull(mepEntry.activeRemoteMepList());
         BitSet bs1 = new BitSet();
         bs1.clear();
-//FIXME Waiting on patch https://gerrit.onosproject.org/#/c/15778/
-//        assertEquals("Expecting 2 Remote Meps", 2, mepEntry.activeRemoteMepList().size());
+        assertEquals("Expecting 2 Remote Meps", 2, mepEntry.activeRemoteMepList().size());
         mepEntry.activeRemoteMepList().forEach(rmep -> {
             if (rmep.remoteMepId().value() == 1) {
                 assertEquals(RemoteMepState.RMEP_FAILED.name(),

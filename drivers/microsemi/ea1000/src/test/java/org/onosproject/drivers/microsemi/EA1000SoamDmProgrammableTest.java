@@ -26,6 +26,7 @@ import java.util.BitSet;
 import java.util.Collection;
 
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.onosproject.incubator.net.l2monitoring.cfm.Mep.Priority;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdCharStr;
@@ -51,10 +52,16 @@ public class EA1000SoamDmProgrammableTest {
     MaIdShort maId11 = MaIdCharStr.asMaId("ma-1-1");
     MepId mep111 = MepId.valueOf((short) 1);
 
+    private static MockEa1000DriverHandler mockHandler;
+
+    @BeforeClass
+    public static void setUpBeforeClass() throws Exception {
+        mockHandler = new MockEa1000DriverHandler();
+    }
     @Before
     public void setUp() throws Exception {
         dmProgrammable = new EA1000SoamDmProgrammable();
-        dmProgrammable.setHandler(new MockEa1000DriverHandler());
+        dmProgrammable.setHandler(mockHandler);
         assertNotNull(dmProgrammable.handler().data().deviceId());
     }
 

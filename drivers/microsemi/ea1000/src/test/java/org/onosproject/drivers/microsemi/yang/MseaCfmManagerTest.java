@@ -61,7 +61,6 @@ import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.maintenanc
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.maintenancedomain.mdnameandtypecombo.NameCharacterString;
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.maintenancedomain.mdnameandtypecombo.NameDomainName;
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.mefcfm.maintenancedomain.mdnameandtypecombo.namedomainname.NameDomainNameUnion;
-import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.targetaddressgroup.AddressType;
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.targetaddressgroup.addresstype.DefaultMacAddress;
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.targetaddressgroup.addresstype.DefaultMepId;
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.mseacfm.transmitloopback.DefaultTransmitLoopbackInput;
@@ -381,7 +380,7 @@ public class MseaCfmManagerTest {
         DefaultTargetAddress ta = new DefaultTargetAddress();
         DefaultMepId mepId = new DefaultMepId();
         mepId.mepId(MepIdType.of(4));
-        ta.addressType((AddressType) mepId);
+        ta.addressType(mepId);
         lbTr1.targetAddress(ta);
 
 //        lbTr1.dataTlv(new byte[]{0x01, 0x02, 0x03}); Not supported in onos-yang-tools just yet
