@@ -199,15 +199,20 @@ public class Controller {
      *
      * @param agent OvsdbAgent
      * @param monitorCallback Callback
+     * @param mode OVSDB server mode flag
      */
-    public void start(OvsdbAgent agent, Callback monitorCallback) {
+    public void start(OvsdbAgent agent, Callback monitorCallback, boolean mode) {
         this.agent = agent;
         this.monitorCallback = monitorCallback;
-        try {
-            this.run();
-        } catch (InterruptedException e) {
-            log.warn("Interrupted while waiting to start");
-            Thread.currentThread().interrupt();
+        // if the OVSDB server flag is configured as false, we do NOT listen on 6640 port
+        // therefore, ONOS only runs as an OVSDB client
+        if (mode) {
+            try {
+                this.run();
+            } catch (InterruptedException e) {
+                log.warn("Interrupted while waiting to start");
+                Thread.currentThread().interrupt();
+            }
         }
     }
 

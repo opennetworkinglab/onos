@@ -20,10 +20,16 @@ import com.google.common.collect.ImmutableList;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.TpPort;
+import org.onlab.util.Tools;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.ovsdb.controller.DefaultEventSubject;
 import org.onosproject.ovsdb.controller.EventSubject;
 import org.onosproject.ovsdb.controller.OvsdbClientService;
@@ -59,6 +65,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigInteger;
+import java.util.Dictionary;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -72,6 +79,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.SERVER_MODE;
 
 /**
  * The implementation of OvsdbController.
@@ -94,16 +102,47 @@ public class OvsdbControllerImpl implements OvsdbController {
             new ConcurrentHashMap<String, OvsdbClientService>();
     protected ConcurrentHashMap<String, String> requestDbName = new ConcurrentHashMap<String, String>();
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ComponentConfigService configService;
+
+    @Property(name = "serverMode", boolValue = SERVER_MODE,
+            label = "Run as server mode, listen on 6640 port")
+    private boolean serverMode = SERVER_MODE;
+
     @Activate
     public void activate(ComponentContext context) {
-        controller.start(agent, updateCallback);
+        controller.start(agent, updateCallback, serverMode);
+
+        configService.registerProperties(getClass());
+
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
         controller.stop();
+
+        configService.unregisterProperties(getClass(), false);
+
         log.info("Stoped");
+    }
+
+    @Modified
+    protected void modified(ComponentContext context) {
+        Dictionary<?, ?> properties = context.getProperties();
+        Boolean flag;
+
+        flag = Tools.isPropertyEnabled(properties, "serverMode");
+        if (flag == null) {
+            log.info("OVSDB server mode is not configured, " +
+                    "using current value of {}", serverMode);
+        } else {
+            serverMode = flag;
+            log.info("Configured. OVSDB server mode was {}",
+                    serverMode ? "enabled" : "disabled");
+        }
+
+        restartController();
     }
 
     @Override
@@ -148,6 +187,12 @@ public class OvsdbControllerImpl implements OvsdbController {
     @Override
     public void connect(IpAddress ip, TpPort port, Consumer<Exception> failhandler) {
         controller.connect(ip, port, failhandler);
+    }
+
+    @Override
+    public void setServerMode(boolean serverMode) {
+        this.serverMode = serverMode;
+        restartController();
     }
 
     /**
@@ -322,6 +367,11 @@ public class OvsdbControllerImpl implements OvsdbController {
         long value = (new BigInteger(values.replaceAll(":", ""), 16))
                 .longValue();
         return value;
+    }
+
+    private void restartController() {
+        controller.stop();
+        controller.start(agent, updateCallback, serverMode);
     }
 
     /**

@@ -110,4 +110,6 @@ public final class OvsdbConstant {
 
     /** Openflow port Error. */
     public static final int OFPORT_ERROR = -1;
+
+    public static final boolean SERVER_MODE = true;
 }

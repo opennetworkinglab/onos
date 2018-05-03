@@ -218,5 +218,10 @@ public class OvsdbHostProviderTest {
         public void connect(IpAddress ip, TpPort port, Consumer<Exception> failhandler) {
 
         }
+
+        @Override
+        public void setServerMode(boolean serverMode) {
+
+        }
     }
 }

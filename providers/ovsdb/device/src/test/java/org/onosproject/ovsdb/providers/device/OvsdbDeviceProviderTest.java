@@ -258,6 +258,11 @@ public class OvsdbDeviceProviderTest {
 
         }
 
+        @Override
+        public void setServerMode(boolean serverMode) {
+
+        }
+
     }
 
     private class TestDeviceService extends DeviceServiceAdapter {
