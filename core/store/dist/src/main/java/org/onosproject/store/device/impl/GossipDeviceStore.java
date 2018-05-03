@@ -548,8 +548,9 @@ public class GossipDeviceStore
                     }
                 }
             }
+        } else {
+            log.warn("Device {} does not exist in store", deviceId);
         }
-        log.warn("Device {} does not exist in store", deviceId);
         return null;
     }
 
