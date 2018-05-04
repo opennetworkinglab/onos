@@ -442,14 +442,14 @@ public class RestDeviceProvider extends AbstractProvider
             try {
                 return future.get(REST_TIMEOUT_SEC, TimeUnit.SECONDS);
             } catch (TimeoutException ex) {
-                log.warn("Connection to device {} timed out", dev.deviceId());
+                log.warn("Connection to device {} timed out: {}", dev.deviceId(), ex.getMessage());
                 return false;
             } catch (InterruptedException ex) {
-                log.warn("Connection to device {} interrupted", dev.deviceId());
+                log.warn("Connection to device {} interrupted: {}", dev.deviceId(), ex.getMessage());
                 Thread.currentThread().interrupt();
                 return false;
             } catch (ExecutionException ex) {
-                log.warn("Connection to device {} had a execution exception", dev.deviceId());
+                log.warn("Connection to device {} had an execution exception.", dev.deviceId(), ex);
                 return false;
             }
 
