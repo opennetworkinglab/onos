@@ -47,6 +47,7 @@ public class ToolsTest {
         assertEquals("1000", Tools.toHex(4096, 4));
         assertEquals("000000000000000f", Tools.toHex(15));
         assertEquals("ffffffffffffffff", Tools.toHex(0xffffffffffffffffL));
+        assertEquals("0xffffffffffffffff", Tools.toHexWithPrefix(0xffffffffffffffffL));
 
     }
 
