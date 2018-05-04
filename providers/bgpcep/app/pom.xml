@@ -19,26 +19,26 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.onosproject</groupId>
-        <artifactId>onos-bgpcep-providers</artifactId>
+        <artifactId>onos-providers-bgpcep</artifactId>
         <version>1.14.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>onos-bgpcep-app</artifactId>
+    <artifactId>onos-providers-bgpcep-app</artifactId>
     <packaging>pom</packaging>
     <description>BGP PCEP protocol southbound providers</description>
 
     <dependencies>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-bgpio</artifactId>
+            <artifactId>onos-protocols-bgp-bgpio</artifactId>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-bgp-api</artifactId>
+            <artifactId>onos-protocols-bgp-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-bgp-ctl</artifactId>
+            <artifactId>onos-protocols-bgp-ctl</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -47,7 +47,7 @@
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-bgp-provider-cfg</artifactId>
+            <artifactId>onos-providers-bgp-cfg</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -85,7 +85,7 @@
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-bandwidthmgmt</artifactId>
+            <artifactId>onos-apps-pce-bandwidthmgmt</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -95,12 +95,12 @@
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-bgp-provider-topology</artifactId>
+            <artifactId>onos-providers-bgp-topology</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-bgpcep-provider-flow</artifactId>
+            <artifactId>onos-providers-bgpcep-flow</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

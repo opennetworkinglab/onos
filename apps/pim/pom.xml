@@ -25,7 +25,7 @@
         <version>1.14.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>onos-app-pim</artifactId>
+    <artifactId>onos-apps-pim</artifactId>
     <packaging>bundle</packaging>
 
     <description>Protocol Independent Multicast Emulation</description>
@@ -46,7 +46,7 @@
 
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-routing-api</artifactId>
+            <artifactId>onos-apps-routing-api</artifactId>
             <version>${project.version}</version>
         </dependency>
 

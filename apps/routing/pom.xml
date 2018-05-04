@@ -24,7 +24,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>onos-app-routing-parent</artifactId>
+    <artifactId>onos-apps-routing</artifactId>
 
     <packaging>pom</packaging>
     <description>Libraries for routing applications</description>
@@ -38,13 +38,13 @@
     <dependencies>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-routing-api</artifactId>
+            <artifactId>onos-apps-routing-api</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-routing-api</artifactId>
+            <artifactId>onos-apps-routing-api</artifactId>
             <scope>test</scope>
             <classifier>tests</classifier>
             <version>${project.version}</version>

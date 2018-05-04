@@ -19,8 +19,8 @@
      featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
      features="${project.artifactId}">
     <description>${project.description}</description>
-    <artifact>mvn:${project.groupId}/onos-mapping-api/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-app-mapping-mgr/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-app-mapping-web/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-app-mapping-cli/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-apps-mappingmanagement-api/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-apps-mappingmanagement-mgr/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-apps-mappingmanagement-web/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-apps-mappingmanagement-cli/${project.version}</artifact>
 </app>

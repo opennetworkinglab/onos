@@ -18,8 +18,8 @@
     <feature name="${project.artifactId}" version="${project.version}"
              description="${project.description}">
         <feature>onos-api</feature>
-        <feature>onos-app-tetopology</feature>
-        <feature>onos-app-tetunnel</feature>
+        <feature>onos-apps-tetopology-app</feature>
+        <feature>onos-apps-tetunnel-app</feature>
         <bundle>mvn:${project.groupId}/onos-actn-mdsc-tetunnel-pce/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-actn-mdsc-tetunnel-ctl/${project.version}</bundle>
     </feature>

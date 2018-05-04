@@ -19,13 +19,13 @@
      featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
      features="${project.artifactId}">
     <description>${project.description}</description>
-    <artifact>mvn:${project.groupId}/onos-bgpio/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-bgp-api/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-bgp-ctl/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-protocols-bgp-bgpio/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-protocols-bgp-api/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-protocols-bgp-ctl/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-pcep-server-api/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-bgp-provider-topology/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-bgp-provider-cfg/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-bgp-provider-cli/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-providers-bgp-topology/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-providers-bgp-cfg/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-providers-bgp-cli/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-pcepio/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-apps-pcep-api/${project.version}</artifact>
     <artifact>mvn:${project.groupId}/onos-pcep-server-impl/${project.version}</artifact>

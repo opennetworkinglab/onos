@@ -15,7 +15,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xs
         <version>1.14.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>onos-app-rabbitmq</artifactId>
+    <artifactId>onos-apps-rabbitmq</artifactId>
     <packaging>bundle</packaging>
     <description>Rabbit MQ application</description>
     <properties>

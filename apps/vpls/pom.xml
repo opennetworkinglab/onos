@@ -25,7 +25,7 @@
         <version>1.14.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>onos-app-vpls</artifactId>
+    <artifactId>onos-apps-vpls</artifactId>
     <packaging>bundle</packaging>
 
     <description>Application to create L2 broadcast network using VLAN</description>

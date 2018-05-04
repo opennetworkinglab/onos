@@ -24,7 +24,7 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>onos-app-dhcprelay</artifactId>
+    <artifactId>onos-apps-dhcprelay</artifactId>
     <packaging>bundle</packaging>
 
     <description>DHCP Relay Agent</description>

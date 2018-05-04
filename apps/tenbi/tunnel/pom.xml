@@ -21,30 +21,30 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>onos-app-tenbi</artifactId>
+        <artifactId>onos-apps-tenbi</artifactId>
         <groupId>org.onosproject</groupId>
         <version>1.14.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>onos-app-tenbi-tunnel</artifactId>
+    <artifactId>onos-apps-tenbi-tunnel</artifactId>
     <packaging>bundle</packaging>
     <description>IETF TE Tunnel NBI</description>
 
     <dependencies>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-tenbi-yangmodel</artifactId>
+            <artifactId>onos-apps-tenbi-yangmodel</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-tenbi-utils</artifactId>
+            <artifactId>onos-apps-tenbi-utils</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-yms-api</artifactId>
+            <artifactId>onos-apps-yms-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -54,12 +54,12 @@
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-tetunnel-api</artifactId>
+            <artifactId>onos-apps-tetunnel-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-tetopology-api</artifactId>
+            <artifactId>onos-apps-tetopology-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

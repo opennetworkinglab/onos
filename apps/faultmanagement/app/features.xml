@@ -19,9 +19,9 @@
              description="${project.description}">
         <feature>onos-api</feature>
         <feature>onos-drivers-default</feature>
-        <bundle>mvn:${project.groupId}/onos-app-fm-mgr/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-app-fm-web/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-app-fm-gui/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-app-fm-cli/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-apps-faultmanagement-fmmgr/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-apps-faultmanagement-fmweb/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-apps-faultmanagement-fmgui/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-apps-faultmanagement-fmcli/${project.version}</bundle>
     </feature>
 </features>

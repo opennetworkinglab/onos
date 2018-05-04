@@ -19,10 +19,10 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.onosproject</groupId>
-        <artifactId>onos-bgp-providers</artifactId>
+        <artifactId>onos-providers-bgp</artifactId>
         <version>1.14.0-SNAPSHOT</version>
     </parent>
-    <artifactId>onos-bgp-provider-route</artifactId>
+    <artifactId>onos-providers-bgp-route</artifactId>
     <packaging>bundle</packaging>
     <description>BGP route provider</description>
     <dependencies>
@@ -40,11 +40,11 @@
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-bgp-api</artifactId>
+            <artifactId>onos-protocols-bgp-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-evpn-route-service-api</artifactId>
+            <artifactId>onos-apps-evpn-route-service-api</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

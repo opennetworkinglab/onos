@@ -112,7 +112,7 @@
        </dependency>
        <dependency>
            <groupId>org.onosproject</groupId>
-           <artifactId>onos-app-bandwidthmgmt</artifactId>
+           <artifactId>onos-apps-pce-bandwidthmgmt</artifactId>
            <version>${project.version}</version>
        </dependency>
    </dependencies>

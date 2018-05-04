@@ -15,11 +15,11 @@
   ~ limitations under the License.
   -->
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="${project.artifactId}-${project.version}">
-    <feature name="onos-app-castor" version="${project.version}"
+    <feature name="onos-apps-castor" version="${project.version}"
              description="${project.description}">
         <feature>onos-api</feature>
-        <bundle>mvn:${project.groupId}/onos-app-castor/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-app-routing-api/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-app-routing/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-apps-castor/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-apps-routing-api/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-apps-routing-common/${project.version}</bundle>
     </feature>
 </features>

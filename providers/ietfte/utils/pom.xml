@@ -32,7 +32,7 @@
     <dependencies>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-yms-api</artifactId>
+            <artifactId>onos-apps-yms-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

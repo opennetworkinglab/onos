@@ -25,7 +25,7 @@
         <version>1.14.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>onos-app-demo</artifactId>
+    <artifactId>onos-apps-test-demo</artifactId>
     <packaging>bundle</packaging>
 
     <description>Flow throughput test application</description>

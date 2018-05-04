@@ -19,19 +19,19 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <artifactId>onos-tetunnel</artifactId>
+        <artifactId>onos-apps-tetunnel</artifactId>
         <groupId>org.onosproject</groupId>
         <version>1.14.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>onos-app-tetunnel-api</artifactId>
+    <artifactId>onos-apps-tetunnel-api</artifactId>
     <packaging>bundle</packaging>
     <description>IETF TE Tunnel attributes management API</description>
 
     <dependencies>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-tetopology-api</artifactId>
+            <artifactId>onos-apps-tetopology-api</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

@@ -23,7 +23,7 @@
         <artifactId>onos-apps-pce</artifactId>
         <version>1.14.0-SNAPSHOT</version>
     </parent>
-    <artifactId>onos-app-bandwidthmgmt</artifactId>
+    <artifactId>onos-apps-pce-bandwidthmgmt</artifactId>
     <packaging>bundle</packaging>
 
     <description>PCE Bandwidth management</description>

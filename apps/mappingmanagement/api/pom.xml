@@ -20,12 +20,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <artifactId>onos-mapping</artifactId>
+        <artifactId>onos-apps-mappingmanagement</artifactId>
         <groupId>org.onosproject</groupId>
         <version>1.14.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>onos-mapping-api</artifactId>
+    <artifactId>onos-apps-mappingmanagement-api</artifactId>
     <packaging>bundle</packaging>
 
     <url>http://onosproject.org</url>

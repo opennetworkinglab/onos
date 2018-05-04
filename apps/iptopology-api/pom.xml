@@ -23,7 +23,7 @@
         <artifactId>onos-apps</artifactId>
         <version>1.14.0-SNAPSHOT</version>
     </parent>
-    <artifactId>onos-app-iptopology-api</artifactId>
+    <artifactId>onos-apps-iptopology-api</artifactId>
     <packaging>bundle</packaging>
 
     <description>IP Layer Topology API</description>

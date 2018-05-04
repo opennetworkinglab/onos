@@ -59,7 +59,7 @@
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-mapping-api</artifactId>
+            <artifactId>onos-apps-mappingmanagement-api</artifactId>
             <version>${project.version}</version>
             <classifier>tests</classifier>
             <scope>test</scope>

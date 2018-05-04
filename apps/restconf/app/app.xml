@@ -19,6 +19,6 @@
      featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
      features="${project.artifactId}" >
     <description>${project.description}</description>
-    <artifact>mvn:${project.groupId}/onos-app-restconf-api/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-app-restconf-restconfmanager/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-apps-restconf-api/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-apps-restconf-restconfmgr/${project.version}</artifact>
 </app>

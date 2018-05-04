@@ -32,7 +32,7 @@
     <dependencies>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-tetunnel-api</artifactId>
+            <artifactId>onos-apps-tetunnel-api</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

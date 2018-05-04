@@ -223,18 +223,18 @@
             </dependency>
             <dependency>
                 <groupId>org.onosproject</groupId>
-                <artifactId>onos-bgpio</artifactId>
+                <artifactId>onos-protocols-bgp-bgpio</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>org.onosproject</groupId>
-                <artifactId>onos-bgp-api</artifactId>
+                <artifactId>onos-protocols-bgp-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.onosproject</groupId>
-                <artifactId>onos-app-bgp-api</artifactId>
+                <artifactId>onos-apps-bgp-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

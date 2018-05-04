@@ -42,7 +42,7 @@
     <dependencies>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-restconf-api</artifactId>
+            <artifactId>onos-apps-restconf-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -81,7 +81,7 @@
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-dhcp-api</artifactId>
+            <artifactId>onos-apps-dhcp-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

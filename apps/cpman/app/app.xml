@@ -19,6 +19,6 @@
      featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
      features="${project.artifactId}" apps="org.onosproject.openflow-message">
     <description>${project.description}</description>
-    <artifact>mvn:${project.groupId}/onos-app-cpman/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-app-cpman-api/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-apps-cpman-app/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-apps-cpman-api/${project.version}</artifact>
 </app>

@@ -19,8 +19,8 @@
      featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
      features="${project.artifactId}">
     <description>${project.description}</description>
-    <artifact>mvn:${project.groupId}/onos-app-fm-mgr/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-app-fm-web/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-app-fm-gui/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-app-fm-cli/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-apps-faultmanagement-fmmgr/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-apps-faultmanagement-fmweb/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-apps-faultmanagement-fmgui/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-apps-faultmanagement-fmcli/${project.version}</artifact>
 </app>

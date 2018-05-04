@@ -25,7 +25,7 @@
         <version>1.14.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>onos-app-influxdb</artifactId>
+    <artifactId>onos-apps-influxdbmetrics</artifactId>
     <packaging>bundle</packaging>
 
     <description>Performance metric service reporter and retriever for influxDB</description>

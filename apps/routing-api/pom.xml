@@ -24,7 +24,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>onos-app-routing-api</artifactId>
+    <artifactId>onos-apps-routing-api</artifactId>
 
     <packaging>bundle</packaging>
     <description>API for routing applications</description>

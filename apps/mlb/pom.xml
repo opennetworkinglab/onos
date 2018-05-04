@@ -25,7 +25,7 @@
         <version>1.14.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>onos-app-mlb</artifactId>
+    <artifactId>onos-apps-mlb</artifactId>
     <packaging>bundle</packaging>
 
     <description>Balances mastership among nodes</description>

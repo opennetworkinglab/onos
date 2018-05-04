@@ -15,9 +15,9 @@
   ~ limitations under the License.
   -->
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="${project.artifactId}-${project.version}">
-    <feature name="onos-app-simplefabric" version="${project.version}"
+    <feature name="onos-apps-simplefabric" version="${project.version}"
              description="${project.description}">
         <feature>onos-api</feature>
-        <bundle>mvn:${project.groupId}/onos-app-simplefabric/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-apps-simplefabric/${project.version}</bundle>
     </feature>
 </features>

@@ -18,7 +18,7 @@
     <feature name="${project.artifactId}" version="${project.version}"
              description="${project.description}">
         <feature>onos-api</feature>
-        <bundle>mvn:${project.groupId}/onos-app-tetopology-api/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-app-tetopology/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-apps-tetopology-api/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-apps-tetopology/${project.version}</bundle>
     </feature>
 </features>

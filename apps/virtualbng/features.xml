@@ -18,7 +18,7 @@
     <feature name="${project.artifactId}" version="${project.version}"
              description="${project.description}">
         <bundle>mvn:org.glassfish.jersey.core/jersey-client/2.26</bundle>
-        <bundle>mvn:${project.groupId}/onos-app-virtualbng/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-apps-virtualbng/${project.version}</bundle>
         <feature>onos-thirdparty-web</feature>
     </feature>
 </features>

@@ -21,11 +21,11 @@
 
     <parent>
         <groupId>org.onosproject</groupId>
-        <artifactId>onos-app-flowspec-api</artifactId>
+        <artifactId>onos-apps-flowspec-api</artifactId>
         <version>1.14.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>onos-app-flowspec-api-flowapi</artifactId>
+    <artifactId>onos-apps-flowspec-api-flowapi</artifactId>
     <packaging>bundle</packaging>
 
     <description>api bundle to be accessible across the layers</description>

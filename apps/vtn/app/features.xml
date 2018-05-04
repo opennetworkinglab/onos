@@ -19,10 +19,10 @@
              description="${project.description}">
         <feature>onos-api</feature>
         <feature>onos-drivers-default</feature>
-        <bundle>mvn:${project.groupId}/onos-app-vtn-mgr/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-app-sfc-mgr/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-app-vtn-web/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-app-vtn-rsc/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-app-sfc-web/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-apps-vtn-vtnmgr/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-apps-vtn-sfcmgr/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-apps-vtn-vtnweb/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-apps-vtn-vtnrsc/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-apps-vtn-sfcweb/${project.version}</bundle>
     </feature>
 </features>

@@ -23,7 +23,7 @@
     <version>1.14.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>onos-bgpcep-providers</artifactId>
+  <artifactId>onos-providers-bgpcep</artifactId>
   <packaging>pom</packaging>
 
   <description>BGPCEP providers root</description>
@@ -40,7 +40,7 @@
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-bgp-api</artifactId>
+            <artifactId>onos-protocols-bgp-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>

@@ -18,12 +18,12 @@
     <feature name="${project.artifactId}" version="${project.version}"
              description="${project.description}">
         <feature>onos-api</feature>
-        <bundle>mvn:${project.groupId}/onos-bgpio/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-bgp-api/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-bgp-ctl/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-protocols-bgp-bgpio/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-protocols-bgp-api/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-protocols-bgp-ctl/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-pcep-server-api/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-bgp-provider-topology/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-bgp-provider-cfg/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-providers-bgp-topology/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-providers-bgp-cfg/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-pcepio/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-apps-pcep-api/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-pcep-server-impl/${project.version}</bundle>
@@ -31,8 +31,8 @@
         <bundle>mvn:${project.groupId}/onos-pcep-provider-tunnel/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-apps-pce-app/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-apps-pce-pceweb/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-bgpcep-provider-flow/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-providers-bgpcep-flow/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-apps-pce-pcerest/${project.version}</bundle>
-	<bundle>mvn:${project.groupId}/onos-app-bandwidthmgmt/${project.version}</bundle>
+	<bundle>mvn:${project.groupId}/onos-apps-pce-bandwidthmgmt/${project.version}</bundle>
     </feature>
 </features>

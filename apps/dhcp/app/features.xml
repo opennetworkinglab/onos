@@ -18,7 +18,7 @@
     <feature name="${project.artifactId}" version="${project.version}"
              description="${project.description}">
         <feature>onos-api</feature>
-        <bundle>mvn:${project.groupId}/onos-app-dhcp-api/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-app-dhcp/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-apps-dhcp-api/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-apps-dhcp/${project.version}</bundle>
     </feature>
 </features>

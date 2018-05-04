@@ -24,7 +24,7 @@
         <version>1.14.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>onos-tetopology</artifactId>
+    <artifactId>onos-apps-tetopology</artifactId>
     <packaging>pom</packaging>
 
     <description>IETF TE Topology management</description>

@@ -18,14 +18,14 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>onos-restconf-parent</artifactId>
+        <artifactId>onos-apps-restconf</artifactId>
         <groupId>org.onosproject</groupId>
         <version>1.14.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>onos-app-restconf-utils</artifactId>
+    <artifactId>onos-apps-restconf-utils</artifactId>
     <packaging>bundle</packaging>
 
     <dependencies>
@@ -39,7 +39,7 @@
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-restconf-api</artifactId>
+            <artifactId>onos-apps-restconf-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -49,12 +49,12 @@
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-yms-api</artifactId>
+            <artifactId>onos-apps-yms-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-yms</artifactId>
+            <artifactId>onos-apps-yms</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

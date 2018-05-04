@@ -18,7 +18,7 @@
     <feature name="${project.artifactId}" version="${project.version}"
              description="${project.description}">
         <feature>onos-api</feature>
-        <bundle>mvn:${project.groupId}/onos-app-influxdb/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-apps-influxdbmetrics/${project.version}</bundle>
         <bundle>wrap:mvn:com.izettle/metrics-influxdb/1.1.1$Bundle-SymbolicName=metrics-influxdb&amp;Bundle-Version=1.1.1</bundle>
         <bundle>mvn:commons-codec/commons-codec/1.10</bundle>
         <bundle>wrap:mvn:org.influxdb/influxdb-java/2.1$Bundle-SymbolicName=influxdb-java&amp;Bundle-Version=2.1</bundle>

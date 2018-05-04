@@ -18,8 +18,8 @@
     <feature name="${project.artifactId}" version="${project.version}"
              description="${project.description}">
         <feature>onos-api</feature>
-        <bundle>mvn:${project.groupId}/onos-app-cpman-api/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-app-cpman/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-apps-cpman-api/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-apps-cpman/${project.version}</bundle>
         <bundle>wrap:mvn:org.rrd4j/rrd4j/3.1$Bundle-SymbolicName=rrd4j&amp;Bundle-Version=3.1</bundle>
     </feature>
 </features>

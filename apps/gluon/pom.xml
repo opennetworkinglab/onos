@@ -24,7 +24,7 @@
         <version>1.14.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>onos-app-gluon</artifactId>
+    <artifactId>onos-apps-gluon</artifactId>
     <packaging>bundle</packaging>
 
     <description>ONOS GLUON application</description>
@@ -32,7 +32,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <onos.app.name>onos-app-gluon</onos.app.name>
+        <onos.app.name>onos-apps-gluon</onos.app.name>
         <onos.app.origin>Huawei Technology India Pvt Ltd</onos.app.origin>
         <onos.app.title>Gluon App</onos.app.title>
         <onos.app.url>http://onosproject.org</onos.app.url>

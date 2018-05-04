@@ -18,13 +18,13 @@
     <feature name="${project.artifactId}" version="${project.version}"
              description="${project.description}">
         <feature>onos-api</feature>
-        <bundle>mvn:${project.groupId}/onos-bgpio/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-bgp-api/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-bgp-ctl/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-protocols-bgp-bgpio/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-protocols-bgp-api/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-protocols-bgp-ctl/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-pcep-server-api/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-bgp-provider-topology/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-bgp-provider-cli/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-bgp-provider-cfg/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-providers-bgp-topology/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-providers-bgp-cli/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-providers-bgp-cfg/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-pcepio/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-apps-pcep-api/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-pcep-server-impl/${project.version}</bundle>

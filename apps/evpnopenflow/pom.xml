@@ -25,7 +25,7 @@
         <version>1.14.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>onos-app-evpnopenflow</artifactId>
+    <artifactId>onos-apps-evpnopenflow</artifactId>
     <packaging>bundle</packaging>
 
     <description>ONOS EVPN application</description>
@@ -96,12 +96,12 @@
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-gluon</artifactId>
+            <artifactId>onos-apps-gluon</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-vtn-rsc</artifactId>
+            <artifactId>onos-apps-vtn-vtnrsc</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -111,7 +111,7 @@
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-evpn-route-service-api</artifactId>
+            <artifactId>onos-apps-evpn-route-service-api</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

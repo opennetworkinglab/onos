@@ -26,7 +26,7 @@
         <version>1.14.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>onos-app-netcfg-monitor</artifactId>
+    <artifactId>onos-apps-test-netcfg-monitor</artifactId>
     <packaging>bundle</packaging>
 
     <description>Network configuration monitor test application</description>

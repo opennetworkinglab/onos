@@ -18,9 +18,9 @@
     <feature name="${project.artifactId}" version="${project.version}"
              description="${project.description}">
         <feature>onos-api</feature>
-        <bundle>mvn:${project.groupId}/onos-mapping-api/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-app-mapping-mgr/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-app-mapping-web/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-app-mapping-cli/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-apps-mappingmanagement-api/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-apps-mappingmanagement-mgr/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-apps-mappingmanagement-web/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-apps-mappingmanagement-cli/${project.version}</bundle>
     </feature>
 </features>

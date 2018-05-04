@@ -44,7 +44,7 @@
     <dependencies>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-flowspec-api-flowapi</artifactId>
+            <artifactId>onos-apps-flowspec-api-flowapi</artifactId>
             <version>${project.version}</version>
         </dependency>
 

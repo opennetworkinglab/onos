@@ -20,11 +20,11 @@
 
     <parent>
         <groupId>org.onosproject</groupId>
-        <artifactId>onos-mapping</artifactId>
+        <artifactId>onos-apps-mappingmanagement</artifactId>
         <version>1.14.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>onos-app-mapping</artifactId>
+    <artifactId>onos-apps-mappingmanagement-app</artifactId>
     <packaging>pom</packaging>
 
     <description>ONOS LISP mapping management application</description>
@@ -32,22 +32,22 @@
     <dependencies>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-mapping-api</artifactId>
+            <artifactId>onos-apps-mappingmanagement-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-mapping-web</artifactId>
+            <artifactId>onos-apps-mappingmanagement-web</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-mapping-mgr</artifactId>
+            <artifactId>onos-apps-mappingmanagement-mgr</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-mapping-cli</artifactId>
+            <artifactId>onos-apps-mappingmanagement-cli</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

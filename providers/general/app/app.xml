@@ -20,6 +20,6 @@
      features="${project.artifactId}">
     <description>${project.description}</description>
 
-    <artifact>mvn:${project.groupId}/onos-general-provider-device/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-providers-general-device/${project.version}</artifact>
 
 </app>

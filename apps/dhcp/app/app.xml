@@ -20,5 +20,5 @@
      features="${project.artifactId}">
     <description>${project.description}</description>
     <artifact>mvn:${project.groupId}/${project.artifactId}/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-app-dhcp-api/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-apps-dhcp-api/${project.version}</artifact>
 </app>

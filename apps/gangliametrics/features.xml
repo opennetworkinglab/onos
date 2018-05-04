@@ -18,7 +18,7 @@
     <feature name="${project.artifactId}" version="${project.version}"
              description="${project.description}">
         <feature>onos-api</feature>
-        <bundle>mvn:${project.groupId}/onos-app-ganglia/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-apps-gangliametrics/${project.version}</bundle>
         <bundle>mvn:io.dropwizard.metrics/metrics-core/3.1.2</bundle>
         <bundle>mvn:io.dropwizard.metrics/metrics-ganglia/3.1.2</bundle>
         <bundle>mvn:info.ganglia.gmetric4j/gmetric4j/1.0.10</bundle>

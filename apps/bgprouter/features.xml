@@ -18,9 +18,9 @@
     <feature name="${project.artifactId}" version="${project.version}"
              description="${project.description}">
         <feature>onos-api</feature>
-        <bundle>mvn:${project.groupId}/onos-app-routing-api/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-app-proxyarp/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-app-bgprouter/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-app-routing/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-apps-routing-api/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-apps-proxyarp/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-apps-bgprouter/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-apps-routing-common/${project.version}</bundle>
     </feature>
 </features>

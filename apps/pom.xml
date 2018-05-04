@@ -104,6 +104,7 @@
         <module>mcast</module>
         <module>layout</module>
         <module>imr</module>
+        <module>t3</module>
     </modules>
 
     <properties>

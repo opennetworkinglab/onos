@@ -25,7 +25,7 @@
         <version>1.14.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>onos-app-messaging-perf</artifactId>
+    <artifactId>onos-apps-test-messaging-perf</artifactId>
     <packaging>bundle</packaging>
 
     <description>Messaging performance test application</description>

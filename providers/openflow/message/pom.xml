@@ -32,7 +32,7 @@
     <dependencies>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-cpman-api</artifactId>
+            <artifactId>onos-apps-cpman-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

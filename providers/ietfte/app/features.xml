@@ -15,11 +15,11 @@
   ~ limitations under the License.
   -->
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0" name="${project.artifactId}-${project.version}">
-    <repository>mvn:${project.groupId}/onos-app-tenbi-yangmodel/${project.version}/xml/features</repository>
+    <repository>mvn:${project.groupId}/onos-apps-tenbi-yangmodel/${project.version}/xml/features</repository>
     <feature name="${project.artifactId}" version="${project.version}"
              description="${project.description}">
         <feature>onos-api</feature>
-        <feature>onos-app-tenbi-yangmodel</feature>
+        <feature>onos-apps-tenbi-yangmodel</feature>
         <bundle>mvn:${project.groupId}/onos-restsb-api/${project.version}</bundle>
         <bundle>mvn:org.apache.httpcomponents/httpclient-osgi/4.5.1</bundle>
         <bundle>mvn:org.apache.httpcomponents/httpcore-osgi/4.4.4</bundle>
@@ -27,10 +27,10 @@
         <bundle>mvn:${project.groupId}/onos-restconf-client-api/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-restconf-client-ctl/${project.version}</bundle>
 
-        <bundle>mvn:${project.groupId}/onos-app-tetunnel-api/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-app-tetopology/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-app-yms-api/${project.version}</bundle>
-        <bundle>mvn:${project.groupId}/onos-app-tenbi-utils/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-apps-tetunnel-api/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-apps-tetopology/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-apps-yms-api/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-apps-tenbi-utils/${project.version}</bundle>
         <bundle>mvn:${project.groupId}/onos-restconf-server-utils/${project.version}</bundle>
 
         <bundle>mvn:${project.groupId}/onos-ietfte-provider-utils/${project.version}</bundle>

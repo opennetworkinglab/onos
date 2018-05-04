@@ -56,22 +56,22 @@
         </dependency>
         <dependency>
         	<groupId>org.onosproject</groupId>
-        	<artifactId>onos-app-tetopology-api</artifactId>
+        	<artifactId>onos-apps-tetopology-api</artifactId>
         	<version>${project.version}</version>
         </dependency>
          <dependency>
         	<groupId>org.onosproject</groupId>
-        	<artifactId>onos-app-tenbi-yangmodel</artifactId>
+        	<artifactId>onos-apps-tenbi-yangmodel</artifactId>
         	<version>${project.version}</version>
         </dependency>
         <dependency>
         	<groupId>org.onosproject</groupId>
-        	<artifactId>onos-app-tenbi-utils</artifactId>
+        	<artifactId>onos-apps-tenbi-utils</artifactId>
         	<version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-app-yms-api</artifactId>
+            <artifactId>onos-apps-yms-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

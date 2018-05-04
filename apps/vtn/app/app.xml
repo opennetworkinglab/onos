@@ -19,9 +19,9 @@
      featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features"
      features="${project.artifactId}">
     <description>${project.description}</description>
-    <artifact>mvn:${project.groupId}/onos-app-vtn-mgr/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-app-sfc-mgr/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-app-vtn-web/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-app-vtn-rsc/${project.version}</artifact>
-    <artifact>mvn:${project.groupId}/onos-app-sfc-web/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-apps-vtn-vtnmgr/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-apps-vtn-sfcmgr/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-apps-vtn-vtnweb/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-apps-vtn-vtnrsc/${project.version}</artifact>
+    <artifact>mvn:${project.groupId}/onos-apps-vtn-sfcweb/${project.version}</artifact>
 </app>

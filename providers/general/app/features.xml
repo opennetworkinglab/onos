@@ -19,7 +19,7 @@
              description="${project.description}">
         <feature>onos-api</feature>
 
-        <bundle>mvn:${project.groupId}/onos-general-provider-device/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-providers-general-device/${project.version}</bundle>
     </feature>
 </features>
 
