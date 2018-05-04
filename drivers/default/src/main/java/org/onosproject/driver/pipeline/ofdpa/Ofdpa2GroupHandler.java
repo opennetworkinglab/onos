@@ -1453,6 +1453,10 @@ public class Ofdpa2GroupHandler {
         //first group key is the one we want to modify
         GroupKey modGroupKey = chainsToRemove.get(0).peekFirst();
         Group modGroup = groupService.getGroup(deviceId, modGroupKey);
+        if (modGroup == null) {
+            log.warn("removeBucket(): Attempt to modify non-existent group {} for device {}", modGroupKey, deviceId);
+            return;
+        }
         for (Deque<GroupKey> foundChain : chainsToRemove) {
             //second group key is the one we wish to remove the reference to
             if (foundChain.size() < 2) {
@@ -1499,7 +1503,8 @@ public class Ofdpa2GroupHandler {
                 .collect(Collectors.toList());
 
         log.debug("Removing buckets from group id 0x{} pointing to group id(s) {} "
-                + "for next id {} in device {}", Integer.toHexString(modGroup.id().id()),
+                + "for next id {} in device {}",
+                Integer.toHexString(modGroup.id().id()),
                 pointedGroupIds, nextObjective.id(), deviceId);
         addPendingUpdateNextObjective(modGroupKey, nextObjective);
         groupService.removeBucketsFromGroup(deviceId, modGroupKey,
