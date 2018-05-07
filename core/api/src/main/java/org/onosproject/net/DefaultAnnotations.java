@@ -205,6 +205,16 @@ public final class DefaultAnnotations implements SparseAnnotations {
         throw new IllegalArgumentException("Expecting HashMap instance");
     }
 
+    private static HashMap<String, String> compress(Map<String, String> original) {
+        HashMap<String, String> compressed = new HashMap<>();
+        original.forEach((k, v) -> {
+            if (!Objects.equals(v, Builder.REMOVED)) {
+                compressed.put(k, v);
+            }
+        });
+        return compressed;
+    }
+
     @Override
     public String toString() {
         return (map == null) ? "null" : map.toString();
@@ -289,11 +299,22 @@ public final class DefaultAnnotations implements SparseAnnotations {
 
         /**
          * Returns immutable annotations built from the accrued key/values pairs.
+         * Any removed annotation tombstones will be preserved.
          *
          * @return annotations
          */
         public DefaultAnnotations build() {
             return new DefaultAnnotations(copy(builder));
+        }
+
+        /**
+         * Returns immutable annotations built from the accrued key/values
+         * pairs after compressing them to eliminate removed annotation tombstones.
+         *
+         * @return annotations
+         */
+        public DefaultAnnotations buildCompressed() {
+            return new DefaultAnnotations(compress(builder));
         }
     }
 }
