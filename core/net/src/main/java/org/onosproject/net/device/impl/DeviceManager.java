@@ -1014,7 +1014,8 @@ public class DeviceManager
                     || event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED)
                     && (event.configClass().equals(BasicDeviceConfig.class)
                     || portOpsIndex.containsKey(event.configClass())
-                    || event.configClass().equals(PortDescriptionsConfig.class));
+                    || event.configClass().equals(PortDescriptionsConfig.class)
+                    && mastershipService.isLocalMaster((DeviceId) event.subject()));
         }
 
         @Override
