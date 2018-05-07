@@ -18,7 +18,6 @@ package org.onosproject.drivers.netconf;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,13 +29,14 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 
-import org.apache.commons.io.IOUtils;
 import org.onosproject.netconf.NetconfException;
 import org.onosproject.netconf.NetconfSession;
 import org.slf4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
+import org.xml.sax.InputSource;
 
+import com.google.common.io.CharSource;
 import com.google.common.io.Resources;
 
 /**
@@ -45,9 +45,9 @@ import com.google.common.io.Resources;
  */
 public final class TemplateManager {
     private static final Logger log = getLogger(TemplateManager.class);
-    private final Map<String, String> templates = new HashMap<String, String>();
+    private final Map<String, String> templates = new HashMap<>();
     private TemplateRequestDriver requestDriver;
-    private static final Map<String, Object> EMPTY_TEMPLATE_CONTEXT = new HashMap<String, Object>();
+    private static final Map<String, Object> EMPTY_TEMPLATE_CONTEXT = new HashMap<>();
 
     /**
      * Internal implementation of the request driver that implements a NETCONF
@@ -59,15 +59,13 @@ public final class TemplateManager {
                 String baseXPath, QName returnType) throws NetconfException {
             try {
                 String data = session.rpc(render(templates.get(templateName), templateContext)).get();
-                InputStream resp = IOUtils.toInputStream(data, StandardCharsets.UTF_8);
                 DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
                 DocumentBuilder builder = builderFactory.newDocumentBuilder();
-                Document document = builder.parse(resp);
+                Document document = builder.parse(new InputSource(CharSource.wrap(data).openStream()));
                 XPath xp = XPathFactory.newInstance().newXPath();
                 return xp.evaluate(baseXPath, document, returnType);
             } catch (Exception e) {
-                NetconfException ne = new NetconfException(e.getMessage(), e);
-                throw ne;
+                throw new NetconfException(e.getMessage(), e);
             }
         }
     }
