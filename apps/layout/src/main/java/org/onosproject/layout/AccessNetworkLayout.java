@@ -43,7 +43,7 @@ public class AccessNetworkLayout extends LayoutAlgorithm {
     private double accessY = +400.0;
     private double hostsY = +550.0;
 
-    private double gatewayX = 900.0;
+    private double gatewayX = 1500.0;
     private double rowGap = 70;
     private double computeRowGap = -120;
     private double colGap = 54;
