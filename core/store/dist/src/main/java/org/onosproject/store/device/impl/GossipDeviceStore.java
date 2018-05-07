@@ -362,6 +362,7 @@ public class GossipDeviceStore
                 // outdated event, ignored.
                 return null;
             }
+
             if (oldDevice == null) {
                 // REGISTER
                 if (!deltaDesc.value().isDefaultAvailable()) {
@@ -1165,7 +1166,7 @@ public class GossipDeviceStore
 
         return new DefaultDevice(primary, deviceId, type, manufacturer,
                                  hwVersion, swVersion, serialNumber,
-                                 chassisId, annotations.build());
+                                 chassisId, annotations.buildCompressed());
     }
 
     private Port buildTypedPort(Device device, PortNumber number, boolean isEnabled,

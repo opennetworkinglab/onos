@@ -1023,7 +1023,8 @@ public class DeviceManager
                     && (event.configClass().equals(BasicDeviceConfig.class)
                     || portOpsIndex.containsKey(event.configClass())
                     || event.configClass().equals(PortDescriptionsConfig.class)
-                    || event.configClass().equals(DeviceAnnotationConfig.class));
+                    || event.configClass().equals(DeviceAnnotationConfig.class))
+                    && mastershipService.isLocalMaster((DeviceId) event.subject());
         }
 
         @Override
