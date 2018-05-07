@@ -74,6 +74,8 @@ for spine in $(seq 1 $spines); do
     sim "null-create-device switch Spine-${spine} ${spinePorts}"
 done
 
+gwIps=""
+
 # Create 2 leaf pairs with dual links to the spines and a link between the pair
 for pair in $serviceLeafGroups; do
     [ $pair = A ] && l1=1 || l1=3
@@ -93,6 +95,7 @@ for pair in $serviceLeafGroups; do
     [ $pair = A ] && pn=1 || pn=2
     for gw in $(seq 1 $gateways); do
         sim "null-create-host Leaf-${pair}1,Leaf-${pair}2 10.${pn}.0.${gw}"
+        gwIps="${gwIps}|10.${pn}.0.${gw}"
     done
 
     # Create hosts for each leaf group; multi-homed to each leaf in the pair
@@ -139,4 +142,13 @@ sleep 2
 
 # Add devices, links, and hosts
 cat $CMDS | onos ${node}
+
+# After the network is created, add network config to assign roles to gateway IPs.
+cfg=""
+for gw in $(onos ${node} hosts | egrep "${gwIps/|/}" | cut -d, -f1 | cut -d= -f2); do
+    cfg="${cfg}, \"$gw\": { \"basic\": { \"uiType\" : \"router\", \"roles\": [ \"gateway\" ]}}"
+done
+echo "{ \"hosts\": { ${cfg/,/} }}" > $CMDS
+
+onos-netcfg ${node} $CMDS
 

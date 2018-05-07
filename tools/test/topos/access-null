@@ -18,6 +18,7 @@ function usage {
     echo "  -s spines"
     echo "  -l spineLinks"
     echo "  -S serviceHosts"
+    echo "  -G gateways"
     echo "  -a accessLeaves"
     echo "  -A accessHosts"
     exit 1
@@ -29,15 +30,17 @@ serviceLeafGroups="A B"
 serviceHosts=10
 accessLeaves=8
 accessHosts=100
+gateways=2
 
 # Scan arguments for user/password or other options...
-while getopts s:l:a:A:S:?h o; do
+while getopts s:l:a:A:S:G:?h o; do
     case "$o" in
         s) spines=$OPTARG;;
         l) spineLinks=$OPTARG;;
         a) accessLeaves=$OPTARG;;
         A) accessHosts=$OPTARG;;
         S) serviceHosts=$OPTARG;;
+        G) gateways=$OPTARG;;
         *) usage $0;;
     esac
 done
@@ -54,29 +57,26 @@ node=${1:-$OCI}
 
 
 # Create the script of ONOS commands first and then execute it all at once.
-export CMDS="/tmp/fab-onos.cmds"
+export CMDS="/tmp/access-onos.cmds"
 rm $CMDS
 
 function sim {
     echo "$@" >> $CMDS
 }
 
-function y {
-    let p="${3:-400} * ($1 - 1) - (${3:-400} * ($2 - 1)) / 2 + ${4:-0}"
-    echo $p
-}
-
 # Create spines
 for spine in $(seq 1 $spines); do
-    sim "null-create-device switch Spine-${spine} ${spinePorts} 0 $(y $spine $spines) grid"
+    sim "null-create-device switch Spine-${spine} ${spinePorts}"
 done
+
+gwIps=""
 
 # Create 2 leaf pairs with dual links to the spines and a link between the pair
 for pair in $serviceLeafGroups; do
     [ $pair = A ] && l1=1 || l1=3
     [ $pair = A ] && l2=2 || l2=4
-    sim "null-create-device switch Leaf-${pair}1 ${leafPorts} -200 $(y $l1 4) grid"
-    sim "null-create-device switch Leaf-${pair}2 ${leafPorts} -200 $(y $l2 4) grid"
+    sim "null-create-device switch Leaf-${pair}1 ${leafPorts}"
+    sim "null-create-device switch Leaf-${pair}2 ${leafPorts}"
     sim "null-create-link direct Leaf-${pair}1 Leaf-${pair}2"
 
     for spine in $(seq 1 $spines); do
@@ -86,17 +86,23 @@ for pair in $serviceLeafGroups; do
         done
     done
 
-    # Create hosts for each leaf group; multi-homed to each leaf in the pair
+    # Create gateways attached to each leaf group; multi-homed to each leaf in the pair
     [ $pair = A ] && pn=1 || pn=2
+    for gw in $(seq 1 $gateways); do
+        sim "null-create-host Leaf-${pair}1,Leaf-${pair}2 10.${pn}.0.${gw}"
+        gwIps="${gwIps}|10.${pn}.0.${gw}"
+    done
+
+    # Create hosts for each leaf group; multi-homed to each leaf in the pair
     [ $pair = A ] && offset=-400 || offset=400
     for host in $(seq 1 $serviceHosts); do
-        sim "null-create-host Leaf-${pair}1,Leaf-${pair}2 10.${pn}.1.${host} -400 $(y $host $serviceHosts 60 $offset) grid"
+        sim "null-create-host Leaf-${pair}1,Leaf-${pair}2 10.${pn}.1.${host}"
     done
 done
 
 # Create single access leafs with dual links to the spines
 for access in $(seq $accessLeaves); do
-    sim "null-create-device switch Access-${access} ${accessPorts} 200 $(y $access $accessLeaves) grid"
+    sim "null-create-device switch Access-${access} ${accessPorts}"
 
     for spine in $(seq 1 $spines); do
         for link in $(seq 1 $spineLinks); do
@@ -105,7 +111,7 @@ for access in $(seq $accessLeaves); do
     done
 
     # Create hosts for each access single leaf
-    sim "null-create-hosts Access-${access} 10.1${access}.1.*" $accessHosts 500 $(y $access $accessLeaves) 6
+    sim "null-create-hosts Access-${access} 10.1${access}.1.*" $accessHosts
     # sim "null-create-hosts Access-${access} 10.1${access}.2.*" $accessHosts
 done
 
@@ -129,3 +135,11 @@ sleep 2
 # Add devices, links, and hosts
 cat $CMDS | onos ${node}
 
+# After the network is created, add network config to assign roles to gateway IPs.
+cfg=""
+for gw in $(onos ${node} hosts | egrep "${gwIps/|/}" | cut -d, -f1 | cut -d= -f2); do
+    cfg="${cfg}, \"$gw\": { \"basic\": { \"uiType\" : \"router\", \"roles\": [ \"gateway\" ]}}"
+done
+echo "{ \"hosts\": { ${cfg/,/} }}" > $CMDS
+
+onos-netcfg ${node} $CMDS
