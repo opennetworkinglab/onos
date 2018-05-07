@@ -2,7 +2,7 @@ COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//protocols/netconf/api:onos-protocols-netconf-api',
     '//lib:commons-jxpath',
-    '//apps/odtn:onos-apps-odtn', # FIXME direction of dependency not ideal
+    '//apps/odtn/api:onos-apps-odtn-api',
 ]
 
 TEST_DEPS = [
@@ -34,6 +34,6 @@ onos_app (
     included_bundles = BUNDLES,
     required_apps = [
         'org.onosproject.netconf',
-        'org.onosproject.odtn',
+        'org.onosproject.odtn-api',
     ],
 )

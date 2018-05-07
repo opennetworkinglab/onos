@@ -1,20 +1,6 @@
-APPS = [
-    'org.onosproject.yang',
-    'org.onosproject.config',
-    'org.onosproject.configsync',
-    'org.onosproject.models.tapi',
-    'org.onosproject.models.openconfig',
-
-    # strictly speaking following are not mandatory
-    'org.onosproject.restconf',
-    'org.onosproject.drivers.netconf',# probably don't need this
-    'org.onosproject.netconf',
-    'org.onosproject.configsync-netconf',
-    'org.onosproject.protocols.restconfserver'
-]
-
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//apps/odtn/api:onos-apps-odtn-api',
     '//lib:onos-yang-model',
     '//lib:onos-yang-runtime',
     '//apps/config:onos-apps-config',
@@ -25,7 +11,6 @@ COMPILE_DEPS = [
     '//lib:org.apache.karaf.shell.console',
     '//cli:onos-cli',
     '//lib:JACKSON',
-    '//lib:COMPILE',
     '//protocols/netconf/api:onos-protocols-netconf-api'
 ]
 
@@ -38,7 +23,25 @@ osgi_jar_with_tests (
     test_deps = TEST_DEPS,
 )
 
+APPS = [
+    'org.onosproject.yang',
+    'org.onosproject.config',
+    'org.onosproject.configsync',
+    'org.onosproject.models.tapi',
+    'org.onosproject.models.openconfig',
+    'org.onosproject.odtn-api'
+
+    # strictly speaking following are not mandatory
+    'org.onosproject.restconf',
+    'org.onosproject.drivers.netconf',# will need if using TemplateManager
+    'org.onosproject.drivers.odtn',
+    'org.onosproject.netconf',
+    'org.onosproject.configsync-netconf',
+    'org.onosproject.protocols.restconfserver',
+]
+
 onos_app (
+    app_name = 'org.onosproject.odtn-service',
     title = 'ODTN Service Application',
     category = 'Traffic Steering',
     url = 'http://onosproject.org',

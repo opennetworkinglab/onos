@@ -23,7 +23,7 @@ import org.onosproject.net.device.PortDescription;
 /**
  * DeviceDescriptionDiscovery used in ODTN.
  *
- * Certain Annotations will be required.
+ * Just declaring certain Annotations will be required.
  */
 public interface OdtnDeviceDescriptionDiscovery
         extends DeviceDescriptionDiscovery {
