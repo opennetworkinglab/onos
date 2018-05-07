@@ -119,7 +119,7 @@ public final class TemplateManager {
                 resource = String.format(pattern, name);
             }
 
-            log.error("LOAD TEMPLATE: '{}' as '{}' from '{}", name, key, resource);
+            log.debug("LOAD TEMPLATE: '{}' as '{}' from '{}", name, key, resource);
 
             try {
                 templates.put(name,

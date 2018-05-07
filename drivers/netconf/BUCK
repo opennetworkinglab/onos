@@ -6,6 +6,7 @@ COMPILE_DEPS = [
 
 TEST_DEPS = [
     '//lib:TEST_ADAPTERS',
+    '//lib:slf4j-jdk14',
     '//core/api:onos-api-tests',
 ]
 

@@ -15,6 +15,9 @@
  */
 package org.onosproject.drivers.netconf;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.DefaultApplicationId;
@@ -22,19 +25,25 @@ import org.onosproject.core.IdGenerator;
 import org.onosproject.core.Version;
 import org.onosproject.net.intent.MockIdGenerator;
 
-import java.util.HashSet;
-import java.util.Set;
-
 public class MockCoreService implements CoreService {
 
     private HashSet<ApplicationId> appIds;
     private Version version;
-    private IdGenerator idGenerator;
+    private int nextAppId = 101;
+
+    public MockCoreService(int baseId, String... apps) {
+        nextAppId = baseId;
+        appIds = new HashSet<ApplicationId>();
+        for (String app : apps) {
+            appIds.add(new DefaultApplicationId(nextAppId, app));
+            nextAppId += 1;
+        }
+        version = Version.version(1, 1, "1", "1");
+    }
 
     public MockCoreService() {
+        this(101, "org.onosproject.drivers.netconf");
         appIds = new HashSet<ApplicationId>();
-        appIds.add(new DefaultApplicationId(101, "org.onosproject.drivers.netconf"));
-        version = Version.version(1, 1, "1", "1");
     }
 
     @Override
@@ -49,7 +58,7 @@ public class MockCoreService implements CoreService {
 
     @Override
     public ApplicationId getAppId(Short id) {
-        for (ApplicationId appId:appIds) {
+        for (ApplicationId appId : appIds) {
             if (appId.id() == id.shortValue()) {
                 return appId;
             }
@@ -59,7 +68,7 @@ public class MockCoreService implements CoreService {
 
     @Override
     public ApplicationId getAppId(String name) {
-        for (ApplicationId appId:appIds) {
+        for (ApplicationId appId : appIds) {
             if (appId.name().equalsIgnoreCase(name)) {
                 return appId;
             }
@@ -69,8 +78,13 @@ public class MockCoreService implements CoreService {
 
     @Override
     public ApplicationId registerApplication(String name) {
-        ApplicationId appId = new DefaultApplicationId(101, name);
-        appIds.add(appId);
+        // Check if the app already exists
+        ApplicationId appId = getAppId(name);
+        if (appId == null) {
+            appId = new DefaultApplicationId(nextAppId, name);
+            nextAppId += 1;
+            appIds.add(appId);
+        }
         return appId;
     }
 

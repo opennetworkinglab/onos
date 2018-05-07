@@ -65,7 +65,7 @@ import org.w3c.dom.NodeList;
 public class Ciena5162DeviceDescription extends AbstractHandlerBehaviour
         implements DeviceDescriptionDiscovery, PortStatisticsDiscovery, LinkDiscovery {
     private static final Logger log = getLogger(Ciena5162DeviceDescription.class);
-    private static final TemplateManager TEMPLATE_MANAGER = new TemplateManager();
+    static final TemplateManager TEMPLATE_MANAGER = new TemplateManager();
 
     static {
         TEMPLATE_MANAGER.load(Ciena5162DeviceDescription.class, "/templates/requests/%s.j2", "systemInfo",

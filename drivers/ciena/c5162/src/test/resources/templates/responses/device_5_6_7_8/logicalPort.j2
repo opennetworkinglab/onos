@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rpc-reply xmlns:ncx="http://netconfcentral.org/ns/yuma-ncx"
+           xmlns="urn:ietf:params:xml:ns:netconf:base:1.0"
+           message-id="64"
+           ncx:last-modified="2018-05-07T03:55:23Z"
+           ncx:etag="162">
+  <data>
+    <interfaces xmlns="http://openconfig.net/yang/interfaces">
+      <interface>
+        <name>1</name>
+        <config>
+          <name>1</name>
+          <description>1</description>
+          <type xmlns="http://ciena.com/ns/yang/ciena-openconfig-interfaces">ettp</type>
+          <admin-status xmlns="http://ciena.com/ns/yang/ciena-openconfig-interfaces">true</admin-status>
+          <mode xmlns="http://ciena.com/ns/yang/ciena-openconfig-if-ethernet-port">auto</mode>
+          <link-flap-detect xmlns="http://ciena.com/ns/yang/ciena-openconfig-if-ethernet-port">false</link-flap-detect>
+          <link-flap-count xmlns="http://ciena.com/ns/yang/ciena-openconfig-if-ethernet-port">5</link-flap-count>
+          <link-flap-detect-time xmlns="http://ciena.com/ns/yang/ciena-openconfig-if-ethernet-port">10</link-flap-detect-time>
+          <link-flap-hold-time xmlns="http://ciena.com/ns/yang/ciena-openconfig-if-ethernet-port">300</link-flap-hold-time>
+          <duplex xmlns="http://ciena.com/ns/yang/ciena-openconfig-if-ethernet-port">full</duplex>
+          <port-speed xmlns="http://ciena.com/ns/yang/ciena-openconfig-if-ethernet-port">10Gb</port-speed>
+          <flow-control xmlns="http://ciena.com/ns/yang/ciena-openconfig-if-ethernet-port">off</flow-control>
+          <auto-negotiation xmlns="http://ciena.com/ns/yang/ciena-openconfig-if-ethernet-port">false</auto-negotiation>
+          <lldp-port-config xmlns="urn:ciena:params:xml:ns:yang:ciena-pn::ciena-ieee-lldp">
+            <admin-status>tx-and-rx</admin-status>
+            <notify>false</notify>
+            <send-port-desc-tlv>true</send-port-desc-tlv>
+            <send-sys-name-tlv>true</send-sys-name-tlv>
+            <send-sys-desc-tlv>true</send-sys-desc-tlv>
+            <send-sys-cap-tlv>true</send-sys-cap-tlv>
+            <man-add-local-ipv4>true</man-add-local-ipv4>
+            <man-add-local-ipv6>true</man-add-local-ipv6>
+            <man-add-remote-ipv4>true</man-add-remote-ipv4>
+            <man-add-remote-ipv6>true</man-add-remote-ipv6>
+          </lldp-port-config>
+          <dot3-port-config xmlns="urn:ciena:params:xml:ns:yang:ciena-pn::ciena-ieee-lldp">
+            <send-mac-phy-status-tlv>true</send-mac-phy-status-tlv>
+            <send-power-via-mdi-tlv>true</send-power-via-mdi-tlv>
+            <send-link-aggregation-tlv>true</send-link-aggregation-tlv>
+            <send-max-frame-size-tlv>true</send-max-frame-size-tlv>
+          </dot3-port-config>
+          <eoam-port-config xmlns="urn:ciena:params:xml:ns:yang:ciena-pn:ciena-ieee:ns:yang:ieee-port-eoam">
+            <admin-status>disable</admin-status>
+            <mode>active</mode>
+            <pdu-timer>1000</pdu-timer>
+            <link-lost-timer>5000</link-lost-timer>
+          </eoam-port-config>
+          <eoam-loopback-port-config xmlns="urn:ciena:params:xml:ns:yang:ciena-pn:ciena-ieee:ns:yang:ieee-port-eoam">
+            <loopback-ignore-rx>ignore</loopback-ignore-rx>
+          </eoam-loopback-port-config>
+          <eoam-port-event-config xmlns="urn:ciena:params:xml:ns:yang:ciena-pn:ciena-ieee:ns:yang:ieee-port-eoam">
+            <error-frame-period-threshold>1</error-frame-period-threshold>
+            <error-frame-period-event-notification>false</error-frame-period-event-notification>
+            <error-frame-window>10</error-frame-window>
+            <error-frame-threshold>1</error-frame-threshold>
+            <error-frame-event-notification>false</error-frame-event-notification>
+            <error-frame-seconds-summary-window>600</error-frame-seconds-summary-window>
+            <error-frame-seconds-summary-threshold>1</error-frame-seconds-summary-threshold>
+            <error-frame-seconds-event-notification>false</error-frame-seconds-event-notification>
+            <dying-gasp>false</dying-gasp>
+            <critical-event>false</critical-event>
+          </eoam-port-event-config>
+        </config>
+        <state>
+          <ifindex>1</ifindex>
+          <oper-status>UP</oper-status>
+          <counters>
+            <in-octets>0</in-octets>
+            <in-unicast-pkts>0</in-unicast-pkts>
+            <in-errors>0</in-errors>
+            <out-octets>124766</out-octets>
+            <out-unicast-pkts>0</out-unicast-pkts>
+            <out-errors>0</out-errors>
+            <in-pkts xmlns="http://ciena.com/ns/yang/ciena-openconfig-interfaces">0</in-pkts>
+            <out-pkts xmlns="http://ciena.com/ns/yang/ciena-openconfig-interfaces">991</out-pkts>
+          </counters>
+          <mac-address xmlns="http://ciena.com/ns/yang/ciena-openconfig-interfaces">1c:11:61:ed:b4:0a</mac-address>
+          <duplex xmlns="http://ciena.com/ns/yang/ciena-openconfig-if-ethernet-port">full</duplex>
+          <flow-control xmlns="http://ciena.com/ns/yang/ciena-openconfig-if-ethernet-port">off</flow-control>
+          <speed xmlns="http://ciena.com/ns/yang/ciena-openconfig-if-ethernet-port">10000000000</speed>
+          <lldp-tx-stats xmlns="urn:ciena:params:xml:ns:yang:ciena-pn::ciena-ieee-lldp">
+            <total-frames>984</total-frames>
+          </lldp-tx-stats>
+          <lldp-rx-stats xmlns="urn:ciena:params:xml:ns:yang:ciena-pn::ciena-ieee-lldp">
+            <total-discards>0</total-discards>
+            <total-errors>0</total-errors>
+            <total-frames>0</total-frames>
+            <total-tlv-discards>0</total-tlv-discards>
+            <total-tlv-unrecognized>0</total-tlv-unrecognized>
+            <total-tlv-ageouts>0</total-tlv-ageouts>
+          </lldp-rx-stats>
+          <lldp-port-operational xmlns="urn:ciena:params:xml:ns:yang:ciena-pn::ciena-ieee-lldp">
+            <port-id-subtype>interface-name</port-id-subtype>
+            <port-id>1</port-id>
+            <port-desc>SFP 10 Gig Ethernet Port</port-desc>
+          </lldp-port-operational>
+          <lldp-dot3-port-operational xmlns="urn:ciena:params:xml:ns:yang:ciena-pn::ciena-ieee-lldp">
+            <auto-neg-supported>true</auto-neg-supported>
+            <auto-neg-enabled>false</auto-neg-enabled>
+            <oper-mau-type>33</oper-mau-type>
+            <port-class>p-class-pd</port-class>
+            <mdi-supported>false</mdi-supported>
+            <mdi-enabled>false</mdi-enabled>
+            <pair-controlable>false</pair-controlable>
+            <agg-status>capable</agg-status>
+            <max-frame-size>1526</max-frame-size>
+          </lldp-dot3-port-operational>
+          <lldp-remote-port-operational xmlns="urn:ciena:params:xml:ns:yang:ciena-pn::ciena-ieee-lldp">
+            <dot3-remote-entry/>
+          </lldp-remote-port-operational>
+          <eoam-port-status xmlns="urn:ciena:params:xml:ns:yang:ciena-pn:ciena-ieee:ns:yang:ieee-port-eoam">
+            <port-oper-status>disabled</port-oper-status>
+            <max-pdu-size>1518</max-pdu-size>
+            <configuration-revision>0</configuration-revision>
+            <pdu-timer>1000</pdu-timer>
+            <link-lost-timer>5000</link-lost-timer>
+            <local-functions-supported/>
+          </eoam-port-status>
+          <eoam-peer-information xmlns="urn:ciena:params:xml:ns:yang:ciena-pn:ciena-ieee:ns:yang:ieee-port-eoam">
+            <peer-status>inactive</peer-status>
+            <peer-mac-address>00:00:00:00:00:00</peer-mac-address>
+            <peer-vendor-oui>00 00 00</peer-vendor-oui>
+            <vendor-info>0</vendor-info>
+            <peer-mode>unknown</peer-mode>
+            <peer-max-pdu-size>0</peer-max-pdu-size>
+            <peer-configuration-revision>0</peer-configuration-revision>
+            <peer-functions-supported/>
+          </eoam-peer-information>
+          <eoam-loopback-port-status xmlns="urn:ciena:params:xml:ns:yang:ciena-pn:ciena-ieee:ns:yang:ieee-port-eoam"/>
+          <eoam-port-statistics xmlns="urn:ciena:params:xml:ns:yang:ciena-pn:ciena-ieee:ns:yang:ieee-port-eoam">
+            <information-transmitted>0</information-transmitted>
+            <information-received>0</information-received>
+            <unique-event-notification-transmitted>0</unique-event-notification-transmitted>
+            <unique-event-notification-received>0</unique-event-notification-received>
+            <loopback-control-transmitted>0</loopback-control-transmitted>
+            <loopback-control-received>0</loopback-control-received>
+            <variable-request-transmitted>0</variable-request-transmitted>
+            <variable-request-received>0</variable-request-received>
+            <variable-response-transmitted>0</variable-response-transmitted>
+            <variable-response-received>0</variable-response-received>
+            <organization-specific-transmitted>0</organization-specific-transmitted>
+            <organization-specific-received>0</organization-specific-received>
+            <duplicate-event-notifications-transmitted>0</duplicate-event-notifications-transmitted>
+            <duplicate-event-notifications-received>0</duplicate-event-notifications-received>
+          </eoam-port-statistics>
+          <eoam-port-event-log xmlns="urn:ciena:params:xml:ns:yang:ciena-pn:ciena-ieee:ns:yang:ieee-port-eoam">
+            <event-entry>
+              <index>5</index>
+              <timestamp>0</timestamp>
+              <oui>000</oui>
+              <event-type>0</event-type>
+              <window-hi>0</window-hi>
+              <window-lo>0</window-lo>
+              <threshold-hi>0</threshold-hi>
+              <threshold-lo>0</threshold-lo>
+              <value>0</value>
+              <running-total>0</running-total>
+              <total>0</total>
+            </event-entry>
+            <event-entry>
+              <index>4</index>
+              <timestamp>0</timestamp>
+              <oui>000</oui>
+              <event-type>0</event-type>
+              <window-hi>0</window-hi>
+              <window-lo>0</window-lo>
+              <threshold-hi>0</threshold-hi>
+              <threshold-lo>0</threshold-lo>
+              <value>0</value>
+              <running-total>0</running-total>
+              <total>0</total>
+            </event-entry>
+            <event-entry>
+              <index>3</index>
+              <timestamp>0</timestamp>
+              <oui>000</oui>
+              <event-type>0</event-type>
+              <window-hi>0</window-hi>
+              <window-lo>0</window-lo>
+              <threshold-hi>0</threshold-hi>
+              <threshold-lo>0</threshold-lo>
+              <value>0</value>
+              <running-total>0</running-total>
+              <total>0</total>
+            </event-entry>
+            <event-entry>
+              <index>2</index>
+              <timestamp>0</timestamp>
+              <oui>000</oui>
+              <event-type>0</event-type>
+              <window-hi>0</window-hi>
+              <window-lo>0</window-lo>
+              <threshold-hi>0</threshold-hi>
+              <threshold-lo>0</threshold-lo>
+              <value>0</value>
+              <running-total>0</running-total>
+              <total>0</total>
+            </event-entry>
+            <event-entry>
+              <index>1</index>
+              <timestamp>0</timestamp>
+              <oui>000</oui>
+              <event-type>0</event-type>
+              <window-hi>0</window-hi>
+              <window-lo>0</window-lo>
+              <threshold-hi>0</threshold-hi>
+              <threshold-lo>0</threshold-lo>
+              <value>0</value>
+              <running-total>0</running-total>
+              <total>0</total>
+            </event-entry>
+          </eoam-port-event-log>
+        </state>
+      </interface>
+    </interfaces>
+  </data>
+</rpc-reply>

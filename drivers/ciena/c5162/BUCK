@@ -13,6 +13,7 @@ TEST_DEPS = [
     '//lib:TEST_ADAPTERS',
     '//core/api:onos-api-tests',
     '//drivers/netconf:onos-drivers-netconf-tests',
+    '//lib:slf4j-jdk14',
 ]
 
 BUNDLES = [
@@ -32,7 +33,7 @@ osgi_jar_with_tests (
     deps = COMPILE_DEPS,
     test_deps = TEST_DEPS,
     resources_root = 'src/main/resources',
-    resources = glob(['src/main/resources/**']),
+    resources = glob(['src/*/resources/**']),
 )
 
 onos_app (
