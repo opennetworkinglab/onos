@@ -17,10 +17,8 @@ package org.onosproject.provider.lldpcommon;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-
 import io.netty.util.Timeout;
 import io.netty.util.TimerTask;
-
 import io.netty.util.internal.StringUtil;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.MacAddress;
@@ -35,14 +33,14 @@ import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.link.DefaultLinkDescription;
 import org.onosproject.net.link.LinkDescription;
+import org.onosproject.net.link.ProbedLinkProvider;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketContext;
-import org.onosproject.net.link.ProbedLinkProvider;
 import org.slf4j.Logger;
 
 import java.nio.ByteBuffer;
-import java.util.HashMap;
+import java.util.Map;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -72,8 +70,7 @@ public class LinkDiscovery implements TimerTask {
     private volatile boolean isStopped;
 
     // Set of ports to be probed
-    private final HashMap<Long, String> portMap = Maps.newHashMap();
-
+    private final Map<Long, String> portMap = Maps.newConcurrentMap();
     /**
      * Instantiates discovery manager for the given physical switch. Creates a
      * generic LLDP packet that will be customized for the port it is sent out on.
