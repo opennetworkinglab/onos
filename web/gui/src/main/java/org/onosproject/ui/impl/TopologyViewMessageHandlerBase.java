@@ -29,7 +29,6 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.core.CoreService;
 import org.onosproject.incubator.net.tunnel.OpticalTunnelEndPoint;
 import org.onosproject.incubator.net.tunnel.Tunnel;
-import org.onosproject.net.Annotated;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.ConnectPoint;
@@ -42,6 +41,10 @@ import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.Link;
+import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.net.config.basics.BasicDeviceConfig;
+import org.onosproject.net.config.basics.BasicElementConfig;
+import org.onosproject.net.config.basics.BasicHostConfig;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.link.LinkEvent;
@@ -70,29 +73,7 @@ import static org.onosproject.net.PortNumber.portNumber;
 import static org.onosproject.net.config.basics.BasicElementConfig.LOC_TYPE_GEO;
 import static org.onosproject.net.config.basics.BasicElementConfig.LOC_TYPE_GRID;
 import static org.onosproject.ui.topo.TopoConstants.CoreButtons;
-import static org.onosproject.ui.topo.TopoConstants.Properties.DEVICES;
-import static org.onosproject.ui.topo.TopoConstants.Properties.FLOWS;
-import static org.onosproject.ui.topo.TopoConstants.Properties.GRID_X;
-import static org.onosproject.ui.topo.TopoConstants.Properties.GRID_Y;
-import static org.onosproject.ui.topo.TopoConstants.Properties.HOSTS;
-import static org.onosproject.ui.topo.TopoConstants.Properties.HW_VERSION;
-import static org.onosproject.ui.topo.TopoConstants.Properties.INTENTS;
-import static org.onosproject.ui.topo.TopoConstants.Properties.IP;
-import static org.onosproject.ui.topo.TopoConstants.Properties.LATITUDE;
-import static org.onosproject.ui.topo.TopoConstants.Properties.LINKS;
-import static org.onosproject.ui.topo.TopoConstants.Properties.LONGITUDE;
-import static org.onosproject.ui.topo.TopoConstants.Properties.MAC;
-import static org.onosproject.ui.topo.TopoConstants.Properties.PORTS;
-import static org.onosproject.ui.topo.TopoConstants.Properties.PROTOCOL;
-import static org.onosproject.ui.topo.TopoConstants.Properties.SERIAL_NUMBER;
-import static org.onosproject.ui.topo.TopoConstants.Properties.SW_VERSION;
-import static org.onosproject.ui.topo.TopoConstants.Properties.TOPOLOGY_SSCS;
-import static org.onosproject.ui.topo.TopoConstants.Properties.TUNNELS;
-import static org.onosproject.ui.topo.TopoConstants.Properties.URI;
-import static org.onosproject.ui.topo.TopoConstants.Properties.VENDOR;
-import static org.onosproject.ui.topo.TopoConstants.Properties.VERSION;
-import static org.onosproject.ui.topo.TopoConstants.Properties.VLAN;
-import static org.onosproject.ui.topo.TopoConstants.Properties.VLAN_NONE;
+import static org.onosproject.ui.topo.TopoConstants.Properties.*;
 import static org.onosproject.ui.topo.TopoUtils.compactLinkString;
 
 /**
@@ -321,7 +302,9 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         payload.set("labels", labels("", name, device.id().toString()));
         payload.set("props", props(device.annotations()));
 
-        if (!addGeoLocation(device, payload) && !addGridLocation(device, payload)) {
+        BasicDeviceConfig cfg = get(NetworkConfigService.class)
+                .getConfig(device.id(), BasicDeviceConfig.class);
+        if (!addLocation(cfg, payload)) {
             addMetaUi(device.id().toString(), payload);
         }
 
@@ -369,7 +352,9 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         payload.set("labels", labels(nameForHost(host), ip, host.mac().toString(), ""));
         payload.set("props", props(host.annotations()));
 
-        if (!addGeoLocation(host, payload) && !addGridLocation(host, payload)) {
+        BasicHostConfig cfg = get(NetworkConfigService.class)
+                .getConfig(host.id(), BasicHostConfig.class);
+        if (!addLocation(cfg, payload)) {
             addMetaUi(host.id().toString(), payload);
         }
 
@@ -419,54 +404,21 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         }
     }
 
-    // Adds a geo location JSON to the specified payload object.
-    private boolean addGeoLocation(Annotated annotated, ObjectNode payload) {
-        Annotations annotations = annotated.annotations();
-        if (annotations != null) {
-            String locType = annotations.value(AnnotationKeys.LOC_TYPE);
-            String slat = annotations.value(AnnotationKeys.LATITUDE);
-            String slng = annotations.value(AnnotationKeys.LONGITUDE);
-            boolean validLat = slat != null && !slat.equals(NO_GEO_VALUE);
-            boolean validLng = slng != null && !slng.equals(NO_GEO_VALUE);
-
-            if (Objects.equals(locType, LOC_TYPE_GEO) && validLat && validLng) {
+    private boolean addLocation(BasicElementConfig cfg, ObjectNode payload) {
+        if (cfg != null) {
+            String locType = cfg.locType();
+            boolean isGeo = Objects.equals(locType, LOC_TYPE_GEO);
+            boolean isGrid = Objects.equals(locType, LOC_TYPE_GRID);
+            if (isGeo || isGrid) {
                 try {
-                    double lat = Double.parseDouble(slat);
-                    double lng = Double.parseDouble(slng);
                     ObjectNode loc = objectNode()
-                            .put("locType", "geo")
-                            .put("latOrY", lat)
-                            .put("longOrX", lng);
+                            .put("locType", locType)
+                            .put("latOrY", isGeo ? cfg.latitude() : cfg.gridY())
+                            .put("longOrX", isGeo ? cfg.longitude() : cfg.gridX());
                     payload.set("location", loc);
                     return true;
                 } catch (NumberFormatException e) {
-                    log.warn("Invalid geo data: latitude={}, longitude={}", slat, slng);
-                }
-            }
-        }
-        return false;
-    }
-
-    // Adds a grid location JSON to the specified payload object.
-    private boolean addGridLocation(Annotated annotated, ObjectNode payload) {
-        Annotations annotations = annotated.annotations();
-        if (annotations != null) {
-            String locType = annotations.value(AnnotationKeys.LOC_TYPE);
-            String xs = annotations.value(AnnotationKeys.GRID_X);
-            String ys = annotations.value(AnnotationKeys.GRID_Y);
-
-            if (Objects.equals(locType, LOC_TYPE_GRID) && xs != null && ys != null) {
-                try {
-                    double x = Double.parseDouble(xs);
-                    double y = Double.parseDouble(ys);
-                    ObjectNode loc = objectNode()
-                            .put("locType", "grid")
-                            .put("latOrY", y)
-                            .put("longOrX", x);
-                    payload.set("location", loc);
-                    return true;
-                } catch (NumberFormatException e) {
-                    log.warn("Invalid grid data: x={}, y={}", xs, ys);
+                    log.warn("Invalid location data: {}", cfg);
                 }
             }
         }
