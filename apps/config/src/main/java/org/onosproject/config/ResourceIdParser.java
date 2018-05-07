@@ -184,7 +184,7 @@ public final class ResourceIdParser {
 
     /**
      * Gets String representation of ResourceId.
-     * <p>
+     *
      * <pre>
      *   ResourceId := 'root' ('|' element)*
      *   element := LeafListKey | ListKey | NodeKey

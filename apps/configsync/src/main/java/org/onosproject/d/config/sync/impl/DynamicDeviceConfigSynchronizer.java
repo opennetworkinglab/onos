@@ -66,7 +66,7 @@ import com.google.common.collect.ImmutableMap;
 
 /**
  * Component to bridge Dynamic Config store and the Device configuration state.
- * <p>
+ *
  * <ul>
  * <li> Propagate DynamicConfig service change downward to Device side via provider.
  * <li> Propagate Device triggered change event upward to DyamicConfig service.

@@ -34,7 +34,7 @@ import com.google.common.annotations.Beta;
 
 /**
  * Main component of Dynamic config synchronizer for NETCONF.
- * <p>
+ *
  * <ul>
  * <li> bootstrap Active and Passive synchronization modules
  * <li> start background anti-entropy mechanism for offline device configuration

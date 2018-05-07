@@ -57,7 +57,7 @@ import com.google.common.io.CharStreams;
 
 /**
  * Dynamic config synchronizer provider for NETCONF.
- * <p>
+ *
  * <ul>
  * <li> Converts POJO YANG into XML.
  * <li> Adds NETCONF envelope around it.

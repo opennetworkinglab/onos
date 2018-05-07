@@ -17,4 +17,4 @@
 /**
  * An implementation of Layer 2 CFM Service Operations and Maintenance (SOAM).
  */
-package org.onosproject.incubator.net.l2monitoring.impl;
+package org.onosproject.incubator.net.l2monitoring.soam.impl;
