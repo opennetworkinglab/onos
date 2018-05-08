@@ -447,10 +447,6 @@ public final class OpenstackSwitchingArpHandler {
         }
 
         private void setDefaultArpRule(OpenstackNode openstackNode, boolean install) {
-            if (openstackNode.type().equals(GATEWAY)) {
-                return;
-            }
-
             if (arpMode.equals(ARP_PROXY_MODE)) {
                 TrafficSelector selector = DefaultTrafficSelector.builder()
                         .matchEthType(EthType.EtherType.ARP.ethType().toShort())
@@ -470,6 +466,12 @@ public final class OpenstackSwitchingArpHandler {
                         install
                 );
             } else if (arpMode.equals(ARP_BROADCAST_MODE)) {
+                // TODO: currently, do not install any rules to GW in broadcast mode;
+                // need to add Floating IP to MAC mapping flow rules
+                if (openstackNode.type().equals(GATEWAY)) {
+                    return;
+                }
+
                 TrafficSelector selector = DefaultTrafficSelector.builder()
                         .matchEthType(EthType.EtherType.ARP.ethType().toShort())
                         .matchArpOp(ARP.OP_REQUEST)
