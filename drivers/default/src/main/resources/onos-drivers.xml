@@ -279,5 +279,11 @@
                    impl="org.onosproject.driver.pipeline.CentecV350Pipeline"/>
     </driver>
     -->
+
+    <driver name="Arista" extends="default"
+            manufacturer="Arista.*" hwVersion="DCS.*" swVersion=".*">
+        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
+                   impl="org.onosproject.driver.pipeline.AristaPipeliner"/>
+    </driver>
 </drivers>
 
