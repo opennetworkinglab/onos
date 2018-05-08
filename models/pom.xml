@@ -34,6 +34,7 @@
         <module>common</module>
         <module>microsemi</module>
         <module>openconfig</module>
+        <module>openconfig-infinera</module>
         <module>openroadm</module>
         <module>l3vpn</module>
         <module>tapi</module>
