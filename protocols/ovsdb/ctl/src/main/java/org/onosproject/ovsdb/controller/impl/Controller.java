@@ -29,6 +29,8 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoop;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
+import io.netty.channel.group.ChannelGroup;
+import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
@@ -41,13 +43,23 @@ import io.netty.util.CharsetUtil;
 
 import static org.onlab.util.Tools.groupedThreads;
 
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
+import io.netty.util.concurrent.GlobalEventExecutor;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.TpPort;
 import org.onlab.util.Tools;
@@ -59,6 +71,10 @@ import org.onosproject.ovsdb.controller.driver.OvsdbProviderService;
 import org.onosproject.ovsdb.rfc.jsonrpc.Callback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
 
 /**
  * The main controller class. Handles all setup and network listeners -
@@ -83,6 +99,17 @@ public class Controller {
     private static final int MAX_RETRY = 5;
     private static final int IDLE_TIMEOUT_SEC = 10;
 
+    private ChannelGroup cg;
+
+    protected static final int SEND_BUFFER_SIZE = 4 * 1024 * 1024;
+
+    protected TlsParams tlsParams = new TlsParams();
+    protected SSLContext sslContext;
+    protected KeyStore keyStore;
+
+    protected static final short MIN_KS_LENGTH = 6;
+    private static final String JAVA_KEY_STORE = "JKS";
+
     /**
      * Initialization.
      */
@@ -96,16 +123,20 @@ public class Controller {
      * Accepts incoming connections.
      */
     private void startAcceptingConnections() throws InterruptedException {
-        ServerBootstrap b = new ServerBootstrap();
+        if (cg == null) {
+            return;
+        }
+        final ServerBootstrap b = new ServerBootstrap();
 
         b.group(bossGroup, workerGroup).channel(serverChannelClass)
-                .childHandler(new OnosCommunicationChannelInitializer());
+                .childHandler(new OvsdbChannelInitializer(this, sslContext));
+        b.option(ChannelOption.SO_REUSEADDR, true);
         b.option(ChannelOption.SO_BACKLOG, 128);
-        b.option(ChannelOption.WRITE_BUFFER_HIGH_WATER_MARK, 32 * 1024);
-        b.option(ChannelOption.WRITE_BUFFER_LOW_WATER_MARK, 8 * 1024);
         b.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
+        b.childOption(ChannelOption.SO_SNDBUF, Controller.SEND_BUFFER_SIZE);
         b.childOption(ChannelOption.SO_KEEPALIVE, true);
-        b.bind(ovsdbPort).sync();
+
+        cg.add(b.bind(ovsdbPort).syncUninterruptibly().channel());
     }
 
     /**
@@ -133,11 +164,23 @@ public class Controller {
     }
 
     /**
+     * Sets new TLS parameters.
+     *
+     * @param newTlsParams Modified Tls Params
+     * @return true if restart is required
+     */
+    protected boolean setTlsParameters(TlsParams newTlsParams) {
+        TlsParams oldParams = this.tlsParams;
+        this.tlsParams = newTlsParams;
+        return !Objects.equals(this.tlsParams, oldParams); // restart if TLS params change
+    }
+
+    /**
      * Handles the new connection of node.
      *
      * @param channel the channel to use.
      */
-    private void handleNewNodeConnection(final Channel channel) {
+    protected void handleNewNodeConnection(final Channel channel) {
         executorService.execute(() -> {
             log.info("Handle new node connection");
 
@@ -205,6 +248,7 @@ public class Controller {
         // therefore, ONOS only runs as an OVSDB client
         if (mode) {
             try {
+                this.init();
                 this.run();
             } catch (InterruptedException e) {
                 log.warn("Interrupted while waiting to start");
@@ -218,8 +262,21 @@ public class Controller {
      *
      */
     public void stop() {
-        workerGroup.shutdownGracefully();
-        bossGroup.shutdownGracefully();
+        if (cg != null) {
+            cg.close();
+            cg = null;
+
+            workerGroup.shutdownGracefully();
+            bossGroup.shutdownGracefully();
+            // Wait until all threads are terminated.
+            try {
+                bossGroup.terminationFuture().sync();
+                workerGroup.terminationFuture().sync();
+            } catch (InterruptedException e) {
+                log.warn("Interrupted while stopping", e);
+                Thread.currentThread().interrupt();
+            }
+        }
     }
 
     /**
@@ -257,11 +314,11 @@ public class Controller {
 
                     @Override
                     protected void initChannel(SocketChannel channel) throws Exception {
-                        ChannelPipeline p = channel.pipeline();
-                        p.addLast(new MessageDecoder(),
-                                  new StringEncoder(CharsetUtil.UTF_8),
-                                  new IdleStateHandler(IDLE_TIMEOUT_SEC, 0, 0),
-                                  new ConnectionHandler());
+                        ChannelPipeline pipeline = channel.pipeline();
+                        pipeline.addLast(new StringEncoder(CharsetUtil.UTF_8));
+                        pipeline.addLast(new MessageDecoder());
+                        pipeline.addLast(new IdleStateHandler(IDLE_TIMEOUT_SEC, 0, 0));
+                        pipeline.addLast(new ConnectionHandler());
                     }
                 });
         b.remoteAddress(ip.toString(), port.toInt());
@@ -318,6 +375,38 @@ public class Controller {
             if (e.state() == IdleState.READER_IDLE) {
                 ctx.close();
             }
+        }
+    }
+
+    /**
+     * Initialize internal data structures.
+     */
+    public void init() {
+        cg = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
+
+        if (tlsParams.isTlsEnabled()) {
+            initSsl();
+        }
+
+    }
+
+    private void initSsl()  {
+        try {
+            TrustManagerFactory tmFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            KeyStore ts = KeyStore.getInstance(JAVA_KEY_STORE);
+            ts.load(new FileInputStream(tlsParams.tsLocation), tlsParams.tsPwd());
+            tmFactory.init(ts);
+
+            KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+            keyStore = KeyStore.getInstance(JAVA_KEY_STORE);
+            keyStore.load(new FileInputStream(tlsParams.ksLocation), tlsParams.ksPwd());
+            kmf.init(keyStore, tlsParams.ksPwd());
+
+            sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(kmf.getKeyManagers(), tmFactory.getTrustManagers(), null);
+        } catch (NoSuchAlgorithmException | KeyStoreException | CertificateException |
+                IOException | KeyManagementException | UnrecoverableKeyException ex) {
+            log.error("SSL init failed: {}", ex.getMessage());
         }
     }
 }
