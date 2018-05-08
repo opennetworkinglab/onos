@@ -382,7 +382,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
      * @param connectPoint the port we want to probe
      */
     private void sendLocationProbe(Ethernet probe, ConnectPoint connectPoint) {
-        log.info("Sending probe for host {} on location {} with probeMac {}",
+        log.debug("Sending probe for host {} on location {} with probeMac {}",
                 probe.getDestinationMAC(), connectPoint, probe.getSourceMAC());
         TrafficTreatment treatment = DefaultTrafficTreatment.builder().setOutput(connectPoint.port()).build();
         OutboundPacket outboundPacket = new DefaultOutboundPacket(connectPoint.deviceId(),
@@ -553,7 +553,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
 
             // Receives a location probe. Invalid entry from the cache
             if (multihomingEnabled && destMac.isOnos() && !MacAddress.NONE.equals(destMac)) {
-                log.info("Receives probe for {}/{} on {}", srcMac, vlan, heardOn);
+                log.debug("Receives probe for {}/{} on {}", srcMac, vlan, heardOn);
                 providerService.removePendingHostLocation(destMac);
                 return;
             }
