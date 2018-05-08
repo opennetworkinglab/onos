@@ -270,6 +270,10 @@ public class RouteManager implements RouteService, RouteAdminService {
     }
 
     private void resolve(RouteSet routes) {
+        if (routes.routes() == null) {
+            // The routes were removed before we got to them, nothing to do
+            return;
+        }
         Set<ResolvedRoute> resolvedRoutes = routes.routes().stream()
                 .map(this::resolve)
                 .filter(Objects::nonNull)
