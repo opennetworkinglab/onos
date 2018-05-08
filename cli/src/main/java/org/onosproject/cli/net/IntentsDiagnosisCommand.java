@@ -114,7 +114,7 @@ public class IntentsDiagnosisCommand extends AbstractShellCommand {
                 svcRefs.workPartitionService.isMine(intent.key(), Key::hash) ? "(Mine)" : "");
     }
 
-    private void dumpIntentsByLink(ServiceRefs svcRefs) throws Exception {
+    private void dumpIntentsByLink(ServiceRefs svcRefs) {
         Set<Map.Entry<LinkKey, Key>> intentsByLink = getIntentsByLinkSet(svcRefs);
 
         print("* intentsbylink:");
@@ -123,19 +123,25 @@ public class IntentsDiagnosisCommand extends AbstractShellCommand {
         }
     }
 
-    private Set<Map.Entry<LinkKey, Key>> getIntentsByLinkSet(ServiceRefs svcRefs) throws Exception {
+    private Set<Map.Entry<LinkKey, Key>> getIntentsByLinkSet(ServiceRefs svcRefs) {
 
-        ObjectiveTrackerService objTracker = svcRefs.getObjectiveTrackerService();
+        try {
 
-        // Utilizing reflection instead of adding new interface for getting intentsByLink
-        Field f = objTracker.getClass().getDeclaredField(FIELD_INTENTS_BY_LINK);
-        f.setAccessible(true);
-        SetMultimap<LinkKey, Key> intentsByLink = (SetMultimap<LinkKey, Key>) f.get(objTracker);
+            ObjectiveTrackerService objTracker = svcRefs.getObjectiveTrackerService();
 
-        return ImmutableSet.copyOf(intentsByLink.entries());
+            // Utilizing reflection instead of adding new interface for getting intentsByLink
+            Field f = objTracker.getClass().getDeclaredField(FIELD_INTENTS_BY_LINK);
+            f.setAccessible(true);
+            SetMultimap<LinkKey, Key> intentsByLink = (SetMultimap<LinkKey, Key>) f.get(objTracker);
+
+            return ImmutableSet.copyOf(intentsByLink.entries());
+        } catch (NoSuchFieldException | IllegalAccessException ex) {
+            error("error: " + ex);
+            return ImmutableSet.of();
+        }
     }
 
-    private void diagnosisP2Pintent(PointToPointIntent intent, ServiceRefs svcRefs) throws Exception {
+    private void diagnosisP2Pintent(PointToPointIntent intent, ServiceRefs svcRefs) {
 
         List<Intent> installableIntents = svcRefs.intentsService().getInstallableIntents(intent.key());
 
@@ -159,8 +165,7 @@ public class IntentsDiagnosisCommand extends AbstractShellCommand {
         }
     }
 
-    private void checkP2PFlowRuleIntent(PointToPointIntent intent, FlowRuleIntent installable, ServiceRefs svcRefs)
-            throws Exception {
+    private void checkP2PFlowRuleIntent(PointToPointIntent intent, FlowRuleIntent installable, ServiceRefs svcRefs) {
 
         final Map<DeviceId, DeviceOnIntent> devs = createDevicesOnP2PIntent(intent, installable);
 
@@ -256,7 +261,7 @@ public class IntentsDiagnosisCommand extends AbstractShellCommand {
         }
     }
 
-    private void checkIntentsByLink(FlowRuleIntent installable, ServiceRefs svcRefs) throws Exception {
+    private void checkIntentsByLink(FlowRuleIntent installable, ServiceRefs svcRefs) {
 
         Set<Map.Entry<LinkKey, Key>> intentsByLink = getIntentsByLinkSet(svcRefs);
 
@@ -390,13 +395,10 @@ public class IntentsDiagnosisCommand extends AbstractShellCommand {
                         ConnectPoint dstCp = link.dst();
                         try {
                             DeviceOnIntent dev = devMap.computeIfAbsent(srcCp.deviceId(), DeviceOnIntent::new);
-                            if (dev != null) {
-                                dev.addEgressLink(link);
-                            }
+                            dev.addEgressLink(link);
+
                             dev = devMap.computeIfAbsent(dstCp.deviceId(), DeviceOnIntent::new);
-                            if (dev != null) {
-                                dev.addIngressLink(link);
-                            }
+                            dev.addIngressLink(link);
                         } catch (IllegalStateException e) {
                             print("error: " + e);
                         }
