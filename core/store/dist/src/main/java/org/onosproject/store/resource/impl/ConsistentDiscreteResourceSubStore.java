@@ -17,6 +17,7 @@ package org.onosproject.store.resource.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import org.onlab.util.Tools;
 import org.onosproject.net.resource.DiscreteResource;
 import org.onosproject.net.resource.DiscreteResourceId;
 import org.onosproject.net.resource.Resource;
@@ -24,6 +25,7 @@ import org.onosproject.net.resource.ResourceAllocation;
 import org.onosproject.net.resource.ResourceConsumerId;
 import org.onosproject.net.resource.Resources;
 import org.onosproject.store.service.ConsistentMap;
+import org.onosproject.store.service.StorageException;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.TransactionContext;
 import org.onosproject.store.service.Versioned;
@@ -53,7 +55,12 @@ class ConsistentDiscreteResourceSubStore implements ConsistentResourceSubStore
                 .withSerializer(SERIALIZER)
                 .build();
 
-        childMap.putIfAbsent(Resource.ROOT.id(), DiscreteResources.empty());
+        Tools.retryable(
+                () -> childMap.putIfAbsent(Resource.ROOT.id(), DiscreteResources.empty()),
+                StorageException.ConcurrentModification.class,
+                Integer.MAX_VALUE,
+                50
+        ).get();
     }
 
     @Override
