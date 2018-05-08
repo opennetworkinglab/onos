@@ -45,6 +45,7 @@ class ConsistentDiscreteResourceSubStore implements ConsistentResourceSubStore
     private ConsistentMap<DiscreteResourceId, ResourceConsumerId> consumers;
     private ConsistentMap<DiscreteResourceId, DiscreteResources> childMap;
 
+    @SuppressWarnings("ReturnValueIgnored")
     ConsistentDiscreteResourceSubStore(StorageService service) {
         this.consumers = service.<DiscreteResourceId, ResourceConsumerId>consistentMapBuilder()
                 .withName(MapNames.DISCRETE_CONSUMER_MAP)
