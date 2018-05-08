@@ -1624,7 +1624,7 @@ public class Ofdpa2GroupHandler {
             fail(nextObjective, ObjectiveError.UNSUPPORTED);
             return;
         }
-        log.debug("Call to verify device:{} nextId:{}", deviceId, nextObjective.id());
+        log.trace("Call to verify device:{} nextId:{}", deviceId, nextObjective.id());
         List<Deque<GroupKey>> allActiveKeys = appKryo.deserialize(next.data());
         List<TrafficTreatment> bucketsToCreate = Lists.newArrayList();
         List<Integer> indicesToRemove = Lists.newArrayList();
@@ -1676,8 +1676,8 @@ public class Ofdpa2GroupHandler {
             indicesToRemove.addAll(otherIndices);
         }
 
-        log.debug("Buckets to create {}", bucketsToCreate);
-        log.debug("Indices to remove {}", indicesToRemove);
+        log.trace("Buckets to create {}", bucketsToCreate);
+        log.trace("Indices to remove {}", indicesToRemove);
 
         if (!bucketsToCreate.isEmpty()) {
             log.info("creating {} buckets as part of nextId: {} verification",
