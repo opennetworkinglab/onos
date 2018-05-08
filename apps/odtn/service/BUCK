@@ -29,12 +29,12 @@ APPS = [
     'org.onosproject.configsync',
     'org.onosproject.models.tapi',
     'org.onosproject.models.openconfig',
-    'org.onosproject.odtn-api'
+    'org.onosproject.odtn-api',
 
     # strictly speaking following are not mandatory
     'org.onosproject.restconf',
     'org.onosproject.drivers.netconf',# will need if using TemplateManager
-    'org.onosproject.drivers.odtn',
+    'org.onosproject.drivers.odtn-driver',
     'org.onosproject.netconf',
     'org.onosproject.configsync-netconf',
     'org.onosproject.protocols.restconfserver',

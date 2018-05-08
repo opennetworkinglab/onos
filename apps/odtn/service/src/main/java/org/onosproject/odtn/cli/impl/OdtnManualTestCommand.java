@@ -57,7 +57,6 @@ import com.google.common.collect.Lists;
 import com.google.common.io.CharSource;
 
 
-
 @Command(scope = "onos", name = "odtn-manual-test",
          description = "ODTN manual test command")
 public class OdtnManualTestCommand extends AbstractShellCommand {
