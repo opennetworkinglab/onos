@@ -18,6 +18,7 @@ package org.onosproject.store.app;
 import com.google.common.base.Charsets;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -316,7 +317,10 @@ public class DistributedApplicationStore extends ApplicationArchive
                 return success ? create(appDesc, false) : null;
 
             } catch (Exception e) {
-                log.warn("Unable to load application {} from disk; retrying", appName);
+                log.warn("Unable to load application {} from disk: {}; retrying",
+                         appName,
+                         Throwables.getRootCause(e).getMessage());
+                log.debug("Full error details:", e);
                 randomDelay(RETRY_DELAY_MS); //FIXME: This is a deliberate hack; fix in Falcon
             }
         }
