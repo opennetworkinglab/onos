@@ -337,8 +337,7 @@ public class OpenstackRoutingSnatHandler {
                 break;
             case VLAN:
                 tBuilder.pushVlan()
-                        .setVlanId(VlanId.vlanId(segmentId))
-                        .setEthSrc(DEFAULT_GATEWAY_MAC);
+                        .setVlanId(VlanId.vlanId(segmentId));
                 break;
             default:
                 final String error = String.format("%s %s",
