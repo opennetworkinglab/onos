@@ -28,9 +28,6 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.CoreService;
-import org.onosproject.net.device.DeviceEvent;
-import org.onosproject.net.device.DeviceListener;
-import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.openflow.controller.DefaultOpenFlowPacketContext;
 import org.onosproject.openflow.controller.Dpid;
@@ -77,7 +74,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -89,9 +85,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.net.Device.Type.CONTROLLER;
-import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_REMOVED;
-import static org.onosproject.openflow.controller.Dpid.dpid;
 
 
 @Component(immediate = true)
@@ -113,10 +106,6 @@ public class OpenFlowControllerImpl implements OpenFlowController {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService cfgService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DeviceService deviceService;
-
 
     @Property(name = "openflowPorts", value = DEFAULT_OFPORT,
             label = "Port numbers (comma separated) used by OpenFlow protocol; default is 6633,6653")
@@ -185,13 +174,11 @@ public class OpenFlowControllerImpl implements OpenFlowController {
             ArrayListMultimap.create();
 
     private final Controller ctrl = new Controller();
-    private InternalDeviceListener listener = new InternalDeviceListener();
 
     @Activate
     public void activate(ComponentContext context) {
         coreService.registerApplication(APP_ID, this::cleanup);
         cfgService.registerProperties(getClass());
-        deviceService.addListener(listener);
         ctrl.setConfigParams(context.getProperties());
         ctrl.start(agent, driverService);
     }
@@ -208,7 +195,6 @@ public class OpenFlowControllerImpl implements OpenFlowController {
 
     @Deactivate
     public void deactivate() {
-        deviceService.removeListener(listener);
         cleanup();
         cfgService.unregisterProperties(getClass(), false);
     }
@@ -605,47 +591,6 @@ public class OpenFlowControllerImpl implements OpenFlowController {
             return;
         }
         sw.setRole(role);
-    }
-
-    class InternalDeviceListener implements DeviceListener {
-
-        @Override
-        public boolean isRelevant(DeviceEvent event) {
-            return event.subject().type() != CONTROLLER && event.type() == DEVICE_REMOVED
-                    && event.subject().id().uri().getScheme().equals(SCHEME);
-        }
-
-        @Override
-        public void event(DeviceEvent event) {
-            switch (event.type()) {
-            case DEVICE_ADDED:
-                break;
-            case DEVICE_AVAILABILITY_CHANGED:
-                break;
-            case DEVICE_REMOVED:
-                // Device administratively removed, disconnect
-                Optional.ofNullable(getSwitch(dpid(event.subject().id().uri())))
-                        .ifPresent(OpenFlowSwitch::disconnectSwitch);
-                break;
-            case DEVICE_SUSPENDED:
-                break;
-            case DEVICE_UPDATED:
-                break;
-            case PORT_ADDED:
-                break;
-            case PORT_REMOVED:
-                break;
-            case PORT_STATS_UPDATED:
-                break;
-            case PORT_UPDATED:
-                break;
-            default:
-                break;
-
-            }
-
-        }
-
     }
 
     /**

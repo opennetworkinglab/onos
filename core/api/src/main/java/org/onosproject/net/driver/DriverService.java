@@ -40,8 +40,10 @@ public interface DriverService extends DriverRegistry {
     Set<Driver> getDrivers(Class<? extends Behaviour> withBehaviour);
 
     /**
-     * Returns the driver for the specified device. If the device carries
-     * {@code driver} annotation, its value is used to look-up the driver.
+     * Returns the driver for the specified device. If the network configuration
+     * for the specified device carries the {@code driver} property or if the
+     * device carries the {@code driver} annotation, they will be used to look-up
+     * the driver, in respective order.
      * Otherwise, the device manufacturer, hardware and software version
      * attributes are used to look-up the driver. First using their literal
      * values and if no driver is found, using ERE matching against the
