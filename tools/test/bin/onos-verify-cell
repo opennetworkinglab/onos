@@ -15,7 +15,7 @@ for node in $OCT $OCN $(env | sort | egrep "^OC[0-9]+" | cut -d= -f2); do
             let err=0
             break
         fi
-        let err=$?+$err
+        let err=1+$err
     done
     if [ $err -ne 0 ]; then
         exit 1
