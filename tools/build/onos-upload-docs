@@ -14,8 +14,8 @@ remote=$user@api.onosproject.org
 docs=$(onos-buck build //docs:external --show-output 2>/dev/null | tail -1 | cut -d\  -f2)
 
 ONOS_VERSION_STRING=$ONOS_VERSION
-if echo $ONOS_VERSION_STRING | grep '-'; then
-    echo "ONOS version $ONOS_VERSION_STRING is a beta or RC. Skipping"
+if echo $ONOS_VERSION_STRING | grep '-b'; then
+    echo "ONOS version $ONOS_VERSION_STRING is a beta. Skipping"
     exit 0
 fi
 
@@ -29,6 +29,11 @@ if (( ${ONOS_VERSION_SPLIT[1]} >= ${CURRENT_VERSION_SPLIT[1]} )); then
     echo "Should replace current version $CURRENT_VERSION_STRING with new ONOS version $ONOS_VERSION_STRING"
 else
     echo "Not replacing current version $CURRENT_VERSION_STRING with ONOS version $ONOS_VERSION_STRING"
+    replace="0"
+fi
+
+if echo $ONOS_VERSION_STRING | grep '-'; then
+    echo "ONOS version $ONOS_VERSION_STRING is a beta or RC. Not replacing default document set."
     replace="0"
 fi
 

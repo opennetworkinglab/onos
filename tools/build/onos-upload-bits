@@ -32,8 +32,8 @@ cp $(onos-buck build //:onos-admin --show-output | tail -1 | cut -d\  -f2) $ONOS
 # onosUploadBits.py ${ONOS_VERSION%-*}
 
 # use this to upload to maven central
-if echo $ONOS_VERSION | grep '-'; then
-    echo "ONOS version $ONOS_VERSION is a beta or RC. Skipping publishing .tar.gz files"
+if echo $ONOS_VERSION | grep '-b'; then
+    echo "ONOS version $ONOS_VERSION is a beta. Skipping publishing .tar.gz files"
     exit 0
 fi
 UPLOAD_BASE="https://oss.sonatype.org/service/local/staging/deploy/maven2/org/onosproject/onos-releases/$ONOS_VERSION"
