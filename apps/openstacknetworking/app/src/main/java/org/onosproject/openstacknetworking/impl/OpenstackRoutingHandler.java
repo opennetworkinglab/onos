@@ -655,20 +655,31 @@ public class OpenstackRoutingHandler {
                 throw new IllegalStateException(error);
         }
 
-        treatment = DefaultTrafficTreatment.builder()
-                .extension(buildExtension(
-                        deviceService,
-                        osNode.intgBridge(),
-                        sourceNatGateway.dataIp().getIp4Address()),
-                        osNode.intgBridge())
-                .setOutput(osNode.tunnelPortNum())
-                .build();
+        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
+
+        switch (networkType) {
+            case VXLAN:
+                tBuilder.extension(buildExtension(
+                                deviceService,
+                                osNode.intgBridge(),
+                                sourceNatGateway.dataIp().getIp4Address()),
+                                osNode.intgBridge())
+                        .setOutput(osNode.tunnelPortNum());
+                break;
+
+            case VLAN:
+                tBuilder.setOutput(osNode.vlanPortNum());
+                break;
+
+            default:
+                break;
+        }
 
         osFlowRuleService.setRule(
                 appId,
                 osNode.intgBridge(),
                 sBuilder.build(),
-                treatment,
+                tBuilder.build(),
                 PRIORITY_EXTERNAL_ROUTING_RULE,
                 ROUTING_TABLE,
                 install);
@@ -705,35 +716,48 @@ public class OpenstackRoutingHandler {
     private void setRulesToGatewayWithDstIp(OpenstackNode osNode, OpenstackNode sourceNatGateway,
                                             String segmentId, IpAddress dstIp,
                                             NetworkMode networkMode, boolean install) {
-        TrafficSelector selector;
-        if (networkMode.equals(NetworkMode.VXLAN)) {
-            selector = DefaultTrafficSelector.builder()
-                    .matchEthType(Ethernet.TYPE_IPV4)
-                    .matchTunnelId(Long.valueOf(segmentId))
-                    .matchIPDst(dstIp.getIp4Address().toIpPrefix())
-                    .build();
-        } else {
-            selector = DefaultTrafficSelector.builder()
-                    .matchEthType(Ethernet.TYPE_IPV4)
-                    .matchVlanId(VlanId.vlanId(segmentId))
-                    .matchIPDst(dstIp.getIp4Address().toIpPrefix())
-                    .build();
+        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_IPV4)
+                .matchIPDst(dstIp.getIp4Address().toIpPrefix());
+
+        switch (networkMode) {
+            case VXLAN:
+                sBuilder.matchTunnelId(Long.valueOf(segmentId));
+                break;
+
+            case VLAN:
+                sBuilder.matchVlanId(VlanId.vlanId(segmentId));
+                break;
+
+            default:
+                break;
         }
 
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .extension(buildExtension(
+        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
+
+        switch (networkMode) {
+            case VXLAN:
+                tBuilder.extension(buildExtension(
                         deviceService,
                         osNode.intgBridge(),
                         sourceNatGateway.dataIp().getIp4Address()),
                         osNode.intgBridge())
-                .setOutput(osNode.tunnelPortNum())
-                .build();
+                        .setOutput(osNode.tunnelPortNum());
+                break;
+
+            case VLAN:
+                tBuilder.setOutput(osNode.vlanPortNum());
+                break;
+
+            default:
+                break;
+        }
 
         osFlowRuleService.setRule(
                 appId,
                 osNode.intgBridge(),
-                selector,
-                treatment,
+                sBuilder.build(),
+                tBuilder.build(),
                 PRIORITY_SWITCHING_RULE,
                 ROUTING_TABLE,
                 install);
@@ -805,16 +829,16 @@ public class OpenstackRoutingHandler {
                                       NetworkType networkType, boolean install) {
         TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
-                .matchIPSrc(srcSubnet);
+                .matchIPSrc(srcSubnet)
+                .matchEthDst(Constants.DEFAULT_GATEWAY_MAC);
+
 
         switch (networkType) {
             case VXLAN:
-                sBuilder.matchTunnelId(Long.parseLong(segmentId))
-                        .matchEthDst(Constants.DEFAULT_GATEWAY_MAC);
+                sBuilder.matchTunnelId(Long.parseLong(segmentId));
                 break;
             case VLAN:
-                sBuilder.matchVlanId(VlanId.vlanId(segmentId))
-                        .matchEthDst(osNodeService.node(deviceId).vlanPortMac());
+                sBuilder.matchVlanId(VlanId.vlanId(segmentId));
                 break;
             default:
                 final String error = String.format("%s %s",
@@ -823,8 +847,7 @@ public class OpenstackRoutingHandler {
                 throw new IllegalStateException(error);
         }
 
-        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
-                .setEthDst(Constants.DEFAULT_GATEWAY_MAC);
+        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
 
         if (networkType.equals(NetworkType.VLAN)) {
             tBuilder.popVlan();
@@ -1047,26 +1070,32 @@ public class OpenstackRoutingHandler {
             if (osNetworkAdminService.network(instPort.networkId()).getNetworkType() == NetworkType.FLAT) {
                 return;
             }
-            osNodeService.completeNodes(GATEWAY)
-                    .forEach(gwNode -> setRulesForSnatIngressRule(
-                            gwNode.intgBridge(),
-                            Long.parseLong(osNetworkAdminService
-                                    .network(instPort.networkId()).getProviderSegID()),
-                            IpPrefix.valueOf(instPort.ipAddress(), 32),
-                            instPort.deviceId(), true));
+
+            if (useStatefulSnat) {
+                osNodeService.completeNodes(GATEWAY)
+                        .forEach(gwNode -> setRulesForSnatIngressRule(
+                                gwNode.intgBridge(),
+                                Long.parseLong(osNetworkAdminService
+                                        .network(instPort.networkId()).getProviderSegID()),
+                                IpPrefix.valueOf(instPort.ipAddress(), 32),
+                                instPort.deviceId(), true));
+            }
         }
 
         private void instPortRemoved(InstancePort instPort) {
             if (osNetworkAdminService.network(instPort.networkId()).getNetworkType() == NetworkType.FLAT) {
                 return;
             }
-            osNodeService.completeNodes(GATEWAY)
-                    .forEach(gwNode -> setRulesForSnatIngressRule(
-                            gwNode.intgBridge(),
-                            Long.parseLong(osNetworkAdminService
-                                    .network(instPort.networkId()).getProviderSegID()),
-                            IpPrefix.valueOf(instPort.ipAddress(), 32),
-                            instPort.deviceId(), false));
+
+            if (useStatefulSnat) {
+                osNodeService.completeNodes(GATEWAY)
+                        .forEach(gwNode -> setRulesForSnatIngressRule(
+                                gwNode.intgBridge(),
+                                Long.parseLong(osNetworkAdminService
+                                        .network(instPort.networkId()).getProviderSegID()),
+                                IpPrefix.valueOf(instPort.ipAddress(), 32),
+                                instPort.deviceId(), false));
+            }
         }
     }
 }

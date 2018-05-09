@@ -369,8 +369,9 @@ public final class OpenstackSwitchingHandler {
                         remoteNode.vlanIntf() != null)
                 .forEach(remoteNode -> {
                     TrafficTreatment treatmentToRemote = DefaultTrafficTreatment.builder()
-                                    .setOutput(remoteNode.vlanPortNum())
-                                    .build();
+                            .setEthDst(instPort.macAddress())
+                            .setOutput(remoteNode.vlanPortNum())
+                            .build();
 
                     osFlowRuleService.setRule(
                             appId,
