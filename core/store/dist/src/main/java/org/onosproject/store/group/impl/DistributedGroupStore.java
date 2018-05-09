@@ -1416,7 +1416,7 @@ public class DistributedGroupStore
                 }
             }
         }
-        for (Group group : storedGroupEntries) {
+        for (StoredGroupEntry group : storedGroupEntries) {
             // there are groups in the store that aren't in the switch
             log.debug("Group AUDIT: group {} missing in data plane for device {}",
                       group.id(), deviceId);
@@ -1470,7 +1470,7 @@ public class DistributedGroupStore
         return (group.referenceCount() == 0 && group.age() >= gcThresh);
     }
 
-    private void groupMissing(Group group) {
+    private void groupMissing(StoredGroupEntry group) {
         switch (group.state()) {
             case PENDING_DELETE:
                 log.debug("Group {} delete confirmation from device {}",
@@ -1481,19 +1481,13 @@ public class DistributedGroupStore
             case PENDING_ADD:
             case PENDING_ADD_RETRY:
             case PENDING_UPDATE:
-                log.debug("Group {} is in store but not on device {}",
-                          group, group.deviceId());
-                StoredGroupEntry existing =
-                        getStoredGroupEntry(group.deviceId(), group.id());
                 log.debug("groupMissing: group entry {} in device {} moving from {} to PENDING_ADD_RETRY",
-                          existing.id(),
-                          existing.deviceId(),
-                          existing.state());
-                existing.setState(Group.GroupState.PENDING_ADD_RETRY);
+                        group.id(),
+                        group.deviceId(),
+                        group.state());
+                group.setState(Group.GroupState.PENDING_ADD_RETRY);
                 //Re-PUT map entries to trigger map update events
-                getGroupStoreKeyMap().
-                        put(new GroupStoreKeyMapKey(existing.deviceId(),
-                                                    existing.appCookie()), existing);
+                getGroupStoreKeyMap().put(new GroupStoreKeyMapKey(group.deviceId(), group.appCookie()), group);
                 notifyDelegate(new GroupEvent(GroupEvent.Type.GROUP_ADD_REQUESTED,
                                               group));
                 break;
