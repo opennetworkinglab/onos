@@ -46,6 +46,7 @@ import org.onosproject.net.config.basics.BasicDeviceConfig;
 import org.onosproject.net.config.basics.BasicElementConfig;
 import org.onosproject.net.config.basics.BasicHostConfig;
 import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.driver.Driver;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.link.LinkEvent;
 import org.onosproject.net.provider.ProviderId;
@@ -69,6 +70,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.onosproject.net.AnnotationKeys.DRIVER;
 import static org.onosproject.net.PortNumber.portNumber;
 import static org.onosproject.net.config.basics.BasicElementConfig.LOC_TYPE_GEO;
 import static org.onosproject.net.config.basics.BasicElementConfig.LOC_TYPE_GRID;
@@ -285,8 +287,10 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     protected ObjectNode deviceMessage(DeviceEvent event) {
         Device device = event.subject();
         String uiType = device.annotations().value(AnnotationKeys.UI_TYPE);
+        String driverName = device.annotations().value(DRIVER);
+        Driver driver = driverName == null ? null : services.driver().getDriver(driverName);
         String devType = uiType != null ? uiType :
-            services.driver().getDriver(device.id()).getProperty(AnnotationKeys.UI_TYPE);
+                (driver != null ? driver.getProperty(AnnotationKeys.UI_TYPE) : null);
         if (devType == null) {
             devType = device.type().toString().toLowerCase();
         }

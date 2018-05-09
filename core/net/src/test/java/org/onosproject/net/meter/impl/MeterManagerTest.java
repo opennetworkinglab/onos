@@ -42,6 +42,8 @@ import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.behaviour.MeterQuery;
+import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.net.config.NetworkConfigServiceAdapter;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.device.DeviceServiceAdapter;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
@@ -214,7 +216,7 @@ public class MeterManagerTest {
         deviceService = new TestDeviceService();
         //Init step for the driver registry and driver service.
         DriverRegistryManager driverRegistry = new DriverRegistryManager();
-        driverService = new TestDriverManager(driverRegistry, deviceService);
+        driverService = new TestDriverManager(driverRegistry, deviceService, new NetworkConfigServiceAdapter());
         driverRegistry.addDriver(new DefaultDriver("foo", ImmutableList.of(), "",
                 "", "",
                 ImmutableMap.of(MeterProgrammable.class,
@@ -519,9 +521,11 @@ public class MeterManagerTest {
     }
 
     private class TestDriverManager extends DriverManager {
-        TestDriverManager(DriverRegistry registry, DeviceService deviceService) {
+        TestDriverManager(DriverRegistry registry, DeviceService deviceService,
+                          NetworkConfigService networkConfigService) {
             this.registry = registry;
             this.deviceService = deviceService;
+            this.networkConfigService = networkConfigService;
             activate();
         }
     }
