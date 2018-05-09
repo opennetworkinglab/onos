@@ -32,6 +32,7 @@ import org.onosproject.net.device.DeviceDescription;
 import org.onosproject.net.device.DeviceProvider;
 import org.onosproject.net.device.DeviceProviderRegistry;
 import org.onosproject.net.device.DeviceProviderService;
+import org.onosproject.net.device.DeviceServiceAdapter;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.device.PortStatistics;
 import org.onosproject.net.driver.DriverServiceAdapter;
@@ -93,6 +94,7 @@ public class OpenFlowDeviceProviderTest {
         provider.controller = controller;
         provider.cfgService = new ComponentConfigAdapter();
         provider.driverService = new DriverServiceAdapter();
+        provider.deviceService = new DeviceServiceAdapter();
         controller.switchMap.put(DPID1, SW1);
         provider.activate(null);
         assertNotNull("provider should be registered", registry.provider);

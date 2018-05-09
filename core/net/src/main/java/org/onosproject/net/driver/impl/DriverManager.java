@@ -25,6 +25,8 @@ import org.onlab.util.ItemNotFoundException;
 import org.onosproject.net.AbstractProjectableModel;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.net.config.basics.BasicDeviceConfig;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.Behaviour;
 import org.onosproject.net.driver.DefaultDriverData;
@@ -65,6 +67,9 @@ public class DriverManager implements DriverService {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected NetworkConfigService networkConfigService;
 
     @Activate
     protected void activate() {
@@ -108,8 +113,28 @@ public class DriverManager implements DriverService {
     public Driver getDriver(DeviceId deviceId) {
         checkPermission(DRIVER_READ);
 
+        // Primary source of driver configuration is the network config.
+        BasicDeviceConfig cfg = networkConfigService.getConfig(deviceId, BasicDeviceConfig.class);
+        Driver driver = lookupDriver(cfg != null ? cfg.driver() : null);
+        if (driver != null) {
+            return driver;
+        }
+
+        // Secondary source of the driver selection is driver annotation.
         Device device = nullIsNotFound(deviceService.getDevice(deviceId), NO_DEVICE);
-        String driverName = device.annotations().value(DRIVER);
+        driver = lookupDriver(device.annotations().value(DRIVER));
+        if (driver != null) {
+            return driver;
+        }
+
+        // Tertiary source of the driver selection is the primordial information
+        // obtained from the device.
+        return nullIsNotFound(getDriver(device.manufacturer(),
+                                        device.hwVersion(), device.swVersion()),
+                              NO_DRIVER);
+    }
+
+    private Driver lookupDriver(String driverName) {
         if (driverName != null) {
             try {
                 return getDriver(driverName);
@@ -117,10 +142,7 @@ public class DriverManager implements DriverService {
                 log.warn("Specified driver {} not found, falling back.", driverName);
             }
         }
-
-        return nullIsNotFound(getDriver(device.manufacturer(),
-                                        device.hwVersion(), device.swVersion()),
-                              NO_DRIVER);
+        return null;
     }
 
     @Override

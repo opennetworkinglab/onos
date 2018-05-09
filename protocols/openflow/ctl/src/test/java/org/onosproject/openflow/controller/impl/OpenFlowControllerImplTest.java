@@ -32,7 +32,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.CoreService;
-import org.onosproject.net.device.DeviceServiceAdapter;
 import org.onosproject.openflow.OpenflowSwitchDriverAdapter;
 import org.onosproject.openflow.controller.Dpid;
 import org.onosproject.openflow.controller.OpenFlowSwitch;
@@ -149,8 +148,6 @@ public class OpenFlowControllerImplTest {
         expect(mockConfigService.getProperties(anyObject())).andReturn(ImmutableSet.of());
         controller.cfgService = mockConfigService;
         replay(mockConfigService);
-
-        controller.deviceService = new DeviceServiceAdapter();
 
         ComponentContext mockContext = EasyMock.createMock(ComponentContext.class);
         Dictionary<String, Object> properties = new Hashtable<>();
