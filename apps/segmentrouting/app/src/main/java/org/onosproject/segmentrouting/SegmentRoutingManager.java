@@ -144,6 +144,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -272,6 +273,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     private ScheduledExecutorService hostEventExecutor;
     private ScheduledExecutorService routeEventExecutor;
     private ScheduledExecutorService mcastEventExecutor;
+    private ExecutorService packetExecutor;
 
     Map<DeviceId, DefaultGroupHandler> groupHandlerMap = new ConcurrentHashMap<>();
     /**
@@ -358,6 +360,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         hostEventExecutor = Executors.newSingleThreadScheduledExecutor(groupedThreads("sr-event-host", "%d", log));
         routeEventExecutor = Executors.newSingleThreadScheduledExecutor(groupedThreads("sr-event-route", "%d", log));
         mcastEventExecutor = Executors.newSingleThreadScheduledExecutor(groupedThreads("sr-event-mcast", "%d", log));
+        packetExecutor = Executors.newSingleThreadExecutor(groupedThreads("sr-packet", "%d", log));
 
         log.debug("Creating EC map nsnextobjectivestore");
         EventuallyConsistentMapBuilder<DestinationSetNextObjectiveStoreKey, NextNeighbors>
@@ -502,6 +505,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         hostEventExecutor.shutdown();
         routeEventExecutor.shutdown();
         mcastEventExecutor.shutdown();
+        packetExecutor.shutdown();
 
         cfgService.removeListener(cfgListener);
         cfgService.unregisterConfigFactory(deviceConfigFactory);
@@ -1020,7 +1024,10 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     private class InternalPacketProcessor implements PacketProcessor {
         @Override
         public void process(PacketContext context) {
+            packetExecutor.execute(() -> processPacketInternal(context));
+        }
 
+        private void processPacketInternal(PacketContext context) {
             if (context.isHandled()) {
                 return;
             }

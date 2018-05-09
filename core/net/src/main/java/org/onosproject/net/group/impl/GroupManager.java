@@ -55,15 +55,16 @@ import org.slf4j.Logger;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Dictionary;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onlab.util.Tools.get;
+import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.security.AppGuard.checkPermission;
 import static org.onosproject.security.AppPermission.Type.GROUP_READ;
 import static org.onosproject.security.AppPermission.Type.GROUP_WRITE;
 import static org.slf4j.LoggerFactory.getLogger;
-
-
 
 /**
  * Provides implementation of the group service APIs.
@@ -80,7 +81,9 @@ public class GroupManager
     private final GroupStoreDelegate delegate = new InternalGroupStoreDelegate();
     private final DeviceListener deviceListener = new InternalDeviceListener();
 
-    private final  GroupDriverProvider defaultProvider = new GroupDriverProvider();
+    private final GroupDriverProvider defaultProvider = new GroupDriverProvider();
+
+    private ExecutorService eventExecutor;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected GroupStore store;
@@ -110,6 +113,7 @@ public class GroupManager
 
     @Activate
     public void activate(ComponentContext context) {
+        eventExecutor = Executors.newSingleThreadExecutor(groupedThreads("onos/group", "event"));
         store.setDelegate(delegate);
         eventDispatcher.addSink(GroupEvent.class, listenerRegistry);
         deviceService.addListener(deviceListener);
@@ -120,6 +124,7 @@ public class GroupManager
 
     @Deactivate
     public void deactivate() {
+        eventExecutor.shutdown();
         defaultProvider.terminate();
         deviceService.removeListener(deviceListener);
         cfgService.unregisterProperties(getClass(), false);
@@ -420,16 +425,19 @@ public class GroupManager
     }
 
     private class InternalDeviceListener implements DeviceListener {
-
         @Override
         public void event(DeviceEvent event) {
+            eventExecutor.execute(() -> processEventInternal(event));
+        }
+
+        private void processEventInternal(DeviceEvent event) {
             switch (event.type()) {
                 case DEVICE_REMOVED:
                 case DEVICE_AVAILABILITY_CHANGED:
                     DeviceId deviceId = event.subject().id();
                     if (!deviceService.isAvailable(deviceId)) {
-                        log.debug("Device {} became un available; clearing initial audit status",
-                                  event.type(), event.subject().id());
+                        log.debug("Device {} became unavailable; clearing initial audit status",
+                                event.type(), event.subject().id());
                         store.deviceInitialAuditCompleted(event.subject().id(), false);
 
                         if (purgeOnDisconnection) {
