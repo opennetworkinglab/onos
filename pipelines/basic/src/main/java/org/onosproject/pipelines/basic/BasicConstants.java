@@ -33,7 +33,7 @@ public final class BasicConstants {
 
     public static final String DOT = ".";
     private static final String INGRESS = "ingress";
-    private static final String EGRESS = "egress";
+    public static final String EGRESS = "egress";
     private static final String TABLE0_CTRL = INGRESS + DOT + "table0_control";
     private static final String WCMP_CTRL = INGRESS + DOT + "wcmp_control";
     private static final String PORT_COUNT_INGRESS_CTRL = INGRESS + DOT + "port_counters_ingress";

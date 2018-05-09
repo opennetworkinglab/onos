@@ -225,9 +225,7 @@ control process_int_transit (
     }
 
     table tb_int_insert {
-        key = {
-            local_metadata.int_meta.sink: exact;
-        }
+        key = {}
         actions = {
             int_transit;
         }

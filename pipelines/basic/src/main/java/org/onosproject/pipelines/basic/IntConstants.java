@@ -22,9 +22,7 @@ import org.onosproject.net.pi.model.PiCounterId;
 import org.onosproject.net.pi.model.PiMatchFieldId;
 import org.onosproject.net.pi.model.PiTableId;
 
-import static org.onosproject.pipelines.basic.BasicConstants.DOT;
-import static org.onosproject.pipelines.basic.BasicConstants.HDR;
-import static org.onosproject.pipelines.basic.BasicConstants.LOCAL_METADATA;
+import static org.onosproject.pipelines.basic.BasicConstants.*;
 
 /**
  * Constants for INT pipeline.
@@ -36,11 +34,11 @@ public final class IntConstants {
     }
 
     // Strings
-    private static final String CTRL_SET_SOURCE_SINK = "process_set_source_sink";
-    private static final String CTRL_INT_SOURCE = "process_int_source";
-    private static final String CTRL_INT_TRANSIT = "process_int_transit";
-    private static final String CTRL_INT_SINK = "process_int_sink";
-    private static final String CTRL_INT_OUTER_ENCAP = "process_int_outer_encap";
+    private static final String CTRL_SET_SOURCE_SINK = EGRESS + DOT + "process_set_source_sink";
+    private static final String CTRL_INT_SOURCE = EGRESS + DOT + "process_int_source";
+    private static final String CTRL_INT_TRANSIT = EGRESS + DOT + "process_int_transit";
+    private static final String CTRL_INT_SINK = EGRESS + DOT + "process_int_sink";
+    private static final String CTRL_INT_OUTER_ENCAP = EGRESS + DOT + "process_int_outer_encap";
     private static final String INT_METADATA = "int_meta";
     private static final String INT_HDR = "int_header";
 
@@ -55,10 +53,14 @@ public final class IntConstants {
             PiMatchFieldId.of(HDR + DOT + INT_HDR + DOT + "instruction_mask_0003");
     public static final PiMatchFieldId INT_HDR_INST_MASK_0407_ID =
             PiMatchFieldId.of(HDR + DOT + INT_HDR + DOT + "instruction_mask_0407");
+    public static final PiMatchFieldId HDR_OUT_PORT_ID =
+            PiMatchFieldId.of(STANDARD_METADATA + DOT + "egress_port");
 
     // Table IDs
-    public static final PiTableId TBL_SET_SOURCE_SINK_ID =
-            PiTableId.of(CTRL_SET_SOURCE_SINK + DOT + "tb_set_source_sink");
+    public static final PiTableId TBL_SET_SOURCE_ID =
+            PiTableId.of(CTRL_SET_SOURCE_SINK + DOT + "tb_set_source");
+    public static final PiTableId TBL_SET_SINK_ID =
+            PiTableId.of(CTRL_SET_SOURCE_SINK + DOT + "tb_set_sink");
     public static final PiTableId TBL_INT_SOURCE_ID =
             PiTableId.of(CTRL_INT_SOURCE + DOT + "tb_int_source");
     public static final PiTableId TBL_INT_INSERT_ID =

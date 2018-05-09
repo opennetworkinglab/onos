@@ -48,10 +48,8 @@ control process_int_sink (
     }
 
     apply {
-        if (local_metadata.int_meta.sink == 1) {
-            restore_header();
-            int_sink();
-        }
+        restore_header();
+        int_sink();
     }
 }
 #endif
