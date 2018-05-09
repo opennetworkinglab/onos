@@ -22,6 +22,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.junit.TestTools;
 import org.onlab.junit.TestUtils;
 import org.onlab.osgi.ComponentContextAdapter;
 import org.onlab.packet.ARP;
@@ -110,6 +111,8 @@ import static org.onosproject.net.device.DeviceEvent.Type.PORT_UPDATED;
 public class HostLocationProviderTest {
     private static final ProviderId PROVIDER_ID =
             new ProviderId("of", "org.onosproject.provider.host");
+
+    private static final int ASSERTION_DELAY = 100; // millis
 
     private static final Integer INPORT = 10;
     private static final Integer INPORT2 = 11;
@@ -246,41 +249,51 @@ public class HostLocationProviderTest {
     public void events() {
         // New host. Expect one additional host description.
         testProcessor.process(new TestArpPacketContext(DEV1));
-        assertThat("New host expected", providerService.descriptions.size(), is(1));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat("New host expected",
+                providerService.descriptions.size(), is(1)));
 
         // The host moved to new switch. Expect one additional host description.
         // The second host description should have a different location.
         testProcessor.process(new TestArpPacketContext(DEV2));
-        assertThat("Host motion expected", providerService.descriptions.size(), is(2));
-        HostLocation loc1 = providerService.descriptions.get(0).location();
-        HostLocation loc2 = providerService.descriptions.get(1).location();
-        assertNotEquals("Host location should be different", loc1, loc2);
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat("Host motion expected",
+                providerService.descriptions.size(), is(2)));
+        final HostLocation loc11 = providerService.descriptions.get(0).location();
+        final HostLocation loc12 = providerService.descriptions.get(1).location();
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertNotEquals("Host location should be different",
+                loc11, loc12));
 
         // The host was misheard on a spine. Expect no additional host description.
         testProcessor.process(new TestArpPacketContext(DEV3));
-        assertThat("Host misheard on spine switch", providerService.descriptions.size(), is(2));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat("Host misheard on spine switch",
+                providerService.descriptions.size(), is(2)));
 
         providerService.clear();
 
         // New host. Expect two additional host descriptions. One for target IP. One for dest IP.
         testProcessor.process(new TestNaPacketContext(DEV4));
-        assertThat("New host expected", providerService.descriptions.size(), is(2));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat("New host expected",
+                providerService.descriptions.size(), is(2)));
 
         // The host moved to new switch. Expect two additional host descriptions.
         // The 3rd and 4th host description should have a different location.
         testProcessor.process(new TestNaPacketContext(DEV5));
-        assertThat("Host motion expected", providerService.descriptions.size(), is(4));
-        loc1 = providerService.descriptions.get(0).location();
-        loc2 = providerService.descriptions.get(1).location();
-        HostLocation loc3 = providerService.descriptions.get(2).location();
-        HostLocation loc4 = providerService.descriptions.get(3).location();
-        assertEquals("1st and 2nd location should be equal", loc1, loc2);
-        assertEquals("3rd and 4th location should be equal", loc3, loc4);
-        assertNotEquals("1st and 3rd location should be different", loc1, loc3);
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat("Host motion expected",
+                providerService.descriptions.size(), is(4)));
+        final HostLocation loc21 = providerService.descriptions.get(0).location();
+        final HostLocation loc22 = providerService.descriptions.get(1).location();
+        final HostLocation loc23 = providerService.descriptions.get(2).location();
+        final HostLocation loc24 = providerService.descriptions.get(3).location();
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertEquals("1st and 2nd location should be equal",
+                loc21, loc22));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertEquals("3rd and 4th location should be equal",
+                loc23, loc24));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertNotEquals("1st and 3rd location should be different",
+                loc21, loc23));
 
         // The host was misheard on a spine. Expect no additional host description.
         testProcessor.process(new TestNaPacketContext(DEV6));
-        assertThat("Host misheard on spine switch", providerService.descriptions.size(), is(4));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat("Host misheard on spine switch",
+                providerService.descriptions.size(), is(4)));
     }
 
     @Test
@@ -342,13 +355,13 @@ public class HostLocationProviderTest {
     @Test
     public void receiveArp() {
         testProcessor.process(new TestArpPacketContext(DEV1));
-        assertThat("receiveArp. One host description expected",
-                providerService.descriptions.size(), is(1));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat("receiveArp. One host description expected",
+                providerService.descriptions.size(), is(1)));
         HostDescription descr = providerService.descriptions.get(0);
-        assertThat(descr.location(), is(LOCATION));
-        assertThat(descr.hwAddress(), is(MAC));
-        assertThat(descr.ipAddress().toArray()[0], is(IP_ADDRESS));
-        assertThat(descr.vlan(), is(VLAN));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat(descr.location(), is(LOCATION)));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat(descr.hwAddress(), is(MAC)));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat(descr.ipAddress().toArray()[0], is(IP_ADDRESS)));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat(descr.vlan(), is(VLAN)));
     }
 
     /**
@@ -357,13 +370,13 @@ public class HostLocationProviderTest {
     @Test
     public void receiveIpv4() {
         testProcessor.process(new TestIpv4PacketContext(DEV1));
-        assertThat("receiveIpv4. One host description expected",
-                providerService.descriptions.size(), is(1));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat("receiveIpv4. One host description expected",
+                providerService.descriptions.size(), is(1)));
         HostDescription descr = providerService.descriptions.get(0);
-        assertThat(descr.location(), is(LOCATION));
-        assertThat(descr.hwAddress(), is(MAC));
-        assertThat(descr.ipAddress().size(), is(0));
-        assertThat(descr.vlan(), is(VLAN));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat(descr.location(), is(LOCATION)));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat(descr.hwAddress(), is(MAC)));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat(descr.ipAddress().size(), is(0)));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat(descr.vlan(), is(VLAN)));
     }
 
     /**
@@ -375,35 +388,36 @@ public class HostLocationProviderTest {
         TestUtils.setField(provider, "useDhcp", true);
         // DHCP Request
         testProcessor.process(new TestDhcpRequestPacketContext(DEV1, VLAN));
-        assertThat("receiveDhcpRequest. One host description expected",
-                providerService.descriptions.size(), is(1));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat("receiveDhcpRequest. One host description expected",
+                providerService.descriptions.size(), is(1)));
         // Should learn the MAC and location of DHCP client
         HostDescription descr = providerService.descriptions.get(0);
-        assertThat(descr.location(), is(LOCATION));
-        assertThat(descr.hwAddress(), is(MAC));
-        assertThat(descr.ipAddress().size(), is(0));
-        assertThat(descr.vlan(), is(VLAN));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat(descr.location(), is(LOCATION)));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat(descr.hwAddress(), is(MAC)));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat(descr.ipAddress().size(), is(0)));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat(descr.vlan(), is(VLAN)));
 
         // DHCP Ack
         testProcessor.process(new TestDhcpAckPacketContext(DEV1));
-        assertThat("receiveDhcpAck. Two additional host descriptions expected",
-                providerService.descriptions.size(), is(3));
+        TestTools.assertAfter(ASSERTION_DELAY, () ->
+                assertThat("receiveDhcpAck. Two additional host descriptions expected",
+                providerService.descriptions.size(), is(3)));
 
         // Should also learn the MAC, location of DHCP server
         HostDescription descr2 = providerService.descriptions.get(1);
-        assertThat(descr2.location(), is(LOCATION3));
-        assertThat(descr2.hwAddress(), is(MAC3));
-        assertThat(descr2.ipAddress().size(), is(0));
-        assertThat(descr2.vlan(), is(VLAN));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat(descr2.location(), is(LOCATION3)));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat(descr2.hwAddress(), is(MAC3)));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat(descr2.ipAddress().size(), is(0)));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat(descr2.vlan(), is(VLAN)));
 
         // Should update the IP address of the client.
         HostDescription descr3 = providerService.descriptions.get(2);
-        assertThat(descr3.location(), is(LOCATION));
-        assertThat(descr3.hwAddress(), is(MAC));
-        assertThat(descr3.ipAddress().size(), is(1));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat(descr3.location(), is(LOCATION)));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat(descr3.hwAddress(), is(MAC)));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat(descr3.ipAddress().size(), is(1)));
         IpAddress ip = descr3.ipAddress().iterator().next();
-        assertThat(ip, is(IP_ADDRESS.getIp4Address()));
-        assertThat(descr3.vlan(), is(VLAN));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat(ip, is(IP_ADDRESS.getIp4Address())));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat(descr3.vlan(), is(VLAN)));
     }
 
     /**
@@ -415,35 +429,36 @@ public class HostLocationProviderTest {
         TestUtils.setField(provider, "useDhcp6", true);
         // DHCP Request
         testProcessor.process(new TestDhcp6RequestPacketContext(DEV4, VLAN));
-        assertThat("receiveDhcpRequest. One host description expected",
-                   providerService.descriptions.size(), is(1));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat("receiveDhcpRequest. One host description expected",
+                   providerService.descriptions.size(), is(1)));
         // Should learn the MAC and location of DHCP client
         HostDescription descr = providerService.descriptions.get(0);
-        assertThat(descr.location(), is(LOCATION2));
-        assertThat(descr.hwAddress(), is(MAC2));
-        assertThat(descr.ipAddress().size(), is(0));
-        assertThat(descr.vlan(), is(VLAN));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat(descr.location(), is(LOCATION2)));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat(descr.hwAddress(), is(MAC2)));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat(descr.ipAddress().size(), is(0)));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat(descr.vlan(), is(VLAN)));
 
         // DHCP Ack
         testProcessor.process(new TestDhcp6AckPacketContext(DEV1));
-        assertThat("receiveDhcpAck. Two additional host descriptions expected",
-                   providerService.descriptions.size(), is(3));
+        TestTools.assertAfter(ASSERTION_DELAY, () ->
+                assertThat("receiveDhcpAck. Two additional host descriptions expected",
+                   providerService.descriptions.size(), is(3)));
 
         // Should also learn the MAC, location of DHCP server
         HostDescription descr2 = providerService.descriptions.get(1);
-        assertThat(descr2.location(), is(LOCATION3));
-        assertThat(descr2.hwAddress(), is(DHCP6_SERVER_MAC));
-        assertThat(descr2.ipAddress().size(), is(0));
-        assertThat(descr2.vlan(), is(VLAN));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat(descr2.location(), is(LOCATION3)));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat(descr2.hwAddress(), is(DHCP6_SERVER_MAC)));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat(descr2.ipAddress().size(), is(0)));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat(descr2.vlan(), is(VLAN)));
 
         // Should update the IP address of the DHCP client.
         HostDescription descr3 = providerService.descriptions.get(2);
-        assertThat(descr3.location(), is(LOCATION2));
-        assertThat(descr3.hwAddress(), is(MAC2));
-        assertThat(descr3.ipAddress().size(), is(1));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat(descr3.location(), is(LOCATION2)));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat(descr3.hwAddress(), is(MAC2)));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat(descr3.ipAddress().size(), is(1)));
         IpAddress ip = descr3.ipAddress().iterator().next();
-        assertThat(ip, is(IP_ADDRESS2.getIp6Address()));
-        assertThat(descr3.vlan(), is(VLAN));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat(ip, is(IP_ADDRESS2.getIp6Address())));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat(descr3.vlan(), is(VLAN)));
     }
 
     /**
@@ -453,19 +468,19 @@ public class HostLocationProviderTest {
     @Test
     public void receiveNa() {
         testProcessor.process(new TestNaPacketContext(DEV4));
-        assertThat("receiveNa. One host description expected",
-                providerService.descriptions.size(), is(2));
-        HostDescription descr = providerService.descriptions.get(0);
-        assertThat(descr.location(), is(LOCATION2));
-        assertThat(descr.hwAddress(), is(MAC2));
-        assertTrue(descr.ipAddress().contains(LLIP_ADDRESS2));
-        assertThat(descr.vlan(), is(VLAN));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat("receiveNa. One host description expected",
+                providerService.descriptions.size(), is(2)));
+        final HostDescription descr0 = providerService.descriptions.get(0);
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat(descr0.location(), is(LOCATION2)));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat(descr0.hwAddress(), is(MAC2)));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertTrue(descr0.ipAddress().contains(LLIP_ADDRESS2)));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat(descr0.vlan(), is(VLAN)));
 
-        descr = providerService.descriptions.get(1);
-        assertThat(descr.location(), is(LOCATION2));
-        assertThat(descr.hwAddress(), is(MAC2));
-        assertTrue(descr.ipAddress().contains(IP_ADDRESS2));
-        assertThat(descr.vlan(), is(VLAN));
+        final HostDescription descr1 = providerService.descriptions.get(1);
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat(descr1.location(), is(LOCATION2)));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat(descr1.hwAddress(), is(MAC2)));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertTrue(descr1.ipAddress().contains(IP_ADDRESS2)));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat(descr1.vlan(), is(VLAN)));
     }
 
     /**
@@ -474,13 +489,13 @@ public class HostLocationProviderTest {
     @Test
     public void receiveNs() {
         testProcessor.process(new TestNsPacketContext(DEV4));
-        assertThat("receiveNs. One host description expected",
-                providerService.descriptions.size(), is(1));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat("receiveNs. One host description expected",
+                providerService.descriptions.size(), is(1)));
         HostDescription descr = providerService.descriptions.get(0);
-        assertThat(descr.location(), is(LOCATION2));
-        assertThat(descr.hwAddress(), is(MAC2));
-        assertThat(descr.ipAddress().toArray()[0], is(IP_ADDRESS2));
-        assertThat(descr.vlan(), is(VLAN));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat(descr.location(), is(LOCATION2)));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat(descr.hwAddress(), is(MAC2)));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat(descr.ipAddress().toArray()[0], is(IP_ADDRESS2)));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat(descr.vlan(), is(VLAN)));
     }
 
     /**
@@ -489,8 +504,8 @@ public class HostLocationProviderTest {
     @Test
     public void receivesRa() {
         testProcessor.process(new TestRAPacketContext(DEV4));
-        assertThat("receivesRa. No host description expected",
-                providerService.descriptions.size(), is(0));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat("receivesRa. No host description expected",
+                providerService.descriptions.size(), is(0)));
     }
 
     /**
@@ -499,8 +514,8 @@ public class HostLocationProviderTest {
     @Test
     public void receiveRs() {
         testProcessor.process(new TestRSPacketContext(DEV4));
-        assertThat("receiveRs. No host description expected",
-                providerService.descriptions.size(), is(0));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat("receiveRs. No host description expected",
+                providerService.descriptions.size(), is(0)));
     }
 
     /**
@@ -509,8 +524,8 @@ public class HostLocationProviderTest {
     @Test
     public void receiveDad() {
         testProcessor.process(new TestDadPacketContext(DEV4));
-        assertThat("receiveDad. No host description expected",
-                providerService.descriptions.size(), is(0));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat("receiveDad. No host description expected",
+                providerService.descriptions.size(), is(0)));
     }
 
     /**
@@ -519,8 +534,8 @@ public class HostLocationProviderTest {
     @Test
     public void receiveIpv6Multicast() {
         testProcessor.process(new TestIpv6McastPacketContext(DEV4));
-        assertThat("receiveIpv6Multicast. No host description expected",
-                providerService.descriptions.size(), is(0));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat("receiveIpv6Multicast. No host description expected",
+                providerService.descriptions.size(), is(0)));
     }
 
     /**
@@ -529,13 +544,13 @@ public class HostLocationProviderTest {
     @Test
     public void receiveIpv6Unicast() {
         testProcessor.process(new TestIpv6PacketContext(DEV4));
-        assertThat("receiveIpv6Unicast. One host description expected",
-                providerService.descriptions.size(), is(1));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat("receiveIpv6Unicast. One host description expected",
+                providerService.descriptions.size(), is(1)));
         HostDescription descr = providerService.descriptions.get(0);
-        assertThat(descr.location(), is(LOCATION2));
-        assertThat(descr.hwAddress(), is(MAC2));
-        assertThat(descr.ipAddress().size(), is(0));
-        assertThat(descr.vlan(), is(VLAN));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat(descr.location(), is(LOCATION2)));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat(descr.hwAddress(), is(MAC2)));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat(descr.ipAddress().size(), is(0)));
+        TestTools.assertAfter(ASSERTION_DELAY, () -> assertThat(descr.vlan(), is(VLAN)));
     }
 
     @After
