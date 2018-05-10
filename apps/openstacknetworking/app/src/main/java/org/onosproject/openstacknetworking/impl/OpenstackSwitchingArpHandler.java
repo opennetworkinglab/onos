@@ -448,6 +448,7 @@ public final class OpenstackSwitchingArpHandler {
 
         private void setDefaultArpRule(OpenstackNode openstackNode, boolean install) {
             if (arpMode.equals(ARP_PROXY_MODE)) {
+
                 TrafficSelector selector = DefaultTrafficSelector.builder()
                         .matchEthType(EthType.EtherType.ARP.ethType().toShort())
                         .build();
@@ -466,26 +467,31 @@ public final class OpenstackSwitchingArpHandler {
                         install
                 );
             } else if (arpMode.equals(ARP_BROADCAST_MODE)) {
-                // TODO: currently, do not install any rules to GW in broadcast mode;
-                // need to add Floating IP to MAC mapping flow rules
+
+                TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder()
+                        .matchEthType(EthType.EtherType.ARP.ethType().toShort());
+
+                TrafficTreatment.Builder treatmentBuilder = DefaultTrafficTreatment.builder();
+
+                // we only match ARP_REPLY in gateway node, because controller
+                // somehow need to process ARP_REPLY which is issued from
+                // external router...
+                // TODO: following code needs to be moved to OpenstackRoutingArpHandler sooner or later
                 if (openstackNode.type().equals(GATEWAY)) {
-                    return;
+                    selectorBuilder.matchArpOp(ARP.OP_REPLY);
+                    treatmentBuilder.punt();
                 }
 
-                TrafficSelector selector = DefaultTrafficSelector.builder()
-                        .matchEthType(EthType.EtherType.ARP.ethType().toShort())
-                        .matchArpOp(ARP.OP_REQUEST)
-                        .build();
-
-                TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                        .setOutput(PortNumber.FLOOD)
-                        .build();
+                if (openstackNode.type().equals(COMPUTE)) {
+                    selectorBuilder.matchArpOp(ARP.OP_REQUEST);
+                    treatmentBuilder.setOutput(PortNumber.FLOOD);
+                }
 
                 osFlowRuleService.setRule(
                         appId,
                         openstackNode.intgBridge(),
-                        selector,
-                        treatment,
+                        selectorBuilder.build(),
+                        treatmentBuilder.build(),
                         PRIORITY_ARP_SUBNET_RULE,
                         DHCP_ARP_TABLE,
                         install
