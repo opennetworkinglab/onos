@@ -23,9 +23,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.net.ConnectException;
-import java.security.Key;
 import java.security.KeyStore;
 import java.security.MessageDigest;
+import java.security.PublicKey;
 import java.security.cert.Certificate;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -241,19 +241,15 @@ public class NettyMessagingManager implements MessagingService {
             try {
                 for (Enumeration<String> e = ks.aliases(); e.hasMoreElements();) {
                     String alias = e.nextElement();
-                    Key key = ks.getKey(alias, ksPwd);
-                    Certificate[] certs = ks.getCertificateChain(alias);
-                    log.debug("{} -> {}", alias, certs);
-                    final byte[] encodedKey;
-                    if (certs != null && certs.length > 0) {
-                        encodedKey = certs[0].getEncoded();
-                    } else {
-                        log.info("Could not find cert chain for {}, using fingerprint of key instead...", alias);
-                        encodedKey = key.getEncoded();
+                    Certificate cert = ks.getCertificate(alias);
+                    if (cert == null) {
+                        log.info("No certificate for alias {}", alias);
+                        continue;
                     }
+                    PublicKey key = cert.getPublicKey();
                     // Compute the certificate's fingerprint (use the key if certificate cannot be found)
                     MessageDigest digest = MessageDigest.getInstance("SHA1");
-                    digest.update(encodedKey);
+                    digest.update(key.getEncoded());
                     StringJoiner fingerprint = new StringJoiner(":");
                     for (byte b : digest.digest()) {
                         fingerprint.add(String.format("%02X", b));
