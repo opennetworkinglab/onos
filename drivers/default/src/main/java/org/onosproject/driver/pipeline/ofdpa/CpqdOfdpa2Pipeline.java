@@ -184,7 +184,7 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
         // ofdpa cannot match on ALL portnumber, so we need to use separate
         // rules for each port.
         List<PortNumber> portnums = new ArrayList<>();
-        if (portCriterion.port() == PortNumber.ALL) {
+        if (portCriterion != null && portCriterion.port() == PortNumber.ALL) {
             for (Port port : deviceService.getPorts(deviceId)) {
                 if (port.number().toLong() > 0 && port.number().toLong() < OFPP_MAX) {
                     portnums.add(port.number());
