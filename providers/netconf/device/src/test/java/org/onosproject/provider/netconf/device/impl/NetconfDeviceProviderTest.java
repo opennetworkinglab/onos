@@ -280,7 +280,7 @@ public class NetconfDeviceProviderTest {
         deviceService.listener.event(new DeviceEvent(DeviceEvent.Type.DEVICE_ADDED, netconfDevice));
         assertEquals("Ports should be added", PORT_COUNT, providerService.ports.get(netconfDevice.id()).size());
 
-        deviceService.listener.event(new DeviceEvent(DeviceEvent.Type.DEVICE_REMOVED, netconfDevice));
+        provider.triggerDisconnect(netconfDevice.id());
         assertEquals("Ports should be removed", 0, providerService.ports.get(netconfDevice.id()).size());
     }
 

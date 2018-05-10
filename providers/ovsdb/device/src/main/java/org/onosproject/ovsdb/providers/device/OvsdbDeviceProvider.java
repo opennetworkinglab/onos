@@ -187,27 +187,27 @@ public class OvsdbDeviceProvider extends AbstractProvider
         }
     }
 
+    @Override
+    public void triggerDisconnect(DeviceId deviceId) {
+        log.debug("Forcing disconnect for device {}", deviceId);
+        OvsdbNodeId ovsdbNodeId = changeDeviceIdToNodeId(deviceId);
+        OvsdbClientService client = controller.getOvsdbClient(ovsdbNodeId);
+        if (client != null) {
+            client.disconnect();
+        }
+    }
+
     private class InternalDeviceListener implements DeviceListener {
         @Override
         public void event(DeviceEvent event) {
-            DeviceId deviceId = event.subject().id();
-
-            if ((event.type() == DeviceEvent.Type.DEVICE_ADDED)) {
-                executor.execute(() -> discoverPorts(deviceId));
-            } else if ((event.type() == DeviceEvent.Type.DEVICE_REMOVED)) {
-                log.debug("removing device {}", event.subject().id());
-                OvsdbNodeId ovsdbNodeId = changeDeviceIdToNodeId(deviceId);
-                OvsdbClientService client = controller.getOvsdbClient(ovsdbNodeId);
-                if (client != null) {
-                    client.disconnect();
-                }
-            }
+            executor.execute(() -> discoverPorts(event.subject().id()));
         }
 
         @Override
         public boolean isRelevant(DeviceEvent event) {
             DeviceId deviceId = event.subject().id();
-            return isRelevant(deviceId) && mastershipService.isLocalMaster(deviceId);
+            return event.type() == DeviceEvent.Type.DEVICE_ADDED &&
+                    isRelevant(deviceId) && mastershipService.isLocalMaster(deviceId);
         }
 
         private boolean isRelevant(DeviceId deviceId) {

@@ -52,8 +52,6 @@ import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DefaultPortDescription;
 import org.onosproject.net.device.DefaultPortStatistics;
 import org.onosproject.net.device.DeviceDescription;
-import org.onosproject.net.device.DeviceEvent;
-import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceProvider;
 import org.onosproject.net.device.DeviceProviderRegistry;
 import org.onosproject.net.device.DeviceProviderService;
@@ -124,6 +122,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
@@ -132,11 +131,9 @@ import java.util.Timer;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onlab.util.Tools.get;
-import static org.onosproject.net.Device.Type.CONTROLLER;
 import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.Port.Type.COPPER;
 import static org.onosproject.net.Port.Type.FIBER;
-import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_REMOVED;
 import static org.onosproject.net.optical.device.OchPortHelper.ochPortDescription;
 import static org.onosproject.net.optical.device.OduCltPortHelper.oduCltPortDescription;
 import static org.onosproject.net.optical.device.OmsPortHelper.omsPortDescription;
@@ -451,7 +448,6 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     private DeviceProviderService providerService;
 
     private final InternalDeviceProvider listener = new InternalDeviceProvider();
-    private final InternalDeviceListener deviceListener = new InternalDeviceListener();
 
     private static final String POLL_PROP_NAME = "portStatsPollFrequency";
     private static final int POLL_INTERVAL = 5;
@@ -467,7 +463,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
     private final Timer timer = new Timer("onos-openflow-portstats-collector");
 
-    private HashMap<Dpid, PortStatsCollector> collectors = Maps.newHashMap();
+    private Map<Dpid, PortStatsCollector> collectors = Maps.newConcurrentMap();
 
     /**
      * Creates an OpenFlow device provider.
@@ -480,7 +476,6 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     public void activate(ComponentContext context) {
         cfgService.registerProperties(getClass());
         providerService = providerRegistry.register(this);
-        deviceService.addListener(deviceListener);
         controller.addListener(listener);
         controller.addEventListener(listener);
 
@@ -494,7 +489,6 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     public void deactivate(ComponentContext context) {
         cfgService.unregisterProperties(getClass(), false);
         listener.disable();
-        deviceService.removeListener(deviceListener);
         controller.removeListener(listener);
         providerRegistry.unregister(this);
         collectors.values().forEach(PortStatsCollector::stop);
@@ -619,6 +613,18 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
             }
         }
         sw.sendMsg(Collections.singletonList(pmb.build()));
+    }
+
+    @Override
+    public void triggerDisconnect(DeviceId deviceId) {
+        Dpid dpid = dpid(deviceId.uri());
+        OpenFlowSwitch sw = controller.getSwitch(dpid);
+        if (sw != null) {
+            LOG.debug("Forcing disconnect for device {}", deviceId);
+            // TODO: Further consolidate clean-up on device disconnect
+            listener.switchRemoved(dpid);
+            sw.disconnectSwitch();
+        }
     }
 
     private void pushPortMetrics(Dpid dpid, List<OFPortStatsEntry> portStatsEntries) {
@@ -1532,27 +1538,4 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
         }
     }
 
-    class InternalDeviceListener implements DeviceListener {
-
-        @Override
-        public boolean isRelevant(DeviceEvent event) {
-            return event.subject().type() != CONTROLLER && event.type() == DEVICE_REMOVED
-                    && event.subject().id().uri().getScheme().equals(SCHEME);
-        }
-
-        @Override
-        public void event(DeviceEvent event) {
-            DeviceId deviceId = event.subject().id();
-            Dpid dpid = dpid(deviceId.uri());
-            OpenFlowSwitch sw = controller.getSwitch(dpid);
-            if (sw != null) {
-                LOG.debug("Forcing disconnect for device {}", deviceId);
-                PortStatsCollector portStatsCollector = collectors.remove(dpid);
-                if (portStatsCollector != null) {
-                    portStatsCollector.stop();
-                }
-                sw.disconnectSwitch();
-            }
-        }
-    }
 }

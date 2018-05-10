@@ -82,7 +82,7 @@ public abstract class AbstractProviderRegistry<P extends Provider, S extends Pro
     public synchronized void unregister(P provider) {
         checkNotNull(provider, "Provider cannot be null");
         S service = services.get(provider.id());
-        if (service != null && service instanceof AbstractProviderService) {
+        if (service instanceof AbstractProviderService) {
             ((AbstractProviderService) service).invalidate();
             services.remove(provider.id());
             providers.remove(provider.id());

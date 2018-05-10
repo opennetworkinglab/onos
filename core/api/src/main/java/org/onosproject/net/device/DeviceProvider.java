@@ -25,8 +25,6 @@ import org.onosproject.net.provider.Provider;
  */
 public interface DeviceProvider extends Provider {
 
-    // TODO: consider how dirty the triggerProbe gets; if it costs too much, let's drop it
-
     /**
      * Triggers an asynchronous probe of the specified device, intended to
      * determine whether the device is present or not. An indirect result of this
@@ -67,4 +65,24 @@ public interface DeviceProvider extends Provider {
      */
     void changePortState(DeviceId deviceId, PortNumber portNumber,
                          boolean enable);
+
+
+    /**
+     * Administratively triggers 'disconnection' from the device. This is meant
+     * purely in logical sense and is intended to apply equally to implementations
+     * relying on connectionless control protocols.
+     *
+     * An indirect result of this should be invocation of
+     * {@link org.onosproject.net.device.DeviceProviderService#deviceDisconnected}
+     * if the device was presently 'connected' and
+     * {@link org.onosproject.net.device.DeviceProviderService#deviceConnected}
+     * at some later point in time if the device is available and continues to
+     * be permitted to reconnect or if the provider continues to discover it.
+     *
+     * @param deviceId device identifier
+     */
+    default void triggerDisconnect(DeviceId deviceId) {
+        throw new UnsupportedOperationException(id() + " does not implement this feature");
+    }
+
 }

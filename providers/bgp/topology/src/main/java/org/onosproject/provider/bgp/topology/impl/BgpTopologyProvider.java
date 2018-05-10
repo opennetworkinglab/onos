@@ -184,23 +184,17 @@ public class BgpTopologyProvider extends AbstractProvider implements DeviceProvi
 
     private class InternalDeviceListener implements DeviceListener {
         @Override
+        public boolean isRelevant(DeviceEvent event) {
+            return event.type() == DeviceEvent.Type.DEVICE_ADDED &&
+                    mastershipService.isLocalMaster(event.subject().id());
+        }
+
+        @Override
         public void event(DeviceEvent event) {
             Device device = event.subject();
-
-            switch (event.type()) {
-                case DEVICE_ADDED:
-                    if (!mastershipService.isLocalMaster(device.id())) {
-                        break;
-                    }
-
-                    // Reserve device label pool for L3 devices
-                    if (device.annotations().value(LSRID) != null) {
-                        createDevicePool(device.id());
-                    }
-                    break;
-
-                default:
-                    break;
+            // Reserve device label pool for L3 devices
+            if (device.annotations().value(LSRID) != null) {
+                createDevicePool(device.id());
             }
         }
     }
@@ -480,7 +474,7 @@ public class BgpTopologyProvider extends AbstractProvider implements DeviceProvi
 
     private void registerBandwidthAndTeMetric(LinkDescription linkDes, PathAttrNlriDetails details) {
         if (details ==  null) {
-            log.error("Couldnot able to register bandwidth ");
+            log.error("Unable to register bandwidth ");
             return;
         }
 
