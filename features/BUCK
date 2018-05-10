@@ -42,6 +42,7 @@ osgi_feature (
     '//lib:commons-jxpath', # FIXME: move xpath lib dependency to the right place
     '//lib:commons-beanutils', # jxpath dependency
     '//lib:jdom',  # jxpath dependency
+    '//lib:sigar',
   ]
 )
 
