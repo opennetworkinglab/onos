@@ -9,6 +9,7 @@ COMPILE_DEPS = [
     '//lib:netty-handler',
     '//lib:netty-transport',
     '//lib:netty-transport-native-epoll',
+    '//lib:JACKSON',
 ]
 
 TEST_DEPS = [

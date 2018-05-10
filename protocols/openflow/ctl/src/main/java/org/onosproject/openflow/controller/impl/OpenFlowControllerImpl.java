@@ -28,7 +28,12 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.CoreService;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.config.ConfigFactory;
+import org.onosproject.net.config.NetworkConfigRegistry;
+import org.onosproject.net.config.basics.SubjectFactories;
 import org.onosproject.net.driver.DriverService;
+import org.onosproject.openflow.config.OpenFlowDeviceConfig;
 import org.onosproject.openflow.controller.DefaultOpenFlowPacketContext;
 import org.onosproject.openflow.controller.Dpid;
 import org.onosproject.openflow.controller.OpenFlowController;
@@ -107,6 +112,9 @@ public class OpenFlowControllerImpl implements OpenFlowController {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService cfgService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected NetworkConfigRegistry netCfgService;
+
     @Property(name = "openflowPorts", value = DEFAULT_OFPORT,
             label = "Port numbers (comma separated) used by OpenFlow protocol; default is 6633,6653")
     private String openflowPorts = DEFAULT_OFPORT;
@@ -173,14 +181,25 @@ public class OpenFlowControllerImpl implements OpenFlowController {
     protected Multimap<Dpid, OFQueueStatsEntry> fullQueueStats =
             ArrayListMultimap.create();
 
+    protected final ConfigFactory factory =
+            new ConfigFactory<DeviceId, OpenFlowDeviceConfig>(
+                    SubjectFactories.DEVICE_SUBJECT_FACTORY,
+                    OpenFlowDeviceConfig.class, OpenFlowDeviceConfig.CONFIG_KEY) {
+                @Override
+                public OpenFlowDeviceConfig createConfig() {
+                    return new OpenFlowDeviceConfig();
+                }
+            };
+
     private final Controller ctrl = new Controller();
 
     @Activate
     public void activate(ComponentContext context) {
         coreService.registerApplication(APP_ID, this::cleanup);
         cfgService.registerProperties(getClass());
+        netCfgService.registerConfigFactory(factory);
         ctrl.setConfigParams(context.getProperties());
-        ctrl.start(agent, driverService);
+        ctrl.start(agent, driverService, netCfgService);
     }
 
     private void cleanup() {
@@ -197,13 +216,14 @@ public class OpenFlowControllerImpl implements OpenFlowController {
     public void deactivate() {
         cleanup();
         cfgService.unregisterProperties(getClass(), false);
+        netCfgService.unregisterConfigFactory(factory);
     }
 
     @Modified
     public void modified(ComponentContext context) {
         ctrl.stop();
         ctrl.setConfigParams(context.getProperties());
-        ctrl.start(agent, driverService);
+        ctrl.start(agent, driverService, netCfgService);
     }
 
     @Override

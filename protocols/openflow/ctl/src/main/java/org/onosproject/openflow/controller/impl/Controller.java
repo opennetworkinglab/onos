@@ -30,10 +30,12 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import org.onlab.util.ItemNotFoundException;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.driver.DefaultDriverData;
 import org.onosproject.net.driver.DefaultDriverHandler;
 import org.onosproject.net.driver.Driver;
 import org.onosproject.net.driver.DriverService;
+import org.onosproject.openflow.config.OpenFlowDeviceConfig;
 import org.onosproject.openflow.controller.Dpid;
 import org.onosproject.openflow.controller.driver.OpenFlowAgent;
 import org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver;
@@ -54,11 +56,14 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -99,12 +104,14 @@ public class Controller {
     protected char[] ksPwd;
     protected char[] tsPwd;
     protected SSLContext sslContext;
+    protected KeyStore keyStore;
 
     // Perf. related configuration
     protected static final int SEND_BUFFER_SIZE = 4 * 1024 * 1024;
 
     private DriverService driverService;
     private boolean enableOfTls = TLS_DISABLED;
+    private NetworkConfigRegistry netCfgService;
 
     // **************
     // Initialization
@@ -241,9 +248,9 @@ public class Controller {
             tmFactory.init(ts);
 
             KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-            KeyStore ks = KeyStore.getInstance("JKS");
-            ks.load(new FileInputStream(ksLocation), ksPwd);
-            kmf.init(ks, ksPwd);
+            keyStore = KeyStore.getInstance("JKS");
+            keyStore.load(new FileInputStream(ksLocation), ksPwd);
+            kmf.init(keyStore, ksPwd);
 
             sslContext = SSLContext.getInstance("TLS");
             sslContext.init(kmf.getKeyManagers(), tmFactory.getTrustManagers(), null);
@@ -273,6 +280,36 @@ public class Controller {
 
     public long getSystemStartTime() {
         return (this.systemStartTime);
+    }
+
+    public boolean isValidCertificate(Long dpid, Certificate peerCert) {
+        if (netCfgService == null) {
+            // netcfg service not available; accept any cert
+            return true;
+        }
+
+        DeviceId deviceId = DeviceId.deviceId(Dpid.uri(new Dpid(dpid)));
+        OpenFlowDeviceConfig config =
+                netCfgService.getConfig(deviceId, OpenFlowDeviceConfig.class);
+        if (config == null) {
+            // Config not set for device, accept any certificate
+            return true;
+        }
+
+        Optional<String> alias = config.keyAlias();
+        if (!alias.isPresent()) {
+            // Config for device does not specify a certificate chain, accept any cert
+            return true;
+        }
+
+        try {
+            Certificate configuredCert = keyStore.getCertificate(alias.get());
+            //FIXME there's probably a better way to compare these
+            return Objects.deepEquals(peerCert, configuredCert);
+        } catch (KeyStoreException e) {
+            log.info("failed to load key", e);
+        }
+        return false;
     }
 
     /**
@@ -317,10 +354,17 @@ public class Controller {
         return ofSwitchDriver;
     }
 
+    @Deprecated
     public void start(OpenFlowAgent ag, DriverService driverService) {
+        start(ag, driverService, null);
+    }
+
+    public void start(OpenFlowAgent ag, DriverService driverService,
+                      NetworkConfigRegistry netCfgService) {
         log.info("Starting OpenFlow IO");
         this.agent = ag;
         this.driverService = driverService;
+        this.netCfgService = netCfgService;
         this.init();
         this.run();
     }
