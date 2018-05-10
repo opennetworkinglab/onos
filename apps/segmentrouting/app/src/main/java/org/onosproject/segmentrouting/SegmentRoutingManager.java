@@ -1299,7 +1299,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             DefaultGroupHandler groupHandler = groupHandlerMap.get(deviceId);
             groupHandler.createGroupsFromVlanConfig();
             routingRulePopulator.populateSubnetBroadcastRule(deviceId);
-            mcastHandler.dropUnprogrammedTrees(deviceId);
         }
 
         appCfgHandler.init(deviceId);

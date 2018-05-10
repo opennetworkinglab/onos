@@ -38,9 +38,9 @@ import org.onosproject.mcast.api.McastEvent;
 import org.onosproject.mcast.api.McastRoute;
 import org.onosproject.mcast.api.McastRouteData;
 import org.onosproject.mcast.api.McastRouteUpdate;
+import org.onosproject.net.HostId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.HostId;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
 import org.onosproject.net.PortNumber;
@@ -53,7 +53,6 @@ import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyService;
 import org.onosproject.segmentrouting.SRLinkWeigher;
 import org.onosproject.segmentrouting.SegmentRoutingManager;
-import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.Serializer;
@@ -77,12 +76,14 @@ import java.util.stream.Collectors;
 
 import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static org.onlab.util.Tools.groupedThreads;
+
 import static org.onosproject.mcast.api.McastEvent.Type.ROUTE_ADDED;
 import static org.onosproject.mcast.api.McastEvent.Type.ROUTE_REMOVED;
-import static org.onosproject.mcast.api.McastEvent.Type.SINKS_ADDED;
-import static org.onosproject.mcast.api.McastEvent.Type.SINKS_REMOVED;
 import static org.onosproject.mcast.api.McastEvent.Type.SOURCES_ADDED;
 import static org.onosproject.mcast.api.McastEvent.Type.SOURCES_REMOVED;
+import static org.onosproject.mcast.api.McastEvent.Type.SINKS_ADDED;
+import static org.onosproject.mcast.api.McastEvent.Type.SINKS_REMOVED;
+
 import static org.onosproject.segmentrouting.mcast.McastRole.EGRESS;
 import static org.onosproject.segmentrouting.mcast.McastRole.INGRESS;
 import static org.onosproject.segmentrouting.mcast.McastRole.TRANSIT;
@@ -272,11 +273,6 @@ public class McastHandler {
         lastMcastChange = Instant.now();
         mcastLock();
         try {
-            // Installing rules to drop any multicast traffic for which a tree is not programmed.
-            srManager.deviceService.getAvailableDevices().forEach(device -> {
-                log.debug("Programming mcast drop flows");
-                dropUnprogrammedTrees(device.id());
-            });
             srManager.multicastRouteService.getRoutes().forEach(mcastRoute -> {
                 log.debug("Init group {}", mcastRoute.group());
                 if (!mcastUtils.isLeader(mcastRoute.group())) {
@@ -333,7 +329,7 @@ public class McastHandler {
      * @param event McastEvent with SOURCE_ADDED type
      */
     public void processMcastEvent(McastEvent event) {
-        log.debug("process {}", event);
+        log.info("process {}", event);
         // If it is a route added, we do not enqueue
         if (event.type() == ROUTE_ADDED) {
             processRouteAddedInternal(event.subject().route().group());
@@ -851,8 +847,11 @@ public class McastHandler {
             // Fast path, we can recover all the locations
             if (notRecoveredInternal.isEmpty()) {
                 mcastTree.forEach((egressDevice, paths) -> {
-                    Optional<Path> mcastPath = getPath(ingressDevice, egressDevice, mcastIp, paths, source);
-                    mcastPath.ifPresent(path -> installPath(mcastIp, source, path));
+                    Optional<Path> mcastPath = getPath(ingressDevice, egressDevice,
+                                                       mcastIp, paths, source);
+                    if (mcastPath.isPresent()) {
+                        installPath(mcastIp, source, mcastPath.get());
+                    }
                 });
             } else {
                 // Let's try to recover using alternative locations
@@ -891,12 +890,15 @@ public class McastHandler {
         // Let's compute all the affected sinks and all the sinks
         notRecovered.forEach(deviceId -> {
             totalAffectedSinks.addAll(
-                    mcastUtils.getAffectedSinks(deviceId, mcastIp).values().stream().flatMap(Collection::stream)
+                    mcastUtils.getAffectedSinks(deviceId, mcastIp).values().stream()
+                            .flatMap(Collection::stream)
                             .filter(connectPoint -> connectPoint.deviceId().equals(deviceId))
-                            .collect(Collectors.toSet()));
+                            .collect(Collectors.toSet())
+            );
             totalSinks.addAll(
                     mcastUtils.getAffectedSinks(deviceId, mcastIp).values().stream()
-                            .flatMap(Collection::stream).collect(Collectors.toSet()));
+                            .flatMap(Collection::stream).collect(Collectors.toSet())
+            );
         });
         Set<ConnectPoint> sinksToBeAdded = Sets.difference(totalSinks, totalAffectedSinks);
         Set<DeviceId> newEgressDevices = sinksToBeAdded.stream()
@@ -970,7 +972,8 @@ public class McastHandler {
      * @param source the source connect point
      * @return the set of the sinks to be processed
      */
-    private Set<ConnectPoint> processSinksToBeRecovered(IpAddress mcastIp, Map<HostId, Set<ConnectPoint>> newSinks,
+    private Set<ConnectPoint> processSinksToBeRecovered(IpAddress mcastIp,
+                                                        Map<HostId, Set<ConnectPoint>> newSinks,
                                                         Map<HostId, Set<ConnectPoint>> prevSinks,
                                                         ConnectPoint source) {
         final Set<ConnectPoint> sinksToBeProcessed = Sets.newHashSet();
@@ -1029,7 +1032,8 @@ public class McastHandler {
                             return false;
                         }
                         ConnectPoint other = connectPoints.stream()
-                                .filter(remaining -> !remaining.equals(connectPoint)).findFirst().orElse(null);
+                                .filter(remaining -> !remaining.equals(connectPoint))
+                                .findFirst().orElse(null);
                         // We are already serving the sink
                         return !isSinkForSource(mcastIp, other, source);
                     }).findFirst().orElse(null);
@@ -1049,7 +1053,8 @@ public class McastHandler {
                             return false;
                         }
                         ConnectPoint other = connectPoints.stream()
-                                .filter(remaining -> !remaining.equals(connectPoint)).findFirst().orElse(null);
+                                .filter(remaining -> !remaining.equals(connectPoint))
+                                .findFirst().orElse(null);
                         return !isSinkForSource(mcastIp, other, source);
                     }).findFirst().orElse(null);
             if (sinkToBeProcessed != null) {
@@ -1071,7 +1076,8 @@ public class McastHandler {
                             return false;
                         }
                         ConnectPoint other = connectPoints.stream()
-                                .filter(remaining -> !remaining.equals(connectPoint)).findFirst().orElse(null);
+                                .filter(remaining -> !remaining.equals(connectPoint))
+                                .findFirst().orElse(null);
                         return !isSinkForSource(mcastIp, other, source);
                     }).findFirst().orElse(null);
             if (sinkToBeProcessed != null) {
@@ -1105,32 +1111,14 @@ public class McastHandler {
         });
         ingressTransitPorts.forEach((source, ports) -> ports.forEach(ingressTransitPort -> {
             DeviceId ingressDevice = ingressDevices.stream()
-                    .filter(deviceId -> deviceId.equals(source.deviceId())).findFirst().orElse(null);
+                    .filter(deviceId -> deviceId.equals(source.deviceId()))
+                    .findFirst().orElse(null);
             boolean isLast = removePortFromDevice(ingressDevice, ingressTransitPort,
                                                   mcastIp, mcastUtils.assignedVlan(source));
             if (isLast) {
                 mcastRoleStore.remove(new McastRoleStoreKey(mcastIp, ingressDevice, source));
             }
         }));
-    }
-
-    /**
-     * Installs flows to drop any multicast traffic for a tree that was not programmed.
-     *
-     * @param deviceId the device
-     */
-    public void dropUnprogrammedTrees(DeviceId deviceId) {
-        try {
-            if (srManager.deviceConfiguration().isEdgeDevice(deviceId)) {
-                Set<VlanId> assignedVlans  = srManager.deviceService.getPorts(deviceId).stream().map(port -> {
-                    return mcastUtils.assignedVlan(new ConnectPoint(port.element().id(), port.number()));
-                }).collect(Collectors.toSet());
-                mcastUtils.addDropFiltersToDevice(deviceId, true, assignedVlans);
-                mcastUtils.addDropFiltersToDevice(deviceId, false, assignedVlans);
-            }
-        } catch (DeviceConfigNotFoundException e) {
-            log.warn("Not installing mcast drop flows for unprogrammed trees on  {}. Absent config", deviceId);
-        }
     }
 
     /**
@@ -1142,7 +1130,8 @@ public class McastHandler {
      * @param mcastIp multicast group
      * @param assignedVlan assigned VLAN ID
      */
-    private void addPortToDevice(DeviceId deviceId, PortNumber port, IpAddress mcastIp, VlanId assignedVlan) {
+    private void addPortToDevice(DeviceId deviceId, PortNumber port,
+                                 IpAddress mcastIp, VlanId assignedVlan) {
         McastStoreKey mcastStoreKey = new McastStoreKey(mcastIp, deviceId, assignedVlan);
         ImmutableSet.Builder<PortNumber> portBuilder = ImmutableSet.builder();
         NextObjective newNextObj;
@@ -1150,7 +1139,8 @@ public class McastHandler {
             // First time someone request this mcast group via this device
             portBuilder.add(port);
             // New nextObj
-            newNextObj = mcastUtils.nextObjBuilder(mcastIp, assignedVlan, portBuilder.build(), null).add();
+            newNextObj = mcastUtils.nextObjBuilder(mcastIp, assignedVlan,
+                                        portBuilder.build(), null).add();
             // Store the new port
             mcastNextObjStore.put(mcastStoreKey, newNextObj);
         } else {
@@ -1198,7 +1188,8 @@ public class McastHandler {
      * @param assignedVlan assigned VLAN ID
      * @return true if this is the last sink on this device
      */
-    private boolean removePortFromDevice(DeviceId deviceId, PortNumber port, IpAddress mcastIp, VlanId assignedVlan) {
+    private boolean removePortFromDevice(DeviceId deviceId, PortNumber port,
+                                         IpAddress mcastIp, VlanId assignedVlan) {
         McastStoreKey mcastStoreKey =
                 new McastStoreKey(mcastIp, deviceId, assignedVlan);
         // This device is not serving this multicast group
@@ -1257,7 +1248,8 @@ public class McastHandler {
      * @param mcastIp multicast group to be removed
      * @param assignedVlan assigned VLAN ID
      */
-    private void removeGroupFromDevice(DeviceId deviceId, IpAddress mcastIp, VlanId assignedVlan) {
+    private void removeGroupFromDevice(DeviceId deviceId, IpAddress mcastIp,
+                                       VlanId assignedVlan) {
         McastStoreKey mcastStoreKey = new McastStoreKey(mcastIp, deviceId, assignedVlan);
         // This device is not serving this multicast group
         if (!mcastNextObjStore.containsKey(mcastStoreKey)) {
@@ -1303,7 +1295,8 @@ public class McastHandler {
      * @param availablePaths all the available paths towards the egress
      * @return shared links between egress devices
      */
-    private Set<Link> exploreMcastTree(Set<DeviceId> egresses, Map<DeviceId, List<Path>> availablePaths) {
+    private Set<Link> exploreMcastTree(Set<DeviceId> egresses,
+                                       Map<DeviceId, List<Path>> availablePaths) {
         int minLength = Integer.MAX_VALUE;
         int length;
         List<Path> currentPaths;
@@ -1375,7 +1368,8 @@ public class McastHandler {
      * @param sinks leaves of the tree
      * @return the computed Mcast tree
      */
-    private Map<ConnectPoint, List<Path>> computeSinkMcastTree(DeviceId source, Set<ConnectPoint> sinks) {
+    private Map<ConnectPoint, List<Path>> computeSinkMcastTree(DeviceId source,
+                                                               Set<ConnectPoint> sinks) {
         // Get the egress devices, remove source from the egress if present
         Set<DeviceId> egresses = sinks.stream().map(ConnectPoint::deviceId)
                 .filter(deviceId -> !deviceId.equals(source)).collect(Collectors.toSet());
@@ -1513,7 +1507,8 @@ public class McastHandler {
     private Set<DeviceId> getDevice(IpAddress mcastIp, McastRole role, ConnectPoint source) {
         return mcastRoleStore.entrySet().stream()
                 .filter(entry -> entry.getKey().mcastIp().equals(mcastIp) &&
-                        entry.getKey().source().equals(source) && entry.getValue().value() == role)
+                        entry.getKey().source().equals(source) &&
+                        entry.getValue().value() == role)
                 .map(Entry::getKey).map(McastRoleStoreKey::deviceId).collect(Collectors.toSet());
     }
 
@@ -1594,7 +1589,8 @@ public class McastHandler {
      * @param source the source connect point
      * @return spine-facing port on ingress device
      */
-    private Set<PortNumber> ingressTransitPort(IpAddress mcastIp, DeviceId ingressDevice, ConnectPoint source) {
+    private Set<PortNumber> ingressTransitPort(IpAddress mcastIp, DeviceId ingressDevice,
+                                               ConnectPoint source) {
         ImmutableSet.Builder<PortNumber> portBuilder = ImmutableSet.builder();
         if (ingressDevice != null) {
             NextObjective nextObj = mcastNextObjStore.get(new McastStoreKey(mcastIp, ingressDevice,
@@ -1621,7 +1617,8 @@ public class McastHandler {
      * @param source source connect point
      * @return true if the connect point is sink of the group
      */
-    private boolean isSinkForGroup(IpAddress mcastIp, ConnectPoint connectPoint, ConnectPoint source) {
+    private boolean isSinkForGroup(IpAddress mcastIp, ConnectPoint connectPoint,
+                                   ConnectPoint source) {
         VlanId assignedVlan = mcastUtils.assignedVlan(connectPoint.deviceId().equals(source.deviceId()) ?
                                                               source : null);
         McastStoreKey mcastStoreKey = new McastStoreKey(mcastIp, connectPoint.deviceId(), assignedVlan);
@@ -1640,7 +1637,8 @@ public class McastHandler {
      * @param source source connect point
      * @return true if the connect point is sink of the group
      */
-    private boolean isSinkForSource(IpAddress mcastIp, ConnectPoint connectPoint, ConnectPoint source) {
+    private boolean isSinkForSource(IpAddress mcastIp, ConnectPoint connectPoint,
+                                    ConnectPoint source) {
         boolean isSink = isSinkForGroup(mcastIp, connectPoint, source);
         DeviceId device;
         if (connectPoint.deviceId().equals(source.deviceId())) {
@@ -1663,7 +1661,8 @@ public class McastHandler {
      * @param source source connect point
      * @return true if the connect point is reachable from the source
      */
-    private boolean isSinkReachable(IpAddress mcastIp, ConnectPoint sink, ConnectPoint source) {
+    private boolean isSinkReachable(IpAddress mcastIp, ConnectPoint sink,
+                                    ConnectPoint source) {
         return sink.deviceId().equals(source.deviceId()) ||
                 getPath(source.deviceId(), sink.deviceId(), mcastIp, null, source).isPresent();
     }
@@ -1678,7 +1677,8 @@ public class McastHandler {
      * @param vlanId assigned VLAN ID
      * @param install true to add, false to remove
      */
-    public void updateFilterToDevice(DeviceId deviceId, PortNumber portNum, VlanId vlanId, boolean install) {
+    public void updateFilterToDevice(DeviceId deviceId, PortNumber portNum,
+                                        VlanId vlanId, boolean install) {
         lastMcastChange = Instant.now();
         mcastLock();
         try {
@@ -1842,7 +1842,8 @@ public class McastHandler {
      * @param sourcecp the source connect point
      * @return the mapping mcastIp-device to mcast role
      */
-    public Map<McastRoleStoreKey, McastRole> getMcastRoles(IpAddress mcastIp, ConnectPoint sourcecp) {
+    public Map<McastRoleStoreKey, McastRole> getMcastRoles(IpAddress mcastIp,
+                                                       ConnectPoint sourcecp) {
         if (mcastIp != null) {
             Map<McastRoleStoreKey, McastRole> roles = mcastRoleStore.entrySet().stream()
                     .filter(mcastEntry -> mcastIp.equals(mcastEntry.getKey().mcastIp()))
@@ -1889,7 +1890,8 @@ public class McastHandler {
      * @param sourcecp the source connect point
      * @return the mapping egress point to mcast path
      */
-    public Multimap<ConnectPoint, List<ConnectPoint>> getMcastTrees(IpAddress mcastIp, ConnectPoint sourcecp) {
+    public Multimap<ConnectPoint, List<ConnectPoint>> getMcastTrees(IpAddress mcastIp,
+                                                                    ConnectPoint sourcecp) {
         Multimap<ConnectPoint, List<ConnectPoint>> mcastTrees = HashMultimap.create();
         Set<ConnectPoint> sources = mcastUtils.getSources(mcastIp);
         if (sourcecp != null) {
@@ -1918,9 +1920,10 @@ public class McastHandler {
      * @param mcastIp the group ip
      * @param source the source
      */
-    private void buildMcastPaths(DeviceId toVisit, Set<DeviceId> visited, Map<ConnectPoint,
-                                 List<ConnectPoint>> mcastPaths, List<ConnectPoint> currentPath,
-                                 IpAddress mcastIp, ConnectPoint source) {
+    private void buildMcastPaths(DeviceId toVisit, Set<DeviceId> visited,
+                                 Map<ConnectPoint, List<ConnectPoint>> mcastPaths,
+                                 List<ConnectPoint> currentPath, IpAddress mcastIp,
+                                 ConnectPoint source) {
         // If we have visited the node to visit there is a loop
         if (visited.contains(toVisit)) {
             return;
