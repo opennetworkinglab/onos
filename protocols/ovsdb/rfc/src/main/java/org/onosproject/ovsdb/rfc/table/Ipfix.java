@@ -38,7 +38,7 @@ public class Ipfix extends AbstractOvsdbTableService {
 
         private final String columnName;
 
-        private IpfixColumn(String columnName) {
+        IpfixColumn(String columnName) {
             this.columnName = columnName;
         }
 

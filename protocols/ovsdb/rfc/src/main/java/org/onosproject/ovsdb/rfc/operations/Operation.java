@@ -45,7 +45,7 @@ public interface Operation {
 
         private String op;
 
-        private Operations(String op) {
+        Operations(String op) {
             this.op = op;
         }
 

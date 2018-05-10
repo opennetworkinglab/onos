@@ -17,6 +17,7 @@
 package org.onosproject.ovsdb.controller;
 
 import com.google.common.collect.Maps;
+import org.onlab.packet.VlanId;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.behaviour.MirroringDescription;
 import org.onosproject.ovsdb.rfc.notation.Uuid;
@@ -232,13 +233,13 @@ public final class OvsdbMirror {
             mirroringName = mirrorDesc.name().name();
             selectAll = false;
             monitorSrcPorts = mirrorDesc.monitorSrcPorts().parallelStream()
-                    .map(monitorSrcPort -> Uuid.uuid(monitorSrcPort))
+                    .map(Uuid::uuid)
                     .collect(Collectors.toSet());
             monitorDstPorts = mirrorDesc.monitorDstPorts().parallelStream()
-                    .map(monitorDstPort -> Uuid.uuid(monitorDstPort))
+                    .map(Uuid::uuid)
                     .collect(Collectors.toSet());
             monitorVlans = mirrorDesc.monitorVlans().parallelStream()
-                    .map(monitorVlan -> monitorVlan.toShort())
+                    .map(VlanId::toShort)
                     .collect(Collectors.toSet());
 
             if (mirrorDesc.mirrorPort().isPresent()) {

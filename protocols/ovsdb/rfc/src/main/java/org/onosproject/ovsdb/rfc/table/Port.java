@@ -43,7 +43,7 @@ public class Port extends AbstractOvsdbTableService {
 
         private final String columnName;
 
-        private PortColumn(String columnName) {
+        PortColumn(String columnName) {
             this.columnName = columnName;
         }
 

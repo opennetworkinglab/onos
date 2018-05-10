@@ -40,7 +40,7 @@ public final class Condition {
 
         private final String function;
 
-        private Function(String function) {
+        Function(String function) {
             this.function = function;
         }
 

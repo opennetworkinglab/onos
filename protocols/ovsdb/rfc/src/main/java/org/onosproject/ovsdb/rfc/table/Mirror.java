@@ -39,7 +39,7 @@ public class Mirror extends AbstractOvsdbTableService {
 
         private final String columnName;
 
-        private MirrorColumn(String columnName) {
+        MirrorColumn(String columnName) {
             this.columnName = columnName;
         }
 

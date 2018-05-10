@@ -730,13 +730,11 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
             return ovsdbQoses;
         }
         ConcurrentMap<String, Row> rows = rowStore.getRowStore();
-        for (String uuid : rows.keySet()) {
-            Row row = getRow(DATABASENAME, QOS, uuid);
-            OvsdbQos ovsdbQos = getOvsdbQos(row);
-            if (ovsdbQos != null) {
-                ovsdbQoses.add(ovsdbQos);
-            }
-        }
+        ovsdbQoses = rows.keySet().stream()
+                .map(uuid -> getRow(DATABASENAME, QOS, uuid))
+                .map(this::getOvsdbQos)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
         return ovsdbQoses;
     }
 
@@ -769,7 +767,7 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
 
         Uuid qosUuid = qosRow.uuid();
 
-        Map<Long, Uuid> newQueues = new HashMap<Long, Uuid>();
+        Map<Long, Uuid> newQueues = new HashMap<>();
         for (Map.Entry<Long, QueueDescription> entry : queues.entrySet()) {
             Row queueRow = queueTableRows.values().stream().filter(r -> {
                 OvsdbMap ovsdbMap = (OvsdbMap) (r.getColumn(EXTERNAL_ID).data());
@@ -813,14 +811,12 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
             return;
         }
 
-        Map<Long, Uuid> deleteQueuesMap = new HashMap<>();
+        Map<Long, Uuid> deleteQueuesMap;
         Map<Integer, Uuid> queuesMap = ((OvsdbMap) qosRow.getColumn(QUEUES).data()).map();
 
-        queueKeys.forEach(key -> {
-            if (queuesMap.containsKey(key.intValue())) {
-                deleteQueuesMap.put(key, queuesMap.get(key.intValue()));
-            }
-        });
+        deleteQueuesMap = queueKeys.stream()
+                .filter(key -> queuesMap.containsKey(key.intValue()))
+                .collect(Collectors.toMap(key -> key, key -> queuesMap.get(key.intValue()), (a, b) -> b));
 
         if (deleteQueuesMap.size() != 0) {
             TableSchema parentTableSchema = dbSchema
@@ -922,13 +918,12 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
             return ovsdbqueues;
         }
         ConcurrentMap<String, Row> rows = rowStore.getRowStore();
-        for (String uuid : rows.keySet()) {
-            Row row = getRow(DATABASENAME, QUEUE, uuid);
-            OvsdbQueue ovsdbQueue = getOvsdbQueue(row);
-            if (ovsdbQueue != null) {
-                ovsdbqueues.add(ovsdbQueue);
-            }
-        }
+        ovsdbqueues = rows.keySet()
+                .stream()
+                .map(uuid -> getRow(DATABASENAME, QUEUE, uuid))
+                .map(this::getOvsdbQueue)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
         return ovsdbqueues;
     }
     /**
@@ -1311,7 +1306,7 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
         }
         DatabaseSchema databaseSchema = schema.get(dbName);
         if (databaseSchema == null) {
-            List<String> dbNames = new ArrayList<String>();
+            List<String> dbNames = new ArrayList<>();
             dbNames.add(dbName);
             Function<JsonNode, DatabaseSchema> rowFunction = input -> {
                 log.debug("Get ovsdb database schema {}", dbName);
@@ -1603,7 +1598,7 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
 
     @Override
     public Set<OvsdbPort> getPorts() {
-        Set<OvsdbPort> ovsdbPorts = new HashSet<>();
+        Set<OvsdbPort> ovsdbPorts;
         OvsdbTableStore tableStore = getTableStore(DATABASENAME);
         if (tableStore == null) {
             return null;
@@ -1613,13 +1608,12 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
             return null;
         }
         ConcurrentMap<String, Row> rows = rowStore.getRowStore();
-        for (String uuid : rows.keySet()) {
-            Row row = getRow(DATABASENAME, INTERFACE, uuid);
-            OvsdbPort ovsdbPort = getOvsdbPort(row);
-            if (ovsdbPort != null) {
-                ovsdbPorts.add(ovsdbPort);
-            }
-        }
+        ovsdbPorts = rows.keySet()
+                .stream()
+                .map(uuid -> getRow(DATABASENAME, INTERFACE, uuid))
+                .map(this::getOvsdbPort)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
         return ovsdbPorts;
     }
 
@@ -1843,22 +1837,19 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
                 .entrySet().stream().filter(intf -> Objects.nonNull(intf.getValue())
                         && ((OvsdbSet) intf.getValue().getOpenFlowPortColumn().data()).set()
                         .stream().findAny().orElse(OFPORT_ERROR_COMPARISON).equals(OFPORT_ERROR))
-                .map(intf -> intf.getValue()).collect(Collectors.toList());
+                .map(Map.Entry::getValue).collect(Collectors.toList());
 
-        interfaceList.forEach(intf -> new Consumer<Interface>() {
-            @Override
-            public void accept(Interface intf) {
-                try {
-                    Set<String> setErrors = ((OvsdbSet) intf.getErrorColumn().data()).set();
-                    log.info("Port has errors. ofport value - {}, Interface - {} has error - {} ",
-                            intf.getOpenFlowPortColumn().data(), intf.getName(), setErrors.stream()
-                                    .findFirst().get());
-                } catch (ColumnSchemaNotFoundException | VersionMismatchException  e) {
-                    log.debug("Port has errors. ofport value - {}, Interface - {} has error - {} ",
-                            intf.getOpenFlowPortColumn().data(), intf.getName(), e);
-                }
+        interfaceList.forEach(intf -> ((Consumer<Interface>) intf1 -> {
+            try {
+                Set<String> setErrors = ((OvsdbSet) intf1.getErrorColumn().data()).set();
+                log.info("Port has errors. ofport value - {}, Interface - {} has error - {} ",
+                        intf1.getOpenFlowPortColumn().data(), intf1.getName(), setErrors.stream()
+                                .findFirst().get());
+            } catch (ColumnSchemaNotFoundException | VersionMismatchException e) {
+                log.debug("Port has errors. ofport value - {}, Interface - {} has error - {} ",
+                        intf1.getOpenFlowPortColumn().data(), intf1.getName(), e);
             }
-        }.accept(intf));
+        }).accept(intf));
 
         return !interfaceList.isEmpty();
     }

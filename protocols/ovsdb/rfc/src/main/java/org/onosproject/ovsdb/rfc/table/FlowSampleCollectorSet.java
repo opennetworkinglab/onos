@@ -36,7 +36,7 @@ public class FlowSampleCollectorSet extends AbstractOvsdbTableService {
 
         private final String columnName;
 
-        private FlowSampleCollectorSetColumn(String columnName) {
+        FlowSampleCollectorSetColumn(String columnName) {
             this.columnName = columnName;
         }
 

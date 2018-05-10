@@ -27,7 +27,7 @@ public enum OvsdbTable {
 
     private final String tableName;
 
-    private OvsdbTable(String tableName) {
+    OvsdbTable(String tableName) {
         this.tableName = tableName;
     }
 

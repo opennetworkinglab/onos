@@ -25,7 +25,7 @@ import org.onosproject.ovsdb.controller.OvsdbNodeId;
 import org.onosproject.ovsdb.controller.OvsdbNodeListener;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
@@ -35,7 +35,7 @@ import java.util.function.Consumer;
  */
 public class OvsdbControllerAdapter implements OvsdbController {
     protected ConcurrentHashMap<OvsdbNodeId, OvsdbClientServiceAdapter> ovsdbClients =
-            new ConcurrentHashMap<OvsdbNodeId, OvsdbClientServiceAdapter>();
+            new ConcurrentHashMap<>();
 
     @Override
     public void addNodeListener(OvsdbNodeListener listener) {
@@ -60,7 +60,7 @@ public class OvsdbControllerAdapter implements OvsdbController {
     @Override
     public List<OvsdbNodeId> getNodeIds() {
         long port = 6653;
-        return new ArrayList<OvsdbNodeId>(Arrays.asList(
+        return new ArrayList<>(Collections.singletonList(
                 new OvsdbNodeId(IpAddress.valueOf("127.0.0.1"), port)));
     }
 

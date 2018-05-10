@@ -50,7 +50,7 @@ public class Interface extends AbstractOvsdbTableService {
 
         private final String columnName;
 
-        private InterfaceColumn(String columnName) {
+        InterfaceColumn(String columnName) {
             this.columnName = columnName;
         }
 

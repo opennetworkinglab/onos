@@ -46,7 +46,7 @@ public class Controller extends AbstractOvsdbTableService {
 
         private final String columnName;
 
-        private ControllerColumn(String columnName) {
+        ControllerColumn(String columnName) {
             this.columnName = columnName;
         }
 

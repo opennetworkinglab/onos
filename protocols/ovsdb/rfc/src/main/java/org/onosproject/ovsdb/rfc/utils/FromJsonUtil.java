@@ -218,7 +218,7 @@ public final class FromJsonUtil {
     public static List<OperationResult> jsonNodeToOperationResult(List<JsonNode> input,
                                                                   List<Operation> operations) {
         ObjectMapper objectMapper = ObjectMapperUtil.getObjectMapper(false);
-        List<OperationResult> operationResults = new ArrayList<OperationResult>();
+        List<OperationResult> operationResults = new ArrayList<>();
         for (int i = 0; i < input.size(); i++) {
             JsonNode jsonNode = input.get(i);
 

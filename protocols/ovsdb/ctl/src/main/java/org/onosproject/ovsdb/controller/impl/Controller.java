@@ -138,38 +138,35 @@ public class Controller {
      * @param channel the channel to use.
      */
     private void handleNewNodeConnection(final Channel channel) {
-        executorService.execute(new Runnable() {
-            @Override
-            public void run() {
-                log.info("Handle new node connection");
+        executorService.execute(() -> {
+            log.info("Handle new node connection");
 
-                IpAddress ipAddress = IpAddress
-                        .valueOf(((InetSocketAddress) channel.remoteAddress())
-                                .getAddress().getHostAddress());
-                long port = ((InetSocketAddress) channel.remoteAddress())
-                        .getPort();
+            IpAddress ipAddress = IpAddress
+                    .valueOf(((InetSocketAddress) channel.remoteAddress())
+                            .getAddress().getHostAddress());
+            long port = ((InetSocketAddress) channel.remoteAddress())
+                    .getPort();
 
-                log.info("Get connection from ip address {} : {}",
-                         ipAddress.toString(), port);
+            log.info("Get connection from ip address {} : {}",
+                     ipAddress.toString(), port);
 
-                OvsdbNodeId nodeId = new OvsdbNodeId(ipAddress, port);
-                OvsdbProviderService ovsdbProviderService = getNodeInstance(nodeId,
-                                                                            agent,
-                                                                            monitorCallback,
-                                                                            channel);
-                ovsdbProviderService.setConnection(true);
-                OvsdbJsonRpcHandler ovsdbJsonRpcHandler = new OvsdbJsonRpcHandler(
-                                                                                  nodeId);
-                ovsdbJsonRpcHandler
-                        .setOvsdbProviderService(ovsdbProviderService);
-                channel.pipeline().addLast(ovsdbJsonRpcHandler);
+            OvsdbNodeId nodeId = new OvsdbNodeId(ipAddress, port);
+            OvsdbProviderService ovsdbProviderService = getNodeInstance(nodeId,
+                                                                        agent,
+                                                                        monitorCallback,
+                                                                        channel);
+            ovsdbProviderService.setConnection(true);
+            OvsdbJsonRpcHandler ovsdbJsonRpcHandler = new OvsdbJsonRpcHandler(
+                                                                              nodeId);
+            ovsdbJsonRpcHandler
+                    .setOvsdbProviderService(ovsdbProviderService);
+            channel.pipeline().addLast(ovsdbJsonRpcHandler);
 
-                ovsdbProviderService.nodeAdded();
-                ChannelFuture closeFuture = channel.closeFuture();
-                closeFuture
-                        .addListener(new ChannelConnectionListener(
-                                                                   ovsdbProviderService));
-            }
+            ovsdbProviderService.nodeAdded();
+            ChannelFuture closeFuture = channel.closeFuture();
+            closeFuture
+                    .addListener(new ChannelConnectionListener(
+                                                               ovsdbProviderService));
         });
     }
 

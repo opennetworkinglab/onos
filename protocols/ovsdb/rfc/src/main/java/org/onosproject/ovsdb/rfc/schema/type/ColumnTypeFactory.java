@@ -40,7 +40,7 @@ public final class ColumnTypeFactory {
 
         private final String type;
 
-        private Type(String type) {
+        Type(String type) {
             this.type = type;
         }
 
