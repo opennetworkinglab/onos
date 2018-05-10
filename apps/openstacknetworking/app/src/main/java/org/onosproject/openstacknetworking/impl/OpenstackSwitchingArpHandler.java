@@ -547,7 +547,8 @@ public final class OpenstackSwitchingArpHandler {
                     setRemoteArpRequestRuleForVxlan(port, install);
                     break;
                 case VLAN:
-                    // TODO: handle VLAN differently
+                    // since VLAN ARP packet can be broadcasted to all hosts that connected with L2 network,
+                    // there is no need to add any flow rules to handle ARP request
                     break;
                 default:
                     break;
@@ -565,10 +566,10 @@ public final class OpenstackSwitchingArpHandler {
 
             switch (type) {
                 case VXLAN:
-                    setArpReplyRuleVxlan(port, install);
+                    setArpReplyRuleForVxlan(port, install);
                     break;
                 case VLAN:
-                    // TODO: handle VLAN differently
+                    setArpReplyRuleForVlan(port, install);
                     break;
                 default:
                     break;
@@ -600,10 +601,28 @@ public final class OpenstackSwitchingArpHandler {
          * @param port      instance port
          * @param install   installation flag
          */
-        private void setArpReplyRuleVxlan(InstancePort port, boolean install) {
+        private void setArpReplyRuleForVxlan(InstancePort port, boolean install) {
 
             OpenstackNode localNode = osNodeService.node(port.deviceId());
 
+            TrafficSelector selector = setArpReplyRuleForVnet(port, install);
+            setRemoteArpTreatmentForVxlan(selector, port, localNode, install);
+        }
+
+        /**
+         * Installs flow rules to match ARP reply packets only for VLAN.
+         *
+         * @param port      instance port
+         * @param install   installation flag
+         */
+        private void setArpReplyRuleForVlan(InstancePort port, boolean install) {
+
+            TrafficSelector selector = setArpReplyRuleForVnet(port, install);
+            setRemoteArpTreatmentForVlan(selector, port, install);
+        }
+
+        // a helper method
+        private TrafficSelector setArpReplyRuleForVnet(InstancePort port, boolean install) {
             TrafficSelector selector = DefaultTrafficSelector.builder()
                     .matchEthType(EthType.EtherType.ARP.ethType().toShort())
                     .matchArpOp(ARP.OP_REPLY)
@@ -625,7 +644,7 @@ public final class OpenstackSwitchingArpHandler {
                     install
             );
 
-            setRemoteArpTreatmentForVxlan(selector, port, localNode, install);
+            return selector;
         }
 
         // a helper method
@@ -653,6 +672,28 @@ public final class OpenstackSwitchingArpHandler {
                             DHCP_ARP_TABLE,
                             install
                     );
+                }
+            }
+        }
+
+        // a helper method
+        private void setRemoteArpTreatmentForVlan(TrafficSelector selector,
+                                                  InstancePort port,
+                                                  boolean install) {
+            for (OpenstackNode remoteNode : osNodeService.completeNodes(COMPUTE)) {
+                if (!remoteNode.intgBridge().equals(port.deviceId()) && remoteNode.vlanIntf() != null) {
+                    TrafficTreatment treatmentToRemote = DefaultTrafficTreatment.builder()
+                            .setOutput(remoteNode.vlanPortNum())
+                            .build();
+
+                    osFlowRuleService.setRule(
+                            appId,
+                            remoteNode.intgBridge(),
+                            selector,
+                            treatmentToRemote,
+                            PRIORITY_ARP_REQUEST_RULE,
+                            DHCP_ARP_TABLE,
+                            install);
                 }
             }
         }
