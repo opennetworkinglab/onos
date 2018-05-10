@@ -128,9 +128,11 @@ public class AppConfigHandler {
         SegmentRoutingAppConfig config =
                 srManager.cfgService.getConfig(srManager.appId, SegmentRoutingAppConfig.class);
         populateVRouter(deviceId, getMacAddresses(config));
-        config.blackholeIPs().forEach(ipPrefix -> {
-            srManager.routingRulePopulator.populateDefaultRouteBlackhole(deviceId, ipPrefix);
-        });
+        if (config != null) {
+            config.blackholeIPs().forEach(ipPrefix -> {
+                srManager.routingRulePopulator.populateDefaultRouteBlackhole(deviceId, ipPrefix);
+            });
+        }
     }
 
     private void populateVRouter(DeviceId deviceId, Set<MacAddress> pendingAdd) {

@@ -24,6 +24,8 @@ import org.onlab.packet.MacAddress;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.config.Config;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Set;
 
@@ -33,6 +35,9 @@ import static com.google.common.base.MoreObjects.toStringHelper;
  * App configuration object for Segment Routing.
  */
 public class SegmentRoutingAppConfig extends Config<ApplicationId> {
+
+    private static Logger log = LoggerFactory.getLogger(SegmentRoutingAppConfig.class);
+
     private static final String VROUTER_MACS = "vRouterMacs";
     private static final String SUPPRESS_SUBNET = "suppressSubnet";
     private static final String SUPPRESS_HOST_BY_PORT = "suppressHostByPort";
@@ -55,7 +60,7 @@ public class SegmentRoutingAppConfig extends Config<ApplicationId> {
      * Gets ips to blackhole from the config.
      *
      * @return Set of ips to blackhole, empty is not specified,
-     *         or null if not valid
+     * or null if not valid
      */
     public Set<IpPrefix> blackholeIPs() {
         if (!object.has(BLACKHOLE_IPS)) {
@@ -68,16 +73,14 @@ public class SegmentRoutingAppConfig extends Config<ApplicationId> {
             IpPrefix address;
 
             String addrStr = jsonNode.asText(null);
-            if (addrStr == null) {
-                return null;
+            if (addrStr != null) {
+                try {
+                    address = IpPrefix.valueOf(addrStr);
+                    builder.add(address);
+                } catch (IllegalArgumentException e) {
+                    log.debug("Not adding {}", jsonNode, e);
+                }
             }
-            try {
-                address = IpPrefix.valueOf(addrStr);
-            } catch (IllegalArgumentException e) {
-                return null;
-            }
-
-            builder.add(address);
         }
         return builder.build();
     }
