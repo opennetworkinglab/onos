@@ -420,6 +420,12 @@ public class DeviceManager
         checkNotNull(deviceId, PORT_NUMBER_NULL);
         NodeId masterId = mastershipService.getMasterFor(deviceId);
 
+        if (masterId == null) {
+            // No master found; device is offline
+            log.info("No master found for port state change for {}", deviceId);
+            return;
+        }
+
         if (!masterId.equals(localNodeId)) {
             //Send the request to the master node for the device
             log.info("Device {} is managed by {}, forwarding the request to the MASTER",
