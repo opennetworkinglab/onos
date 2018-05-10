@@ -36,7 +36,7 @@ public class Queue extends AbstractOvsdbTableService {
 
         private final String columnName;
 
-        private QueueColumn(String columnName) {
+        QueueColumn(String columnName) {
             this.columnName = columnName;
         }
 

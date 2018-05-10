@@ -37,7 +37,7 @@ public class Sflow extends AbstractOvsdbTableService {
 
         private final String columnName;
 
-        private SflowColumn(String columnName) {
+        SflowColumn(String columnName) {
             this.columnName = columnName;
         }
 

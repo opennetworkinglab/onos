@@ -114,7 +114,7 @@ public class OvsdbClientServiceAdapter implements OvsdbClientService {
     @Override
     public OvsdbQos getQos(QosId qosId) {
         return null;
-    };
+    }
 
     @Override
     public Set<OvsdbQos> getQoses() {
@@ -143,7 +143,7 @@ public class OvsdbClientServiceAdapter implements OvsdbClientService {
     @Override
     public OvsdbQueue getQueue(QueueId queueId) {
         return null;
-    };
+    }
 
     @Override
     public Set<OvsdbQueue> getQueues() {

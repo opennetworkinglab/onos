@@ -44,7 +44,7 @@ public class OpenVSwitch extends AbstractOvsdbTableService {
 
         private final String columnName;
 
-        private OpenVSwitchColumn(String columnName) {
+        OpenVSwitchColumn(String columnName) {
             this.columnName = columnName;
         }
 

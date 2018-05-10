@@ -115,7 +115,6 @@ public final class JsonRpcReaderUtil {
     /**
      * Filter the invalid characters before decoding.
      * @param in input of bytes
-     * @param lastReadBytes the bytes for last decoding incomplete record
      */
     private static void fliterCharaters(ByteBuf in) {
         while (in.isReadable()) {
@@ -130,14 +129,11 @@ public final class JsonRpcReaderUtil {
 
     /**
      * Check whether the peek of the stack element is double quote.
-     * @param jrContext context for the last decoding process
+     * @param bufStack context for the last decoding process
      * @return boolean
      */
     private static boolean isDoubleQuote(Stack<Byte> bufStack) {
-        if (!bufStack.isEmpty() && bufStack.peek() == '"') {
-            return true;
-        }
-        return false;
+        return !bufStack.isEmpty() && bufStack.peek() == '"';
     }
 
     /**

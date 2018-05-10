@@ -37,7 +37,7 @@ public class FlowTable extends AbstractOvsdbTableService {
 
         private final String columnName;
 
-        private FlowTableColumn(String columnName) {
+        FlowTableColumn(String columnName) {
             this.columnName = columnName;
         }
 

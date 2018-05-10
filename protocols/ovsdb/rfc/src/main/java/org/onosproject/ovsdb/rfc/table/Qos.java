@@ -37,7 +37,7 @@ public class Qos extends AbstractOvsdbTableService {
 
         private final String columnName;
 
-        private QosColumn(String columnName) {
+        QosColumn(String columnName) {
             this.columnName = columnName;
         }
 

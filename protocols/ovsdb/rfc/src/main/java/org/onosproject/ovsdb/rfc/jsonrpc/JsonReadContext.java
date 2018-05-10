@@ -31,7 +31,7 @@ public class JsonReadContext {
      * entity.
      */
     public JsonReadContext() {
-        bufStack = new Stack<Byte>();
+        bufStack = new Stack<>();
         isStartMatch = false;
         lastReadBytes = 0;
     }

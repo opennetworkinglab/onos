@@ -41,7 +41,7 @@ public final class Mutation {
 
         private final String mutator;
 
-        private Mutator(String mutator) {
+        Mutator(String mutator) {
             this.mutator = mutator;
         }
 

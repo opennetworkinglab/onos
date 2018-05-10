@@ -37,7 +37,7 @@ public class Netflow extends AbstractOvsdbTableService {
 
         private final String columnName;
 
-        private NetflowColumn(String columnName) {
+        NetflowColumn(String columnName) {
             this.columnName = columnName;
         }
 

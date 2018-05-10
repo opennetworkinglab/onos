@@ -93,14 +93,14 @@ public class OvsdbControllerImpl implements OvsdbController {
     private static final long DEFAULT_OVSDB_RPC_TIMEOUT = 3000;
     private final Controller controller = new Controller();
     protected ConcurrentHashMap<OvsdbNodeId, OvsdbClientService> ovsdbClients =
-            new ConcurrentHashMap<OvsdbNodeId, OvsdbClientService>();
+            new ConcurrentHashMap<>();
     protected OvsdbAgent agent = new InternalOvsdbNodeAgent();
     protected InternalMonitorCallBack updateCallback = new InternalMonitorCallBack();
     protected Set<OvsdbNodeListener> ovsdbNodeListener = new CopyOnWriteArraySet<>();
     protected Set<OvsdbEventListener> ovsdbEventListener = new CopyOnWriteArraySet<>();
     protected ConcurrentHashMap<String, OvsdbClientService> requestNotification =
-            new ConcurrentHashMap<String, OvsdbClientService>();
-    protected ConcurrentHashMap<String, String> requestDbName = new ConcurrentHashMap<String, String>();
+            new ConcurrentHashMap<>();
+    protected ConcurrentHashMap<String, String> requestDbName = new ConcurrentHashMap<>();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService configService;
@@ -272,7 +272,7 @@ public class OvsdbControllerImpl implements OvsdbController {
 
         EventSubject eventSubject = new DefaultEventSubject(MacAddress.valueOf(
                 macAndIfaceId[0]),
-                                                            new HashSet<IpAddress>(),
+                new HashSet<>(),
                                                             new OvsdbPortName(intf
                                                                                       .getName()),
                                                             new OvsdbPortNumber(localPort),
@@ -281,8 +281,8 @@ public class OvsdbControllerImpl implements OvsdbController {
                                                             new OvsdbPortType(portType),
                                                             new OvsdbIfaceId(macAndIfaceId[1]));
         for (OvsdbEventListener listener : ovsdbEventListener) {
-            listener.handle(new OvsdbEvent<EventSubject>(eventType,
-                                                         eventSubject));
+            listener.handle(new OvsdbEvent<>(eventType,
+                    eventSubject));
         }
     }
 

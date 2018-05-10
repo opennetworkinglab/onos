@@ -38,7 +38,7 @@ public class Manager extends AbstractOvsdbTableService {
 
         private final String columnName;
 
-        private ManagerColumn(String columnName) {
+        ManagerColumn(String columnName) {
             this.columnName = columnName;
         }
 

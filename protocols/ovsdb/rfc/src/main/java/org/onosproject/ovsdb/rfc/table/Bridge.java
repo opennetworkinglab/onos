@@ -45,7 +45,7 @@ public class Bridge extends AbstractOvsdbTableService {
 
         private final String columnName;
 
-        private BridgeColumn(String columnName) {
+        BridgeColumn(String columnName) {
             this.columnName = columnName;
         }
 

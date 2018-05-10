@@ -181,7 +181,7 @@ public final class OvsdbQos {
             }
 
             if (qosDesc.queues().isPresent()) {
-                Map<Long, String> map = new HashMap();
+                Map<Long, String> map = new HashMap<>();
                 qosDesc.queues().get().forEach((k, v) -> map.put(k, v.queueId().name()));
                 queues = Optional.ofNullable(map);
             }

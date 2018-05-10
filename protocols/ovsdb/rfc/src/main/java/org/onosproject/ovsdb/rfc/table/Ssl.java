@@ -36,7 +36,7 @@ public class Ssl extends AbstractOvsdbTableService {
 
         private final String columnName;
 
-        private SslColumn(String columnName) {
+        SslColumn(String columnName) {
             this.columnName = columnName;
         }
 

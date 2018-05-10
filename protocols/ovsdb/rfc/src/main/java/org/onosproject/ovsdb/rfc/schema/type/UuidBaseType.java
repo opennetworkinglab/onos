@@ -33,7 +33,7 @@ public final class UuidBaseType implements BaseType {
 
         private String refType;
 
-        private RefType(String refType) {
+        RefType(String refType) {
             this.refType = refType;
         }
 
