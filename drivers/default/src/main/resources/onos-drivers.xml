@@ -285,5 +285,14 @@
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.AristaPipeliner"/>
     </driver>
+
+    <driver name="juniper"
+            manufacturer="Juniper.*" hwVersion="qfx5100.*" swVersion=".*">
+        <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
+                   impl="org.onosproject.driver.handshaker.JuniperSwitchHandshaker"/>
+        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
+                   impl="org.onosproject.driver.pipeline.JuniperPipeliner"/>
+    </driver>
+
 </drivers>
 
