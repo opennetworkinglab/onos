@@ -138,8 +138,6 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
 
     protected static final int HIGHEST_PRIORITY = 0xffff;
     protected static final int DEFAULT_PRIORITY = 0x8000;
-    // Priority Introduced for Mcast Drop Rules
-    protected static final int MIDDLE_PRIORITY = 0x4000;
     protected static final int LOWEST_PRIORITY = 0x0;
 
     protected static final int MPLS_L2_PORT_PRIORITY = 2;
@@ -523,7 +521,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 ops.newStage();
 
                 for (FlowRule flowRule : flowRules) {
-                    log.debug(" {} flow rules in TMAC table: {} for dev: {}",
+                    log.trace("{} flow rules in TMAC table: {} for dev: {}",
                             (install) ? "adding" : "removing", flowRules, deviceId);
                     if (install) {
                         ops = ops.add(flowRule);
@@ -961,23 +959,19 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         TrafficTreatment.Builder treatment;
         FlowRule rule;
 
-        int priority = (assignedVlan == null || assignedVlan == VlanId.ANY) ? MIDDLE_PRIORITY : DEFAULT_PRIORITY;
-
         if (IPV4_MULTICAST.equals(ethCriterion.mac())) {
             if (requireUnicastBeforeMulticast()) {
                 selector = DefaultTrafficSelector.builder();
                 treatment = DefaultTrafficTreatment.builder();
                 selector.matchEthType(Ethernet.TYPE_IPV4);
                 selector.matchEthDst(unicastMac);
-                if (assignedVlan != null) {
-                    selector.matchVlanId(assignedVlan);
-                }
+                selector.matchVlanId(assignedVlan);
                 treatment.transition(UNICAST_ROUTING_TABLE);
                 rule = DefaultFlowRule.builder()
                         .forDevice(deviceId)
                         .withSelector(selector.build())
                         .withTreatment(treatment.build())
-                        .withPriority(priority)
+                        .withPriority(DEFAULT_PRIORITY)
                         .fromApp(applicationId)
                         .makePermanent()
                         .forTable(TMAC_TABLE).build();
@@ -988,15 +982,13 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             treatment = DefaultTrafficTreatment.builder();
             selector.matchEthType(Ethernet.TYPE_IPV4);
             selector.matchEthDstMasked(ethCriterion.mac(), ethCriterion.mask());
-            if (assignedVlan != null) {
-                selector.matchVlanId(assignedVlan);
-            }
+            selector.matchVlanId(assignedVlan);
             treatment.transition(MULTICAST_ROUTING_TABLE);
             rule = DefaultFlowRule.builder()
                     .forDevice(deviceId)
                     .withSelector(selector.build())
                     .withTreatment(treatment.build())
-                    .withPriority(priority)
+                    .withPriority(DEFAULT_PRIORITY)
                     .fromApp(applicationId)
                     .makePermanent()
                     .forTable(TMAC_TABLE).build();
@@ -1009,15 +1001,13 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 treatment = DefaultTrafficTreatment.builder();
                 selector.matchEthType(Ethernet.TYPE_IPV6);
                 selector.matchEthDst(unicastMac);
-                if (assignedVlan != null) {
-                    selector.matchVlanId(assignedVlan);
-                }
+                selector.matchVlanId(assignedVlan);
                 treatment.transition(UNICAST_ROUTING_TABLE);
                 rule = DefaultFlowRule.builder()
                         .forDevice(deviceId)
                         .withSelector(selector.build())
                         .withTreatment(treatment.build())
-                        .withPriority(priority)
+                        .withPriority(DEFAULT_PRIORITY)
                         .fromApp(applicationId)
                         .makePermanent()
                         .forTable(TMAC_TABLE).build();
@@ -1028,15 +1018,13 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             treatment = DefaultTrafficTreatment.builder();
             selector.matchEthType(Ethernet.TYPE_IPV6);
             selector.matchEthDstMasked(ethCriterion.mac(), ethCriterion.mask());
-            if (assignedVlan != null) {
-                selector.matchVlanId(assignedVlan);
-            }
+            selector.matchVlanId(assignedVlan);
             treatment.transition(MULTICAST_ROUTING_TABLE);
             rule = DefaultFlowRule.builder()
                     .forDevice(deviceId)
                     .withSelector(selector.build())
                     .withTreatment(treatment.build())
-                    .withPriority(priority)
+                    .withPriority(DEFAULT_PRIORITY)
                     .fromApp(applicationId)
                     .makePermanent()
                     .forTable(TMAC_TABLE).build();
