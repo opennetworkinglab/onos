@@ -46,7 +46,7 @@ basic_packages:
 # ONOS
 onos_repo_url: "https://gerrit.onosproject.org/onos"
 onos_dir: "/home/ubuntu/onos"
-onos_version: "1.9"
+onos_version: "1.13"
 onos_nic: "10.100.198.*"
 onos_variables:
   - "export ONOS_ROOT=~/onos"
@@ -80,8 +80,8 @@ google_chrome_repo: "deb http://dl.google.com/linux/chrome/deb/ stable main"
 
 # IDEs configuration
 intellij:
-  dir_name: "idea-IC-171.3780.107"
-  url: "https://download.jetbrains.com/idea/ideaIC-2017.1.tar.gz"
+  dir_name: "idea-IC-173.4674.33"
+  url: "https://download.jetbrains.com/idea/ideaIC-2017.3.5.tar.gz"
 
 # Tutorials configuration
 tutorials:

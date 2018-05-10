@@ -25,6 +25,8 @@
     src: "/home/ubuntu/{{ app_dir }}/otp_src_{{ tutorials.optical.erlang.version }}.tar.gz"
     dest: "/home/ubuntu/{{ app_dir }}"
     mode: 0777
+    owner: ubuntu
+    group: ubuntu
 
 - name: Configuring ERLANG installation
   shell: "{{ item }}"
@@ -32,6 +34,8 @@
     chdir: "/home/ubuntu/{{ app_dir }}/otp_src_{{ tutorials.optical.erlang.version }}"
   with_items:
     - ./configure
+  become: yes
+  become_user: ubuntu
 
 - name: Installing ERLANG
   become: yes
@@ -52,7 +56,8 @@
 - name: Cloning LINC-OE repositories
   git:
     repo: "{{ item.value.url }}"
-    dest: "{{ item.value.dest }}"
+    dest: "/home/ubuntu/{{ item.value.dest }}"
+    clone: yes
   with_dict: "{{ tutorials.optical.linc_oe }}"
 
 - name: Setting LINC-OE directory permissions
@@ -60,12 +65,17 @@
     path: "/home/ubuntu/{{ item.value.dest }}"
     state: directory
     mode: 0777
+    owner: ubuntu
+    group: ubuntu
+    recurse: yes
   with_dict: "{{ tutorials.optical.linc_oe }}"
 
 - name: Configuring LINC-OE traffic generator
   copy:
     src: "/home/ubuntu/{{ tutorials.optical.linc_oe.config_generator.dest }}/priv/{{ item }}"
     dest: "/home/ubuntu/{{ tutorials.optical.linc_oe.config_generator.dest }}/"
+    owner: ubuntu
+    group: ubuntu
     mode: 0777
   with_items:
     - "json_example.json"
@@ -81,6 +91,8 @@
   copy:
     src: "/home/ubuntu/{{ tutorials.optical.linc_oe.switch.dest }}/rel/files/sys.config.orig"
     dest: "/home/ubuntu/{{ tutorials.optical.linc_oe.switch.dest }}/rel/files/sys.config"
+    owner: ubuntu
+    group: ubuntu
     mode: 0777
 
 - name: Compiling LINC-OE
@@ -93,6 +105,9 @@
     path: "/home/ubuntu/{{ item.value.dest }}"
     state: directory
     mode: 0777
+    owner: ubuntu
+    group: ubuntu
+    recurse: yes
   with_dict: "{{ tutorials.optical.linc_oe }}"
 
 - name: Creating LINC-OE Desktop icons

@@ -126,6 +126,8 @@
   file:
     path: "/home/{{ item.value.user }}/Desktop"
     state: directory
+    owner: "{{ item.value.user }}"
+    group: "{{ item.value.user }}"
     mode: 0755
   with_dict: "{{ tutorials }}"
 

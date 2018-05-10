@@ -9,5 +9,7 @@
 - name: Downloading most recent openflow.lua wireshark plugin
   get_url:
     url: "{{ wireshark.of_lua_url }}"
-    dest: /home/ubuntu
-    mode: 0777
+    dest: /home/ubuntu/openflow.lua
+    mode: 0644
+    owner: ubuntu
+    group: ubuntu

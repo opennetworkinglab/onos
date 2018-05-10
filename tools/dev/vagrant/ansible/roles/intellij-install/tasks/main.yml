@@ -7,6 +7,8 @@
     path: "/home/ubuntu/{{ app_dir }}"
     state: directory
     mode: 0777
+    owner: ubuntu
+    group: ubuntu
 
 - name: Downloading IntelliJ
   get_url:
@@ -18,6 +20,17 @@
     src: "/home/ubuntu/{{ app_dir }}/intellij.tar.gz"
     dest: "/home/ubuntu/{{ app_dir }}"
     mode: 0777
+    owner: ubuntu
+    group: ubuntu
+
+- name: Setting IntelliJ directory permissions
+  file:
+    path: "/home/ubuntu/{{ app_dir }}/{{ intellij.dir_name }}"
+    state: directory
+    mode: 0755
+    owner: ubuntu
+    group: ubuntu
+    recurse: yes
 
 - name: Removing IntelliJ tar.gz archive
   file:
