@@ -50,19 +50,23 @@ import org.slf4j.LoggerFactory;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.security.DigestInputStream;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Dictionary;
@@ -272,13 +276,25 @@ public class Controller {
         return oldValue != this.workerThreads; // restart if number of threads has changed
     }
 
-    private static class TlsParams {
-        TlsMode mode;
-        String ksLocation;
-        String tsLocation;
-        String ksPwd;
-        String tsPwd;
-        //TODO add the hash of the keystore file contents, so that we restart if the keystore has changed
+    static class TlsParams {
+        final TlsMode mode;
+        final String ksLocation;
+        final String tsLocation;
+        final String ksPwd;
+        final String tsPwd;
+        final byte[] ksSignature;
+        final byte[] tsSignature;
+
+        TlsParams(TlsMode mode, String ksLocation, String tsLocation,
+                  String ksPwd, String tsPwd) {
+            this.mode = mode;
+            this.ksLocation = ksLocation;
+            this.tsLocation = tsLocation;
+            this.ksPwd = ksPwd;
+            this.tsPwd = tsPwd;
+            this.ksSignature = getSha1Checksum(ksLocation);
+            this.tsSignature = getSha1Checksum(tsLocation);
+        }
 
         public char[] ksPwd() {
             return ksPwd.toCharArray();
@@ -292,9 +308,34 @@ public class Controller {
             return TLS_ENABLED.contains(mode);
         }
 
+        public byte[] getSha1Checksum(String filepath) {
+            if (filepath == null) {
+                return new byte[0];
+            }
+            try {
+                MessageDigest digest = MessageDigest.getInstance("SHA1");
+                File f = new File(filepath);
+                FileInputStream is = new FileInputStream(f);
+                DigestInputStream dis = new DigestInputStream(is, digest);
+                byte[] buffer = new byte[1024];
+                while (dis.read(buffer) > 0) {
+                    // nothing to do :)
+                }
+                dis.getMessageDigest().digest();
+            } catch (NoSuchAlgorithmException ignored) {
+            } catch (IOException e) {
+                log.info("Error reading file file: {}", filepath);
+            }
+            return new byte[0];
+        }
+
         @Override
         public int hashCode() {
-            return 1; //TODO
+            if (mode == TlsMode.DISABLED) {
+                return Objects.hash(mode);
+            }
+            return Objects.hash(mode, ksLocation, tsLocation,
+                    ksPwd, tsPwd, ksSignature, tsSignature);
         }
 
         @Override
@@ -314,7 +355,9 @@ public class Controller {
                         Objects.equals(this.ksLocation, that.ksLocation) &&
                         Objects.equals(this.tsLocation, that.tsLocation) &&
                         Objects.equals(this.ksPwd, that.ksPwd) &&
-                        Objects.equals(this.tsPwd, that.tsPwd);
+                        Objects.equals(this.tsPwd, that.tsPwd) &&
+                        Arrays.equals(this.ksSignature, that.ksSignature) &&
+                        Arrays.equals(this.tsSignature, that.tsSignature);
             }
             return false;
         }
@@ -339,67 +382,68 @@ public class Controller {
     private boolean setTlsParameters(Dictionary<?, ?> properties) {
         TlsParams oldParams = this.tlsParams;
 
-        TlsParams newParams = new TlsParams();
+        TlsMode mode = null;
         String tlsString = get(properties, "tlsMode");
         if (!Strings.isNullOrEmpty(tlsString)) {
             try {
-                newParams.mode = TlsMode.valueOf(tlsString.toUpperCase());
+                mode = TlsMode.valueOf(tlsString.toUpperCase());
             } catch (IllegalArgumentException e) {
                 log.info("Invalid TLS mode {}. TLS is disabled.", tlsString);
-                newParams.mode = TlsMode.DISABLED;
+                mode = TlsMode.DISABLED;
             }
         } else {
             // Fallback to system properties
             // TODO this method of configuring TLS is deprecated and should be removed eventually
             tlsString = System.getProperty("enableOFTLS");
-            newParams.mode = !Strings.isNullOrEmpty(tlsString) && Boolean.parseBoolean(tlsString) ?
+            mode = !Strings.isNullOrEmpty(tlsString) && Boolean.parseBoolean(tlsString) ?
                     TlsMode.ENABLED : TlsMode.DISABLED;
         }
 
-        if (newParams.isTlsEnabled()) {
-            newParams.ksLocation = get(properties, "keyStore");
-            if (Strings.isNullOrEmpty(newParams.ksLocation)) {
+        String ksLocation = null, tsLocation = null, ksPwd = null, tsPwd = null;
+        if (TLS_ENABLED.contains(mode)) {
+            ksLocation = get(properties, "keyStore");
+            if (Strings.isNullOrEmpty(ksLocation)) {
                 // Fallback to system properties
                 // TODO remove this eventually
-                newParams.ksLocation = System.getProperty("javax.net.ssl.keyStore");
+                ksLocation = System.getProperty("javax.net.ssl.keyStore");
             }
-            if (Strings.isNullOrEmpty(newParams.ksLocation)) {
-                newParams.mode = TlsMode.DISABLED;
+            if (Strings.isNullOrEmpty(ksLocation)) {
+                mode = TlsMode.DISABLED;
             }
 
-            newParams.tsLocation = get(properties, "trustStore");
-            if (Strings.isNullOrEmpty(newParams.tsLocation)) {
+            tsLocation = get(properties, "trustStore");
+            if (Strings.isNullOrEmpty(tsLocation)) {
                 // Fallback to system properties
                 // TODO remove this eventually
-                newParams.tsLocation = System.getProperty("javax.net.ssl.trustStore");
+                tsLocation = System.getProperty("javax.net.ssl.trustStore");
             }
-            if (Strings.isNullOrEmpty(newParams.tsLocation)) {
-                newParams.mode = TlsMode.DISABLED;
+            if (Strings.isNullOrEmpty(tsLocation)) {
+                mode = TlsMode.DISABLED;
             }
 
-            newParams.ksPwd = get(properties, "keyStorePassword");
-            if (Strings.isNullOrEmpty(newParams.ksPwd)) {
+            ksPwd = get(properties, "keyStorePassword");
+            if (Strings.isNullOrEmpty(ksPwd)) {
                 // Fallback to system properties
                 // TODO remove this eventually
-                newParams.ksPwd = System.getProperty("javax.net.ssl.keyStorePassword");
+                ksPwd = System.getProperty("javax.net.ssl.keyStorePassword");
             }
-            if (Strings.isNullOrEmpty(newParams.ksPwd) || MIN_KS_LENGTH > newParams.ksPwd.length()) {
-                newParams.mode = TlsMode.DISABLED;
+            if (Strings.isNullOrEmpty(ksPwd) || MIN_KS_LENGTH > ksPwd.length()) {
+                mode = TlsMode.DISABLED;
             }
 
-            newParams.tsPwd = get(properties, "trustStorePassword");
-            if (Strings.isNullOrEmpty(newParams.tsPwd)) {
+            tsPwd = get(properties, "trustStorePassword");
+            if (Strings.isNullOrEmpty(tsPwd)) {
                 // Fallback to system properties
                 // TODO remove this eventually
-                newParams.tsPwd = System.getProperty("javax.net.ssl.trustStorePassword");
+                tsPwd = System.getProperty("javax.net.ssl.trustStorePassword");
             }
-            if (Strings.isNullOrEmpty(newParams.tsPwd) || MIN_KS_LENGTH > newParams.tsPwd.length()) {
-                newParams.mode = TlsMode.DISABLED;
+            if (Strings.isNullOrEmpty(tsPwd) || MIN_KS_LENGTH > tsPwd.length()) {
+                mode = TlsMode.DISABLED;
             }
         }
-        this.tlsParams = newParams;
+        this.tlsParams = new TlsParams(mode, ksLocation, tsLocation, ksPwd, tsPwd);
         log.info("OpenFlow TLS Params: {}", tlsParams);
-        return !Objects.equals(newParams, oldParams); // restart if TLS params change
+        return !Objects.equals(this.tlsParams, oldParams); // restart if TLS params change
     }
 
     /**

@@ -30,6 +30,8 @@ import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.config.ConfigFactory;
+import org.onosproject.net.config.NetworkConfigEvent;
+import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.config.basics.SubjectFactories;
 import org.onosproject.net.driver.DriverService;
@@ -79,6 +81,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -213,14 +216,56 @@ public class OpenFlowControllerImpl implements OpenFlowController {
 
     private final Controller ctrl = new Controller();
 
+    private final NetworkConfigListener netCfgListener = new NetworkConfigListener() {
+        @Override
+        public boolean isRelevant(NetworkConfigEvent event) {
+            return OpenFlowDeviceConfig.class.equals(event.configClass());
+        }
+
+        @Override
+        public void event(NetworkConfigEvent event) {
+            // We only receive NetworkConfigEvents
+            OpenFlowDeviceConfig prevConfig = null;
+            if (event.prevConfig().isPresent()) {
+                prevConfig = (OpenFlowDeviceConfig) event.prevConfig().get();
+            }
+
+            OpenFlowDeviceConfig newConfig = null;
+            if (event.config().isPresent()) {
+                newConfig = (OpenFlowDeviceConfig) event.config().get();
+            }
+
+            boolean closeConnection = false;
+            if (prevConfig != null && newConfig != null) {
+                if (!Objects.equals(prevConfig.keyAlias(), newConfig.keyAlias())) {
+                    closeConnection = true;
+                }
+            } else if (prevConfig != null) {
+                // config was removed
+                closeConnection = true;
+            }
+            if (closeConnection) {
+                if (event.subject() instanceof DeviceId) {
+                    DeviceId deviceId = (DeviceId) event.subject();
+                    Dpid dpid = Dpid.dpid(deviceId.uri());
+                    OpenFlowSwitch sw = getSwitch(dpid);
+                    if (sw != null && ctrl.tlsParams.mode == Controller.TlsMode.STRICT) {
+                        sw.disconnectSwitch();
+                        log.info("Disconnecting switch {} because key has been updated or removed", dpid);
+                    }
+                }
+            }
+        }
+    };
+
     @Activate
     public void activate(ComponentContext context) {
         coreService.registerApplication(APP_ID, this::cleanup);
         cfgService.registerProperties(getClass());
         netCfgService.registerConfigFactory(factory);
+        netCfgService.addListener(netCfgListener);
         ctrl.setConfigParams(context.getProperties());
         ctrl.start(agent, driverService, netCfgService);
-        // TODO register a netcfg listener that disconnects switches when the keyAlias changes
     }
 
     private void cleanup() {
@@ -237,14 +282,13 @@ public class OpenFlowControllerImpl implements OpenFlowController {
     public void deactivate() {
         cleanup();
         cfgService.unregisterProperties(getClass(), false);
+        netCfgService.removeListener(netCfgListener);
         netCfgService.unregisterConfigFactory(factory);
     }
 
     @Modified
     public void modified(ComponentContext context) {
-        //ctrl.stop();
         ctrl.setConfigParams(context.getProperties());
-        //ctrl.start(agent, driverService, netCfgService);
     }
 
     @Override
