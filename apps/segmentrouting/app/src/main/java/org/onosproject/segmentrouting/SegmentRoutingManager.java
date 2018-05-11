@@ -535,6 +535,12 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         mcastEventExecutor.shutdown();
         packetExecutor.shutdown();
 
+        mainEventExecutor = null;
+        hostEventExecutor = null;
+        routeEventExecutor = null;
+        mcastEventExecutor = null;
+        packetExecutor = null;
+
         cfgService.removeListener(cfgListener);
         cfgService.unregisterConfigFactory(deviceConfigFactory);
         cfgService.unregisterConfigFactory(appConfigFactory);
@@ -1525,6 +1531,9 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
         @Override
         public void event(NetworkConfigEvent event) {
+            if (mainEventExecutor == null) {
+                return;
+            }
             checkState(appCfgHandler != null, "NetworkConfigEventHandler is not initialized");
             checkState(xConnectHandler != null, "XConnectHandler is not initialized");
             switch (event.type()) {
@@ -1578,6 +1587,9 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     private class InternalLinkListener implements LinkListener {
         @Override
         public void event(LinkEvent event) {
+            if (mainEventExecutor == null) {
+                return;
+            }
             if (event.type() == LinkEvent.Type.LINK_ADDED ||
                     event.type() == LinkEvent.Type.LINK_UPDATED ||
                     event.type() == LinkEvent.Type.LINK_REMOVED) {
@@ -1594,6 +1606,9 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     private class InternalDeviceListener implements DeviceListener {
         @Override
         public void event(DeviceEvent event) {
+            if (mainEventExecutor == null) {
+                return;
+            }
             switch (event.type()) {
                 case DEVICE_ADDED:
                 case PORT_UPDATED:
@@ -1615,6 +1630,9 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     private class InternalTopologyListener implements TopologyListener {
         @Override
         public void event(TopologyEvent event) {
+            if (mainEventExecutor == null) {
+                return;
+            }
             switch (event.type()) {
                 case TOPOLOGY_CHANGED:
                     log.trace("Schedule Topology event {}", event);
@@ -1632,6 +1650,9 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     private class InternalHostListener implements HostListener {
         @Override
         public void event(HostEvent event) {
+            if (hostEventExecutor == null) {
+                return;
+            }
             switch (event.type()) {
                 case HOST_ADDED:
                 case HOST_MOVED:
@@ -1650,6 +1671,9 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     private class InternalMcastListener implements McastListener {
         @Override
         public void event(McastEvent event) {
+            if (mcastEventExecutor == null) {
+                return;
+            }
             switch (event.type()) {
                 case SOURCES_ADDED:
                 case SOURCES_REMOVED:
@@ -1670,6 +1694,9 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     private class InternalRouteEventListener implements RouteListener {
         @Override
         public void event(RouteEvent event) {
+            if (routeEventExecutor == null) {
+                return;
+            }
             switch (event.type()) {
                 case ROUTE_ADDED:
                 case ROUTE_UPDATED:
@@ -1688,6 +1715,9 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     private class InternalMastershipListener implements MastershipListener {
         @Override
         public void event(MastershipEvent event) {
+            if (mainEventExecutor == null) {
+                return;
+            }
             switch (event.type()) {
             case MASTER_CHANGED:
                 log.debug("Mastership event: {}/{}", event.subject(),

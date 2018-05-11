@@ -52,6 +52,9 @@
     <suppress checks="Javadoc.*"
               files=".*/demo/.*.java"/>
 
+    <suppress checks="FileLength"
+              files=".*/SegmentRoutingManager.java"/>
+
     <!-- Suppressions for yangutils generated code -->
     <suppress files="org.onosproject.yang.gen.v1.*" checks="Javadoc.*" />
 
