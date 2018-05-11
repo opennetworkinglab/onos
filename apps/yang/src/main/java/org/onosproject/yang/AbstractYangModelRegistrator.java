@@ -81,7 +81,9 @@ public abstract class AbstractYangModelRegistrator {
 
     @Activate
     protected void activate() {
+        log.info("Starting...");
         model = getYangModel(loaderClass);
+        log.info("ModelId: {}", model.getYangModelId());
         ModelRegistrationParam.Builder b =
                 DefaultModelRegistrationParam.builder().setYangModel(model);
         registrationParam = getAppInfo(b).setYangModel(model).build();
