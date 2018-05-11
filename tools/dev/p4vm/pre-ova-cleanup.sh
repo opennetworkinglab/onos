@@ -6,15 +6,21 @@ set -xe
 sudo userdel -r -f vagrant
 
 # Free space on disk
-cd ~/p4tools/protobuf && make clean
-cd ~/p4tools/grpc && make clean
-cd ~/p4tools/bmv2 && make clean
-cd ~/p4tools/bmv2/targets && make clean
-cd ~/p4tools/p4runtime && make clean
-rm -rf ~/p4tools/p4c/build
-rm -rf ~/p4tools/libyang/build
-rm -rf ~/p4tools/sysrepo/build
+rm -rf ~/p4tools/protobuf
+rm -rf ~/p4tools/grpc
+rm -rf ~/p4tools/bmv2
+rm -rf ~/p4tools/p4runtime
+rm -rf ~/p4tools/p4c
+rm -rf ~/p4tools/libyang
+rm -rf ~/p4tools/sysrepo
 
+sudo apt-get clean
 sudo apt-get -y autoremove
+sudo rm -rf /tmp/*
 
-cat /dev/null > ~/.bash_history
+# Zerofill virtual hd to save space when exporting
+time sudo dd if=/dev/zero of=/tmp/zero bs=1M || true
+sync ; sleep 1 ; sync ; sudo rm -f /tmp/zero
+
+history -c
+rm -f ~/.bash_history

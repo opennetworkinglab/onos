@@ -26,9 +26,9 @@ editors with P4 syntax highlighting (vim, Sublime Text, and Atom).
 ## Recommended system requirements
 
 The VM is configured with 4 GB of RAM and 2 CPU cores (4 cores for the tutorial
-variant), while the disk has size of approx. 8 GB. For a flawless experience we
-recommend running the VM on a host system that has at least the double of
-resources.
+variant). The disk has size of approx. 4 GB but expect to grow up to 8 GB when
+building ONOS. For a flawless experience we recommend running the VM on a host
+system that has at least the double of resources.
 
 These are the recommended minimum requirements to be able to run a Mininet
 network with 1-10 BMv2 devices controlled by 1 ONOS instance. To emulate larger
@@ -48,10 +48,10 @@ connection speed. If you would rather not wait, you can use the following link
 to download an Open Virtual Appliance (OVA) package to be imported using
 VirtualBox or any other x86 virtualization system that supports this format.
 
-Pre-built OVA package (approx. 3.5 GB):
+Pre-built OVA package (approx. 1.5 GB):
 <http://onlab.vicci.org/onos/onos-p4-dev.ova>
 
-The tutorial variant of the OVA package can be found here (approx 5.5 GB):
+The tutorial variant of the OVA package can be found here (approx 2.3 GB):
 <http://onlab.vicci.org/onos/onos-p4-tutorial.ova>
 
 ### Login credentials
@@ -66,8 +66,8 @@ Use these credentials to log in the guest Ubuntu system.
 To build the VM you will need the following software installed in your host
 machine:
 
-- [Vagrant](https://www.vagrantup.com/) (tested v2.0.1)
-- [VirtualBox](https://www.virtualbox.org/wiki/Downloads) (tested with v5.2.8)
+- [Vagrant](https://www.vagrantup.com/) (tested v2.1.1)
+- [VirtualBox](https://www.virtualbox.org/wiki/Downloads) (tested with v5.2.10)
 
 Optionally, to export the VM as an OVA package you will also need
 [sshpass](https://gist.github.com/arunoda/7790979).
@@ -107,8 +107,6 @@ This script will:
 2. remove the `vagrant` user;
 3. reduce VM disk size (by removing build artifacts);
 4. generate a file named `onos-p4-dev.ova`.
-
-The generated OVA file will have size of approx. 3.5-4 GB.
 
 ### Building the tutorial VM
 

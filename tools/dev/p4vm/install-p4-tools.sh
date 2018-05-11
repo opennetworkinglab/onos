@@ -71,17 +71,13 @@ function do_requirements {
         mktemp \
         pkg-config \
         protobuf-c-compiler \
-        python \
-        python-dev \
-        python-ipaddr \
-        python-pip \
-        python-scapy \
-        python-setuptools \
+        python2.7 \
+        python2.7-dev \
         tcpdump \
         wget \
         unzip
 
-    sudo pip install setuptools cffi grpcio
+    sudo -H pip install setuptools cffi grpcio scapy ipaddr
 }
 
 function do_requirements_1404 {
