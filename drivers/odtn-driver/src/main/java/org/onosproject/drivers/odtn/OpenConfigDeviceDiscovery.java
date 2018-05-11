@@ -170,14 +170,14 @@ public class OpenConfigDeviceDiscovery
             props.put(pName, pValue);
         });
 
-        if (!props.containsKey("onos-index")) {
+        if (!props.containsKey(ONOS_PORT_INDEX)) {
             log.info("DEBUG: Component {} does not include onos-index, skipping", name);
             // ODTN: port must have onos-index property
             return null;
         }
 
         Builder builder = DefaultPortDescription.builder();
-        builder.withPortNumber(PortNumber.portNumber(Long.parseLong(props.get("onos-index")), name));
+        builder.withPortNumber(PortNumber.portNumber(Long.parseLong(props.get(ONOS_PORT_INDEX)), name));
 
         switch (type) {
         case "oc-platform-types:PORT":

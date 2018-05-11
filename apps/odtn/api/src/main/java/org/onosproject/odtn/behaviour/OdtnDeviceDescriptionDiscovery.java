@@ -20,23 +20,41 @@ import java.util.List;
 import org.onosproject.net.device.DeviceDescriptionDiscovery;
 import org.onosproject.net.device.PortDescription;
 
+import com.google.common.annotations.Beta;
+
 /**
  * DeviceDescriptionDiscovery used in ODTN.
  *
  * Just declaring certain Annotations will be required.
  */
+@Beta
 public interface OdtnDeviceDescriptionDiscovery
         extends DeviceDescriptionDiscovery {
 
     /**
-     * Annotations key, which stores OpenConfig component name.
+     * Annotations key intended for a Port, which stores OpenConfig component name.
      */
     String OC_NAME = "oc-name";
 
     /**
-     * Annotations key, which stores OpenConfig component type.
+     * Annotations key intended for a Port, which stores OpenConfig component type.
      */
     String OC_TYPE = "oc-type";
+
+    // will also be used from TAPI model to point to what we want to configure
+    /**
+     * Annotations key intended for a Port,
+     * which stores string identifier used to
+     * logically group Ports corresponding to a transponder.
+     */
+    String TRANSPONDER_NAME = "odtn-transponder-name";
+
+
+    /**
+     * OpenConfig component property name to store,
+     * decimal integer index to be used when creating PortNumber.
+     */
+    String ONOS_PORT_INDEX = "onos-index";
 
     // overriding just to make checkstyle happy
     @Override
