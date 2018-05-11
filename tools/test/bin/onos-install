@@ -87,7 +87,7 @@ ssh -tt $remote "
         unzip -o YourKit-JavaProfiler-${ONOS_YOURKIT}.zip
         rm YourKit-JavaProfiler-${ONOS_YOURKIT}.zip
         mv /tmp/YourKit-JavaProfiler-$(echo $ONOS_YOURKIT | sed 's/\(.*\)-.*/\1/')/bin/linux-x86-64/libyjpagent.so $ONOS_INSTALL_DIR/libyjpagent.so
-        echo -e 'export JAVA_OPTS="${JAVA_OPTS:--agentpath:$ONOS_INSTALL_DIR/libyjpagent.so}"' >> $ONOS_INSTALL_DIR/options
+        echo -e 'export JAVA_OPTS="${JAVA_OPTS:--agentpath:$ONOS_INSTALL_DIR/libyjpagent.so}=listen=all"' >> $ONOS_INSTALL_DIR/options
     fi
 
     # Set up correct user to run onos-service
