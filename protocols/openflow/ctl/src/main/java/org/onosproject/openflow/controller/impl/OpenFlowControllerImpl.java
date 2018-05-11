@@ -123,6 +123,26 @@ public class OpenFlowControllerImpl implements OpenFlowController {
             label = "Number of controller worker threads")
     private int workerThreads = DEFAULT_WORKER_THREADS;
 
+    @Property(name = "tlsMode", value = "",
+              label = "TLS mode for OpenFlow channel; options are: disabled [default], enabled, strict")
+    private String tlsModeString;
+
+    @Property(name = "keyStore", value = "",
+            label = "File path to key store for TLS connections")
+    private String keyStore;
+
+    @Property(name = "keyStorePassword", value = "",
+            label = "Key store password")
+    private String keyStorePassword;
+
+    @Property(name = "trustStore", value = "",
+            label = "File path to trust store for TLS connections")
+    private String trustStore;
+
+    @Property(name = "trustStorePassword", value = "",
+            label = "Trust store password")
+    private String trustStorePassword;
+
     protected ExecutorService executorMsgs =
         Executors.newFixedThreadPool(32, groupedThreads("onos/of", "event-stats-%d", log));
 
@@ -200,6 +220,7 @@ public class OpenFlowControllerImpl implements OpenFlowController {
         netCfgService.registerConfigFactory(factory);
         ctrl.setConfigParams(context.getProperties());
         ctrl.start(agent, driverService, netCfgService);
+        // TODO register a netcfg listener that disconnects switches when the keyAlias changes
     }
 
     private void cleanup() {
@@ -221,9 +242,9 @@ public class OpenFlowControllerImpl implements OpenFlowController {
 
     @Modified
     public void modified(ComponentContext context) {
-        ctrl.stop();
+        //ctrl.stop();
         ctrl.setConfigParams(context.getProperties());
-        ctrl.start(agent, driverService, netCfgService);
+        //ctrl.start(agent, driverService, netCfgService);
     }
 
     @Override

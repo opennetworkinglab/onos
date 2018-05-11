@@ -129,7 +129,7 @@ public class ControllerTest {
      */
     @Test
     public void switchInstanceNotFoundTest() {
-        controller.start(null, new MockDriverService());
+        controller.start(null, new MockDriverService(), null);
         OpenFlowSwitchDriver driver =
                 controller.getOFSwitchInstance(MockDriverService.NO_SUCH_DRIVER_ID,
                                                null,
@@ -143,7 +143,7 @@ public class ControllerTest {
      */
     @Test
     public void switchItemNotFoundTest() {
-        controller.start(null, new MockDriverService());
+        controller.start(null, new MockDriverService(), null);
         OFDescStatsReply stats =
                 new OFDescStatsReplyAdapter();
         OpenFlowSwitchDriver driver =
@@ -159,7 +159,7 @@ public class ControllerTest {
      */
     @Test
     public void driverExistsTest() {
-        controller.start(null, new MockDriverService());
+        controller.start(null, new MockDriverService(), null);
         OFDescStatsReply stats =
                 new OFDescStatsReplyAdapter();
         OpenFlowSwitchDriver driver =
@@ -204,7 +204,7 @@ public class ControllerTest {
         properties.put("workerThreads", "0");
 
         controller.setConfigParams(properties);
-        controller.start(null, new MockDriverService());
+        controller.start(null, new MockDriverService(), null);
 
         assertThat(controller.sslContext, notNullValue());
 
