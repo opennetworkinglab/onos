@@ -36,17 +36,31 @@ public class PhiAccrualFailureDetector {
     // Default value
     private static final int DEFAULT_WINDOW_SIZE = 250;
     private static final int DEFAULT_MIN_SAMPLES = 25;
-    private static final double DEFAULT_PHI_FACTOR = 1.0 / Math.log(10.0);
+    private static final long DEFAULT_MIN_STANDARD_DEVIATION_MILLIS = 50;
 
     // If a node does not have any heartbeats, this is the phi
     // value to report. Indicates the node is inactive (from the
     // detectors perspective.
     private static final double DEFAULT_BOOTSTRAP_PHI_VALUE = 100.0;
 
+    private final int minSamples;
+    private final long minStandardDeviationMillis;
+    private final double bootstrapPhiValue = DEFAULT_BOOTSTRAP_PHI_VALUE;
 
-    private int minSamples = DEFAULT_MIN_SAMPLES;
-    private double phiFactor = DEFAULT_PHI_FACTOR;
-    private double bootstrapPhiValue = DEFAULT_BOOTSTRAP_PHI_VALUE;
+    public PhiAccrualFailureDetector() {
+        this(DEFAULT_MIN_SAMPLES, DEFAULT_MIN_STANDARD_DEVIATION_MILLIS);
+    }
+
+    public PhiAccrualFailureDetector(long minStandardDeviationMillis) {
+        this(DEFAULT_MIN_SAMPLES, minStandardDeviationMillis);
+    }
+
+    public PhiAccrualFailureDetector(int minSamples, long minStandardDeviationMillis) {
+        checkArgument(minSamples > 0, "minSamples must be positive");
+        checkArgument(minStandardDeviationMillis > 0, "minStandardDeviationMillis must be positive");
+        this.minSamples = minSamples;
+        this.minStandardDeviationMillis = minStandardDeviationMillis;
+    }
 
     /**
      * Returns the last heartbeat time for the given node.
@@ -75,8 +89,7 @@ public class PhiAccrualFailureDetector {
     public void report(NodeId nodeId, long arrivalTime) {
         checkNotNull(nodeId, "NodeId must not be null");
         checkArgument(arrivalTime >= 0, "arrivalTime must not be negative");
-        History nodeState =
-                states.computeIfAbsent(nodeId, key -> new History());
+        History nodeState = states.computeIfAbsent(nodeId, key -> new History());
         synchronized (nodeState) {
             long latestHeartbeat = nodeState.latestHeartbeatTime();
             if (latestHeartbeat != -1) {
@@ -117,41 +130,30 @@ public class PhiAccrualFailureDetector {
     }
 
     private double computePhi(DescriptiveStatistics samples, long tLast, long tNow) {
-        long size = samples.getN();
-        long t = tNow - tLast;
-        return (size > 0)
-                ? phiFactor * t / samples.getMean()
-                : bootstrapPhiValue;
+        long elapsedTime = tNow - tLast;
+        double meanMillis = samples.getMean();
+        double y = (elapsedTime - meanMillis) / Math.max(samples.getStandardDeviation(), minStandardDeviationMillis);
+        double e = Math.exp(-y * (1.5976 + 0.070566 * y * y));
+        if (elapsedTime > meanMillis) {
+            return -Math.log10(e / (1.0 + e));
+        } else {
+            return -Math.log10(1.0 - 1.0 / (1.0 + e));
+        }
     }
-
-
-    private void setMinSamples(int samples) {
-        minSamples = samples;
-    }
-
-    private void setPhiFactor(double factor) {
-        phiFactor = factor;
-    }
-
-    private void setBootstrapPhiValue(double phiValue) {
-        bootstrapPhiValue = phiValue;
-    }
-
 
     private static class History {
-        DescriptiveStatistics samples =
-                new DescriptiveStatistics(DEFAULT_WINDOW_SIZE);
+        DescriptiveStatistics samples = new DescriptiveStatistics(DEFAULT_WINDOW_SIZE);
         long lastHeartbeatTime = -1;
 
-        public DescriptiveStatistics samples() {
+        DescriptiveStatistics samples() {
             return samples;
         }
 
-        public long latestHeartbeatTime() {
+        long latestHeartbeatTime() {
             return lastHeartbeatTime;
         }
 
-        public void setLatestHeartbeatTime(long value) {
+        void setLatestHeartbeatTime(long value) {
             lastHeartbeatTime = value;
         }
     }
