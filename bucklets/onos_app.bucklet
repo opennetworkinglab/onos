@@ -152,14 +152,14 @@ def onos_app(
         title = _get_app_name()
 
     if included_bundles is None:
-        target = ':' + _get_name()
+        target = ':' + name
         included_bundles = [ target ]
 
     if not feature_coords and len(included_bundles) == 1:
         feature_coords = '$(maven_coords %s)' % included_bundles[0]
 
     if not feature_coords:
-        feature_coords = '%s:%s:%s' % ( ONOS_GROUP_ID, _get_name(), ONOS_VERSION )
+        feature_coords = '%s:%s:%s' % ( ONOS_GROUP_ID, name, ONOS_VERSION )
 
     args = [ '-n %s' % feature_coords,
              '-v %s' % version,
