@@ -42,8 +42,6 @@ import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.netconf.NetconfController;
 import org.onosproject.netconf.NetconfDevice;
-import org.onosproject.netconf.NetconfRpcParserUtil;
-import org.onosproject.netconf.NetconfRpcReply;
 import org.onosproject.netconf.NetconfSession;
 import org.onosproject.odtn.behaviour.OdtnDeviceDescriptionDiscovery;
 import org.slf4j.Logger;
@@ -87,19 +85,14 @@ public class OpenConfigDeviceDiscovery
 
         // TODO convert this method into non-blocking form?
 
-        NetconfRpcReply reply = ns.asyncGet()
-            .thenApply(NetconfRpcParserUtil::parseRpcReply)
-            .join();
+        String reply = ns.asyncGet()
+            .join().toString();
 
-        if (reply.hasError()) {
-            log.error("Netconf error replies from {}:\n{}", did, reply.errors());
-            return ImmutableList.of();
+        // workaround until asyncGet().join() start failing exceptionally
+        String data = null;
+        if (reply.startsWith("<data")) {
+            data = reply;
         }
-
-        String data = reply.responses().stream()
-                .filter(s -> s.startsWith("<data"))
-                .findFirst()
-                .orElse(null);
 
         if (data == null) {
             log.error("No valid response found from {}:\n{}", did, reply);

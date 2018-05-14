@@ -87,7 +87,7 @@ public interface NetconfSession {
                     int begin = msg.indexOf("<data>");
                     int end = msg.lastIndexOf("</data>");
                     if (begin != -1 && end != -1) {
-                        return msg.subSequence(begin + "<data>".length(), end);
+                        return msg.subSequence(begin, end + "</data>".length());
                     } else {
                         // FIXME probably should exceptionally fail here.
                         return msg;
@@ -116,7 +116,7 @@ public interface NetconfSession {
                     int begin = msg.indexOf("<data>");
                     int end = msg.lastIndexOf("</data>");
                     if (begin != -1 && end != -1) {
-                        return msg.subSequence(begin + "<data>".length(), end);
+                        return msg.subSequence(begin, end + "</data>".length());
                     } else {
                         // FIXME probably should exceptionally fail here.
                         return msg;
