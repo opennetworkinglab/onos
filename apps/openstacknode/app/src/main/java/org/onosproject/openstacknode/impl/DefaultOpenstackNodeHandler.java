@@ -151,7 +151,6 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
         deviceService.addListener(ovsdbListener);
         deviceService.addListener(bridgeListener);
         osNodeService.addListener(osNodeListener);
-        ovsdbController.setServerMode(false);
 
         log.info("Started");
     }
