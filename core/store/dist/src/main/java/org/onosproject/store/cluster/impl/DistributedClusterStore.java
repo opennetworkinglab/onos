@@ -94,6 +94,11 @@ public class DistributedClusterStore
             label = "the value of Phi threshold to detect accrual failure")
     private int phiFailureThreshold = DEFAULT_PHI_FAILURE_THRESHOLD;
 
+    private static final long DEFAULT_MIN_STANDARD_DEVIATION_MILLIS = 50;
+    @Property(name = "minStandardDeviationMillis", longValue = DEFAULT_MIN_STANDARD_DEVIATION_MILLIS,
+        label = "The minimum standard deviation to take into account when computing the Phi value")
+    private long minStandardDeviationMillis = DEFAULT_MIN_STANDARD_DEVIATION_MILLIS;
+
     private static final Serializer SERIALIZER = Serializer.using(
             KryoNamespace.newBuilder()
                     .register(KryoNamespaces.API)
@@ -168,7 +173,7 @@ public class DistributedClusterStore
         messagingService.registerHandler(HEARTBEAT_MESSAGE,
                 new HeartbeatMessageHandler(), heartBeatMessageHandler);
 
-        failureDetector = new PhiAccrualFailureDetector();
+        failureDetector = new PhiAccrualFailureDetector(minStandardDeviationMillis);
 
         heartBeatSender.scheduleWithFixedDelay(this::heartbeat, 0,
                 heartbeatInterval, TimeUnit.MILLISECONDS);
@@ -405,6 +410,21 @@ public class DistributedClusterStore
                             phiFailureThreshold);
                 }
             }
+            if ("minStandardDeviationMillis".equals(property.name())) {
+                String s = property.value();
+                if (s == null) {
+                    setMinStandardDeviationMillis(DEFAULT_MIN_STANDARD_DEVIATION_MILLIS);
+                    log.info("Minimum standard deviation is not configured, default value is {}",
+                        DEFAULT_MIN_STANDARD_DEVIATION_MILLIS);
+                } else {
+                    long newMinStandardDeviationMillis = isNullOrEmpty(s)
+                        ? DEFAULT_MIN_STANDARD_DEVIATION_MILLIS
+                        : Long.parseLong(s.trim());
+                    setMinStandardDeviationMillis(newMinStandardDeviationMillis);
+                    log.info("Configured. Minimum standard deviation is configured to {}",
+                        newMinStandardDeviationMillis);
+                }
+            }
         }
     }
 
@@ -432,6 +452,22 @@ public class DistributedClusterStore
      */
     private void setPhiFailureThreshold(int threshold) {
         phiFailureThreshold = threshold;
+    }
+
+    /**
+     * Sets the minimum standard deviation milliseconds.
+     *
+     * @param minStandardDeviationMillis the updated minimum standard deviation
+     */
+    private void setMinStandardDeviationMillis(long minStandardDeviationMillis) {
+        this.minStandardDeviationMillis = minStandardDeviationMillis;
+        try {
+            failureDetector = new PhiAccrualFailureDetector(minStandardDeviationMillis);
+        } catch (IllegalArgumentException e) {
+            log.warn(e.getMessage());
+            this.minStandardDeviationMillis = DEFAULT_MIN_STANDARD_DEVIATION_MILLIS;
+            failureDetector = new PhiAccrualFailureDetector(this.minStandardDeviationMillis);
+        }
     }
 
     /**
