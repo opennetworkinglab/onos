@@ -328,6 +328,7 @@ public class GossipDeviceStore
         log.debug("Notifying peers of a device update topology event for providerId: {} and deviceId: {}",
                 providerId, deviceId);
         notifyPeers(new InternalDeviceEvent(providerId, deviceId, mergedDesc));
+        notifyDelegateIfNotNull(deviceEvent);
 
         return deviceEvent;
     }
@@ -487,6 +488,9 @@ public class GossipDeviceStore
 
             Device device = devices.get(deviceId);
             if (device == null) {
+                // Single Instance ONOS, device is removed from devices map and is null here but
+                // must still be marked offline
+                availableDevices.remove(deviceId);
                 return null;
             }
             boolean removed = availableDevices.remove(deviceId);
@@ -1060,6 +1064,7 @@ public class GossipDeviceStore
             log.debug("Notifying peers of a device removed topology event for deviceId: {}",
                       deviceId);
             notifyPeers(new InternalDeviceRemovedEvent(deviceId, timestamp));
+            notifyDelegateIfNotNull(event);
         }
 
         // Relinquish mastership if acquired to remove the device.
