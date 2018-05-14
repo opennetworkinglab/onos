@@ -204,6 +204,15 @@ public final class IntIntent {
     }
 
     /**
+     * Returns a new builder.
+     *
+     * @return new builder
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
      * An IntIntent builder.
      */
     public static final class Builder {

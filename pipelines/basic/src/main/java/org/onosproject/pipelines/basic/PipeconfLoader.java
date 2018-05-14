@@ -22,7 +22,9 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onosproject.core.CoreService;
 import org.onosproject.driver.pipeline.DefaultSingleTablePipeline;
+import org.onosproject.inbandtelemetry.api.IntProgrammable;
 import org.onosproject.net.behaviour.Pipeliner;
 import org.onosproject.net.device.PortStatisticsDiscovery;
 import org.onosproject.net.pi.model.DefaultPiPipeconf;
@@ -46,6 +48,7 @@ import static org.onosproject.net.pi.model.PiPipeconf.ExtensionType.P4_INFO_TEXT
 @Component(immediate = true)
 public final class PipeconfLoader {
 
+    private static final String APP_NAME = "org.onosproject.pipelines.basic";
     private static final PiPipeconfId BASIC_PIPECONF_ID = new PiPipeconfId("org.onosproject.pipelines.basic");
     private static final String BASIC_JSON_PATH = "/p4c-out/bmv2/basic.json";
     private static final String BASIC_P4INFO = "/p4c-out/bmv2/basic.p4info";
@@ -63,8 +66,12 @@ public final class PipeconfLoader {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private PiPipeconfService piPipeconfService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    private CoreService coreService;
+
     @Activate
     public void activate() {
+        coreService.registerApplication(APP_NAME);
         // Registers all pipeconf at component activation.
         ALL_PIPECONFS.forEach(piPipeconfService::register);
     }
@@ -103,6 +110,7 @@ public final class PipeconfLoader {
                 .addBehaviour(PiPipelineInterpreter.class, BasicInterpreterImpl.class)
                 .addBehaviour(Pipeliner.class, DefaultSingleTablePipeline.class)
                 .addBehaviour(PortStatisticsDiscovery.class, PortStatisticsDiscoveryImpl.class)
+                .addBehaviour(IntProgrammable.class, IntProgrammableImpl.class)
                 .addExtension(P4_INFO_TEXT, p4InfoUrl)
                 .addExtension(BMV2_JSON, jsonUrl)
                 .build();

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2017-present Open Networking Foundation
+  ~ Copyright 2016-present Open Networking Foundation
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -17,40 +17,30 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
     <parent>
-        <artifactId>onos-pipelines</artifactId>
+        <artifactId>onos-apps-inbandtelemetry</artifactId>
         <groupId>org.onosproject</groupId>
         <version>1.14.0-SNAPSHOT</version>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
 
-    <description>ONOS Basic pipeline</description>
-    <artifactId>onos-pipelines-basic</artifactId>
+    <artifactId>onos-apps-inbandtelemetry-api</artifactId>
     <packaging>bundle</packaging>
 
+    <url>http://onosproject.org</url>
+
+    <description>P4 INT Management Application API</description>
+
     <dependencies>
-
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-protocols-p4runtime-model</artifactId>
-            <version>${project.version}</version>
+            <artifactId>onlab-junit</artifactId>
+            <scope>test</scope>
         </dependency>
-
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-protocols-p4runtime-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-drivers-default</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-apps-inbandtelemetry-api</artifactId>
+            <artifactId>onos-core-serializers</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

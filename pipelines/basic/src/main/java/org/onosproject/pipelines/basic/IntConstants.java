@@ -34,11 +34,13 @@ public final class IntConstants {
     }
 
     // Strings
+    private static final String EGRESS = "egress";
     private static final String CTRL_SET_SOURCE_SINK = EGRESS + DOT + "process_set_source_sink";
     private static final String CTRL_INT_SOURCE = EGRESS + DOT + "process_int_source";
     private static final String CTRL_INT_TRANSIT = EGRESS + DOT + "process_int_transit";
     private static final String CTRL_INT_SINK = EGRESS + DOT + "process_int_sink";
     private static final String CTRL_INT_OUTER_ENCAP = EGRESS + DOT + "process_int_outer_encap";
+    private static final String CTRL_INT_REPORT = EGRESS + DOT + "process_int_report";
     private static final String INT_METADATA = "int_meta";
     private static final String INT_HDR = "int_header";
 
@@ -55,6 +57,8 @@ public final class IntConstants {
             PiMatchFieldId.of(HDR + DOT + INT_HDR + DOT + "instruction_mask_0407");
     public static final PiMatchFieldId HDR_OUT_PORT_ID =
             PiMatchFieldId.of(STANDARD_METADATA + DOT + "egress_port");
+    public static final PiMatchFieldId STD_META_INSTANCE_TYPE_ID =
+            PiMatchFieldId.of(STANDARD_METADATA + DOT + "instance_type");
 
     // Table IDs
     public static final PiTableId TBL_SET_SOURCE_ID =
@@ -69,6 +73,8 @@ public final class IntConstants {
             PiTableId.of(CTRL_INT_TRANSIT + DOT + "tb_int_inst_0003");
     public static final PiTableId TBL_INT_INST_0407_ID =
             PiTableId.of(CTRL_INT_TRANSIT + DOT + "tb_int_inst_0407");
+    public static final PiTableId TBL_GENERATE_REPORT_ID =
+            PiTableId.of(CTRL_INT_REPORT + DOT + "tb_generate_report");
 
     // Counter IDs
     public static final PiCounterId CNT_SET_SOURCE_SINK_ID =
@@ -167,6 +173,8 @@ public final class IntConstants {
             PiActionId.of(CTRL_INT_SINK + DOT + "restore_header");
     public static final PiActionId ACT_INT_SINK_ID =
             PiActionId.of(CTRL_INT_SINK + DOT + "int_sink");
+    public static final PiActionId ACT_DO_REPORT_ENCAP_ID =
+            PiActionId.of(CTRL_INT_REPORT + DOT + "do_report_encapsulation");
 
     // Action param IDs
     public static final PiActionParamId ACT_PRM_MAX_HOP_ID = PiActionParamId.of("max_hop");
@@ -174,4 +182,10 @@ public final class IntConstants {
     public static final PiActionParamId ACT_PRM_INS_MASK0003_ID = PiActionParamId.of("ins_mask0003");
     public static final PiActionParamId ACT_PRM_INS_MASK0407_ID = PiActionParamId.of("ins_mask0407");
     public static final PiActionParamId ACT_PRM_SWITCH_ID = PiActionParamId.of("switch_id");
+    public static final PiActionParamId ACT_PRM_SRC_MAC_ID = PiActionParamId.of("src_mac");
+    public static final PiActionParamId ACT_PRM_MON_MAC_ID = PiActionParamId.of("mon_mac");
+    public static final PiActionParamId ACT_PRM_SRC_IP_ID = PiActionParamId.of("src_ip");
+    public static final PiActionParamId ACT_PRM_MON_IP_ID = PiActionParamId.of("mon_ip");
+    public static final PiActionParamId ACT_PRM_MON_PORT_ID = PiActionParamId.of("mon_port");
+
 }

@@ -18,6 +18,7 @@ package org.onosproject.inbandtelemetry.api;
 import com.google.common.annotations.Beta;
 import org.onosproject.net.DeviceId;
 
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -88,24 +89,31 @@ public interface IntService {
      * Installs an IntIntent to devices.
      *
      * @param intIntent an IntIntent
-     * @return an ID corresponding to given intIntent
+     * @return an IntIntent ID corresponding to given intIntent
      */
-    int installIntIntent(IntIntent intIntent);
+    IntIntentId installIntIntent(IntIntent intIntent);
 
     /**
      * Removes an IntIntent from devices.
      *
      * @param intentId ID of the intIntent to remove
      */
-    void removeIntIntent(int intentId);
+    void removeIntIntent(IntIntentId intentId);
 
     /**
-     * Returns an intIntent for given intent ID.
+     * Returns an IntIntent for given intent ID.
      *
-     * @param intentId id of the intIntent to retrieve
+     * @param intentId ID of the intIntent to retrieve
      * @return an IntIntent
      */
-    IntIntent getIntIntent(int intentId);
+    IntIntent getIntIntent(IntIntentId intentId);
+
+    /**
+     * Returns all IntIntents installed in the network.
+     *
+     * @return an IntIntent
+     */
+    Map<IntIntentId, IntIntent> getIntIntents();
 
     //TODO: [ONOS-7616] Design IntEvent and related APIs
 }
