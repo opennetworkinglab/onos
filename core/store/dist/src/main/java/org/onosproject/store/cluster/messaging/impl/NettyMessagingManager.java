@@ -106,12 +106,14 @@ import static org.onosproject.security.AppPermission.Type.CLUSTER_WRITE;
 public class NettyMessagingManager implements MessagingService {
     private static final long HISTORY_EXPIRE_MILLIS = Duration.ofMinutes(1).toMillis();
     private static final long TIMEOUT_INTERVAL = 50;
-    private static final int WINDOW_SIZE = 100;
+    private static final int WINDOW_SIZE = 60;
+    private static final int WINDOW_UPDATE_SAMPLE_SIZE = 100;
+    private static final long WINDOW_UPDATE_MILLIS = 10000;
     private static final int MIN_SAMPLES = 25;
-    private static final double PHI_FACTOR = 1.0 / Math.log(10.0);
-    private static final int PHI_FAILURE_THRESHOLD = 5;
+    private static final int MIN_STANDARD_DEVIATION = 100;
+    private static final int PHI_FAILURE_THRESHOLD = 12;
     private static final long MIN_TIMEOUT_MILLIS = 100;
-    private static final long MAX_TIMEOUT_MILLIS = 15000;
+    private static final long MAX_TIMEOUT_MILLIS = 5000;
     private static final int CHANNEL_POOL_SIZE = 8;
 
     private static final byte[] EMPTY_PAYLOAD = new byte[0];
@@ -1009,6 +1011,9 @@ public class NettyMessagingManager implements MessagingService {
      */
     private static final class RequestMonitor {
         private final DescriptiveStatistics samples = new SynchronizedDescriptiveStatistics(WINDOW_SIZE);
+        private final AtomicLong max = new AtomicLong();
+        private volatile int replyCount;
+        private volatile long lastUpdate = System.currentTimeMillis();
 
         /**
          * Adds a reply time to the history.
@@ -1016,7 +1021,25 @@ public class NettyMessagingManager implements MessagingService {
          * @param replyTime the reply time to add to the history
          */
         void addReplyTime(long replyTime) {
-            samples.addValue(replyTime);
+            max.accumulateAndGet(replyTime, Math::max);
+
+            // If at least WINDOW_UPDATE_SAMPLE_SIZE response times have been recorded, and at least
+            // WINDOW_UPDATE_MILLIS have passed since the last update, record the maximum response time in the samples.
+            int replyCount = ++this.replyCount;
+            if (replyCount >= WINDOW_UPDATE_SAMPLE_SIZE
+                && System.currentTimeMillis() - lastUpdate > WINDOW_UPDATE_MILLIS) {
+                synchronized (this) {
+                    if (System.currentTimeMillis() - lastUpdate > WINDOW_UPDATE_MILLIS) {
+                        long lastMax = max.get();
+                        if (lastMax > 0) {
+                            samples.addValue(lastMax);
+                            lastUpdate = System.currentTimeMillis();
+                            this.replyCount = 0;
+                            max.set(0);
+                        }
+                    }
+                }
+            }
         }
 
         /**
@@ -1026,7 +1049,7 @@ public class NettyMessagingManager implements MessagingService {
          * @return indicates whether the request should be timed out
          */
         boolean isTimedOut(long elapsedTime) {
-            return phi(elapsedTime) >= PHI_FAILURE_THRESHOLD;
+            return samples.getN() == WINDOW_SIZE && phi(elapsedTime) >= PHI_FAILURE_THRESHOLD;
         }
 
         /**
@@ -1050,7 +1073,14 @@ public class NettyMessagingManager implements MessagingService {
          * @return phi
          */
         private double computePhi(DescriptiveStatistics samples, long elapsedTime) {
-            return samples.getN() > 0 ? PHI_FACTOR * elapsedTime / samples.getMean() : 100;
+            double meanMillis = samples.getMean();
+            double y = (elapsedTime - meanMillis) / Math.max(samples.getStandardDeviation(), MIN_STANDARD_DEVIATION);
+            double e = Math.exp(-y * (1.5976 + 0.070566 * y * y));
+            if (elapsedTime > meanMillis) {
+                return -Math.log10(e / (1.0 + e));
+            } else {
+                return -Math.log10(1.0 - 1.0 / (1.0 + e));
+            }
         }
     }
 }
