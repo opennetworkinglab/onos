@@ -147,7 +147,7 @@ by executing the following command:
         switch, open this file up, for example:
 
         ```
-        $ cat /tmp/bmv2-1-netcfg.json
+        $ cat /tmp/bmv2-s1-netcfg.json
         ```
 
         It contains the configuration for (1) the gRPC server and port used by the
@@ -160,18 +160,18 @@ by executing the following command:
         the ONOS log populating with messages like:
 
         ```
-        Connecting to device device:bmv2:1 with driver bmv2
+        Connecting to device device:bmv2:s1 with driver bmv2
         [...]
-        Setting pipeline config for device:bmv2:1 to p4-tutorial-pipeconf...
+        Setting pipeline config for device:bmv2:s1 to p4-tutorial-pipeconf...
         [...]
-        Device device:bmv2:1 connected
+        Device device:bmv2:s1 connected
         [...]
         ```
 
     4. **Check the BMv2 switch instance log**:
 
         ```
-        $ less /tmp/bmv2-1-log
+        $ less /tmp/bmv2-s1-log
         ```
 
         By scrolling the BMv2 log, you should see a number of P4Runtime messages
@@ -188,13 +188,11 @@ by executing the following command:
         the following command to print on screen all new messages:
 
         ```
-        $ bm-log 1
+        $ bm-log s1
         ```
 
-        This command will show the log of the switch instance with ID "1". Such
-        ID was specified when starting the `simple_switch_grpc` process (look in
-        the Mininet output for `Starting BMv2 target: simple_switch_grpc
-        --device-id 1 [...]`).
+        This command will show the log of the BMv2 switch in Mininet with name
+        "s1".
 
     5. **Check the flow rules inserted by each application in ONOS**. In the
         ONOS CLI type:
@@ -206,7 +204,7 @@ by executing the following command:
         You should see 3 flow rules:
 
         ```
-        deviceId=device:bmv2:1, flowRuleCount=3
+        deviceId=device:bmv2:s1, flowRuleCount=3
             ADDED, bytes=0, packets=0, table=0, priority=40000, selector=[ETH_TYPE:arp], treatment=[immediate=[OUTPUT:CONTROLLER], clearDeferred]
             ADDED, bytes=0, packets=0, table=0, priority=40000, selector=[ETH_TYPE:bddp], treatment=[immediate=[OUTPUT:CONTROLLER], clearDeferred]
             ADDED, bytes=0, packets=0, table=0, priority=40000, selector=[ETH_TYPE:lldp], treatment=[immediate=[OUTPUT:CONTROLLER], clearDeferred]
@@ -234,11 +232,11 @@ by executing the following command:
             installed on the switch**. On a separate terminal window type:
 
         ```
-         $ bm-cli 1
+         $ bm-cli s1
         ```
 
-        This will start the CLI for the BMv2 switch instance with ID "1" (where
-        the ID can be derived in the same way as for the `bm-log` command).
+        This command will start the CLI for the BMv2 switch in Mininet with name
+        "s1".
 
         On the BMv2 CLI prompt, type the following command:
 
