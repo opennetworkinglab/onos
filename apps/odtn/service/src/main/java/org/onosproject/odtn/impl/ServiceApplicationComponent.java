@@ -27,9 +27,16 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onosproject.net.Device;
+import org.onosproject.net.Link;
 import org.onosproject.net.config.NetworkConfigService;
-import org.onosproject.yang.model.SchemaContextProvider;
-import org.onosproject.yang.runtime.YangRuntimeService;
+import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceListener;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.link.LinkEvent;
+import org.onosproject.net.link.LinkListener;
+import org.onosproject.net.link.LinkService;
+import org.onosproject.odtn.internal.TapiTopologyManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,7 +76,8 @@ import org.onosproject.yang.model.RpcRegistry;
 import org.onosproject.yang.model.RpcService;
 import org.onosproject.yang.model.RpcInput;
 import org.onosproject.yang.model.RpcOutput;
-
+import org.onosproject.yang.model.SchemaContextProvider;
+import org.onosproject.yang.runtime.YangRuntimeService;
 
 /**
  * OSGi Component for ODTN Service application.
@@ -81,6 +89,12 @@ public class ServiceApplicationComponent {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DynamicConfigService dynConfigService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DeviceService deviceService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected LinkService linkService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetworkConfigService netcfgService;
@@ -97,21 +111,27 @@ public class ServiceApplicationComponent {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ModelConverter modelConverter;
 
-
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected TapiTopologyManager tapiTopologyManager;
 
     // Listener for events from the DCS
     private final DynamicConfigListener dynamicConfigServiceListener =
-        new InternalDynamicConfigListener();
+            new InternalDynamicConfigListener();
+
+    private DeviceListener deviceListener = new InternalDeviceListener();
+    private final LinkListener linkListener = new InternalLinkListener();
 
     // Rpc Service for TAPI Connectivity
     private final RpcService rpcTapiConnectivity =
-        new TapiConnectivityRpc();
+            new TapiConnectivityRpc();
 
 
     @Activate
     protected void activate() {
         log.info("Started");
         dynConfigService.addListener(dynamicConfigServiceListener);
+        deviceService.addListener(deviceListener);
+        linkService.addListener(linkListener);
         rpcRegistry.registerRpcService(rpcTapiConnectivity);
     }
 
@@ -120,11 +140,74 @@ public class ServiceApplicationComponent {
     protected void deactivate() {
         log.info("Stopped");
         rpcRegistry.unregisterRpcService(rpcTapiConnectivity);
+        deviceService.removeListener(deviceListener);
+        linkService.removeListener(linkListener);
         dynConfigService.removeListener(dynamicConfigServiceListener);
     }
 
 
+    /**
+     * Representation of internal listener, listening for device event.
+     */
+    private class InternalDeviceListener implements DeviceListener {
 
+        /**
+         * Process an Event from the Device Service.
+         *
+         * @param event device event
+         */
+        @Override
+        public void event(DeviceEvent event) {
+            Device device = event.subject();
+
+            switch (event.type()) {
+                case DEVICE_ADDED:
+                    tapiTopologyManager.addDevice(device);
+                    break;
+                case DEVICE_REMOVED:
+                    tapiTopologyManager.removeDevice(device);
+                    break;
+                case PORT_ADDED:
+                    tapiTopologyManager.addPort(device);
+                    break;
+                case PORT_REMOVED:
+                    tapiTopologyManager.removePort(device);
+                    break;
+                default:
+                    log.warn("Unknown Event", event.type());
+                    break;
+            }
+
+        }
+    }
+
+    /**
+     * Representation of internal listener, listening for link event.
+     */
+    private class InternalLinkListener implements LinkListener {
+
+        /**
+         * Process an Event from the Device Service.
+         *
+         * @param event link event
+         */
+        @Override
+        public void event(LinkEvent event) {
+            Link link = event.subject();
+
+            switch (event.type()) {
+                case LINK_ADDED:
+                    tapiTopologyManager.addLink(link);
+                    break;
+                case LINK_REMOVED:
+                    tapiTopologyManager.removeLink(link);
+                    break;
+                default:
+                    log.warn("Unknown Event", event.type());
+                    break;
+            }
+        }
+    }
 
     /**
      * Representation of internal listener, listening for dynamic config event.
@@ -141,13 +224,11 @@ public class ServiceApplicationComponent {
         public boolean isRelevant(DynamicConfigEvent event) {
             // Only care about add and delete
             if ((event.type() != NODE_ADDED) &&
-                (event.type() != NODE_DELETED)) {
+                    (event.type() != NODE_DELETED)) {
                 return false;
             }
             return true;
         }
-
-
 
 
         /**
@@ -181,7 +262,6 @@ public class ServiceApplicationComponent {
         }
 
 
-
         /**
          * Process the event that a node has been added to the DCS.
          *
@@ -209,7 +289,7 @@ public class ServiceApplicationComponent {
             }
 
             // Consolidate events
-            log.info("namespace {}", schemaId.namespace());
+//            log.info("namespace {}", schemaId.namespace());
         }
 
 
@@ -223,9 +303,6 @@ public class ServiceApplicationComponent {
         }
 
     }
-
-
-
 
 
     private class TapiConnectivityRpc implements TapiConnectivityService {
@@ -260,7 +337,6 @@ public class ServiceApplicationComponent {
         }
 
 
-
         /**
          * Service interface of deleteConnectivityService.
          *
@@ -271,7 +347,6 @@ public class ServiceApplicationComponent {
         public RpcOutput deleteConnectivityService(RpcInput inputVar) {
             return new RpcOutput(RpcOutput.Status.RPC_FAILURE, null);
         }
-
 
 
         /**
@@ -326,9 +401,9 @@ public class ServiceApplicationComponent {
 
         private ResourceData createResourceData(DataNode dataNode, ResourceId resId) {
             return DefaultResourceData.builder()
-                .addDataNode(dataNode)
-                .resourceId(resId)
-                .build();
+                    .addDataNode(dataNode)
+                    .resourceId(resId)
+                    .build();
         }
 
         /**
@@ -343,7 +418,6 @@ public class ServiceApplicationComponent {
             ModelObjectData modelData = modelConverter.createModel(data);
             return modelData.modelObjects();
         }
-
 
 
     }
