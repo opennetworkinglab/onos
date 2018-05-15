@@ -34,17 +34,25 @@ import io.grpc.StatusRuntimeException;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Property;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.util.Tools;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.grpc.api.GrpcChannelId;
 import org.onosproject.grpc.api.GrpcController;
 import org.onosproject.grpc.ctl.dummy.Dummy;
 import org.onosproject.grpc.ctl.dummy.DummyServiceGrpc;
 import org.onosproject.net.DeviceId;
+import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Dictionary;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
@@ -63,9 +71,17 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Service
 public class GrpcControllerImpl implements GrpcController {
 
-    // Hint: set to true to log all gRPC messages received/sent on all channels.
-    // TODO: make configurable at runtime
-    public static boolean enableMessageLog = false;
+    private  static final String SET_FORWARDING_PIPELINE_CONFIG_METHOD = "p4.P4Runtime/SetForwardingPipelineConfig";
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ComponentConfigService componentConfigService;
+
+    // Hint: set to true to log all gRPC messages received/sent on all channels
+    // Does not enable log on existing channels
+    private static final boolean DEFAULT_LOG_LEVEL = false;
+    @Property(name = "enableMessageLog", boolValue =  DEFAULT_LOG_LEVEL,
+            label = "Indicates whether to log all gRPC messages sent and received on all channels")
+    public static boolean enableMessageLog = DEFAULT_LOG_LEVEL;
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -74,12 +90,24 @@ public class GrpcControllerImpl implements GrpcController {
 
     @Activate
     public void activate() {
+        componentConfigService.registerProperties(getClass());
         channels = new ConcurrentHashMap<>();
         log.info("Started");
     }
 
+    @Modified
+    public void modified(ComponentContext context) {
+        if (context != null) {
+            Dictionary<?, ?> properties = context.getProperties();
+            enableMessageLog = Tools.isPropertyEnabled(properties, "enableMessageLog",
+                    DEFAULT_LOG_LEVEL);
+            log.info("Configured. Log of gRPC messages is {}", enableMessageLog ? "enabled" : "disabled");
+        }
+    }
+
     @Deactivate
     public void deactivate() {
+        componentConfigService.unregisterProperties(getClass(), false);
         channels.values().forEach(ManagedChannel::shutdown);
         channels.clear();
         log.info("Stopped");
@@ -96,9 +124,7 @@ public class GrpcControllerImpl implements GrpcController {
         lock.lock();
 
         try {
-            if (enableMessageLog) {
-                channelBuilder.intercept(new InternalLogChannelInterceptor(channelId));
-            }
+            channelBuilder.intercept(new InternalLogChannelInterceptor(channelId));
             ManagedChannel channel = channelBuilder.build();
             // Forced connection not yet implemented. Use workaround...
             // channel.getState(true);
@@ -175,6 +201,7 @@ public class GrpcControllerImpl implements GrpcController {
             }
 
             channels.remove(channelId);
+            channelLocks.remove(channelId);
         } finally {
             lock.unlock();
         }
@@ -232,9 +259,12 @@ public class GrpcControllerImpl implements GrpcController {
 
                 @Override
                 public void sendMessage(ReqT message) {
-                    log.info("*** SENDING GRPC MESSAGE [{}]\n{}:\n{}",
-                             channelId, methodDescriptor.getFullMethodName(),
-                             message.toString());
+                    if (enableMessageLog && !methodDescriptor.getFullMethodName()
+                            .startsWith(SET_FORWARDING_PIPELINE_CONFIG_METHOD)) {
+                        log.info("*** SENDING GRPC MESSAGE [{}]\n{}:\n{}",
+                                channelId, methodDescriptor.getFullMethodName(),
+                                message.toString());
+                    }
                     super.sendMessage(message);
                 }
 
@@ -249,9 +279,11 @@ public class GrpcControllerImpl implements GrpcController {
 
                         @Override
                         public void onMessage(RespT message) {
-                            log.info("*** RECEIVED GRPC MESSAGE [{}]\n{}:\n{}",
-                                     channelId, methodDescriptor.getFullMethodName(),
-                                     message.toString());
+                            if (enableMessageLog) {
+                                log.info("*** RECEIVED GRPC MESSAGE [{}]\n{}:\n{}",
+                                        channelId, methodDescriptor.getFullMethodName(),
+                                        message.toString());
+                            }
                             super.onMessage(message);
                         }
                     };

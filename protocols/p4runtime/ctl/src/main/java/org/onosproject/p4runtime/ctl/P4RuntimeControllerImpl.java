@@ -168,13 +168,12 @@ public class P4RuntimeControllerImpl
                 channelIds.remove(deviceId);
             }
         } finally {
-           deviceLocks.getUnchecked(deviceId).writeLock().lock();
+           deviceLocks.getUnchecked(deviceId).writeLock().unlock();
         }
     }
 
     @Override
     public boolean hasClient(DeviceId deviceId) {
-
         deviceLocks.getUnchecked(deviceId).readLock().lock();
 
         try {
