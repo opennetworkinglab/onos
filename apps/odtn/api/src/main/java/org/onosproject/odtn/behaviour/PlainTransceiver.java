@@ -15,18 +15,27 @@
  */
 package org.onosproject.odtn.behaviour;
 
+import static org.onosproject.odtn.behaviour.OdtnDeviceDescriptionDiscovery.OC_NAME;
 import static org.onosproject.odtn.utils.YangToolUtil.toCharSequence;
 import static org.onosproject.odtn.utils.YangToolUtil.toCompositeData;
 import static org.onosproject.odtn.utils.YangToolUtil.toResourceData;
 import static org.onosproject.odtn.utils.YangToolUtil.toXmlCompositeStream;
+import static org.slf4j.LoggerFactory.getLogger;
 
+import java.util.Collections;
 import java.util.List;
 
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.Port;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.odtn.utils.openconfig.Transceiver;
 import org.onosproject.yang.model.DataNode;
 import org.onosproject.yang.model.ResourceId;
+import org.slf4j.Logger;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 
 /**
@@ -35,9 +44,27 @@ import com.google.common.collect.Lists;
 public class PlainTransceiver extends AbstractHandlerBehaviour
         implements ConfigurableTransceiver {
 
+    private final Logger log = getLogger(getClass());
+
     @Override
-    public List<CharSequence> enable(String componentName, boolean enable) {
-        List<DataNode> nodes = Transceiver.enable(componentName, enable);
+    public List<CharSequence> enable(PortNumber number, boolean enable) {
+        DeviceId did = this.data().deviceId();
+        Port port = handler().get(DeviceService.class).getPort(did, number);
+        if (port == null) {
+            log.warn("{} does not exist on {}", number, did);
+            return Collections.emptyList();
+        }
+        String component = port.annotations().value(OC_NAME);
+        if (Strings.isNullOrEmpty(component)) {
+            log.warn("{} annotation not found on {}@{}", OC_NAME, number, did);
+            return Collections.emptyList();
+        }
+        return enable(component, enable);
+    }
+
+    @Override
+    public List<CharSequence> enable(String component, boolean enable) {
+        List<DataNode> nodes = Transceiver.enable(component, enable);
 
         ResourceId empty = ResourceId.builder().build();
         return Lists.transform(nodes,

@@ -37,8 +37,10 @@ import org.apache.karaf.shell.commands.Option;
 import org.onlab.util.XmlString;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cli.net.DeviceIdCompleter;
+import org.onosproject.cli.net.PortNumberCompleter;
 import org.onosproject.config.DynamicConfigService;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.netconf.NetconfController;
 import org.onosproject.netconf.NetconfDevice;
@@ -81,6 +83,14 @@ public class OdtnManualTestCommand extends AbstractShellCommand {
     @Option(name = "--deviceId", description = "Device ID URI to send configuration to",
               required = false)
     String uri = null;
+
+    // injecting dependency for OSGi package import generation purpose
+    PortNumberCompleter portNoCompleter;
+    // Note: this will required Port information in device subystem
+    @Option(name = "--portNo", description = "PortNumber to send configuration to",
+            required = false)
+    String portNo = null;
+
 
     // TODO add completer for this?
     @Option(name = "--component",
@@ -142,11 +152,19 @@ public class OdtnManualTestCommand extends AbstractShellCommand {
             break;
 
         case ENABLE_TRANSCEIVER:
-            nodes.addAll(transceiver.enable(componentName, true));
+            if (portNo != null) {
+                nodes.addAll(transceiver.enable(PortNumber.portNumber(portNo), true));
+            } else {
+                nodes.addAll(transceiver.enable(componentName, true));
+            }
             break;
 
         case DISABLE_TRANSCEIVER:
-            nodes.addAll(transceiver.enable(componentName, false));
+            if (portNo != null) {
+                nodes.addAll(transceiver.enable(PortNumber.portNumber(portNo), false));
+            } else {
+                nodes.addAll(transceiver.enable(componentName, false));
+            }
             break;
 
         case PRECONF_OPTICAL_CHANNEL:

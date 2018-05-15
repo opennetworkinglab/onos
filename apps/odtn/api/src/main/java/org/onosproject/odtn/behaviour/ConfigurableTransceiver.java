@@ -15,8 +15,10 @@
  */
 package org.onosproject.odtn.behaviour;
 
+import java.util.Collections;
 import java.util.List;
 
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.driver.HandlerBehaviour;
 
 import com.google.common.annotations.Beta;
@@ -30,11 +32,18 @@ public interface ConfigurableTransceiver extends HandlerBehaviour {
     /**
      * Generate configuration to enable/disable transceiver.
      *
-     * @param componentName to enable/disable
+     * @param port to enable/disable
      * @param enable or disable
      * @return XML documents (List to handle configuration with multiple-roots)
      */
     // return type and how component get specified are likely to change in future
     @Beta
-    List<CharSequence> enable(String componentName, boolean enable);
+    List<CharSequence> enable(PortNumber port, boolean enable);
+
+    // defined only for the purpose of test command without device.
+    @Deprecated
+    default List<CharSequence> enable(String name, boolean enable) {
+        return Collections.emptyList();
+    }
+
 }

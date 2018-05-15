@@ -25,12 +25,14 @@
             </completers>
             <optional-completers>
                 <entry key="--deviceId" value-ref="deviceIdCompleter"/>
+                <entry key="--portNo" value-ref="portNumberCompleter"/>
             </optional-completers>
         </command>
 
     </command-bundle>
 
     <bean id="deviceIdCompleter" class="org.onosproject.cli.net.DeviceIdCompleter"/>
+    <bean id="portNumberCompleter" class="org.onosproject.cli.net.PortNumberCompleter"/>
     <bean id="modeCompleter" class="org.onosproject.odtn.cli.impl.ModeCompleter"/>
 
 </blueprint>
