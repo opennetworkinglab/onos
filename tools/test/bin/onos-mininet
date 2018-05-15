@@ -16,6 +16,7 @@ screenversion=$(ssh $remote screen -v | sed -n -e 's/^Screen version \([0-9]*\.[
 #       requires logname to NOT be given while in v4.05 it is optional (as long as -L is the
 #       last parameter on the command line).
 [[ $screenversion > "4.04" ]] && screenlog=$log
+[[ $screenversion > "4.05" ]] && screenlog="-Logfile $log"
 mininet="ssh -t -t $remote screen -L $screenlog -S mininet"
 
 case $cmd in
