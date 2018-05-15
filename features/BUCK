@@ -39,6 +39,9 @@ osgi_feature (
     '//lib:mapdb',
     '//lib:bcpkix-jdk15on',
     '//lib:bcprov-jdk15on',
+    '//lib:commons-jxpath', # FIXME: move xpath lib dependency to the right place
+    '//lib:commons-beanutils', # jxpath dependency
+    '//lib:jdom',  # jxpath dependency
   ]
 )
 
