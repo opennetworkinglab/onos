@@ -2,6 +2,6 @@
 # -----------------------------------------------------------------------------
 # Publishes the ONOS Tutorial OVA file.
 # -----------------------------------------------------------------------------
-export VER=1.12.0
+export VER=1.13.1
 export OVA=/tmp/onos-tutorial-$VER.ova
 uploadToS3.py $OVA --secret $AWS_SECRET_ACCESS_KEY --key $AWS_ACCESS_KEY_ID --bucket onos --dest vm/

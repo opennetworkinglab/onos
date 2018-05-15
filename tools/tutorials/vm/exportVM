@@ -3,7 +3,7 @@
 # Exports the ONOS Tutorial VM into an OVA file for publishing.
 # -----------------------------------------------------------------------------
 
-export VER=1.12.0
+export VER=1.13.1
 export OVA=/tmp/onos-tutorial-$VER.ova
 rm -f $OVA
 vboxmanage export "ONOS Tutorial" --output $OVA --manifest \

@@ -1,7 +1,4 @@
 #!/bin/bash
-# -----------------------------------------------------------------------------
-# Prepars the ONOS Tutorial VM for export; run from the VM.
-# -----------------------------------------------------------------------------
 sudo chattr +i ~/.config/xfce4/desktop/icons*
 destroyCluster
 sudo mn -c
