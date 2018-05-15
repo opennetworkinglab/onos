@@ -12,3 +12,15 @@ export OPS=h1
 export OPD=h4
 export OPL1="s4 s7"
 export OPL2="s4 s5"
+
+# Variables for device port up down up scenario.
+export OPSS1="of:0000000000000004"
+export OPSP1="3"
+export OPDS1="of:0000000000000007"
+export OPDP1="3"
+export OPSS2="of:0000000000000005"
+export OPSP2="2"
+export OPDS2="of:0000000000000004"
+export OPDP2="2"
+
+

@@ -1,0 +1,91 @@
+<!--
+  ~ Copyright 2018-present Open Networking Foundation
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<scenario name="net-port-disable-enable" description="Network port enable-disable test">
+    <!-- Note: This scenario is tailored using 'topo' recipe mechanism; see topos/*.recipe files -->
+    <group name="Net-Port-Disable-Enable">
+
+        <step name="Query-Link-1f"
+              exec="find-link.py ${OC1} unused ${OPSS1} ${OPSP1} ${OPDS1} ${OPDP1}"/>
+        <step name="Query-Link-1b"
+              exec="find-link.py ${OC1} unused ${OPDS1} ${OPDP1} ${OPSS1} ${OPSP1}"/>
+        <step name="Query-Link-2f"
+              exec="find-link.py ${OC1} unused ${OPSS2} ${OPSP2} ${OPDS2} ${OPDP2}"/>
+        <step name="Query-Link-2b"
+              exec="find-link.py ${OC1} unused ${OPDS2} ${OPDP2} ${OPSS2} ${OPSP2}"/>
+
+        <step name="Port-Ping-1"
+              exec="onos-mininet sendAndExpect ${OPS} ping -c1 ${OPD} --expect \ 0% packet loss"
+              requires="~Query-Link-1f, ~Query-Link-1b"/>
+
+        <step name="Port-1-Down" requires="~Port-Ping-1"
+              exec="onos-change-device-portstate ${OC1} ${OPSS1} ${OPSP1} false"/>
+        <step name="Query-Link-3f"
+              exec="find-link.py ${OC1} unused ${OPSS1} ${OPSP1} ${OPDS1} ${OPDP1}"
+              env="!"
+              requires="Port-1-Down"/>
+        <step name="Query-Link-3b"
+              exec="find-link.py ${OC1} unused ${OPDS1} ${OPDP1} ${OPSS1} ${OPSP1}"
+              env="!"
+              requires="Port-1-Down"/>
+
+        <step name="Port-Ping-2-Prep" requires="~Port-1-Down"
+              exec="onos-mininet sendAndExpect ${OPS} ping -c5 ${OPD} --expect ."/>
+        <step name="Port-Ping-2" requires="~Port-Ping-2-Prep"
+              exec="onos-mininet sendAndExpect ${OPS} ping -c1 ${OPD} --expect \ 0% packet loss"/>
+
+        <step name="Port-2-Down" requires="~Port-Ping-2"
+              exec="onos-change-device-portstate ${OC1} ${OPSS2} ${OPSP2} false"/>
+        <step name="Query-Link-4f"
+              exec="find-link.py ${OC1} unused ${OPSS2} ${OPSP2} ${OPDS2} ${OPDP2}"
+              env="!"
+              requires="Port-2-Down"/>
+        <step name="Query-Link-4b"
+              exec="find-link.py ${OC1} unused ${OPDS2} ${OPDP2} ${OPSS2} ${OPSP2}"
+              env="!"
+              requires="Port-2-Down"/>
+
+        <step name="Port-Ping-3" requires="~Port-2-Down"
+              exec="onos-mininet sendAndExpect ${OPS} ping -c1 -w1 ${OPD} --expect 100% packet loss"/>
+
+        <step name="Port-1-Up" requires="~Port-Ping-3"
+              exec="onos-change-device-portstate ${OC1} ${OPSS1} ${OPSP1} true"/>
+        <step name="Query-Link-5f"
+              exec="find-link.py ${OC1} unused ${OPSS1} ${OPSP1} ${OPDS1} ${OPDP1}"
+              requires="Port-1-Up"/>
+        <step name="Query-Link-5b"
+              exec="find-link.py ${OC1} unused ${OPDS1} ${OPDP1} ${OPSS1} ${OPSP1}"
+              requires="Port-1-Up"/>
+
+        <step name="Port-Ping-4-Prep" requires="~Port-1-Up"
+              exec="onos-mininet sendAndExpect ${OPS} ping -c5 ${OPD} --expect ."/>
+        <step name="Port-Ping-4" requires="~Port-Ping-4-Prep"
+              exec="onos-mininet sendAndExpect ${OPS} ping -c1 ${OPD} --expect \ 0% packet loss"/>
+
+        <step name="Port-2-Up" requires="~Port-Ping-4"
+              exec="onos-change-device-portstate ${OC1} ${OPSS2} ${OPSP2} true"/>
+        <step name="Query-Link-6f"
+              exec="find-link.py ${OC1} unused ${OPSS2} ${OPSP2} ${OPDS2} ${OPDP2}"
+              requires="Port-2-Up"/>
+        <step name="Query-Link-6b"
+              exec="find-link.py ${OC1} unused ${OPDS2} ${OPDP2} ${OPSS2} ${OPSP2}"
+              requires="Port-2-Up"/>
+
+        <step name="Port-Ping-5-Prep" requires="~Port-2-Up"
+              exec="onos-mininet sendAndExpect ${OPS} ping -c5 ${OPD} --expect ."/>
+        <step name="Port-Ping-5" requires="~Port-Ping-5-Prep"
+              exec="onos-mininet sendAndExpect ${OPS} ping -c1 ${OPD} --expect \ 0% packet loss"/>
+    </group>
+</scenario>
