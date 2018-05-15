@@ -202,6 +202,7 @@ public class DistributedLeadershipStore
             leaderElector = storageService.leaderElectorBuilder()
                     .withName("onos-leadership-elections")
                     .withElectionTimeout(electionTimeoutMillis)
+                    .withRelaxedReadConsistency()
                     .build()
                     .asLeaderElector();
         }
