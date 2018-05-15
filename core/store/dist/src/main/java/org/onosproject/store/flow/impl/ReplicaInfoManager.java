@@ -15,31 +15,29 @@
  */
 package org.onosproject.store.flow.impl;
 
-import java.util.Objects;
-import java.util.function.Consumer;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
+import com.google.common.collect.ImmutableList;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onosproject.cluster.Leadership;
-import org.onosproject.core.VersionService;
-import org.onosproject.event.AbstractListenerManager;
-import org.onosproject.event.Change;
+import org.onosproject.cluster.NodeId;
+import org.onosproject.cluster.RoleInfo;
+import org.onosproject.event.EventDeliveryService;
+import org.onosproject.event.ListenerRegistry;
+import org.onosproject.mastership.MastershipEvent;
+import org.onosproject.mastership.MastershipListener;
+import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.store.flow.ReplicaInfo;
 import org.onosproject.store.flow.ReplicaInfoEvent;
 import org.onosproject.store.flow.ReplicaInfoEventListener;
 import org.onosproject.store.flow.ReplicaInfoService;
-import org.onosproject.store.service.CoordinationService;
-import org.onosproject.store.service.LeaderElector;
 import org.slf4j.Logger;
 
+import java.util.Collections;
+import java.util.List;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.store.flow.ReplicaInfoEvent.Type.BACKUPS_CHANGED;
 import static org.onosproject.store.flow.ReplicaInfoEvent.Type.MASTER_CHANGED;
@@ -50,66 +48,38 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 @Component(immediate = true)
 @Service
-public class ReplicaInfoManager
-        extends AbstractListenerManager<ReplicaInfoEvent, ReplicaInfoEventListener>
-        implements ReplicaInfoService {
-
-    private static final Pattern DEVICE_MASTERSHIP_TOPIC_PATTERN = Pattern.compile("device:([^|]+)\\|[^|]+");
+public class ReplicaInfoManager implements ReplicaInfoService {
 
     private final Logger log = getLogger(getClass());
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected CoordinationService coordinationService;
+    private final MastershipListener mastershipListener = new InternalMastershipListener();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected VersionService versionService;
+    protected EventDeliveryService eventDispatcher;
 
-    private final Consumer<Change<Leadership>> leadershipChangeListener = change -> {
-        Leadership oldLeadership = change.oldValue();
-        Leadership newLeadership = change.newValue();
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected MastershipService mastershipService;
 
-        String topic = newLeadership.topic();
-        if (!isDeviceMastershipTopic(topic)) {
-            return;
-        }
-
-        DeviceId deviceId = extractDeviceIdFromTopic(topic);
-        ReplicaInfo replicaInfo = buildFromLeadership(newLeadership);
-
-        boolean leaderChanged = !Objects.equals(oldLeadership.leader(), newLeadership.leader());
-        boolean candidatesChanged = !Objects.equals(oldLeadership.candidates(), newLeadership.candidates());
-
-        if (leaderChanged) {
-            post(new ReplicaInfoEvent(MASTER_CHANGED, deviceId, replicaInfo));
-        }
-        if (candidatesChanged) {
-            post(new ReplicaInfoEvent(BACKUPS_CHANGED, deviceId, replicaInfo));
-        }
-    };
-
-    private LeaderElector leaderElector;
+    protected final ListenerRegistry<ReplicaInfoEvent, ReplicaInfoEventListener>
+        listenerRegistry = new ListenerRegistry<>();
 
     @Activate
     public void activate() {
         eventDispatcher.addSink(ReplicaInfoEvent.class, listenerRegistry);
-        leaderElector = coordinationService.leaderElectorBuilder()
-                .withName("onos-leadership-elections")
-                .build()
-                .asLeaderElector();
-        leaderElector.addChangeListener(leadershipChangeListener);
+        mastershipService.addListener(mastershipListener);
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
         eventDispatcher.removeSink(ReplicaInfoEvent.class);
-        leaderElector.removeChangeListener(leadershipChangeListener);
+        mastershipService.removeListener(mastershipListener);
         log.info("Stopped");
     }
 
     @Override
     public ReplicaInfo getReplicaInfoFor(DeviceId deviceId) {
-        return buildFromLeadership(leaderElector.getLeadership(createDeviceMastershipTopic(deviceId)));
+        return buildFromRoleInfo(mastershipService.getNodesFor(deviceId));
     }
 
     @Override
@@ -122,27 +92,32 @@ public class ReplicaInfoManager
         listenerRegistry.removeListener(checkNotNull(listener));
     }
 
-    String createDeviceMastershipTopic(DeviceId deviceId) {
-        return String.format("device:%s|%s", deviceId.toString(), versionService.version());
+    private static ReplicaInfo buildFromRoleInfo(RoleInfo roles) {
+        List<NodeId> backups = roles.backups() == null ?
+            Collections.emptyList() : ImmutableList.copyOf(roles.backups());
+        return new ReplicaInfo(roles.master(), backups);
     }
 
-    DeviceId extractDeviceIdFromTopic(String topic) {
-        Matcher m = DEVICE_MASTERSHIP_TOPIC_PATTERN.matcher(topic);
-        if (m.matches()) {
-            return DeviceId.deviceId(m.group(1));
-        } else {
-            throw new IllegalArgumentException("Invalid device mastership topic: " + topic);
+    final class InternalMastershipListener implements MastershipListener {
+
+        @Override
+        public void event(MastershipEvent event) {
+            final ReplicaInfo replicaInfo = buildFromRoleInfo(event.roleInfo());
+            switch (event.type()) {
+                case MASTER_CHANGED:
+                    eventDispatcher.post(new ReplicaInfoEvent(MASTER_CHANGED,
+                        event.subject(),
+                        replicaInfo));
+                    break;
+                case BACKUPS_CHANGED:
+                    eventDispatcher.post(new ReplicaInfoEvent(BACKUPS_CHANGED,
+                        event.subject(),
+                        replicaInfo));
+                    break;
+                default:
+                    break;
+            }
         }
     }
 
-    boolean isDeviceMastershipTopic(String topic) {
-        Matcher m = DEVICE_MASTERSHIP_TOPIC_PATTERN.matcher(topic);
-        return m.matches();
-    }
-
-    static ReplicaInfo buildFromLeadership(Leadership leadership) {
-        return new ReplicaInfo(leadership.leaderNodeId(), leadership.candidates().stream()
-                .filter(nodeId -> !Objects.equals(nodeId, leadership.leaderNodeId()))
-                .collect(Collectors.toList()));
-    }
 }
