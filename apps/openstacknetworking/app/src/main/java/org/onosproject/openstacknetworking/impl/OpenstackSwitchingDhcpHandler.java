@@ -401,7 +401,7 @@ public class OpenstackSwitchingDhcpHandler {
             option = new DhcpOption();
             option.setCode(OptionCode_RouterAddress.getValue());
             option.setLength((byte) 4);
-            option.setData(gatewayIp.toOctets());
+            option.setData(Ip4Address.valueOf(osSubnet.getGateway()).toOctets());
             options.add(option);
 
             // end option
