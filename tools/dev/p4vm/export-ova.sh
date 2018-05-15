@@ -6,9 +6,18 @@ VM_TYPE=${P4_VM_TYPE:-dev}
 
 function wait_vm_shutdown {
     set +x
-    while vboxmanage showvminfo $1 | grep -c "running (since"
-    do
+    while vboxmanage showvminfo $1 | grep -c "running (since"; do
     echo "Waiting for VM to shutdown..."
+    sleep 1
+    done
+    sleep 2
+    set -x
+}
+
+function wait_for_tcp_port {
+    set +x
+    while ! nc -z $1 $2; do
+    echo "Waiting for TCP port $2 on $1 to be open..."
     sleep 1
     done
     sleep 2
@@ -22,7 +31,6 @@ vagrant up
 
 SSH_PORT=`vagrant port --guest 22`
 VB_UUID=`cat .vagrant/machines/default/virtualbox/id`
-VMDK_PATH=`VBoxManage showvminfo ${VB_UUID} --machinereadable | grep vmdk | cut -d'=' -f2`
 
 # Take snapshot before cleanup for local use
 # e.g. to avoid re-building P4 tools from scratch
@@ -32,6 +40,9 @@ VBoxManage snapshot ${VB_UUID} take "pre-cleanup"
 
 # Cleanup
 vagrant up
+# SSH port forwarding might change after vagrant up.
+SSH_PORT=`vagrant port --guest 22`
+wait_for_tcp_port 127.0.0.1 ${SSH_PORT}
 sshpass -p 'rocks' \
     ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no \
     -p ${SSH_PORT} sdn@127.0.0.1 "bash /vagrant/pre-ova-cleanup.sh"
