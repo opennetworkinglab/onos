@@ -1,5 +1,10 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//models/ietf:onos-models-ietf',
+]
+
+APPS = [
+    'org.onosproject.models.ietf',
 ]
 
 yang_model(
@@ -7,4 +12,5 @@ yang_model(
   title = 'OpenConfig YANG Models',
   custom_registrator = True,
   deps = COMPILE_DEPS,
+  required_apps = APPS,
 )

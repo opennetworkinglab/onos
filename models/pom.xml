@@ -30,6 +30,7 @@
     <description>ONOS YANG models</description>
 
     <modules>
+        <module>ietf</module>
         <module>common</module>
         <module>microsemi</module>
         <module>openconfig</module>
