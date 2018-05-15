@@ -1,13 +1,17 @@
-module ietf-inet-types {
+  module ietf-inet-types {
 
-  namespace "urn:ietf:params:xml:ns:yang:ietf-inet-types";
-  prefix "inet";
+    yang-version 1;
 
-  organization
-   "IETF NETMOD (NETCONF Data Modeling Language) Working Group";
+    namespace
+      "urn:ietf:params:xml:ns:yang:ietf-inet-types";
 
-  contact
-   "WG Web:   <http://tools.ietf.org/wg/netmod/>
+    prefix inet;
+
+    organization
+      "IETF NETMOD (NETCONF Data Modeling Language) Working Group";
+
+    contact
+      "WG Web:   <http://tools.ietf.org/wg/netmod/>
     WG List:  <mailto:netmod@ietf.org>
 
     WG Chair: David Kessens
@@ -19,8 +23,8 @@ module ietf-inet-types {
     Editor:   Juergen Schoenwaelder
               <mailto:j.schoenwaelder@jacobs-university.de>";
 
-  description
-   "This module contains a collection of generally useful derived
+    description
+      "This module contains a collection of generally useful derived
     YANG data types for Internet addresses and related things.
 
     Copyright (c) 2013 IETF Trust and the persons identified as
@@ -36,95 +40,98 @@ module ietf-inet-types {
     This version of this YANG module is part of RFC 6991; see
     the RFC itself for full legal notices.";
 
-  revision 2013-07-15 {
-    description
-     "This revision adds the following new data types:
+    revision "2013-07-15" {
+      description
+        "This revision adds the following new data types:
       - ip-address-no-zone
       - ipv4-address-no-zone
       - ipv6-address-no-zone";
-    reference
-     "RFC 6991: Common YANG Data Types";
-  }
+      reference
+        "RFC 6991: Common YANG Data Types";
 
-  revision 2010-09-24 {
-    description
-     "Initial revision.";
-    reference
-     "RFC 6021: Common YANG Data Types";
-  }
-
-  /*** collection of types related to protocol fields ***/
-
-  typedef ip-version {
-    type enumeration {
-      enum unknown {
-        value "0";
-        description
-         "An unknown or unspecified version of the Internet
-          protocol.";
-      }
-      enum ipv4 {
-        value "1";
-        description
-         "The IPv4 protocol as defined in RFC 791.";
-      }
-      enum ipv6 {
-        value "2";
-        description
-         "The IPv6 protocol as defined in RFC 2460.";
-      }
     }
-    description
-     "This value represents the version of the IP protocol.
+
+    revision "2010-09-24" {
+      description "Initial revision.";
+      reference
+        "RFC 6021: Common YANG Data Types";
+
+    }
+
+
+    typedef ip-version {
+      type enumeration {
+        enum "unknown" {
+          value 0;
+          description
+            "An unknown or unspecified version of the Internet
+          protocol.";
+        }
+        enum "ipv4" {
+          value 1;
+          description
+            "The IPv4 protocol as defined in RFC 791.";
+        }
+        enum "ipv6" {
+          value 2;
+          description
+            "The IPv6 protocol as defined in RFC 2460.";
+        }
+      }
+      description
+        "This value represents the version of the IP protocol.
 
       In the value set and its semantics, this type is equivalent
       to the InetVersion textual convention of the SMIv2.";
-    reference
-     "RFC  791: Internet Protocol
-      RFC 2460: Internet Protocol, Version 6 (IPv6) Specification
-      RFC 4001: Textual Conventions for Internet Network Addresses";
-  }
+      reference
+        "RFC  791: Internet Protocol
+         RFC 2460: Internet Protocol, Version 6 (IPv6) Specification
+         RFC 4001: Textual Conventions for Internet Network Addresses";
 
-  typedef dscp {
-    type uint8 {
-      range "0..63";
     }
-    description
-     "The dscp type represents a Differentiated Services Code Point
+
+    typedef dscp {
+      type uint8 {
+        range "0..63";
+      }
+      description
+        "The dscp type represents a Differentiated Services Code Point
       that may be used for marking packets in a traffic stream.
       In the value set and its semantics, this type is equivalent
       to the Dscp textual convention of the SMIv2.";
-    reference
-     "RFC 3289: Management Information Base for the Differentiated
-                Services Architecture
-      RFC 2474: Definition of the Differentiated Services Field
-                (DS Field) in the IPv4 and IPv6 Headers
-      RFC 2780: IANA Allocation Guidelines For Values In
-                the Internet Protocol and Related Headers";
-  }
+      reference
+        "RFC 3289: Management Information Base for the Differentiated
+        	  Services Architecture
+         RFC 2474: Definition of the Differentiated Services Field
+        	  (DS Field) in the IPv4 and IPv6 Headers
+         RFC 2780: IANA Allocation Guidelines For Values In
+        	  the Internet Protocol and Related Headers";
 
-  typedef ipv6-flow-label {
-    type uint32 {
-      range "0..1048575";
     }
-    description
-     "The ipv6-flow-label type represents the flow identifier or Flow
+
+    typedef ipv6-flow-label {
+      type uint32 {
+        range "0..1048575";
+      }
+      description
+        "The ipv6-flow-label type represents the flow identifier or Flow
       Label in an IPv6 packet header that may be used to
       discriminate traffic flows.
 
       In the value set and its semantics, this type is equivalent
       to the IPv6FlowLabel textual convention of the SMIv2.";
-    reference
-     "RFC 3595: Textual Conventions for IPv6 Flow Label
-      RFC 2460: Internet Protocol, Version 6 (IPv6) Specification";
-  }
+      reference
+        "RFC 3595: Textual Conventions for IPv6 Flow Label
+         RFC 2460: Internet Protocol, Version 6 (IPv6) Specification";
 
-  typedef port-number {
-    type uint16 {
-      range "0..65535";
     }
-    description
-     "The port-number type represents a 16-bit port number of an
+
+    typedef port-number {
+      type uint16 {
+        range "0..65535";
+      }
+      description
+        "The port-number type represents a 16-bit port number of an
       Internet transport-layer protocol such as UDP, TCP, DCCP, or
       SCTP.  Port numbers are assigned by IANA.  A current list of
       all assignments is available from <http://www.iana.org/>.
@@ -134,20 +141,19 @@ module ietf-inet-types {
       be excluded by subtyping the port-number type.
       In the value set and its semantics, this type is equivalent
       to the InetPortNumber textual convention of the SMIv2.";
-    reference
-     "RFC  768: User Datagram Protocol
-      RFC  793: Transmission Control Protocol
-      RFC 4960: Stream Control Transmission Protocol
-      RFC 4340: Datagram Congestion Control Protocol (DCCP)
-      RFC 4001: Textual Conventions for Internet Network Addresses";
-  }
+      reference
+        "RFC  768: User Datagram Protocol
+         RFC  793: Transmission Control Protocol
+         RFC 4960: Stream Control Transmission Protocol
+         RFC 4340: Datagram Congestion Control Protocol (DCCP)
+         RFC 4001: Textual Conventions for Internet Network Addresses";
 
-  /*** collection of types related to autonomous systems ***/
+    }
 
-  typedef as-number {
-    type uint32;
-    description
-     "The as-number type represents autonomous system numbers
+    typedef as-number {
+      type uint32;
+      description
+        "The as-number type represents autonomous system numbers
       which identify an Autonomous System (AS).  An AS is a set
       of routers under a single technical administration, using
       an interior gateway protocol and common metrics to route
@@ -165,40 +171,38 @@ module ietf-inet-types {
       In the value set and its semantics, this type is equivalent
       to the InetAutonomousSystemNumber textual convention of
       the SMIv2.";
-    reference
-     "RFC 1930: Guidelines for creation, selection, and registration
-                of an Autonomous System (AS)
-      RFC 4271: A Border Gateway Protocol 4 (BGP-4)
-      RFC 4001: Textual Conventions for Internet Network Addresses
-      RFC 6793: BGP Support for Four-Octet Autonomous System (AS)
-                Number Space";
-  }
+      reference
+        "RFC 1930: Guidelines for creation, selection, and registration
+        	  of an Autonomous System (AS)
+         RFC 4271: A Border Gateway Protocol 4 (BGP-4)
+         RFC 4001: Textual Conventions for Internet Network Addresses
+         RFC 6793: BGP Support for Four-Octet Autonomous System (AS)
+        	  Number Space";
 
-  /*** collection of types related to IP addresses and hostnames ***/
-
-  typedef ip-address {
-    type union {
-      type inet:ipv4-address;
-      type inet:ipv6-address;
     }
-    description
-     "The ip-address type represents an IP address and is IP
+
+    typedef ip-address {
+      type union {
+        type ipv4-address;
+        type ipv6-address;
+      }
+      description
+        "The ip-address type represents an IP address and is IP
       version neutral.  The format of the textual representation
       implies the IP version.  This type supports scoped addresses
       by allowing zone identifiers in the address format.";
-    reference
-     "RFC 4007: IPv6 Scoped Address Architecture";
-  }
+      reference
+        "RFC 4007: IPv6 Scoped Address Architecture";
 
-  typedef ipv4-address {
-    type string {
-      pattern
-        '(([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.){3}'
-      +  '([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])'
-      + '(%[\p{N}\p{L}]+)?';
     }
-    description
-      "The ipv4-address type represents an IPv4 address in
+
+    typedef ipv4-address {
+      type string {
+        pattern
+          '(([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])(%[\p{N}\p{L}]+)?';
+      }
+      description
+        "The ipv4-address type represents an IPv4 address in
        dotted-quad notation.  The IPv4 address may include a zone
        index, separated by a % sign.
 
@@ -210,21 +214,17 @@ module ietf-inet-types {
 
        The canonical format for the zone index is the numerical
        format";
-  }
-
-  typedef ipv6-address {
-    type string {
-      pattern '((:|[0-9a-fA-F]{0,4}):)([0-9a-fA-F]{0,4}:){0,5}'
-            + '((([0-9a-fA-F]{0,4}:)?(:|[0-9a-fA-F]{0,4}))|'
-            + '(((25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])\.){3}'
-            + '(25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])))'
-            + '(%[\p{N}\p{L}]+)?';
-      pattern '(([^:]+:){6}(([^:]+:[^:]+)|(.*\..*)))|'
-            + '((([^:]+:)*[^:]+)?::(([^:]+:)*[^:]+)?)'
-            + '(%.+)?';
     }
-    description
-     "The ipv6-address type represents an IPv6 address in full,
+
+    typedef ipv6-address {
+      type string {
+        pattern
+          '((:|[0-9a-fA-F]{0,4}):)([0-9a-fA-F]{0,4}:){0,5}((([0-9a-fA-F]{0,4}:)?(:|[0-9a-fA-F]{0,4}))|(((25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])))(%[\p{N}\p{L}]+)?';
+        pattern
+          '(([^:]+:){6}(([^:]+:[^:]+)|(.*\..*)))|((([^:]+:)*[^:]+)?::(([^:]+:)*[^:]+)?)(%.+)?';
+      }
+      description
+        "The ipv6-address type represents an IPv6 address in full,
       mixed, shortened, and shortened-mixed notation.  The IPv6
       address may include a zone index, separated by a % sign.
 
@@ -234,77 +234,80 @@ module ietf-inet-types {
       interface.  If the zone index is not present, the default
       zone of the device will be used.
 
+
+
       The canonical format of IPv6 addresses uses the textual
       representation defined in Section 4 of RFC 5952.  The
       canonical format for the zone index is the numerical
       format as described in Section 11.2 of RFC 4007.";
-    reference
-     "RFC 4291: IP Version 6 Addressing Architecture
-      RFC 4007: IPv6 Scoped Address Architecture
-      RFC 5952: A Recommendation for IPv6 Address Text
-                Representation";
-  }
+      reference
+        "RFC 4291: IP Version 6 Addressing Architecture
+         RFC 4007: IPv6 Scoped Address Architecture
+         RFC 5952: A Recommendation for IPv6 Address Text
+        	  Representation";
 
-  typedef ip-address-no-zone {
-    type union {
-      type inet:ipv4-address-no-zone;
-      type inet:ipv6-address-no-zone;
     }
-    description
-     "The ip-address-no-zone type represents an IP address and is
+
+    typedef ip-address-no-zone {
+      type union {
+        type ipv4-address-no-zone;
+        type ipv6-address-no-zone;
+      }
+      description
+        "The ip-address-no-zone type represents an IP address and is
       IP version neutral.  The format of the textual representation
       implies the IP version.  This type does not support scoped
       addresses since it does not allow zone identifiers in the
       address format.";
-    reference
-     "RFC 4007: IPv6 Scoped Address Architecture";
-  }
+      reference
+        "RFC 4007: IPv6 Scoped Address Architecture";
 
-  typedef ipv4-address-no-zone {
-    type inet:ipv4-address {
-      pattern '[0-9\.]*';
     }
-    description
-      "An IPv4 address without a zone index.  This type, derived from
+
+    typedef ipv4-address-no-zone {
+      type ipv4-address {
+        pattern '[0-9\.]*';
+      }
+      description
+        "An IPv4 address without a zone index.  This type, derived from
        ipv4-address, may be used in situations where the zone is
        known from the context and hence no zone index is needed.";
-  }
-
-  typedef ipv6-address-no-zone {
-    type inet:ipv6-address {
-      pattern '[0-9a-fA-F:\.]*';
     }
-    description
-      "An IPv6 address without a zone index.  This type, derived from
+
+    typedef ipv6-address-no-zone {
+      type ipv6-address {
+        pattern '[0-9a-fA-F:\.]*';
+      }
+      description
+        "An IPv6 address without a zone index.  This type, derived from
        ipv6-address, may be used in situations where the zone is
        known from the context and hence no zone index is needed.";
-    reference
-     "RFC 4291: IP Version 6 Addressing Architecture
-      RFC 4007: IPv6 Scoped Address Architecture
-      RFC 5952: A Recommendation for IPv6 Address Text
-                Representation";
-  }
+      reference
+        "RFC 4291: IP Version 6 Addressing Architecture
+         RFC 4007: IPv6 Scoped Address Architecture
+         RFC 5952: A Recommendation for IPv6 Address Text
+        	  Representation";
 
-  typedef ip-prefix {
-    type union {
-      type inet:ipv4-prefix;
-      type inet:ipv6-prefix;
     }
-    description
-     "The ip-prefix type represents an IP prefix and is IP
+
+    typedef ip-prefix {
+      type union {
+        type ipv4-prefix;
+        type ipv6-prefix;
+      }
+      description
+        "The ip-prefix type represents an IP prefix and is IP
       version neutral.  The format of the textual representations
       implies the IP version.";
-  }
-
-  typedef ipv4-prefix {
-    type string {
-      pattern
-         '(([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.){3}'
-       +  '([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])'
-       + '/(([0-9])|([1-2][0-9])|(3[0-2]))';
     }
-    description
-     "The ipv4-prefix type represents an IPv4 address prefix.
+
+    typedef ipv4-prefix {
+      type string {
+        pattern
+          '(([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])/(([0-9])|([1-2][0-9])|(3[0-2]))';
+      }
+      description
+        "The ipv4-prefix type represents an IPv4 address prefix.
       The prefix length is given by the number following the
       slash character and must be less than or equal to 32.
 
@@ -315,22 +318,17 @@ module ietf-inet-types {
       The canonical format of an IPv4 prefix has all bits of
       the IPv4 address set to zero that are not part of the
       IPv4 prefix.";
-  }
-
-  typedef ipv6-prefix {
-    type string {
-      pattern '((:|[0-9a-fA-F]{0,4}):)([0-9a-fA-F]{0,4}:){0,5}'
-            + '((([0-9a-fA-F]{0,4}:)?(:|[0-9a-fA-F]{0,4}))|'
-            + '(((25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])\.){3}'
-            + '(25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])))'
-            + '(/(([0-9])|([0-9]{2})|(1[0-1][0-9])|(12[0-8])))';
-      pattern '(([^:]+:){6}(([^:]+:[^:]+)|(.*\..*)))|'
-            + '((([^:]+:)*[^:]+)?::(([^:]+:)*[^:]+)?)'
-            + '(/.+)';
     }
 
-    description
-     "The ipv6-prefix type represents an IPv6 address prefix.
+    typedef ipv6-prefix {
+      type string {
+        pattern
+          '((:|[0-9a-fA-F]{0,4}):)([0-9a-fA-F]{0,4}:){0,5}((([0-9a-fA-F]{0,4}:)?(:|[0-9a-fA-F]{0,4}))|(((25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])))(/(([0-9])|([0-9]{2})|(1[0-1][0-9])|(12[0-8])))';
+        pattern
+          '(([^:]+:){6}(([^:]+:[^:]+)|(.*\..*)))|((([^:]+:)*[^:]+)?::(([^:]+:)*[^:]+)?)(/.+)';
+      }
+      description
+        "The ipv6-prefix type represents an IPv6 address prefix.
       The prefix length is given by the number following the
       slash character and must be less than or equal to 128.
 
@@ -345,23 +343,20 @@ module ietf-inet-types {
       the IPv6 address set to zero that are not part of the
       IPv6 prefix.  Furthermore, the IPv6 address is represented
       as defined in Section 4 of RFC 5952.";
-    reference
-     "RFC 5952: A Recommendation for IPv6 Address Text
-                Representation";
-  }
+      reference
+        "RFC 5952: A Recommendation for IPv6 Address Text
+        	  Representation";
 
-  /*** collection of domain name and URI types ***/
-
-  typedef domain-name {
-    type string {
-      pattern
-        '((([a-zA-Z0-9_]([a-zA-Z0-9\-_]){0,61})?[a-zA-Z0-9]\.)*'
-      + '([a-zA-Z0-9_]([a-zA-Z0-9\-_]){0,61})?[a-zA-Z0-9]\.?)'
-      + '|\.';
-      length "1..253";
     }
-    description
-     "The domain-name type represents a DNS domain name.  The
+
+    typedef domain-name {
+      type string {
+        length "1..253";
+        pattern
+          '((([a-zA-Z0-9_]([a-zA-Z0-9\-_]){0,61})?[a-zA-Z0-9]\.)*([a-zA-Z0-9_]([a-zA-Z0-9\-_]){0,61})?[a-zA-Z0-9]\.?)|\.';
+      }
+      description
+        "The domain-name type represents a DNS domain name.  The
       name SHOULD be fully qualified whenever possible.
 
       Internet domain names are only loosely specified.  Section
@@ -395,31 +390,32 @@ module ietf-inet-types {
       Domain-name values use the US-ASCII encoding.  Their canonical
       format uses lowercase US-ASCII characters.  Internationalized
       domain names MUST be A-labels as per RFC 5890.";
-    reference
-     "RFC  952: DoD Internet Host Table Specification
-      RFC 1034: Domain Names - Concepts and Facilities
-      RFC 1123: Requirements for Internet Hosts -- Application
-                and Support
-      RFC 2782: A DNS RR for specifying the location of services
-                (DNS SRV)
-      RFC 5890: Internationalized Domain Names in Applications
-                (IDNA): Definitions and Document Framework";
-  }
+      reference
+        "RFC  952: DoD Internet Host Table Specification
+         RFC 1034: Domain Names - Concepts and Facilities
+         RFC 1123: Requirements for Internet Hosts -- Application
+        	  and Support
+         RFC 2782: A DNS RR for specifying the location of services
+        	  (DNS SRV)
+         RFC 5890: Internationalized Domain Names in Applications
+        	  (IDNA): Definitions and Document Framework";
 
-  typedef host {
-    type union {
-      type inet:ip-address;
-      type inet:domain-name;
     }
-    description
-     "The host type represents either an IP address or a DNS
-      domain name.";
-  }
 
-  typedef uri {
-    type string;
-    description
-     "The uri type represents a Uniform Resource Identifier
+    typedef host {
+      type union {
+        type ip-address;
+        type domain-name;
+      }
+      description
+        "The host type represents either an IP address or a DNS
+      domain name.";
+    }
+
+    typedef uri {
+      type string;
+      description
+        "The uri type represents a Uniform Resource Identifier
       (URI) as defined by STD 66.
 
       Objects using the uri type MUST be in US-ASCII encoding,
@@ -445,14 +441,14 @@ module ietf-inet-types {
 
       In the value set and its semantics, this type is equivalent
       to the Uri SMIv2 textual convention defined in RFC 5017.";
-    reference
-     "RFC 3986: Uniform Resource Identifier (URI): Generic Syntax
-      RFC 3305: Report from the Joint W3C/IETF URI Planning Interest
-                Group: Uniform Resource Identifiers (URIs), URLs,
-                and Uniform Resource Names (URNs): Clarifications
-                and Recommendations
-      RFC 5017: MIB Textual Conventions for Uniform Resource
-                Identifiers (URIs)";
-  }
+      reference
+        "RFC 3986: Uniform Resource Identifier (URI): Generic Syntax
+         RFC 3305: Report from the Joint W3C/IETF URI Planning Interest
+        	  Group: Uniform Resource Identifiers (URIs), URLs,
+        	  and Uniform Resource Names (URNs): Clarifications
+        	  and Recommendations
+         RFC 5017: MIB Textual Conventions for Uniform Resource
+        	  Identifiers (URIs)";
 
-}
+    }
+  }  // module ietf-inet-types
