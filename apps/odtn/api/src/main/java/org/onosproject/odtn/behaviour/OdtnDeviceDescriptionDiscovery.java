@@ -41,13 +41,12 @@ public interface OdtnDeviceDescriptionDiscovery
      */
     String OC_TYPE = "oc-type";
 
-    // will also be used from TAPI model to point to what we want to configure
     /**
      * Annotations key intended for a Port,
      * which stores string identifier used to
-     * logically group Ports corresponding to a transponder.
+     * logically group Ports corresponding to a transponder, etc.
      */
-    String TRANSPONDER_NAME = "odtn-transponder-name";
+    String CONNECTION_ID = "odtn-connection-id";
 
 
     /**
