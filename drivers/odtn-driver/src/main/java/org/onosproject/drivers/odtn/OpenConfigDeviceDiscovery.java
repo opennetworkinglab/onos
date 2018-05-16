@@ -174,6 +174,16 @@ public class OpenConfigDeviceDiscovery
 
         switch (type) {
         case "oc-platform-types:PORT":
+        case "oc-opt-types:OPTICAL_CHANNEL":
+            // TODO assign appropriate port type & annotations at some point
+            // for now we just need a Port with annotations
+            builder.type(Type.OCH);
+
+            // Just a heuristics to deal with simple transponder
+            // if the device declare odtn-connection-id, just use them
+            // if not assign same value to relevant ports types
+            props.putIfAbsent(CONNECTION_ID, "the-only-one");
+            break;
         case "oc-platform-types:TRANSCEIVER":
         //case "oc-opt-types:OPTICAL_CHANNEL":
             // TODO assign appropriate port type & annotations at some point

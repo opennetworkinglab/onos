@@ -18,18 +18,46 @@ package org.onosproject.odtn.internal;
 
 import org.onosproject.net.Device;
 import org.onosproject.net.Link;
+import org.onosproject.net.Port;
 
+/**
+ * ODTN Tapi manager application interface.
+ */
 public interface TapiTopologyManager {
 
+    /**
+     * DEVICE_ADDED event handler.
+     * @param device device to be added
+     */
     void addDevice(Device device);
 
+    /**
+     * DEVICE_REMOVED event handler.
+     * @param device device to be removed
+     */
     void removeDevice(Device device);
 
+    /**
+     * LINK_ADDED event handler.
+     * @param link link to be added
+     */
     void addLink(Link link);
 
+    /**
+     * LINK_REMOVED event handler.
+     * @param link link to be removed
+     */
     void removeLink(Link link);
 
-    void addPort(Device device);
+    /**
+     * PORT_ADDED event handler.
+     * @param port port to be added
+     */
+    void addPort(Port port);
 
-    void removePort(Device device);
+    /**
+     * PORT_REMOVED event handler.
+     * @param port port to be removed
+     */
+    void removePort(Port port);
 }
