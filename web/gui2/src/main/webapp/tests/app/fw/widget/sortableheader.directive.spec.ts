@@ -13,55 +13,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { TestBed, inject } from '@angular/core/testing';
+
+import { LogService } from '../../../../app/log.service';
+import { ConsoleLoggerService } from '../../../../app/consolelogger.service';
 import { SortableHeaderDirective } from '../../../../app/fw/widget/sortableheader.directive';
 import { IconService } from '../../../../app/fw/svg/icon.service';
 import { GlyphService } from '../../../../app/fw/svg/glyph.service';
-import { SvgUtilService } from '../../../../app/fw/svg/svgutil.service';
-import { LogService } from '../../../../app/log.service';
 import { FnService } from '../../../../app/fw/util/fn.service';
-import { ActivatedRoute, Router} from '@angular/router';
 
-class MockGlyphService extends GlyphService {
-    // Override things as necessary
-}
+class MockFnService {}
 
-class MockSvgUtilService extends SvgUtilService {
-    // Override things as necessary
-}
+class MockGlyphService {}
 
-class MockFunctionService extends FnService {
-    // Override things as necessary
-}
+class MockIconService {}
 
 /**
  * ONOS GUI -- Widget -- Table Sortable Header Directive - Unit Tests
  */
 describe('SortableHeaderDirective', () => {
-    let gs: MockGlyphService;
-    let sus: MockSvgUtilService;
-    let icon: IconService;
     let log: LogService;
-    let fs: MockFunctionService;
-    let ar: ActivatedRoute;
-    let directive: SortableHeaderDirective;
 
     beforeEach(() => {
-        log = new LogService();
-        ar = new ActivatedRoute();
-        fs = new MockFunctionService(ar, log);
-        gs = new MockGlyphService(log);
-        sus = new MockSvgUtilService(fs, log);
-        icon = new IconService(gs, log, sus);
-        directive = new SortableHeaderDirective(icon, log);
+        log = new ConsoleLoggerService();
+
+        TestBed.configureTestingModule({
+            providers: [ SortableHeaderDirective,
+                { provide: FnService, useClass: MockFnService },
+                { provide: LogService, useValue: log },
+                { provide: GlyphService, useClass: MockGlyphService },
+                { provide: IconService, useClass: MockIconService },
+            ]
+        });
     });
 
     afterEach(() => {
         log = null;
-        icon = null;
-        directive = null;
     });
 
-    it('should create an instance', () => {
+    it('should create an instance', inject([SortableHeaderDirective], (directive: SortableHeaderDirective) => {
         expect(directive).toBeTruthy();
-    });
+    }));
 });

@@ -24,43 +24,43 @@ declare const InstallTrigger: any;
 // TODO Move all this trie stuff to its own class
 // Angular>=2 Tightened up on types to avoid compiler errors
 interface TrieC {
-    p: any,
-    s: string[]
+    p: any;
+    s: string[];
 }
 // trie operation
 function _trieOp(op: string, trie, word: string, data) {
-    var p = trie,
-        w: string = word.toUpperCase(),
-        s: Array<string> = w.split(''),
-        c:TrieC = { p: p, s: s },
-        t = [],
-        x: number = 0,
-        f1 = op === '+' ? add : probe,
-        f2 = op === '+' ? insert : remove;
+    const p = trie;
+    const w: string = word.toUpperCase();
+    const s: Array<string> = w.split('');
+    let c: TrieC = { p: p, s: s };
+    let t = [];
+    let  x = 0;
+    const f1 = op === '+' ? add : probe;
+    const f2 = op === '+' ? insert : remove;
 
-    function add(c):TrieC {
-        var q = c.s.shift(),
-            np = c.p[q];
+    function add(cAdded): TrieC {
+        const q = cAdded.s.shift();
+        let np = cAdded.p[q];
 
         if (!np) {
-            c.p[q] = {};
-            np = c.p[q];
+            cAdded.p[q] = {};
+            np = cAdded.p[q];
             x = 1;
         }
-        return { p: np, s: c.s };
+        return { p: np, s: cAdded.s };
     }
 
-    function probe(c):TrieC {
-        var q = c.s.shift(),
-            k:number = Object.keys(c.p).length,
-            np = c.p[q];
+    function probe(cProbed): TrieC {
+        const q = cProbed.s.shift();
+        const k: number = Object.keys(cProbed.p).length;
+        const np = cProbed.p[q];
 
-        t.push({ q: q, k: k, p: c.p });
+        t.push({ q: q, k: k, p: cProbed.p });
         if (!np) {
             t = [];
             return { p: [], s: [] };
         }
-        return { p: np, s: c.s };
+        return { p: np, s: cProbed.s };
     }
 
     function insert() {
@@ -72,7 +72,7 @@ function _trieOp(op: string, trie, word: string, data) {
         if (t.length) {
             t = t.reverse();
             while (t.length) {
-                let d = t.shift();
+                const d = t.shift();
                 delete d.p[d.q];
                 if (d.k > 1) {
                     t = [];
@@ -109,9 +109,9 @@ function removeFromTrie(trie, word) {
 //    -1 for a partial match (word is a prefix to an existing word)
 //    data for the word for an exact match
 function trieLookup(trie, word) {
-    var s = word.toUpperCase().split(''),
-        p = trie,
-        n;
+    const s = word.toUpperCase().split('');
+    let p = trie;
+    let n;
 
     while (s.length) {
         n = s.shift();
@@ -142,10 +142,11 @@ export class FnService {
         private log: LogService
     ) {
         this.route.queryParams.subscribe(params => {
-            let debugparam: string = params['debug'];
+            const debugparam: string = params['debug'];
+            log.debug('Param:', debugparam);
             this.parseDebugFlags(debugparam);
         });
-        log.debug("FnService constructed");
+        log.debug('FnService constructed');
     }
 
     isF(f) {
@@ -174,8 +175,8 @@ export class FnService {
      * Returns true if current browser determined to be a mobile device
      */
     isMobile() {
-        var ua = window.navigator.userAgent,
-            patt = /iPhone|iPod|iPad|Silk|Android|BlackBerry|Opera Mini|IEMobile/;
+        const ua = window.navigator.userAgent;
+        const patt = /iPhone|iPod|iPad|Silk|Android|BlackBerry|Opera Mini|IEMobile/;
         return patt.test(ua);
     }
 
@@ -183,14 +184,21 @@ export class FnService {
      * Returns true if the current browser determined to be Chrome
      */
     isChrome() {
-        let isChromium = (window as any).chrome;
-        let vendorName = window.navigator.vendor;
+        const isChromium = (window as any).chrome;
+        const vendorName = window.navigator.vendor;
 
-        let isOpera = window.navigator.userAgent.indexOf('OPR') > -1;
+        const isOpera = window.navigator.userAgent.indexOf('OPR') > -1;
         return (isChromium !== null &&
         isChromium !== undefined &&
         vendorName === 'Google Inc.' &&
-        isOpera == false);
+        isOpera === false);
+    }
+
+    isChromeHeadless() {
+        const vendorName = window.navigator.vendor;
+        const headlessChrome = window.navigator.userAgent.indexOf('HeadlessChrome') > -1;
+
+        return (vendorName === 'Google Inc.' && headlessChrome === true);
     }
 
     /**
@@ -226,8 +234,8 @@ export class FnService {
     }
 
     parseDebugFlags(dbgstr: string): void {
-        let bits = dbgstr ? dbgstr.split(',') : [];
-        bits.forEach(function (key) {
+        const bits = dbgstr ? dbgstr.split(',') : [];
+        bits.forEach((key) => {
             this.debugFlags.set(key, true);
         });
         this.log.debug('Debug flags:', dbgstr);

@@ -15,19 +15,43 @@
  */
 import { TestBed, inject } from '@angular/core/testing';
 
+import { LogService } from '../../../../app/log.service';
+import { ConsoleLoggerService } from '../../../../app/consolelogger.service';
 import { QuickHelpService } from '../../../../app/fw/layer/quickhelp.service';
+import { FnService } from '../../../../app/fw/util/fn.service';
+import { LionService } from '../../../../app/fw/util/lion.service';
+import { LoadingService } from '../../../../app/fw/layer/loading.service';
+import { SvgUtilService } from '../../../../app/fw/svg/svgutil.service';
+
+class MockFnService {}
+
+class MockLionService {}
+
+class MockLoadingService {}
+
+class MockSvgUtilService {}
 
 /**
  * ONOS GUI -- Layer -- Quick Help Service - Unit Tests
  */
 describe('QuickHelpService', () => {
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [QuickHelpService]
-    });
-  });
+    let log: LogService;
 
-  it('should be created', inject([QuickHelpService], (service: QuickHelpService) => {
-    expect(service).toBeTruthy();
-  }));
+    beforeEach(() => {
+        log = new ConsoleLoggerService();
+
+        TestBed.configureTestingModule({
+            providers: [QuickHelpService,
+                { provide: LogService, useValue: log },
+                { provide: FnService, useClass: MockFnService },
+                { provide: LionService, useClass: MockLionService },
+                { provide: LoadingService, useClass: MockLoadingService },
+                { provide: SvgUtilService, useClass: MockSvgUtilService },
+            ]
+        });
+    });
+
+    it('should be created', inject([QuickHelpService], (service: QuickHelpService) => {
+        expect(service).toBeTruthy();
+    }));
 });

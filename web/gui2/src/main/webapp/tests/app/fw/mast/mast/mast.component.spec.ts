@@ -15,29 +15,50 @@
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
+import { LogService } from '../../../../../app/log.service';
+import { ConsoleLoggerService } from '../../../../../app/consolelogger.service';
 import { MastComponent } from '../../../../../app/fw/mast/mast/mast.component';
+import { IconComponent } from '../../../../../app/fw/svg/icon/icon.component';
+import { DialogService } from '../../../../../app/fw/layer/dialog.service';
+import { LionService } from '../../../../../app/fw/util/lion.service';
+import { IconService } from '../../../../../app/fw/svg/icon.service';
+import { NavService } from '../../../../../app/fw/nav/nav.service';
+import { WebSocketService } from '../../../../../app/fw/remote/websocket.service';
+
+class MockDialogService {}
+
+class MockLionService {}
+
+class MockNavService {}
+
+class MockWebSocketService {}
+
+class MockIconService {}
 
 /**
  * ONOS GUI -- Masthead Controller - Unit Tests
  */
 describe('MastComponent', () => {
-  let component: MastComponent;
-  let fixture: ComponentFixture<MastComponent>;
+    let log: LogService;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [ MastComponent ]
-    })
-    .compileComponents();
-  }));
+    beforeEach(() => {
+        log = new ConsoleLoggerService();
+        TestBed.configureTestingModule({
+            declarations: [ MastComponent, IconComponent ],
+            providers: [
+                { provide: DialogService, useClass: MockDialogService },
+                { provide: LionService, useClass: MockLionService },
+                { provide: LogService, useValue: log },
+                { provide: NavService, useClass: MockNavService },
+                { provide: WebSocketService, useClass: MockWebSocketService },
+                { provide: IconService, useClass: MockIconService },
+            ]
+        });
+    });
 
-  beforeEach(() => {
-    fixture = TestBed.createComponent(MastComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
-
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
+    it('should create', () => {
+        const fixture = TestBed.createComponent(MastComponent);
+        const component = fixture.componentInstance;
+        expect(component).toBeTruthy();
+    });
 });

@@ -15,19 +15,42 @@
  */
 import { TestBed, inject } from '@angular/core/testing';
 
+import { LogService } from '../../../../app/log.service';
+import { ConsoleLoggerService } from '../../../../app/consolelogger.service';
 import { LoadingService } from '../../../../app/fw/layer/loading.service';
+import { FnService } from '../../../../app/fw/util/fn.service';
+import { ThemeService } from '../../../../app/fw/util/theme.service';
+import { WebSocketService } from '../../../../app/fw/remote/websocket.service';
+
+class MockFnService {
+    debug() {
+    }
+}
+
+class MockThemeService {}
+
+class MockWebSocketService {}
 
 /**
  * ONOS GUI -- Layer -- Loading Service - Unit Tests
  */
 describe('LoadingService', () => {
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [LoadingService]
-    });
-  });
+    let log: LogService;
 
-  it('should be created', inject([LoadingService], (service: LoadingService) => {
-    expect(service).toBeTruthy();
-  }));
+    beforeEach(() => {
+        log = new ConsoleLoggerService();
+
+        TestBed.configureTestingModule({
+            providers: [LoadingService,
+                { provide: LogService, useValue: log },
+                { provide: FnService, useClass: MockFnService },
+                { provide: ThemeService, useClass: MockThemeService },
+                { provide: WebSocketService, useClass: MockWebSocketService },
+            ]
+        });
+    });
+
+    it('should be created', inject([LoadingService], (service: LoadingService) => {
+        expect(service).toBeTruthy();
+    }));
 });

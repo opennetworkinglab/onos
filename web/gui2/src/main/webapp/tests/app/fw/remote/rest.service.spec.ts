@@ -15,19 +15,35 @@
  */
 import { TestBed, inject } from '@angular/core/testing';
 
+import { LogService } from '../../../../app/log.service';
+import { ConsoleLoggerService } from '../../../../app/consolelogger.service';
 import { RestService } from '../../../../app/fw/remote/rest.service';
+import { FnService } from '../../../../app/fw/util/fn.service';
+import { UrlFnService } from '../../../../app/fw/remote/urlfn.service';
+
+class MockFnService {}
+
+class MockUrlFnService {}
 
 /**
  * ONOS GUI -- Remote -- REST Service - Unit Tests
  */
 describe('RestService', () => {
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [RestService]
-    });
-  });
+    let log: LogService;
 
-  it('should be created', inject([RestService], (service: RestService) => {
-    expect(service).toBeTruthy();
-  }));
+    beforeEach(() => {
+        log = new ConsoleLoggerService();
+
+        TestBed.configureTestingModule({
+            providers: [RestService,
+                { provide: FnService, useClass: MockFnService },
+                { provide: LogService, useValue: log },
+                { provide: UrlFnService, useClass: MockUrlFnService },
+            ]
+        });
+    });
+
+    it('should be created', inject([RestService], (service: RestService) => {
+        expect(service).toBeTruthy();
+    }));
 });

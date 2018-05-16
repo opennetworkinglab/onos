@@ -15,19 +15,39 @@
  */
 import { TestBed, inject } from '@angular/core/testing';
 
+import { LogService } from '../../../../app/log.service';
+import { ConsoleLoggerService } from '../../../../app/consolelogger.service';
 import { ChartBuilderService } from '../../../../app/fw/widget/chartbuilder.service';
+import { LoadingService } from '../../../../app/fw/layer/loading.service';
+import { FnService } from '../../../../app/fw/util/fn.service';
+import { WebSocketService } from '../../../../app/fw/remote/websocket.service';
+
+class MockFnService {}
+
+class MockLoadingService {}
+
+class MockWebSocketService {}
 
 /**
  * ONOS GUI -- Widget -- Chart Builder Service - Unit Tests
  */
 describe('ChartBuilderService', () => {
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [ChartBuilderService]
-    });
-  });
+    let log: LogService;
 
-  it('should be created', inject([ChartBuilderService], (service: ChartBuilderService) => {
-    expect(service).toBeTruthy();
-  }));
+    beforeEach(() => {
+        log = new ConsoleLoggerService();
+
+        TestBed.configureTestingModule({
+            providers: [ChartBuilderService,
+                { provide: LogService, useValue: log },
+                { provide: FnService, useClass: MockFnService },
+                { provide: LoadingService, useClass: MockLoadingService },
+                { provide: WebSocketService, useClass: MockWebSocketService },
+            ]
+        });
+    });
+
+    it('should be created', inject([ChartBuilderService], (service: ChartBuilderService) => {
+        expect(service).toBeTruthy();
+    }));
 });

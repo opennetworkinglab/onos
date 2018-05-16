@@ -15,19 +15,39 @@
  */
 import { TestBed, inject } from '@angular/core/testing';
 
+import { LogService } from '../../../../app/log.service';
+import { ConsoleLoggerService } from '../../../../app/consolelogger.service';
 import { DialogService } from '../../../../app/fw/layer/dialog.service';
+import { FnService } from '../../../../app/fw/util/fn.service';
+import { KeyService } from '../../../../app/fw/util/key.service';
+import { PanelService } from '../../../../app/fw/layer/panel.service';
+
+class MockFnService {}
+
+class MockKeyService {}
+
+class MockPanelService {}
 
 /**
  * ONOS GUI -- Layer -- Dialog Service - Unit Tests
  */
 describe('DialogService', () => {
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [DialogService]
-    });
-  });
+    let log: LogService;
 
-  it('should be created', inject([DialogService], (service: DialogService) => {
-    expect(service).toBeTruthy();
-  }));
+    beforeEach(() => {
+        log = new ConsoleLoggerService();
+
+        TestBed.configureTestingModule({
+            providers: [DialogService,
+                { provide: LogService, useValue: log },
+                { provide: FnService, useClass: MockFnService },
+                { provide: KeyService, useClass: MockKeyService },
+                { provide: PanelService, useClass: MockPanelService },
+            ]
+        });
+    });
+
+    it('should be created', inject([DialogService], (service: DialogService) => {
+        expect(service).toBeTruthy();
+    }));
 });

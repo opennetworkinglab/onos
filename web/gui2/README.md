@@ -1,19 +1,51 @@
 # ONOS GUI 2.0.0
 
-This project is based on __Angular 5__, as an alternative to the 1.0.0 GUI which was based off __AngularJS 1.3.5__
+This project is based on __[Angular 6](https://angular.io/docs)__, as an alternative to the 1.0.0 GUI which was based 
+off __[AngularJS 1.3.5](https://angularjs.org/)__
 
-To use the new structure on your system, you need to 
-1. Change directory in to onos/web/gui - this is where you will run the `ng` command from.
-1. Run `npm install` from this folder to add dependencies
-1. Run `npm install -g @angular/cli` to install the `ng` command
-1. Run `npm install -g @compodoc/compodoc` to install Compodoc which can generate documentation 
-1. Add the following to your PATH environment variable `$ONOS_ROOT/buck-out/gen/web/gui2/node-bin-v8.11.1/node-binaries/bin`
+Building, testing and running lint are all handled by BUCK. See web/gui2/BUCK file.
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 1.7.4.
+To use this new GUI you simply have to start the GUI in a running ONOS at the __onos>__ cli:
+```
+feature:install onos-gui2
+```
+and the gui will be accessible at [http://localhost:8181/onos/ui2/dist/](http://localhost:8181/onos/ui2/dist/)
+
+# Development
+The project relies on [Angular CLI](https://github.com/angular/angular-cli) v6 to simplify development of the browser side code.
+
+This allows you to develop the Angular 6 Type Script code independent of ONOS in a separate container. At the current moment (May '18) the
+implementation of WebSockets and REST calls is not done, so there is __no__ requirement to run ONOS in the background.
+This will change in the coming weeks.
+
+There is no need to install node, npm or ng again on your system, and indeed if they are already installed, it's best
+to use the versions of these that's used by BUCK. To do this add to the __start__ of your PATH environment variable. 
+```
+~/onos/buck-out/gen/web/gui2/node-bin-v8.11.1/node-binaries/bin
+
+```
+On Linux:
+```
+export PATH=~/onos/buck-out/gen/web/gui2/node-bin-v8.11.1/node-binaries/bin:$PATH
+``` 
+
+After this you should be able to run 'ng -v' and see:
+```
+Angular CLI: 6.0.0
+Node: 8.11.1
+OS: linux x64
+```
+
+To use Angular CLI for development on your system, you need to: 
+1. Change directory in to onos/web/gui2 - this is where you will run the `ng` command from.
+2. Run `npm install` once from this folder to add dependencies
+3. Then run 'ng -v' from onos/web/gui2 and an additional version should be shown __Angular: 6.0.0__
 
 ## Development server
 
 Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+
+Press Ctrl-Shift-I in Chrome and Firefox to bring up the developer tools and the browser console. 
 
 ## Code scaffolding
 
@@ -27,22 +59,26 @@ outputted folder this is copied to the sources root directory, where as files
 are copied to WEB-INF/classes. To get around this I put all the outputted stuff in to 
 ```dist``` and it gets copied to /WEB-INF/classes/dist/ )
 
-To start the GUI in a running ONOS at the __onos>__ cli
-```
-feature:install onos-gui2
-```
-and the gui will be accessible at [http://localhost:8181/onos/ui2/dist/](http://localhost:8181/onos/ui2/dist/)
+To run it manually in Angular CLI run `ng build`
 
 ## Running unit tests
+This is automatically done when using "onos-buck test" - see the web/gui2/BUCK file for more details.
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+To run it manually in Angular CLI run `ng test --watch=true` to execute the unit tests via [Karma](https://karma-runner.github.io).
+
+## Running checkstyle
+This is automatically done when using "onos-buck test" - see the web/gui2/BUCK file for more details.
+
+To run it manually in Angular CLI run `ng lint` to run codelyzer on your code, according to the rules in __tslint.json__
 
 ## Running end-to-end tests
 
-Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protractortest.org/).
+To run it manually in Angular CLI run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protractortest.org/).
 
 ## Generating documentation
-Run `npm run compodoc` to generate documentation via [Compodoc](https://github.com/compodoc/compodoc)
+This is automatically done when using "onos-buck onos build" - see the web/gui2/BUCK file for more details.
+
+To run it manually in Angular CLI run `npm run compodoc` to generate documentation via [Compodoc](https://github.com/compodoc/compodoc)
 
 ## Further help
 

@@ -15,29 +15,87 @@
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
+import { LogService } from '../../../../app/log.service';
+import { ConsoleLoggerService } from '../../../../app/consolelogger.service';
 import { DeviceComponent } from '../../../../app/view/device/device.component';
+import { DetailsPanelService } from '../../../../app/fw/layer/detailspanel.service';
+import { FnService } from '../../../../app/fw/util/fn.service';
+import { IconService } from '../../../../app/fw/svg/icon.service';
+import { KeyService } from '../../../../app/fw/util/key.service';
+import { LoadingService } from '../../../../app/fw/layer/loading.service';
+import { NavService } from '../../../../app/fw/nav/nav.service';
+import { MastService } from '../../../../app/fw/mast/mast.service';
+import { PanelService } from '../../../../app/fw/layer/panel.service';
+import { TableBuilderService } from '../../../../app/fw/widget/tablebuilder.service';
+import { TableDetailService } from '../../../../app/fw/widget/tabledetail.service';
+import { WebSocketService } from '../../../../app/fw/remote/websocket.service';
+
+class MockDetailsPanelService {}
+
+class MockFnService {}
+
+class MockIconService {}
+
+class MockKeyService {}
+
+class MockLoadingService {
+    startAnim() {
+        // Do nothing
+    }
+}
+
+class MockNavService {}
+
+class MockMastService {}
+
+class MockPanelService {}
+
+class MockTableBuilderService {}
+
+class MockTableDetailService {}
+
+class MockWebSocketService {}
 
 /**
  * ONOS GUI -- Device View Module - Unit Tests
  */
 describe('DeviceComponent', () => {
-  let component: DeviceComponent;
-  let fixture: ComponentFixture<DeviceComponent>;
+    let log: LogService;
+    let component: DeviceComponent;
+    let fixture: ComponentFixture<DeviceComponent>;
+    const windowMock = <any>{ location: <any> { hostname: 'localhost' } };
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [ DeviceComponent ]
-    })
-    .compileComponents();
-  }));
+    beforeEach(async(() => {
+        log = new ConsoleLoggerService();
 
-  beforeEach(() => {
-    fixture = TestBed.createComponent(DeviceComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
+        TestBed.configureTestingModule({
+            declarations: [ DeviceComponent ],
+            providers: [
+                { provide: DetailsPanelService, useClass: MockDetailsPanelService },
+                { provide: FnService, useClass: MockFnService },
+                { provide: IconService, useClass: MockIconService },
+                { provide: KeyService, useClass: MockKeyService },
+                { provide: LoadingService, useClass: MockLoadingService },
+                { provide: MastService, useClass: MockMastService },
+                { provide: NavService, useClass: MockNavService },
+                { provide: LogService, useValue: log },
+                { provide: PanelService, useClass: MockPanelService },
+                { provide: TableBuilderService, useClass: MockTableBuilderService },
+                { provide: TableDetailService, useClass: MockTableDetailService },
+                { provide: WebSocketService, useClass: MockWebSocketService },
+                { provide: Window, useValue: windowMock },
+             ]
+        })
+        .compileComponents();
+    }));
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
+    beforeEach(() => {
+        fixture = TestBed.createComponent(DeviceComponent);
+            component = fixture.componentInstance;
+        fixture.detectChanges();
+    });
+
+    it('should create', () => {
+        expect(component).toBeTruthy();
+    });
 });

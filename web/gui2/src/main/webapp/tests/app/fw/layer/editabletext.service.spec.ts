@@ -15,19 +15,35 @@
  */
 import { TestBed, inject } from '@angular/core/testing';
 
+import { LogService } from '../../../../app/log.service';
+import { ConsoleLoggerService } from '../../../../app/consolelogger.service';
 import { EditableTextService } from '../../../../app/fw/layer/editabletext.service';
+import { KeyService } from '../../../../app/fw/util/key.service';
+import { WebSocketService } from '../../../../app/fw/remote/websocket.service';
+
+class MockKeyService {}
+
+class MockWebSocketService {}
 
 /**
  * ONOS GUI -- Layer -- Editable Text Service - Unit Tests
  */
 describe('EditableTextService', () => {
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [EditableTextService]
-    });
-  });
+    let log: LogService;
 
-  it('should be created', inject([EditableTextService], (service: EditableTextService) => {
-    expect(service).toBeTruthy();
-  }));
+    beforeEach(() => {
+        log = new ConsoleLoggerService();
+
+        TestBed.configureTestingModule({
+            providers: [EditableTextService,
+                { provide: LogService, useValue: log },
+                { provide: KeyService, useClass: MockKeyService },
+                { provide: WebSocketService, useClass: MockWebSocketService },
+            ]
+        });
+    });
+
+    it('should be created', inject([EditableTextService], (service: EditableTextService) => {
+        expect(service).toBeTruthy();
+    }));
 });

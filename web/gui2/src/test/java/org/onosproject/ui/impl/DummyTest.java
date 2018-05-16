@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-present Open Networking Foundation
+ * Copyright 2018-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,30 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable } from '@angular/core';
-import { LogService } from '../../log.service';
-
+package org.onosproject.ui.impl;
 
 /**
- * ONOS GUI -- Util -- Theme Service
+ * This is just a dummy file to get BUCK going.
  */
-@Injectable()
-export class ThemeService {
-    themes: string[] = ['light', 'dark'];
-    thidx = 0;
-
-    constructor(
-        private log: LogService
-    ) {
-        this.log.debug('ThemeService constructed');
-    }
-
-    getTheme(): string {
-        return this.themes[this.thidx];
-    }
-
-    themeStr(): string {
-        return this.themes.join(' ');
-    }
-
+public class DummyTest {
 }

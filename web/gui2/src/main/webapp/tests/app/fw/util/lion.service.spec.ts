@@ -16,19 +16,31 @@
  */
 import { TestBed, inject } from '@angular/core/testing';
 
+import { LogService } from '../../../../app/log.service';
+import { ConsoleLoggerService } from '../../../../app/consolelogger.service';
 import { LionService } from '../../../../app/fw/util/lion.service';
+import { WebSocketService } from '../../../../app/fw/remote/websocket.service';
+
+class MockWebSocketService {}
 
 /**
  * ONOS GUI -- Lion -- Localization Utilities - Unit Tests
  */
 describe('LionService', () => {
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [LionService]
-    });
-  });
+    let log: LogService;
 
-  it('should be created', inject([LionService], (service: LionService) => {
-    expect(service).toBeTruthy();
-  }));
+    beforeEach(() => {
+        log = new ConsoleLoggerService();
+
+        TestBed.configureTestingModule({
+            providers: [LionService,
+                { provide: LogService, useValue: log },
+                { provide: WebSocketService, useClass: MockWebSocketService },
+            ]
+        });
+    });
+
+    it('should be created', inject([LionService], (service: LionService) => {
+        expect(service).toBeTruthy();
+    }));
 });

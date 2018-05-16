@@ -13,48 +13,57 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DetectBrowserDirective } from '../../app/detectbrowser.directive';
+import { TestBed, inject } from '@angular/core/testing';
+
 import { LogService } from '../../app/log.service';
+import { ConsoleLoggerService } from '../../app/consolelogger.service';
+import { DetectBrowserDirective } from '../../app/detectbrowser.directive';
+import { ActivatedRoute, Params } from '@angular/router';
 import { FnService } from '../../app/fw/util/fn.service';
 import { OnosService } from '../../app/onos.service';
-import { ActivatedRoute, Router} from '@angular/router';
+import { of } from 'rxjs';
 
-class MockOnosService extends OnosService {
-    // Override things as necessary
+class MockFnService extends FnService {
+    constructor(ar: ActivatedRoute, log: LogService) {
+        super(ar, log);
+    }
 }
 
-class MockFunctionService extends FnService {
-    // Override things as necessary
+class MockOnosService {}
+
+class MockActivatedRoute extends ActivatedRoute {
+    constructor(params: Params) {
+        super();
+        this.queryParams = of(params);
+    }
 }
 
 /**
  * ONOS GUI -- Detect Browser Directive - Unit Tests
  */
 describe('DetectBrowserDirective', () => {
-
-    let onos: MockOnosService;
-    let fs: MockFunctionService;
     let log: LogService;
     let ar: ActivatedRoute;
-    let directive: DetectBrowserDirective;
 
     beforeEach(() => {
-        log = new LogService();
-        ar = new ActivatedRoute();
-        onos = new MockOnosService(log);
-        fs = new MockFunctionService(ar, log);
-        directive = new DetectBrowserDirective(fs, log, onos);
+        log = new ConsoleLoggerService();
+        ar = new MockActivatedRoute(['debug', 'DetectBrowserDirective']);
+
+        TestBed.configureTestingModule({
+            providers: [ DetectBrowserDirective,
+                { provide: FnService, useValue: new MockFnService(ar, log) },
+                { provide: LogService, useValue: log },
+                { provide: OnosService, useClass: MockOnosService },
+                { provide: Document, useValue: document },
+            ]
+        });
     });
 
     afterEach(() => {
-        onos = null;
-        fs = null;
         log = null;
-        ar = null;
-        directive = null;
     });
 
-    it('should create an instance', () => {
+    it('should create an instance', inject([DetectBrowserDirective], (directive: DetectBrowserDirective) => {
         expect(directive).toBeTruthy();
-    });
+    }));
 });

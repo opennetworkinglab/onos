@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { Directive } from '@angular/core';
+import { LogService } from '../../log.service';
 
 /**
  * ONOS GUI -- Apps -- Trigger Form Directive
@@ -23,6 +24,10 @@ import { Directive } from '@angular/core';
 })
 export class TriggerFormDirective {
 
-  constructor() { }
+    constructor(
+        private log: LogService,
+    ) {
+        this.log.debug('TriggerFormDirective constructed');
+    }
 
 }

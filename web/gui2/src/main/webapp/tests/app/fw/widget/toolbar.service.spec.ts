@@ -15,19 +15,43 @@
  */
 import { TestBed, inject } from '@angular/core/testing';
 
+import { LogService } from '../../../../app/log.service';
+import { ConsoleLoggerService } from '../../../../app/consolelogger.service';
 import { ToolbarService } from '../../../../app/fw/widget/toolbar.service';
+import { ButtonService } from '../../../../app/fw/widget/button.service';
+import { FnService } from '../../../../app/fw/util/fn.service';
+import { IconService } from '../../../../app/fw/svg/icon.service';
+import { PanelService } from '../../../../app/fw/layer/panel.service';
+
+class MockButtonService {}
+
+class MockIconService {}
+
+class MockFnService {}
+
+class MockPanelService {}
 
 /**
  * ONOS GUI -- Widget -- Toolbar Service - Unit Tests
  */
 describe('ToolbarService', () => {
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [ToolbarService]
-    });
-  });
+    let log: LogService;
 
-  it('should be created', inject([ToolbarService], (service: ToolbarService) => {
-    expect(service).toBeTruthy();
-  }));
+    beforeEach(() => {
+        log = new ConsoleLoggerService();
+
+        TestBed.configureTestingModule({
+            providers: [ToolbarService,
+                { provide: LogService, useValue: log },
+                { provide: ButtonService, useClass: MockButtonService },
+                { provide: IconService, useClass: MockIconService },
+                { provide: FnService, useClass: MockFnService },
+                { provide: PanelService, useClass: MockPanelService },
+            ]
+        });
+    });
+
+    it('should be created', inject([ToolbarService], (service: ToolbarService) => {
+        expect(service).toBeTruthy();
+    }));
 });

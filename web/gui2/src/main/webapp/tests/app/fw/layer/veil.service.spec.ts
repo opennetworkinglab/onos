@@ -15,19 +15,43 @@
  */
 import { TestBed, inject } from '@angular/core/testing';
 
+import { LogService } from '../../../../app/log.service';
+import { ConsoleLoggerService } from '../../../../app/consolelogger.service';
+import { FnService } from '../../../../app/fw/util/fn.service';
+import { GlyphService } from '../../../../app/fw/svg/glyph.service';
+import { KeyService } from '../../../../app/fw/util/key.service';
 import { VeilService } from '../../../../app/fw/layer/veil.service';
+import { WebSocketService } from '../../../../app/fw/remote/websocket.service';
+
+class MockFnService {}
+
+class MockGlyphService {}
+
+class MockKeyService {}
+
+class MockWebSocketService {}
 
 /**
  * ONOS GUI -- Layer -- Veil Service - Unit Tests
  */
 describe('VeilService', () => {
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [VeilService]
-    });
-  });
+    let log: LogService;
 
-  it('should be created', inject([VeilService], (service: VeilService) => {
-    expect(service).toBeTruthy();
-  }));
+    beforeEach(() => {
+        log = new ConsoleLoggerService();
+
+        TestBed.configureTestingModule({
+            providers: [VeilService,
+                { provide: FnService, useClass: MockFnService },
+                { provide: GlyphService, useClass: MockGlyphService },
+                { provide: KeyService, useClass: MockKeyService },
+                { provide: LogService, useValue: log },
+                { provide: WebSocketService, useClass: MockWebSocketService },
+            ]
+        });
+    });
+
+    it('should be created', inject([VeilService], (service: VeilService) => {
+        expect(service).toBeTruthy();
+    }));
 });

@@ -15,19 +15,31 @@
  */
 import { TestBed, inject } from '@angular/core/testing';
 
+import { LogService } from '../../../../app/log.service';
+import { ConsoleLoggerService } from '../../../../app/consolelogger.service';
 import { TableDetailService } from '../../../../app/fw/widget/tabledetail.service';
+import { FnService } from '../../../../app/fw/util/fn.service';
+
+class MockFnService {}
 
 /**
  * ONOS GUI -- Widget -- Table Detail Service - Unit Tests
  */
 describe('TableDetailService', () => {
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [TableDetailService]
-    });
-  });
+    let log: LogService;
 
-  it('should be created', inject([TableDetailService], (service: TableDetailService) => {
-    expect(service).toBeTruthy();
-  }));
+    beforeEach(() => {
+        log = new ConsoleLoggerService();
+
+        TestBed.configureTestingModule({
+            providers: [TableDetailService,
+                { provide: LogService, useValue: log },
+                { provide: FnService, useClass: MockFnService },
+            ]
+        });
+    });
+
+    it('should be created', inject([TableDetailService], (service: TableDetailService) => {
+        expect(service).toBeTruthy();
+    }));
 });

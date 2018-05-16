@@ -15,19 +15,51 @@
  */
 import { TestBed, inject } from '@angular/core/testing';
 
+import { LogService } from '../../../../app/log.service';
+import { ConsoleLoggerService } from '../../../../app/consolelogger.service';
 import { DetailsPanelService } from '../../../../app/fw/layer/detailspanel.service';
+import { EditableTextService } from '../../../../app/fw/layer/editabletext.service';
+import { FnService } from '../../../../app/fw/util/fn.service';
+import { IconService } from '../../../../app/fw/svg/icon.service';
+import { MastService } from '../../../../app/fw/mast/mast.service';
+import { PanelService } from '../../../../app/fw/layer/panel.service';
+import { WebSocketService } from '../../../../app/fw/remote/websocket.service';
+
+class MockEditableTextService {}
+
+class MockIconService {}
+
+class MockFnService {}
+
+class MockMastService {}
+
+class MockPanelService {}
+
+class MockWebSocketService {}
 
 /**
  * ONOS GUI -- Layer -- Details Panel Service - Unit Tests
  */
 describe('DetailsPanelService', () => {
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [DetailsPanelService]
-    });
-  });
+    let log: LogService;
 
-  it('should be created', inject([DetailsPanelService], (service: DetailsPanelService) => {
-    expect(service).toBeTruthy();
-  }));
+    beforeEach(() => {
+        log = new ConsoleLoggerService();
+
+        TestBed.configureTestingModule({
+            providers: [DetailsPanelService,
+                { provide: EditableTextService, useClass: MockEditableTextService },
+                { provide: FnService, useClass: MockFnService },
+                { provide: IconService, useClass: MockIconService },
+                { provide: LogService, useValue: log },
+                { provide: MastService, useClass: MockMastService },
+                { provide: PanelService, useClass: MockPanelService },
+                { provide: WebSocketService, useClass: MockWebSocketService },
+            ]
+        });
+    });
+
+    it('should be created', inject([DetailsPanelService], (service: DetailsPanelService) => {
+        expect(service).toBeTruthy();
+    }));
 });

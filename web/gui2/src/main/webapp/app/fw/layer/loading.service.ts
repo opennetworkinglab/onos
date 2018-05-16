@@ -36,7 +36,7 @@ const waitDelay = 500;
 @Injectable()
 export class LoadingService {
     images: any[] = [];
-    idx: number = 0;
+    idx = 0;
     img: any;
     theme: string;
     task: any;
@@ -60,7 +60,7 @@ export class LoadingService {
         let idx: number;
 
         this.dbg('preload images start...');
-        for (idx=1; idx<=nImgs; idx++) {
+        for (idx = 1; idx <= nImgs ; idx++) {
             this.addImg('light', idx);
             this.addImg('dark', idx);
         }
@@ -68,7 +68,7 @@ export class LoadingService {
     }
 
     addImg(theme: string, idx: number) {
-        let img = new Image();
+        const img = new Image();
         img.src = this.fname(idx, theme);
         this.images.push(img);
     }
@@ -87,7 +87,7 @@ export class LoadingService {
     startAnim() {
         this.dbg('start ANIMATION');
         this.theme = this.ts.getTheme();
-        let div = d3.select('#'+id);
+        let div = d3.select('#' + id);
         if (div.empty()) {
             div = d3.select('body')
                 .append('div')
@@ -107,7 +107,7 @@ export class LoadingService {
             clearInterval(this.task);
             this.task = null;
         }
-        d3.select('#'+id).remove();
+        d3.select('#' + id).remove();
     }
 
     // schedule function to start animation in the future

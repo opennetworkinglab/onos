@@ -15,19 +15,27 @@
  */
 import { TestBed, inject } from '@angular/core/testing';
 
+import { LogService } from '../../../../app/log.service';
+import { ConsoleLoggerService } from '../../../../app/consolelogger.service';
 import { FlashService } from '../../../../app/fw/layer/flash.service';
 
 /**
  * ONOS GUI -- Layer -- Flash Service - Unit Tests
  */
 describe('FlashService', () => {
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [FlashService]
-    });
-  });
+    let log: LogService;
 
-  it('should be created', inject([FlashService], (service: FlashService) => {
-    expect(service).toBeTruthy();
-  }));
+    beforeEach(() => {
+        log = new ConsoleLoggerService();
+
+        TestBed.configureTestingModule({
+            providers: [FlashService,
+                { provide: LogService, useValue: log },
+            ]
+        });
+    });
+
+    it('should be created', inject([FlashService], (service: FlashService) => {
+        expect(service).toBeTruthy();
+    }));
 });

@@ -15,19 +15,45 @@
  */
 import { TestBed, inject } from '@angular/core/testing';
 
+import { LogService } from '../../../../app/log.service';
+import { ConsoleLoggerService } from '../../../../app/consolelogger.service';
 import { WebSocketService } from '../../../../app/fw/remote/websocket.service';
+import { FnService } from '../../../../app/fw/util/fn.service';
+import { GlyphService } from '../../../../app/fw/svg/glyph.service';
+import { UrlFnService } from '../../../../app/fw/remote/urlfn.service';
+import { WSock } from '../../../../app/fw/remote/wsock.service';
+
+class MockFnService {}
+
+class MockGlyphService {}
+
+class MockUrlFnService {}
+
+class MockWSock {}
 
 /**
  * ONOS GUI -- Remote -- Web Socket Service - Unit Tests
  */
 describe('WebSocketService', () => {
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [WebSocketService]
-    });
-  });
+    let log: LogService;
+    const windowMock = <any>{ location: <any> { hostname: 'localhost' } };
 
-  it('should be created', inject([WebSocketService], (service: WebSocketService) => {
-    expect(service).toBeTruthy();
-  }));
+    beforeEach(() => {
+        log = new ConsoleLoggerService();
+
+        TestBed.configureTestingModule({
+            providers: [WebSocketService,
+                { provide: FnService, useClass: MockFnService },
+                { provide: LogService, useValue: log },
+                { provide: GlyphService, useClass: MockGlyphService },
+                { provide: UrlFnService, useClass: MockUrlFnService },
+                { provide: WSock, useClass: MockWSock },
+                { provide: Window, useValue: windowMock },
+            ]
+        });
+    });
+
+    it('should be created', inject([WebSocketService], (service: WebSocketService) => {
+        expect(service).toBeTruthy();
+    }));
 });

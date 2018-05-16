@@ -15,19 +15,31 @@
  */
 import { TestBed, inject } from '@angular/core/testing';
 
+import { LogService } from '../../../../app/log.service';
+import { ConsoleLoggerService } from '../../../../app/consolelogger.service';
 import { GlyphService } from '../../../../app/fw/svg/glyph.service';
+import { FnService } from '../../../../app/fw/util/fn.service';
+
+class MockFnService {}
 
 /**
  * ONOS GUI -- SVG -- Glyph Service - Unit Tests
  */
 describe('GlyphService', () => {
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [GlyphService]
-    });
-  });
+    let log: LogService;
 
-  it('should be created', inject([GlyphService], (service: GlyphService) => {
-    expect(service).toBeTruthy();
-  }));
+    beforeEach(() => {
+        log = new ConsoleLoggerService();
+
+        TestBed.configureTestingModule({
+            providers: [GlyphService,
+                { provide: FnService, useClass: MockFnService },
+                { provide: LogService, useValue: log },
+            ]
+        });
+    });
+
+    it('should be created', inject([GlyphService], (service: GlyphService) => {
+        expect(service).toBeTruthy();
+    }));
 });

@@ -15,19 +15,31 @@
  */
 import { TestBed, inject } from '@angular/core/testing';
 
+import { LogService } from '../../../../app/log.service';
+import { ConsoleLoggerService } from '../../../../app/consolelogger.service';
 import { TooltipService } from '../../../../app/fw/widget/tooltip.service';
+import { FnService } from '../../../../app/fw/util/fn.service';
+
+class MockFnService {}
 
 /**
  * ONOS GUI -- Widget -- Tooltip Service - Unit Tests
  */
 describe('TooltipService', () => {
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [TooltipService]
-    });
-  });
+    let log: LogService;
 
-  it('should be created', inject([TooltipService], (service: TooltipService) => {
-    expect(service).toBeTruthy();
-  }));
+    beforeEach(() => {
+        log = new ConsoleLoggerService();
+
+        TestBed.configureTestingModule({
+            providers: [TooltipService,
+                { provide: LogService, useValue: log },
+                { provide: FnService, useClass: MockFnService },
+            ]
+        });
+    });
+
+    it('should be created', inject([TooltipService], (service: TooltipService) => {
+        expect(service).toBeTruthy();
+    }));
 });

@@ -13,44 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { TestBed, inject } from '@angular/core/testing';
+
 import { TableResizeDirective } from '../../../../app/fw/widget/tableresize.directive';
 import { LogService } from '../../../../app/log.service';
+import { ConsoleLoggerService } from '../../../../app/consolelogger.service';
 import { FnService } from '../../../../app/fw/util/fn.service';
 import { MastService } from '../../../../app/fw/mast/mast.service';
-import { ActivatedRoute, Router} from '@angular/router';
 
-class MockFunctionService extends FnService {
-    // Override things as necessary
-}
+class MockFnService {}
+
+class MockMastService {}
 
 /**
  * ONOS GUI -- Widget -- Table Resize Directive - Unit Tests
  */
 describe('TableResizeDirective', () => {
-
-    let fs: MockFunctionService;
     let log: LogService;
-    let ar: ActivatedRoute;
-    let ms: MastService;
-    let directive: TableResizeDirective;
 
     beforeEach(() => {
-        log = new LogService();
-        ar = new ActivatedRoute();
-        fs = new MockFunctionService(ar, log);
-        ms = new MastService(fs, log);
-        directive = new TableResizeDirective(fs, log, ms);
+        log = new ConsoleLoggerService();
+
+        TestBed.configureTestingModule({
+            providers: [ TableResizeDirective,
+                { provide: FnService, useClass: MockFnService },
+                { provide: LogService, useValue: log },
+                { provide: MastService, useClass: MockMastService },
+            ]
+        });
     });
 
     afterEach(() => {
-        fs = null;
         log = null;
-        ar = null;
-        ms = null;
-        directive = null;
     });
 
-    it('should create an instance', () => {
+    it('should create an instance', inject([TableResizeDirective], (directive: TableResizeDirective) => {
         expect(directive).toBeTruthy();
-    });
+    }));
 });

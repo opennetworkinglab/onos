@@ -35,7 +35,7 @@ import * as d3 from 'd3';
 })
 export class IconComponent implements OnInit {
     @Input() iconId: string;
-    @Input() iconSize: number = 20;
+    @Input() iconSize = 20;
 
     constructor(
         private is: IconService,

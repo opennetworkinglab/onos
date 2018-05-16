@@ -15,19 +15,27 @@
  */
 import { TestBed, inject } from '@angular/core/testing';
 
+import { LogService } from '../../../../app/log.service';
+import { ConsoleLoggerService } from '../../../../app/consolelogger.service';
 import { EeService } from '../../../../app/fw/util/ee.service';
 
 /**
  * ONOS GUI -- Util -- EE functions - Unit Tests
  */
 describe('EeService', () => {
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [EeService]
-    });
-  });
+    let log: LogService;
 
-  it('should be created', inject([EeService], (service: EeService) => {
-    expect(service).toBeTruthy();
-  }));
+    beforeEach(() => {
+        log = new ConsoleLoggerService();
+
+        TestBed.configureTestingModule({
+            providers: [EeService,
+                { provide: LogService, useValue: log },
+            ]
+        });
+    });
+
+    it('should be created', inject([EeService], (service: EeService) => {
+        expect(service).toBeTruthy();
+    }));
 });

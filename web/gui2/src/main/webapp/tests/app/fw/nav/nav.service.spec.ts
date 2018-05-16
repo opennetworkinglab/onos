@@ -15,19 +15,31 @@
  */
 import { TestBed, inject } from '@angular/core/testing';
 
+import { LogService } from '../../../../app/log.service';
+import { ConsoleLoggerService } from '../../../../app/consolelogger.service';
 import { NavService } from '../../../../app/fw/nav/nav.service';
+import { FnService } from '../../../../app/fw/util/fn.service';
+
+class MockFnService {}
 
 /**
  * ONOS GUI -- Util -- Navigation Service - Unit Tests
  */
 describe('NavService', () => {
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [NavService]
-    });
-  });
+    let log: LogService;
 
-  it('should be created', inject([NavService], (service: NavService) => {
-    expect(service).toBeTruthy();
-  }));
+    beforeEach(() => {
+        log = new ConsoleLoggerService();
+
+        TestBed.configureTestingModule({
+            providers: [NavService,
+                { provide: FnService, useClass: MockFnService },
+                { provide: LogService, useValue: log },
+            ]
+        });
+    });
+
+    it('should be created', inject([NavService], (service: NavService) => {
+        expect(service).toBeTruthy();
+    }));
 });

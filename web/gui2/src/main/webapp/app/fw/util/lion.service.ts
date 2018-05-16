@@ -67,7 +67,7 @@ export class LionService {
         this.log.info('LION service: Locale... [' + data.locale + ']');
         this.log.info('LION service: Bundles installed...');
 
-        for (let p in this.ubercache) {
+        for (const p in this.ubercache) {
             if (this.ubercache[p]) {
                 this.log.info('            :=> ', p);
             }

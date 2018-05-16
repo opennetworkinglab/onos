@@ -15,19 +15,31 @@
  */
 import { TestBed, inject } from '@angular/core/testing';
 
+import { LogService } from '../../../../app/log.service';
+import { ConsoleLoggerService } from '../../../../app/consolelogger.service';
 import { KeyService } from '../../../../app/fw/util/key.service';
+import { FnService } from '../../../../app/fw/util/fn.service';
+
+class MockFnService {}
 
 /**
  * ONOS GUI -- Key Handler Service - Unit Tests
  */
 describe('KeyService', () => {
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [KeyService]
-    });
-  });
+    let log: LogService;
 
-  it('should be created', inject([KeyService], (service: KeyService) => {
-    expect(service).toBeTruthy();
-  }));
+    beforeEach(() => {
+        log = new ConsoleLoggerService();
+
+        TestBed.configureTestingModule({
+            providers: [KeyService,
+                { provide: LogService, useValue: log },
+                { provide: FnService, useClass: MockFnService },
+            ]
+        });
+    });
+
+    it('should be created', inject([KeyService], (service: KeyService) => {
+        expect(service).toBeTruthy();
+    }));
 });

@@ -15,19 +15,35 @@
  */
 import { TestBed, inject } from '@angular/core/testing';
 
+import { LogService } from '../../../../app/log.service';
+import { ConsoleLoggerService } from '../../../../app/consolelogger.service';
 import { PrefsService } from '../../../../app/fw/util/prefs.service';
+import { FnService } from '../../../../app/fw/util/fn.service';
+import { WebSocketService } from '../../../../app/fw/remote/websocket.service';
+
+class MockFnService {}
+
+class MockWebSocketService {}
 
 /**
- ONOS GUI -- Util -- User Preference Service - Unit Tests
+ * ONOS GUI -- Util -- User Preference Service - Unit Tests
  */
 describe('PrefsService', () => {
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [PrefsService]
-    });
-  });
+    let log: LogService;
 
-  it('should be created', inject([PrefsService], (service: PrefsService) => {
-    expect(service).toBeTruthy();
-  }));
+    beforeEach(() => {
+        log = new ConsoleLoggerService();
+
+        TestBed.configureTestingModule({
+            providers: [PrefsService,
+                { provide: LogService, useValue: log },
+                { provide: FnService, useClass: MockFnService },
+                { provide: WebSocketService, useClass: MockWebSocketService },
+            ]
+        });
+    });
+
+    it('should be created', inject([PrefsService], (service: PrefsService) => {
+        expect(service).toBeTruthy();
+    }));
 });

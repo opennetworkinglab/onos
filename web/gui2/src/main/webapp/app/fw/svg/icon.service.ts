@@ -27,65 +27,65 @@ export const glyphMapping = new Map<string, string>([
     // Maps icon ID to the glyph ID it uses.
     // NOTE: icon ID maps to a CSS class for styling that icon
     ['active', 'checkMark'],
-    ['inactive','xMark'],
+    ['inactive', 'xMark'],
 
-    ['plus','plus'],
-    ['minus','minus'],
-    ['play','play'],
-    ['stop','stop'],
+    ['plus', 'plus'],
+    ['minus', 'minus'],
+    ['play', 'play'],
+    ['stop', 'stop'],
 
-    ['upload','upload'],
-    ['download','download'],
-    ['delta','delta'],
-    ['nonzero','nonzero'],
-    ['close','xClose'],
+    ['upload', 'upload'],
+    ['download', 'download'],
+    ['delta', 'delta'],
+    ['nonzero', 'nonzero'],
+    ['close', 'xClose'],
 
-    ['topo','topo'],
+    ['topo', 'topo'],
 
-    ['refresh','refresh'],
-    ['query','query'],
-    ['garbage','garbage'],
+    ['refresh', 'refresh'],
+    ['query', 'query'],
+    ['garbage', 'garbage'],
 
 
-    ['upArrow','triangleUp'],
-    ['downArrow','triangleDown'],
+    ['upArrow', 'triangleUp'],
+    ['downArrow', 'triangleDown'],
 
-    ['appInactive','unknown'],
+    ['appInactive', 'unknown'],
 
-    ['node','node'],
-    ['devIcon_SWITCH','switch'],
-    ['devIcon_ROADM','roadm'],
-    ['devIcon_OTN','otn'],
+    ['node', 'node'],
+    ['devIcon_SWITCH', 'switch'],
+    ['devIcon_ROADM', 'roadm'],
+    ['devIcon_OTN', 'otn'],
 
-    ['portIcon_DEFAULT','m_ports'],
+    ['portIcon_DEFAULT', 'm_ports'],
 
-    ['meter','meterTable'], // TODO: m_meter icon?
+    ['meter', 'meterTable'], // TODO: m_meter icon?
 
-    ['deviceTable','switch'],
-    ['flowTable','flowTable'],
-    ['portTable','portTable'],
-    ['groupTable','groupTable'],
-    ['meterTable','meterTable'],
-    ['pipeconfTable','pipeconfTable'],
+    ['deviceTable', 'switch'],
+    ['flowTable', 'flowTable'],
+    ['portTable', 'portTable'],
+    ['groupTable', 'groupTable'],
+    ['meterTable', 'meterTable'],
+    ['pipeconfTable', 'pipeconfTable'],
 
-    ['hostIcon_endstation','endstation'],
-    ['hostIcon_router','router'],
-    ['hostIcon_bgpSpeaker','bgpSpeaker'],
+    ['hostIcon_endstation', 'endstation'],
+    ['hostIcon_router', 'router'],
+    ['hostIcon_bgpSpeaker', 'bgpSpeaker'],
 
     // navigation menu icons...
-    ['nav_apps','bird'],
-    ['nav_settings','cog'],
-    ['nav_cluster','node'],
-    ['nav_processors','allTraffic'],
+    ['nav_apps', 'bird'],
+    ['nav_settings', 'cog'],
+    ['nav_cluster', 'node'],
+    ['nav_processors', 'allTraffic'],
 
-    ['nav_topo','topo'],
-    ['nav_topo2','m_cloud'],
-    ['nav_devs','switch'],
-    ['nav_links','ports'],
-    ['nav_hosts','endstation'],
-    ['nav_intents','relatedIntents'],
-    ['nav_tunnels','ports'], // TODO: use tunnel glyph, when available
-    ['nav_yang','yang'],
+    ['nav_topo', 'topo'],
+    ['nav_topo2', 'm_cloud'],
+    ['nav_devs', 'switch'],
+    ['nav_links', 'ports'],
+    ['nav_hosts', 'endstation'],
+    ['nav_intents', 'relatedIntents'],
+    ['nav_tunnels', 'ports'], // TODO: use tunnel glyph, when available
+    ['nav_yang', 'yang'],
 ]);
 
 /**
@@ -104,7 +104,7 @@ export class IconService {
     }
 
     ensureIconLibDefs() {
-        let body = d3.select('body');
+        const body = d3.select('body');
         let svg = body.select('svg#IconLibDefs');
         if (svg.empty()) {
             svg = body.append('svg').attr('id', 'IconLibDefs');
@@ -125,9 +125,9 @@ export class IconService {
      *      Defaults to 'embeddedIcon'.
      */
     loadIcon(div, glyphId: string = 'unknown', size: number = 20, installGlyph: boolean = true, svgClass: string = 'embeddedIcon') {
-        let dim = size || 20;
-        let svgCls = svgClass || 'embeddedIcon';
-        let gid = glyphId || 'unknown';
+        const dim = size || 20;
+        const svgCls = svgClass || 'embeddedIcon';
+        const gid = glyphId || 'unknown';
         let g;
         let svgIcon: any;
 
@@ -168,7 +168,7 @@ export class IconService {
      * @param svgClass The CSS class used to identify the SVG layer.
      *      Defaults to 'embeddedIcon'.
      */
-    loadIconByClass(div, iconCls: string, size: number, installGlyph: boolean, svgClass='embeddedIcon') {
+    loadIconByClass(div, iconCls: string, size: number, installGlyph: boolean, svgClass= 'embeddedIcon') {
         this.loadIcon(div, glyphMapping.get(iconCls), size, installGlyph, svgClass);
         div.select('svg g').classed(iconCls, true);
     }
@@ -202,7 +202,7 @@ export class IconService {
      * Returns the D3 selection of the glyph (use) element.
      */
     addDeviceIcon(elem, glyphId, iconDim) {
-        let gid = this.gs.glyphDefined(glyphId) ? glyphId : 'query';
+        const gid = this.gs.glyphDefined(glyphId) ? glyphId : 'query';
         return elem.append('use').attr({
             'xlink:href': '#' + gid,
             width: iconDim,
@@ -211,9 +211,9 @@ export class IconService {
     }
 
     addHostIcon(elem, radius, glyphId) {
-        let dim = radius * 1.5;
-        let xlate = -dim / 2;
-        let g = elem.append('g')
+        const dim = radius * 1.5;
+        const xlate = -dim / 2;
+        const g = elem.append('g')
                 .attr('class', 'svgIcon hostIcon');
 
         g.append('circle').attr('r', radius);

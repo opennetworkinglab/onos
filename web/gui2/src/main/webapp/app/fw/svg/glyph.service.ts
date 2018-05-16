@@ -96,7 +96,7 @@ export class GlyphService {
     registerGlyphs(data: Map<string, string>, overwrite: boolean = false): boolean {
         const dups: string[] = [];
         const missvb: string[] = [];
-        for (let [key, value] of data.entries()) {
+        for (const [key, value] of data.entries()) {
             const vbk = '_' + key;
             const vb = data.get(vbk);
 
@@ -120,7 +120,7 @@ export class GlyphService {
             return false;
         }
 
-        for (let [key, value] of data.entries()) {
+        for (const [key, value] of data.entries()) {
 //        angular.forEach(data, function (value, key) {
             if (key[0] !== '_') {
                 this.addToMap(key, value, vb, overwrite, dups);

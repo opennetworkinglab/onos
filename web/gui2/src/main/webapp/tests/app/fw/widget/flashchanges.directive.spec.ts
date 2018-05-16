@@ -13,40 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { FlashChangesDirective } from '../../../../app/fw/widget/flashchanges.directive';
+import { TestBed, inject } from '@angular/core/testing';
 
 import { LogService } from '../../../../app/log.service';
+import { ConsoleLoggerService } from '../../../../app/consolelogger.service';
+import { FlashChangesDirective } from '../../../../app/fw/widget/flashchanges.directive';
 import { FnService } from '../../../../app/fw/util/fn.service';
-import { ActivatedRoute, Router} from '@angular/router';
 
-class MockFunctionService extends FnService {
-    // Override things as necessary
-}
+class MockFnService {}
 
 /**
  * ONOS GUI -- Widget -- Table Flash Changes Directive - Unit Tests
  */
 describe('FlashChangesDirective', () => {
-    let fs: MockFunctionService;
     let log: LogService;
-    let ar: ActivatedRoute;
-    let directive: FlashChangesDirective;
 
     beforeEach(() => {
-        log = new LogService();
-        ar = new ActivatedRoute();
-        fs = new MockFunctionService(ar, log);
-        directive = new FlashChangesDirective(fs, log);
+        log = new ConsoleLoggerService();
+
+        TestBed.configureTestingModule({
+            providers: [ FlashChangesDirective,
+                { provide: FnService, useClass: MockFnService },
+                { provide: LogService, useValue: log },
+            ]
+        });
     });
 
     afterEach(() => {
-        fs = null;
         log = null;
-        ar = null;
-        directive = null;
     });
 
-    it('should create an instance', () => {
+    it('should create an instance', inject([FlashChangesDirective], (directive: FlashChangesDirective) => {
         expect(directive).toBeTruthy();
-    });
+    }));
 });

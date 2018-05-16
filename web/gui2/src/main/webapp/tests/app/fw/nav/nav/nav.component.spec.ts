@@ -15,29 +15,38 @@
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
+import { LogService } from '../../../../../app/log.service';
+import { ConsoleLoggerService } from '../../../../../app/consolelogger.service';
 import { NavComponent } from '../../../../../app/fw/nav/nav/nav.component';
+import { IconComponent } from '../../../../../app/fw/svg/icon/icon.component';
+import { IconService } from '../../../../../app/fw/svg/icon.service';
+import { NavService } from '../../../../../app/fw/nav/nav.service';
+
+class MockNavService {}
+
+class MockIconService {}
 
 /**
  * ONOS GUI -- Util -- Navigation Component - Unit Tests
  */
 describe('NavComponent', () => {
-  let component: NavComponent;
-  let fixture: ComponentFixture<NavComponent>;
+    let log: LogService;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [ NavComponent ]
-    })
-    .compileComponents();
-  }));
+    beforeEach(() => {
+        log = new ConsoleLoggerService();
+        TestBed.configureTestingModule({
+            declarations: [ NavComponent, IconComponent ],
+            providers: [
+                { provide: LogService, useValue: log },
+                { provide: IconService, useClass: MockIconService },
+                { provide: NavService, useClass: MockNavService },
+            ]
+        });
+    });
 
-  beforeEach(() => {
-    fixture = TestBed.createComponent(NavComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
-
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
+    it('should create', () => {
+        const fixture = TestBed.createComponent(NavComponent);
+        const component = fixture.componentInstance;
+        expect(component).toBeTruthy();
+    });
 });

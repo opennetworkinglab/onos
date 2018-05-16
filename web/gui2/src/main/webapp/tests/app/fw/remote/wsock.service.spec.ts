@@ -15,19 +15,27 @@
  */
 import { TestBed, inject } from '@angular/core/testing';
 
+import { LogService } from '../../../../app/log.service';
+import { ConsoleLoggerService } from '../../../../app/consolelogger.service';
 import { WSock } from '../../../../app/fw/remote/wsock.service';
 
 /**
  * ONOS GUI -- Remote -- WSock Service - Unit Tests
  */
 describe('WSock', () => {
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [WSock]
-    });
-  });
+    let log: LogService;
 
-  it('should be created', inject([WSock], (service: WSock) => {
-    expect(service).toBeTruthy();
-  }));
+    beforeEach(() => {
+        log = new ConsoleLoggerService();
+
+        TestBed.configureTestingModule({
+            providers: [WSock,
+                { provide: LogService, useValue: log },
+            ]
+        });
+    });
+
+    it('should be created', inject([WSock], (service: WSock) => {
+        expect(service).toBeTruthy();
+    }));
 });

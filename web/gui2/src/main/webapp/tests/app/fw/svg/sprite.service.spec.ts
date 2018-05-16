@@ -15,19 +15,27 @@
  */
 import { TestBed, inject } from '@angular/core/testing';
 
+import { LogService } from '../../../../app/log.service';
+import { ConsoleLoggerService } from '../../../../app/consolelogger.service';
 import { SpriteService } from '../../../../app/fw/svg/sprite.service';
 
 /**
  * ONOS GUI -- SVG -- Sprite Service - Unit Tests
  */
 describe('SpriteService', () => {
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [SpriteService]
-    });
-  });
+    let log: LogService;
 
-  it('should be created', inject([SpriteService], (service: SpriteService) => {
-    expect(service).toBeTruthy();
-  }));
+    beforeEach(() => {
+        log = new ConsoleLoggerService();
+
+        TestBed.configureTestingModule({
+            providers: [SpriteService,
+                { provide: LogService, useValue: log },
+            ]
+        });
+    });
+
+    it('should be created', inject([SpriteService], (service: SpriteService) => {
+        expect(service).toBeTruthy();
+    }));
 });

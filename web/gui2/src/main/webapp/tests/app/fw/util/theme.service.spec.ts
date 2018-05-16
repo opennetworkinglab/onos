@@ -15,19 +15,27 @@
  */
 import { TestBed, inject } from '@angular/core/testing';
 
+import { LogService } from '../../../../app/log.service';
+import { ConsoleLoggerService } from '../../../../app/consolelogger.service';
 import { ThemeService } from '../../../../app/fw/util/theme.service';
 
 /**
  * ONOS GUI -- Util -- Theme Service - Unit Tests
  */
 describe('ThemeService', () => {
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [ThemeService]
-    });
-  });
+    let log: LogService;
 
-  it('should be created', inject([ThemeService], (service: ThemeService) => {
-    expect(service).toBeTruthy();
-  }));
+    beforeEach(() => {
+        log = new ConsoleLoggerService();
+
+        TestBed.configureTestingModule({
+            providers: [ThemeService,
+                { provide: LogService, useValue: log },
+            ]
+        });
+    });
+
+    it('should be created', inject([ThemeService], (service: ThemeService) => {
+        expect(service).toBeTruthy();
+    }));
 });

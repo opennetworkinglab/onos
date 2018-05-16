@@ -15,19 +15,39 @@
  */
 import { TestBed, inject } from '@angular/core/testing';
 
+import { LogService } from '../../../../app/log.service';
+import { ConsoleLoggerService } from '../../../../app/consolelogger.service';
 import { ButtonService } from '../../../../app/fw/widget/button.service';
+import { FnService } from '../../../../app/fw/util/fn.service';
+import { IconService } from '../../../../app/fw/svg/icon.service';
+import { TooltipService } from '../../../../app/fw/widget/tooltip.service';
+
+class MockIconService {}
+
+class MockFnService {}
+
+class MockTooltipService {}
 
 /**
  * ONOS GUI -- Widget -- Button Service - Unit Tests
  */
 describe('ButtonService', () => {
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [ButtonService]
-    });
-  });
+    let log: LogService;
 
-  it('should be created', inject([ButtonService], (service: ButtonService) => {
-    expect(service).toBeTruthy();
-  }));
+    beforeEach(() => {
+        log = new ConsoleLoggerService();
+
+        TestBed.configureTestingModule({
+            providers: [ButtonService,
+                { provide: LogService, useValue: log },
+                { provide: IconService, useClass: MockIconService },
+                { provide: FnService, useClass: MockFnService },
+                { provide: TooltipService, useClass: MockTooltipService },
+            ]
+        });
+    });
+
+    it('should be created', inject([ButtonService], (service: ButtonService) => {
+        expect(service).toBeTruthy();
+    }));
 });

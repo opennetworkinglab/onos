@@ -15,19 +15,39 @@
  */
 import { TestBed, inject } from '@angular/core/testing';
 
+import { LogService } from '../../../../app/log.service';
+import { ConsoleLoggerService } from '../../../../app/consolelogger.service';
 import { FnService } from '../../../../app/fw/util/fn.service';
+import { ActivatedRoute, Params } from '@angular/router';
+import { of } from 'rxjs';
+
+class MockActivatedRoute extends ActivatedRoute {
+    constructor(params: Params) {
+        super();
+        this.queryParams = of(params);
+    }
+}
 
 /**
  * ONOS GUI -- Util -- General Purpose Functions - Unit Tests
  */
 describe('FnService', () => {
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [FnService]
-    });
-  });
+    let log: LogService;
+    let ar: ActivatedRoute;
 
-  it('should be created', inject([FnService], (service: FnService) => {
-    expect(service).toBeTruthy();
-  }));
+    beforeEach(() => {
+        log = new ConsoleLoggerService();
+        ar = new MockActivatedRoute({'debug': 'TestService'});
+
+        TestBed.configureTestingModule({
+            providers: [FnService,
+                { provide: LogService, useValue: log },
+                { provide: ActivatedRoute, useValue: ar },
+            ]
+        });
+    });
+
+    it('should be created', inject([FnService], (service: FnService) => {
+        expect(service).toBeTruthy();
+    }));
 });

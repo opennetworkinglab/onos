@@ -16,18 +16,32 @@
 import { TestBed, inject } from '@angular/core/testing';
 
 import { MastService } from '../../../../app/fw/mast/mast.service';
+import { LogService } from '../../../../app/log.service';
+import { ConsoleLoggerService } from '../../../../app/consolelogger.service';
+import { FnService } from '../../../../app/fw/util/fn.service';
+
+class MockFnService {
+    isMobile() {}
+}
 
 /**
  * ONOS GUI -- Masthead Service - Unit Tests
  */
 describe('MastService', () => {
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [MastService]
-    });
-  });
+    let log: LogService;
 
-  it('should be created', inject([MastService], (service: MastService) => {
-    expect(service).toBeTruthy();
-  }));
+    beforeEach(() => {
+        log = new ConsoleLoggerService();
+
+        TestBed.configureTestingModule({
+            providers: [MastService,
+                { provide: FnService, useClass: MockFnService },
+                { provide: LogService, useValue: log },
+            ]
+        });
+    });
+
+    it('should be created', inject([MastService], (service: MastService) => {
+        expect(service).toBeTruthy();
+    }));
 });

@@ -15,19 +15,31 @@
  */
 import { TestBed, inject } from '@angular/core/testing';
 
+import { LogService } from '../../../../app/log.service';
+import { ConsoleLoggerService } from '../../../../app/consolelogger.service';
 import { SvgUtilService } from '../../../../app/fw/svg/svgutil.service';
+import { FnService } from '../../../../app/fw/util/fn.service';
+
+class MockFnService {}
 
 /**
  * ONOS GUI -- SVG -- Svg Util Service - Unit Tests
  */
 describe('SvgUtilService', () => {
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [SvgUtilService]
-    });
-  });
+    let log: LogService;
 
-  it('should be created', inject([SvgUtilService], (service: SvgUtilService) => {
-    expect(service).toBeTruthy();
-  }));
+    beforeEach(() => {
+        log = new ConsoleLoggerService();
+
+        TestBed.configureTestingModule({
+            providers: [SvgUtilService,
+                { provide: LogService, useValue: log },
+                { provide: FnService, useClass: MockFnService },
+            ]
+        });
+    });
+
+    it('should be created', inject([SvgUtilService], (service: SvgUtilService) => {
+        expect(service).toBeTruthy();
+    }));
 });

@@ -39,10 +39,10 @@ import { LogService } from './log.service';
 import { OnosService } from './onos.service';
 
 const onosRoutes: Routes = [
-  { path: 'apps', component: AppsComponent },        // All except default should be driven by
-  { path: 'device', component: DeviceComponent },    // servlet like {INJECTED-VIEW-DATA-START}
-  { path: '**', component: DeviceComponent } //Change to Topo(2) when it's ready for normal behaviour
-]
+  { path: 'apps', component: AppsComponent },     // All except default should be driven by
+  { path: 'device', component: DeviceComponent }, // servlet like {INJECTED-VIEW-DATA-START}
+  { path: '**', component: DeviceComponent } // Change to Topo(2) when it's ready for normal behaviour
+];
 
 /**
  * ONOS GUI -- Main Application Module

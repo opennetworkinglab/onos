@@ -15,19 +15,27 @@
  */
 import { TestBed, inject } from '@angular/core/testing';
 
+import { LogService } from '../../../../app/log.service';
+import { ConsoleLoggerService } from '../../../../app/consolelogger.service';
 import { ListService } from '../../../../app/fw/widget/list.service';
 
 /**
  * ONOS GUI -- Widget -- List Service - Unit Tests
  */
 describe('ListService', () => {
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [ListService]
-    });
-  });
+    let log: LogService;
 
-  it('should be created', inject([ListService], (service: ListService) => {
-    expect(service).toBeTruthy();
-  }));
+    beforeEach(() => {
+        log = new ConsoleLoggerService();
+
+        TestBed.configureTestingModule({
+            providers: [ListService,
+                { provide: LogService, useValue: log },
+            ]
+        });
+    });
+
+    it('should be created', inject([ListService], (service: ListService) => {
+        expect(service).toBeTruthy();
+    }));
 });

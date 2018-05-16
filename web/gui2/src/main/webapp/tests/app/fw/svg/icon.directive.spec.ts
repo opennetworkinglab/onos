@@ -13,55 +13,50 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-import { IconDirective } from '../../../../app/fw/svg/icon.directive';
+import { TestBed, inject } from '@angular/core/testing';
+
+import { ElementRef } from '@angular/core';
 import { LogService } from '../../../../app/log.service';
+import { ConsoleLoggerService } from '../../../../app/consolelogger.service';
+import { IconDirective } from '../../../../app/fw/svg/icon.directive';
 import { IconService } from '../../../../app/fw/svg/icon.service';
 import { GlyphService } from '../../../../app/fw/svg/glyph.service';
 import { SvgUtilService } from '../../../../app/fw/svg/svgutil.service';
 import { FnService } from '../../../../app/fw//util/fn.service';
 import { ActivatedRoute, Router} from '@angular/router';
 
-class MockGlyphService extends GlyphService {
-    // Override things as necessary
-}
+class MockFnService {}
 
-class MockSvgUtilService extends SvgUtilService {
-    // Override things as necessary
-}
+class MockGlyphService {}
 
-class MockFunctionService extends FnService {
-    // Override things as necessary
-}
+class MockIconService {}
 
 /**
  * ONOS GUI -- SVG -- Icon Directive - Unit Tests
  */
 describe('IconDirective', () => {
-    let ar: ActivatedRoute;
     let log: LogService;
-    let fs: MockFunctionService;
-    let gs: GlyphService;
-    let is: IconService;
-    let sus: SvgUtilService;
-    let directive: IconDirective;
+    const elementMock = <any>{ };
 
     beforeEach(() => {
-        ar = new ActivatedRoute();
-        log = new LogService();
-        fs = new MockFunctionService(ar, log);
-        sus = new MockSvgUtilService(fs, log);
-        gs = new GlyphService(log);
-        is = new IconService(gs, log, sus);
-        directive = new IconDirective(is, log);
+        log = new ConsoleLoggerService();
+
+        TestBed.configureTestingModule({
+            providers: [ IconDirective,
+                { provide: FnService, useClass: MockFnService },
+                { provide: LogService, useValue: log },
+                { provide: ElementRef, useValue: elementMock },
+                { provide: GlyphService, useClass: MockGlyphService },
+                { provide: IconService, useClass: MockIconService },
+            ]
+        });
     });
 
     afterEach(() => {
-        is = null;
         log = null;
-        directive = null;
     });
 
-    it('should create an instance', () => {
+    it('should create an instance', inject([IconDirective], (directive: IconDirective) => {
         expect(directive).toBeTruthy();
-    });
+    }));
 });

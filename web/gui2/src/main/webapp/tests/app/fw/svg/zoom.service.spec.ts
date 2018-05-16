@@ -15,19 +15,27 @@
  */
 import { TestBed, inject } from '@angular/core/testing';
 
+import { LogService } from '../../../../app/log.service';
+import { ConsoleLoggerService } from '../../../../app/consolelogger.service';
 import { ZoomService } from '../../../../app/fw/svg/zoom.service';
 
 /**
  * ONOS GUI -- SVG -- Zoom Service - Unit Tests
  */
 describe('ZoomService', () => {
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [ZoomService]
-    });
-  });
+    let log: LogService;
 
-  it('should be created', inject([ZoomService], (service: ZoomService) => {
-    expect(service).toBeTruthy();
-  }));
+    beforeEach(() => {
+        log = new ConsoleLoggerService();
+
+        TestBed.configureTestingModule({
+            providers: [ZoomService,
+                { provide: LogService, useValue: log },
+            ]
+        });
+    });
+
+    it('should be created', inject([ZoomService], (service: ZoomService) => {
+        expect(service).toBeTruthy();
+    }));
 });

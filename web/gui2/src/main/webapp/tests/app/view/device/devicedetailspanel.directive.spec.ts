@@ -13,47 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { TestBed, inject } from '@angular/core/testing';
+
+import { LogService } from '../../../../app/log.service';
+import { ConsoleLoggerService } from '../../../../app/consolelogger.service';
 import { DeviceDetailsPanelDirective } from '../../../../app/view/device/devicedetailspanel.directive';
 import { KeyService } from '../../../../app/fw/util/key.service';
-import { LogService } from '../../../../app/log.service';
-import { FnService } from '../../../../app/fw/util/fn.service';
-import { ActivatedRoute, Router} from '@angular/router';
 
-class MockFunctionService extends FnService {
-    // Override things as necessary
-}
+class MockKeyService {}
 
-class MockKeyService extends KeyService {
-    // Override things as necessary
-}
 /**
  * ONOS GUI -- Device View Module - Unit Tests
  */
 describe('DeviceDetailsPanelDirective', () => {
-    let ar: ActivatedRoute;
     let log: LogService;
-    let ks: KeyService;
-    let fs: MockFunctionService;
-    let window: Window
-    let directive: DeviceDetailsPanelDirective;
+    const windowMock = <any>{ location: <any> { hostname: 'localhost' } };
 
     beforeEach(() => {
-        log = new LogService();
-        ar = new ActivatedRoute();
-        fs = new MockFunctionService(ar, log);
-        ks = new MockKeyService(fs, log);
-        directive = new DeviceDetailsPanelDirective(ks, log, window);
+        log = new ConsoleLoggerService();
+
+        TestBed.configureTestingModule({
+            providers: [ DeviceDetailsPanelDirective,
+                { provide: LogService, useValue: log },
+                { provide: KeyService, useClass: MockKeyService },
+                { provide: Window, useValue: windowMock },
+            ]
+        });
     });
 
     afterEach(() => {
-        fs = null;
-        ks = null;
         log = null;
-        ar = null;
-        directive = null;
     });
 
-    it('should create an instance', () => {
+    it('should create an instance', inject([DeviceDetailsPanelDirective], (directive: DeviceDetailsPanelDirective) => {
         expect(directive).toBeTruthy();
-    });
+    }));
 });

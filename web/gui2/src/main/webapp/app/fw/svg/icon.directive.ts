@@ -29,7 +29,7 @@ import * as d3 from 'd3';
 })
 export class IconDirective implements OnInit {
     @Input() iconId: string;
-    @Input() iconSize: number = 20;
+    @Input() iconSize = 20;
 
     constructor(
         private el: ElementRef,

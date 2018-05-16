@@ -16,18 +16,30 @@
 import { TestBed, inject } from '@angular/core/testing';
 
 import { PanelService } from '../../../../app/fw/layer/panel.service';
+import { LogService } from '../../../../app/log.service';
+import { ConsoleLoggerService } from '../../../../app/consolelogger.service';
+import { FnService } from '../../../../app/fw/util/fn.service';
+
+class MockFnService {}
 
 /**
  * ONOS GUI -- Layer -- Panel Service - Unit Tests
  */
 describe('PanelService', () => {
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [PanelService]
-    });
-  });
+    let log: LogService;
 
-  it('should be created', inject([PanelService], (service: PanelService) => {
-    expect(service).toBeTruthy();
-  }));
+    beforeEach(() => {
+        log = new ConsoleLoggerService();
+
+        TestBed.configureTestingModule({
+            providers: [PanelService,
+                { provide: LogService, useValue: log },
+                { provide: FnService, useClass: MockFnService },
+            ]
+        });
+    });
+
+    it('should be created', inject([PanelService], (service: PanelService) => {
+        expect(service).toBeTruthy();
+    }));
 });

@@ -15,19 +15,31 @@
  */
 import { TestBed, inject } from '@angular/core/testing';
 
+import { LogService } from '../../../../app/log.service';
+import { ConsoleLoggerService } from '../../../../app/consolelogger.service';
 import { GeoDataService } from '../../../../app/fw/svg/geodata.service';
+import { FnService } from '../../../../app/fw/util/fn.service';
+
+class MockFnService {}
 
 /**
  * ONOS GUI -- SVG -- GeoData Service - Unit Tests
  */
 describe('GeoDataService', () => {
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [GeoDataService]
-    });
-  });
+    let log: LogService;
 
-  it('should be created', inject([GeoDataService], (service: GeoDataService) => {
-    expect(service).toBeTruthy();
-  }));
+    beforeEach(() => {
+        log = new ConsoleLoggerService();
+
+        TestBed.configureTestingModule({
+            providers: [GeoDataService,
+                { provide: FnService, useClass: MockFnService },
+                { provide: LogService, useValue: log },
+            ]
+        });
+    });
+
+    it('should be created', inject([GeoDataService], (service: GeoDataService) => {
+        expect(service).toBeTruthy();
+    }));
 });

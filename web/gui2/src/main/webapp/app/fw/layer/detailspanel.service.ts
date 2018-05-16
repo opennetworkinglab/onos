@@ -29,7 +29,7 @@ import { WebSocketService } from '../remote/websocket.service';
 export class DetailsPanelService {
 
   constructor(
-      private etc: EditableTextService,
+      private ets: EditableTextService,
       private fs: FnService,
       private is: IconService,
       private log: LogService,

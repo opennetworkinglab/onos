@@ -89,12 +89,12 @@ export class WebSocketService {
      *  host:   if defined, is the host address to use
      */
     createWebSocket(opts, _host_: string = '') {
-        let wsport = (opts && opts.wsport) || null;
+        const wsport = (opts && opts.wsport) || null;
 
         this.webSockOpts = opts; // preserved for future calls
 
 //        this.host = _host_ || this.host();
-        let url = this.ufs.wsUrl('core', wsport, _host_);
+        const url = this.ufs.wsUrl('core', wsport, _host_);
 
         this.log.debug('Attempting to open websocket to: ' + url);
         this.ws = this.wsock.newWebSocket(url);
@@ -126,10 +126,10 @@ export class WebSocketService {
      * If the websocket is not up yet, we store it in a pending list.
      */
     sendEvent(evType, payload) {
-        let ev = <EventType> {
+        const ev = <EventType> {
             event: evType,
             payload: payload
-        }
+        };
 
         if (this.wsUp) {
             this._send(ev);

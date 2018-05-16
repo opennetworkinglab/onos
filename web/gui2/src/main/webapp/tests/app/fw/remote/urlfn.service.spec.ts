@@ -15,19 +15,29 @@
  */
 import { TestBed, inject } from '@angular/core/testing';
 
+import { LogService } from '../../../../app/log.service';
+import { ConsoleLoggerService } from '../../../../app/consolelogger.service';
 import { UrlFnService } from '../../../../app/fw/remote/urlfn.service';
 
 /**
  * ONOS GUI -- Remote -- General Functions - Unit Tests
  */
 describe('UrlFnService', () => {
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [UrlFnService]
-    });
-  });
+    let log: LogService;
+    const windowMock = <any>{ location: <any> { hostname: 'localhost' } };
 
-  it('should be created', inject([UrlFnService], (service: UrlFnService) => {
-    expect(service).toBeTruthy();
-  }));
+    beforeEach(() => {
+        log = new ConsoleLoggerService();
+
+        TestBed.configureTestingModule({
+            providers: [UrlFnService,
+                { provide: LogService, useValue: log },
+                { provide: Window, useValue: windowMock },
+            ]
+        });
+    });
+
+    it('should be created', inject([UrlFnService], (service: UrlFnService) => {
+        expect(service).toBeTruthy();
+    }));
 });

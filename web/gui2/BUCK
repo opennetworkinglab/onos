@@ -1,3 +1,4 @@
+NODE_VERSION = "v8.11.1"
 
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
@@ -15,8 +16,8 @@ COMPILE_DEPS = [
     '//incubator/net:onos-incubator-net',
     '//utils/rest:onlab-rest',
     '//core/store/serializers:onos-core-serializers',
-    ':node-release-v8.11.1',
-    ':node-bin-v8.11.1',
+    ':node-release-' + NODE_VERSION,
+    ':node-bin-' + NODE_VERSION,
     '//web/gui2:onos-web-gui2-build',
 ]
 
@@ -28,7 +29,7 @@ TEST_DEPS = [
 
 include_defs('//bucklets/node.bucklet')
 
-fetch_node(version = 'v8.11.1')
+fetch_node(version = NODE_VERSION)
 
 genrule(
     name = 'onos-web-gui2-build',
@@ -37,7 +38,9 @@ genrule(
             'src/main/webapp/**/*.ts',
             'src/main/webapp/**/*.html',
             'src/main/webapp/**/*.css',
-            'src/main/webapp/**/*.png'
+            'src/main/webapp/**/*.png',
+            '*.js',
+            'e2e/**/*'
         ], excludes = [
             'dist/**/*',
             'node_modules/**/*',
@@ -46,31 +49,98 @@ genrule(
     bash =
 #To avoid any older 'NodeJS' installations it is necessary to use only the one
 # associated with this project - Angular 6 won't work on older releases
-        'export PATH=$(location :node-bin-v8.11.1)/bin:$PATH; '
+        'export PATH=$(location :node-bin-' + NODE_VERSION + ')/bin:$PATH; '
         + 'echo $PATH;'
-        + '$(location :node-bin-v8.11.1)/bin/node -v;'
-        + 'ORIGPATH=`pwd`;'
-        + 'cd $(location :node-bin-v8.11.1)/bin &&'
+        + '$(location :node-bin-' + NODE_VERSION + ')/bin/node -v;'
+        + 'ORIGPATH="$SRCDIR";'
+        + 'cd $(location :node-bin-' + NODE_VERSION + ')/bin &&'
         + 'ln -sf ../lib/node_modules/npm/bin/npm-cli.js npm5 &&'
         + 'cd $ORIGPATH &&'
 # The symlink to npm is not always created properly by the BUCK job that
 # untars it. It's safer to have our own symlink 'npm5'
         + 'npm5 -v;'
         + 'npm5 install -g @angular/cli@6.0.0 2>&1;'
-        + 'npm5 install -g @compodoc/compodoc 2>&1;'
         + 'npm5 install 2>&1;'
         + 'ng -v;'
-        + 'ng build --preserve-symlinks --base-href /onos/ui2/dist/ --deploy-url /onos/ui2/dist/ --output-path=$OUT 2>&1;',
+        + 'ng build --preserve-symlinks --base-href /onos/ui2/dist/ --deploy-url /onos/ui2/dist/ --output-path="$OUT" 2>&1',
     out = 'dist',
     visibility = [ 'PUBLIC' ],
+)
+
+genrule(
+    name = 'onos-web-gui2-test',
+    srcs = [],
+    bash =
+        'export PATH=$(location :node-bin-' + NODE_VERSION + ')/bin:$PATH; '
+        + 'ORIGPATH="$SRCDIR";'
+        + 'ORIGOUTPUT=\$(echo $ORIGPATH|cut -d\'_\' -f 1 );'
+        + 'cd $(location :onos-web-gui2-build)/../../onos-web-gui2-build__srcs;'
+        # The sym linked karma.conf.js will mean that 'karma-jasmine' won't be found
+        + 'cp karma.conf.js karma.conflocal.js;'
+        + 'pwd > "$OUT";'
+        + 'npm5 -v >> "$OUT";'
+        + 'ng -v >> "$OUT";'
+        + 'if [ -f /usr/bin/chromium-browser ]; then export CHROME_BIN=/usr/bin/chromium-browser; fi;'
+        + 'echo $CHROME_BIN >> "$OUT";'
+        # No point using PhantonJS as the browser because it's not compatible with ES6
+        # Install either chrome or chromium-browser on the machine
+        + 'ng test --preserve-symlinks --karma-config=karma.conflocal.js --code-coverage --browsers=ChromeHeadless --watch=false >> "$OUT" 2>&1 || '
+        + 'if [ $? -eq 0 ]; then echo "Successfully ran tests";'
+        + 'else echo "Error running \'ng test\' on \'//web/gui2:onos-web-gui2-test\'. See $ORIGOUTPUT/onos-web-gui2-test-log.txt for more details" >&2;'
+        + 'tail -n 100 $ORIGOUTPUT/onos-web-gui2-test-log.txt >&2;'
+        + 'fi;',
+    out = 'onos-web-gui2-test-log.txt',
+)
+
+genrule(
+    name = 'onos-web-gui2-lint',
+    srcs = [],
+    bash =
+        'export PATH=$(location :node-bin-' + NODE_VERSION + ')/bin:$PATH; '
+        + 'cd $(location :onos-web-gui2-build)/../../onos-web-gui2-build__srcs;'
+        + 'pwd > "$OUT";'
+        + 'npm5 -v >> "$OUT";'
+        + 'ng -v >> "$OUT";'
+        + 'ng lint >> "$OUT"',
+    out = 'onos-web-gui2-lint-log.txt',
+)
+
+genrule(
+    name = 'onos-web-gui2-compodoc',
+    srcs = [],
+    bash =
+        'export PATH=$(location :node-bin-' + NODE_VERSION + ')/bin:$PATH; '
+        + 'cd $(location :onos-web-gui2-build) && cd ../.. && cd onos-web-gui2-build__srcs;'
+        + 'pwd;'
+        + 'npm5 -v;'
+        + 'npm5 install -g @compodoc/compodoc 2>&1;'
+        + 'npm5 run compodoc -- -V;'
+#  TODO This does not pick up on sym linked files - issue raised with authors
+        + 'npm5 run compodoc -- -d "$OUT"',
+    out = 'documentation',
 )
 
 osgi_jar_with_tests (
     name = 'onos-gui2',
     deps = COMPILE_DEPS,
     test_deps = TEST_DEPS,
-    resources = [':onos-web-gui2-build'],
+    resources = [
+        ':onos-web-gui2-build'
+    ],
     resources_root = '.',
+    test_resources = [
+        ':onos-web-gui2-test',
+        ':onos-web-gui2-lint'
+    ],
+    test_resources_root = '.',
     web_context = '/onos/ui2',
     do_javadocs = False,
+)
+
+onos_app (
+    title = 'ONOS GUI v2 Application',
+    category = 'GUI',
+    url = 'http://onosproject.org',
+    description = 'ONOS GUI v2 based on Angular 6',
+    included_bundles = ['//web/gui2:onos-gui2'],
 )

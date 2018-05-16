@@ -37,10 +37,14 @@ export class DetectBrowserDirective {
         let browser = '';
         if (fs.isChrome()) {
             browser = 'chrome';
+        } else if (fs.isChromeHeadless()) {
+            browser = 'chromeheadless';
         } else if (fs.isSafari()) {
             browser = 'safari';
         } else if (fs.isFirefox()) {
             browser = 'firefox';
+        } else {
+            this.log.warn('Unknown browser:', window.navigator.vendor);
         }
         body.classList.add(browser);
 //        body.classed(browser, true);

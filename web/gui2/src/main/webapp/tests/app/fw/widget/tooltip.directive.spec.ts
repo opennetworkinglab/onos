@@ -13,39 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { TestBed, inject } from '@angular/core/testing';
+
 import { TooltipDirective } from '../../../../app/fw/widget/tooltip.directive';
 import { LogService } from '../../../../app/log.service';
+import { ConsoleLoggerService } from '../../../../app/consolelogger.service';
 import { FnService } from '../../../../app/fw/util/fn.service';
-import { ActivatedRoute, Router} from '@angular/router';
 
-class MockFunctionService extends FnService {
-    // Override things as necessary
-}
+class MockFnService {}
 
 /**
  * ONOS GUI -- Widget -- Tooltip Directive - Unit Tests
  */
 describe('TooltipDirective', () => {
-    let fs: MockFunctionService;
     let log: LogService;
-    let ar: ActivatedRoute;
-    let directive: TooltipDirective;
 
     beforeEach(() => {
-        log = new LogService();
-        ar = new ActivatedRoute();
-        fs = new MockFunctionService(ar, log);
-        directive = new TooltipDirective(fs, log);
+        log = new ConsoleLoggerService();
+
+        TestBed.configureTestingModule({
+            providers: [ TooltipDirective,
+                { provide: FnService, useClass: MockFnService },
+                { provide: LogService, useValue: log },
+            ]
+        });
     });
 
     afterEach(() => {
-        fs = null;
         log = null;
-        ar = null;
-        directive = null;
     });
 
-    it('should create an instance', () => {
+    it('should create an instance', inject([TooltipDirective], (directive: TooltipDirective) => {
         expect(directive).toBeTruthy();
-    });
+    }));
 });

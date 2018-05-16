@@ -15,19 +15,31 @@
  */
 import { TestBed, inject } from '@angular/core/testing';
 
+import { LogService } from '../../../../app/log.service';
+import { ConsoleLoggerService } from '../../../../app/consolelogger.service';
 import { MapService } from '../../../../app/fw/svg/map.service';
+import { GlyphDataService } from '../../../../app/fw/svg/glyphdata.service';
+
+class MockGlyphDataService {}
 
 /**
  * ONOS GUI -- SVG -- Map Service - Unit Tests
  */
 describe('MapService', () => {
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [MapService]
-    });
-  });
+    let log: LogService;
 
-  it('should be created', inject([MapService], (service: MapService) => {
-    expect(service).toBeTruthy();
-  }));
+    beforeEach(() => {
+        log = new ConsoleLoggerService();
+
+        TestBed.configureTestingModule({
+            providers: [MapService,
+                { provide: LogService, useValue: log },
+                { provide: GlyphDataService, useClass: MockGlyphDataService },
+            ]
+        });
+    });
+
+    it('should be created', inject([MapService], (service: MapService) => {
+        expect(service).toBeTruthy();
+    }));
 });
