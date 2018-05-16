@@ -1,0 +1,31 @@
+#!/bin/bash
+#-------------------------------------------------------------------------------
+# Utility to repair cell slave by destroying all cell-related containers and
+# by cancelling all cell reservations hosted by that slave. Intended for use
+# after the cell slave has been rebooted as a result of some H/W or OS issues.
+#-------------------------------------------------------------------------------
+
+slave=$1
+
+[ -z "$slave" -o "$slave" = "-h" -o "$slave" = "-?" ] \
+    && echo "usage: $(basename $0) slaveIp" && exit 1
+
+# Destroy all cell-related containers on the specified slave; do not touch
+# the base-* template images though.
+ssh sdn@$slave "
+    containers=\$(sudo lxc-ls --fancy | grep -E '[a-z]*-[0-9n]' | cut -d\  -f1)
+    for c in \$containers; do
+        sudo lxc-stop -n \$c
+        sudo lxc-destroy -n \$c
+    done
+"
+# Cancel all reservations hosted on the specified slave
+# Also, kill any warden spawned processes
+ssh sdn@$CELL_WARDEN "
+    cells=\$(grep -l $slave warden/cells/supported/* | xargs -n1 basename)
+    for c in \$cells; do
+        [ -f warden/cells/reserved/\$c ] && rm warden/cells/reserved/\$c
+    done
+    pids=\$(ps -ef | grep warden | grep -Ev 'grep|java' | cut -c10-15)
+    [ -n \"\$pids\" ] && kill -9 \$pids
+"
