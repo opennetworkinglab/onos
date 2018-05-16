@@ -335,7 +335,9 @@ public class Controller {
                 return Objects.hash(mode);
             }
             return Objects.hash(mode, ksLocation, tsLocation,
-                    ksPwd, tsPwd, ksSignature, tsSignature);
+                    ksPwd, tsPwd,
+                    Arrays.hashCode(ksSignature),
+                    Arrays.hashCode(tsSignature));
         }
 
         @Override
