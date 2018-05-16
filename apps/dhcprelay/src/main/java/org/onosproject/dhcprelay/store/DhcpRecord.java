@@ -95,6 +95,9 @@ public class DhcpRecord {
      * @return the DHCP record
      */
     public DhcpRecord addLocation(HostLocation location) {
+        if (locations.contains(location)) {
+            locations.remove(location);
+        }
         locations.add(location);
         return this;
     }
