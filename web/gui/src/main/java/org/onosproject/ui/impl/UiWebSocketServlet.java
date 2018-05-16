@@ -40,12 +40,12 @@ public class UiWebSocketServlet extends WebSocketServlet {
     private static UiWebSocketServlet instance;
     private static final Object INSTANCE_LOCK = new Object();
 
-    private ServiceDirectory directory = new DefaultServiceDirectory();
+    private static ServiceDirectory directory = new DefaultServiceDirectory();
 
     private final Set<UiWebSocket> sockets = Sets.newConcurrentHashSet();
     private final Timer timer = new Timer();
     private final TimerTask pruner = new Pruner();
-    private boolean isStopped = false;
+    private static boolean isStopped = false;
 
     /**
      * Closes all currently open UI web-sockets.
@@ -53,7 +53,7 @@ public class UiWebSocketServlet extends WebSocketServlet {
     public static void closeAll() {
         synchronized (INSTANCE_LOCK) {
             if (instance != null) {
-                instance.isStopped = true;
+                isStopped = true;
                 instance.sockets.forEach(UiWebSocket::close);
                 instance.sockets.clear();
                 instance.pruner.cancel();
