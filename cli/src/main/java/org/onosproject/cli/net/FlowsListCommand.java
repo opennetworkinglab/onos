@@ -119,6 +119,18 @@ public class FlowsListCommand extends AbstractShellCommand {
 
         compilePredicate();
 
+        if (countOnly && !suppressCoreOutput && filter.isEmpty() && remove == null) {
+            if (uri == null) {
+                deviceService.getDevices().forEach(device -> printCount(device, service));
+            } else {
+                Device device = deviceService.getDevice(DeviceId.deviceId(uri));
+                if (device != null) {
+                    printCount(device, service);
+                }
+            }
+            return;
+        }
+
         SortedMap<Device, List<FlowEntry>> flows = getSortedFlows(deviceService, service, coreService);
 
         // Remove flows
@@ -276,6 +288,10 @@ public class FlowsListCommand extends AbstractShellCommand {
     private List<FlowEntry> filterFlows(List<FlowEntry> flows) {
         return flows.stream().
                 filter(f -> contentFilter.filter(f)).collect(Collectors.toList());
+    }
+
+    private void printCount(Device device, FlowRuleService flowRuleService) {
+        print("deviceId=%s, flowRuleCount=%d", device.id(), flowRuleService.getFlowRuleCount(device.id()));
     }
 
     /**
