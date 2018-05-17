@@ -38,6 +38,11 @@ public final class P4RuntimeEvent extends AbstractEvent<P4RuntimeEvent.Type, P4R
          * Arbitration reply.
          */
         ARBITRATION,
+
+        /**
+         * Channel Event.
+         */
+        CHANNEL_EVENT
     }
 
     public P4RuntimeEvent(Type type, P4RuntimeEventSubject subject) {

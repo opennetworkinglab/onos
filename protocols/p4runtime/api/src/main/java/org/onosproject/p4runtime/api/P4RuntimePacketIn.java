@@ -17,7 +17,6 @@
 package org.onosproject.p4runtime.api;
 
 import com.google.common.annotations.Beta;
-import org.onosproject.net.DeviceId;
 import org.onosproject.net.pi.runtime.PiPacketOperation;
 
 /**
@@ -25,13 +24,6 @@ import org.onosproject.net.pi.runtime.PiPacketOperation;
  */
 @Beta
 public interface P4RuntimePacketIn extends P4RuntimeEventSubject {
-
-    /**
-     * Returns the identifier of the device that generated this packet-in.
-     *
-     * @return device identifier
-     */
-    DeviceId deviceId();
 
     /**
      * Returns the packet operation corresponding to this packet-in event.

@@ -33,6 +33,7 @@ import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.util.Tools;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
+import org.onosproject.net.device.ChannelEvent;
 import org.onosproject.net.pi.model.PiActionProfileId;
 import org.onosproject.net.pi.model.PiCounterId;
 import org.onosproject.net.pi.model.PiMeterId;
@@ -272,6 +273,7 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
     /* Blocking method implementations below */
 
     private boolean doArbitrationUpdate() {
+
         CompletableFuture<Boolean> result = new CompletableFuture<>();
         // TODO: currently we use 64-bit Long type for election id, should
         // we use 128-bit ?
@@ -502,7 +504,7 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
             arbitrationRole = MastershipRole.STANDBY;
         }
 
-        DefaultArbitration arbitrationEventSubject = new DefaultArbitration(arbitrationRole, electionId);
+        DefaultArbitration arbitrationEventSubject = new DefaultArbitration(deviceId, arbitrationRole, electionId);
         P4RuntimeEvent event = new P4RuntimeEvent(P4RuntimeEvent.Type.ARBITRATION,
                                                   arbitrationEventSubject);
         controller.postEvent(event);
@@ -976,6 +978,9 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
         @Override
         public void onError(Throwable throwable) {
             log.warn("Error on stream channel for {}: {}", deviceId, Status.fromThrowable(throwable));
+            controller.postEvent(new P4RuntimeEvent(P4RuntimeEvent.Type.CHANNEL_EVENT,
+                    new DefaultChannelEvent(deviceId, ChannelEvent.Type.CHANNEL_ERROR,
+                            throwable)));
             // FIXME: we might want to recreate the channel.
             // In general, we want to be robust against any transient error and, if the channel is open, make sure the
             // stream channel is always on.
@@ -984,7 +989,9 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
         @Override
         public void onCompleted() {
             log.warn("Stream channel for {} has completed", deviceId);
-            // FIXME: same concern as before.
+            controller.postEvent(new P4RuntimeEvent(P4RuntimeEvent.Type.CHANNEL_EVENT,
+                    new DefaultChannelEvent(deviceId, ChannelEvent.Type.CHANNEL_DISCONNECTED,
+                            "Stream channel has completed")));
         }
     }
 }

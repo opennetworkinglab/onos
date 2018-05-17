@@ -18,6 +18,7 @@ package org.onosproject.drivers.p4runtime;
 
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
+import org.onosproject.net.device.ChannelListener;
 import org.onosproject.net.device.DeviceHandshaker;
 import org.onosproject.p4runtime.api.P4RuntimeController;
 
@@ -85,5 +86,15 @@ public class P4RuntimeHandshaker extends AbstractP4RuntimeHandlerBehaviour imple
             result.complete(newRole);
         }
         return result;
+    }
+
+    @Override
+    public void addChannelListener(ChannelListener listener) {
+        controller.addChannelListener(deviceId, listener);
+    }
+
+    @Override
+    public void removeChannelListener(ChannelListener listener) {
+        controller.removeChannelListener(deviceId, listener);
     }
 }

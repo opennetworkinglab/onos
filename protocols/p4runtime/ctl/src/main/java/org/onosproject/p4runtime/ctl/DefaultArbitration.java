@@ -16,6 +16,7 @@
 
 package org.onosproject.p4runtime.ctl;
 
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.p4runtime.api.P4RuntimeEventSubject;
 import p4.P4RuntimeOuterClass.Uint128;
@@ -26,14 +27,17 @@ import p4.P4RuntimeOuterClass.Uint128;
 public class DefaultArbitration implements P4RuntimeEventSubject {
     private MastershipRole role;
     private Uint128 electionId;
+    private DeviceId deviceId;
 
     /**
      * Creates arbitration with given role and election id.
      *
-     * @param role the role
+     * @param deviceId   the device
+     * @param role       the role
      * @param electionId the election id
      */
-    public DefaultArbitration(MastershipRole role, Uint128 electionId) {
+    public DefaultArbitration(DeviceId deviceId, MastershipRole role, Uint128 electionId) {
+        this.deviceId = deviceId;
         this.role = role;
         this.electionId = electionId;
     }
@@ -54,5 +58,10 @@ public class DefaultArbitration implements P4RuntimeEventSubject {
      */
     public Uint128 electionId() {
         return electionId;
+    }
+
+    @Override
+    public DeviceId deviceId() {
+        return deviceId;
     }
 }

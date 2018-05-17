@@ -46,4 +46,22 @@ public interface DeviceHandshaker extends DeviceConnect {
      */
     CompletableFuture<MastershipRole> roleChanged(MastershipRole newRole);
 
+    /**
+     * Applies a listener to a channel established with the device.
+     *
+     * @param listener the channel listener
+     */
+    default void addChannelListener(ChannelListener listener) {
+        throw new UnsupportedOperationException("Listener Registration not supported");
+    }
+
+    /**
+     * Removes a listener to a channel established with the device.
+     *
+     * @param listener the channel listener
+     */
+    default void removeChannelListener(ChannelListener listener) {
+        throw new UnsupportedOperationException("Listener Removal not supported");
+    }
+
 }

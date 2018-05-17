@@ -20,6 +20,7 @@ import com.google.common.annotations.Beta;
 import io.grpc.ManagedChannelBuilder;
 import org.onosproject.event.ListenerService;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.device.ChannelListener;
 
 /**
  * Controller of P4Runtime devices.
@@ -82,4 +83,22 @@ public interface P4RuntimeController extends ListenerService<P4RuntimeEvent, P4R
      * @return the election id
      */
     long getNewMasterElectionId();
+
+    /**
+     * Adds a listener for P4Runtime client-server channel events.
+     * If the channel for the device is not present and/or established the listener will get notified
+     * only after channel setup.
+     *
+     * @param deviceId device identifier
+     * @param listener the channel listener
+     */
+    void addChannelListener(DeviceId deviceId, ChannelListener listener);
+
+    /**
+     * Removes the listener for P4Runtime client-server channel events.
+     *
+     * @param deviceId device identifier
+     * @param listener the channel listener
+     */
+    void removeChannelListener(DeviceId deviceId, ChannelListener listener);
 }
