@@ -1,0 +1,81 @@
+<!--
+  ~ Copyright 2018-present Open Networking Foundation
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<scenario name="net-device_remove" description="Network device removal test">
+    <!-- Note: This scenario is tailored using 'topo' recipe mechanism; see topos/*.recipe files -->
+    <group name="Net-Device-Remove">
+
+        <step name="Query-Device-1"
+              exec="find-device.py ${OC1} unused ${OPSS1}"/>
+
+        <step name="Device-Ping-1"
+              exec="onos-mininet sendAndExpect ${OPS} ping -c1 ${OPD} --expect \ 0% packet loss"
+              requires="~Query-Device-1"/>
+
+        <step name="Device-1-Down" requires="~Device-Ping-1"
+              exec="onos-mininet sendAndExpect switch ${OPSD1} stop"/>
+        <step name="Device-1-Remove" requires="~Device-1-Down"
+              exec="onos ${OC1} device-remove ${OPSS1}"/>
+
+        <step name="Query-Device-2"
+              exec="find-device.py ${OC1} unused ${OPSS1}"
+              env="!"
+              requires="Device-1-Remove"/>
+
+        <step name="Device-2-Down" requires="~Query-Device-2"
+              exec="onos-mininet sendAndExpect switch ${OPSD2} stop"/>
+        <step name="Device-2-Remove" requires="~Device-2-Down"
+              exec="onos ${OC1} device-remove ${OPSS2}"/>
+
+        <step name="Device-Ping-3" requires="~Device-2-Remove"
+              exec="onos-mininet sendAndExpect ${OPS} ping -c1 -w1 ${OPD} --expect 100% packet loss"/>
+
+        <step name="Device-1-Up" requires="~Device-Ping-3"
+              exec="onos-mininet sendAndExpect switch ${OPSD1} start"/>
+        <step name="Query-Device-4"
+              exec="find-device.py ${OC1} unused ${OPSS1}"
+              requires="~Device-1-Up"/>
+
+        <step name="Device-2-Up" requires="~Device-1-Up"
+              exec="onos-mininet sendAndExpect switch ${OPSD2} start"/>
+        <step name="Query-Device-5"
+              exec="find-device.py ${OC1} unused ${OPSS2}"
+              requires="~Device-2-Up"/>
+
+        <step name="Device-ARP-Hosts" requires="~Device-2-Up"
+              exec="onos-mininet sendAndExpect gratuitousArp --expect ."/>
+
+        <step name="Device-Ping-4-Prep" requires="~Device-ARP-Hosts"
+              exec="onos-mininet sendAndExpect ${OPS} ping -c5 ${OPD} --expect ."/>
+        <step name="Device-Ping-4" requires="~Device-Ping-4-Prep"
+              exec="onos-mininet sendAndExpect ${OPS} ping -c1 ${OPD} --expect \ 0% packet loss"/>
+
+        <!--
+        <step name="Device-2-Up" requires="~Device-Ping-4"
+              exec="onos-change-device-Devicestate ${OC1} ${OPSS2} ${OPSP2} true"/>
+        <step name="Query-Link-6f"
+              exec="find-link.py ${OC1} unused ${OPSS2} ${OPSP2} ${OPDS2} ${OPDP2}"
+              requires="Device-2-Up"/>
+        <step name="Query-Link-6b"
+              exec="find-link.py ${OC1} unused ${OPDS2} ${OPDP2} ${OPSS2} ${OPSP2}"
+              requires="Device-2-Up"/>
+
+        <step name="Device-Ping-5-Prep" requires="~Device-2-Up"
+              exec="onos-mininet sendAndExpect ${OPS} ping -c5 ${OPD} -expect ."/>
+        <step name="Device-Ping-5" requires="~Device-Ping-5-Prep"
+              exec="onos-mininet sendAndExpect ${OPS} ping -c1 ${OPD} -expect \ 0% packet loss"/>
+    -->
+    </group>
+</scenario>

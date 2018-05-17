@@ -23,4 +23,8 @@ export OPSP2="2"
 export OPDS2="of:0000000000000004"
 export OPDP2="2"
 
+# Variables for device removal scenario
+export OPSD1="s4"
+export OPSD2="s7"
+
 

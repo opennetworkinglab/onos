@@ -26,7 +26,10 @@
         <import file="${ONOS_SCENARIOS}/net-port-disable-enable.xml" namespace="Net-Reactive-Fwd"/>
         <dependency name="Net-Reactive-Fwd.Net-Port-Disable-Enable" requires="~Net-Reactive-Fwd.Net-Link-Down-Up"/>
 
+        <import file="${ONOS_SCENARIOS}/net-device-remove.xml" namespace="Net-Reactive-Fwd"/>
+        <dependency name="Net-Reactive-Fwd.Net-Device-Remove" requires="~Net-Reactive-Fwd.Net-Port-Disable-Enable"/>
+
         <import file="${ONOS_SCENARIOS}/net-deactivate-fwd.xml" namespace="Net-Reactive-Fwd"/>
-        <dependency name="Net-Reactive-Fwd.Net-Deactivate-Fwd" requires="~Net-Reactive-Fwd.Net-Port-Disable-Enable"/>
+        <dependency name="Net-Reactive-Fwd.Net-Deactivate-Fwd" requires="~Net-Reactive-Fwd.Net-Device-Remove"/>
     </group>
 </scenario>
