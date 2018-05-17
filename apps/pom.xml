@@ -73,7 +73,6 @@
         <module>gangliametrics</module>
         <module>graphitemetrics</module>
         <module>scalablegateway</module>
-        <module>yms</module>
         <module>tetopology</module>
         <module>rabbitmq</module>
         <module>learning-switch</module>
