@@ -9,4 +9,4 @@
 node=${1:-$OCN}
 
 ssh $ONOS_USER@$node sudo rm -f topos/*.pyc
-scp -qr $ONOS_ROOT/tools/test/topos $ONOS_USER@$node:
+scp -qr $ONOS_ROOT/tools/test/topos $ONOS_USER@[$node]:

@@ -8,8 +8,9 @@
 
 node=${1:-$OCN}
 remote=$ONOS_USER@$node
+remote_scp=$ONOS_USER@[$node]
 
-scp -q $ONOS_TEST_TAR $remote:/tmp
+scp -q $ONOS_TEST_TAR $remote_scp:/tmp
 ssh $remote "
     rm -f /tmp/onos $ONOS_TEST_BITS
     cd /tmp && tar zxf $ONOS_TEST_BITS.tar.gz && ln -s onos-test-$ONOS_POM_VERSION onos

@@ -39,6 +39,6 @@ ssh -t -t $ONOS_USER@$OCN "
 status=$?
 
 mkdir -p /tmp/stc
-scp -r ${ONOS_USER}@${OCN}:/tmp/stc/* /tmp/stc/
+scp -r ${ONOS_USER}@[${OCN}]:/tmp/stc/* /tmp/stc/
 
 exit $status

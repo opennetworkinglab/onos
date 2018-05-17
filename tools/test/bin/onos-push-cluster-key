@@ -6,6 +6,6 @@
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
 
-remote=$ONOS_USER@${1:-$OCI}
+remote=$ONOS_USER@[${1:-$OCI}]
 
 scp -q $ONOS_CLUSTER_KEY_FILE $remote:$ONOS_INSTALL_DIR/config/onos.jks

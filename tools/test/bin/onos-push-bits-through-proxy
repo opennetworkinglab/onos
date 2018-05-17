@@ -21,6 +21,6 @@ ssh $remote "
     echo \"Pushing to \$other ...\";
     scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
         /tmp/\$(basename $ONOS_TAR) \
-        $ONOS_USER@\$other:/tmp/\$(basename $ONOS_TAR)
+        $ONOS_USER@[\$other]:/tmp/\$(basename $ONOS_TAR)
   done
 "

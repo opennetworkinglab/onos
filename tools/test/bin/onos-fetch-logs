@@ -39,5 +39,5 @@ fi
 for node in $nodes; do
     echo "fetching from ${node}..."
     mkdir -p ${node}
-    scp -p $ONOS_USER@${node}:$ONOS_INSTALL_DIR/log/karaf.log* ./${node}/
+    scp -p $ONOS_USER@[${node}]:$ONOS_INSTALL_DIR/log/karaf.log* ./${node}/
 done

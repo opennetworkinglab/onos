@@ -55,10 +55,11 @@ shift $OPC
 
 node=${1:-$OCI}
 remote=$ONOS_USER@$node
+remote_scp=$ONOS_USER@[$node]
 
 $(dirname $0)/onos-push-bits $node
 
-[ ! -z "$mvn_settings" ] && scp -q $mvn_settings $remote:/tmp/settings.xml
+[ ! -z "$mvn_settings" ] && scp -q $mvn_settings $remote_scp:/tmp/settings.xml
 
 ssh -tt $remote "
     [ -z "$upgrade" ] && [ -d $ONOS_INSTALL_DIR/bin ] && echo \"ONOS is already installed\" && exit 1

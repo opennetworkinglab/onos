@@ -28,6 +28,7 @@ set -u
 
 node=${1:-$OCI}
 remote=$ONOS_USER@$node
+remote_with_bracket=$ONOS_USER@[$node]
 SSH_OPTIONS=" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
  -o ControlMaster=auto -o ControlPath=~/.ssh/mux-%r@%h:%p \
  -o ControlPersist=300 "
@@ -69,7 +70,7 @@ if [ "$USE_RSYNC" = "true" ]; then
   rsync -az --delete --checksum --omit-dir-times --progress \
         -e "ssh $SSH_OPTIONS" \
         --rsync-path="mkdir -p /tmp/$ONOS_BITS/ && rsync" \
-        $RSYNC_STAGE/ $remote:/tmp/$ONOS_BITS
+        $RSYNC_STAGE/ $remote_with_bracket:/tmp/$ONOS_BITS
 
   # create $ONOS_TAR equivalent tar ball remotely
   # TODO hash will not be the same as local one, probably due to different uid, etc.
@@ -84,6 +85,6 @@ else
   if [ -n "$locHash" ] && [ "$locHash" = "$remHash" ]; then
       echo "ONOS bits $ONOS_TAR already up-to-date on $node..."
   else
-      scp -q $ONOS_TAR $remote:/tmp
+      scp -q $ONOS_TAR $remote_with_bracket:/tmp
   fi
 fi

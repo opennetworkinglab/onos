@@ -9,6 +9,7 @@
 
 remote=$(find_node $1)
 remote=$ONOS_USER@${remote:-$OCI}
+remote_scp=$ONOS_USER@[${remote:-$OCI}]
 message=$2
 
 if [ -z "$message" ]; then
@@ -33,5 +34,5 @@ fi
 #ssh -t $remote "sudo mkdir -p $(dirname $LOG) && echo $text | sudo tee -a $LOG"
 
 figlet $message > /tmp/message.txt
-scp /tmp/message.txt $remote:/tmp
+scp /tmp/message.txt $remote_scp:/tmp
 ssh -t $remote "sudo mkdir -p $(dirname $LOG) && cat /tmp/message.txt | sudo tee -a $LOG; rm /tmp/message.txt"

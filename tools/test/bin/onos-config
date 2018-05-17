@@ -30,6 +30,7 @@ _EOF_
 
 node=${1:-$OCI}
 remote=$ONOS_USER@$node
+remote_scp=$ONOS_USER@[$node]
 
 # ONOS boot features
 export ONOS_BOOT_FEATURES="${ONOS_BOOT_FEATURES:-webconsole,onos-api,onos-core,onos-incubator,onos-cli,onos-rest,onos-gui}"
@@ -64,11 +65,11 @@ ssh -tt $remote "
 # Generate a default cluster.json from the ON* environment variables
 CDEF_FILE=/tmp/${remote}.cluster.json
 onos-gen-partitions $CDEF_FILE
-scp -q $CDEF_FILE $remote:$ONOS_INSTALL_DIR/config/cluster.json
+scp -q $CDEF_FILE $remote_scp:$ONOS_INSTALL_DIR/config/cluster.json
 
 # Copy tools/package/config/ to remote
-scp -qr ${ONOS_ROOT}/tools/package/config/ $remote:$ONOS_INSTALL_DIR/
+scp -qr ${ONOS_ROOT}/tools/package/config/ $remote_scp:$ONOS_INSTALL_DIR/
 
 # Copy the desired initial network configuration to remote if needed
 [ -n "$ONOS_CFG" -a -f "$ONOS_CFG" -a "${1:-$OCI}" = "$OC1" ] && \
-    scp $ONOS_CFG $remote:$ONOS_INSTALL_DIR/config/network-cfg.json || true
+    scp $ONOS_CFG $remote_scp:$ONOS_INSTALL_DIR/config/network-cfg.json || true

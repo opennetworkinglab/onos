@@ -11,7 +11,7 @@ curl -o /tmp/${KARAF_TARFILE_NAME}.gz http://onlab.vicci.org/onos/third-party/${
 # get a small cell
 source ${ONOS_ROOT}/tools/dev/bash_profile
 cell borrow 60 1+0
-scp /tmp/${KARAF_TARFILE_NAME}.gz sdn@${OC1}:/tmp/${KARAF_TARFILE_NAME}.gz
+scp /tmp/${KARAF_TARFILE_NAME}.gz sdn@[${OC1}]:/tmp/${KARAF_TARFILE_NAME}.gz
 
 ssh sdn@${OC1} "
 
@@ -52,7 +52,7 @@ ssh sdn@${OC1} "
 
 # fetch the new offline karaf tar ball
 BUILD_NUMBER="apache-karaf-${KARAF_VERSION}-offline-$(date +'%Y%m%d')"
-scp sdn@${OC1}:karaf-offline.tar.gz /tmp/${BUILD_NUMBER}.tar.gz
+scp sdn@[${OC1}]:karaf-offline.tar.gz /tmp/${BUILD_NUMBER}.tar.gz
 
 cell return
 

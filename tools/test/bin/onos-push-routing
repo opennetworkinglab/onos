@@ -20,7 +20,7 @@ fi
 node=${1:-$OCN}
 
 ssh $ONOS_USER@$node sudo rm -rf routing
-scp -qr $routing $ONOS_USER@$node:
+scp -qr $routing $ONOS_USER@[$node]:
 
 echo "@stc routing_root=$routing_root"
 echo "@stc routing=$routing"

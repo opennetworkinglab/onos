@@ -11,6 +11,7 @@ export MAX_WAIT=${ONOS_MN_TIMEOUT:-90}
 cmd="$1" && shift
 log="screenlog.0"
 remote="$ONOS_USER@$OCN"
+remote_scp="$ONOS_USER@[$OCN]"
 screenversion=$(ssh $remote screen -v | sed -n -e 's/^Screen version \([0-9]*\.[0-9]*\).*$/\1/p')
 # note: Screen version check for >4.04 may be inaccurate - The only sure thing is that v4.01
 #       requires logname to NOT be given while in v4.05 it is optional (as long as -L is the
@@ -62,7 +63,7 @@ start)
     ssh $remote "rm -f $log; echo logfile flush 1 > ~/.screenrc"
     (
     $mininet "$@"
-    scp $remote:$log /tmp/mininet.log
+    scp $remote_scp:$log /tmp/mininet.log
     ssh $remote rm -f $log
     ) &
     ;;
