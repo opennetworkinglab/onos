@@ -134,7 +134,7 @@ egress behaviors.
         ```
         onos> app activate org.onosproject.drivers.bmv2
         onos> app activate org.onosproject.p4tutorial.pipeconf
-        onos> app activate org.onosproject.p4tutorial.pipeconf
+        onos> app activate org.onosproject.p4tutorial.mytunnel
         ```
 
         **Hint:** To avoid accessing the CLI to start all applications, you can
