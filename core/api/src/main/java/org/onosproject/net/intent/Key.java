@@ -44,6 +44,7 @@ public abstract class Key implements Comparable<Key>, ResourceConsumer {
         return hash;
     }
 
+    @SuppressWarnings("checkstyle:EqualsHashCode")
     @Override
     public int hashCode() {
         return Long.hashCode(hash);

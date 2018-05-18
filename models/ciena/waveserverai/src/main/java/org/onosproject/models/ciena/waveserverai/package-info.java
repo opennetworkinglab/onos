@@ -14,6 +14,6 @@
  * limitations under the License.
  */
 /**
- * Yang models for Ciena Waveserver Ai
+ * Yang models for Ciena Waveserver Ai.
  */
 package org.onosproject.models.ciena.waveserverai;

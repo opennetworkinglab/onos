@@ -29,10 +29,22 @@ import org.onosproject.yang.gen.v1.openconfigaaa.rev20170706.OpenconfigAaaRadius
 import org.onosproject.yang.gen.v1.openconfigaaa.rev20170706.OpenconfigAaaTacacs;
 import org.onosproject.yang.gen.v1.openconfigaaatypes.rev20170706.OpenconfigAaaTypes;
 import org.onosproject.yang.gen.v1.openconfigacl.rev20170526.OpenconfigAcl;
-import org.onosproject.yang.gen.v1.openconfigaft.rev20170510.*;
+import org.onosproject.yang.gen.v1.openconfigaft.rev20170510.OpenconfigAft;
+import org.onosproject.yang.gen.v1.openconfigaft.rev20170510.OpenconfigAftCommon;
+import org.onosproject.yang.gen.v1.openconfigaft.rev20170510.OpenconfigAftEthernet;
+import org.onosproject.yang.gen.v1.openconfigaft.rev20170510.OpenconfigAftIpv4;
+import org.onosproject.yang.gen.v1.openconfigaft.rev20170510.OpenconfigAftIpv6;
+import org.onosproject.yang.gen.v1.openconfigaft.rev20170510.OpenconfigAftMpls;
+import org.onosproject.yang.gen.v1.openconfigaft.rev20170510.OpenconfigAftPf;
 import org.onosproject.yang.gen.v1.openconfigaftnetworkinstance.rev20170113.OpenconfigAftNetworkInstance;
 import org.onosproject.yang.gen.v1.openconfigafttypes.rev20170510.OpenconfigAftTypes;
-import org.onosproject.yang.gen.v1.openconfigbgp.rev20170730.*;
+import org.onosproject.yang.gen.v1.openconfigbgp.rev20170730.OpenconfigBgp;
+import org.onosproject.yang.gen.v1.openconfigbgp.rev20170730.OpenconfigBgpCommon;
+import org.onosproject.yang.gen.v1.openconfigbgp.rev20170730.OpenconfigBgpCommonMultiprotocol;
+import org.onosproject.yang.gen.v1.openconfigbgp.rev20170730.OpenconfigBgpCommonStructure;
+import org.onosproject.yang.gen.v1.openconfigbgp.rev20170730.OpenconfigBgpGlobal;
+import org.onosproject.yang.gen.v1.openconfigbgp.rev20170730.OpenconfigBgpNeighbor;
+import org.onosproject.yang.gen.v1.openconfigbgp.rev20170730.OpenconfigBgpPeerGroup;
 import org.onosproject.yang.gen.v1.openconfigbgppolicy.rev20170730.OpenconfigBgpPolicy;
 import org.onosproject.yang.gen.v1.openconfigbgptypes.rev20170730.OpenconfigBgpErrors;
 import org.onosproject.yang.gen.v1.openconfigbgptypes.rev20170730.OpenconfigBgpTypes;
@@ -74,7 +86,12 @@ import org.onosproject.yang.gen.v1.openconfigopenflowtypes.rev20170601.Openconfi
 import org.onosproject.yang.gen.v1.openconfigopticalamplifier.rev20170708.OpenconfigOpticalAmplifier;
 import org.onosproject.yang.gen.v1.openconfigospfpolicy.rev20160822.OpenconfigOspfPolicy;
 import org.onosproject.yang.gen.v1.openconfigospftypes.rev20170228.OpenconfigOspfTypes;
-import org.onosproject.yang.gen.v1.openconfigospfv2.rev20170228.*;
+import org.onosproject.yang.gen.v1.openconfigospfv2.rev20170228.OpenconfigOspfv2;
+import org.onosproject.yang.gen.v1.openconfigospfv2.rev20170228.OpenconfigOspfv2Area;
+import org.onosproject.yang.gen.v1.openconfigospfv2.rev20170228.OpenconfigOspfv2AreaInterface;
+import org.onosproject.yang.gen.v1.openconfigospfv2.rev20170228.OpenconfigOspfv2Common;
+import org.onosproject.yang.gen.v1.openconfigospfv2.rev20170228.OpenconfigOspfv2Global;
+import org.onosproject.yang.gen.v1.openconfigospfv2.rev20170228.OpenconfigOspfv2Lsdb;
 import org.onosproject.yang.gen.v1.openconfigpacketmatch.rev20170526.OpenconfigPacketMatch;
 import org.onosproject.yang.gen.v1.openconfigpacketmatchtypes.rev20170526.OpenconfigPacketMatchTypes;
 import org.onosproject.yang.gen.v1.openconfigplatform.rev20161222.OpenconfigPlatform;
@@ -89,7 +106,11 @@ import org.onosproject.yang.gen.v1.openconfigpolicyforwarding.rev20170621.Openco
 import org.onosproject.yang.gen.v1.openconfigpolicytypes.rev20170714.OpenconfigPolicyTypes;
 import org.onosproject.yang.gen.v1.openconfigprocmon.rev20170706.OpenconfigProcmon;
 import org.onosproject.yang.gen.v1.openconfigrelayagent.rev20160516.OpenconfigRelayAgent;
-import org.onosproject.yang.gen.v1.openconfigribbgp.rev20161017.*;
+import org.onosproject.yang.gen.v1.openconfigribbgp.rev20161017.OpenconfigRibBgp;
+import org.onosproject.yang.gen.v1.openconfigribbgp.rev20161017.OpenconfigRibBgpAttributes;
+import org.onosproject.yang.gen.v1.openconfigribbgp.rev20161017.OpenconfigRibBgpSharedAttributes;
+import org.onosproject.yang.gen.v1.openconfigribbgp.rev20161017.OpenconfigRibBgpTableAttributes;
+import org.onosproject.yang.gen.v1.openconfigribbgp.rev20161017.OpenconfigRibBgpTables;
 import org.onosproject.yang.gen.v1.openconfigribbgpext.rev20161017.OpenconfigRibBgpExt;
 import org.onosproject.yang.gen.v1.openconfigribbgptypes.rev20161017.OpenconfigRibBgpTypes;
 import org.onosproject.yang.gen.v1.openconfigroutingpolicy.rev20170714.OpenconfigRoutingPolicy;
@@ -129,6 +150,7 @@ public class OpenConfigModelRegistrator extends AbstractYangModelRegistrator {
     }
 
 
+    @SuppressWarnings("checkstyle:MethodLength")
     private static Map<YangModuleId, AppModuleInfo> getAppInfo() {
 
         return ImmutableMap.<YangModuleId, AppModuleInfo>builder()

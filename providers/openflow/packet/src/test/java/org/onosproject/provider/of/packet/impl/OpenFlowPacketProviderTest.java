@@ -196,7 +196,7 @@ public class OpenFlowPacketProviderTest {
         return builder.build();
     }
 
-    private static TrafficTreatment treatment(Instruction ... insts) {
+    private static TrafficTreatment treatment(Instruction... insts) {
         TrafficTreatment.Builder builder = DefaultTrafficTreatment.builder();
         for (Instruction i : insts) {
             builder.add(i);
@@ -350,7 +350,7 @@ public class OpenFlowPacketProviderTest {
     private class TestOpenFlowSwitch implements OpenFlowSwitch {
 
         RoleState state;
-        List<OFMessage> sent = new ArrayList<OFMessage>();
+        List<OFMessage> sent = new ArrayList<>();
         OFFactory factory = OFFactoryVer10.INSTANCE;
 
         @Override

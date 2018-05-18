@@ -285,7 +285,7 @@ public class FlowEntryBuilder {
 
     }
 
-    private FlowEntry createFlowEntryForFlowMod(FlowEntryState ...state) {
+    private FlowEntry createFlowEntryForFlowMod(FlowEntryState...state) {
         FlowEntryState flowState = state.length > 0 ? state[0] : FlowEntryState.FAILED;
         FlowRule.Builder builder = DefaultFlowRule.builder()
                 .forDevice(deviceId)

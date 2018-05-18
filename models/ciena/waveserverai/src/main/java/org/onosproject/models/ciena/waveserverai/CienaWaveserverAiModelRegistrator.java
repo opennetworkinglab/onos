@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.models.ciena;
+package org.onosproject.models.ciena.waveserverai;
 
 import com.google.common.collect.ImmutableMap;
 import org.onosproject.yang.AbstractYangModelRegistrator;
@@ -26,8 +26,6 @@ import org.onosproject.yang.model.YangModuleId;
 import org.onosproject.yang.runtime.AppModuleInfo;
 import org.onosproject.yang.runtime.DefaultAppModuleInfo;
 
-import java.util.List;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 

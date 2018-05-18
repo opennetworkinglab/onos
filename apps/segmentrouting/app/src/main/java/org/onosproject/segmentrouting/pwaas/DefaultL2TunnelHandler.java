@@ -425,7 +425,7 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
 
         // iterate over links and get all devices in the order
         // we find them
-        List<DeviceId> deviceList = new ArrayList<DeviceId>();
+        List<DeviceId> deviceList = new ArrayList<>();
         for (Link link : path) {
             if (!deviceList.contains(link.src().deviceId())) {
                 deviceList.add(link.src().deviceId());
@@ -894,6 +894,7 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
         }
     }
 
+    @Override
     @Deprecated
     public void tearDown(Set<L2TunnelDescription> pwToRemove) {
 
@@ -1125,10 +1126,10 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
                      dstMac);
             FilteringObjective.Builder filteringObjectiveBuilder =
                     createNormalPipelineFiltObjective(inPort, l2Tunnel.transportVlan(), dstMac);
-            context = new DefaultObjectiveContext(( objective ) ->
+            context = new DefaultObjectiveContext((objective) ->
                                                           log.debug("Special filtObj for  " + "for {} populated",
                                                                     l2Tunnel.tunnelId()),
-                                                  ( objective, error ) ->
+                                                  (objective, error) ->
                                                           log.warn("Failed to populate " +
                                                                            "special filtObj " +
                                                                            "rule for {}: {}",
@@ -1665,9 +1666,9 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
                      dstMac);
             FilteringObjective.Builder filteringObjectiveBuilder =
                     createNormalPipelineFiltObjective(inPort, l2Tunnel.transportVlan(), dstMac);
-            context = new DefaultObjectiveContext(( objective ) ->
+            context = new DefaultObjectiveContext((objective) ->
                                                           log.debug("Special filtObj for  " + "for {} removed",
-                                                                    l2Tunnel.tunnelId()), ( objective, error ) ->
+                                                                    l2Tunnel.tunnelId()), (objective, error) ->
                     log.warn("Failed to populate " + "special filtObj " +
                                      "rule for {}: {}", l2Tunnel.tunnelId(), error));
             TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();

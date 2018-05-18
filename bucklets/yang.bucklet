@@ -67,7 +67,7 @@ def yang_model(
           deps = deps + YANG_TOOLS,
           resources = [ ':' + schema ],
           resources_root = ".",
-          do_checkstyle = False,
+          do_checkstyle = True,
           do_javadocs = False,
         )
     else:

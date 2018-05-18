@@ -226,7 +226,7 @@
     "slf4j-jdk14": "mvn:org.slf4j:slf4j-jdk14:1.7.25",
     "typesafe-config": "mvn:com.typesafe:config:1.2.1",
     "validation-api": "mvn:javax.validation:validation-api:1.1.0.Final",
-    "checkstyle": "mvn:com.puppycrawl.tools:checkstyle:6.19",
+    "checkstyle": "mvn:com.puppycrawl.tools:checkstyle:8.10",
     "apache-karaf": "mvn:org.onosproject:apache-karaf-offline:tar.gz:3.0.8",
     "apache-karaf-patches": "mvn:org.onosproject:onos-apache-karaf-patches:tar.gz:3.0.8",
     "bndlib": "mvn:biz.aQute.bnd:biz.aQute.bndlib:jar:3.1.0",

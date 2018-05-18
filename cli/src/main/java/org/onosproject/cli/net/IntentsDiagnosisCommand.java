@@ -511,7 +511,7 @@ public class IntentsDiagnosisCommand extends AbstractShellCommand {
         }
     }
 
-    private void dump(String format, Object ... args) {
+    private void dump(String format, Object... args) {
         if (dump) {
             print(format, args);
         }
@@ -603,6 +603,7 @@ public class IntentsDiagnosisCommand extends AbstractShellCommand {
             flowRules.add(flowRule);
         }
 
+        @Override
         public String toString() {
             return MoreObjects.toStringHelper(getClass())
                     .omitNullValues()
