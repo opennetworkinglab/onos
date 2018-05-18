@@ -83,7 +83,7 @@ class ONOSBmv2Switch(Switch):
                  elogger=False, grpcport=None, cpuport=255,
                  thriftport=None, netcfg=True, dryrun=False, pipeconf="",
                  pktdump=False, valgrind=False, gnmi=False,
-                 portcfg=True, **kwargs):
+                 portcfg=True, onosdevid=None, **kwargs):
         Switch.__init__(self, name, **kwargs)
         self.grpcPort = pickUnusedPort() if not grpcport else grpcport
         self.thriftPort = pickUnusedPort() if not thriftport else thriftport
@@ -106,7 +106,10 @@ class ONOSBmv2Switch(Switch):
         self.withGnmi = parseBoolean(gnmi)
         self.longitude = kwargs['longitude'] if 'longitude' in kwargs else None
         self.latitude = kwargs['latitude'] if 'latitude' in kwargs else None
-        self.onosDeviceId = "device:bmv2:%s" % self.name
+        if onosdevid is not None and len(onosdevid) > 0:
+            self.onosDeviceId = onosdevid
+        else:
+            self.onosDeviceId = "device:bmv2:%s" % self.name
         self.logfd = None
         self.bmv2popen = None
         self.stopped = False
