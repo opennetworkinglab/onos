@@ -76,7 +76,6 @@
         <module>tetopology</module>
         <module>rabbitmq</module>
         <module>learning-switch</module>
-        <module>tenbi</module>
         <module>tetunnel</module>
         <module>actn-mdsc</module>
         <module>config</module>
