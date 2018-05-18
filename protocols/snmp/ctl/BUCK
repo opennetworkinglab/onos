@@ -4,7 +4,6 @@ COMPILE_DEPS = [
     '//protocols/snmp/api:onos-protocols-snmp-api',
     '//lib:org.apache.servicemix.bundles.snmp4j',
     '//lib:snmp-core',
-    '//lib:bti7000',
     '//lib:mibs-net-snmp',
     '//lib:mibs-rfc',
 ]

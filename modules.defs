@@ -90,8 +90,6 @@ ONOS_DRIVERS = [
     # Drivers
     '//drivers/default:onos-drivers-default-oar',
     '//drivers/arista:onos-drivers-arista-oar',
-    # TODO ONOS-5554 excluding from the build
-    #'//drivers/bti:onos-drivers-bti-oar',
     '//drivers/ciena/waveserver:onos-drivers-ciena-waveserver-oar',
     '//drivers/ciena/c5162:onos-drivers-ciena-c5162-oar',
     '//drivers/ciena/c5170:onos-drivers-ciena-c5170-oar',

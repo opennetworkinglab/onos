@@ -5,7 +5,6 @@ BUNDLES = [
   '//lib:org.apache.servicemix.bundles.snmp4j',
   '//lib:mibs-rfc',
   '//lib:snmp-core',
-  '//lib:bti7000',
   '//lib:mibs-net-snmp',
 ]
 

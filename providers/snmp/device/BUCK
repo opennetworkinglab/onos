@@ -3,7 +3,6 @@ COMPILE_DEPS = [
     '//lib:JACKSON',
     '//lib:org.apache.servicemix.bundles.snmp4j',
     '//lib:snmp-core',
-    '//lib:bti7000',
     '//lib:mibs-net-snmp',
     '//lib:mibs-rfc',
     '//incubator/api:onos-incubator-api',
