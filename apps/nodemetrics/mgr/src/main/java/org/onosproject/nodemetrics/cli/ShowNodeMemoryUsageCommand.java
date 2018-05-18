@@ -20,7 +20,7 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cluster.NodeId;
-import org.onosproject.nodemetrics.NodeMemory;
+import org.onosproject.nodemetrics.NodeMemoryUsage;
 import org.onosproject.nodemetrics.NodeMetricsService;
 
 import java.util.Collection;
@@ -31,7 +31,7 @@ import java.util.Objects;
  */
 @Command(scope = "onos", name = "node-memory",
         description = "Lists all node memory utilization")
-public class ShowNodeMemoryCommand extends AbstractShellCommand {
+public class ShowNodeMemoryUsageCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "nodeId", description = "Node identity",
             required = false, multiValued = false)
@@ -42,19 +42,19 @@ public class ShowNodeMemoryCommand extends AbstractShellCommand {
     @Override
     protected void execute() {
         if (nodeId != null) {
-            NodeMemory memory = nodeService.memory(NodeId.nodeId(nodeId));
+            NodeMemoryUsage memory = nodeService.memory(NodeId.nodeId(nodeId));
             if (Objects.nonNull(memory)) {
                 print("Memory usage : %s", memory.toString());
             } else {
                 print("Node %s doesn't exists");
             }
         } else {
-            Collection<NodeMemory> memory = nodeService.memory().values();
-            printMemory(memory);
+            Collection<NodeMemoryUsage> memory = nodeService.memory().values();
+            printMemoryUsage(memory);
         }
     }
 
-    private void printMemory(Collection<NodeMemory> memoryList) {
+    private void printMemoryUsage(Collection<NodeMemoryUsage> memoryList) {
         memoryList.forEach(memory -> print("%s", memory));
     }
 }

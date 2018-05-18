@@ -25,11 +25,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Represents CPU usage info of Cluster controllers.
  */
-public final class NodeCpu {
+public final class NodeCpuUsage {
     private final NodeId node;
     private final double usage;
 
-    private NodeCpu(final NodeId node, final Double usage) {
+    private NodeCpuUsage(final NodeId node, final Double usage) {
         this.node = node;
         this.usage = usage;
     }
@@ -65,7 +65,7 @@ public final class NodeCpu {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        final NodeCpu other = (NodeCpu) obj;
+        final NodeCpuUsage other = (NodeCpuUsage) obj;
         return Objects.equals(this.node, other.node)
                 && Objects.equals(this.usage, other.usage);
     }
@@ -102,10 +102,10 @@ public final class NodeCpu {
             return this;
         }
 
-        public NodeCpu build() {
+        public NodeCpuUsage build() {
             checkNotNull(node, "Must specify an node id");
             checkNotNull(usage, "Must specify a usage");
-            return new NodeCpu(node, usage);
+            return new NodeCpuUsage(node, usage);
         }
     }
 

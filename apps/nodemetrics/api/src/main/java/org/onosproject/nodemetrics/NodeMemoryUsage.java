@@ -26,7 +26,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Represents Memory usage of Cluster controllers.
  */
-public final class NodeMemory {
+public final class NodeMemoryUsage {
 
     private final NodeId node;
 
@@ -42,7 +42,7 @@ public final class NodeMemory {
 
     private static final double PERCENTAGE_MULTIPLIER = 100.0;
 
-    private NodeMemory(final NodeId node, final Units units,
+    private NodeMemoryUsage(final NodeId node, final Units units,
                       final Long free, final Long used, final Long total,
                       final Double usage) {
         this.node = node;
@@ -114,7 +114,7 @@ public final class NodeMemory {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        NodeMemory other = (NodeMemory) obj;
+        NodeMemoryUsage other = (NodeMemoryUsage) obj;
         return Objects.equals(this.node, other.node)
                 && Objects.equals(this.free, other.free)
                 && Objects.equals(this.used, other.used)
@@ -191,14 +191,14 @@ public final class NodeMemory {
             return this;
         }
 
-        public NodeMemory build() {
+        public NodeMemoryUsage build() {
             checkNotNull(node, "Must specify an node id");
             checkNotNull(unit, "Must specify a unit");
             checkNotNull(used, "Must specify a used Diskspace");
             checkNotNull(free, "Must specify a free Diskspace");
             checkNotNull(total, "Must specify a total Diskspace");
             double usage = used * PERCENTAGE_MULTIPLIER / total;
-            return new NodeMemory(node, unit, free, used, total, usage);
+            return new NodeMemoryUsage(node, unit, free, used, total, usage);
         }
 
     }

@@ -20,7 +20,7 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cluster.NodeId;
-import org.onosproject.nodemetrics.NodeCpu;
+import org.onosproject.nodemetrics.NodeCpuUsage;
 import org.onosproject.nodemetrics.NodeMetricsService;
 
 import java.util.Collection;
@@ -42,19 +42,19 @@ public class ShowNodeCpuUsageCommand extends AbstractShellCommand {
     @Override
     protected void execute() {
         if (nodeId != null) {
-            NodeCpu cpu = nodeService.cpu(NodeId.nodeId(nodeId));
+            NodeCpuUsage cpu = nodeService.cpu(NodeId.nodeId(nodeId));
             if (Objects.nonNull(cpu)) {
                 print("CPU usage : %s ", cpu);
             } else {
                 print("Node %s doesn't exists", nodeId);
             }
         } else {
-            Collection<NodeCpu> cpu = nodeService.cpu().values();
+            Collection<NodeCpuUsage> cpu = nodeService.cpu().values();
             printCpuUsage(cpu);
         }
     }
 
-    private void printCpuUsage(Collection<NodeCpu> cpuList) {
+    private void printCpuUsage(Collection<NodeCpuUsage> cpuList) {
         cpuList.forEach(cpu -> print("%s", cpu));
     }
 }
