@@ -291,7 +291,9 @@ public class NeighbourResolutionManager implements NeighbourResolutionService {
 
     @Override
     public Map<ConnectPoint, Collection<NeighbourHandlerRegistration>> getHandlerRegistrations() {
-        return ImmutableMap.copyOf(Multimaps.asMap(packetHandlers));
+        synchronized (packetHandlers) {
+            return ImmutableMap.copyOf(Multimaps.asMap(packetHandlers));
+        }
     }
 
     private void handlePacket(PacketContext context) {
@@ -312,17 +314,16 @@ public class NeighbourResolutionManager implements NeighbourResolutionService {
     }
 
     private boolean handleMessage(NeighbourMessageContext context) {
-        Collection<NeighbourHandlerRegistration> handlers = packetHandlers.get(context.inPort());
-
-        Collection<NeighbourHandlerRegistration> handled = handlers
-                .stream()
-                .filter(registration -> registration.intf() == null || matches(context, registration.intf()))
-                .collect(Collectors.toSet());
-
+        Collection<NeighbourHandlerRegistration> handled;
+        synchronized (packetHandlers) {
+            handled = packetHandlers.get(context.inPort())
+                    .stream()
+                    .filter(registration -> registration.intf() == null || matches(context, registration.intf()))
+                    .collect(Collectors.toSet());
+        }
         handled.forEach(registration -> registration.handler().handleMessage(context, hostService));
 
         return !handled.isEmpty();
-
     }
 
     /**
