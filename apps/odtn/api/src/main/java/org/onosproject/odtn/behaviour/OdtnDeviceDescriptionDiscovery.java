@@ -15,6 +15,8 @@
  */
 package org.onosproject.odtn.behaviour;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.List;
 
 import org.onosproject.net.device.DeviceDescriptionDiscovery;
@@ -33,11 +35,15 @@ public interface OdtnDeviceDescriptionDiscovery
 
     /**
      * Annotations key intended for a Port, which stores OpenConfig component name.
+     * <p>
+     * Optional; only for purpose of debugging.
      */
     String OC_NAME = "oc-name";
 
     /**
      * Annotations key intended for a Port, which stores OpenConfig component type.
+     * <p>
+     * Optional; only for purpose of debugging.
      */
     String OC_TYPE = "oc-type";
 
@@ -48,10 +54,59 @@ public interface OdtnDeviceDescriptionDiscovery
      */
     String CONNECTION_ID = "odtn-connection-id";
 
+    /**
+     * Annotations key for a Port,
+     * which describes role of the port annotated.
+     * Value must be one of “client” or “line”.
+     *
+     * @see OdtnPortType
+     */
+    String PORT_TYPE = "odtn-port-type";
+
+    enum OdtnPortType {
+        CLIENT("client"),
+        LINE("line");
+
+        private final String value;
+
+        OdtnPortType(String value) {
+            this.value = value;
+        }
+
+        /**
+         * Returns the value to be used as Annotations value.
+         * @return value
+         */
+        public String value() {
+            return value;
+        }
+
+        /**
+         * Returns the corresponding enum value from a string value.
+         * @param value to look up
+         * @return OdtnPortType
+         *
+         * @throws NullPointerException if {@code value} was null
+         * @throws IllegalArgumentException if non-OdtnPortValue was given
+         */
+        public static OdtnPortType fromValue(String value) {
+            checkNotNull(value);
+            if (value.equalsIgnoreCase(CLIENT.value())) {
+                return CLIENT;
+            } else if (value.equalsIgnoreCase(LINE.value())) {
+                return LINE;
+            } else {
+                throw new IllegalArgumentException("Invalid value: " + value);
+            }
+        }
+    }
 
     /**
      * OpenConfig component property name to store,
      * decimal integer index to be used when creating PortNumber.
+     * <p>
+     * Optional if providing original implementation other than
+     * odtn-driver supplied driver.
      */
     String ONOS_PORT_INDEX = "onos-index";
 
