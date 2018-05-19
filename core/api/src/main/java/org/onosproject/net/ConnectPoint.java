@@ -144,6 +144,23 @@ public class ConnectPoint implements Comparable<ConnectPoint> {
                                 PortNumber.portNumber(string.substring(lastSlash + 1, string.length())));
     }
 
+    /**
+     * Parse a device connect point from a string.
+     * The connect point should be in the same format as toString output.
+     *
+     * @param string string to parse
+     * @return a ConnectPoint based on the information in the string.
+     */
+    public static ConnectPoint fromString(String string) {
+        checkNotNull(string);
+        String[] splitted = string.split("/");
+        checkArgument(splitted.length == 2,
+                "Connect point must be in \"deviceUri/portNumber\" format");
+
+        return new ConnectPoint(DeviceId.deviceId(splitted[0]),
+                PortNumber.fromString(splitted[1]));
+    }
+
     @Override
     public int hashCode() {
         return Objects.hash(elementId, portNumber);

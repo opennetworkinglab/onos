@@ -71,6 +71,17 @@ public class ConnectPointTest {
         expectDeviceParseException("of:0011223344556677/word");
     }
 
+    @Test
+    public void testParseFromString() {
+        String cp = "netconf:127.0.0.1/[TYPE](1)";
+
+        ConnectPoint connectPoint = ConnectPoint.fromString(cp);
+        assertEquals("netconf:127.0.0.1", connectPoint.deviceId().toString());
+        assertEquals("[TYPE](1)", connectPoint.port().toString());
+        assertEquals(connectPoint, ConnectPoint.fromString(connectPoint.toString()));
+
+    }
+
     /**
      * Parse a device connect point and expect an exception to be thrown.
      *
