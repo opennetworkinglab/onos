@@ -469,6 +469,9 @@ public class IntentManager
             if (intent == null) {
                 continue;
             }
+            if (store.getPendingData(key) != null) {
+                continue;
+            }
             submit(intent);
         }
 
@@ -476,6 +479,9 @@ public class IntentManager
             // If required, compile all currently failed intents.
             for (Intent intent : getIntents()) {
                 if (!store.isMaster(intent.key())) {
+                    continue;
+                }
+                if (store.getPendingData(intent.key()) != null) {
                     continue;
                 }
                 IntentState state = getIntentState(intent.key());
