@@ -19,9 +19,8 @@ package org.onosproject.odtn.utils.tapi;
 import java.util.HashMap;
 import java.util.Map;
 import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.Port;
 
-import static org.onosproject.odtn.utils.tapi.TapiGlobalClassUtil.setNameList;
+import static org.onosproject.odtn.utils.tapi.TapiGlobalClassUtil.addNameList;
 import static org.onosproject.odtn.utils.tapi.TapiGlobalClassUtil.setUuid;
 
 import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.DefaultContext;
@@ -32,8 +31,6 @@ import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.topolog
 import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.topology.NodeKeys;
 import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.topologycontext.DefaultTopology;
 import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.topologycontext.TopologyKeys;
-import org.onosproject.yang.model.ModelObject;
-import org.onosproject.yang.model.ModelObjectData;
 import org.onosproject.yang.model.ModelObjectId;
 
 /**
@@ -65,18 +62,13 @@ public final class TapiNepBuilder extends TapiInstanceBuilder {
         return this;
     }
 
-    public TapiNepBuilder setPort(Port port) {
-        cp = new ConnectPoint(port.element().id(), port.number());
-        kvs.put(ONOS_CP, cp.toString());
-        return this;
-    }
-
     public TapiNepBuilder setConnectPoint(ConnectPoint cp) {
         kvs.put(ONOS_CP, cp.toString());
+        addNameList(nep, kvs);
         return this;
     }
 
-    public TapiNepBuilder setSip(Uuid sipUuid) {
+    public TapiNepBuilder addSip(Uuid sipUuid) {
         DefaultMappedServiceInterfacePoint mappedSip = new DefaultMappedServiceInterfacePoint();
         mappedSip.serviceInterfacePointId(sipUuid);
         nep.addToMappedServiceInterfacePoint(mappedSip);
@@ -88,7 +80,8 @@ public final class TapiNepBuilder extends TapiInstanceBuilder {
     }
 
     @Override
-    public ModelObject getModelObject() {
+    @SuppressWarnings("unchecked")
+    public DefaultOwnedNodeEdgePoint getModelObject() {
         return nep;
     }
 
@@ -98,21 +91,18 @@ public final class TapiNepBuilder extends TapiInstanceBuilder {
     }
 
     @Override
-    public ModelObjectData build() {
-        setNameList(nep, kvs);
-
+    public ModelObjectId getModelObjectId() {
         TopologyKeys topologyKey = new TopologyKeys();
         topologyKey.uuid(topologyUuid);
 
         NodeKeys nodeKey = new NodeKeys();
         nodeKey.uuid(nodeUuid);
 
-        ModelObjectId objId = ModelObjectId.builder()
+        return ModelObjectId.builder()
                 .addChild(DefaultContext.class)
                 .addChild(DefaultTopology.class, topologyKey)
                 .addChild(DefaultNode.class, nodeKey)
                 .build();
-        return getModelObjectData(nep, objId);
     }
 
 }

@@ -27,6 +27,11 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onosproject.config.DynamicConfigEvent;
+import org.onosproject.config.DynamicConfigListener;
+import org.onosproject.config.DynamicConfigService;
+import org.onosproject.config.FailedException;
+import org.onosproject.config.Filter;
 import org.onosproject.net.Link;
 import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.device.DeviceEvent;
@@ -35,7 +40,14 @@ import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.link.LinkEvent;
 import org.onosproject.net.link.LinkListener;
 import org.onosproject.net.link.LinkService;
+import org.onosproject.odtn.internal.DcsBasedTapiDataProducer;
+import org.onosproject.odtn.internal.TapiDataProducer;
+import org.onosproject.odtn.internal.TapiResolver;
 import org.onosproject.odtn.internal.TapiTopologyManager;
+import org.onosproject.yang.gen.v1.tapicommon.rev20180307.TapiCommonService;
+import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.getserviceinterfacepointlist.DefaultGetServiceInterfacePointListOutput;
+import org.onosproject.yang.model.NodeKey;
+import org.onosproject.yang.model.SchemaId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,6 +79,10 @@ import org.onosproject.yang.model.RpcOutput;
 import org.onosproject.yang.model.SchemaContextProvider;
 import org.onosproject.yang.runtime.YangRuntimeService;
 
+import static org.onosproject.config.DynamicConfigEvent.Type.NODE_ADDED;
+import static org.onosproject.config.DynamicConfigEvent.Type.NODE_DELETED;
+import static org.onosproject.odtn.utils.YangToolUtil.toDataNode;
+
 /**
  * OSGi Component for ODTN Service application.
  */
@@ -75,8 +91,8 @@ public class ServiceApplicationComponent {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-//    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-//    protected DynamicConfigService dynConfigService;
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DynamicConfigService dynConfigService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
@@ -102,35 +118,44 @@ public class ServiceApplicationComponent {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected TapiTopologyManager tapiTopologyManager;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected TapiResolver resolver;
+
     // Listener for events from the DCS
-//    private final DynamicConfigListener dynamicConfigServiceListener =
-//            new InternalDynamicConfigListener();
+    private final DynamicConfigListener dynamicConfigServiceListener =
+            new InternalDynamicConfigListener();
 
     private DeviceListener deviceListener = new InternalDeviceListener();
     private final LinkListener linkListener = new InternalLinkListener();
+    private TapiDataProducer dataProvider = new DcsBasedTapiDataProducer();
 
     // Rpc Service for TAPI Connectivity
     private final RpcService rpcTapiConnectivity =
             new TapiConnectivityRpc();
 
+    private final RpcService rpcTapiCommon =
+            new TapiCommonRpc();
+
 
     @Activate
     protected void activate() {
         log.info("Started");
-//        dynConfigService.addListener(dynamicConfigServiceListener);
+        dynConfigService.addListener(dynamicConfigServiceListener);
         deviceService.addListener(deviceListener);
         linkService.addListener(linkListener);
         rpcRegistry.registerRpcService(rpcTapiConnectivity);
+        rpcRegistry.registerRpcService(rpcTapiCommon);
     }
 
 
     @Deactivate
     protected void deactivate() {
         log.info("Stopped");
+        rpcRegistry.unregisterRpcService(rpcTapiCommon);
         rpcRegistry.unregisterRpcService(rpcTapiConnectivity);
         linkService.removeListener(linkListener);
         deviceService.removeListener(deviceListener);
-//        dynConfigService.removeListener(dynamicConfigServiceListener);
+        dynConfigService.removeListener(dynamicConfigServiceListener);
     }
 
 
@@ -196,100 +221,103 @@ public class ServiceApplicationComponent {
         }
     }
 
-//    /**
-//     * Representation of internal listener, listening for dynamic config event.
-//     */
-//    private class InternalDynamicConfigListener implements DynamicConfigListener {
-//
-//        /**
-//         * Check if the DCS event should be further processed.
-//         *
-//         * @param event config event
-//         * @return true if event is supported; false otherwise
-//         */
-//        @Override
-//        public boolean isRelevant(DynamicConfigEvent event) {
-//            // Only care about add and delete
-//            if ((event.type() != NODE_ADDED) &&
-//                    (event.type() != NODE_DELETED)) {
-//                return false;
-//            }
-//            return true;
-//        }
-//
-//
-//        /**
-//         * Process an Event from the Dynamic Configuration Store.
-//         *
-//         * @param event config event
-//         */
-//        @Override
-//        public void event(DynamicConfigEvent event) {
-//            ResourceId rsId = event.subject();
-//            DataNode node;
-//            try {
-//                Filter filter = Filter.builder().addCriteria(rsId).build();
-//                node = dynConfigService.readNode(rsId, filter);
-//            } catch (FailedException e) {
-//                node = null;
-//            }
-//            switch (event.type()) {
-//                case NODE_ADDED:
-//                    onDcsNodeAdded(rsId, node);
-//                    break;
-//
-//                case NODE_DELETED:
-//                    onDcsNodeDeleted(node);
-//                    break;
-//
-//                default:
-//                    log.warn("Unknown Event", event.type());
-//                    break;
-//            }
-//        }
-//
-//
-//        /**
-//         * Process the event that a node has been added to the DCS.
-//         *
-//         * @param rsId ResourceId of the added node
-//         * @param node added node. Access the key and value
-//         */
-//        private void onDcsNodeAdded(ResourceId rsId, DataNode node) {
-//            switch (node.type()) {
-//                case SINGLE_INSTANCE_NODE:
-//                    break;
-//                case MULTI_INSTANCE_NODE:
-//                    break;
-//                case SINGLE_INSTANCE_LEAF_VALUE_NODE:
-//                    break;
-//                case MULTI_INSTANCE_LEAF_VALUE_NODE:
-//                    break;
-//                default:
-//                    break;
-//            }
-//
-//            NodeKey dataNodeKey = node.key();
-//            SchemaId schemaId = dataNodeKey.schemaId();
+    /**
+     * Representation of internal listener, listening for dynamic config event.
+     */
+    private class InternalDynamicConfigListener implements DynamicConfigListener {
+
+        /**
+         * Check if the DCS event should be further processed.
+         *
+         * @param event config event
+         * @return true if event is supported; false otherwise
+         */
+        @Override
+        public boolean isRelevant(DynamicConfigEvent event) {
+            // Only care about add and delete
+            if ((event.type() != NODE_ADDED) &&
+                    (event.type() != NODE_DELETED)) {
+                return false;
+            }
+            return true;
+        }
+
+
+        /**
+         * Process an Event from the Dynamic Configuration Store.
+         *
+         * @param event config event
+         */
+        @Override
+        public void event(DynamicConfigEvent event) {
+            resolver.makeDirty();
+
+            ResourceId rsId = event.subject();
+            DataNode node;
+            try {
+                Filter filter = Filter.builder().addCriteria(rsId).build();
+                node = dynConfigService.readNode(rsId, filter);
+            } catch (FailedException e) {
+                node = null;
+            }
+            switch (event.type()) {
+                case NODE_ADDED:
+                    onDcsNodeAdded(rsId, node);
+                    break;
+
+                case NODE_DELETED:
+                    onDcsNodeDeleted(node);
+                    break;
+
+                default:
+                    log.warn("Unknown Event", event.type());
+                    break;
+            }
+        }
+
+
+        /**
+         * Process the event that a node has been added to the DCS.
+         *
+         * @param rsId ResourceId of the added node
+         * @param node added node. Access the key and value
+         */
+        private void onDcsNodeAdded(ResourceId rsId, DataNode node) {
+
+            switch (node.type()) {
+                case SINGLE_INSTANCE_NODE:
+                    break;
+                case MULTI_INSTANCE_NODE:
+                    break;
+                case SINGLE_INSTANCE_LEAF_VALUE_NODE:
+                    break;
+                case MULTI_INSTANCE_LEAF_VALUE_NODE:
+                    break;
+                default:
+                    break;
+            }
+
+            NodeKey dataNodeKey = node.key();
+            SchemaId schemaId = dataNodeKey.schemaId();
+
+            // Consolidate events
 //            if (!schemaId.namespace().contains("tapi")) {
 //                return;
 //            }
-//
-//            // Consolidate events
 //            log.info("namespace {}", schemaId.namespace());
-//        }
-//
-//
-//        /**
-//         * Process the event that a node has been deleted from the DCS.
-//         *
-//         * @param dataNode data node
-//         */
-//        private void onDcsNodeDeleted(DataNode dataNode) {
-//            // TODO: Implement release logic
-//        }
-//
-//    }
+        }
+
+
+        /**
+         * Process the event that a node has been deleted from the DCS.
+         *
+         * @param dataNode data node
+         */
+        private void onDcsNodeDeleted(DataNode dataNode) {
+            // TODO: Implement release logic
+        }
+
+    }
 
 
     private class TapiConnectivityRpc implements TapiConnectivityService {
@@ -408,5 +436,52 @@ public class ServiceApplicationComponent {
         }
 
 
+    }
+
+
+    private class TapiCommonRpc implements TapiCommonService {
+
+        /**
+         * Service interface of getServiceInterfacePointDetails.
+         *
+         * @param rpcInput input of service interface getServiceInterfacePointDetails
+         * @return rpcOutput output of service interface getServiceInterfacePointDetails
+         */
+        @Override
+        public RpcOutput getServiceInterfacePointDetails(RpcInput rpcInput) {
+            return new RpcOutput(RpcOutput.Status.RPC_FAILURE, null);
+        }
+
+        /**
+         * Service interface of getServiceInterfacePointList.
+         *
+         * @param rpcInput input of service interface getServiceInterfacePointList
+         * @return rpcOutput output of service interface getServiceInterfacePointList
+         */
+        @Override
+        public RpcOutput getServiceInterfacePointList(RpcInput rpcInput) {
+
+            DataNode data = rpcInput.data();
+            ResourceId rid = rpcInput.id();
+
+            log.info("RpcInput Data {}", data);
+            log.info("RpcInput ResourceId {}", rid);
+
+            DefaultGetServiceInterfacePointListOutput node = new DefaultGetServiceInterfacePointListOutput();
+            DataNode dnode = toDataNode(node);
+
+            return new RpcOutput(RpcOutput.Status.RPC_SUCCESS, dnode);
+        }
+
+        /**
+         * Service interface of updateServiceInterfacePoint.
+q         *
+         * @param rpcInput input of service interface updateServiceInterfacePoint
+         * @return rpcOutput output of service interface updateServiceInterfacePoint
+         */
+        @Override
+        public RpcOutput updateServiceInterfacePoint(RpcInput rpcInput) {
+            return new RpcOutput(RpcOutput.Status.RPC_FAILURE, null);
+        }
     }
 }

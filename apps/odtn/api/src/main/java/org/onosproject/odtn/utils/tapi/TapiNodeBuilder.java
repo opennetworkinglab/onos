@@ -18,7 +18,7 @@ package org.onosproject.odtn.utils.tapi;
 
 import java.util.HashMap;
 import java.util.Map;
-import static org.onosproject.odtn.utils.tapi.TapiGlobalClassUtil.setNameList;
+import static org.onosproject.odtn.utils.tapi.TapiGlobalClassUtil.addNameList;
 import static org.onosproject.odtn.utils.tapi.TapiGlobalClassUtil.setUuid;
 
 import org.onosproject.net.DeviceId;
@@ -28,8 +28,6 @@ import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.node.Ow
 import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.topology.DefaultNode;
 import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.topologycontext.DefaultTopology;
 import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.topologycontext.TopologyKeys;
-import org.onosproject.yang.model.ModelObject;
-import org.onosproject.yang.model.ModelObjectData;
 import org.onosproject.yang.model.ModelObjectId;
 
 /**
@@ -39,7 +37,6 @@ public final class TapiNodeBuilder extends TapiInstanceBuilder {
 
     private Uuid topologyUuid;
     private DefaultNode node = new DefaultNode();
-    private Map<String, String> kvs = new HashMap<>();
 
     private TapiNodeBuilder() {
         setUuid(node);
@@ -54,18 +51,21 @@ public final class TapiNodeBuilder extends TapiInstanceBuilder {
         return this;
     }
 
-    public TapiNodeBuilder setNep(OwnedNodeEdgePoint nep) {
+    public TapiNodeBuilder addNep(OwnedNodeEdgePoint nep) {
         node.addToOwnedNodeEdgePoint(nep);
         return this;
     }
 
     public TapiNodeBuilder setDeviceId(DeviceId deviceId) {
+        Map<String, String> kvs = new HashMap<>();
         kvs.put(DEVICE_ID, deviceId.toString());
+        addNameList(node, kvs);
         return this;
     }
 
     @Override
-    public ModelObject getModelObject() {
+    @SuppressWarnings("unchecked")
+    public DefaultNode getModelObject() {
         return node;
     }
 
@@ -75,16 +75,13 @@ public final class TapiNodeBuilder extends TapiInstanceBuilder {
     }
 
     @Override
-    public ModelObjectData build() {
-        setNameList(node, kvs);
-
+    public ModelObjectId getModelObjectId() {
         TopologyKeys topologyKey = new TopologyKeys();
         topologyKey.uuid(topologyUuid);
-        ModelObjectId objId = ModelObjectId.builder()
+        return ModelObjectId.builder()
                 .addChild(DefaultContext.class)
                 .addChild(DefaultTopology.class, topologyKey)
                 .build();
-        return getModelObjectData(node, objId);
     }
 
 }

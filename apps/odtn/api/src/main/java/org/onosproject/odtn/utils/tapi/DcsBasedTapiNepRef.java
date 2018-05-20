@@ -16,12 +16,18 @@
 
 package org.onosproject.odtn.utils.tapi;
 
-import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.Uuid;
+import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.node.OwnedNodeEdgePoint;
+import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.topology.Node;
+import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.topologycontext.Topology;
 
-public class DcsBasedTapiNepRef extends TapiNepRef {
+public final class DcsBasedTapiNepRef extends TapiNepRef {
 
-    public DcsBasedTapiNepRef(Uuid topologyId, Uuid nodeId, Uuid nepId) {
-        super(topologyId.toString(), nodeId.toString(), nepId.toString());
+    private DcsBasedTapiNepRef(Topology topology, Node node, OwnedNodeEdgePoint nep) {
+        super(topology.uuid().toString(), node.uuid().toString(), nep.uuid().toString());
+    }
+
+    public static DcsBasedTapiNepRef create(Topology topology, Node node, OwnedNodeEdgePoint nep) {
+        return new DcsBasedTapiNepRef(topology, node, nep);
     }
 
 }

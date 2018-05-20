@@ -22,8 +22,6 @@ import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.link.De
 import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.topology.DefaultLink;
 import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.topologycontext.DefaultTopology;
 import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.topologycontext.TopologyKeys;
-import org.onosproject.yang.model.ModelObject;
-import org.onosproject.yang.model.ModelObjectData;
 import org.onosproject.yang.model.ModelObjectId;
 
 import static org.onosproject.odtn.utils.tapi.TapiGlobalClassUtil.setUuid;
@@ -49,7 +47,7 @@ public final class TapiLinkBuilder extends TapiInstanceBuilder {
         return this;
     }
 
-    public TapiLinkBuilder setNep(TapiNepRef nepRef) {
+    public TapiLinkBuilder addNep(TapiNepRef nepRef) {
         DefaultNodeEdgePoint nep = new DefaultNodeEdgePoint();
         nep.topologyId(nepRef.getTopologyId());
         nep.nodeId(nepRef.getNodeId());
@@ -59,19 +57,19 @@ public final class TapiLinkBuilder extends TapiInstanceBuilder {
     }
 
     @Override
-    public ModelObjectData build() {
+    public ModelObjectId getModelObjectId() {
 
         TopologyKeys topologyKey = new TopologyKeys();
         topologyKey.uuid(topologyUuid);
-        ModelObjectId objId = ModelObjectId.builder()
+        return ModelObjectId.builder()
                 .addChild(DefaultContext.class)
                 .addChild(DefaultTopology.class, topologyKey)
                 .build();
-        return getModelObjectData(link, objId);
     }
 
     @Override
-    public ModelObject getModelObject() {
+    @SuppressWarnings("unchecked")
+    public DefaultLink getModelObject() {
         return link;
     }
 

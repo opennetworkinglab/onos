@@ -29,6 +29,15 @@ public class TapiNodeRef {
     private final UUID nodeId;
     private DeviceId deviceId;
 
+    TapiNodeRef(String topologyId, String nodeId) {
+        this.topologyId = UUID.fromString(topologyId);
+        this.nodeId = UUID.fromString(nodeId);
+    }
+
+    public static TapiNodeRef create(String topologyId, String nodeId) {
+        return new TapiNodeRef(topologyId, nodeId);
+    }
+
     public String getNodeId() {
         return nodeId.toString();
     }
@@ -37,13 +46,9 @@ public class TapiNodeRef {
         return deviceId;
     }
 
-    public void setDeviceId(DeviceId deviceId) {
+    public TapiNodeRef setDeviceId(DeviceId deviceId) {
         this.deviceId = deviceId;
-    }
-
-    public TapiNodeRef(String topologyId, String nodeId) {
-        this.topologyId = UUID.fromString(topologyId);
-        this.nodeId = UUID.fromString(nodeId);
+        return this;
     }
 
     public String toString() {

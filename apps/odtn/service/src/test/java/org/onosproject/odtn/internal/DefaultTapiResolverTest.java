@@ -14,21 +14,25 @@
  * limitations under the License.
  */
 
-package org.onosproject.odtn.utils.tapi;
+package org.onosproject.odtn.internal;
 
 import java.util.NoSuchElementException;
+import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
+import org.onosproject.odtn.utils.tapi.TapiNepRef;
+import org.onosproject.odtn.utils.tapi.TapiNodeRef;
 
+import static org.easymock.EasyMock.replay;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
 
-public class TapiResolverTest {
+public class DefaultTapiResolverTest {
 
-    private TapiResolver tapiResolver;
+    private DefaultTapiResolver tapiResolver;
 
     private TapiNodeRef nodeRef;
     private TapiNepRef nepRef;
@@ -41,13 +45,14 @@ public class TapiResolverTest {
     private ConnectPoint dummyCp;
     private String dummySipId;
 
+    private TapiDataProducer mockTapiDataProducer;
 
     @Before
     public void setUp() {
-        nodeRef = new TapiNodeRef(
+        nodeRef = TapiNodeRef.create(
                 "49e2ac46-3975-44b4-b84f-8fab28222a39",
                 "5638e8e6-ac17-40d9-86e4-7c1febab6f1a");
-        nepRef = new TapiNepRef(
+        nepRef = TapiNepRef.create(
                 "59e2ac46-3975-44b4-b84f-8fab28222a39",
                 "6638e8e6-ac17-40d9-86e4-7c1febab6f1a",
                 "cd673055-e2b2-4f67-88c8-adfae96385bc");
@@ -62,22 +67,31 @@ public class TapiResolverTest {
         dummyCp = new ConnectPoint(dummyDeviceId, PortNumber.portNumber(dummyPort));
         dummySipId = "00000000-0000-0000-0000-000000000000";
 
-        tapiResolver = new TapiResolver();
+        tapiResolver = new DefaultTapiResolver();
+
+        mockTapiDataProducer = EasyMock.createMock(TapiDataProducer.class);
+        mockTapiDataProducer.updateCacheRequest(tapiResolver);
+        replay(mockTapiDataProducer);
+
+        tapiResolver.dataProvider = mockTapiDataProducer;
     }
 
     @Test
     public void testGetNodeRef() {
-        assertThat(nodeRef, is(tapiResolver.addNodeRef(nodeRef).getNodeRef(deviceId)));
+        tapiResolver.addNodeRef(nodeRef);
+        assertThat(nodeRef, is(tapiResolver.getNodeRef(deviceId)));
     }
 
     @Test
     public void testGetNepRefWithConnectPoint() {
-        assertThat(nepRef, is(tapiResolver.addNepRef(nepRef).getNepRef(cp)));
+        tapiResolver.addNepRef(nepRef);
+        assertThat(nepRef, is(tapiResolver.getNepRef(cp)));
     }
 
     @Test
     public void testGetNepRefWithSipId() {
-        assertThat(nepRef, is(tapiResolver.addNepRef(nepRef).getNepRef(sipId)));
+        tapiResolver.addNepRef(nepRef);
+        assertThat(nepRef, is(tapiResolver.getNepRef(sipId)));
     }
 
     @Test(expected = NoSuchElementException.class)

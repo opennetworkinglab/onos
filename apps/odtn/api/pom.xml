@@ -76,6 +76,11 @@
             <scope>test</scope>
             <classifier>tests</classifier>
         </dependency>
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-apps-config</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
     </dependencies>
 

@@ -21,7 +21,7 @@ import org.onosproject.net.Link;
 import org.onosproject.net.Port;
 
 /**
- * ODTN Tapi manager application interface.
+ * ODTN Tapi topology manager application interface.
  */
 public interface TapiTopologyManager {
 

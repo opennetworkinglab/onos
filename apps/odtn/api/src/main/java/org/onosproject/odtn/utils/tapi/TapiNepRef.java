@@ -16,6 +16,7 @@
 
 package org.onosproject.odtn.utils.tapi;
 
+import java.util.Optional;
 import java.util.UUID;
 import org.onosproject.net.ConnectPoint;
 
@@ -28,8 +29,18 @@ public class TapiNepRef {
     private final UUID topologyId;
     private final UUID nodeId;
     private final UUID nepId;
-    private UUID sipId;
-    private ConnectPoint cp;
+    private UUID sipId = null;
+    private ConnectPoint cp = null;
+
+    TapiNepRef(String topologyId, String nodeId, String nepId) {
+        this.topologyId = UUID.fromString(topologyId);
+        this.nodeId = UUID.fromString(nodeId);
+        this.nepId = UUID.fromString(nepId);
+    }
+
+    public static TapiNepRef create(String topologyId, String nodeId, String nepId) {
+        return new TapiNepRef(topologyId, nodeId, nepId);
+    }
 
     public String getTopologyId() {
         return topologyId.toString();
@@ -44,7 +55,9 @@ public class TapiNepRef {
     }
 
     public String getSipId() {
-        return sipId.toString();
+        return Optional.ofNullable(sipId)
+                .map(UUID::toString)
+                .orElse(null);
     }
 
     public ConnectPoint getConnectPoint() {
@@ -59,12 +72,6 @@ public class TapiNepRef {
     public TapiNepRef setConnectPoint(ConnectPoint cp) {
         this.cp = cp;
         return this;
-    }
-
-    public TapiNepRef(String topologyId, String nodeId, String nepId) {
-        this.topologyId = UUID.fromString(topologyId);
-        this.nodeId = UUID.fromString(nodeId);
-        this.nepId = UUID.fromString(nepId);
     }
 
     public String toString() {

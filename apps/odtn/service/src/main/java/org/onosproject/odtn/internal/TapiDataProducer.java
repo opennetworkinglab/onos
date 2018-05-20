@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-package org.onosproject.odtn.utils.tapi;
+package org.onosproject.odtn.internal;
 
-import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.topology.Node;
-import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.topologycontext.Topology;
+/**
+ * ODTN Tapi data reader/provider for TapiResolver cache update.
+ */
+public interface TapiDataProducer {
 
-public final class DcsBasedTapiNodeRef extends TapiNodeRef {
+    void init();
 
-    private DcsBasedTapiNodeRef(Topology topology, Node node) {
-        super(topology.uuid().toString(), node.uuid().toString());
-    }
+    /**
+     * Update TapiResolver cache with latest modelObject in DCS.
+     * @param resolver update target itself
+     */
+    void updateCacheRequest(DefaultTapiResolver resolver);
 
-    public static DcsBasedTapiNodeRef create(Topology topology, Node node) {
-        return new DcsBasedTapiNodeRef(topology, node);
-    }
 }

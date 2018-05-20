@@ -6,6 +6,7 @@ COMPILE_DEPS = [
     '//models/tapi:onos-models-tapi',
     '//models/openconfig:onos-models-openconfig',
     '//apps/yang:onos-apps-yang',
+    '//apps/config:onos-apps-config',
 ]
 
 TEST_DEPS = [

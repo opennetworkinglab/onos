@@ -16,14 +16,12 @@
 
 package org.onosproject.odtn.internal;
 
-import java.util.List;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.util.XmlString;
 import org.onosproject.config.DynamicConfigService;
 import org.onosproject.config.FailedException;
 import org.onosproject.config.Filter;
@@ -38,14 +36,9 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.Port;
 
-import static org.onosproject.odtn.utils.YangToolUtil.toCharSequence;
-import static org.onosproject.odtn.utils.YangToolUtil.toCompositeData;
-import static org.onosproject.odtn.utils.YangToolUtil.toXmlCompositeStream;
-
 import org.onosproject.odtn.utils.tapi.TapiLinkBuilder;
 import org.onosproject.odtn.utils.tapi.TapiNepRef;
 import org.onosproject.odtn.utils.tapi.TapiNodeRef;
-import org.onosproject.odtn.utils.tapi.TapiResolver;
 import org.onosproject.odtn.utils.tapi.TapiContextBuilder;
 import org.onosproject.odtn.utils.tapi.TapiNepBuilder;
 import org.onosproject.odtn.utils.tapi.TapiNodeBuilder;
@@ -57,9 +50,6 @@ import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.topolog
 import org.onosproject.yang.model.DataNode;
 import org.onosproject.yang.model.InnerNode;
 import org.onosproject.yang.model.ModelConverter;
-import org.onosproject.yang.model.ModelObjectData;
-import org.onosproject.yang.model.ResourceData;
-import org.onosproject.yang.model.ResourceId;
 import org.slf4j.Logger;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -79,10 +69,11 @@ public class DcsBasedTapiTopologyManager implements TapiTopologyManager {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ModelConverter modelConverter;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected TapiResolver tapiResolver;
+
     private DefaultContext context = new DefaultContext();
     private DefaultTopology topology = new DefaultTopology();
-
-    private TapiResolver tapiResolver = new TapiResolver();
 
     @Activate
     public void activate() {
@@ -104,14 +95,9 @@ public class DcsBasedTapiTopologyManager implements TapiTopologyManager {
         if (tapiResolver.hasNodeRef(deviceId)) {
             return;
         }
-        TapiNodeBuilder builder = TapiNodeBuilder.builder()
+        TapiNodeBuilder.builder()
                 .setTopologyUuid(topology.uuid())
-                .setDeviceId(deviceId);
-        addModelObjectDataToDcs(builder.build());
-
-        TapiNodeRef nodeRef = new TapiNodeRef(topology.uuid().toString(), builder.getUuid().toString());
-        nodeRef.setDeviceId(deviceId);
-        tapiResolver.addNodeRef(nodeRef);
+                .setDeviceId(deviceId).build();
     }
 
     @Override
@@ -123,21 +109,16 @@ public class DcsBasedTapiTopologyManager implements TapiTopologyManager {
     public void addLink(Link link) {
         log.info("Add link: {}", link);
 
-        // validation check
-
-        // src nep
-        addNep(link.src());
-        addNep(link.dst());
+        // TODO: existence check
 
         // link
         TapiNepRef srcNepRef = tapiResolver.getNepRef(link.src());
         TapiNepRef dstNepRef = tapiResolver.getNepRef(link.dst());
 
-        TapiLinkBuilder linkBuilder = TapiLinkBuilder.builder()
+        TapiLinkBuilder.builder()
                 .setTopologyUuid(topology.uuid())
-                .setNep(srcNepRef)
-                .setNep(dstNepRef);
-        addModelObjectDataToDcs(linkBuilder.build());
+                .addNep(srcNepRef)
+                .addNep(dstNepRef).build();
     }
 
     @Override
@@ -148,7 +129,9 @@ public class DcsBasedTapiTopologyManager implements TapiTopologyManager {
     @Override
     public void addPort(Port port) {
         log.info("Add port: {}", port);
-        if (tapiResolver.hasNepRef(new ConnectPoint(port.element().id(), port.number()))) {
+
+        ConnectPoint cp = new ConnectPoint(port.element().id(), port.number());
+        if (tapiResolver.hasNepRef(cp)) {
             return;
         }
 
@@ -157,24 +140,18 @@ public class DcsBasedTapiTopologyManager implements TapiTopologyManager {
 
         // nep
         TapiNepBuilder nepBuilder = TapiNepBuilder.builder()
-                .setPort(port)
+                .setConnectPoint(cp)
                 .setTopologyUuid(topology.uuid())
                 .setNodeUuid(Uuid.fromString(nodeId));
 
-        TapiNepRef nepRef = new TapiNepRef(topology.uuid().toString(), nodeId, nepBuilder.getUuid().toString());
-        nepRef.setConnectPoint(nepBuilder.getConnectPoint());
-
         // sip
-        if (TapiSipBuilder.isSip(port)) {
-            TapiSipBuilder sipBuilder = TapiSipBuilder.builder().setPort(port);
-            nepBuilder.setSip(sipBuilder.getUuid());
-            nepRef.setSipId(sipBuilder.getUuid().toString());
+        if (TapiSipBuilder.isSip(cp)) {
 
-            addModelObjectDataToDcs(sipBuilder.build());
+            TapiSipBuilder sipBuilder = TapiSipBuilder.builder().setConnectPoint(cp);
+            nepBuilder.addSip(sipBuilder.getUuid());
+            sipBuilder.build();
         }
-
-        addModelObjectDataToDcs(nepBuilder.build());
-        tapiResolver.addNepRef(nepRef);
+        nepBuilder.build();
     }
 
     @Override
@@ -182,59 +159,15 @@ public class DcsBasedTapiTopologyManager implements TapiTopologyManager {
         log.info("Remove port: {}", port);
     }
 
-    private void addNep(ConnectPoint cp) {
-
-        log.info("device Id: {}", cp.deviceId());
-        TapiNodeRef nodeRef = tapiResolver.getNodeRef(cp.deviceId());
-        String nodeId = nodeRef.getNodeId();
-
-        TapiNepBuilder nepBuilder = TapiNepBuilder.builder()
-                .setConnectPoint(cp)
-                .setTopologyUuid(topology.uuid())
-                .setNodeUuid(Uuid.fromString(nodeId));
-        TapiNepRef nepRef = new TapiNepRef(topology.uuid().toString(), nodeId, nepBuilder.getUuid().toString());
-        nepRef.setConnectPoint(cp);
-
-        addModelObjectDataToDcs(nepBuilder.build());
-        tapiResolver.addNepRef(nepRef);
-    }
-
     private void initDcsTapiContext() {
-        TapiContextBuilder builder = TapiContextBuilder.builder(context);
-        addModelObjectDataToDcs(builder.build());
+        TapiContextBuilder.builder(context).build();
     }
 
     private void initDcsTapiTopology() {
-        TapiTopologyBuilder builder = TapiTopologyBuilder.builder(topology);
-        addModelObjectDataToDcs(builder.build());
+        TapiTopologyBuilder.builder(topology).build();
     }
 
     // FIXME: move DCS-related methods to DCS
-
-    private void addModelObjectDataToDcs(ModelObjectData input) {
-
-        ResourceData rnode = modelConverter.createDataNode(input);
-
-        // for debug
-        CharSequence strNode = toCharSequence(toXmlCompositeStream(toCompositeData(rnode)));
-        log.info("XML:\n{}", XmlString.prettifyXml(strNode));
-
-        addResourceDataToDcs(rnode);
-    }
-
-    private void addResourceDataToDcs(ResourceData input) {
-        addResourceDataToDcs(input, input.resourceId());
-    }
-
-    private void addResourceDataToDcs(ResourceData input, ResourceId rid) {
-        if (input == null || input.dataNodes() == null) {
-            return;
-        }
-        List<DataNode> dataNodes = input.dataNodes();
-        for (DataNode node : dataNodes) {
-            dcs.createNode(rid, node);
-        }
-    }
 
     private void initDcsIfRootNotExist() {
 

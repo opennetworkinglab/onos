@@ -22,8 +22,6 @@ import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.DefaultCont
 import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.Uuid;
 import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.context.DefaultAugmentedTapiCommonContext;
 import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.topologycontext.DefaultTopology;
-import org.onosproject.yang.model.ModelObject;
-import org.onosproject.yang.model.ModelObjectData;
 import org.onosproject.yang.model.ModelObjectId;
 
 /**
@@ -44,17 +42,17 @@ public final class TapiTopologyBuilder extends TapiInstanceBuilder {
 
 
     @Override
-    public ModelObjectData build() {
+    public ModelObjectId getModelObjectId() {
 
         DefaultAugmentedTapiCommonContext topologyContext = new DefaultAugmentedTapiCommonContext();
         topologyContext.addToTopology(topology);
 
-        ModelObjectId objId = ModelObjectId.builder().addChild(DefaultContext.class).build();
-        return getModelObjectData(topologyContext, objId);
+        return ModelObjectId.builder().addChild(DefaultContext.class).build();
     }
 
     @Override
-    public ModelObject getModelObject() {
+    @SuppressWarnings("unchecked")
+    public DefaultTopology getModelObject() {
         return topology;
     }
 

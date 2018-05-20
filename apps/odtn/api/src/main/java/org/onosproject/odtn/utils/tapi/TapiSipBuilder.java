@@ -19,18 +19,15 @@ package org.onosproject.odtn.utils.tapi;
 import java.util.HashMap;
 import java.util.Map;
 import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.Port;
 
 import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.DefaultContext;
 import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.LayerProtocolName;
 import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.Uuid;
 
-import static org.onosproject.odtn.utils.tapi.TapiGlobalClassUtil.setNameList;
+import static org.onosproject.odtn.utils.tapi.TapiGlobalClassUtil.addNameList;
 import static org.onosproject.odtn.utils.tapi.TapiGlobalClassUtil.setUuid;
 import static org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.layerprotocolname.LayerProtocolNameEnum.DSR;
 import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.tapicontext.DefaultServiceInterfacePoint;
-import org.onosproject.yang.model.ModelObject;
-import org.onosproject.yang.model.ModelObjectData;
 import org.onosproject.yang.model.ModelObjectId;
 
 /**
@@ -39,7 +36,6 @@ import org.onosproject.yang.model.ModelObjectId;
 public final class TapiSipBuilder extends TapiInstanceBuilder {
 
     private DefaultServiceInterfacePoint sip = new DefaultServiceInterfacePoint();
-    private Map<String, String> kvs = new HashMap<>();
 
     private TapiSipBuilder() {
         setUuid(sip);
@@ -51,36 +47,35 @@ public final class TapiSipBuilder extends TapiInstanceBuilder {
 
     /**
      * Check this builder dealing with port for SIP or not.
-     * @param port onos port
+     * @param cp onos connectPoint
      * @return Is this builder for SIP or not
      */
-    public static boolean isSip(Port port) {
+    public static boolean isSip(ConnectPoint cp) {
         // FIXME modify this method to appropriate way
-        ConnectPoint cp = new ConnectPoint(port.element().id(), port.number());
         return cp.toString().contains("TRANSCEIVER");
     }
 
-    public TapiSipBuilder setPort(Port port) {
-        if (!isSip(port)) {
+    public TapiSipBuilder setConnectPoint(ConnectPoint cp) {
+        if (!isSip(cp)) {
             throw new IllegalStateException("Not allowed to use this port as SIP.");
         }
-        ConnectPoint cp = new ConnectPoint(port.element().id(), port.number());
+        Map<String, String> kvs = new HashMap<>();
         kvs.put(ONOS_CP, cp.toString());
+        addNameList(sip, kvs);
         sip.addToLayerProtocolName(LayerProtocolName.of(DSR));
         return this;
     }
 
     @Override
-    public ModelObjectData build() {
-        setNameList(sip, kvs);
-        ModelObjectId objId = ModelObjectId.builder()
+    public ModelObjectId getModelObjectId() {
+        return ModelObjectId.builder()
                 .addChild(DefaultContext.class)
                 .build();
-        return getModelObjectData(sip, objId);
     }
 
     @Override
-    public ModelObject getModelObject() {
+    @SuppressWarnings("unchecked")
+    public DefaultServiceInterfacePoint getModelObject() {
         return sip;
     }
 

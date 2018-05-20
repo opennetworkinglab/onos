@@ -91,7 +91,7 @@ public final class TapiGlobalClassUtil {
      * @param kvs key-value map
      * @param <T> type of ModelObject
      */
-    public static <T extends ModelObject> void setNameList(T obj, Map<String, String> kvs) {
+    public static <T extends ModelObject> void addNameList(T obj, Map<String, String> kvs) {
 
         @SuppressWarnings("unchecked")
         Class<T> cls = (Class<T>) obj.getClass();

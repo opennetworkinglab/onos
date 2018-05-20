@@ -18,8 +18,6 @@ package org.onosproject.odtn.utils.tapi;
 
 import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.DefaultContext;
 import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.Uuid;
-import org.onosproject.yang.model.ModelObject;
-import org.onosproject.yang.model.ModelObjectData;
 import org.onosproject.yang.model.ModelObjectId;
 
 /**
@@ -38,13 +36,13 @@ public final class TapiContextBuilder extends TapiInstanceBuilder {
     }
 
     @Override
-    public ModelObjectData build() {
-        ModelObjectId objId = ModelObjectId.builder().build();
-        return getModelObjectData(context, objId);
+    public ModelObjectId getModelObjectId() {
+        return ModelObjectId.builder().build();
     }
 
     @Override
-    public ModelObject getModelObject() {
+    @SuppressWarnings("unchecked")
+    public DefaultContext getModelObject() {
         return context;
     }
 
