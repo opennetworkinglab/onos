@@ -117,6 +117,17 @@ public class IntentData { //FIXME need to make this "immutable"
     }
 
     /**
+     * Creates a copy of given IntentData, and update request version.
+     *
+     * @param data intent data to copy
+     * @param reqVersion request version to be updated
+     * @return copy
+     */
+    public static IntentData copy(IntentData data, Timestamp reqVersion) {
+        return new IntentData(data, checkNotNull(reqVersion));
+    }
+
+    /**
      * Create a copy of IntentData in next state.
      *
      * @param data intent data to copy

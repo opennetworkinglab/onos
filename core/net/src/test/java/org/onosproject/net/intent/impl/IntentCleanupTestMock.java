@@ -123,7 +123,8 @@ public class IntentCleanupTestMock extends AbstractIntentTest {
         IntentData data = new IntentData(intent, INSTALL_REQ, version);
         store.addPending(data);
 
-        service.addPending(data);
+        service.addPending(isA(IntentData.class));
+
         expectLastCall().once();
         replay(service);
 

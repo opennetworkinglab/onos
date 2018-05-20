@@ -203,7 +203,7 @@ public class IntentCleanup implements Runnable, IntentListener {
             case INSTALL_REQ:
             case WITHDRAW_REQ:
             case PURGE_REQ:
-                service.addPending(intentData);
+                service.addPending(IntentData.copy(intentData, new WallClockTimestamp()));
                 break;
             default:
                 log.warn("Failed to resubmit pending intent {} in state {} with request {}",
