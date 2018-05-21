@@ -9,7 +9,9 @@
 \./apps/openroadm/
 \./apps/openstackrouting/pom.xml
 \./apps/openstackswitching/pom.xml
+\./apps/tenbi
 \./apps/vrouter/pom.xml
+\./apps/yms
 \./buck-out/
 \./buck-tools/onos_stage.py
 \./bucklets/maven_jar\.bucklet
@@ -19,6 +21,8 @@
 \./core/store/primitives/src/main/java/org/onosproject/store/primitives/resources/impl/AtomixAtomicCounterMapCommands.java
 \./core/store/primitives/src/main/java/org/onosproject/store/primitives/resources/impl/AtomixLeaderElectorCommands.java
 \./drivers/huawei/driver
+\./drivers/p4runtime
+\./drivers/bmv2
 \./lib/BUCK
 \./lib/deps.json
 \./models/openroadm/pom.xml
