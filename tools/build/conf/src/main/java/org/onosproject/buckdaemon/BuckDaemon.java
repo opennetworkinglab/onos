@@ -46,7 +46,7 @@ import static java.nio.file.StandardOpenOption.WRITE;
  */
 public final class BuckDaemon {
 
-    private static long POLLING_INTERVAL = 1000; //ms
+    private static final long POLLING_INTERVAL = 1000; //ms
 
     private final Map<String, BuckTask> tasks = new HashMap<>();
     private final String portLock;
@@ -62,6 +62,8 @@ public final class BuckDaemon {
      * Main entry point for the daemon.
      *
      * @param args command-line arguments
+     * @throws CheckstyleException on checkstyle error
+     * @throws IOException on I/O error
      */
     public static void main(String[] args)
             throws CheckstyleException, IOException {

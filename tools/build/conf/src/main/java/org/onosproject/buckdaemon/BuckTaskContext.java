@@ -25,8 +25,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.List;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
 /**
  * Context for executing a single Buck task.
  */
@@ -74,6 +72,8 @@ public class BuckTaskContext {
 
     /**
      * Returns the symbolic task name.
+     *
+     * @return symbolic task name
      */
     public String taskName() {
         return taskName;
