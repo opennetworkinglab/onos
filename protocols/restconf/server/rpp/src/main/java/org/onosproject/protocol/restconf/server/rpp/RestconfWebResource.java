@@ -20,6 +20,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.glassfish.jersey.server.ChunkedOutput;
 import org.onosproject.rest.AbstractWebResource;
+import org.onosproject.restconf.api.MediaTypeRestconf;
 import org.onosproject.restconf.api.RestconfError;
 import org.onosproject.restconf.api.RestconfException;
 import org.onosproject.restconf.api.RestconfRpcOutput;
@@ -84,7 +85,7 @@ public class RestconfWebResource extends AbstractWebResource {
      * @return HTTP response - 200, 404 or 500
      */
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaTypeRestconf.APPLICATION_YANG_DATA_JSON)
     @Path("data/{identifier : .+}")
     public Response handleGetRequest(@PathParam("identifier") String uriString) {
         log.debug("handleGetRequest: {}", uriString);
@@ -102,19 +103,24 @@ public class RestconfWebResource extends AbstractWebResource {
                         .errorAppTag("handleGetRequest")
                         .build();
                 return Response.status(NOT_FOUND)
-                        .entity(RestconfError.wrapErrorAsJson(Arrays.asList(error))).build();
+                        .entity(RestconfError.wrapErrorAsJson(Arrays.asList(error)))
+                        .build();
             }
-            return ok(node).build();
+            return Response.ok(node)
+            .build();
         } catch (RestconfException e) {
             log.error("ERROR: handleGetRequest: {}", e.getMessage());
             log.debug("Exception in handleGetRequest:", e);
-            return Response.status(e.getResponse().getStatus()).entity(e.toRestconfErrorJson()).build();
+            return Response.status(e.getResponse().getStatus())
+                    .entity(e.toRestconfErrorJson())
+                    .build();
         } catch (Exception e) {
             RestconfError error = RestconfError
                     .builder(RestconfError.ErrorType.APPLICATION, RestconfError.ErrorTag.OPERATION_FAILED)
                     .errorMessage(e.getMessage()).errorAppTag("handlePostRequest").build();
             return Response.status(INTERNAL_SERVER_ERROR)
-                    .entity(RestconfError.wrapErrorAsJson(Arrays.asList(error))).build();
+                    .entity(RestconfError.wrapErrorAsJson(Arrays.asList(error)))
+                    .build();
         }
     }
 
@@ -134,7 +140,7 @@ public class RestconfWebResource extends AbstractWebResource {
      * @return A string data stream over HTTP keep-alive session
      */
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaTypeRestconf.APPLICATION_YANG_DATA_JSON)
     @Path("streams/{streamId}")
     public ChunkedOutput<String> handleNotificationRegistration(@PathParam("streamId") String streamId,
                                                                 @Context HttpServletRequest request) {
@@ -164,8 +170,8 @@ public class RestconfWebResource extends AbstractWebResource {
      * @return HTTP response
      */
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes({MediaTypeRestconf.APPLICATION_YANG_DATA_JSON, MediaType.APPLICATION_JSON})
+    @Produces(MediaTypeRestconf.APPLICATION_YANG_DATA_JSON)
     @Path("data")
     public Response handlePostDatastore(InputStream stream) {
 
@@ -184,8 +190,8 @@ public class RestconfWebResource extends AbstractWebResource {
      * @return HTTP response
      */
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes({ MediaTypeRestconf.APPLICATION_YANG_DATA_JSON, MediaType.APPLICATION_JSON })
+    @Produces(MediaTypeRestconf.APPLICATION_YANG_DATA_JSON)
     @Path("data/{identifier : .+}")
     public Response handlePostRequest(@PathParam("identifier") String uriString,
                                       InputStream stream) {
@@ -231,8 +237,8 @@ public class RestconfWebResource extends AbstractWebResource {
      * @return RPC output
      */
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes({ MediaTypeRestconf.APPLICATION_YANG_DATA_JSON, MediaType.APPLICATION_JSON })
+    @Produces(MediaTypeRestconf.APPLICATION_YANG_DATA_JSON)
     @Path("operations/{rpc : .+}")
     public Response handleRpcRequest(@PathParam("rpc") String rpcName,
                                      InputStream rpcInput,
@@ -288,8 +294,8 @@ public class RestconfWebResource extends AbstractWebResource {
      * @return HTTP response
      */
     @PUT
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes({ MediaTypeRestconf.APPLICATION_YANG_DATA_JSON, MediaType.APPLICATION_JSON })
+    @Produces(MediaTypeRestconf.APPLICATION_YANG_DATA_JSON)
     @Path("data/{identifier : .+}")
     public Response handlePutRequest(@PathParam("identifier") String uriString,
                                      InputStream stream) {
@@ -335,7 +341,7 @@ public class RestconfWebResource extends AbstractWebResource {
      * @return HTTP response
      */
     @DELETE
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaTypeRestconf.APPLICATION_YANG_DATA_JSON)
     @Path("data/{identifier : .+}")
     public Response handleDeleteRequest(@PathParam("identifier") String uriString) {
         log.debug("handleDeleteRequest: {}", uriString);
@@ -364,8 +370,8 @@ public class RestconfWebResource extends AbstractWebResource {
      * @return HTTP response
      */
     @PATCH
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes({ MediaTypeRestconf.APPLICATION_YANG_DATA_JSON, MediaType.APPLICATION_JSON })
+    @Produces(MediaTypeRestconf.APPLICATION_YANG_DATA_JSON)
     @Path("data/{identifier : .+}")
     public Response handlePatchRequest(@PathParam("identifier") String uriString,
                                        InputStream stream) {
@@ -412,8 +418,8 @@ public class RestconfWebResource extends AbstractWebResource {
      * @return HTTP response
      */
     @PATCH
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes({ MediaTypeRestconf.APPLICATION_YANG_DATA_JSON, MediaType.APPLICATION_JSON })
+    @Produces(MediaTypeRestconf.APPLICATION_YANG_DATA_JSON)
     @Path("data")
     public Response handlePatchDatastore(InputStream stream) {
         log.debug("handlePatchDatastore");

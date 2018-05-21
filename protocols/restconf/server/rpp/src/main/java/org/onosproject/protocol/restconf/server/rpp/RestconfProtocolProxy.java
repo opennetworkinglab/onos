@@ -16,6 +16,7 @@
 package org.onosproject.protocol.restconf.server.rpp;
 
 import org.onlab.rest.AbstractWebApplication;
+import org.onosproject.restconf.api.RestconfJsonBodyWriter;
 
 import java.util.Set;
 
@@ -26,6 +27,9 @@ public class RestconfProtocolProxy extends AbstractWebApplication {
 
     @Override
     public Set<Class<?>> getClasses() {
-        return getClasses(RestconfWebResource.class);
+        return getClasses(
+                RestconfWebResource.class,
+                RestconfJsonBodyWriter.class
+        );
     }
 }
