@@ -29,7 +29,9 @@ public abstract class TapiInstanceBuilder {
 
     public static final String ONOS_CP = "onos-cp";
 
-    public static final String DEVICE_ID = "device_id";
+    public static final String DEVICE_ID = "device-id";
+
+    public static final String ODTN_PORT_TYPE = "odtn-port-type";
 
     /**
      * Generate DCS modelObjectData.
