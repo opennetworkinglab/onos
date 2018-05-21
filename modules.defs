@@ -237,6 +237,7 @@ ONOS_APPS = [
     '//incubator/protobuf/registry:onos-incubator-protobuf-registry-oar',
     '//incubator/protobuf/services/nb:onos-incubator-protobuf-services-nb-oar',
     '//apps/openstacknetworkingui:onos-apps-openstacknetworkingui-oar',
+    '//apps/openstacktelemetry:onos-apps-openstacktelemetry-oar',
     '//apps/p4-tutorial/pipeconf:onos-apps-p4-tutorial-pipeconf-oar',
     '//apps/p4-tutorial/mytunnel:onos-apps-p4-tutorial-mytunnel-oar',
     '//apps/cfm:onos-apps-cfm-oar',

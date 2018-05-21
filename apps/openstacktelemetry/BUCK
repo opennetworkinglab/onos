@@ -1,0 +1,12 @@
+BUNDLES = [
+    '//apps/openstacktelemetry/api:onos-apps-openstacktelemetry-api',
+    '//apps/openstacktelemetry/app:onos-apps-openstacktelemetry-app',
+]
+
+onos_app (
+    title = 'OpenStack Telemetry Application',
+    category = 'Utility',
+    url = 'https://wiki.onosproject.org/display/ONOS/SONA%3A+DC+Network+Virtualization',
+    included_bundles = BUNDLES,
+    description = 'SONA Openstack Telemetry Application.'
+)
