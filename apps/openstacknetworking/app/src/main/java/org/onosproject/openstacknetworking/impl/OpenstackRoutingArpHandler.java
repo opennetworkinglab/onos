@@ -60,6 +60,8 @@ import org.onosproject.openstacknetworking.api.OpenstackRouterEvent;
 import org.onosproject.openstacknetworking.api.OpenstackRouterListener;
 import org.onosproject.openstacknetworking.api.OpenstackRouterService;
 import org.onosproject.openstacknode.api.OpenstackNode;
+import org.onosproject.openstacknode.api.OpenstackNodeEvent;
+import org.onosproject.openstacknode.api.OpenstackNodeListener;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
 import org.openstack4j.model.network.ExternalGateway;
 import org.openstack4j.model.network.NetFloatingIP;
@@ -84,8 +86,10 @@ import static org.onosproject.openstacknetworking.api.Constants.ARP_BROADCAST_MO
 import static org.onosproject.openstacknetworking.api.Constants.ARP_PROXY_MODE;
 import static org.onosproject.openstacknetworking.api.Constants.DEFAULT_ARP_MODE_STR;
 import static org.onosproject.openstacknetworking.api.Constants.DEFAULT_GATEWAY_MAC_STR;
+import static org.onosproject.openstacknetworking.api.Constants.DHCP_ARP_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.GW_COMMON_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
+import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ARP_CONTROL_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ARP_GATEWAY_RULE;
 import static org.onosproject.openstacknetworking.impl.HostBasedInstancePort.ANNOTATION_NETWORK_ID;
 import static org.onosproject.openstacknetworking.impl.HostBasedInstancePort.ANNOTATION_PORT_ID;
@@ -144,6 +148,7 @@ public class OpenstackRoutingArpHandler {
 
     private final OpenstackRouterListener osRouterListener = new InternalRouterEventListener();
     private final HostListener hostListener = new InternalHostListener();
+    private final OpenstackNodeListener osNodeListener = new InternalNodeEventListener();
 
     private ApplicationId appId;
     private NodeId localNodeId;
@@ -161,6 +166,7 @@ public class OpenstackRoutingArpHandler {
         localNodeId = clusterService.getLocalNode().id();
         osRouterService.addListener(osRouterListener);
         hostService.addListener(hostListener);
+        osNodeService.addListener(osNodeListener);
         leadershipService.runForLeadership(appId.name());
         packetService.addProcessor(packetProcessor, PacketProcessor.director(1));
         log.info("Started");
@@ -171,6 +177,7 @@ public class OpenstackRoutingArpHandler {
         packetService.removeProcessor(packetProcessor);
         hostService.removeListener(hostListener);
         osRouterService.removeListener(osRouterListener);
+        osNodeService.removeListener(osNodeListener);
         leadershipService.withdraw(appId.name());
         eventExecutor.shutdown();
         configService.unregisterProperties(getClass(), false);
@@ -563,6 +570,94 @@ public class OpenstackRoutingArpHandler {
             return !host.ipAddresses().isEmpty() &&
                     host.annotations().value(ANNOTATION_NETWORK_ID) != null &&
                     host.annotations().value(ANNOTATION_PORT_ID) != null;
+        }
+    }
+
+    private class InternalNodeEventListener implements OpenstackNodeListener {
+
+        @Override
+        public boolean isRelevant(OpenstackNodeEvent event) {
+            // do not allow to proceed without leadership
+            NodeId leader = leadershipService.getLeader(appId.name());
+            return Objects.equals(localNodeId, leader);
+        }
+
+        @Override
+        public void event(OpenstackNodeEvent event) {
+            OpenstackNode osNode = event.subject();
+            switch (event.type()) {
+                case OPENSTACK_NODE_COMPLETE:
+                    if (osNode.type().equals(GATEWAY)) {
+                        setDefaultArpRule(osNode, true);
+                    }
+                    break;
+                case OPENSTACK_NODE_INCOMPLETE:
+                    if (osNode.type().equals(GATEWAY)) {
+                        setDefaultArpRule(osNode, false);
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private void setDefaultArpRule(OpenstackNode osNode, boolean install) {
+            switch (arpMode) {
+                case ARP_PROXY_MODE:
+                    setDefaultArpRuleForProxyMode(osNode, install);
+                    break;
+                case ARP_BROADCAST_MODE:
+                    setDefaultArpRuleForBroadcastMode(osNode, install);
+                    break;
+                default:
+                    log.warn("Invalid ARP mode {}. Please use either " +
+                            "broadcast or proxy mode.", arpMode);
+                    break;
+            }
+        }
+
+        private void setDefaultArpRuleForProxyMode(OpenstackNode osNode, boolean install) {
+            TrafficSelector selector = DefaultTrafficSelector.builder()
+                    .matchEthType(EthType.EtherType.ARP.ethType().toShort())
+                    .build();
+
+            TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                    .punt()
+                    .build();
+
+            osFlowRuleService.setRule(
+                    appId,
+                    osNode.intgBridge(),
+                    selector,
+                    treatment,
+                    PRIORITY_ARP_CONTROL_RULE,
+                    DHCP_ARP_TABLE,
+                    install
+            );
+        }
+
+        private void setDefaultArpRuleForBroadcastMode(OpenstackNode osNode, boolean install) {
+            // we only match ARP_REPLY in gateway node, because controller
+            // somehow need to process ARP_REPLY which is issued from
+            // external router...
+            TrafficSelector selector = DefaultTrafficSelector.builder()
+                    .matchEthType(EthType.EtherType.ARP.ethType().toShort())
+                    .matchArpOp(ARP.OP_REPLY)
+                    .build();
+
+            TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                    .punt()
+                    .build();
+
+            osFlowRuleService.setRule(
+                    appId,
+                    osNode.intgBridge(),
+                    selector,
+                    treatment,
+                    PRIORITY_ARP_CONTROL_RULE,
+                    DHCP_ARP_TABLE,
+                    install
+            );
         }
     }
 }

@@ -86,7 +86,6 @@ import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ARP_REQ
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ARP_SUBNET_RULE;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.buildExtension;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
-import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
 
 /**
  * Handles ARP packet from VMs.
@@ -433,72 +432,74 @@ public final class OpenstackSwitchingArpHandler {
             OpenstackNode osNode = event.subject();
             switch (event.type()) {
                 case OPENSTACK_NODE_COMPLETE:
-                    setDefaultArpRule(osNode, true);
+                    if (osNode.type().equals(COMPUTE)) {
+                        setDefaultArpRule(osNode, true);
+                    }
                     break;
                 case OPENSTACK_NODE_INCOMPLETE:
-                    setDefaultArpRule(osNode, false);
+                    if (osNode.type().equals(COMPUTE)) {
+                        setDefaultArpRule(osNode, false);
+                    }
                     break;
-                case OPENSTACK_NODE_CREATED:
-                case OPENSTACK_NODE_UPDATED:
-                case OPENSTACK_NODE_REMOVED:
                 default:
                     break;
             }
         }
 
-        private void setDefaultArpRule(OpenstackNode openstackNode, boolean install) {
-            if (arpMode.equals(ARP_PROXY_MODE)) {
-
-                TrafficSelector selector = DefaultTrafficSelector.builder()
-                        .matchEthType(EthType.EtherType.ARP.ethType().toShort())
-                        .build();
-
-                TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                        .punt()
-                        .build();
-
-                osFlowRuleService.setRule(
-                        appId,
-                        openstackNode.intgBridge(),
-                        selector,
-                        treatment,
-                        PRIORITY_ARP_CONTROL_RULE,
-                        DHCP_ARP_TABLE,
-                        install
-                );
-            } else if (arpMode.equals(ARP_BROADCAST_MODE)) {
-
-                TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder()
-                        .matchEthType(EthType.EtherType.ARP.ethType().toShort());
-
-                TrafficTreatment.Builder treatmentBuilder = DefaultTrafficTreatment.builder();
-
-                // we only match ARP_REPLY in gateway node, because controller
-                // somehow need to process ARP_REPLY which is issued from
-                // external router...
-                // TODO: following code needs to be moved to OpenstackRoutingArpHandler sooner or later
-                if (openstackNode.type().equals(GATEWAY)) {
-                    selectorBuilder.matchArpOp(ARP.OP_REPLY);
-                    treatmentBuilder.punt();
-                }
-
-                if (openstackNode.type().equals(COMPUTE)) {
-                    selectorBuilder.matchArpOp(ARP.OP_REQUEST);
-                    treatmentBuilder.setOutput(PortNumber.FLOOD);
-                }
-
-                osFlowRuleService.setRule(
-                        appId,
-                        openstackNode.intgBridge(),
-                        selectorBuilder.build(),
-                        treatmentBuilder.build(),
-                        PRIORITY_ARP_SUBNET_RULE,
-                        DHCP_ARP_TABLE,
-                        install
-                );
-            } else {
-                log.warn("Invalid ARP mode {}. Please use either broadcast or proxy mode.", arpMode);
+        private void setDefaultArpRule(OpenstackNode osNode, boolean install) {
+            switch (arpMode) {
+                case ARP_PROXY_MODE:
+                    setDefaultArpRuleForProxyMode(osNode, install);
+                    break;
+                case ARP_BROADCAST_MODE:
+                    setDefaultArpRuleForBroadcastMode(osNode, install);
+                    break;
+                default:
+                    log.warn("Invalid ARP mode {}. Please use either " +
+                            "broadcast or proxy mode.", arpMode);
+                    break;
             }
+        }
+
+        private void setDefaultArpRuleForProxyMode(OpenstackNode osNode, boolean install) {
+            TrafficSelector selector = DefaultTrafficSelector.builder()
+                    .matchEthType(EthType.EtherType.ARP.ethType().toShort())
+                    .build();
+
+            TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                    .punt()
+                    .build();
+
+            osFlowRuleService.setRule(
+                    appId,
+                    osNode.intgBridge(),
+                    selector,
+                    treatment,
+                    PRIORITY_ARP_CONTROL_RULE,
+                    DHCP_ARP_TABLE,
+                    install
+            );
+        }
+
+        private void setDefaultArpRuleForBroadcastMode(OpenstackNode osNode, boolean install) {
+            TrafficSelector selector = DefaultTrafficSelector.builder()
+                    .matchEthType(EthType.EtherType.ARP.ethType().toShort())
+                    .matchArpOp(ARP.OP_REQUEST)
+                    .build();
+
+            TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                    .setOutput(PortNumber.FLOOD)
+                    .build();
+
+            osFlowRuleService.setRule(
+                    appId,
+                    osNode.intgBridge(),
+                    selector,
+                    treatment,
+                    PRIORITY_ARP_SUBNET_RULE,
+                    DHCP_ARP_TABLE,
+                    install
+            );
         }
     }
 
