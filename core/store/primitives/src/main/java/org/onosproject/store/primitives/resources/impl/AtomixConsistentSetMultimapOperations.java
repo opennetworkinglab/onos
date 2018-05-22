@@ -50,7 +50,8 @@ public enum AtomixConsistentSetMultimapOperations implements OperationId {
     REPLACE(OperationType.COMMAND),
     CLEAR(OperationType.COMMAND),
     ADD_LISTENER(OperationType.COMMAND),
-    REMOVE_LISTENER(OperationType.COMMAND);
+    REMOVE_LISTENER(OperationType.COMMAND),
+    ITERATE(OperationType.COMMAND);
 
     private final OperationType type;
 

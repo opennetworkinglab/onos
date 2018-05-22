@@ -18,6 +18,7 @@ package org.onosproject.store.primitives.impl;
 
 import com.google.common.collect.Multiset;
 import org.onosproject.store.service.AsyncConsistentMultimap;
+import org.onosproject.store.service.AsyncIterator;
 import org.onosproject.store.service.MultimapEventListener;
 import org.onosproject.store.service.Versioned;
 
@@ -128,6 +129,11 @@ public class DelegatingAsyncConsistentMultimap<K, V>
     @Override
     public CompletableFuture<Multiset<V>> values() {
         return delegateMap.values();
+    }
+
+    @Override
+    public CompletableFuture<AsyncIterator<Map.Entry<K, V>>> iterator() {
+        return delegateMap.iterator();
     }
 
     @Override

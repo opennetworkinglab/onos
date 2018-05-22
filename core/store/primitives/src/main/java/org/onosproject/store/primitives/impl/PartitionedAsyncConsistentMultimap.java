@@ -16,8 +16,11 @@
 package org.onosproject.store.primitives.impl;
 
 import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.CompletableFuture;
@@ -36,6 +39,7 @@ import org.onlab.util.Match;
 import org.onlab.util.Tools;
 import org.onosproject.cluster.PartitionId;
 import org.onosproject.store.service.AsyncConsistentMultimap;
+import org.onosproject.store.service.AsyncIterator;
 import org.onosproject.store.service.MultimapEventListener;
 import org.onosproject.store.service.Versioned;
 
@@ -170,6 +174,12 @@ public class PartitionedAsyncConsistentMultimap<K, V> implements AsyncConsistent
     }
 
     @Override
+    public CompletableFuture<AsyncIterator<Entry<K, V>>> iterator() {
+        return Tools.allOf(getMultimaps().stream().map(m -> m.iterator()).collect(Collectors.toList()))
+            .thenApply(PartitionedMultimapIterator::new);
+    }
+
+    @Override
     public CompletableFuture<Void> addListener(MultimapEventListener<K, V> listener, Executor executor) {
         return CompletableFuture.allOf(getMultimaps().stream()
             .map(map -> map.addListener(listener, executor))
@@ -215,5 +225,43 @@ public class PartitionedAsyncConsistentMultimap<K, V> implements AsyncConsistent
      */
     private Collection<AsyncConsistentMultimap<K, V>> getMultimaps() {
         return partitions.values();
+    }
+
+    private class PartitionedMultimapIterator<K, V> implements AsyncIterator<Map.Entry<K, V>> {
+        private final Iterator<AsyncIterator<Entry<K, V>>> iterators;
+        private volatile AsyncIterator<Entry<K, V>> iterator;
+
+        public PartitionedMultimapIterator(List<AsyncIterator<Entry<K, V>>> iterators) {
+            this.iterators = iterators.iterator();
+        }
+
+        @Override
+        public CompletableFuture<Boolean> hasNext() {
+            if (iterator == null && iterators.hasNext()) {
+                iterator = iterators.next();
+            }
+            if (iterator == null) {
+                return CompletableFuture.completedFuture(false);
+            }
+            return iterator.hasNext()
+                .thenCompose(hasNext -> {
+                    if (!hasNext) {
+                        iterator = null;
+                        return hasNext();
+                    }
+                    return CompletableFuture.completedFuture(true);
+                });
+        }
+
+        @Override
+        public CompletableFuture<Entry<K, V>> next() {
+            if (iterator == null && iterators.hasNext()) {
+                iterator = iterators.next();
+            }
+            if (iterator == null) {
+                return Tools.exceptionalFuture(new NoSuchElementException());
+            }
+            return iterator.next();
+        }
     }
 }
