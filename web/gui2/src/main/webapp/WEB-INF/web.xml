@@ -22,7 +22,7 @@
     <display-name>ONOS GUI 2</display-name>
 
     <welcome-file-list>
-        <welcome-file>index.html</welcome-file>
+        <welcome-file>dist/index.html</welcome-file>
     </welcome-file-list>
 
     <!--
@@ -30,7 +30,7 @@
     <security-constraint>
         <web-resource-collection>
             <web-resource-name>Secured</web-resource-name>
-            <url-pattern>/index.html</url-pattern>
+            <url-pattern>/dist/index.html</url-pattern>
         </web-resource-collection>
         <web-resource-collection>
             <web-resource-name>Secured API</web-resource-name>
@@ -71,100 +71,100 @@
 
     <servlet-mapping>
         <servlet-name>Index Page</servlet-name>
-        <url-pattern>/index.html</url-pattern>
+        <url-pattern>/dist/index.html</url-pattern>
     </servlet-mapping>
 
-    <servlet>
-        <servlet-name>Main Module</servlet-name>
-        <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
-        <init-param>
-            <param-name>jersey.config.server.provider.classnames</param-name>
-            <param-value>org.onosproject.ui.impl.MainModuleResource
-            </param-value>
-        </init-param>
-        <load-on-startup>1</load-on-startup>
-    </servlet>
+    <!--<servlet>-->
+        <!--<servlet-name>Main Module</servlet-name>-->
+        <!--<servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>-->
+        <!--<init-param>-->
+            <!--<param-name>jersey.config.server.provider.classnames</param-name>-->
+            <!--<param-value>org.onosproject.ui.impl.MainModuleResource-->
+            <!--</param-value>-->
+        <!--</init-param>-->
+        <!--<load-on-startup>1</load-on-startup>-->
+    <!--</servlet>-->
 
-    <servlet-mapping>
-        <servlet-name>Main Module</servlet-name>
-        <url-pattern>/onos.js</url-pattern>
-    </servlet-mapping>
+    <!--<servlet-mapping>-->
+        <!--<servlet-name>Main Module</servlet-name>-->
+        <!--<url-pattern>/onos.js</url-pattern>-->
+    <!--</servlet-mapping>-->
 
-    <servlet>
-        <servlet-name>Nav Module</servlet-name>
-        <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
-        <init-param>
-            <param-name>jersey.config.server.provider.classnames</param-name>
-            <param-value>org.onosproject.ui.impl.MainNavResource</param-value>
-        </init-param>
-        <load-on-startup>1</load-on-startup>
-    </servlet>
+    <!--<servlet>-->
+        <!--<servlet-name>Nav Module</servlet-name>-->
+        <!--<servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>-->
+        <!--<init-param>-->
+            <!--<param-name>jersey.config.server.provider.classnames</param-name>-->
+            <!--<param-value>org.onosproject.ui.impl.MainNavResource</param-value>-->
+        <!--</init-param>-->
+        <!--<load-on-startup>1</load-on-startup>-->
+    <!--</servlet>-->
 
-    <servlet-mapping>
-        <servlet-name>Nav Module</servlet-name>
-        <url-pattern>/nav.html</url-pattern>
-    </servlet-mapping>
+    <!--<servlet-mapping>-->
+        <!--<servlet-name>Nav Module</servlet-name>-->
+        <!--<url-pattern>/nav.html</url-pattern>-->
+    <!--</servlet-mapping>-->
 
-    <servlet>
-        <servlet-name>View Module</servlet-name>
-        <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
-        <init-param>
-            <param-name>jersey.config.server.provider.classnames</param-name>
-            <param-value>org.onosproject.ui.impl.MainViewResource</param-value>
-        </init-param>
-        <load-on-startup>1</load-on-startup>
-    </servlet>
+    <!--<servlet>-->
+        <!--<servlet-name>View Module</servlet-name>-->
+        <!--<servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>-->
+        <!--<init-param>-->
+            <!--<param-name>jersey.config.server.provider.classnames</param-name>-->
+            <!--<param-value>org.onosproject.ui.impl.MainViewResource</param-value>-->
+        <!--</init-param>-->
+        <!--<load-on-startup>1</load-on-startup>-->
+    <!--</servlet>-->
 
-    <servlet-mapping>
-        <servlet-name>View Module</servlet-name>
-        <url-pattern>/app/view/*</url-pattern>
-    </servlet-mapping>
+    <!--<servlet-mapping>-->
+        <!--<servlet-name>View Module</servlet-name>-->
+        <!--<url-pattern>/app/view/*</url-pattern>-->
+    <!--</servlet-mapping>-->
 
-    <servlet>
-        <servlet-name>Foo Module</servlet-name>
-        <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
-        <init-param>
-            <param-name>jersey.config.server.provider.classnames</param-name>
-            <param-value>org.onosproject.ui.impl.FooResource</param-value>
-        </init-param>
-        <load-on-startup>1</load-on-startup>
-    </servlet>
+    <!--<servlet>-->
+        <!--<servlet-name>Foo Module</servlet-name>-->
+        <!--<servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>-->
+        <!--<init-param>-->
+            <!--<param-name>jersey.config.server.provider.classnames</param-name>-->
+            <!--<param-value>org.onosproject.ui.impl.FooResource</param-value>-->
+        <!--</init-param>-->
+        <!--<load-on-startup>1</load-on-startup>-->
+    <!--</servlet>-->
 
-    <servlet-mapping>
-        <servlet-name>Foo Module</servlet-name>
-        <url-pattern>/raw/*</url-pattern>
-    </servlet-mapping>
+    <!--<servlet-mapping>-->
+        <!--<servlet-name>Foo Module</servlet-name>-->
+        <!--<url-pattern>/raw/*</url-pattern>-->
+    <!--</servlet-mapping>-->
 
-    <servlet>
-        <servlet-name>JAX-RS Service</servlet-name>
-        <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
-        <init-param>
-            <param-name>jersey.config.server.provider.classnames</param-name>
-            <param-value>
-                org.glassfish.jersey.media.multipart.MultiPartFeature,
-                org.onosproject.ui.impl.LogoutResource,
-                org.onosproject.ui.impl.TopologyResource,
-                org.onosproject.ui.impl.ApplicationResource
-            </param-value>
-        </init-param>
-        <load-on-startup>1</load-on-startup>
-    </servlet>
+    <!--<servlet>-->
+        <!--<servlet-name>JAX-RS Service</servlet-name>-->
+        <!--<servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>-->
+        <!--<init-param>-->
+            <!--<param-name>jersey.config.server.provider.classnames</param-name>-->
+            <!--<param-value>-->
+                <!--org.glassfish.jersey.media.multipart.MultiPartFeature,-->
+                <!--org.onosproject.ui.impl.LogoutResource,-->
+                <!--org.onosproject.ui.impl.TopologyResource,-->
+                <!--org.onosproject.ui.impl.ApplicationResource-->
+            <!--</param-value>-->
+        <!--</init-param>-->
+        <!--<load-on-startup>1</load-on-startup>-->
+    <!--</servlet>-->
 
-    <servlet-mapping>
-        <servlet-name>JAX-RS Service</servlet-name>
-        <url-pattern>/rs/*</url-pattern>
-    </servlet-mapping>
+    <!--<servlet-mapping>-->
+        <!--<servlet-name>JAX-RS Service</servlet-name>-->
+        <!--<url-pattern>/rs/*</url-pattern>-->
+    <!--</servlet-mapping>-->
 
-    <servlet>
-        <servlet-name>Web Socket Service</servlet-name>
-        <servlet-class>org.onosproject.ui.impl.UiWebSocketServlet
-        </servlet-class>
-        <load-on-startup>2</load-on-startup>
-    </servlet>
+    <!--<servlet>-->
+        <!--<servlet-name>Web Socket Service</servlet-name>-->
+        <!--<servlet-class>org.onosproject.ui.impl.UiWebSocketServlet-->
+        <!--</servlet-class>-->
+        <!--<load-on-startup>2</load-on-startup>-->
+    <!--</servlet>-->
 
-    <servlet-mapping>
-        <servlet-name>Web Socket Service</servlet-name>
-        <url-pattern>/websock/*</url-pattern>
-    </servlet-mapping>
+    <!--<servlet-mapping>-->
+        <!--<servlet-name>Web Socket Service</servlet-name>-->
+        <!--<url-pattern>/websock/*</url-pattern>-->
+    <!--</servlet-mapping>-->
 
 </web-app>
