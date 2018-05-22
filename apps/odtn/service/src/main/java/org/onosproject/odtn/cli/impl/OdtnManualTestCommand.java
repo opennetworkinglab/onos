@@ -87,9 +87,13 @@ public class OdtnManualTestCommand extends AbstractShellCommand {
     // injecting dependency for OSGi package import generation purpose
     PortNumberCompleter portNoCompleter;
     // Note: this will required Port information in device subystem
-    @Option(name = "--portNo", description = "PortNumber to send configuration to",
+    @Option(name = "--cltPortNo", description = "Client-side PortNumber to send configuration to",
             required = false)
-    String portNo = null;
+    String cltPortNo = null;
+
+    @Option(name = "--linePortNo", description = "Line-side PortNumber to send configuration to",
+            required = false)
+    String linePortNo = null;
 
 
     // TODO add completer for this?
@@ -152,16 +156,20 @@ public class OdtnManualTestCommand extends AbstractShellCommand {
             break;
 
         case ENABLE_TRANSCEIVER:
-            if (portNo != null) {
-                nodes.addAll(transceiver.enable(PortNumber.portNumber(portNo), true));
+            if (cltPortNo != null && linePortNo != null) {
+                nodes.addAll(transceiver.enable(PortNumber.portNumber(cltPortNo),
+                                                PortNumber.portNumber(linePortNo),
+                                                true));
             } else {
                 nodes.addAll(transceiver.enable(componentName, true));
             }
             break;
 
         case DISABLE_TRANSCEIVER:
-            if (portNo != null) {
-                nodes.addAll(transceiver.enable(PortNumber.portNumber(portNo), false));
+            if (cltPortNo != null && linePortNo != null) {
+                nodes.addAll(transceiver.enable(PortNumber.portNumber(cltPortNo),
+                                                PortNumber.portNumber(linePortNo),
+                                                false));
             } else {
                 nodes.addAll(transceiver.enable(componentName, false));
             }

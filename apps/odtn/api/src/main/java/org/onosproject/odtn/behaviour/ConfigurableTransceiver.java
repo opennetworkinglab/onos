@@ -32,13 +32,14 @@ public interface ConfigurableTransceiver extends HandlerBehaviour {
     /**
      * Generate configuration to enable/disable transceiver.
      *
-     * @param port to enable/disable
+     * @param client side port of transceiver to enable/disable
+     * @param line side port of transceiver to enable/disable
      * @param enable or disable
      * @return XML documents (List to handle configuration with multiple-roots)
      */
     // return type and how component get specified are likely to change in future
     @Beta
-    List<CharSequence> enable(PortNumber port, boolean enable);
+    List<CharSequence> enable(PortNumber client, PortNumber line, boolean enable);
 
     // defined only for the purpose of test command without device.
     @Deprecated

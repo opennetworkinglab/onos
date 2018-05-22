@@ -25,7 +25,8 @@
             </completers>
             <optional-completers>
                 <entry key="--deviceId" value-ref="deviceIdCompleter"/>
-                <entry key="--portNo" value-ref="portNumberCompleter"/>
+                <entry key="--cltPortNo" value-ref="portNumberCompleter"/>
+                <entry key="--linePortNo" value-ref="portNumberCompleter"/>
             </optional-completers>
         </command>
 

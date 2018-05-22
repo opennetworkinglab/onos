@@ -47,16 +47,16 @@ public class PlainTransceiver extends AbstractHandlerBehaviour
     private final Logger log = getLogger(getClass());
 
     @Override
-    public List<CharSequence> enable(PortNumber number, boolean enable) {
+    public List<CharSequence> enable(PortNumber client, PortNumber line, boolean enable) {
         DeviceId did = this.data().deviceId();
-        Port port = handler().get(DeviceService.class).getPort(did, number);
+        Port port = handler().get(DeviceService.class).getPort(did, client);
         if (port == null) {
-            log.warn("{} does not exist on {}", number, did);
+            log.warn("{} does not exist on {}", client, did);
             return Collections.emptyList();
         }
         String component = port.annotations().value(OC_NAME);
         if (Strings.isNullOrEmpty(component)) {
-            log.warn("{} annotation not found on {}@{}", OC_NAME, number, did);
+            log.warn("{} annotation not found on {}@{}", OC_NAME, client, did);
             return Collections.emptyList();
         }
         return enable(component, enable);
