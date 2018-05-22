@@ -23,13 +23,15 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executor;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * This provides a synchronous version of the functionality provided by
  * {@link AsyncConsistentMultimap}.  Instead of returning futures this map
  * blocks until the future completes then returns the result.
  */
-public interface ConsistentMultimap<K, V> extends DistributedPrimitive {
+public interface ConsistentMultimap<K, V> extends DistributedPrimitive, Iterable<Map.Entry<K, V>> {
     /**
      * Returns the number of key-value pairs in this multimap.
      * @return the number of key-value pairs
@@ -191,10 +193,23 @@ public interface ConsistentMultimap<K, V> extends DistributedPrimitive {
 
     /**
      * Returns a collection of each key-value pair in this map.
+     * <p>
+     * Do not use this method to read large maps. Use an {@link #iterator()} or {@link #stream()} instead.
      *
      * @return a collection of all entries in the map, this may be empty
      */
     Collection<Map.Entry<K, V>> entries();
+
+    /**
+     * Streams entries from the map.
+     * <p>
+     * This method is optimized for large maps.
+     *
+     * @return the map entry stream
+     */
+    default Stream<Map.Entry<K, V>> stream() {
+        return StreamSupport.stream(spliterator(), false);
+    }
 
     /**
      * Returns a map of keys to collections of values that reflect the set of

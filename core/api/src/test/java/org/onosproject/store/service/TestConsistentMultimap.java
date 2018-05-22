@@ -19,6 +19,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multiset;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executor;
@@ -126,6 +127,11 @@ public class TestConsistentMultimap<K, V> implements ConsistentMultimap<K, V> {
 
     @Override
     public Collection<Map.Entry<K, V>> entries() {
+        return null;
+    }
+
+    @Override
+    public Iterator<Map.Entry<K, V>> iterator() {
         return null;
     }
 

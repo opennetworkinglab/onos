@@ -16,11 +16,14 @@
 
 package org.onosproject.store.primitives.resources.impl;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multiset;
@@ -30,6 +33,7 @@ import io.atomix.protocols.raft.service.RaftService;
 import org.apache.commons.collections.keyvalue.DefaultMapEntry;
 import org.junit.Test;
 import org.onlab.util.Tools;
+import org.onosproject.store.service.AsyncIterator;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -305,6 +309,23 @@ public class AtomixConsistentSetMultimapTest extends AtomixTestBase<AtomixConsis
         });
 
         map.destroy().join();
+    }
+
+    @Test
+    public void testStreams() throws Exception {
+        AtomixConsistentSetMultimap map = createResource("testStreams");
+        for (int i = 0; i < 10000; i++) {
+            allKeys.forEach(key -> {
+                map.put(key, UUID.randomUUID().toString().getBytes()).join();
+            });
+        }
+
+        List<Map.Entry<String, byte[]>> entries = new ArrayList<>();
+        AsyncIterator<Map.Entry<String, byte[]>> iterator = map.iterator().get(5, TimeUnit.SECONDS);
+        while (iterator.hasNext().get(5, TimeUnit.SECONDS)) {
+            entries.add(iterator.next().get(5, TimeUnit.SECONDS));
+        }
+        assertEquals(40000, entries.size());
     }
 
     /**

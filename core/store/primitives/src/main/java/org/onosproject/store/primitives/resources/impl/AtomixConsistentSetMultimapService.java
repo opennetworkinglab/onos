@@ -58,6 +58,7 @@ import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.Versioned;
 
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapEvents.CHANGE;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapEvents.ENTRY;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.ADD_LISTENER;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.CLEAR;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.CONTAINS_ENTRY;
@@ -70,6 +71,7 @@ import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSe
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.GET;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.Get;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.IS_EMPTY;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.ITERATE;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.KEYS;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.KEY_SET;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.MultiRemove;
@@ -155,6 +157,7 @@ public class AtomixConsistentSetMultimapService extends AbstractRaftService {
         executor.register(REPLACE, serializer::decode, this::replace, serializer::encode);
         executor.register(ADD_LISTENER, this::listen);
         executor.register(REMOVE_LISTENER, this::unlisten);
+        executor.register(ITERATE, this::iterate, serializer::encode);
     }
 
     @Override
@@ -422,6 +425,23 @@ public class AtomixConsistentSetMultimapService extends AbstractRaftService {
      */
     protected void unlisten(Commit<Void> commit) {
         listeners.remove(commit.session().sessionId().id());
+    }
+
+    /**
+     * Handles an iterate commit.
+     *
+     * @param commit the iterate commit
+     * @return count of commit entries
+     */
+    protected int iterate(Commit<Void> commit) {
+        int count = 0;
+        for (Map.Entry<String, MapEntryValue> entry : backingMap.entrySet()) {
+            for (byte[] value : entry.getValue().values()) {
+                commit.session().publish(ENTRY, serializer::encode, Maps.immutableEntry(entry.getKey(), value));
+                count++;
+            }
+        }
+        return count;
     }
 
     /**

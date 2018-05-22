@@ -24,7 +24,8 @@ import org.onosproject.store.service.MultimapEvent;
  * Atomix consistent set multimap events.
  */
 public enum AtomixConsistentSetMultimapEvents implements EventType {
-    CHANGE;
+    CHANGE,
+    ENTRY;
 
     @Override
     public String id() {

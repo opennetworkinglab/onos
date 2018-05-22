@@ -34,7 +34,7 @@ import java.util.concurrent.Executor;
  * Certain operations may be too expensive when backed by a distributed data
  * structure and have been labeled as such.
  */
-public interface AsyncConsistentMultimap<K, V> extends DistributedPrimitive {
+public interface AsyncConsistentMultimap<K, V> extends DistributedPrimitive, AsyncIterable<Map.Entry<K, V>> {
 
     @Override
     default DistributedPrimitive.Type primitiveType() {
