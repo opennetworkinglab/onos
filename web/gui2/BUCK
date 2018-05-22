@@ -33,7 +33,7 @@ fetch_node(version = 'v8.11.1')
 genrule(
     name = 'onos-web-gui2-build',
     srcs = glob([
-            './**/*.json',
+            '**/*.json',
             'src/main/webapp/**/*.ts',
             'src/main/webapp/**/*.html',
             'src/main/webapp/**/*.css',
