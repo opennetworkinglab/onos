@@ -102,7 +102,25 @@ public class FederatedDistributedPrimitiveCreator implements DistributedPrimitiv
 
     @Override
     public <K, V> AsyncConsistentMultimap<K, V> newAsyncConsistentSetMultimap(String name, Serializer serializer) {
-        return getCreator(name).newAsyncConsistentSetMultimap(name, serializer);
+        Map<PartitionId, AsyncConsistentMultimap<byte[], byte[]>> maps =
+            Maps.transformValues(members,
+                partition -> DistributedPrimitives.newTranscodingMultimap(
+                    partition.<String, byte[]>newAsyncConsistentSetMultimap(name, null),
+                    HexString::toHexString,
+                    HexString::fromHexString,
+                    Function.identity(),
+                    Function.identity()));
+        Hasher<byte[]> hasher = key -> {
+            int bucket = Math.abs(Hashing.murmur3_32().hashBytes(key).asInt()) % buckets;
+            return sortedMemberPartitionIds.get(Hashing.consistentHash(bucket, sortedMemberPartitionIds.size()));
+        };
+        AsyncConsistentMultimap<byte[], byte[]> partitionedMap =
+            new PartitionedAsyncConsistentMultimap<>(name, maps, hasher);
+        return DistributedPrimitives.newTranscodingMultimap(partitionedMap,
+            key -> serializer.encode(key),
+            bytes -> serializer.decode(bytes),
+            value -> value == null ? null : serializer.encode(value),
+            bytes -> serializer.decode(bytes));
     }
 
     @Override
