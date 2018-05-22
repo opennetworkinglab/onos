@@ -10,12 +10,12 @@ Similarly to exercise 1, in this example we want to provide connectivity between
 hosts of a network when using switches programmed with the `mytunnel.p4`
 program. Differently from exercise 1, forwarding between hosts will be provided
 by the MyTunnel app, instead of Reactive Forwarding. The MyTunnel app provides
-connectivity by programming the dataplane to forward packets via the MyTunnel
+connectivity by programming the data plane to forward packets using the MyTunnel
 protocol.
 
-Before starting, we suggest to open the onos/apps/p4-tutorial directory in your
-editor of choice for an easier access to the different files of this exercise.
-For example, if using atom:
+Before starting, we suggest to open the `onos/apps/p4-tutorial` directory in
+your editor of choice for an easier access to the different files of this
+exercise. For example, if using the Atom editor:
 
 ```
 $ atom $ONOS_ROOT/apps/p4-tutorial/
@@ -36,15 +36,15 @@ header my_tunnel_t {
 ```
 
 A switch implementing the MyTunnel protocol can forward packets using three
-different forwarding behaviors:
+different forwarding behaviors.
 
 1. **Ingress**: for IPv4 packets received at a edge switch, i.e. the first node
 in the tunnel path, the MyTunnel header is applied with an arbitrary tunnel
 identifier decided by the control plane.
 
 2. **Transit**: for packets with the MyTunnel header processed by an
-intermediate node in the tunnel path, the switch simply forwards the packet by
-looking at the tunnel ID field.
+intermediate node in the tunnel path. When operating in this mode, the switch
+simply forwards the packet by looking at the tunnel ID field.
 
 3. **Egress**: for packets with the MyTunnel header processed by the last node
 in the path, the switch removes the MyTunnel header before forwarding the packet
@@ -64,7 +64,7 @@ header with a given tunnel ID (action parameter).
 * `t_tunnel_fwd`: this table is used to implement both the transit and egress
 behaviors. It matches on the tunnel ID, and allows two different actions,
 `set_out_port` and `my_tunnel_egress`. `set_out_port` is used to set the
-output port where the packet should be transmitted, without further
+output port where the packet should be transmitted without further
 modifications. With `my_tunnel_egress`, the packet is stripped of the MyTunnel
 header before setting the output port.
 
@@ -74,20 +74,21 @@ To begin, open
 [MyTunnelApp.java](./mytunnel/src/main/java/org/onosproject/p4tutorial/mytunnel/MyTunnelApp.java)
 in your editor of choice, and familiarize with the app implementation.
 
-The file is located here:
+For example, if using the Atom editor:
 
 ```
-$ONOS_ROOT/apps/mytunnel/src/main/java/org/onosproject/p4tutorial/mytunnel/MyTunnelApp.java
+$ atom $ONOS_ROOT/apps/p4-tutorial/mytunnel/src/main/java/org/onosproject/p4tutorial/mytunnel/MyTunnelApp.java
 ```
 
 The MyTunnel app works by registering an event listener with the ONOS Host
 Service (`class InternalHostListener` at line 308). This listener is used to
 notify the MyTunnel app every time a new host is discovered. Host discovery is
-performed by the Proxy-ARP app. Each time an ARP request is received (via
-packet-in), ONOS learns the location of the sender of the ARP request, before
-generating an ARP reply or forwarding the requests to other hosts. When learning
-the location of a new host, ONOS informs all apps that have registered a
-listener with an `HOST_ADDED` event.
+performed by means of two ONOS core services: Host Location Provider and
+Proxy-ARP app. Each time an ARP request is received (via packet-in), ONOS learns
+the location of the sender of the ARP request, before generating an ARP reply or
+forwarding the requests to other hosts. When learning the location of a new
+host, ONOS informs all apps that have registered a listener with an `HOST_ADDED`
+event.
 
 Once an `HOST_ADDED` event is notified to the MyTunnel app, this creates two
 unidirectional tunnels between that host and any other host previously
@@ -112,7 +113,7 @@ egress behaviors.
 
         **Spoiler alert:** There is a reference solution in the same directory
         as MyTunnelApp.java. Feel free to compare your implementation to the
-        reference.
+        reference one.
 
 2. **Start ONOS with and all the apps**.
 
@@ -134,7 +135,7 @@ egress behaviors.
         ```
         onos> app activate org.onosproject.drivers.bmv2
         onos> app activate org.onosproject.p4tutorial.pipeconf
-        onos> app activate org.onosproject.p4tutorial.pipeconf
+        onos> app activate org.onosproject.p4tutorial.mytunnel
         ```
 
         **Hint:** To avoid accessing the CLI to start all applications, you can
@@ -155,20 +156,21 @@ egress behaviors.
         You should see an output like this:
 
         ```
-        *   5 org.onosproject.hostprovider         1.14.0.SNAPSHOT Host Location Provider
-        *   6 org.onosproject.lldpprovider         1.14.0.SNAPSHOT LLDP Link Provider
-        *  16 org.onosproject.proxyarp             1.14.0.SNAPSHOT Proxy ARP/NDP
-        *  20 org.onosproject.drivers              1.14.0.SNAPSHOT Default Drivers
-        *  42 org.onosproject.protocols.grpc       1.14.0.SNAPSHOT gRPC Protocol Subsystem
-        *  43 org.onosproject.protocols.p4runtime  1.14.0.SNAPSHOT P4Runtime Protocol Subsystem
-        *  44 org.onosproject.p4runtime            1.14.0.SNAPSHOT P4Runtime Provider
-        *  50 org.onosproject.generaldeviceprovider 1.14.0.SNAPSHOT General Device Provider
-        *  51 org.onosproject.drivers.p4runtime    1.14.0.SNAPSHOT P4Runtime Drivers
-        *  52 org.onosproject.p4tutorial.pipeconf  1.14.0.SNAPSHOT P4 Tutorial Pipeconf
-        *  79 org.onosproject.pipelines.basic      1.14.0.SNAPSHOT Basic Pipelines
-        *  90 org.onosproject.protocols.gnmi       1.14.0.SNAPSHOT gNMI Protocol Subsystem
-        *  91 org.onosproject.drivers.gnmi         1.14.0.SNAPSHOT gNMI Drivers
-        * 160 org.onosproject.drivers.bmv2         1.14.0.SNAPSHOT BMv2 Drivers
+        org.onosproject.hostprovider          ... Host Location Provider
+        org.onosproject.lldpprovider          ... LLDP Link Provider
+        org.onosproject.proxyarp              ... Proxy ARP/NDP
+        org.onosproject.drivers               ... Default Drivers
+        org.onosproject.protocols.grpc        ... gRPC Protocol Subsystem
+        org.onosproject.protocols.p4runtime   ... P4Runtime Protocol Subsystem
+        org.onosproject.p4runtime             ... P4Runtime Provider
+        org.onosproject.generaldeviceprovider ... General Device Provider
+        org.onosproject.drivers.p4runtime     ... P4Runtime Drivers
+        org.onosproject.p4tutorial.pipeconf   ... P4 Tutorial Pipeconf
+        org.onosproject.pipelines.basic       ... Basic Pipelines
+        org.onosproject.protocols.gnmi        ... gNMI Protocol Subsystem
+        org.onosproject.drivers.gnmi          ... gNMI Drivers
+        org.onosproject.drivers.bmv2          ... BMv2 Drivers
+        org.onosproject.p4tutorial.mytunnel   ... MyTunnel Demo App
         ```
 
     4. (optional) **Change flow rule polling interval**. Run the following
@@ -218,20 +220,16 @@ window type:
 
         You should see 0 hosts, as we have not injected any ARP packet yet.
 
-5. **Ping hosts**
+5. **Ping hosts**, on the Mininet CLI, type:
 
-    1. On the Mininet CLI, type:
+    ```
+    mininet> h1 ping h7
+    ```
 
-        ```
-        mininet> h1 ping h7
-        ```
-
-        If the implementation of MyTunnelApp.java has been completed correctly,
-        ping should work. If not, check the reference solution in the same
-        directory as MyTunnelApp.java.
-
-    2. Check the ONOS log, you should see messages from the MyTunnel app setting
-    up the tunnel.
+    If the implementation of MyTunnelApp.java has been completed correctly,
+    ping should work. If not, check the ONOS log for possible errors in the
+    MyTunnel app. As a last resort, please check the reference solution in
+    the same directory as MyTunnelApp.java and compare that to yours.
 
 6. **Look around**.
 
