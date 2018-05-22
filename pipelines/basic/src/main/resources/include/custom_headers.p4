@@ -29,7 +29,6 @@ struct local_metadata_t {
     bit<16>       l4_src_port;
     bit<16>       l4_dst_port;
     next_hop_id_t next_hop_id;
-    bit<32>       meter_tag;
 }
 
 #endif

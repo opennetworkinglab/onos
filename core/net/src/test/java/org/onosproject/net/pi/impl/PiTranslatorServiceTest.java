@@ -68,7 +68,7 @@ import static org.onlab.util.ImmutableByteSequence.copyFrom;
 import static org.onosproject.net.group.GroupDescription.Type.SELECT;
 import static org.onosproject.pipelines.basic.BasicConstants.ACT_PRF_WCMP_SELECTOR_ID;
 import static org.onosproject.pipelines.basic.BasicConstants.ACT_PRM_PORT_ID;
-import static org.onosproject.pipelines.basic.BasicConstants.ACT_SET_EGRESS_PORT_ID;
+import static org.onosproject.pipelines.basic.BasicConstants.ACT_SET_EGRESS_PORT_WCMP_ID;
 import static org.onosproject.pipelines.basic.BasicConstants.HDR_ETH_DST_ID;
 import static org.onosproject.pipelines.basic.BasicConstants.HDR_ETH_SRC_ID;
 import static org.onosproject.pipelines.basic.BasicConstants.HDR_ETH_TYPE_ID;
@@ -222,7 +222,7 @@ public class PiTranslatorServiceTest {
     private static GroupBucket outputBucket(int portNum) {
         ImmutableByteSequence paramVal = copyFrom(portNum);
         PiActionParam param = new PiActionParam(ACT_PRM_PORT_ID, paramVal);
-        PiTableAction action = PiAction.builder().withId(ACT_SET_EGRESS_PORT_ID).withParameter(param).build();
+        PiTableAction action = PiAction.builder().withId(ACT_SET_EGRESS_PORT_WCMP_ID).withParameter(param).build();
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                 .add(Instructions.piTableAction(action))
                 .build();
@@ -233,7 +233,7 @@ public class PiTranslatorServiceTest {
             throws ImmutableByteSequence.ByteSequenceTrimException {
         PiActionParam param = new PiActionParam(ACT_PRM_PORT_ID, copyFrom(portNum).fit(PORT_BITWIDTH));
         PiAction piAction = PiAction.builder()
-                .withId(ACT_SET_EGRESS_PORT_ID)
+                .withId(ACT_SET_EGRESS_PORT_WCMP_ID)
                 .withParameter(param).build();
         return PiActionGroupMember.builder()
                 .withAction(piAction)

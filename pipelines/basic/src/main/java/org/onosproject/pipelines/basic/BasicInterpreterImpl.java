@@ -35,6 +35,7 @@ import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.pi.model.PiMatchFieldId;
 import org.onosproject.net.pi.model.PiPipelineInterpreter;
 import org.onosproject.net.pi.model.PiTableId;
+import org.onosproject.net.pi.model.PiActionId;
 import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiActionParam;
 import org.onosproject.net.pi.runtime.PiControlMetadata;
@@ -57,7 +58,8 @@ import static org.onosproject.pipelines.basic.BasicConstants.ACT_DROP_ID;
 import static org.onosproject.pipelines.basic.BasicConstants.ACT_NOACTION_ID;
 import static org.onosproject.pipelines.basic.BasicConstants.ACT_PRM_PORT_ID;
 import static org.onosproject.pipelines.basic.BasicConstants.ACT_SEND_TO_CPU_ID;
-import static org.onosproject.pipelines.basic.BasicConstants.ACT_SET_EGRESS_PORT_ID;
+import static org.onosproject.pipelines.basic.BasicConstants.ACT_SET_EGRESS_PORT_TABLE0_ID;
+import static org.onosproject.pipelines.basic.BasicConstants.ACT_SET_EGRESS_PORT_WCMP_ID;
 import static org.onosproject.pipelines.basic.BasicConstants.HDR_ETH_DST_ID;
 import static org.onosproject.pipelines.basic.BasicConstants.HDR_ETH_SRC_ID;
 import static org.onosproject.pipelines.basic.BasicConstants.HDR_ETH_TYPE_ID;
@@ -68,6 +70,7 @@ import static org.onosproject.pipelines.basic.BasicConstants.PKT_META_EGRESS_POR
 import static org.onosproject.pipelines.basic.BasicConstants.PKT_META_INGRESS_PORT_ID;
 import static org.onosproject.pipelines.basic.BasicConstants.PORT_BITWIDTH;
 import static org.onosproject.pipelines.basic.BasicConstants.TBL_TABLE0_ID;
+import static org.onosproject.pipelines.basic.BasicConstants.TBL_WCMP_TABLE_ID;
 
 /**
  * Interpreter implementation for basic.p4.
@@ -104,7 +107,14 @@ public class BasicInterpreterImpl extends AbstractHandlerBehaviour
         Instruction instruction = treatment.allInstructions().get(0);
         switch (instruction.type()) {
             case OUTPUT:
-                return outputPiAction((OutputInstruction) instruction);
+                if (piTableId == TBL_TABLE0_ID) {
+                    return outputPiAction((OutputInstruction) instruction, ACT_SET_EGRESS_PORT_TABLE0_ID);
+                } else if (piTableId == TBL_WCMP_TABLE_ID) {
+                    return outputPiAction((OutputInstruction) instruction, ACT_SET_EGRESS_PORT_WCMP_ID);
+                } else {
+                    throw new PiInterpreterException(
+                            "Output instruction not supported in table " + piTableId);
+                }
             case NOACTION:
                 return PiAction.builder().withId(ACT_NOACTION_ID).build();
             default:
@@ -113,13 +123,13 @@ public class BasicInterpreterImpl extends AbstractHandlerBehaviour
         }
     }
 
-    private PiAction outputPiAction(OutputInstruction outInstruction)
+    private PiAction outputPiAction(OutputInstruction outInstruction, PiActionId piActionId)
             throws PiInterpreterException {
         PortNumber port = outInstruction.port();
         if (!port.isLogical()) {
             try {
                 return PiAction.builder()
-                        .withId(ACT_SET_EGRESS_PORT_ID)
+                        .withId(piActionId)
                         .withParameter(new PiActionParam(ACT_PRM_PORT_ID,
                                                          copyFrom(port.toLong()).fit(PORT_BITWIDTH)))
                         .build();

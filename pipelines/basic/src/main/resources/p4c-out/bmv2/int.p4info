@@ -59,10 +59,10 @@ tables {
     match_type: TERNARY
   }
   action_refs {
-    id: 16794308
+    id: 16822046
   }
   action_refs {
-    id: 16829080
+    id: 16783057
   }
   action_refs {
     id: 16777316
@@ -310,25 +310,6 @@ tables {
 }
 actions {
   preamble {
-    id: 16794308
-    name: "set_egress_port"
-    alias: "set_egress_port"
-  }
-  params {
-    id: 1
-    name: "port"
-    bitwidth: 9
-  }
-}
-actions {
-  preamble {
-    id: 16829080
-    name: "send_to_cpu"
-    alias: "send_to_cpu"
-  }
-}
-actions {
-  preamble {
     id: 16784184
     name: "_drop"
     alias: "_drop"
@@ -344,6 +325,25 @@ actions {
     id: 1
     name: "next_hop_id"
     bitwidth: 16
+  }
+}
+actions {
+  preamble {
+    id: 16783057
+    name: "ingress.table0_control.send_to_cpu"
+    alias: "send_to_cpu"
+  }
+}
+actions {
+  preamble {
+    id: 16822046
+    name: "ingress.table0_control.set_egress_port"
+    alias: "set_egress_port"
+  }
+  params {
+    id: 1
+    name: "port"
+    bitwidth: 9
   }
 }
 actions {
@@ -782,6 +782,11 @@ controller_packet_metadata {
     name: "ingress_port"
     bitwidth: 9
   }
+  metadata {
+    id: 2
+    name: "_padding"
+    bitwidth: 7
+  }
 }
 controller_packet_metadata {
   preamble {
@@ -793,5 +798,10 @@ controller_packet_metadata {
     id: 1
     name: "egress_port"
     bitwidth: 9
+  }
+  metadata {
+    id: 2
+    name: "_padding"
+    bitwidth: 7
   }
 }

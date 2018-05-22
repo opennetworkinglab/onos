@@ -20,14 +20,6 @@
 #include "headers.p4"
 #include "defines.p4"
 
-action send_to_cpu(inout standard_metadata_t standard_metadata) {
-    standard_metadata.egress_spec = CPU_PORT;
-}
-
-action set_egress_port(inout standard_metadata_t standard_metadata, port_t port) {
-    standard_metadata.egress_spec = port;
-}
-
 action _drop() {
     mark_to_drop();
 }

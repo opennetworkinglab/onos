@@ -59,10 +59,10 @@ tables {
     match_type: TERNARY
   }
   action_refs {
-    id: 16794308
+    id: 16822046
   }
   action_refs {
-    id: 16829080
+    id: 16783057
   }
   action_refs {
     id: 16777316
@@ -108,7 +108,7 @@ tables {
     match_type: EXACT
   }
   action_refs {
-    id: 16794308
+    id: 16796092
   }
   action_refs {
     id: 16800567
@@ -117,25 +117,6 @@ tables {
   implementation_id: 285253634
   direct_resource_ids: 302034578
   size: 1024
-}
-actions {
-  preamble {
-    id: 16794308
-    name: "set_egress_port"
-    alias: "set_egress_port"
-  }
-  params {
-    id: 1
-    name: "port"
-    bitwidth: 9
-  }
-}
-actions {
-  preamble {
-    id: 16829080
-    name: "send_to_cpu"
-    alias: "send_to_cpu"
-  }
 }
 actions {
   preamble {
@@ -165,9 +146,40 @@ actions {
 }
 actions {
   preamble {
+    id: 16783057
+    name: "ingress.table0_control.send_to_cpu"
+    alias: "send_to_cpu"
+  }
+}
+actions {
+  preamble {
+    id: 16822046
+    name: "ingress.table0_control.set_egress_port"
+    alias: "table0_control.set_egress_port"
+  }
+  params {
+    id: 1
+    name: "port"
+    bitwidth: 9
+  }
+}
+actions {
+  preamble {
     id: 16823832
     name: "ingress.host_meter_control.read_meter"
     alias: "read_meter"
+  }
+}
+actions {
+  preamble {
+    id: 16796092
+    name: "ingress.wcmp_control.set_egress_port"
+    alias: "wcmp_control.set_egress_port"
+  }
+  params {
+    id: 1
+    name: "port"
+    bitwidth: 9
   }
 }
 action_profiles {
@@ -268,6 +280,11 @@ controller_packet_metadata {
     name: "ingress_port"
     bitwidth: 9
   }
+  metadata {
+    id: 2
+    name: "_padding"
+    bitwidth: 7
+  }
 }
 controller_packet_metadata {
   preamble {
@@ -279,5 +296,10 @@ controller_packet_metadata {
     id: 1
     name: "egress_port"
     bitwidth: 9
+  }
+  metadata {
+    id: 2
+    name: "_padding"
+    bitwidth: 7
   }
 }

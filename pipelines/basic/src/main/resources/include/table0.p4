@@ -30,6 +30,14 @@ control table0_control(inout headers_t hdr,
         local_metadata.next_hop_id = next_hop_id;
     }
 
+    action send_to_cpu() {
+        standard_metadata.egress_spec = CPU_PORT;
+    }
+
+    action set_egress_port(port_t port) {
+        standard_metadata.egress_spec = port;
+    }
+
     table table0 {
         key = {
             standard_metadata.ingress_port : ternary;
@@ -43,10 +51,10 @@ control table0_control(inout headers_t hdr,
             local_metadata.l4_dst_port     : ternary;
         }
         actions = {
-            set_egress_port(standard_metadata);
-            send_to_cpu(standard_metadata);
-            set_next_hop_id();
-            _drop();
+            set_egress_port;
+            send_to_cpu;
+            set_next_hop_id;
+            _drop;
         }
         const default_action = _drop();
         counters = table0_counter;

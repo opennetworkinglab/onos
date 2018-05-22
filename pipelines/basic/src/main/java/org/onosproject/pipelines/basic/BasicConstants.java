@@ -81,12 +81,14 @@ public final class BasicConstants {
             PiActionId.of("NoAction");
     public static final PiActionId ACT_DROP_ID =
             PiActionId.of("_drop");
-    public static final PiActionId ACT_SET_EGRESS_PORT_ID =
-            PiActionId.of("set_egress_port");
+    public static final PiActionId ACT_SET_EGRESS_PORT_TABLE0_ID =
+            PiActionId.of(TABLE0_CTRL + DOT + "set_egress_port");
+    public static final PiActionId ACT_SET_EGRESS_PORT_WCMP_ID =
+            PiActionId.of(WCMP_CTRL + DOT + "set_egress_port");
     public static final PiActionId ACT_SET_NEXT_HOP_ID =
             PiActionId.of(TABLE0_CTRL + DOT + "set_next_hop_id");
     public static final PiActionId ACT_SEND_TO_CPU_ID =
-            PiActionId.of("send_to_cpu");
+            PiActionId.of(TABLE0_CTRL + DOT + "send_to_cpu");
     // Action Param IDs
     public static final PiActionParamId ACT_PRM_PORT_ID =
             PiActionParamId.of("port");
