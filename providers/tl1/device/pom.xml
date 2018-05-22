@@ -36,11 +36,6 @@
             <artifactId>onos-tl1-api</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-tl1-ctl</artifactId>
-            <version>${project.version}</version>
-        </dependency>
     </dependencies>
 
     <build>
