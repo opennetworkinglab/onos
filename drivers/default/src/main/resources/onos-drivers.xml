@@ -295,5 +295,11 @@
                    impl="org.onosproject.driver.pipeline.JuniperPipeliner"/>
     </driver>
 
+    <driver name="ciscoof" extends="default"
+        manufacturer="Cisco Systems, Inc." hwVersion=".*" swVersion="7.0\(3\).*">
+        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
+           impl="org.onosproject.driver.pipeline.CiscoN9kPipeliner" />
+    </driver>
+
 </drivers>
 
