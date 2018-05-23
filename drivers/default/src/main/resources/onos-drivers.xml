@@ -284,6 +284,7 @@
             manufacturer="Arista.*" hwVersion="DCS.*" swVersion=".*">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.AristaPipeliner"/>
+        <property name="meterCapable">false</property>
     </driver>
 
     <driver name="juniper"

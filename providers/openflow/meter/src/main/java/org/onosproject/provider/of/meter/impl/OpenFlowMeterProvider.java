@@ -257,6 +257,7 @@ public class OpenFlowMeterProvider extends AbstractProvider implements MeterProv
                 sw.factory().getVersion() == OFVersion.OF_12 ||
                 NO_METER_SUPPORT.contains(sw.deviceType()) ||
                 !isMeterCapable(sw)) {
+            log.debug("{} does not support Meter.\n", sw.getDpid());
             return false;
         }
 
