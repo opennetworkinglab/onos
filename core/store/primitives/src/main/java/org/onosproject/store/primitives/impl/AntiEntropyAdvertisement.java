@@ -15,12 +15,11 @@
  */
 package org.onosproject.store.primitives.impl;
 
+import java.util.Map;
+
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
-
 import org.onosproject.cluster.NodeId;
-
-import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 

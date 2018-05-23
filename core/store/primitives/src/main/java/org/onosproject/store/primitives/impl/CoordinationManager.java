@@ -15,9 +15,12 @@
  */
 package org.onosproject.store.primitives.impl;
 
+import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import io.atomix.core.Atomix;
+import io.atomix.primitive.partition.PartitionGroup;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -26,14 +29,10 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
-import org.onosproject.cluster.DefaultPartition;
 import org.onosproject.cluster.NodeId;
-import org.onosproject.cluster.PartitionId;
 import org.onosproject.persistence.PersistenceService;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
-import org.onosproject.store.primitives.DistributedPrimitiveCreator;
-import org.onosproject.store.serializers.KryoNamespaces;
-import org.onosproject.store.service.AsyncAtomicValue;
+import org.onosproject.store.impl.AtomixManager;
 import org.onosproject.store.service.AsyncConsistentMultimap;
 import org.onosproject.store.service.AsyncConsistentTreeMap;
 import org.onosproject.store.service.AsyncDocumentTree;
@@ -54,17 +53,15 @@ import org.onosproject.store.service.Topic;
 import org.onosproject.store.service.TopicBuilder;
 import org.onosproject.store.service.TransactionContextBuilder;
 import org.onosproject.store.service.WorkQueue;
+import org.onosproject.store.service.WorkQueueBuilder;
 import org.slf4j.Logger;
-
-import java.util.List;
 
 import static org.onosproject.security.AppGuard.checkPermission;
 import static org.onosproject.security.AppPermission.Type.STORAGE_WRITE;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Implementation of {@code CoordinationService} that uses a {@link StoragePartition} that spans all the nodes
- * in the cluster regardless of version.
+ * Implementation of {@code CoordinationService} that uses the Atomix management partition group.
  */
 @Service
 @Component(immediate = true)
@@ -81,23 +78,16 @@ public class CoordinationManager implements CoordinationService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected PersistenceService persistenceService;
 
-    private StoragePartition partition;
-    private DistributedPrimitiveCreator primitiveCreator;
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected AtomixManager atomixManager;
+
+    private Atomix atomix;
+    private PartitionGroup group;
 
     @Activate
     public void activate() {
-        partition = new StoragePartition(
-                new DefaultPartition(
-                        PartitionId.from(0),
-                        null,
-                        clusterService.getNodes()
-                                .stream()
-                                .map(ControllerNode::id)
-                                .collect(Collectors.toSet())),
-                clusterCommunicator,
-                clusterService);
-        partition.open().join();
-        primitiveCreator = partition.client();
+        atomix = atomixManager.getAtomix();
+        group = atomix.getPartitionService().getSystemPartitionGroup();
         log.info("Started");
     }
 
@@ -112,134 +102,146 @@ public class CoordinationManager implements CoordinationService {
         final NodeId localNodeId = clusterService.getLocalNode().id();
 
         Supplier<List<NodeId>> peersSupplier = () -> clusterService.getNodes().stream()
-                .map(ControllerNode::id)
-                .filter(nodeId -> !nodeId.equals(localNodeId))
-                .filter(id -> clusterService.getState(id).isActive())
-                .collect(Collectors.toList());
+            .map(ControllerNode::id)
+            .filter(nodeId -> !nodeId.equals(localNodeId))
+            .filter(id -> clusterService.getState(id).isActive())
+            .collect(Collectors.toList());
 
         Supplier<List<NodeId>> bootstrapPeersSupplier = () -> clusterService.getNodes()
-                .stream()
-                .map(ControllerNode::id)
-                .filter(id -> !localNodeId.equals(id))
-                .filter(id -> clusterService.getState(id).isActive())
-                .collect(Collectors.toList());
+            .stream()
+            .map(ControllerNode::id)
+            .filter(id -> !localNodeId.equals(id))
+            .filter(id -> clusterService.getState(id).isActive())
+            .collect(Collectors.toList());
 
         return new EventuallyConsistentMapBuilderImpl<>(
-                localNodeId,
-                clusterCommunicator,
-                persistenceService,
-                peersSupplier,
-                bootstrapPeersSupplier
+            localNodeId,
+            clusterCommunicator,
+            persistenceService,
+            peersSupplier,
+            bootstrapPeersSupplier
         );
     }
 
     @Override
     public <K, V> ConsistentMapBuilder<K, V> consistentMapBuilder() {
         checkPermission(STORAGE_WRITE);
-        return new DefaultConsistentMapBuilder<>(primitiveCreator);
+        return new AtomixConsistentMapBuilder<>(atomix, group.name());
     }
 
     @Override
     public <V> DocumentTreeBuilder<V> documentTreeBuilder() {
         checkPermission(STORAGE_WRITE);
-        return new DefaultDocumentTreeBuilder<>(primitiveCreator);
+        return new AtomixDocumentTreeBuilder<>(atomix, group.name());
     }
 
     @Override
     public <V> ConsistentTreeMapBuilder<V> consistentTreeMapBuilder() {
-        return new DefaultConsistentTreeMapBuilder<>(primitiveCreator);
+        return new AtomixConsistentTreeMapBuilder<>(atomix, group.name());
     }
 
     @Override
     public <K, V> ConsistentMultimapBuilder<K, V> consistentMultimapBuilder() {
         checkPermission(STORAGE_WRITE);
-        return new DefaultConsistentMultimapBuilder<>(primitiveCreator);
+        return new AtomixConsistentMultimapBuilder<>(atomix, group.name());
     }
 
     @Override
     public <K> AtomicCounterMapBuilder<K> atomicCounterMapBuilder() {
         checkPermission(STORAGE_WRITE);
-        return new DefaultAtomicCounterMapBuilder<>(primitiveCreator);
+        return new AtomixAtomicCounterMapBuilder<>(atomix, group.name());
     }
 
     @Override
     public <E> DistributedSetBuilder<E> setBuilder() {
         checkPermission(STORAGE_WRITE);
-        return new DefaultDistributedSetBuilder<>(this::<E, Boolean>consistentMapBuilder);
+        return new AtomixDistributedSetBuilder<>(atomix, group.name());
     }
 
     @Override
     public AtomicCounterBuilder atomicCounterBuilder() {
         checkPermission(STORAGE_WRITE);
-        return new DefaultAtomicCounterBuilder(primitiveCreator);
+        return new AtomixAtomicCounterBuilder(atomix, group.name());
     }
 
     @Override
     public AtomicIdGeneratorBuilder atomicIdGeneratorBuilder() {
         checkPermission(STORAGE_WRITE);
-        return new DefaultAtomicIdGeneratorBuilder(primitiveCreator);
+        return new AtomixAtomicIdGeneratorBuilder(atomix, group.name());
     }
 
     @Override
     public <V> AtomicValueBuilder<V> atomicValueBuilder() {
         checkPermission(STORAGE_WRITE);
-        Supplier<ConsistentMapBuilder<String, byte[]>> mapBuilderSupplier =
-                () -> this.<String, byte[]>consistentMapBuilder()
-                          .withName("onos-atomic-values")
-                          .withSerializer(Serializer.using(KryoNamespaces.BASIC));
-        return new DefaultAtomicValueBuilder<>(mapBuilderSupplier);
+        return new AtomixAtomicValueBuilder<>(atomix, group.name());
     }
 
     @Override
     public TransactionContextBuilder transactionContextBuilder() {
-        throw new UnsupportedOperationException();
+        checkPermission(STORAGE_WRITE);
+        return new AtomixTransactionContextBuilder(atomix, group.name());
     }
 
     @Override
     public LeaderElectorBuilder leaderElectorBuilder() {
         checkPermission(STORAGE_WRITE);
-        return new DefaultLeaderElectorBuilder(primitiveCreator);
+        return new AtomixLeaderElectorBuilder(atomix, group.name(), clusterService.getLocalNode().id());
     }
 
     @Override
     public <T> TopicBuilder<T> topicBuilder() {
         checkPermission(STORAGE_WRITE);
-        return new DefaultDistributedTopicBuilder<>(atomicValueBuilder());
+        return new AtomixDistributedTopicBuilder<>(atomix, group.name());
+    }
+
+    @Override
+    public <E> WorkQueueBuilder<E> workQueueBuilder() {
+        checkPermission(STORAGE_WRITE);
+        return new AtomixWorkQueueBuilder<>(atomix, group.name());
     }
 
     @Override
     public <E> WorkQueue<E> getWorkQueue(String name, Serializer serializer) {
         checkPermission(STORAGE_WRITE);
-        return primitiveCreator.newWorkQueue(name, serializer);
+        return this.<E>workQueueBuilder()
+            .withName(name)
+            .withSerializer(serializer)
+            .build();
     }
 
     @Override
     public <V> AsyncDocumentTree<V> getDocumentTree(String name, Serializer serializer) {
         checkPermission(STORAGE_WRITE);
-        return primitiveCreator.newAsyncDocumentTree(name, serializer);
+        return this.<V>documentTreeBuilder()
+            .withName(name)
+            .withSerializer(serializer)
+            .build();
     }
 
     @Override
-    public <K, V> AsyncConsistentMultimap<K, V> getAsyncSetMultimap(
-            String name, Serializer serializer) {
+    public <K, V> AsyncConsistentMultimap<K, V> getAsyncSetMultimap(String name, Serializer serializer) {
         checkPermission(STORAGE_WRITE);
-        return primitiveCreator.newAsyncConsistentSetMultimap(name,
-                                                                serializer);
+        return this.<K, V>consistentMultimapBuilder()
+            .withName(name)
+            .withSerializer(serializer)
+            .buildMultimap();
     }
 
     @Override
-    public <V> AsyncConsistentTreeMap<V> getAsyncTreeMap(
-            String name, Serializer serializer) {
+    public <V> AsyncConsistentTreeMap<V> getAsyncTreeMap(String name, Serializer serializer) {
         checkPermission(STORAGE_WRITE);
-        return primitiveCreator.newAsyncConsistentTreeMap(name, serializer);
+        return this.<V>consistentTreeMapBuilder()
+            .withName(name)
+            .withSerializer(serializer)
+            .buildTreeMap();
     }
 
     @Override
     public <T> Topic<T> getTopic(String name, Serializer serializer) {
-        AsyncAtomicValue<T> atomicValue = this.<T>atomicValueBuilder()
-                                              .withName("topic-" + name)
-                                              .withSerializer(serializer)
-                                              .build();
-        return new DefaultDistributedTopic<>(atomicValue);
+        checkPermission(STORAGE_WRITE);
+        return this.<T>topicBuilder()
+            .withName(name)
+            .withSerializer(serializer)
+            .build();
     }
 }

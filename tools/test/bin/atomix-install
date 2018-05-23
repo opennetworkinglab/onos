@@ -1,0 +1,60 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Remotely pushes bits to a remote node and installs ONOS on it.
+# -----------------------------------------------------------------------------
+
+function _usage () {
+cat << _EOF_
+usage:
+ $(basename $0) [-fn] [-m] <settings> [node]
+
+options:
+- [node] : remote node to install ONOS on.
+
+summary:
+ Downloads Atomix bits to a remote node and installs Atomix on it.
+
+ The -u should be used on upstart-based systems.
+
+ If [node] is not specified the default target is \$OCI.
+
+_EOF_
+}
+
+[ "$1" = "-h" ] && _usage && exit 0
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+onos-check-bits
+
+while getopts fnvm: o; do
+    case "$o" in
+        f) uninstall=true;;
+        n) nostart=true;;
+    esac
+done
+let OPC=$OPTIND-1
+shift $OPC
+
+# If the -f was given, attempt uninstall first.
+[ -n "$uninstall" ] && atomix-uninstall ${1:-$OCI}
+
+node=${1:-$OCI}
+remote=$ONOS_USER@$node
+
+ssh -tt $remote "
+    [ -f $ATOMIX_INSTALL_DIR/atomix-agent.jar ] && echo \"Atomix is already installed\" && exit 1
+
+    sudo mkdir -p $ATOMIX_INSTALL_DIR && sudo chown ${ONOS_USER}:${ONOS_GROUP} $ATOMIX_INSTALL_DIR
+    sudo wget -O $ATOMIX_INSTALL_DIR/atomix-agent.jar https://oss.sonatype.org/content/repositories/releases/io/atomix/atomix-agent/3.0.0-rc4/atomix-agent-3.0.0-rc4-shaded.jar
+"
+
+# Configure the ONOS installation
+atomix-config $node
+
+# Upload the shared cluster key if present
+[ -f "$ONOS_CLUSTER_KEY_FILE" ] && onos-push-cluster-key $1
+
+# Unless -n option was given, attempt to ignite the ONOS service.
+[ -z "$nostart" ] && atomix-service $node start || true

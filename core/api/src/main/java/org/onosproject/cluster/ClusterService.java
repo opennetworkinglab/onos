@@ -44,6 +44,13 @@ public interface ClusterService extends ListenerService<ClusterEvent, ClusterEve
     Set<ControllerNode> getNodes();
 
     /**
+     * Returns the set of consensus nodes.
+     *
+     * @return the set of consensus nodes
+     */
+    Set<Node> getConsensusNodes();
+
+    /**
      * Returns the specified controller node.
      *
      * @param nodeId controller node identifier

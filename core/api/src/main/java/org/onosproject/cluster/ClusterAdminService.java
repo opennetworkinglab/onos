@@ -30,7 +30,9 @@ public interface ClusterAdminService extends ClusterService {
      * instance.
      *
      * @param nodes    set of nodes that form the cluster
+     * @deprecated since 1.14
      */
+    @Deprecated
     void formCluster(Set<ControllerNode> nodes);
 
     /**
@@ -40,7 +42,9 @@ public interface ClusterAdminService extends ClusterService {
      *
      * @param nodes    set of nodes that form the cluster
      * @param partitionSize number of nodes to compose a partition
+     * @deprecated since 1.14
      */
+    @Deprecated
     void formCluster(Set<ControllerNode> nodes, int partitionSize);
 
     /**
@@ -50,14 +54,18 @@ public interface ClusterAdminService extends ClusterService {
      * @param ip      node IP listen address
      * @param tcpPort tcp listen port
      * @return newly added node
+     * @deprecated since 1.14
      */
+    @Deprecated
     ControllerNode addNode(NodeId nodeId, IpAddress ip, int tcpPort);
 
     /**
      * Removes the specified node from the cluster node list.
      *
      * @param nodeId controller node identifier
+     * @deprecated since 1.14
      */
+    @Deprecated
     void removeNode(NodeId nodeId);
 
     /**

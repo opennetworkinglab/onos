@@ -129,7 +129,7 @@ public class DistributedNetworkConfigStore
 
     // Sweep through any pending configurations, validate them and then prune them.
     private void processPendingConfigs(ConfigFactory configFactory) {
-        ImmutableSet.copyOf(configs.keySet()).forEach(k -> {
+        configs.keySet().forEach(k -> {
             if (Objects.equals(k.configKey, configFactory.configKey()) &&
                     isAssignableFrom(configFactory, k)) {
                 // Prune whether valid or not
@@ -175,7 +175,7 @@ public class DistributedNetworkConfigStore
 
     // Sweep through any configurations for the config factory, set back to pending state.
     private void processExistingConfigs(ConfigFactory configFactory) {
-        ImmutableSet.copyOf(configs.keySet()).forEach(k -> {
+        configs.keySet().forEach(k -> {
             if (Objects.equals(configFactory.configClass().getName(), k.configClass)) {
                 Versioned<JsonNode> remove = configs.remove(k);
                 if (remove != null) {
@@ -294,7 +294,7 @@ public class DistributedNetworkConfigStore
 
     @Override
     public <S> void clearConfig(S subject) {
-        ImmutableSet.copyOf(configs.keySet()).forEach(k -> {
+        configs.keySet().forEach(k -> {
             if (Objects.equals(subject, k.subject) && delegate != null) {
                 configs.remove(k);
             }
@@ -303,7 +303,7 @@ public class DistributedNetworkConfigStore
 
     @Override
     public <S> void clearConfig() {
-        ImmutableSet.copyOf(configs.keySet()).forEach(k -> {
+        configs.keySet().forEach(k -> {
             if (delegate != null) {
                 configs.remove(k);
             }

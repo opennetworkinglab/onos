@@ -1,0 +1,41 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Remotely configures & starts Atomix for the first time.
+# -----------------------------------------------------------------------------
+
+function _usage () {
+cat << _EOF_
+usage:
+ $(basename $0) [node]
+
+options:
+- [node] : The node to configure
+
+summary:
+ Remotely configures and starts Atomix for the first time.
+
+ The procedure for configuring a node includes determining base features,
+ applications to load at startup, and clustering and logical network view
+ configurations, among others.
+
+ If [node] isn't specified, the default target becomes \$OCI.
+
+_EOF_
+}
+
+[ "$1" = "-h" ] && _usage && exit 0
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+node=${1:-$OCI}
+remote=$ONOS_USER@$node
+
+# Generate a default cluster.json from the ON* environment variables
+CDEF_FILE=/tmp/${remote}.atomix.json
+atomix-gen-config $node $CDEF_FILE
+scp -q $CDEF_FILE $remote:$ATOMIX_INSTALL_DIR/atomix.json
+
+ssh -tt $ONOS_USER@$node "
+    echo \"cd $ATOMIX_INSTALL_DIR && java -Xms4G -Xmx4G -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode -cp .:$ATOMIX_INSTALL_DIR/atomix.json:$ATOMIX_INSTALL_DIR/atomix-agent.jar -Datomix.logging.level=DEBUG io.atomix.agent.AtomixAgent\" > $ATOMIX_INSTALL_DIR/atomix && sudo chmod u+x $ATOMIX_INSTALL_DIR/atomix
+"

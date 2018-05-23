@@ -1,10 +1,12 @@
+include_defs('//core/store/primitives/primitives.bucklet')
+
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//lib:KRYO',
+    '//lib:ATOMIX',
     '//core/common:onos-core-common',
     '//incubator/api:onos-incubator-api',
     '//core/store/serializers:onos-core-serializers',
-    '//lib:atomix',
 ]
 
 TEST_DEPS = [
@@ -22,4 +24,5 @@ osgi_jar_with_tests (
     deps = COMPILE_DEPS,
     test_deps = TEST_DEPS,
     visibility = ['PUBLIC'],
+    import_packages = INCLUDE_PACKAGES + ',' + ALL_PACKAGES,
 )

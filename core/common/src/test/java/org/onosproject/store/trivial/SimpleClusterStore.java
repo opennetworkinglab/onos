@@ -29,6 +29,7 @@ import org.onosproject.cluster.ClusterStore;
 import org.onosproject.cluster.ClusterStoreDelegate;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.DefaultControllerNode;
+import org.onosproject.cluster.Node;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.core.Version;
 import org.onosproject.core.VersionService;
@@ -100,6 +101,11 @@ public class SimpleClusterStore
     @Override
     public Set<ControllerNode> getNodes() {
         return ImmutableSet.of(instance);
+    }
+
+    @Override
+    public Set<Node> getStorageNodes() {
+        return ImmutableSet.of();
     }
 
     @Override

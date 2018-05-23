@@ -101,7 +101,7 @@ import static org.onosproject.security.AppPermission.Type.CLUSTER_WRITE;
 /**
  * Netty based MessagingService.
  */
-@Component(immediate = true)
+@Component(enabled = false)
 @Service
 public class NettyMessagingManager implements MessagingService {
     private static final long HISTORY_EXPIRE_MILLIS = Duration.ofMinutes(1).toMillis();

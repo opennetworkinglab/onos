@@ -15,6 +15,15 @@
  */
 package org.onosproject.cluster.impl;
 
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.MalformedURLException;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.net.URL;
+import java.net.UnknownHostException;
+import java.util.Enumeration;
+
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -29,20 +38,13 @@ import org.onosproject.cluster.ClusterMetadataProviderRegistry;
 import org.onosproject.cluster.ClusterMetadataProviderService;
 import org.onosproject.cluster.ClusterMetadataService;
 import org.onosproject.cluster.ControllerNode;
+import org.onosproject.cluster.DefaultControllerNode;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.PartitionId;
 import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.onosproject.store.service.Versioned;
 import org.slf4j.Logger;
-
-import java.net.InetAddress;
-import java.net.MalformedURLException;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.net.URL;
-import java.util.Collection;
-import java.util.Enumeration;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.security.AppGuard.checkPermission;
@@ -96,7 +98,20 @@ public class ClusterMetadataManager
     public ControllerNode getLocalNode() {
         checkPermission(CLUSTER_READ);
         if (localNode == null) {
-            establishSelfIdentity();
+            ControllerNode localNode = getProvider().getClusterMetadata().value().getLocalNode();
+            try {
+                if (localNode != null) {
+                    this.localNode = new DefaultControllerNode(
+                        localNode.id(),
+                        localNode.ip() != null ? localNode.ip() : findLocalIp(),
+                        localNode.tcpPort());
+                } else {
+                    IpAddress ip = findLocalIp();
+                    this.localNode = new DefaultControllerNode(NodeId.nodeId(ip.toString()), ip);
+                }
+            } catch (SocketException e) {
+                throw new IllegalStateException(e);
+            }
         }
         return localNode;
     }
@@ -141,35 +156,30 @@ public class ClusterMetadataManager
         }
     }
 
-    private IpAddress findLocalIp(Collection<ControllerNode> controllerNodes) throws SocketException {
-        Enumeration<NetworkInterface> interfaces =
-                NetworkInterface.getNetworkInterfaces();
+    private IpAddress findLocalIp() throws SocketException {
+        Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
         while (interfaces.hasMoreElements()) {
             NetworkInterface iface = interfaces.nextElement();
+            if (iface.isLoopback() || iface.isPointToPoint()) {
+                continue;
+            }
+
             Enumeration<InetAddress> inetAddresses = iface.getInetAddresses();
             while (inetAddresses.hasMoreElements()) {
-                IpAddress ip = IpAddress.valueOf(inetAddresses.nextElement());
-                if (controllerNodes.stream()
-                        .map(ControllerNode::ip)
-                        .anyMatch(nodeIp -> ip.equals(nodeIp))) {
-                    return ip;
+                InetAddress inetAddress = inetAddresses.nextElement();
+                if (inetAddress instanceof Inet4Address) {
+                    Inet4Address inet4Address = (Inet4Address) inetAddress;
+                    try {
+                        if (!inet4Address.getHostAddress().equals(InetAddress.getLocalHost().getHostAddress())) {
+                            return IpAddress.valueOf(inetAddress);
+                        }
+                    } catch (UnknownHostException e) {
+                        return IpAddress.valueOf(inetAddress);
+                    }
                 }
             }
         }
         throw new IllegalStateException("Unable to determine local ip");
-    }
-
-    private void establishSelfIdentity() {
-        try {
-            IpAddress ip = findLocalIp(getClusterMetadata().getNodes());
-            localNode = getClusterMetadata().getNodes()
-                                            .stream()
-                                            .filter(node -> node.ip().equals(ip))
-                                            .findFirst()
-                                            .get();
-        } catch (SocketException e) {
-            throw new IllegalStateException("Cannot determine local IP", e);
-        }
     }
 
     private class InternalClusterMetadataProviderService

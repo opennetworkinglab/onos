@@ -17,32 +17,22 @@
 package org.onosproject.store.primitives.impl;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
+import io.atomix.cluster.MemberId;
+import io.atomix.primitive.partition.PartitionGroup;
+import io.atomix.protocols.raft.MultiRaftProtocol;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.util.Tools;
-import org.onosproject.cluster.ClusterMetadata;
-import org.onosproject.cluster.ClusterMetadataDiff;
-import org.onosproject.cluster.ClusterMetadataEvent;
-import org.onosproject.cluster.ClusterMetadataEventListener;
-import org.onosproject.cluster.ClusterMetadataService;
-import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
-import org.onosproject.cluster.PartitionDiff;
 import org.onosproject.cluster.PartitionId;
 import org.onosproject.event.AbstractListenerManager;
-import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
+import org.onosproject.store.impl.AtomixManager;
 import org.onosproject.store.primitives.DistributedPrimitiveCreator;
 import org.onosproject.store.primitives.PartitionAdminService;
 import org.onosproject.store.primitives.PartitionEvent;
@@ -67,74 +57,52 @@ public class PartitionManager extends AbstractListenerManager<PartitionEvent, Pa
     private final Logger log = getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ClusterCommunicationService clusterCommunicator;
+    protected AtomixManager atomixManager;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ClusterMetadataService metadataService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ClusterService clusterService;
-
-    private final Map<PartitionId, StoragePartition> partitions = Maps.newConcurrentMap();
-    private final AtomicReference<ClusterMetadata> currentClusterMetadata = new AtomicReference<>();
-
-    private final ClusterMetadataEventListener metadataListener = new InternalClusterMetadataListener();
+    private PartitionGroup partitionGroup;
 
     @Activate
     public void activate() {
+        partitionGroup = atomixManager.getAtomix().getPartitionService().getPartitionGroup(MultiRaftProtocol.TYPE);
         eventDispatcher.addSink(PartitionEvent.class, listenerRegistry);
-        currentClusterMetadata.set(metadataService.getClusterMetadata());
-
-        metadataService.addListener(metadataListener);
-
-        currentClusterMetadata.get()
-            .getPartitions()
-            .forEach(partition -> partitions.put(partition.getId(), new StoragePartition(
-                partition,
-                clusterCommunicator,
-                clusterService)));
-        CompletableFuture.allOf(partitions.values().stream()
-            .map(StoragePartition::open)
-            .toArray(CompletableFuture[]::new))
-            .join();
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
-        metadataService.removeListener(metadataListener);
         eventDispatcher.removeSink(PartitionEvent.class);
-
-        CompletableFuture.allOf(partitions.values().stream()
-            .map(StoragePartition::close)
-            .toArray(CompletableFuture[]::new))
-            .join();
         log.info("Stopped");
     }
 
     @Override
     public int getNumberOfPartitions() {
         checkPermission(PARTITION_READ);
-        return partitions.size();
+        return partitionGroup.getPartitions().size();
     }
 
     @Override
     public Set<PartitionId> getAllPartitionIds() {
         checkPermission(PARTITION_READ);
-        return partitions.keySet();
+        return partitionGroup.getPartitionIds().stream()
+            .map(partitionId -> PartitionId.from(partitionId.id()))
+            .collect(Collectors.toSet());
     }
 
     @Override
     public DistributedPrimitiveCreator getDistributedPrimitiveCreator(PartitionId partitionId) {
         checkPermission(PARTITION_READ);
-        return partitions.get(partitionId).client();
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Set<NodeId> getConfiguredMembers(PartitionId partitionId) {
         checkPermission(PARTITION_READ);
-        StoragePartition partition = partitions.get(partitionId);
-        return ImmutableSet.copyOf(partition.getMembers());
+        io.atomix.primitive.partition.PartitionId atomixPartitionId =
+            io.atomix.primitive.partition.PartitionId.from(partitionGroup.name(), partitionId.id());
+        return partitionGroup.getPartition(atomixPartitionId).members()
+            .stream()
+            .map(member -> NodeId.nodeId(member.id()))
+            .collect(Collectors.toSet());
     }
 
     @Override
@@ -147,36 +115,30 @@ public class PartitionManager extends AbstractListenerManager<PartitionEvent, Pa
 
     @Override
     public List<PartitionInfo> partitionInfo() {
-        return partitions.values()
-                         .stream()
-                         .flatMap(x -> Tools.stream(x.info()))
-                         .collect(Collectors.toList());
-    }
-
-    private void processMetadataUpdate(ClusterMetadata clusterMetadata) {
-        ClusterMetadataDiff diffExaminer =
-                new ClusterMetadataDiff(currentClusterMetadata.get(), clusterMetadata);
-        diffExaminer.partitionDiffs()
-                    .values()
-                    .stream()
-                    .filter(PartitionDiff::hasChanged)
-                    .forEach(diff -> partitions.get(diff.partitionId()).onUpdate(diff.newValue()));
-        currentClusterMetadata.set(clusterMetadata);
-    }
-
-    private class InternalClusterMetadataListener implements ClusterMetadataEventListener {
-        @Override
-        public void event(ClusterMetadataEvent event) {
-            processMetadataUpdate(event.subject());
-        }
+        checkPermission(PARTITION_READ);
+        return partitionGroup.getPartitions()
+            .stream()
+            .map(partition -> {
+                MemberId primary = partition.primary();
+                return new PartitionInfo(
+                    PartitionId.from(partition.id().id()),
+                    partition.term(),
+                    partition.members().stream().map(member -> member.id()).collect(Collectors.toList()),
+                    primary != null ? primary.id() : null);
+            })
+            .collect(Collectors.toList());
     }
 
     @Override
     public List<PartitionClientInfo> partitionClientInfo() {
-        return partitions.values()
-                         .stream()
-                         .map(StoragePartition::client)
-                         .map(StoragePartitionClient::clientInfo)
-                         .collect(Collectors.toList());
+        checkPermission(PARTITION_READ);
+        return partitionGroup.getPartitions()
+            .stream()
+            .map(partition -> new PartitionClientInfo(
+                PartitionId.from(partition.id().id()),
+                partition.members().stream()
+                    .map(member -> NodeId.nodeId(member.id()))
+                    .collect(Collectors.toList())))
+            .collect(Collectors.toList());
     }
 }

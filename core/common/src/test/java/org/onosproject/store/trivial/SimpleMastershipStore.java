@@ -45,6 +45,7 @@ import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.ControllerNode.State;
 import org.onosproject.cluster.DefaultControllerNode;
+import org.onosproject.cluster.Node;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.RoleInfo;
 import org.onosproject.core.Version;
@@ -110,6 +111,11 @@ public class SimpleMastershipStore
                 @Override
                 public Set<ControllerNode> getNodes() {
                     return ImmutableSet.of(instance);
+                }
+
+                @Override
+                public Set<Node> getConsensusNodes() {
+                    return ImmutableSet.of();
                 }
 
                 @Override

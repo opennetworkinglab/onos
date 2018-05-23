@@ -80,6 +80,11 @@ public class CoordinationServiceAdapter implements CoordinationService {
     }
 
     @Override
+    public <E> WorkQueueBuilder<E> workQueueBuilder() {
+        return null;
+    }
+
+    @Override
     public TransactionContextBuilder transactionContextBuilder() {
         return null;
     }

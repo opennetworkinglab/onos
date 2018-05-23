@@ -17,11 +17,9 @@ package org.onosproject.cluster;
 
 import java.util.Collection;
 
-import org.junit.Test;
-
 import com.google.common.collect.ImmutableSet;
 import com.google.common.testing.EqualsTester;
-import org.onosproject.core.Version;
+import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
@@ -44,13 +42,13 @@ public class DefaultPartitionTest {
     PartitionId pid2 = new PartitionId(2);
     PartitionId pid3 = new PartitionId(3);
 
-    DefaultPartition partition1 = new DefaultPartition(pid1, Version.version("1.0.0"), ImmutableSet.of(id1));
-    DefaultPartition sameAsPartition1 = new DefaultPartition(pid1, Version.version("1.0.0"), ImmutableSet.of(id1));
+    DefaultPartition partition1 = new DefaultPartition(pid1, ImmutableSet.of(id1));
+    DefaultPartition sameAsPartition1 = new DefaultPartition(pid1, ImmutableSet.of(id1));
 
-    DefaultPartition partition2 = new DefaultPartition(pid2, Version.version("1.0.0"), ImmutableSet.of(id2));
+    DefaultPartition partition2 = new DefaultPartition(pid2, ImmutableSet.of(id2));
     DefaultPartition copyOfPartition2 = new DefaultPartition(partition2);
 
-    DefaultPartition partition3 = new DefaultPartition(pid3, Version.version("1.0.0"), ImmutableSet.of(id1, id2, id3));
+    DefaultPartition partition3 = new DefaultPartition(pid3, ImmutableSet.of(id1, id2, id3));
 
     /**
      * Checks that the default partition implementation is an immutable

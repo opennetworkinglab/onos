@@ -16,11 +16,11 @@
 package org.onosproject.store.service;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -45,7 +45,7 @@ public final class TestConsistentMap<K, V> extends ConsistentMapAdapter<K, V> {
     private final Serializer serializer;
 
     private TestConsistentMap(String mapName, Serializer serializer) {
-        map = new HashMap<>();
+        map = new ConcurrentHashMap<>();
         listeners = new LinkedList<>();
         this.mapName = mapName;
         this.serializer = serializer;

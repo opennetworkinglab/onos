@@ -27,33 +27,50 @@
                 <step name="Kill-${#}" env="~" exec="onos-kill ${OC#}"
                       requires="Uninstall-${#}"/>
             </parallel>
+            <parallel var="${OCC#}">
+                <step name="Atomix-Kill-${#}"
+                      env="~"
+                      exec="atomix-kill ${OCC#}"/>
+                <step name="Atomix-Uninstall-${#}"
+                      exec="atomix-uninstall ${OCC#}"
+                      requires="Atomix-Kill-${#}"/>
+            </parallel>
         </group>
 
-        <group name="Install">
+        <group name="Install-Atomix">
             <step name="Generate-Cluster-Key" exec="onos-gen-cluster-key -f" />
 
-            <group name="Sequential-Install" if="${ONOS_STC_SEQ_START}">
-                <sequential var="${OC#}"
-                            starts="Sequential-Install-${#}"
-                            ends="Sequential-Install-${#-1}">
-                    <step name="Sequential-Install-${#}" exec="onos-install ${OC#}"
-                          requires="Generate-Cluster-Key,Push-Bits-${#},Push-Bits,Cleanup"/>
-                </sequential>
-            </group>
-
-            <group name="Parallel-Install" unless="${ONOS_STC_SEQ_START}">
-                <parallel var="${OC#}">
-                    <step name="Parallel-Install-${#}" exec="onos-install ${OC#}"
+            <group name="Parallel-Install-Atomix">
+                <parallel var="${OCC#}">
+                    <step name="Parallel-Install-Atomix-${#}" exec="atomix-install ${OCC#}"
                           requires="Generate-Cluster-Key,Push-Bits-${#},Push-Bits,Cleanup"/>
                 </parallel>
             </group>
         </group>
 
-        <group name="Verify" requires="Install">
+        <group name="Install-ONOS">
+            <group name="Sequential-Install-ONOS" if="${ONOS_STC_SEQ_START}">
+                <sequential var="${OC#}"
+                            starts="Sequential-Install-${#}"
+                            ends="Sequential-Install-${#-1}">
+                    <step name="Sequential-Install-${#}" exec="onos-install ${OC#}"
+                          requires="Generate-Cluster-Key,Push-Bits-${#},Push-Bits,Cleanup,Install-Atomix"/>
+                </sequential>
+            </group>
+
+            <group name="Parallel-Install-ONOS" unless="${ONOS_STC_SEQ_START}">
+                <parallel var="${OC#}">
+                    <step name="Parallel-Install-${#}" exec="onos-install ${OC#}"
+                          requires="Generate-Cluster-Key,Push-Bits-${#},Push-Bits,Cleanup,Install-Atomix"/>
+                </parallel>
+            </group>
+        </group>
+
+        <group name="Verify" requires="Install-ONOS">
             <parallel var="${OC#}">
                 <step name="Secure-SSH-${#}"
                       exec="onos-secure-ssh -u ${ONOS_WEB_USER} -p ${ONOS_WEB_PASS} ${OC#}"
-                      requires="Install"/>
+                      requires="Install-ONOS"/>
 
                 <step name="Wait-for-Start-${#}" exec="onos-wait-for-start ${OC#}"
                       requires="~Secure-SSH-${#}"/>

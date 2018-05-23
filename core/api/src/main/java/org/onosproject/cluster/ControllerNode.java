@@ -15,12 +15,10 @@
  */
 package org.onosproject.cluster;
 
-import org.onlab.packet.IpAddress;
-
 /**
  * Represents a controller instance as a member in a cluster.
  */
-public interface ControllerNode {
+public interface ControllerNode extends Node {
 
     /** Represents the operational state of the instance. */
     enum State {
@@ -59,26 +57,5 @@ public interface ControllerNode {
             return this == READY;
         }
     }
-
-    /**
-     * Returns the instance identifier.
-     *
-     * @return instance identifier
-     */
-    NodeId id();
-
-    /**
-     * Returns the IP address of the controller instance.
-     *
-     * @return IP address
-     */
-    IpAddress ip();
-
-    /**
-     * Returns the TCP port on which the node listens for connections.
-     *
-     * @return TCP port
-     */
-    int tcpPort();
 
 }

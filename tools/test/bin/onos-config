@@ -43,7 +43,9 @@ ssh -tt $remote "
         >> $ONOS_INSTALL_DIR/$KARAF_DIST/etc/system.properties
 
     # Drop copycat related log level for the console
-    echo "log4j.logger.net.kuujo.copycat= INFO" \
+    echo "log4j.logger.io.atomix=INFO" \
+        >> $ONOS_INSTALL_DIR/$KARAF_DIST/etc/org.ops4j.pax.logging.cfg
+    echo "log4j.logger.io.atomix.cluster.messaging=ERROR" \
         >> $ONOS_INSTALL_DIR/$KARAF_DIST/etc/org.ops4j.pax.logging.cfg
 
     # Patch the Apache Karaf distribution file to load ONOS boot features
@@ -64,7 +66,7 @@ ssh -tt $remote "
 
 # Generate a default cluster.json from the ON* environment variables
 CDEF_FILE=/tmp/${remote}.cluster.json
-onos-gen-partitions $CDEF_FILE
+onos-gen-config $CDEF_FILE
 scp -q $CDEF_FILE $remote_scp:$ONOS_INSTALL_DIR/config/cluster.json
 
 # Copy tools/package/config/ to remote

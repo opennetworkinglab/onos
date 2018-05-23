@@ -37,6 +37,13 @@ public interface ClusterStore extends Store<ClusterEvent, ClusterStoreDelegate> 
     ControllerNode getLocalNode();
 
     /**
+     * Returns the set of storage nodes.
+     *
+     * @return set of storage nodes
+     */
+    Set<Node> getStorageNodes();
+
+    /**
      * Returns the set of current cluster members.
      *
      * @return set of cluster members

@@ -22,7 +22,6 @@ import org.onosproject.cluster.DefaultPartition;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.Partition;
 import org.onosproject.cluster.PartitionId;
-import org.onosproject.core.Version;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -42,9 +41,9 @@ public class PartitionEventTest {
 
 
     private final Partition p1 =
-            new DefaultPartition(pid1, Version.version("1.0.0"), ImmutableSet.of(nid1));
+            new DefaultPartition(pid1, ImmutableSet.of(nid1));
     private final Partition p2 =
-            new DefaultPartition(pid2, Version.version("1.0.0"), ImmutableSet.of(nid1, nid2));
+            new DefaultPartition(pid2, ImmutableSet.of(nid1, nid2));
 
     private final PartitionEvent event1 =
             new PartitionEvent(PartitionEvent.Type.UPDATED, p1, time);

@@ -15,11 +15,11 @@
  */
 package org.onosproject.store.primitives.impl;
 
+import java.util.Set;
+
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 import org.onosproject.cluster.NodeId;
-
-import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 

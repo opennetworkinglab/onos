@@ -15,6 +15,6 @@
  */
 
 /**
- * Implementation classes for various Distributed primitives.
+ * Implementation classes for store utilities.
  */
 package org.onosproject.store.primitives.impl;

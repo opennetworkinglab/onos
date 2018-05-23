@@ -46,7 +46,9 @@ public interface PartitionService extends ListenerService<PartitionEvent, Partit
      *
      * @param partitionId partition identifier
      * @return set of node identifiers
+     * @deprecated since 1.14
      */
+    @Deprecated
     Set<NodeId> getActiveMembersMembers(PartitionId partitionId);
 
     /**
@@ -61,6 +63,8 @@ public interface PartitionService extends ListenerService<PartitionEvent, Partit
      *
      * @param partitionId partition identifier
      * @return distributed primitive creator
+     * @deprecated since 1.14
      */
+    @Deprecated
     DistributedPrimitiveCreator getDistributedPrimitiveCreator(PartitionId partitionId);
 }

@@ -15,10 +15,8 @@
  */
 package org.onosproject.cluster;
 
-import org.onlab.packet.IpAddress;
-
 import com.google.common.collect.Sets;
-import org.onosproject.core.Version;
+import org.onlab.packet.IpAddress;
 
 /**
  * Test adapter for the ClusterMetadata service.
@@ -29,10 +27,7 @@ public class ClusterMetadataServiceAdapter implements ClusterMetadataService {
     public ClusterMetadata getClusterMetadata() {
         final NodeId nid = new NodeId("test-node");
         final IpAddress addr = IpAddress.valueOf(0);
-        final Partition p = new DefaultPartition(PartitionId.from(1), Version.version("1.0.0"), Sets.newHashSet(nid));
-        return new ClusterMetadata("test-cluster",
-                                   Sets.newHashSet(new DefaultControllerNode(nid, addr)),
-                                   Sets.newHashSet(p));
+        return new ClusterMetadata("test-cluster", new DefaultControllerNode(nid, addr), Sets.newHashSet());
     }
 
     @Override

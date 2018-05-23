@@ -35,7 +35,9 @@ public interface Partition {
      * Returns the partition version.
      *
      * @return the partition version
+     * @deprecated since 1.14
      */
+    @Deprecated
     Version getVersion();
 
     /**

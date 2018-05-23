@@ -1,0 +1,69 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Remotely administers the ONOS service on the specified node.
+# -----------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+. $ONOS_ROOT/tools/test/bin/find-node.sh
+
+function print_usage {
+    command_name=`basename $0`
+    echo "Remotely administer the ONOS service on a single node or the current ONOS cell."
+    echo
+    echo "Usage:     $command_name <TARGET> [COMMAND]"
+    echo "           $command_name [-h | --help]"
+    echo "Options:"
+    echo "    TARGET          The target of the command"
+    echo "    COMMAND         The command to execute. Default value is 'status'"
+    echo "    [-h | --help]   Print this help"
+    echo ""
+    echo "TARGET:  <hostname | --cell>"
+    echo "      hostname        Execute on the specified host name"
+    echo "        --cell        Execute on the current ONOS cell"
+    echo ""
+    echo "COMMAND: [start|stop|restart|status]"
+    echo ""
+}
+
+# Print usage
+if [ "${1}" = "-h" -o "${1}" = "--help" ]; then
+    print_usage
+    exit 0
+fi
+
+# Select the target
+if [ "${1}" = "--cell" ]; then
+    nodes=$(env | sort | egrep "^OCC[0-9]+" | cut -d= -f2)
+else
+    nodes=$(find_node ${1:-$OCI})
+fi
+
+case $2 in
+    start)
+        # Execute the remote commands
+        for node in $nodes; do
+            ssh $ONOS_USER@${node} "nohup $ATOMIX_INSTALL_DIR/atomix >> $ATOMIX_INSTALL_DIR/log 2>&1 &"
+        done
+    ;;
+    stop)
+        # Execute the remote commands
+        for node in $nodes; do
+            ssh -tt $ONOS_USER@${node} "
+                pid=\$(ps -ef | grep atomix-agent.jar | grep -v grep | cut -c10-15 | tr -d ' ')
+                if [ -n \"\$pid\" ]; then
+                    echo \"Killing Atomix process \$pid on \$(hostname)...\"
+                    kill -9 \$pid
+                else
+                    echo \"Atomix process is not running...\"
+                    exit 1
+                fi
+            "
+        done
+    ;;
+    *)
+        echo "error: $2 is not a valid command"
+        echo ""
+        print_usage
+    ;;
+esac

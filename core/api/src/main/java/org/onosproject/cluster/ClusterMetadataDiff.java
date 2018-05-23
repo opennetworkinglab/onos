@@ -27,7 +27,10 @@ import com.google.common.collect.Sets;
 
 /**
  * Utility for examining differences between two {@link ClusterMetadata metadata} values.
+ *
+ * @deprecated since 1.14
  */
+@Deprecated
 public class ClusterMetadataDiff {
 
     private final ClusterMetadata oldValue;

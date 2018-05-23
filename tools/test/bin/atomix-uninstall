@@ -1,0 +1,42 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Remotely stops & uninstalls ONOS on the specified node.
+# -----------------------------------------------------------------------------
+
+function _usage () {
+cat << _EOF_
+usage:
+ $(basename $0) [node]
+
+options:
+- [node] : The remote instance to uninstall Atomix from.
+
+summary:
+ Remotely stops and uninstalls Atomix on the specified node.
+
+ If [node] isn't specified, \$OCI becomes the target.
+
+_EOF_
+}
+
+[ "$1" = "-h" ] && _usage && exit 0
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+remote=$ONOS_USER@${1:-$OCI}
+
+ssh -tt $remote "
+    pid=\$(ps -ef | grep atomix-agent.jar | grep -v grep | cut -c10-15 | tr -d ' ')
+    if [ -n \"\$pid\" ]; then
+        echo \"Killing Atomix process \$pid on \$(hostname)...\"
+        kill -9 \$pid
+    else
+        echo \"Atomix process is not running...\"
+    fi
+
+    # Remove Atomix directory
+    [ -d $ATOMIX_INSTALL_DIR ] && sudo rm -fr $ATOMIX_INSTALL_DIR
+
+    exit \${status:-0};
+"

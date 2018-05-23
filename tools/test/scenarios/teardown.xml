@@ -16,7 +16,10 @@
 <scenario name="teardown" description="ONOS cluster teardown/uninstall">
     <group name="Teardown">
         <parallel var="${OC#}">
-            <step name="Uninstall-${#}" exec="onos-uninstall ${OC#}"/>
+            <step name="ONOS-Uninstall-${#}" exec="onos-uninstall ${OC#}"/>
+        </parallel>
+        <parallel var="${OCC#}">
+            <step name="Atomix-Uninstall-${#}" exec="atomix-uninstall ${OCC#}"/>
         </parallel>
     </group>
 </scenario>

@@ -46,6 +46,11 @@ public class ClusterServiceAdapter implements ClusterService {
     }
 
     @Override
+    public Set<Node> getConsensusNodes() {
+        return null;
+    }
+
+    @Override
     public ControllerNode.State getState(NodeId nodeId) {
         return null;
     }

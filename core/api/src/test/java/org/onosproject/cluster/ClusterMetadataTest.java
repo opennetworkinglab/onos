@@ -19,21 +19,17 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.testing.EqualsTester;
 import org.junit.Test;
 import org.onlab.packet.IpAddress;
-import org.onosproject.core.Version;
 import org.onosproject.net.provider.ProviderId;
 
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 
 /**
  * Unit tests for ClusterMetadata.
  */
 public class ClusterMetadataTest {
-    private final PartitionId pid1 = PartitionId.from(1);
-    private final PartitionId pid2 = PartitionId.from(2);
-
     private final NodeId nid1 = NodeId.nodeId("10.0.0.1");
     private final NodeId nid2 = NodeId.nodeId("10.0.0.2");
 
@@ -42,15 +38,12 @@ public class ClusterMetadataTest {
     private final ControllerNode n2 =
             new DefaultControllerNode(nid2, IpAddress.valueOf("10.0.0.2"), 9876);
 
-    private final Partition p1 = new DefaultPartition(pid1, Version.version("1.0.0"), ImmutableSet.of(nid1));
-    private final Partition p2 = new DefaultPartition(pid2, Version.version("1.0.0"), ImmutableSet.of(nid1, nid2));
-
     private final ClusterMetadata metadata1 =
-            new ClusterMetadata("foo", ImmutableSet.of(n1), ImmutableSet.of(p1));
+            new ClusterMetadata("foo", n1, ImmutableSet.of(n1));
     private final ClusterMetadata sameAsMetadata1 =
-            new ClusterMetadata("foo", ImmutableSet.of(n1), ImmutableSet.of(p1));
+            new ClusterMetadata("foo", n1, ImmutableSet.of(n1));
     private final ClusterMetadata metadata2 =
-            new ClusterMetadata("bar", ImmutableSet.of(n1, n2), ImmutableSet.of(p1, p2));
+            new ClusterMetadata("bar", n1, ImmutableSet.of(n1, n2));
     private final ProviderId defaultProvider =
             new ProviderId("none", "none");
     /**
@@ -73,9 +66,6 @@ public class ClusterMetadataTest {
         assertThat(metadata2.getName(), is("bar"));
         assertThat(metadata2.getNodes(), hasSize(2));
         assertThat(metadata2.getNodes(), contains(n1, n2));
-        assertThat(metadata2.getPartitions(), hasSize(2));
-        assertThat(metadata2.getPartitions(), contains(p1, p2));
         assertThat(metadata1.providerId(), is(defaultProvider));
-
     }
 }

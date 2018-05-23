@@ -122,6 +122,14 @@ public interface PrimitiveService {
     <T> TopicBuilder<T> topicBuilder();
 
     /**
+     * Creates a new WorkQueueBuilder.
+     *
+     * @param <E> work queue element type
+     * @return work queue builder
+     */
+    <E> WorkQueueBuilder<E> workQueueBuilder();
+
+    /**
      * Creates a new transaction context builder.
      *
      * @return a builder for a transaction context.

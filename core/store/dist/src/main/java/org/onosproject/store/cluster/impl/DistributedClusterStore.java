@@ -38,6 +38,7 @@ import org.onosproject.cluster.ClusterStoreDelegate;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.ControllerNode.State;
 import org.onosproject.cluster.DefaultControllerNode;
+import org.onosproject.cluster.Node;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.core.Version;
 import org.onosproject.core.VersionService;
@@ -70,7 +71,7 @@ import static org.onosproject.cluster.ClusterEvent.Type.INSTANCE_DEACTIVATED;
 import static org.onosproject.cluster.ClusterEvent.Type.INSTANCE_READY;
 import static org.slf4j.LoggerFactory.getLogger;
 
-@Component(immediate = true)
+@Component(enabled = false)
 @Service
 /**
  * Distributed cluster nodes store that employs an accrual failure
@@ -219,6 +220,11 @@ public class DistributedClusterStore
     @Override
     public Set<ControllerNode> getNodes() {
         return ImmutableSet.copyOf(allNodes.values());
+    }
+
+    @Override
+    public Set<Node> getStorageNodes() {
+        return ImmutableSet.of();
     }
 
     @Override

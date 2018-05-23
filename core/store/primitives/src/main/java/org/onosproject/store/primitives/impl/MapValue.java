@@ -15,10 +15,9 @@
  */
 package org.onosproject.store.primitives.impl;
 
-import org.onosproject.store.Timestamp;
-
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+import org.onosproject.store.Timestamp;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 

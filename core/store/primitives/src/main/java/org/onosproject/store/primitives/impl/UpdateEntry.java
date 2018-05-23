@@ -15,9 +15,9 @@
  */
 package org.onosproject.store.primitives.impl;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import com.google.common.base.MoreObjects;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Describes a single update event in an EventuallyConsistentMap.

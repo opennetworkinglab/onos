@@ -1,0 +1,18 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Remotely kills the Atomix service on the specified node.
+# -----------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+ssh $ONOS_USER@${1:-$OCI} "
+    pid=\$(ps -ef | grep atomix-agent.jar | grep -v grep | cut -c10-15 | tr -d ' ')
+    if [ -n \"\$pid\" ]; then
+        echo \"Killing Atomix process \$pid on \$(hostname)...\"
+        kill -9 \$pid
+    else
+        echo \"Atomix process is not running...\"
+        exit 1
+    fi
+"
