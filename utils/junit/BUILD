@@ -1,11 +1,12 @@
-SRC = 'src/main/java/org/onlab/**/'
-TEST_SRC = 'src/test/java/org/onlab/**/'
+SRC = "src/main/java/org/onlab/**/"
+
+TEST_SRC = "src/test/java/org/onlab/**/"
 
 COMPILE_DEPS = [
-        "@guava//jar",
-        "@slf4j_api//jar",
-        "@hamcrest_all//jar",
-        "@junit//jar",
+    "@guava//jar",
+    "@slf4j_api//jar",
+    "@hamcrest_all//jar",
+    "@junit//jar",
 ]
 
 TEST_DEPS = [
@@ -13,13 +14,11 @@ TEST_DEPS = [
 ]
 
 osgi_jar_with_tests(
-    name = 'onlab-junit',
-    srcs = glob([SRC + '*.java']),
-    deps = COMPILE_DEPS,
-    test_srcs = glob([TEST_SRC + '*.java']),
+    name = "onlab-junit",
+    srcs = glob([SRC + "*.java"]),
+    package_name_root = "org.onlab",
     test_deps = TEST_DEPS,
-    package_name_root = 'org.onlab',
+    test_srcs = glob([TEST_SRC + "*.java"]),
     visibility = ["//visibility:public"],
+    deps = COMPILE_DEPS,
 )
-
-

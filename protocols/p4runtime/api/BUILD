@@ -1,11 +1,11 @@
-GRPC_VER = '1.3.1'
+GRPC_VER = "1.3.1"
 
 COMPILE_DEPS = CORE_DEPS + [
-#    '@grpc//jar',
+    #    '@grpc//jar',
 ]
 
 TEST_DEPS = TEST + [
-    '//core/api:onos-api-tests',
+    "//core/api:onos-api-tests",
 ]
 
 #osgi_jar_with_tests (
