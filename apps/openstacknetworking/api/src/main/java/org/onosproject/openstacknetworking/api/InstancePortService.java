@@ -66,4 +66,18 @@ public interface InstancePortService
      * @return set of instance ports; empty list if no port exists
      */
     Set<InstancePort> instancePorts(String osNetId);
+
+    /**
+     * Processes instance port addition event caused by VM migration.
+     *
+     * @param port instance port
+     */
+    void migrationPortAdded(InstancePort port);
+
+    /**
+     * Processes instance port removal event caused by VM migration.
+     *
+     * @param port instance port
+     */
+    void migrationPortRemoved(InstancePort port);
 }

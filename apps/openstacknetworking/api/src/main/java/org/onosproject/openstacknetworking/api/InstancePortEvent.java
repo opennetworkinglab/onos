@@ -40,7 +40,17 @@ public class InstancePortEvent extends AbstractEvent<InstancePortEvent.Type, Ins
         /**
          * Signifies that the instance port is disabled.
          */
-        OPENSTACK_INSTANCE_PORT_VANISHED
+        OPENSTACK_INSTANCE_PORT_VANISHED,
+
+        /**
+         * Signifies that the instance migration is started.
+         */
+        OPENSTACK_INSTANCE_MIGRATION_STARTED,
+
+        /**
+         * Signifies that the instance is migration is ended.
+         */
+        OPENSTACK_INSTANCE_MIGRATION_ENDED
     }
 
     /**

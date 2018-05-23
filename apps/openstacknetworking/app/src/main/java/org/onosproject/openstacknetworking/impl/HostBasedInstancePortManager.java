@@ -43,6 +43,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.onosproject.openstacknetworking.api.InstancePortEvent.Type.OPENSTACK_INSTANCE_MIGRATION_ENDED;
+import static org.onosproject.openstacknetworking.api.InstancePortEvent.Type.OPENSTACK_INSTANCE_MIGRATION_STARTED;
 import static org.onosproject.openstacknetworking.api.InstancePortEvent.Type.OPENSTACK_INSTANCE_PORT_DETECTED;
 import static org.onosproject.openstacknetworking.api.InstancePortEvent.Type.OPENSTACK_INSTANCE_PORT_UPDATED;
 import static org.onosproject.openstacknetworking.api.InstancePortEvent.Type.OPENSTACK_INSTANCE_PORT_VANISHED;
@@ -65,7 +67,7 @@ public class HostBasedInstancePortManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected HostService hostService;
 
-    private final HostListener hostListener = new InternalHostListener();
+    private final InternalHostListener hostListener = new InternalHostListener();
 
     @Activate
     protected void activate() {
@@ -124,6 +126,16 @@ public class HostBasedInstancePortManager
         return ImmutableSet.copyOf(instPors);
     }
 
+    @Override
+    public void migrationPortAdded(InstancePort port) {
+        hostListener.processEvent(OPENSTACK_INSTANCE_MIGRATION_STARTED, port);
+    }
+
+    @Override
+    public void migrationPortRemoved(InstancePort port) {
+        hostListener.processEvent(OPENSTACK_INSTANCE_MIGRATION_ENDED, port);
+    }
+
     private boolean isValidHost(Host host) {
         return !host.ipAddresses().isEmpty() &&
                 host.annotations().value(ANNOTATION_NETWORK_ID) != null &&
@@ -171,6 +183,8 @@ public class HostBasedInstancePortManager
             eventMap.put(OPENSTACK_INSTANCE_PORT_UPDATED, "updated");
             eventMap.put(OPENSTACK_INSTANCE_PORT_DETECTED, "detected");
             eventMap.put(OPENSTACK_INSTANCE_PORT_VANISHED, "disabled");
+            eventMap.put(OPENSTACK_INSTANCE_MIGRATION_STARTED, "detected");
+            eventMap.put(OPENSTACK_INSTANCE_MIGRATION_ENDED, "disabled");
 
             InstancePortEvent instPortEvent = new InstancePortEvent(type, port);
             log.debug("Instance port is {}: {}", eventMap.get(type), port);

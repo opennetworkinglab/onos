@@ -18,9 +18,11 @@ package org.onosproject.openstacknetworking.util;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.base.Strings;
 import org.onosproject.net.DeviceId;
 import org.onosproject.openstacknetworking.api.InstancePort;
 import org.onosproject.openstacknetworking.api.OpenstackRouterAdminService;
+import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.onosproject.openstacknode.api.OpenstackAuth;
 import org.onosproject.openstacknode.api.OpenstackAuth.Perspective;
 import org.onosproject.openstacknode.api.OpenstackNode;
@@ -32,6 +34,8 @@ import org.openstack4j.core.transport.Config;
 import org.openstack4j.core.transport.ObjectMapperSingleton;
 import org.openstack4j.model.ModelEntity;
 import org.openstack4j.model.common.Identifier;
+import org.openstack4j.model.network.NetFloatingIP;
+import org.openstack4j.model.network.Network;
 import org.openstack4j.model.network.Port;
 import org.openstack4j.model.network.RouterInterface;
 import org.openstack4j.openstack.OSFactory;
@@ -78,6 +82,8 @@ public final class OpenstackNetworkingUtil {
     private static final String IDENTITY_PATH = "identity/";
     private static final String SSL_TYPE = "SSL";
 
+    private static final String ERR_FLOW = "Failed set flows for floating IP %s: ";
+
     /**
      * Prevents object instantiation from external.
      */
@@ -121,6 +127,57 @@ public final class OpenstackNetworkingUtil {
             return (ObjectNode) mapper.readTree(strModelEntity.getBytes());
         } catch (Exception e) {
             throw new IllegalStateException();
+        }
+    }
+
+    /**
+     * Obtains a floating IP associated with the given instance port.
+     *
+     * @param port instance port
+     * @param fips a collection of floating IPs
+     * @return associated floating IP
+     */
+    public static NetFloatingIP associatedFloatingIp(InstancePort port,
+                                                     Set<NetFloatingIP> fips) {
+        for (NetFloatingIP fip : fips) {
+            if (Strings.isNullOrEmpty(fip.getFixedIpAddress())) {
+                continue;
+            }
+            if (Strings.isNullOrEmpty(fip.getFloatingIpAddress())) {
+                continue;
+            }
+            if (fip.getFixedIpAddress().equals(port.ipAddress().toString())) {
+                return fip;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Checks whether the given floating IP is associated with a VM.
+     *
+     * @param service openstack network service
+     * @param fip floating IP
+     * @return true if the given floating IP associated with a VM, false otherwise
+     */
+    public static boolean isAssociatedWithVM(OpenstackNetworkService service,
+                                             NetFloatingIP fip) {
+        Port osPort = service.port(fip.getPortId());
+        if (osPort == null) {
+            return false;
+        }
+
+        if (!Strings.isNullOrEmpty(osPort.getDeviceId())) {
+            Network osNet = service.network(osPort.getNetworkId());
+            if (osNet == null) {
+                final String errorFormat = ERR_FLOW + "no network(%s) exists";
+                final String error = String.format(errorFormat,
+                        fip.getFloatingIpAddress(), osPort.getNetworkId());
+                throw new IllegalStateException(error);
+            }
+            return true;
+        } else {
+            return false;
         }
     }
 

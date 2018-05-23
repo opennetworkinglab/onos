@@ -33,6 +33,7 @@ import org.onosproject.cluster.LeadershipService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
@@ -46,6 +47,8 @@ import org.onosproject.net.host.HostService;
 import org.onosproject.openstacknetworking.api.Constants;
 import org.onosproject.openstacknetworking.api.ExternalPeerRouter;
 import org.onosproject.openstacknetworking.api.InstancePort;
+import org.onosproject.openstacknetworking.api.InstancePortEvent;
+import org.onosproject.openstacknetworking.api.InstancePortListener;
 import org.onosproject.openstacknetworking.api.InstancePortService;
 import org.onosproject.openstacknetworking.api.OpenstackFlowRuleService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
@@ -83,7 +86,9 @@ import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_FLOATIN
 import static org.onosproject.openstacknetworking.api.Constants.ROUTING_TABLE;
 import static org.onosproject.openstacknetworking.impl.HostBasedInstancePort.ANNOTATION_NETWORK_ID;
 import static org.onosproject.openstacknetworking.impl.HostBasedInstancePort.ANNOTATION_PORT_ID;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.associatedFloatingIp;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getGwByComputeDevId;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.isAssociatedWithVM;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.buildExtension;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
 
@@ -130,10 +135,12 @@ public class OpenstackRoutingFloatingIpHandler {
 
     private final ExecutorService eventExecutor = newSingleThreadExecutor(
             groupedThreads(this.getClass().getSimpleName(), "event-handler", log));
-    private final OpenstackRouterListener floatingIpLisener = new InternalFloatingIpListener();
+    private final OpenstackRouterListener floatingIpListener = new InternalFloatingIpListener();
+    private final InstancePortListener instancePortListener = new InternalInstancePortListener();
     private final OpenstackNodeListener osNodeListener = new InternalNodeListener();
     private final HostListener hostListener = new InternalHostListener();
     private Map<MacAddress, InstancePort> removedPorts = Maps.newConcurrentMap();
+    private Map<String, DeviceId> migrationPool = Maps.newConcurrentMap();
 
     private ApplicationId appId;
     private NodeId localNodeId;
@@ -144,17 +151,19 @@ public class OpenstackRoutingFloatingIpHandler {
         localNodeId = clusterService.getLocalNode().id();
         leadershipService.runForLeadership(appId.name());
         hostService.addListener(hostListener);
-        osRouterAdminService.addListener(floatingIpLisener);
+        osRouterAdminService.addListener(floatingIpListener);
         osNodeService.addListener(osNodeListener);
+        instancePortService.addListener(instancePortListener);
 
         log.info("Started");
     }
 
     @Deactivate
     protected void deactivate() {
+        instancePortService.removeListener(instancePortListener);
         hostService.removeListener(hostListener);
         osNodeService.removeListener(osNodeListener);
-        osRouterAdminService.removeListener(floatingIpLisener);
+        osRouterAdminService.removeListener(floatingIpListener);
         leadershipService.withdraw(appId.name());
         eventExecutor.shutdown();
 
@@ -584,7 +593,6 @@ public class OpenstackRoutingFloatingIpHandler {
         return osNetworkService.externalPeerRouter(exGatewayInfo);
     }
 
-
     private void associateFloatingIp(NetFloatingIP osFip) {
         Port osPort = osNetworkService.port(osFip.getPortId());
         if (osPort == null) {
@@ -807,6 +815,97 @@ public class OpenstackRoutingFloatingIpHandler {
             return !host.ipAddresses().isEmpty() &&
                     host.annotations().value(ANNOTATION_NETWORK_ID) != null &&
                     host.annotations().value(ANNOTATION_PORT_ID) != null;
+        }
+    }
+
+    private class InternalInstancePortListener implements InstancePortListener {
+
+        @Override
+        public boolean isRelevant(InstancePortEvent event) {
+            Set<NetFloatingIP> ips = osRouterAdminService.floatingIps();
+            NetFloatingIP fip = associatedFloatingIp(event.subject(), ips);
+
+            return fip != null && isAssociatedWithVM(osNetworkService, fip);
+        }
+
+        @Override
+        public void event(InstancePortEvent event) {
+
+            Set<NetFloatingIP> ips = osRouterAdminService.floatingIps();
+            NetFloatingIP fip = associatedFloatingIp(event.subject(), ips);
+            Port osPort = osNetworkService.port(fip.getPortId());
+            Network osNet = osNetworkService.network(osPort.getNetworkId());
+            Set<OpenstackNode> gateways = osNodeService.completeNodes(GATEWAY);
+
+            ExternalPeerRouter externalPeerRouter = externalPeerRouter(osNet);
+            if (externalPeerRouter == null) {
+                final String errorFormat = ERR_FLOW + "no external peer router found";
+                throw new IllegalStateException(errorFormat);
+            }
+
+            switch (event.type()) {
+                case OPENSTACK_INSTANCE_MIGRATION_STARTED:
+                    eventExecutor.execute(() -> {
+
+                        // since downstream internal rules are located in all gateway
+                        // nodes, therefore, we simply update the rules with new compute node info
+                        setDownstreamInternalRules(fip, osNet, event.subject(), true);
+
+                        // since DownstreamExternal rules should only be placed in
+                        // corresponding gateway node, we need to install new rule to
+                        // the corresponding gateway node
+                        setDownstreamExternalRulesHelper(fip, osNet,
+                                event.subject(), externalPeerRouter, gateways, true);
+
+                        // since ComputeNodeToGateway rules should only be placed in
+                        // corresponding compute node, we need to install new rule to
+                        // the target compute node, and remove rules from original node
+                        setComputeNodeToGatewayHelper(event.subject(), osNet, gateways, true);
+
+                        migrationPool.put(fip.getFloatingIpAddress(), event.subject().deviceId());
+
+                    });
+                    break;
+                case OPENSTACK_INSTANCE_MIGRATION_ENDED:
+
+                    // if we only have one gateway, we simply do not remove any
+                    // flow rules from either gateway or compute node
+                    if (gateways.size() == 1) {
+                        return;
+                    }
+
+                    // checks whether the destination compute node's device id
+                    // has identical gateway hash or not
+                    // if it is true, we simply do not remove the rules, as
+                    // it has been overwritten at port detention event
+                    // if it is false, we will remove the rules
+                    DeviceId newDeviceId = migrationPool.get(fip.getFloatingIpAddress());
+                    DeviceId oldDeviceId = event.subject().deviceId();
+                    migrationPool.remove(fip.getFloatingIpAddress());
+
+                    OpenstackNode oldGateway = getGwByComputeDevId(gateways, oldDeviceId);
+                    OpenstackNode newGateway = getGwByComputeDevId(gateways, newDeviceId);
+
+                    if (oldGateway != null && oldGateway.equals(newGateway)) {
+                        return;
+                    }
+
+                    eventExecutor.execute(() -> {
+
+                        // we need to remove the old ComputeNodeToGateway rules from
+                        // original compute node
+                        setComputeNodeToGatewayHelper(event.subject(), osNet, gateways, false);
+
+                        // since DownstreamExternal rules should only be placed in
+                        // corresponding gateway node, we need to remove old rule from
+                        // the corresponding gateway node
+                        setDownstreamExternalRulesHelper(fip, osNet,
+                                event.subject(), externalPeerRouter, gateways, false);
+                    });
+                    break;
+                default:
+                    break;
+            }
         }
     }
 }

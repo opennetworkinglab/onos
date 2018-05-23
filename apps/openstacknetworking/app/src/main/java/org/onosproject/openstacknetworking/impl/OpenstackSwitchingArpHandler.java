@@ -531,6 +531,9 @@ public final class OpenstackSwitchingArpHandler {
                     setArpRequestRule(event.subject(), false);
                     setArpReplyRule(event.subject(), false);
                     break;
+                case OPENSTACK_INSTANCE_MIGRATION_ENDED:
+                    setArpRequestRule(event.subject(), false);
+                    break;
                 default:
                     break;
             }

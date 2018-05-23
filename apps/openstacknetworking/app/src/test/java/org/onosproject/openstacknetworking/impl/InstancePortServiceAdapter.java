@@ -54,6 +54,14 @@ public class InstancePortServiceAdapter implements InstancePortService {
     }
 
     @Override
+    public void migrationPortAdded(InstancePort port) {
+    }
+
+    @Override
+    public void migrationPortRemoved(InstancePort port) {
+    }
+
+    @Override
     public void addListener(InstancePortListener listener) {
 
     }

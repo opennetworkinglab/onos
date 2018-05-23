@@ -1060,6 +1060,14 @@ public class OpenstackRoutingHandler {
                         instPortRemoved(event.subject());
                     });
                     break;
+                case OPENSTACK_INSTANCE_MIGRATION_ENDED:
+                    eventExecutor.execute(() -> {
+                        log.info("RoutingHandler: Instance port vanished MAC:{} IP:{} due to VM migration",
+                                instPort.macAddress(),
+                                instPort.ipAddress());
+                        // TODO: need to reconfigure rules to point to update VM
+                    });
+                    break;
                 default:
                     break;
             }

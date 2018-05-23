@@ -161,6 +161,27 @@ public final class OpenstackSwitchingHandler {
         }
     }
 
+    /**
+     * Removes virtual port.
+     *
+     * @param instPort instance port
+     */
+    private void removeVportRules(InstancePort instPort) {
+        NetworkType type = osNetworkService.network(instPort.networkId()).getNetworkType();
+
+        switch (type) {
+            case VXLAN:
+                setTunnelTagFlowRules(instPort, false);
+                break;
+            case VLAN:
+                setVlanTagFlowRules(instPort, false);
+                break;
+            default:
+                log.warn("Unsupported network tunnel type {}", type.name());
+                break;
+        }
+    }
+
     private void setFlatJumpRules(InstancePort port, boolean install) {
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         selector.matchInPort(port.portNumber());
@@ -595,6 +616,14 @@ public final class OpenstackSwitchingHandler {
                                 instPort.macAddress(),
                                 instPort.ipAddress());
                         instPortRemoved(event.subject());
+                    });
+                    break;
+                case OPENSTACK_INSTANCE_MIGRATION_ENDED:
+                    eventExecutor.execute(() -> {
+                        log.info("Instance port vanished MAC:{} IP:{}, due to VM migration",
+                                instPort.macAddress(),
+                                instPort.ipAddress());
+                        removeVportRules(event.subject());
                     });
                     break;
                 default:
