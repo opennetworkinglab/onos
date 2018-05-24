@@ -93,7 +93,7 @@ public final class PipelineInterpreterImpl
     private static final PiActionId ACT_ID_SEND_TO_CPU =
             PiActionId.of(C_INGRESS + DOT + "send_to_cpu");
     private static final PiActionId ACT_ID_SET_EGRESS_PORT =
-            PiActionId.of(C_INGRESS + DOT + "set_egress_port");
+            PiActionId.of(C_INGRESS + DOT + "set_out_port");
 
     private static final PiActionParamId ACT_PARAM_ID_PORT =
             PiActionParamId.of("port");
