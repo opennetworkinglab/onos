@@ -392,6 +392,27 @@ tables {
 }
 tables {
   preamble {
+    id: 33562709
+    name: "FabricIngress.next.vlan_meta"
+    alias: "vlan_meta"
+  }
+  match_fields {
+    id: 1
+    name: "fabric_metadata.next_id"
+    bitwidth: 32
+    match_type: EXACT
+  }
+  action_refs {
+    id: 16790685
+  }
+  action_refs {
+    id: 16819938
+  }
+  direct_resource_ids: 302008112
+  size: 1024
+}
+tables {
+  preamble {
     id: 33571723
     name: "FabricIngress.next.simple"
     alias: "simple"
@@ -413,6 +434,9 @@ tables {
   }
   action_refs {
     id: 16780811
+  }
+  action_refs {
+    id: 16791579
   }
   action_refs {
     id: 16800567
@@ -470,6 +494,32 @@ tables {
     annotations: "@defaultonly()"
   }
   direct_resource_ids: 302024536
+  size: 1024
+}
+tables {
+  preamble {
+    id: 33599342
+    name: "FabricEgress.egress_next.egress_vlan"
+    alias: "egress_vlan"
+  }
+  match_fields {
+    id: 1
+    name: "hdr.vlan_tag.vlan_id"
+    bitwidth: 12
+    match_type: EXACT
+  }
+  match_fields {
+    id: 2
+    name: "standard_metadata.egress_port"
+    bitwidth: 9
+    match_type: EXACT
+  }
+  action_refs {
+    id: 16790030
+  }
+  action_refs {
+    id: 16819938
+  }
   size: 1024
 }
 actions {
@@ -540,7 +590,7 @@ actions {
   preamble {
     id: 16793253
     name: "FabricIngress.filtering.set_vlan"
-    alias: "set_vlan"
+    alias: "filtering.set_vlan"
   }
   params {
     id: 1
@@ -624,6 +674,18 @@ actions {
 }
 actions {
   preamble {
+    id: 16790685
+    name: "FabricIngress.next.set_vlan"
+    alias: "next.set_vlan"
+  }
+  params {
+    id: 1
+    name: "new_vlan_id"
+    bitwidth: 12
+  }
+}
+actions {
+  preamble {
     id: 16808391
     name: "FabricIngress.next.set_vlan_output"
     alias: "set_vlan_output"
@@ -659,6 +721,33 @@ actions {
     id: 3
     name: "dmac"
     bitwidth: 48
+  }
+}
+actions {
+  preamble {
+    id: 16791579
+    name: "FabricIngress.next.l3_routing_vlan"
+    alias: "l3_routing_vlan"
+  }
+  params {
+    id: 1
+    name: "port_num"
+    bitwidth: 9
+  }
+  params {
+    id: 2
+    name: "smac"
+    bitwidth: 48
+  }
+  params {
+    id: 3
+    name: "dmac"
+    bitwidth: 48
+  }
+  params {
+    id: 4
+    name: "new_vlan_id"
+    bitwidth: 12
   }
 }
 actions {
@@ -737,6 +826,20 @@ actions {
     id: 16829135
     name: "FabricEgress.spgw_egress.gtpu_encap"
     alias: "gtpu_encap"
+  }
+}
+actions {
+  preamble {
+    id: 16801047
+    name: "FabricEgress.pkt_io_egress.pop_vlan"
+    alias: "pkt_io_egress.pop_vlan"
+  }
+}
+actions {
+  preamble {
+    id: 16790030
+    name: "FabricEgress.egress_next.pop_vlan"
+    alias: "egress_next.pop_vlan"
   }
 }
 action_profiles {
@@ -880,6 +983,17 @@ direct_counters {
     unit: BOTH
   }
   direct_table_id: 33574876
+}
+direct_counters {
+  preamble {
+    id: 302008112
+    name: "FabricIngress.next.vlan_meta_counter"
+    alias: "vlan_meta_counter"
+  }
+  spec {
+    unit: BOTH
+  }
+  direct_table_id: 33562709
 }
 direct_counters {
   preamble {

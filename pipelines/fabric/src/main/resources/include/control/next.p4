@@ -25,6 +25,7 @@ control Next (
     inout fabric_metadata_t fabric_metadata,
     inout standard_metadata_t standard_metadata) {
     action_selector(HashAlgorithm.crc16, 32w64, 32w16) ecmp_selector;
+    direct_counter(CounterType.packets_and_bytes) vlan_meta_counter;
     direct_counter(CounterType.packets_and_bytes) simple_counter;
     direct_counter(CounterType.packets_and_bytes) hashed_counter;
 
@@ -32,11 +33,17 @@ control Next (
         standard_metadata.egress_spec = port_num;
     }
 
+    action set_vlan(vlan_id_t new_vlan_id) {
+        hdr.vlan_tag.vlan_id = new_vlan_id;
+    }
+
+    action pop_vlan() {
+        hdr.ethernet.ether_type = hdr.vlan_tag.ether_type;
+        hdr.vlan_tag.setInvalid();
+    }
+
     action set_vlan_output(vlan_id_t new_vlan_id, port_num_t port_num){
         hdr.vlan_tag.vlan_id = new_vlan_id;
-
-        // don't remove the vlan from egress since we set the vlan to it.
-        fabric_metadata.pop_vlan_at_egress = false;
         output(port_num);
     }
 
@@ -52,6 +59,12 @@ control Next (
         rewrite_smac(smac);
         rewrite_dmac(dmac);
         output(port_num);
+    }
+
+    action l3_routing_vlan(port_num_t port_num, mac_addr_t smac, mac_addr_t dmac, vlan_id_t new_vlan_id) {
+        rewrite_smac(smac);
+        rewrite_dmac(dmac);
+        set_vlan_output(new_vlan_id, port_num);
     }
 
     action push_mpls (mpls_label_t label, bit<3> tc) {
@@ -80,6 +93,19 @@ control Next (
         push_mpls(label, 3w0);
     }
 
+    table vlan_meta {
+        key = {
+            fabric_metadata.next_id: exact;
+        }
+
+        actions = {
+            set_vlan;
+            nop;
+        }
+        default_action = nop;
+        counters = vlan_meta_counter;
+    }
+
     table simple {
         key = {
             fabric_metadata.next_id: exact;
@@ -90,6 +116,7 @@ control Next (
             set_vlan_output;
             l3_routing;
             mpls_routing_v4;
+            l3_routing_vlan;
         }
         counters = simple_counter;
     }
@@ -137,6 +164,7 @@ control Next (
 #endif // WITH_MULTICAST
 
     apply {
+        vlan_meta.apply();
         if (simple.apply().hit) {
             if (!hdr.mpls.isValid()) {
                 if(hdr.ipv4.isValid()) {
@@ -159,13 +187,26 @@ control Next (
 control EgressNextControl (
     inout parsed_headers_t hdr,
     inout fabric_metadata_t fabric_metadata,
-    inout standard_metadata_t standard_metadata){
+    inout standard_metadata_t standard_metadata) {
+
+    action pop_vlan() {
+        hdr.ethernet.ether_type = hdr.vlan_tag.ether_type;
+        hdr.vlan_tag.setInvalid();
+    }
+
+    table egress_vlan {
+        key = {
+            hdr.vlan_tag.vlan_id: exact;
+            standard_metadata.egress_port: exact;
+        }
+        actions = {
+            pop_vlan;
+            nop;
+        }
+        default_action = nop;
+    }
 
     apply {
-        // pop internal vlan if the meta is set
-        if (fabric_metadata.pop_vlan_at_egress) {
-            hdr.ethernet.ether_type = hdr.vlan_tag.ether_type;
-            hdr.vlan_tag.setInvalid();
-        }
+        egress_vlan.apply();
     }
 }

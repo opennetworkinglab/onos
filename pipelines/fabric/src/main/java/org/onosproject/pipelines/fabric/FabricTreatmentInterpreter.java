@@ -50,6 +50,13 @@ import static org.slf4j.LoggerFactory.getLogger;
 final class FabricTreatmentInterpreter {
     private static final Logger log = getLogger(FabricTreatmentInterpreter.class);
     private static final String INVALID_TREATMENT = "Invalid treatment for %s block: %s";
+    private static final PiAction NOP = PiAction.builder()
+            .withId(FabricConstants.ACT_NOP_ID)
+            .build();
+
+    private static final PiAction POP_VLAN = PiAction.builder()
+            .withId(FabricConstants.ACT_FABRICEGRESS_EGRESS_NEXT_POP_VLAN_ID)
+            .build();
 
     // Hide default constructor
     protected FabricTreatmentInterpreter() {
@@ -72,9 +79,7 @@ final class FabricTreatmentInterpreter {
         Instruction noActInst = Instructions.createNoAction();
         if (instructions.isEmpty() || instructions.contains(noActInst)) {
             // nop
-            return PiAction.builder()
-                    .withId(FabricConstants.ACT_NOP_ID)
-                    .build();
+            return NOP;
         }
 
         L2ModificationInstruction.ModVlanHeaderInstruction pushVlanInst = null;
@@ -159,10 +164,8 @@ final class FabricTreatmentInterpreter {
      * output
      * set_vlan_output
      * l3_routing
+     * l3_routing_vlan
      * mpls_routing_v4
-     *
-     * Unsupported, using PiAction directly:
-     * set_next_type
      *
      * Unsupported, need to find a way to implement it
      * mpls_routing_v6
@@ -170,6 +173,7 @@ final class FabricTreatmentInterpreter {
 
     public static PiAction mapNextTreatment(TrafficTreatment treatment)
             throws PiInterpreterException {
+        // TODO: refactor this method
         List<Instruction> insts = treatment.allInstructions();
         OutputInstruction outInst = null;
         ModEtherInstruction modEthDstInst = null;
@@ -195,8 +199,6 @@ final class FabricTreatmentInterpreter {
                         case MPLS_LABEL:
                             modMplsInst = (ModMplsLabelInstruction) l2Inst;
                             break;
-                        case VLAN_PUSH:
-                            break;
                         default:
                             log.warn("Unsupported l2 instruction sub type: {}", l2Inst.subtype());
                             break;
@@ -212,8 +214,23 @@ final class FabricTreatmentInterpreter {
         }
 
         if (outInst == null) {
-            throw new PiInterpreterException(format(INVALID_TREATMENT, "next", treatment));
+            // for vlan_meta table only
+            if (modVlanIdInst != null) {
+                // set_vlan
+                VlanId vlanId = modVlanIdInst.vlanId();
+                PiActionParam newVlanParam =
+                        new PiActionParam(FabricConstants.ACT_PRM_NEW_VLAN_ID_ID,
+                                          ImmutableByteSequence.copyFrom(vlanId.toShort()));
+                // set_vlan_output
+                return PiAction.builder()
+                        .withId(FabricConstants.ACT_FABRICINGRESS_NEXT_SET_VLAN_ID)
+                        .withParameter(newVlanParam)
+                        .build();
+            } else {
+                throw new PiInterpreterException(format(INVALID_TREATMENT, "next", treatment));
+            }
         }
+
         short portNum = (short) outInst.port().toLong();
         PiActionParam portNumParam = new PiActionParam(FabricConstants.ACT_PRM_PORT_NUM_ID,
                                                        ImmutableByteSequence.copyFrom(portNum));
@@ -267,15 +284,39 @@ final class FabricTreatmentInterpreter {
                 }
             }
 
-            // L3 routing
-            return PiAction.builder()
-                    .withId(FabricConstants.ACT_FABRICINGRESS_NEXT_L3_ROUTING_ID)
-                    .withParameters(ImmutableList.of(portNumParam,
-                                                     srcMacParam,
-                                                     dstMacParam))
-                    .build();
+            if (modVlanIdInst != null) {
+                VlanId vlanId = modVlanIdInst.vlanId();
+                PiActionParam vlanParam =
+                        new PiActionParam(FabricConstants.ACT_PRM_NEW_VLAN_ID_ID,
+                                          ImmutableByteSequence.copyFrom(vlanId.toShort()));
+                // L3 routing and set VLAN
+                return PiAction.builder()
+                        .withId(FabricConstants.ACT_FABRICINGRESS_NEXT_L3_ROUTING_VLAN_ID)
+                        .withParameters(ImmutableList.of(srcMacParam, dstMacParam, portNumParam, vlanParam))
+                        .build();
+            } else {
+                // L3 routing
+                return PiAction.builder()
+                        .withId(FabricConstants.ACT_FABRICINGRESS_NEXT_L3_ROUTING_ID)
+                        .withParameters(ImmutableList.of(portNumParam,
+                                                         srcMacParam,
+                                                         dstMacParam))
+                        .build();
+            }
         }
 
         throw new PiInterpreterException(format(INVALID_TREATMENT, "next", treatment));
+    }
+
+    public static PiAction mapEgressNextTreatment(TrafficTreatment treatment) {
+        // Pop VLAN action for now, may add new action to this control block in the future.
+        return treatment.allInstructions()
+                .stream()
+                .filter(inst -> inst.type() == Instruction.Type.L2MODIFICATION)
+                .map(inst -> (L2ModificationInstruction) inst)
+                .filter(inst -> inst.subtype() == L2ModificationInstruction.L2SubType.VLAN_POP)
+                .findFirst()
+                .map(inst -> POP_VLAN)
+                .orElse(NOP);
     }
 }

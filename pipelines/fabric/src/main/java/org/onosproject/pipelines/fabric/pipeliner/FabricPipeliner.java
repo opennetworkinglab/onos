@@ -263,7 +263,12 @@ public class FabricPipeliner  extends AbstractHandlerBehaviour implements Pipeli
         };
 
         FlowRuleOperations ops = buildFlowRuleOps(objective, flowRules, ctx);
-        flowRuleService.apply(ops);
+        if (ops != null) {
+            flowRuleService.apply(ops);
+        } else {
+            // remove pendings
+            flowRules.forEach(flowRule -> pendingInstallObjectiveFlows.remove(flowRule.id()));
+        }
     }
 
     private void installGroups(Objective objective, Collection<GroupDescription> groups) {
@@ -317,8 +322,13 @@ public class FabricPipeliner  extends AbstractHandlerBehaviour implements Pipeli
             case REMOVE:
                 flowRules.forEach(ops::remove);
                 break;
+            case ADD_TO_EXISTING:
+            case REMOVE_FROM_EXISTING:
+                // Next objective may use ADD_TO_EXIST or REMOVE_FROM_EXIST op
+                // No need to update FlowRuls for vlan_meta table.
+                return null;
             default:
-                log.warn("Unsupported op {} for {}", objective);
+                log.warn("Unsupported op {} for {}", objective.op(), objective);
                 fail(objective, ObjectiveError.BADPARAMS);
                 return null;
         }

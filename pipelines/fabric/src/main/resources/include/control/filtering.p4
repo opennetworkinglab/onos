@@ -45,8 +45,8 @@ control Filtering (
         hdr.ethernet.ether_type = ETHERTYPE_VLAN;
         set_vlan(new_vlan_id);
 
-        // pop internal vlan before output
-        fabric_metadata.pop_vlan_at_egress = true;
+        // pop internal vlan before packet in
+        fabric_metadata.pop_vlan_when_packet_in = true;
     }
 
     action set_forwarding_type(fwd_type_t fwd_type) {

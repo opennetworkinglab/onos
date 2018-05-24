@@ -44,11 +44,36 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.onosproject.pipelines.fabric.FabricConstants.ACT_PRF_FABRICINGRESS_NEXT_ECMP_SELECTOR_ID;
 import static org.onosproject.pipelines.fabric.FabricConstants.TBL_HASHED_ID;
+import static org.onosproject.pipelines.fabric.FabricConstants.TBL_VLAN_META_ID;
 
 /**
  * Test cases for fabric.p4 pipeline next control block.
  */
 public class FabricNextPipelinerTest extends FabricPipelinerTest {
+    private FlowRule vlanMetaFlowRule;
+
+    public FabricNextPipelinerTest() {
+        PiCriterion nextIdCriterion = PiCriterion.builder()
+                .matchExact(FabricConstants.HF_FABRIC_METADATA_NEXT_ID_ID, NEXT_ID_1)
+                .build();
+        TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchPi(nextIdCriterion)
+                .build();
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .setVlanId(VLAN_100)
+                .build();
+
+        vlanMetaFlowRule = DefaultFlowRule.builder()
+                .withSelector(selector)
+                .withTreatment(treatment)
+                .forTable(TBL_VLAN_META_ID)
+                .makePermanent()
+                // FIXME: currently next objective doesn't support priority, ignore this
+                .withPriority(0)
+                .forDevice(DEVICE_ID)
+                .fromApp(APP_ID)
+                .build();
+    }
 
     /**
      * Test program output rule for Simple table.
@@ -86,10 +111,25 @@ public class FabricNextPipelinerTest extends FabricPipelinerTest {
         testSimple(treatment);
     }
 
+    /**
+     * Test program set mac, set vlan, and output rule for Simple table.
+     */
+    @Test
+    public void testSimpleOutputWithVlanAndMacTranslation() {
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .setEthSrc(ROUTER_MAC)
+                .setEthDst(HOST_MAC)
+                .setVlanId(VLAN_100)
+                .setOutput(PORT_1)
+                .build();
+        testSimple(treatment);
+    }
+
     private void testSimple(TrafficTreatment treatment) {
         NextObjective nextObjective = DefaultNextObjective.builder()
                 .withId(NEXT_ID_1)
                 .withPriority(PRIORITY)
+                .withMeta(VLAN_META)
                 .addTreatment(treatment)
                 .withType(NextObjective.Type.SIMPLE)
                 .makePermanent()
@@ -100,7 +140,7 @@ public class FabricNextPipelinerTest extends FabricPipelinerTest {
 
         List<FlowRule> flowRulesInstalled = (List<FlowRule>) result.flowRules();
         List<GroupDescription> groupsInstalled = (List<GroupDescription>) result.groups();
-        assertEquals(1, flowRulesInstalled.size());
+        assertEquals(2, flowRulesInstalled.size());
         assertTrue(groupsInstalled.isEmpty());
 
         // Simple table
@@ -110,7 +150,12 @@ public class FabricNextPipelinerTest extends FabricPipelinerTest {
         TrafficSelector nextIdSelector = DefaultTrafficSelector.builder()
                 .matchPi(nextIdCriterion)
                 .build();
+
+        // VLAN meta table
         FlowRule actualFlowRule = flowRulesInstalled.get(0);
+        assertTrue(actualFlowRule.exactMatch(vlanMetaFlowRule));
+
+        actualFlowRule = flowRulesInstalled.get(1);
         FlowRule expectedFlowRule = DefaultFlowRule.builder()
                 .forDevice(DEVICE_ID)
                 .fromApp(APP_ID)
@@ -143,6 +188,7 @@ public class FabricNextPipelinerTest extends FabricPipelinerTest {
         NextObjective nextObjective = DefaultNextObjective.builder()
                 .withId(NEXT_ID_1)
                 .withPriority(PRIORITY)
+                .withMeta(VLAN_META)
                 .addTreatment(treatment1)
                 .addTreatment(treatment2)
                 .withType(NextObjective.Type.HASHED)
@@ -155,7 +201,7 @@ public class FabricNextPipelinerTest extends FabricPipelinerTest {
         // Should generates 2 flows and 1 group
         List<FlowRule> flowRulesInstalled = (List<FlowRule>) result.flowRules();
         List<GroupDescription> groupsInstalled = (List<GroupDescription>) result.groups();
-        assertEquals(1, flowRulesInstalled.size());
+        assertEquals(2, flowRulesInstalled.size());
         assertEquals(1, groupsInstalled.size());
 
         // Hashed table
@@ -169,7 +215,12 @@ public class FabricNextPipelinerTest extends FabricPipelinerTest {
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                 .piTableAction(actionGroupId)
                 .build();
+
+        // VLAN meta table
         FlowRule actualFlowRule = flowRulesInstalled.get(0);
+        assertTrue(actualFlowRule.exactMatch(vlanMetaFlowRule));
+
+        actualFlowRule = flowRulesInstalled.get(1);
         FlowRule expectedFlowRule = DefaultFlowRule.builder()
                 .forDevice(DEVICE_ID)
                 .fromApp(APP_ID)

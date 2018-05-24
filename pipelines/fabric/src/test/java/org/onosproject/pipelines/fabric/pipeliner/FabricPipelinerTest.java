@@ -30,6 +30,8 @@ import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.PipelinerContext;
 import org.onosproject.net.driver.Driver;
 import org.onosproject.net.driver.DriverHandler;
+import org.onosproject.net.flow.DefaultTrafficSelector;
+import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.criteria.PiCriterion;
 import org.onosproject.net.group.GroupService;
 import org.onosproject.pipelines.fabric.FabricConstants;
@@ -54,6 +56,9 @@ public abstract class FabricPipelinerTest {
     static final IpPrefix IPV6_MCAST_ADDR = IpPrefix.valueOf("ff00::1/32");
     static final MplsLabel MPLS_10 = MplsLabel.mplsLabel(10);
     static final Integer NEXT_ID_1 = 1;
+    static final TrafficSelector VLAN_META = DefaultTrafficSelector.builder()
+            .matchVlanId(VLAN_100)
+            .build();
 
     // Forwarding types
     static final byte FWD_BRIDGING = 0;

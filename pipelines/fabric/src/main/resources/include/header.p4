@@ -151,7 +151,7 @@ struct spgw_meta_t {
 struct fabric_metadata_t {
     fwd_type_t fwd_type;
     next_id_t next_id;
-    bool pop_vlan_at_egress;
+    bool pop_vlan_when_packet_in;
     bit<8> ip_proto;
     bit<16> l4_src_port;
     bit<16> l4_dst_port;

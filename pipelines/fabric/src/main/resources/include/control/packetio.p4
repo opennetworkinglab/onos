@@ -34,8 +34,15 @@ control PacketIoEgress(
 inout parsed_headers_t hdr,
 inout fabric_metadata_t fabric_metadata,
 inout standard_metadata_t standard_metadata) {
+    action pop_vlan() {
+        hdr.ethernet.ether_type = hdr.vlan_tag.ether_type;
+        hdr.vlan_tag.setInvalid();
+    }
     apply {
         if (standard_metadata.egress_port == CPU_PORT) {
+            if (hdr.vlan_tag.isValid() && fabric_metadata.pop_vlan_when_packet_in) {
+                pop_vlan();
+            }
             hdr.packet_in.setValid();
             hdr.packet_in.ingress_port = standard_metadata.ingress_port;
         }

@@ -90,7 +90,10 @@ public class FabricInterpreter extends AbstractHandlerBehaviour
                                                                                FabricConstants.TBL_ACL_ID);
     private static final Set<PiTableId> NEXT_CTRL_TBLS = ImmutableSet.of(FabricConstants.TBL_SIMPLE_ID,
                                                                          FabricConstants.TBL_HASHED_ID,
-                                                                         FabricConstants.TBL_MULTICAST_ID);
+                                                                         FabricConstants.TBL_MULTICAST_ID,
+                                                                         FabricConstants.TBL_VLAN_META_ID);
+
+    private static final Set<PiTableId> E_NEXT_CTRL_TBLS = ImmutableSet.of(FabricConstants.TBL_EGRESS_VLAN_ID);
 
     private static final ImmutableMap<Criterion.Type, PiMatchFieldId> CRITERION_MAP =
             ImmutableMap.<Criterion.Type, PiMatchFieldId>builder()
@@ -161,6 +164,8 @@ public class FabricInterpreter extends AbstractHandlerBehaviour
             return FabricTreatmentInterpreter.mapForwardingTreatment(treatment);
         } else if (NEXT_CTRL_TBLS.contains(piTableId)) {
             return FabricTreatmentInterpreter.mapNextTreatment(treatment);
+        } else if (E_NEXT_CTRL_TBLS.contains(piTableId)) {
+            return FabricTreatmentInterpreter.mapEgressNextTreatment(treatment);
         } else {
             throw new PiInterpreterException(String.format("Table %s unsupported", piTableId));
         }

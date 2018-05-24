@@ -54,6 +54,7 @@ inout standard_metadata_t standard_metadata) {
 
     state parse_vlan_tag {
         packet.extract(hdr.vlan_tag);
+        fabric_metadata.original_ether_type = hdr.vlan_tag.ether_type;
         transition select(hdr.vlan_tag.ether_type){
             ETHERTYPE_ARP: parse_arp;
             ETHERTYPE_IPV4: parse_ipv4;
