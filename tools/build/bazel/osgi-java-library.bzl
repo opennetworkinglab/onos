@@ -36,6 +36,9 @@ def _bnd_impl(ctx):
 
     # determine the dependencies and build the class path
     for dep in ctx.attr.deps:
+        if len(dep.java.outputs.jars) == 0:
+            continue
+
         file = dep.java.outputs.jars[0].class_jar
 
         if cp:

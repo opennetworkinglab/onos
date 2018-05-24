@@ -15,6 +15,8 @@ filegroup(
         "//incubator/net:onos-incubator-net",
         "//protocols/openflow/api:onos-protocols-openflow-api-osgi",
         "//drivers/default:onos-drivers-default-osgi",
+        "//protocols/p4runtime/api:onos-protocols-p4runtime-api-osgi",
+        "//protocols/p4runtime/model:onos-protocols-p4runtime-model-osgi",
         #"//core/net:onos-core-net-osgi",
     ],
 )
