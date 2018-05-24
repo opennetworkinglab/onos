@@ -43,7 +43,7 @@ public interface PiPipelineModel {
     Collection<PiTableModel> tables();
 
     /**
-     * Returns the counter model associated with the given ID, id present.
+     * Returns the counter model associated with the given ID, if present.
      *
      * @param counterId counter ID
      * @return optional counter model
@@ -58,7 +58,7 @@ public interface PiPipelineModel {
     Collection<PiCounterModel> counters();
 
     /**
-     * Returns the meter model associated with the given ID, id present.
+     * Returns the meter model associated with the given ID, if present.
      *
      * @param meterId meter ID
      * @return optional meter model
@@ -73,7 +73,22 @@ public interface PiPipelineModel {
     Collection<PiMeterModel> meters();
 
     /**
-     * Returns the action profile model associated with the given ID, id present.
+     * Returns the register model associated with the given ID, if present.
+     *
+     * @param registerId register ID
+     * @return optional register model
+     */
+    Optional<PiRegisterModel> register(PiRegisterId registerId);
+
+    /**
+     * Returns all register models defined by this pipeline model.
+     *
+     * @return collection of register models
+     */
+    Collection<PiRegisterModel> registers();
+
+    /**
+     * Returns the action profile model associated with the given ID, if present.
      *
      * @param actionProfileId action profile ID
      * @return optional action profile model

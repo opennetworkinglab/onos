@@ -42,9 +42,12 @@ import org.onosproject.net.pi.model.PiMeterType;
 import org.onosproject.net.pi.model.PiPacketOperationModel;
 import org.onosproject.net.pi.model.PiPacketOperationType;
 import org.onosproject.net.pi.model.PiPipelineModel;
+import org.onosproject.net.pi.model.PiRegisterId;
+import org.onosproject.net.pi.model.PiRegisterModel;
 import org.onosproject.net.pi.model.PiTableId;
 import org.onosproject.net.pi.model.PiTableModel;
 import org.onosproject.net.pi.model.PiTableType;
+import p4.config.P4InfoOuterClass;
 import p4.config.P4InfoOuterClass.Action;
 import p4.config.P4InfoOuterClass.ActionProfile;
 import p4.config.P4InfoOuterClass.ActionRef;
@@ -142,6 +145,10 @@ public final class P4InfoParser {
         meterMap.putAll(parseMeters(p4info));
         meterMap.putAll(parseDirectMeters(p4info));
 
+        // Registers.
+        final Map<Integer, PiRegisterModel> registerMap = Maps.newHashMap();
+        registerMap.putAll(parseRegisters(p4info));
+
         // Action profiles.
         final Map<Integer, PiActionProfileModel> actProfileMap = parseActionProfiles(p4info);
 
@@ -219,6 +226,9 @@ public final class P4InfoParser {
         ImmutableMap<PiMeterId, PiMeterModel> meterImmMap = ImmutableMap.copyOf(
                 meterMap.values().stream()
                         .collect(Collectors.toMap(PiMeterModel::id, m -> m)));
+        ImmutableMap<PiRegisterId, PiRegisterModel> registerImmMap = ImmutableMap.copyOf(
+                registerMap.values().stream()
+                        .collect(Collectors.toMap(PiRegisterModel::id, r -> r)));
         ImmutableMap<PiActionProfileId, PiActionProfileModel> actProfileImmMap = ImmutableMap.copyOf(
                 actProfileMap.values().stream()
                         .collect(Collectors.toMap(PiActionProfileModel::id, a -> a)));
@@ -227,6 +237,7 @@ public final class P4InfoParser {
                 tableImmMapBuilder.build(),
                 counterImmMap,
                 meterImmMap,
+                registerImmMap,
                 actProfileImmMap,
                 ImmutableMap.copyOf(pktOpMap));
     }
@@ -294,6 +305,17 @@ public final class P4InfoParser {
                             NO_SIZE));
         }
         return meterMap;
+    }
+
+    private static Map<Integer, PiRegisterModel> parseRegisters(P4Info p4info)
+            throws P4InfoParserException {
+        final Map<Integer, PiRegisterModel> registerMap = Maps.newHashMap();
+        for (P4InfoOuterClass.Register registerMsg : p4info.getRegistersList()) {
+            registerMap.put(registerMsg.getPreamble().getId(),
+                            new P4RegisterModel(PiRegisterId.of(registerMsg.getPreamble().getName()),
+                                                registerMsg.getSize()));
+        }
+        return registerMap;
     }
 
     private static Map<Integer, PiActionProfileModel> parseActionProfiles(P4Info p4info)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-present Open Networking Foundation
+ * Copyright 2018-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,37 +14,28 @@
  * limitations under the License.
  */
 
-package org.onosproject.net.pi.runtime;
+package org.onosproject.net.pi.model;
 
 import com.google.common.annotations.Beta;
 
 /**
- * Type of runtime entity of a protocol-independent pipeline.
+ * Model of a register in a protocol-independent pipeline.
  */
 @Beta
-public enum PiEntityType {
-    /**
-     * Table entry.
-     */
-    TABLE_ENTRY,
+public interface PiRegisterModel {
 
     /**
-     * Action profile group.
+     * Returns the ID of this register.
+     *
+     * @return register ID
      */
-    GROUP,
+    PiRegisterId id();
 
     /**
-     * Action profile group member.
+     * Returns the number of cells of this register.
+     *
+     * @return size
      */
-    GROUP_MEMBER,
-
-    /**
-     * Meter config.
-     */
-    METER_CELL_CONFIG,
-
-    /**
-     * Register entry.
-     */
-    REGISTER_CELL
+    long size();
 }
+

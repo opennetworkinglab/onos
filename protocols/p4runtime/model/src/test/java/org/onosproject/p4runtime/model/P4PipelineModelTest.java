@@ -41,6 +41,8 @@ import org.onosproject.net.pi.model.PiMeterType;
 import org.onosproject.net.pi.model.PiPacketOperationModel;
 import org.onosproject.net.pi.model.PiPacketOperationType;
 import org.onosproject.net.pi.model.PiPipelineModel;
+import org.onosproject.net.pi.model.PiRegisterId;
+import org.onosproject.net.pi.model.PiRegisterModel;
 import org.onosproject.net.pi.model.PiTableId;
 import org.onosproject.net.pi.model.PiTableModel;
 import org.onosproject.net.pi.model.PiTableType;
@@ -140,6 +142,25 @@ public class P4PipelineModelTest {
     private static final ImmutableMap<PiMeterId, PiMeterModel> METERS_2 =
             new ImmutableMap.Builder<PiMeterId, PiMeterModel>()
                     .put(PI_METER_ID_2, P4_METER_MODEL_2)
+                    .build();
+
+    /* Registers */
+    private static final PiRegisterId PI_REGISTER_ID_1 = PiRegisterId.of("Register1");
+    private static final PiRegisterId PI_REGISTER_ID_2 = PiRegisterId.of("Register2");
+
+    private static final long REGISTER_SIZE_1 = 1000;
+    private static final long REGISTER_SIZE_2 = 2000;
+
+    private static final P4RegisterModel P4_REGISTER_MODEL_1 = new P4RegisterModel(PI_REGISTER_ID_1, REGISTER_SIZE_1);
+    private static final P4RegisterModel P4_REGISTER_MODEL_2 = new P4RegisterModel(PI_REGISTER_ID_2, REGISTER_SIZE_2);
+
+    private static final ImmutableMap<PiRegisterId, PiRegisterModel> REGISTERS_1 =
+            new ImmutableMap.Builder<PiRegisterId, PiRegisterModel>()
+                    .put(PI_REGISTER_ID_1, P4_REGISTER_MODEL_1)
+                    .build();
+    private static final ImmutableMap<PiRegisterId, PiRegisterModel> REGISTERS_2 =
+            new ImmutableMap.Builder<PiRegisterId, PiRegisterModel>()
+                    .put(PI_REGISTER_ID_2, P4_REGISTER_MODEL_2)
                     .build();
 
     /* Match Fields */
@@ -315,11 +336,11 @@ public class P4PipelineModelTest {
                     .build();
 
     private static final PiPipelineModel P4_PIPELINE_MODEL_1 =
-            new P4PipelineModel(TABLES_1, COUNTERS_1, METERS_1, ACTION_PROFILES_1, PACKET_OPERATIONS_1);
+            new P4PipelineModel(TABLES_1, COUNTERS_1, METERS_1, REGISTERS_1, ACTION_PROFILES_1, PACKET_OPERATIONS_1);
     private static final PiPipelineModel SAME_AS_P4_PIPELINE_MODEL_1 =
-            new P4PipelineModel(TABLES_1, COUNTERS_1, METERS_1, ACTION_PROFILES_1, PACKET_OPERATIONS_1);
+            new P4PipelineModel(TABLES_1, COUNTERS_1, METERS_1, REGISTERS_1, ACTION_PROFILES_1, PACKET_OPERATIONS_1);
     private static final PiPipelineModel P4_PIPELINE_MODEL_2 =
-            new P4PipelineModel(TABLES_2, COUNTERS_2, METERS_2, ACTION_PROFILES_2, PACKET_OPERATIONS_2);
+            new P4PipelineModel(TABLES_2, COUNTERS_2, METERS_2, REGISTERS_1, ACTION_PROFILES_2, PACKET_OPERATIONS_2);
 
     /**
      * Checks that the P4PipelineModel class is immutable.

@@ -26,6 +26,8 @@ import org.onosproject.net.pi.model.PiMeterModel;
 import org.onosproject.net.pi.model.PiPacketOperationModel;
 import org.onosproject.net.pi.model.PiPacketOperationType;
 import org.onosproject.net.pi.model.PiPipelineModel;
+import org.onosproject.net.pi.model.PiRegisterId;
+import org.onosproject.net.pi.model.PiRegisterModel;
 import org.onosproject.net.pi.model.PiTableId;
 import org.onosproject.net.pi.model.PiTableModel;
 
@@ -41,6 +43,7 @@ final class P4PipelineModel implements PiPipelineModel {
     private final ImmutableMap<PiTableId, PiTableModel> tables;
     private final ImmutableMap<PiCounterId, PiCounterModel> counters;
     private final ImmutableMap<PiMeterId, PiMeterModel> meters;
+    private final ImmutableMap<PiRegisterId, PiRegisterModel> registers;
     private final ImmutableMap<PiActionProfileId, PiActionProfileModel> actionProfiles;
     private final ImmutableMap<PiPacketOperationType, PiPacketOperationModel> packetOperations;
 
@@ -48,11 +51,13 @@ final class P4PipelineModel implements PiPipelineModel {
             ImmutableMap<PiTableId, PiTableModel> tables,
             ImmutableMap<PiCounterId, PiCounterModel> counters,
             ImmutableMap<PiMeterId, PiMeterModel> meters,
+            ImmutableMap<PiRegisterId, PiRegisterModel> registers,
             ImmutableMap<PiActionProfileId, PiActionProfileModel> actionProfiles,
             ImmutableMap<PiPacketOperationType, PiPacketOperationModel> packetOperations) {
         this.tables = tables;
         this.counters = counters;
         this.meters = meters;
+        this.registers = registers;
         this.actionProfiles = actionProfiles;
         this.packetOperations = packetOperations;
     }
@@ -85,6 +90,16 @@ final class P4PipelineModel implements PiPipelineModel {
     @Override
     public Collection<PiMeterModel> meters() {
         return meters.values();
+    }
+
+    @Override
+    public Optional<PiRegisterModel> register(PiRegisterId registerId) {
+        return Optional.ofNullable(registers.get(registerId));
+    }
+
+    @Override
+    public Collection<PiRegisterModel> registers() {
+        return registers.values();
     }
 
     @Override
