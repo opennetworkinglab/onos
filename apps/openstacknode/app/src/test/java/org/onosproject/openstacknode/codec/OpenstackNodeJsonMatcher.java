@@ -37,6 +37,7 @@ public final class OpenstackNodeJsonMatcher extends TypeSafeDiagnosingMatcher<Js
     private static final String STATE = "state";
     private static final String PHYSICAL_INTERFACES = "phyIntfs";
     private static final String AUTHENTICATION = "authentication";
+    private static final String END_POINT = "endPoint";
 
     private OpenstackNodeJsonMatcher(OpenstackNode node) {
         this.node = node;
@@ -113,6 +114,16 @@ public final class OpenstackNodeJsonMatcher extends TypeSafeDiagnosingMatcher<Js
             OpenstackAuthJsonMatcher authMatcher =
                     OpenstackAuthJsonMatcher.matchOpenstackAuth(auth);
             if (!authMatcher.matches(jsonAuth)) {
+                return false;
+            }
+        }
+
+        // check endpoint URL
+        JsonNode jsonEndPoint = jsonNode.get(END_POINT);
+        if (jsonEndPoint != null) {
+            String endPoint = node.endPoint();
+            if (!jsonEndPoint.asText().equals(endPoint)) {
+                description.appendText("endpoint URL was " + jsonEndPoint);
                 return false;
             }
         }

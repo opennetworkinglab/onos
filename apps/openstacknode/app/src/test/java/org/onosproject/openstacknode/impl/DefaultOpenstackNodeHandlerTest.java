@@ -408,7 +408,7 @@ public class DefaultOpenstackNodeHandlerTest {
                 intgBridge.id(),
                 ipAddr,
                 ipAddr,
-                null, null, state, phyIntfs, null);
+                null, null, state, phyIntfs, null, null);
     }
 
     private static OpenstackNode createGatewayNode(String hostname,
@@ -423,7 +423,7 @@ public class DefaultOpenstackNodeHandlerTest {
                 intgBridge.id(),
                 ipAddr,
                 ipAddr,
-                null, uplinkPort, state, null, null);
+                null, uplinkPort, state, null, null, null);
     }
 
     private static final class TestDevice extends DefaultDevice {
@@ -482,7 +482,8 @@ public class DefaultOpenstackNodeHandlerTest {
                                   String uplinkPort,
                                   NodeState state,
                                   Set<OpenstackPhyInterface> phyIntfs,
-                                  OpenstackAuth auth) {
+                                  OpenstackAuth auth,
+                                  String endPoint) {
             super(hostname,
                     type,
                     intgBridge,
@@ -492,7 +493,8 @@ public class DefaultOpenstackNodeHandlerTest {
                     uplinkPort,
                     state,
                     phyIntfs,
-                    auth);
+                    auth,
+                    endPoint);
         }
 
         @Override

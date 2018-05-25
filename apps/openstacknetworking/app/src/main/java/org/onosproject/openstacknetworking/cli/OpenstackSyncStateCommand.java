@@ -243,13 +243,7 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
         StringBuilder endpointSb = new StringBuilder();
         endpointSb.append(auth.protocol().name().toLowerCase());
         endpointSb.append("://");
-
-        if (node.managementIp() == null) {
-            endpointSb.append(node.hostname());
-        } else {
-            endpointSb.append(node.managementIp());
-        }
-
+        endpointSb.append(node.endPoint());
         endpointSb.append(":");
         endpointSb.append(auth.port());
         endpointSb.append("/");

@@ -2,6 +2,7 @@
   "hostname": "controller",
   "type": "CONTROLLER",
   "managementIp": "172.16.130.10",
+  "endPoint": "keystone-end-point-url",
   "authentication": {
     "version": "v2.0",
     "port": 35357,

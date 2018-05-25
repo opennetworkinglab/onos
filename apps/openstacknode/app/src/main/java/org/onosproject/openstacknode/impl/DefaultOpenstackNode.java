@@ -58,6 +58,7 @@ public class DefaultOpenstackNode implements OpenstackNode {
     private final NodeState state;
     private final Collection<OpenstackPhyInterface> phyIntfs;
     private final OpenstackAuth auth;
+    private final String endPoint;
 
     private static final String NOT_NULL_MSG = "Node % cannot be null";
 
@@ -76,6 +77,7 @@ public class DefaultOpenstackNode implements OpenstackNode {
      * @param state         node state
      * @param phyIntfs      physical interfaces
      * @param auth          keystone authentication info
+     * @param endPoint      openstack endpoint URL
      */
     protected DefaultOpenstackNode(String hostname, NodeType type,
                                    DeviceId intgBridge,
@@ -85,7 +87,8 @@ public class DefaultOpenstackNode implements OpenstackNode {
                                    String uplinkPort,
                                    NodeState state,
                                    Collection<OpenstackPhyInterface> phyIntfs,
-                                   OpenstackAuth auth) {
+                                   OpenstackAuth auth,
+                                   String endPoint) {
         this.hostname = hostname;
         this.type = type;
         this.intgBridge = intgBridge;
@@ -96,6 +99,7 @@ public class DefaultOpenstackNode implements OpenstackNode {
         this.state = state;
         this.phyIntfs = phyIntfs;
         this.auth = auth;
+        this.endPoint = endPoint;
     }
 
     @Override
@@ -235,7 +239,8 @@ public class DefaultOpenstackNode implements OpenstackNode {
                     Objects.equals(uplinkPort, that.uplinkPort) &&
                     Objects.equals(vlanIntf, that.vlanIntf) &&
                     Objects.equals(phyIntfs, that.phyIntfs) &&
-                    Objects.equals(auth, that.auth);
+                    Objects.equals(auth, that.auth) &&
+                    Objects.equals(endPoint, that.endPoint);
         }
         return false;
     }
@@ -250,7 +255,8 @@ public class DefaultOpenstackNode implements OpenstackNode {
                 vlanIntf,
                 uplinkPort,
                 phyIntfs,
-                auth);
+                auth,
+                endPoint);
     }
 
     @Override
@@ -266,6 +272,7 @@ public class DefaultOpenstackNode implements OpenstackNode {
                 .add("state", state)
                 .add("phyIntfs", phyIntfs)
                 .add("auth", auth)
+                .add("endpoint", endPoint)
                 .toString();
     }
 
@@ -282,6 +289,7 @@ public class DefaultOpenstackNode implements OpenstackNode {
                 .state(newState)
                 .phyIntfs(phyIntfs)
                 .authentication(auth)
+                .endPoint(endPoint)
                 .build();
     }
 
@@ -319,6 +327,11 @@ public class DefaultOpenstackNode implements OpenstackNode {
         return auth;
     }
 
+    @Override
+    public String endPoint() {
+        return endPoint;
+    }
+
     /**
      * Returns new builder instance.
      *
@@ -345,7 +358,8 @@ public class DefaultOpenstackNode implements OpenstackNode {
                 .uplinkPort(osNode.uplinkPort())
                 .state(osNode.state())
                 .phyIntfs(osNode.phyIntfs())
-                .authentication(osNode.authentication());
+                .authentication(osNode.authentication())
+                .endPoint(osNode.endPoint());
     }
 
     /**
@@ -363,6 +377,7 @@ public class DefaultOpenstackNode implements OpenstackNode {
         private NodeState state;
         private Collection<OpenstackPhyInterface> phyIntfs;
         private OpenstackAuth auth;
+        private String endPoint;
 
         // private constructor not intended to use from external
         private Builder() {
@@ -373,16 +388,17 @@ public class DefaultOpenstackNode implements OpenstackNode {
             checkArgument(hostname != null, NOT_NULL_MSG, "hostname");
             checkArgument(type != null, NOT_NULL_MSG, "type");
             checkArgument(state != null, NOT_NULL_MSG, "state");
+            checkArgument(managementIp != null, NOT_NULL_MSG, "management IP");
 
             if (type != NodeType.CONTROLLER) {
-                checkArgument(managementIp != null, NOT_NULL_MSG, "management IP");
-
                 checkArgument(intgBridge != null, NOT_NULL_MSG, "integration bridge");
 
                 if (dataIp == null && Strings.isNullOrEmpty(vlanIntf)) {
                     throw new IllegalArgumentException("Either data IP or VLAN interface is required");
                 }
             } else {
+                checkArgument(endPoint != null, NOT_NULL_MSG, "endpoint URL");
+
                 // we force controller node to have COMPLETE state for now
                 state = NodeState.COMPLETE;
             }
@@ -400,7 +416,8 @@ public class DefaultOpenstackNode implements OpenstackNode {
                     uplinkPort,
                     state,
                     phyIntfs,
-                    auth);
+                    auth,
+                    endPoint);
         }
 
         @Override
@@ -462,6 +479,12 @@ public class DefaultOpenstackNode implements OpenstackNode {
         @Override
         public Builder authentication(OpenstackAuth auth) {
             this.auth = auth;
+            return this;
+        }
+
+        @Override
+        public Builder endPoint(String endPoint) {
+            this.endPoint = endPoint;
             return this;
         }
     }

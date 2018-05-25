@@ -193,6 +193,13 @@ public interface OpenstackNode {
     OpenstackAuth authentication();
 
     /**
+     * Returns the endpoint URL info.
+     *
+     * @return keystone authentication info
+     */
+    String endPoint();
+
+    /**
      * Builder of new node entities.
      */
     interface Builder {
@@ -283,6 +290,14 @@ public interface OpenstackNode {
          * @return openstack node builder
          */
         Builder authentication(OpenstackAuth auth);
+
+        /**
+         * Returns openstack node builder with supplied endpoint info.
+         *
+         * @param endPoint endpoint info
+         * @return openstack node builder
+         */
+        Builder endPoint(String endPoint);
     }
 }
 
