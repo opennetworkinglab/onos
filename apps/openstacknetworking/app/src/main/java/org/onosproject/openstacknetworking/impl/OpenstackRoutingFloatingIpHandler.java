@@ -274,26 +274,25 @@ public class OpenstackRoutingFloatingIpHandler {
         }
 
         IpAddress floating = IpAddress.valueOf(floatingIp.getFloatingIpAddress());
-        TrafficSelector.Builder externalSelectorBuilder = DefaultTrafficSelector.builder()
-                .matchEthType(Ethernet.TYPE_IPV4)
-                .matchIPDst(floating.toIpPrefix());
-
-        TrafficTreatment.Builder externalBuilder = DefaultTrafficTreatment.builder()
-                .setEthSrc(Constants.DEFAULT_GATEWAY_MAC)
-                .setEthDst(instPort.macAddress())
-                .setIpDst(instPort.ipAddress().getIp4Address());
-
-        if (!externalPeerRouter.externalPeerRouterVlanId().equals(VlanId.NONE)) {
-            externalSelectorBuilder.matchVlanId(externalPeerRouter.externalPeerRouterVlanId()).build();
-            externalBuilder.popVlan();
-        }
 
         osNodeService.completeNodes(GATEWAY).forEach(gNode -> {
+            TrafficSelector.Builder externalSelectorBuilder = DefaultTrafficSelector.builder()
+                    .matchEthType(Ethernet.TYPE_IPV4)
+                    .matchIPDst(floating.toIpPrefix());
 
+            TrafficTreatment.Builder externalTreatmentBuilder = DefaultTrafficTreatment.builder()
+                    .setEthSrc(Constants.DEFAULT_GATEWAY_MAC)
+                    .setEthDst(instPort.macAddress())
+                    .setIpDst(instPort.ipAddress().getIp4Address());
+
+            if (!externalPeerRouter.externalPeerRouterVlanId().equals(VlanId.NONE)) {
+                externalSelectorBuilder.matchVlanId(externalPeerRouter.externalPeerRouterVlanId()).build();
+                externalTreatmentBuilder.popVlan();
+            }
 
             switch (osNet.getNetworkType()) {
                 case VXLAN:
-                    externalBuilder.setTunnelId(Long.valueOf(osNet.getProviderSegID()))
+                    externalTreatmentBuilder.setTunnelId(Long.valueOf(osNet.getProviderSegID()))
                             .extension(buildExtension(
                                     deviceService,
                                     gNode.intgBridge(),
@@ -302,7 +301,7 @@ public class OpenstackRoutingFloatingIpHandler {
                             .setOutput(gNode.tunnelPortNum());
                     break;
                 case VLAN:
-                    externalBuilder.pushVlan()
+                    externalTreatmentBuilder.pushVlan()
                             .setVlanId(VlanId.vlanId(osNet.getProviderSegID()))
                             .setOutput(gNode.vlanPortNum());
                     break;
@@ -316,7 +315,7 @@ public class OpenstackRoutingFloatingIpHandler {
                     appId,
                     gNode.intgBridge(),
                     externalSelectorBuilder.build(),
-                    externalBuilder.build(),
+                    externalTreatmentBuilder.build(),
                     PRIORITY_FLOATING_EXTERNAL,
                     GW_COMMON_TABLE,
                     install);
