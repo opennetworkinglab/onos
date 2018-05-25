@@ -372,11 +372,11 @@ public class DefaultOpenstackNode implements OpenstackNode {
         public DefaultOpenstackNode build() {
             checkArgument(hostname != null, NOT_NULL_MSG, "hostname");
             checkArgument(type != null, NOT_NULL_MSG, "type");
-
-            checkArgument(managementIp != null, NOT_NULL_MSG, "management IP");
             checkArgument(state != null, NOT_NULL_MSG, "state");
 
             if (type != NodeType.CONTROLLER) {
+                checkArgument(managementIp != null, NOT_NULL_MSG, "management IP");
+
                 checkArgument(intgBridge != null, NOT_NULL_MSG, "integration bridge");
 
                 if (dataIp == null && Strings.isNullOrEmpty(vlanIntf)) {

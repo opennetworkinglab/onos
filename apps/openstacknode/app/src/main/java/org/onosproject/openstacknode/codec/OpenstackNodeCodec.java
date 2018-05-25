@@ -66,7 +66,6 @@ public final class OpenstackNodeCodec extends JsonCodec<OpenstackNode> {
         ObjectNode result = context.mapper().createObjectNode()
                 .put(HOST_NAME, node.hostname())
                 .put(TYPE, node.type().name())
-                .put(MANAGEMENT_IP, node.managementIp().toString())
                 .put(STATE, node.state().name());
 
         OpenstackNode.NodeType type = node.type();
@@ -76,7 +75,12 @@ public final class OpenstackNodeCodec extends JsonCodec<OpenstackNode> {
         }
 
         if (type != OpenstackNode.NodeType.CONTROLLER) {
+            result.put(MANAGEMENT_IP, node.managementIp().toString());
             result.put(INTEGRATION_BRIDGE, node.intgBridge().toString());
+        } else {
+            if (node.managementIp() != null) {
+                result.put(MANAGEMENT_IP, node.managementIp().toString());
+            }
         }
 
         if (node.vlanIntf() != null) {
@@ -116,13 +120,10 @@ public final class OpenstackNodeCodec extends JsonCodec<OpenstackNode> {
                 HOST_NAME + MISSING_MESSAGE);
         String type = nullIsIllegal(json.get(TYPE).asText(),
                 TYPE + MISSING_MESSAGE);
-        String mIp = nullIsIllegal(json.get(MANAGEMENT_IP).asText(),
-                MANAGEMENT_IP + MISSING_MESSAGE);
 
         DefaultOpenstackNode.Builder nodeBuilder = DefaultOpenstackNode.builder()
                 .hostname(hostname)
                 .type(OpenstackNode.NodeType.valueOf(type))
-                .managementIp(IpAddress.valueOf(mIp))
                 .state(NodeState.INIT);
 
         if (type.equals(GATEWAY)) {
@@ -133,6 +134,14 @@ public final class OpenstackNodeCodec extends JsonCodec<OpenstackNode> {
             String iBridge = nullIsIllegal(json.get(INTEGRATION_BRIDGE).asText(),
                     INTEGRATION_BRIDGE + MISSING_MESSAGE);
             nodeBuilder.intgBridge(DeviceId.deviceId(iBridge));
+
+            String mIp = nullIsIllegal(json.get(MANAGEMENT_IP).asText(),
+                    MANAGEMENT_IP + MISSING_MESSAGE);
+            nodeBuilder.managementIp(IpAddress.valueOf(mIp));
+        } else {
+            if (json.get(MANAGEMENT_IP) != null) {
+                nodeBuilder.managementIp(IpAddress.valueOf(json.get(MANAGEMENT_IP).asText()));
+            }
         }
         if (json.get(VLAN_INTF_NAME) != null) {
             nodeBuilder.vlanIntf(json.get(VLAN_INTF_NAME).asText());
