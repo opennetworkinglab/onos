@@ -1,83 +1,84 @@
 {
-    "apps" : {
-        "org.onosproject.openstacknode" : {
-            "openstacknode" : {
-                 "nodes" : [
-                        {
-                                "hostname" : "compute-01",
-                                "type" : "COMPUTE",
-                                "managementIp" : "172.16.130.4",
-                                "dataIp" : "172.16.130.4",
-                                "vlanPort" : "eth2",
-                                "integrationBridge" : "of:00000000000000a1",
-                                "phyIntfs": [
-                                      {
-                                          "network": "mgmtnetwork",
-                                          "intf": "eth3"
-                                      },
-                                      {
-                                          "network": "oamnetwork",
-                                          "intf": "eth4"
-                                      }
-                                ]
-                        },
-                        {
-                                "hostname" : "compute-02",
-                                "type" : "COMPUTE",
-                                "managementIp" : "172.16.130.6",
-                                "dataIp" : "172.16.130.6",
-                                "vlanPort" : "eth2",
-                                "integrationBridge" : "of:00000000000000a2",
-                                "phyIntfs": [
-                                      {
-                                        "network": "mgmtnetwork",
-                                        "intf": "eth3"
-                                      },
-                                      {
-                                        "network": "oamnetwork",
-                                        "intf": "eth4"
-                                      }
-                                ]
-                        },
-                        {
-                                "hostname" : "controller",
-                                "type" : "CONTROLLER",
-                                "managementIp" : "172.16.130.10",
-                                "authentication" : {
-                                        "version" : "v2.0",
-                                        "port" : 35357,
-                                        "protocol" : "HTTP",
-                                        "project" : "admin",
-                                        "username" : "admin",
-                                        "password" : "nova",
-                                        "perspective" : "PUBLIC"
-                                }
-                        },
-                        {
-                                "hostname" : "gateway-01",
-                                "type" : "GATEWAY",
-                                "managementIp" : "172.16.130.8",
-                                "dataIp" : "172.16.130.7",
-                                "vlanPort" : "eth2",
-                                "integrationBridge" : "of:00000000000000a3",
-                                "uplinkPort" : "ens6"
+  "apps" : {
+    "org.onosproject.openstacknode" : {
+      "openstacknode" : {
+        "nodes" : [
+          {
+            "hostname" : "compute-01",
+            "type" : "COMPUTE",
+            "managementIp" : "172.16.130.4",
+            "dataIp" : "172.16.130.4",
+            "vlanPort" : "eth2",
+            "integrationBridge" : "of:00000000000000a1",
+            "phyIntfs": [
+              {
+                "network": "mgmtnetwork",
+                "intf": "eth3"
+              },
+              {
+                "network": "oamnetwork",
+                "intf": "eth4"
+              }
+            ]
+          },
+          {
+            "hostname" : "compute-02",
+            "type" : "COMPUTE",
+            "managementIp" : "172.16.130.6",
+            "dataIp" : "172.16.130.6",
+            "vlanPort" : "eth2",
+            "integrationBridge" : "of:00000000000000a2",
+            "phyIntfs": [
+              {
+                "network": "mgmtnetwork",
+                "intf": "eth3"
+              },
+              {
+                "network": "oamnetwork",
+                "intf": "eth4"
+              }
+            ]
+          },
+          {
+            "hostname" : "controller",
+            "type" : "CONTROLLER",
+            "managementIp" : "172.16.130.10",
+            "endPoint" : "keystone-endpoint-url",
+            "authentication" : {
+              "version" : "v2.0",
+              "port" : 35357,
+              "protocol" : "HTTP",
+              "project" : "admin",
+              "username" : "admin",
+              "password" : "nova",
+              "perspective" : "PUBLIC"
+            }
+          },
+          {
+            "hostname" : "gateway-01",
+            "type" : "GATEWAY",
+            "managementIp" : "172.16.130.8",
+            "dataIp" : "172.16.130.7",
+            "vlanPort" : "eth2",
+            "integrationBridge" : "of:00000000000000a3",
+            "uplinkPort" : "ens6"
 
-                        }
-                ]
-            }
-        }
-    },
-    "devices" : {
-        "of:00000000000000a1" : {
-            "basic" : {
-                "driver" : "sona"
-            }
-        },
-        "of:00000000000000a2" : {
-            "basic" : {
-                "driver" : "sona"
-            }
-        }
+          }
+        ]
+      }
     }
+  },
+  "devices" : {
+    "of:00000000000000a1" : {
+      "basic" : {
+        "driver" : "sona"
+      }
+    },
+    "of:00000000000000a2" : {
+      "basic" : {
+        "driver" : "sona"
+      }
+    }
+  }
 }
 
