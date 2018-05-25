@@ -152,8 +152,8 @@ public class OpenConfigDeviceDiscovery
 
         String name = component.getString("name");
         String type = component.getString("state/type");
-        checkNotNull(name);
-        checkNotNull(type);
+        checkNotNull(name, "name not found");
+        checkNotNull(type, "state/type not found");
         props.put(OdtnDeviceDescriptionDiscovery.OC_NAME, name);
         props.put(OdtnDeviceDescriptionDiscovery.OC_TYPE, type);
 
