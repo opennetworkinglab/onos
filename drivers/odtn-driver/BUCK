@@ -1,5 +1,6 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//drivers/utilities:onos-drivers-utilities',
     '//protocols/netconf/api:onos-protocols-netconf-api',
     '//lib:commons-jxpath',
     '//apps/odtn/api:onos-apps-odtn-api',
