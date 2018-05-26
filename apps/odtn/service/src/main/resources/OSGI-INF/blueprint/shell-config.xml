@@ -30,6 +30,10 @@
             </optional-completers>
         </command>
 
+        <command>
+            <action class="org.onosproject.odtn.cli.impl.OdtnDcsModelCheckCommand"/>
+        </command>
+
     </command-bundle>
 
     <bean id="deviceIdCompleter" class="org.onosproject.cli.net.DeviceIdCompleter"/>
