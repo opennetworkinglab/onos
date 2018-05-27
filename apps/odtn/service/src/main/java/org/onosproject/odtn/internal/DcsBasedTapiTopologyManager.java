@@ -36,14 +36,17 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.Port;
 
-import org.onosproject.odtn.utils.tapi.TapiLinkBuilder;
+import org.onosproject.odtn.TapiResolver;
+import org.onosproject.odtn.TapiTopologyManager;
+import org.onosproject.odtn.utils.tapi.TapiLinkHandler;
+import org.onosproject.odtn.utils.tapi.TapiCepHandler;
 import org.onosproject.odtn.utils.tapi.TapiNepRef;
 import org.onosproject.odtn.utils.tapi.TapiNodeRef;
-import org.onosproject.odtn.utils.tapi.TapiContextBuilder;
-import org.onosproject.odtn.utils.tapi.TapiNepBuilder;
-import org.onosproject.odtn.utils.tapi.TapiNodeBuilder;
-import org.onosproject.odtn.utils.tapi.TapiSipBuilder;
-import org.onosproject.odtn.utils.tapi.TapiTopologyBuilder;
+import org.onosproject.odtn.utils.tapi.TapiContextHandler;
+import org.onosproject.odtn.utils.tapi.TapiNepHandler;
+import org.onosproject.odtn.utils.tapi.TapiNodeHandler;
+import org.onosproject.odtn.utils.tapi.TapiSipHandler;
+import org.onosproject.odtn.utils.tapi.TapiTopologyHandler;
 import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.DefaultContext;
 import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.Uuid;
 import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.topologycontext.DefaultTopology;
@@ -55,7 +58,7 @@ import org.slf4j.Logger;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * OSGi Component for ODTN Tapi manager application.
+ * OSGi Component for ODTN TAPI topology manager application.
  */
 @Component(immediate = true)
 @Service
@@ -72,8 +75,8 @@ public class DcsBasedTapiTopologyManager implements TapiTopologyManager {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected TapiResolver tapiResolver;
 
-    private DefaultContext context = new DefaultContext();
-    private DefaultTopology topology = new DefaultTopology();
+    private DefaultContext context;
+    private DefaultTopology topology;
 
     @Activate
     public void activate() {
@@ -95,9 +98,9 @@ public class DcsBasedTapiTopologyManager implements TapiTopologyManager {
         if (tapiResolver.hasNodeRef(deviceId)) {
             return;
         }
-        TapiNodeBuilder.builder()
+        TapiNodeHandler.create()
                 .setTopologyUuid(topology.uuid())
-                .setDeviceId(deviceId).build();
+                .setDeviceId(deviceId).add();
     }
 
     @Override
@@ -115,10 +118,10 @@ public class DcsBasedTapiTopologyManager implements TapiTopologyManager {
         TapiNepRef srcNepRef = tapiResolver.getNepRef(link.src());
         TapiNepRef dstNepRef = tapiResolver.getNepRef(link.dst());
 
-        TapiLinkBuilder.builder()
+        TapiLinkHandler.create()
                 .setTopologyUuid(topology.uuid())
                 .addNep(srcNepRef)
-                .addNep(dstNepRef).build();
+                .addNep(dstNepRef).add();
     }
 
     @Override
@@ -139,19 +142,27 @@ public class DcsBasedTapiTopologyManager implements TapiTopologyManager {
         String nodeId = nodeRef.getNodeId();
 
         // nep
-        TapiNepBuilder nepBuilder = TapiNepBuilder.builder()
-                .setConnectPoint(cp)
+        TapiNepHandler nepBuilder = TapiNepHandler.create()
+                .setPort(port)
                 .setTopologyUuid(topology.uuid())
                 .setNodeUuid(Uuid.fromString(nodeId));
 
-        // sip
-        if (TapiSipBuilder.isSip(cp)) {
+        // cep
+        TapiCepHandler cepBuilder = TapiCepHandler.create()
+                .setTopologyUuid(topology.uuid())
+                .setNodeUuid(Uuid.fromString(nodeId))
+                .setNepUuid(nepBuilder.getId())
+                .setParentNep();
+        nepBuilder.addCep(cepBuilder.getModelObject());
 
-            TapiSipBuilder sipBuilder = TapiSipBuilder.builder().setConnectPoint(cp);
-            nepBuilder.addSip(sipBuilder.getUuid());
-            sipBuilder.build();
+        if (TapiSipHandler.isSip(port)) {
+            TapiSipHandler sipBuilder = TapiSipHandler.create().setPort(port);
+            nepBuilder.addSip(sipBuilder.getId());
+
+            sipBuilder.add();
         }
-        nepBuilder.build();
+
+        nepBuilder.add();
     }
 
     @Override
@@ -159,16 +170,30 @@ public class DcsBasedTapiTopologyManager implements TapiTopologyManager {
         log.info("Remove port: {}", port);
     }
 
+    /**
+     * Add Tapi Context to Dcs store.
+     */
     private void initDcsTapiContext() {
-        TapiContextBuilder.builder(context).build();
+        TapiContextHandler contextHandler = TapiContextHandler.create();
+        context = contextHandler.getModelObject();
+        contextHandler.add();
     }
 
+    /**
+     * Add Tapi Topology to Dcs store.
+     *
+     * Assumed there is only one topology for ODTN Phase 1.0
+     */
     private void initDcsTapiTopology() {
-        TapiTopologyBuilder.builder(topology).build();
+        TapiTopologyHandler topologyHandler = TapiTopologyHandler.create();
+        topology = topologyHandler.getModelObject();
+        topologyHandler.add();
     }
 
-    // FIXME: move DCS-related methods to DCS
-
+    /**
+     * Setup Dcs configuration tree root node.
+     */
+    // FIXME Dcs seems to setup root node by itself when activatation, this might not needed
     private void initDcsIfRootNotExist() {
 
         log.info("read root:");

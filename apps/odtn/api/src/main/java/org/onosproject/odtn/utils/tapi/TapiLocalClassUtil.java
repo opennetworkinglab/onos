@@ -16,27 +16,24 @@
 
 package org.onosproject.odtn.utils.tapi;
 
-import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.Uuid;
-import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.globalclass.DefaultName;
-import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.globalclass.Name;
-import org.onosproject.yang.model.ModelObject;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Map.Entry;
-
+import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.globalclass.DefaultName;
+import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.globalclass.Name;
+import org.onosproject.yang.model.ModelObject;
 import org.slf4j.Logger;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Utility methods dealing with TAPI modelObject which includes global class grouping.
+ * Utility methods dealing with TAPI modelObject which includes local class grouping.
  * <p>
  * <p> tapi-common@2018-03-07.yang
- * grouping global-class {
- * leaf uuid {
- * type uuid;
+ * grouping local-class {
+ * leaf local-id {
+ * type string;
  * }
  * list name {
  * key 'value-name';
@@ -57,50 +54,50 @@ import static org.slf4j.LoggerFactory.getLogger;
  * }
  * </p>
  */
-public final class TapiGlobalClassUtil {
+public final class TapiLocalClassUtil {
 
-    private static final Logger log = getLogger(TapiGlobalClassUtil.class);
+    private static final Logger log = getLogger(TapiLocalClassUtil.class);
 
-    private TapiGlobalClassUtil() {
+    private TapiLocalClassUtil() {
     }
 
     /**
-     * Set uuid for the ModelObject.
+     * Set local-id for the ModelObject.
      *
-     * @param obj  ModelObject
-     * @param uuid Uuid
-     * @param <T>  Type of ModelObject
+     * @param obj     ModelObject
+     * @param localId LocalId
+     * @param <T>     Type of ModelObject
      */
-    public static <T extends ModelObject> void setUuid(T obj, Uuid uuid) {
+    public static <T extends ModelObject> void setLocalId(T obj, String localId) {
         @SuppressWarnings("unchecked")
         Class<T> cls = (Class<T>) obj.getClass();
         try {
-            Method method = cls.getMethod("uuid", Uuid.class);
-            method.invoke(obj, uuid);
+            Method method = cls.getMethod("localId", String.class);
+            method.invoke(obj, localId);
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             log.error("Exception thrown", e);
         }
     }
 
     /**
-     * Get uuid for the ModelObject.
+     * Get local-id for the ModelObject.
      *
      * @param obj ModelObject
      * @param <T> Type of ModelObject
-     * @return Uuid
+     * @return Local-id
      */
-    public static <T extends ModelObject> Uuid getUuid(T obj) {
-        Uuid uuid = null;
+    public static <T extends ModelObject> String getLocalId(T obj) {
+        String localId = null;
         @SuppressWarnings("unchecked")
         Class<T> cls = (Class<T>) obj.getClass();
         try {
-            Method method = cls.getMethod("uuid");
-            uuid = (Uuid) method.invoke(obj);
+            Method method = cls.getMethod("localId");
+            localId = (String) method.invoke(obj);
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             log.error("Exception thrown", e);
         }
 
-        return uuid;
+        return localId;
     }
 
     /**

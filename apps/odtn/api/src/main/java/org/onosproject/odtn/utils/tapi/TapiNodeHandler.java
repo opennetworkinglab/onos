@@ -18,7 +18,10 @@ package org.onosproject.odtn.utils.tapi;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.odtn.utils.tapi.TapiGlobalClassUtil.addNameList;
+import static org.onosproject.odtn.utils.tapi.TapiGlobalClassUtil.getUuid;
 import static org.onosproject.odtn.utils.tapi.TapiGlobalClassUtil.setUuid;
 
 import org.onosproject.net.DeviceId;
@@ -31,57 +34,58 @@ import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.topolog
 import org.onosproject.yang.model.ModelObjectId;
 
 /**
- * Utility builder class for TAPI node creation with DCS.
+ * Utility class to deal with TAPI Node with DCS.
  */
-public final class TapiNodeBuilder extends TapiInstanceBuilder {
+public final class TapiNodeHandler extends TapiObjectHandler<DefaultNode> {
 
     private Uuid topologyUuid;
-    private DefaultNode node = new DefaultNode();
 
-    private TapiNodeBuilder() {
-        setUuid(node);
+    private TapiNodeHandler() {
+        obj = new DefaultNode();
+        setId();
     }
 
-    public static TapiNodeBuilder builder() {
-        return new TapiNodeBuilder();
-    }
-
-    public TapiNodeBuilder setTopologyUuid(Uuid topologyUuid) {
-        this.topologyUuid = topologyUuid;
-        return this;
-    }
-
-    public TapiNodeBuilder addNep(OwnedNodeEdgePoint nep) {
-        node.addToOwnedNodeEdgePoint(nep);
-        return this;
-    }
-
-    public TapiNodeBuilder setDeviceId(DeviceId deviceId) {
-        Map<String, String> kvs = new HashMap<>();
-        kvs.put(DEVICE_ID, deviceId.toString());
-        addNameList(node, kvs);
-        return this;
+    public static TapiNodeHandler create() {
+        return new TapiNodeHandler();
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public DefaultNode getModelObject() {
-        return node;
+    protected Uuid getIdDetail() {
+        return getUuid(obj);
     }
 
     @Override
-    public Uuid getUuid() {
-        return node.uuid();
+    protected void setIdDetail(Uuid uuid) {
+        setUuid(obj, uuid);
     }
 
     @Override
-    public ModelObjectId getModelObjectId() {
+    public ModelObjectId getParentModelObjectId() {
+        checkNotNull(topologyUuid);
+
         TopologyKeys topologyKey = new TopologyKeys();
         topologyKey.uuid(topologyUuid);
         return ModelObjectId.builder()
                 .addChild(DefaultContext.class)
                 .addChild(DefaultTopology.class, topologyKey)
                 .build();
+    }
+
+    public TapiNodeHandler setTopologyUuid(Uuid topologyUuid) {
+        this.topologyUuid = topologyUuid;
+        return this;
+    }
+
+    public TapiNodeHandler addNep(OwnedNodeEdgePoint nep) {
+        obj.addToOwnedNodeEdgePoint(nep);
+        return this;
+    }
+
+    public TapiNodeHandler setDeviceId(DeviceId deviceId) {
+        Map<String, String> kvs = new HashMap<>();
+        kvs.put(DEVICE_ID, deviceId.toString());
+        addNameList(obj, kvs);
+        return this;
     }
 
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.odtn.internal;
+package org.onosproject.odtn;
 
 import org.onosproject.net.Device;
 import org.onosproject.net.Link;
@@ -27,36 +27,42 @@ public interface TapiTopologyManager {
 
     /**
      * DEVICE_ADDED event handler.
+     *
      * @param device device to be added
      */
     void addDevice(Device device);
 
     /**
      * DEVICE_REMOVED event handler.
+     *
      * @param device device to be removed
      */
     void removeDevice(Device device);
 
     /**
      * LINK_ADDED event handler.
+     *
      * @param link link to be added
      */
     void addLink(Link link);
 
     /**
      * LINK_REMOVED event handler.
+     *
      * @param link link to be removed
      */
     void removeLink(Link link);
 
     /**
      * PORT_ADDED event handler.
+     *
      * @param port port to be added
      */
     void addPort(Port port);
 
     /**
      * PORT_REMOVED event handler.
+     *
      * @param port port to be removed
      */
     void removePort(Port port);

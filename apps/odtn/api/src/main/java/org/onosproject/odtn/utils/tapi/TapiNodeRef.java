@@ -21,9 +21,22 @@ import org.onosproject.net.DeviceId;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Objects.equal;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Objects.hash;
+import static org.onosproject.odtn.utils.tapi.TapiObjectHandler.DEVICE_ID;
 
+import org.slf4j.Logger;
+import static org.slf4j.LoggerFactory.getLogger;
+
+/**
+ * TAPI Node reference class.
+ *
+ * TAPI reference class should be used in ODTN ServiceApplication
+ * in order to make independent ServiceApplication implementation from DCS.
+ */
 public class TapiNodeRef {
+
+    protected final Logger log = getLogger(getClass());
 
     private final UUID topologyId;
     private final UUID nodeId;
@@ -51,9 +64,30 @@ public class TapiNodeRef {
         return this;
     }
 
+    /**
+     * Check if this Node matches input filter condition.
+     *
+     * @param key Filter key
+     * @param value Filter value
+     * @return If match or not
+     */
+    public boolean is(String key, String value) {
+        checkNotNull(value);
+        switch (key) {
+            case DEVICE_ID:
+                if (deviceId == null) {
+                    return false;
+                }
+                return value.equals(deviceId.toString());
+            default:
+                log.warn("Unknown key: {}", key);
+                return true;
+        }
+    }
+
     public String toString() {
         return toStringHelper(getClass())
-//                .add("topologyId", topologyId)
+                .add("topologyId", topologyId)
                 .add("nodeId", nodeId)
                 .add("deviceId", deviceId)
                 .toString();
@@ -76,5 +110,6 @@ public class TapiNodeRef {
     public int hashCode() {
         return hash(topologyId, nodeId);
     }
+
 
 }

@@ -148,13 +148,11 @@ public class InfineraOpenConfigDeviceDiscovery
         //log.warn("parent data Node: {}",
         //       ((SubnodeConfiguration) component).getParent().getRootNode().getName());
 
-
         String name = component.getString("name");
         checkNotNull(name);
         if (!name.contains("GIGECLIENTCTP")) {
             return null;
         }
-
 
         Builder builder = DefaultPortDescription.builder();
 
@@ -168,12 +166,17 @@ public class InfineraOpenConfigDeviceDiscovery
         Matcher lineMatch = linePattern.matcher(name);
 
         if (clientMatch.find()) {
+            String num = clientMatch.group(1);
+            Integer connection = (Integer.parseInt(num) + 1) / 2;
             props.putIfAbsent(PORT_TYPE, OdtnPortType.CLIENT.value());
-            builder.withPortNumber(PortNumber.portNumber(Long.parseLong(clientMatch.group(1)), name));
+            props.putIfAbsent(CONNECTION_ID, "connection:" + connection.toString());
+            builder.withPortNumber(PortNumber.portNumber(Long.parseLong(num), name));
             builder.type(Type.PACKET);
         } else if (lineMatch.find()) {
+            String num = lineMatch.group(1);
             props.putIfAbsent(PORT_TYPE, OdtnPortType.LINE.value());
-            builder.withPortNumber(PortNumber.portNumber(100 + Long.parseLong(lineMatch.group(1)), name));
+            props.putIfAbsent(CONNECTION_ID, "connection:" + num);
+            builder.withPortNumber(PortNumber.portNumber(100 + Long.parseLong(num), name));
             builder.type(Type.OCH);
         } else {
             return null;

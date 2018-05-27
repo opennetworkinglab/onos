@@ -27,12 +27,12 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.odtn.utils.tapi.DcsBasedTapiNepRef;
 import org.onosproject.odtn.utils.tapi.DcsBasedTapiNodeRef;
-import org.onosproject.odtn.utils.tapi.TapiNepBuilder;
+import org.onosproject.odtn.utils.tapi.TapiNepHandler;
 import org.onosproject.odtn.utils.tapi.TapiNepRef;
-import org.onosproject.odtn.utils.tapi.TapiNodeBuilder;
+import org.onosproject.odtn.utils.tapi.TapiNodeHandler;
 import org.onosproject.odtn.utils.tapi.TapiNodeRef;
-import org.onosproject.odtn.utils.tapi.TapiSipBuilder;
-import org.onosproject.odtn.utils.tapi.TapiTopologyBuilder;
+import org.onosproject.odtn.utils.tapi.TapiSipHandler;
+import org.onosproject.odtn.utils.tapi.TapiTopologyHandler;
 import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.DefaultContext;
 import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.tapicontext.DefaultServiceInterfacePoint;
 import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.context.DefaultAugmentedTapiCommonContext;
@@ -73,49 +73,49 @@ public class DcsBasedTapiDataProducerTest {
 
         context = new DefaultContext();
 
-        topology = TapiTopologyBuilder.builder(new DefaultTopology()).getModelObject();
+        topology = TapiTopologyHandler.create().getModelObject();
         DefaultAugmentedTapiCommonContext topologyContext = new DefaultAugmentedTapiCommonContext();
         topologyContext.addToTopology(topology);
         Augmentable augmentableContext = context;
         augmentableContext.addAugmentation(topologyContext);
 
-        node1 = TapiNodeBuilder.builder()
+        node1 = TapiNodeHandler.create()
                 .setTopologyUuid(topology.uuid())
                 .setDeviceId(did1)
                 .getModelObject();
 
-        node2 = TapiNodeBuilder.builder()
+        node2 = TapiNodeHandler.create()
                 .setTopologyUuid(topology.uuid())
                 .setDeviceId(did2)
                 .getModelObject();
 
-        sip11 = TapiSipBuilder.builder()
+        sip11 = TapiSipHandler.create()
                 .setConnectPoint(cp11).getModelObject();
 
-        sip21 = TapiSipBuilder.builder()
+        sip21 = TapiSipHandler.create()
                 .setConnectPoint(cp21).getModelObject();
 
-        nep11 = TapiNepBuilder.builder()
+        nep11 = TapiNepHandler.create()
                 .setTopologyUuid(topology.uuid())
                 .setNodeUuid(node1.uuid())
                 .setConnectPoint(cp11)
                 .addSip(sip11.uuid())
                 .getModelObject();
 
-        nep12 = TapiNepBuilder.builder()
+        nep12 = TapiNepHandler.create()
                 .setTopologyUuid(topology.uuid())
                 .setNodeUuid(node1.uuid())
                 .setConnectPoint(cp12)
                 .getModelObject();
 
-        nep21 = TapiNepBuilder.builder()
+        nep21 = TapiNepHandler.create()
                 .setTopologyUuid(topology.uuid())
                 .setNodeUuid(node2.uuid())
                 .setConnectPoint(cp21)
                 .addSip(sip21.uuid())
                 .getModelObject();
 
-        nep22 = TapiNepBuilder.builder()
+        nep22 = TapiNepHandler.create()
                 .setTopologyUuid(topology.uuid())
                 .setNodeUuid(node2.uuid())
                 .setConnectPoint(cp22)

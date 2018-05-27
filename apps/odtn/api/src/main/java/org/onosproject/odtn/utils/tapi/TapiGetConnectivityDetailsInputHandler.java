@@ -16,19 +16,19 @@
 
 package org.onosproject.odtn.utils.tapi;
 
-import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.topology.Node;
-import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.topologycontext.Topology;
+import java.util.UUID;
+import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.Uuid;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20180307.tapiconnectivity.getconnectivityservicedetails.DefaultGetConnectivityServiceDetailsInput;
 
 /**
- * TAPI Node reference class which has a factory method using DCS modelObject.
+ * Utility class to deal with TAPI RPC input with DCS.
  */
-public final class DcsBasedTapiNodeRef extends TapiNodeRef {
+public final class TapiGetConnectivityDetailsInputHandler
+        extends TapiRpcInputHandler<DefaultGetConnectivityServiceDetailsInput> {
 
-    private DcsBasedTapiNodeRef(Topology topology, Node node) {
-        super(topology.uuid().toString(), node.uuid().toString());
-    }
-
-    public static DcsBasedTapiNodeRef create(Topology topology, Node node) {
-        return new DcsBasedTapiNodeRef(topology, node);
+    public Uuid getId() {
+        String idOrName = obj.serviceIdOrName();
+        UUID uuid = UUID.fromString(idOrName);
+        return Uuid.fromString(uuid.toString());
     }
 }

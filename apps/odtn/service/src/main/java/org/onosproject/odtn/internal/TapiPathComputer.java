@@ -16,18 +16,19 @@
 
 package org.onosproject.odtn.internal;
 
-/**
- * ODTN Tapi data reader/provider for TapiResolver cache update.
- */
-public interface TapiDataProducer {
+import org.onosproject.odtn.utils.tapi.TapiConnection;
+import org.onosproject.odtn.utils.tapi.TapiNepPair;
 
-    void init();
+/**
+ * ODTN Tapi path computation service.
+ */
+public interface TapiPathComputer {
 
     /**
-     * Update TapiResolver cache with latest modelObject in DCS.
+     * Compute and decide multi-hop route/path from e2e intent.
      *
-     * @param resolver update target itself
+     * @param neps Both NodeEdgePoints associated with ServiceInterfacePoint of NBI request
+     * @return List of both CEPs of devices or domains in the calculated route
      */
-    void updateCacheRequest(DefaultTapiResolver resolver);
-
+    TapiConnection pathCompute(TapiNepPair neps);
 }

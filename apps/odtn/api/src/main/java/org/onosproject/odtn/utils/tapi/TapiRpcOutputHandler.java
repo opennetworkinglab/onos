@@ -16,38 +16,43 @@
 
 package org.onosproject.odtn.utils.tapi;
 
-import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.DefaultContext;
 import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.Uuid;
+import org.onosproject.yang.model.ModelObject;
 import org.onosproject.yang.model.ModelObjectId;
 
 /**
- * Utility builder class for TAPI context creation with DCS.
+ * Utility abstract class to deal with TAPI RPC output with DCS.
+ *
+ * @param <T> RpcOutput modelObject to be dealt with
  */
-public final class TapiContextBuilder extends TapiInstanceBuilder {
+public abstract class TapiRpcOutputHandler<T extends ModelObject> extends TapiObjectHandler<T> {
 
-    private DefaultContext context;
-
-    private TapiContextBuilder(DefaultContext context) {
-        this.context = context;
-    }
-
-    public static TapiContextBuilder builder(DefaultContext context) {
-        return new TapiContextBuilder(context);
-    }
-
+    // Uuid getter is not needed for RPC output
     @Override
-    public ModelObjectId getModelObjectId() {
+    protected Uuid getIdDetail() {
+        return null;
+    }
+
+    // Uuid setter is not needed for RPC output
+    @Override
+    protected void setIdDetail(Uuid uuid) {
+    }
+
+    // Root modelObjectId must be used
+    @Override
+    public ModelObjectId getParentModelObjectId() {
         return ModelObjectId.builder().build();
     }
 
+
+    // Cannot add OutputRpc modelObject into DCS.
     @Override
-    @SuppressWarnings("unchecked")
-    public DefaultContext getModelObject() {
-        return context;
+    public final void add() {
     }
 
+    // Cannot delete OutputRpc modelObject into DCS.
     @Override
-    public Uuid getUuid() {
-        return null;
+    public final void remove() {
     }
+
 }

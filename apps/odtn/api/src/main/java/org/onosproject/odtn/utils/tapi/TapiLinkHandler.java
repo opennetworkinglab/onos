@@ -24,40 +24,39 @@ import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.topolog
 import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.topologycontext.TopologyKeys;
 import org.onosproject.yang.model.ModelObjectId;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.odtn.utils.tapi.TapiGlobalClassUtil.getUuid;
 import static org.onosproject.odtn.utils.tapi.TapiGlobalClassUtil.setUuid;
 
 /**
- * Utility builder class for TAPI link creation with DCS.
+ * Utility class to deal with TAPI Link with DCS.
  */
-public final class TapiLinkBuilder extends TapiInstanceBuilder {
+public final class TapiLinkHandler extends TapiObjectHandler<DefaultLink> {
 
     private Uuid topologyUuid;
-    private DefaultLink link = new DefaultLink();
 
-    private TapiLinkBuilder() {
-        setUuid(link);
+    private TapiLinkHandler() {
+        obj = new DefaultLink();
+        setId();
     }
 
-    public static TapiLinkBuilder builder() {
-        return new TapiLinkBuilder();
-    }
-
-    public TapiLinkBuilder setTopologyUuid(Uuid topologyUuid) {
-        this.topologyUuid = topologyUuid;
-        return this;
-    }
-
-    public TapiLinkBuilder addNep(TapiNepRef nepRef) {
-        DefaultNodeEdgePoint nep = new DefaultNodeEdgePoint();
-        nep.topologyId(nepRef.getTopologyId());
-        nep.nodeId(nepRef.getNodeId());
-        nep.ownedNodeEdgePointId(nepRef.getNepId());
-        link.addToNodeEdgePoint(nep);
-        return this;
+    public static TapiLinkHandler create() {
+        return new TapiLinkHandler();
     }
 
     @Override
-    public ModelObjectId getModelObjectId() {
+    protected Uuid getIdDetail() {
+        return getUuid(obj);
+    }
+
+    @Override
+    protected void setIdDetail(Uuid uuid) {
+        setUuid(obj, uuid);
+    }
+
+    @Override
+    public ModelObjectId getParentModelObjectId() {
+        checkNotNull(topologyUuid);
 
         TopologyKeys topologyKey = new TopologyKeys();
         topologyKey.uuid(topologyUuid);
@@ -67,15 +66,18 @@ public final class TapiLinkBuilder extends TapiInstanceBuilder {
                 .build();
     }
 
-    @Override
-    @SuppressWarnings("unchecked")
-    public DefaultLink getModelObject() {
-        return link;
+    public TapiLinkHandler setTopologyUuid(Uuid topologyUuid) {
+        this.topologyUuid = topologyUuid;
+        return this;
     }
 
-    @Override
-    public Uuid getUuid() {
-        return link.uuid();
+    public TapiLinkHandler addNep(TapiNepRef nepRef) {
+        DefaultNodeEdgePoint nep = new DefaultNodeEdgePoint();
+        nep.topologyId(nepRef.getTopologyId());
+        nep.nodeId(nepRef.getNodeId());
+        nep.ownedNodeEdgePointId(nepRef.getNepId());
+        obj.addToNodeEdgePoint(nep);
+        return this;
     }
 
 }

@@ -16,21 +16,48 @@
 
 package org.onosproject.odtn.utils.tapi;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.onosproject.net.ConnectPoint;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Objects.equal;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Objects.hash;
+import static org.onosproject.odtn.utils.tapi.TapiObjectHandler.DEVICE_ID;
+import static org.onosproject.odtn.utils.tapi.TapiObjectHandler.ODTN_PORT_TYPE;
+import static org.onosproject.odtn.behaviour.OdtnDeviceDescriptionDiscovery.CONNECTION_ID;
 
+import org.onosproject.net.DeviceId;
+import org.onosproject.odtn.behaviour.OdtnDeviceDescriptionDiscovery;
+import org.slf4j.Logger;
+import static org.slf4j.LoggerFactory.getLogger;
+
+/**
+ * TAPI Nep reference class.
+ *
+ * TAPI reference class should be used in ODTN ServiceApplication
+ * in order to make independent ServiceApplication implementation from DCS.
+ */
 public class TapiNepRef {
+
+    protected final Logger log = getLogger(getClass());
 
     private final UUID topologyId;
     private final UUID nodeId;
     private final UUID nepId;
+
+    // Annotations to be used for reference of related TAPI objects.
     private UUID sipId = null;
+    private List<UUID> cepIds = Collections.emptyList();
+
+    // Annotations to be used for OpenConfig configuration.
     private ConnectPoint cp = null;
+    private OdtnDeviceDescriptionDiscovery.OdtnPortType portType = null;
+    private String connectionId = null;
 
     TapiNepRef(String topologyId, String nodeId, String nepId) {
         this.topologyId = UUID.fromString(topologyId);
@@ -60,12 +87,37 @@ public class TapiNepRef {
                 .orElse(null);
     }
 
+    public List<String> getCepIds() {
+        return cepIds.stream().map(UUID::toString).collect(Collectors.toList());
+    }
+
+    public OdtnDeviceDescriptionDiscovery.OdtnPortType getPortType() {
+        return portType;
+    }
+
     public ConnectPoint getConnectPoint() {
         return cp;
     }
 
+    public String getConnectionId() {
+        return connectionId;
+    }
+
+
     public TapiNepRef setSipId(String sipId) {
         this.sipId = UUID.fromString(sipId);
+        return this;
+    }
+
+    public TapiNepRef setCepIds(List<String> cepIds) {
+        this.cepIds = cepIds.stream().map(UUID::fromString).collect(Collectors.toList());
+        return this;
+    }
+
+    public TapiNepRef setPortType(String portType) {
+        this.portType = Optional.ofNullable(portType)
+                .map(OdtnDeviceDescriptionDiscovery.OdtnPortType::fromValue)
+                .orElse(null);
         return this;
     }
 
@@ -74,13 +126,50 @@ public class TapiNepRef {
         return this;
     }
 
+    public TapiNepRef setConnectionId(String connectionId) {
+        this.connectionId = connectionId;
+        return this;
+    }
+
+    /**
+     * Check if this Nep matches input filter condition.
+     *
+     * @param key Filter key
+     * @param value Filter value
+     * @return If match or not
+     */
+    public boolean is(String key, String value) {
+        checkNotNull(key);
+        checkNotNull(value);
+        switch (key) {
+            case DEVICE_ID:
+                return value.equals(
+                        Optional.ofNullable(cp)
+                                .map(ConnectPoint::deviceId)
+                                .map(DeviceId::toString)
+                                .orElse(null));
+            case ODTN_PORT_TYPE:
+                return value.equals(
+                        Optional.ofNullable(portType)
+                                .map(OdtnDeviceDescriptionDiscovery.OdtnPortType::value)
+                                .orElse(null));
+            case CONNECTION_ID:
+                return value.equals(connectionId);
+            default:
+                log.warn("Unknown key: {}", key);
+                return true;
+        }
+    }
+
     public String toString() {
         return toStringHelper(getClass())
-//                .add("topologyId", topologyId)
+                .add("topologyId", topologyId)
                 .add("nodeId", nodeId)
                 .add("nepId", nepId)
                 .add("sipId", sipId)
                 .add("connectPoint", cp)
+                .add("portType", portType)
+                .add("connectionId", connectionId)
                 .toString();
     }
 

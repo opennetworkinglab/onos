@@ -29,7 +29,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.onosproject.odtn.behaviour.OdtnDeviceDescriptionDiscovery.OC_NAME;
 import static org.onosproject.odtn.behaviour.OdtnDeviceDescriptionDiscovery.OC_TYPE;
-import static org.onosproject.odtn.utils.tapi.TapiInstanceBuilder.ODTN_PORT_TYPE;
+import static org.onosproject.odtn.utils.tapi.TapiObjectHandler.ODTN_PORT_TYPE;
 
 public class InfineraOpenConfigDeviceDiscoveryTest {
 

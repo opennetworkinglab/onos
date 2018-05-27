@@ -16,6 +16,7 @@
 
 package org.onosproject.odtn.utils.tapi;
 
+import static org.onosproject.odtn.utils.tapi.TapiGlobalClassUtil.getUuid;
 import static org.onosproject.odtn.utils.tapi.TapiGlobalClassUtil.setUuid;
 
 import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.DefaultContext;
@@ -25,40 +26,34 @@ import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.topolog
 import org.onosproject.yang.model.ModelObjectId;
 
 /**
- * Utility builder class for TAPI topology creation with DCS.
+ * Utility class to deal with TAPI Topology with DCS.
  */
-public final class TapiTopologyBuilder extends TapiInstanceBuilder {
+public final class TapiTopologyHandler extends TapiObjectHandler<DefaultTopology> {
 
-    private DefaultTopology topology;
-
-    private TapiTopologyBuilder(DefaultTopology topology) {
-        this.topology = topology;
-        setUuid(this.topology);
+    private TapiTopologyHandler() {
+        obj = new DefaultTopology();
+        setId();
     }
 
-    public static TapiTopologyBuilder builder(DefaultTopology topology) {
-        return new TapiTopologyBuilder(topology);
+    public static TapiTopologyHandler create() {
+        return new TapiTopologyHandler();
     }
-
 
     @Override
-    public ModelObjectId getModelObjectId() {
+    protected Uuid getIdDetail() {
+        return getUuid(obj);
+    }
 
+    @Override
+    protected void setIdDetail(Uuid uuid) {
+        setUuid(obj, uuid);
+    }
+
+    @Override
+    public ModelObjectId getParentModelObjectId() {
         DefaultAugmentedTapiCommonContext topologyContext = new DefaultAugmentedTapiCommonContext();
-        topologyContext.addToTopology(topology);
+        topologyContext.addToTopology(obj);
 
         return ModelObjectId.builder().addChild(DefaultContext.class).build();
     }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public DefaultTopology getModelObject() {
-        return topology;
-    }
-
-    @Override
-    public Uuid getUuid() {
-        return topology.uuid();
-    }
-
 }

@@ -20,68 +20,41 @@
 
 package org.onosproject.odtn.impl;
 
-import java.util.List;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onosproject.config.DynamicConfigEvent;
-import org.onosproject.config.DynamicConfigListener;
-import org.onosproject.config.DynamicConfigService;
-import org.onosproject.config.FailedException;
-import org.onosproject.config.Filter;
 import org.onosproject.net.Link;
+import org.onosproject.net.config.NetworkConfigEvent;
+import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.net.config.NetworkConfigStoreDelegate;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.link.LinkEvent;
 import org.onosproject.net.link.LinkListener;
 import org.onosproject.net.link.LinkService;
+import org.onosproject.odtn.TapiResolver;
+import org.onosproject.odtn.TapiTopologyManager;
+import org.onosproject.odtn.internal.DcsBasedTapiCommonRpc;
+import org.onosproject.odtn.internal.DcsBasedTapiConnectivityRpc;
 import org.onosproject.odtn.internal.DcsBasedTapiDataProducer;
 import org.onosproject.odtn.internal.TapiDataProducer;
-import org.onosproject.odtn.internal.TapiResolver;
-import org.onosproject.odtn.internal.TapiTopologyManager;
-import org.onosproject.yang.gen.v1.tapicommon.rev20180307.TapiCommonService;
-import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.getserviceinterfacepointlist.DefaultGetServiceInterfacePointListOutput;
-import org.onosproject.yang.model.NodeKey;
-import org.onosproject.yang.model.SchemaId;
+import org.onosproject.store.AbstractStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20180307.TapiConnectivityService;
 
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20180307.
-    tapiconnectivity.createconnectivityservice.CreateConnectivityServiceInput;
-
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20180307.
-    tapiconnectivity.createconnectivityservice.createconnectivityserviceinput.EndPoint;
-
-
-
-// onos-yang-tools
-import org.onosproject.yang.model.DataNode;
-
-import org.onosproject.yang.model.ResourceData;
-import org.onosproject.yang.model.DefaultResourceData;
-import org.onosproject.yang.model.ModelObject;
-import org.onosproject.yang.model.ModelObjectData;
-import org.onosproject.yang.model.ModelConverter;
-
-import org.onosproject.yang.model.ResourceId;
-
+// DCS / onos-yang-tools
+import org.onosproject.config.DynamicConfigEvent;
+import org.onosproject.config.DynamicConfigListener;
+import org.onosproject.config.DynamicConfigService;
 import org.onosproject.yang.model.RpcRegistry;
-import org.onosproject.yang.model.RpcService;
-import org.onosproject.yang.model.RpcInput;
-import org.onosproject.yang.model.RpcOutput;
-import org.onosproject.yang.model.SchemaContextProvider;
-import org.onosproject.yang.runtime.YangRuntimeService;
 
 import static org.onosproject.config.DynamicConfigEvent.Type.NODE_ADDED;
 import static org.onosproject.config.DynamicConfigEvent.Type.NODE_DELETED;
-import static org.onosproject.odtn.utils.YangToolUtil.toDataNode;
 
 /**
  * OSGi Component for ODTN Service application.
@@ -104,16 +77,7 @@ public class ServiceApplicationComponent {
     protected NetworkConfigService netcfgService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected YangRuntimeService yangRuntime;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected SchemaContextProvider schemaContextProvider;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected RpcRegistry rpcRegistry;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ModelConverter modelConverter;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected TapiTopologyManager tapiTopologyManager;
@@ -127,14 +91,13 @@ public class ServiceApplicationComponent {
 
     private DeviceListener deviceListener = new InternalDeviceListener();
     private final LinkListener linkListener = new InternalLinkListener();
+    private final NetworkConfigListener netcfgListener = new InternalNetCfgListener();
     private TapiDataProducer dataProvider = new DcsBasedTapiDataProducer();
+    private InternalNetCfgManager netcfgStore = new InternalNetCfgManager();
 
     // Rpc Service for TAPI Connectivity
-    private final RpcService rpcTapiConnectivity =
-            new TapiConnectivityRpc();
-
-    private final RpcService rpcTapiCommon =
-            new TapiCommonRpc();
+    private final DcsBasedTapiConnectivityRpc rpcTapiConnectivity = new DcsBasedTapiConnectivityRpc();
+    private final DcsBasedTapiCommonRpc rpcTapiCommon = new DcsBasedTapiCommonRpc();
 
 
     @Activate
@@ -143,8 +106,11 @@ public class ServiceApplicationComponent {
         dynConfigService.addListener(dynamicConfigServiceListener);
         deviceService.addListener(deviceListener);
         linkService.addListener(linkListener);
+        netcfgService.addListener(netcfgListener);
         rpcRegistry.registerRpcService(rpcTapiConnectivity);
         rpcRegistry.registerRpcService(rpcTapiCommon);
+        rpcTapiConnectivity.init();
+        rpcTapiCommon.init();
     }
 
 
@@ -153,6 +119,7 @@ public class ServiceApplicationComponent {
         log.info("Stopped");
         rpcRegistry.unregisterRpcService(rpcTapiCommon);
         rpcRegistry.unregisterRpcService(rpcTapiConnectivity);
+        netcfgService.removeListener(netcfgListener);
         linkService.removeListener(linkListener);
         deviceService.removeListener(deviceListener);
         dynConfigService.removeListener(dynamicConfigServiceListener);
@@ -171,6 +138,8 @@ public class ServiceApplicationComponent {
          */
         @Override
         public void event(DeviceEvent event) {
+
+            netcfgStore.post(event);
 
             switch (event.type()) {
                 case DEVICE_ADDED:
@@ -222,6 +191,36 @@ public class ServiceApplicationComponent {
     }
 
     /**
+     * Representation of internal listener, listening for netcfg event.
+     */
+    private class InternalNetCfgListener implements NetworkConfigListener {
+
+        /**
+         * Process an Event from the NetCfg Service.
+         *
+         * @param event link event
+         */
+        @Override
+        public void event(NetworkConfigEvent event) {
+//            Object config = event.subject();
+            log.info("config: {}", event.subject());
+            log.info("type: {}", event.type());
+        }
+    }
+
+    private class InternalNetCfgManager
+        extends AbstractStore<NetworkConfigEvent, NetworkConfigStoreDelegate> {
+
+        public void post(Object obj) {
+            log.info("Post netcfg event : {}", obj);
+            NetworkConfigEvent.Type type = NetworkConfigEvent.Type.CONFIG_UPDATED;
+            notifyDelegate(new NetworkConfigEvent(type, obj, obj.getClass()));
+        }
+
+    }
+
+
+    /**
      * Representation of internal listener, listening for dynamic config event.
      */
     private class InternalDynamicConfigListener implements DynamicConfigListener {
@@ -251,237 +250,74 @@ public class ServiceApplicationComponent {
         @Override
         public void event(DynamicConfigEvent event) {
             resolver.makeDirty();
-
-            ResourceId rsId = event.subject();
-            DataNode node;
-            try {
-                Filter filter = Filter.builder().addCriteria(rsId).build();
-                node = dynConfigService.readNode(rsId, filter);
-            } catch (FailedException e) {
-                node = null;
-            }
-            switch (event.type()) {
-                case NODE_ADDED:
-                    onDcsNodeAdded(rsId, node);
-                    break;
-
-                case NODE_DELETED:
-                    onDcsNodeDeleted(node);
-                    break;
-
-                default:
-                    log.warn("Unknown Event", event.type());
-                    break;
-            }
+//            ResourceId rsId = event.subject();
+//            DataNode node;
+//            try {
+//                Filter filter = Filter.builder().addCriteria(rsId).build();
+//                node = dynConfigService.readNode(rsId, filter);
+//            } catch (FailedException e) {
+//                node = null;
+//            }
+//            switch (event.type()) {
+//                case NODE_ADDED:
+//                    onDcsNodeAdded(rsId, node);
+//                    break;
+//
+//                case NODE_DELETED:
+//                    onDcsNodeDeleted(node);
+//                    break;
+//
+//                default:
+//                    log.warn("Unknown Event", event.type());
+//                    break;
+//            }
         }
 
 
-        /**
-         * Process the event that a node has been added to the DCS.
-         *
-         * @param rsId ResourceId of the added node
-         * @param node added node. Access the key and value
-         */
-        private void onDcsNodeAdded(ResourceId rsId, DataNode node) {
-
-            switch (node.type()) {
-                case SINGLE_INSTANCE_NODE:
-                    break;
-                case MULTI_INSTANCE_NODE:
-                    break;
-                case SINGLE_INSTANCE_LEAF_VALUE_NODE:
-                    break;
-                case MULTI_INSTANCE_LEAF_VALUE_NODE:
-                    break;
-                default:
-                    break;
-            }
-
-            NodeKey dataNodeKey = node.key();
-            SchemaId schemaId = dataNodeKey.schemaId();
+//        /**
+//         * Process the event that a node has been added to the DCS.
+//         *
+//         * @param rsId ResourceId of the added node
+//         * @param node added node. Access the key and value
+//         */
+//        private void onDcsNodeAdded(ResourceId rsId, DataNode node) {
+//
+//            switch (node.type()) {
+//                case SINGLE_INSTANCE_NODE:
+//                    break;
+//                case MULTI_INSTANCE_NODE:
+//                    break;
+//                case SINGLE_INSTANCE_LEAF_VALUE_NODE:
+//                    break;
+//                case MULTI_INSTANCE_LEAF_VALUE_NODE:
+//                    break;
+//                default:
+//                    break;
+//            }
+//
+//            NodeKey dataNodeKey = node.key();
+//            SchemaId schemaId = dataNodeKey.schemaId();
 
             // Consolidate events
 //            if (!schemaId.namespace().contains("tapi")) {
 //                return;
 //            }
 //            log.info("namespace {}", schemaId.namespace());
-        }
+//        }
 
 
-        /**
-         * Process the event that a node has been deleted from the DCS.
-         *
-         * @param dataNode data node
-         */
-        private void onDcsNodeDeleted(DataNode dataNode) {
-            // TODO: Implement release logic
-        }
-
-    }
-
-
-    private class TapiConnectivityRpc implements TapiConnectivityService {
-
-
-        /**
-         * Service interface of createConnectivityService.
-         *
-         * @param inputVar input of service interface createConnectivityService
-         * @return rpcOutput output of service interface createConnectivityService
-         */
-        @Override
-        public RpcOutput createConnectivityService(RpcInput inputVar) {
-
-            DataNode data = inputVar.data();
-            ResourceId rid = inputVar.id();
-
-            log.info("RpcInput Data {}", data);
-            log.info("RpcInput ResourceId {}", rid);
-
-            for (ModelObject mo : getModelObjects(data, rid)) {
-                if (mo instanceof CreateConnectivityServiceInput) {
-                    CreateConnectivityServiceInput i = (CreateConnectivityServiceInput) mo;
-                    log.info("i {}", i);
-                    List<EndPoint> epl = i.endPoint();
-                    for (EndPoint ep : epl) {
-                        log.info("ep {}", ep);
-                    }
-                }
-            }
-
-            return new RpcOutput(RpcOutput.Status.RPC_FAILURE, null);
-        }
-
-
-        /**
-         * Service interface of deleteConnectivityService.
-         *
-         * @param inputVar input of service interface deleteConnectivityService
-         * @return rpcOutput output of service interface deleteConnectivityService
-         */
-        @Override
-        public RpcOutput deleteConnectivityService(RpcInput inputVar) {
-            return new RpcOutput(RpcOutput.Status.RPC_FAILURE, null);
-        }
-
-
-        /**
-         * Service interface of getConnectionDetails.
-         *
-         * @param inputVar input of service interface getConnectionDetails
-         * @return rpcOutput output of service interface getConnectionDetails
-         */
-        @Override
-        public RpcOutput getConnectionDetails(RpcInput inputVar) {
-            return new RpcOutput(RpcOutput.Status.RPC_FAILURE, null);
-
-        }
-
-        /**
-         * Service interface of getConnectivityServiceList.
-         *
-         * @param inputVar input of service interface getConnectivityServiceList
-         * @return rpcOutput output of service interface getConnectivityServiceList
-         */
-        @Override
-        public RpcOutput getConnectivityServiceList(RpcInput inputVar) {
-            return new RpcOutput(RpcOutput.Status.RPC_FAILURE, null);
-
-        }
-
-        /**
-         * Service interface of getConnectivityServiceDetails.
-         *
-         * @param inputVar input of service interface getConnectivityServiceDetails
-         * @return rpcOutput output of service interface getConnectivityServiceDetails
-         */
-        @Override
-        public RpcOutput getConnectivityServiceDetails(RpcInput inputVar) {
-            return new RpcOutput(RpcOutput.Status.RPC_FAILURE, null);
-
-        }
-
-
-        /**
-         * Service interface of updateConnectivityService.
-         *
-         * @param inputVar input of service interface updateConnectivityService
-         * @return rpcOutput output of service interface updateConnectivityService
-         */
-        @Override
-        public RpcOutput updateConnectivityService(RpcInput inputVar) {
-            return new RpcOutput(RpcOutput.Status.RPC_FAILURE, null);
-
-        }
-
-
-        private ResourceData createResourceData(DataNode dataNode, ResourceId resId) {
-            return DefaultResourceData.builder()
-                    .addDataNode(dataNode)
-                    .resourceId(resId)
-                    .build();
-        }
-
-        /**
-         * Returns model objects of the store.
-         *
-         * @param dataNode data node from store
-         * @param resId    parent resource id
-         * @return model objects
-         */
-        private List<ModelObject> getModelObjects(DataNode dataNode, ResourceId resId) {
-            ResourceData data = createResourceData(dataNode, resId);
-            ModelObjectData modelData = modelConverter.createModel(data);
-            return modelData.modelObjects();
-        }
-
+//        /**
+//         * Process the event that a node has been deleted from the DCS.
+//         *
+//         * @param dataNode data node
+//         */
+//        private void onDcsNodeDeleted(DataNode dataNode) {
+//            // TODO: Implement release logic
+//        }
 
     }
 
 
-    private class TapiCommonRpc implements TapiCommonService {
 
-        /**
-         * Service interface of getServiceInterfacePointDetails.
-         *
-         * @param rpcInput input of service interface getServiceInterfacePointDetails
-         * @return rpcOutput output of service interface getServiceInterfacePointDetails
-         */
-        @Override
-        public RpcOutput getServiceInterfacePointDetails(RpcInput rpcInput) {
-            return new RpcOutput(RpcOutput.Status.RPC_FAILURE, null);
-        }
 
-        /**
-         * Service interface of getServiceInterfacePointList.
-         *
-         * @param rpcInput input of service interface getServiceInterfacePointList
-         * @return rpcOutput output of service interface getServiceInterfacePointList
-         */
-        @Override
-        public RpcOutput getServiceInterfacePointList(RpcInput rpcInput) {
-
-            DataNode data = rpcInput.data();
-            ResourceId rid = rpcInput.id();
-
-            log.info("RpcInput Data {}", data);
-            log.info("RpcInput ResourceId {}", rid);
-
-            DefaultGetServiceInterfacePointListOutput node = new DefaultGetServiceInterfacePointListOutput();
-            DataNode dnode = toDataNode(node);
-
-            return new RpcOutput(RpcOutput.Status.RPC_SUCCESS, dnode);
-        }
-
-        /**
-         * Service interface of updateServiceInterfacePoint.
-q         *
-         * @param rpcInput input of service interface updateServiceInterfacePoint
-         * @return rpcOutput output of service interface updateServiceInterfacePoint
-         */
-        @Override
-        public RpcOutput updateServiceInterfacePoint(RpcInput rpcInput) {
-            return new RpcOutput(RpcOutput.Status.RPC_FAILURE, null);
-        }
-    }
 }

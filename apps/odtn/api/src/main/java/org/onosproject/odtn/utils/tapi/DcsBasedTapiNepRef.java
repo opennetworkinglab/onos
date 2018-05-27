@@ -20,6 +20,9 @@ import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.node.Ow
 import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.topology.Node;
 import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.topologycontext.Topology;
 
+/**
+ * TAPI Nep reference class which has a factory method using DCS modelObject.
+ */
 public final class DcsBasedTapiNepRef extends TapiNepRef {
 
     private DcsBasedTapiNepRef(Topology topology, Node node, OwnedNodeEdgePoint nep) {

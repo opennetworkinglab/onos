@@ -18,21 +18,27 @@ package org.onosproject.odtn.internal;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.ElementId;
+import org.onosproject.odtn.TapiResolver;
 import org.onosproject.odtn.utils.tapi.TapiNepRef;
 import org.onosproject.odtn.utils.tapi.TapiNodeRef;
 import org.slf4j.Logger;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
-
+/**
+ * OSGi Component for ODTN TAPI resolver application.
+ */
 @Component(immediate = true)
 @Service
 public class DefaultTapiResolver implements TapiResolver {
@@ -47,7 +53,7 @@ public class DefaultTapiResolver implements TapiResolver {
     /**
      * When source (e.g. DCS) is updated, set true
      * When cache update completed successfully, set false
-     *
+     * <p>
      * This flag takes effect when cache update failed with exception,
      * this remains to be true so the cache update process conducts again
      */
@@ -56,7 +62,7 @@ public class DefaultTapiResolver implements TapiResolver {
     /**
      * When source (e.g. DCS) is updated, set true
      * When cache update started, set false
-     *
+     * <p>
      * This flag takes effect when source updated during cache updating
      * this forces cache update again at the next request
      */
@@ -95,12 +101,27 @@ public class DefaultTapiResolver implements TapiResolver {
     }
 
     @Override
+    public TapiNodeRef getNodeRef(TapiNodeRef nodeRef) throws NoSuchElementException {
+        updateCache();
+        TapiNodeRef ret = null;
+        try {
+            ret = tapiNodeRefList.stream()
+                    .filter(nodeRef::equals)
+                    .findFirst().get();
+        } catch (NoSuchElementException e) {
+            log.error("Node not found of {}", nodeRef);
+            throw e;
+        }
+        return ret;
+    }
+
+    @Override
     public TapiNodeRef getNodeRef(ElementId deviceId) throws NoSuchElementException {
         updateCache();
         TapiNodeRef ret = null;
         try {
             ret = tapiNodeRefList.stream()
-                    .filter(node -> node.getDeviceId().equals(deviceId))
+                    .filter(node -> node.getDeviceId() != null && node.getDeviceId().equals(deviceId))
                     .findFirst().get();
         } catch (NoSuchElementException e) {
             log.error("Node not found associated with {}", deviceId);
@@ -116,12 +137,37 @@ public class DefaultTapiResolver implements TapiResolver {
     }
 
     @Override
+    public List<TapiNodeRef> getNodeRefs(Map<String, String> filter) {
+        updateCache();
+        Stream<TapiNodeRef> filterStream = tapiNodeRefList.stream();
+        for (String key : filter.keySet()) {
+            filterStream = filterStream.filter(nodeRef -> nodeRef.is(key, filter.get(key)));
+        }
+        return filterStream.collect(Collectors.toList());
+    }
+
+    @Override
+    public TapiNepRef getNepRef(TapiNepRef nepRef) throws NoSuchElementException {
+        updateCache();
+        TapiNepRef ret = null;
+        try {
+            ret = tapiNepRefList.stream()
+                    .filter(nepRef::equals)
+                    .findFirst().get();
+        } catch (NoSuchElementException e) {
+            log.error("Nep not found of {}", nepRef);
+            throw e;
+        }
+        return ret;
+    }
+
+    @Override
     public TapiNepRef getNepRef(ConnectPoint cp) throws NoSuchElementException {
         updateCache();
         TapiNepRef ret = null;
         try {
             ret = tapiNepRefList.stream()
-                    .filter(nep -> nep.getConnectPoint().equals(cp))
+                    .filter(nep -> nep.getConnectPoint() != null && nep.getConnectPoint().equals(cp))
                     .findFirst().get();
         } catch (NoSuchElementException e) {
             log.error("Nep not found associated with {}", cp);
@@ -136,7 +182,7 @@ public class DefaultTapiResolver implements TapiResolver {
         TapiNepRef ret = null;
         try {
             ret = tapiNepRefList.stream()
-                    .filter(nep -> nep.getSipId().equals(sipId))
+                    .filter(nep -> nep.getSipId() != null && nep.getSipId().equals(sipId))
                     .findFirst().get();
         } catch (NoSuchElementException e) {
             log.error("Nep not found associated with {}", sipId);
@@ -149,6 +195,16 @@ public class DefaultTapiResolver implements TapiResolver {
     public List<TapiNepRef> getNepRefs() {
         updateCache();
         return new ArrayList<>(tapiNepRefList);
+    }
+
+    @Override
+    public List<TapiNepRef> getNepRefs(Map<String, String> filter) {
+        updateCache();
+        Stream<TapiNepRef> filterStream = tapiNepRefList.stream();
+        for (String key : filter.keySet()) {
+            filterStream = filterStream.filter(nepRef -> nepRef.is(key, filter.get(key)));
+        }
+        return filterStream.collect(Collectors.toList());
     }
 
     @Override

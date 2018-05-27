@@ -14,20 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.odtn.internal;
-
 /**
- * ODTN Tapi data reader/provider for TapiResolver cache update.
+ * Package to place ODTN interfaces.
  */
-public interface TapiDataProducer {
-
-    void init();
-
-    /**
-     * Update TapiResolver cache with latest modelObject in DCS.
-     *
-     * @param resolver update target itself
-     */
-    void updateCacheRequest(DefaultTapiResolver resolver);
-
-}
+package org.onosproject.odtn;
