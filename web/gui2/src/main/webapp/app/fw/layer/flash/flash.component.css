@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-present Open Networking Foundation
+ * Copyright 2018-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable } from '@angular/core';
-import { LogService } from '../../log.service';
 
-/**
- * ONOS GUI -- Layer -- Flash Service
- *
- * Provides a mechanism to flash short informational messages to the screen
- * to alert the user of something, e.g. "Hosts visible" or "Hosts hidden".
+/*
+ ONOS GUI -- Flash Service (layout) -- CSS file
  */
-@Injectable()
-export class FlashService {
 
-  constructor(
-    private log: LogService
-  ) {
-    this.log.debug('FlashService constructed');
-  }
+#flash {
+    z-index: 1400;
+}
 
+#flash svg {
+    /*position: absolute;*/
+    bottom: 0;
+    opacity: 0.8;
+}
+
+#flash svg g.flashItem text {
+    stroke: none;
+    text-anchor: middle;
+    alignment-baseline: middle;
+    font-size: 16pt;
+}
+
+/* Used for temp div */
+.centered {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    -webkit-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+    margin: 0;
+    padding: 10px;
 }

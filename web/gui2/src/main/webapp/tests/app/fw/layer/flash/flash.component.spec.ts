@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-present Open Networking Foundation
+ * Copyright 2018-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,29 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { TestBed, inject } from '@angular/core/testing';
-
-import { LogService } from '../../../../app/log.service';
-import { ConsoleLoggerService } from '../../../../app/consolelogger.service';
-import { FlashService } from '../../../../app/fw/layer/flash.service';
+import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ConsoleLoggerService } from '../../../../../app/consolelogger.service';
+import { LogService } from '../../../../../app/log.service';
+import { FlashComponent } from '../../../../../app/fw/layer/flash/flash.component';
 
 /**
- * ONOS GUI -- Layer -- Flash Service - Unit Tests
+ * ONOS GUI -- Layer -- Flash Component - Unit Tests
  */
-describe('FlashService', () => {
+describe('FlashComponent', () => {
     let log: LogService;
 
     beforeEach(() => {
         log = new ConsoleLoggerService();
-
         TestBed.configureTestingModule({
-            providers: [FlashService,
+            declarations: [ FlashComponent ],
+            providers: [
                 { provide: LogService, useValue: log },
             ]
         });
     });
 
-    it('should be created', inject([FlashService], (service: FlashService) => {
-        expect(service).toBeTruthy();
-    }));
+
+    it('should create', () => {
+        const fixture = TestBed.createComponent(FlashComponent);
+        const component = fixture.componentInstance;
+        expect(component).toBeTruthy();
+    });
 });

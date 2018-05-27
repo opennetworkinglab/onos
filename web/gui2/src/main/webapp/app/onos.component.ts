@@ -21,7 +21,6 @@ import { ThemeService } from './fw/util/theme.service';
 import { GlyphService } from './fw/svg/glyph.service';
 import { VeilService } from './fw/layer/veil.service';
 import { PanelService } from './fw/layer/panel.service';
-import { FlashService } from './fw/layer/flash.service';
 import { QuickHelpService } from './fw/layer/quickhelp.service';
 import { EeService } from './fw/util/ee.service';
 import { WebSocketService } from './fw/remote/websocket.service';
@@ -84,7 +83,6 @@ export class OnosComponent implements OnInit {
         private gs: GlyphService,
         private vs: VeilService,
         private ps: PanelService,
-        private flash: FlashService,
         private qhs: QuickHelpService,
         private ee: EeService,
         private wss: WebSocketService,

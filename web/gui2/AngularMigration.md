@@ -165,8 +165,17 @@ There are several things worth noting here:
     a lot with code readability and static checking
 * The __let__ keyword (e.g. line 114) is used in TypeScript instead of __var__ (line 8)
  
+##Cheatsheet
 
-# Progress so far - 4 May 2018
+* angular.extend() can be replaced by Object.assign()
+* $timeout can be replaced by setTimeout()
+* $timeout.cancel can be replaced by clearTimeout()
+* (d3 object).append(..).attr values should be listed individually (see icon.service for example)
+* Please try do avoid d3 DOM manipulations in ONOS GUI 2, as this is not the Angular 6 way of 
+  doing things
+
+
+# Progress so far - 24 May 2018
 The following services are partially migrated:
 * fw/util/FnService - some essential components of this have been migrated - still lots to do
 * fw/svg/GlyphDataService - mostly migrated. Values are stored in maps as constants
@@ -179,4 +188,7 @@ The following services are partially migrated:
 * fw/layer/LoadingService - mostly implemented - I'm leaving this as a Service, 
   although maybe it should become a component - its CSS is has to be loaded 
   globally in index.html
+* fw/layer/flash/FlashComponent - implemented as a Component instead of the old Flash Service
+  because it has a CSS file. Replaced all of the D3 Dom manipulations with Template code
+  in the Angular 6 style of doing things
   

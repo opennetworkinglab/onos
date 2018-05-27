@@ -17,10 +17,10 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { UtilModule } from '../util/util.module';
 
+import { FlashComponent } from './flash/flash.component';
 import { DetailsPanelService } from './detailspanel.service';
 import { DialogService } from './dialog.service';
 import { EditableTextService } from './editabletext.service';
-import { FlashService } from './flash.service';
 import { LoadingService } from './loading.service';
 import { PanelService } from './panel.service';
 import { QuickHelpService } from './quickhelp.service';
@@ -30,15 +30,20 @@ import { VeilService } from './veil.service';
  * ONOS GUI -- Layers Module
  */
 @NgModule({
+  exports: [
+    FlashComponent
+  ],
   imports: [
     CommonModule,
     UtilModule
+  ],
+  declarations: [
+    FlashComponent
   ],
   providers: [
     DetailsPanelService,
     DialogService,
     EditableTextService,
-    FlashService,
     LoadingService,
     PanelService,
     QuickHelpService,

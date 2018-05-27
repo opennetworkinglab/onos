@@ -23,7 +23,6 @@ import { NavComponent } from '../../app/fw/nav/nav/nav.component';
 import { OnosComponent } from '../../app/onos.component';
 import { DialogService } from '../../app/fw/layer/dialog.service';
 import { EeService } from '../../app/fw/util/ee.service';
-import { FlashService } from '../../app/fw/layer/flash.service';
 import { GlyphService } from '../../app/fw/svg/glyph.service';
 import { IconService } from '../../app/fw/svg/icon.service';
 import { KeyService } from '../../app/fw/util/key.service';
@@ -40,8 +39,6 @@ import { WebSocketService } from '../../app/fw/remote/websocket.service';
 class MockDialogService {}
 
 class MockEeService {}
-
-class MockFlashService {}
 
 class MockGlyphService {}
 
@@ -88,7 +85,6 @@ describe('OnosComponent', () => {
                 { provide: ChildrenOutletContexts, useClass: ChildrenOutletContexts },
                 { provide: DialogService, useClass: MockDialogService },
                 { provide: EeService, useClass: MockEeService },
-                { provide: FlashService, useClass: MockFlashService },
                 { provide: GlyphService, useClass: MockGlyphService },
                 { provide: IconService, useClass: MockIconService },
                 { provide: KeyService, useClass: MockKeyService },
