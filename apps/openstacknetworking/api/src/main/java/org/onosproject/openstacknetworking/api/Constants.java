@@ -15,7 +15,10 @@
  */
 package org.onosproject.openstacknetworking.api;
 
+import com.google.common.collect.Maps;
 import org.onlab.packet.MacAddress;
+
+import java.util.Map;
 
 /**
  * Provides constants used in OpenStackSwitching.
@@ -34,6 +37,20 @@ public final class Constants {
     public static final String DEFAULT_ARP_MODE_STR = ARP_BROADCAST_MODE;
     public static final MacAddress DEFAULT_GATEWAY_MAC = MacAddress.valueOf(DEFAULT_GATEWAY_MAC_STR);
     public static final MacAddress DEFAULT_EXTERNAL_ROUTER_MAC = MacAddress.valueOf("fe:00:00:00:00:01");
+
+    private static final String CAVIUM_PCI_VENDOR_INFO = "177d:9712";
+    private static final String PORT_NAME_PREFIX_CAVIUM = "enp";
+    public static final String PCI_VENDOR_INFO = "pci_vendor_info";
+    public static final String DIRECT = "direct";
+    public static final String PCISLOT = "pci_slot";
+
+    public static final Map<String, String> PORT_NAME_PREFIX_MAP = createPortNamePrefixMap();
+    private static Map<String, String> createPortNamePrefixMap() {
+        Map<String, String> portNamePrefixMap = Maps.newHashMap();
+        //Additional pci vendor information will be added
+        portNamePrefixMap.put(CAVIUM_PCI_VENDOR_INFO, PORT_NAME_PREFIX_CAVIUM);
+        return portNamePrefixMap;
+    }
 
     public static final int PRIORITY_TUNNEL_TAG_RULE = 30000;
     public static final int PRIORITY_FLOATING_INTERNAL = 42000;

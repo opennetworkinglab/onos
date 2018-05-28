@@ -119,6 +119,7 @@ public class OpenstackNodeManagerTest extends OpenstackNodeTest {
         osNodeStore.createNode(GATEWAY_1);
 
         target = new org.onosproject.openstacknode.impl.OpenstackNodeManager();
+        target.storageService = new TestStorageService();
         target.coreService = new TestCoreService();
         target.clusterService = new TestClusterService();
         target.leadershipService = new TestLeadershipService();

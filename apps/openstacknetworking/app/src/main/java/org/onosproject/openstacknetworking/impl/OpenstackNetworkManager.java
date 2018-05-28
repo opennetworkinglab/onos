@@ -69,6 +69,10 @@ import java.util.stream.Collectors;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
+import static org.onosproject.openstacknetworking.api.Constants.DIRECT;
+import static org.onosproject.openstacknetworking.api.Constants.PCISLOT;
+import static org.onosproject.openstacknetworking.api.Constants.PORT_NAME_PREFIX_MAP;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getIntfNameFromPciAddress;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -105,6 +109,8 @@ public class OpenstackNetworkManager
     private static final String ERR_NOT_FOUND = " does not exist";
     private static final String ERR_IN_USE = " still in use";
     private static final String ERR_DUPLICATE = " already exists";
+    private static final String PORT_NAME_PREFIX_VM = "tap";
+
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -312,11 +318,28 @@ public class OpenstackNetworkManager
         if (Strings.isNullOrEmpty(portName)) {
             return null;
         }
-        Optional<Port> osPort = osNetworkStore.ports()
-                .stream()
-                .filter(p -> p.getId().contains(portName.substring(3)))
-                .findFirst();
-        return osPort.orElse(null);
+
+        if (port.annotations().value(PORT_NAME).startsWith(PORT_NAME_PREFIX_VM)) {
+            Optional<Port> osPort = osNetworkStore.ports()
+                    .stream()
+                    .filter(p -> p.getId().contains(portName.substring(3)))
+                    .findFirst();
+            return osPort.orElse(null);
+        } else if (isDirectPort(portName)) {
+            //Additional prefixes will be added
+            Optional<Port> osPort = osNetworkStore.ports()
+                    .stream()
+                    .filter(p -> p.getvNicType().equals(DIRECT) && p.getProfile().get(PCISLOT) != null)
+                    .filter(p -> getIntfNameFromPciAddress(p).equals(portName))
+                    .findFirst();
+            return osPort.orElse(null);
+        } else {
+            return null;
+        }
+    }
+
+    private boolean isDirectPort(String portName) {
+        return PORT_NAME_PREFIX_MAP.values().stream().filter(p -> portName.startsWith(p)).findAny().isPresent();
     }
 
     @Override

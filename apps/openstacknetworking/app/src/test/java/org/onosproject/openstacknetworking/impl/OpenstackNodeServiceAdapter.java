@@ -58,6 +58,15 @@ public class OpenstackNodeServiceAdapter implements OpenstackNodeService {
     }
 
     @Override
+    public void addVfPort(OpenstackNode osNode, String portName) {
+    }
+
+    @Override
+    public void removeVfPort(OpenstackNode osNode, String portName) {
+    }
+
+
+    @Override
     public void addListener(OpenstackNodeListener listener) {
 
     }

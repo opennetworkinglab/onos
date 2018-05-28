@@ -22,6 +22,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.openstack4j.core.transport.ObjectMapperSingleton;
 import org.openstack4j.model.ModelEntity;
+import org.openstack4j.model.network.Port;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,6 +34,9 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
+import static org.onosproject.openstacknetworking.api.Constants.PCISLOT;
+import static org.onosproject.openstacknetworking.api.Constants.PCI_VENDOR_INFO;
+import static org.onosproject.openstacknetworking.api.Constants.PORT_NAME_PREFIX_MAP;
 
 /**
  * An utility that used in openstack networking app.
@@ -40,6 +44,11 @@ import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
 public final class OpenstackNetworkingUtil {
 
     protected static final Logger log = LoggerFactory.getLogger(OpenstackNetworkingUtil.class);
+
+    private static final int HEX_RADIX = 16;
+    private static final int ZERO_FUNCTION_NUMBER = 0;
+    private static final String PREFIX_DEVICE_NUMBER = "s";
+    private static final String PREFIX_FUNCTION_NUMBER = "f";
 
     /**
      * Prevents object instantiation from external.
@@ -124,5 +133,52 @@ public final class OpenstackNetworkingUtil {
             intIndex++;
         }
         return gw;
+    }
+
+    /**
+     * Extract the interface name with the supplied port.
+     *
+     * @param port port
+     * @return interface name
+     */
+    public static String getIntfNameFromPciAddress(Port port) {
+        if (port.getProfile() != null && port.getProfile().get(PCISLOT) == null) {
+            log.error("Failed to retrieve the interface name because of no pci_slot information from the port");
+            return null;
+        }
+        String busNumHex = port.getProfile().get(PCISLOT).toString().split(":")[1];
+        String busNumDecimal = String.valueOf(Integer.parseInt(busNumHex, HEX_RADIX));
+
+        String deviceNumHex = port.getProfile().get(PCISLOT).toString()
+                .split(":")[2]
+                .split("\\.")[0];
+        String deviceNumDecimal = String.valueOf(Integer.parseInt(deviceNumHex, HEX_RADIX));
+
+        String functionNumHex = port.getProfile().get(PCISLOT).toString()
+                .split(":")[2]
+                .split("\\.")[1];
+        String functionNumDecimal = String.valueOf(Integer.parseInt(functionNumHex, HEX_RADIX));
+
+        String intfName;
+
+        String vendorInfoForPort = String.valueOf(port.getProfile().get(PCI_VENDOR_INFO));
+
+        if (vendorInfoForPort == null) {
+            log.error("Failed to retrieve the interface name because of no pci vendor information from the port");
+            return null;
+        }
+        String portNamePrefix = PORT_NAME_PREFIX_MAP.get(vendorInfoForPort);
+        if (vendorInfoForPort == null) {
+            log.error("Failed to retrieve the interface name because of no prefix information from the port");
+            return null;
+        }
+        if (functionNumDecimal.equals(ZERO_FUNCTION_NUMBER)) {
+            intfName = portNamePrefix + busNumDecimal + PREFIX_DEVICE_NUMBER + deviceNumDecimal;
+        } else {
+            intfName = portNamePrefix + busNumDecimal + PREFIX_DEVICE_NUMBER + deviceNumDecimal
+                    + PREFIX_FUNCTION_NUMBER + functionNumDecimal;
+        }
+
+        return intfName;
     }
 }

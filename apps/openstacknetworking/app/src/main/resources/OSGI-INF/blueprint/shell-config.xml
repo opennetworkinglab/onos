@@ -22,6 +22,9 @@
             <action class="org.onosproject.openstacknetworking.cli.OpenstackPortListCommand"/>
         </command>
         <command>
+            <action class="org.onosproject.openstacknetworking.cli.OpenstackDirectPortListCommand"/>
+        </command>
+        <command>
             <action class="org.onosproject.openstacknetworking.cli.OpenstackRouterListCommand"/>
         </command>
         <command>

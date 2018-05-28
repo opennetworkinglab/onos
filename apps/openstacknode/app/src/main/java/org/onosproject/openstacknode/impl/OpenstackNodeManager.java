@@ -20,15 +20,22 @@ import com.google.common.collect.ImmutableSet;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.util.Tools;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.LeadershipService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.event.ListenerRegistry;
+import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.behaviour.BridgeConfig;
+import org.onosproject.net.behaviour.BridgeName;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeAdminService;
 import org.onosproject.openstacknode.api.OpenstackNodeEvent;
@@ -36,8 +43,12 @@ import org.onosproject.openstacknode.api.OpenstackNodeListener;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
 import org.onosproject.openstacknode.api.OpenstackNodeStore;
 import org.onosproject.openstacknode.api.OpenstackNodeStoreDelegate;
+import org.onosproject.ovsdb.controller.OvsdbController;
+import org.onosproject.store.service.StorageService;
+import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
+import java.util.Dictionary;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -46,8 +57,11 @@ import java.util.stream.Collectors;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
+import static org.onlab.packet.TpPort.tpPort;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.openstacknode.api.Constants.INTEGRATION_BRIDGE;
 import static org.onosproject.openstacknode.api.NodeState.COMPLETE;
+import static org.onosproject.openstacknode.util.OpenstackNodeUtil.isOvsdbConnected;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -64,6 +78,8 @@ public class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEvent, O
     private static final String MSG_CREATED = "created";
     private static final String MSG_UPDATED = "updated";
     private static final String MSG_REMOVED = "removed";
+    private static final String OVSDB_PORT = "ovsdbPortNum";
+    private static final int DEFAULT_OVSDB_PORT = 6640;
 
     private static final String ERR_NULL_NODE = "OpenStack node cannot be null";
     private static final String ERR_NULL_HOSTNAME = "OpenStack node hostname cannot be null";
@@ -79,6 +95,19 @@ public class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEvent, O
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected LeadershipService leadershipService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected StorageService storageService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected OvsdbController ovsdbController;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DeviceService deviceService;
+
+    @Property(name = OVSDB_PORT, intValue = DEFAULT_OVSDB_PORT,
+            label = "OVSDB server listen port")
+    private int ovsdbPort = DEFAULT_OVSDB_PORT;
 
     private final ExecutorService eventExecutor = newSingleThreadExecutor(
             groupedThreads(this.getClass().getSimpleName(), "event-handler", log));
@@ -105,6 +134,17 @@ public class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEvent, O
         eventExecutor.shutdown();
 
         log.info("Stopped");
+    }
+
+    @Modified
+    protected void modified(ComponentContext context) {
+        Dictionary<?, ?> properties = context.getProperties();
+        int updatedOvsdbPort = Tools.getIntegerProperty(properties, OVSDB_PORT);
+        if (!Objects.equals(updatedOvsdbPort, ovsdbPort)) {
+            ovsdbPort = updatedOvsdbPort;
+        }
+
+        log.info("Modified");
     }
 
     @Override
@@ -170,6 +210,57 @@ public class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEvent, O
                 .filter(osNode -> Objects.equals(osNode.intgBridge(), deviceId) ||
                         Objects.equals(osNode.ovsdb(), deviceId))
                 .findFirst().orElse(null);
+    }
+
+    @Override
+    public void addVfPort(OpenstackNode osNode, String portName) {
+        log.trace("addVfPort called");
+
+        if (!isOvsdbConnected(osNode, ovsdbPort, ovsdbController, deviceService)) {
+            log.warn("There's no ovsdb connection with the device {}. Try to connect the device...",
+                    osNode.ovsdb().toString());
+            try {
+                ovsdbController.connect(osNode.managementIp(), tpPort(ovsdbPort));
+            } catch (Exception e) {
+                log.error("Failed to connect to the openstackNode via ovsdb protocol because of exception {}",
+                        e.toString());
+            }
+        }
+
+        addOrRemoveSystemInterface(osNode, INTEGRATION_BRIDGE, portName, true);
+    }
+
+    @Override
+    public void removeVfPort(OpenstackNode osNode, String portName) {
+        log.trace("removeVfPort called");
+
+        if (!isOvsdbConnected(osNode, ovsdbPort, ovsdbController, deviceService)) {
+            log.warn("There's no ovsdb connection with the device {}. Try to connect the device...",
+                    osNode.ovsdb().toString());
+            try {
+                ovsdbController.connect(osNode.managementIp(), tpPort(ovsdbPort));
+            } catch (Exception e) {
+                log.error("Failed to connect to the openstackNode via ovsdb protocol because of exception {}",
+                        e.toString());
+            }
+        }
+
+        addOrRemoveSystemInterface(osNode, INTEGRATION_BRIDGE, portName, false);
+    }
+
+    private void addOrRemoveSystemInterface(OpenstackNode osNode, String bridgeName, String intfName,
+                                            boolean addOrRemove) {
+        Device device = deviceService.getDevice(osNode.ovsdb());
+        if (device == null || !device.is(BridgeConfig.class)) {
+            log.info("device is null or this device if not ovsdb device");
+            return;
+        }
+        BridgeConfig bridgeConfig =  device.as(BridgeConfig.class);
+        if (addOrRemove) {
+            bridgeConfig.addPort(BridgeName.bridgeName(bridgeName), intfName);
+        } else {
+            bridgeConfig.deletePort(BridgeName.bridgeName(bridgeName), intfName);
+        }
     }
 
     private class InternalNodeStoreDelegate implements OpenstackNodeStoreDelegate {

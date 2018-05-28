@@ -64,6 +64,7 @@ import java.util.stream.Collectors;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
+import static org.onosproject.openstacknetworking.api.Constants.PORT_NAME_PREFIX_MAP;
 import static org.onosproject.openstacknetworking.impl.HostBasedInstancePort.ANNOTATION_CREATE_TIME;
 import static org.onosproject.openstacknetworking.impl.HostBasedInstancePort.ANNOTATION_NETWORK_ID;
 import static org.onosproject.openstacknetworking.impl.HostBasedInstancePort.ANNOTATION_PORT_ID;
@@ -75,6 +76,7 @@ public final class OpenstackSwitchingHostProvider extends AbstractProvider imple
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private static final String PORT_NAME_PREFIX_VM = "tap";
+    private static final String PORT_NAME_PREFIX_CAVIUM = "enp";
     private static final String ERR_ADD_HOST = "Failed to add host: ";
     private static final String ANNOTATION_SEGMENT_ID = "segId";
     private static final String SONA_HOST_SCHEME = "sona";
@@ -229,11 +231,16 @@ public final class OpenstackSwitchingHostProvider extends AbstractProvider imple
             String portName = port.annotations().value(PORT_NAME);
 
             return !Strings.isNullOrEmpty(portName) &&
-                    portName.startsWith(PORT_NAME_PREFIX_VM);
+                    (portName.startsWith(PORT_NAME_PREFIX_VM) || isDirectPort(portName));
+        }
+
+        private boolean isDirectPort(String portName) {
+            return PORT_NAME_PREFIX_MAP.values().stream().filter(p -> portName.startsWith(p)).findAny().isPresent();
         }
 
         @Override
         public void event(DeviceEvent event) {
+            log.info("Device event occurred with type {}", event.type());
             switch (event.type()) {
                 case PORT_UPDATED:
                     if (!event.port().isEnabled()) {
@@ -334,6 +341,19 @@ public final class OpenstackSwitchingHostProvider extends AbstractProvider imple
                                   osNode.hostname());
                         processPortAdded(port);
                     });
+
+            PORT_NAME_PREFIX_MAP.values().forEach(portNamePrefix -> {
+                deviceService.getPorts(osNode.intgBridge()).stream()
+                        .filter(port -> port.annotations().value(PORT_NAME)
+                                .startsWith(portNamePrefix) &&
+                                port.isEnabled())
+                        .forEach(port -> {
+                            log.debug("Instance port {} is detected from {}",
+                                    port.annotations().value(portNamePrefix),
+                                    osNode.hostname());
+                            processPortAdded(port);
+                        });
+            });
 
             Tools.stream(hostService.getHosts())
                     .filter(host -> deviceService.getPort(

@@ -213,7 +213,6 @@ public class OpenstackRoutingHandler {
             setRouterAdminRules(network.getProviderSegID(), network.getNetworkType(), !osRouter.isAdminStateUp());
         });
 
-
         ExternalPeerRouter externalPeerRouter = osNetworkAdminService.externalPeerRouter(exGateway);
         VlanId vlanId = externalPeerRouter == null ? VlanId.NONE : externalPeerRouter.externalPeerRouterVlanId();
 

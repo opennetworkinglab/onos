@@ -75,4 +75,20 @@ public interface OpenstackNodeService extends ListenerService<OpenstackNodeEvent
      * @return openstack node
      */
     OpenstackNode node(DeviceId deviceId);
+
+    /**
+     * Adds the vf port to the given openstack node.
+     *
+     * @param osNode openstack node
+     * @param portName port name
+     */
+    void addVfPort(OpenstackNode osNode, String portName);
+
+    /**
+     * Removes vf port to the given openstack node.
+     *
+     * @param osNode openstack node
+     * @param portName port name
+     */
+    void removeVfPort(OpenstackNode osNode, String portName);
 }

@@ -11,6 +11,8 @@ COMPILE_DEPS = [
     '//cli:onos-cli',
     '//apps/openstacknode/api:onos-apps-openstacknode-api',
     '//apps/openstacknetworking/api:onos-apps-openstacknetworking-api',
+    '//protocols/ovsdb/api:onos-protocols-ovsdb-api',
+    '//protocols/ovsdb/rfc:onos-protocols-ovsdb-rfc',
     '//lib:openstack4j-core',
     '//lib:openstack4j-http-connector',
     '//lib:openstack4j-httpclient',
