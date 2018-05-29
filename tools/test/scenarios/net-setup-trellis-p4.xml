@@ -1,0 +1,93 @@
+<!--
+  ~ Copyright 2015-present Open Networking Foundation
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<scenario name="net-setup-trellis-p4" description="Trellis P4 based network setup steps">
+
+    <group name="Trellis-Net-P4-Setup">
+        <step name="Trellis-Net-P4-Setup.Push-Topos" exec="onos-push-topos ${OCN}"/>
+        <step name="Trellis-Net-P4-Setup.Push-Routing" exec="onos-push-routing ${OCN}"/>
+        <step name="Trellis-Net-P4-Setup.Push-Bmv2" exec="onos-push-bmv2 ${OCN}"/>
+
+        <step name="Trellis-Net-P4-Setup.Stop-Mininet-If-Needed" env="~" exec="onos-mininet stop"/>
+        <step name="Trellis-Net-P4-Setup.Clean-Mininet-If-Needed" env="~" exec="onos-mininet cleanup" requires="^"/>
+        <step name="Trellis-Net-P4-Setup.Wipe-Out-Data-Before" exec="onos-wipe-out" requires="^"/>
+
+        <!-- Make sure that there is no data in the system -->
+        <step name="Trellis-Net-P4-Setup.Initial-Summary-Check" requires="~Trellis-Net-P4-Setup.Wipe-Out-Data-Before"
+              exec="onos-check-summary ${OC1} [0-9]* 0 0 0"/>
+
+        <!-- Deactivate unneeded apps -->
+        <group name="Trellis-Net-P4-Setup.Deactivate-Apps" requires="Trellis-Net-P4-Setup.Initial-Summary-Check">
+            <step name="App-Deactivate-PathPainter"
+                  exec="onos ${OCI} app deactivate org.onosproject.pathpainter"
+                  requires="Trellis-Net-P4-Setup.Initial-Summary-Check"/>
+            <step name="App-Deactivate-Mobility"
+                  exec="onos ${OCI} app deactivate org.onosproject.mobility"
+                  requires="Trellis-Net-P4-Setup.Initial-Summary-Check"/>
+            <step name="App-Deactivate-RouteService"
+                  exec="onos ${OCI} app deactivate org.onosproject.route-service"
+                  requires="Trellis-Net-P4-Setup.Initial-Summary-Check"/>
+        </group>
+
+        <!-- Active required apps -->
+        <group name="Trellis-Net-P4-Setup.Activate-Apps" requires="Trellis-Net-P4-Setup.Deactivate-Apps">
+            <step name="App-Activate-Drivers-Bmv2"
+                  exec="onos ${OCI} app activate org.onosproject.drivers.bmv2"
+                  requires="Trellis-Net-P4-Setup.Deactivate-Apps"/>
+            <step name="App-Activate-Pipelines-Fabric"
+                  exec="onos ${OCI} app activate org.onosproject.pipelines.fabric"
+                  requires="Trellis-Net-P4-Setup.Deactivate-Apps"/>
+            <step name="App-Activate-SegmentRouting"
+                  exec="onos ${OCI} app activate org.onosproject.segmentrouting"
+                  requires="Trellis-Net-P4-Setup.Deactivate-Apps"/>
+            <step name="App-Activate-Fpm"
+                  exec="onos ${OCI} app activate org.onosproject.fpm"
+                  requires="Trellis-Net-P4-Setup.Deactivate-Apps"/>
+            <step name="App-Activate-DhcpRelay"
+                  exec="onos ${OCI} app activate org.onosproject.dhcprelay"
+                  requires="Trellis-Net-P4-Setup.Deactivate-Apps"/>
+            <step name="App-Activate-NetCfgHostProvider"
+                  exec="onos ${OCI} app activate org.onosproject.netcfghostprovider"
+                  requires="Trellis-Net-P4-Setup.Deactivate-Apps"/>
+            <step name="App-Activate-RouterAdvertisement"
+                  exec="onos ${OCI} app activate org.onosproject.routeradvertisement"
+                  requires="Trellis-Net-P4-Setup.Deactivate-Apps"/>
+            <step name="App-Activate-Mcast"
+                  exec="onos ${OCI} app activate org.onosproject.mcast"
+                  requires="Trellis-Net-P4-Setup.Deactivate-Apps"/>
+        </group>
+
+        <!-- set up the trellis environment -->
+        <step name="Trellis-Net-P4-Setup.Set-Up-Trellis" exec="set-up-trellis ${OCN}" requires="Trellis-Net-P4-Setup.Activate-Apps"/>
+
+        <!-- configure the trellis topology in ONOS -->
+        <step name="Trellis-Net-P4-Setup.Config-Topo"
+              requires="Trellis-Net-P4-Setup.Set-Up-Trellis,Trellis-Net-P4-Setup.Push-Topos,Trellis-Net-P4-Setup.Push-Routing"
+              exec="onos-netcfg ${OC1} ${routing}/trellis/trellisp4.json"/>
+
+        <!-- Bring up mininet -->
+        <step name="Trellis-Net-P4-Setup.Start-Mininet"
+              requires="Trellis-Net-P4-Setup.Config-Topo,Trellis-Net-P4-Setup.Push-Topos,Trellis-Net-P4-Setup.Stop-Mininet-If-Needed"
+              exec="mininet-p4-trellis ${ONOS_INSTANCES}"/>
+        <step name="Trellis-Net-P4-Setup.Wait-For-Mininet" requires="Trellis-Net-P4-Setup.Start-Mininet"
+              exec="onos-mininet wait 10"/>
+
+        <!-- clean up local routing repo if necessary -->
+        <step name="Trellis-Net-P4-Setup.Clean-Routing"
+              requires="Trellis-Net-P4-Setup.Start-Mininet"
+              exec="onos-clean-routing ${routing_root}"/>
+    </group>
+</scenario>

@@ -11,12 +11,7 @@ from contextlib import closing
 from mininet.log import info, warn, error
 from mininet.node import Switch, Host
 
-if 'ONOS_ROOT' not in os.environ:
-    error("ERROR: environment var $ONOS_ROOT not set")
-    exit()
-
 SIMPLE_SWITCH_GRPC = 'simple_switch_grpc'
-ONOS_ROOT = os.environ["ONOS_ROOT"]
 PKT_BYTES_TO_DUMP = 80
 VALGRIND_PREFIX = 'valgrind --leak-check=yes'
 SWITCH_START_TIMEOUT = 5  # seconds

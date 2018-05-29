@@ -70,7 +70,7 @@
         </group>
 
         <!-- set up the trellis environment -->
-        <step name="Trellis-Net-HAG-Setup.Set-Up-Trellis" exec="set-up-trellis-hag ${OCN}" requires="Trellis-Net-HAG-Setup.Activate-Apps"/>
+        <step name="Trellis-Net-HAG-Setup.Set-Up-Trellis" exec="set-up-trellis ${OCN}" requires="Trellis-Net-HAG-Setup.Activate-Apps"/>
 
         <!-- configure the trellis topology in ONOS -->
         <step name="Trellis-Net-HAG-Setup.Config-Topo"

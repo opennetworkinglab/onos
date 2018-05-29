@@ -1,0 +1,22 @@
+#!/bin/bash
+
+remote=$ONOS_USER@$OCN
+mininet="ssh -t -t $remote screen -L -S mininet"
+
+CONTROLLERS="$OC1"
+
+echo >/tmp/invoke_trellis_p4 "cd routing/trellis && sudo -E env PYTHONPATH=$PYTHONPATH:~/bmv2-mininet ./trellisp4.py --onos-ip '$CONTROLLERS'"
+chmod +x /tmp/invoke_trellis_p4
+scp /tmp/invoke_trellis_p4 [$remote]:
+
+ssh $remote "rm -f $log; echo logfile flush 1 > ~/.screenrc"
+    (
+    $mininet ./invoke_trellis_p4
+    scp [$remote]:$log /tmp/mininet.log
+    ssh $remote rm -f $log
+    ) &
+
+
+
+
+
