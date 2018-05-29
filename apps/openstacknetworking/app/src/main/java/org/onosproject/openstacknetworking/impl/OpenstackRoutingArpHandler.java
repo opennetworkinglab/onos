@@ -64,10 +64,10 @@ import org.onosproject.openstacknode.api.OpenstackNodeEvent;
 import org.onosproject.openstacknode.api.OpenstackNodeListener;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
 import org.openstack4j.model.network.ExternalGateway;
+import org.openstack4j.model.network.IP;
 import org.openstack4j.model.network.NetFloatingIP;
 import org.openstack4j.model.network.Port;
 import org.openstack4j.model.network.Router;
-import org.openstack4j.model.network.Subnet;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
@@ -75,7 +75,6 @@ import java.nio.ByteBuffer;
 import java.util.Dictionary;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
@@ -464,6 +463,16 @@ public class OpenstackRoutingArpHandler {
             }
         }
 
+        private Set<IP> getExternalGatewaySnatIps(ExternalGateway extGw) {
+            return osNetworkAdminService.ports().stream()
+                    .filter(port ->
+                            Objects.equals(port.getNetworkId(), extGw.getNetworkId()))
+                    .filter(port ->
+                            Objects.equals(port.getDeviceOwner(), DEVICE_OWNER_ROUTER_GW))
+                    .flatMap(port -> port.getFixedIps().stream())
+                    .collect(Collectors.toSet());
+        }
+
         private void setFakeGatewayArpRule(ExternalGateway extGw, boolean install) {
             if (arpMode.equals(ARP_BROADCAST_MODE)) {
 
@@ -471,44 +480,40 @@ public class OpenstackRoutingArpHandler {
                     return;
                 }
 
-                Optional<Subnet> subnet = osNetworkAdminService.subnets(
-                                    extGw.getNetworkId()).stream().findFirst();
-                if (!subnet.isPresent()) {
-                    return;
-                }
+                Set<IP> ips = getExternalGatewaySnatIps(extGw);
 
-                String gateway = subnet.get().getGateway();
+                ips.forEach(ip -> {
+                    TrafficSelector selector = DefaultTrafficSelector.builder()
+                            .matchEthType(EthType.EtherType.ARP.ethType().toShort())
+                            .matchArpOp(ARP.OP_REQUEST)
+                            .matchArpTpa(Ip4Address.valueOf(ip.getIpAddress()))
+                            .build();
 
-                TrafficSelector selector = DefaultTrafficSelector.builder()
-                        .matchEthType(EthType.EtherType.ARP.ethType().toShort())
-                        .matchArpOp(ARP.OP_REQUEST)
-                        .matchArpTpa(Ip4Address.valueOf(gateway))
-                        .build();
+                    TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                            .setArpOp(ARP.OP_REPLY)
+                            .setArpSha(MacAddress.valueOf(gatewayMac))
+                            .setArpSpa(Ip4Address.valueOf(ip.getIpAddress()))
+                            .setOutput(PortNumber.IN_PORT)
+                            .build();
 
-                TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                        .setArpOp(ARP.OP_REPLY)
-                        .setArpSha(MacAddress.valueOf(gatewayMac))
-                        .setArpSpa(Ip4Address.valueOf(gateway))
-                        .setOutput(PortNumber.IN_PORT)
-                        .build();
+                    osNodeService.completeNodes(GATEWAY).forEach(n ->
+                            osFlowRuleService.setRule(
+                                    appId,
+                                    n.intgBridge(),
+                                    selector,
+                                    treatment,
+                                    PRIORITY_ARP_GATEWAY_RULE,
+                                    GW_COMMON_TABLE,
+                                    install
+                            )
+                    );
 
-                osNodeService.completeNodes(GATEWAY).forEach(n ->
-                        osFlowRuleService.setRule(
-                                appId,
-                                n.intgBridge(),
-                                selector,
-                                treatment,
-                                PRIORITY_ARP_GATEWAY_RULE,
-                                GW_COMMON_TABLE,
-                                install
-                        )
-                );
-
-                if (install) {
-                    log.info("Install ARP Rule for Gateway {}", gateway);
-                } else {
-                    log.info("Uninstall ARP Rule for Gateway {}", gateway);
-                }
+                    if (install) {
+                        log.info("Install ARP Rule for Gateway Snat {}", ip.getIpAddress());
+                    } else {
+                        log.info("Uninstall ARP Rule for Gateway Snat {}", ip.getIpAddress());
+                    }
+                });
             }
         }
 
