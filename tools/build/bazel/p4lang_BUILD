@@ -1,40 +1,15 @@
 package(default_visibility = ["//visibility:public"])
 
 proto_library(
-    name = "p4types_proto",
-    srcs = [ "//:p4/p4types.proto" ],
-    deps = [
-        "@com_google_protobuf//:any_proto",
-    ],
-)
-
-proto_library(
-    name = "p4config_proto",
-    srcs = [ "//:p4/config/p4info.proto" ],
-    deps = [
-        "@com_google_protobuf//:any_proto",
-        ":p4types_proto",
-    ],
-)
-
-proto_library(
-    name = "p4_tmp_config_proto",
-    srcs = [ "//:p4/tmp/p4config.proto" ],
-    deps = [
-        "@com_google_protobuf//:any_proto",
-        ":p4types_proto",
-    ],
-)
-
-proto_library(
     name = "p4_runtime_proto",
-    srcs = [ "//:p4/p4runtime.proto" ],
+    srcs = [
+            "//:p4/p4types.proto",
+            "//:p4/config/p4info.proto",
+            "//:p4/tmp/p4config.proto",
+            "//:p4/p4runtime.proto",
+    ],
     deps = [
         "@com_google_protobuf//:any_proto",
-        "@google_rpc//:status_proto",
-        "@google_rpc//:code_proto",
-        ":p4types_proto",
-        ":p4config_proto",
-        ":p4_tmp_config_proto",
+        "@google_rpc//:rpc_proto",
     ],
 )

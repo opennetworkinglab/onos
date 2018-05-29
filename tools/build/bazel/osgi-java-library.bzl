@@ -1,3 +1,19 @@
+"""
+ Copyright 2018-present Open Networking Foundation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+"""
+
 load("//tools/build/bazel:generate_workspace.bzl", "COMPILE", "TEST")
 load("//tools/build/bazel:variables.bzl", "ONOS_VERSION")
 load("//tools/build/bazel:generate_test_rules.bzl", "generate_test_rules")
@@ -19,9 +35,20 @@ def all_resources(resources_root):
 
 # Implementation of the rule to call bnd to make an OSGI jar file
 def _bnd_impl(ctx):
-    jar = ctx.file.source.path
+    if (len(ctx.files.source) == 1):
+        input_file = ctx.files.source[0]
+    else:
+        # this is a list of inputs. The one we want is the last one
+        # in the list that isn't a source jar
+        for file in reversed(ctx.files.source):
+            if ("-src" in file.path):
+                continue
+            else:
+                input_file = file
+                break
+
+    jar = input_file.path
     output = ctx.outputs.osgi_jar.path
-    cp = ""
     name = ctx.attr.source.label.name
     group = ctx.attr.package_name_root
     version = ctx.attr.version
@@ -31,8 +58,9 @@ def _bnd_impl(ctx):
     includeResources = ""
     webContext = "NONE"
     dynamicimportPackages = ""
+    cp = ""
 
-    inputDependencies = [ctx.file.source]
+    inputDependencies = [input_file]
 
     # determine the dependencies and build the class path
     for dep in ctx.attr.deps:
@@ -47,7 +75,7 @@ def _bnd_impl(ctx):
         inputDependencies = inputDependencies + [file]
 
     # extract the class files for use by bnd
-    classes = ctx.actions.declare_file("classes")
+    classes = ctx.actions.declare_file("classes" + ctx.label.name.replace("/", "-"))
     classesPath = classes.path
     jarCommand = "mkdir -p %s && cp %s %s && cd %s && jar xf *.jar" % (classesPath, jar, classesPath, classesPath)
     ctx.actions.run_shell(
@@ -87,7 +115,7 @@ bnd = rule(
         "deps": attr.label_list(),
         "version": attr.string(),
         "package_name_root": attr.string(),
-        "source": attr.label(allow_single_file = True),
+        "source": attr.label(),
         "_bnd_exe": attr.label(
             executable = True,
             cfg = "host",

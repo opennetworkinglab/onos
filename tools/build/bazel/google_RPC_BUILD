@@ -1,17 +1,17 @@
 package(default_visibility = ["//visibility:public"])
 
 proto_library(
-    name = "status_proto",
-    srcs = [ "//:google/rpc/status.proto" ],
+    name = "rpc_proto",
+    srcs = [ "//:google/rpc/code.proto", "//:google/rpc/status.proto" ],
     deps = [
         "@com_google_protobuf//:any_proto",
     ],
 )
 
-proto_library(
-    name = "code_proto",
-    srcs = [ "//:google/rpc/code.proto" ],
-    deps = [
-        "@com_google_protobuf//:any_proto",
-    ],
+java_proto_library(
+    name = "rpc_java_proto",
+    visibility = ["//visibility:public"],
+    deps = [":rpc_proto"],
 )
+
+
