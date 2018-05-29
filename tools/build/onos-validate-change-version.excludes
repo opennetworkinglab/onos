@@ -21,6 +21,7 @@
 \./core/store/primitives/src/main/java/org/onosproject/store/primitives/resources/impl/AtomixAtomicCounterMapCommands.java
 \./core/store/primitives/src/main/java/org/onosproject/store/primitives/resources/impl/AtomixLeaderElectorCommands.java
 \./drivers/huawei/driver
+\./drivers/odtn-driver/src/main/java/org/onosproject/drivers/odtn/openconfig/TerminalDeviceDiscovery.java
 \./drivers/p4runtime
 \./drivers/bmv2
 \./lib/BUCK
@@ -35,6 +36,7 @@
 \./providers/ietfte/
 \./providers/snmp/
 \./sonar-project.properties
+\./tools/build/bazel
 \./tools/build/buck-plugin/BUCK
 \./tools/build/buck-publish-api
 \./tools/build/conf/pom.xml
@@ -58,3 +60,4 @@
 \./web/gui/src/main/java/org/onosproject/ui/impl/TopologyViewMessageHandlerBase.java
 \.iml$
 \.versionsBackup$
+
