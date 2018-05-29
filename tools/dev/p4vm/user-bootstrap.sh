@@ -21,3 +21,6 @@ bash /vagrant/install-p4-tools.sh
 # Mininet
 git clone git://github.com/mininet/mininet ~/mininet
 sudo ~/mininet/util/install.sh -nv
+
+# Build and install Prometheus tools
+bash /vagrant/install-prometheus-tools.sh
