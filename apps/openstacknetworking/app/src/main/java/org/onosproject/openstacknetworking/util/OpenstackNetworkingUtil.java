@@ -18,12 +18,19 @@ package org.onosproject.openstacknetworking.util;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.onosproject.net.DeviceId;
+import org.onosproject.openstacknode.api.OpenstackNode;
 import org.openstack4j.core.transport.ObjectMapperSingleton;
 import org.openstack4j.model.ModelEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
 
@@ -78,5 +85,44 @@ public final class OpenstackNetworkingUtil {
         } catch (Exception e) {
             throw new IllegalStateException();
         }
+    }
+
+    /**
+     * Obtains the gateway node by device in compute node. Note that the gateway
+     * node is determined by device's device identifier.
+     *
+     * @param gws           a collection of gateway nodes
+     * @param deviceId      device identifier
+     * @return a gateway node
+     */
+    public static OpenstackNode getGwByComputeDevId(Set<OpenstackNode> gws, DeviceId deviceId) {
+        int numOfGw = gws.size();
+
+        if (numOfGw == 0) {
+            return null;
+        }
+
+        int gwIndex = Math.abs(deviceId.hashCode()) % numOfGw;
+
+        return getGwByIndex(gws, gwIndex);
+    }
+
+    private static OpenstackNode getGwByIndex(Set<OpenstackNode> gws, int index) {
+        Map<String, OpenstackNode> hashMap = new HashMap<>();
+        gws.forEach(gw -> hashMap.put(gw.hostname(), gw));
+        TreeMap<String, OpenstackNode> treeMap = new TreeMap<>(hashMap);
+        Iterator<String> iteratorKey = treeMap.keySet().iterator();
+
+        int intIndex = 0;
+        OpenstackNode gw = null;
+        while (iteratorKey.hasNext()) {
+            String key = iteratorKey.next();
+
+            if (intIndex == index) {
+                gw = treeMap.get(key);
+            }
+            intIndex++;
+        }
+        return gw;
     }
 }

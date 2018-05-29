@@ -47,8 +47,9 @@
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-apps-openstacknetworking-api</artifactId>
+            <artifactId>onos-apps-openstacknode-app</artifactId>
             <version>${project.version}</version>
+            <classifier>tests</classifier>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
@@ -107,11 +108,6 @@
             <artifactId>onos-core-common</artifactId>
             <classifier>tests</classifier>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.onosproject</groupId>
-            <artifactId>onos-apps-openstacknode-api</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>javax.ws.rs</groupId>

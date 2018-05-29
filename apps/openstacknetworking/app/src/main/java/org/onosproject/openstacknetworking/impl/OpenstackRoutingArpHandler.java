@@ -16,7 +16,9 @@
 package org.onosproject.openstacknetworking.impl;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -54,8 +56,10 @@ import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.openstacknetworking.api.Constants;
 import org.onosproject.openstacknetworking.api.InstancePort;
+import org.onosproject.openstacknetworking.api.InstancePortService;
 import org.onosproject.openstacknetworking.api.OpenstackFlowRuleService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkAdminService;
+import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.onosproject.openstacknetworking.api.OpenstackRouterEvent;
 import org.onosproject.openstacknetworking.api.OpenstackRouterListener;
 import org.onosproject.openstacknetworking.api.OpenstackRouterService;
@@ -92,6 +96,7 @@ import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ARP_CON
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ARP_GATEWAY_RULE;
 import static org.onosproject.openstacknetworking.impl.HostBasedInstancePort.ANNOTATION_NETWORK_ID;
 import static org.onosproject.openstacknetworking.impl.HostBasedInstancePort.ANNOTATION_PORT_ID;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getGwByComputeDevId;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -123,6 +128,9 @@ public class OpenstackRoutingArpHandler {
     protected OpenstackNodeService osNodeService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected InstancePortService instancePortService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -130,6 +138,9 @@ public class OpenstackRoutingArpHandler {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OpenstackFlowRuleService osFlowRuleService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected OpenstackNetworkService osNetworkService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService configService;
@@ -231,9 +242,19 @@ public class OpenstackRoutingArpHandler {
                 return;
             }
 
+            OpenstackNode gw = getGwByTargetMac(osNodeService.completeNodes(GATEWAY), targetMac);
+
+            if (gw == null) {
+                return;
+            }
+
+            // if the ARP packet_in received from non-relevant GWs, we simply ignore it
+            if (!Objects.equals(gw.intgBridge(), context.inPacket().receivedFrom().deviceId())) {
+                return;
+            }
+
             Ethernet ethReply = ARP.buildArpReply(targetIp.getIp4Address(),
                     targetMac, ethernet);
-
 
             TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                     .setOutput(context.inPacket().receivedFrom().port()).build();
@@ -314,14 +335,72 @@ public class OpenstackRoutingArpHandler {
 
     /**
      * Installs static ARP rules used in ARP BROAD_CAST mode.
+     *
+     * @param gateway gateway node
+     * @param install flow rule installation flag
+     */
+    private void setFloatingIpArpRuleForGateway(OpenstackNode gateway, boolean install) {
+        if (arpMode.equals(ARP_BROADCAST_MODE)) {
+
+            Set<OpenstackNode> completedGws = osNodeService.completeNodes(GATEWAY);
+            Set<OpenstackNode> finalGws = Sets.newConcurrentHashSet();
+            finalGws.addAll(ImmutableSet.copyOf(completedGws));
+
+            if (install) {
+                if (completedGws.contains(gateway)) {
+                    if (completedGws.size() > 1) {
+                        finalGws.remove(gateway);
+                        osRouterService.floatingIps().forEach(fip -> {
+                            if (fip.getPortId() != null) {
+                                setFloatingIpArpRule(fip, finalGws, false);
+                                finalGws.add(gateway);
+                            }
+                        });
+                    }
+                    osRouterService.floatingIps().forEach(fip -> {
+                        if (fip.getPortId() != null) {
+                            setFloatingIpArpRule(fip, finalGws, true);
+                        }
+                    });
+                } else {
+                    log.warn("Detected node should be included in completed gateway set");
+                }
+            } else {
+                if (!completedGws.contains(gateway)) {
+                    finalGws.add(gateway);
+                    osRouterService.floatingIps().forEach(fip -> {
+                        if (fip.getPortId() != null) {
+                            setFloatingIpArpRule(fip, finalGws, false);
+                        }
+                    });
+                    finalGws.remove(gateway);
+                    if (completedGws.size() >= 1) {
+                        osRouterService.floatingIps().forEach(fip -> {
+                            if (fip.getPortId() != null) {
+                                setFloatingIpArpRule(fip, finalGws, true);
+                            }
+                        });
+                    }
+                } else {
+                    log.warn("Detected node should NOT be included in completed gateway set");
+                }
+            }
+        }
+    }
+
+    /**
+     * Installs static ARP rules used in ARP BROAD_CAST mode.
      * Note that, those rules will be only matched ARP_REQUEST packets,
      * used for telling gateway node the mapped MAC address of requested IP,
      * without the helps from controller.
      *
      * @param fip       floating IP address
+     * @param gateways  a set of gateway nodes
      * @param install   flow rule installation flag
      */
-    private void setFloatingIpArpRule(NetFloatingIP fip, boolean install) {
+    private synchronized void setFloatingIpArpRule(NetFloatingIP fip,
+                                                   Set<OpenstackNode> gateways,
+                                                   boolean install) {
         if (arpMode.equals(ARP_BROADCAST_MODE)) {
 
             if (fip == null) {
@@ -346,6 +425,12 @@ public class OpenstackRoutingArpHandler {
 
             MacAddress targetMac = MacAddress.valueOf(macString);
 
+            OpenstackNode gw = getGwByTargetMac(gateways, targetMac);
+
+            if (gw == null) {
+                return;
+            }
+
             TrafficSelector selector = DefaultTrafficSelector.builder()
                     .matchEthType(EthType.EtherType.ARP.ethType().toShort())
                     .matchArpOp(ARP.OP_REQUEST)
@@ -359,16 +444,14 @@ public class OpenstackRoutingArpHandler {
                     .setOutput(PortNumber.IN_PORT)
                     .build();
 
-            osNodeService.completeNodes(GATEWAY).forEach(n ->
-                    osFlowRuleService.setRule(
-                            appId,
-                            n.intgBridge(),
-                            selector,
-                            treatment,
-                            PRIORITY_ARP_GATEWAY_RULE,
-                            GW_COMMON_TABLE,
-                            install
-                    )
+            osFlowRuleService.setRule(
+                    appId,
+                    gw.intgBridge(),
+                    selector,
+                    treatment,
+                    PRIORITY_ARP_GATEWAY_RULE,
+                    GW_COMMON_TABLE,
+                    install
             );
 
             if (install) {
@@ -379,6 +462,17 @@ public class OpenstackRoutingArpHandler {
                         fip.getFloatingIpAddress());
             }
         }
+    }
+
+    // a helper method
+    private OpenstackNode getGwByTargetMac(Set<OpenstackNode> gateways,
+                                           MacAddress targetMac) {
+        InstancePort instPort = instancePortService.instancePort(targetMac);
+        OpenstackNode gw = null;
+        if (instPort != null && instPort.deviceId() != null) {
+            gw = getGwByComputeDevId(gateways, instPort.deviceId());
+        }
+        return gw;
     }
 
     /**
@@ -396,6 +490,9 @@ public class OpenstackRoutingArpHandler {
 
         @Override
         public void event(OpenstackRouterEvent event) {
+
+            Set<OpenstackNode> completedGws = osNodeService.completeNodes(GATEWAY);
+
             switch (event.type()) {
                 case OPENSTACK_ROUTER_CREATED:
                     eventExecutor.execute(() ->
@@ -424,13 +521,13 @@ public class OpenstackRoutingArpHandler {
                 case OPENSTACK_FLOATING_IP_ASSOCIATED:
                     eventExecutor.execute(() ->
                         // associate a floating IP with an existing VM
-                        setFloatingIpArpRule(event.floatingIp(), true)
+                        setFloatingIpArpRule(event.floatingIp(), completedGws, true)
                     );
                     break;
                 case OPENSTACK_FLOATING_IP_DISASSOCIATED:
                     eventExecutor.execute(() ->
                         // disassociate a floating IP with the existing VM
-                        setFloatingIpArpRule(event.floatingIp(), false)
+                        setFloatingIpArpRule(event.floatingIp(), completedGws, false)
                     );
                     break;
                 case OPENSTACK_FLOATING_IP_CREATED:
@@ -441,7 +538,7 @@ public class OpenstackRoutingArpHandler {
                         // associated with any port of VM, then we will set
                         // floating IP related ARP rules to gateway node
                         if (!Strings.isNullOrEmpty(osFip.getPortId())) {
-                            setFloatingIpArpRule(osFip, true);
+                            setFloatingIpArpRule(osFip, completedGws, true);
                         }
                     });
                     break;
@@ -453,7 +550,7 @@ public class OpenstackRoutingArpHandler {
                         // still associated with any port of VM, then we will
                         // remove floating IP related ARP rules from gateway node
                         if (!Strings.isNullOrEmpty(osFip.getPortId())) {
-                            setFloatingIpArpRule(event.floatingIp(), false);
+                            setFloatingIpArpRule(event.floatingIp(), completedGws, false);
                         }
                     });
                     break;
@@ -564,7 +661,8 @@ public class OpenstackRoutingArpHandler {
                 }
                 if (fip.getFixedIpAddress().equals(port.ipAddress().toString())) {
                     eventExecutor.execute(() ->
-                        setFloatingIpArpRule(fip, false)
+                        setFloatingIpArpRule(fip,
+                                osNodeService.completeNodes(GATEWAY), false)
                     );
                 }
             }
@@ -594,11 +692,14 @@ public class OpenstackRoutingArpHandler {
                 case OPENSTACK_NODE_COMPLETE:
                     if (osNode.type().equals(GATEWAY)) {
                         setDefaultArpRule(osNode, true);
+                        setFloatingIpArpRuleForGateway(osNode, true);
                     }
+
                     break;
                 case OPENSTACK_NODE_INCOMPLETE:
                     if (osNode.type().equals(GATEWAY)) {
                         setDefaultArpRule(osNode, false);
+                        setFloatingIpArpRuleForGateway(osNode, false);
                     }
                     break;
                 default:

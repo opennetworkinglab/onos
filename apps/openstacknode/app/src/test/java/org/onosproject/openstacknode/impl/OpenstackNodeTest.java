@@ -30,9 +30,9 @@ import static org.onosproject.net.Device.Type.SWITCH;
 /**
  * Provides a set of test OpenstackNode parameters for use with OpenstackNode related tests.
  */
-abstract class OpenstackNodeTest {
+public abstract class OpenstackNodeTest {
 
-    protected static Device createDevice(long devIdNum) {
+    public static Device createDevice(long devIdNum) {
         return new DefaultDevice(new ProviderId("of", "foo"),
                 DeviceId.deviceId(String.format("of:%016d", devIdNum)),
                 SWITCH,
@@ -43,10 +43,10 @@ abstract class OpenstackNodeTest {
                 new ChassisId(1));
     }
 
-    protected static OpenstackNode createNode(String hostname, NodeType type,
+    public static OpenstackNode createNode(String hostname, NodeType type,
                                               Device intgBridge, IpAddress ipAddr,
                                               NodeState state) {
-        return org.onosproject.openstacknode.impl.DefaultOpenstackNode.builder()
+        return DefaultOpenstackNode.builder()
                 .hostname(hostname)
                 .type(type)
                 .intgBridge(intgBridge.id())
@@ -56,10 +56,10 @@ abstract class OpenstackNodeTest {
                 .build();
     }
 
-    protected static OpenstackNode createNode(String hostname, NodeType type,
+    public static OpenstackNode createNode(String hostname, NodeType type,
                                               Device intgBridge, IpAddress ipAddr,
                                               String uplinkPort, NodeState state) {
-        return org.onosproject.openstacknode.impl.DefaultOpenstackNode.builder()
+        return DefaultOpenstackNode.builder()
                 .hostname(hostname)
                 .type(type)
                 .intgBridge(intgBridge.id())

@@ -16,7 +16,9 @@
 package org.onosproject.openstacknetworking.impl;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -80,6 +82,7 @@ import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_FLOATIN
 import static org.onosproject.openstacknetworking.api.Constants.ROUTING_TABLE;
 import static org.onosproject.openstacknetworking.impl.HostBasedInstancePort.ANNOTATION_NETWORK_ID;
 import static org.onosproject.openstacknetworking.impl.HostBasedInstancePort.ANNOTATION_PORT_ID;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getGwByComputeDevId;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.buildExtension;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
 
@@ -158,7 +161,7 @@ public class OpenstackRoutingFloatingIpHandler {
     }
 
     private void setFloatingIpRules(NetFloatingIP floatingIp, Port osPort,
-                                    boolean install) {
+                                    OpenstackNode gateway, boolean install) {
         Network osNet = osNetworkService.network(osPort.getNetworkId());
         if (osNet == null) {
             final String errorFormat = ERR_FLOW + "no network(%s) exists";
@@ -192,7 +195,7 @@ public class OpenstackRoutingFloatingIpHandler {
             throw new IllegalStateException(errorFormat);
         }
 
-        setComputeNodeToGateway(instPort, osNet, install);
+        setComputeNodeToGateway(instPort, osNet, gateway, install);
         setDownstreamRules(floatingIp, osNet, instPort, externalPeerRouter, install);
         setUpstreamRules(floatingIp, osNet, instPort, externalPeerRouter, install);
         log.trace("Succeeded to set flow rules for floating ip {}:{} and install: {}",
@@ -201,7 +204,57 @@ public class OpenstackRoutingFloatingIpHandler {
                 install);
     }
 
-    private void setComputeNodeToGateway(InstancePort instPort, Network osNet, boolean install) {
+    private synchronized void setComputeNodeToGateway(InstancePort instPort,
+                                                      Network osNet,
+                                                      OpenstackNode gateway,
+                                                      boolean install) {
+
+        Set<OpenstackNode> completedGws = osNodeService.completeNodes(GATEWAY);
+        Set<OpenstackNode> finalGws = Sets.newConcurrentHashSet();
+        finalGws.addAll(ImmutableSet.copyOf(completedGws));
+
+        if (gateway == null) {
+            // these are floating IP related cases...
+            setComputeNodeToGatewayHelper(instPort, osNet,
+                    ImmutableSet.copyOf(finalGws), install);
+        } else {
+            // these are openstack node related cases...
+            if (install) {
+                if (completedGws.contains(gateway)) {
+                    if (completedGws.size() > 1) {
+                        finalGws.remove(gateway);
+                        setComputeNodeToGatewayHelper(instPort, osNet,
+                                ImmutableSet.copyOf(finalGws), false);
+                        finalGws.add(gateway);
+                    }
+
+                    setComputeNodeToGatewayHelper(instPort, osNet,
+                            ImmutableSet.copyOf(finalGws), true);
+                } else {
+                    log.warn("Detected node should be included in completed gateway set");
+                }
+            } else {
+                if (!completedGws.contains(gateway)) {
+                    finalGws.add(gateway);
+                    setComputeNodeToGatewayHelper(instPort, osNet,
+                            ImmutableSet.copyOf(finalGws), false);
+                    finalGws.remove(gateway);
+                    if (completedGws.size() >= 1) {
+                        setComputeNodeToGatewayHelper(instPort, osNet,
+                                ImmutableSet.copyOf(finalGws), true);
+                    }
+                } else {
+                    log.warn("Detected node should NOT be included in completed gateway set");
+                }
+            }
+        }
+    }
+
+    // a helper method
+    private void setComputeNodeToGatewayHelper(InstancePort instPort,
+                                               Network osNet,
+                                               Set<OpenstackNode> gateways,
+                                               boolean install) {
         TrafficTreatment treatment;
 
         TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
@@ -223,7 +276,8 @@ public class OpenstackRoutingFloatingIpHandler {
                 throw new IllegalStateException(error);
         }
 
-        OpenstackNode selectedGatewayNode = selectGatewayNode();
+        OpenstackNode selectedGatewayNode = getGwByComputeDevId(gateways, instPort.deviceId());
+
         if (selectedGatewayNode == null) {
             final String errorFormat = ERR_FLOW + "no gateway node selected";
             throw new IllegalStateException(errorFormat);
@@ -246,11 +300,6 @@ public class OpenstackRoutingFloatingIpHandler {
                 ROUTING_TABLE,
                 install);
         log.trace("Succeeded to set flow rules from compute node to gateway on compute node");
-    }
-
-    private OpenstackNode selectGatewayNode() {
-        //TODO support multiple loadbalancing options.
-        return osNodeService.completeNodes(GATEWAY).stream().findAny().orElse(null);
     }
 
     private void setDownstreamRules(NetFloatingIP floatingIp, Network osNet,
@@ -454,7 +503,7 @@ public class OpenstackRoutingFloatingIpHandler {
         }
         // set floating IP rules only if the port is associated to a VM
         if (!Strings.isNullOrEmpty(osPort.getDeviceId())) {
-            setFloatingIpRules(osFip, osPort, true);
+            setFloatingIpRules(osFip, osPort, null, true);
         }
     }
 
@@ -467,7 +516,7 @@ public class OpenstackRoutingFloatingIpHandler {
         }
         // set floating IP rules only if the port is associated to a VM
         if (!Strings.isNullOrEmpty(osPort.getDeviceId())) {
-            setFloatingIpRules(osFip, osPort, false);
+            setFloatingIpRules(osFip, osPort, null, false);
         }
     }
 
@@ -561,14 +610,51 @@ public class OpenstackRoutingFloatingIpHandler {
                                 log.warn("Failed to set floating IP {}", fip.getId());
                                 continue;
                             }
-                            setFloatingIpRules(fip, osPort, true);
+                            setFloatingIpRules(fip, osPort, event.subject(), true);
                         }
                     });
                     break;
-                case OPENSTACK_NODE_CREATED:
-                case OPENSTACK_NODE_UPDATED:
-                case OPENSTACK_NODE_REMOVED:
                 case OPENSTACK_NODE_INCOMPLETE:
+
+                    // we only purge the routing related rules stored in each
+                    // compute node when gateway node becomes unavailable
+                    if (!event.subject().type().equals(GATEWAY))  {
+                        return;
+                    }
+
+                    eventExecutor.execute(() -> {
+                        for (NetFloatingIP fip : osRouterService.floatingIps()) {
+                            if (Strings.isNullOrEmpty(fip.getPortId())) {
+                                continue;
+                            }
+                            Port osPort = osNetworkService.port(fip.getPortId());
+                            if (osPort == null) {
+                                log.warn("Failed to set floating IP {}", fip.getId());
+                                continue;
+                            }
+                            Network osNet = osNetworkService.network(osPort.getNetworkId());
+                            if (osNet == null) {
+                                final String errorFormat = ERR_FLOW + "no network(%s) exists";
+                                final String error = String.format(errorFormat,
+                                        fip.getFloatingIpAddress(),
+                                        osPort.getNetworkId());
+                                throw new IllegalStateException(error);
+                            }
+                            MacAddress srcMac = MacAddress.valueOf(osPort.getMacAddress());
+                            log.trace("Mac address of openstack port: {}", srcMac);
+                            InstancePort instPort = instancePortService.instancePort(srcMac);
+
+                            if (instPort == null) {
+                                final String errorFormat = ERR_FLOW + "no host(MAC:%s) found";
+                                final String error = String.format(errorFormat,
+                                        fip.getFloatingIpAddress(), srcMac);
+                                throw new IllegalStateException(error);
+                            }
+
+                            setComputeNodeToGateway(instPort, osNet, event.subject(), false);
+                        }
+                    });
+                    break;
                 default:
                     // do nothing
                     break;
