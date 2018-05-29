@@ -393,19 +393,13 @@ public class OpenstackNetworkManager
             return;
         }
 
-        String upLinkPort = gatewayNode.uplinkPort();
-
-        org.onosproject.net.Port port = deviceService.getPorts(gatewayNode.intgBridge()).stream()
-                .filter(p -> Objects.equals(p.annotations().value(PORT_NAME), upLinkPort))
-                .findAny().orElse(null);
-
-        if (port == null) {
+        if (gatewayNode.uplinkPortNum() == null) {
             log.warn("There's no uplink port for gateway node {}", gatewayNode.toString());
             return;
         }
 
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .setOutput(port.number())
+                .setOutput(gatewayNode.uplinkPortNum())
                 .build();
 
         packetService.emit(new DefaultOutboundPacket(

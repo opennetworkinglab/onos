@@ -386,30 +386,30 @@ public class OpenstackRoutingFloatingIpHandler {
                 throw new IllegalStateException(error);
         }
 
-        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
-                .setIpSrc(floating.getIp4Address())
-                .setEthSrc(instPort.macAddress())
-                .setEthDst(externalPeerRouter.externalPeerRouterMac());
-
-        if (osNet.getNetworkType().equals(NetworkType.VLAN)) {
-            tBuilder.popVlan();
-        }
-
-        if (!externalPeerRouter.externalPeerRouterVlanId().equals(VlanId.NONE)) {
-            tBuilder.pushVlan().setVlanId(externalPeerRouter.externalPeerRouterVlanId());
-        }
+        TrafficSelector selector = sBuilder.build();
 
         osNodeService.completeNodes(GATEWAY).forEach(gNode -> {
+            TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
+                    .setIpSrc(floating.getIp4Address())
+                    .setEthSrc(instPort.macAddress())
+                    .setEthDst(externalPeerRouter.externalPeerRouterMac());
 
+            if (osNet.getNetworkType().equals(NetworkType.VLAN)) {
+                tBuilder.popVlan();
+            }
+
+            if (!externalPeerRouter.externalPeerRouterVlanId().equals(VlanId.NONE)) {
+                tBuilder.pushVlan().setVlanId(externalPeerRouter.externalPeerRouterVlanId());
+            }
             osFlowRuleService.setRule(
                     appId,
                     gNode.intgBridge(),
-                    sBuilder.build(),
+                    selector,
                     tBuilder.setOutput(gNode.uplinkPortNum()).build(),
                     PRIORITY_FLOATING_EXTERNAL,
                     GW_COMMON_TABLE,
                     install);
-        });
+            });
         log.trace("Succeeded to set flow rules for upstream on gateway nodes");
     }
 
