@@ -43,8 +43,6 @@
         <module>ovsdb</module>
         <module>utilities</module>
         <module>lumentum</module>
-        <!-- TODO ONOS-5554 excluding from the build -->
-        <!--<module>bti</module>-->
         <module>corsa</module>
         <module>optical</module>
         <module>arista</module>

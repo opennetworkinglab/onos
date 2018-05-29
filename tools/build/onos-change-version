@@ -19,7 +19,6 @@ cd $ONOS_ROOT
 mvn versions:set -DnewVersion=$NEW_VERSION versions:commit
 mvn -f lib/pom.xml versions:set -DnewVersion=$NEW_VERSION versions:commit
 sed -i".VERBACK" -E "1,/<version>/s/<version>[^<]*</<version>$NEW_VERSION</g" pom.xml
-sed -i".VERBACK" -E "1,/<version>/s/<version>[^<]*</<version>$NEW_VERSION</g" drivers/bti/pom.xml
 
 # Augment the version of the Java API pom files and the overview.html file.
 for pom in docs/internal.xml docs/external.xml; do
