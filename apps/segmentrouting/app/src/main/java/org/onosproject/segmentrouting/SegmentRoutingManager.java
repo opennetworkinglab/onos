@@ -514,6 +514,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 .register(DestinationSetNextObjectiveStoreKey.class,
                           VlanNextObjectiveStoreKey.class,
                           DestinationSet.class,
+                          DestinationSet.DestinationSetType.class,
                           NextNeighbors.class,
                           Tunnel.class,
                           DefaultTunnel.class,
