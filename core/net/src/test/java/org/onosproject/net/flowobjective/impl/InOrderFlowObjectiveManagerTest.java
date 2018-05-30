@@ -181,7 +181,9 @@ public class InOrderFlowObjectiveManagerTest {
         private void recordObjective(Objective obj) {
             try {
                 Thread.sleep(new Random().nextInt(bound) + offset);
-                actualObjs.add(obj);
+                if (!actualObjs.contains(obj)) {
+                    actualObjs.add(obj);
+                }
                 obj.context().ifPresent(c -> c.onSuccess(obj));
             } catch (Exception e) {
                 obj.context().ifPresent(c -> c.onError(obj, ObjectiveError.UNKNOWN));
@@ -244,7 +246,7 @@ public class InOrderFlowObjectiveManagerTest {
 
     @Test
     public void forwardTimeout() {
-        expect(mgr.flowObjectiveStore.getNextGroup(NID1)).andReturn(NGRP1).times(1);
+        expect(mgr.flowObjectiveStore.getNextGroup(NID1)).andReturn(NGRP1).times(2);
         expect(mgr.flowObjectiveStore.getNextGroup(NID2)).andReturn(NGRP2).times(2);
         replay(mgr.flowObjectiveStore);
 
