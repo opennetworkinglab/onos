@@ -59,6 +59,8 @@ While checking the P4 program, try answering the following questions:
 * What happens if a matching entry is not found in table `t_l2_fwd`? What's the
     next table applied to the packet?
 
+[Click here to see the solution to these questions](./questions.md)
+
 ### MyTunnel Pipeconf
 
 The `mytunnel.p4` program is provided to ONOS as part of a "pipeconf".

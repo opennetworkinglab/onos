@@ -130,7 +130,7 @@ egress behaviors.
         $ onos localhost
         ```
 
-    2. **Acticate the BMv2 drivers, pipeconf, and MyTunnel app**:
+    2. **Activate the BMv2 drivers, pipeconf, and MyTunnel app**:
 
         ```
         onos> app activate org.onosproject.drivers.bmv2
