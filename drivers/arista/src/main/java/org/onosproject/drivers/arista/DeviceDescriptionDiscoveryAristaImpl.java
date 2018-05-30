@@ -123,6 +123,7 @@ public class DeviceDescriptionDiscoveryAristaImpl extends AbstractHandlerBehavio
                 SparseAnnotations annotations = DefaultAnnotations.builder()
                         .set(AnnotationKeys.BANDWIDTH, bandwidth.toString())
                         .set(AnnotationKeys.NAME, name)
+                        .set(AnnotationKeys.PORT_NAME, name)
                         .set(LINK_STATUS, interfaceNode.path(LINK_STATUS).asText())
                         .set(LINE_PROTOCOL_STATUS, interfaceNode.path(LINE_PROTOCOL_STATUS).asText())
                         .set(INTERFACE_TYPE, interfaceNode.path(INTERFACE_TYPE).asText())
