@@ -300,7 +300,7 @@ public class TerminalDeviceDiscovery
                 swVersion    = xconf.getString("data/components/component/state/software-version", swVersion);
                 hwVersion    = xconf.getString("data/components/component/state/hardware-version", hwVersion);
             } catch (Exception e) {
-                throw new RuntimeException(new NetconfException("Failed to retrieve version info.", e));
+                throw new IllegalStateException(new NetconfException("Failed to retrieve version info.", e));
             }
         } else {
             log.info("TerminalDeviceDiscovery::discoverDeviceDetails - No netconf session for {}", did());
