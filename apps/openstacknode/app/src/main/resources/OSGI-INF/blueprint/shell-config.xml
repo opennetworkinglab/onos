@@ -27,6 +27,9 @@
         </command>
         <command>
             <action class="org.onosproject.openstacknode.cli.OpenstackNodeInitCommand"/>
+            <completers>
+                <ref component-id="hostnameCompleter"/>
+            </completers>
         </command>
     </command-bundle>
 
