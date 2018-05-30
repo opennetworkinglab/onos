@@ -130,7 +130,6 @@
     "commons-math3": "mvn:org.apache.commons:commons-math3:3.6.1",
     "commons-pool": "mvn:commons-pool:commons-pool:1.6",
     "commons-text": "mvn:org.apache.commons:commons-text:1.2",
-    "commons-beanutils": "mvn:commons-beanutils:commons-beanutils:1.9.2",
     "concurrent-trees": "mvn:com.googlecode.concurrent-trees:concurrent-trees:2.6.1",
     "easymock": "mvn:org.easymock:easymock:3.4",
     "antlr": "mvn:antlr:antlr:2.7.7",
