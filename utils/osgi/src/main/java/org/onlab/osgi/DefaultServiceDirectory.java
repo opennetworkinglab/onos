@@ -15,6 +15,7 @@
  */
 package org.onlab.osgi;
 
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
@@ -32,13 +33,16 @@ public class DefaultServiceDirectory implements ServiceDirectory {
      * @return service implementation
      */
     public static <T> T getService(Class<T> serviceClass) {
-        BundleContext bc = FrameworkUtil.getBundle(serviceClass).getBundleContext();
-        if (bc != null) {
-            ServiceReference<T> reference = bc.getServiceReference(serviceClass);
-            if (reference != null) {
-                T impl = bc.getService(reference);
-                if (impl != null) {
-                    return impl;
+        Bundle bundle = FrameworkUtil.getBundle(serviceClass);
+        if (bundle != null) {
+            BundleContext bc = bundle.getBundleContext();
+            if (bc != null) {
+                ServiceReference<T> reference = bc.getServiceReference(serviceClass);
+                if (reference != null) {
+                    T impl = bc.getService(reference);
+                    if (impl != null) {
+                        return impl;
+                    }
                 }
             }
         }
