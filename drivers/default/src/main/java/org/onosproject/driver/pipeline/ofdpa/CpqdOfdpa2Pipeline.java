@@ -24,6 +24,7 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.GroupId;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.NextGroup;
@@ -69,10 +70,16 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 import java.util.Objects;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import static org.onlab.packet.IPv6.PROTOCOL_ICMP6;
 import static org.onlab.packet.MacAddress.BROADCAST;
 import static org.onlab.packet.MacAddress.NONE;
+import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.driver.pipeline.ofdpa.OfdpaGroupHandlerUtility.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -106,6 +113,16 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
      * won't affect another copy on the data plane when write action exists.
      */
     private static final int POP_VLAN_PUNT_GROUP_ID = 0xc0000000;
+
+    /**
+     * Executor for group checker thread that checks pop vlan punt group.
+     */
+    private ScheduledExecutorService groupChecker;
+
+    /**
+     * Queue for passing pop vlan punt group flow rules to the GroupChecker thread.
+     */
+    private Queue<FlowRule> flowRuleQueue = new ConcurrentLinkedQueue<>();
 
     @Override
     protected boolean requireVlanExtensions() {
@@ -155,6 +172,15 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
         groupHandler.init(deviceId, context);
     }
 
+    @Override
+    public void init(DeviceId deviceId, PipelinerContext context) {
+
+        // create a new executor at each init
+        groupChecker = Executors.newSingleThreadScheduledExecutor(groupedThreads("onos/driver",
+                "cpqd-ofdpa-%d", log));
+        groupChecker.scheduleAtFixedRate(new PopVlanPuntGroupChecker(), 100, 300, TimeUnit.MILLISECONDS);
+        super.init(deviceId, context);
+    }
     /*
      * Cpqd emulation does not require the non OF-standard rules for
      * matching untagged packets that ofdpa uses.
@@ -203,10 +229,15 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
                 GroupKey groupKey = popVlanPuntGroupKey();
                 Group group = groupService.getGroup(deviceId, groupKey);
                 if (group != null) {
+                    if (!groupChecker.isShutdown()) {
+                        groupChecker.shutdown();
+                    }
                     rules.add(buildPuntTableRule(pnum, assignedVlan));
                 } else {
-                    log.info("popVlanPuntGroup not found in dev:{}", deviceId);
-                    return Collections.emptyList();
+                    // The VLAN punt group may be held back due to device initial audit.
+                    // In that case, we queue all punt table flow until the group has been created.
+                    log.info("popVlanPuntGroup not found in dev:{}, queueing this flow rule.", deviceId);
+                    flowRuleQueue.add(buildPuntTableRule(pnum, assignedVlan));
                 }
             }
 
@@ -868,5 +899,37 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
     private GroupKey popVlanPuntGroupKey() {
         int hash = POP_VLAN_PUNT_GROUP_ID | (Objects.hash(deviceId) & FOUR_BIT_MASK);
         return new DefaultGroupKey(Ofdpa2Pipeline.appKryo.serialize(hash));
+    }
+
+    private class PopVlanPuntGroupChecker implements Runnable {
+        @Override
+        public void run() {
+
+            Group group = groupService.getGroup(deviceId, popVlanPuntGroupKey());
+            if (group != null) {
+                // shutdown the executor
+                if (!groupChecker.isShutdown()) {
+                    groupChecker.shutdown();
+                }
+                // if we have pending flow rules install them
+                if (flowRuleQueue.size() > 0) {
+                    FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
+                    // we should not care about the context here, it can only be add
+                    // since when removing the rules the group should be there already.
+                    flowRuleQueue.forEach(ops::add);
+                    flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
+                        @Override
+                        public void onSuccess(FlowRuleOperations ops) {
+                            log.debug("Applied {} pop vlan punt rules in device {}",
+                                      ops.stages().get(0).size(), deviceId);
+                        }
+                        @Override
+                        public void onError(FlowRuleOperations ops) {
+                            log.error("Failed to apply all pop vlan punt rules in dev {}", deviceId);
+                        }
+                    }));
+                }
+            }
+        }
     }
 }
