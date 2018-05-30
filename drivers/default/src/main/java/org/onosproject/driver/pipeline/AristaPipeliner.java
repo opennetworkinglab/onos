@@ -31,7 +31,7 @@ import java.util.Optional;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Simple single table pipeline abstraction.
+ * Arista OpenFlow Switch single table pipeline abstraction.
  */
 public class AristaPipeliner extends DefaultSingleTablePipeline {
 

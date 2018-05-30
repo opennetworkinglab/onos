@@ -46,9 +46,9 @@ import org.slf4j.Logger;
 
 
 /**
- * Simple single table pipeline abstraction.
+ * Juniper QFX5100 Series Switch single table pipeline abstraction.
  */
-public class JuniperPipeliner extends DefaultSingleTablePipeline implements Pipeliner {
+public class JuniperQfx5100Pipeliner extends DefaultSingleTablePipeline implements Pipeliner {
 
     private final Logger log = getLogger(getClass());
 
