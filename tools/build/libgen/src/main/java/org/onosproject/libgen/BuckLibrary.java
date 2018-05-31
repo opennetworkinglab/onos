@@ -86,7 +86,7 @@ public class BuckLibrary {
                 output.append(String.format("] + %s + [", target.replaceFirst(":", "")));
             } else {
                 String pathEnd = target.startsWith("//") ? "" : "//jar";
-                output.append(String.format("\n    '%s%s',", convertBuckTargetName(target), pathEnd));
+                output.append(String.format("\n    \"%s%s\",", convertBuckTargetName(target), pathEnd));
             }
         });
         output.append("\n]\n");

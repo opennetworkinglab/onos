@@ -10,3 +10,4 @@ cd $(onos-buck root 2>/dev/null)
 JAR=$(onos-buck build //tools/build/libgen:libgen --show-output 2>/dev/null | tail -1 | cut -d\  -f2)
 
 java -jar $JAR lib/deps.json lib/BUCK
+java -jar $JAR lib/deps.json tools/build/bazel/generate_workspace.bzl --bazel

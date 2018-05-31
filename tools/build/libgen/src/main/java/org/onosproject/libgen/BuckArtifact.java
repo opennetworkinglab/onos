@@ -90,11 +90,11 @@ public abstract class BuckArtifact {
     String getBazelJavaLibraryFragment() {
         if (isJar()) {
             String format =
-                    "  native.java_library (\n" +
-                            "    name = '%s',\n" +
-                            "    visibility = ['//visibility:public'],\n" +
-                            "    exports = ['@%s//jar'],\n" +
-                            "  )\n\n";
+                    "\n    native.java_library(\n" +
+                            "        name = \"%s\",\n" +
+                            "        visibility = [\"//visibility:public\"],\n" +
+                            "        exports = [\"@%s//jar\"],\n" +
+                            "    )\n";
             return String.format(format, jarTarget(), jarTarget());
         }
         return "";
@@ -116,23 +116,23 @@ public abstract class BuckArtifact {
             String repo = extractRepo();
             String repoAttribute = "";
             if (!"".equals(repo)) {
-                repoAttribute = "    repository = '" + repo + "',\n";
+                repoAttribute = "        repository = \"" + repo + "\",\n";
             }
             String format =
-                    "  native.maven_jar (\n" +
-                            "    name = '%s',\n" +
-                            "    artifact = '%s',\n" +
-                            "    sha1 = '%s',\n" +
+                    "\n    native.maven_jar(\n" +
+                            "        name = \"%s\",\n" +
+                            "        artifact = \"%s\",\n" +
+                            "        sha1 = \"%s\",\n" +
                             "%s" +
-                            "  )\n\n";
+                            "    )\n";
             return String.format(format, jarTarget(), mavenCoords(), sha, repoAttribute);
         } else {
             String format =
-                    "  native.http_jar (\n" +
-                            "    name = '%s',\n" +
-                            "    url = '%s',\n" +
-                            "    sha256 = '%s',\n" +
-                            "  )\n\n";
+                    "\n    native.http_jar(\n" +
+                            "        name = \"%s\",\n" +
+                            "        url = \"%s\",\n" +
+                            "        sha256 = \"%s\",\n" +
+                            "    )\n";
             return String.format(format, jarTarget(), url(), sha);
         }
     }

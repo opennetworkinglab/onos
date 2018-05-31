@@ -184,8 +184,8 @@ public class BuckLibGenerator {
             StringBuilder mavenJars = new StringBuilder();
             StringBuilder javaLibraries = new StringBuilder();
 
-            mavenJars.append("def generated_maven_jars():\n");
-            javaLibraries.append("def generated_java_libraries():\n");
+            mavenJars.append("\ndef generated_maven_jars():");
+            javaLibraries.append("\ndef generated_java_libraries():");
 
             artifacts.forEach(artifact -> {
                 mavenJars.append(artifact.getBazelMavenJarFragment());
