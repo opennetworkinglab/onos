@@ -23,7 +23,8 @@ public enum OvsdbTable {
     PORT("Port"), OPENVSWITCH("Open_vSwitch"), FLWTABLE("Flow_Table"),
     QOS("QoS"), QUEUE("Queue"), MIRROR("Mirror"), MANAGER("Manager"),
     NETFLOW("NetFlow"), SSL("SSL"), SFLOW("sFlow"), IPFIX("IPFIX"),
-    FLOWSAMPLECOLLECTORSET("Flow_Sample_Collector_Set");
+    FLOWSAMPLECOLLECTORSET("Flow_Sample_Collector_Set"),
+    CPUMEMORYDATA("Cpu_Memory_Data");
 
     private final String tableName;
 

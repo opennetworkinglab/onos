@@ -17,11 +17,14 @@ package org.onosproject.ovsdb.controller;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.ControllerInfo;
+import org.onosproject.net.behaviour.DeviceCpuStats;
+import org.onosproject.net.behaviour.DeviceMemoryStats;
 import org.onosproject.net.behaviour.MirroringName;
 import org.onosproject.net.behaviour.MirroringStatistics;
 import org.onosproject.net.behaviour.QosId;
@@ -33,6 +36,7 @@ import org.onosproject.ovsdb.rfc.notation.Row;
 import org.onosproject.ovsdb.rfc.schema.DatabaseSchema;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import org.onosproject.ovsdb.rfc.table.OvsdbTable;
 
 /**
  * Represents to provider facing side of a node.
@@ -372,4 +376,27 @@ public interface OvsdbClientService extends OvsdbRpc {
      * @return errorstatus true if input port list contains error, false otherwise
      */
     boolean getPortError(List<OvsdbPortName>  portNames, DeviceId bridgeId);
+
+    /**
+     * Gets First row for the given table of given DB.
+     *
+     * @param dbName  db name
+     * @param tblName table name
+     * @return first table entry
+     */
+
+    public Optional<Object> getFirstRow(String dbName, OvsdbTable tblName);
+
+    /**
+     * Gets device CPU usage in percentage.
+     * @return device memory usage.
+     */
+    Optional<DeviceCpuStats> getDeviceCpuUsage();
+
+    /**
+     * Gets device memory usage in kilobytes.
+     * @return device memory usage.
+     */
+    Optional<DeviceMemoryStats> getDeviceMemoryUsage();
+
 }

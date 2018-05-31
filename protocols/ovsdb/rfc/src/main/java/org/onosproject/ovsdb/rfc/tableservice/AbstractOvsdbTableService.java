@@ -63,6 +63,28 @@ public abstract class AbstractOvsdbTableService implements OvsdbTableService {
     }
 
     /**
+     * Constructs a AbstractOvsdbTableService object.
+     * @param dbSchema DatabaseSchema entity
+     * @param row Row entity
+     * @param table table name
+     * @param formVersion the initial version
+     * @param untilVersion the until version
+     */
+    public AbstractOvsdbTableService(DatabaseSchema dbSchema, Row row, OvsdbTable table,
+                                     VersionNum formVersion, VersionNum untilVersion) {
+        checkNotNull(dbSchema, "database schema cannot be null");
+        checkNotNull(row, "row cannot be null");
+        checkNotNull(table, "table cannot be null");
+        checkNotNull(formVersion, "the initial version cannot be null");
+        checkNotNull(untilVersion, "the end of the version cannot be null");
+        this.dbSchema = dbSchema;
+        row.setTableName(table.tableName());
+        this.row = row;
+        TableDescription tableDesc = new TableDescription(table, dbSchema.name(), formVersion, untilVersion);
+        this.tableDesc = tableDesc;
+    }
+
+    /**
      * Check whether the parameter of dbSchema is valid and check whether the
      * table is existent in Database Schema.
      */

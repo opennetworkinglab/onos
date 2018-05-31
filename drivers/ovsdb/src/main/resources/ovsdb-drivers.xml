@@ -38,5 +38,11 @@
     <driver name="liquidio" extends="ovs"
             manufacturer="Cavium, Inc\." hwVersion="LiquidIO-II 210 SVN" swVersion="2\..*">
     </driver>
+    <driver name="pica8-ovsdb" extends="default"
+            manufacturer="Pica8" hwVersion="*" swVersion="*">
+        <behaviour api="org.onosproject.net.behaviour.DeviceSystemStatisticsQuery"
+                   impl="org.onosproject.drivers.ovsdb.PicaOvsdbSystemStatsQuery"/>
+    </driver>
+
 </drivers>
 

@@ -31,6 +31,8 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.ControlProtocolVersion;
 import org.onosproject.net.behaviour.ControllerInfo;
+import org.onosproject.net.behaviour.DeviceCpuStats;
+import org.onosproject.net.behaviour.DeviceMemoryStats;
 import org.onosproject.net.behaviour.MirroringName;
 import org.onosproject.net.behaviour.MirroringStatistics;
 import org.onosproject.net.behaviour.QosId;
@@ -1872,5 +1874,67 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
                         INTERFACE, intf.value()), OvsdbTable.INTERFACE))
                 .filter(intf -> Objects.nonNull(intf) && portName.equalsIgnoreCase(intf.getName()))
                 .findFirst().orElse(null);
+    }
+
+    /**
+     * Get first row of given table from given db.
+     *
+     * @param dbName  db name
+     * @param tblName table name
+     * @return firstRow, first row of the given table from given db if present
+     */
+    @Override
+    public Optional<Object> getFirstRow(String dbName, OvsdbTable tblName) {
+
+        DatabaseSchema dbSchema = getDatabaseSchema(dbName);
+        if (Objects.isNull(dbSchema)) {
+            return Optional.empty();
+        }
+
+        OvsdbTableStore tableStore = ovsdbStore.getOvsdbTableStore(dbName);
+        if (tableStore == null) {
+            return Optional.empty();
+        }
+        OvsdbRowStore rowStore = tableStore.getRows(tblName.tableName());
+        if (rowStore == null) {
+            return Optional.empty();
+        }
+
+        ConcurrentMap<String, Row> rows = rowStore.getRowStore();
+        if (rows == null) {
+            log.debug("The {} Table Rows is null", tblName);
+            return Optional.empty();
+        }
+
+        // There should be only 1 row in this table
+        Optional<String> uuid = rows.keySet().stream().findFirst();
+        if (uuid.isPresent() && rows.containsKey(uuid.get())) {
+            return Optional.of(TableGenerator.getTable(dbSchema,
+                    rows.get(uuid.get()), tblName));
+        } else {
+            return Optional.empty();
+        }
+    }
+
+
+    /**
+     * Get memory usage of device.
+     *
+     * @return memoryStats, empty data as there is no generic way to fetch such stats
+     */
+    @Override
+    public Optional<DeviceMemoryStats> getDeviceMemoryUsage() {
+        return Optional.empty();
+    }
+
+
+    /**
+     * Get cpu usage of device.
+     *
+     * @return cpuStats, empty data as there is no generic way to fetch such stats
+     */
+    @Override
+    public Optional<DeviceCpuStats> getDeviceCpuUsage() {
+        return Optional.empty();
     }
 }

@@ -96,6 +96,8 @@ public final class TableGenerator {
             return new Ipfix(dbSchema, row);
         case FLOWSAMPLECOLLECTORSET:
             return new FlowSampleCollectorSet(dbSchema, row);
+        case CPUMEMORYDATA:
+            return new CpuMemoryData(dbSchema, row);
         default:
             return null;
         }
