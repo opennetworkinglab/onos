@@ -424,7 +424,7 @@ public final class OpenstackSwitchingArpHandler {
         public boolean isRelevant(OpenstackNodeEvent event) {
             // do not allow to proceed without leadership
             NodeId leader = leadershipService.getLeader(appId.name());
-            return Objects.equals(localNodeId, leader);
+            return Objects.equals(localNodeId, leader) && event.subject().type() == COMPUTE;
         }
 
         @Override
@@ -432,14 +432,10 @@ public final class OpenstackSwitchingArpHandler {
             OpenstackNode osNode = event.subject();
             switch (event.type()) {
                 case OPENSTACK_NODE_COMPLETE:
-                    if (osNode.type().equals(COMPUTE)) {
-                        setDefaultArpRule(osNode, true);
-                    }
+                    setDefaultArpRule(osNode, true);
                     break;
                 case OPENSTACK_NODE_INCOMPLETE:
-                    if (osNode.type().equals(COMPUTE)) {
-                        setDefaultArpRule(osNode, false);
-                    }
+                    setDefaultArpRule(osNode, false);
                     break;
                 default:
                     break;

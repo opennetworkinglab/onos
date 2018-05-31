@@ -30,6 +30,15 @@
 
     <description>SONA Openstack Node Bootstrap Application</description>
 
+    <properties>
+        <openstack4j.version>3.1.0</openstack4j.version>
+        <json-patch.version>1.9</json-patch.version>
+        <jackson-coreutils.version>1.6</jackson-coreutils.version>
+        <btf.version>1.2</btf.version>
+        <msg-simple.version>1.1</msg-simple.version>
+        <snakeyaml.version>1.15</snakeyaml.version>
+    </properties>
+
     <modules>
         <module>api</module>
         <module>app</module>

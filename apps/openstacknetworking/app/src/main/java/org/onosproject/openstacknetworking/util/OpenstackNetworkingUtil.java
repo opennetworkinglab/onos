@@ -19,14 +19,29 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.net.DeviceId;
+import org.onosproject.openstacknode.api.OpenstackAuth;
+import org.onosproject.openstacknode.api.OpenstackAuth.Perspective;
 import org.onosproject.openstacknode.api.OpenstackNode;
+import org.openstack4j.api.OSClient;
+import org.openstack4j.api.client.IOSClientBuilder;
+import org.openstack4j.api.exceptions.AuthenticationException;
+import org.openstack4j.api.types.Facing;
+import org.openstack4j.core.transport.Config;
 import org.openstack4j.core.transport.ObjectMapperSingleton;
 import org.openstack4j.model.ModelEntity;
 import org.openstack4j.model.network.Port;
+import org.openstack4j.model.common.Identifier;
+import org.openstack4j.openstack.OSFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import java.io.InputStream;
+import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -46,9 +61,16 @@ public final class OpenstackNetworkingUtil {
     protected static final Logger log = LoggerFactory.getLogger(OpenstackNetworkingUtil.class);
 
     private static final int HEX_RADIX = 16;
-    private static final int ZERO_FUNCTION_NUMBER = 0;
+    private static final String ZERO_FUNCTION_NUMBER = "0";
     private static final String PREFIX_DEVICE_NUMBER = "s";
     private static final String PREFIX_FUNCTION_NUMBER = "f";
+
+    // keystone endpoint related variables
+    private static final String DOMAIN_DEFAULT = "default";
+    private static final String KEYSTONE_V2 = "v2.0";
+    private static final String KEYSTONE_V3 = "v3";
+    private static final String IDENTITY_PATH = "identity/";
+    private static final String SSL_TYPE = "SSL";
 
     /**
      * Prevents object instantiation from external.
@@ -116,23 +138,56 @@ public final class OpenstackNetworkingUtil {
         return getGwByIndex(gws, gwIndex);
     }
 
-    private static OpenstackNode getGwByIndex(Set<OpenstackNode> gws, int index) {
-        Map<String, OpenstackNode> hashMap = new HashMap<>();
-        gws.forEach(gw -> hashMap.put(gw.hostname(), gw));
-        TreeMap<String, OpenstackNode> treeMap = new TreeMap<>(hashMap);
-        Iterator<String> iteratorKey = treeMap.keySet().iterator();
+    /**
+     * Obtains a connected openstack client.
+     *
+     * @param osNode openstack node
+     * @return a connected openstack client
+     */
+    public static OSClient getConnectedClient(OpenstackNode osNode) {
+        OpenstackAuth auth = osNode.authentication();
+        String endpoint = buildEndpoint(osNode);
+        Perspective perspective = auth.perspective();
 
-        int intIndex = 0;
-        OpenstackNode gw = null;
-        while (iteratorKey.hasNext()) {
-            String key = iteratorKey.next();
+        Config config = getSslConfig();
 
-            if (intIndex == index) {
-                gw = treeMap.get(key);
+        try {
+            if (endpoint.contains(KEYSTONE_V2)) {
+                IOSClientBuilder.V2 builder = OSFactory.builderV2()
+                        .endpoint(endpoint)
+                        .tenantName(auth.project())
+                        .credentials(auth.username(), auth.password())
+                        .withConfig(config);
+
+                if (perspective != null) {
+                    builder.perspective(getFacing(perspective));
+                }
+
+                return builder.authenticate();
+            } else if (endpoint.contains(KEYSTONE_V3)) {
+
+                Identifier project = Identifier.byName(auth.project());
+                Identifier domain = Identifier.byName(DOMAIN_DEFAULT);
+
+                IOSClientBuilder.V3 builder = OSFactory.builderV3()
+                        .endpoint(endpoint)
+                        .credentials(auth.username(), auth.password(), domain)
+                        .scopeToProject(project, domain)
+                        .withConfig(config);
+
+                if (perspective != null) {
+                    builder.perspective(getFacing(perspective));
+                }
+
+                return builder.authenticate();
+            } else {
+                log.warn("Unrecognized keystone version type");
+                return null;
             }
-            intIndex++;
+        } catch (AuthenticationException e) {
+            log.error("Authentication failed due to {}", e.toString());
+            return null;
         }
-        return gw;
     }
 
     /**
@@ -142,10 +197,17 @@ public final class OpenstackNetworkingUtil {
      * @return interface name
      */
     public static String getIntfNameFromPciAddress(Port port) {
+
+        if (port.getProfile() == null) {
+            log.error("Port profile is not found");
+            return null;
+        }
+
         if (port.getProfile() != null && port.getProfile().get(PCISLOT) == null) {
             log.error("Failed to retrieve the interface name because of no pci_slot information from the port");
             return null;
         }
+
         String busNumHex = port.getProfile().get(PCISLOT).toString().split(":")[1];
         String busNumDecimal = String.valueOf(Integer.parseInt(busNumHex, HEX_RADIX));
 
@@ -168,10 +230,7 @@ public final class OpenstackNetworkingUtil {
             return null;
         }
         String portNamePrefix = PORT_NAME_PREFIX_MAP.get(vendorInfoForPort);
-        if (vendorInfoForPort == null) {
-            log.error("Failed to retrieve the interface name because of no prefix information from the port");
-            return null;
-        }
+
         if (functionNumDecimal.equals(ZERO_FUNCTION_NUMBER)) {
             intfName = portNamePrefix + busNumDecimal + PREFIX_DEVICE_NUMBER + deviceNumDecimal;
         } else {
@@ -180,5 +239,122 @@ public final class OpenstackNetworkingUtil {
         }
 
         return intfName;
+    }
+
+    /**
+     * Builds up and a complete endpoint URL from gateway node.
+     *
+     * @param node gateway node
+     * @return a complete endpoint URL
+     */
+    private static String buildEndpoint(OpenstackNode node) {
+
+        OpenstackAuth auth = node.authentication();
+
+        StringBuilder endpointSb = new StringBuilder();
+        endpointSb.append(auth.protocol().name().toLowerCase());
+        endpointSb.append("://");
+        endpointSb.append(node.endPoint());
+        endpointSb.append(":");
+        endpointSb.append(auth.port());
+        endpointSb.append("/");
+
+        // in case the version is v3, we need to append identity path into endpoint
+        if (auth.version().equals(KEYSTONE_V3)) {
+            endpointSb.append(IDENTITY_PATH);
+        }
+
+        endpointSb.append(auth.version());
+        return endpointSb.toString();
+    }
+
+    /**
+     * Obtains the SSL config without verifying the certification.
+     *
+     * @return SSL config
+     */
+    private static Config getSslConfig() {
+        // we bypass the SSL certification verification for now
+        // TODO: verify server side SSL using a given certification
+        Config config = Config.newConfig().withSSLVerificationDisabled();
+
+        TrustManager[] trustAllCerts = new TrustManager[]{
+                new X509TrustManager() {
+                    public X509Certificate[] getAcceptedIssuers() {
+                        return null;
+                    }
+
+                    public void checkClientTrusted(X509Certificate[] certs,
+                                                   String authType) {
+                    }
+
+                    public void checkServerTrusted(X509Certificate[] certs,
+                                                   String authType) {
+                    }
+                }
+        };
+
+        HostnameVerifier allHostsValid = (hostname, session) -> true;
+
+        try {
+            SSLContext sc = SSLContext.getInstance(SSL_TYPE);
+            sc.init(null, trustAllCerts,
+                    new java.security.SecureRandom());
+            HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+            HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
+
+            config.withSSLContext(sc);
+        } catch (Exception e) {
+            log.error("Failed to access OpenStack service due to {}", e.toString());
+            return null;
+        }
+
+        return config;
+    }
+
+    /**
+     * Obtains the facing object with given openstack perspective.
+     *
+     * @param perspective keystone perspective
+     * @return facing object
+     */
+    private static Facing getFacing(Perspective perspective) {
+
+        switch (perspective) {
+            case PUBLIC:
+                return Facing.PUBLIC;
+            case ADMIN:
+                return Facing.ADMIN;
+            case INTERNAL:
+                return Facing.INTERNAL;
+            default:
+                return null;
+        }
+    }
+
+    /**
+     * Obtains gateway instance by giving index number.
+     *
+     * @param gws       a collection of gateway nodes
+     * @param index     index number
+     * @return gateway instance
+     */
+    private static OpenstackNode getGwByIndex(Set<OpenstackNode> gws, int index) {
+        Map<String, OpenstackNode> hashMap = new HashMap<>();
+        gws.forEach(gw -> hashMap.put(gw.hostname(), gw));
+        TreeMap<String, OpenstackNode> treeMap = new TreeMap<>(hashMap);
+        Iterator<String> iteratorKey = treeMap.keySet().iterator();
+
+        int intIndex = 0;
+        OpenstackNode gw = null;
+        while (iteratorKey.hasNext()) {
+            String key = iteratorKey.next();
+
+            if (intIndex == index) {
+                gw = treeMap.get(key);
+            }
+            intIndex++;
+        }
+        return gw;
     }
 }

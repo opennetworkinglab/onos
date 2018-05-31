@@ -68,6 +68,7 @@ import static org.onosproject.openstacknetworking.api.Constants.PORT_NAME_PREFIX
 import static org.onosproject.openstacknetworking.impl.HostBasedInstancePort.ANNOTATION_CREATE_TIME;
 import static org.onosproject.openstacknetworking.impl.HostBasedInstancePort.ANNOTATION_NETWORK_ID;
 import static org.onosproject.openstacknetworking.impl.HostBasedInstancePort.ANNOTATION_PORT_ID;
+import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.CONTROLLER;
 
 @Service
 @Component(immediate = true)
@@ -297,6 +298,10 @@ public final class OpenstackSwitchingHostProvider extends AbstractProvider imple
 
         @Override
         public boolean isRelevant(OpenstackNodeEvent event) {
+
+            if (event.subject().type() == CONTROLLER) {
+                return false;
+            }
             // do not allow to proceed without mastership
             Device device = deviceService.getDevice(event.subject().intgBridge());
             if (device == null) {
@@ -325,7 +330,6 @@ public final class OpenstackSwitchingHostProvider extends AbstractProvider imple
                     // not reacts to the events other than complete and incomplete states
                     break;
                 default:
-                    log.warn("Unsupported openstack node event type");
                     break;
             }
         }

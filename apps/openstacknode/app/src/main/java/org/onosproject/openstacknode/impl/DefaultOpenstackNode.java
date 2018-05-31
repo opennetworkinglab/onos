@@ -398,9 +398,6 @@ public class DefaultOpenstackNode implements OpenstackNode {
                 }
             } else {
                 checkArgument(endPoint != null, NOT_NULL_MSG, "endpoint URL");
-
-                // we force controller node to have COMPLETE state for now
-                state = NodeState.COMPLETE;
             }
 
             if (type == NodeType.GATEWAY && uplinkPort == null) {

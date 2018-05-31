@@ -60,6 +60,7 @@ import org.onosproject.openstacknode.api.OpenstackNodeListener;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
 import org.onosproject.openstacknode.api.OpenstackPhyInterface;
 import org.onosproject.ovsdb.controller.OvsdbController;
+import org.openstack4j.api.OSClient;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
@@ -80,8 +81,11 @@ import static org.onosproject.openstacknode.api.Constants.INTEGRATION_BRIDGE;
 import static org.onosproject.openstacknode.api.NodeState.COMPLETE;
 import static org.onosproject.openstacknode.api.NodeState.DEVICE_CREATED;
 import static org.onosproject.openstacknode.api.NodeState.INCOMPLETE;
+import static org.onosproject.openstacknode.api.NodeState.INIT;
+import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.CONTROLLER;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
 import static org.onosproject.openstacknode.api.OpenstackNodeService.APP_ID;
+import static org.onosproject.openstacknode.util.OpenstackNodeUtil.getConnectedClient;
 import static org.onosproject.openstacknode.util.OpenstackNodeUtil.isOvsdbConnected;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -422,11 +426,39 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
      * @param osNode openstack node
      */
     private void bootstrapNode(OpenstackNode osNode) {
-        if (isCurrentStateDone(osNode)) {
-            setState(osNode, osNode.state().nextState());
+        if (osNode.type() == CONTROLLER) {
+            if (osNode.state() == INIT && checkEndpoint(osNode)) {
+                setState(osNode, COMPLETE);
+            }
         } else {
-            log.trace("Processing {} state for {}", osNode.state(), osNode.hostname());
-            osNode.state().process(this, osNode);
+            if (isCurrentStateDone(osNode)) {
+                setState(osNode, osNode.state().nextState());
+            } else {
+                log.trace("Processing {} state for {}", osNode.state(), osNode.hostname());
+                osNode.state().process(this, osNode);
+            }
+        }
+    }
+
+    /**
+     * Checks the validity of the given endpoint.
+     *
+     * @param osNode gateway node
+     * @return validity result
+     */
+    private boolean checkEndpoint(OpenstackNode osNode) {
+        if (osNode == null) {
+            log.warn("Keystone auth info has not been configured. " +
+                     "Please specify auth info via network-cfg.json.");
+            return false;
+        }
+
+        OSClient client = getConnectedClient(osNode);
+
+        if (client == null) {
+            return false;
+        } else {
+            return client.getSupportedServices().size() != 0;
         }
     }
 
@@ -442,7 +474,8 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
             NodeId leader = leadershipService.getLeader(appId.name());
             return Objects.equals(localNode, leader) &&
                     event.subject().type() == Device.Type.CONTROLLER &&
-                    osNodeService.node(event.subject().id()) != null;
+                    osNodeService.node(event.subject().id()) != null &&
+                    osNodeService.node(event.subject().id()).type() != CONTROLLER;
         }
 
         @Override
@@ -483,7 +516,8 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
             NodeId leader = leadershipService.getLeader(appId.name());
             return Objects.equals(localNode, leader) &&
                     event.subject().type() == Device.Type.SWITCH &&
-                    osNodeService.node(event.subject().id()) != null;
+                    osNodeService.node(event.subject().id()) != null &&
+                    osNodeService.node(event.subject().id()).type() != CONTROLLER;
         }
 
         @Override

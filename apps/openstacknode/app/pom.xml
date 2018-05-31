@@ -132,6 +132,47 @@
         </dependency>
 
         <dependency>
+            <groupId>org.pacesys</groupId>
+            <artifactId>openstack4j-core</artifactId>
+            <version>${openstack4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.pacesys.openstack4j.connectors</groupId>
+            <artifactId>openstack4j-http-connector</artifactId>
+            <version>${openstack4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.pacesys.openstack4j.connectors</groupId>
+            <artifactId>openstack4j-httpclient</artifactId>
+            <version>${openstack4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.fge</groupId>
+            <artifactId>json-patch</artifactId>
+            <version>${json-patch.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.fge</groupId>
+            <artifactId>jackson-coreutils</artifactId>
+            <version>${jackson-coreutils.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.fge</groupId>
+            <artifactId>btf</artifactId>
+            <version>${btf.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.fge</groupId>
+            <artifactId>msg-simple</artifactId>
+            <version>${msg-simple.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>${snakeyaml.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.glassfish.jersey.core</groupId>
             <artifactId>jersey-client</artifactId>
             <scope>test</scope>
@@ -184,6 +225,28 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>org.onosproject</groupId>
+                <artifactId>onos-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-scr-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>generate-scr-srcdescriptor</id>
+                        <goals>
+                            <goal>scr</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <supportedProjectTypes>
+                        <supportedProjectType>bundle</supportedProjectType>
+                        <supportedProjectType>war</supportedProjectType>
+                    </supportedProjectTypes>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
                 <extensions>true</extensions>
@@ -197,10 +260,23 @@
                         <Bundle-SymbolicName>
                             ${project.groupId}.${project.artifactId}
                         </Bundle-SymbolicName>
+                        <Web-ContextPath>${web.context}</Web-ContextPath>
                         <Import-Package>
+                            !org.apache.http.*,
+                            !com.fasterxml.jackson.dataformat.*,
+                            !javax.annotation,
                             *,org.glassfish.jersey.servlet
                         </Import-Package>
-                        <Web-ContextPath>${web.context}</Web-ContextPath>
+                        <Embed-Dependency>
+                            openstack4j-core,
+                            openstack4j-http-connector,
+                            openstack4j-httpclient,
+                            json-patch,
+                            jackson-coreutils,
+                            btf,
+                            msg-simple,
+                            snakeyaml
+                        </Embed-Dependency>
                     </instructions>
                 </configuration>
             </plugin>

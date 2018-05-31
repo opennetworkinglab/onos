@@ -698,13 +698,6 @@ public class OpenstackRoutingFloatingIpHandler {
                     });
                     break;
                 case OPENSTACK_NODE_INCOMPLETE:
-
-                    // we only purge the routing related rules stored in each
-                    // compute node when gateway node becomes unavailable
-                    if (!event.subject().type().equals(GATEWAY))  {
-                        return;
-                    }
-
                     eventExecutor.execute(() -> {
                         for (NetFloatingIP fip : osRouterService.floatingIps()) {
                             if (Strings.isNullOrEmpty(fip.getPortId())) {

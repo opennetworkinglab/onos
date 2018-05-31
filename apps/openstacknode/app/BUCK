@@ -1,3 +1,5 @@
+include_defs('//apps/openstacknode/openstack4j.bucklet')
+
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//lib:JACKSON',
@@ -10,6 +12,14 @@ COMPILE_DEPS = [
     '//protocols/ovsdb/rfc:onos-protocols-ovsdb-rfc',
     '//core/store/serializers:onos-core-serializers',
     '//apps/openstacknode/api:onos-apps-openstacknode-api',
+    '//lib:openstack4j-core',
+    '//lib:openstack4j-http-connector',
+    '//lib:openstack4j-httpclient',
+    '//lib:json-patch',
+    '//lib:jackson-coreutils',
+    '//lib:btf',
+    '//lib:msg-simple',
+    '//lib:snakeyaml',
 ]
 
 TEST_DEPS = [
@@ -28,5 +38,9 @@ osgi_jar_with_tests (
     api_version = '1.0',
     api_description = 'REST API for OpenStack Node',
     api_package = 'org.onosproject.openstacknode.web',
+
+    # dependency embedding
+    import_packages = INCLUDE_PACKAGES + ',' + EXCLUDE_PACKAGES  + ',' + ALL_PACKAGES,
+    bundle_classpath = get_openstack4j_deps_path() + get_jackson_deps_path()
 )
 

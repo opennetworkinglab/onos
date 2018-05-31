@@ -22,15 +22,10 @@ import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkAdminService;
 import org.onosproject.openstacknetworking.api.OpenstackRouterAdminService;
 import org.onosproject.openstacknetworking.api.OpenstackSecurityGroupAdminService;
-import org.onosproject.openstacknode.api.OpenstackAuth;
+import org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
 import org.openstack4j.api.OSClient;
-import org.openstack4j.api.client.IOSClientBuilder;
-import org.openstack4j.api.exceptions.AuthenticationException;
-import org.openstack4j.api.types.Facing;
-import org.openstack4j.core.transport.Config;
-import org.openstack4j.model.common.Identifier;
 import org.openstack4j.model.network.IP;
 import org.openstack4j.model.network.NetFloatingIP;
 import org.openstack4j.model.network.Network;
@@ -38,16 +33,9 @@ import org.openstack4j.model.network.Port;
 import org.openstack4j.model.network.Router;
 import org.openstack4j.model.network.RouterInterface;
 import org.openstack4j.model.network.Subnet;
-import org.openstack4j.openstack.OSFactory;
 import org.openstack4j.openstack.networking.domain.NeutronRouterInterface;
 
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
-import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -63,8 +51,6 @@ import static org.openstack4j.core.transport.ObjectMapperSingleton.getContext;
         description = "Synchronizes all OpenStack network states")
 public class OpenstackSyncStateCommand extends AbstractShellCommand {
 
-    private static final String DOMAIN_DEFUALT = "default";
-
     private static final String SECURITY_GROUP_FORMAT = "%-40s%-20s";
     private static final String NETWORK_FORMAT = "%-40s%-20s%-20s%-8s";
     private static final String SUBNET_FORMAT = "%-40s%-20s%-20s";
@@ -74,9 +60,6 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
 
     private static final String DEVICE_OWNER_GW = "network:router_gateway";
     private static final String DEVICE_OWNER_IFACE = "network:router_interface";
-
-    private static final String KEYSTONE_V2 = "v2.0";
-    private static final String KEYSTONE_V3 = "v3";
 
     @Override
     protected void execute() {
@@ -92,51 +75,9 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
             return;
         }
 
-        OpenstackAuth auth = node.get().authentication();
-        String endpoint = buildEndpoint(node.get());
-        OpenstackAuth.Perspective perspective = auth.perspective();
+        OSClient osClient = OpenstackNetworkingUtil.getConnectedClient(node.get());
 
-        log.info("Access the ENDPOINT: {}, with AUTH_INFO username: {}, password: {}, project: {}",
-                endpoint, auth.username(), auth.password(), auth.project());
-
-        OSClient osClient;
-        Config config = getSslConfig();
-
-        try {
-            if (endpoint.contains(KEYSTONE_V2)) {
-                IOSClientBuilder.V2 builder = OSFactory.builderV2()
-                        .endpoint(endpoint)
-                        .tenantName(auth.project())
-                        .credentials(auth.username(), auth.password())
-                        .withConfig(config);
-
-                if (perspective != null) {
-                    builder.perspective(getFacing(perspective));
-                }
-
-                osClient = builder.authenticate();
-            } else if (endpoint.contains(KEYSTONE_V3)) {
-
-                Identifier project = Identifier.byName(auth.project());
-                Identifier domain = Identifier.byName(DOMAIN_DEFUALT);
-
-                IOSClientBuilder.V3 builder = OSFactory.builderV3()
-                        .endpoint(endpoint)
-                        .credentials(auth.username(), auth.password(), domain)
-                        .scopeToProject(project, domain)
-                        .withConfig(config);
-
-                if (perspective != null) {
-                    builder.perspective(getFacing(perspective));
-                }
-
-                osClient = builder.authenticate();
-            } else {
-                print("Unrecognized keystone version type");
-                return;
-            }
-        } catch (AuthenticationException e) {
-            print("Authentication failed");
+        if (osClient == null) {
             return;
         }
 
@@ -236,27 +177,6 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
         });
     }
 
-    private String buildEndpoint(OpenstackNode node) {
-
-        OpenstackAuth auth = node.authentication();
-
-        StringBuilder endpointSb = new StringBuilder();
-        endpointSb.append(auth.protocol().name().toLowerCase());
-        endpointSb.append("://");
-        endpointSb.append(node.endPoint());
-        endpointSb.append(":");
-        endpointSb.append(auth.port());
-        endpointSb.append("/");
-
-        // in case the version is v3, we need to append identity path into endpoint
-        if (auth.version().equals("v3")) {
-            endpointSb.append("identity/");
-        }
-
-        endpointSb.append(auth.version());
-        return endpointSb.toString();
-    }
-
     private void printNetwork(Network osNet) {
         final String strNet = String.format(NETWORK_FORMAT,
                 osNet.getId(),
@@ -316,55 +236,5 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
                 Strings.isNullOrEmpty(floatingIp.getFixedIpAddress()) ?
                         "" : floatingIp.getFixedIpAddress());
         print(strFloating);
-    }
-
-    private Config getSslConfig() {
-        // we bypass the SSL certification verification for now
-        // TODO: verify server side SSL using a given certification
-        Config config = Config.newConfig().withSSLVerificationDisabled();
-
-        TrustManager[] trustAllCerts = new TrustManager[]{
-                new X509TrustManager() {
-                    public X509Certificate[] getAcceptedIssuers() {
-                        return null;
-                    }
-
-                    public void checkClientTrusted(X509Certificate[] certs, String authType) {
-                    }
-
-                    public void checkServerTrusted(X509Certificate[] certs, String authType) {
-                    }
-                }
-        };
-
-        HostnameVerifier allHostsValid = (hostname, session) -> true;
-
-        try {
-            SSLContext sc = SSLContext.getInstance("SSL");
-            sc.init(null, trustAllCerts, new java.security.SecureRandom());
-            HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-            HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
-
-            config.withSSLContext(sc);
-        } catch (Exception e) {
-            print("Failed to access OpenStack service");
-            return null;
-        }
-
-        return config;
-    }
-
-    private Facing getFacing(OpenstackAuth.Perspective perspective) {
-
-        switch (perspective) {
-            case PUBLIC:
-                return Facing.PUBLIC;
-            case ADMIN:
-                return Facing.ADMIN;
-            case INTERNAL:
-                return Facing.INTERNAL;
-            default:
-                return null;
-        }
     }
 }

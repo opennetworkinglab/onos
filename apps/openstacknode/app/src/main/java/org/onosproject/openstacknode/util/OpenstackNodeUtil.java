@@ -16,12 +16,28 @@
 package org.onosproject.openstacknode.util;
 
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.openstacknode.api.OpenstackAuth;
+import org.onosproject.openstacknode.api.OpenstackAuth.Perspective;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.ovsdb.controller.OvsdbClientService;
 import org.onosproject.ovsdb.controller.OvsdbController;
 import org.onosproject.ovsdb.controller.OvsdbNodeId;
+import org.openstack4j.api.OSClient;
+import org.openstack4j.api.client.IOSClientBuilder;
+import org.openstack4j.api.exceptions.AuthenticationException;
+import org.openstack4j.api.types.Facing;
+import org.openstack4j.core.transport.Config;
+import org.openstack4j.model.common.Identifier;
+import org.openstack4j.openstack.OSFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+import java.security.cert.X509Certificate;
 
 /**
  * An utility that used in openstack node app.
@@ -29,8 +45,15 @@ import org.slf4j.LoggerFactory;
 public final class OpenstackNodeUtil {
     protected static final Logger log = LoggerFactory.getLogger(OpenstackNodeUtil.class);
 
+    // keystone endpoint related variables
+    private static final String DOMAIN_DEFAULT = "default";
+    private static final String KEYSTONE_V2 = "v2.0";
+    private static final String KEYSTONE_V3 = "v3";
+    private static final String IDENTITY_PATH = "identity/";
+    private static final String SSL_TYPE = "SSL";
+
     /**
-     * Prevents object instantiation from external.
+     * Prevents object installation from external.
      */
     private OpenstackNodeUtil() {
     }
@@ -54,5 +77,148 @@ public final class OpenstackNodeUtil {
         return deviceService.isAvailable(osNode.ovsdb()) &&
                 client != null &&
                 client.isConnected();
+    }
+
+    /**
+     * Obtains a connected openstack client.
+     *
+     * @param osNode openstack node
+     * @return a connected openstack client
+     */
+    public static OSClient getConnectedClient(OpenstackNode osNode) {
+        OpenstackAuth auth = osNode.authentication();
+        String endpoint = buildEndpoint(osNode);
+        Perspective perspective = auth.perspective();
+
+        Config config = getSslConfig();
+
+        try {
+            if (endpoint.contains(KEYSTONE_V2)) {
+                IOSClientBuilder.V2 builder = OSFactory.builderV2()
+                        .endpoint(endpoint)
+                        .tenantName(auth.project())
+                        .credentials(auth.username(), auth.password())
+                        .withConfig(config);
+
+                if (perspective != null) {
+                    builder.perspective(getFacing(perspective));
+                }
+
+                return builder.authenticate();
+            } else if (endpoint.contains(KEYSTONE_V3)) {
+
+                Identifier project = Identifier.byName(auth.project());
+                Identifier domain = Identifier.byName(DOMAIN_DEFAULT);
+
+                IOSClientBuilder.V3 builder = OSFactory.builderV3()
+                        .endpoint(endpoint)
+                        .credentials(auth.username(), auth.password(), domain)
+                        .scopeToProject(project, domain)
+                        .withConfig(config);
+
+                if (perspective != null) {
+                    builder.perspective(getFacing(perspective));
+                }
+
+                return builder.authenticate();
+            } else {
+                log.warn("Unrecognized keystone version type");
+                return null;
+            }
+        } catch (AuthenticationException e) {
+            log.error("Authentication failed due to {}", e.toString());
+            return null;
+        }
+    }
+
+    /**
+     * Builds up and a complete endpoint URL from gateway node.
+     *
+     * @param node gateway node
+     * @return a complete endpoint URL
+     */
+    private static String buildEndpoint(OpenstackNode node) {
+
+        OpenstackAuth auth = node.authentication();
+
+        StringBuilder endpointSb = new StringBuilder();
+        endpointSb.append(auth.protocol().name().toLowerCase());
+        endpointSb.append("://");
+        endpointSb.append(node.endPoint());
+        endpointSb.append(":");
+        endpointSb.append(auth.port());
+        endpointSb.append("/");
+
+        // in case the version is v3, we need to append identity path into endpoint
+        if (auth.version().equals(KEYSTONE_V3)) {
+            endpointSb.append(IDENTITY_PATH);
+        }
+
+        endpointSb.append(auth.version());
+        return endpointSb.toString();
+    }
+
+    /**
+     * Obtains the SSL config without verifying the certification.
+     *
+     * @return SSL config
+     */
+    private static Config getSslConfig() {
+        // we bypass the SSL certification verification for now
+        // TODO: verify server side SSL using a given certification
+        Config config = Config.newConfig().withSSLVerificationDisabled();
+
+        TrustManager[] trustAllCerts = new TrustManager[]{
+                new X509TrustManager() {
+                    public X509Certificate[] getAcceptedIssuers() {
+                        return null;
+                    }
+
+                    public void checkClientTrusted(X509Certificate[] certs,
+                                                   String authType) {
+                    }
+
+                    public void checkServerTrusted(X509Certificate[] certs,
+                                                   String authType) {
+                    }
+                }
+        };
+
+        HostnameVerifier allHostsValid = (hostname, session) -> true;
+
+        try {
+            SSLContext sc = SSLContext.getInstance(SSL_TYPE);
+            sc.init(null, trustAllCerts,
+                    new java.security.SecureRandom());
+            HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+            HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
+
+            config.withSSLContext(sc);
+        } catch (Exception e) {
+            log.error("Failed to access OpenStack service due to {}", e.toString());
+            return null;
+        }
+
+        return config;
+    }
+
+    /**
+     * Obtains the facing object with given openstack perspective.
+     *
+     * @param perspective keystone perspective
+     * @return facing object
+     */
+    private static Facing getFacing(Perspective perspective) {
+
+        switch (perspective) {
+            case PUBLIC:
+                return Facing.PUBLIC;
+            case ADMIN:
+                return Facing.ADMIN;
+            case INTERNAL:
+                return Facing.INTERNAL;
+            default:
+                return null;
+        }
     }
 }

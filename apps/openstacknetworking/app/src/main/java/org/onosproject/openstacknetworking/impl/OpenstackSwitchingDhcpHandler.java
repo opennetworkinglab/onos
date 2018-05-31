@@ -82,7 +82,7 @@ import static org.onlab.packet.DHCP.MsgType.DHCPOFFER;
 import static org.onosproject.openstacknetworking.api.Constants.DEFAULT_GATEWAY_MAC_STR;
 import static org.onosproject.openstacknetworking.api.Constants.DHCP_ARP_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_DHCP_RULE;
-import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
+import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -420,7 +420,7 @@ public class OpenstackSwitchingDhcpHandler {
         public boolean isRelevant(OpenstackNodeEvent event) {
             // do not allow to proceed without leadership
             NodeId leader = leadershipService.getLeader(appId.name());
-            return Objects.equals(localNodeId, leader);
+            return Objects.equals(localNodeId, leader) && event.subject().type() == COMPUTE;
         }
 
         @Override
@@ -442,9 +442,6 @@ public class OpenstackSwitchingDhcpHandler {
         }
 
         private void setDhcpRule(OpenstackNode openstackNode, boolean install) {
-            if (openstackNode.type().equals(GATEWAY)) {
-                return;
-            }
             TrafficSelector selector = DefaultTrafficSelector.builder()
                     .matchEthType(Ethernet.TYPE_IPV4)
                     .matchIPProtocol(IPv4.PROTOCOL_UDP)

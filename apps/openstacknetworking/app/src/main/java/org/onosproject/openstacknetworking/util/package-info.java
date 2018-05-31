@@ -15,6 +15,6 @@
  */
 
 /**
- * Openstack utility package.
+ * Openstack networking utility package.
  */
 package org.onosproject.openstacknetworking.util;

@@ -1,3 +1,5 @@
+include_defs('//apps/openstacknetworking/openstack4j.bucklet')
+
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//lib:org.apache.karaf.shell.console',
@@ -15,5 +17,7 @@ TEST_DEPS = [
 
 osgi_jar_with_tests (
     deps = COMPILE_DEPS,
-    test_deps = TEST_DEPS
+    test_deps = TEST_DEPS,
+
+    import_packages = INCLUDE_PACKAGES + ',' + EXCLUDE_PACKAGES  + ',' + ALL_PACKAGES,
 )
