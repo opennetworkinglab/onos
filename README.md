@@ -2,8 +2,8 @@
 
 
 ## What is ONOS?
-ONOS is a new SDN network operating system designed for high availability,
-performance, scale-out.
+ONOS is the only SDN controller platform that supports the transition from legacy “brown field” networks to SDN “green field” networks.
+This enables exciting new capabilities, and disruptive deployment and operational cost points for network operators.
 
 ## Top-Level Features
 
@@ -23,105 +23,119 @@ performance, scale-out.
   controlled by distributed routing protocols such as BGP.
 * IP-Optical use case demonstration.
 
-Checkout our [website](http://www.onosproject.org) and our
-[tools](http://www.onosproject.org/software/#tools)
 
-## [Developer Quickstart](https://wiki.onosproject.org/display/ONOS/Developer+Quick+Start)
+## Getting started
 
-Code is hosted and maintained using [gerrit](https://gerrit.onosproject.org/).
+### Dependencies
 
-The [GitHub](https://github.com/opennetworkinglab/onos) code is only a mirror. The ONOS project does not accept code through pull requests on GitHub, please do not submit them.
-
-```bash
-git clone https://gerrit.onosproject.org/onos
-```
-
-On Ubuntu/Debian, you can do the following.
-
-### Requirements
+The following packages are reuqired:
 
 * git
 * zip
 * curl
-* unzip # CentOS installations only
-* python # Version 2.7 is required
+* unzip
+* python2.7
+* Oracle JDK8
 
+To install Oracle JDK8, use following commands (Ubuntu):
 ```bash
-sudo apt-get install software-properties-common -y && \
-sudo add-apt-repository ppa:webupd8team/java -y && \
-sudo apt-get update && \
-echo "oracle-java8-installer shared/accepted-oracle-license-v1-1 select true" | sudo debconf-set-selections && \
-sudo apt-get install oracle-java8-installer oracle-java8-set-default -y
+$ sudo apt-get install software-properties-common -y && \
+  sudo add-apt-repository ppa:webupd8team/java -y && \
+  sudo apt-get update && \
+  echo "oracle-java8-installer shared/accepted-oracle-license-v1-1 select true" | sudo debconf-set-selections && \
+  sudo apt-get install oracle-java8-installer oracle-java8-set-default -y
 ```
 
-ONOS is built with Buck, an open-source build tool created by Facebook and inspired by Google. It is also in use by number of well-known projects, including all Facebook’s mobile apps, Gerrit, etc. By relying on explicit dependencies between targets and SHA hashes of files (rather than on timestamps), Buck avoids unnecessary work by recognizing whether or not a target artifact requires a rebuild. This also helps to increase reproducibility of builds.
+### Build ONOS from source
 
-> ONOS currently uses a modified version of Buck, which has been packaged with ONOS. Please use this version until our changes have been upstreamed and released as part of an official Buck release. 
+1. Clone the code from ONOS gerrit repository
+```bash
+$ git clone https://gerrit.onosproject.org/onos
+```
 
-### Build
+2. Add ONOS developer environment to your bash profile, no need to do this step again if you had done this before
+```bash
+$ cd onos
+$ cat << EOF >> ~/.bash_profile
+export ONOS_ROOT="`pwd`"
+source $ONOS_ROOT/tools/dev/bash_profile
+EOF
+$ . ~/.bash_profile
+```
+
+3. Build ONOS with Buck
+```bash
+$ cd $ONOS_ROOT
+$ onos-buck build onos [--show-output]
+```
+
+ONOS currently uses a modified version of Buck (`onos-buck`), which has been packaged with ONOS. Please use this version until our changes have been upstreamed and released as part of an official Buck release. 
 
 This will compile all source code assemble the installable onos.tar.gz, which is located in the buck-out directory. Note the --show-output option, which can be omitted, will display the path to this file.
 
-```bash
-export ONOS_ROOT=$(pwd)
-tools/build/onos-buck build onos --show-output
-```
 
-### Run
+### Start ONOS on local machine
 
 To run ONOS locally on the development machine, simply run the following command:
 
 ```bash
-tools/build/onos-buck run onos-local -- clean debug
+$ onos-buck run onos-local [-- [clean] [debug]]
 ```
 
-The above command will create a local installation from the onos.tar.gz file (re-building it if necessary) and will start the ONOS server in the background. In the foreground, it will display a continuous view of the ONOS (Apache Karaf) log file. Options following the double-dash (–) are passed through to the ONOS Apache Karaf and can be omitted. Here, the clean option forces a clean installation of ONOS and the debug option means that the default debug port 5005 will be available for attaching a remote debugger.
+or simplier one:
 
-### Attach
+```bash
+$ ok [clean] [debug]
+```
 
-[GUI](http://localhost:8181/onos/ui) or `tools/test/bin/onos-gui localhost`
+The above command will create a local installation from the onos.tar.gz file (re-building it if necessary) and will start the ONOS server in the background.
+In the foreground, it will display a continuous view of the ONOS (Apache Karaf) log file.
+Options following the double-dash (–) are passed through to the ONOS Apache Karaf and can be omitted.
+Here, the `clean` option forces a clean installation of ONOS and the `debug` option means that the default debug port 5005 will be available for attaching a remote debugger.
+
+### Interacting with ONOS
+
+To access ONOS UI, use browser to open [http://localhost:8181/onos/ui](http://localhost:8181/onos/ui) or use `onos-gui localhost` command
+
+The default username and password is **onos/rocks**
 
 To attach to the ONOS CLI console, run:
 
 ```bash
-tools/test/bin/onos localhost
+$ onos localhost
 ```
 
-### Mininet
+### Unit Tests
 
-To start up a Mininet network controlled by an ONOS instance that is already running on your development machine, you can use a command like:
+To run ONOS unit tests, including code Checkstyle validation, run the following command:
 
 ```bash
-sudo mn --controller remote,ip=<ONOS IP address> --topo torus,3,3
+$ buck test
 ```
 
-Note that you should replace <ONOS IP address> with the IP address of your development machine where ONOS is running.
-
-### Test
-
-To execute ONOS unit tests, including code Checkstyle validation, run the following command:
+Or more specific tests:
 
 ```bash
-tools/build/onos-buck test
+$ buck test [buck-test-rule]
 ```
 
-or more specific tests:
+## Contributing
 
-```bash
-# All
-tools/build/onos-buck test //drivers/ciena/waveserver:onos-drivers-ciena-waveserver-tests
-# Only check style
-tools/build/onos-buck test //drivers/ciena/waveserver:onos-drivers-ciena-waveserver-checkstyle
-```
+ONOS code is hosted and maintained using [Gerrit](https://gerrit.onosproject.org/).
 
-### Commit
+Code on GitHub is only a mirror. The ONOS project does **NOT** accept code through pull requests on GitHub. 
 
-When you are ready to commit, use [this](https://wiki.onosproject.org/display/ONOS/Sample+Gerrit+Workflow) guide
+To contribute to ONOS, please refer to [Sample Gerrit Workflow](https://wiki.onosproject.org/display/ONOS/Sample+Gerrit+Workflow). It should includes most of the things you'll need to get your contribution started!
 
-### Help
 
-Check out our:
+## More information
 
+For more information, please check out our wiki page or mailing lists:
+
+* [Wiki](https://wiki.onosproject.org/)
 * [Google group](https://groups.google.com/a/onosproject.org/forum/#!forum/onos-dev)
 * [Slack](https://onosproject.slack.com)
-* [Wiki](https://wiki.onosproject.org/)
+
+## License
+
+ONOS (Open Network Operating System) is published under [Apache License 2.0](https://github.com/opennetworkinglab/onos/blob/master/LICENSE.txt)
