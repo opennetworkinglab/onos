@@ -56,6 +56,9 @@ public class CpqdOfdpa2GroupHandler extends Ofdpa2GroupHandler {
     protected GroupInfo createL2L3Chain(TrafficTreatment treatment, int nextId,
                                         ApplicationId appId, boolean mpls,
                                         TrafficSelector meta) {
+        if (createUnfiltered(treatment, meta)) {
+            return createUnfilteredL2L3Chain(treatment, nextId, appId);
+        }
         // for the l2interface group, get vlan and port info
         // for the outer group, get the src/dst mac, and vlan info
         TrafficTreatment.Builder outerTtb = DefaultTrafficTreatment.builder();
@@ -281,4 +284,105 @@ public class CpqdOfdpa2GroupHandler extends Ofdpa2GroupHandler {
         }
         super.processHashedNextObjective(nextObjective);
     }
+
+    /**
+     * Internal implementation of createL2L3Chain to handle double-tagged vlan.
+     * L3UG Group carries dummyVlanId and output port information in its groupId,
+     * and does not set vlan.
+     * L2UG Group only has OUTPUT instruction.
+     *
+     * @param treatment that needs to be broken up to create the group chain
+     * @param nextId of the next objective that needs this group chain
+     * @param appId of the application that sent this next objective
+     * @return GroupInfo containing the GroupDescription of the
+     *         L2 Unfiltered Interface group(inner) and the GroupDescription of the (outer)
+     *         L3Unicast group. May return null if there is an error in processing the chain.
+     */
+    private GroupInfo createUnfilteredL2L3Chain(TrafficTreatment treatment, int nextId,
+                                                ApplicationId appId) {
+        // for the l2 unfiltered interface group, get port info
+        // for the l3 unicast group, get the src/dst mac, and vlan info
+        TrafficTreatment.Builder outerTtb = DefaultTrafficTreatment.builder();
+        TrafficTreatment.Builder innerTtb = DefaultTrafficTreatment.builder();
+        VlanId vlanId = VlanId.NONE;
+        long portNum = 0;
+        MacAddress srcMac;
+        MacAddress dstMac;
+        for (Instruction ins : treatment.allInstructions()) {
+            if (ins.type() == Instruction.Type.L2MODIFICATION) {
+                L2ModificationInstruction l2ins = (L2ModificationInstruction) ins;
+                switch (l2ins.subtype()) {
+                    case ETH_DST:
+                        dstMac = ((L2ModificationInstruction.ModEtherInstruction) l2ins).mac();
+                        outerTtb.setEthDst(dstMac);
+                        break;
+                    case ETH_SRC:
+                        srcMac = ((L2ModificationInstruction.ModEtherInstruction) l2ins).mac();
+                        outerTtb.setEthSrc(srcMac);
+                        break;
+                    case VLAN_ID:
+                        vlanId = ((L2ModificationInstruction.ModVlanIdInstruction) l2ins).vlanId();
+                        break;
+                    default:
+                        break;
+                }
+            } else if (ins.type() == Instruction.Type.OUTPUT) {
+                portNum = ((Instructions.OutputInstruction) ins).port().toLong();
+                innerTtb.add(ins);
+            } else {
+                log.debug("Driver does not handle this type of TrafficTreatment"
+                                  + " instruction in l2l3chain:  {} - {}", ins.type(),
+                          ins);
+            }
+        }
+
+        // assemble information for ofdpa l2 unfiltered interface group
+        int l2groupId = l2UnfilteredGroupId(portNum);
+        // a globally unique groupkey that is different for ports in the same device,
+        // but different for the same portnumber on different devices. Also different
+        // for the various group-types created out of the same next objective.
+        int l2gk = l2UnfilteredGroupKey(deviceId, portNum);
+        final GroupKey l2groupkey = new DefaultGroupKey(Ofdpa2Pipeline.appKryo.serialize(l2gk));
+
+        // assemble information for outer group (L3Unicast)
+        GroupDescription outerGrpDesc;
+        int l3groupId = doubleVlanL3UnicastGroupId(vlanId, portNum);
+        final GroupKey l3groupkey = new DefaultGroupKey(
+                Ofdpa3Pipeline.appKryo.serialize(doubleVlanL3UnicastGroupKey(deviceId, vlanId, portNum)));
+        outerTtb.group(new GroupId(l2groupId));
+        // create the l3unicast group description to wait for the
+        // l2 unfiltered interface group to be processed
+        GroupBucket l3unicastGroupBucket =
+                DefaultGroupBucket.createIndirectGroupBucket(outerTtb.build());
+        outerGrpDesc = new DefaultGroupDescription(
+                deviceId,
+                GroupDescription.Type.INDIRECT,
+                new GroupBuckets(Collections.singletonList(l3unicastGroupBucket)),
+                l3groupkey,
+                l3groupId,
+                appId);
+        log.debug("Trying L3Unicast: device:{} gid:{} gkey:{} nextid:{}",
+                  deviceId, Integer.toHexString(l3groupId),
+                  l3groupkey, nextId);
+
+        // store l2groupkey with the groupChainElem for the outer-group that depends on it
+        OfdpaGroupHandlerUtility.GroupChainElem gce = new OfdpaGroupHandlerUtility.GroupChainElem(
+                outerGrpDesc, 1, false, deviceId);
+        updatePendingGroups(l2groupkey, gce);
+
+        // create group description for the inner l2 unfiltered interface group
+        GroupBucket l2InterfaceGroupBucket =
+                DefaultGroupBucket.createIndirectGroupBucket(innerTtb.build());
+        GroupDescription l2groupDescription =
+                new DefaultGroupDescription(deviceId,
+                                            GroupDescription.Type.INDIRECT,
+                                            new GroupBuckets(Collections.singletonList(l2InterfaceGroupBucket)),
+                                            l2groupkey,
+                                            l2groupId,
+                                            appId);
+        log.debug("Trying L2Unfiltered: device:{} gid:{} gkey:{} nextId:{}",
+                  deviceId, Integer.toHexString(l2groupId), l2groupkey, nextId);
+        return new OfdpaGroupHandlerUtility.GroupInfo(l2groupDescription, outerGrpDesc);
+    }
+
 }

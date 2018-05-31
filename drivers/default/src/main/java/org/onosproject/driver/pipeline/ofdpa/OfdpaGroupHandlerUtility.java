@@ -27,6 +27,8 @@ import org.onosproject.net.behaviour.NextGroup;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.criteria.Criterion;
+import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
@@ -60,6 +62,7 @@ public final class OfdpaGroupHandlerUtility {
      * OFDPA requires group-id's to have a certain form.
      * L2 Interface Groups have <4bits-0><12bits-vlanId><16bits-portId>
      * L3 Unicast Groups have <4bits-2><28bits-index>
+     * L3 Unicast Groups for double-vlan have <4bits-2><1bit-1><12bits-vlanId><15bits-portId>
      * MPLS Interface Groups have <4bits-9><4bits:0><24bits-index>
      * L3 ECMP Groups have <4bits-7><28bits-index>
      * L2 Flood Groups have <4bits-4><12bits-vlanId><16bits-index>
@@ -78,6 +81,7 @@ public final class OfdpaGroupHandlerUtility {
     static final int TYPE_MASK = 0x0fffffff;
     static final int SUBTYPE_MASK = 0x00ffffff;
     static final int TYPE_VLAN_MASK = 0x0000ffff;
+    static final int TYPE_L3UG_DOUBLE_VLAN_MASK = 0x08000000;
 
     static final int THREE_BIT_MASK = 0x0fff;
     static final int FOUR_BIT_MASK = 0xffff;
@@ -710,4 +714,52 @@ public final class OfdpaGroupHandlerUtility {
             }
         }
     }
+
+    /**
+     * Helper method to decide whether L2 Interface group or L2 Unfiltered group needs to be created.
+     * L2 Unfiltered group will be created if meta has VlanIdCriterion with VlanId.ANY, and
+     * treatment has set Vlan ID action.
+     *
+     * @param treatment  treatment passed in by the application as part of the nextObjective
+     * @param meta       metadata passed in by the application as part of the nextObjective
+     * @return true if L2 Unfiltered group needs to be created, false otherwise.
+     */
+    public static boolean createUnfiltered(TrafficTreatment treatment, TrafficSelector meta) {
+        if (meta == null || treatment == null) {
+            return false;
+        }
+        VlanIdCriterion vlanIdCriterion = (VlanIdCriterion) meta.getCriterion(Criterion.Type.VLAN_VID);
+        if (vlanIdCriterion == null || !vlanIdCriterion.vlanId().equals(VlanId.ANY)) {
+            return false;
+        }
+
+        return treatment.allInstructions().stream()
+                .filter(i -> (i.type() == Instruction.Type.L2MODIFICATION
+                        && ((L2ModificationInstruction) i).subtype() == L2ModificationInstruction.L2SubType.VLAN_ID))
+                .count() == 1;
+    }
+
+    /**
+     * Returns a hash as the L3 Unicast Group Key.
+     *
+     * Keep the lower 6-bit for port since port number usually smaller than 64.
+     * Hash other information into remaining 28 bits.
+     *
+     * @param deviceId Device ID
+     * @param vlanId vlan ID
+     * @param portNumber Port number
+     * @return L3 unicast group key
+     */
+    public static int doubleVlanL3UnicastGroupKey(DeviceId deviceId, VlanId vlanId, long portNumber) {
+        int portLowerBits = (int) portNumber & PORT_LOWER_BITS_MASK;
+        long portHigherBits = portNumber & PORT_HIGHER_BITS_MASK;
+        int hash = Objects.hash(deviceId, portHigherBits, vlanId);
+        return  L3_UNICAST_TYPE | (TYPE_MASK & hash << 6) | portLowerBits;
+    }
+
+    public static int doubleVlanL3UnicastGroupId(VlanId vlanId, long portNum) {
+        // <4bits-2><1bit-1><12bits-vlanId><15bits-portId>
+        return L3_UNICAST_TYPE | 1 << 27 | (vlanId.toShort() << 15) | (int) (portNum & 0x7FFF);
+    }
+
 }
