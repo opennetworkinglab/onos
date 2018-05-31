@@ -19,6 +19,7 @@ package org.onosproject.ovsdb.rfc.table;
  * The version number of tables and columns.
  */
 public enum VersionNum {
+    VERSION010("0.1.0"),
     VERSION100("1.0.0"), VERSION102("1.0.2"), VERSION103("1.0.3"),
     VERSION104("1.0.4"), VERSION106("1.0.6"), VERSION110("1.1.0"),
     VERSION130("1.3.0"), VERSION200("2.0.0"), VERSION300("3.0.0"),

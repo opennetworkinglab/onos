@@ -19,11 +19,14 @@ package org.onosproject.ovsdb.controller.driver;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.ControllerInfo;
+import org.onosproject.net.behaviour.DeviceCpuStats;
+import org.onosproject.net.behaviour.DeviceMemoryStats;
 import org.onosproject.net.behaviour.MirroringName;
 import org.onosproject.net.behaviour.MirroringStatistics;
 import org.onosproject.net.behaviour.QosId;
@@ -45,6 +48,7 @@ import org.onosproject.ovsdb.rfc.schema.DatabaseSchema;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.util.concurrent.ListenableFuture;
+import org.onosproject.ovsdb.rfc.table.OvsdbTable;
 
 /**
  * Test Adapter for OvsdbClientService.
@@ -301,5 +305,20 @@ public class OvsdbClientServiceAdapter implements OvsdbClientService {
     @Override
     public boolean getPortError(List<OvsdbPortName> portNames, DeviceId bridgeId) {
         return false;
+    }
+
+    @Override
+    public Optional<Object> getFirstRow(String dbName, OvsdbTable tblName) {
+        return null;
+    }
+
+    @Override
+    public Optional<DeviceCpuStats> getDeviceCpuUsage() {
+        return null;
+    }
+
+    @Override
+    public Optional<DeviceMemoryStats> getDeviceMemoryUsage() {
+        return null;
     }
 }

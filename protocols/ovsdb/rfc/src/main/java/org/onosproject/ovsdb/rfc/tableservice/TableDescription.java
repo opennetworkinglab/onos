@@ -29,7 +29,7 @@ public class TableDescription {
     // The table name
     private final String name;
     // The database name
-    private final String database = "Open_vSwitch";
+    private final String database;
     // The initial version
     private final String fromVersion;
     // The end of the version
@@ -44,6 +44,7 @@ public class TableDescription {
         this.name = table.tableName();
         this.fromVersion = VersionUtil.DEFAULT_VERSION_STRING;
         this.untilVersion = VersionUtil.DEFAULT_VERSION_STRING;
+        this.database = "Open_vSwitch";
     }
 
     /**
@@ -57,6 +58,25 @@ public class TableDescription {
         this.name = table.tableName();
         this.fromVersion = fromVersion.versionNum();
         this.untilVersion = VersionUtil.DEFAULT_VERSION_STRING;
+        this.database = "Open_vSwitch";
+    }
+
+    /**
+     * Constructs a MonitorRequest object.
+     * @param table OvsdbTable entity
+     * @param database database name
+     * @param fromVersion the initial version
+     * @param untilVersion the untill version
+     */
+    public TableDescription(OvsdbTable table, String database, VersionNum fromVersion, VersionNum untilVersion) {
+        checkNotNull(table, "table cannot be null");
+        checkNotNull(database, "database cannot be null");
+        checkNotNull(fromVersion, "the initial version cannot be null");
+        checkNotNull(untilVersion, "the end of the version cannot be null");
+        this.name = table.tableName();
+        this.fromVersion = fromVersion.versionNum();
+        this.untilVersion = untilVersion.versionNum();
+        this.database = database;
     }
 
     /**
@@ -72,6 +92,7 @@ public class TableDescription {
         this.name = table.tableName();
         this.fromVersion = fromVersion.versionNum();
         this.untilVersion = untilVersion.versionNum();
+        this.database = "Open_vSwitch";
     }
 
     /**
