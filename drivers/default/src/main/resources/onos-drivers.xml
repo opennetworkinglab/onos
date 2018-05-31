@@ -155,6 +155,8 @@
             hwVersion="OFDPA OVS" swVersion="OFDPA OVS">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.ofdpa.OvsOfdpa2Pipeline"/>
+        <behaviour api="org.onosproject.openflow.controller.ExtensionSelectorInterpreter"
+                   impl="org.onosproject.driver.extensions.OvsOfdpaExtensionSelectorInterpreter" />
     </driver>
 
     <driver name="celestica" extends="default"
