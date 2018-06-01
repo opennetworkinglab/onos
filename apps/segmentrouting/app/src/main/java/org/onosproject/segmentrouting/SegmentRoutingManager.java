@@ -77,7 +77,7 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostListener;
-import org.onosproject.net.host.HostLocationProbingService;
+import org.onosproject.net.host.HostProbingService;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.host.InterfaceIpAddress;
 import org.onosproject.net.intent.WorkPartitionService;
@@ -186,7 +186,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     HostService hostService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    HostLocationProbingService probingService;
+    HostProbingService probingService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     public DeviceService deviceService;

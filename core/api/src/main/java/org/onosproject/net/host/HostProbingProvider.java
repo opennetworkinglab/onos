@@ -17,22 +17,26 @@ package org.onosproject.net.host;
 
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Host;
+import org.onosproject.net.provider.Provider;
 
 /**
- * Service for interacting with the host probing entities.
- *
- * @deprecated in ONOS 1.12, replaced by {@link HostProbingService}
+ * Provider of host probing.
  */
-@Deprecated
-public interface HostLocationProbingService {
+public interface HostProbingProvider extends Provider {
+
     /**
-     * Probes given host on given location.
+     * Probe given host on the given connectPoint with given probeMode.
      *
-     * @param host the host to be probed
-     * @param connectPoint the location of host to be probed
+     * @param host host to be probed
+     * @param connectPoint connect point on which the probe is sent
      * @param probeMode probe mode
-     * @deprecated in ONOS 1.12, replaced by {@link HostProbingService#probeHost(Host, ConnectPoint, ProbeMode)}
      */
-    @Deprecated
     void probeHost(Host host, ConnectPoint connectPoint, ProbeMode probeMode);
+
+    /**
+     * Process host probing events.
+     *
+     * @param event host probing event
+     */
+    void processEvent(HostProbingEvent event);
 }

@@ -19,12 +19,13 @@ package org.onosproject.segmentrouting;
 import com.google.common.collect.Lists;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Host;
-import org.onosproject.net.host.HostLocationProbingService;
+import org.onosproject.net.host.HostProbingService;
+import org.onosproject.net.host.ProbeMode;
 
 import java.util.List;
 import java.util.Objects;
 
-public class MockLocationProbingService implements HostLocationProbingService {
+public class MockHostProbingService implements HostProbingService {
     List<Probe> probes;
 
     private class Probe {
@@ -58,7 +59,7 @@ public class MockLocationProbingService implements HostLocationProbingService {
         }
     }
 
-    MockLocationProbingService() {
+    MockHostProbingService() {
         probes = Lists.newArrayList();
     }
 
@@ -68,7 +69,7 @@ public class MockLocationProbingService implements HostLocationProbingService {
     }
 
     @Override
-    public void probeHostLocation(Host host, ConnectPoint connectPoint, ProbeMode probeMode) {
+    public void probeHost(Host host, ConnectPoint connectPoint, ProbeMode probeMode) {
         probes.add(new Probe(host, connectPoint, probeMode));
     }
 }

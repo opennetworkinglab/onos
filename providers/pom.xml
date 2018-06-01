@@ -33,6 +33,7 @@
     <modules>
         <module>openflow</module>
         <module>host</module>
+        <module>hostprobing</module>
         <module>netcfghost</module>
         <module>netconf</module>
         <module>null</module>
