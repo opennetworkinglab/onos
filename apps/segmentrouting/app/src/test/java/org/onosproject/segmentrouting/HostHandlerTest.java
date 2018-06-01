@@ -28,7 +28,7 @@ import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.net.config.ConfigApplyDelegate;
-import org.onosproject.net.host.HostLocationProbingService;
+import org.onosproject.net.host.ProbeMode;
 import org.onosproject.net.intf.Interface;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultHost;
@@ -182,7 +182,7 @@ public class HostHandlerTest {
     private static final Set<Interface> INTERFACES = Sets.newHashSet(INTF11, INTF12, INTF13, INTF21,
             INTF22, INTF31, INTF32, INTF39, INTF41, INTF49);
 
-    private MockLocationProbingService mockLocationProbingService;
+    private MockHostProbingService mockLocationProbingService;
 
     @Before
     public void setUp() throws Exception {
@@ -218,7 +218,7 @@ public class HostHandlerTest {
         srManager.mastershipService = new MockMastershipService(LOCAL_DEVICES);
         srManager.hostService = new MockHostService(HOSTS);
         srManager.cfgService = mockNetworkConfigRegistry;
-        mockLocationProbingService = new MockLocationProbingService();
+        mockLocationProbingService = new MockHostProbingService();
         srManager.probingService = mockLocationProbingService;
         srManager.linkHandler = new MockLinkHandler(srManager);
 
@@ -351,7 +351,7 @@ public class HostHandlerTest {
         assertEquals(P1, BRIDGING_TABLE.get(new MockBridgingTableKey(DEV3, HOST_MAC, INTF_VLAN_UNTAGGED)).portNumber);
         assertEquals(P9, BRIDGING_TABLE.get(new MockBridgingTableKey(DEV4, HOST_MAC, INTF_VLAN_UNTAGGED)).portNumber);
         // Expect probe to be sent out on pair device
-        assertTrue(mockLocationProbingService.verifyProbe(host1, CP41, HostLocationProbingService.ProbeMode.DISCOVER));
+        assertTrue(mockLocationProbingService.verifyProbe(host1, CP41, ProbeMode.DISCOVER));
 
         // Add the second location of dual-homed host
         // Expect: no longer use the pair link
@@ -753,7 +753,7 @@ public class HostHandlerTest {
         assertEquals(P1, BRIDGING_TABLE.get(new MockBridgingTableKey(DEV3, HOST_MAC, INTF_VLAN_UNTAGGED)).portNumber);
         assertEquals(P9, BRIDGING_TABLE.get(new MockBridgingTableKey(DEV4, HOST_MAC, INTF_VLAN_UNTAGGED)).portNumber);
         // Expect probe to be sent out on pair device
-        assertTrue(mockLocationProbingService.verifyProbe(host2, CP41, HostLocationProbingService.ProbeMode.DISCOVER));
+        assertTrue(mockLocationProbingService.verifyProbe(host2, CP41, ProbeMode.DISCOVER));
 
         // Discover location
         // Expect: cancel all redirections

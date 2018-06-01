@@ -15,24 +15,44 @@
  */
 package org.onosproject.net.host;
 
+import org.onlab.packet.MacAddress;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Host;
 
 /**
- * Service for interacting with the host probing entities.
- *
- * @deprecated in ONOS 1.12, replaced by {@link HostProbingService}
+ * Information related to the host being probed.
  */
-@Deprecated
-public interface HostLocationProbingService {
+public interface HostProbe extends Host {
     /**
-     * Probes given host on given location.
+     * Gets connect point of this entry.
      *
-     * @param host the host to be probed
-     * @param connectPoint the location of host to be probed
-     * @param probeMode probe mode
-     * @deprecated in ONOS 1.12, replaced by {@link HostProbingService#probeHost(Host, ConnectPoint, ProbeMode)}
+     * @return connect point
      */
-    @Deprecated
-    void probeHost(Host host, ConnectPoint connectPoint, ProbeMode probeMode);
+    ConnectPoint connectPoint();
+
+    /**
+     * Gets retry counter of this entry.
+     *
+     * @return retry
+     */
+    int retry();
+
+    /**
+     * Decrease retry counter of this entry by one.
+     */
+    void decreaseRetry();
+
+    /**
+     * Gets mode of this entry.
+     *
+     * @return mode
+     */
+    ProbeMode mode();
+
+    /**
+     * Gets probe MAC of this entry.
+     *
+     * @return probe mac
+     */
+    MacAddress probeMac();
 }

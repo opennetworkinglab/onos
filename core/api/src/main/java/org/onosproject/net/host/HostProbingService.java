@@ -20,19 +20,14 @@ import org.onosproject.net.Host;
 
 /**
  * Service for interacting with the host probing entities.
- *
- * @deprecated in ONOS 1.12, replaced by {@link HostProbingService}
  */
-@Deprecated
-public interface HostLocationProbingService {
+public interface HostProbingService {
     /**
      * Probes given host on given location.
      *
      * @param host the host to be probed
      * @param connectPoint the location of host to be probed
      * @param probeMode probe mode
-     * @deprecated in ONOS 1.12, replaced by {@link HostProbingService#probeHost(Host, ConnectPoint, ProbeMode)}
      */
-    @Deprecated
     void probeHost(Host host, ConnectPoint connectPoint, ProbeMode probeMode);
 }

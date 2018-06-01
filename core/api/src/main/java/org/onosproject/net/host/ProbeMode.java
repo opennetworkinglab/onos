@@ -15,24 +15,19 @@
  */
 package org.onosproject.net.host;
 
-import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.Host;
-
 /**
- * Service for interacting with the host probing entities.
- *
- * @deprecated in ONOS 1.12, replaced by {@link HostProbingService}
+ * Mode of host location probing.
  */
-@Deprecated
-public interface HostLocationProbingService {
+public enum ProbeMode {
     /**
-     * Probes given host on given location.
-     *
-     * @param host the host to be probed
-     * @param connectPoint the location of host to be probed
-     * @param probeMode probe mode
-     * @deprecated in ONOS 1.12, replaced by {@link HostProbingService#probeHost(Host, ConnectPoint, ProbeMode)}
+     * Append probed host location if reply is received before timeout. Otherwise, do nothing.
+     * Typically used to discover secondary locations.
      */
-    @Deprecated
-    void probeHost(Host host, ConnectPoint connectPoint, ProbeMode probeMode);
+    DISCOVER,
+
+    /**
+     * Remove probed host location if reply is received after timeout. Otherwise, do nothing.
+     * Typically used to verify previous locations.
+     */
+    VERIFY
 }

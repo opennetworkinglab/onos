@@ -54,7 +54,6 @@ import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.net.host.HostLocationProbingService;
 import org.onosproject.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
@@ -93,12 +92,9 @@ import java.util.Dictionary;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import java.util.Set;
 
-import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -109,7 +105,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 @Component(immediate = true)
 @Service
-public class HostLocationProvider extends AbstractProvider implements HostProvider, HostLocationProbingService {
+public class HostLocationProvider extends AbstractProvider implements HostProvider {
     private final Logger log = getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -135,8 +131,6 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected InterfaceService interfaceService;
-
-    private HostProviderService providerService;
 
     private final InternalHostProvider processor = new InternalHostProvider();
     private final DeviceListener deviceListener = new InternalDeviceListener();
@@ -173,11 +167,11 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
             label = "Allow hosts to be multihomed")
     private boolean multihomingEnabled = false;
 
-    private int probeInitDelayMs = 1000;
+    private HostProviderService providerService;
 
-    ExecutorService eventHandler;
+    ExecutorService deviceEventHandler;
+    private ExecutorService probeEventHandler;
     private ExecutorService packetHandler;
-    private ScheduledExecutorService hostProber;
 
     /**
      * Creates an OpenFlow host provider.
@@ -190,10 +184,12 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
     public void activate(ComponentContext context) {
         cfgService.registerProperties(getClass());
         appId = coreService.registerApplication("org.onosproject.provider.host");
-        eventHandler = newSingleThreadScheduledExecutor(groupedThreads("onos/host-loc-provider", "event-handler", log));
+        deviceEventHandler = newSingleThreadScheduledExecutor(groupedThreads("onos/host-loc-provider",
+                "device-event-handler", log));
+        probeEventHandler = newSingleThreadScheduledExecutor(groupedThreads("onos/host-loc-provider",
+                "probe-event-handler", log));
         packetHandler = newSingleThreadScheduledExecutor(groupedThreads("onos/host-loc-provider",
                 "packet-handler", log));
-        hostProber = newScheduledThreadPool(32, groupedThreads("onos/host-loc-probe", "%d", log));
         providerService = providerRegistry.register(this);
         packetService.addProcessor(processor, PacketProcessor.advisor(1));
         deviceService.addListener(deviceListener);
@@ -212,9 +208,9 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
         providerRegistry.unregister(this);
         packetService.removeProcessor(processor);
         deviceService.removeListener(deviceListener);
-        eventHandler.shutdown();
+        deviceEventHandler.shutdown();
+        probeEventHandler.shutdown();
         packetHandler.shutdown();
-        hostProber.shutdown();
         providerService = null;
         log.info("Stopped");
     }
@@ -354,47 +350,6 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
     }
 
     @Override
-    public void probeHostLocation(Host host, ConnectPoint connectPoint, ProbeMode probeMode) {
-        host.ipAddresses().stream().findFirst().ifPresent(ip -> {
-            MacAddress probeMac = providerService.addPendingHostLocation(host.id(), connectPoint, probeMode);
-            log.debug("Constructing {} probe for host {} with {}", probeMode, host.id(), ip);
-            Ethernet probe;
-            if (ip.isIp4()) {
-                probe = ARP.buildArpRequest(probeMac.toBytes(), Ip4Address.ZERO.toOctets(),
-                        host.id().mac().toBytes(), ip.toOctets(),
-                        host.id().mac().toBytes(), host.id().vlanId().toShort());
-            } else {
-                probe = NeighborSolicitation.buildNdpSolicit(
-                        ip.getIp6Address(),
-                        Ip6Address.valueOf(IPv6.getLinkLocalAddress(probeMac.toBytes())),
-                        ip.getIp6Address(),
-                        probeMac,
-                        host.id().mac(),
-                        host.id().vlanId());
-            }
-
-            // NOTE: delay the probe a little bit to wait for the store synchronization is done
-            hostProber.schedule(() ->
-                    sendLocationProbe(probe, connectPoint), probeInitDelayMs, TimeUnit.MILLISECONDS);
-        });
-    }
-
-    /**
-     * Send the probe packet on given port.
-     *
-     * @param probe the probe packet
-     * @param connectPoint the port we want to probe
-     */
-    private void sendLocationProbe(Ethernet probe, ConnectPoint connectPoint) {
-        log.debug("Sending probe for host {} on location {} with probeMac {}",
-                probe.getDestinationMAC(), connectPoint, probe.getSourceMAC());
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder().setOutput(connectPoint.port()).build();
-        OutboundPacket outboundPacket = new DefaultOutboundPacket(connectPoint.deviceId(),
-                treatment, ByteBuffer.wrap(probe.serialize()));
-        packetService.emit(outboundPacket);
-    }
-
-    @Override
     public void triggerProbe(Host host) {
         //log.info("Triggering probe on device {} ", host);
 
@@ -465,10 +420,8 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
 
                     if (prevLocations.stream().noneMatch(loc -> loc.deviceId().equals(hloc.deviceId()))) {
                         // New location is on a device that we haven't seen before
-                        // Could be a dual-home host. Append new location and send out the probe
+                        // Could be a dual-home host.
                         newLocations.addAll(prevLocations);
-                        prevLocations.forEach(prevLocation ->
-                                probeHostLocation(existingHost, prevLocation, ProbeMode.VERIFY));
                     } else {
                         // Move within the same switch
                         // Simply replace old location that is on the same device
@@ -559,10 +512,8 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
             HostId hid = HostId.hostId(eth.getSourceMAC(), vlan);
             MacAddress destMac = eth.getDestinationMAC();
 
-            // Receives a location probe. Invalid entry from the cache
+            // Ignore location probes
             if (multihomingEnabled && destMac.isOnos() && !MacAddress.NONE.equals(destMac)) {
-                log.debug("Receives probe for {}/{} on {}", srcMac, vlan, heardOn);
-                providerService.removePendingHostLocation(destMac);
                 return;
             }
 
@@ -762,7 +713,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
     private class InternalDeviceListener implements DeviceListener {
         @Override
         public void event(DeviceEvent event) {
-            eventHandler.execute(() -> handleEvent(event));
+            deviceEventHandler.execute(() -> handleEvent(event));
         }
 
         private void handleEvent(DeviceEvent event) {

@@ -29,7 +29,6 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
-import org.onosproject.net.host.HostLocationProbingService.ProbeMode;
 import org.onosproject.net.intf.Interface;
 import org.onosproject.net.intf.InterfaceService;
 import org.onosproject.net.HostLocation;
@@ -442,6 +441,20 @@ public class HostManager
         }
 
         @Override
+        public void addLocationToHost(HostId hostId, HostLocation location) {
+            checkNotNull(hostId, HOST_ID_NULL);
+            checkValidity();
+
+            if (!allowedToChange(hostId)) {
+                log.info("Request to remove {} from {} is ignored due to provider mismatch",
+                        location, hostId);
+                return;
+            }
+
+            store.appendLocation(hostId, location);
+        }
+
+        @Override
         public void removeLocationFromHost(HostId hostId, HostLocation location) {
             checkNotNull(hostId, HOST_ID_NULL);
             checkValidity();
@@ -453,16 +466,6 @@ public class HostManager
             }
 
             store.removeLocation(hostId, location);
-        }
-
-        @Override
-        public MacAddress addPendingHostLocation(HostId hostId, ConnectPoint connectPoint, ProbeMode probeMode) {
-            return store.addPendingHostLocation(hostId, connectPoint, probeMode);
-        }
-
-        @Override
-        public void removePendingHostLocation(MacAddress probeMac) {
-            store.removePendingHostLocation(probeMac);
         }
 
         /**
