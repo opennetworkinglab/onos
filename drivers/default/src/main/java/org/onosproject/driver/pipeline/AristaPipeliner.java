@@ -38,21 +38,22 @@ public class AristaPipeliner extends DefaultSingleTablePipeline {
     private final Logger log = getLogger(getClass());
     private ServiceDirectory serviceDirectory;
     private DeviceId deviceId;
+    protected DeviceService deviceService;
 
-    protected DeviceService deviceSetvice;
     @Override
     public void init(DeviceId deviceId, PipelinerContext context) {
+        super.init(deviceId, context);
         this.deviceId = deviceId;
         this.serviceDirectory = context.directory();
-        this.deviceSetvice = serviceDirectory.get(DeviceService.class);
+        deviceService = serviceDirectory.get(DeviceService.class);
     }
 
 
     @Override
     public void forward(ForwardingObjective forwardObjective) {
         ForwardingObjective newFwd = forwardObjective;
+        Device device = deviceService.getDevice(deviceId);
 
-        Device device = deviceSetvice.getDevice(deviceId);
         if (forwardObjective.treatment() != null && forwardObjective.treatment().clearedDeferred()) {
             log.warn("Using 'clear actions' instruction which is not supported by {} {} {} Switch"
                             + " removing the clear deferred from the forwarding objective",

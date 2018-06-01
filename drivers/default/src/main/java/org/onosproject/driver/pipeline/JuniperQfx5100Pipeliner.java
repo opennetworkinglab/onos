@@ -58,14 +58,15 @@ public class JuniperQfx5100Pipeliner extends DefaultSingleTablePipeline implemen
     private ServiceDirectory serviceDirectory;
     private DeviceId deviceId;
     private FlowRuleService flowRuleService;
-
     protected DeviceService deviceService;
+
     @Override
     public void init(DeviceId deviceId, PipelinerContext context) {
+        super.init(deviceId, context);
         this.deviceId = deviceId;
         this.serviceDirectory = context.directory();
         this.flowRuleService = serviceDirectory.get(FlowRuleService.class);
-        this.deviceService = serviceDirectory.get(DeviceService.class);
+        deviceService = serviceDirectory.get(DeviceService.class);
     }
 
     @Override
@@ -80,8 +81,8 @@ public class JuniperQfx5100Pipeliner extends DefaultSingleTablePipeline implemen
         FlowRuleOperations.Builder flowOpsBuilder = FlowRuleOperations.builder();
 
         ForwardingObjective newFwd = forwardObjective;
-
         Device device = deviceService.getDevice(deviceId);
+
         if (forwardObjective.treatment() != null && forwardObjective.treatment().clearedDeferred()) {
             log.warn("Using 'clear actions' instruction which is not supported by {}  {} {} Switch",
                     device.id(), device.manufacturer(), device.hwVersion());

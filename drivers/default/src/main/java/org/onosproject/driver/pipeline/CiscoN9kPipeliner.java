@@ -38,15 +38,15 @@ public class CiscoN9kPipeliner extends DefaultSingleTablePipeline {
     private final Logger log = getLogger(getClass());
     private ServiceDirectory serviceDirectory;
     private DeviceId deviceId;
-
     protected DeviceService deviceService;
+
     @Override
     public void init(DeviceId deviceId, PipelinerContext context) {
+        super.init(deviceId, context);
         this.deviceId = deviceId;
         this.serviceDirectory = context.directory();
-        this.deviceService = serviceDirectory.get(DeviceService.class);
+        deviceService = serviceDirectory.get(DeviceService.class);
     }
-
 
     @Override
     public void forward(ForwardingObjective forwardObjective) {
