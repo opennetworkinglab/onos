@@ -26,8 +26,8 @@ import org.onosproject.net.Host;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.host.HostEvent;
-import org.onosproject.net.host.HostLocationProbingService.ProbeMode;
 import org.onosproject.net.host.HostService;
+import org.onosproject.net.host.ProbeMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -168,6 +168,9 @@ public class HostHandler {
 
         // For each old location
         Sets.difference(prevLocations, newLocations).forEach(prevLocation -> {
+            // First of all, verify each old location
+            srManager.probingService.probeHost(host, prevLocation, ProbeMode.VERIFY);
+
             // Remove routing rules for old IPs
             Sets.difference(prevIps, newIps).forEach(ip ->
                     processRoutingRule(prevLocation.deviceId(), prevLocation.port(), hostMac, hostVlanId,
@@ -332,7 +335,7 @@ public class HostHandler {
             srManager.getPairDeviceId(cp.deviceId())
                     .ifPresent(pairDeviceId -> srManager.hostService.getConnectedHosts(pairDeviceId).stream()
                             .filter(host -> isHostInVlanOfPort(host, pairDeviceId, cp))
-                            .forEach(host -> srManager.probingService.probeHostLocation(host, cp, ProbeMode.DISCOVER))
+                            .forEach(host -> srManager.probingService.probeHost(host, cp, ProbeMode.DISCOVER))
                     );
         }
     }
@@ -375,7 +378,7 @@ public class HostHandler {
                 .filter(i -> !i.connectPoint().port().equals(pairRemotePort))
                 .forEach(i -> {
                     log.debug("Probing host {} on pair device {}", host.id(), i.connectPoint());
-                    srManager.probingService.probeHostLocation(host, i.connectPoint(), ProbeMode.DISCOVER);
+                    srManager.probingService.probeHost(host, i.connectPoint(), ProbeMode.DISCOVER);
                 });
     }
 

@@ -15,12 +15,12 @@
  */
 package org.onosproject.net.host;
 
+import org.apache.commons.lang3.NotImplementedException;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
-import org.onosproject.net.host.HostLocationProbingService.ProbeMode;
 import org.onosproject.net.provider.ProviderService;
 
 /**
@@ -54,6 +54,16 @@ public interface HostProviderService extends ProviderService<HostProvider> {
     void removeIpFromHost(HostId hostId, IpAddress ipAddress);
 
     /**
+     * Notifies the core when a location is associated with a host.
+     *
+     * @param hostId id of the host
+     * @param location location of host that gets discovered
+     */
+    default void addLocationToHost(HostId hostId, HostLocation location) {
+        throw new NotImplementedException("addLocationToHost is not implemented");
+    }
+
+    /**
      * Notifies the core when a location is no longer associated with a host.
      *
      * @param hostId id of the host
@@ -69,7 +79,9 @@ public interface HostProviderService extends ProviderService<HostProvider> {
      * @param connectPoint the connect point that is under verification
      * @param probeMode probe mode
      * @return probeMac, the source MAC address ONOS uses to probe the host
+     * @deprecated in ONOS 1.12, replaced by {@link HostProbingProviderService}
      */
+    @Deprecated
     default MacAddress addPendingHostLocation(HostId hostId, ConnectPoint connectPoint, ProbeMode probeMode) {
         return MacAddress.NONE;
     }
@@ -78,6 +90,8 @@ public interface HostProviderService extends ProviderService<HostProvider> {
      * Notifies HostProviderService the end of pending host location verification.
      *
      * @param probeMac the source MAC address ONOS uses to probe the host
+     * @deprecated in ONOS 1.12, replaced by {@link HostProbingProviderService}
      */
+    @Deprecated
     default void removePendingHostLocation(MacAddress probeMac) {}
 }

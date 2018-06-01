@@ -236,7 +236,7 @@ public class HostLocationProviderTest {
 
         provider.activate(CTX_FOR_NO_REMOVE);
 
-        provider.eventHandler = MoreExecutors.newDirectExecutorService();
+        provider.deviceEventHandler = MoreExecutors.newDirectExecutorService();
     }
 
     @Test
