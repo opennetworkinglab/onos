@@ -5,6 +5,7 @@ Code written for Angular 1.x can be converted to Angular 5, through a line by li
 * In tsconfig.json this app is set to be compiled as ES6 (ES2015)
   * See this [Compatibility Table](http://kangax.github.io/compat-table/es6/) for supported browsers
   * All modern browsers are supported
+  * See https://webapplog.com/es6/ for a list of things that ES6 brings
 * Each item (Service, Component, Directive, Pipe or Module) gets its own file ending with this type e.g. function.service.ts 
 * Each test file is the name of the item with .spec.ts e.g. function.service.spec.ts
 * Modules are used to group together services, components, directives etc
@@ -83,10 +84,58 @@ Two services have been setup in the onos.module.ts that are new to this migratio
 * LogService - this replaces $log that was inserted in to the old code
 * WindowService - this replaces $window and $location in the old code
 
+There is a fair bit of refactoring has to take place. An important thing to understand
+is that DOM manipulations from inside JavaScript code is not the Angular 6
+way of doing things - there was a lot of this in the old ONOS GUI, using d3.append(..)
+and so on.
+The Angular 6 way of doing things is to defined DOM objects (elements) in the 
+html template of a component, and use the Component Java Script code as a base
+for logic that can influence the display of these objects in the template.
+What this means is that what were previously defined as services (e.g. VeilService or
+LoadingService) should now become Components in Angular 6 (e.g. VeilComponent or
+LoadingComponent). 
+
+###How do I know whether a Service should be made a Component in this new GUI?
+The general rule to follow is _"if a service in the old GUI has an associated CSS 
+file or two then is should be a component in the new GUI"_. 
+
+The implication of this is that all of the d3 DOM Manipulations that happened in 
+the old service should now be represented in the template of this new component.
+If it's not clear to you what the template should look like, then run the old GUI
+and inspect the element and its children to see the structure.
+
+Components (unlike services) have limited scope (that's the magic of them really -
+no more DOM is loaded at any time than is necessary). This means that they are
+self contained modules, and any CSS associated with them is private to that 
+component and not accessible globally.
+
+### Do not inject components in to services
+Components are graphical elements and should not be injected in to Services. 
+Services should be injected in to components, but not the other way round.
+
+Take for instance the WebSocketService - this should remain a service, but I want 
+to display the LoadingComponent while it's waiting and the VeilComponent if it
+disconnects. I should not go injecting these in to WebSocketService - instead
+there is a setLoadingDelegate() and a setVeilDelegate() function on WSS that I 
+can pass in a reference to these two components. When they need to be displayed
+a method call is made on the delegate and the component gets enabled and displays.
+Also note inside WSS any time we call a method on this LoadingComponent delegate 
+we check that it the delegate had actually been set. 
+
+The WSS was passed in to the LoadingComponent and VeilComponent to set the 
+delegate on it.
+
+Any component that needs to use WSS for data should inject the WSS service __AND__
+needs to include the components in its template by adding <onos-loading> and
+<onos-veil>.
+
 ## fw/remote/wsock.service
 Taking for a really simple example the fw/remote/WSockService, this was originally defined in 
 the __app/fw/remote/wsock.js__ file and is now redefined in 
 __onos/web/gui2/src/main/webapp/app/fw/remote/wsock.service.ts__.
+
+First of all this should remain a Service, since it does not do any DOM
+manipulation and does not have an associated CSS.
 
 This has one method that's called to establish the WebSocketService
 

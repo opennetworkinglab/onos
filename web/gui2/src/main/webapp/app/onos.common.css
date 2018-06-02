@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-present Open Networking Foundation
+ * Copyright 2015-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,25 @@
  */
 
 /*
- ONOS GUI -- core (layout) -- CSS file
+ ONOS GUI -- common -- CSS file
  */
 
-#view {
-    padding: 6px;
-    width: 100%;
-    height: 100%;
+.clickable {
+    cursor: pointer;
 }
 
-#view h2 {
-    -webkit-margin-before: 0;
-    -webkit-margin-after: 0;
-    margin: 32px 0 4px 16px;
-    padding: 0;
-    font-size: 18pt;
-    font-weight: lighter;
+.light .editable {
+    border-bottom: 1px dashed #ca504b;
+}
+
+.dark .editable {
+    border-bottom: 1px dashed #df4f4a;
+}
+
+.light svg.embeddedIcon .icon .glyph {
+    fill: #0071bd;
+}
+
+.dark svg.embeddedIcon .icon .glyph {
+    fill: #375b7f;
 }

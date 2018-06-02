@@ -24,8 +24,8 @@ import { OnosService } from '../../app/onos.service';
 import { of } from 'rxjs';
 
 class MockFnService extends FnService {
-    constructor(ar: ActivatedRoute, log: LogService) {
-        super(ar, log);
+    constructor(ar: ActivatedRoute, log: LogService, w: Window) {
+        super(ar, log, w);
     }
 }
 
@@ -44,17 +44,25 @@ class MockActivatedRoute extends ActivatedRoute {
 describe('DetectBrowserDirective', () => {
     let log: LogService;
     let ar: ActivatedRoute;
+    let mockWindow: Window;
 
     beforeEach(() => {
         log = new ConsoleLoggerService();
         ar = new MockActivatedRoute(['debug', 'DetectBrowserDirective']);
+        mockWindow = <any>{
+            navigator: {
+                userAgent: 'HeadlessChrome',
+                vendor: 'Google Inc.'
+            }
+        };
 
         TestBed.configureTestingModule({
             providers: [ DetectBrowserDirective,
-                { provide: FnService, useValue: new MockFnService(ar, log) },
+                { provide: FnService, useValue: new MockFnService(ar, log, mockWindow) },
                 { provide: LogService, useValue: log },
                 { provide: OnosService, useClass: MockOnosService },
                 { provide: Document, useValue: document },
+                { provide: Window, useFactory: (() => mockWindow ) }
             ]
         });
     });

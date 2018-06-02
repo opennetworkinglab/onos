@@ -222,7 +222,7 @@ export class IconService {
             'xlink:href': '#' + glyphId,
             width: dim,
             height: dim,
-            transform: this.sus.translate(xlate, xlate),
+            transform: this.sus.translate([xlate], xlate),
         });
         return g;
     }

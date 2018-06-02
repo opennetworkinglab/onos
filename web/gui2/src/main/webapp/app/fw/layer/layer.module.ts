@@ -24,21 +24,23 @@ import { EditableTextService } from './editabletext.service';
 import { LoadingService } from './loading.service';
 import { PanelService } from './panel.service';
 import { QuickHelpService } from './quickhelp.service';
-import { VeilService } from './veil.service';
+import { VeilComponent } from './veil/veil.component';
 
 /**
  * ONOS GUI -- Layers Module
  */
 @NgModule({
   exports: [
-    FlashComponent
+    FlashComponent,
+    VeilComponent
   ],
   imports: [
     CommonModule,
     UtilModule
   ],
   declarations: [
-    FlashComponent
+    FlashComponent,
+    VeilComponent
   ],
   providers: [
     DetailsPanelService,
@@ -46,8 +48,7 @@ import { VeilService } from './veil.service';
     EditableTextService,
     LoadingService,
     PanelService,
-    QuickHelpService,
-    VeilService
+    QuickHelpService
   ]
 })
 export class LayerModule { }

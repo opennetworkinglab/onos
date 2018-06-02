@@ -1,6 +1,8 @@
 <div style="text-align:center" onosDetectBrowser>
     <onos-mast></onos-mast>
     <onos-nav></onos-nav>
+    <onos-veil #veil></onos-veil>
+    <div>{{ wss.setVeilDelegate(veil) }}</div>
     <router-outlet></router-outlet>
 </div>
 

@@ -14,15 +14,21 @@
  * limitations under the License.
  */
 import { TestBed, async } from '@angular/core/testing';
-import { RouterModule, RouterOutlet, ChildrenOutletContexts } from '@angular/router';
+import { RouterModule, RouterOutlet, ChildrenOutletContexts, ActivatedRoute, Params } from '@angular/router';
+import { of } from 'rxjs';
+
 import { LogService } from '../../app/log.service';
 import { ConsoleLoggerService } from '../../app/consolelogger.service';
+
 import { IconComponent } from '../../app/fw/svg/icon/icon.component';
 import { MastComponent } from '../../app/fw/mast/mast/mast.component';
 import { NavComponent } from '../../app/fw/nav/nav/nav.component';
 import { OnosComponent } from '../../app/onos.component';
+import { VeilComponent } from '../../app/fw/layer/veil/veil.component';
+
 import { DialogService } from '../../app/fw/layer/dialog.service';
 import { EeService } from '../../app/fw/util/ee.service';
+import { FnService } from '../../app/fw/util/fn.service';
 import { GlyphService } from '../../app/fw/svg/glyph.service';
 import { IconService } from '../../app/fw/svg/icon.service';
 import { KeyService } from '../../app/fw/util/key.service';
@@ -31,10 +37,17 @@ import { NavService } from '../../app/fw/nav/nav.service';
 import { OnosService } from '../../app/onos.service';
 import { PanelService } from '../../app/fw/layer/panel.service';
 import { QuickHelpService } from '../../app/fw/layer/quickhelp.service';
+import { SvgUtilService } from '../../app/fw/svg/svgutil.service';
 import { ThemeService } from '../../app/fw/util/theme.service';
 import { SpriteService } from '../../app/fw/svg/sprite.service';
-import { VeilService } from '../../app/fw/layer/veil.service';
-import { WebSocketService } from '../../app/fw/remote/websocket.service';
+import { WebSocketService, WsOptions } from '../../app/fw/remote/websocket.service';
+
+class MockActivatedRoute extends ActivatedRoute {
+    constructor(params: Params) {
+        super();
+        this.queryParams = of(params);
+    }
+}
 
 class MockDialogService {}
 
@@ -45,8 +58,6 @@ class MockGlyphService {}
 class MockIconService {}
 
 class MockKeyService {}
-
-class MockLionService {}
 
 class MockNavService {}
 
@@ -60,18 +71,34 @@ class MockSpriteService {}
 
 class MockThemeService {}
 
-class MockVeilService {}
-
-class MockWebSocketService {}
+class MockVeilComponent {}
 
 /**
  * ONOS GUI -- Onos Component - Unit Tests
  */
 describe('OnosComponent', () => {
     let log: LogService;
+    let fs: FnService;
+    let ar: MockActivatedRoute;
+    let windowMock: Window;
 
     beforeEach(async(() => {
         log = new ConsoleLoggerService();
+        ar = new MockActivatedRoute({'debug': 'TestService'});
+
+        windowMock = <any>{
+            location: <any> {
+                hostname: '',
+                host: '',
+                port: '',
+                protocol: '',
+                search: { debug: 'true'},
+                href: ''
+            },
+            innerHeight: 240,
+            innerWidth: 320
+        };
+        fs = new FnService(ar, log, windowMock);
 
         TestBed.configureTestingModule({
             declarations: [
@@ -79,16 +106,17 @@ describe('OnosComponent', () => {
                 MastComponent,
                 NavComponent,
                 OnosComponent,
+                VeilComponent,
                 RouterOutlet
             ],
             providers: [
                 { provide: ChildrenOutletContexts, useClass: ChildrenOutletContexts },
                 { provide: DialogService, useClass: MockDialogService },
                 { provide: EeService, useClass: MockEeService },
+                { provide: FnService, useValue: fs },
                 { provide: GlyphService, useClass: MockGlyphService },
                 { provide: IconService, useClass: MockIconService },
                 { provide: KeyService, useClass: MockKeyService },
-                { provide: LionService, useClass: MockLionService },
                 { provide: LogService, useValue: log },
                 { provide: NavService, useClass: MockNavService },
                 { provide: OnosService, useClass: MockOnosService },
@@ -96,8 +124,7 @@ describe('OnosComponent', () => {
                 { provide: PanelService, useClass: MockPanelService },
                 { provide: SpriteService, useClass: MockSpriteService },
                 { provide: ThemeService, useClass: MockThemeService },
-                { provide: VeilService, useClass: MockVeilService },
-                { provide: WebSocketService, useClass: MockWebSocketService },
+                { provide: Window, useFactory: (() => windowMock ) },
             ]
         }).compileComponents();
     }));

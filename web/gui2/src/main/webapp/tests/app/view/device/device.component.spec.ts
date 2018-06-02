@@ -18,23 +18,35 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { LogService } from '../../../../app/log.service';
 import { ConsoleLoggerService } from '../../../../app/consolelogger.service';
 import { DeviceComponent } from '../../../../app/view/device/device.component';
+
 import { DetailsPanelService } from '../../../../app/fw/layer/detailspanel.service';
-import { FnService } from '../../../../app/fw/util/fn.service';
+import { FnService, WindowSize } from '../../../../app/fw/util/fn.service';
 import { IconService } from '../../../../app/fw/svg/icon.service';
+import { GlyphService } from '../../../../app/fw/svg/glyph.service';
 import { KeyService } from '../../../../app/fw/util/key.service';
 import { LoadingService } from '../../../../app/fw/layer/loading.service';
 import { NavService } from '../../../../app/fw/nav/nav.service';
 import { MastService } from '../../../../app/fw/mast/mast.service';
 import { PanelService } from '../../../../app/fw/layer/panel.service';
+import { SvgUtilService } from '../../../../app/fw/svg/svgutil.service';
 import { TableBuilderService } from '../../../../app/fw/widget/tablebuilder.service';
 import { TableDetailService } from '../../../../app/fw/widget/tabledetail.service';
 import { WebSocketService } from '../../../../app/fw/remote/websocket.service';
 
 class MockDetailsPanelService {}
 
-class MockFnService {}
+class MockFnService {
+    windowSize(offH: number = 0, offW: number = 0): WindowSize {
+        return {
+            height: 123,
+            width: 456
+        };
+    }
+}
 
 class MockIconService {}
+
+class MockGlyphService {}
 
 class MockKeyService {}
 
@@ -74,6 +86,7 @@ describe('DeviceComponent', () => {
                 { provide: DetailsPanelService, useClass: MockDetailsPanelService },
                 { provide: FnService, useClass: MockFnService },
                 { provide: IconService, useClass: MockIconService },
+                { provide: GlyphService, useClass: MockGlyphService },
                 { provide: KeyService, useClass: MockKeyService },
                 { provide: LoadingService, useClass: MockLoadingService },
                 { provide: MastService, useClass: MockMastService },
@@ -91,7 +104,7 @@ describe('DeviceComponent', () => {
 
     beforeEach(() => {
         fixture = TestBed.createComponent(DeviceComponent);
-            component = fixture.componentInstance;
+        component = fixture.componentInstance;
         fixture.detectChanges();
     });
 

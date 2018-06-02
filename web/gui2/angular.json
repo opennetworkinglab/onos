@@ -20,9 +20,7 @@
               "src/main/webapp/data",
               "src/main/webapp/app/fw/layer/loading.service.css"
             ],
-            "styles": [
-              "src/main/webapp/app/onos.css"
-            ],
+            "styles": ["src/main/webapp/onos.theme.css"],
             "scripts": []
           },
           "configurations": {
@@ -71,7 +69,7 @@
             "tsConfig": "src/main/webapp/tsconfig.spec.json",
             "scripts": [],
             "styles": [
-              "src/main/webapp/app/onos.css"
+              "src/main/webapp/app/onos.theme.css"
             ],
             "assets": [
               "src/main/webapp/data",

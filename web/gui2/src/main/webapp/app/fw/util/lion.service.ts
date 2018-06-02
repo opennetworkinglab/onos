@@ -29,19 +29,43 @@ interface Lion {
 /**
  * ONOS GUI -- Lion -- Localization Utilities
  */
-@Injectable()
+@Injectable({
+  providedIn: 'root',
+})
 export class LionService {
 
     ubercache: any[];
+
+    /**
+     * Handler for uberlion event from WSS
+     */
+    uberlion(data: Lion) {
+        this.ubercache = data.lion;
+
+        this.log.info('LION service: Locale... [' + data.locale + ']');
+        this.log.info('LION service: Bundles installed...');
+
+        for (const p in this.ubercache) {
+            if (this.ubercache[p]) {
+                this.log.info('            :=> ', p);
+            }
+        }
+
+        this.log.debug('LION service: uber-lion bundle received:', data);
+    }
 
     constructor(
         private log: LogService,
         private wss: WebSocketService
     ) {
+        this.wss.bindHandlers(new Map<string, (data) => void>([
+            ['uberlion', (data) => this.uberlion(data) ]
+        ]));
         this.log.debug('LionService constructed');
     }
 
-    /* returns a lion bundle (function) for the given bundle ID
+    /**
+     * Returns a lion bundle (function) for the given bundle ID (string)
      * returns a function that takes a string and returns a string
      */
     bundle(bundleId: string): (string) => string {
@@ -57,22 +81,5 @@ export class LionService {
 
     getKey(key: string): string {
         return this.bundle[key] || '%' + key + '%';
-    }
-
-    /* handler for uberlion event..
-     */
-    uberlion(data: Lion) {
-        this.ubercache = data.lion;
-
-        this.log.info('LION service: Locale... [' + data.locale + ']');
-        this.log.info('LION service: Bundles installed...');
-
-        for (const p in this.ubercache) {
-            if (this.ubercache[p]) {
-                this.log.info('            :=> ', p);
-            }
-        }
-
-        this.log.debug('LION service: uber-lion bundle received:', data);
     }
 }

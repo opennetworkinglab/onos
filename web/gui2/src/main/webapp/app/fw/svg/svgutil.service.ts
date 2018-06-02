@@ -22,7 +22,9 @@ import { LogService } from '../../log.service';
  *
  * The SVG Util Service provides a miscellany of utility functions.
  */
-@Injectable()
+@Injectable({
+  providedIn: 'root',
+})
 export class SvgUtilService {
 
     constructor(
@@ -32,7 +34,7 @@ export class SvgUtilService {
         this.log.debug('SvgUtilService constructed');
     }
 
-    translate(x, y) {
+    translate(x: number[], y?: any): string {
         if (this.fs.isA(x) && x.length === 2 && !y) {
             return 'translate(' + x[0] + ',' + x[1] + ')';
         }

@@ -19,11 +19,10 @@ import { LogService } from './log.service';
 import { KeyService } from './fw/util/key.service';
 import { ThemeService } from './fw/util/theme.service';
 import { GlyphService } from './fw/svg/glyph.service';
-import { VeilService } from './fw/layer/veil.service';
 import { PanelService } from './fw/layer/panel.service';
 import { QuickHelpService } from './fw/layer/quickhelp.service';
 import { EeService } from './fw/util/ee.service';
-import { WebSocketService } from './fw/remote/websocket.service';
+import { WebSocketService, WsOptions } from './fw/remote/websocket.service';
 import { SpriteService } from './fw/svg/sprite.service';
 import { OnosService, View } from './onos.service';
 
@@ -61,7 +60,7 @@ function cap(s: string): string {
 @Component({
   selector: 'onos-root',
   templateUrl: './onos.component.html',
-  styleUrls: ['./onos.component.css']
+  styleUrls: ['./onos.component.css', './onos.common.css']
 })
 export class OnosComponent implements OnInit {
     public title = 'onos';
@@ -81,7 +80,6 @@ export class OnosComponent implements OnInit {
         private ks: KeyService,
         private ts: ThemeService,
         private gs: GlyphService,
-        private vs: VeilService,
         private ps: PanelService,
         private qhs: QuickHelpService,
         private ee: EeService,
@@ -100,6 +98,8 @@ export class OnosComponent implements OnInit {
         log.info('OnosComponent: testing logger.info()');
         log.warn('OnosComponent: testing logger.warn()');
         log.error('OnosComponent: testing logger.error()');
+
+        this.wss.createWebSocket(<WsOptions>{ wsport: 8181});
 
         log.debug('OnosComponent constructed');
     }

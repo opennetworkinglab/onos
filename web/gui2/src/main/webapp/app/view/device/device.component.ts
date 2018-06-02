@@ -58,7 +58,7 @@ export class DeviceComponent implements OnInit {
     ngOnInit() {
         this.log.debug('DeviceComponent initialized');
         // TODO: Remove this - it's only for demo purposes
-        this.ls.startAnim();
+//        this.ls.startAnim();
     }
 
 }

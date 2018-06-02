@@ -13,27 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable } from '@angular/core';
+import { Injectable, Inject } from '@angular/core';
 import { LogService } from '../../log.service';
 
-const uiContext = '/onos/ui/';
-const rsSuffix = uiContext + 'rs/';
-const wsSuffix = uiContext + 'websock/';
+const UICONTEXT = '/onos/ui/';
+const RSSUFFIX = UICONTEXT + 'rs/';
+const WSSUFFIX = UICONTEXT + 'websock/';
 
 /**
  * ONOS GUI -- Remote -- General Purpose URL Functions
  */
-@Injectable()
+@Injectable({
+  providedIn: 'root',
+})
 export class UrlFnService {
     constructor(
         private log: LogService,
-        private window: Window
+        @Inject(Window) private w: Window
     ) {
         this.log.debug('UrlFnService constructed');
     }
 
     matchSecure(protocol: string): string {
-        const p: string = window.location.protocol;
+        const p: string = this.w.location.protocol;
         const secure: boolean = (p === 'https' || p === 'wss');
         return secure ? protocol + 's' : protocol;
     }
@@ -42,32 +44,35 @@ export class UrlFnService {
      * behind a proxy and has an app prefix, e.g.
      *      http://host:port/my/app/onos/ui...
      * This bit of regex grabs everything after the host:port and
-     * before the uiContext (/onos/ui/) and uses that as an app
+     * before the UICONTEXT (/onos/ui/) and uses that as an app
      * prefix by inserting it back into the WS URL.
      * If no prefix, then no insert.
      */
-    urlBase(protocol: string, port: string, host: string): string {
-        const match = window.location.href.match('.*//[^/]+/(.+)' + uiContext);
+    urlBase(protocol: string, port: string = '', host: string = ''): string {
+        const match = this.w.location.href.match('.*//[^/]+/(.+)' + UICONTEXT);
         const appPrefix = match ? '/' + match[1] : '';
 
-        return this.matchSecure(protocol) + '://' +
-            (host || window.location.hostname) + ':' +
-            (port || window.location.port) + appPrefix;
+        return this.matchSecure(protocol) +
+            '://' +
+            (host === '' ? this.w.location.hostname : host) +
+            ':' +
+            (port === '' ? this.w.location.port : port) +
+            appPrefix;
     }
 
     httpPrefix(suffix: string): string {
-        return this.urlBase('http', '', '') + suffix;
+        return this.urlBase('http') + suffix;
     }
 
-    wsPrefix(suffix: string, wsport: any, host: string): string {
+    wsPrefix(suffix: string, wsport: string, host: string): string {
         return this.urlBase('ws', wsport, host) + suffix;
     }
 
     rsUrl(path: string): string {
-        return this.httpPrefix(rsSuffix) + path;
+        return this.httpPrefix(RSSUFFIX) + path;
     }
 
-    wsUrl(path: string, wsport: any, host: string): string {
-        return this.wsPrefix(wsSuffix, wsport, host) + path;
+    wsUrl(path: string, wsport?: string, host?: string): string {
+        return this.wsPrefix(WSSUFFIX, wsport, host) + path;
     }
 }

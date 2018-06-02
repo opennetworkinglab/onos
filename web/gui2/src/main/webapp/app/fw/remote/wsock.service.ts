@@ -21,7 +21,9 @@ import { LogService } from '../../log.service';
  *
  * This service provided specifically so that it can be mocked in unit tests.
  */
-@Injectable()
+@Injectable({
+  providedIn: 'root',
+})
 export class WSock {
 
   constructor(

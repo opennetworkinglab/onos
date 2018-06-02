@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Inject } from '@angular/core';
 import { Directive } from '@angular/core';
 import { FnService } from './fw/util/fn.service';
 import { LogService } from './log.service';
@@ -28,10 +29,9 @@ export class DetectBrowserDirective {
   constructor(
     private fs: FnService,
     private log: LogService,
-    private onos: OnosService
+    private onos: OnosService,
+    @Inject(Window) private w: Window
   ) {
-        log.debug('DetectBrowserDirective constructed');
-
         const body: HTMLBodyElement = document.getElementsByTagName('body')[0];
 //        let body = d3.select('body');
         let browser = '';
@@ -44,7 +44,10 @@ export class DetectBrowserDirective {
         } else if (fs.isFirefox()) {
             browser = 'firefox';
         } else {
-            this.log.warn('Unknown browser:', window.navigator.vendor);
+            this.log.warn('Unknown browser. ',
+            'Vendor:', this.w.navigator.vendor,
+            'Agent:', this.w.navigator.userAgent);
+            return;
         }
         body.classList.add(browser);
 //        body.classed(browser, true);

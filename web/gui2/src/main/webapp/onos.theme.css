@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-present Open Networking Foundation
+ * Copyright 2016-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,12 @@
  */
 
 /*
- ONOS GUI -- core (layout) -- CSS file
+ ONOS GUI -- core (theme) -- CSS file
  */
+
+body {
+    background-color: white;
+}
 
 html {
     font-family: 'Open Sans', sans-serif;
@@ -35,17 +39,46 @@ body {
     overflow: hidden;
 }
 
-#view {
-    padding: 6px;
-    width: 100%;
-    height: 100%;
+#view h2 {
+    color: #3c3a3a;
 }
 
-#view h2 {
-    -webkit-margin-before: 0;
-    -webkit-margin-after: 0;
-    margin: 32px 0 4px 16px;
-    padding: 0;
-    font-size: 18pt;
-    font-weight: lighter;
+a {
+    color: #009fdb;
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}
+a:visited {
+    color: #7fabdb;
+    text-decoration: none;
+}
+
+/* ========== DARK Theme ========== */
+
+body.dark {
+    background-color: #282528;
+}
+
+.dark #view h2 {
+    color: #6a6e6a;
+}
+
+.dark a {
+    color: #007ca6;
+}
+.dark a:visited {
+    color: #4f6e90;
+}
+
+.dark input {
+    color: #dddddd;
+    background-color: #222222;
+    border: 1px solid #666666;
+}
+
+.dark select {
+    color: #dddddd;
+    background-color: #222222;
 }
