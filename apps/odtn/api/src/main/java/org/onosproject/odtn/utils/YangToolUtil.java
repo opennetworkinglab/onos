@@ -294,6 +294,7 @@ public class YangToolUtil {
      * @return DataNode
      */
     public static DataNode toDataNode(ModelObject input) {
+        // FIXME this converter will work with root-level nodes only.
         initStaticContext();
         ModelObjectData modelData = DefaultModelObjectData.builder()
                 .addModelObject(input)

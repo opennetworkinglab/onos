@@ -26,6 +26,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigEvent;
@@ -45,6 +46,7 @@ import org.onosproject.odtn.internal.DcsBasedTapiCommonRpc;
 import org.onosproject.odtn.internal.DcsBasedTapiConnectivityRpc;
 import org.onosproject.odtn.internal.DcsBasedTapiDataProducer;
 import org.onosproject.odtn.internal.TapiDataProducer;
+import org.onosproject.odtn.internal.DefaultOdtnTerminalDeviceDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -247,6 +249,26 @@ public class ServiceApplicationComponent {
 
             log.info("type: {}", event.type());
             log.info("subject: {}", event.subject());
+            DeviceId did = ((ConnectPoint) event.subject()).deviceId();
+
+            DefaultOdtnTerminalDeviceDriver driver = DefaultOdtnTerminalDeviceDriver.create();
+            TerminalDeviceConfig config;
+
+            switch (event.type()) {
+                case CONFIG_ADDED:
+                case CONFIG_UPDATED:
+                    config = (TerminalDeviceConfig) event.config().get();
+                    log.info("config: {}", config);
+                    driver.apply(did, config.clientCp().port(), config.subject().port(), config.isEnabled());
+                    break;
+                case CONFIG_REMOVED:
+                    config = (TerminalDeviceConfig) event.prevConfig().get();
+                    log.info("config: {}", config);
+                    driver.apply(did, config.clientCp().port(), config.subject().port(), false);
+                    break;
+                default:
+                    log.error("Unsupported event type.");
+            }
         }
     }
 
