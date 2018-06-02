@@ -1,0 +1,17 @@
+{
+  "ports" : {
+    "netconf:127.0.0.1:11001/42" : {
+      "odtn-terminal-device" : {
+        "client" : "netconf:127.0.0.1:11001/41",
+        "enable" : true
+      }
+    },
+    "netconf:127.0.0.1:11002/42" : {
+      "odtn-terminal-device" : {
+        "client" : "netconf:127.0.0.1:11002/41",
+        "enable" : true
+      }
+    }
+  }
+}
+

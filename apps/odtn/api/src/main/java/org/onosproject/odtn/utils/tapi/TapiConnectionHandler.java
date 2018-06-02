@@ -100,6 +100,10 @@ public final class TapiConnectionHandler extends TapiObjectHandler<DefaultConnec
         return this;
     }
 
+    public List<ConnectionEndPoint> getCeps() {
+        return obj.connectionEndPoint();
+    }
+
     public List<TapiConnectionHandler> getLowerConnections() {
 
         try {

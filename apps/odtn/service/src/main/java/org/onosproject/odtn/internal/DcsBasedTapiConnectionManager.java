@@ -17,15 +17,22 @@
 package org.onosproject.odtn.internal;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+import java.util.concurrent.atomic.AtomicReference;
 import org.onosproject.config.FailedException;
-import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.odtn.TapiResolver;
+import org.onosproject.odtn.behaviour.OdtnDeviceDescriptionDiscovery;
+import org.onosproject.odtn.utils.tapi.DcsBasedTapiObjectRefFactory;
+import org.onosproject.odtn.utils.tapi.TapiCepPair;
 import org.onosproject.odtn.utils.tapi.TapiConnection;
 import org.onosproject.odtn.utils.tapi.TapiNepPair;
 import org.onosproject.odtn.utils.tapi.TapiCepRefHandler;
 import org.onosproject.odtn.utils.tapi.TapiConnectionHandler;
 
+import org.onosproject.odtn.utils.tapi.TapiNepRef;
 import org.onosproject.odtn.utils.tapi.TapiRouteHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,13 +42,15 @@ import static org.onlab.osgi.DefaultServiceDirectory.getService;
 /**
  * DCS-dependent Tapi connection manager implementation.
  */
-public class DcsBasedTapiConnectionManager implements TapiConnectionManager {
+public final class DcsBasedTapiConnectionManager implements TapiConnectionManager {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     protected TapiPathComputer connectionController;
-    private DeviceService deviceService;
+    private TapiResolver resolver;
+    private NetworkConfigService netcfgService;
 
     private List<DcsBasedTapiConnectionManager> connectionManagerList = new ArrayList<>();
+    private TapiConnection connection = null;
     private TapiConnectionHandler connectionHandler = TapiConnectionHandler.create();
     private Operation op = null;
 
@@ -51,10 +60,14 @@ public class DcsBasedTapiConnectionManager implements TapiConnectionManager {
         DELETE
     }
 
+    private DcsBasedTapiConnectionManager() {
+    }
+
     public static DcsBasedTapiConnectionManager create() {
         DcsBasedTapiConnectionManager self = new DcsBasedTapiConnectionManager();
         self.connectionController = DefaultTapiPathComputer.create();
-        self.deviceService = getService(DeviceService.class);
+        self.resolver = getService(TapiResolver.class);
+        self.netcfgService = getService(NetworkConfigService.class);
         return self;
     }
 
@@ -72,27 +85,56 @@ public class DcsBasedTapiConnectionManager implements TapiConnectionManager {
     @Override
     public void deleteConnection(TapiConnectionHandler connectionHandler) {
 
-        // read target to be deleted
-        this.connectionHandler = connectionHandler;
-        this.connectionHandler.read();
-        log.info("model: {}", connectionHandler.getModelObject());
-
         deleteConnectionRecursively(connectionHandler);
     }
 
     @Override
     public void apply() {
         connectionManagerList.forEach(DcsBasedTapiConnectionManager::apply);
+
         switch (op) {
             case CREATE:
+                notifyDeviceConfigChange(true);
                 connectionHandler.add();
                 break;
             case DELETE:
+                notifyDeviceConfigChange(false);
                 connectionHandler.remove();
                 break;
             default:
                 throw new FailedException("Unknown operation type.");
         }
+    }
+
+    /**
+     * Emit NetworkConfig event with parameters for device config,
+     * to notify configuration change to device drivers.
+     */
+    private void notifyDeviceConfigChange(boolean enable) {
+        if (!this.connection.getCeps().isSameNode()) {
+            return;
+        }
+
+        TapiNepRef left = this.connection.getCeps().left().getNepRef();
+        TapiNepRef right = this.connection.getCeps().right().getNepRef();
+
+        // update with latest data in DCS
+        left = resolver.getNepRef(left);
+        right = resolver.getNepRef(right);
+
+        AtomicReference<TapiNepRef> line = new AtomicReference<>();
+        AtomicReference<TapiNepRef> client = new AtomicReference<>();
+        Arrays.asList(left, right).forEach(nep -> {
+            if (nep.getPortType() == OdtnDeviceDescriptionDiscovery.OdtnPortType.LINE) {
+                line.set(nep);
+            }
+            if (nep.getPortType() == OdtnDeviceDescriptionDiscovery.OdtnPortType.CLIENT) {
+                client.set(nep);
+            }
+        });
+
+        DeviceConfigEventEmitter eventEmitter = DeviceConfigEventEmitter.create();
+        eventEmitter.emit(line.get(), client.get(), enable);
     }
 
     /**
@@ -104,6 +146,7 @@ public class DcsBasedTapiConnectionManager implements TapiConnectionManager {
     private void createConnectionRecursively(TapiConnection connection) {
         op = Operation.CREATE;
         connectionManagerList.clear();
+        this.connection = connection;
 
         TapiRouteHandler routeBuilder = TapiRouteHandler.create();
 
@@ -136,6 +179,16 @@ public class DcsBasedTapiConnectionManager implements TapiConnectionManager {
         op = Operation.DELETE;
         connectionManagerList.clear();
 
+        // read target to be deleted
+        connectionHandler.read();
+        log.info("model: {}", connectionHandler.getModelObject());
+
+        this.connection = TapiConnection.create(
+                TapiCepPair.create(
+                        DcsBasedTapiObjectRefFactory.create(connectionHandler.getCeps().get(0)),
+                        DcsBasedTapiObjectRefFactory.create(connectionHandler.getCeps().get(1)))
+        );
+
         this.connectionHandler = connectionHandler;
         this.connectionHandler.getLowerConnections().forEach(lowerConnectionHandler -> {
             delegateConnectionDeletion(lowerConnectionHandler);
@@ -157,7 +210,7 @@ public class DcsBasedTapiConnectionManager implements TapiConnectionManager {
     /**
      * Delegate lower-connection deletion to other corresponding TapiConnectionManager of each Nodes.
      *
-     * @param connectionHandler  connectionHandler of connection to be deleted
+     * @param connectionHandler connectionHandler of connection to be deleted
      */
     private void delegateConnectionDeletion(TapiConnectionHandler connectionHandler) {
         log.info("model: {}", connectionHandler.getModelObject());

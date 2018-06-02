@@ -27,8 +27,7 @@ import org.onosproject.config.DynamicConfigService;
 import org.onosproject.config.Filter;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
-import org.onosproject.odtn.utils.tapi.DcsBasedTapiNepRef;
-import org.onosproject.odtn.utils.tapi.DcsBasedTapiNodeRef;
+import org.onosproject.odtn.utils.tapi.DcsBasedTapiObjectRefFactory;
 import org.onosproject.odtn.utils.tapi.TapiNepRef;
 import org.onosproject.odtn.utils.tapi.TapiNodeRef;
 import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.DefaultContext;
@@ -122,7 +121,7 @@ public class DcsBasedTapiDataProducer implements TapiDataProducer {
         }
         return topology.node().stream()
                 .map(node -> {
-                    DcsBasedTapiNodeRef nodeRef = DcsBasedTapiNodeRef.create(topology, node);
+                    TapiNodeRef nodeRef = DcsBasedTapiObjectRefFactory.create(topology, node);
                     if (node.name() != null) {
                         String deviceId = node.name().stream()
                                 .filter(kv -> kv.valueName().equals(DEVICE_ID))
@@ -155,7 +154,7 @@ public class DcsBasedTapiDataProducer implements TapiDataProducer {
                             }
                             return node.ownedNodeEdgePoint().stream()
                                     .map(nep -> {
-                                        TapiNepRef nepRef = DcsBasedTapiNepRef.create(topology, node, nep);
+                                        TapiNepRef nepRef = DcsBasedTapiObjectRefFactory.create(topology, node, nep);
                                         if (nep.name() != null) {
                                             Map<String, String> kvs = new HashMap<>();
                                             nep.name().forEach(kv -> kvs.put(kv.valueName(), kv.value()));

@@ -25,11 +25,13 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Link;
+import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
+import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.config.NetworkConfigService;
-import org.onosproject.net.config.NetworkConfigStoreDelegate;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
@@ -38,14 +40,13 @@ import org.onosproject.net.link.LinkListener;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.odtn.TapiResolver;
 import org.onosproject.odtn.TapiTopologyManager;
+import org.onosproject.odtn.config.TerminalDeviceConfig;
 import org.onosproject.odtn.internal.DcsBasedTapiCommonRpc;
 import org.onosproject.odtn.internal.DcsBasedTapiConnectivityRpc;
 import org.onosproject.odtn.internal.DcsBasedTapiDataProducer;
 import org.onosproject.odtn.internal.TapiDataProducer;
-import org.onosproject.store.AbstractStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 // DCS / onos-yang-tools
 import org.onosproject.config.DynamicConfigEvent;
@@ -55,6 +56,10 @@ import org.onosproject.yang.model.RpcRegistry;
 
 import static org.onosproject.config.DynamicConfigEvent.Type.NODE_ADDED;
 import static org.onosproject.config.DynamicConfigEvent.Type.NODE_DELETED;
+import static org.onosproject.net.config.NetworkConfigEvent.Type.CONFIG_ADDED;
+import static org.onosproject.net.config.NetworkConfigEvent.Type.CONFIG_REMOVED;
+import static org.onosproject.net.config.NetworkConfigEvent.Type.CONFIG_UPDATED;
+import static org.onosproject.net.config.basics.SubjectFactories.CONNECT_POINT_SUBJECT_FACTORY;
 
 /**
  * OSGi Component for ODTN Service application.
@@ -77,6 +82,9 @@ public class ServiceApplicationComponent {
     protected NetworkConfigService netcfgService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected NetworkConfigRegistry netcfgRegistry;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected RpcRegistry rpcRegistry;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -93,11 +101,20 @@ public class ServiceApplicationComponent {
     private final LinkListener linkListener = new InternalLinkListener();
     private final NetworkConfigListener netcfgListener = new InternalNetCfgListener();
     private TapiDataProducer dataProvider = new DcsBasedTapiDataProducer();
-    private InternalNetCfgManager netcfgStore = new InternalNetCfgManager();
 
     // Rpc Service for TAPI Connectivity
     private final DcsBasedTapiConnectivityRpc rpcTapiConnectivity = new DcsBasedTapiConnectivityRpc();
     private final DcsBasedTapiCommonRpc rpcTapiCommon = new DcsBasedTapiCommonRpc();
+
+    // FIXME create factory and register for all behaviours
+    private final ConfigFactory<ConnectPoint, TerminalDeviceConfig> factory =
+            new ConfigFactory<ConnectPoint, TerminalDeviceConfig>(CONNECT_POINT_SUBJECT_FACTORY,
+                    TerminalDeviceConfig.class, TerminalDeviceConfig.CONFIG_KEY) {
+                @Override
+                public TerminalDeviceConfig createConfig() {
+                    return new TerminalDeviceConfig();
+                }
+            };
 
 
     @Activate
@@ -107,8 +124,10 @@ public class ServiceApplicationComponent {
         deviceService.addListener(deviceListener);
         linkService.addListener(linkListener);
         netcfgService.addListener(netcfgListener);
+        netcfgRegistry.registerConfigFactory(factory);
         rpcRegistry.registerRpcService(rpcTapiConnectivity);
         rpcRegistry.registerRpcService(rpcTapiCommon);
+
         rpcTapiConnectivity.init();
         rpcTapiCommon.init();
     }
@@ -119,6 +138,7 @@ public class ServiceApplicationComponent {
         log.info("Stopped");
         rpcRegistry.unregisterRpcService(rpcTapiCommon);
         rpcRegistry.unregisterRpcService(rpcTapiConnectivity);
+        netcfgRegistry.unregisterConfigFactory(factory);
         netcfgService.removeListener(netcfgListener);
         linkService.removeListener(linkListener);
         deviceService.removeListener(deviceListener);
@@ -139,8 +159,8 @@ public class ServiceApplicationComponent {
         @Override
         public void event(DeviceEvent event) {
 
-            netcfgStore.post(event);
-
+            log.info("Device event type: {}", event.type());
+            log.info("Device event subject: {}", event.subject());
             switch (event.type()) {
                 case DEVICE_ADDED:
                     tapiTopologyManager.addDevice(event.subject());
@@ -196,29 +216,39 @@ public class ServiceApplicationComponent {
     private class InternalNetCfgListener implements NetworkConfigListener {
 
         /**
+         * Check if the netcfg event should be further processed.
+         *
+         * @param event config event
+         * @return true if event is supported; false otherwise
+         */
+        @Override
+        public boolean isRelevant(NetworkConfigEvent event) {
+
+            if (event.type() == CONFIG_ADDED || event.type() == CONFIG_UPDATED) {
+                if (event.config().orElse(null) instanceof TerminalDeviceConfig) {
+                    return true;
+                }
+            }
+            if (event.type() == CONFIG_REMOVED) {
+                if (event.prevConfig().orElse(null) instanceof TerminalDeviceConfig) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /**
          * Process an Event from the NetCfg Service.
          *
-         * @param event link event
+         * @param event event
          */
         @Override
         public void event(NetworkConfigEvent event) {
-//            Object config = event.subject();
-            log.info("config: {}", event.subject());
+
             log.info("type: {}", event.type());
+            log.info("subject: {}", event.subject());
         }
     }
-
-    private class InternalNetCfgManager
-        extends AbstractStore<NetworkConfigEvent, NetworkConfigStoreDelegate> {
-
-        public void post(Object obj) {
-            log.info("Post netcfg event : {}", obj);
-            NetworkConfigEvent.Type type = NetworkConfigEvent.Type.CONFIG_UPDATED;
-            notifyDelegate(new NetworkConfigEvent(type, obj, obj.getClass()));
-        }
-
-    }
-
 
     /**
      * Representation of internal listener, listening for dynamic config event.
@@ -273,7 +303,6 @@ public class ServiceApplicationComponent {
 //            }
         }
 
-
 //        /**
 //         * Process the event that a node has been added to the DCS.
 //         *
@@ -298,13 +327,12 @@ public class ServiceApplicationComponent {
 //            NodeKey dataNodeKey = node.key();
 //            SchemaId schemaId = dataNodeKey.schemaId();
 
-            // Consolidate events
+        // Consolidate events
 //            if (!schemaId.namespace().contains("tapi")) {
 //                return;
 //            }
 //            log.info("namespace {}", schemaId.namespace());
 //        }
-
 
 //        /**
 //         * Process the event that a node has been deleted from the DCS.
@@ -316,8 +344,5 @@ public class ServiceApplicationComponent {
 //        }
 
     }
-
-
-
 
 }

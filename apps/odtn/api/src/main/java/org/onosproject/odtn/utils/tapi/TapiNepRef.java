@@ -42,7 +42,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * TAPI reference class should be used in ODTN ServiceApplication
  * in order to make independent ServiceApplication implementation from DCS.
  */
-public class TapiNepRef {
+public final class TapiNepRef {
 
     protected final Logger log = getLogger(getClass());
 

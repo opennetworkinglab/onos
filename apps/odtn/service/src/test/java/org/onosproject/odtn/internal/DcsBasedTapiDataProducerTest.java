@@ -25,8 +25,7 @@ import org.junit.Test;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
-import org.onosproject.odtn.utils.tapi.DcsBasedTapiNepRef;
-import org.onosproject.odtn.utils.tapi.DcsBasedTapiNodeRef;
+import org.onosproject.odtn.utils.tapi.DcsBasedTapiObjectRefFactory;
 import org.onosproject.odtn.utils.tapi.TapiNepHandler;
 import org.onosproject.odtn.utils.tapi.TapiNepRef;
 import org.onosproject.odtn.utils.tapi.TapiNodeHandler;
@@ -139,16 +138,16 @@ public class DcsBasedTapiDataProducerTest {
         node2.addToOwnedNodeEdgePoint(nep22);
 
         List<TapiNodeRef> expectNodes = Arrays.asList(
-                DcsBasedTapiNodeRef.create(topology, node1).setDeviceId(did1),
-                DcsBasedTapiNodeRef.create(topology, node2).setDeviceId(did2)
+                DcsBasedTapiObjectRefFactory.create(topology, node1).setDeviceId(did1),
+                DcsBasedTapiObjectRefFactory.create(topology, node2).setDeviceId(did2)
         );
         List<TapiNepRef> expectNeps = Arrays.asList(
-                DcsBasedTapiNepRef.create(topology, node1, nep11).setConnectPoint(cp11)
+                DcsBasedTapiObjectRefFactory.create(topology, node1, nep11).setConnectPoint(cp11)
                         .setSipId(sip11.uuid().toString()),
-                DcsBasedTapiNepRef.create(topology, node1, nep12).setConnectPoint(cp12),
-                DcsBasedTapiNepRef.create(topology, node2, nep21).setConnectPoint(cp21)
+                DcsBasedTapiObjectRefFactory.create(topology, node1, nep12).setConnectPoint(cp12),
+                DcsBasedTapiObjectRefFactory.create(topology, node2, nep21).setConnectPoint(cp21)
                         .setSipId(sip21.uuid().toString()),
-                DcsBasedTapiNepRef.create(topology, node2, nep22).setConnectPoint(cp22)
+                DcsBasedTapiObjectRefFactory.create(topology, node2, nep22).setConnectPoint(cp22)
         );
 
         mockResolver.addNodeRefList(expectNodes);
@@ -174,13 +173,13 @@ public class DcsBasedTapiDataProducerTest {
         node2.addToOwnedNodeEdgePoint(nep22);
 
         List<TapiNodeRef> expectNodes = Arrays.asList(
-                DcsBasedTapiNodeRef.create(topology, node1).setDeviceId(did1),
-                DcsBasedTapiNodeRef.create(topology, node2).setDeviceId(did2)
+                DcsBasedTapiObjectRefFactory.create(topology, node1).setDeviceId(did1),
+                DcsBasedTapiObjectRefFactory.create(topology, node2).setDeviceId(did2)
         );
         List<TapiNepRef> expectNeps = Arrays.asList(
-                DcsBasedTapiNepRef.create(topology, node1, nep11).setConnectPoint(cp11),
-                DcsBasedTapiNepRef.create(topology, node2, nep21).setConnectPoint(cp21),
-                DcsBasedTapiNepRef.create(topology, node2, nep22).setConnectPoint(cp22)
+                DcsBasedTapiObjectRefFactory.create(topology, node1, nep11).setConnectPoint(cp11),
+                DcsBasedTapiObjectRefFactory.create(topology, node2, nep21).setConnectPoint(cp21),
+                DcsBasedTapiObjectRefFactory.create(topology, node2, nep22).setConnectPoint(cp22)
         );
 
         mockResolver.addNodeRefList(expectNodes);
@@ -203,8 +202,8 @@ public class DcsBasedTapiDataProducerTest {
         topology.addToNode(node2);
 
         List<TapiNodeRef> expectNodes = Arrays.asList(
-                DcsBasedTapiNodeRef.create(topology, node1).setDeviceId(did1),
-                DcsBasedTapiNodeRef.create(topology, node2).setDeviceId(did2)
+                DcsBasedTapiObjectRefFactory.create(topology, node1).setDeviceId(did1),
+                DcsBasedTapiObjectRefFactory.create(topology, node2).setDeviceId(did2)
         );
         List<TapiNepRef> expectNeps = Collections.emptyList();
 
@@ -236,6 +235,5 @@ public class DcsBasedTapiDataProducerTest {
         dataProvider.updateCache(mockResolver, context);
         verify(mockResolver);
     }
-
 
 }
