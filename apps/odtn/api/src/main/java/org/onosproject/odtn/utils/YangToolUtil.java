@@ -280,7 +280,7 @@ public class YangToolUtil {
         DefaultResourceData.Builder builder = DefaultResourceData.builder();
         builder.resourceId(checkNotNull(resourceId));
         if (dataNode instanceof InnerNode) {
-            ((InnerNode) dataNode).childNodes().values().forEach(builder::addDataNode);
+            builder.addDataNode(dataNode);
         } else {
             log.error("Unexpected DataNode encountered {}", dataNode);
         }
