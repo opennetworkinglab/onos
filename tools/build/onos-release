@@ -54,12 +54,12 @@ onos-buck build //:onos-admin
 if [ $dryRun -eq 0 ]; then
     export MVN_CLI_OPTS=-Pstaging
     pushd tools/package/archetypes/
-    mvn -Pstaging clean install && onos-archetypes-test && mvn -Pstaging -Prelease clean deploy
+    mvn -B -Pstaging clean install && onos-archetypes-test && mvn -Pstaging -Prelease clean deploy
     popd
     unset MVN_CLI_OPTS
 else
     pushd tools/package/archetypes/
-    mvn clean install && onos-archetypes-test
+    mvn -B clean install && onos-archetypes-test
     popd
 fi
 
