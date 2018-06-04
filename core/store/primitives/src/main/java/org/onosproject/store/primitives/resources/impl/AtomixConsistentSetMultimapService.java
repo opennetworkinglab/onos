@@ -77,9 +77,11 @@ import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSe
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.MultiRemove;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.MultimapOperation;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.PUT;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.PUT_AND_GET;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.Put;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.REMOVE;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.REMOVE_ALL;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.REMOVE_AND_GET;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.REMOVE_LISTENER;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.REPLACE;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.RemoveAll;
@@ -153,7 +155,9 @@ public class AtomixConsistentSetMultimapService extends AbstractRaftService {
         executor.register(GET, serializer::decode, this::get, serializer::encode);
         executor.register(REMOVE_ALL, serializer::decode, this::removeAll, serializer::encode);
         executor.register(REMOVE, serializer::decode, this::multiRemove, serializer::encode);
+        executor.register(REMOVE_AND_GET, serializer::decode, this::removeAndGet, serializer::encode);
         executor.register(PUT, serializer::decode, this::put, serializer::encode);
+        executor.register(PUT_AND_GET, serializer::decode, this::putAndGet, serializer::encode);
         executor.register(REPLACE, serializer::decode, this::replace, serializer::encode);
         executor.register(ADD_LISTENER, this::listen);
         executor.register(REMOVE_LISTENER, this::unlisten);
@@ -352,8 +356,8 @@ public class AtomixConsistentSetMultimapService extends AbstractRaftService {
         }
 
         Versioned<Collection<? extends byte[]>> removedValues = backingMap
-                .get(key)
-                .addCommit(commit);
+            .get(key)
+            .addCommit(commit);
 
         if (removedValues != null) {
             if (removedValues.value().isEmpty()) {
@@ -361,13 +365,44 @@ public class AtomixConsistentSetMultimapService extends AbstractRaftService {
             }
 
             publish(removedValues.value().stream()
-                    .map(value -> new MultimapEvent<String, byte[]>(
-                            "", key, null, value))
-                    .collect(Collectors.toList()));
+                .map(value -> new MultimapEvent<String, byte[]>(
+                    "", key, null, value))
+                .collect(Collectors.toList()));
             return true;
         }
 
         return false;
+    }
+
+    /**
+     * Handles a removeAndGet commit.
+     *
+     * @param commit multiRemove commit
+     * @return the updated values or null if the values are empty
+     */
+    protected Versioned<Collection<? extends byte[]>> removeAndGet(Commit<? extends MultiRemove> commit) {
+        String key = commit.value().key();
+
+        if (!backingMap.containsKey(key)) {
+            return null;
+        }
+
+        Versioned<Collection<? extends byte[]>> removedValues = backingMap
+            .get(key)
+            .addCommit(commit);
+
+        if (removedValues != null) {
+            if (removedValues.value().isEmpty()) {
+                backingMap.remove(key);
+            }
+
+            publish(removedValues.value().stream()
+                .map(value -> new MultimapEvent<String, byte[]>(
+                    "", key, null, value))
+                .collect(Collectors.toList()));
+        }
+
+        return toVersioned(backingMap.get(key));
     }
 
     /**
@@ -386,18 +421,47 @@ public class AtomixConsistentSetMultimapService extends AbstractRaftService {
         }
 
         Versioned<Collection<? extends byte[]>> addedValues = backingMap
-                .get(key)
-                .addCommit(commit);
+            .get(key)
+            .addCommit(commit);
 
         if (addedValues != null) {
             publish(addedValues.value().stream()
-                    .map(value -> new MultimapEvent<String, byte[]>(
-                            "", key, value, null))
-                    .collect(Collectors.toList()));
+                .map(value -> new MultimapEvent<String, byte[]>(
+                    "", key, value, null))
+                .collect(Collectors.toList()));
             return true;
         }
 
         return false;
+    }
+
+    /**
+     * Handles a putAndGet commit.
+     *
+     * @param commit a put commit
+     * @return the updated values
+     */
+    protected Versioned<Collection<? extends byte[]>> putAndGet(Commit<? extends Put> commit) {
+        String key = commit.value().key();
+        if (commit.value().values().isEmpty()) {
+            return null;
+        }
+        if (!backingMap.containsKey(key)) {
+            backingMap.put(key, new NonTransactionalCommit());
+        }
+
+        Versioned<Collection<? extends byte[]>> addedValues = backingMap
+            .get(key)
+            .addCommit(commit);
+
+        if (addedValues != null) {
+            publish(addedValues.value().stream()
+                .map(value -> new MultimapEvent<String, byte[]>(
+                    "", key, value, null))
+                .collect(Collectors.toList()));
+        }
+
+        return toVersioned(backingMap.get(key));
     }
 
     protected Versioned<Collection<? extends byte[]>> replace(

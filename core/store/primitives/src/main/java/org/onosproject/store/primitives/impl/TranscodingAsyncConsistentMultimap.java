@@ -141,10 +141,30 @@ public class TranscodingAsyncConsistentMultimap<K1, V1, K2, V2>
     }
 
     @Override
+    public CompletableFuture<Versioned<Collection<? extends V1>>> putAndGet(K1 key, V1 value) {
+        try {
+            return backingMap.putAndGet(keyEncoder.apply(key), valueEncoder.apply(value))
+                .thenApply(versionedValueCollectionDecode);
+        } catch (Exception e) {
+            return Tools.exceptionalFuture(e);
+        }
+    }
+
+    @Override
     public CompletableFuture<Boolean> remove(K1 key, V1 value) {
         try {
             return backingMap.remove(keyEncoder.apply(key), valueEncoder
                     .apply(value));
+        } catch (Exception e) {
+            return Tools.exceptionalFuture(e);
+        }
+    }
+
+    @Override
+    public CompletableFuture<Versioned<Collection<? extends V1>>> removeAndGet(K1 key, V1 value) {
+        try {
+            return backingMap.removeAndGet(keyEncoder.apply(key), valueEncoder.apply(value))
+                .thenApply(versionedValueCollectionDecode);
         } catch (Exception e) {
             return Tools.exceptionalFuture(e);
         }
