@@ -40,7 +40,7 @@
  -->
 
 <drivers>
-    <driver name="hp-switch" extends="default" manufacturer="HP" swVersion=".*">
+    <driver name="hp-switch" extends="default" manufacturer="(HP|Aruba)" swVersion=".*">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.drivers.hp.HPPipelineV1"/>
         <behaviour api="org.onosproject.openflow.controller.driver.OpenFlowSwitchDriver"
