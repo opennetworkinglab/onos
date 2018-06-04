@@ -91,6 +91,19 @@ public interface ConsistentMultimap<K, V> extends DistributedPrimitive, Iterable
     boolean put(K key, V value);
 
     /**
+     * If the key-value pair does not already exist adds either the key value
+     * pair or the value to the set of values associated with the key and
+     * returns the updated value, if the key-value pair already exists then behavior
+     * is implementation specific with some implementations allowing duplicates
+     * and others ignoring put requests for existing entries.
+     *
+     * @param key the key to add
+     * @param value the value to add
+     * @return the updated values
+     */
+    Versioned<Collection<? extends V>> putAndGet(K key, V value);
+
+    /**
      * Removes the key-value pair with the specified values if it exists. In
      * implementations that allow duplicates which matching entry will be
      * removed is undefined.
@@ -100,6 +113,17 @@ public interface ConsistentMultimap<K, V> extends DistributedPrimitive, Iterable
      * @return true if the map changed because of this call, false otherwise.
      */
     boolean remove(K key, V value);
+
+    /**
+     * Removes the key-value pair with the specified values if it exists. In
+     * implementations that allow duplicates which matching entry will be
+     * removed is undefined.
+     *
+     * @param key the key of the pair to be removed
+     * @param value the value of the pair to be removed
+     * @return the updated values
+     */
+    Versioned<Collection<? extends V>> removeAndGet(K key, V value);
 
     /**
      * Removes the key-value pairs with the specified key and values if they

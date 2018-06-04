@@ -111,6 +111,11 @@ public class PartitionedAsyncConsistentMultimap<K, V> implements AsyncConsistent
     }
 
     @Override
+    public CompletableFuture<Versioned<Collection<? extends V>>> putAndGet(K key, V value) {
+        return getMultimap(key).putAndGet(key, value);
+    }
+
+    @Override
     public CompletableFuture<Boolean> removeAll(K key, Collection<? extends V> values) {
         return getMultimap(key).removeAll(key, values);
     }
@@ -171,6 +176,11 @@ public class PartitionedAsyncConsistentMultimap<K, V> implements AsyncConsistent
     @Override
     public CompletableFuture<Boolean> remove(K key, V value) {
         return getMultimap(key).remove(key, value);
+    }
+
+    @Override
+    public CompletableFuture<Versioned<Collection<? extends V>>> removeAndGet(K key, V value) {
+        return getMultimap(key).removeAndGet(key, value);
     }
 
     @Override
