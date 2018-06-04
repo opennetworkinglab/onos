@@ -39,6 +39,7 @@ import org.onosproject.cluster.LeadershipService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.PortNumber;
@@ -268,23 +269,41 @@ public class OpenstackRoutingArpHandler {
         }
 
         if (arp.getOpCode() == ARP.OP_REPLY) {
-            PortNumber receivedPortNum = context.inPacket().receivedFrom().port();
-            log.debug("ARP reply ip: {}, mac: {}",
-                    Ip4Address.valueOf(arp.getSenderProtocolAddress()),
-                    MacAddress.valueOf(arp.getSenderHardwareAddress()));
+            ConnectPoint cp = context.inPacket().receivedFrom();
+            PortNumber receivedPortNum = cp.port();
+            IpAddress spa = Ip4Address.valueOf(arp.getSenderProtocolAddress());
+            MacAddress sha = MacAddress.valueOf(arp.getSenderHardwareAddress());
+
+            log.debug("ARP reply ip: {}, mac: {}", spa, sha);
+
             try {
-                if (receivedPortNum.equals(
-                        osNodeService.node(context.inPacket().receivedFrom()
-                                .deviceId()).uplinkPortNum())) {
-                    osNetworkAdminService.updateExternalPeerRouterMac(
-                            Ip4Address.valueOf(arp.getSenderProtocolAddress()),
-                            MacAddress.valueOf(arp.getSenderHardwareAddress()));
+
+                Set<String> fipSet = osRouterService.floatingIps().stream()
+                        .map(NetFloatingIP::getFloatingIpAddress).collect(Collectors.toSet());
+
+                // if the SPA is floating IP, we simply ignores it
+                if (fipSet.contains(spa.toString())) {
+                    return;
+                }
+
+                OpenstackNode node = osNodeService.node(cp.deviceId());
+
+                if (node == null) {
+                    return;
+                }
+
+                // we only handles the ARP-Reply message received by gateway node
+                if (node.type() != GATEWAY) {
+                    return;
+                }
+
+                if (receivedPortNum.equals(node.uplinkPortNum())) {
+                    osNetworkAdminService.updateExternalPeerRouterMac(spa, sha);
                 }
             } catch (Exception e) {
-                log.error("Exception occurred because of {}", e.toString());
+                log.error("Exception occurred because of {}", e);
             }
         }
-
     }
 
     private class InternalPacketProcessor implements PacketProcessor {
