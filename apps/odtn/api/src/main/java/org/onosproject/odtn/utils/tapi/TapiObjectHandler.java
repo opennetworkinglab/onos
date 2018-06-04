@@ -161,7 +161,7 @@ public abstract class TapiObjectHandler<T extends ModelObject> {
     public DataNode getDataNode() {
         ResourceData rData = toResourceData(getModelObjectData());
         if (rData.dataNodes().size() > 1) {
-            throw new RuntimeException("Multiple dataNode found.");
+            throw new IllegalStateException("Multiple dataNode found.");
         }
         return rData.dataNodes().get(0);
     }
@@ -232,7 +232,7 @@ public abstract class TapiObjectHandler<T extends ModelObject> {
         ResourceData rData = toResourceData(rNode, rId);
         ModelObjectData modelObjectData = modelConverter.createModel(rData);
         if (modelObjectData.modelObjects().size() > 1) {
-            throw new RuntimeException("Multiple modelObject found.");
+            throw new IllegalStateException("Multiple modelObject found.");
         }
         return (T) modelObjectData.modelObjects().get(0);
     }
