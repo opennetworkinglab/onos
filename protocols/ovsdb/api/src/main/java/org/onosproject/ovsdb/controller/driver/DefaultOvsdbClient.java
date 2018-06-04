@@ -1705,11 +1705,10 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
         }
 
         OvsdbSet dscpOvsdbSet = ((OvsdbSet) queue.getDscpColumn().data());
-        @SuppressWarnings("unchecked")
-        Set<String> dscpSet = dscpOvsdbSet.set();
+        Set dscpSet = dscpOvsdbSet.set();
         Long dscp = null;
         if (dscpSet != null && !dscpSet.isEmpty()) {
-            dscp = Long.valueOf((String) dscpSet.toArray()[0]);
+            dscp = Long.valueOf(dscpSet.toArray()[0].toString());
         }
 
         Map<String, String> otherConfigs;
