@@ -76,8 +76,20 @@ public class TestConsistentMultimap<K, V> implements ConsistentMultimap<K, V> {
     }
 
     @Override
+    public Versioned<Collection<? extends V>> putAndGet(K key, V value) {
+        innermap.put(key, version(value));
+        return (Versioned<Collection<? extends V>>) innermap.get(key);
+    }
+
+    @Override
     public boolean remove(K key, V value) {
         return innermap.remove(key, value);
+    }
+
+    @Override
+    public Versioned<Collection<? extends V>> removeAndGet(K key, V value) {
+        innermap.remove(key, value);
+        return (Versioned<Collection<? extends V>>) innermap.get(key);
     }
 
     @Override

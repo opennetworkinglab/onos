@@ -104,6 +104,19 @@ public interface AsyncConsistentMultimap<K, V> extends DistributedPrimitive, Asy
     CompletableFuture<Boolean> put(K key, V value);
 
     /**
+     * If the key-value pair does not already exist adds either the key value
+     * pair or the value to the set of values associated with the key and
+     * returns the updated value, if the key-value pair already exists then behavior
+     * is implementation specific with some implementations allowing duplicates
+     * and others ignoring put requests for existing entries.
+     *
+     * @param key the key to add
+     * @param value the value to add
+     * @return a future to be completed with the updated values
+     */
+    CompletableFuture<Versioned<Collection<? extends V>>> putAndGet(K key, V value);
+
+    /**
      * Removes the key-value pair with the specified values if it exists. In
      * implementations that allow duplicates which matching entry will be
      * removed is undefined.
@@ -114,6 +127,17 @@ public interface AsyncConsistentMultimap<K, V> extends DistributedPrimitive, Asy
      * this call, false otherwise.
      */
     CompletableFuture<Boolean> remove(K key, V value);
+
+    /**
+     * Removes the key-value pair with the specified values if it exists. In
+     * implementations that allow duplicates which matching entry will be
+     * removed is undefined.
+     *
+     * @param key the key of the pair to be removed
+     * @param value the value of the pair to be removed
+     * @return a future to be completed with the updated values
+     */
+    CompletableFuture<Versioned<Collection<? extends V>>> removeAndGet(K key, V value);
 
     /**
      * Removes the key-value pairs with the specified key and values if they

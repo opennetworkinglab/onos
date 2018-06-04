@@ -238,6 +238,28 @@ public class AtomixConsistentSetMultimapTest extends AtomixTestBase<AtomixConsis
                     .thenAccept(result -> assertFalse(result)).join();
         });
 
+        allKeys.forEach(key -> {
+            map.putAndGet(key, valueOne)
+                .thenAccept(result -> assertEquals(1, result.value().size()));
+            map.putAndGet(key, valueTwo)
+                .thenAccept(result -> assertEquals(2, result.value().size()));
+            map.putAndGet(key, valueThree)
+                .thenAccept(result -> assertEquals(3, result.value().size()));
+            map.putAndGet(key, valueFour)
+                .thenAccept(result -> assertEquals(4, result.value().size()));
+        });
+
+        allKeys.forEach(key -> {
+            map.removeAndGet(key, valueOne)
+                .thenAccept(result -> assertEquals(3, result.value().size()));
+            map.removeAndGet(key, valueTwo)
+                .thenAccept(result -> assertEquals(2, result.value().size()));
+            map.removeAndGet(key, valueThree)
+                .thenAccept(result -> assertEquals(1, result.value().size()));
+            map.removeAndGet(key, valueFour)
+                .thenAccept(result -> assertEquals(0, result.value().size()));
+        });
+
         map.isEmpty().thenAccept(result -> assertTrue(result)).join();
 
         //Repopulate for next test

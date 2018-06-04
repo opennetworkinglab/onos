@@ -86,8 +86,18 @@ public class DefaultConsistentMultimap<K, V>
     }
 
     @Override
+    public Versioned<Collection<? extends V>> putAndGet(K key, V value) {
+        return complete(asyncMultimap.putAndGet(key, value));
+    }
+
+    @Override
     public boolean remove(K key, V value) {
         return complete(asyncMultimap.remove(key, value));
+    }
+
+    @Override
+    public Versioned<Collection<? extends V>> removeAndGet(K key, V value) {
+        return complete(asyncMultimap.removeAndGet(key, value));
     }
 
     @Override

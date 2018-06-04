@@ -61,9 +61,11 @@ import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSe
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.KEY_SET;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.MultiRemove;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.PUT;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.PUT_AND_GET;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.Put;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.REMOVE;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.REMOVE_ALL;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.REMOVE_AND_GET;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.REMOVE_LISTENER;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.REPLACE;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.RemoveAll;
@@ -148,8 +150,24 @@ public class AtomixConsistentSetMultimap
     }
 
     @Override
+    public CompletableFuture<Versioned<Collection<? extends byte[]>>> putAndGet(String key, byte[] value) {
+        return proxy.invoke(
+            PUT_AND_GET,
+            SERIALIZER::encode,
+            new Put(key, Lists.newArrayList(value), null),
+            SERIALIZER::decode);
+    }
+
+    @Override
     public CompletableFuture<Boolean> remove(String key, byte[] value) {
         return proxy.invoke(REMOVE, SERIALIZER::encode, new MultiRemove(key,
+            Lists.newArrayList(value),
+            null), SERIALIZER::decode);
+    }
+
+    @Override
+    public CompletableFuture<Versioned<Collection<? extends byte[]>>> removeAndGet(String key, byte[] value) {
+        return proxy.invoke(REMOVE_AND_GET, SERIALIZER::encode, new MultiRemove(key,
             Lists.newArrayList(value),
             null), SERIALIZER::decode);
     }

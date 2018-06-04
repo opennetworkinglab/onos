@@ -78,8 +78,18 @@ public class DelegatingAsyncConsistentMultimap<K, V>
     }
 
     @Override
+    public CompletableFuture<Versioned<Collection<? extends V>>> putAndGet(K key, V value) {
+        return delegateMap.putAndGet(key, value);
+    }
+
+    @Override
     public CompletableFuture<Boolean> remove(K key, V value) {
         return delegateMap.remove(key, value);
+    }
+
+    @Override
+    public CompletableFuture<Versioned<Collection<? extends V>>> removeAndGet(K key, V value) {
+        return delegateMap.removeAndGet(key, value);
     }
 
     @Override
