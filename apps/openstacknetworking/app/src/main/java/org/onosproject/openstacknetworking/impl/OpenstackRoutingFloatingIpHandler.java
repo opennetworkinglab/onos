@@ -195,8 +195,14 @@ public class OpenstackRoutingFloatingIpHandler {
             throw new IllegalStateException(errorFormat);
         }
 
-        setComputeNodeToGateway(instPort, osNet, gateway, install);
-        setDownstreamRules(floatingIp, osNet, instPort, externalPeerRouter, install);
+        updateComputeNodeRules(instPort, osNet, gateway, install);
+        updateGatewayNodeRules(floatingIp, instPort, osNet, externalPeerRouter, gateway, install);
+
+        // FIXME: downstream internal rules are still duplicated in all gateway nodes
+        // need to make the internal rules de-duplicated sooner or later
+        setDownstreamInternalRules(floatingIp, osNet, instPort, install);
+
+        // TODO: need to refactor setUpstreamRules if possible
         setUpstreamRules(floatingIp, osNet, instPort, externalPeerRouter, install);
         log.trace("Succeeded to set flow rules for floating ip {}:{} and install: {}",
                 floatingIp.getFloatingIpAddress(),
@@ -204,10 +210,52 @@ public class OpenstackRoutingFloatingIpHandler {
                 install);
     }
 
-    private synchronized void setComputeNodeToGateway(InstancePort instPort,
-                                                      Network osNet,
-                                                      OpenstackNode gateway,
-                                                      boolean install) {
+    private synchronized void updateGatewayNodeRules(NetFloatingIP fip,
+                                                     InstancePort instPort,
+                                                     Network osNet,
+                                                     ExternalPeerRouter router,
+                                                     OpenstackNode gateway,
+                                                     boolean install) {
+
+        Set<OpenstackNode> completedGws = osNodeService.completeNodes(GATEWAY);
+        Set<OpenstackNode> finalGws = Sets.newConcurrentHashSet();
+        finalGws.addAll(ImmutableSet.copyOf(completedGws));
+
+        if (install) {
+            if (completedGws.contains(gateway)) {
+                if (completedGws.size() > 1) {
+                    finalGws.remove(gateway);
+                    if (fip.getPortId() != null) {
+                        setDownstreamExternalRulesHelper(fip, osNet, instPort, router,
+                                ImmutableSet.copyOf(finalGws), false);
+                        finalGws.add(gateway);
+                    }
+                }
+                if (fip.getPortId() != null) {
+                    setDownstreamExternalRulesHelper(fip, osNet, instPort, router,
+                            ImmutableSet.copyOf(finalGws), true);
+                }
+            } else {
+                log.warn("Detected node should be included in completed gateway set");
+            }
+        } else {
+            if (!completedGws.contains(gateway)) {
+                if (completedGws.size() >= 1) {
+                    if (fip.getPortId() != null) {
+                        setDownstreamExternalRulesHelper(fip, osNet, instPort, router,
+                                ImmutableSet.copyOf(finalGws), true);
+                    }
+                }
+            } else {
+                log.warn("Detected node should NOT be included in completed gateway set");
+            }
+        }
+    }
+
+    private synchronized void updateComputeNodeRules(InstancePort instPort,
+                                                     Network osNet,
+                                                     OpenstackNode gateway,
+                                                     boolean install) {
 
         Set<OpenstackNode> completedGws = osNodeService.completeNodes(GATEWAY);
         Set<OpenstackNode> finalGws = Sets.newConcurrentHashSet();
@@ -217,6 +265,7 @@ public class OpenstackRoutingFloatingIpHandler {
             // these are floating IP related cases...
             setComputeNodeToGatewayHelper(instPort, osNet,
                     ImmutableSet.copyOf(finalGws), install);
+
         } else {
             // these are openstack node related cases...
             if (install) {
@@ -302,9 +351,10 @@ public class OpenstackRoutingFloatingIpHandler {
         log.trace("Succeeded to set flow rules from compute node to gateway on compute node");
     }
 
-    private void setDownstreamRules(NetFloatingIP floatingIp, Network osNet,
-                                    InstancePort instPort, ExternalPeerRouter externalPeerRouter,
-                                    boolean install) {
+    private void setDownstreamInternalRules(NetFloatingIP floatingIp,
+                                            Network osNet,
+                                            InstancePort instPort,
+                                            boolean install) {
         OpenstackNode cNode = osNodeService.node(instPort.deviceId());
         if (cNode == null) {
             final String error = String.format("Cannot find openstack node for device %s",
@@ -324,51 +374,8 @@ public class OpenstackRoutingFloatingIpHandler {
 
         IpAddress floating = IpAddress.valueOf(floatingIp.getFloatingIpAddress());
 
+        // TODO: following code snippet will be refactored sooner or later
         osNodeService.completeNodes(GATEWAY).forEach(gNode -> {
-            TrafficSelector.Builder externalSelectorBuilder = DefaultTrafficSelector.builder()
-                    .matchEthType(Ethernet.TYPE_IPV4)
-                    .matchIPDst(floating.toIpPrefix());
-
-            TrafficTreatment.Builder externalTreatmentBuilder = DefaultTrafficTreatment.builder()
-                    .setEthSrc(Constants.DEFAULT_GATEWAY_MAC)
-                    .setEthDst(instPort.macAddress())
-                    .setIpDst(instPort.ipAddress().getIp4Address());
-
-            if (!externalPeerRouter.externalPeerRouterVlanId().equals(VlanId.NONE)) {
-                externalSelectorBuilder.matchVlanId(externalPeerRouter.externalPeerRouterVlanId()).build();
-                externalTreatmentBuilder.popVlan();
-            }
-
-            switch (osNet.getNetworkType()) {
-                case VXLAN:
-                    externalTreatmentBuilder.setTunnelId(Long.valueOf(osNet.getProviderSegID()))
-                            .extension(buildExtension(
-                                    deviceService,
-                                    gNode.intgBridge(),
-                                    cNode.dataIp().getIp4Address()),
-                                    gNode.intgBridge())
-                            .setOutput(gNode.tunnelPortNum());
-                    break;
-                case VLAN:
-                    externalTreatmentBuilder.pushVlan()
-                            .setVlanId(VlanId.vlanId(osNet.getProviderSegID()))
-                            .setOutput(gNode.vlanPortNum());
-                    break;
-                default:
-                    final String error = String.format(ERR_UNSUPPORTED_NET_TYPE,
-                            osNet.getNetworkType());
-                    throw new IllegalStateException(error);
-            }
-
-            osFlowRuleService.setRule(
-                    appId,
-                    gNode.intgBridge(),
-                    externalSelectorBuilder.build(),
-                    externalTreatmentBuilder.build(),
-                    PRIORITY_FLOATING_EXTERNAL,
-                    GW_COMMON_TABLE,
-                    install);
-
             // access from one VM to the others via floating IP
             TrafficSelector internalSelector = DefaultTrafficSelector.builder()
                     .matchEthType(Ethernet.TYPE_IPV4)
@@ -412,6 +419,82 @@ public class OpenstackRoutingFloatingIpHandler {
                     install);
         });
         log.trace("Succeeded to set flow rules for downstream on gateway nodes");
+    }
+
+    private void setDownstreamExternalRulesHelper(NetFloatingIP floatingIp,
+                                                  Network osNet,
+                                                  InstancePort instPort,
+                                                  ExternalPeerRouter externalPeerRouter,
+                                                  Set<OpenstackNode> gateways, boolean install) {
+        OpenstackNode cNode = osNodeService.node(instPort.deviceId());
+        if (cNode == null) {
+            final String error = String.format("Cannot find openstack node for device %s",
+                    instPort.deviceId());
+            throw new IllegalStateException(error);
+        }
+        if (osNet.getNetworkType() == NetworkType.VXLAN && cNode.dataIp() == null) {
+            final String errorFormat = ERR_FLOW + "VXLAN mode is not ready for %s";
+            final String error = String.format(errorFormat, floatingIp, cNode.hostname());
+            throw new IllegalStateException(error);
+        }
+        if (osNet.getNetworkType() == NetworkType.VLAN && cNode.vlanIntf() == null) {
+            final String errorFormat = ERR_FLOW + "VLAN mode is not ready for %s";
+            final String error = String.format(errorFormat, floatingIp, cNode.hostname());
+            throw new IllegalStateException(error);
+        }
+
+        IpAddress floating = IpAddress.valueOf(floatingIp.getFloatingIpAddress());
+
+        OpenstackNode selectedGatewayNode = getGwByComputeDevId(gateways, instPort.deviceId());
+
+        if (selectedGatewayNode == null) {
+            final String errorFormat = ERR_FLOW + "no gateway node selected";
+            throw new IllegalStateException(errorFormat);
+        }
+
+        TrafficSelector.Builder externalSelectorBuilder = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_IPV4)
+                .matchIPDst(floating.toIpPrefix());
+
+        TrafficTreatment.Builder externalTreatmentBuilder = DefaultTrafficTreatment.builder()
+                .setEthSrc(Constants.DEFAULT_GATEWAY_MAC)
+                .setEthDst(instPort.macAddress())
+                .setIpDst(instPort.ipAddress().getIp4Address());
+
+        if (!externalPeerRouter.externalPeerRouterVlanId().equals(VlanId.NONE)) {
+            externalSelectorBuilder.matchVlanId(externalPeerRouter.externalPeerRouterVlanId()).build();
+            externalTreatmentBuilder.popVlan();
+        }
+
+        switch (osNet.getNetworkType()) {
+            case VXLAN:
+                externalTreatmentBuilder.setTunnelId(Long.valueOf(osNet.getProviderSegID()))
+                        .extension(buildExtension(
+                                deviceService,
+                                selectedGatewayNode.intgBridge(),
+                                cNode.dataIp().getIp4Address()),
+                                selectedGatewayNode.intgBridge())
+                        .setOutput(selectedGatewayNode.tunnelPortNum());
+                break;
+            case VLAN:
+                externalTreatmentBuilder.pushVlan()
+                        .setVlanId(VlanId.vlanId(osNet.getProviderSegID()))
+                        .setOutput(selectedGatewayNode.vlanPortNum());
+                break;
+            default:
+                final String error = String.format(ERR_UNSUPPORTED_NET_TYPE,
+                        osNet.getNetworkType());
+                throw new IllegalStateException(error);
+        }
+
+        osFlowRuleService.setRule(
+                appId,
+                selectedGatewayNode.intgBridge(),
+                externalSelectorBuilder.build(),
+                externalTreatmentBuilder.build(),
+                PRIORITY_FLOATING_EXTERNAL,
+                GW_COMMON_TABLE,
+                install);
     }
 
     private void setUpstreamRules(NetFloatingIP floatingIp, Network osNet,
@@ -651,7 +734,15 @@ public class OpenstackRoutingFloatingIpHandler {
                                 throw new IllegalStateException(error);
                             }
 
-                            setComputeNodeToGateway(instPort, osNet, event.subject(), false);
+                            ExternalPeerRouter externalPeerRouter = externalPeerRouter(osNet);
+                            if (externalPeerRouter == null) {
+                                final String errorFormat = ERR_FLOW + "no external peer router found";
+                                throw new IllegalStateException(errorFormat);
+                            }
+
+                            updateComputeNodeRules(instPort, osNet, event.subject(), false);
+                            updateGatewayNodeRules(fip, instPort, osNet,
+                                    externalPeerRouter, event.subject(), false);
                         }
                     });
                     break;
