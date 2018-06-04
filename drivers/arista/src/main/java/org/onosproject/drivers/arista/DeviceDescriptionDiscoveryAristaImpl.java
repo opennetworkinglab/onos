@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
+import org.onlab.packet.MacAddress;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DeviceId;
@@ -39,7 +40,10 @@ import org.onosproject.protocol.rest.RestSBController;
 import javax.ws.rs.core.MediaType;
 import org.slf4j.Logger;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -59,6 +63,9 @@ public class DeviceDescriptionDiscoveryAristaImpl extends AbstractHandlerBehavio
     private static final String ETHERNET = "Ethernet";
     private static final String MANAGEMENT = "Management";
     private static final String INTERFACE_TYPE = "interfaceType";
+    private static final String INTERFACES = "interfaces";
+    private static final String BURNED_IN_ADDRESS = "burnedInAddress";
+    private static final String PHYSICAL_ADDRESS = "physicalAddress";
     private static final int WEIGHTING_FACTOR_MANAGEMENT_INTERFACE = 10000;
     private static final String JSONRPC = "jsonrpc";
     private static final String METHOD = "method";
@@ -71,6 +78,7 @@ public class DeviceDescriptionDiscoveryAristaImpl extends AbstractHandlerBehavio
     private static final String TIMESTAMPS = "timestamps";
     private static final String CMDS = "cmds";
     private static final String SHOW_INTERFACES_STATUS = "show interfaces status";
+    private static final String SHOW_INTERFACES = "show interfaces";
     private static final String TWO_POINT_ZERO = "2.0";
     private static final long MBPS = 1000000;
 
@@ -87,7 +95,126 @@ public class DeviceDescriptionDiscoveryAristaImpl extends AbstractHandlerBehavio
 
     @Override
     public List<PortDescription> discoverPortDetails() {
+        Map<String, MacAddress> macAddressMap = getMacAddressesByInterface();
         List<PortDescription> ports = Lists.newArrayList();
+
+        try {
+            Optional<JsonNode> result = retrieveCommandResult(SHOW_INTERFACES_STATUS);
+
+            if (!result.isPresent()) {
+                return ports;
+            }
+
+            ArrayNode arrayNode = (ArrayNode) result.get();
+
+            JsonNode jsonNode = arrayNode.iterator().next().get(INTERFACE_STATUSES);
+
+            jsonNode.fieldNames().forEachRemaining(name -> {
+                JsonNode interfaceNode = jsonNode.get(name);
+
+                Long bandwidth = interfaceNode.path(BANDWIDTH).asLong() / MBPS;
+
+                String macAddress = macAddressMap.containsKey(name) ? macAddressMap.get(name).toString() : "";
+
+                SparseAnnotations annotations = DefaultAnnotations.builder()
+                        .set(AnnotationKeys.BANDWIDTH, bandwidth.toString())
+                        .set(AnnotationKeys.NAME, name)
+                        .set(AnnotationKeys.PORT_NAME, name)
+                        .set(AnnotationKeys.PORT_MAC, macAddress)
+                        .set(LINK_STATUS, interfaceNode.path(LINK_STATUS).asText())
+                        .set(LINE_PROTOCOL_STATUS, interfaceNode.path(LINE_PROTOCOL_STATUS).asText())
+                        .set(INTERFACE_TYPE, interfaceNode.path(INTERFACE_TYPE).asText())
+                        .build();
+
+                int portNumber;
+
+                try {
+                    portNumber = getPortNumber(name);
+                } catch (Exception e) {
+                    log.debug("Interface does not have port number: {}", name);
+                    return;
+                }
+
+                PortDescription portDescription = DefaultPortDescription.builder()
+                        .withPortNumber(PortNumber.portNumber(portNumber))
+                        .isEnabled(true)
+                        .type(Port.Type.FIBER)
+                        .portSpeed(bandwidth)
+                        .annotations(annotations)
+                        .build();
+                ports.add(portDescription);
+
+            });
+
+        } catch (Exception e) {
+            log.error("Exception occurred because of {}, trace: {}", e, e.getStackTrace());
+        }
+        return ports;
+    }
+
+    private int getPortNumber(String interfaceName) {
+        if (interfaceName.startsWith(ETHERNET)) {
+            return Integer.valueOf(interfaceName.substring(ETHERNET.length()).replace('/', '0'));
+        } else {
+            return Integer.valueOf(interfaceName.substring(MANAGEMENT.length())).intValue()
+                    + WEIGHTING_FACTOR_MANAGEMENT_INTERFACE;
+        }
+    }
+
+    private Map<String, MacAddress> getMacAddressesByInterface() {
+        Map<String, MacAddress> macAddressMap = new HashMap();
+
+        try {
+            Optional<JsonNode> result = retrieveCommandResult(SHOW_INTERFACES);
+
+            if (!result.isPresent()) {
+                return macAddressMap;
+            }
+
+            ArrayNode arrayNode = (ArrayNode) result.get();
+            JsonNode jsonNode = arrayNode.iterator().next().get(INTERFACES);
+
+            jsonNode.fieldNames().forEachRemaining(name -> {
+                JsonNode interfaceNode = jsonNode.get(name);
+                JsonNode macAddressNode = interfaceNode.get(BURNED_IN_ADDRESS);
+
+                if (macAddressNode == null) {
+                    log.debug("Interface does not have {}: {}", BURNED_IN_ADDRESS, name);
+                    return;
+                }
+
+                String macAddress = macAddressNode.asText("");
+
+                if (macAddress.isEmpty()) {
+                    macAddressNode = interfaceNode.get(PHYSICAL_ADDRESS);
+
+                    if (macAddressNode == null) {
+                        log.debug("Interface does not have {}: {}", PHYSICAL_ADDRESS, name);
+                        return;
+                    }
+
+                    macAddress = macAddressNode.asText("");
+
+                    if (macAddress.isEmpty()) {
+                        log.debug("Interface does not have any mac address: {}", name);
+                        return;
+                    }
+                }
+
+                try {
+                    macAddressMap.put(name, MacAddress.valueOf(macAddress));
+                } catch (IllegalArgumentException e) {
+                    log.error("Cannot parse macAddress: {}", macAddress);
+                }
+            });
+        } catch (Exception e) {
+            log.error("Exception occurred because of {}, trace: {}", e, e.getStackTrace());
+        }
+
+        return macAddressMap;
+    }
+
+    private Optional<JsonNode> retrieveCommandResult(String cmd) {
         DriverHandler handler = handler();
         RestSBController controller = checkNotNull(handler.get(RestSBController.class));
         DeviceId deviceId = handler.data().deviceId();
@@ -103,7 +230,7 @@ public class DeviceDescriptionDiscoveryAristaImpl extends AbstractHandlerBehavio
                 .put(FORMAT, JSON)
                 .put(TIMESTAMPS, false)
                 .put(VERSION, 1)
-                .putArray(CMDS).add(SHOW_INTERFACES_STATUS);
+                .putArray(CMDS).add(cmd);
 
         String response = controller.post(deviceId, API_ENDPOINT,
                 new ByteArrayInputStream(sendObjNode.toString().getBytes()),
@@ -111,48 +238,12 @@ public class DeviceDescriptionDiscoveryAristaImpl extends AbstractHandlerBehavio
 
         try {
             ObjectNode node = (ObjectNode) mapper.readTree(response);
-            ArrayNode arrayNode = (ArrayNode) node.get(RESULT);
 
-            JsonNode jsonNode = arrayNode.iterator().next().get(INTERFACE_STATUSES);
-
-            jsonNode.fieldNames().forEachRemaining(name -> {
-                JsonNode interfaceNode = jsonNode.get(name);
-
-                Long bandwidth = interfaceNode.path(BANDWIDTH).asLong() / MBPS;
-
-                SparseAnnotations annotations = DefaultAnnotations.builder()
-                        .set(AnnotationKeys.BANDWIDTH, bandwidth.toString())
-                        .set(AnnotationKeys.NAME, name)
-                        .set(AnnotationKeys.PORT_NAME, name)
-                        .set(LINK_STATUS, interfaceNode.path(LINK_STATUS).asText())
-                        .set(LINE_PROTOCOL_STATUS, interfaceNode.path(LINE_PROTOCOL_STATUS).asText())
-                        .set(INTERFACE_TYPE, interfaceNode.path(INTERFACE_TYPE).asText())
-                        .build();
-
-                PortDescription portDescription = DefaultPortDescription.builder()
-                        .withPortNumber(PortNumber.portNumber(getPortNumber(name)))
-                        .isEnabled(true)
-                        .type(Port.Type.FIBER)
-                        .portSpeed(bandwidth)
-                        .annotations(annotations)
-                        .build();
-                ports.add(portDescription);
-
-            });
-
+            return Optional.ofNullable(node.get(RESULT));
         } catch (IOException e) {
             log.warn("IO exception occurred because of ", e);
         }
-        return ports;
-    }
-
-    private int getPortNumber(String interfaceName) {
-        if (interfaceName.startsWith(ETHERNET)) {
-            return Integer.valueOf(interfaceName.substring(ETHERNET.length()).replace('/', '0'));
-        } else {
-            return Integer.valueOf(interfaceName.substring(MANAGEMENT.length())).intValue()
-                    + WEIGHTING_FACTOR_MANAGEMENT_INTERFACE;
-        }
+        return Optional.empty();
     }
 }
 
