@@ -953,6 +953,7 @@
     <bean id="nodeIdCompleter" class="org.onosproject.cli.NodeIdCompleter"/>
     <bean id="deviceIdCompleter" class="org.onosproject.cli.net.DeviceIdCompleter"/>
     <bean id="portNumberCompleter" class="org.onosproject.cli.net.PortNumberCompleter"/>
+    <bean id="numericPortNumberCompleter" class="org.onosproject.cli.net.completer.NumericPortNumberCompleter" />
     <bean id="portStateCompleter" class="org.onosproject.cli.net.PortStateCompleter"/>
     <bean id="clusterIdCompleter" class="org.onosproject.cli.net.ClusterIdCompleter"/>
     <bean id="roleCompleter" class="org.onosproject.cli.net.RoleCompleter"/>
