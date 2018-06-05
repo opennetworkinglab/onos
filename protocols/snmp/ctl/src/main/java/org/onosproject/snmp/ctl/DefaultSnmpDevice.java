@@ -59,7 +59,7 @@ public class DefaultSnmpDevice implements SnmpDevice {
                              String username, String community) {
         this.protocol = GenericAddress.TYPE_UDP;
         this.snmpHost = checkNotNull(snmpHost, "SNMP Device IP cannot be null");
-        this.snmpPort = checkNotNull(snmpPort, "SNMP Device port cannot be null");
+        this.snmpPort = snmpPort;
         this.notificationProtocol = GenericAddress.TYPE_UDP;
         this.notificationPort = 0;
         this.username = username;
@@ -73,9 +73,8 @@ public class DefaultSnmpDevice implements SnmpDevice {
         this.protocol = snmpDeviceConfig.protocol();
         this.notificationProtocol = snmpDeviceConfig.notificationProtocol();
         this.snmpHost = checkNotNull(snmpDeviceConfig.ip().toString(), "SNMP Device IP cannot be null");
-        this.snmpPort = checkNotNull(snmpDeviceConfig.port(), "SNMP Device port cannot be null");
-        this.notificationPort = checkNotNull(snmpDeviceConfig.notificationPort(),
-                                          "SNMP Device notification port cannot be null");
+        this.snmpPort = snmpDeviceConfig.port();
+        this.notificationPort = snmpDeviceConfig.notificationPort();
         this.username = snmpDeviceConfig.username();
         this.community = snmpDeviceConfig.password();
         this.deviceId = createDeviceId();
@@ -86,7 +85,7 @@ public class DefaultSnmpDevice implements SnmpDevice {
         reachable = true;
         try {
             TransportMapping transport;
-            if (protocol == GenericAddress.TYPE_TCP) {
+            if (protocol.equals(GenericAddress.TYPE_TCP)) {
                 transport = new DefaultTcpTransportMapping();
             } else {
                 transport = new DefaultUdpTransportMapping();
