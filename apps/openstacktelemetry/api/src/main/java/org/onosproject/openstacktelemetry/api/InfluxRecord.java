@@ -13,18 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.openstacktelemetry.impl;
-
-import org.onosproject.openstacktelemetry.api.OpenstackTelemetry;
+package org.onosproject.openstacktelemetry.api;
 
 /**
- * A class which contains dummy implementation.
+ * A record which contains influx topic and network metric data.
  */
-public class OpenstackTelemetryImpl implements OpenstackTelemetry {
+public interface InfluxRecord<K, V> {
 
-    /**
-     * OpenstackTelemetryImpl dummy method.
-     */
-    public void dummy() {
-    }
 }

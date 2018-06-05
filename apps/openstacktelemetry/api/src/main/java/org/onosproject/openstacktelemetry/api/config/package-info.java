@@ -13,15 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.openstacktelemetry.api;
 
 /**
- * Openstack telemetry interface.
+ * Configuration API for Openstack Telemetry.
  */
-public interface OpenstackTelemetry {
-
-    /**
-     * A dummy interface method.
-     */
-    void dummy();
-}
+package org.onosproject.openstacktelemetry.api.config;

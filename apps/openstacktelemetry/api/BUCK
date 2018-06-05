@@ -1,5 +1,9 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:kafka-clients',
+    '//lib:jersey-client',
+    '//lib:javax.ws.rs-api',
+    '//lib:influxdb-java',
 ]
 
 TEST_DEPS = [
