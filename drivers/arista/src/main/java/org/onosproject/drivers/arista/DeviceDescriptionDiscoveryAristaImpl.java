@@ -23,16 +23,20 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
+import org.onlab.packet.ChassisId;
 import org.onlab.packet.MacAddress;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.DefaultAnnotations;
+import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.SparseAnnotations;
+import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DefaultPortDescription;
 import org.onosproject.net.device.DeviceDescription;
 import org.onosproject.net.device.DeviceDescriptionDiscovery;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.driver.DriverHandler;
@@ -54,6 +58,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class DeviceDescriptionDiscoveryAristaImpl extends AbstractHandlerBehaviour
         implements DeviceDescriptionDiscovery {
 
+    private static final String UNKNOWN = "unknown";
     private static final String JSON = "json";
     private static final String RESULT = "result";
     private static final String INTERFACE_STATUSES = "interfaceStatuses";
@@ -66,19 +71,25 @@ public class DeviceDescriptionDiscoveryAristaImpl extends AbstractHandlerBehavio
     private static final String INTERFACES = "interfaces";
     private static final String BURNED_IN_ADDRESS = "burnedInAddress";
     private static final String PHYSICAL_ADDRESS = "physicalAddress";
+    private static final String MODEL_NAME = "modelName";
+    private static final String SW_VERSION = "version";
+    private static final String SERIAL_NUMBER = "serialNumber";
+    private static final String SYSTEM_MAC_ADDRESS = "systemMacAddress";
     private static final int WEIGHTING_FACTOR_MANAGEMENT_INTERFACE = 10000;
     private static final String JSONRPC = "jsonrpc";
     private static final String METHOD = "method";
     private static final String RUN_CMDS = "runCmds";
     private static final String VERSION = "version";
     private static final String ID = "id";
-    private static final String GET_PORT = "GetPort";
+    private static final String ONOS_REST = "onos-rest";
     private static final String PARAMS = "params";
     private static final String FORMAT = "format";
     private static final String TIMESTAMPS = "timestamps";
     private static final String CMDS = "cmds";
+    private static final String MANUFACTURER = "Arista Networks";
     private static final String SHOW_INTERFACES_STATUS = "show interfaces status";
     private static final String SHOW_INTERFACES = "show interfaces";
+    private static final String SHOW_VERSION = "show version";
     private static final String TWO_POINT_ZERO = "2.0";
     private static final long MBPS = 1000000;
 
@@ -88,9 +99,32 @@ public class DeviceDescriptionDiscoveryAristaImpl extends AbstractHandlerBehavio
 
     @Override
     public DeviceDescription discoverDeviceDetails() {
-        log.info("No description to be added for device");
-        //TODO to be implemented if needed.
-        return null;
+        try {
+            Optional<JsonNode> result = retrieveCommandResult(SHOW_VERSION);
+
+            if (!result.isPresent()) {
+                return null;
+            }
+
+            ArrayNode arrayNode = (ArrayNode) result.get();
+            JsonNode jsonNode = arrayNode.iterator().next();
+            String hwVer = jsonNode.get(MODEL_NAME).asText(UNKNOWN);
+            String swVer = jsonNode.get(SW_VERSION).asText(UNKNOWN);
+            String serialNum = jsonNode.get(SERIAL_NUMBER).asText(UNKNOWN);
+            String systemMacAddress = jsonNode.get(SYSTEM_MAC_ADDRESS).asText("").replace(":", "");
+            DeviceId deviceId = handler().data().deviceId();
+            DeviceService deviceService = checkNotNull(handler().get(DeviceService.class));
+            Device device = deviceService.getDevice(deviceId);
+            ChassisId chassisId = systemMacAddress.isEmpty() ? new ChassisId() : new ChassisId(systemMacAddress);
+
+            log.debug("systemMacAddress: {}", systemMacAddress);
+
+            return new DefaultDeviceDescription(deviceId.uri(), Device.Type.SWITCH,
+                    MANUFACTURER, hwVer, swVer, serialNum, chassisId, (SparseAnnotations) device.annotations());
+        } catch (Exception e) {
+            log.error("Exception occurred because of {}, trace: {}", e, e.getStackTrace());
+            return null;
+        }
     }
 
     @Override
@@ -225,7 +259,7 @@ public class DeviceDescriptionDiscoveryAristaImpl extends AbstractHandlerBehavio
 
         sendObjNode.put(JSONRPC, TWO_POINT_ZERO)
                 .put(METHOD, RUN_CMDS)
-                .put(ID, GET_PORT)
+                .put(ID, ONOS_REST)
                 .putObject(PARAMS)
                 .put(FORMAT, JSON)
                 .put(TIMESTAMPS, false)
