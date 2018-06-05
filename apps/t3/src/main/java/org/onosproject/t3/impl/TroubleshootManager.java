@@ -790,6 +790,10 @@ public class TroubleshootManager implements TroubleshootService {
                     log.debug("A miss on Table 20 on OFDPA means that we skip directly to table 50");
                     tableId = IndexTableId.of(50);
 
+                } else if (((IndexTableId) tableId).id() == 40) {
+                    //if the table is 40 OFDPA skips to table 60
+                    log.debug("A miss on Table 40 on OFDPA means that we skip directly to table 60");
+                    tableId = IndexTableId.of(60);
                 } else {
                     tableId = nextTableIdEntry.table();
                 }
