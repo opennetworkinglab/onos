@@ -56,6 +56,7 @@ import org.onosproject.segmentrouting.SegmentRoutingManager;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.Serializer;
+import org.onosproject.store.service.Versioned;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -1107,7 +1108,12 @@ public class McastHandler {
                          source, mcastIp);
                 return;
             }
-            ingressTransitPorts.put(source, ingressTransitPort(mcastIp, ingressDevice, source));
+            Set<PortNumber> ingressTransitPort = ingressTransitPort(mcastIp, ingressDevice, source);
+            if (ingressTransitPort.isEmpty()) {
+                log.warn("No transit ports to remove on device {}", ingressDevice);
+                return;
+            }
+            ingressTransitPorts.put(source, ingressTransitPort);
         });
         ingressTransitPorts.forEach((source, ports) -> ports.forEach(ingressTransitPort -> {
             DeviceId ingressDevice = ingressDevices.stream()
@@ -1593,8 +1599,14 @@ public class McastHandler {
                                                ConnectPoint source) {
         ImmutableSet.Builder<PortNumber> portBuilder = ImmutableSet.builder();
         if (ingressDevice != null) {
-            NextObjective nextObj = mcastNextObjStore.get(new McastStoreKey(mcastIp, ingressDevice,
-                                                            mcastUtils.assignedVlan(source))).value();
+            Versioned<NextObjective> nextObjVers = mcastNextObjStore.get(new McastStoreKey(mcastIp, ingressDevice,
+                                                                          mcastUtils.assignedVlan(source)));
+            if (nextObjVers == null) {
+                log.warn("Absent next objective for {}", new McastStoreKey(mcastIp, ingressDevice,
+                        mcastUtils.assignedVlan(source)));
+                return portBuilder.build();
+            }
+            NextObjective nextObj = nextObjVers.value();
             Set<PortNumber> ports = mcastUtils.getPorts(nextObj.next());
             // Let's find out all the ingress-transit ports
             for (PortNumber port : ports) {
