@@ -265,8 +265,10 @@ public class SnmpAlarmProvider extends AbstractProvider
             switch (event.type()) {
                 case DEVICE_ADDED:
                     triggerProbe(deviceId);
+                    break;
                 case DEVICE_UPDATED:
                     triggerProbe(deviceId);
+                    break;
                 default:
                     break;
             }
