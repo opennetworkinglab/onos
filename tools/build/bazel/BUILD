@@ -6,21 +6,21 @@ py_binary(
 )
 
 py_binary(
-    name = "onos-app-oar",
+    name = "onos_app_oar",
     srcs = ["onos_oar.py"],
     main = "onos_oar.py",
     visibility = ["//visibility:public"],
 )
 
 py_binary(
-    name = "onos-stage",
+    name = "onos_stage",
     srcs = ["onos_stage.py"],
     main = "onos_stage.py",
     visibility = ["//visibility:public"],
 )
 
 py_binary(
-    name = "onos-feature",
+    name = "onos_feature",
     srcs = ["onos_feature.py"],
     main = "onos_feature.py",
     visibility = ["//visibility:public"],

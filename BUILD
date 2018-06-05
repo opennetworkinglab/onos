@@ -300,7 +300,20 @@ APP_JARS = [
 APPS = ONOS_DRIVERS + ONOS_PROVIDERS + ONOS_APPS + MODELS + PIPELINES + \
        PROTOCOL_APPS
 
+FEATURES = [
+    '//features:onos-thirdparty-base',
+    '//features:onos-thirdparty-web',
+    '//features:onos-api',
+    '//features:onos-core',
+#    '//features:onos-incubator',
+#    '//features:onos-rest',
+#    '//features:onos-gui',
+#    '//features:onos-gui2',
+#    '//features:onos-cli',
+#    '//features:onos-security',
+ ]
+
 filegroup(
     name = "onos",
-    srcs = CORE + APPS,
+    srcs = CORE + APPS + FEATURES,
 )

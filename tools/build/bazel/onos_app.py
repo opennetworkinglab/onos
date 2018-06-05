@@ -134,11 +134,18 @@ def generateAppFile(app_name,
     output += APP_FOOTER
     return output
 
+def write(name, msg):
+    if name is not None:
+        with open(name, "w") as file:
+            file.write(msg)
+    else:
+        print msg
 
 if __name__ == '__main__':
     import sys, optparse
 
     parser = optparse.OptionParser()
+    parser.add_option("-O", "--output",   dest="output",       help="Output file")
     parser.add_option("-n", "--name",     dest="feature_coords", help="Feature MVN Coords")
     parser.add_option("-a", "--app",      dest="app_name",     help="App Name")
     parser.add_option("-o", "--origin",   dest="origin",       help="Origin")
@@ -206,14 +213,15 @@ if __name__ == '__main__':
                               **values)
 
     if options.write_feature:
-        print feature
+        write(options.output, feature)
 
     if options.write_features:
-        print generateFeatureFile(features=[ feature ],
-                                  **values)
+        write(options.output,
+              generateFeatureFile(features=[ feature ], **values))
 
     if options.write_app:
-        print generateAppFile(artifacts=options.included_bundles,
+        write(options.output,
+              generateAppFile(artifacts=options.included_bundles,
                               apps=options.apps,
                               security=options.security,
-                              **values)
+                              **values))
