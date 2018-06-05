@@ -8,6 +8,10 @@
 # 'onos-die' command.
 # -----------------------------------------------------------------------------
 
+function usage() {
+    echo "usage: $(basename $0) node-ip {on|off} [user]" >&2 && exit 1
+}
+
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
 
@@ -15,7 +19,10 @@ node=${1:-$OCI}
 cmd=${2:-on}
 user=${3:$(id -un)}
 
-if [ "$cmd" = "on" ]; then
+if [ "$node" = "--help" ]; then
+    usage
+
+elif [ "$cmd" = "on" ]; then
     if [ -n "$HARD_POWER_OFF" -a $ONOS_CELL = "borrow" ]; then
         curl -sS -X PUT "http://$CELL_WARDEN:4321/?cmd=powerOn&nodeIp=$node&user=$user"
     else
@@ -30,6 +37,6 @@ elif [ "$cmd" = "off" ]; then
     fi
 
 else
-    echo "usage: $(basename $0) node-ip {on|off} user" >&2 && exit 1
+    usage
 fi
 
