@@ -22,11 +22,11 @@
 
     <parent>
         <groupId>org.onosproject</groupId>
-        <artifactId>onos-snmp-providers</artifactId>
+        <artifactId>onos-providers-snmp</artifactId>
         <version>1.14.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>onos-snmp-provider-alarm</artifactId>
+    <artifactId>onos-providers-snmp-alarm</artifactId>
     <packaging>bundle</packaging>
 
     <description>ONOS SNMP protocol alarm provider</description>
@@ -38,13 +38,13 @@
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-snmp-api</artifactId>
-            <version>1.14.0-SNAPSHOT</version>
+            <artifactId>onos-protocols-snmp-api</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-snmp-ctl</artifactId>
-            <version>1.14.0-SNAPSHOT</version>
+            <artifactId>onos-protocols-snmp-ctl</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.servicemix.bundles</groupId>
@@ -87,7 +87,7 @@
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-snmp-provider-device</artifactId>
+            <artifactId>onos-providers-snmp-device</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

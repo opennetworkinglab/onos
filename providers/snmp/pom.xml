@@ -25,14 +25,14 @@
         <version>1.14.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>onos-snmp-providers</artifactId>
+    <artifactId>onos-providers-snmp</artifactId>
     <packaging>pom</packaging>
 
     <description>ONOS SNMP protocol adapters</description>
 
     <modules>
         <module>device</module>
-        <module>app</module>
         <module>alarm</module>
+        <module>app</module>
     </modules>
 </project>

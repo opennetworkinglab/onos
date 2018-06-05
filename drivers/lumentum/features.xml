@@ -22,7 +22,7 @@
 
         <bundle>mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.snmp4j/2.3.4_1</bundle>
 
-        <bundle>mvn:${project.groupId}/onos-snmp-api/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/onos-protocols-snmp-api/${project.version}</bundle>
 
     </feature>
 </features>

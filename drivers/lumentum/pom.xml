@@ -55,7 +55,7 @@
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-snmp-api</artifactId>
+            <artifactId>onos-protocols-snmp-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

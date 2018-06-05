@@ -21,11 +21,11 @@
 
     <parent>
         <groupId>org.onosproject</groupId>
-        <artifactId>onos-snmp-providers</artifactId>
+        <artifactId>onos-providers-snmp</artifactId>
         <version>1.14.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>onos-snmp-provider-device</artifactId>
+    <artifactId>onos-providers-snmp-device</artifactId>
     <packaging>bundle</packaging>
 
     <description>ONOS SNMP protocol device provider</description>
@@ -37,12 +37,12 @@
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-snmp-api</artifactId>
+            <artifactId>onos-protocols-snmp-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-snmp-ctl</artifactId>
+            <artifactId>onos-protocols-snmp-ctl</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
