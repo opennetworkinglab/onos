@@ -1,1 +1,2 @@
 ONOS_VERSION = "1.14.0-SNAPSHOT"
+ONOS_GROUP_ID = "org.onosproject"

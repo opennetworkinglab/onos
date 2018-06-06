@@ -79,6 +79,10 @@ public abstract class BuckArtifact {
         return null;
     }
 
+    String bazelExport() {
+        return "@" + jarTarget() + "//jar";
+    }
+
     private boolean isJar() {
         return fileName().endsWith(".jar");
     }

@@ -197,6 +197,25 @@ public class BuckLibGenerator {
         return sb.toString();
     }
 
+    private String generateArtifactMap() {
+        StringBuilder artifactMap = new StringBuilder();
+
+        artifactMap.append("\nartifact_map = {}");
+
+        artifacts.forEach(artifact -> {
+            artifactMap.append("\nartifact_map[str(Label(\"" + artifact.bazelExport() + "\"))] = \"" + artifact.url() + "\"");
+        });
+
+        artifactMap.append("\n\ndef maven_coordinates(label):\n" +
+                "    label_string = str(label)\n" +
+                "    if label_string in artifact_map:\n" +
+                "        return artifact_map[label_string]\n" +
+                "    else:\n" +
+                "        return \"%s:%s:%s\" % (ONOS_GROUP_ID, label.name, ONOS_VERSION)\n");
+
+        return artifactMap.toString();
+    }
+
     void write(String outputFilePath) {
         DateTimeFormatter formatter = DateTimeFormatter.RFC_1123_DATE_TIME.withZone(ZoneId.of("UTC"));
         File outputFile = new File(outputFilePath);
@@ -218,10 +237,15 @@ public class BuckLibGenerator {
                         "    out = 'onos-dependencies.pom',\n" +
                         "    artifactId = 'onos-dependencies',\n" +
                         ")\n\n");
+            } else {
+                writer.write("\nload(\"//tools/build/bazel:variables.bzl\", \"ONOS_GROUP_ID\", \"ONOS_VERSION\")\n");
             }
 
             libraries.forEach(library -> writer.print(library.getFragment()));
             writer.print(generateArtifacts());
+            if (generateForBazel) {
+                writer.print(generateArtifactMap());
+            }
             writer.flush();
         } catch (FileNotFoundException e) {
             error("File not found: %s", outputFilePath);
