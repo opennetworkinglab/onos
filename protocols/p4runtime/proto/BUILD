@@ -1,3 +1,5 @@
+load("//tools/build/bazel:osgi_java_library.bzl", "wrapped_osgi_jar")
+
 java_proto_library(
     name = "p4_runtime_java_proto",
     visibility = ["//visibility:public"],

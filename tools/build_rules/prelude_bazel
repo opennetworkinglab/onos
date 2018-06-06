@@ -1,8 +1,17 @@
-load("//tools/build/bazel:generate_workspace.bzl",
-        "generated_java_libraries", "COMPILE", "CORE_DEPS", "JACKSON",
-        "TEST_ADAPTERS", "TEST", "TEST_REST", "METRICS", "KRYO", "NETTY", "GRPC_1_3")
-
-load("//tools/build/bazel:osgi_java_library.bzl", "osgi_jar_with_tests", "osgi_jar", "wrapped_osgi_jar")
-load("//tools/build/bazel:osgi_features.bzl", "osgi_feature")
+load(
+    "//tools/build/bazel:generate_workspace.bzl",
+    "COMPILE",
+    "CORE_DEPS",
+    "GRPC_1_3",
+    "JACKSON",
+    "KRYO",
+    "METRICS",
+    "NETTY",
+    "TEST",
+    "TEST_ADAPTERS",
+    "TEST_REST",
+    "generated_java_libraries",
+)
+load("//tools/build/bazel:osgi_java_library.bzl", "osgi_jar", "osgi_jar_with_tests")
 
 generated_java_libraries()

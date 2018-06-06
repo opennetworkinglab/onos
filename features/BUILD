@@ -1,7 +1,8 @@
-osgi_feature (
+load("//tools/build/bazel:osgi_features.bzl", "osgi_feature")
+
+osgi_feature(
     name = "onos-thirdparty-base",
     description = "ONOS 3rd party dependencies",
-    required_features = [],
     included_bundles = [
         "@atomix//jar",
         "@commons_lang//jar",
@@ -44,13 +45,13 @@ osgi_feature (
         "@jdom//jar",
         "@sigar//jar",
     ],
+    required_features = [],
     visibility = ["//visibility:public"],
 )
 
-osgi_feature (
+osgi_feature(
     name = "onos-thirdparty-web",
     description = "ONOS 3rd party dependencies for web apps",
-    required_features = [ "war", "onos-thirdparty-base" ],
     included_bundles = [
         "@jersey_common//jar",
         "@javax_annotation_api//jar",
@@ -70,34 +71,41 @@ osgi_feature (
         "@jersey_media_multipart//jar",
         "@mimepull//jar",
     ],
-    visibility = ["//visibility:public"],
-)
-
-osgi_feature (
-    name = "onos-api",
-    description = "ONOS services and model API",
-    required_features = ["scr", "onos-thirdparty-base"],
-    included_bundles =[
-         "//utils/misc:onlab-misc",
-         "//utils/osgi:onlab-osgi",
-         "//core/api:onos-api",
-         "//incubator/api:onos-incubator-api",
+    required_features = [
+        "war",
+        "onos-thirdparty-base",
     ],
     visibility = ["//visibility:public"],
 )
 
-osgi_feature (
+osgi_feature(
+    name = "onos-api",
+    description = "ONOS services and model API",
+    included_bundles = [
+        "//utils/misc:onlab-misc",
+        "//utils/osgi:onlab-osgi",
+        "//core/api:onos-api",
+        "//incubator/api:onos-incubator-api",
+    ],
+    required_features = [
+        "scr",
+        "onos-thirdparty-base",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+osgi_feature(
     name = "onos-core",
     description = "ONOS core components",
-    required_features = ["onos-api"],
     included_bundles = [
         "//core/net:onos-core-net",
         "//core/common:onos-core-common",
         "//core/store/dist:onos-core-dist",
-#        "//core/store/primitives:onos-core-primitives",
-#        "//core/store/persistence:onos-core-persistence",
-#        "//core/store/serializers:onos-core-serializers",
+        #        "//core/store/primitives:onos-core-primitives",
+        #        "//core/store/persistence:onos-core-persistence",
+        #        "//core/store/serializers:onos-core-serializers",
     ],
+    required_features = ["onos-api"],
     visibility = ["//visibility:public"],
 )
 
