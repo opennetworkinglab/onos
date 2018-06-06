@@ -15,56 +15,65 @@
 """
 
 load("//tools/build/bazel:generate_workspace.bzl", "COMPILE", "TEST", "maven_coordinates")
-load("//tools/build/bazel:variables.bzl", "ONOS_VERSION", "ONOS_GROUP_ID")
+load("//tools/build/bazel:variables.bzl", "ONOS_GROUP_ID", "ONOS_VERSION")
 
 def dump(obj):
-  for attr in dir(obj):
-    print("obj.%s = %r" % (attr, getattr(obj, attr)))
+    for attr in dir(obj):
+        print("obj.%s = %r" % (attr, getattr(obj, attr)))
 
 # Implementation of a rule to produce an OSGi feature XML snippet
 def _osgi_feature_impl(ctx):
     output = ctx.outputs.feature_xml
 
-    args = [ "-O", output.path,
-             "-n", ctx.attr.name,
-             "-v", ctx.attr.version,
-             "-t", ctx.attr.description,
-            ]
+    args = [
+        "-O",
+        output.path,
+        "-n",
+        ctx.attr.name,
+        "-v",
+        ctx.attr.version,
+        "-t",
+        ctx.attr.description,
+    ]
 
     inputs = []
     for dep in ctx.attr.included_bundles:
-        args += [ "-b", maven_coordinates(dep.label) ]
+        args += ["-b", maven_coordinates(dep.label)]
         for f in dep.java.outputs.jars:
-          inputs += [ f.class_jar ]
+            inputs += [f.class_jar]
 
     for dep in ctx.attr.excluded_bundles:
-        args += [ "-e", maven_coordinates(dep.label) ]
+        args += ["-e", maven_coordinates(dep.label)]
         for f in dep.java.outputs.jars:
-          inputs += [ f.class_jar ]
+            inputs += [f.class_jar]
 
     for f in ctx.attr.required_features:
-      args += [ "-f", f ]
+        args += ["-f", f]
 
-    args += [ "-F" if ctx.attr.generate_file else "-E" ]
+    args += ["-F" if ctx.attr.generate_file else "-E"]
 
     ctx.actions.run(
         inputs = inputs,
-        outputs = [ output ],
+        outputs = [output],
         arguments = args,
         progress_message = "Generating feature %s" % ctx.attr.name,
-        executable = ctx.executable._writer
+        executable = ctx.executable._writer,
     )
 
 osgi_feature = rule(
     attrs = {
         "description": attr.string(),
         "version": attr.string(default = ONOS_VERSION),
-        "required_features": attr.string_list(default = [ "onos-api" ]),
+        "required_features": attr.string_list(default = ["onos-api"]),
         "included_bundles": attr.label_list(),
         "excluded_bundles": attr.label_list(default = []),
         "generate_file": attr.bool(default = False),
-        "_writer": attr.label(executable=True, cfg="host", allow_files=True,
-                              default=Label("//tools/build/bazel:onos_app_writer")),
+        "_writer": attr.label(
+            executable = True,
+            cfg = "host",
+            allow_files = True,
+            default = Label("//tools/build/bazel:onos_app_writer"),
+        ),
     },
     outputs = {
         "feature_xml": "feature-%{name}.xml",
@@ -80,7 +89,7 @@ FEATURES_HEADER = '''\
     <repository>mvn:org.apache.karaf.features/standard/3.0.8/xml/features</repository>
 ''' % ONOS_VERSION
 
-FEATURES_FOOTER = '</features>'
+FEATURES_FOOTER = "</features>"
 
 # Implementation of a rule to produce an OSGi feature repo XML file
 def _osgi_feature_repo_impl(ctx):
@@ -90,13 +99,13 @@ def _osgi_feature_repo_impl(ctx):
     inputs = []
     for dep in ctx.attr.exported_features:
         for f in dep.files.to_list():
-            inputs += [ f ]
+            inputs += [f]
             cmd += "cat %s;" % f.path
     cmd += "echo '%s') > %s;" % (FEATURES_FOOTER, output.path)
 
     ctx.actions.run_shell(
         inputs = inputs,
-        outputs = [ output ],
+        outputs = [output],
         progress_message = "Generating feature repo %s" % ctx.attr.name,
         command = cmd,
     )

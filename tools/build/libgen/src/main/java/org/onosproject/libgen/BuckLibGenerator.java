@@ -238,7 +238,7 @@ public class BuckLibGenerator {
                         "    artifactId = 'onos-dependencies',\n" +
                         ")\n\n");
             } else {
-                writer.write("\nload(\"//tools/build/bazel:variables.bzl\", \"ONOS_GROUP_ID\", \"ONOS_VERSION\")\n");
+                writer.write("\nload(\"//tools/build/bazel:variables.bzl\", \"ONOS_GROUP_ID\", \"ONOS_VERSION\")\n\n");
             }
 
             libraries.forEach(library -> writer.print(library.getFragment()));
