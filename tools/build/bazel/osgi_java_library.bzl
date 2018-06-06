@@ -18,16 +18,16 @@ load("//tools/build/bazel:generate_workspace.bzl", "COMPILE", "TEST")
 load("//tools/build/bazel:variables.bzl", "ONOS_VERSION")
 load("//tools/build/bazel:generate_test_rules.bzl", "generate_test_rules")
 
-def all_java_sources():
+def _all_java_sources():
     return native.glob(["src/main/java/**/*.java"])
 
-def all_java_test_sources():
+def _all_java_test_sources():
     return native.glob(["src/test/java/**/*.java"])
 
-def all_test_resources():
+def _all_test_resources():
     return native.glob(["src/test/resources/**"])
 
-def all_resources(resources_root):
+def _all_resources(resources_root):
     if resources_root == None:
         return native.glob(["src/main/resources/**"])
     else:
@@ -110,7 +110,7 @@ def _bnd_impl(ctx):
         executable = ctx.executable._bnd_exe,
     )
 
-bnd = rule(
+_bnd = rule(
     attrs = {
         "deps": attr.label_list(),
         "version": attr.string(),
@@ -130,11 +130,8 @@ bnd = rule(
     implementation = _bnd_impl,
 )
 
-def _fwd_bnd(name, source, deps, version, package_name_root, visibility):
-    bnd(name = name, source = source, deps = deps, version = version, package_name_root = package_name_root, visibility = visibility)
-
-def wrapped_osgi_library(name, jar, deps, version = ONOS_VERSION, package_name_root = "org.onosproject", visibility = ["//visibility:private"]):
-    _fwd_bnd(name, jar, deps, version, package_name_root, visibility)
+def wrapped_osgi_jar(name, jar, deps, version = ONOS_VERSION, package_name_root = "org.onosproject", visibility = ["//visibility:private"]):
+    _bnd(name = name, source = jar, deps = deps, version = version, package_name_root = package_name_root, visibility = visibility)
 
 def osgi_jar_with_tests(
         name = None,
@@ -152,13 +149,13 @@ def osgi_jar_with_tests(
     if name == None:
         name = "onos-" + native.package_name().replace("/", "-")
     if srcs == None:
-        srcs = all_java_sources()
+        srcs = _all_java_sources()
     if resources == None:
-        resources = all_resources(resources_root)
+        resources = _all_resources(resources_root)
     if test_srcs == None:
-        test_srcs = all_java_test_sources()
+        test_srcs = _all_java_test_sources()
     if test_resources == None:
-        test_resources = all_test_resources()
+        test_resources = _all_test_resources()
     if exclude_tests == None:
         exclude_tests = []
     if deps == None:
@@ -170,7 +167,14 @@ def osgi_jar_with_tests(
     all_test_deps = tests_jar_deps + [tests_name]
 
     native.java_library(name = name, srcs = srcs, resources = resources, deps = deps, visibility = visibility)
-    _fwd_bnd(name + "-osgi", name, deps, version, package_name_root, visibility)
+    _bnd(
+        name = name + "-osgi",
+        source = name,
+        deps = deps,
+        version = version,
+        package_name_root = package_name_root,
+        visibility = visibility,
+    )
     if test_srcs != []:
         native.java_library(
             name = tests_name,
@@ -197,7 +201,7 @@ def osgi_jar(
         visibility = ["//visibility:public"],
         version = ONOS_VERSION):
     if srcs == None:
-        srcs = all_java_sources()
+        srcs = _all_java_sources()
     if deps == None:
         deps = COMPILE
 
