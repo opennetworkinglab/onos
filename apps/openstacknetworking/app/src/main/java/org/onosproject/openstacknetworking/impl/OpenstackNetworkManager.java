@@ -442,12 +442,12 @@ public class OpenstackNetworkManager
         try {
             externalPeerRouterMap.computeIfPresent(ipAddress.toString(), (id, existing) ->
                 new DefaultExternalPeerRouter(ipAddress, macAddress, existing.externalPeerRouterVlanId()));
+
+            log.info("Updated external peer router map {}",
+                    externalPeerRouterMap.get(ipAddress.toString()).value().toString());
         } catch (Exception e) {
             log.error("Exception occurred because of {}", e.toString());
         }
-
-        log.info("Updated external peer router map {}",
-                externalPeerRouterMap.get(ipAddress.toString()).value().toString());
     }
 
 

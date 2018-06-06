@@ -278,11 +278,11 @@ public class OpenstackRoutingArpHandler {
 
             try {
 
-                Set<String> fipSet = osRouterService.floatingIps().stream()
-                        .map(NetFloatingIP::getFloatingIpAddress).collect(Collectors.toSet());
+                Set<String> extRouterIps = osNetworkService.externalPeerRouters().
+                        stream().map(r -> r.externalPeerRouterIp().toString()).collect(Collectors.toSet());
 
-                // if the SPA is floating IP, we simply ignores it
-                if (fipSet.contains(spa.toString())) {
+                // if SPA is NOT contained in existing external router IP set, we ignore it
+                if (!extRouterIps.contains(spa.toString())) {
                     return;
                 }
 
