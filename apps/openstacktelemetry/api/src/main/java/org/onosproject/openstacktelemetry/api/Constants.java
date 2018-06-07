@@ -15,9 +15,6 @@
  */
 package org.onosproject.openstacktelemetry.api;
 
-import org.apache.kafka.common.serialization.ByteArraySerializer;
-import org.apache.kafka.common.serialization.StringSerializer;
-
 /**
  * Provides constants used in OpenstackTelemetry.
  */
@@ -37,8 +34,10 @@ public final class Constants {
     public static final int DEFAULT_KAFKA_BATCH_SIZE = 16384;
     public static final int DEFAULT_KAFKA_LINGER_MS = 1;
     public static final int DEFAULT_KAFKA_MEMORY_BUFFER = 33554432;
-    public static final String DEFAULT_KAFKA_KEY_SERIALIZER = StringSerializer.class.toString();
-    public static final String DEFAULT_KAFKA_VALUE_SERIALIZER = ByteArraySerializer.class.toString();
+    public static final String DEFAULT_KAFKA_KEY_SERIALIZER =
+            "org.apache.kafka.common.serialization.StringSerializer";
+    public static final String DEFAULT_KAFKA_VALUE_SERIALIZER =
+            "org.apache.kafka.common.serialization.ByteArraySerializer";
 
     public static final String DEFAULT_REST_SERVER_IP = DEFAULT_SERVER_IP;
     public static final int DEFAULT_REST_SERVER_PORT = 80;
