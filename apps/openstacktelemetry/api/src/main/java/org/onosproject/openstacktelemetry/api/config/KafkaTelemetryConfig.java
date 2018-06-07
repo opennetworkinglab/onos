@@ -20,7 +20,7 @@ import java.util.Map;
 /**
  * Configuration API of Kafka for publishing openstack telemetry.
  */
-public interface KafkaTelemetryConfig {
+public interface KafkaTelemetryConfig extends TelemetryConfig {
 
     /**
      * Obtains kafka IP address.
@@ -95,7 +95,7 @@ public interface KafkaTelemetryConfig {
     /**
      * Builder class of KafkaTelemetryConfig.
      */
-    interface Builder {
+    interface Builder extends TelemetryConfig.Builder {
 
         /**
          * Sets kafka IP address.

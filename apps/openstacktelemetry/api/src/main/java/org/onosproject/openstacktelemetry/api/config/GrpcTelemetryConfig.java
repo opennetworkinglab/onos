@@ -20,7 +20,7 @@ import java.util.Map;
 /**
  * Configuration API of gRPC for publishing openstack telemetry.
  */
-public interface GrpcTelemetryConfig {
+public interface GrpcTelemetryConfig extends TelemetryConfig {
 
     /**
      * Obtains gRPC server IP address.
@@ -60,7 +60,7 @@ public interface GrpcTelemetryConfig {
     /**
      * Builder class of GrpcTelemetryConfig.
      */
-    interface Builder {
+    interface Builder extends TelemetryConfig.Builder {
 
         /**
          * Sets gRPC server IP address.

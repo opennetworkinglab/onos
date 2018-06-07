@@ -18,6 +18,7 @@ package org.onosproject.openstacktelemetry.config;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.onosproject.openstacktelemetry.api.config.KafkaTelemetryConfig;
+import org.onosproject.openstacktelemetry.api.config.TelemetryConfig;
 
 import java.util.Map;
 import java.util.Objects;
@@ -140,10 +141,15 @@ public final class DefaultKafkaTelemetryConfig implements KafkaTelemetryConfig {
                 lingerMs, memoryBuffer, keySerializer, valueSerializer, configMap);
     }
 
+    @Override
+    public TelemetryConfig.Builder createBuilder() {
+        return new DefaultBuilder();
+    }
+
     /**
      * Builder class of DefaultKafkaTelemetryConfig.
      */
-    public final class DefaultBuilder implements Builder {
+    public static final class DefaultBuilder implements Builder {
         private String address;
         private int port;
         private int retries;

@@ -20,7 +20,7 @@ import java.util.Map;
 /**
  * Configuration API of InfluxDB for publishing openstack telemetry.
  */
-public interface InfluxDbTelemetryConfig {
+public interface InfluxDbTelemetryConfig extends TelemetryConfig {
 
     /**
      * Obtains InfluxDB server IP address.
@@ -74,7 +74,7 @@ public interface InfluxDbTelemetryConfig {
     /**
      * Builder class of InfluxDbTelemetryConfig.
      */
-    interface Builder {
+    interface Builder extends TelemetryConfig.Builder {
 
         /**
          * Sets InfluxDB server IP address.

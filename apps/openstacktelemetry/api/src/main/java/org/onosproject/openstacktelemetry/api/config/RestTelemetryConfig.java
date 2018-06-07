@@ -20,7 +20,7 @@ import java.util.Map;
 /**
  * Configuration API of REST for publishing openstack telemetry.
  */
-public interface RestTelemetryConfig {
+public interface RestTelemetryConfig extends TelemetryConfig {
 
     /**
      * Obtains REST IP address.
@@ -74,7 +74,7 @@ public interface RestTelemetryConfig {
     /**
      * Builder class for RestTelemetryConfig.
      */
-    interface Builder {
+    interface Builder extends TelemetryConfig.Builder {
 
         /**
          * Sets REST server IP address.
