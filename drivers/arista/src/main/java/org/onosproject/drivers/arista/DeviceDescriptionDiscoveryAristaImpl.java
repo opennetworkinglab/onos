@@ -16,12 +16,7 @@
 
 package org.onosproject.drivers.arista;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.MacAddress;
@@ -39,9 +34,6 @@ import org.onosproject.net.device.DeviceDescriptionDiscovery;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
-import org.onosproject.net.driver.DriverHandler;
-import org.onosproject.protocol.rest.RestSBController;
-import javax.ws.rs.core.MediaType;
 import org.slf4j.Logger;
 
 import java.util.HashMap;
@@ -59,8 +51,6 @@ public class DeviceDescriptionDiscoveryAristaImpl extends AbstractHandlerBehavio
         implements DeviceDescriptionDiscovery {
 
     private static final String UNKNOWN = "unknown";
-    private static final String JSON = "json";
-    private static final String RESULT = "result";
     private static final String INTERFACE_STATUSES = "interfaceStatuses";
     private static final String LINK_STATUS = "linkStatus";
     private static final String LINE_PROTOCOL_STATUS = "lineProtocolStatus";
@@ -76,43 +66,29 @@ public class DeviceDescriptionDiscoveryAristaImpl extends AbstractHandlerBehavio
     private static final String SERIAL_NUMBER = "serialNumber";
     private static final String SYSTEM_MAC_ADDRESS = "systemMacAddress";
     private static final int WEIGHTING_FACTOR_MANAGEMENT_INTERFACE = 10000;
-    private static final String JSONRPC = "jsonrpc";
-    private static final String METHOD = "method";
-    private static final String RUN_CMDS = "runCmds";
-    private static final String VERSION = "version";
-    private static final String ID = "id";
-    private static final String ONOS_REST = "onos-rest";
-    private static final String PARAMS = "params";
-    private static final String FORMAT = "format";
-    private static final String TIMESTAMPS = "timestamps";
-    private static final String CMDS = "cmds";
     private static final String MANUFACTURER = "Arista Networks";
     private static final String SHOW_INTERFACES_STATUS = "show interfaces status";
     private static final String SHOW_INTERFACES = "show interfaces";
     private static final String SHOW_VERSION = "show version";
-    private static final String TWO_POINT_ZERO = "2.0";
     private static final long MBPS = 1000000;
 
     private final Logger log = getLogger(getClass());
 
-    private static final String API_ENDPOINT = "/command-api/";
-
     @Override
     public DeviceDescription discoverDeviceDetails() {
         try {
-            Optional<JsonNode> result = retrieveCommandResult(SHOW_VERSION);
+            Optional<JsonNode> result = AristaUtils.retrieveCommandResult(handler(), SHOW_VERSION);
 
             if (!result.isPresent()) {
                 return null;
             }
 
-            ArrayNode arrayNode = (ArrayNode) result.get();
-            JsonNode jsonNode = arrayNode.iterator().next();
+            JsonNode jsonNode = result.get().get(AristaUtils.RESULT_START_INDEX);
             String hwVer = jsonNode.get(MODEL_NAME).asText(UNKNOWN);
             String swVer = jsonNode.get(SW_VERSION).asText(UNKNOWN);
             String serialNum = jsonNode.get(SERIAL_NUMBER).asText(UNKNOWN);
             String systemMacAddress = jsonNode.get(SYSTEM_MAC_ADDRESS).asText("").replace(":", "");
-            DeviceId deviceId = handler().data().deviceId();
+            DeviceId deviceId = checkNotNull(handler().data().deviceId());
             DeviceService deviceService = checkNotNull(handler().get(DeviceService.class));
             Device device = deviceService.getDevice(deviceId);
             ChassisId chassisId = systemMacAddress.isEmpty() ? new ChassisId() : new ChassisId(systemMacAddress);
@@ -133,15 +109,13 @@ public class DeviceDescriptionDiscoveryAristaImpl extends AbstractHandlerBehavio
         List<PortDescription> ports = Lists.newArrayList();
 
         try {
-            Optional<JsonNode> result = retrieveCommandResult(SHOW_INTERFACES_STATUS);
+            Optional<JsonNode> result = AristaUtils.retrieveCommandResult(handler(), SHOW_INTERFACES_STATUS);
 
             if (!result.isPresent()) {
                 return ports;
             }
 
-            ArrayNode arrayNode = (ArrayNode) result.get();
-
-            JsonNode jsonNode = arrayNode.iterator().next().get(INTERFACE_STATUSES);
+            JsonNode jsonNode = result.get().findValue(INTERFACE_STATUSES);
 
             jsonNode.fieldNames().forEachRemaining(name -> {
                 JsonNode interfaceNode = jsonNode.get(name);
@@ -199,14 +173,13 @@ public class DeviceDescriptionDiscoveryAristaImpl extends AbstractHandlerBehavio
         Map<String, MacAddress> macAddressMap = new HashMap();
 
         try {
-            Optional<JsonNode> result = retrieveCommandResult(SHOW_INTERFACES);
+            Optional<JsonNode> result = AristaUtils.retrieveCommandResult(handler(), SHOW_INTERFACES);
 
             if (!result.isPresent()) {
                 return macAddressMap;
             }
 
-            ArrayNode arrayNode = (ArrayNode) result.get();
-            JsonNode jsonNode = arrayNode.iterator().next().get(INTERFACES);
+            JsonNode jsonNode = result.get().findValue(INTERFACES);
 
             jsonNode.fieldNames().forEachRemaining(name -> {
                 JsonNode interfaceNode = jsonNode.get(name);
@@ -246,38 +219,6 @@ public class DeviceDescriptionDiscoveryAristaImpl extends AbstractHandlerBehavio
         }
 
         return macAddressMap;
-    }
-
-    private Optional<JsonNode> retrieveCommandResult(String cmd) {
-        DriverHandler handler = handler();
-        RestSBController controller = checkNotNull(handler.get(RestSBController.class));
-        DeviceId deviceId = handler.data().deviceId();
-
-        ObjectMapper mapper = new ObjectMapper();
-
-        ObjectNode sendObjNode = mapper.createObjectNode();
-
-        sendObjNode.put(JSONRPC, TWO_POINT_ZERO)
-                .put(METHOD, RUN_CMDS)
-                .put(ID, ONOS_REST)
-                .putObject(PARAMS)
-                .put(FORMAT, JSON)
-                .put(TIMESTAMPS, false)
-                .put(VERSION, 1)
-                .putArray(CMDS).add(cmd);
-
-        String response = controller.post(deviceId, API_ENDPOINT,
-                new ByteArrayInputStream(sendObjNode.toString().getBytes()),
-                MediaType.APPLICATION_JSON_TYPE, String.class);
-
-        try {
-            ObjectNode node = (ObjectNode) mapper.readTree(response);
-
-            return Optional.ofNullable(node.get(RESULT));
-        } catch (IOException e) {
-            log.warn("IO exception occurred because of ", e);
-        }
-        return Optional.empty();
     }
 }
 

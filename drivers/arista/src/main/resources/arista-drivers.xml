@@ -20,6 +20,8 @@
                    impl="org.onosproject.drivers.arista.DeviceDescriptionDiscoveryAristaImpl"/>
         <behaviour api="org.onosproject.net.behaviour.ControllerConfig"
                    impl="org.onosproject.drivers.arista.ControllerConfigAristaImpl"/>
+        <behaviour api="org.onosproject.net.behaviour.LinkDiscovery"
+                   impl="org.onosproject.drivers.arista.LinkDiscoveryAristaImpl"/>
     </driver>
 </drivers>
 
