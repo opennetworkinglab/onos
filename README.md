@@ -110,13 +110,13 @@ $ onos localhost
 To run ONOS unit tests, including code Checkstyle validation, run the following command:
 
 ```bash
-$ buck test
+$ onos-buck test
 ```
 
 Or more specific tests:
 
 ```bash
-$ buck test [buck-test-rule]
+$ onos-buck test [buck-test-rule]
 ```
 
 ## Contributing
