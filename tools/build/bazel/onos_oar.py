@@ -9,7 +9,10 @@ def generateOar(output, files=[]):
         for file, mvnCoords in files:
             filename = file.split('/')[-1]
             if mvnCoords == 'NONE':
-                dest = filename
+                if 'app-xml.xml' in filename:
+                    dest = 'app.xml'
+                else:
+                    dest = filename
             else:
                 parts = mvnCoords.split(':')
                 if len(parts) > 3:
@@ -19,7 +22,7 @@ def generateOar(output, files=[]):
                 extension = filename.split('.')[-1]
                 if extension == 'jar':
                     filename = '%s-%s.jar' % ( artifactId, version )
-                elif 'features.xml' in filename:
+                elif 'feature-xml' in filename:
                     filename = '%s-%s-features.xml' % ( artifactId, version )
                 dest = 'm2/%s/%s/%s/%s' % ( groupId, artifactId, version, filename )
             zip.write(file, dest)

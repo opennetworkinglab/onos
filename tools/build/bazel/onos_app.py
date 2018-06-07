@@ -14,7 +14,7 @@ FEATURE_HEADER= '''\
 EXISTING_FEATURE = '        <feature>%s</feature>\n'
 BUNDLE = '        <bundle>%s</bundle>\n'
 FEATURE_FOOTER = '    </feature>\n'
-FEATURES_FOOTER = '</features>'
+FEATURES_FOOTER = '</features>\n'
 
 ##### Templates for app.xml
 APP_HEADER = '''\
@@ -30,7 +30,7 @@ SECURITY = '''\
     <security>
 %s
     </security>\n'''
-APP_FOOTER = '</app>'
+APP_FOOTER = '</app>\n'
 
 NON_OSGI_TAG = 'NON-OSGI'
 
@@ -211,6 +211,9 @@ if __name__ == '__main__':
     feature = generateFeature(bundles=bundles,
                               features=options.features,
                               **values)
+
+    sys.stderr.write("In onos_app.py - output is:" + options.output)
+    sys.stderr.flush()
 
     if options.write_feature:
         write(options.output, feature)
