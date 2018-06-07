@@ -22,10 +22,10 @@
     <parent>
         <groupId>org.onosproject</groupId>
         <artifactId>onos-providers</artifactId>
-        <version>1.12.1-SNAPSHOT</version>
+        <version>1.13.2-SNAPSHOT</version>
     </parent>
 
-    <artifactId>onos-host-provider</artifactId>
+    <artifactId>onos-hostprobing-provider</artifactId>
     <packaging>bundle</packaging>
 
     <properties>
