@@ -29,10 +29,18 @@ import org.snmp4j.smi.GenericAddress;
 import org.snmp4j.smi.OctetString;
 import org.snmp4j.smi.OID;
 import org.snmp4j.smi.VariableBinding;
+import org.snmp4j.util.DefaultPDUFactory;
+import org.snmp4j.util.TableEvent;
+import org.snmp4j.util.TableUtils;
+
+import org.slf4j.Logger;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * SNP utility for Polatis SNMP drivers.
@@ -40,6 +48,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public final class PolatisSnmpUtility {
 
     private static final int MAX_SIZE_RESPONSE_PDU = 65535;
+
+    private static final Logger log = getLogger(PolatisSnmpUtility.class);
 
     private PolatisSnmpUtility() {
     }
@@ -93,12 +103,42 @@ public final class PolatisSnmpUtility {
      * @throws IOException if unable to retrieve the object value
      */
     public static String getOid(DriverHandler handler, String oid) throws IOException {
-        PDU pdu = new PDU();
-        pdu.add(new VariableBinding(new OID(oid)));
-        pdu.setType(PDU.GET);
+        List<VariableBinding> vbs = new ArrayList<>();
+        vbs.add(new VariableBinding(new OID(oid)));
+        PDU pdu = new PDU(PDU.GET, vbs);
         Snmp session = getSession(handler);
         CommunityTarget target = getTarget(handler);
         ResponseEvent event = session.send(pdu, target);
         return event.getResponse().get(0).getVariable().toString();
+    }
+
+    /**
+     * Retrieves a table.
+     *
+     * @param handler parent driver handler
+     * @param columnOIDs column oid object identifiers
+     * @return the table
+     * @throws IOException if unable to retrieve the object value
+     */
+    public static List<TableEvent> getTable(DriverHandler handler, OID[] columnOIDs) throws IOException {
+        Snmp session = getSession(handler);
+        CommunityTarget target = getTarget(handler);
+        TableUtils tableUtils = new TableUtils(session, new DefaultPDUFactory());
+        return tableUtils.getTable(target, columnOIDs, null, null);
+    }
+
+    /**
+     * Sends a synchronous SET request to the supplied target.
+     *
+     * @param handler parent driver handler
+     * @param vbs a list of variable bindings
+     * @return the response event
+     * @throws IOException if unable to set the target
+     */
+    public static ResponseEvent set(DriverHandler handler, List<? extends VariableBinding> vbs) throws IOException {
+        Snmp session = getSession(handler);
+        CommunityTarget target = getTarget(handler);
+        PDU pdu = new PDU(PDU.SET, vbs);
+        return session.set(pdu, target);
     }
 }

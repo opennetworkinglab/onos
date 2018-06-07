@@ -21,6 +21,8 @@
                    impl="org.onosproject.net.optical.DefaultOpticalDevice"/>
         <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
                    impl="org.onosproject.drivers.polatis.snmp.PolatisDeviceDescription"/>
+        <behaviour api="org.onosproject.net.flow.FlowRuleProgrammable"
+                   impl="org.onosproject.drivers.polatis.snmp.PolatisFlowRuleProgrammable"/>
         <property name="uiType">policon</property>
     </driver>
 </drivers>
