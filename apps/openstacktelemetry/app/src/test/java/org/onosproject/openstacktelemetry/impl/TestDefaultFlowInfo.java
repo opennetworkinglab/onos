@@ -21,9 +21,9 @@ import org.junit.Test;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.PortNumber;
 import org.onosproject.openstacktelemetry.api.FlowInfo;
 import org.onosproject.openstacktelemetry.api.StatsInfo;
 
@@ -76,8 +76,8 @@ public final class TestDefaultFlowInfo {
                         IpAddress.valueOf(IP_ADDRESS_1), IP_PREFIX_LENGTH_1))
                 .withDstIp(IpPrefix.valueOf(
                         IpAddress.valueOf(IP_ADDRESS_1), IP_PREFIX_LENGTH_1))
-                .withSrcPort(PortNumber.portNumber(PORT_1))
-                .withDstPort(PortNumber.portNumber(PORT_1))
+                .withSrcPort(TpPort.tpPort(PORT_1))
+                .withDstPort(TpPort.tpPort(PORT_1))
                 .withProtocol((byte) STATIC_INTEGER_1)
                 .withVlanId(VlanId.vlanId(STATIC_STRING_1))
                 .withSrcMac(MacAddress.valueOf(MAC_ADDRESS_1))
@@ -94,8 +94,8 @@ public final class TestDefaultFlowInfo {
                         IpAddress.valueOf(IP_ADDRESS_1), IP_PREFIX_LENGTH_1))
                 .withDstIp(IpPrefix.valueOf(
                         IpAddress.valueOf(IP_ADDRESS_1), IP_PREFIX_LENGTH_1))
-                .withSrcPort(PortNumber.portNumber(PORT_1))
-                .withDstPort(PortNumber.portNumber(PORT_1))
+                .withSrcPort(TpPort.tpPort(PORT_1))
+                .withDstPort(TpPort.tpPort(PORT_1))
                 .withProtocol((byte) STATIC_INTEGER_1)
                 .withVlanId(VlanId.vlanId(STATIC_STRING_1))
                 .withSrcMac(MacAddress.valueOf(MAC_ADDRESS_1))
@@ -112,8 +112,8 @@ public final class TestDefaultFlowInfo {
                         IpAddress.valueOf(IP_ADDRESS_2), IP_PREFIX_LENGTH_2))
                 .withDstIp(IpPrefix.valueOf(
                         IpAddress.valueOf(IP_ADDRESS_2), IP_PREFIX_LENGTH_2))
-                .withSrcPort(PortNumber.portNumber(PORT_2))
-                .withDstPort(PortNumber.portNumber(PORT_2))
+                .withSrcPort(TpPort.tpPort(PORT_2))
+                .withDstPort(TpPort.tpPort(PORT_2))
                 .withProtocol((byte) STATIC_INTEGER_2)
                 .withVlanId(VlanId.vlanId(STATIC_STRING_2))
                 .withSrcMac(MacAddress.valueOf(MAC_ADDRESS_2))
@@ -141,8 +141,8 @@ public final class TestDefaultFlowInfo {
                 IpAddress.valueOf(IP_ADDRESS_1), IP_PREFIX_LENGTH_1)));
         assertThat(info.dstIp(), is(IpPrefix.valueOf(
                 IpAddress.valueOf(IP_ADDRESS_1), IP_PREFIX_LENGTH_1)));
-        assertThat(info.srcPort(), is(PortNumber.portNumber(PORT_1)));
-        assertThat(info.dstPort(), is(PortNumber.portNumber(PORT_1)));
+        assertThat(info.srcPort(), is(TpPort.tpPort(PORT_1)));
+        assertThat(info.dstPort(), is(TpPort.tpPort(PORT_1)));
         assertThat(info.protocol(), is((byte) STATIC_INTEGER_1));
         assertThat(info.vlanId(), is(VlanId.vlanId(STATIC_STRING_1)));
         assertThat(info.srcMac(), is(MacAddress.valueOf(MAC_ADDRESS_1)));

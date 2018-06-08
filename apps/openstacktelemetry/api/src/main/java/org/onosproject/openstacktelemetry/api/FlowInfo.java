@@ -17,9 +17,9 @@ package org.onosproject.openstacktelemetry.api;
 
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.PortNumber;
 
 /**
  * Flow info interface.
@@ -87,14 +87,14 @@ public interface FlowInfo {
      *
      * @return source port
      */
-    PortNumber srcPort();
+    TpPort srcPort();
 
     /**
      * Obtains destination port.
      *
      * @return destination port
      */
-    PortNumber dstPort();
+    TpPort dstPort();
 
     /**
      * Obtains protocol type.
@@ -196,7 +196,7 @@ public interface FlowInfo {
          * @param srcPort source port number
          * @return builder instance
          */
-        Builder withSrcPort(PortNumber srcPort);
+        Builder withSrcPort(TpPort srcPort);
 
         /**
          * Sets destination port number.
@@ -204,7 +204,7 @@ public interface FlowInfo {
          * @param dstPort destination port number
          * @return builder instance
          */
-        Builder withDstPort(PortNumber dstPort);
+        Builder withDstPort(TpPort dstPort);
 
         /**
          * Sets protocol type.

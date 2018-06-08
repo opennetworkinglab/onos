@@ -17,9 +17,9 @@ package org.onosproject.openstacktelemetry.impl;
 
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.PortNumber;
 import org.onosproject.openstacktelemetry.api.FlowInfo;
 import org.onosproject.openstacktelemetry.api.StatsInfo;
 
@@ -41,8 +41,8 @@ public final class DefaultFlowInfo implements FlowInfo {
     private final short vxlanId;
     private final IpPrefix srcIp;
     private final IpPrefix dstIp;
-    private final PortNumber srcPort;
-    private final PortNumber dstPort;
+    private final TpPort srcPort;
+    private final TpPort dstPort;
     private final byte protocol;
     private final MacAddress srcMac;
     private final MacAddress dstMac;
@@ -51,7 +51,7 @@ public final class DefaultFlowInfo implements FlowInfo {
     private DefaultFlowInfo(byte flowType, DeviceId deviceId,
                             int inputInterfaceId, int outputInterfaceId,
                             VlanId vlanId, short vxlanId, IpPrefix srcIp,
-                            IpPrefix dstIp, PortNumber srcPort, PortNumber dstPort,
+                            IpPrefix dstIp, TpPort srcPort, TpPort dstPort,
                             byte protocol, MacAddress srcMac, MacAddress dstMac,
                             StatsInfo statsInfo) {
         this.flowType = flowType;
@@ -111,12 +111,12 @@ public final class DefaultFlowInfo implements FlowInfo {
     }
 
     @Override
-    public PortNumber srcPort() {
+    public TpPort srcPort() {
         return srcPort;
     }
 
     @Override
-    public PortNumber dstPort() {
+    public TpPort dstPort() {
         return dstPort;
     }
 
@@ -206,8 +206,8 @@ public final class DefaultFlowInfo implements FlowInfo {
         private short vxlanId;
         private IpPrefix srcIp;
         private IpPrefix dstIp;
-        private PortNumber srcPort;
-        private PortNumber dstPort;
+        private TpPort srcPort;
+        private TpPort dstPort;
         private byte protocol;
         private MacAddress srcMac;
         private MacAddress dstMac;
@@ -262,13 +262,13 @@ public final class DefaultFlowInfo implements FlowInfo {
         }
 
         @Override
-        public Builder withSrcPort(PortNumber srcPort) {
+        public Builder withSrcPort(TpPort srcPort) {
             this.srcPort = srcPort;
             return this;
         }
 
         @Override
-        public Builder withDstPort(PortNumber dstPort) {
+        public Builder withDstPort(TpPort dstPort) {
             this.dstPort = dstPort;
             return this;
         }
