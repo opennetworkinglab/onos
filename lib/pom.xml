@@ -503,6 +503,11 @@
                 <artifactId>onos-yang-serializers-json</artifactId>
                 <version>${onos-yang-tools.version}</version>
             </dependency>
+            <dependency>
+                <groupId>io.grpc</groupId>
+                <artifactId>grpc-core</artifactId>
+                <version>${grpccore.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -711,12 +716,6 @@
         <dependency>
             <groupId>com.google.code.findbugs</groupId>
             <artifactId>jsr305</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>io.grpc</groupId>
-            <artifactId>grpc-core</artifactId>
-            <version>${grpccore.version}</version>
         </dependency>
 
     </dependencies>

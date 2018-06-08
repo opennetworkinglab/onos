@@ -178,24 +178,6 @@
                     </execution>
                 </executions>
             </plugin>
-            <!--<plugin>-->
-                <!--<groupId>com.googlecode.maven-download-plugin</groupId>-->
-                <!--<artifactId>download-maven-plugin</artifactId>-->
-                <!--<version>1.3.1</version>-->
-                <!--<executions>-->
-                    <!--<execution>-->
-                        <!--<id>install-any</id>-->
-                        <!--<phase>generate-resources</phase>-->
-                        <!--<goals>-->
-                            <!--<goal>wget</goal>-->
-                        <!--</goals>-->
-                        <!--<configuration>-->
-                            <!--<url>https://raw.githubusercontent.com/google/protobuf/master/src/google/protobuf/any.proto</url>-->
-                            <!--<outputDirectory>${project.basedir}/target/PI/proto/googleapis/google/protobuf</outputDirectory>-->
-                        <!--</configuration>-->
-                    <!--</execution>-->
-                <!--</executions>-->
-            <!--</plugin>-->
 
         </plugins>
     </build>
