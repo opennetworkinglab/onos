@@ -51,7 +51,7 @@ import java.util.TreeMap;
 import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
 import static org.onosproject.openstacknetworking.api.Constants.PCISLOT;
 import static org.onosproject.openstacknetworking.api.Constants.PCI_VENDOR_INFO;
-import static org.onosproject.openstacknetworking.api.Constants.PORT_NAME_PREFIX_MAP;
+import static org.onosproject.openstacknetworking.api.Constants.portNamePrefixMap;
 
 /**
  * An utility that used in openstack networking app.
@@ -229,7 +229,7 @@ public final class OpenstackNetworkingUtil {
             log.error("Failed to retrieve the interface name because of no pci vendor information from the port");
             return null;
         }
-        String portNamePrefix = PORT_NAME_PREFIX_MAP.get(vendorInfoForPort);
+        String portNamePrefix = portNamePrefixMap().get(vendorInfoForPort);
 
         if (functionNumDecimal.equals(ZERO_FUNCTION_NUMBER)) {
             intfName = portNamePrefix + busNumDecimal + PREFIX_DEVICE_NUMBER + deviceNumDecimal;

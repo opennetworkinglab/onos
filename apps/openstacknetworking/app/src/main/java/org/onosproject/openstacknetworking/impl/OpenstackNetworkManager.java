@@ -71,7 +71,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 import static org.onosproject.openstacknetworking.api.Constants.DIRECT;
 import static org.onosproject.openstacknetworking.api.Constants.PCISLOT;
-import static org.onosproject.openstacknetworking.api.Constants.PORT_NAME_PREFIX_MAP;
+import static org.onosproject.openstacknetworking.api.Constants.portNamePrefixMap;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getIntfNameFromPciAddress;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -339,7 +339,7 @@ public class OpenstackNetworkManager
     }
 
     private boolean isDirectPort(String portName) {
-        return PORT_NAME_PREFIX_MAP.values().stream().filter(p -> portName.startsWith(p)).findAny().isPresent();
+        return portNamePrefixMap().values().stream().filter(p -> portName.startsWith(p)).findAny().isPresent();
     }
 
     @Override

@@ -15,7 +15,7 @@
  */
 package org.onosproject.openstacknetworking.api;
 
-import com.google.common.collect.Maps;
+import com.google.common.collect.ImmutableMap;
 import org.onlab.packet.MacAddress;
 
 import java.util.Map;
@@ -44,12 +44,10 @@ public final class Constants {
     public static final String DIRECT = "direct";
     public static final String PCISLOT = "pci_slot";
 
-    public static final Map<String, String> PORT_NAME_PREFIX_MAP = createPortNamePrefixMap();
+    private static final Map<String, String> PORT_NAME_PREFIX_MAP = createPortNamePrefixMap();
     private static Map<String, String> createPortNamePrefixMap() {
-        Map<String, String> portNamePrefixMap = Maps.newHashMap();
         //Additional pci vendor information will be added
-        portNamePrefixMap.put(CAVIUM_PCI_VENDOR_INFO, PORT_NAME_PREFIX_CAVIUM);
-        return portNamePrefixMap;
+        return ImmutableMap.of(CAVIUM_PCI_VENDOR_INFO, PORT_NAME_PREFIX_CAVIUM);
     }
 
     public static final int PRIORITY_TUNNEL_TAG_RULE = 30000;
@@ -85,4 +83,8 @@ public final class Constants {
     public static final int FORWARDING_TABLE = 50;
     public static final int GW_COMMON_TABLE = 0;
     public static final int ERROR_TABLE = 100;
+
+    public static Map<String, String> portNamePrefixMap() {
+        return PORT_NAME_PREFIX_MAP;
+    }
 }

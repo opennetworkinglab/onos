@@ -64,7 +64,7 @@ import java.util.stream.Collectors;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
-import static org.onosproject.openstacknetworking.api.Constants.PORT_NAME_PREFIX_MAP;
+import static org.onosproject.openstacknetworking.api.Constants.portNamePrefixMap;
 import static org.onosproject.openstacknetworking.impl.HostBasedInstancePort.ANNOTATION_CREATE_TIME;
 import static org.onosproject.openstacknetworking.impl.HostBasedInstancePort.ANNOTATION_NETWORK_ID;
 import static org.onosproject.openstacknetworking.impl.HostBasedInstancePort.ANNOTATION_PORT_ID;
@@ -236,7 +236,7 @@ public final class OpenstackSwitchingHostProvider extends AbstractProvider imple
         }
 
         private boolean isDirectPort(String portName) {
-            return PORT_NAME_PREFIX_MAP.values().stream().filter(p -> portName.startsWith(p)).findAny().isPresent();
+            return portNamePrefixMap().values().stream().filter(p -> portName.startsWith(p)).findAny().isPresent();
         }
 
         @Override
@@ -346,7 +346,7 @@ public final class OpenstackSwitchingHostProvider extends AbstractProvider imple
                         processPortAdded(port);
                     });
 
-            PORT_NAME_PREFIX_MAP.values().forEach(portNamePrefix -> {
+            portNamePrefixMap().values().forEach(portNamePrefix -> {
                 deviceService.getPorts(osNode.intgBridge()).stream()
                         .filter(port -> port.annotations().value(PORT_NAME)
                                 .startsWith(portNamePrefix) &&
