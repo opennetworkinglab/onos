@@ -105,21 +105,16 @@ public class ControllerConfigCiscoImpl extends AbstractHandlerBehaviour implemen
             throw new NullPointerException("Response is null");
         }
 
-        if (response != null) {
-            try {
-                ObjectMapper om = new ObjectMapper();
-                JsonNode json = om.readTree(response);
-                //TODO parse error messages.
-                if (json.has("error")) {
-                    log.error("{} Response has IllegalStateException Error", deviceId);
-                    return;
-                }
-            } catch (IOException e) {
-                log.error("Exception thrown", e);
+        try {
+            ObjectMapper om = new ObjectMapper();
+            JsonNode json = om.readTree(response);
+            //TODO parse error messages.
+            if (json.has("error")) {
+                log.error("{} Response has IllegalStateException Error", deviceId);
+                return;
             }
-        } else {
-            log.error("Can't reach the deviceId {}", deviceId);
+        } catch (IOException e) {
+            log.error("Exception thrown", e);
         }
     }
-
 }
