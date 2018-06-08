@@ -203,12 +203,20 @@ public class AclWebResource extends AbstractWebResource {
 
         int port = node.path("dstTpPort").asInt(0);
         if (port > 0) {
-            rule.dstTpPort((short) port);
+            if ("TCP".equalsIgnoreCase(s) || "UDP".equalsIgnoreCase(s)) {
+                rule.dstTpPort((short) port);
+            } else {
+                throw new IllegalArgumentException("dstTpPort can be set only when ipProto is TCP or UDP");
+            }
         }
 
         port = node.path("srcTpPort").asInt(0);
         if (port > 0) {
-            rule.srcTpPort((short) port);
+            if ("TCP".equalsIgnoreCase(s) || "UDP".equalsIgnoreCase(s)) {
+                rule.srcTpPort((short) port);
+            } else {
+                throw new IllegalArgumentException("srcTpPort can be set only when ipProto is TCP or UDP");
+            }
         }
 
         s = node.path("action").asText(null);
