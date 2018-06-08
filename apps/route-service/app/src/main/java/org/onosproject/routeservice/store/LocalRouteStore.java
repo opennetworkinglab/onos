@@ -87,6 +87,11 @@ public class LocalRouteStore extends AbstractStore<InternalRouteEvent, RouteStor
     }
 
     @Override
+    public void replaceRoute(Route route) {
+        getDefaultRouteTable(route).replace(route);
+    }
+
+    @Override
     public Set<RouteTableId> getRouteTables() {
         return routeTables.keySet();
     }
@@ -172,6 +177,13 @@ public class LocalRouteStore extends AbstractStore<InternalRouteEvent, RouteStor
                             InternalRouteEvent.Type.ROUTE_REMOVED, emptyRouteSet(route.prefix())));
                 }
             }
+        }
+
+        /**
+         * Replace the route in the route table.
+         */
+        public void replace(Route route) {
+            update(route);
         }
 
         /**
