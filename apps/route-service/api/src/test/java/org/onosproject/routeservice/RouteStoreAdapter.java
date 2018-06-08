@@ -36,6 +36,11 @@ public class RouteStoreAdapter implements RouteStore {
     }
 
     @Override
+    public void replaceRoute(Route route) {
+
+    }
+
+    @Override
     public Set<RouteTableId> getRouteTables() {
         return null;
     }

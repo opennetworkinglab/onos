@@ -966,7 +966,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
                 if (isMsgReply) {
                     Route routeForIP = new Route(Route.Source.DHCP, ipInfo.ip6Address.toIpPrefix(), nextHopIp);
                     log.debug("adding Route of 128 address for indirectly connected.");
-                    routeStore.updateRoute(routeForIP);
+                    routeStore.replaceRoute(routeForIP);
                 }
             }
 
@@ -977,7 +977,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
                 if (isMsgReply) {
                     Route routeForPrefix = new Route(Route.Source.DHCP, pdInfo.pdPrefix, nextHopIp);
                     log.debug("adding Route of PD for indirectly connected.");
-                    routeStore.updateRoute(routeForPrefix);
+                    routeStore.replaceRoute(routeForPrefix);
                     if (this.dhcpFpmEnabled) {
                         FpmRecord fpmRecord = new FpmRecord(pdInfo.pdPrefix, nextHopIp, FpmRecord.Type.DHCP_RELAY);
                         dhcpFpmPrefixStore.addFpmRecord(pdInfo.pdPrefix, fpmRecord);

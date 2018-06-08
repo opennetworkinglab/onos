@@ -930,6 +930,11 @@ public class DhcpRelayManagerTest {
         public void removeRoute(Route route) {
             routes.remove(route);
         }
+
+        public void replaceRoute(Route route) {
+            routes.remove(route);
+            routes.add(route);
+        }
     }
 
     private class MockInterfaceService extends InterfaceServiceAdapter {

@@ -17,6 +17,7 @@
 package org.onosproject.routeservice;
 
 import com.google.common.annotations.Beta;
+import org.apache.commons.lang3.NotImplementedException;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onosproject.store.Store;
@@ -42,6 +43,16 @@ public interface RouteStore extends Store<InternalRouteEvent, RouteStoreDelegate
      * @param route route to remove
      */
     void removeRoute(Route route);
+
+    /**
+     * Replaces the all the routes for a prefix
+     * with the given route.
+     *
+     * @param route route
+     */
+    default void replaceRoute(Route route) {
+        throw new NotImplementedException("replaceRoute is not implemented");
+    }
 
     /**
      * Returns the IDs for all route tables in the store.

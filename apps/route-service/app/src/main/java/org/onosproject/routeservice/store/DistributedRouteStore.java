@@ -121,6 +121,11 @@ public class DistributedRouteStore extends AbstractStore<InternalRouteEvent, Rou
     }
 
     @Override
+    public void replaceRoute(Route route) {
+        getDefaultRouteTable(route).replace(route);
+    }
+
+    @Override
     public Set<RouteTableId> getRouteTables() {
         return ImmutableSet.copyOf(masterRouteTable);
     }

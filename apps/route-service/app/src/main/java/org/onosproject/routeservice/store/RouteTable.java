@@ -44,6 +44,13 @@ public interface RouteTable {
     void remove(Route route);
 
     /**
+     * Replaces a route in the route table.
+     *
+     * @param route route
+     */
+    void replace(Route route);
+
+    /**
      * Returns the route table ID.
      *
      * @return route table ID

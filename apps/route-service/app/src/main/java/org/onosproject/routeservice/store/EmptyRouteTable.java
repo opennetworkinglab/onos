@@ -57,6 +57,11 @@ public final class EmptyRouteTable implements RouteTable {
     }
 
     @Override
+    public void replace(Route route) {
+
+    }
+
+    @Override
     public RouteTableId id() {
         return id;
     }
