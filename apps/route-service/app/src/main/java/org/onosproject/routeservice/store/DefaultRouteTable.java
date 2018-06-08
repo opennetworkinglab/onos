@@ -24,6 +24,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.util.KryoNamespace;
@@ -126,6 +127,11 @@ public class DefaultRouteTable implements RouteTable {
     @Override
     public void remove(Route route) {
         routes.remove(route.prefix(), route);
+    }
+
+    @Override
+    public void replace(Route route) {
+        routes.replaceValues(route.prefix(), Sets.newHashSet(route));
     }
 
     @Override

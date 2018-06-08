@@ -142,6 +142,11 @@ public class RouteStoreImpl extends AbstractStore<InternalRouteEvent, RouteStore
     }
 
     @Override
+    public void replaceRoute(Route route) {
+        currentRouteStore.replaceRoute(route);
+    }
+
+    @Override
     public Set<RouteTableId> getRouteTables() {
         return currentRouteStore.getRouteTables();
     }

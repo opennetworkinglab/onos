@@ -1479,7 +1479,7 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
             }
 
             Route route = new Route(Route.Source.DHCP, ip.toIpPrefix(), nextHopIp);
-            routeStore.updateRoute(route);
+            routeStore.replaceRoute(route);
         }
     }
 
