@@ -22,7 +22,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import org.onlab.packet.IpAddress;
 import org.onosproject.drivers.cisco.rest.NxApiRequest.CommandType;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.ControllerConfig;
@@ -72,6 +75,7 @@ public class ControllerConfigCiscoImpl extends AbstractHandlerBehaviour implemen
             if (json.has("result")) {
                 JsonNode res = json.get("result");
                 String msg = res.findValue("msg").asText();
+                controllers.addAll(parseControllerInfo(msg));
             } else if (json.has("error")) {
                 log.error("{} Response has IllegalStateException Error/null", deviceId);
                 return controllers;
@@ -117,4 +121,51 @@ public class ControllerConfigCiscoImpl extends AbstractHandlerBehaviour implemen
             log.error("Exception thrown", e);
         }
     }
+
+    @Override
+    public void removeControllers(List<ControllerInfo> controllers) {
+        DriverHandler handler = handler();
+        DeviceId deviceId = handler.data().deviceId();
+
+        List<String> cmds = new ArrayList<>();
+        cmds.add(OPENFLOW_CMD);
+        cmds.add(DELETE_OF_CONFIG);
+        cmds.add(COPY_RUNNING_CONFIG);
+
+        String response = NxApiRequest.postClis(handler, cmds);
+        if (Objects.isNull(response)) {
+            log.error(" Device {} Response is null", deviceId);
+            return;
+        }
+
+        try {
+            ObjectMapper om = new ObjectMapper();
+            JsonNode json = om.readTree(response);
+            if (json.has("errors")) {
+                log.error("{} Response has JSON Format Error {}", deviceId, json);
+                return;
+            }
+            //TODO parse error messages.
+        } catch (IOException e) {
+            log.error("Exception thrown", e);
+        }
+    }
+
+    private List<ControllerInfo> parseControllerInfo(String data) {
+        final String regex = "(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}):(\\d{1,5})";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher match = pattern.matcher(data);
+        List<ControllerInfo> controllers = new ArrayList<ControllerInfo>();
+        while (match.find()) {
+            String str = match.group();
+            String[] ips = str.split(":");
+            ControllerInfo info = new ControllerInfo(IpAddress.valueOf(ips[0]),
+                    Integer.parseInt(ips[1]), "tcp");
+            controllers.add(info);
+        }
+
+        return controllers;
+    }
+
+
 }
