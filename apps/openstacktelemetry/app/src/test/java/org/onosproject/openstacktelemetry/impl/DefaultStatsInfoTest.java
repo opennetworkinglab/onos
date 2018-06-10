@@ -26,7 +26,7 @@ import static org.hamcrest.Matchers.is;
 /**
  * Unit tests for DefaultStatsInfo class.
  */
-public final class TestDefaultStatsInfo {
+public final class DefaultStatsInfoTest {
 
     private static final int STATIC_INTEGER_1 = 1;
     private static final int STATIC_INTEGER_2 = 2;

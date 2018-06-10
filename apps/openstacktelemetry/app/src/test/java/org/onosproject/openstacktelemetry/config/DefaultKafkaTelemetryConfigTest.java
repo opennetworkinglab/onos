@@ -26,7 +26,7 @@ import java.util.Map;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-public final class TestDefaultKafkaTelemetryConfig {
+public final class DefaultKafkaTelemetryConfigTest {
 
     private static final String IP_ADDRESS_1 = "10.10.10.1";
     private static final String IP_ADDRESS_2 = "20.20.20.1";

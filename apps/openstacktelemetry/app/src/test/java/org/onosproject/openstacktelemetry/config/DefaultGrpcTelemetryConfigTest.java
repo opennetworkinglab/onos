@@ -29,7 +29,7 @@ import static org.hamcrest.Matchers.is;
 /**
  * Unit tests for DefaultGrpcTelemetryConfig class.
  */
-public final class TestDefaultGrpcTelemetryConfig {
+public final class DefaultGrpcTelemetryConfigTest {
 
     private static final String IP_ADDRESS_1 = "10.10.10.1";
     private static final String IP_ADDRESS_2 = "20.20.20.1";

@@ -23,6 +23,7 @@ import org.onosproject.openstacktelemetry.api.config.TelemetryConfig;
 import java.util.Map;
 import java.util.Objects;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -112,6 +113,19 @@ public final class DefaultInfluxDbTelemetryConfig implements InfluxDbTelemetryCo
     @Override
     public int hashCode() {
         return Objects.hash(address, port, username, password, database, enableBatch, configMap);
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("address", address)
+                .add("port", port)
+                .add("username", username)
+                .add("password", password)
+                .add("database", database)
+                .add("enableBatch", enableBatch)
+                .add("configMap", configMap)
+                .toString();
     }
 
     @Override

@@ -34,7 +34,7 @@ import java.nio.ByteBuffer;
 /**
  * Unit tests for TinaFlowInfoByteBufferCodec.
  */
-public final class TestTinaFlowInfoByteBufferCodec {
+public final class TinaFlowInfoByteBufferCodecTest {
 
     private static final byte FLOW_TYPE = 1;
     private static final DeviceId DEVICE_ID = DeviceId.deviceId("1234");

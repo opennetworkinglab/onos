@@ -23,6 +23,7 @@ import org.onosproject.openstacktelemetry.api.config.TelemetryConfig;
 import java.util.Map;
 import java.util.Objects;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -139,6 +140,22 @@ public final class DefaultKafkaTelemetryConfig implements KafkaTelemetryConfig {
     public int hashCode() {
         return Objects.hash(address, port, retries, requiredAcks, batchSize,
                 lingerMs, memoryBuffer, keySerializer, valueSerializer, configMap);
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("address", address)
+                .add("port", port)
+                .add("retries", retries)
+                .add("requiredAcks", requiredAcks)
+                .add("batchSize", batchSize)
+                .add("lingerMs", lingerMs)
+                .add("memoryBuffer", memoryBuffer)
+                .add("keySerializer", keySerializer)
+                .add("valueSerializer", valueSerializer)
+                .add("configMap", configMap)
+                .toString();
     }
 
     @Override

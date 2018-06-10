@@ -33,7 +33,7 @@ import static org.hamcrest.Matchers.is;
 /**
  * Unit tests for DefaultFlowInfo class.
  */
-public final class TestDefaultFlowInfo {
+public final class DefaultFlowInfoTest {
 
     private static final String IP_ADDRESS_1 = "10.10.10.1";
     private static final String IP_ADDRESS_2 = "20.20.20.1";

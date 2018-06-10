@@ -26,7 +26,7 @@ import java.nio.ByteBuffer;
 /**
  * Unit tests for TinaStatsInfoByteBufferCodef.
  */
-public class TestTinaStatsInfoByteBufferCodec {
+public class TinaStatsInfoByteBufferCodecTest {
 
     private static final int STARTUP_TIME = 1000;
     private static final int CURRENT_ACCUMULATED_PACKETS = 8000;

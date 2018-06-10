@@ -19,17 +19,14 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.testing.EqualsTester;
 import org.junit.Before;
 import org.junit.Test;
-import org.onosproject.openstacktelemetry.api.config.InfluxDbTelemetryConfig;
+import org.onosproject.openstacktelemetry.api.config.RestTelemetryConfig;
 
 import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-/**
- * Unit tests for DefaultInfluxDbTelemetryConfig class.
- */
-public final class TestDefaultInfluxDbTelemetryConfig {
+public final class DefaultRestTelemetryConfigTest {
 
     private static final String IP_ADDRESS_1 = "10.10.10.1";
     private static final String IP_ADDRESS_2 = "20.20.20.1";
@@ -37,64 +34,64 @@ public final class TestDefaultInfluxDbTelemetryConfig {
     private static final int PORT_1 = 80;
     private static final int PORT_2 = 8080;
 
-    private static final String DATABASE_1 = "database1";
-    private static final String DATABASE_2 = "database2";
+    private static final String ENDPOINT_1 = "telemetry";
+    private static final String ENDPOINT_2 = "configuration";
 
-    private static final String USERNAME_1 = "username1";
-    private static final String USERNAME_2 = "username2";
+    private static final String METHOD_1 = "POST";
+    private static final String METHOD_2 = "GET";
 
-    private static final String PASSWORD_1 = "password1";
-    private static final String PASSWORD_2 = "password2";
+    private static final String REQUEST_MEDIA_TYPE_1 = "JSON";
+    private static final String REQUEST_MEDIA_TYPE_2 = "XML";
 
-    private static final boolean ENABLE_BATCH_1 = true;
-    private static final boolean ENABLE_BATCH_2 = false;
+    private static final String RESPONSE_MEDIA_TYPE_1 = "JSON";
+    private static final String RESPONSE_MEDIA_TYPE_2 = "XML";
 
     private static final Map<String, Object> CONFIG_MAP_1 =
             ImmutableMap.of("key1", "value1");
     private static final Map<String, Object> CONFIG_MAP_2 =
             ImmutableMap.of("key2", "value2");
 
-    private InfluxDbTelemetryConfig config1;
-    private InfluxDbTelemetryConfig sameAsConfig1;
-    private InfluxDbTelemetryConfig config2;
+    private RestTelemetryConfig config1;
+    private RestTelemetryConfig sameAsConfig1;
+    private RestTelemetryConfig config2;
 
     @Before
     public void setup() {
 
-        InfluxDbTelemetryConfig.Builder builder1 =
-                new DefaultInfluxDbTelemetryConfig.DefaultBuilder();
-        InfluxDbTelemetryConfig.Builder builder2 =
-                new DefaultInfluxDbTelemetryConfig.DefaultBuilder();
-        InfluxDbTelemetryConfig.Builder builder3 =
-                new DefaultInfluxDbTelemetryConfig.DefaultBuilder();
+        RestTelemetryConfig.Builder builder1 =
+                new DefaultRestTelemetryConfig.DefaultBuilder();
+        RestTelemetryConfig.Builder builder2 =
+                new DefaultRestTelemetryConfig.DefaultBuilder();
+        RestTelemetryConfig.Builder builder3 =
+                new DefaultRestTelemetryConfig.DefaultBuilder();
 
         config1 = builder1
                 .withAddress(IP_ADDRESS_1)
                 .withPort(PORT_1)
-                .withDatabase(DATABASE_1)
-                .withUsername(USERNAME_1)
-                .withPassword(PASSWORD_1)
-                .withEnableBatch(ENABLE_BATCH_1)
+                .withEndpoint(ENDPOINT_1)
+                .withMethod(METHOD_1)
+                .withRequestMediaType(REQUEST_MEDIA_TYPE_1)
+                .withResponseMediaType(RESPONSE_MEDIA_TYPE_1)
                 .withConfigMap(CONFIG_MAP_1)
                 .build();
 
         sameAsConfig1 = builder2
                 .withAddress(IP_ADDRESS_1)
                 .withPort(PORT_1)
-                .withDatabase(DATABASE_1)
-                .withUsername(USERNAME_1)
-                .withPassword(PASSWORD_1)
-                .withEnableBatch(ENABLE_BATCH_1)
+                .withEndpoint(ENDPOINT_1)
+                .withMethod(METHOD_1)
+                .withRequestMediaType(REQUEST_MEDIA_TYPE_1)
+                .withResponseMediaType(RESPONSE_MEDIA_TYPE_1)
                 .withConfigMap(CONFIG_MAP_1)
                 .build();
 
         config2 = builder3
                 .withAddress(IP_ADDRESS_2)
                 .withPort(PORT_2)
-                .withDatabase(DATABASE_2)
-                .withUsername(USERNAME_2)
-                .withPassword(PASSWORD_2)
-                .withEnableBatch(ENABLE_BATCH_2)
+                .withEndpoint(ENDPOINT_2)
+                .withMethod(METHOD_2)
+                .withRequestMediaType(REQUEST_MEDIA_TYPE_2)
+                .withResponseMediaType(RESPONSE_MEDIA_TYPE_2)
                 .withConfigMap(CONFIG_MAP_2)
                 .build();
     }
@@ -108,14 +105,14 @@ public final class TestDefaultInfluxDbTelemetryConfig {
 
     @Test
     public void testConstruction() {
-        InfluxDbTelemetryConfig config = config1;
+        RestTelemetryConfig config = config1;
 
         assertThat(config.address(), is(IP_ADDRESS_1));
         assertThat(config.port(), is(PORT_1));
-        assertThat(config.database(), is(DATABASE_1));
-        assertThat(config.username(), is(USERNAME_1));
-        assertThat(config.password(), is(PASSWORD_1));
-        assertThat(config.enableBatch(), is(ENABLE_BATCH_1));
+        assertThat(config.endpoint(), is(ENDPOINT_1));
+        assertThat(config.method(), is(METHOD_1));
+        assertThat(config.requestMediaType(), is(REQUEST_MEDIA_TYPE_1));
+        assertThat(config.responseMediaType(), is(RESPONSE_MEDIA_TYPE_1));
         assertThat(config.configMap(), is(CONFIG_MAP_1));
     }
 }
