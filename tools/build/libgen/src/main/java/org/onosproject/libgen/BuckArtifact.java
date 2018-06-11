@@ -132,7 +132,7 @@ public abstract class BuckArtifact {
             return String.format(format, jarTarget(), mavenCoords(), sha, repoAttribute);
         } else {
             String format =
-                    "\n    native.http_jar(\n" +
+                    "\n    native.http_file(\n" +
                             "        name = \"%s\",\n" +
                             "        url = \"%s\",\n" +
                             "        sha256 = \"%s\",\n" +
