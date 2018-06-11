@@ -23,6 +23,8 @@
                    impl="org.onosproject.drivers.polatis.snmp.PolatisDeviceDescription"/>
         <behaviour api="org.onosproject.net.flow.FlowRuleProgrammable"
                    impl="org.onosproject.drivers.polatis.snmp.PolatisFlowRuleProgrammable"/>
+        <behaviour api="org.onosproject.net.behaviour.PowerConfig"
+                   impl="org.onosproject.drivers.polatis.snmp.PolatisPowerConfig"/>
         <property name="uiType">policon</property>
     </driver>
 </drivers>

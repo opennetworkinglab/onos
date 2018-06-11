@@ -48,8 +48,6 @@ public final class PolatisOpticalUtility {
 
     private static final int DEFAULT_PRIORITY = 88;
     private static final String DEFAULT_APP = "org.onosproject.drivers.polatis.snmp";
-    public static final int POWER_MULTIPLIER = 100;
-    public static final int VOA_MULTIPLIER = 100;
     public static final Range<Long> POWER_RANGE = Range.closed(-6000L, 2800L);
 
     private static final String PORT_ENTRY_OID = ".1.3.6.1.4.1.26592.2.2.2.1.2";

@@ -46,7 +46,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import static org.onosproject.net.optical.device.OmsPortHelper.omsPortDescription;
-import static org.onosproject.drivers.polatis.snmp.PolatisSnmpUtility.getOid;
+import static org.onosproject.drivers.polatis.snmp.PolatisSnmpUtility.get;
 import static org.onosproject.drivers.polatis.snmp.PolatisSnmpUtility.getTable;
 
 /**
@@ -174,14 +174,14 @@ public class PolatisDeviceDescription extends AbstractHandlerBehaviour
     }
 
     private String hardwareVersion() throws IOException {
-        return getOid(handler(), PRODUCT_CODE_OID);
+        return get(handler(), PRODUCT_CODE_OID).toString();
     }
 
     private String softwareVersion() throws IOException {
-        return getOid(handler(), SOFTWARE_VERSION_OID);
+        return get(handler(), SOFTWARE_VERSION_OID).toString();
     }
 
     private String serialNumber() throws IOException {
-        return getOid(handler(), SERIAL_NUMBER_OID);
+        return get(handler(), SERIAL_NUMBER_OID).toString();
     }
 }

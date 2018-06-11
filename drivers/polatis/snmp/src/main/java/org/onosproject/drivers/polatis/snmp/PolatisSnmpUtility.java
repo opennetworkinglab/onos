@@ -28,6 +28,7 @@ import org.snmp4j.smi.Address;
 import org.snmp4j.smi.GenericAddress;
 import org.snmp4j.smi.OctetString;
 import org.snmp4j.smi.OID;
+import org.snmp4j.smi.Variable;
 import org.snmp4j.smi.VariableBinding;
 import org.snmp4j.util.DefaultPDUFactory;
 import org.snmp4j.util.TableEvent;
@@ -99,17 +100,17 @@ public final class PolatisSnmpUtility {
      *
      * @param handler parent driver handler
      * @param oid object identifier
-     * @return the string value
+     * @return the variable
      * @throws IOException if unable to retrieve the object value
      */
-    public static String getOid(DriverHandler handler, String oid) throws IOException {
+    public static Variable get(DriverHandler handler, String oid) throws IOException {
         List<VariableBinding> vbs = new ArrayList<>();
         vbs.add(new VariableBinding(new OID(oid)));
         PDU pdu = new PDU(PDU.GET, vbs);
         Snmp session = getSession(handler);
         CommunityTarget target = getTarget(handler);
         ResponseEvent event = session.send(pdu, target);
-        return event.getResponse().get(0).getVariable().toString();
+        return event.getResponse().get(0).getVariable();
     }
 
     /**
