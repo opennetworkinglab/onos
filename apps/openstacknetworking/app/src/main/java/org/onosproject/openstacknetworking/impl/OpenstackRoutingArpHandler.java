@@ -144,10 +144,10 @@ public class OpenstackRoutingArpHandler {
     protected OpenstackNetworkService osNetworkService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ComponentConfigService configService;
+    protected HostService hostService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected HostService hostService;
+    protected ComponentConfigService configService;
 
     // TODO: need to find a way to unify aprMode and gatewayMac variables with
     // that in SwitchingArpHandler
@@ -163,7 +163,8 @@ public class OpenstackRoutingArpHandler {
 
     private ApplicationId appId;
     private NodeId localNodeId;
-    private Map<String, String> floatingIpMacMap = Maps.newConcurrentMap();
+    private Map<String, MacAddress> floatingIpMacMap = Maps.newConcurrentMap();
+    private Map<MacAddress, InstancePort> removedPorts = Maps.newConcurrentMap();
 
     private final ExecutorService eventExecutor = newSingleThreadExecutor(
             groupedThreads(this.getClass().getSimpleName(), "event-handler", log));
@@ -175,8 +176,8 @@ public class OpenstackRoutingArpHandler {
         appId = coreService.registerApplication(OPENSTACK_NETWORKING_APP_ID);
         configService.registerProperties(getClass());
         localNodeId = clusterService.getLocalNode().id();
-        osRouterService.addListener(osRouterListener);
         hostService.addListener(hostListener);
+        osRouterService.addListener(osRouterListener);
         osNodeService.addListener(osNodeListener);
         leadershipService.runForLeadership(appId.name());
         packetService.addProcessor(packetProcessor, PacketProcessor.director(1));
@@ -342,13 +343,13 @@ public class OpenstackRoutingArpHandler {
                 .anyMatch(ip -> IpAddress.valueOf(ip.getIpAddress()).equals(targetIp));
     }
 
-    // FIXME: need to find a way to invoke this method during node initialization
     private void initFloatingIpMacMap() {
         osRouterService.floatingIps().forEach(f -> {
             if (f.getPortId() != null && f.getFloatingIpAddress() != null) {
                 Port port = osNetworkAdminService.port(f.getPortId());
                 if (port != null && port.getMacAddress() != null) {
-                    floatingIpMacMap.put(f.getFloatingIpAddress(), port.getMacAddress());
+                    floatingIpMacMap.put(f.getFloatingIpAddress(),
+                            MacAddress.valueOf(port.getMacAddress()));
                 }
             }
         });
@@ -429,23 +430,30 @@ public class OpenstackRoutingArpHandler {
                 return;
             }
 
-            String macString;
+            MacAddress targetMac;
+            InstancePort instPort;
 
             if (install) {
                 if (fip.getPortId() != null) {
-                    macString = osNetworkAdminService.port(fip.getPortId()).getMacAddress();
-                    floatingIpMacMap.put(fip.getFloatingIpAddress(), macString);
+                    String macString = osNetworkAdminService.port(fip.getPortId()).getMacAddress();
+                    targetMac = MacAddress.valueOf(macString);
+                    floatingIpMacMap.put(fip.getFloatingIpAddress(), targetMac);
                 } else {
                     log.trace("Unknown target ARP request for {}, ignore it",
                             fip.getFloatingIpAddress());
                     return;
                 }
             } else {
-                macString = floatingIpMacMap.get(fip.getFloatingIpAddress());
+                targetMac = floatingIpMacMap.get(fip.getFloatingIpAddress());
             }
 
-            MacAddress targetMac = MacAddress.valueOf(macString);
-            InstancePort instPort = instancePortService.instancePort(targetMac);
+            instPort = instancePortService.instancePort(targetMac);
+
+            // in VM purge case, we will have null instance port
+            if (instPort == null) {
+                instPort = removedPorts.get(targetMac);
+                removedPorts.remove(targetMac);
+            }
 
             OpenstackNode gw = getGwByInstancePort(gateways, instPort);
 
@@ -652,7 +660,7 @@ public class OpenstackRoutingArpHandler {
             InstancePort instPort = HostBasedInstancePort.of(event.subject());
             switch (event.type()) {
                 case HOST_REMOVED:
-                    removeArpRuleByInstancePort(instPort);
+                    storeTempInstPort(instPort);
                     break;
                 case HOST_UPDATED:
                 case HOST_ADDED:
@@ -661,7 +669,7 @@ public class OpenstackRoutingArpHandler {
             }
         }
 
-        private void removeArpRuleByInstancePort(InstancePort port) {
+        private void storeTempInstPort(InstancePort port) {
             Set<NetFloatingIP> ips = osRouterService.floatingIps();
             for (NetFloatingIP fip : ips) {
                 if (Strings.isNullOrEmpty(fip.getFixedIpAddress())) {
@@ -671,10 +679,7 @@ public class OpenstackRoutingArpHandler {
                     continue;
                 }
                 if (fip.getFixedIpAddress().equals(port.ipAddress().toString())) {
-                    eventExecutor.execute(() ->
-                        setFloatingIpArpRule(fip,
-                                osNodeService.completeNodes(GATEWAY), false)
-                    );
+                    removedPorts.put(port.macAddress(), port);
                 }
             }
         }
@@ -703,6 +708,9 @@ public class OpenstackRoutingArpHandler {
                 case OPENSTACK_NODE_COMPLETE:
                     setDefaultArpRule(osNode, true);
                     setFloatingIpArpRuleForGateway(osNode, true);
+
+                    // initialize FloatingIp to Mac map
+                    initFloatingIpMacMap();
 
                     break;
                 case OPENSTACK_NODE_INCOMPLETE:

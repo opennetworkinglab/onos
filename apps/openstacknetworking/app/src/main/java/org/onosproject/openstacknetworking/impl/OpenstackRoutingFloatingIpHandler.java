@@ -49,9 +49,9 @@ import org.onosproject.openstacknetworking.api.InstancePort;
 import org.onosproject.openstacknetworking.api.InstancePortService;
 import org.onosproject.openstacknetworking.api.OpenstackFlowRuleService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
+import org.onosproject.openstacknetworking.api.OpenstackRouterAdminService;
 import org.onosproject.openstacknetworking.api.OpenstackRouterEvent;
 import org.onosproject.openstacknetworking.api.OpenstackRouterListener;
-import org.onosproject.openstacknetworking.api.OpenstackRouterService;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeEvent;
 import org.onosproject.openstacknode.api.OpenstackNodeListener;
@@ -64,6 +64,7 @@ import org.openstack4j.model.network.Port;
 import org.openstack4j.model.network.Router;
 import org.openstack4j.model.network.RouterInterface;
 import org.openstack4j.model.network.Subnet;
+import org.openstack4j.openstack.networking.domain.NeutronFloatingIP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -119,7 +120,7 @@ public class OpenstackRoutingFloatingIpHandler {
     protected InstancePortService instancePortService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected OpenstackRouterService osRouterService;
+    protected OpenstackRouterAdminService osRouterAdminService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OpenstackNetworkService osNetworkService;
@@ -143,7 +144,7 @@ public class OpenstackRoutingFloatingIpHandler {
         localNodeId = clusterService.getLocalNode().id();
         leadershipService.runForLeadership(appId.name());
         hostService.addListener(hostListener);
-        osRouterService.addListener(floatingIpLisener);
+        osRouterAdminService.addListener(floatingIpLisener);
         osNodeService.addListener(osNodeListener);
 
         log.info("Started");
@@ -153,7 +154,7 @@ public class OpenstackRoutingFloatingIpHandler {
     protected void deactivate() {
         hostService.removeListener(hostListener);
         osNodeService.removeListener(osNodeListener);
-        osRouterService.removeListener(floatingIpLisener);
+        osRouterAdminService.removeListener(floatingIpLisener);
         leadershipService.withdraw(appId.name());
         eventExecutor.shutdown();
 
@@ -564,14 +565,14 @@ public class OpenstackRoutingFloatingIpHandler {
             return null;
         }
 
-        RouterInterface osRouterIface = osRouterService.routerInterfaces().stream()
+        RouterInterface osRouterIface = osRouterAdminService.routerInterfaces().stream()
                 .filter(i -> Objects.equals(i.getSubnetId(), subnet.getId()))
                 .findAny().orElse(null);
         if (osRouterIface == null) {
             return null;
         }
 
-        Router osRouter = osRouterService.router(osRouterIface.getId());
+        Router osRouter = osRouterAdminService.router(osRouterIface.getId());
         if (osRouter == null) {
             return null;
         }
@@ -692,7 +693,7 @@ public class OpenstackRoutingFloatingIpHandler {
             switch (event.type()) {
                 case OPENSTACK_NODE_COMPLETE:
                     eventExecutor.execute(() -> {
-                        for (NetFloatingIP fip : osRouterService.floatingIps()) {
+                        for (NetFloatingIP fip : osRouterAdminService.floatingIps()) {
                             if (Strings.isNullOrEmpty(fip.getPortId())) {
                                 continue;
                             }
@@ -707,7 +708,7 @@ public class OpenstackRoutingFloatingIpHandler {
                     break;
                 case OPENSTACK_NODE_INCOMPLETE:
                     eventExecutor.execute(() -> {
-                        for (NetFloatingIP fip : osRouterService.floatingIps()) {
+                        for (NetFloatingIP fip : osRouterAdminService.floatingIps()) {
                             if (Strings.isNullOrEmpty(fip.getPortId())) {
                                 continue;
                             }
@@ -781,7 +782,7 @@ public class OpenstackRoutingFloatingIpHandler {
         }
 
         private void storeTempInstPort(InstancePort port) {
-            Set<NetFloatingIP> ips = osRouterService.floatingIps();
+            Set<NetFloatingIP> ips = osRouterAdminService.floatingIps();
             for (NetFloatingIP fip : ips) {
                 if (Strings.isNullOrEmpty(fip.getFixedIpAddress())) {
                     continue;
@@ -791,11 +792,13 @@ public class OpenstackRoutingFloatingIpHandler {
                 }
                 if (fip.getFixedIpAddress().equals(port.ipAddress().toString())) {
                     removedPorts.put(port.macAddress(), port);
-                    eventExecutor.execute(() -> {
-                        disassociateFloatingIp(fip, port.portId());
-                        log.info("Disassociated floating IP {}:{}",
-                                fip.getFloatingIpAddress(), fip.getFixedIpAddress());
-                    });
+                    NeutronFloatingIP neutronFip = (NeutronFloatingIP) fip;
+                    // invalidate bound fixed IP and port
+                    neutronFip.setFixedIpAddress(null);
+                    neutronFip.setPortId(null);
+                    osRouterAdminService.updateFloatingIp(neutronFip);
+                    log.info("Updated floating IP {}, due to host removal",
+                            neutronFip.getFloatingIpAddress());
                 }
             }
         }
