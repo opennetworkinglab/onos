@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.net.DeviceId;
+import org.onosproject.openstacknetworking.api.InstancePort;
 import org.onosproject.openstacknode.api.OpenstackAuth;
 import org.onosproject.openstacknode.api.OpenstackAuth.Perspective;
 import org.onosproject.openstacknode.api.OpenstackNode;
@@ -29,8 +30,8 @@ import org.openstack4j.api.types.Facing;
 import org.openstack4j.core.transport.Config;
 import org.openstack4j.core.transport.ObjectMapperSingleton;
 import org.openstack4j.model.ModelEntity;
-import org.openstack4j.model.network.Port;
 import org.openstack4j.model.common.Identifier;
+import org.openstack4j.model.network.Port;
 import org.openstack4j.openstack.OSFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -116,6 +117,22 @@ public final class OpenstackNetworkingUtil {
         } catch (Exception e) {
             throw new IllegalStateException();
         }
+    }
+
+    /**
+     * Obtains the gateway node by instance port.
+     *
+     * @param gateways      a collection of gateway nodes
+     * @param instPort      instance port
+     * @return a gateway node
+     */
+    public static OpenstackNode getGwByInstancePort(Set<OpenstackNode> gateways,
+                                                    InstancePort instPort) {
+        OpenstackNode gw = null;
+        if (instPort != null && instPort.deviceId() != null) {
+            gw = getGwByComputeDevId(gateways, instPort.deviceId());
+        }
+        return gw;
     }
 
     /**

@@ -188,7 +188,6 @@ public class OpenstackRoutingFloatingIpHandler {
             throw new IllegalStateException(error);
         }
 
-
         ExternalPeerRouter externalPeerRouter = externalPeerRouter(osNet);
         if (externalPeerRouter == null) {
             final String errorFormat = ERR_FLOW + "no external peer router found";
@@ -221,33 +220,42 @@ public class OpenstackRoutingFloatingIpHandler {
         Set<OpenstackNode> finalGws = Sets.newConcurrentHashSet();
         finalGws.addAll(ImmutableSet.copyOf(completedGws));
 
-        if (install) {
-            if (completedGws.contains(gateway)) {
-                if (completedGws.size() > 1) {
-                    finalGws.remove(gateway);
-                    if (fip.getPortId() != null) {
-                        setDownstreamExternalRulesHelper(fip, osNet, instPort, router,
-                                ImmutableSet.copyOf(finalGws), false);
-                        finalGws.add(gateway);
-                    }
-                }
-                if (fip.getPortId() != null) {
-                    setDownstreamExternalRulesHelper(fip, osNet, instPort, router,
-                            ImmutableSet.copyOf(finalGws), true);
-                }
-            } else {
-                log.warn("Detected node should be included in completed gateway set");
-            }
+
+        if (gateway == null) {
+            // these are floating IP related cases...
+            setDownstreamExternalRulesHelper(fip, osNet, instPort, router,
+                                        ImmutableSet.copyOf(finalGws), install);
+
         } else {
-            if (!completedGws.contains(gateway)) {
-                if (completedGws.size() >= 1) {
+            // these are openstack node related cases...
+            if (install) {
+                if (completedGws.contains(gateway)) {
+                    if (completedGws.size() > 1) {
+                        finalGws.remove(gateway);
+                        if (fip.getPortId() != null) {
+                            setDownstreamExternalRulesHelper(fip, osNet, instPort, router,
+                                    ImmutableSet.copyOf(finalGws), false);
+                            finalGws.add(gateway);
+                        }
+                    }
                     if (fip.getPortId() != null) {
                         setDownstreamExternalRulesHelper(fip, osNet, instPort, router,
                                 ImmutableSet.copyOf(finalGws), true);
                     }
+                } else {
+                    log.warn("Detected node should be included in completed gateway set");
                 }
             } else {
-                log.warn("Detected node should NOT be included in completed gateway set");
+                if (!completedGws.contains(gateway)) {
+                    if (completedGws.size() >= 1) {
+                        if (fip.getPortId() != null) {
+                            setDownstreamExternalRulesHelper(fip, osNet, instPort, router,
+                                    ImmutableSet.copyOf(finalGws), true);
+                        }
+                    }
+                } else {
+                    log.warn("Detected node should NOT be included in completed gateway set");
+                }
             }
         }
     }
@@ -634,15 +642,6 @@ public class OpenstackRoutingFloatingIpHandler {
                                 osFip.getFloatingIpAddress(), osFip.getFixedIpAddress());
                     });
                     break;
-                case OPENSTACK_FLOATING_IP_REMOVED:
-                    eventExecutor.execute(() -> {
-                        NetFloatingIP osFip = event.floatingIp();
-                        if (!Strings.isNullOrEmpty(osFip.getPortId())) {
-                            disassociateFloatingIp(osFip, osFip.getPortId());
-                        }
-                        log.info("Removed floating IP {}", osFip.getFloatingIpAddress());
-                    });
-                    break;
                 case OPENSTACK_FLOATING_IP_CREATED:
                     eventExecutor.execute(() -> {
                         NetFloatingIP osFip = event.floatingIp();
@@ -650,6 +649,15 @@ public class OpenstackRoutingFloatingIpHandler {
                             associateFloatingIp(event.floatingIp());
                         }
                         log.info("Created floating IP {}", osFip.getFloatingIpAddress());
+                    });
+                    break;
+                case OPENSTACK_FLOATING_IP_REMOVED:
+                    eventExecutor.execute(() -> {
+                        NetFloatingIP osFip = event.floatingIp();
+                        if (!Strings.isNullOrEmpty(osFip.getPortId())) {
+                            disassociateFloatingIp(osFip, osFip.getPortId());
+                        }
+                        log.info("Removed floating IP {}", osFip.getFloatingIpAddress());
                     });
                     break;
                 case OPENSTACK_FLOATING_IP_UPDATED:

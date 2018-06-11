@@ -97,7 +97,7 @@ import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ARP_CON
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ARP_GATEWAY_RULE;
 import static org.onosproject.openstacknetworking.impl.HostBasedInstancePort.ANNOTATION_NETWORK_ID;
 import static org.onosproject.openstacknetworking.impl.HostBasedInstancePort.ANNOTATION_PORT_ID;
-import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getGwByComputeDevId;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getGwByInstancePort;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -243,7 +243,9 @@ public class OpenstackRoutingArpHandler {
                 return;
             }
 
-            OpenstackNode gw = getGwByTargetMac(osNodeService.completeNodes(GATEWAY), targetMac);
+            InstancePort instPort = instancePortService.instancePort(targetMac);
+
+            OpenstackNode gw = getGwByInstancePort(osNodeService.completeNodes(GATEWAY), instPort);
 
             if (gw == null) {
                 return;
@@ -443,8 +445,9 @@ public class OpenstackRoutingArpHandler {
             }
 
             MacAddress targetMac = MacAddress.valueOf(macString);
+            InstancePort instPort = instancePortService.instancePort(targetMac);
 
-            OpenstackNode gw = getGwByTargetMac(gateways, targetMac);
+            OpenstackNode gw = getGwByInstancePort(gateways, instPort);
 
             if (gw == null) {
                 return;
@@ -481,17 +484,6 @@ public class OpenstackRoutingArpHandler {
                         fip.getFloatingIpAddress());
             }
         }
-    }
-
-    // a helper method
-    private OpenstackNode getGwByTargetMac(Set<OpenstackNode> gateways,
-                                           MacAddress targetMac) {
-        InstancePort instPort = instancePortService.instancePort(targetMac);
-        OpenstackNode gw = null;
-        if (instPort != null && instPort.deviceId() != null) {
-            gw = getGwByComputeDevId(gateways, instPort.deviceId());
-        }
-        return gw;
     }
 
     /**
