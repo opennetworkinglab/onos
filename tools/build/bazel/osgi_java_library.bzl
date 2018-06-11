@@ -53,7 +53,7 @@ def _bnd_impl(ctx):
     group = ctx.attr.package_name_root
     version = ctx.attr.version
     license = ""
-    importPackages = "*"
+    import_packages = ctx.attr.import_packages
     exportPackages = "*"
     includeResources = ""
     webContext = "NONE"
@@ -95,13 +95,14 @@ def _bnd_impl(ctx):
         group,
         version,
         license,
-        importPackages,
+        import_packages,
         exportPackages,
         includeResources,
         webContext,
         dynamicimportPackages,
         classesPath,
     ]
+
     ctx.actions.run(
         inputs = inputDependencies,
         outputs = [ctx.outputs.osgi_jar],
@@ -116,6 +117,7 @@ _bnd = rule(
         "version": attr.string(),
         "package_name_root": attr.string(),
         "source": attr.label(),
+        "import_packages": attr.string(),
         "_bnd_exe": attr.label(
             executable = True,
             cfg = "host",
@@ -130,8 +132,8 @@ _bnd = rule(
     implementation = _bnd_impl,
 )
 
-def wrapped_osgi_jar(name, jar, deps, version = ONOS_VERSION, package_name_root = "org.onosproject", visibility = ["//visibility:private"]):
-    _bnd(name = name, source = jar, deps = deps, version = version, package_name_root = package_name_root, visibility = visibility)
+def wrapped_osgi_jar(name, jar, deps, version = ONOS_VERSION, package_name_root = "org.onosproject", import_packages = "*", visibility = ["//visibility:private"]):
+    _bnd(name = name, source = jar, deps = deps, version = version, package_name_root = package_name_root, visibility = visibility, import_packages = import_packages)
 
 def osgi_jar_with_tests(
         name = None,
@@ -145,7 +147,9 @@ def osgi_jar_with_tests(
         exclude_tests = None,
         test_resources = None,
         visibility = ["//visibility:public"],
-        version = ONOS_VERSION):
+        version = ONOS_VERSION,
+        import_packages = None,
+    ):
     if name == None:
         name = "onos-" + native.package_name().replace("/", "-")
     if srcs == None:
@@ -162,6 +166,8 @@ def osgi_jar_with_tests(
         deps = COMPILE
     if test_deps == None:
         test_deps = TEST
+    if import_packages == None:
+        import_packages = "*"
     tests_name = name + "-tests"
     tests_jar_deps = list(depset(deps + test_deps)) + [name]
     all_test_deps = tests_jar_deps + [tests_name]
@@ -174,6 +180,7 @@ def osgi_jar_with_tests(
         version = version,
         package_name_root = package_name_root,
         visibility = visibility,
+        import_packages = import_packages,
     )
     if test_srcs != []:
         native.java_library(
@@ -194,12 +201,20 @@ def osgi_jar_with_tests(
 def osgi_jar(
         name = None,
         deps = None,
+        import_packages = None,
         package_name_root = "org.onosproject",
         srcs = None,
         resources_root = None,
         resources = None,
         visibility = ["//visibility:public"],
-        version = ONOS_VERSION):
+        version = ONOS_VERSION,
+        # TODO - implement these for swagger and web.xml
+        web_context = "",
+        api_title = "",
+        api_version = "",
+        api_description = "",
+        api_package = "",
+    ):
     if srcs == None:
         srcs = _all_java_sources()
     if deps == None:
@@ -218,4 +233,5 @@ def osgi_jar(
         test_resources = [],
         visibility = visibility,
         version = version,
+        import_packages = import_packages,
     )
