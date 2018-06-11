@@ -41,7 +41,7 @@ public final class PwaasUtil {
 
     private static final Logger log = LoggerFactory.getLogger(PwaasUtil.class);
 
-    private static DeviceService deviceService = AbstractShellCommand.get(DeviceService.class);;
+    private static DeviceService deviceService = AbstractShellCommand.get(DeviceService.class);
 
     private static InterfaceService intfService = AbstractShellCommand.get(InterfaceService.class);
 
