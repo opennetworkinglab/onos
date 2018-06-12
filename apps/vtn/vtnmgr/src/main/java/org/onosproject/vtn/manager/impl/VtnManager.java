@@ -1553,6 +1553,7 @@ public class VtnManager implements VtnService {
             exVmPort = exVmPortList.iterator().next();
         }
         if (exVmPort == null) {
+            log.debug("exVM Port is null {}.", floatingIp);
             return null;
         }
         Set<FixedIp> fixedIps = exVmPort.fixedIps();
@@ -1565,6 +1566,7 @@ public class VtnManager implements VtnService {
             }
         }
         if (subnetId == null) {
+            log.debug("subnetId is null {}.", floatingIp);
             return null;
         }
         Subnet subnet = subnetService.getSubnet(subnetId);
@@ -1587,6 +1589,7 @@ public class VtnManager implements VtnService {
             }
         }
         if (host == null) {
+            log.debug("Host is null {}.", floatingIp);
             return null;
         } else {
             return host.location().deviceId();
