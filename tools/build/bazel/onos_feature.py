@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #FIXME Add license
 
-from zipfile import ZipFile
+from zipfile import ZipFile, ZipInfo
 
 def generateOar(output, files=[]):
     # Note this is not a compressed zip
@@ -12,9 +12,9 @@ def generateOar(output, files=[]):
                 dest = filename
             else:
                 parts = mvnCoords.split(':')
-                if len(parts) > 3:
-                    parts.insert(2, parts.pop()) # move version to the 3rd position
-                groupId, artifactId, version = parts[0:3]
+                if len(parts) > 4:
+                    parts.insert(3, parts.pop()) # move version to the 3rd position
+                groupId, artifactId, version = parts[1:4]
                 groupId = groupId.replace('.', '/')
                 extension = filename.split('.')[-1]
                 if extension == 'jar':
@@ -22,7 +22,9 @@ def generateOar(output, files=[]):
                 elif 'features.xml' in filename:
                     filename = '%s-%s-features.xml' % ( artifactId, version )
                 dest = '%s/%s/%s/%s' % ( groupId, artifactId, version, filename )
-            zip.write(file, dest)
+            f = open(file, 'rb')
+            zip.writestr(ZipInfo(dest, date_time=(1980, 1, 1, 0, 0, 0)), f.read())
+            f.close()
 
 if __name__ == '__main__':
     import sys

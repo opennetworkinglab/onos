@@ -23,43 +23,46 @@ def dump(obj):
 
 # Implementation of a rule to produce an OSGi feature XML snippet
 def _osgi_feature_impl(ctx):
-    output = ctx.outputs.feature_xml
-
-    args = [
-        "-O",
-        output.path,
-        "-n",
-        ctx.attr.name,
-        "-v",
-        ctx.attr.version,
-        "-t",
-        ctx.attr.description,
+    xmlArgs = [
+        "-O", ctx.outputs.feature_xml.path,
+        "-n", ctx.attr.name,
+        "-v", ctx.attr.version,
+        "-t", ctx.attr.description,
     ]
-
+    bundleArgs = [ctx.outputs.bundle_zip.path]
     inputs = []
+
     for dep in ctx.attr.included_bundles:
-        args += ["-b", maven_coordinates(dep.label)]
+        coord = maven_coordinates(dep.label)
+        xmlArgs += ["-b", coord]
+        if java_common.provider in dep:
+            inputs += [dep.files.to_list()[0]]
+            bundleArgs += [dep.files.to_list()[0].path, coord]
 
-        for f in ctx.attr.included_bundles:
-            if java_common.provider in f:
-                inputs += [f.files.to_list()[0]]
-
-        for f in ctx.attr.excluded_bundles:
-            args += ["-e", maven_coordinates(dep.label)]
-            if java_common.provider in f:
-                inputs += [f.files.to_list()[0]]
+    for f in ctx.attr.excluded_bundles:
+        xmlArgs += ["-e", maven_coordinates(dep.label)]
+        if java_common.provider in f:
+            inputs += [f.files.to_list()[0]]
 
     for f in ctx.attr.required_features:
-        args += ["-f", f]
+        xmlArgs += ["-f", f]
 
-    args += ["-F" if ctx.attr.generate_file else "-E"]
+    xmlArgs += ["-F" if ctx.attr.generate_file else "-E"]
 
     ctx.actions.run(
         inputs = inputs,
-        outputs = [output],
-        arguments = args,
-        progress_message = "Generating feature %s" % ctx.attr.name,
+        outputs = [ctx.outputs.feature_xml],
+        arguments = xmlArgs,
+        progress_message = "Generating feature %s XML" % ctx.attr.name,
         executable = ctx.executable._writer,
+    )
+
+    ctx.actions.run(
+        inputs = inputs,
+        outputs = [ctx.outputs.bundle_zip],
+        arguments = bundleArgs,
+        progress_message = "Generating feature %s bundle" % ctx.attr.name,
+        executable = ctx.executable._bundler,
     )
 
 osgi_feature = rule(
@@ -76,9 +79,16 @@ osgi_feature = rule(
             allow_files = True,
             default = Label("//tools/build/bazel:onos_app_writer"),
         ),
+        "_bundler": attr.label(
+            executable = True,
+            cfg = "host",
+            allow_files = True,
+            default = Label("//tools/build/bazel:onos_feature"),
+        ),
     },
     outputs = {
         "feature_xml": "feature-%{name}.xml",
+        "bundle_zip": "feature-%{name}.zip",
     },
     implementation = _osgi_feature_impl,
 )

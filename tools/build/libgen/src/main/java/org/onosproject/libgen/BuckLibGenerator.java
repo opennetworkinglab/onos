@@ -211,7 +211,7 @@ public class BuckLibGenerator {
                 "    if label_string in artifact_map:\n" +
                 "        return artifact_map[label_string]\n" +
                 "    else:\n" +
-                "        return \"%s:%s:%s\" % (ONOS_GROUP_ID, label.name, ONOS_VERSION)\n");
+                "        return \"mvn:%s:%s:%s\" % (ONOS_GROUP_ID, label.name, ONOS_VERSION)\n");
 
         return artifactMap.toString();
     }
