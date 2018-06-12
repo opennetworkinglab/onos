@@ -40,4 +40,7 @@ public final class ECFlowRuleStoreMessageSubjects {
 
     public static final MessageSubject FLOW_TABLE_BACKUP
         = new MessageSubject("peer-flow-table-backup");
+
+    public static final MessageSubject FLOW_TABLE_ANTI_ENTROPY
+        = new MessageSubject("peer-flow-table-anti-entropy");
 }
