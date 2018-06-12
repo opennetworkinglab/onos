@@ -143,10 +143,12 @@ public class OpenstackFlowRuleManager implements OpenstackFlowRuleService {
     }
 
     private void initializePipeline(DeviceId deviceId) {
+        connectTables(deviceId, Constants.STAT_INBOUND_TABLE, Constants.DHCP_ARP_TABLE);
         connectTables(deviceId, Constants.DHCP_ARP_TABLE, Constants.VTAG_TABLE);
         connectTables(deviceId, Constants.VTAG_TABLE, Constants.ACL_TABLE);
         connectTables(deviceId, Constants.ACL_TABLE, Constants.JUMP_TABLE);
         setupJumpTable(deviceId);
+        connectTables(deviceId, Constants.STAT_OUTBOUND_TABLE, Constants.FORWARDING_TABLE);
     }
 
     @Override
@@ -211,7 +213,7 @@ public class OpenstackFlowRuleManager implements OpenstackFlowRuleService {
         selector = DefaultTrafficSelector.builder();
         treatment = DefaultTrafficTreatment.builder();
 
-        treatment.transition(Constants.FORWARDING_TABLE);
+        treatment.transition(Constants.STAT_OUTBOUND_TABLE);
 
         flowRule = DefaultFlowRule.builder()
                 .forDevice(deviceId)

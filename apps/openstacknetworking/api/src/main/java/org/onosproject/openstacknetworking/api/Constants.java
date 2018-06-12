@@ -76,13 +76,15 @@ public final class Constants {
     public static final int PRIORITY_ARP_REPLY_RULE = 40000;
     public static final int PRIORITY_ARP_REQUEST_RULE = 40000;
 
-    public static final int DHCP_ARP_TABLE = 0;
-    public static final int FLAT_TABLE = 1;
+    public static final int STAT_INBOUND_TABLE = 0;
+    public static final int DHCP_ARP_TABLE = 1;
+    public static final int FLAT_TABLE = 2;
     public static final int VTAG_TABLE = 10;
     public static final int ACL_TABLE = 20;
     public static final int CT_TABLE = 21;
     public static final int JUMP_TABLE = 30;
     public static final int ROUTING_TABLE = 40;
+    public static final int STAT_OUTBOUND_TABLE = 49;
     public static final int FORWARDING_TABLE = 50;
     public static final int GW_COMMON_TABLE = 0;
     public static final int ERROR_TABLE = 100;

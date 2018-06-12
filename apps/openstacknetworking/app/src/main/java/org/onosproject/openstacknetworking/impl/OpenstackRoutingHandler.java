@@ -86,7 +86,6 @@ import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.openstacknetworking.api.Constants.DEFAULT_EXTERNAL_ROUTER_MAC;
 import static org.onosproject.openstacknetworking.api.Constants.DEFAULT_GATEWAY_MAC;
-import static org.onosproject.openstacknetworking.api.Constants.FORWARDING_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.GW_COMMON_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ADMIN_RULE;
@@ -96,6 +95,7 @@ import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_INTERNA
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_STATEFUL_SNAT_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_SWITCHING_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.ROUTING_TABLE;
+import static org.onosproject.openstacknetworking.api.Constants.STAT_OUTBOUND_TABLE;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.buildExtension;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
@@ -541,7 +541,7 @@ public class OpenstackRoutingHandler {
 
                 treatment = DefaultTrafficTreatment.builder()
                         .setTunnelId(Long.parseLong(dstSegmentId))
-                        .transition(FORWARDING_TABLE)
+                        .transition(STAT_OUTBOUND_TABLE)
                         .build();
 
                 osFlowRuleService.setRule(
@@ -562,7 +562,7 @@ public class OpenstackRoutingHandler {
 
                 treatment = DefaultTrafficTreatment.builder()
                         .setTunnelId(Long.parseLong(dstSegmentId))
-                        .transition(FORWARDING_TABLE)
+                        .transition(STAT_OUTBOUND_TABLE)
                         .build();
 
                 osFlowRuleService.setRule(
@@ -584,7 +584,7 @@ public class OpenstackRoutingHandler {
 
                 treatment = DefaultTrafficTreatment.builder()
                         .setVlanId(VlanId.vlanId(dstSegmentId))
-                        .transition(FORWARDING_TABLE)
+                        .transition(STAT_OUTBOUND_TABLE)
                         .build();
 
                 osFlowRuleService.setRule(
@@ -605,7 +605,7 @@ public class OpenstackRoutingHandler {
 
                 treatment = DefaultTrafficTreatment.builder()
                         .setVlanId(VlanId.vlanId(dstSegmentId))
-                        .transition(FORWARDING_TABLE)
+                        .transition(STAT_OUTBOUND_TABLE)
                         .build();
 
                 osFlowRuleService.setRule(

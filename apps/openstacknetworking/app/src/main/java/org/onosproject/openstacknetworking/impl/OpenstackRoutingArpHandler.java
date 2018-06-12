@@ -90,7 +90,6 @@ import static org.onosproject.openstacknetworking.api.Constants.ARP_BROADCAST_MO
 import static org.onosproject.openstacknetworking.api.Constants.ARP_PROXY_MODE;
 import static org.onosproject.openstacknetworking.api.Constants.DEFAULT_ARP_MODE_STR;
 import static org.onosproject.openstacknetworking.api.Constants.DEFAULT_GATEWAY_MAC_STR;
-import static org.onosproject.openstacknetworking.api.Constants.DHCP_ARP_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.GW_COMMON_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ARP_CONTROL_RULE;
@@ -752,7 +751,7 @@ public class OpenstackRoutingArpHandler {
                     selector,
                     treatment,
                     PRIORITY_ARP_CONTROL_RULE,
-                    DHCP_ARP_TABLE,
+                    GW_COMMON_TABLE,
                     install
             );
         }
@@ -776,7 +775,7 @@ public class OpenstackRoutingArpHandler {
                     selector,
                     treatment,
                     PRIORITY_ARP_CONTROL_RULE,
-                    DHCP_ARP_TABLE,
+                    GW_COMMON_TABLE,
                     install
             );
         }
