@@ -85,6 +85,7 @@ public class DefaultGroupTest {
         assertThat(group1.referenceCount(), is(0L));
         assertThat(group1.buckets(), is(groupBuckets));
         assertThat(group1.state(), is(Group.GroupState.PENDING_ADD));
+        assertThat(group1.failedRetryCount(), is(0));
     }
 
     /**
@@ -101,5 +102,22 @@ public class DefaultGroupTest {
         assertThat(group.referenceCount(), is(0L));
         assertThat(group.deviceId(), is(NetTestTools.did("1")));
         assertThat(group.buckets(), is(groupBuckets));
+        assertThat(group.failedRetryCount(), is(0));
+    }
+
+    /**
+     * Test failedRetryCount field.
+     */
+    @Test
+    public void checkFailedRetyCount() {
+        assertThat(group1.failedRetryCount(), is(0));
+        group1.incrFailedRetryCount();
+        assertThat(group1.failedRetryCount(), is(1));
+        group1.setFailedRetryCount(3);
+        assertThat(group1.failedRetryCount(), is(3));
+        group1.incrFailedRetryCount();
+        assertThat(group1.failedRetryCount(), is(4));
+        group1.setFailedRetryCount(0);
+        assertThat(group1.failedRetryCount(), is(0));
     }
 }

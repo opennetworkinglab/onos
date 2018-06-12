@@ -36,6 +36,7 @@ import org.onosproject.net.group.DefaultGroupBucket;
 import org.onosproject.net.group.DefaultGroupDescription;
 import org.onosproject.net.group.DefaultGroupKey;
 import org.onosproject.net.group.Group;
+import org.onosproject.net.group.Group.GroupState;
 import org.onosproject.net.group.GroupBucket;
 import org.onosproject.net.group.GroupBuckets;
 import org.onosproject.net.group.GroupDescription;
@@ -44,6 +45,7 @@ import org.onosproject.net.group.GroupKey;
 import org.onosproject.net.group.GroupOperation;
 import org.onosproject.net.group.GroupStore;
 import org.onosproject.net.group.GroupStoreDelegate;
+import org.onosproject.net.group.GroupOperation.GroupMsgErrorCode;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationServiceAdapter;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.TestStorageService;
@@ -375,6 +377,85 @@ public class DistributedGroupStoreTest {
         assertThat(eventsAfterDeleteFailed, hasSize(1));
         assertThat(eventsAfterDeleteFailed.get(0).type(),
                 is(GroupEvent.Type.GROUP_REMOVE_FAILED));
+        delegate.resetEvents();
+    }
+
+    /**
+     * Tests group operation failed interface, with error codes for failures.
+     */
+    @Test
+    public void testGroupOperationFailedWithErrorCode() {
+        TestDelegate delegate = new TestDelegate();
+        groupStore.setDelegate(delegate);
+        groupStore.deviceInitialAuditCompleted(deviceId1, true);
+        groupStore.storeGroupDescription(groupDescription1);
+        groupStore.deviceInitialAuditCompleted(deviceId2, true);
+        groupStore.storeGroupDescription(groupDescription2);
+
+        List<GroupEvent> eventsAfterAdds = delegate.eventsSeen();
+        assertThat(eventsAfterAdds, hasSize(2));
+        eventsAfterAdds.forEach(event -> assertThat(event
+                .type(), is(GroupEvent.Type.GROUP_ADD_REQUESTED)));
+        delegate.resetEvents();
+
+        // test group exists
+        GroupOperation opAdd = GroupOperation
+                .createAddGroupOperation(groupId1, INDIRECT, buckets);
+        GroupOperation addFailedExists = GroupOperation
+                .createFailedGroupOperation(opAdd, GroupMsgErrorCode.GROUP_EXISTS);
+        groupStore.groupOperationFailed(deviceId1, addFailedExists);
+
+        List<GroupEvent> eventsAfterAddFailed = delegate.eventsSeen();
+        assertThat(eventsAfterAddFailed, hasSize(2));
+        assertThat(eventsAfterAddFailed.get(0).type(),
+                   is(GroupEvent.Type.GROUP_ADDED));
+        assertThat(eventsAfterAddFailed.get(1).type(),
+                   is(GroupEvent.Type.GROUP_ADDED));
+        Group g1 = groupStore.getGroup(deviceId1, groupId1);
+        assertEquals(0, g1.failedRetryCount());
+        delegate.resetEvents();
+
+        // test invalid group
+        Group g2 = groupStore.getGroup(deviceId2, groupId2);
+        assertEquals(0, g2.failedRetryCount());
+        assertEquals(GroupState.PENDING_ADD, g2.state());
+        GroupOperation opAdd1 = GroupOperation
+                .createAddGroupOperation(groupId2, INDIRECT, buckets);
+        GroupOperation addFailedInvalid = GroupOperation
+                .createFailedGroupOperation(opAdd1, GroupMsgErrorCode.INVALID_GROUP);
+
+        groupStore.groupOperationFailed(deviceId2, addFailedInvalid);
+        groupStore.pushGroupMetrics(deviceId2, ImmutableList.of());
+        List<GroupEvent> eventsAfterAddFailed1 = delegate.eventsSeen();
+        assertThat(eventsAfterAddFailed1, hasSize(1));
+        assertThat(eventsAfterAddFailed.get(0).type(),
+                   is(GroupEvent.Type.GROUP_ADD_REQUESTED));
+        g2 = groupStore.getGroup(deviceId2, groupId2);
+        assertEquals(1, g2.failedRetryCount());
+        assertEquals(GroupState.PENDING_ADD_RETRY, g2.state());
+        delegate.resetEvents();
+
+        groupStore.groupOperationFailed(deviceId2, addFailedInvalid);
+        groupStore.pushGroupMetrics(deviceId2, ImmutableList.of());
+        List<GroupEvent> eventsAfterAddFailed2 = delegate.eventsSeen();
+        assertThat(eventsAfterAddFailed2, hasSize(1));
+        assertThat(eventsAfterAddFailed.get(0).type(),
+                   is(GroupEvent.Type.GROUP_ADD_REQUESTED));
+        g2 = groupStore.getGroup(deviceId2, groupId2);
+        assertEquals(2, g2.failedRetryCount());
+        assertEquals(GroupState.PENDING_ADD_RETRY, g2.state());
+        delegate.resetEvents();
+
+        groupStore.groupOperationFailed(deviceId2, addFailedInvalid);
+        groupStore.pushGroupMetrics(deviceId2, ImmutableList.of());
+        List<GroupEvent> eventsAfterAddFailed3 = delegate.eventsSeen();
+        assertThat(eventsAfterAddFailed3, hasSize(2));
+        assertThat(eventsAfterAddFailed.get(0).type(),
+                   is(GroupEvent.Type.GROUP_ADD_FAILED));
+        assertThat(eventsAfterAddFailed.get(1).type(),
+                   is(GroupEvent.Type.GROUP_REMOVED));
+        g2 = groupStore.getGroup(deviceId2, groupId2);
+        assertEquals(null, g2);
         delegate.resetEvents();
     }
 
