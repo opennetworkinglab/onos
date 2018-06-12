@@ -118,7 +118,7 @@ public class NetconfControllerImpl implements NetconfController {
     private final NetconfDeviceOutputEventListener downListener = new DeviceDownEventListener();
 
     protected Set<NetconfDeviceListener> netconfDeviceListeners = new CopyOnWriteArraySet<>();
-    protected NetconfDeviceFactory deviceFactory = new DefaultNetconfDeviceFactory();
+    protected NetconfDeviceFactory deviceFactory = (deviceInfo) -> new DefaultNetconfDevice(deviceInfo);
 
     protected final ExecutorService executor =
             Executors.newCachedThreadPool(groupedThreads("onos/netconfdevicecontroller",
@@ -343,14 +343,17 @@ public class NetconfControllerImpl implements NetconfController {
     }
 
 
-    //Device factory for the specific NetconfDeviceImpl
+    /**
+     * Device factory for the specific NetconfDeviceImpl.
+     *
+     * @deprecated in 1.14.0
+     */
+    @Deprecated
     private class DefaultNetconfDeviceFactory implements NetconfDeviceFactory {
 
         @Override
         public NetconfDevice createNetconfDevice(NetconfDeviceInfo netconfDeviceInfo)
                 throws NetconfException {
-            log.info("Creating NETCONF session to {} with {}",
-                    netconfDeviceInfo.getDeviceId(), NetconfSshClientLib.APACHE_MINA);
             return new DefaultNetconfDevice(netconfDeviceInfo);
         }
     }

@@ -199,6 +199,9 @@ public class NetconfSessionMinaImpl implements NetconfSession {
     }
 
     private void startClient() throws IOException {
+        log.info("Creating NETCONF session to {}",
+                 deviceInfo.getDeviceId());
+
         client = SshClient.setUpDefaultClient();
         client.getProperties().putIfAbsent(FactoryManager.IDLE_TIMEOUT,
                 TimeUnit.SECONDS.toMillis(idleTimeout));
@@ -1019,6 +1022,10 @@ public class NetconfSessionMinaImpl implements NetconfSession {
         }
     }
 
+    /**
+     * @deprecated in 1.14.0
+     */
+    @Deprecated
     public static class MinaSshNetconfSessionFactory implements NetconfSessionFactory {
 
         @Override

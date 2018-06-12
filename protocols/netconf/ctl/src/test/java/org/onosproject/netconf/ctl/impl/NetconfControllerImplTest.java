@@ -17,6 +17,7 @@ package org.onosproject.netconf.ctl.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
@@ -35,7 +36,6 @@ import org.onosproject.net.config.NetworkConfigRegistryAdapter;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.key.DeviceKeyService;
 import org.onosproject.netconf.NetconfDevice;
-import org.onosproject.netconf.NetconfDeviceFactory;
 import org.onosproject.netconf.NetconfDeviceInfo;
 import org.onosproject.netconf.NetconfDeviceListener;
 import org.onosproject.netconf.NetconfDeviceOutputEvent;
@@ -120,7 +120,7 @@ public class NetconfControllerImplTest {
     @Before
     public void setUp() throws Exception {
         ctrl = new NetconfControllerImpl();
-        ctrl.deviceFactory = new TestNetconfDeviceFactory();
+        ctrl.deviceFactory = (ncDevInfo) -> new TestNetconfDevice(ncDevInfo);
         ctrl.cfgService = cfgService;
         ctrl.deviceService = deviceService;
         ctrl.deviceKeyService = deviceKeyService;
@@ -395,17 +395,6 @@ public class NetconfControllerImplTest {
         assertEquals("Incorrect device map size", 2, ctrl.getDevicesMap().size());
         reflectedDownListener.event(eventForDeviceInfo2);
         assertEquals("Incorrect device map size", 1, ctrl.getDevicesMap().size());
-    }
-
-    /**
-     * Mock NetconfDeviceFactory class.
-     */
-    private class TestNetconfDeviceFactory implements NetconfDeviceFactory {
-
-        @Override
-        public NetconfDevice createNetconfDevice(NetconfDeviceInfo netconfDeviceInfo) throws NetconfException {
-            return new TestNetconfDevice(netconfDeviceInfo);
-        }
     }
 
     /**

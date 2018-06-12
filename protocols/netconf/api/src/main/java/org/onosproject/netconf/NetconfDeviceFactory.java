@@ -19,6 +19,7 @@ package org.onosproject.netconf;
 /**
  * Abstract interface for the creation of a NETCONF device.
  */
+@FunctionalInterface
 public interface NetconfDeviceFactory {
 
     /**

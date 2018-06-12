@@ -33,7 +33,7 @@ public class MockNetconfController implements NetconfController {
     private Map<DeviceId, NetconfDevice> devicesMap;
 
     public MockNetconfController() {
-        devicesMap = new HashMap<DeviceId, NetconfDevice>();
+        devicesMap = new HashMap<>();
     }
 
     @Override
@@ -56,13 +56,9 @@ public class MockNetconfController implements NetconfController {
         IpAddress ipAddress = Ip4Address.valueOf(nameParts[1]);
         int port = Integer.parseInt(nameParts[2]);
         NetconfDeviceInfo ncdi = new NetconfDeviceInfo("mock", "mock", ipAddress, port);
-        try {
-            mockNetconfDevice = (new MockNetconfDeviceFactory()).createNetconfDevice(ncdi);
-            devicesMap.put(deviceId, mockNetconfDevice);
-        } catch (NetconfException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+
+        mockNetconfDevice = new MockNetconfDevice(ncdi);
+        devicesMap.put(deviceId, mockNetconfDevice);
 
         return mockNetconfDevice;
     }

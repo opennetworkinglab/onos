@@ -49,7 +49,7 @@ public class DefaultNetconfDevice implements NetconfDevice {
     public DefaultNetconfDevice(NetconfDeviceInfo deviceInfo)
             throws NetconfException {
         netconfDeviceInfo = deviceInfo;
-        sessionFactory = new NetconfSessionMinaImpl.MinaSshNetconfSessionFactory();
+        sessionFactory = (ncDevInfo) -> new NetconfSessionMinaImpl(ncDevInfo);
         try {
             netconfSession = sessionFactory.createNetconfSession(deviceInfo);
         } catch (NetconfException e) {

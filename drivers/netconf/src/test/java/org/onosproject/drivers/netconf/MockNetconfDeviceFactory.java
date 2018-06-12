@@ -20,6 +20,10 @@ import org.onosproject.netconf.NetconfDeviceFactory;
 import org.onosproject.netconf.NetconfDeviceInfo;
 import org.onosproject.netconf.NetconfException;
 
+/**
+ * @deprecated in 1.14.0
+ */
+@Deprecated
 public class MockNetconfDeviceFactory implements NetconfDeviceFactory {
 
     @Override
