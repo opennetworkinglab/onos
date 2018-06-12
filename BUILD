@@ -301,13 +301,19 @@ APPS = ONOS_DRIVERS + ONOS_PROVIDERS + ONOS_APPS + MODELS + PIPELINES + \
        PROTOCOL_APPS
 
 PACKAGES = [
-    "//tools/package:onos-karaf",
-#    "//tools/package:onos-package",
-#    "//tools/package:onos-admin-tools",
-#    "//tools/package:onos-test-tools",
+    "//tools/package:onos-package-admin",
+    "//tools/package:onos-package-test",
+    "//tools/package:onos-package",
 ]
 
 filegroup(
     name = "onos",
     srcs = CORE + APPS + PACKAGES,
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "onos-env-defaults",
+    srcs = ["tools/build/envDefaults"],
+    visibility = ["//visibility:public"],
 )

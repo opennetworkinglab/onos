@@ -10,6 +10,8 @@ KARAF_TAR=$2
 ONOS_VERSION=$3
 BRANDING=$4
 KARAF_PATCHES=$5
+SANDBOX=${6:-.}
+
 #FIXME karaf version
 KARAF_VERSION="3.0.8"
 ONOS_SECURITY_MODE="false"
@@ -33,9 +35,9 @@ perl -pi.old -e "s/maxFileSize=1MB/maxFileSize=10MB/g" \
     $KARAF_DIR/etc/org.ops4j.pax.logging.cfg
 
 # Patch-in proper Karaf version into the startup script
-sed -i.bk "s/apache-karaf-\$KARAF_VERSION/$KARAF_DIR/g" bin/onos-service
+sed -i.bk "s/apache-karaf-\$KARAF_VERSION/$KARAF_DIR/g" $SANDBOX/bin/onos-service
 rm -f bin/*.bk
-chmod a+x bin/onos-service bin/onos
+chmod a+x $SANDBOX/bin/onos-service $SANDBOX/bin/onos
 
 export BOOT_FEATURES="standard,ssh,scr,war,webconsole,onos-api,onos-core,onos-incubator,onos-cli,onos-rest,onos-gui"
 
@@ -56,10 +58,10 @@ mkdir $PREFIX
 mv $KARAF_DIR $PREFIX
 
 # Stage the ONOS admin scripts and patch in Karaf service wrapper extras
-cp -r bin $PREFIX
-cp -r runtime/bin/* $PREFIX/bin/
-cp -r init $PREFIX
-cp -r etc/* $PREFIX/$KARAF_DIR/etc/
+cp -r $SANDBOX/bin $PREFIX
+cp -r $SANDBOX/runtime/bin/* $PREFIX/bin/
+cp -r $SANDBOX/init $PREFIX
+cp -r $SANDBOX/etc/* $PREFIX/$KARAF_DIR/etc/
 
 if [ "$ONOS_SECURITY_MODE" = true ]
 then
