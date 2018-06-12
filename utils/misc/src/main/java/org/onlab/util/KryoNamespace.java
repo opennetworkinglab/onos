@@ -564,6 +564,8 @@ public final class KryoNamespace implements KryoFactory, KryoPool {
             return begin;
         }
 
+        // deprecated in 1.14.0 to be made private
+        @Deprecated
         public ImmutableList<Pair<Class<?>[], Serializer<?>>> types() {
             return types;
         }
