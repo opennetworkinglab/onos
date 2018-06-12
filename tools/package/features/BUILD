@@ -107,16 +107,16 @@ osgi_feature(
 
 
 FEATURES = [
-    "//features:onos-thirdparty-base",
-    "//features:onos-thirdparty-web",
-    "//features:onos-api",
-    "//features:onos-core",
-#    "//features:onos-incubator",
-#    "//features:onos-rest",
-#    "//features:onos-gui",
-#    "//features:onos-gui2",
-#    "//features:onos-cli",
-#    "//features:onos-security",
+    "//tools/package/features:onos-thirdparty-base",
+    "//tools/package/features:onos-thirdparty-web",
+    "//tools/package/features:onos-api",
+    "//tools/package/features:onos-core",
+#    "//tools/package/features:onos-incubator",
+#    "//tools/package/features:onos-rest",
+#    "//tools/package/features:onos-gui",
+#    "//tools/package/features:onos-gui2",
+#    "//tools/package/features:onos-cli",
+#    "//tools/package/features:onos-security",
 ]
 
 osgi_feature_repo(

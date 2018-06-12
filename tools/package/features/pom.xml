@@ -23,6 +23,7 @@
         <groupId>org.onosproject</groupId>
         <artifactId>onos</artifactId>
         <version>1.14.0-SNAPSHOT</version>
+        <relativePath>../../../pom.xml</relativePath>
     </parent>
 
     <artifactId>onos-features</artifactId>

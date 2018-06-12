@@ -22,7 +22,7 @@ genrule(
 
 # FIXME: Move /features to under tools/package/features
 PACKAGING_REQUIREMENTS = [
-    "//features:onos-features",
+    "//tools/package/features:onos-features",
     ":onos-karaf",
 ]
 
@@ -35,6 +35,7 @@ genrule(
     cmd = "$(location onos_stage.py) $(location onos.tar.gz) %s $(location :onos-karaf) $(SRCS)" % ONOS_VERSION,
     visibility = ["//visibility:public"],
     tools = ["onos_stage.py"],
+    output_to_bindir = True,
 )
 
 filegroup(
@@ -50,6 +51,7 @@ genrule(
     cmd = "mkdir onos-admin-%s; cp $(SRCS) onos-admin-%s; tar zcf $(location onos-admin.tar.gz) onos-admin-%s"\
           % (ONOS_VERSION, ONOS_VERSION, ONOS_VERSION),
     visibility = ["//visibility:public"],
+    output_to_bindir = True,
 )
 
 # Generates the onos-test.tar.gz file with test tools
@@ -60,6 +62,7 @@ genrule(
     cmd = "mkdir onos-test-%s; cp -r tools onos-test-%s; tar zcf $(location onos-test.tar.gz) onos-test-%s"\
           % (ONOS_VERSION, ONOS_VERSION, ONOS_VERSION),
     visibility = ["//visibility:public"],
+    output_to_bindir = True,
 )
 
 # Runs ONOS as a single instance from the /tmp directory
@@ -70,7 +73,7 @@ genrule(
     srcs = ["onos-run-karaf", "onos-package"],
     cmd = "sed \"s#ONOS_TAR=#ONOS_TAR=$(location :onos-package)#\" $(location onos-run-karaf) > $(location onos-runner); chmod +x $(location onos-runner)",
     executable = True,
-    local = True,
+    output_to_bindir = True,
     visibility = ["//visibility:public"],
 )
 

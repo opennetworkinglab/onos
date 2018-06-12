@@ -158,3 +158,9 @@ osgi_feature (
     '//core/security:onos-security',
   ]
 )
+
+compile_features(
+  name = 'onos-features',
+  features = FEATURES,
+  maven_coords = 'org.onosproject:onos-features:xml:features:' + ONOS_VERSION,
+)

@@ -2,19 +2,6 @@ KARAF = '//lib:apache-karaf'
 BRANDING = '//tools/package/branding:onos-tools-package-branding'
 PATCHES = '//lib:apache-karaf-patches'
 
-FEATURES = [
-  '//features:onos-thirdparty-base',
-  '//features:onos-thirdparty-web',
-  '//features:onos-api',
-  '//features:onos-core',
-  '//features:onos-incubator',
-  '//features:onos-rest',
-  '//features:onos-gui',
-  '//features:onos-gui2',
-  '//features:onos-cli',
-  '//features:onos-security',
-]
-
 #TODO move to buck-tools
 export_file (
   name = 'onos-prep-karaf',
@@ -28,17 +15,11 @@ genrule(
   out = 'karaf.zip',
 )
 
-compile_features(
-  name = 'onos-features',
-  features = FEATURES,
-  maven_coords = 'org.onosproject:onos-features:xml:features:' + ONOS_VERSION,
-)
-
 staged_repos = ['$(location %s-repo)' % f for f in FEATURES]
 staged_apps = ['$(location %s)' % a for a in APPS]
 
 # feature_coords = 'foo:bar:1.3'
-sources = [ '$(location :onos-features)', ]
+sources = [ '$(location //tools/package/features:onos-features)', ]
 sources += staged_repos + staged_apps
 
 tar_file(

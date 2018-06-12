@@ -12,6 +12,12 @@ if [ -f $BUCK_TAR ] && [ $BUCK_TAR -nt $ONOS_TAR ]; then
   rm -f $ONOS_TAR >/dev/null; ln -s $BUCK_TAR $ONOS_TAR
 fi
 
+# If the Bazel-built bits are newer than the BUCK-built bits, use the former.
+# BAZEL_TAR=$ONOS_ROOT/bazel-bin/tools/package/onos.tar.gz
+# if [ -f $BAZEL_TAR ] && [ $BAZEL_TAR -nt $BUCK_TAR ]; then
+#   rm -f $ONOS_TAR >/dev/null; ln -s $BAZEL_TAR $ONOS_TAR
+# fi
+
 ls -lL $ONOS_TAR  && cksum $ONOS_TAR
 if [ $? -ne 0 ]; then
   echo "ONOS archive is unreadable" && exit 1
