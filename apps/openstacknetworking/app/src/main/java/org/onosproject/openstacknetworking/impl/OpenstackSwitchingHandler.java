@@ -61,7 +61,10 @@ import static org.onosproject.openstacknetworking.api.Constants.FLAT_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.FORWARDING_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ADMIN_RULE;
-import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_FLAT_RULE;
+import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_FLAT_DOWNSTREAM_RULE;
+import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_FLAT_JUMP_DOWNSTREAM_RULE;
+import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_FLAT_JUMP_UPSTREAM_RULE;
+import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_FLAT_UPSTREAM_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_SWITCHING_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_TUNNEL_TAG_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.VTAG_TABLE;
@@ -170,7 +173,7 @@ public final class OpenstackSwitchingHandler {
                 port.deviceId(),
                 selector.build(),
                 treatment.build(),
-                PRIORITY_FLAT_RULE,
+                PRIORITY_FLAT_JUMP_UPSTREAM_RULE,
                 DHCP_ARP_TABLE,
                 install);
 
@@ -180,7 +183,6 @@ public final class OpenstackSwitchingHandler {
             log.warn("The network does not exist");
             return;
         }
-
         PortNumber portNumber = osNodeService.node(port.deviceId())
                 .phyIntfPortNum(network.getProviderPhyNet());
 
@@ -190,14 +192,30 @@ public final class OpenstackSwitchingHandler {
         }
 
         selector = DefaultTrafficSelector.builder();
-        selector.matchInPort(portNumber);
+        selector.matchInPort(portNumber)
+                .matchEthType(Ethernet.TYPE_IPV4)
+                .matchIPDst(port.ipAddress().toIpPrefix());
 
         osFlowRuleService.setRule(
                 appId,
                 port.deviceId(),
                 selector.build(),
                 treatment.build(),
-                PRIORITY_FLAT_RULE,
+                PRIORITY_FLAT_JUMP_DOWNSTREAM_RULE,
+                DHCP_ARP_TABLE,
+                install);
+
+        selector = DefaultTrafficSelector.builder();
+        selector.matchInPort(portNumber)
+                .matchEthType(Ethernet.TYPE_ARP)
+                .matchArpTpa(port.ipAddress().getIp4Address());
+
+        osFlowRuleService.setRule(
+                appId,
+                port.deviceId(),
+                selector.build(),
+                treatment.build(),
+                PRIORITY_FLAT_JUMP_DOWNSTREAM_RULE,
                 DHCP_ARP_TABLE,
                 install);
     }
@@ -216,7 +234,7 @@ public final class OpenstackSwitchingHandler {
                 instPort.deviceId(),
                 selector,
                 treatment,
-                PRIORITY_FLAT_RULE,
+                PRIORITY_FLAT_DOWNSTREAM_RULE,
                 FLAT_TABLE,
                 install);
 
@@ -230,7 +248,7 @@ public final class OpenstackSwitchingHandler {
                 instPort.deviceId(),
                 selector,
                 treatment,
-                PRIORITY_FLAT_RULE,
+                PRIORITY_FLAT_DOWNSTREAM_RULE,
                 FLAT_TABLE,
                 install);
     }
@@ -264,7 +282,7 @@ public final class OpenstackSwitchingHandler {
                 instPort.deviceId(),
                 selector,
                 treatment,
-                PRIORITY_FLAT_RULE,
+                PRIORITY_FLAT_UPSTREAM_RULE,
                 FLAT_TABLE,
                 install);
     }

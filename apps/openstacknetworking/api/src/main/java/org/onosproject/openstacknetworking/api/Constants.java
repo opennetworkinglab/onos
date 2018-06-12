@@ -60,7 +60,10 @@ public final class Constants {
     public static final int PRIORITY_EXTERNAL_FLOATING_ROUTING_RULE = 27000;
     public static final int PRIORITY_SNAT_RULE = 26000;
     public static final int PRIORITY_SWITCHING_RULE = 30000;
-    public static final int PRIORITY_FLAT_RULE = 41000;
+    public static final int PRIORITY_FLAT_JUMP_UPSTREAM_RULE = 41000;
+    public static final int PRIORITY_FLAT_JUMP_DOWNSTREAM_RULE = 41000;
+    public static final int PRIORITY_FLAT_UPSTREAM_RULE = 41000;
+    public static final int PRIORITY_FLAT_DOWNSTREAM_RULE = 42000;
     public static final int PRIORITY_DHCP_RULE = 42000;
     public static final int PRIORITY_ADMIN_RULE = 32000;
     public static final int PRIORITY_ACL_RULE = 31000;
