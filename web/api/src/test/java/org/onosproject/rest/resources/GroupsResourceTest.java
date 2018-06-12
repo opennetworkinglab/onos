@@ -189,6 +189,11 @@ public class GroupsResourceTest extends ResourceTest {
         public GroupBuckets buckets() {
             return this.buckets;
         }
+
+        @Override
+        public int failedRetryCount() {
+            return 0;
+        }
     }
 
     /**

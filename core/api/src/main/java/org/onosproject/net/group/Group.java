@@ -105,4 +105,12 @@ public interface Group extends GroupDescription, PiTranslatable {
      * @return the age of the group as an integer
      */
     int age();
+
+    /**
+     * Returns the count for the number of attempts at programming a failed
+     * group.
+     *
+     * @return the count for the number of failed attempts at programming this group
+     */
+    int failedRetryCount();
 }

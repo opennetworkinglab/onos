@@ -72,4 +72,20 @@ public interface StoredGroupEntry extends Group {
      * @param referenceCount reference count
      */
     void setReferenceCount(long referenceCount);
+
+    /**
+     * Increments the count for the number of failed attempts in programming
+     * this group.
+     *
+     */
+    void incrFailedRetryCount();
+
+    /**
+     * Sets the count for the number of failed attempts in programming this
+     * group.
+     *
+     * @param failedRetryCount count for number of failed attempts in
+     *            programming this group
+     */
+    void setFailedRetryCount(int failedRetryCount);
 }
