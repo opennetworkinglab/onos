@@ -54,6 +54,14 @@ import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.net.config.ConfigFactory;
+import org.onosproject.net.config.NetworkConfigEvent;
+import org.onosproject.net.config.NetworkConfigListener;
+import org.onosproject.net.config.NetworkConfigRegistry;
+import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.net.config.basics.BasicHostConfig;
+import org.onosproject.net.config.basics.HostLearningConfig;
+import org.onosproject.net.config.basics.SubjectFactories;
 import org.onosproject.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
@@ -130,10 +138,14 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
     protected ComponentConfigService cfgService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected NetworkConfigRegistry registry;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected InterfaceService interfaceService;
 
     private final InternalHostProvider processor = new InternalHostProvider();
     private final DeviceListener deviceListener = new InternalDeviceListener();
+    private final InternalConfigListener cfgListener = new InternalConfigListener();
 
     private ApplicationId appId;
 
@@ -173,6 +185,19 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
     private ExecutorService probeEventHandler;
     private ExecutorService packetHandler;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected NetworkConfigService netcfgService;
+
+    private ConfigFactory<ConnectPoint, HostLearningConfig> hostLearningConfig =
+            new ConfigFactory<ConnectPoint, HostLearningConfig>(
+                    SubjectFactories.CONNECT_POINT_SUBJECT_FACTORY,
+                    HostLearningConfig.class, "hostLearning") {
+                @Override
+                public HostLearningConfig createConfig() {
+                    return new HostLearningConfig();
+                }
+            };
+
     /**
      * Creates an OpenFlow host provider.
      */
@@ -193,8 +218,9 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
         providerService = providerRegistry.register(this);
         packetService.addProcessor(processor, PacketProcessor.advisor(1));
         deviceService.addListener(deviceListener);
-
+        registry.registerConfigFactory(hostLearningConfig);
         modified(context);
+        netcfgService.addListener(cfgListener);
 
         log.info("Started with Application ID {}", appId.id());
     }
@@ -212,6 +238,8 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
         probeEventHandler.shutdown();
         packetHandler.shutdown();
         providerService = null;
+        registry.unregisterConfigFactory(hostLearningConfig);
+        netcfgService.removeListener(cfgListener);
         log.info("Stopped");
     }
 
@@ -517,6 +545,13 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                 return;
             }
 
+            HostLearningConfig cfg = netcfgService.getConfig(heardOn, HostLearningConfig.class);
+            // if learning is disabled bail out.
+            if ((cfg != null) && (!cfg.hostLearningEnabled())) {
+                log.debug("Learning disabled for {}, abort.", heardOn);
+                return;
+            }
+
             // ARP: possible new hosts, update both location and IP
             if (eth.getEtherType() == Ethernet.TYPE_ARP) {
                 ARP arp = (ARP) eth.getPayload();
@@ -775,4 +810,45 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
         );
     }
 
+
+    private class InternalConfigListener implements NetworkConfigListener {
+
+        @Override
+        public void event(NetworkConfigEvent event) {
+            switch (event.type()) {
+                case CONFIG_ADDED:
+                case CONFIG_UPDATED:
+                    log.debug("HostLearningConfig event of type  {}", event.type());
+                    // if learning enabled do nothing
+                    HostLearningConfig learningConfig = (HostLearningConfig) event.config().get();
+                    if (learningConfig.hostLearningEnabled()) {
+                        return;
+                    }
+
+                    // if host learning is disable remove this location from existing, learnt hosts
+                    ConnectPoint connectPoint = learningConfig.subject();
+                    Set<Host> connectedHosts = hostService.getConnectedHosts(connectPoint);
+                    for (Host host : connectedHosts) {
+                        BasicHostConfig hostConfig = netcfgService.getConfig(host.id(), BasicHostConfig.class);
+
+                        if ((hostConfig == null) || (!hostConfig.locations().contains(connectPoint))) {
+                            // timestamp shoud not matter for comparing HostLocation and ConnectPoint
+                            providerService.removeLocationFromHost(host.id(), new HostLocation(connectPoint, 1));
+                        }
+                    }
+                    break;
+                case CONFIG_REMOVED:
+                default:
+                    break;
+            }
+        }
+
+        @Override
+        public boolean isRelevant(NetworkConfigEvent event) {
+            if (!event.configClass().equals(HostLearningConfig.class)) {
+                return false;
+            }
+            return true;
+        }
+    }
 }

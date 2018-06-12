@@ -18,6 +18,7 @@ package org.onosproject.provider.host.impl;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.MoreExecutors;
 import org.junit.After;
 import org.junit.Before;
@@ -52,6 +53,9 @@ import org.onosproject.cfg.ComponentConfigAdapter;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.DefaultApplicationId;
+import org.onosproject.net.config.Config;
+import org.onosproject.net.config.NetworkConfigRegistryAdapter;
+import org.onosproject.net.config.NetworkConfigServiceAdapter;
 import org.onosproject.net.intf.Interface;
 import org.onosproject.net.intf.InterfaceListener;
 import org.onosproject.net.intf.InterfaceService;
@@ -209,6 +213,8 @@ public class HostLocationProviderTest {
     private final TestHostService hostService = new TestHostService();
     private final TestPacketService packetService = new TestPacketService();
     private final TestInterfaceService interfaceService = new TestInterfaceService();
+    private final TestNetworkConfigRegistryAdapter registryAdapter = new TestNetworkConfigRegistryAdapter();
+    private final TestNetworkConfigService netcfgService = new TestNetworkConfigService();
 
     private PacketProcessor testProcessor;
     private CoreService coreService;
@@ -233,7 +239,8 @@ public class HostLocationProviderTest {
         provider.deviceService = deviceService;
         provider.hostService = hostService;
         provider.interfaceService = interfaceService;
-
+        provider.registry = registryAdapter;
+        provider.netcfgService = netcfgService;
         provider.activate(CTX_FOR_NO_REMOVE);
 
         provider.deviceEventHandler = MoreExecutors.newDirectExecutorService();
@@ -1243,5 +1250,21 @@ public class HostLocationProviderTest {
         public boolean isConfigured(ConnectPoint connectPoint) {
             return false;
         }
+    }
+
+    private class TestNetworkConfigRegistryAdapter extends NetworkConfigRegistryAdapter {
+        private Set<Config> configs = Sets.newHashSet();
+
+        @Override
+        public <S, C extends Config<S>> C getConfig(S subject, Class<C> configClass) {
+            Config c = configs.stream()
+                    .filter(config -> subject.equals(config.subject()))
+                    .filter(config -> configClass.equals(config.getClass()))
+                    .findFirst().orElse(null);
+            return (C) c;
+        }
+    }
+
+    private class TestNetworkConfigService extends NetworkConfigServiceAdapter {
     }
 }
