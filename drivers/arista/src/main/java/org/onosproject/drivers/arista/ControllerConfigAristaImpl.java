@@ -16,13 +16,19 @@
 
 package org.onosproject.drivers.arista;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Optional;
+
 import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
+import org.onlab.packet.IpAddress;
 import org.onosproject.net.behaviour.ControllerConfig;
 import org.onosproject.net.behaviour.ControllerInfo;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.slf4j.Logger;
-
-import java.util.List;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -31,27 +37,79 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 public class ControllerConfigAristaImpl extends AbstractHandlerBehaviour implements ControllerConfig {
 
+    private static final String SHOW_CONTROLLER_CMD = "show openflow";
     private static final String CONFIGURE_TERMINAL = "configure";
     private static final String OPENFLOW_CMD = "openflow";
+    private static final String SET_CONTROLLER_CMD = "controller tcp:%s:%d";
+    private static final String NO_SHUTDOWN_CMD = "no shutdown";
+    private static final String SHUTDOWN_CMD = "shutdown";
     private static final String REMOVE_CONTROLLER_CMD = "no controller tcp:%s:%d";
+    private static final String COPY_RUNNING_CONFIG = "copy running-config startup-config";
+    private static final String CONTROLLER_ADDR = "controllerAddr";
+    private static final String CONTROLLER_IP = "ip";
+    private static final String CONTROLLER_PORT = "port";
+    private static final String PROTOCOL_TCP = "tcp";
+
+
     private static final int MAX_CONTROLLERS = 8;
 
     private final Logger log = getLogger(getClass());
 
     @Override
     public List<ControllerInfo> getControllers() {
-        throw new UnsupportedOperationException("get controllers configuration is not supported");
+        log.debug("Arista get Controllers");
+
+        List<ControllerInfo> controllers = new ArrayList<>();
+        Optional<JsonNode> res = AristaUtils.retrieveCommandResult(handler(), SHOW_CONTROLLER_CMD);
+        if (res == null) {
+            return controllers;
+        }
+
+        JsonNode controllerInfo = res.get().findValue("controllersInfo");
+        Iterator<JsonNode> controlleriter = controllerInfo.iterator();
+        while (controlleriter.hasNext()) {
+            JsonNode temp1 = controlleriter.next();
+            if (temp1.has(CONTROLLER_ADDR)) {
+                JsonNode controllerAddr = temp1.get(CONTROLLER_ADDR);
+                if (controllerAddr.has(CONTROLLER_IP) && controllerAddr.has(CONTROLLER_PORT)) {
+                    String ip = controllerAddr.get(CONTROLLER_IP).asText();
+                    int port = controllerAddr.get(CONTROLLER_PORT).asInt();
+                    ControllerInfo info = new ControllerInfo(IpAddress.valueOf(ip), port, PROTOCOL_TCP);
+                    controllers.add(info);
+                    log.debug("Controller Information {}", info.target());
+                }
+            }
+        }
+
+        return ImmutableList.copyOf(controllers);
     }
 
     @Override
     public void setControllers(List<ControllerInfo> controllers) {
-        throw new UnsupportedOperationException("set controllers configuration is not supported");
+        log.debug("Arista set Controllers");
+
+        List<String> cmds = new ArrayList<>();
+        cmds.add(CONFIGURE_TERMINAL);
+        cmds.add(OPENFLOW_CMD);
+        //The Arista switch supports up to 8 multi-controllers.
+        controllers.stream().limit(MAX_CONTROLLERS).forEach(c -> cmds
+                .add(String.format(SET_CONTROLLER_CMD, c.ip().toString(), c.port())));
+        if (controllers.size() > 8) {
+            log.warn(" {} Arista Switch maximun 8 controllers, not adding {} excessive ones",
+                    handler().data().deviceId(), controllers.size() - 8);
+        }
+        cmds.add(NO_SHUTDOWN_CMD);
+        cmds.add(COPY_RUNNING_CONFIG);
+
+        AristaUtils.retrieveCommandResult(handler(), cmds);
     }
+
 
     @Override
     public void removeControllers(List<ControllerInfo> controllers) {
-        List<String> cmds = Lists.newArrayList();
+        log.debug("Arista remove Controllers");
 
+        List<String> cmds = Lists.newArrayList();
         cmds.add(CONFIGURE_TERMINAL);
         cmds.add(OPENFLOW_CMD);
         controllers.stream().limit(MAX_CONTROLLERS).forEach(c -> cmds

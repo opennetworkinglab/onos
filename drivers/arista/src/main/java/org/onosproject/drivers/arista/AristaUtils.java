@@ -37,7 +37,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 final class AristaUtils {
 
-    private static final String API_ENDPOINT = "/command-api/";
+    private static final String API_ENDPOINT = "/command-api";
     private static final String JSONRPC = "jsonrpc";
     private static final String METHOD = "method";
     private static final String RUN_CMDS = "runCmds";
@@ -128,4 +128,5 @@ final class AristaUtils {
 
         return node.toString();
     }
+
 }
