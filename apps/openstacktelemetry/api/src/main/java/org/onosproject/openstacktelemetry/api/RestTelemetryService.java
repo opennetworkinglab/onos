@@ -20,7 +20,7 @@ import javax.ws.rs.core.Response;
 /**
  * Service API for publishing openstack telemetry through REST producer.
  */
-public interface RestTelemetryService {
+public interface RestTelemetryService extends TelemetryService {
 
     /**
      * Publishes openstack telemetry to REST server.

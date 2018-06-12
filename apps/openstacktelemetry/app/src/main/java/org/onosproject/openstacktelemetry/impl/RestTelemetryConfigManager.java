@@ -16,11 +16,13 @@
 package org.onosproject.openstacktelemetry.impl;
 
 import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.openstacktelemetry.api.RestTelemetryAdminService;
@@ -33,20 +35,25 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Dictionary;
 
+import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_DISABLE;
 import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_REST_ENDPOINT;
 import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_REST_METHOD;
 import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_REST_REQUEST_MEDIA_TYPE;
 import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_REST_RESPONSE_MEDIA_TYPE;
 import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_REST_SERVER_IP;
 import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_REST_SERVER_PORT;
+import static org.onosproject.openstacktelemetry.util.OpenstackTelemetryUtil.getBooleanProperty;
 
 /**
  * REST server configuration manager for publishing openstack telemetry.
  */
+@Component(immediate = true)
+@Service
 public class RestTelemetryConfigManager implements RestTelemetryConfigService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
+    private static final String ENABLE_SERVICE = "enableService";
     private static final String ADDRESS = "address";
     private static final String PORT = "port";
     private static final String ENDPOINT = "endpoint";
@@ -84,24 +91,45 @@ public class RestTelemetryConfigManager implements RestTelemetryConfigService {
             label = "Response media type of REST server")
     protected String responseMediaType = DEFAULT_REST_RESPONSE_MEDIA_TYPE;
 
+    @Property(name = ENABLE_SERVICE, boolValue = DEFAULT_DISABLE,
+            label = "Specify the default behavior of telemetry service")
+    protected Boolean enableService = DEFAULT_DISABLE;
+
     @Activate
     protected void activate(ComponentContext context) {
         componentConfigService.registerProperties(getClass());
-        restTelemetryAdminService.start(getConfig());
+
+        if (enableService) {
+            restTelemetryAdminService.start(getConfig());
+        }
         log.info("Started");
     }
 
     @Deactivate
     protected void deactivate() {
         componentConfigService.unregisterProperties(getClass(), false);
-        restTelemetryAdminService.stop();
+
+        if (enableService) {
+            restTelemetryAdminService.stop();
+        }
         log.info("Stopped");
     }
 
     @Modified
     private void modified(ComponentContext context) {
         readComponentConfiguration(context);
-        restTelemetryAdminService.restart(getConfig());
+
+        if (enableService) {
+            if (restTelemetryAdminService.isRunning()) {
+                restTelemetryAdminService.restart(getConfig());
+            } else {
+                restTelemetryAdminService.start(getConfig());
+            }
+        } else {
+            if (restTelemetryAdminService.isRunning()) {
+                restTelemetryAdminService.stop();
+            }
+        }
         log.info("Modified");
     }
 
@@ -155,5 +183,16 @@ public class RestTelemetryConfigManager implements RestTelemetryConfigService {
         responseMediaType = responseMediaTypeStr != null ?
                 responseMediaTypeStr : DEFAULT_REST_RESPONSE_MEDIA_TYPE;
         log.info("Configured. REST server response media type is {}", responseMediaType);
+
+        Boolean enableServiceConfigured =
+                getBooleanProperty(properties, ENABLE_SERVICE);
+        if (enableServiceConfigured == null) {
+            enableService = DEFAULT_DISABLE;
+            log.info("REST service enable flag is NOT " +
+                    "configured, default value is {}", enableService);
+        } else {
+            enableService = enableServiceConfigured;
+            log.info("Configured. REST service enable flag is {}", enableService);
+        }
     }
 }

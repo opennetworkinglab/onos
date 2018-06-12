@@ -1,4 +1,19 @@
+GRPC_VER = '1.3.1'
+
 BUNDLES = [
+    '//lib:kafka-clients',
+    '//lib:influxdb-java',
+    '//lib:commons-codec',
+    '//lib:retrofit',
+    '//lib:okhttp',
+    '//lib:logging-interceptor',
+    '//lib:gson',
+    '//lib:okio',
+    '//lib:moshi',
+    '//lib:converter-moshi',
+    '//lib:protobuf-java-3.2.0',
+    '//incubator/grpc-dependencies:grpc-core-repkg-' + GRPC_VER,
+    "//lib:google-instrumentation-0.3.0",
     '//apps/openstacktelemetry/api:onos-apps-openstacktelemetry-api',
     '//apps/openstacktelemetry/app:onos-apps-openstacktelemetry-app',
 ]

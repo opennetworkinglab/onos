@@ -62,4 +62,7 @@ public final class Constants {
     public static final String DEFAULT_REST_REQUEST_MEDIA_TYPE = "application/json";
     public static final String DEFAULT_REST_RESPONSE_MEDIA_TYPE = "application/json";
 
+    public static final boolean DEFAULT_DISABLE = false;
+    public static final boolean DEFAULT_ENABLE = true;
+
 }

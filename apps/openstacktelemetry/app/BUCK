@@ -3,6 +3,7 @@ GRPC_VER = '1.3.1'
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//lib:JACKSON',
+    '//lib:KRYO',
     '//core/store/serializers:onos-core-serializers',
     '//lib:javax.ws.rs-api',
     '//utils/rest:onlab-rest',
@@ -12,6 +13,7 @@ COMPILE_DEPS = [
     '//apps/openstacktelemetry/api:onos-apps-openstacktelemetry-api',
     '//lib:kafka-clients',
     '//lib:influxdb-java',
+    '//lib:protobuf-java-3.2.0',
     '//lib:GRPC_1.3',
     '//incubator/grpc-dependencies:grpc-core-repkg-' + GRPC_VER,
     '//lib:grpc-protobuf-lite-' + GRPC_VER,

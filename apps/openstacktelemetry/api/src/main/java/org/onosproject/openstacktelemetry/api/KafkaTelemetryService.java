@@ -23,7 +23,7 @@ import java.util.concurrent.Future;
 /**
  * Service API for publishing openstack telemetry through kafka producer.
  */
-public interface KafkaTelemetryService {
+public interface KafkaTelemetryService extends TelemetryService {
 
     /**
      * Publishes openstack telemetry to Kafka server.

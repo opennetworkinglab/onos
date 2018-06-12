@@ -16,11 +16,13 @@
 package org.onosproject.openstacktelemetry.impl;
 
 import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.openstacktelemetry.api.KafkaTelemetryAdminService;
@@ -33,6 +35,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Dictionary;
 
+import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_DISABLE;
 import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_KAFKA_BATCH_SIZE;
 import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_KAFKA_KEY_SERIALIZER;
 import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_KAFKA_LINGER_MS;
@@ -42,14 +45,18 @@ import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_KAFKA_RET
 import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_KAFKA_SERVER_IP;
 import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_KAFKA_SERVER_PORT;
 import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_KAFKA_VALUE_SERIALIZER;
+import static org.onosproject.openstacktelemetry.util.OpenstackTelemetryUtil.getBooleanProperty;
 
 /**
  * Kafka server configuration manager for publishing openstack telemetry.
  */
+@Component(immediate = true)
+@Service
 public class KafkaTelemetryConfigManager implements KafkaTelemetryConfigService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
+    private static final String ENABLE_SERVICE = "enableService";
     private static final String ADDRESS = "address";
     private static final String PORT = "port";
     private static final String RETRIES = "retries";
@@ -103,24 +110,45 @@ public class KafkaTelemetryConfigManager implements KafkaTelemetryConfigService 
             label = "Serializer class for value that implements the Serializer interface")
     protected String valueSerializer = DEFAULT_KAFKA_VALUE_SERIALIZER;
 
+    @Property(name = ENABLE_SERVICE, boolValue = DEFAULT_DISABLE,
+            label = "Specify the default behavior of telemetry service")
+    protected Boolean enableService = DEFAULT_DISABLE;
+
     @Activate
     protected void activate(ComponentContext context) {
         componentConfigService.registerProperties(getClass());
-        kafkaTelemetryAdminService.start(getConfig());
+
+        if (enableService) {
+            kafkaTelemetryAdminService.start(getConfig());
+        }
         log.info("Started");
     }
 
     @Deactivate
     protected void deactivate() {
         componentConfigService.unregisterProperties(getClass(), false);
-        kafkaTelemetryAdminService.stop();
+
+        if (enableService) {
+            kafkaTelemetryAdminService.stop();
+        }
         log.info("Stopped");
     }
 
     @Modified
     private void modified(ComponentContext context) {
         readComponentConfiguration(context);
-        kafkaTelemetryAdminService.restart(getConfig());
+
+        if (enableService) {
+            if (kafkaTelemetryAdminService.isRunning()) {
+                kafkaTelemetryAdminService.restart(getConfig());
+            } else {
+                kafkaTelemetryAdminService.start(getConfig());
+            }
+        } else {
+            if (kafkaTelemetryAdminService.isRunning()) {
+                kafkaTelemetryAdminService.stop();
+            }
+        }
         log.info("Modified");
     }
 
@@ -207,5 +235,16 @@ public class KafkaTelemetryConfigManager implements KafkaTelemetryConfigService 
         String valueSerializerStr = Tools.get(properties, VALUE_SERIALIZER);
         valueSerializer = valueSerializerStr != null ? valueSerializerStr : DEFAULT_KAFKA_VALUE_SERIALIZER;
         log.info("Configured, Kafka value serializer is {}", valueSerializer);
+
+        Boolean enableServiceConfigured =
+                getBooleanProperty(properties, ENABLE_SERVICE);
+        if (enableServiceConfigured == null) {
+            enableService = DEFAULT_DISABLE;
+            log.info("Kafka service enable flag is NOT " +
+                    "configured, default value is {}", enableService);
+        } else {
+            enableService = enableServiceConfigured;
+            log.info("Configured. Kafka service enable flag is {}", enableService);
+        }
     }
 }

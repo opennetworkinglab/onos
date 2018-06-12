@@ -16,11 +16,13 @@
 package org.onosproject.openstacktelemetry.impl;
 
 import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.openstacktelemetry.api.GrpcTelemetryAdminService;
@@ -35,6 +37,7 @@ import java.util.Dictionary;
 
 import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.getIntegerProperty;
+import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_DISABLE;
 import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_GRPC_MAX_INBOUND_MSG_SIZE;
 import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_GRPC_SERVER_IP;
 import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_GRPC_SERVER_PORT;
@@ -44,10 +47,13 @@ import static org.onosproject.openstacktelemetry.util.OpenstackTelemetryUtil.get
 /**
  * gRPC server configuration manager for publishing openstack telemetry.
  */
+@Component(immediate = true)
+@Service
 public class GrpcTelemetryConfigManager implements GrpcTelemetryConfigService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
+    private static final String ENABLE_SERVICE = "enableService";
     private static final String ADDRESS = "address";
     private static final String PORT = "port";
     private static final String USE_PLAINTEXT = "usePlaintext";
@@ -75,24 +81,45 @@ public class GrpcTelemetryConfigManager implements GrpcTelemetryConfigService {
             label = "Maximum inbound message size used for communicating with gRPC server")
     protected Integer maxInboundMsgSize = DEFAULT_GRPC_MAX_INBOUND_MSG_SIZE;
 
+    @Property(name = ENABLE_SERVICE, boolValue = DEFAULT_DISABLE,
+            label = "Specify the default behavior of telemetry service")
+    protected Boolean enableService = DEFAULT_DISABLE;
+
     @Activate
     protected void activate(ComponentContext context) {
         componentConfigService.registerProperties(getClass());
-        grpcTelemetryAdminService.start(getConfig());
+
+        if (enableService) {
+            grpcTelemetryAdminService.start(getConfig());
+        }
         log.info("Started");
     }
 
     @Deactivate
     protected void deactivate() {
         componentConfigService.unregisterProperties(getClass(), false);
-        grpcTelemetryAdminService.stop();
+
+        if (enableService) {
+            grpcTelemetryAdminService.stop();
+        }
         log.info("Stopped");
     }
 
     @Modified
     private void modified(ComponentContext context) {
         readComponentConfiguration(context);
-        grpcTelemetryAdminService.restart(getConfig());
+
+        if (enableService) {
+            if (grpcTelemetryAdminService.isRunning()) {
+                grpcTelemetryAdminService.restart(getConfig());
+            } else {
+                grpcTelemetryAdminService.start(getConfig());
+            }
+        } else {
+            if (grpcTelemetryAdminService.isRunning()) {
+                grpcTelemetryAdminService.stop();
+            }
+        }
         log.info("Modified");
     }
 
@@ -147,6 +174,17 @@ public class GrpcTelemetryConfigManager implements GrpcTelemetryConfigService {
         } else {
             maxInboundMsgSize = maxInboundMsgSizeConfigured;
             log.info("Configured. gRPC server max inbound message size is {}", maxInboundMsgSize);
+        }
+
+        Boolean enableServiceConfigured =
+                getBooleanProperty(properties, ENABLE_SERVICE);
+        if (enableServiceConfigured == null) {
+            enableService = DEFAULT_DISABLE;
+            log.info("gRPC service enable flag is NOT " +
+                    "configured, default value is {}", enableService);
+        } else {
+            enableService = enableServiceConfigured;
+            log.info("Configured. gRPC service enable flag is {}", enableService);
         }
     }
 

@@ -18,12 +18,15 @@ package org.onosproject.openstacktelemetry.impl;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.onosproject.openstacktelemetry.api.KafkaTelemetryAdminService;
+import org.onosproject.openstacktelemetry.api.OpenstackTelemetryService;
 import org.onosproject.openstacktelemetry.api.config.KafkaTelemetryConfig;
 import org.onosproject.openstacktelemetry.api.config.TelemetryConfig;
 import org.slf4j.Logger;
@@ -50,16 +53,25 @@ public class KafkaTelemetryManager implements KafkaTelemetryAdminService {
     private static final String KEY_SERIALIZER = "key.serializer";
     private static final String VALUE_SERIALIZER = "value.serializer";
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected OpenstackTelemetryService openstackTelemetryService;
+
     private Producer<String, byte[]> producer = null;
 
     @Activate
     protected void activate() {
+
+        openstackTelemetryService.addTelemetryService(this);
+
         log.info("Started");
     }
 
     @Deactivate
     protected void deactivate() {
         stop();
+
+        openstackTelemetryService.removeTelemetryService(this);
+
         log.info("Stopped");
     }
 
@@ -110,6 +122,17 @@ public class KafkaTelemetryManager implements KafkaTelemetryAdminService {
 
     @Override
     public Future<RecordMetadata> publish(ProducerRecord<String, byte[]> record) {
+
+        if (producer == null) {
+            log.warn("Kafka telemetry service has not been enabled!");
+            return null;
+        }
+
         return producer.send(record);
+    }
+
+    @Override
+    public boolean isRunning() {
+        return producer != null;
     }
 }

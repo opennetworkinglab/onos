@@ -18,7 +18,7 @@ package org.onosproject.openstacktelemetry.api;
 /**
  * Service API for publishing openstack telemetry through gRPC producer.
  */
-public interface GrpcTelemetryService {
+public interface GrpcTelemetryService extends TelemetryService {
 
     /**
      * Publishes openstack telemetry to gRPC server.

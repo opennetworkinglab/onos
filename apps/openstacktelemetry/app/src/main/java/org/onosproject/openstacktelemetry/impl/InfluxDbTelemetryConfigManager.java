@@ -16,11 +16,13 @@
 package org.onosproject.openstacktelemetry.impl;
 
 import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.openstacktelemetry.api.InfluxDbTelemetryAdminService;
@@ -33,6 +35,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Dictionary;
 
+import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_DISABLE;
 import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_INFLUXDB_DATABASE;
 import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_INFLUXDB_ENABLE_BATCH;
 import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_INFLUXDB_PASSWORD;
@@ -44,10 +47,13 @@ import static org.onosproject.openstacktelemetry.util.OpenstackTelemetryUtil.get
 /**
  * InfluxDB server configuration manager for publishing openstack telemetry.
  */
+@Component(immediate = true)
+@Service
 public class InfluxDbTelemetryConfigManager implements InfluxDbTelemetryConfigService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
+    private static final String ENABLE_SERVICE = "enableService";
     private static final String ADDRESS = "address";
     private static final String PORT = "port";
     private static final String USERNAME = "username";
@@ -85,24 +91,45 @@ public class InfluxDbTelemetryConfigManager implements InfluxDbTelemetryConfigSe
             label = "Flag value of enabling batch mode of InfluxDB server")
     protected Boolean enableBatch = DEFAULT_INFLUXDB_ENABLE_BATCH;
 
+    @Property(name = ENABLE_SERVICE, boolValue = DEFAULT_DISABLE,
+            label = "Specify the default behavior of telemetry service")
+    protected Boolean enableService = DEFAULT_DISABLE;
+
     @Activate
     protected void activate(ComponentContext context) {
         componentConfigService.registerProperties(getClass());
-        influxDbTelemetryAdminService.start(getConfig());
+
+        if (enableService) {
+            influxDbTelemetryAdminService.start(getConfig());
+        }
         log.info("Started");
     }
 
     @Deactivate
     protected void deactivate() {
         componentConfigService.unregisterProperties(getClass(), false);
-        influxDbTelemetryAdminService.stop();
+
+        if (enableService) {
+            influxDbTelemetryAdminService.stop();
+        }
         log.info("Stopped");
     }
 
     @Modified
     private void modified(ComponentContext context) {
         readComponentConfiguration(context);
-        influxDbTelemetryAdminService.restart(getConfig());
+
+        if (enableService) {
+            if (influxDbTelemetryAdminService.isRunning()) {
+                influxDbTelemetryAdminService.restart(getConfig());
+            } else {
+                influxDbTelemetryAdminService.start(getConfig());
+            }
+        } else {
+            if (influxDbTelemetryAdminService.isRunning()) {
+                influxDbTelemetryAdminService.stop();
+            }
+        }
         log.info("Modified");
     }
 
@@ -159,6 +186,17 @@ public class InfluxDbTelemetryConfigManager implements InfluxDbTelemetryConfigSe
         } else {
             enableBatch = enableBatchConfigured;
             log.info("Configured. InfluxDB server enable batch is {}", enableBatch);
+        }
+
+        Boolean enableServiceConfigured =
+                getBooleanProperty(properties, ENABLE_SERVICE);
+        if (enableServiceConfigured == null) {
+            enableService = DEFAULT_DISABLE;
+            log.info("InfluxDB service enable flag is NOT " +
+                    "configured, default value is {}", enableService);
+        } else {
+            enableService = enableServiceConfigured;
+            log.info("Configured. InfluxDB service enable flag is {}", enableService);
         }
     }
 }

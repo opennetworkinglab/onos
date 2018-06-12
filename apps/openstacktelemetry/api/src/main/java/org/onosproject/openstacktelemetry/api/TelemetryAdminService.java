@@ -20,7 +20,7 @@ import org.onosproject.openstacktelemetry.api.config.TelemetryConfig;
 /**
  * Admin service API for publishing openstack telemetry.
  */
-public interface TelemetryAdminService {
+public interface TelemetryAdminService extends TelemetryService {
 
     /**
      * Prepares and launches the telemetry producer.

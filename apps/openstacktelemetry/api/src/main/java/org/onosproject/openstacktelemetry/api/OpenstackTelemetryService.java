@@ -16,14 +16,29 @@
 package org.onosproject.openstacktelemetry.api;
 
 /**
- * Service API for publishing openstack telemetry through InfluxDB producer.
+ * Openstack telemetry service interface.
  */
-public interface InfluxDbTelemetryService extends TelemetryService {
+public interface OpenstackTelemetryService {
 
     /**
-     * Publishes openstack telemetry to InfluxDB server.
+     * Registers a new northbound telemetry service.
      *
-     * @param record a network metric to be published
+     * @param telemetryService telemetry service
      */
-    void publish(InfluxRecord<String, Object> record);
+    void addTelemetryService(TelemetryService telemetryService);
+
+    /**
+     * Unregisters an existing northbound telemetry service.
+     *
+     * @param telemetryService telemetry service
+     */
+    void removeTelemetryService(TelemetryService telemetryService);
+
+    /**
+     * Publishes new flow information to off-platform application through
+     * various northbound interfaces.
+     *
+     * @param flowInfo virtual flow information
+     */
+    void publish(FlowInfo flowInfo);
 }

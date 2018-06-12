@@ -18,7 +18,10 @@ package org.onosproject.openstacktelemetry.impl;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onosproject.openstacktelemetry.api.OpenstackTelemetryService;
 import org.onosproject.openstacktelemetry.api.RestTelemetryAdminService;
 import org.onosproject.openstacktelemetry.api.config.RestTelemetryConfig;
 import org.onosproject.openstacktelemetry.api.config.TelemetryConfig;
@@ -44,17 +47,26 @@ public class RestTelemetryManager implements RestTelemetryAdminService {
     private static final String POST_METHOD = "POST";
     private static final String GET_METHOD  = "GET";
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected OpenstackTelemetryService openstackTelemetryService;
+
     private WebTarget target = null;
     private RestTelemetryConfig restConfig = null;
 
     @Activate
     protected void activate() {
+
+        openstackTelemetryService.addTelemetryService(this);
+
         log.info("Started");
     }
 
     @Deactivate
     protected void deactivate() {
         stop();
+
+        openstackTelemetryService.removeTelemetryService(this);
+
         log.info("Stopped");
     }
 
@@ -119,6 +131,12 @@ public class RestTelemetryManager implements RestTelemetryAdminService {
 
     @Override
     public Response publish(String record) {
+
+        if (target == null) {
+            log.warn("REST telemetry service has not been enabled!");
+            return null;
+        }
+
         switch (restConfig.method()) {
             case POST_METHOD:
                 return target.request(restConfig.requestMediaType())
@@ -128,5 +146,10 @@ public class RestTelemetryManager implements RestTelemetryAdminService {
             default:
                 return null;
         }
+    }
+
+    @Override
+    public boolean isRunning() {
+        return target != null;
     }
 }

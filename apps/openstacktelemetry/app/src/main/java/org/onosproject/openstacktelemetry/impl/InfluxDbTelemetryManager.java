@@ -18,11 +18,14 @@ package org.onosproject.openstacktelemetry.impl;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.influxdb.InfluxDB;
 import org.influxdb.InfluxDBFactory;
 import org.onosproject.openstacktelemetry.api.InfluxDbTelemetryAdminService;
 import org.onosproject.openstacktelemetry.api.InfluxRecord;
+import org.onosproject.openstacktelemetry.api.OpenstackTelemetryService;
 import org.onosproject.openstacktelemetry.api.config.InfluxDbTelemetryConfig;
 import org.onosproject.openstacktelemetry.api.config.TelemetryConfig;
 import org.slf4j.Logger;
@@ -37,17 +40,26 @@ public class InfluxDbTelemetryManager implements InfluxDbTelemetryAdminService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected OpenstackTelemetryService openstackTelemetryService;
+
     private static final String PROTOCOL = "http";
     private InfluxDB producer = null;
 
     @Activate
     protected void activate() {
+
+        openstackTelemetryService.addTelemetryService(this);
+
         log.info("Started");
     }
 
     @Deactivate
     protected void deactivate() {
         stop();
+
+        openstackTelemetryService.removeTelemetryService(this);
+
         log.info("Stopped");
     }
 
@@ -91,5 +103,14 @@ public class InfluxDbTelemetryManager implements InfluxDbTelemetryAdminService {
     @Override
     public void publish(InfluxRecord<String, Object> record) {
         // TODO: need to find a way to invoke InfluxDB endpoint using producer
+
+        if (producer == null) {
+            log.warn("InfluxDB telemetry service has not been enabled!");
+        }
+    }
+
+    @Override
+    public boolean isRunning() {
+        return producer != null;
     }
 }
