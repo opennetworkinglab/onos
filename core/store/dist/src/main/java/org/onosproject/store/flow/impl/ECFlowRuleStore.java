@@ -783,43 +783,37 @@ public class ECFlowRuleStore
          * @return Map representing Flow Table of given device.
          */
         private Map<FlowId, Map<StoredFlowEntry, StoredFlowEntry>> getFlowTable(DeviceId deviceId) {
+            // Use an external get/null check to avoid locks.
+            // https://bugs.java.com/bugdatabase/view_bug.do?bug_id=8161372
             if (persistenceEnabled) {
-                return flowEntries.computeIfAbsent(deviceId, id -> persistenceService
-                        .<FlowId, Map<StoredFlowEntry, StoredFlowEntry>>persistentMapBuilder()
+                Map<FlowId, Map<StoredFlowEntry, StoredFlowEntry>> flowTable = flowEntries.get(deviceId);
+                return flowTable != null ? flowTable
+                    : flowEntries.computeIfAbsent(deviceId, id ->
+                    persistenceService.<FlowId, Map<StoredFlowEntry, StoredFlowEntry>>persistentMapBuilder()
                         .withName("FlowTable:" + deviceId.toString())
                         .withSerializer(serializer)
                         .build());
             } else {
-                return flowEntries.computeIfAbsent(deviceId, id -> Maps.newConcurrentMap());
+                Map<FlowId, Map<StoredFlowEntry, StoredFlowEntry>> flowTable = flowEntries.get(deviceId);
+                return flowTable != null ? flowTable
+                    : flowEntries.computeIfAbsent(deviceId, id -> Maps.newConcurrentMap());
             }
         }
 
         private FlowBucket getFlowBucket(BucketId bucketId) {
-            if (persistenceEnabled) {
-                return new FlowBucket(bucketId, flowEntries.computeIfAbsent(bucketId.deviceId(), id ->
-                    persistenceService.<FlowId, Map<StoredFlowEntry, StoredFlowEntry>>persistentMapBuilder()
-                        .withName("FlowTable:" + bucketId.deviceId().toString())
-                        .withSerializer(serializer)
-                        .build())
-                    .entrySet()
-                    .stream()
-                    .filter(entry -> isInBucket(entry.getKey(), bucketId.bucket()))
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
-            } else {
-                Map<FlowId, Map<StoredFlowEntry, StoredFlowEntry>> copy = Maps.newHashMap();
-                flowEntries.computeIfAbsent(bucketId.deviceId(), id -> Maps.newConcurrentMap())
-                    .entrySet()
-                    .stream()
-                    .filter(entry -> isInBucket(entry.getKey(), bucketId.bucket()))
-                    .forEach(entry -> {
-                        copy.put(entry.getKey(), Maps.newHashMap(entry.getValue()));
-                    });
-                return new FlowBucket(bucketId, copy);
-            }
+            return new FlowBucket(bucketId, getFlowTable(bucketId.deviceId())
+                .entrySet()
+                .stream()
+                .filter(entry -> isInBucket(entry.getKey(), bucketId.bucket()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
         }
 
         private Map<StoredFlowEntry, StoredFlowEntry> getFlowEntriesInternal(DeviceId deviceId, FlowId flowId) {
-            return getFlowTable(deviceId).computeIfAbsent(flowId, id -> Maps.newConcurrentMap());
+            // Use an external get/null check to avoid locks.
+            // https://bugs.java.com/bugdatabase/view_bug.do?bug_id=8161372
+            Map<FlowId, Map<StoredFlowEntry, StoredFlowEntry>> flowTable = getFlowTable(deviceId);
+            Map<StoredFlowEntry, StoredFlowEntry> flowEntries = flowTable.get(flowId);
+            return flowEntries != null ? flowEntries : flowTable.computeIfAbsent(flowId, id -> Maps.newConcurrentMap());
         }
 
         private StoredFlowEntry getFlowEntryInternal(FlowRule rule) {
