@@ -64,15 +64,13 @@ def _bnd_impl(ctx):
 
     # determine the dependencies and build the class path
     for dep in ctx.attr.deps:
-        if len(dep.java.outputs.jars) == 0:
-            continue
+        if java_common.provider in dep:
+            file = dep.files.to_list()[0]
 
-        file = dep.java.outputs.jars[0].class_jar
-
-        if cp:
-            cp += ":"
-        cp += file.path
-        inputDependencies = inputDependencies + [file]
+            if cp:
+                cp += ":"
+            cp += file.path
+            inputDependencies = inputDependencies + [file]
 
     # extract the class files for use by bnd
     classes = ctx.actions.declare_file("classes" + ctx.label.name.replace("/", "-"))
@@ -110,6 +108,15 @@ def _bnd_impl(ctx):
         progress_message = "Running bnd wrapper on: %s" % ctx.attr.name,
         executable = ctx.executable._bnd_exe,
     )
+
+    deps = []
+    if java_common.provider in ctx.attr.source:
+        deps.append(ctx.attr.source[java_common.provider])
+    deps_provider = java_common.merge(deps)
+    return struct(
+        providers = [deps_provider]
+    )
+
 
 _bnd = rule(
     attrs = {
@@ -172,10 +179,10 @@ def osgi_jar_with_tests(
     tests_jar_deps = list(depset(deps + test_deps)) + [name]
     all_test_deps = tests_jar_deps + [tests_name]
 
-    native.java_library(name = name, srcs = srcs, resources = resources, deps = deps, visibility = visibility)
+    native.java_library(name = name + "-native", srcs = srcs, resources = resources, deps = deps, visibility = visibility)
     _bnd(
-        name = name + "-osgi",
-        source = name,
+        name = name,
+        source = name + "-native",
         deps = deps,
         version = version,
         package_name_root = package_name_root,

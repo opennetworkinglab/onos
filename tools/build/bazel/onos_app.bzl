@@ -296,7 +296,7 @@ def onos_app(
     # rule to generate the OAR file based on the app.xml, features.xml, and app jar file
     _onos_oar(
         name = name + "-oar",
-        jar_file = Label(_local_label(name, "-osgi")),
+        jar_file = Label(_local_label(name, "")),
         app_xml = Label(_local_label(name, "-app-xml")),
         feature_xml = Label(_local_label(name, "-feature-xml")),
         feature_xml_coords = feature_xml_coords,

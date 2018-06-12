@@ -39,13 +39,15 @@ def _osgi_feature_impl(ctx):
     inputs = []
     for dep in ctx.attr.included_bundles:
         args += ["-b", maven_coordinates(dep.label)]
-        for f in dep.java.outputs.jars:
-            inputs += [f.class_jar]
 
-    for dep in ctx.attr.excluded_bundles:
-        args += ["-e", maven_coordinates(dep.label)]
-        for f in dep.java.outputs.jars:
-            inputs += [f.class_jar]
+        for f in ctx.attr.included_bundles:
+            if java_common.provider in f:
+                inputs += [f.files.to_list()[0]]
+
+        for f in ctx.attr.excluded_bundles:
+            args += ["-e", maven_coordinates(dep.label)]
+            if java_common.provider in f:
+                inputs += [f.files.to_list()[0]]
 
     for f in ctx.attr.required_features:
         args += ["-f", f]
