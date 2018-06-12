@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 #FIXME Add license
 
-from zipfile import ZipFile
+from zipfile import ZipFile, ZipInfo
+import os
 
 def generateOar(output, files=[]):
     # Note this is not a compressed zip
     with ZipFile(output, 'w') as zip:
         for file, mvnCoords in files:
+            mvnCoords = mvnCoords.replace("mvn:", "")
             filename = file.split('/')[-1]
             if mvnCoords == 'NONE':
                 if 'app-xml.xml' in filename:
@@ -25,7 +27,9 @@ def generateOar(output, files=[]):
                 elif 'feature-xml' in filename:
                     filename = '%s-%s-features.xml' % ( artifactId, version )
                 dest = 'm2/%s/%s/%s/%s' % ( groupId, artifactId, version, filename )
-            zip.write(file, dest)
+            f = open(file, 'rb')
+            zip.writestr(ZipInfo(dest, date_time=(1980, 1, 1, 0, 0, 0)), f.read())
+            f.close()
 
 if __name__ == '__main__':
     import sys

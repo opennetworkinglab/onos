@@ -30,19 +30,26 @@ def _onos_oar_impl(ctx):
     app_xml_file = ctx.attr.app_xml.files.to_list()[0]
     feature_xml_file = ctx.attr.feature_xml.files.to_list()[0]
     feature_xml_coords = ctx.attr.feature_xml_coords
-    jar_file = ctx.attr.jar_file.files.to_list()[0]
+
+    jar_file_args = []
+    jar_files = []
+    for bundle in ctx.attr.included_bundles:
+        jar_file = bundle.files.to_list()[0]
+        jar_files.append(jar_file)
+        jar_file_coords = maven_coordinates(bundle.label)
+        jar_file_args.append(jar_file.path)
+        jar_file_args.append(jar_file_coords)
+
     arguments = [
         ctx.outputs.app_oar.path,
         feature_xml_file.path,
         feature_xml_coords,
         app_xml_file.path,
         "NONE",
-        jar_file.path,
-        feature_xml_coords,
-    ]
+    ] + jar_file_args
 
     ctx.actions.run(
-        inputs = [app_xml_file, feature_xml_file, jar_file],
+        inputs = [app_xml_file, feature_xml_file] + jar_files,
         outputs = [ctx.outputs.app_oar],
         arguments = arguments,
         progress_message = "Running oar file generator: %s" % ctx.attr.name,
@@ -65,6 +72,7 @@ def _onos_app_xml_impl(ctx):
     included_bundles = ctx.attr.included_bundles
     excluded_bundles = ctx.attr.excluded_bundles
     required_features = ctx.attr.required_features
+    required_apps = ctx.attr.required_apps
     security = ctx.attr.security
     artifacts_args = []
 
@@ -119,7 +127,7 @@ _onos_oar = rule(
         "app_xml": attr.label(),
         "feature_xml": attr.label(),
         "feature_xml_coords": attr.string(),
-        "jar_file": attr.label(),
+        "included_bundles": attr.label_list(),
         "_onos_app_oar_exe": attr.label(
             executable = True,
             cfg = "host",
@@ -150,6 +158,7 @@ _onos_app_xml = rule(
         "required_features": attr.string_list(),
         "security": attr.string(),
         "mode": attr.string(),
+        "required_apps": attr.string_list(),
         "_onos_app_writer_exe": attr.label(
             executable = True,
             cfg = "host",
@@ -180,6 +189,7 @@ _onos_feature_xml = rule(
         "required_features": attr.string_list(),
         "security": attr.string(),
         "mode": attr.string(),
+        "required_apps": attr.string_list(),
         "_onos_app_writer_exe": attr.label(
             executable = True,
             cfg = "host",
@@ -244,7 +254,7 @@ def onos_app(
         title = _get_app_name()
 
     if included_bundles == None:
-        target = ":" + name
+        target = _local_label(name, "")
         included_bundles = [target]
 
     # TODO - have to implement this eventually
@@ -271,6 +281,7 @@ def onos_app(
         apps = apps,
         included_bundles = included_bundles,
         excluded_bundles = excluded_bundles,
+        required_apps = required_apps,
         mode = "-A",
     )
 
@@ -296,7 +307,7 @@ def onos_app(
     # rule to generate the OAR file based on the app.xml, features.xml, and app jar file
     _onos_oar(
         name = name + "-oar",
-        jar_file = Label(_local_label(name, "")),
+        included_bundles = included_bundles,
         app_xml = Label(_local_label(name, "-app-xml")),
         feature_xml = Label(_local_label(name, "-feature-xml")),
         feature_xml_coords = feature_xml_coords,

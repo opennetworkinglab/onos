@@ -243,7 +243,7 @@ ONOS_APPS = [
     #"//apps/rabbitmq:onos-apps-rabbitmq-oar",
     #"//apps/odtn/api:onos-apps-odtn-api-oar",
     #"//apps/odtn/service:onos-apps-odtn-service-oar",
-    #"//apps/mcast:onos-apps-mcast-oar",
+    "//apps/mcast:onos-apps-mcast-oar",
     #"//apps/layout:onos-apps-layout-oar",
     #"//apps/imr:onos-apps-imr-oar",
     #"//apps/nodemetrics:onos-apps-nodemetrics-oar",
