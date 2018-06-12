@@ -37,7 +37,6 @@ genrule(
     tools = ["onos_stage.py"],
 )
 
-# Generates auxiliary tar file with ONOS runtime tools
 filegroup(
     name = "onos-runtime-tools",
     srcs = glob(["runtime/bin/*"]),
@@ -53,6 +52,7 @@ genrule(
     visibility = ["//visibility:public"],
 )
 
+# Generates the onos-test.tar.gz file with test tools
 genrule(
     name = "onos-package-test",
     srcs = ["//tools/dev:onos-test", "//tools/test:onos-test", ":onos-runtime-tools", "//:onos-env-defaults"],
@@ -62,18 +62,23 @@ genrule(
     visibility = ["//visibility:public"],
 )
 
+# Runs ONOS as a single instance from the /tmp directory
+# FIXME: Still work in progress
+genrule(
+    name = "onos-run",
+    outs = ["onos-runner"],
+    srcs = ["onos-run-karaf", "onos-package"],
+    cmd = "sed \"s#ONOS_TAR=#ONOS_TAR=$(location :onos-package)#\" $(location onos-run-karaf) > $(location onos-runner); chmod +x $(location onos-runner)",
+    executable = True,
+    local = True,
+    visibility = ["//visibility:public"],
+)
+
 #staged_repos = ['$(location %s-repo)' % f for f in FEATURES]
 #staged_apps = ['$(location %s)' % a for a in APPS]
 #
 ## feature_coords = 'foo:bar:1.3'
 #sources = [ '$(location :onos-features)', ]
 #sources += staged_repos + staged_apps
-#
-#genrule(
-#  name = 'onos-run',
-#  out = 'onos-run',
-#  srcs = [ 'onos-run-karaf' ],
-#  bash = 'sed "s#ONOS_TAR=#ONOS_TAR=$(location :onos-package)#" $SRCS > $OUT; chmod +x $OUT',
-#  executable = True,
-#  visibility = [ 'PUBLIC' ],
-#)
+
+

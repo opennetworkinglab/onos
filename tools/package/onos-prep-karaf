@@ -51,7 +51,7 @@ perl -pi.old -e "s|^(featuresBoot ?= ?).*|\1$BOOT_FEATURES|" \
 
 
 # Patch the Apache Karaf distribution with ONOS branding bundle
-cp $BRANDING $KARAF_DIR/lib
+cp $BRANDING $KARAF_DIR/lib/onos-tools-package-branding.jar
 
 # **** Moving karaf to subdirectory ****
 mkdir $PREFIX
