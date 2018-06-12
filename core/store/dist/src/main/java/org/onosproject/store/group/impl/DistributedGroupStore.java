@@ -112,6 +112,7 @@ public class DistributedGroupStore
     private static final boolean GARBAGE_COLLECT = false;
     private static final int GC_THRESH = 6;
     private static final boolean ALLOW_EXTRANEOUS_GROUPS = true;
+    private static final int MAX_FAILED_ATTEMPTS = 3;
 
     private final int dummyId = 0xffffffff;
     private final GroupId dummyGroupId = new GroupId(dummyId);
@@ -152,6 +153,7 @@ public class DistributedGroupStore
             extraneousGroupEntriesById = new ConcurrentHashMap<>();
     private ExecutorService messageHandlingExecutor;
     private static final int MESSAGE_HANDLER_THREAD_POOL_SIZE = 1;
+
     private final HashMap<DeviceId, Boolean> deviceAuditStatus = new HashMap<>();
 
     private final AtomicInteger groupIdGen = new AtomicInteger();
@@ -941,6 +943,7 @@ public class DistributedGroupStore
                 existing.setPackets(group.packets());
                 existing.setBytes(group.bytes());
                 existing.setReferenceCount(group.referenceCount());
+                existing.setFailedRetryCount(0);
                 if ((existing.state() == GroupState.PENDING_ADD) ||
                         (existing.state() == GroupState.PENDING_ADD_RETRY)) {
                     log.trace("addOrUpdateGroupEntry: group entry {} in device {} moving from {} to ADDED",
@@ -969,6 +972,7 @@ public class DistributedGroupStore
                              + "happening for a non-existing entry in the map");
         }
 
+        // XXX if map is going to trigger event, is this one needed?
         if (event != null) {
             notifyDelegate(event);
         }
@@ -1082,9 +1086,10 @@ public class DistributedGroupStore
             return;
         }
 
-        log.warn("groupOperationFailed: group operation {} failed"
+        log.warn("groupOperationFailed: group operation {} failed in state {} "
                          + "for group {} in device {} with code {}",
                  operation.opType(),
+                 existing.state(),
                  existing.id(),
                  existing.deviceId(),
                  operation.failureCode());
@@ -1107,9 +1112,26 @@ public class DistributedGroupStore
                         existing.buckets());
             }
         }
+        if (operation.failureCode() == GroupOperation.GroupMsgErrorCode.INVALID_GROUP) {
+            existing.incrFailedRetryCount();
+            if (existing.failedRetryCount() < MAX_FAILED_ATTEMPTS) {
+                log.warn("Group {} programming failed {} of {} times in dev {}, "
+                        + "retrying ..", existing.id(),
+                         existing.failedRetryCount(), MAX_FAILED_ATTEMPTS,
+                         deviceId);
+                return;
+            }
+            log.warn("Group {} programming failed {} of {} times in dev {}, "
+                    + "removing group from store", existing.id(),
+                     existing.failedRetryCount(), MAX_FAILED_ATTEMPTS,
+                     deviceId);
+            // fall through to case
+        }
+
         switch (operation.opType()) {
             case ADD:
-                if (existing.state() == GroupState.PENDING_ADD) {
+                if (existing.state() == GroupState.PENDING_ADD
+                    || existing.state() == GroupState.PENDING_ADD_RETRY) {
                     notifyDelegate(new GroupEvent(Type.GROUP_ADD_FAILED, existing));
                     log.warn("groupOperationFailed: cleaningup "
                                      + "group {} from store in device {}....",

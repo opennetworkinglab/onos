@@ -36,6 +36,7 @@ public class DefaultGroup extends DefaultGroupDescription
     private long referenceCount;
     private GroupId id;
     private int age;
+    private int failedRetryCount;
 
     /**
      * Initializes default values.
@@ -50,6 +51,7 @@ public class DefaultGroup extends DefaultGroupDescription
         bytes = 0;
         referenceCount = 0;
         age = 0;
+        failedRetryCount = 0;
     }
 
     /**
@@ -135,6 +137,11 @@ public class DefaultGroup extends DefaultGroupDescription
         return age;
     }
 
+    @Override
+    public int failedRetryCount() {
+        return failedRetryCount;
+    }
+
     /**
      * Sets the new state for this entry.
      *
@@ -188,6 +195,16 @@ public class DefaultGroup extends DefaultGroupDescription
     @Override
     public long referenceCount() {
         return referenceCount;
+    }
+
+    @Override
+    public void incrFailedRetryCount() {
+        failedRetryCount++;
+    }
+
+    @Override
+    public void setFailedRetryCount(int failedRetryCount) {
+        this.failedRetryCount = failedRetryCount;
     }
 
     /*

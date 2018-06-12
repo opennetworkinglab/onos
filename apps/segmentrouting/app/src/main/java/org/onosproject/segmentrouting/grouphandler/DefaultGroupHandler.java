@@ -486,7 +486,7 @@ public class DefaultGroupHandler {
                           currNeighbors, nextHops, nextId);
                 if ((revoke && !nextHops.isEmpty())
                         || (!revoke && !nextHops.equals(currNeighbors))) {
-                    log.warn("Simple next objective cannot be edited to "
+                    log.debug("Simple next objective cannot be edited to "
                             + "move from {} to {}", currNeighbors, nextHops);
                 }
                 continue;
