@@ -877,11 +877,25 @@ public class ECFlowRuleStore
             eventHandler.execute(() -> handleEvent(event));
         }
 
+        /**
+         * Handles a replica change event.
+         *
+         * @param event the replica change event to handle
+         */
         private void handleEvent(ReplicaInfoEvent event) {
             DeviceId deviceId = event.subject();
-            if (!mastershipService.isLocalMaster(deviceId)) {
+
+            // If the local node is not the master, return.
+            if (!isMasterNode(deviceId)) {
+                // If the local node is neither the master or a backup, remove flow tables for the device.
+                if (!isBackupNode(deviceId)) {
+                    purgeFlowRule(deviceId);
+                }
                 return;
             }
+
+            // If this is a master changed event, record update timestamps for the device to ensure tables are
+            // replicated to backups.
             if (event.type() == MASTER_CHANGED) {
                 for (int bucket = 0; bucket < NUM_BUCKETS; bucket++) {
                     recordUpdate(new BucketId(deviceId, bucket));
@@ -1061,6 +1075,18 @@ public class ECFlowRuleStore
         private boolean isMasterNode(DeviceId deviceId) {
             NodeId master = replicaInfoManager.getReplicaInfoFor(deviceId).master().orElse(null);
             return Objects.equals(master, clusterService.getLocalNode().id());
+        }
+
+        /**
+         * Returns a boolean indicating whether the local node is a backup for the given device.
+         *
+         * @param deviceId the device for which to indicate whether the local node is a backup
+         * @return indicates whether the local node is a backup for the given device
+         */
+        private boolean isBackupNode(DeviceId deviceId) {
+            List<NodeId> backupNodes = replicaInfoManager.getReplicaInfoFor(deviceId).backups();
+            int index = backupNodes.indexOf(local);
+            return index != -1 && index < backupCount;
         }
 
         /**
