@@ -74,6 +74,7 @@ public class OSGiWrapper {
     private String bundleLicense;
 
     private String webContext;
+    private String webXmlRoot;
     private String destdir;
 
     // FIXME should consider using Commons CLI, etc.
@@ -94,8 +95,9 @@ public class OSGiWrapper {
         String exportPackages = args[8];
         String includeResources = args[9];
         String webContext = args[10];
-        String dynamicimportPackages = args[11];
-        String destdir = args[12];
+        String webXmlRoot = args[11];
+        String dynamicimportPackages = args[12];
+        String destdir = args[13];
         String desc = Joiner.on(' ').join(Arrays.copyOfRange(args, 12, args.length));
 
         OSGiWrapper wrapper = new OSGiWrapper(jar, output, cp,
@@ -104,6 +106,7 @@ public class OSGiWrapper {
                                               importPackages, exportPackages,
                                               includeResources,
                                               webContext,
+                                              webXmlRoot,
                                               dynamicimportPackages,
                                               desc,
                                               destdir);
@@ -126,6 +129,7 @@ public class OSGiWrapper {
                        String exportPackages,
                        String includeResources,
                        String webContext,
+                       String webXmlRoot,
                        String dynamicimportPackages,
                        String bundleDescription,
                        String destdir) {
@@ -155,6 +159,7 @@ public class OSGiWrapper {
         }
 
         this.webContext = webContext;
+        this.webXmlRoot = webXmlRoot;
         this.destdir = destdir;
     }
 
@@ -184,7 +189,7 @@ public class OSGiWrapper {
         }
 
         if (isWab()) {
-            analyzer.setProperty(Analyzer.WAB, "src/main/webapp/");
+            analyzer.setProperty(Analyzer.WAB, webXmlRoot);
             analyzer.setProperty("Web-ContextPath", webContext);
             analyzer.setProperty(Analyzer.IMPORT_PACKAGE, "*,org.glassfish.jersey.servlet,org.jvnet.mimepull\n");
         }
@@ -281,6 +286,7 @@ public class OSGiWrapper {
         }
 
         Path wabRoot = Paths.get(wab);
+        log("wab root " + wabRoot.toString());
         includeFiles(dot, null, wabRoot.toString());
     }
 

@@ -147,11 +147,11 @@ ONOS_PROVIDERS = [
 
 ONOS_APPS = [
     # Apps
-    #"//apps/dhcp:onos-apps-dhcp-oar",
+    "//apps/dhcp:onos-apps-dhcp-oar",
     #"//apps/dhcprelay:onos-apps-dhcprelay-oar",
     #"//apps/fwd:onos-apps-fwd-oar",
     #"//apps/packet-stats:onos-apps-packet-stats-oar",
-    #"//apps/acl:onos-apps-acl-oar",
+    "//apps/acl:onos-apps-acl-oar",
     #"//apps/bgprouter:onos-apps-bgprouter-oar",
     #"//apps/cip:onos-apps-cip-oar",
     #"//apps/drivermatrix:onos-apps-drivermatrix-oar",
@@ -280,8 +280,8 @@ PIPELINES = [
 APP_JARS = [
     #"//apps/cpman/api:onos-apps-cpman-api",
     #"//apps/routing-api:onos-apps-routing-api",
-    #"//apps/dhcp/api:onos-apps-dhcp-api",
-    #"//apps/dhcp/app:onos-apps-dhcp-app",
+    "//apps/dhcp/api:onos-apps-dhcp-api",
+    "//apps/dhcp/app:onos-apps-dhcp-app",
     #"//apps/imr/api:onos-apps-imr-api",
     #"//apps/imr/app:onos-apps-imr-app",
     #"//apps/dhcprelay:onos-apps-dhcprelay",

@@ -33,6 +33,9 @@ def _all_resources(resources_root):
     else:
         return native.glob([resources_root + "**"])
 
+def _webapp():
+    return native.glob(["src/main/webapp/**"])
+
 # Implementation of the rule to call bnd to make an OSGI jar file
 def _bnd_impl(ctx):
     if (len(ctx.files.source) == 1):
@@ -56,7 +59,10 @@ def _bnd_impl(ctx):
     import_packages = ctx.attr.import_packages
     exportPackages = "*"
     includeResources = ""
-    webContext = "NONE"
+    web_context = ctx.attr.web_context
+    if web_context == None or web_context == "":
+        web_context = "NONE"
+    web_xml = ctx.attr.web_xml
     dynamicimportPackages = ""
     cp = ""
 
@@ -83,6 +89,11 @@ def _bnd_impl(ctx):
         progress_message = "Expanding jar file: %s" % jar,
     )
     inputDependencies += [classes]
+    web_xml_root_path = ""
+    if len(web_xml) != 0:
+        web_xml_root = web_xml[0].files.to_list()[0]
+        inputDependencies += [web_xml_root]
+        web_xml_root_path = web_xml_root.path.replace("WEB-INF/web.xml", "")
 
     # call bnd to make the OSGI jar file
     arguments = [
@@ -96,7 +107,8 @@ def _bnd_impl(ctx):
         import_packages,
         exportPackages,
         includeResources,
-        webContext,
+        web_context,
+        web_xml_root_path,
         dynamicimportPackages,
         classesPath,
     ]
@@ -124,6 +136,8 @@ _bnd = rule(
         "package_name_root": attr.string(),
         "source": attr.label(),
         "import_packages": attr.string(),
+        "web_context": attr.string(),
+        "web_xml": attr.label_list(allow_files = True),
         "_bnd_exe": attr.label(
             executable = True,
             cfg = "host",
@@ -138,8 +152,26 @@ _bnd = rule(
     implementation = _bnd_impl,
 )
 
-def wrapped_osgi_jar(name, jar, deps, version = ONOS_VERSION, package_name_root = "org.onosproject", import_packages = "*", visibility = ["//visibility:private"]):
-    _bnd(name = name, source = jar, deps = deps, version = version, package_name_root = package_name_root, visibility = visibility, import_packages = import_packages)
+def wrapped_osgi_jar(
+        name,
+        jar,
+        deps,
+        version = ONOS_VERSION,
+        package_name_root = "org.onosproject",
+        import_packages = "*",
+        web_context = None,
+        web_xml = None,
+        visibility = ["//visibility:private"]):
+    _bnd(
+        name = name,
+        source = jar,
+        deps = deps,
+        version = version,
+        package_name_root = package_name_root,
+        visibility = visibility,
+        import_packages = import_packages,
+        web_xml = web_xml,
+    )
 
 def osgi_jar_with_tests(
         name = None,
@@ -154,6 +186,11 @@ def osgi_jar_with_tests(
         test_resources = None,
         visibility = ["//visibility:public"],
         version = ONOS_VERSION,
+        web_context = None,
+        api_title = "",
+        api_version = "",
+        api_description = "",
+        api_package = "",
         import_packages = None):
     if name == None:
         name = "onos-" + native.package_name().replace("/", "-")
@@ -176,8 +213,11 @@ def osgi_jar_with_tests(
     tests_name = name + "-tests"
     tests_jar_deps = list(depset(deps + test_deps)) + [name]
     all_test_deps = tests_jar_deps + [tests_name]
+    web_xml = _webapp()
 
+    # compile the Java code
     native.java_library(name = name + "-native", srcs = srcs, resources = resources, deps = deps, visibility = visibility)
+
     _bnd(
         name = name,
         source = name + "-native",
@@ -186,6 +226,8 @@ def osgi_jar_with_tests(
         package_name_root = package_name_root,
         visibility = visibility,
         import_packages = import_packages,
+        web_context = web_context,
+        web_xml = web_xml,
     )
     if test_srcs != []:
         native.java_library(
@@ -214,7 +256,7 @@ def osgi_jar(
         visibility = ["//visibility:public"],
         version = ONOS_VERSION,
         # TODO - implement these for swagger and web.xml
-        web_context = "",
+        web_context = None,
         api_title = "",
         api_version = "",
         api_description = "",
@@ -238,4 +280,5 @@ def osgi_jar(
         visibility = visibility,
         version = version,
         import_packages = import_packages,
+        web_context = web_context,
     )
