@@ -1,13 +1,16 @@
 BUNDLES = [
-    '//apps/segmentrouting/app:onos-apps-segmentrouting-app',
-    '//apps/segmentrouting/web:onos-apps-segmentrouting-web',
+    "//apps/segmentrouting/app:onos-apps-segmentrouting-app",
+    "//apps/segmentrouting/web:onos-apps-segmentrouting-web",
 ]
 
-onos_app (
-    title = 'Segment Routing',
-    category = 'Traffic Steering',
-    url = 'http://onosproject.org',
+onos_app(
+    category = "Traffic Steering",
+    description = "Segment routing application.",
     included_bundles = BUNDLES,
-    description = 'Segment routing application.',
-    required_apps = [ 'org.onosproject.route-service', 'org.onosproject.mcast' ],
+    required_apps = [
+        "org.onosproject.route-service",
+        "org.onosproject.mcast",
+    ],
+    title = "Segment Routing",
+    url = "http://onosproject.org",
 )

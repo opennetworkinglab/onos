@@ -114,9 +114,8 @@ def _bnd_impl(ctx):
         deps.append(ctx.attr.source[java_common.provider])
     deps_provider = java_common.merge(deps)
     return struct(
-        providers = [deps_provider]
+        providers = [deps_provider],
     )
-
 
 _bnd = rule(
     attrs = {
@@ -155,8 +154,7 @@ def osgi_jar_with_tests(
         test_resources = None,
         visibility = ["//visibility:public"],
         version = ONOS_VERSION,
-        import_packages = None,
-    ):
+        import_packages = None):
     if name == None:
         name = "onos-" + native.package_name().replace("/", "-")
     if srcs == None:
@@ -220,8 +218,7 @@ def osgi_jar(
         api_title = "",
         api_version = "",
         api_description = "",
-        api_package = "",
-    ):
+        api_package = ""):
     if srcs == None:
         srcs = _all_java_sources()
     if deps == None:

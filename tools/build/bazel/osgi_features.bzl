@@ -24,10 +24,14 @@ def dump(obj):
 # Implementation of a rule to produce an OSGi feature XML snippet
 def _osgi_feature_impl(ctx):
     xmlArgs = [
-        "-O", ctx.outputs.feature_xml.path,
-        "-n", ctx.attr.name,
-        "-v", ctx.attr.version,
-        "-t", ctx.attr.description,
+        "-O",
+        ctx.outputs.feature_xml.path,
+        "-n",
+        ctx.attr.name,
+        "-v",
+        ctx.attr.version,
+        "-t",
+        ctx.attr.description,
     ]
     bundleArgs = [ctx.outputs.bundle_zip.path]
     inputs = []

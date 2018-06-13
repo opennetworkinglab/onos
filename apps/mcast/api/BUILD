@@ -1,4 +1,4 @@
 osgi_jar(
-    deps = CORE_DEPS,
     visibility = ["//visibility:public"],
+    deps = CORE_DEPS,
 )

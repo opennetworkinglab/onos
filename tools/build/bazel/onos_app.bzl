@@ -106,7 +106,7 @@ def _onos_app_xml_impl(ctx):
     for feature in required_features:
         arguments += ["-f", feature]
     for app in required_apps:
-            arguments += ["-d", app]
+        arguments += ["-d", app]
 
     if security != "":
         arguments += ["-s", security]

@@ -6,10 +6,10 @@ BUNDLES = [
 ]
 
 onos_app(
-    title = 'Multicast traffic control',
-    origin = 'ONF',
-    description = 'Provides handling of multicast traffic.',
-    category = 'Traffic Engineering',
-    url = 'https://wiki.onosproject.org/',
+    category = "Traffic Engineering",
+    description = "Provides handling of multicast traffic.",
     included_bundles = BUNDLES,
+    origin = "ONF",
+    title = "Multicast traffic control",
+    url = "https://wiki.onosproject.org/",
 )

@@ -1,32 +1,38 @@
 load("//tools/build/bazel:generate_workspace.bzl", "ONOS_VERSION")
-load(":modules.bzl", "CORE", "APPS")
+load(":modules.bzl", "APPS", "CORE")
 
 filegroup(
     name = "onos",
     srcs = CORE + APPS + [
-       ":onos-package-admin",
-       ":onos-package-test",
-       ":onos-package",
-     ],
+        ":onos-package-admin",
+        ":onos-package-test",
+        ":onos-package",
+    ],
     visibility = ["//visibility:public"],
 )
 
 KARAF = "@apache_karaf//file"
+
 PATCHES = "@apache_karaf_patches//file"
+
 BRANDING = "//tools/package/branding:onos-tools-package-branding"
 
 # Generates auxiliary karaf.zip file; branded and augmented with ONOS runtime tools
 genrule(
     name = "onos-karaf",
-    srcs = [KARAF, PATCHES, BRANDING] + glob([
+    srcs = [
+        KARAF,
+        PATCHES,
+        BRANDING,
+    ] + glob([
         "tools/package/bin/*",
         "tools/package/etc/*",
         "tools/package/init/*",
-        "tools/package/runtime/bin/*"
-      ]),
+        "tools/package/runtime/bin/*",
+    ]),
     outs = ["karaf.zip"],
-    cmd = "$(location tools/package/onos-prep-karaf) $(location karaf.zip) $(location %s) %s $(location %s) $(location %s) tools/package" \
-              % (KARAF, ONOS_VERSION, BRANDING, PATCHES),
+    cmd = "$(location tools/package/onos-prep-karaf) $(location karaf.zip) $(location %s) %s $(location %s) $(location %s) tools/package" %
+          (KARAF, ONOS_VERSION, BRANDING, PATCHES),
     tools = ["tools/package/onos-prep-karaf"],
 )
 
@@ -34,11 +40,14 @@ genrule(
 # FIXME: Need to include OAR files as dependencies and feature bundles as well
 genrule(
     name = "onos-package",
-    srcs = ["//tools/package/features:onos-features", ":onos-karaf"],
+    srcs = [
+        "//tools/package/features:onos-features",
+        ":onos-karaf",
+    ],
     outs = ["onos.tar.gz"],
     cmd = "$(location tools/package/onos_stage.py) $(location onos.tar.gz) %s $(location :onos-karaf) $(SRCS)" % ONOS_VERSION,
-    tools = ["tools/package/onos_stage.py"],
     output_to_bindir = True,
+    tools = ["tools/package/onos_stage.py"],
 )
 
 # Generates the onos-admin.tar.gz file with remote admin tools
@@ -47,11 +56,11 @@ genrule(
     srcs = glob([
         "tools/package/runtime/bin/*",
         "tools/dev/bin/onos-create-app",
-        "tools/test/bin/onos"
-      ]),
+        "tools/test/bin/onos",
+    ]),
     outs = ["onos-admin.tar.gz"],
-    cmd = "mkdir onos-admin-%s; cp $(SRCS) onos-admin-%s; tar zcf $(location onos-admin.tar.gz) onos-admin-%s"\
-          % (ONOS_VERSION, ONOS_VERSION, ONOS_VERSION),
+    cmd = "mkdir onos-admin-%s; cp $(SRCS) onos-admin-%s; tar zcf $(location onos-admin.tar.gz) onos-admin-%s" %
+          (ONOS_VERSION, ONOS_VERSION, ONOS_VERSION),
     output_to_bindir = True,
 )
 
@@ -63,11 +72,11 @@ genrule(
         "tools/dev/bash_profile",
         "tools/dev/bin/onos-create-app",
         "tools/test/**/*",
-        "tools/package/runtime/bin/*"
-      ]),
+        "tools/package/runtime/bin/*",
+    ]),
     outs = ["onos-test.tar.gz"],
-    cmd = "mkdir onos-test-%s; cp -r tools onos-test-%s; tar zcf $(location onos-test.tar.gz) onos-test-%s"\
-          % (ONOS_VERSION, ONOS_VERSION, ONOS_VERSION),
+    cmd = "mkdir onos-test-%s; cp -r tools onos-test-%s; tar zcf $(location onos-test.tar.gz) onos-test-%s" %
+          (ONOS_VERSION, ONOS_VERSION, ONOS_VERSION),
     output_to_bindir = True,
 )
 

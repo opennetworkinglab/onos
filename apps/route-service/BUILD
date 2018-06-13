@@ -3,9 +3,9 @@ BUNDLES = [
     "//apps/route-service/app:onos-apps-route-service-app",
 ]
 
-onos_app (
-    title = 'Route Service Server',
-    category = 'Utility',
-    url = 'http://onosproject.org',
+onos_app(
+    category = "Utility",
     included_bundles = BUNDLES,
+    title = "Route Service Server",
+    url = "http://onosproject.org",
 )

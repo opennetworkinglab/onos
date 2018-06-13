@@ -6,8 +6,8 @@ osgi_jar(
 )
 
 onos_app(
-    title = "Host Mobility",
     category = "Utility",
-    url = "http://onosproject.org",
     description = "Host mobility application.",
+    title = "Host Mobility",
+    url = "http://onosproject.org",
 )
