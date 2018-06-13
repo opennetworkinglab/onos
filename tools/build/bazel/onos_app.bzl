@@ -100,11 +100,13 @@ def _onos_app_xml_impl(ctx):
     ]
 
     for bundle in included_bundles:
-        arguments += ["-b", maven_coordinates(bundle.label)]
+        arguments += ["-b", maven_coordinates(bundle.label).replace("mvn:", "")]
     for bundle in excluded_bundles:
-        arguments += ["-e", maven_coordinates(bundle.label)]
+        arguments += ["-e", maven_coordinates(bundle.label).replace("mvn:", "")]
     for feature in required_features:
         arguments += ["-f", feature]
+    for app in required_apps:
+            arguments += ["-d", app]
 
     if security != "":
         arguments += ["-s", security]

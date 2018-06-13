@@ -1,0 +1,11 @@
+BUNDLES = [
+    "//apps/route-service/api:onos-apps-route-service-api",
+    "//apps/route-service/app:onos-apps-route-service-app",
+]
+
+onos_app (
+    title = 'Route Service Server',
+    category = 'Utility',
+    url = 'http://onosproject.org',
+    included_bundles = BUNDLES,
+)
