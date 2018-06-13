@@ -9,8 +9,7 @@ COMPILE_DEPS = CORE_DEPS + JACKSON + KRYO + [
     "//utils/rest:onlab-rest",
 ]
 
-TEST_DEPS = [
-    "//lib:TEST",
+TEST_DEPS = TEST + [
     "//apps/route-service/api:onos-apps-route-service-api-tests",
     "//core/api:onos-api-tests",
 ]
