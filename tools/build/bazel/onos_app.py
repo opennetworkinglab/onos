@@ -212,9 +212,6 @@ if __name__ == '__main__':
                               features=options.features,
                               **values)
 
-    sys.stderr.write("In onos_app.py - output is:" + options.output)
-    sys.stderr.flush()
-
     if options.write_feature:
         write(options.output, feature)
 
