@@ -211,7 +211,7 @@ public final class Dhcp6HandlerUtil {
     /**
      * extract DHCP6 payload from dhcp6 relay message within relay-forwrd/reply.
      *
-     * @param dhcp6 dhcp6 relay-reply or relay-foward
+     * @param dhcp6 dhcp6 relay-reply or relay-forward
      * @return dhcp6Packet dhcp6 packet extracted from relay-message
      */
     public static DHCP6 dhcp6PacketFromRelayPacket(DHCP6 dhcp6) {
@@ -398,7 +398,7 @@ public final class Dhcp6HandlerUtil {
         DHCP6 dhcp6Payload2 = dhcp6PacketFromRelayPacket(dhcp6Payload);
         if (dhcp6Payload2 != null) {
             if (dhcp6Payload.getMsgType() == DHCP6.MsgType.RELAY_FORW.value()) {
-                log.debug("directlyConnected  false. 1st realy-foward, 2nd MsgType {}", dhcp6Payload2.getMsgType());
+                log.debug("directlyConnected  false. 1st relay-forward, 2nd MsgType {}", dhcp6Payload2.getMsgType());
                 return false;
             } else {
                 // relay-reply
