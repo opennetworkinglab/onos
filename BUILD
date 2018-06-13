@@ -73,12 +73,12 @@ genrule(
 
 # Runs ONOS as a single instance from the /tmp directory
 # FIXME: Still work in progress
-genrule(
-    name = "onos-run",
-    outs = ["onos-runner"],
-    srcs = ["onos-run-karaf", "onos-package"],
-    cmd = "sed \"s#ONOS_TAR=#ONOS_TAR=$(location :onos-package)#\" $(location onos-run-karaf) > $(location onos-runner); chmod +x $(location onos-runner)",
-    executable = True,
-    output_to_bindir = True,
-    visibility = ["//visibility:public"],
-)
+#genrule(
+#    name = "onos-run",
+#    outs = ["onos-runner"],
+#    srcs = ["onos-run-karaf", "onos-package"],
+#    cmd = "sed \"s#ONOS_TAR=#ONOS_TAR=$(location :onos-package)#\" $(location onos-run-karaf) > $(location onos-runner); chmod +x $(location onos-runner)",
+#    executable = True,
+#    output_to_bindir = True,
+#    visibility = ["//visibility:public"],
+#)
