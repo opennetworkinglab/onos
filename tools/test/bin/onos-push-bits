@@ -70,7 +70,9 @@ if [ "$USE_RSYNC" = "true" ]; then
   rsync -az --delete --checksum --omit-dir-times --progress \
         -e "ssh $SSH_OPTIONS" \
         --rsync-path="mkdir -p /tmp/$ONOS_BITS/ && rsync" \
-        $RSYNC_STAGE/ $remote_with_bracket:/tmp/$ONOS_BITS
+        $RSYNC_STAGE/ [$ONOS_USER@$node]:/tmp/$ONOS_BITS
+                      # rsync < 3.0.6 cannot parse $ONOS_USER@[$node]
+                      #  https://bugzilla.samba.org/show_bug.cgi?id=6067
 
   # create $ONOS_TAR equivalent tar ball remotely
   # TODO hash will not be the same as local one, probably due to different uid, etc.
