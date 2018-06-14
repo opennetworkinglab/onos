@@ -17,6 +17,7 @@
 package org.onosproject.faultmanagement.impl;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,7 +26,6 @@ import org.onlab.packet.ChassisId;
 import org.onosproject.cfg.ComponentConfigAdapter;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.NodeId;
-import org.onosproject.cluster.RoleInfo;
 import org.onosproject.incubator.net.faultmanagement.alarm.Alarm;
 import org.onosproject.incubator.net.faultmanagement.alarm.AlarmConsumer;
 import org.onosproject.incubator.net.faultmanagement.alarm.AlarmId;
@@ -35,6 +35,7 @@ import org.onosproject.incubator.net.faultmanagement.alarm.AlarmProviderRegistry
 import org.onosproject.incubator.net.faultmanagement.alarm.AlarmProviderService;
 import org.onosproject.incubator.net.faultmanagement.alarm.DefaultAlarm;
 import org.onosproject.mastership.MastershipEvent;
+import org.onosproject.mastership.MastershipInfo;
 import org.onosproject.mastership.MastershipListener;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.mastership.MastershipServiceAdapter;
@@ -64,6 +65,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.junit.Assert.*;
@@ -96,7 +98,7 @@ public class PollingAlarmProviderTest {
 
     private final MastershipEvent mastershipEvent =
             new MastershipEvent(MastershipEvent.Type.MASTER_CHANGED, DEVICE_ID,
-                                new RoleInfo(nodeId, ImmutableList.of()));
+                                new MastershipInfo(1, Optional.of(nodeId), ImmutableMap.of()));
 
     private final DeviceEvent deviceEvent =
             new DeviceEvent(DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED, device);

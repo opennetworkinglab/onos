@@ -31,6 +31,7 @@ import org.onosproject.incubator.net.virtual.VirtualNetworkService;
 import org.onosproject.incubator.net.virtual.event.AbstractVirtualListenerManager;
 import org.onosproject.mastership.MastershipAdminService;
 import org.onosproject.mastership.MastershipEvent;
+import org.onosproject.mastership.MastershipInfo;
 import org.onosproject.mastership.MastershipListener;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.mastership.MastershipStoreDelegate;
@@ -152,6 +153,12 @@ public class VirtualNetworkMastershipManager
         checkNotNull(deviceId, DEVICE_ID_NULL);
 
         return store.getNodes(networkId, deviceId);
+    }
+
+    @Override
+    public MastershipInfo getMastershipFor(DeviceId deviceId) {
+        checkNotNull(deviceId, DEVICE_ID_NULL);
+        return store.getMastership(networkId, deviceId);
     }
 
     @Override

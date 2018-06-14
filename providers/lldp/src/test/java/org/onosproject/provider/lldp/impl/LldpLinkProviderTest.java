@@ -38,6 +38,7 @@ import org.onosproject.cluster.RoleInfo;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.DefaultApplicationId;
+import org.onosproject.mastership.MastershipInfo;
 import org.onosproject.mastership.MastershipListener;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.Annotations;
@@ -814,6 +815,11 @@ public class LldpLinkProviderTest {
 
         @Override
         public Set<DeviceId> getDevicesOf(NodeId nodeId) {
+            return null;
+        }
+
+        @Override
+        public MastershipInfo getMastershipFor(DeviceId deviceId) {
             return null;
         }
 

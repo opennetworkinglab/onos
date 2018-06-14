@@ -73,7 +73,6 @@ public interface MastershipStore extends Store<MastershipEvent, MastershipStoreD
      */
     Set<DeviceId> getDevices(NodeId nodeId);
 
-
     /**
      * Sets a device's role for a specified controller instance.
      *
@@ -91,6 +90,14 @@ public interface MastershipStore extends Store<MastershipEvent, MastershipStoreD
      * @return the current master's ID and the term value for device, or null
      */
     MastershipTerm getTermFor(DeviceId deviceId);
+
+    /**
+     * Returns the mastership info for the given device.
+     *
+     * @param deviceId the device for which to return the mastership info
+     * @return the mastership info for the given device
+     */
+    MastershipInfo getMastership(DeviceId deviceId);
 
     /**
      * Sets a controller instance's mastership role to STANDBY for a device.

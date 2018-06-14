@@ -36,6 +36,7 @@ import org.onosproject.grpc.nb.mastership.MastershipServiceNb.requestRoleForSync
 import org.onosproject.grpc.nb.mastership.MastershipServiceNb.requestRoleForSyncRequest;
 import org.onosproject.incubator.protobuf.models.cluster.NodeIdProtoTranslator;
 import org.onosproject.incubator.protobuf.models.net.MastershipRoleProtoTranslator;
+import org.onosproject.mastership.MastershipInfo;
 import org.onosproject.mastership.MastershipListener;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.DeviceId;
@@ -226,6 +227,11 @@ public class GrpcNbMastershipServiceTest {
         @Override
         public RoleInfo getNodesFor(DeviceId deviceId) {
             return roleInfoMap.get(deviceId);
+        }
+
+        @Override
+        public MastershipInfo getMastershipFor(DeviceId deviceId) {
+            return null;
         }
 
         @Override

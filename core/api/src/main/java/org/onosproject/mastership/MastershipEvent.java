@@ -29,9 +29,6 @@ import java.util.Objects;
  */
 public class MastershipEvent extends AbstractEvent<MastershipEvent.Type, DeviceId> {
 
-    //Contains master and standby information.
-    RoleInfo roleInfo;
-
     /**
      * Type of mastership events.
      */
@@ -55,45 +52,58 @@ public class MastershipEvent extends AbstractEvent<MastershipEvent.Type, DeviceI
         SUSPENDED
     }
 
+    private final MastershipInfo mastershipInfo;
+
     /**
      * Creates an event of a given type and for the specified device,
      * role information, and the current time.
      *
-     * @param type   mastership event type
-     * @param device event device subject
-     * @param info   mastership role information
+     * @param type           mastership event type
+     * @param device         event device subject
+     * @param mastershipInfo mastership info
      */
-    public MastershipEvent(Type type, DeviceId device, RoleInfo info) {
+    public MastershipEvent(Type type, DeviceId device, MastershipInfo mastershipInfo) {
         super(type, device);
-        this.roleInfo = info;
+        this.mastershipInfo = mastershipInfo;
     }
 
     /**
      * Creates an event of a given type and for the specified device, master,
      * and time.
      *
-     * @param type   mastership event type
-     * @param device event device subject
-     * @param info   role information
-     * @param time   occurrence time
+     * @param type           mastership event type
+     * @param device         event device subject
+     * @param mastershipInfo mastership information
+     * @param time           occurrence time
      */
-    public MastershipEvent(Type type, DeviceId device, RoleInfo info, long time) {
+    public MastershipEvent(Type type, DeviceId device, MastershipInfo mastershipInfo, long time) {
         super(type, device, time);
-        this.roleInfo = info;
+        this.mastershipInfo = mastershipInfo;
+    }
+
+    /**
+     * Returns the mastership info.
+     *
+     * @return the mastership info
+     */
+    public MastershipInfo mastershipInfo() {
+        return mastershipInfo;
     }
 
     /**
      * Returns the current role state for the subject.
      *
      * @return RoleInfo associated with Device ID subject
+     * @deprecated since 1.14
      */
+    @Deprecated
     public RoleInfo roleInfo() {
-        return roleInfo;
+        return new RoleInfo(mastershipInfo.master().orElse(null), mastershipInfo.backups());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(type(), subject(), roleInfo(), time());
+        return Objects.hash(type(), subject(), mastershipInfo(), time());
     }
 
     @Override
@@ -105,7 +115,7 @@ public class MastershipEvent extends AbstractEvent<MastershipEvent.Type, DeviceI
             final MastershipEvent other = (MastershipEvent) obj;
             return Objects.equals(this.type(), other.type()) &&
                     Objects.equals(this.subject(), other.subject()) &&
-                    Objects.equals(this.roleInfo(), other.roleInfo()) &&
+                    Objects.equals(this.mastershipInfo(), other.mastershipInfo()) &&
                     Objects.equals(this.time(), other.time());
         }
         return false;
@@ -117,7 +127,7 @@ public class MastershipEvent extends AbstractEvent<MastershipEvent.Type, DeviceI
                 .add("time", Tools.defaultOffsetDataTime(time()))
                 .add("type", type())
                 .add("subject", subject())
-                .add("roleInfo", roleInfo)
+                .add("mastershipInfo", mastershipInfo())
                 .toString();
     }
 }

@@ -20,6 +20,7 @@ import java.util.concurrent.CompletableFuture;
 
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.RoleInfo;
+import org.onosproject.mastership.MastershipInfo;
 import org.onosproject.mastership.MastershipListener;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.DeviceId;
@@ -77,6 +78,11 @@ public class MockMastershipService implements MastershipService {
     @Override
     public RoleInfo getNodesFor(DeviceId deviceId) {
         // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public MastershipInfo getMastershipFor(DeviceId deviceId) {
         return null;
     }
 

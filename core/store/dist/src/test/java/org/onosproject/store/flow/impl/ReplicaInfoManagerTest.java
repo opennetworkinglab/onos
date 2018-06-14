@@ -15,31 +15,32 @@
  */
 package org.onosproject.store.flow.impl;
 
+import java.util.Collections;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.cluster.NodeId;
-import org.onosproject.cluster.RoleInfo;
 import org.onosproject.common.event.impl.TestEventDispatcher;
 import org.onosproject.event.ListenerRegistry;
 import org.onosproject.mastership.MastershipEvent;
 import org.onosproject.mastership.MastershipEvent.Type;
+import org.onosproject.mastership.MastershipInfo;
 import org.onosproject.mastership.MastershipListener;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.mastership.MastershipServiceAdapter;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.MastershipRole;
 import org.onosproject.store.flow.ReplicaInfo;
 import org.onosproject.store.flow.ReplicaInfoEvent;
 import org.onosproject.store.flow.ReplicaInfoEventListener;
 import org.onosproject.store.flow.ReplicaInfoService;
-
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -101,7 +102,7 @@ public class ReplicaInfoManagerTest {
 
         // fake MastershipEvent
         eventDispatcher.post(new MastershipEvent(Type.MASTER_CHANGED, DID1,
-            new RoleInfo(NID1, new LinkedList<>())));
+            new MastershipInfo(1, Optional.of(NID1), ImmutableMap.of(NID1, MastershipRole.MASTER))));
 
         assertTrue(latch.await(1, TimeUnit.SECONDS));
     }
@@ -149,8 +150,11 @@ public class ReplicaInfoManagerTest {
         }
 
         @Override
-        public RoleInfo getNodesFor(DeviceId deviceId) {
-            return new RoleInfo(masters.get(deviceId), Collections.emptyList());
+        public MastershipInfo getMastershipFor(DeviceId deviceId) {
+            return new MastershipInfo(
+                1,
+                Optional.ofNullable(masters.get(deviceId)),
+                ImmutableMap.of(NID1, MastershipRole.MASTER));
         }
 
         @Override
