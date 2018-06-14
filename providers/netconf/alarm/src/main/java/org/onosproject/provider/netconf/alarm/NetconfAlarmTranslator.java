@@ -56,6 +56,11 @@ public class NetconfAlarmTranslator implements AlarmTranslator {
     private final Logger log = getLogger(getClass());
     private static final String EVENTTIME_TAGNAME = "eventTime";
 
+    private static final String DISALLOW_DTD_FEATURE = "http://apache.org/xml/features/disallow-doctype-decl";
+
+    private static final String DISALLOW_EXTERNAL_DTD =
+            "http://apache.org/xml/features/nonvalidating/load-external-dtd";
+
     @Override
     public Collection<Alarm> translateToAlarm(DeviceId deviceId, InputStream message) {
         try {
@@ -93,8 +98,23 @@ public class NetconfAlarmTranslator implements AlarmTranslator {
     private Document createDocFromMessage(InputStream message)
             throws SAXException, IOException, ParserConfigurationException {
         DocumentBuilderFactory dbfactory = DocumentBuilderFactory.newInstance();
+        //Disabling DTDs in order to avoid XXE xml-based attacks.
+        disableFeature(dbfactory, DISALLOW_DTD_FEATURE);
+        disableFeature(dbfactory, DISALLOW_EXTERNAL_DTD);
+        dbfactory.setXIncludeAware(false);
+        dbfactory.setExpandEntityReferences(false);
         DocumentBuilder builder = dbfactory.newDocumentBuilder();
         return builder.parse(new InputSource(message));
+    }
+
+    private void disableFeature(DocumentBuilderFactory dbfactory, String feature) {
+        try {
+            dbfactory.setFeature(feature, true);
+        } catch (ParserConfigurationException e) {
+            // This should catch a failed setFeature feature
+            log.info("ParserConfigurationException was thrown. The feature '" +
+                    feature + "' is probably not supported by your XML processor.");
+        }
     }
 
     private long parseDate(String timeStr)
