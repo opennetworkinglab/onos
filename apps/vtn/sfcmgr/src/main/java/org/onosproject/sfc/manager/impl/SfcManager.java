@@ -387,7 +387,7 @@ public class SfcManager implements SfcService {
 
             Iterable<PortChain> portChains = portChainService.getPortChains();
             if (portChains == null) {
-                log.error("Could not retrive port chain list");
+                log.error("Could not retrieve port chain list");
                 return null;
             }
 
@@ -438,7 +438,7 @@ public class SfcManager implements SfcService {
                     }
 
                     // Check whether source port is set in flow classifier
-                    if (fiveTuple.portSrc().toLong() >= flowClassifier.minSrcPortRange() ||
+                    if (fiveTuple.portSrc().toLong() >= flowClassifier.minSrcPortRange() &&
                             fiveTuple.portSrc().toLong() <= flowClassifier.maxSrcPortRange()) {
                         match = true;
                     } else {
@@ -446,14 +446,14 @@ public class SfcManager implements SfcService {
                     }
 
                     // Check whether destination port is set in flow classifier
-                    if (fiveTuple.portDst().toLong() >= flowClassifier.minSrcPortRange() ||
+                    if (fiveTuple.portDst().toLong() >= flowClassifier.minSrcPortRange() &&
                             fiveTuple.portDst().toLong() <= flowClassifier.maxSrcPortRange()) {
                         match = true;
                     } else {
                         continue;
                     }
 
-                    // Check whether neutron source port is set in flow classfier
+                    // Check whether neutron source port is set in flow classifier
                     if ((flowClassifier.srcPort() != null) && (!flowClassifier.srcPort().portId().isEmpty())) {
                         match = checkIpInVirtualPort(VirtualPortId.portId(flowClassifier.srcPort().portId()),
                                                      fiveTuple.ipSrc());
