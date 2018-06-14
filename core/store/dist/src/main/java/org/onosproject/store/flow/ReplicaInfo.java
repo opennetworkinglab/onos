@@ -29,18 +29,30 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public final class ReplicaInfo {
 
+    private final long term;
     private final Optional<NodeId> master;
     private final List<NodeId> backups;
 
     /**
      * Creates a ReplicaInfo instance.
      *
+     * @param term monotonically increasing unique mastership term
      * @param master NodeId of the node where the master copy should be
      * @param backups list of NodeId, where backup copies should be placed
      */
-    public ReplicaInfo(NodeId master, List<NodeId> backups) {
+    public ReplicaInfo(long term, NodeId master, List<NodeId> backups) {
+        this.term = term;
         this.master = Optional.ofNullable(master);
         this.backups = checkNotNull(backups);
+    }
+
+    /**
+     * Returns the mastership term.
+     *
+     * @return the mastership term
+     */
+    public long term() {
+        return term;
     }
 
     /**
@@ -78,6 +90,7 @@ public final class ReplicaInfo {
 
     // for Serializer
     private ReplicaInfo() {
+        this.term = 0;
         this.master = Optional.empty();
         this.backups = Collections.emptyList();
     }

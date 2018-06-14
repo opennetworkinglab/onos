@@ -16,7 +16,15 @@
 package org.onosproject.drivers.netconf;
 
 import org.onosproject.mastership.MastershipServiceAdapter;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+
+import org.onosproject.cluster.NodeId;
+import org.onosproject.cluster.RoleInfo;
+import org.onosproject.mastership.MastershipInfo;
+import org.onosproject.mastership.MastershipListener;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.MastershipRole;
 
 public class MockMastershipService extends MastershipServiceAdapter {
 
@@ -29,5 +37,58 @@ public class MockMastershipService extends MastershipServiceAdapter {
             return true;
         }
         return false;
+    }
+
+    @Override
+    public void addListener(MastershipListener listener) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void removeListener(MastershipListener listener) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public MastershipRole getLocalRole(DeviceId deviceId) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<MastershipRole> requestRoleFor(DeviceId deviceId) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<Void> relinquishMastership(DeviceId deviceId) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public NodeId getMasterFor(DeviceId deviceId) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public RoleInfo getNodesFor(DeviceId deviceId) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public MastershipInfo getMastershipFor(DeviceId deviceId) {
+        return null;
+    }
+
+    @Override
+    public Set<DeviceId> getDevicesOf(NodeId nodeId) {
+        // TODO Auto-generated method stub
+        return null;
     }
 }

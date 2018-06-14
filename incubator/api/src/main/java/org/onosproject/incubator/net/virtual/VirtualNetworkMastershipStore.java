@@ -19,6 +19,7 @@ package org.onosproject.incubator.net.virtual;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.RoleInfo;
 import org.onosproject.mastership.MastershipEvent;
+import org.onosproject.mastership.MastershipInfo;
 import org.onosproject.mastership.MastershipStoreDelegate;
 import org.onosproject.mastership.MastershipTerm;
 import org.onosproject.net.DeviceId;
@@ -72,6 +73,15 @@ public interface VirtualNetworkMastershipStore
      * @return a RoleInfo containing controller IDs
      */
     RoleInfo getNodes(NetworkId networkId, DeviceId deviceId);
+
+    /**
+     * Returns the mastership info for a device.
+     *
+     * @param networkId virtual network identifier
+     * @param deviceId  the device identifier
+     * @return the mastership info
+     */
+    MastershipInfo getMastership(NetworkId networkId, DeviceId deviceId);
 
     /**
      * Returns the devices that a controller instance is master of.

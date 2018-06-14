@@ -17,6 +17,7 @@
 package org.onosproject.incubator.store.virtual.impl;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -36,6 +37,7 @@ import org.onosproject.core.VersionService;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.VirtualNetworkMastershipStore;
 import org.onosproject.mastership.MastershipEvent;
+import org.onosproject.mastership.MastershipInfo;
 import org.onosproject.mastership.MastershipStoreDelegate;
 import org.onosproject.mastership.MastershipTerm;
 import org.onosproject.net.DeviceId;
@@ -50,6 +52,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -122,7 +125,7 @@ public class SimpleVirtualMastershipStore
                     // remove from backup list
                     removeFromBackups(networkId, deviceId, node);
                     notifyDelegate(networkId, new MastershipEvent(MASTER_CHANGED, deviceId,
-                                                       getNodes(networkId, deviceId)));
+                        getMastership(networkId, deviceId)));
                     return CompletableFuture.completedFuture(MastershipRole.MASTER);
                 }
                 return CompletableFuture.completedFuture(MastershipRole.STANDBY);
@@ -132,13 +135,13 @@ public class SimpleVirtualMastershipStore
                     masterMap.put(deviceId, node);
                     incrementTerm(networkId, deviceId);
                     notifyDelegate(networkId, new MastershipEvent(MASTER_CHANGED, deviceId,
-                                                       getNodes(networkId, deviceId)));
+                        getMastership(networkId, deviceId)));
                     return CompletableFuture.completedFuture(MastershipRole.MASTER);
                 }
                 // add to backup list
                 if (addToBackup(networkId, deviceId, node)) {
                     notifyDelegate(networkId, new MastershipEvent(BACKUPS_CHANGED, deviceId,
-                                                       getNodes(networkId, deviceId)));
+                        getMastership(networkId, deviceId)));
                 }
                 return CompletableFuture.completedFuture(MastershipRole.STANDBY);
             default:
@@ -184,6 +187,27 @@ public class SimpleVirtualMastershipStore
     }
 
     @Override
+    public MastershipInfo getMastership(NetworkId networkId, DeviceId deviceId) {
+        Map<DeviceId, NodeId> masterMap = getMasterMap(networkId);
+        Map<DeviceId, AtomicInteger> termMap = getTermMap(networkId);
+        Map<DeviceId, List<NodeId>> backups = getBackups(networkId);
+        ImmutableMap.Builder<NodeId, MastershipRole> roleBuilder = ImmutableMap.builder();
+        NodeId master = masterMap.get(deviceId);
+        if (master != null) {
+            roleBuilder.put(master, MastershipRole.MASTER);
+        }
+        backups.getOrDefault(master, Collections.emptyList())
+            .forEach(nodeId -> roleBuilder.put(nodeId, MastershipRole.STANDBY));
+        clusterService.getNodes().stream()
+            .filter(node -> !masterMap.containsValue(node.id()))
+            .forEach(node -> roleBuilder.put(node.id(), MastershipRole.NONE));
+        return new MastershipInfo(
+            termMap.getOrDefault(deviceId, new AtomicInteger(NOTHING)).get(),
+            Optional.ofNullable(master),
+            roleBuilder.build());
+    }
+
+    @Override
     public Set<DeviceId> getDevices(NetworkId networkId, NodeId nodeId) {
         Map<DeviceId, NodeId> masterMap = getMasterMap(networkId);
 
@@ -219,7 +243,7 @@ public class SimpleVirtualMastershipStore
         }
 
         return CompletableFuture.completedFuture(
-                new MastershipEvent(MASTER_CHANGED, deviceId, getNodes(networkId, deviceId)));
+                new MastershipEvent(MASTER_CHANGED, deviceId, getMastership(networkId, deviceId)));
     }
 
     @Override
@@ -249,14 +273,14 @@ public class SimpleVirtualMastershipStore
                     // TODO: Should there be new event type for no MASTER?
                     return CompletableFuture.completedFuture(
                             new MastershipEvent(MASTER_CHANGED, deviceId,
-                                                getNodes(networkId, deviceId)));
+                                getMastership(networkId, deviceId)));
                 } else {
                     NodeId prevMaster = masterMap.put(deviceId, backup);
                     incrementTerm(networkId, deviceId);
                     addToBackup(networkId, deviceId, prevMaster);
                     return CompletableFuture.completedFuture(
                             new MastershipEvent(MASTER_CHANGED, deviceId,
-                                                getNodes(networkId, deviceId)));
+                                getMastership(networkId, deviceId)));
                 }
 
             case STANDBY:
@@ -265,7 +289,7 @@ public class SimpleVirtualMastershipStore
                 if (modified) {
                     return CompletableFuture.completedFuture(
                             new MastershipEvent(BACKUPS_CHANGED, deviceId,
-                                                getNodes(networkId, deviceId)));
+                                getMastership(networkId, deviceId)));
                 }
                 break;
 
@@ -314,13 +338,13 @@ public class SimpleVirtualMastershipStore
                 incrementTerm(networkId, deviceId);
                 return CompletableFuture.completedFuture(
                         new MastershipEvent(MASTER_CHANGED, deviceId,
-                                            getNodes(networkId, deviceId)));
+                            getMastership(networkId, deviceId)));
 
             case STANDBY:
                 if (removeFromBackups(networkId, deviceId, nodeId)) {
                     return CompletableFuture.completedFuture(
                             new MastershipEvent(BACKUPS_CHANGED, deviceId,
-                                                getNodes(networkId, deviceId)));
+                                getMastership(networkId, deviceId)));
                 }
                 break;
 

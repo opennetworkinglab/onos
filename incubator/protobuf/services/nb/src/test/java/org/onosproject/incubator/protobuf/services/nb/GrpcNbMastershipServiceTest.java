@@ -211,6 +211,5 @@ public class GrpcNbMastershipServiceTest {
         public RoleInfo getNodesFor(DeviceId deviceId) {
             return roleInfoMap.get(deviceId);
         }
-
     }
 }
