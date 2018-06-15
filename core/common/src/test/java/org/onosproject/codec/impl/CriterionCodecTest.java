@@ -51,7 +51,6 @@ import org.onosproject.net.pi.runtime.PiFieldMatch;
 import org.onosproject.net.pi.runtime.PiLpmFieldMatch;
 import org.onosproject.net.pi.runtime.PiRangeFieldMatch;
 import org.onosproject.net.pi.runtime.PiTernaryFieldMatch;
-import org.onosproject.net.pi.runtime.PiValidFieldMatch;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -508,10 +507,6 @@ public class CriterionCodecTest {
                 .matchRange(ipv4MatchFieldId, matchRangeBytes1, matchRangeHighBytes).build();
         ObjectNode rangeResult = criterionCodec.encode(rangeBytesCriterion, context);
         assertThat(rangeResult, matchesCriterion(rangeBytesCriterion));
-
-        Criterion validCriterion = PiCriterion.builder().matchValid(ipv4MatchFieldId, false).build();
-        ObjectNode validResult = criterionCodec.encode(validCriterion, context);
-        assertThat(validResult, matchesCriterion(validCriterion));
     }
 
     /**
@@ -549,12 +544,8 @@ public class CriterionCodecTest {
                     Assert.assertThat(((PiRangeFieldMatch) piFieldMatch).lowValue(),
                                       is(copyFrom((byte) 0x10)));
                     break;
-                case VALID:
-                    Assert.assertThat(piFieldMatch.fieldId().id(), is("ethernet_t.etherType"));
-                    Assert.assertThat(((PiValidFieldMatch) piFieldMatch).isValid(), is(true));
-                    break;
                 default:
-                    Assert.assertTrue(false);
+                    Assert.fail();
             }
         }
     }

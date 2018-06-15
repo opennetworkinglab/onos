@@ -244,7 +244,6 @@ import org.onosproject.net.pi.runtime.PiRangeFieldMatch;
 import org.onosproject.net.pi.runtime.PiTableAction;
 import org.onosproject.net.pi.runtime.PiTableEntry;
 import org.onosproject.net.pi.runtime.PiTernaryFieldMatch;
-import org.onosproject.net.pi.runtime.PiValidFieldMatch;
 import org.onosproject.net.pi.runtime.PiTableEntryHandle;
 import org.onosproject.net.pi.service.PiTranslatable;
 import org.onosproject.net.pi.service.PiTranslatedEntity;
@@ -696,7 +695,6 @@ public final class KryoNamespaces {
                     PiTableAction.class,
                     PiTableEntry.class,
                     PiTernaryFieldMatch.class,
-                    PiValidFieldMatch.class,
                     // PI service
                     PiTableEntryHandle.class,
                     PiTranslatedEntity.class,

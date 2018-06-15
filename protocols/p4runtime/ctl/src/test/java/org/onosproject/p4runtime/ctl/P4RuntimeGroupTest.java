@@ -45,12 +45,12 @@ import org.onosproject.net.pi.runtime.PiActionGroupId;
 import org.onosproject.net.pi.runtime.PiActionGroupMember;
 import org.onosproject.net.pi.runtime.PiActionGroupMemberId;
 import org.onosproject.net.pi.runtime.PiActionParam;
-import p4.P4RuntimeOuterClass.ActionProfileGroup;
-import p4.P4RuntimeOuterClass.ActionProfileMember;
-import p4.P4RuntimeOuterClass.Entity;
-import p4.P4RuntimeOuterClass.Uint128;
-import p4.P4RuntimeOuterClass.Update;
-import p4.P4RuntimeOuterClass.WriteRequest;
+import p4.v1.P4RuntimeOuterClass.ActionProfileGroup;
+import p4.v1.P4RuntimeOuterClass.ActionProfileMember;
+import p4.v1.P4RuntimeOuterClass.Entity;
+import p4.v1.P4RuntimeOuterClass.Uint128;
+import p4.v1.P4RuntimeOuterClass.Update;
+import p4.v1.P4RuntimeOuterClass.WriteRequest;
 
 import java.io.IOException;
 import java.net.URL;
@@ -66,8 +66,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.onosproject.net.pi.model.PiPipeconf.ExtensionType.P4_INFO_TEXT;
 import static org.onosproject.p4runtime.api.P4RuntimeClient.WriteOperationType.INSERT;
-import static p4.P4RuntimeOuterClass.Action;
-import static p4.P4RuntimeOuterClass.ReadResponse;
+import static p4.v1.P4RuntimeOuterClass.Action;
+import static p4.v1.P4RuntimeOuterClass.ReadResponse;
 
 /**
  * Tests for P4 Runtime Action Profile Group support.

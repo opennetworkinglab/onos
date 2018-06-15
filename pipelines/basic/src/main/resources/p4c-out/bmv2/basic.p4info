@@ -71,8 +71,9 @@ tables {
     id: 16784184
   }
   const_default_action_id: 16784184
-  direct_resource_ids: 302038973
+  direct_resource_ids: 318816189
   size: 1024
+  idle_timeout_behavior: NO_TIMEOUT
 }
 tables {
   preamble {
@@ -92,8 +93,9 @@ tables {
   action_refs {
     id: 16800567
   }
-  direct_resource_ids: 318783457
+  direct_resource_ids: 352337889
   size: 1024
+  idle_timeout_behavior: NO_TIMEOUT
 }
 tables {
   preamble {
@@ -115,8 +117,9 @@ tables {
     annotations: "@defaultonly()"
   }
   implementation_id: 285253634
-  direct_resource_ids: 302034578
+  direct_resource_ids: 318811794
   size: 1024
+  idle_timeout_behavior: NO_TIMEOUT
 }
 actions {
   preamble {
@@ -216,7 +219,7 @@ counters {
 }
 direct_counters {
   preamble {
-    id: 302038973
+    id: 318816189
     name: "ingress.table0_control.table0_counter"
     alias: "table0_counter"
   }
@@ -227,7 +230,7 @@ direct_counters {
 }
 direct_counters {
   preamble {
-    id: 302034578
+    id: 318811794
     name: "ingress.wcmp_control.wcmp_table_counter"
     alias: "wcmp_table_counter"
   }
@@ -238,7 +241,7 @@ direct_counters {
 }
 meters {
   preamble {
-    id: 318803935
+    id: 335581151
     name: "ingress.port_meters_ingress.ingress_port_meter"
     alias: "ingress_port_meter"
   }
@@ -249,7 +252,7 @@ meters {
 }
 meters {
   preamble {
-    id: 318792425
+    id: 335569641
     name: "egress.port_meters_egress.egress_port_meter"
     alias: "egress_port_meter"
   }
@@ -260,7 +263,7 @@ meters {
 }
 direct_meters {
   preamble {
-    id: 318783457
+    id: 352337889
     name: "ingress.host_meter_control.host_meter"
     alias: "host_meter"
   }
@@ -271,7 +274,7 @@ direct_meters {
 }
 controller_packet_metadata {
   preamble {
-    id: 2868941301
+    id: 67146229
     name: "packet_in"
     annotations: "@controller_header(\"packet_in\")"
   }
@@ -288,7 +291,7 @@ controller_packet_metadata {
 }
 controller_packet_metadata {
   preamble {
-    id: 2868916615
+    id: 67121543
     name: "packet_out"
     annotations: "@controller_header(\"packet_out\")"
   }
@@ -302,4 +305,6 @@ controller_packet_metadata {
     name: "_padding"
     bitwidth: 7
   }
+}
+type_info {
 }

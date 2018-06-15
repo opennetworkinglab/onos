@@ -37,13 +37,12 @@ import org.onosproject.net.pi.runtime.PiRangeFieldMatch;
 import org.onosproject.net.pi.runtime.PiTableAction;
 import org.onosproject.net.pi.runtime.PiTableEntry;
 import org.onosproject.net.pi.runtime.PiTernaryFieldMatch;
-import org.onosproject.net.pi.runtime.PiValidFieldMatch;
 import org.slf4j.Logger;
-import p4.P4RuntimeOuterClass.Action;
-import p4.P4RuntimeOuterClass.FieldMatch;
-import p4.P4RuntimeOuterClass.TableAction;
-import p4.P4RuntimeOuterClass.TableEntry;
-import p4.config.P4InfoOuterClass;
+import p4.v1.P4RuntimeOuterClass.Action;
+import p4.v1.P4RuntimeOuterClass.FieldMatch;
+import p4.v1.P4RuntimeOuterClass.TableAction;
+import p4.v1.P4RuntimeOuterClass.TableEntry;
+import p4.config.v1.P4InfoOuterClass;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -348,13 +347,6 @@ final class TableEntryEncoder {
                                 .setLow(rangeLowValue)
                                 .build())
                         .build();
-            case VALID:
-                PiValidFieldMatch validMatch = (PiValidFieldMatch) piFieldMatch;
-                return fieldMatchMsgBuilder.setValid(
-                        FieldMatch.Valid.newBuilder()
-                                .setValue(validMatch.isValid())
-                                .build())
-                        .build();
             default:
                 throw new EncodeException(format(
                         "Building of match type %s not implemented", piFieldMatch.type()));
@@ -422,9 +414,6 @@ final class TableEntryEncoder {
                 ImmutableByteSequence rangeHighValue = copyFrom(rangeFieldMatch.getHigh().asReadOnlyByteBuffer());
                 ImmutableByteSequence rangeLowValue = copyFrom(rangeFieldMatch.getLow().asReadOnlyByteBuffer());
                 return new PiRangeFieldMatch(headerFieldId, rangeLowValue, rangeHighValue);
-            case VALID:
-                FieldMatch.Valid validFieldMatch = fieldMatchMsg.getValid();
-                return new PiValidFieldMatch(headerFieldId, validFieldMatch.getValue());
             default:
                 throw new EncodeException(format(
                         "Decoding of field match type '%s' not implemented", typeCase.name()));

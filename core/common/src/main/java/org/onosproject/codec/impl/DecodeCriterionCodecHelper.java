@@ -647,16 +647,6 @@ public final class DecodeCriterionCodecHelper {
                                                                             MISSING_MEMBER_MESSAGE).asText(), null)
                                     );
                             break;
-                        case VALID:
-                            builder.matchValid(
-                                    PiMatchFieldId.of(
-                                            nullIsIllegal(node.get(CriterionCodec.PI_MATCH_FIELD_ID),
-                                                          CriterionCodec.PI_MATCH_FIELD_ID +
-                                                                  MISSING_MEMBER_MESSAGE).asText()),
-                                    nullIsIllegal(node.get(CriterionCodec.PI_MATCH_VALUE),
-                                                  CriterionCodec.PI_MATCH_VALUE +
-                                                          MISSING_MEMBER_MESSAGE).asBoolean());
-                            break;
                         default:
                             throw new IllegalArgumentException("Type " + type + " is unsupported");
                     }

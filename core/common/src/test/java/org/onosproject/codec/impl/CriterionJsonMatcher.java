@@ -59,7 +59,6 @@ import org.onosproject.net.pi.runtime.PiFieldMatch;
 import org.onosproject.net.pi.runtime.PiLpmFieldMatch;
 import org.onosproject.net.pi.runtime.PiRangeFieldMatch;
 import org.onosproject.net.pi.runtime.PiTernaryFieldMatch;
-import org.onosproject.net.pi.runtime.PiValidFieldMatch;
 
 import static org.onlab.util.ImmutableByteSequence.copyFrom;
 
@@ -623,13 +622,6 @@ public final class CriterionJsonMatcher extends
                                             ((PiRangeFieldMatch) fieldMatch).lowValue())) {
                             description.appendText("match low value was " +
                                                            ((PiRangeFieldMatch) fieldMatch).lowValue());
-                            return false;
-                        }
-                        break;
-                    case VALID:
-                        if (!Objects.equals(matchNode.get("value").asBoolean(),
-                                            ((PiValidFieldMatch) fieldMatch).isValid())) {
-                            description.appendText("match value was " + ((PiValidFieldMatch) fieldMatch).isValid());
                             return false;
                         }
                         break;

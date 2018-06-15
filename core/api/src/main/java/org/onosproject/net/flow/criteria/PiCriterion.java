@@ -25,7 +25,6 @@ import org.onosproject.net.pi.runtime.PiFieldMatch;
 import org.onosproject.net.pi.runtime.PiLpmFieldMatch;
 import org.onosproject.net.pi.runtime.PiRangeFieldMatch;
 import org.onosproject.net.pi.runtime.PiTernaryFieldMatch;
-import org.onosproject.net.pi.runtime.PiValidFieldMatch;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -270,18 +269,6 @@ public final class PiCriterion implements Criterion {
          */
         public Builder matchLpm(PiMatchFieldId fieldId, byte[] value, int prefixLength) {
             fieldMatchMapBuilder.put(fieldId, new PiLpmFieldMatch(fieldId, copyFrom(value), prefixLength));
-            return this;
-        }
-
-        /**
-         * Adds a valid field match for the given fieldId and flag.
-         *
-         * @param fieldId protocol-independent header field Id
-         * @param flag    a boolean value
-         * @return this
-         */
-        public Builder matchValid(PiMatchFieldId fieldId, boolean flag) {
-            fieldMatchMapBuilder.put(fieldId, new PiValidFieldMatch(fieldId, flag));
             return this;
         }
 

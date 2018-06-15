@@ -18,17 +18,17 @@ package org.onosproject.p4runtime.ctl;
 
 import com.google.common.collect.Lists;
 import io.grpc.stub.StreamObserver;
-import p4.P4RuntimeGrpc;
-import p4.P4RuntimeOuterClass;
-import p4.P4RuntimeOuterClass.GetForwardingPipelineConfigRequest;
-import p4.P4RuntimeOuterClass.GetForwardingPipelineConfigResponse;
-import p4.P4RuntimeOuterClass.ReadRequest;
-import p4.P4RuntimeOuterClass.ReadResponse;
-import p4.P4RuntimeOuterClass.SetForwardingPipelineConfigRequest;
-import p4.P4RuntimeOuterClass.SetForwardingPipelineConfigResponse;
-import p4.P4RuntimeOuterClass.StreamMessageResponse;
-import p4.P4RuntimeOuterClass.WriteRequest;
-import p4.P4RuntimeOuterClass.WriteResponse;
+import p4.v1.P4RuntimeGrpc;
+import p4.v1.P4RuntimeOuterClass;
+import p4.v1.P4RuntimeOuterClass.GetForwardingPipelineConfigRequest;
+import p4.v1.P4RuntimeOuterClass.GetForwardingPipelineConfigResponse;
+import p4.v1.P4RuntimeOuterClass.ReadRequest;
+import p4.v1.P4RuntimeOuterClass.ReadResponse;
+import p4.v1.P4RuntimeOuterClass.SetForwardingPipelineConfigRequest;
+import p4.v1.P4RuntimeOuterClass.SetForwardingPipelineConfigResponse;
+import p4.v1.P4RuntimeOuterClass.StreamMessageResponse;
+import p4.v1.P4RuntimeOuterClass.WriteRequest;
+import p4.v1.P4RuntimeOuterClass.WriteResponse;
 
 import java.util.Collection;
 import java.util.List;

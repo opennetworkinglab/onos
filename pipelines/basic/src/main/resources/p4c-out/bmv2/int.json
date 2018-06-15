@@ -1,9 +1,4 @@
 {
-  "program" : "int.p4",
-  "__meta__" : {
-    "version" : [2, 7],
-    "compiler" : "https://github.com/p4lang/p4c"
-  },
   "header_types" : [
     {
       "name" : "scalars_0",
@@ -22,198 +17,8 @@
       ]
     },
     {
-      "name" : "packet_out_header_t",
-      "id" : 1,
-      "fields" : [
-        ["egress_port", 9, false],
-        ["_padding", 7, false]
-      ]
-    },
-    {
-      "name" : "packet_in_header_t",
-      "id" : 2,
-      "fields" : [
-        ["ingress_port", 9, false],
-        ["_padding", 7, false]
-      ]
-    },
-    {
-      "name" : "ethernet_t",
-      "id" : 3,
-      "fields" : [
-        ["dst_addr", 48, false],
-        ["src_addr", 48, false],
-        ["ether_type", 16, false]
-      ]
-    },
-    {
-      "name" : "ipv4_t",
-      "id" : 4,
-      "fields" : [
-        ["version", 4, false],
-        ["ihl", 4, false],
-        ["dscp", 6, false],
-        ["ecn", 2, false],
-        ["len", 16, false],
-        ["identification", 16, false],
-        ["flags", 3, false],
-        ["frag_offset", 13, false],
-        ["ttl", 8, false],
-        ["protocol", 8, false],
-        ["hdr_checksum", 16, false],
-        ["src_addr", 32, false],
-        ["dst_addr", 32, false]
-      ]
-    },
-    {
-      "name" : "tcp_t",
-      "id" : 5,
-      "fields" : [
-        ["src_port", 16, false],
-        ["dst_port", 16, false],
-        ["seq_no", 32, false],
-        ["ack_no", 32, false],
-        ["data_offset", 4, false],
-        ["res", 3, false],
-        ["ecn", 3, false],
-        ["ctrl", 6, false],
-        ["window", 16, false],
-        ["checksum", 16, false],
-        ["urgent_ptr", 16, false]
-      ]
-    },
-    {
-      "name" : "udp_t",
-      "id" : 6,
-      "fields" : [
-        ["src_port", 16, false],
-        ["dst_port", 16, false],
-        ["length_", 16, false],
-        ["checksum", 16, false]
-      ]
-    },
-    {
-      "name" : "intl4_shim_t",
-      "id" : 7,
-      "fields" : [
-        ["int_type", 8, false],
-        ["rsvd1", 8, false],
-        ["len", 8, false],
-        ["rsvd2", 8, false]
-      ]
-    },
-    {
-      "name" : "int_header_t",
-      "id" : 8,
-      "fields" : [
-        ["ver", 2, false],
-        ["rep", 2, false],
-        ["c", 1, false],
-        ["e", 1, false],
-        ["rsvd1", 5, false],
-        ["ins_cnt", 5, false],
-        ["max_hop_cnt", 8, false],
-        ["total_hop_cnt", 8, false],
-        ["instruction_mask_0003", 4, false],
-        ["instruction_mask_0407", 4, false],
-        ["instruction_mask_0811", 4, false],
-        ["instruction_mask_1215", 4, false],
-        ["rsvd2", 16, false]
-      ]
-    },
-    {
-      "name" : "int_data_t",
-      "id" : 9,
-      "fields" : [
-        ["data", "*"]
-      ],
-      "max_length" : 1004
-    },
-    {
-      "name" : "int_switch_id_t",
-      "id" : 10,
-      "fields" : [
-        ["switch_id", 32, false]
-      ]
-    },
-    {
-      "name" : "int_port_ids_t",
-      "id" : 11,
-      "fields" : [
-        ["ingress_port_id", 16, false],
-        ["egress_port_id", 16, false]
-      ]
-    },
-    {
-      "name" : "int_hop_latency_t",
-      "id" : 12,
-      "fields" : [
-        ["hop_latency", 32, false]
-      ]
-    },
-    {
-      "name" : "int_q_occupancy_t",
-      "id" : 13,
-      "fields" : [
-        ["q_id", 8, false],
-        ["q_occupancy", 24, false]
-      ]
-    },
-    {
-      "name" : "int_ingress_tstamp_t",
-      "id" : 14,
-      "fields" : [
-        ["ingress_tstamp", 32, false]
-      ]
-    },
-    {
-      "name" : "int_egress_tstamp_t",
-      "id" : 15,
-      "fields" : [
-        ["egress_tstamp", 32, false]
-      ]
-    },
-    {
-      "name" : "int_q_congestion_t",
-      "id" : 16,
-      "fields" : [
-        ["q_id", 8, false],
-        ["q_congestion", 24, false]
-      ]
-    },
-    {
-      "name" : "int_egress_port_tx_util_t",
-      "id" : 17,
-      "fields" : [
-        ["egress_port_tx_util", 32, false]
-      ]
-    },
-    {
-      "name" : "intl4_tail_t",
-      "id" : 18,
-      "fields" : [
-        ["next_proto", 8, false],
-        ["dest_port", 16, false],
-        ["dscp", 8, false]
-      ]
-    },
-    {
-      "name" : "int_metadata_t",
-      "id" : 19,
-      "fields" : [
-        ["switch_id", 32, false],
-        ["insert_byte_cnt", 16, false],
-        ["source", 1, false],
-        ["sink", 1, false],
-        ["mirror_id", 8, false],
-        ["flow_id", 16, false],
-        ["metadata_len", 8, false],
-        ["_padding_0", 6, false]
-      ]
-    },
-    {
       "name" : "standard_metadata",
-      "id" : 20,
+      "id" : 1,
       "fields" : [
         ["ingress_port", 9, false],
         ["egress_spec", 9, false],
@@ -235,7 +40,197 @@
         ["egress_rid", 16, false],
         ["checksum_error", 1, false],
         ["recirculate_flag", 32, false],
-        ["_padding_1", 5, false]
+        ["_padding_0", 5, false]
+      ]
+    },
+    {
+      "name" : "packet_out_header_t",
+      "id" : 2,
+      "fields" : [
+        ["egress_port", 9, false],
+        ["_padding", 7, false]
+      ]
+    },
+    {
+      "name" : "packet_in_header_t",
+      "id" : 3,
+      "fields" : [
+        ["ingress_port", 9, false],
+        ["_padding", 7, false]
+      ]
+    },
+    {
+      "name" : "ethernet_t",
+      "id" : 4,
+      "fields" : [
+        ["dst_addr", 48, false],
+        ["src_addr", 48, false],
+        ["ether_type", 16, false]
+      ]
+    },
+    {
+      "name" : "ipv4_t",
+      "id" : 5,
+      "fields" : [
+        ["version", 4, false],
+        ["ihl", 4, false],
+        ["dscp", 6, false],
+        ["ecn", 2, false],
+        ["len", 16, false],
+        ["identification", 16, false],
+        ["flags", 3, false],
+        ["frag_offset", 13, false],
+        ["ttl", 8, false],
+        ["protocol", 8, false],
+        ["hdr_checksum", 16, false],
+        ["src_addr", 32, false],
+        ["dst_addr", 32, false]
+      ]
+    },
+    {
+      "name" : "tcp_t",
+      "id" : 6,
+      "fields" : [
+        ["src_port", 16, false],
+        ["dst_port", 16, false],
+        ["seq_no", 32, false],
+        ["ack_no", 32, false],
+        ["data_offset", 4, false],
+        ["res", 3, false],
+        ["ecn", 3, false],
+        ["ctrl", 6, false],
+        ["window", 16, false],
+        ["checksum", 16, false],
+        ["urgent_ptr", 16, false]
+      ]
+    },
+    {
+      "name" : "udp_t",
+      "id" : 7,
+      "fields" : [
+        ["src_port", 16, false],
+        ["dst_port", 16, false],
+        ["length_", 16, false],
+        ["checksum", 16, false]
+      ]
+    },
+    {
+      "name" : "intl4_shim_t",
+      "id" : 8,
+      "fields" : [
+        ["int_type", 8, false],
+        ["rsvd1", 8, false],
+        ["len", 8, false],
+        ["rsvd2", 8, false]
+      ]
+    },
+    {
+      "name" : "int_header_t",
+      "id" : 9,
+      "fields" : [
+        ["ver", 2, false],
+        ["rep", 2, false],
+        ["c", 1, false],
+        ["e", 1, false],
+        ["rsvd1", 5, false],
+        ["ins_cnt", 5, false],
+        ["max_hop_cnt", 8, false],
+        ["total_hop_cnt", 8, false],
+        ["instruction_mask_0003", 4, false],
+        ["instruction_mask_0407", 4, false],
+        ["instruction_mask_0811", 4, false],
+        ["instruction_mask_1215", 4, false],
+        ["rsvd2", 16, false]
+      ]
+    },
+    {
+      "name" : "int_data_t",
+      "id" : 10,
+      "fields" : [
+        ["data", "*"]
+      ],
+      "max_length" : 1004
+    },
+    {
+      "name" : "int_switch_id_t",
+      "id" : 11,
+      "fields" : [
+        ["switch_id", 32, false]
+      ]
+    },
+    {
+      "name" : "int_port_ids_t",
+      "id" : 12,
+      "fields" : [
+        ["ingress_port_id", 16, false],
+        ["egress_port_id", 16, false]
+      ]
+    },
+    {
+      "name" : "int_hop_latency_t",
+      "id" : 13,
+      "fields" : [
+        ["hop_latency", 32, false]
+      ]
+    },
+    {
+      "name" : "int_q_occupancy_t",
+      "id" : 14,
+      "fields" : [
+        ["q_id", 8, false],
+        ["q_occupancy", 24, false]
+      ]
+    },
+    {
+      "name" : "int_ingress_tstamp_t",
+      "id" : 15,
+      "fields" : [
+        ["ingress_tstamp", 32, false]
+      ]
+    },
+    {
+      "name" : "int_egress_tstamp_t",
+      "id" : 16,
+      "fields" : [
+        ["egress_tstamp", 32, false]
+      ]
+    },
+    {
+      "name" : "int_q_congestion_t",
+      "id" : 17,
+      "fields" : [
+        ["q_id", 8, false],
+        ["q_congestion", 24, false]
+      ]
+    },
+    {
+      "name" : "int_egress_port_tx_util_t",
+      "id" : 18,
+      "fields" : [
+        ["egress_port_tx_util", 32, false]
+      ]
+    },
+    {
+      "name" : "intl4_tail_t",
+      "id" : 19,
+      "fields" : [
+        ["next_proto", 8, false],
+        ["dest_port", 16, false],
+        ["dscp", 8, false]
+      ]
+    },
+    {
+      "name" : "int_metadata_t",
+      "id" : 20,
+      "fields" : [
+        ["switch_id", 32, false],
+        ["insert_byte_cnt", 16, false],
+        ["source", 1, false],
+        ["sink", 1, false],
+        ["mirror_id", 8, false],
+        ["flow_id", 16, false],
+        ["metadata_len", 8, false],
+        ["_padding_1", 6, false]
       ]
     }
   ],
@@ -393,14 +388,7 @@
   "header_unions" : [],
   "header_union_stacks" : [],
   "field_lists" : [],
-  "errors" : [
-    ["NoError", 1],
-    ["PacketTooShort", 2],
-    ["NoMatch", 3],
-    ["StackOutOfBounds", 4],
-    ["HeaderTooShort", 5],
-    ["ParserTimeout", 6]
-  ],
+  "errors" : [],
   "enums" : [],
   "parsers" : [
     {
@@ -1212,7 +1200,13 @@
                 }
               }
             }
-          ]
+          ],
+          "source_info" : {
+            "filename" : "include/port_counters.p4",
+            "line" : 29,
+            "column" : 35,
+            "source_fragment" : "(bit<32>) standard_metadata.ingress_port"
+          }
         },
         {
           "op" : "count",
@@ -5989,7 +5983,13 @@
                 }
               }
             }
-          ]
+          ],
+          "source_info" : {
+            "filename" : "include/port_counters.p4",
+            "line" : 39,
+            "column" : 34,
+            "source_fragment" : "(bit<32>) standard_metadata.egress_port"
+          }
         },
         {
           "op" : "count",
@@ -6951,5 +6951,10 @@
       "intrinsic_metadata.recirculate_flag",
       ["standard_metadata", "recirculate_flag"]
     ]
-  ]
+  ],
+  "program" : "int.p4",
+  "__meta__" : {
+    "version" : [2, 18],
+    "compiler" : "https://github.com/p4lang/p4c"
+  }
 }

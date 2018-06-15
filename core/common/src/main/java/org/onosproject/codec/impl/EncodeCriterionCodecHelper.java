@@ -57,7 +57,6 @@ import org.onosproject.net.pi.runtime.PiFieldMatch;
 import org.onosproject.net.pi.runtime.PiLpmFieldMatch;
 import org.onosproject.net.pi.runtime.PiRangeFieldMatch;
 import org.onosproject.net.pi.runtime.PiTernaryFieldMatch;
-import org.onosproject.net.pi.runtime.PiValidFieldMatch;
 
 import java.util.EnumMap;
 
@@ -542,16 +541,6 @@ public final class EncodeCriterionCodecHelper {
         return matchRangeNode;
     }
 
-    private ObjectNode parsePiMatchValid(PiValidFieldMatch validFieldMatch) {
-
-        ObjectNode matchValidNode = context.mapper().createObjectNode();
-        matchValidNode.put(CriterionCodec.PI_MATCH_FIELD_ID, validFieldMatch.fieldId().id());
-        matchValidNode.put(CriterionCodec.PI_MATCH_TYPE, PiMatchType.VALID.name().toLowerCase());
-        matchValidNode.put(CriterionCodec.PI_MATCH_VALUE, validFieldMatch.isValid());
-
-        return matchValidNode;
-    }
-
     private class FormatProtocolIndependent implements CriterionTypeFormatter {
         @Override
         public ObjectNode encodeCriterion(ObjectNode root, Criterion criterion) {
@@ -569,12 +558,7 @@ public final class EncodeCriterionCodecHelper {
                         matchNodes.add(parsePiMatchTernary((PiTernaryFieldMatch) fieldMatch));
                         break;
                     case RANGE:
-
                         matchNodes.add(parsePiMatchRange((PiRangeFieldMatch) fieldMatch));
-                        break;
-                    case VALID:
-
-                        matchNodes.add(parsePiMatchValid((PiValidFieldMatch) fieldMatch));
                         break;
                     default:
                         throw new IllegalArgumentException("Type " + fieldMatch.type().name() + " is unsupported");

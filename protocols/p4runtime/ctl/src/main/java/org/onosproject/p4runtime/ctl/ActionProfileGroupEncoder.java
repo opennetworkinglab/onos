@@ -21,10 +21,10 @@ import org.onosproject.net.pi.model.PiActionProfileId;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.runtime.PiActionGroup;
 import org.onosproject.net.pi.runtime.PiActionGroupId;
-import p4.P4RuntimeOuterClass.ActionProfileGroup;
-import p4.P4RuntimeOuterClass.ActionProfileGroup.Member;
-import p4.P4RuntimeOuterClass.ActionProfileMember;
-import p4.config.P4InfoOuterClass;
+import p4.v1.P4RuntimeOuterClass.ActionProfileGroup;
+import p4.v1.P4RuntimeOuterClass.ActionProfileGroup.Member;
+import p4.v1.P4RuntimeOuterClass.ActionProfileMember;
+import p4.config.v1.P4InfoOuterClass;
 
 import java.util.Collection;
 import java.util.Map;
@@ -34,7 +34,8 @@ import static java.lang.String.format;
 /**
  * Encoder/Decoder for action profile group.
  */
-public final class ActionProfileGroupEncoder {
+final class ActionProfileGroupEncoder {
+
     private ActionProfileGroupEncoder() {
         // hide default constructor
     }

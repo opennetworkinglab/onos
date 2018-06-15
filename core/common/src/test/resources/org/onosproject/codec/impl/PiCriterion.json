@@ -23,11 +23,6 @@
             "match": "range",
             "highValue": "20",
             "lowValue": "10"
-        },
-        {
-            "field": "ethernet_t.etherType",
-            "match": "valid",
-            "value": true
         }
     ]
 }

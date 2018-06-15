@@ -25,11 +25,11 @@ import org.onosproject.net.pi.runtime.PiMeterCellConfig;
 import org.onosproject.net.pi.runtime.PiMeterCellId;
 import org.onosproject.net.pi.runtime.PiTableEntry;
 import org.slf4j.Logger;
-import p4.P4RuntimeOuterClass;
-import p4.P4RuntimeOuterClass.DirectMeterEntry;
-import p4.P4RuntimeOuterClass.Entity;
-import p4.P4RuntimeOuterClass.MeterConfig;
-import p4.P4RuntimeOuterClass.MeterEntry;
+import p4.v1.P4RuntimeOuterClass;
+import p4.v1.P4RuntimeOuterClass.DirectMeterEntry;
+import p4.v1.P4RuntimeOuterClass.Entity;
+import p4.v1.P4RuntimeOuterClass.MeterConfig;
+import p4.v1.P4RuntimeOuterClass.MeterEntry;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -39,8 +39,8 @@ import java.util.stream.Collectors;
 import static java.lang.String.format;
 import static org.onosproject.p4runtime.ctl.P4RuntimeUtils.indexMsg;
 import static org.slf4j.LoggerFactory.getLogger;
-import static p4.P4RuntimeOuterClass.Entity.EntityCase.DIRECT_METER_ENTRY;
-import static p4.P4RuntimeOuterClass.Entity.EntityCase.METER_ENTRY;
+import static p4.v1.P4RuntimeOuterClass.Entity.EntityCase.DIRECT_METER_ENTRY;
+import static p4.v1.P4RuntimeOuterClass.Entity.EntityCase.METER_ENTRY;
 
 /**
  * Encoder/decoder of PI meter cell configurations to meter entry protobuf

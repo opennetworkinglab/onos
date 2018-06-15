@@ -36,8 +36,8 @@ import org.onosproject.net.pi.runtime.PiExactFieldMatch;
 import org.onosproject.net.pi.runtime.PiMatchKey;
 import org.onosproject.net.pi.runtime.PiTableEntry;
 import org.onosproject.net.pi.runtime.PiTernaryFieldMatch;
-import p4.P4RuntimeOuterClass.Action;
-import p4.P4RuntimeOuterClass.TableEntry;
+import p4.v1.P4RuntimeOuterClass.Action;
+import p4.v1.P4RuntimeOuterClass.TableEntry;
 
 import java.net.URL;
 import java.util.Collection;
@@ -71,7 +71,6 @@ public class TableEntryEncoderTest {
     private static final String INGRESS_PORT = "ingress_port";
     private static final String ETHER_TYPE = "etherType";
     private static final String ECMP_GROUP_ID = "ecmp_group_id";
-    private static final String ECMP_ACT_PROFILE = "ecmp_selector";
 
     private final Random rand = new Random();
     private final URL p4InfoUrl = this.getClass().getResource("/test.p4info");

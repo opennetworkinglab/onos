@@ -24,7 +24,7 @@ import com.google.protobuf.TextFormat;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipeconfId;
 import org.slf4j.Logger;
-import p4.config.P4InfoOuterClass.P4Info;
+import p4.config.v1.P4InfoOuterClass.P4Info;
 
 import java.io.IOException;
 import java.io.InputStream;

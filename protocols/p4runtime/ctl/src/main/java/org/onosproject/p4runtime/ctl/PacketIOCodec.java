@@ -25,7 +25,7 @@ import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.runtime.PiControlMetadata;
 import org.onosproject.net.pi.runtime.PiPacketOperation;
 import org.slf4j.Logger;
-import p4.config.P4InfoOuterClass;
+import p4.config.v1.P4InfoOuterClass;
 
 import java.util.Collections;
 import java.util.List;
@@ -35,9 +35,9 @@ import java.util.stream.Collectors;
 import static org.onlab.util.ImmutableByteSequence.copyFrom;
 import static org.onosproject.p4runtime.ctl.P4InfoBrowser.NotFoundException;
 import static org.slf4j.LoggerFactory.getLogger;
-import static p4.P4RuntimeOuterClass.PacketIn;
-import static p4.P4RuntimeOuterClass.PacketMetadata;
-import static p4.P4RuntimeOuterClass.PacketOut;
+import static p4.v1.P4RuntimeOuterClass.PacketIn;
+import static p4.v1.P4RuntimeOuterClass.PacketMetadata;
+import static p4.v1.P4RuntimeOuterClass.PacketOut;
 
 /**
  * Encoder of packet metadata, from ONOS Pi* format, to P4Runtime protobuf messages, and vice versa.

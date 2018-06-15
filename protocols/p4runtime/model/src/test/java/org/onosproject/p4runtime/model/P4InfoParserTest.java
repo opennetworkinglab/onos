@@ -22,6 +22,7 @@ import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.TextFormat;
 import org.hamcrest.collection.IsIterableContainingInAnyOrder;
 import org.hamcrest.collection.IsIterableContainingInOrder;
+import org.junit.Assert;
 import org.junit.Test;
 import org.onosproject.net.pi.model.PiActionId;
 import org.onosproject.net.pi.model.PiActionModel;
@@ -40,22 +41,23 @@ import org.onosproject.net.pi.model.PiPacketOperationType;
 import org.onosproject.net.pi.model.PiPipelineModel;
 import org.onosproject.net.pi.model.PiTableId;
 import org.onosproject.net.pi.model.PiTableModel;
-import p4.config.P4InfoOuterClass.Table;
-import p4.config.P4InfoOuterClass.P4Info;
-import p4.config.P4InfoOuterClass.MatchField;
-import p4.config.P4InfoOuterClass.ActionRef;
+import p4.config.v1.P4InfoOuterClass.ActionRef;
+import p4.config.v1.P4InfoOuterClass.MatchField;
+import p4.config.v1.P4InfoOuterClass.P4Info;
+import p4.config.v1.P4InfoOuterClass.Table;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.core.IsNull.notNullValue;
 
 /**
@@ -68,8 +70,6 @@ public class P4InfoParserTest {
 
     private static final Long DEFAULT_MAX_TABLE_SIZE = 1024L;
     private static final Long DEFAULT_MAX_ACTION_PROFILE_SIZE = 64L;
-
-    public P4InfoParserTest() throws MalformedURLException { }
 
     /**
      * Tests parse method.
@@ -116,15 +116,14 @@ public class P4InfoParserTest {
         List<PiMatchFieldModel> piMatchFieldList = new ArrayList<>();
 
         for (MatchField matchFieldIter : matchFieldList) {
-            int matchTypeNumber = matchFieldIter.getMatchType().getNumber();
-            PiMatchType piMatchType = PiMatchType.VALID;
-            switch (matchTypeNumber) {
-                case 1: piMatchType = PiMatchType.VALID; break;
-                case 2: piMatchType = PiMatchType.EXACT; break;
-                case 3: piMatchType = PiMatchType.LPM; break;
-                case 4: piMatchType = piMatchType.TERNARY; break;
-                case 5: piMatchType = piMatchType.RANGE; break;
-                default: piMatchType = PiMatchType.VALID; break;
+            MatchField.MatchType matchType = matchFieldIter.getMatchType();
+            PiMatchType piMatchType;
+            switch (matchType) {
+                case EXACT: piMatchType = PiMatchType.EXACT; break;
+                case LPM: piMatchType = PiMatchType.LPM; break;
+                case TERNARY: piMatchType = PiMatchType.TERNARY; break;
+                case RANGE: piMatchType = PiMatchType.RANGE; break;
+                default: Assert.fail(); return;
             }
             piMatchFieldList.add(new P4MatchFieldModel(PiMatchFieldId.of(matchFieldIter.getName()),
                                                        matchFieldIter.getBitwidth(), piMatchType));

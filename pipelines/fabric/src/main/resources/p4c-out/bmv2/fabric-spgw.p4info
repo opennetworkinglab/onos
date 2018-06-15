@@ -14,6 +14,7 @@ tables {
     id: 16800567
   }
   size: 1024
+  idle_timeout_behavior: NO_TIMEOUT
 }
 tables {
   preamble {
@@ -31,6 +32,7 @@ tables {
     id: 16800567
   }
   size: 1024
+  idle_timeout_behavior: NO_TIMEOUT
 }
 tables {
   preamble {
@@ -52,6 +54,7 @@ tables {
     annotations: "@defaultonly()"
   }
   size: 1024
+  idle_timeout_behavior: NO_TIMEOUT
 }
 tables {
   preamble {
@@ -72,8 +75,9 @@ tables {
     id: 16800567
     annotations: "@defaultonly()"
   }
-  direct_resource_ids: 302004306
+  direct_resource_ids: 318781522
   size: 1024
+  idle_timeout_behavior: NO_TIMEOUT
 }
 tables {
   preamble {
@@ -112,8 +116,9 @@ tables {
     id: 16798734
   }
   const_default_action_id: 16819938
-  direct_resource_ids: 302038285
+  direct_resource_ids: 318815501
   size: 1024
+  idle_timeout_behavior: NO_TIMEOUT
 }
 tables {
   preamble {
@@ -143,8 +148,9 @@ tables {
     id: 16840921
   }
   const_default_action_id: 16840921
-  direct_resource_ids: 302050110
+  direct_resource_ids: 318827326
   size: 1024
+  idle_timeout_behavior: NO_TIMEOUT
 }
 tables {
   preamble {
@@ -171,8 +177,9 @@ tables {
     id: 16800567
     annotations: "@defaultonly()"
   }
-  direct_resource_ids: 301993073
+  direct_resource_ids: 318770289
   size: 1024
+  idle_timeout_behavior: NO_TIMEOUT
 }
 tables {
   preamble {
@@ -193,8 +200,9 @@ tables {
     id: 16800567
     annotations: "@defaultonly()"
   }
-  direct_resource_ids: 302053291
+  direct_resource_ids: 318830507
   size: 1024
+  idle_timeout_behavior: NO_TIMEOUT
 }
 tables {
   preamble {
@@ -215,86 +223,9 @@ tables {
     id: 16800567
     annotations: "@defaultonly()"
   }
-  direct_resource_ids: 301991276
+  direct_resource_ids: 318768492
   size: 1024
-}
-tables {
-  preamble {
-    id: 33578363
-    name: "FabricIngress.forwarding.multicast_v4"
-    alias: "multicast_v4"
-  }
-  match_fields {
-    id: 1
-    name: "hdr.vlan_tag.vlan_id"
-    bitwidth: 12
-    match_type: EXACT
-  }
-  match_fields {
-    id: 2
-    name: "hdr.ipv4.dst_addr"
-    bitwidth: 32
-    match_type: LPM
-  }
-  action_refs {
-    id: 16839692
-  }
-  action_refs {
-    id: 16800567
-    annotations: "@defaultonly()"
-  }
-  direct_resource_ids: 302020680
-  size: 1024
-}
-tables {
-  preamble {
-    id: 33568751
-    name: "FabricIngress.forwarding.unicast_v6"
-    alias: "unicast_v6"
-  }
-  match_fields {
-    id: 1
-    name: "hdr.ipv6.dst_addr"
-    bitwidth: 128
-    match_type: LPM
-  }
-  action_refs {
-    id: 16839692
-  }
-  action_refs {
-    id: 16800567
-    annotations: "@defaultonly()"
-  }
-  direct_resource_ids: 302043649
-  size: 1024
-}
-tables {
-  preamble {
-    id: 33581295
-    name: "FabricIngress.forwarding.multicast_v6"
-    alias: "multicast_v6"
-  }
-  match_fields {
-    id: 1
-    name: "hdr.vlan_tag.vlan_id"
-    bitwidth: 12
-    match_type: EXACT
-  }
-  match_fields {
-    id: 2
-    name: "hdr.ipv6.dst_addr"
-    bitwidth: 128
-    match_type: LPM
-  }
-  action_refs {
-    id: 16839692
-  }
-  action_refs {
-    id: 16800567
-    annotations: "@defaultonly()"
-  }
-  direct_resource_ids: 302038094
-  size: 1024
+  idle_timeout_behavior: NO_TIMEOUT
 }
 tables {
   preamble {
@@ -387,8 +318,9 @@ tables {
     id: 16819938
   }
   const_default_action_id: 16819938
-  direct_resource_ids: 301995056
+  direct_resource_ids: 318772272
   size: 256
+  idle_timeout_behavior: NO_TIMEOUT
 }
 tables {
   preamble {
@@ -408,8 +340,9 @@ tables {
   action_refs {
     id: 16819938
   }
-  direct_resource_ids: 302008112
+  direct_resource_ids: 318785328
   size: 1024
+  idle_timeout_behavior: NO_TIMEOUT
 }
 tables {
   preamble {
@@ -442,8 +375,9 @@ tables {
     id: 16800567
     annotations: "@defaultonly()"
   }
-  direct_resource_ids: 301991880
+  direct_resource_ids: 318769096
   size: 1024
+  idle_timeout_behavior: NO_TIMEOUT
 }
 tables {
   preamble {
@@ -471,30 +405,9 @@ tables {
     annotations: "@defaultonly()"
   }
   implementation_id: 285233747
-  direct_resource_ids: 302023316
+  direct_resource_ids: 318800532
   size: 1024
-}
-tables {
-  preamble {
-    id: 33606828
-    name: "FabricIngress.next.multicast"
-    alias: "multicast"
-  }
-  match_fields {
-    id: 1
-    name: "fabric_metadata.next_id"
-    bitwidth: 32
-    match_type: EXACT
-  }
-  action_refs {
-    id: 16789575
-  }
-  action_refs {
-    id: 16800567
-    annotations: "@defaultonly()"
-  }
-  direct_resource_ids: 302024536
-  size: 1024
+  idle_timeout_behavior: NO_TIMEOUT
 }
 tables {
   preamble {
@@ -521,6 +434,7 @@ tables {
     id: 16819938
   }
   size: 1024
+  idle_timeout_behavior: NO_TIMEOUT
 }
 actions {
   preamble {
@@ -806,23 +720,6 @@ actions {
 }
 actions {
   preamble {
-    id: 16789575
-    name: "FabricIngress.next.set_mcast_group"
-    alias: "set_mcast_group"
-  }
-  params {
-    id: 1
-    name: "gid"
-    bitwidth: 16
-  }
-  params {
-    id: 2
-    name: "smac"
-    bitwidth: 48
-  }
-}
-actions {
-  preamble {
     id: 16829135
     name: "FabricEgress.spgw_egress.gtpu_encap"
     alias: "gtpu_encap"
@@ -876,7 +773,7 @@ counters {
 }
 direct_counters {
   preamble {
-    id: 302004306
+    id: 318781522
     name: "FabricIngress.spgw_ingress.ue_counter"
     alias: "ue_counter"
   }
@@ -887,7 +784,7 @@ direct_counters {
 }
 direct_counters {
   preamble {
-    id: 302038285
+    id: 318815501
     name: "FabricIngress.filtering.ingress_port_vlan_counter"
     alias: "ingress_port_vlan_counter"
   }
@@ -898,7 +795,7 @@ direct_counters {
 }
 direct_counters {
   preamble {
-    id: 302050110
+    id: 318827326
     name: "FabricIngress.filtering.fwd_classifier_counter"
     alias: "fwd_classifier_counter"
   }
@@ -909,7 +806,7 @@ direct_counters {
 }
 direct_counters {
   preamble {
-    id: 301993073
+    id: 318770289
     name: "FabricIngress.forwarding.bridging_counter"
     alias: "bridging_counter"
   }
@@ -920,7 +817,7 @@ direct_counters {
 }
 direct_counters {
   preamble {
-    id: 302053291
+    id: 318830507
     name: "FabricIngress.forwarding.mpls_counter"
     alias: "mpls_counter"
   }
@@ -931,7 +828,7 @@ direct_counters {
 }
 direct_counters {
   preamble {
-    id: 301991276
+    id: 318768492
     name: "FabricIngress.forwarding.unicast_v4_counter"
     alias: "unicast_v4_counter"
   }
@@ -942,40 +839,7 @@ direct_counters {
 }
 direct_counters {
   preamble {
-    id: 302020680
-    name: "FabricIngress.forwarding.multicast_v4_counter"
-    alias: "multicast_v4_counter"
-  }
-  spec {
-    unit: BOTH
-  }
-  direct_table_id: 33578363
-}
-direct_counters {
-  preamble {
-    id: 302043649
-    name: "FabricIngress.forwarding.unicast_v6_counter"
-    alias: "unicast_v6_counter"
-  }
-  spec {
-    unit: BOTH
-  }
-  direct_table_id: 33568751
-}
-direct_counters {
-  preamble {
-    id: 302038094
-    name: "FabricIngress.forwarding.multicast_v6_counter"
-    alias: "multicast_v6_counter"
-  }
-  spec {
-    unit: BOTH
-  }
-  direct_table_id: 33581295
-}
-direct_counters {
-  preamble {
-    id: 301995056
+    id: 318772272
     name: "FabricIngress.forwarding.acl_counter"
     alias: "acl_counter"
   }
@@ -986,7 +850,7 @@ direct_counters {
 }
 direct_counters {
   preamble {
-    id: 302008112
+    id: 318785328
     name: "FabricIngress.next.vlan_meta_counter"
     alias: "vlan_meta_counter"
   }
@@ -997,7 +861,7 @@ direct_counters {
 }
 direct_counters {
   preamble {
-    id: 301991880
+    id: 318769096
     name: "FabricIngress.next.simple_counter"
     alias: "simple_counter"
   }
@@ -1008,7 +872,7 @@ direct_counters {
 }
 direct_counters {
   preamble {
-    id: 302023316
+    id: 318800532
     name: "FabricIngress.next.hashed_counter"
     alias: "hashed_counter"
   }
@@ -1017,20 +881,9 @@ direct_counters {
   }
   direct_table_id: 33608588
 }
-direct_counters {
-  preamble {
-    id: 302024536
-    name: "FabricIngress.next.multicast_counter"
-    alias: "multicast_counter"
-  }
-  spec {
-    unit: BOTH
-  }
-  direct_table_id: 33606828
-}
 controller_packet_metadata {
   preamble {
-    id: 2868941301
+    id: 67146229
     name: "packet_in"
     annotations: "@controller_header(\"packet_in\")"
   }
@@ -1047,7 +900,7 @@ controller_packet_metadata {
 }
 controller_packet_metadata {
   preamble {
-    id: 2868916615
+    id: 67121543
     name: "packet_out"
     annotations: "@controller_header(\"packet_out\")"
   }
@@ -1061,4 +914,6 @@ controller_packet_metadata {
     name: "_pad"
     bitwidth: 7
   }
+}
+type_info {
 }

@@ -24,7 +24,6 @@ import org.onosproject.net.pi.runtime.PiFieldMatch;
 import org.onosproject.net.pi.runtime.PiLpmFieldMatch;
 import org.onosproject.net.pi.runtime.PiRangeFieldMatch;
 import org.onosproject.net.pi.runtime.PiTernaryFieldMatch;
-import org.onosproject.net.pi.runtime.PiValidFieldMatch;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -153,10 +152,6 @@ public class PiCriteriaTest {
             .matchTernary(ipv4MatchFieldId, matchTernaryLong1, matchTernaryMaskLong).build();
     private Criterion matchPiTernaryLong2 = PiCriterion.builder()
             .matchTernary(ipv4MatchFieldId, matchTernaryLong2, matchTernaryMaskLong).build();
-
-    private Criterion matchPiValid1 = PiCriterion.builder().matchValid(ipv4MatchFieldId, false).build();
-    private Criterion sameAsMatchPiValid1 = PiCriterion.builder().matchValid(ipv4MatchFieldId, false).build();
-    private Criterion matchPiValid2 = PiCriterion.builder().matchValid(ipv4MatchFieldId, true).build();
 
     private byte[] matchRangeBytes1 = {0x10};
     private byte[] matchRangeBytes2 = {0x20};
@@ -321,19 +316,6 @@ public class PiCriteriaTest {
     }
 
     /**
-     * Test the ValidMatchPi method.
-     */
-    @Test
-    public void testValidMatchPiMethod() {
-
-        Criterion matchPiBytes = PiCriterion.builder().matchValid(ipv4MatchFieldId, true).build();
-        PiCriterion piCriterionBytes = checkAndConvert(matchPiBytes, Criterion.Type.PROTOCOL_INDEPENDENT,
-                                                       PiCriterion.class);
-        PiFieldMatch expectedMatch = new PiValidFieldMatch(ipv4MatchFieldId, true);
-        assertThat(piCriterionBytes.fieldMatches().iterator().next(), is(expectedMatch));
-    }
-
-    /**
      * Test the RangeMatchPi method.
      */
     @Test
@@ -451,17 +433,6 @@ public class PiCriteriaTest {
         new EqualsTester()
                 .addEqualityGroup(matchPiTernaryLong1, sameAsMatchPiTernaryLong1)
                 .addEqualityGroup(matchPiTernaryLong2)
-                .testEquals();
-    }
-
-    /**
-     * Test the equals() method of the PiCriterion class.
-     */
-    @Test
-    public void testPiValidCriterionEquals() {
-        new EqualsTester()
-                .addEqualityGroup(matchPiValid1, sameAsMatchPiValid1)
-                .addEqualityGroup(matchPiValid2)
                 .testEquals();
     }
 

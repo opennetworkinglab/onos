@@ -17,14 +17,14 @@
 package org.onosproject.p4runtime.ctl;
 
 import com.google.protobuf.ByteString;
-import p4.P4RuntimeOuterClass;
+import p4.v1.P4RuntimeOuterClass;
 
 import static java.lang.String.format;
 
 /**
  * Utilities for P4 runtime control.
  */
-public final class P4RuntimeUtils {
+final class P4RuntimeUtils {
 
     private P4RuntimeUtils() {
         // Hide default construction

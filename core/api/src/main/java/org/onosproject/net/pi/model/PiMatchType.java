@@ -40,11 +40,6 @@ public enum PiMatchType {
     LPM,
 
     /**
-     * Valid match type.
-     */
-    VALID,
-
-    /**
      * Range match type.
      */
     RANGE

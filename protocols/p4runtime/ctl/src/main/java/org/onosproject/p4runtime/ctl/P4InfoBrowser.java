@@ -19,17 +19,17 @@ package org.onosproject.p4runtime.ctl;
 
 import com.google.common.collect.Maps;
 import com.google.protobuf.Message;
-import p4.config.P4InfoOuterClass.Action;
-import p4.config.P4InfoOuterClass.ActionProfile;
-import p4.config.P4InfoOuterClass.ControllerPacketMetadata;
-import p4.config.P4InfoOuterClass.Counter;
-import p4.config.P4InfoOuterClass.DirectCounter;
-import p4.config.P4InfoOuterClass.DirectMeter;
-import p4.config.P4InfoOuterClass.MatchField;
-import p4.config.P4InfoOuterClass.Meter;
-import p4.config.P4InfoOuterClass.P4Info;
-import p4.config.P4InfoOuterClass.Preamble;
-import p4.config.P4InfoOuterClass.Table;
+import p4.config.v1.P4InfoOuterClass.Action;
+import p4.config.v1.P4InfoOuterClass.ActionProfile;
+import p4.config.v1.P4InfoOuterClass.ControllerPacketMetadata;
+import p4.config.v1.P4InfoOuterClass.Counter;
+import p4.config.v1.P4InfoOuterClass.DirectCounter;
+import p4.config.v1.P4InfoOuterClass.DirectMeter;
+import p4.config.v1.P4InfoOuterClass.MatchField;
+import p4.config.v1.P4InfoOuterClass.Meter;
+import p4.config.v1.P4InfoOuterClass.P4Info;
+import p4.config.v1.P4InfoOuterClass.Preamble;
+import p4.config.v1.P4InfoOuterClass.Table;
 
 import java.util.Map;
 

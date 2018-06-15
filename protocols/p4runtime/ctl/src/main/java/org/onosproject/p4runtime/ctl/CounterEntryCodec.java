@@ -24,11 +24,11 @@ import org.onosproject.net.pi.runtime.PiCounterCellData;
 import org.onosproject.net.pi.runtime.PiCounterCellId;
 import org.onosproject.net.pi.runtime.PiTableEntry;
 import org.slf4j.Logger;
-import p4.P4RuntimeOuterClass;
-import p4.P4RuntimeOuterClass.CounterData;
-import p4.P4RuntimeOuterClass.CounterEntry;
-import p4.P4RuntimeOuterClass.DirectCounterEntry;
-import p4.P4RuntimeOuterClass.Entity;
+import p4.v1.P4RuntimeOuterClass;
+import p4.v1.P4RuntimeOuterClass.CounterData;
+import p4.v1.P4RuntimeOuterClass.CounterEntry;
+import p4.v1.P4RuntimeOuterClass.DirectCounterEntry;
+import p4.v1.P4RuntimeOuterClass.Entity;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -38,8 +38,8 @@ import java.util.stream.Collectors;
 import static java.lang.String.format;
 import static org.onosproject.p4runtime.ctl.P4RuntimeUtils.indexMsg;
 import static org.slf4j.LoggerFactory.getLogger;
-import static p4.P4RuntimeOuterClass.Entity.EntityCase.COUNTER_ENTRY;
-import static p4.P4RuntimeOuterClass.Entity.EntityCase.DIRECT_COUNTER_ENTRY;
+import static p4.v1.P4RuntimeOuterClass.Entity.EntityCase.COUNTER_ENTRY;
+import static p4.v1.P4RuntimeOuterClass.Entity.EntityCase.DIRECT_COUNTER_ENTRY;
 
 /**
  * Encoder/decoder of PI counter IDs to counter entry protobuf messages, and

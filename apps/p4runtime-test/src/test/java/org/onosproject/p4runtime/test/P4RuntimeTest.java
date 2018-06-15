@@ -49,8 +49,8 @@ import org.onosproject.p4runtime.ctl.P4RuntimeClientImpl;
 import org.onosproject.p4runtime.ctl.P4RuntimeControllerImpl;
 import org.onosproject.pipelines.basic.PipeconfLoader;
 import org.slf4j.Logger;
-import p4.P4RuntimeGrpc;
-import p4.P4RuntimeOuterClass;
+import p4.v1.P4RuntimeGrpc;
+import p4.v1.P4RuntimeOuterClass;
 
 import java.net.URL;
 import java.util.Collection;
@@ -62,7 +62,7 @@ import static org.onlab.util.ImmutableByteSequence.ofZeros;
 import static org.onosproject.net.pi.model.PiPacketOperationType.PACKET_OUT;
 import static org.onosproject.net.pi.model.PiPipeconf.ExtensionType.BMV2_JSON;
 import static org.slf4j.LoggerFactory.getLogger;
-import static p4.P4RuntimeOuterClass.Update.Type.INSERT;
+import static p4.v1.P4RuntimeOuterClass.Update.Type.INSERT;
 
 /**
  * Class used for quick testing of P4Runtime with real devices. To be removed before release.

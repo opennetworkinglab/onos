@@ -19,7 +19,7 @@ package org.onosproject.p4runtime.ctl;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.p4runtime.api.P4RuntimeEventSubject;
-import p4.P4RuntimeOuterClass.Uint128;
+import p4.v1.P4RuntimeOuterClass.Uint128;
 
 /**
  * Default implementation of arbitration in P4Runtime.
@@ -36,7 +36,7 @@ public class DefaultArbitration implements P4RuntimeEventSubject {
      * @param role       the role
      * @param electionId the election id
      */
-    public DefaultArbitration(DeviceId deviceId, MastershipRole role, Uint128 electionId) {
+     DefaultArbitration(DeviceId deviceId, MastershipRole role, Uint128 electionId) {
         this.deviceId = deviceId;
         this.role = role;
         this.electionId = electionId;
