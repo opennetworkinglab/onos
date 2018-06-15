@@ -86,6 +86,8 @@ import java.util.Dictionary;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -166,11 +168,11 @@ public class FpmManager implements FpmInfoService {
 
     @Property(name = "pdPushNextHopIPv4", value = "",
             label = "IPv4 next-hop address for PD Pushing.")
-    private Ip4Address pdPushNextHopIPv4 = null;
+    private List<Ip4Address> pdPushNextHopIPv4 = null;
 
     @Property(name = "pdPushNextHopIPv6", value = "",
             label = "IPv6 next-hop address for PD Pushing.")
-    private Ip6Address pdPushNextHopIPv6 = null;
+    private List<Ip6Address> pdPushNextHopIPv6 = null;
 
     protected void bindRipStore(FpmPrefixStore store) {
         if ((ripStore == null) && (store != null)) {
@@ -253,6 +255,8 @@ public class FpmManager implements FpmInfoService {
 
     @Modified
     protected void modified(ComponentContext context) {
+        Ip4Address rurIPv4Address;
+        Ip6Address rurIPv6Address;
         Dictionary<?, ?> properties = context.getProperties();
         if (properties == null) {
             return;
@@ -269,20 +273,28 @@ public class FpmManager implements FpmInfoService {
             pdPushEnabled = Boolean.parseBoolean(strPdPushEnabled);
             if (pdPushEnabled) {
 
-                pdPushNextHopIPv4 = null;
-                pdPushNextHopIPv6 = null;
+                pdPushNextHopIPv4 = new ArrayList<Ip4Address>();
+                pdPushNextHopIPv6 = new ArrayList<Ip6Address>();
 
                 String strPdPushNextHopIPv4 = Tools.get(properties, "pdPushNextHopIPv4");
                 if (strPdPushNextHopIPv4 != null) {
-                    pdPushNextHopIPv4 = Ip4Address.valueOf(strPdPushNextHopIPv4);
+                    List<String> strPdPushNextHopIPv4List = Arrays.asList(strPdPushNextHopIPv4.split(","));
+                    for (String nextHop : strPdPushNextHopIPv4List) {
+                        log.debug("IPv4 next hop added is:" + nextHop);
+                        pdPushNextHopIPv4.add(Ip4Address.valueOf(nextHop));
+                    }
                 }
                 String strPdPushNextHopIPv6 = Tools.get(properties, "pdPushNextHopIPv6");
                 if (strPdPushNextHopIPv6 != null) {
-                    pdPushNextHopIPv6 = Ip6Address.valueOf(strPdPushNextHopIPv6);
+                    List<String> strPdPushNextHopIPv6List = Arrays.asList(strPdPushNextHopIPv6.split(","));
+                    for (String nextHop : strPdPushNextHopIPv6List) {
+                        log.debug("IPv6 next hop added is:" + nextHop);
+                        pdPushNextHopIPv6.add(Ip6Address.valueOf(nextHop));
+                    }
                 }
 
-                if (pdPushNextHopIPv4 == null) {
-                    pdPushNextHopIPv4 = interfaceService.getInterfaces()
+                if (pdPushNextHopIPv4 == null || pdPushNextHopIPv4.size() == 0) {
+                    rurIPv4Address = interfaceService.getInterfaces()
                         .stream()
                         .filter(iface -> iface.name().contains("RUR"))
                         .map(Interface::ipAddressesList)
@@ -292,10 +304,14 @@ public class FpmManager implements FpmInfoService {
                         .map(IpAddress::getIp4Address)
                         .findFirst()
                         .orElse(null);
+                    if (rurIPv4Address != null) {
+                        pdPushNextHopIPv4.add(rurIPv4Address);
+                    }
+
                 }
 
                 if (pdPushNextHopIPv6 == null) {
-                    pdPushNextHopIPv6 = interfaceService.getInterfaces()
+                    rurIPv6Address = interfaceService.getInterfaces()
                         .stream()
                         .filter(iface -> iface.name().contains("RUR"))
                         .map(Interface::ipAddressesList)
@@ -305,22 +321,24 @@ public class FpmManager implements FpmInfoService {
                         .map(IpAddress::getIp6Address)
                         .findFirst()
                         .orElse(null);
+                    if (rurIPv6Address != null) {
+                        pdPushNextHopIPv6.add(rurIPv6Address);
+                    }
                 }
 
                 log.info("PD pushing is enabled.");
-                if (pdPushNextHopIPv4 != null) {
-                    log.info("ipv4 next-hop {}", pdPushNextHopIPv4.toString());
+                if (pdPushNextHopIPv4 != null || pdPushNextHopIPv4.size() != 0) {
+                    log.info("ipv4 next-hop {} with {} items", pdPushNextHopIPv4.toString(), pdPushNextHopIPv4.size());
+
                 } else {
                     log.info("ipv4 next-hop is null");
                 }
-                if (pdPushNextHopIPv6 != null) {
-                    log.info("ipv6 next-hop={}", pdPushNextHopIPv6.toString());
+                if (pdPushNextHopIPv6 != null || pdPushNextHopIPv6.size() != 0) {
+                    log.info("ipv6 next-hop={} with {} items", pdPushNextHopIPv6.toString(), pdPushNextHopIPv6.size());
                 } else {
                     log.info("ipv6 next-hop is null");
                 }
-                if (!oldValue) {
-                    processStaticRoutes();
-                }
+                processStaticRoutes();
             } else {
                 log.info("PD pushing is disabled.");
             }
@@ -497,6 +515,7 @@ public class FpmManager implements FpmInfoService {
     }
 
     public void processStaticRoutes() {
+        log.debug("processStaticRoutes function is called");
         for (Channel ch : allChannels) {
             processStaticRoutes(ch);
         }
@@ -531,80 +550,91 @@ public class FpmManager implements FpmInfoService {
         }
     }
 
-    private void sendRouteUpdateToChannel(boolean isAdd, IpPrefix prefix, Channel ch) {
-
-        if (!pdPushEnabled) {
-            return;
-        }
-
+    private void updateRoute(IpAddress pdPushNextHop, boolean isAdd, IpPrefix prefix,
+                             Channel ch, int raLength, short addrFamily) {
         try {
-            int raLength;
-            short addrFamily;
-            IpAddress pdPushNextHop;
-
-            // Build route attributes.
-            if (prefix.isIp4()) {
-                if (pdPushNextHopIPv4 == null) {
-                    log.info("Prefix not pushed because ipv4 next-hop is null.");
-                    return;
-                }
-                pdPushNextHop = pdPushNextHopIPv4;
-                raLength =  Ip4Address.BYTE_LENGTH + RouteAttribute.ROUTE_ATTRIBUTE_HEADER_LENGTH;
-                addrFamily = RtNetlink.RT_ADDRESS_FAMILY_INET;
-            } else {
-                if (pdPushNextHopIPv6 == null) {
-                    log.info("Prefix not pushed because ipv6 next-hop is null.");
-                    return;
-                }
-                pdPushNextHop = pdPushNextHopIPv6;
-                raLength =  Ip6Address.BYTE_LENGTH + RouteAttribute.ROUTE_ATTRIBUTE_HEADER_LENGTH;
-                addrFamily = RtNetlink.RT_ADDRESS_FAMILY_INET6;
-            }
-
-             RouteAttributeDst raDst = RouteAttributeDst.builder()
-                .length(raLength)
-                .type(RouteAttribute.RTA_DST)
-                .dstAddress(prefix.address())
-                .build();
+            RouteAttributeDst raDst = RouteAttributeDst.builder()
+                    .length(raLength)
+                    .type(RouteAttribute.RTA_DST)
+                    .dstAddress(prefix.address())
+                    .build();
 
             RouteAttributeGateway raGateway = RouteAttributeGateway.builder()
-                .length(raLength)
-                .type(RouteAttribute.RTA_GATEWAY)
-                .gateway(pdPushNextHop)
-                .build();
+                    .length(raLength)
+                    .type(RouteAttribute.RTA_GATEWAY)
+                    .gateway(pdPushNextHop)
+                    .build();
 
             // Build RtNetlink.
             RtNetlink rtNetlink = RtNetlink.builder()
-                .addressFamily(addrFamily)
-                .dstLength(prefix.prefixLength())
-                .routeAttribute(raDst)
-                .routeAttribute(raGateway)
-                .build();
+                    .addressFamily(addrFamily)
+                    .dstLength(prefix.prefixLength())
+                    .routeAttribute(raDst)
+                    .routeAttribute(raGateway)
+                    .build();
 
             // Build Netlink.
             int messageLength = raDst.length() + raGateway.length() +
-                                RtNetlink.RT_NETLINK_LENGTH + Netlink.NETLINK_HEADER_LENGTH;
+                    RtNetlink.RT_NETLINK_LENGTH + Netlink.NETLINK_HEADER_LENGTH;
             Netlink netLink = Netlink.builder()
-                .length(messageLength)
-                .type(isAdd ? NetlinkMessageType.RTM_NEWROUTE : NetlinkMessageType.RTM_DELROUTE)
-                .flags(Netlink.NETLINK_REQUEST | Netlink.NETLINK_CREATE)
-                .rtNetlink(rtNetlink)
-                .build();
+                    .length(messageLength)
+                    .type(isAdd ? NetlinkMessageType.RTM_NEWROUTE : NetlinkMessageType.RTM_DELROUTE)
+                    .flags(Netlink.NETLINK_REQUEST | Netlink.NETLINK_CREATE)
+                    .rtNetlink(rtNetlink)
+                    .build();
 
             // Build FpmHeader.
             messageLength += FpmHeader.FPM_HEADER_LENGTH;
             FpmHeader fpmMessage = FpmHeader.builder()
-                .version(FpmHeader.FPM_VERSION_1)
-                .type(FpmHeader.FPM_TYPE_NETLINK)
-                .length(messageLength)
-                .netlink(netLink)
-                .build();
+                    .version(FpmHeader.FPM_VERSION_1)
+                    .type(FpmHeader.FPM_TYPE_NETLINK)
+                    .length(messageLength)
+                    .netlink(netLink)
+                    .build();
 
             // Encode message in a channel buffer and transmit.
             ch.write(fpmMessage.encode());
 
         } catch (RuntimeException e) {
             log.info("Route not sent over fpm connection.");
+        }
+    }
+
+    private void sendRouteUpdateToChannel(boolean isAdd, IpPrefix prefix, Channel ch) {
+
+        if (!pdPushEnabled) {
+            return;
+        }
+        int raLength;
+        short addrFamily;
+
+        // Build route attributes.
+        if (prefix.isIp4()) {
+            List<Ip4Address> pdPushNextHopList;
+            if (pdPushNextHopIPv4 == null || pdPushNextHopIPv4.size() == 0) {
+                log.info("Prefix not pushed because ipv4 next-hop is null.");
+                return;
+            }
+            pdPushNextHopList = pdPushNextHopIPv4;
+            raLength =  Ip4Address.BYTE_LENGTH + RouteAttribute.ROUTE_ATTRIBUTE_HEADER_LENGTH;
+            addrFamily = RtNetlink.RT_ADDRESS_FAMILY_INET;
+            for (Ip4Address pdPushNextHop: pdPushNextHopList) {
+                log.debug("IPv4 next hop is:" + pdPushNextHop);
+                updateRoute(pdPushNextHop, isAdd, prefix, ch, raLength, addrFamily);
+            }
+        } else {
+            List<Ip6Address> pdPushNextHopList;
+            if (pdPushNextHopIPv6 == null || pdPushNextHopIPv6.size() == 0) {
+                log.info("Prefix not pushed because ipv6 next-hop is null.");
+                return;
+            }
+            pdPushNextHopList = pdPushNextHopIPv6;
+            raLength =  Ip6Address.BYTE_LENGTH + RouteAttribute.ROUTE_ATTRIBUTE_HEADER_LENGTH;
+            addrFamily = RtNetlink.RT_ADDRESS_FAMILY_INET6;
+            for (Ip6Address pdPushNextHop: pdPushNextHopList) {
+                log.debug("IPv6 next hop is:" + pdPushNextHop);
+                updateRoute(pdPushNextHop, isAdd, prefix, ch, raLength, addrFamily);
+            }
         }
     }
 
