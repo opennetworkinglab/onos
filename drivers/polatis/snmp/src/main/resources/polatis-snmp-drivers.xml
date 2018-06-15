@@ -25,6 +25,8 @@
                    impl="org.onosproject.drivers.polatis.snmp.PolatisFlowRuleProgrammable"/>
         <behaviour api="org.onosproject.net.behaviour.PowerConfig"
                    impl="org.onosproject.drivers.polatis.snmp.PolatisPowerConfig"/>
+        <behaviour api="org.onosproject.incubator.net.faultmanagement.alarm.DeviceAlarmConfig"
+                   impl="org.onosproject.drivers.polatis.snmp.PolatisAlarmConfig"/>
         <property name="uiType">policon</property>
     </driver>
 </drivers>

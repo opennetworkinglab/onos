@@ -33,7 +33,7 @@ public interface AlarmService extends ListenerService<AlarmEvent, AlarmListener>
      * Update book-keeping (ie administrative) fields for the alarm matching the specified identifier.
      *
      * @param id             alarm identifier
-     * @param clear          ture if the alarm has to be cleared
+     * @param clear          true if the alarm has to be cleared
      * @param isAcknowledged new acknowledged state
      * @param assignedUser   new assigned user, null clear
      * @return updated alarm (including any recent device-derived changes)
