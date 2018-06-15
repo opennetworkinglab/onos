@@ -22,7 +22,7 @@
     <parent>
         <artifactId>onos-restsb</artifactId>
         <groupId>org.onosproject</groupId>
-        <version>1.13.2-SNAPSHOT</version>
+        <version>1.13.2-rc1</version>
     </parent>
 
     <artifactId>onos-restsb-api</artifactId>
