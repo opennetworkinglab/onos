@@ -24,7 +24,11 @@ import org.onlab.util.Tools;
 /**
  * Adapter mainly intended for usage in tests.
  */
-public class NetconfSessionAdapter implements NetconfSession {
+public class NetconfSessionAdapter
+    extends AbstractNetconfSession
+    implements NetconfSession {
+
+    // TODO remove methods defined in AbstractNetconfSession
 
     @Override
     public void startSubscription(String filterSchema) throws NetconfException {
@@ -44,6 +48,13 @@ public class NetconfSessionAdapter implements NetconfSession {
             throws NetconfException {
         return Tools.exceptionalFuture(new UnsupportedOperationException());
     }
+
+    @Override
+    public CompletableFuture<String> rpc(String request)
+            throws NetconfException {
+        return Tools.exceptionalFuture(new UnsupportedOperationException());
+    }
+
 
     @Override
     public void removeDeviceOutputListener(NetconfDeviceOutputEventListener listener) {

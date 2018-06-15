@@ -20,8 +20,6 @@ import com.google.common.annotations.Beta;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
@@ -57,9 +55,7 @@ public interface NetconfSession {
      * the underlying connection
      * @throws NetconfTransportException on secure transport-layer error
      */
-    default CompletableFuture<String> rpc(String request) throws NetconfException {
-        return request(request);
-    }
+    CompletableFuture<String> rpc(String request) throws NetconfException;
 
     /**
      * Retrieves the specified configuration.
@@ -70,30 +66,7 @@ public interface NetconfSession {
      * @throws NetconfException when there is a problem in the communication process on
      * the underlying connection
      */
-    default CompletableFuture<CharSequence> asyncGetConfig(DatastoreId datastore) throws NetconfException {
-        StringBuilder rpc = new StringBuilder();
-        rpc.append("<rpc xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\">\n");
-        rpc.append("<get-config>\n");
-        rpc.append("<source>\n");
-        rpc.append('<').append(checkNotNull(datastore)).append("/>");
-        rpc.append("</source>");
-        // filter here
-        rpc.append("</get-config>\n");
-        rpc.append("</rpc>");
-
-        return rpc(rpc.toString())
-                .thenApply(msg -> {
-                    // crude way of removing rpc-reply envelope
-                    int begin = msg.indexOf("<data>");
-                    int end = msg.lastIndexOf("</data>");
-                    if (begin != -1 && end != -1) {
-                        return msg.subSequence(begin, end + "</data>".length());
-                    } else {
-                        // FIXME probably should exceptionally fail here.
-                        return msg;
-                    }
-                });
-    }
+    CompletableFuture<CharSequence> asyncGetConfig(DatastoreId datastore) throws NetconfException;
 
     /**
      * Retrieves running configuration and device state.
@@ -103,27 +76,7 @@ public interface NetconfSession {
      * @throws NetconfException when there is a problem in the communication process on
      * the underlying connection
      */
-    default CompletableFuture<CharSequence> asyncGet() throws NetconfException {
-        StringBuilder rpc = new StringBuilder();
-        rpc.append("<rpc xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\">\n");
-        rpc.append("<get>\n");
-        // filter here
-        rpc.append("</get>\n");
-        rpc.append("</rpc>");
-        return rpc(rpc.toString())
-                .thenApply(msg -> {
-                    // crude way of removing rpc-reply envelope
-                    int begin = msg.indexOf("<data>");
-                    int end = msg.lastIndexOf("</data>");
-                    if (begin != -1 && end != -1) {
-                        return msg.subSequence(begin, end + "</data>".length());
-                    } else {
-                        // FIXME probably should exceptionally fail here.
-                        return msg;
-                    }
-                });
-
-    }
+    CompletableFuture<CharSequence> asyncGet() throws NetconfException;
 
 
     /**
@@ -357,7 +310,6 @@ public interface NetconfSession {
      * session.
      *
      * @return Network capabilities as strings in a Set.
-     *
      * @since 1.10.0
      */
     Set<String> getDeviceCapabilitiesSet();
@@ -378,7 +330,6 @@ public interface NetconfSession {
      * Sets the ONOS side capabilities.
      *
      * @param capabilities list of capabilities ONOS has.
-     *
      * @since 1.10.0
      */
     default void setOnosCapabilities(Iterable<String> capabilities) {
@@ -387,7 +338,7 @@ public interface NetconfSession {
     }
 
     /**
-     * Remove a listener from the underlying stream handler implementation.
+     * Add a listener to the underlying stream handler implementation.
      *
      * @param listener event listener.
      */
@@ -406,7 +357,7 @@ public interface NetconfSession {
      */
     default int timeoutConnectSec() {
         return 0;
-    };
+    }
 
     /**
      * Read the reply timeout that this session was created with.
@@ -414,7 +365,7 @@ public interface NetconfSession {
      */
     default int timeoutReplySec() {
         return 0;
-    };
+    }
 
     /**
      * Read the idle timeout that this session was created with.
@@ -422,6 +373,6 @@ public interface NetconfSession {
      */
     default int timeoutIdleSec() {
         return 0;
-    };
+    }
 
 }

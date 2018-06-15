@@ -1308,7 +1308,8 @@ public class MockNetconfSessionEa1000 extends NetconfSessionAdapter {
 
     }
 
-    private boolean checkReply(String reply) throws NetconfException {
+    @Override
+    protected boolean checkReply(String reply) {
         if (reply != null) {
             if (!reply.contains("<rpc-error>")) {
                 log.debug("Device {} sent reply {}", deviceInfo, reply);
