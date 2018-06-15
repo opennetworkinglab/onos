@@ -25,7 +25,7 @@ header packet_in_header_t {
     bit<7> _pad;
 }
 
-_PKT_OUT_HDR_ANNOT_
+_PKT_OUT_HDR_ANNOT
 @controller_header("packet_out")
 header packet_out_header_t {
     port_num_t egress_port;
@@ -131,7 +131,7 @@ header gtpu_t {
 }
 
 struct spgw_meta_t {
-    bool              do_spgw;
+    _BOOL             do_spgw;
     direction_t       direction;
     bit<16>           ipv4_len;
     bit<32>           teid;
@@ -151,7 +151,7 @@ struct spgw_meta_t {
 struct fabric_metadata_t {
     fwd_type_t fwd_type;
     next_id_t next_id;
-    bool pop_vlan_when_packet_in;
+    _BOOL pop_vlan_when_packet_in;
     bit<8> ip_proto;
     bit<16> l4_src_port;
     bit<16> l4_dst_port;

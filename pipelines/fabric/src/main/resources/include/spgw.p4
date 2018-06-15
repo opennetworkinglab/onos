@@ -143,7 +143,7 @@ control spgw_ingress(
     }
 
     apply {
-        spgw_meta.do_spgw = false;
+        spgw_meta.do_spgw = _FALSE;
         if (gtpu.isValid()) {
             // If here, the parsed ipv4 header is the outer GTP one, but
             // fabric needs to forward on the inner one, i.e. this.
@@ -156,15 +156,15 @@ control spgw_ingress(
 
             if (s1u_filter_table.apply().hit) {
                 // TODO: check also that gtpu.msgtype == GTP_GPDU
-                spgw_meta.do_spgw = true;
+                spgw_meta.do_spgw = _TRUE;
                 spgw_meta.direction = DIR_UPLINK;
             }
         } else if (ue_filter_table.apply().hit) {
-            spgw_meta.do_spgw = true;
+            spgw_meta.do_spgw = _TRUE;
             spgw_meta.direction = DIR_DOWNLINK;
         }
 
-        if (!spgw_meta.do_spgw) {
+        if (spgw_meta.do_spgw == _FALSE) {
             // Exit this control block.
             return;
         }
@@ -246,7 +246,7 @@ control spgw_egress(
     }
 
     apply {
-        if (spgw_meta.do_spgw && spgw_meta.direction == DIR_DOWNLINK) {
+        if (spgw_meta.do_spgw == _TRUE && spgw_meta.direction == DIR_DOWNLINK) {
             gtpu_encap();
         }
     }

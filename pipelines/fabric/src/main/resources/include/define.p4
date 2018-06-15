@@ -19,6 +19,40 @@
 
 #define MAX_PORTS 511
 
+#ifndef _BOOL
+#define _BOOL bool
+#endif
+#ifndef _TRUE
+#define _TRUE true
+#endif
+#ifndef _FALSE
+#define _FALSE true
+#endif
+
+#ifndef _PKT_OUT_HDR_ANNOT
+#define _PKT_OUT_HDR_ANNOT
+#endif
+
+#ifndef IP_VER_LENGTH
+#define IP_VER_LENGTH 4
+#endif
+#ifndef IP_VERSION_4
+#define IP_VERSION_4 4
+#endif
+#ifndef IP_VERSION_6
+#define IP_VERSION_6 6
+#endif
+
+#define ETH_HDR_SIZE 14
+#define IPV4_HDR_SIZE 20
+#define UDP_HDR_SIZE 8
+#define GTP_HDR_SIZE 8
+
+#define UDP_PORT_GTPU 2152
+#define GTP_GPDU 0xff
+#define GTPU_VERSION 0x01
+#define GTP_PROTOCOL_TYPE_GTP 0x01
+
 typedef bit<3>  fwd_type_t;
 typedef bit<32> next_id_t;
 typedef bit<20> mpls_label_t;
@@ -36,26 +70,12 @@ const bit<16> ETHERTYPE_IPV4 = 0x0800;
 const bit<16> ETHERTYPE_IPV6 = 0x86dd;
 const bit<16> ETHERTYPE_ARP  = 0x0806;
 
-#ifndef IP_VER_LENGTH
-#define IP_VER_LENGTH 4
-#endif
-#ifndef IP_VERSION_4
-#define IP_VERSION_4 4
-#endif
-#ifndef IP_VERSION_6
-#define IP_VERSION_6 6
-#endif
-
 const bit<8> PROTO_ICMP = 1;
 const bit<8> PROTO_TCP = 6;
 const bit<8> PROTO_UDP = 17;
 const bit<8> PROTO_ICMPV6 = 58;
 
 const bit<4> IPV4_MIN_IHL = 5;
-
-#ifndef _PKT_OUT_HDR_ANNOT_
-#define _PKT_OUT_HDR_ANNOT_
-#endif
 
 const fwd_type_t FWD_BRIDGING = 0;
 const fwd_type_t FWD_MPLS = 1;
@@ -66,16 +86,6 @@ const fwd_type_t FWD_IPV6_MULTICAST = 5;
 
 const bit<8> DEFAULT_MPLS_TTL = 64;
 const bit<8> DEFAULT_IPV4_TTL = 64;
-
-#define ETH_HDR_SIZE 14
-#define IPV4_HDR_SIZE 20
-#define UDP_HDR_SIZE 8
-#define GTP_HDR_SIZE 8
-
-#define UDP_PORT_GTPU 2152
-#define GTP_GPDU 0xff
-#define GTPU_VERSION 0x01
-#define GTP_PROTOCOL_TYPE_GTP 0x01
 
 typedef bit direction_t;
 typedef bit pcc_gate_status_t;

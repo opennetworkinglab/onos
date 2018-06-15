@@ -40,7 +40,7 @@ inout standard_metadata_t standard_metadata) {
     }
     apply {
         if (standard_metadata.egress_port == CPU_PORT) {
-            if (hdr.vlan_tag.isValid() && fabric_metadata.pop_vlan_when_packet_in) {
+            if (hdr.vlan_tag.isValid() && fabric_metadata.pop_vlan_when_packet_in == _TRUE) {
                 pop_vlan();
             }
             hdr.packet_in.setValid();
