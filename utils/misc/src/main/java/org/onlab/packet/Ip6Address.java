@@ -45,6 +45,12 @@ public final class Ip6Address extends IpAddress {
             Ip6Address.valueOf("ff05::1:3");
 
     /**
+     * All RIP routers multicast group. (RFC 2080)
+     */
+    public static final Ip6Address ALL_RIP_ROUTERS =
+            Ip6Address.valueOf("ff02::9");
+
+    /**
      * All-zero unspecified IPv6 address.
      */
     public static final Ip6Address ZERO = Ip6Address.valueOf("::");
