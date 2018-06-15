@@ -15,9 +15,11 @@
  */
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule, Routes } from '@angular/router';
 import { DeviceComponent } from './device.component';
 import { DeviceDetailsPanelDirective } from './devicedetailspanel.directive';
-import { RemoteModule } from '../../fw/remote/remote.module';
+import { SvgModule } from '../../fw/svg/svg.module';
+
 /**
  * ONOS GUI -- Device View Module
  */
@@ -27,7 +29,8 @@ import { RemoteModule } from '../../fw/remote/remote.module';
   ],
   imports: [
     CommonModule,
-    RemoteModule
+    RouterModule,
+    SvgModule
   ],
   declarations: [
     DeviceComponent,

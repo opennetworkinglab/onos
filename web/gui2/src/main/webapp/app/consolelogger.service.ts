@@ -17,9 +17,7 @@ import { Injectable } from '@angular/core';
 import { environment } from '../environments/environment';
 import { Logger } from './log.service';
 
-export let isDebugMode = environment.isDebugMode;
-
-const noop = (): any => undefined;
+export let isDebugMode: boolean = !environment.production;
 
 /**
  * ONOS GUI -- LogService
@@ -27,12 +25,13 @@ const noop = (): any => undefined;
  */
 @Injectable()
 export class ConsoleLoggerService implements Logger {
+  private noop: () => void;
 
   get debug() {
     if (isDebugMode) {
       return console.debug.bind(console);
     } else {
-      return noop;
+      return this.noop;
     }
   }
 
@@ -40,7 +39,7 @@ export class ConsoleLoggerService implements Logger {
     if (isDebugMode) {
       return console.info.bind(console);
     } else {
-      return noop;
+      return this.noop;
     }
   }
 
@@ -53,7 +52,7 @@ export class ConsoleLoggerService implements Logger {
   }
 
   invokeConsoleMethod(type: string, args?: any): void {
-    const logFn: Function = (console)[type] || console.log || noop;
+    const logFn: Function = (console)[type] || console.log || this.noop;
     logFn.apply(console, [args]);
   }
 }

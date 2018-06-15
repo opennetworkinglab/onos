@@ -23,11 +23,8 @@ import { UtilModule } from '../util/util.module';
 import { ButtonService } from './button.service';
 import { ChartBuilderService } from './chartbuilder.service';
 import { ListService } from './list.service';
-import { TableBuilderService } from './tablebuilder.service';
 import { TableDetailService } from './tabledetail.service';
 import { ToolbarService } from './toolbar.service';
-import { TooltipService } from './tooltip.service';
-import { TooltipDirective } from './tooltip.directive';
 import { SortableHeaderDirective } from './sortableheader.directive';
 import { TableResizeDirective } from './tableresize.directive';
 import { FlashChangesDirective } from './flashchanges.directive';
@@ -42,7 +39,6 @@ import { FlashChangesDirective } from './flashchanges.directive';
     // It's enough to import them in the OnosModule
   ],
   declarations: [
-    TooltipDirective,
     SortableHeaderDirective,
     TableResizeDirective,
     FlashChangesDirective
@@ -51,9 +47,7 @@ import { FlashChangesDirective } from './flashchanges.directive';
     ButtonService,
     ChartBuilderService,
     ListService,
-    TableBuilderService,
     TableDetailService,
-    TooltipService,
     ToolbarService
   ]
 })

@@ -17,6 +17,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AppsComponent } from './apps.component';
 import { TriggerFormDirective } from './triggerform.directive';
+import { SvgModule } from '../../fw/svg/svg.module';
 
 /**
  * ONOS GUI -- Apps View Module
@@ -30,7 +31,8 @@ import { TriggerFormDirective } from './triggerform.directive';
         AppsComponent
     ],
     imports: [
-        CommonModule
+        CommonModule,
+        SvgModule
     ],
     declarations: [
         AppsComponent,

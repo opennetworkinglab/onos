@@ -17,12 +17,15 @@
 /*
  ONOS GUI -- Device View (layout) -- CSS file
  */
+#ov-device .tabular-header {
+    text-align: left;
+}
 
 #ov-device h2 {
     display: inline-block;
 }
 
-#ov-device div.ctrl-btns {
+#ov-device, div.ctrl-btns {
 }
 
 

@@ -33,8 +33,6 @@ class MockActivatedRoute extends ActivatedRoute {
 
 class MockGlyphService {}
 
-class MockWSock {}
-
 /**
  * ONOS GUI -- Remote -- Web Socket Service - Unit Tests
  */
@@ -103,7 +101,7 @@ describe('WebSocketService', () => {
             'noHandlersWarn', 'resetState',
             'createWebSocket', 'bindHandlers', 'unbindHandlers',
             'addOpenListener', 'removeOpenListener', 'sendEvent',
-            'setVeilDelegate', 'setLoadingDelegate'
+            'setVeilDelegate', 'setLoadingDelegate', 'isConnected', 'closeWebSocket'
         ])).toBeTruthy();
     });
 
@@ -228,9 +226,7 @@ describe('WebSocketService', () => {
     });
 
     it('should warn if no arguments, unbindHandlers', () => {
-        expect(wss.unbindHandlers(
-            new Map<string, (data) => void>([])
-        )).toBeNull();
+        expect(wss.unbindHandlers([])).toBeNull();
         expect(logServiceSpy.warn).toHaveBeenCalledWith(
             'WSS.unbindHandlers(): no event handlers'
         );

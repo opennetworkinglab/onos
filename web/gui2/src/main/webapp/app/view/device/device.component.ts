@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { DetailsPanelService } from '../../fw/layer/detailspanel.service';
 import { FnService } from '../../fw/util/fn.service';
 import { IconService } from '../../fw/svg/icon.service';
@@ -23,9 +23,30 @@ import { LogService } from '../../log.service';
 import { MastService } from '../../fw/mast/mast.service';
 import { NavService } from '../../fw/nav/nav.service';
 import { PanelService } from '../../fw/layer/panel.service';
-import { TableBuilderService } from '../../fw/widget/tablebuilder.service';
+import { TableBaseImpl, TableResponse } from '../../fw/widget/tablebase';
 import { TableDetailService } from '../../fw/widget/tabledetail.service';
 import { WebSocketService } from '../../fw/remote/websocket.service';
+
+interface DeviceTableResponse extends TableResponse {
+    devices: Device[];
+}
+
+interface Device {
+    available: boolean;
+    chassisid: string;
+    hw: string;
+    id: string;
+    masterid: string;
+    mfr: string;
+    name: string;
+    num_ports: number;
+    protocol: string;
+    serial: string;
+    sw: string;
+    _iconid_available: string;
+    _iconid_type: string;
+}
+
 
 /**
  * ONOS GUI -- Device View Component
@@ -33,32 +54,47 @@ import { WebSocketService } from '../../fw/remote/websocket.service';
 @Component({
   selector: 'onos-device',
   templateUrl: './device.component.html',
-  styleUrls: ['./device.component.css']
+  styleUrls: ['./device.component.css', './device.theme.css', '../../fw/widget/table.css', '../../fw/widget/table-theme.css']
 })
-export class DeviceComponent implements OnInit {
+export class DeviceComponent extends TableBaseImpl implements OnInit, OnDestroy {
+
+    // TODO: Update for LION
+    flowTip = 'Show flow view for selected device';
+    portTip = 'Show port view for selected device';
+    groupTip = 'Show group view for selected device';
+    meterTip = 'Show meter view for selected device';
+    pipeconfTip = 'Show pipeconf view for selected device';
 
     constructor(
         private dps: DetailsPanelService,
-        private fs: FnService,
+        protected fs: FnService,
+        protected ls: LoadingService,
         private is: IconService,
         private ks: KeyService,
-        private log: LogService,
+        protected log: LogService,
         private mast: MastService,
         private nav: NavService,
         private ps: PanelService,
-        private tbs: TableBuilderService,
         private tds: TableDetailService,
-        private wss: WebSocketService,
-        private ls: LoadingService, // TODO: Remove - already added through tbs
-        private window: Window
+        protected wss: WebSocketService,
+        private window: Window,
     ) {
-        this.log.debug('DeviceComponent constructed');
+        super(fs, ls, log, wss, 'device');
+        this.responseCallback = this.deviceResponseCb;
     }
 
     ngOnInit() {
+        this.init();
         this.log.debug('DeviceComponent initialized');
-        // TODO: Remove this - it's only for demo purposes
-//        this.ls.startAnim();
+    }
+
+    ngOnDestroy() {
+        this.destroy();
+        this.log.debug('DeviceComponent destroyed');
+    }
+
+    deviceResponseCb(data: DeviceTableResponse) {
+        this.log.debug('Device response received for ', data.devices.length, 'devices');
     }
 
 }

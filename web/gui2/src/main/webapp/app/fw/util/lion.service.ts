@@ -34,7 +34,8 @@ interface Lion {
 })
 export class LionService {
 
-    ubercache: any[];
+    ubercache: any[] = [];
+    loadCb; // Function
 
     /**
      * Handler for uberlion event from WSS
@@ -49,6 +50,10 @@ export class LionService {
             if (this.ubercache[p]) {
                 this.log.info('            :=> ', p);
             }
+        }
+        if (this.loadCb) {
+            this.log.debug('Calling the load callback');
+            this.loadCb();
         }
 
         this.log.debug('LION service: uber-lion bundle received:', data);
@@ -69,17 +74,15 @@ export class LionService {
      * returns a function that takes a string and returns a string
      */
     bundle(bundleId: string): (string) => string {
-        let bundle = this.ubercache[bundleId];
+        let bundleObj = this.ubercache[bundleId];
 
-        if (!bundle) {
+        if (!bundleObj) {
             this.log.warn('No lion bundle registered:', bundleId);
-            bundle = {};
+            bundleObj = {};
         }
 
-        return this.getKey;
-    }
-
-    getKey(key: string): string {
-        return this.bundle[key] || '%' + key + '%';
+        return (key) =>  {
+            return bundleObj[key] || '%' + key + '%';
+        };
     }
 }

@@ -13,21 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable } from '@angular/core';
-import { FnService } from '../util/fn.service';
-import { LogService } from '../../log.service';
 
-/**
- * ONOS GUI -- Widget -- Tooltip Service
+/*
+ ONOS GUI -- Tooltip Service (layout) -- CSS file
  */
-@Injectable()
-export class TooltipService {
 
-  constructor(
-      private fs: FnService,
-      private log: LogService,
-  ) {
-    this.log.debug('TooltipService constructed');
-  }
-
+#tooltip {
+    text-align: center;
+    font-size: 80%;
+    border: 1px solid;
+    padding: 5px;
+    position: absolute;
+    z-index: 5000;
+    display: none;
+    pointer-events: none;
 }

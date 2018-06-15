@@ -90,7 +90,6 @@ export class WebSocketService {
      * built-in handler for the 'boostrap' event
      */
     private bootstrap(data: Bootstrap) {
-        this.log.debug('bootstrap data', data);
         this.loggedInUser = data.user;
 
         this.clusterNodes = data.clusterNodes;
@@ -332,6 +331,13 @@ export class WebSocketService {
         return this.url;
     }
 
+    /**
+     * Tell the WebSocket to close - this should call the handleClose() method
+     */
+    closeWebSocket() {
+        this.ws.close();
+    }
+
 
     /**
      * Binds the message handlers to their message type (event type) as
@@ -369,12 +375,12 @@ export class WebSocketService {
      * Unbinds the specified message handlers.
      *   Expected that the same map will be used, but we only care about keys
      */
-    unbindHandlers(handlerMap: Map<string, (data) => void>): void {
-        if (this.noHandlersWarn(handlerMap, 'unbindHandlers')) {
+    unbindHandlers(handlerIds: string[]): void {
+        if ( handlerIds.length === 0 ) {
+            this.log.warn('WSS.unbindHandlers(): no event handlers');
             return null;
         }
-
-        for (const [eventId, api] of handlerMap) {
+        for (const eventId of handlerIds) {
             this.handlers.delete(eventId);
         }
     }
@@ -448,4 +454,7 @@ export class WebSocketService {
         this.lcd = ld;
     }
 
+    isConnected(): boolean {
+        return this.wsUp;
+    }
 }

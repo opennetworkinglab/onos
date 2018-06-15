@@ -40,6 +40,46 @@
     fill: #3c3a3a;
 }
 
+/* --- Control Buttons --- */
+
+/* INACTIVE */
+svg.embeddedIcon g.icon use {
+    fill: #e0dfd6;
+}
+/* note: no change for inactive buttons when hovered */
+
+
+/* ACTIVE */
+svg.embeddedIcon g.icon.active use {
+    fill: #939598;
+}
+svg.embeddedIcon g.icon.active:hover use {
+    fill: #ce5b58;
+}
+
+/* CURRENT-VIEW */
+svg.embeddedIcon g.icon.current-view rect {
+    fill: #518ecc;
+}
+svg.embeddedIcon g.icon.current-view use {
+    fill: white;
+}
+
+/* REFRESH */
+svg.embeddedIcon g.icon.refresh use {
+    fill: #cdeff2;
+}
+svg.embeddedIcon g.icon.refresh:hover use {
+    fill: #ce5b58;
+}
+svg.embeddedIcon g.icon.refresh.active use {
+    fill: #009fdb;
+}
+svg.embeddedIcon g.icon.refresh.active:hover use {
+    fill: #ce5b58;
+}
+
+
 /* ========== DARK Theme ========== */
 
 .dark div.close-btn svg.embeddedIcon g.icon .glyph {
@@ -61,7 +101,7 @@
 .dark table svg.embeddedIcon .icon .glyph {
     fill: #9999aa;
 }
-
+/*
 svg.embeddedIcon g.icon .glyph {
     fill: #007dc4;
 }
@@ -69,3 +109,4 @@ svg.embeddedIcon g.icon .glyph {
 svg.embeddedIcon:hover g.icon .glyph {
     fill: #20b2ff;
 }
+*/

@@ -9,14 +9,23 @@ To use this new GUI you simply have to start the GUI in a running ONOS at the __
 ```
 feature:install onos-gui2
 ```
-and the gui will be accessible at [http://localhost:8181/onos/ui2/dist/](http://localhost:8181/onos/ui2/dist/)
+and the gui will be accessible at [http://localhost:8181/onos/ui2](http://localhost:8181/onos/ui2)
 
 # Development
-The project relies on [Angular CLI](https://github.com/angular/angular-cli) v6 to simplify development of the browser side code.
+There are 2 ways to go about development - 
+1. rebuild the code and rerun through BUCK OR (much like can be done with any ordinary ONOS app)
+2. use Angular 6 CLI (ng command) to rebuild on the fly (must faster for development) 
 
-This allows you to develop the Angular 6 Type Script code independent of ONOS in a separate container. At the current moment (May '18) the
-implementation of WebSockets and REST calls is not done, so there is __no__ requirement to run ONOS in the background.
-This will change in the coming weeks.
+For 1) if you change the code you can redeploy the application with (requies you to be in ~/onos directory):
+```
+onos-buck build //web/gui2:onos-web-gui2-oar --show-output|grep /app.oar | cut -d\  -f2 | xargs onos-app localhost reinstall!
+```
+
+For 2) it's well worth becoming familiar with Angular CLI.
+The project is created with [Angular CLI](https://github.com/angular/angular-cli) v6 to simplify development of the browser side code.
+
+This allows you to develop the Angular 6 Type Script code independent of ONOS in a separate container. 
+Since WebSockets have been implemented (Jun 18) there is a requirement to run ONOS in the background.
 
 There is no need to install node, npm or ng again on your system, and indeed if they are already installed, it's best
 to use the versions of these that's used by BUCK. To do this add to the __start__ of your PATH environment variable. 
@@ -64,7 +73,8 @@ To run it manually in Angular CLI run `ng build`
 ## Running unit tests
 This is automatically done when using "onos-buck test" - see the web/gui2/BUCK file for more details.
 
-To run it manually in Angular CLI run `ng test --watch=true` to execute the unit tests via [Karma](https://karma-runner.github.io).
+To run it manually in Angular CLI run `ng test --watch` to execute the unit tests via [Karma](https://karma-runner.github.io).
+Running it directly like this will test with both Firefox and Chrome. To use only one use the __--browsers__ argument
 
 ## Running checkstyle
 This is automatically done when using "onos-buck test" - see the web/gui2/BUCK file for more details.

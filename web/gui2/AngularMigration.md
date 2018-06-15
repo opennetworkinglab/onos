@@ -88,14 +88,17 @@ There is a fair bit of refactoring has to take place. An important thing to unde
 is that DOM manipulations from inside JavaScript code is not the Angular 6
 way of doing things - there was a lot of this in the old ONOS GUI, using d3.append(..)
 and so on.
-The Angular 6 way of doing things is to defined DOM objects (elements) in the 
+The Angular 6 way of doing things is to define DOM objects (elements) in the 
 html template of a component, and use the Component Java Script code as a base
 for logic that can influence the display of these objects in the template.
 What this means is that what were previously defined as services (e.g. VeilService or
 LoadingService) should now become Components in Angular 6 (e.g. VeilComponent or
 LoadingComponent). 
 
-###How do I know whether a Service should be made a Component in this new GUI?
+Similarly a directive might be trying to do DOM manipulation and have a CSS - this 
+should be made in to a component instead (see IconComponent)
+
+###How do I know whether a Service or Directive should be made a Component in this new GUI?
 The general rule to follow is _"if a service in the old GUI has an associated CSS 
 file or two then is should be a component in the new GUI"_. 
 
@@ -128,6 +131,15 @@ delegate on it.
 Any component that needs to use WSS for data should inject the WSS service __AND__
 needs to include the components in its template by adding <onos-loading> and
 <onos-veil>.
+
+### Consider if a service is really needs to be a service that runs all the time
+Or does it just support a few functions. See the TableBase class. This now
+replaces the old TableBuilderService - that was just on function that 
+manipulated the scope of a view component. Instead view components now
+extend this class.
+
+Also sometimes directive are always used together e.g. icon directive and tooltip
+directive and they can be merged in to one
 
 ## fw/remote/wsock.service
 Taking for a really simple example the fw/remote/WSockService, this was originally defined in 
@@ -222,22 +234,49 @@ There are several things worth noting here:
 * (d3 object).append(..).attr values should be listed individually (see icon.service for example)
 * Please try do avoid d3 DOM manipulations in ONOS GUI 2, as this is not the Angular 6 way of 
   doing things
+* $interval should be replaced by 
+    task = setInterval(() => functionname_or_body, speed);
+* To cancel the timer clearInterval(task)
 
 
-# Progress so far - 24 May 2018
+# Progress so far - 18 Jun 2018
 The following services are partially migrated:
-* fw/util/FnService - some essential components of this have been migrated - still lots to do
+* fw/util/FnService - full migrated with Unit tests
 * fw/svg/GlyphDataService - mostly migrated. Values are stored in maps as constants
 * fw/svg/GlyphService - partly implemented - enough to support the icon service
 * fw/svg/IconService - mostly implemented - enough to support the IconDirective
-* fw/svg/IconDirective - mostly implemented - although want to replace this with 
-  the IconComponent
 * fw/svg/icon/IconComponent - replacement for the IconDirective - decided to make 
    it a component because it has CSS files which are scoped to just that component
-* fw/layer/LoadingService - mostly implemented - I'm leaving this as a Service, 
-  although maybe it should become a component - its CSS is has to be loaded 
-  globally in index.html
+   It also incorporates the old fw/widget/tooltip.js which was a directive - combined
+   tooltip in to icon because the 2 are always used together in tabular views
+* fw/layer/LoadingService - mostly implemented - this should become a component 
+    - its CSS is has to be loaded globally in index.html
 * fw/layer/flash/FlashComponent - implemented as a Component instead of the old Flash Service
   because it has a CSS file. Replaced all of the D3 Dom manipulations with Template code
   in the Angular 6 style of doing things
+* fw/layer/veil/VeilComponent - changed to a component - fully implemented
+* fw/remote/urlfn.service - fully implemented with Unit tests
+* fw/remote/WebSocketService - fully implemented with Unit tests
+* fw/widget/TableBase - previously the TableBuilderService this has now been changed
+to a plain interface and class - any table views should extend this
+
+
+# Devices View
+This is now a Component, whose class extends the TableBase - this is where it gets
+most of its functionality. As before all data comes from the WebSocket.
+There is still a bit of work to go on this - scrolling of long lists, device details 
+panel etc
+
+The major change in the template (html) is that there used to be 2 tables and these
+are now brought together in to a header and body. This simplifies trying to keep 
+the widths of both in sync.
+
+For CSS the old device view CSS is included and a link is made across to the
+common table CSS
+
+#Apps View
+This is a Component too, again extending TableBase. Apps view has much more functionality 
+though because it has controls for upload and download of applications.
+
+
   

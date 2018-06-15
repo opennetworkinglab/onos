@@ -38,4 +38,7 @@ export class DialogService {
     this.log.debug('DialogService constructed');
   }
 
+  createDiv() {
+  }
+
 }

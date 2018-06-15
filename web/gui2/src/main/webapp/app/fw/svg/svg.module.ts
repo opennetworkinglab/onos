@@ -25,7 +25,6 @@ import { MapService } from './map.service';
 import { SpriteService } from './sprite.service';
 import { SpriteDataService } from './spritedata.service';
 import { SvgUtilService } from './svgutil.service';
-import { IconDirective } from './icon.directive';
 import { IconComponent } from './icon/icon.component';
 
 /**
@@ -33,7 +32,6 @@ import { IconComponent } from './icon/icon.component';
  */
 @NgModule({
   exports: [
-    IconDirective,
     IconComponent
   ],
   imports: [
@@ -41,7 +39,6 @@ import { IconComponent } from './icon/icon.component';
     UtilModule
   ],
   declarations: [
-    IconDirective,
     IconComponent
   ],
   providers: [

@@ -1,0 +1,109 @@
+/*
+ * Copyright 2015-present Open Networking Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/* ------ for summary-list tables (layout) ------ */
+
+div.summary-list {
+    margin: 0 20px 16px 10px;
+    font-size: 10pt;
+    border-spacing: 0;
+}
+
+div.summary-list table {
+    border-collapse: collapse;
+    table-layout: fixed;
+    empty-cells: show;
+    margin: 0;
+}
+
+div.summary-list div.table-body {
+    overflow-y: scroll;
+}
+
+div.summary-list div.table-body::-webkit-scrollbar {
+    display: none;
+}
+
+div.summary-list tr.no-data td {
+    text-align: center;
+    font-style: italic;
+}
+
+
+/* highlighting */
+div.summary-list tr {
+    transition: background-color 500ms;
+}
+
+div.summary-list td {
+    padding: 4px;
+    text-align: left;
+    word-wrap: break-word;
+    font-size: 10pt;
+}
+
+div.summary-list td.table-icon {
+    width: 42px;
+    padding-top: 4px;
+    padding-bottom: 0px;
+    padding-left: 4px;
+    text-align: center;
+}
+
+div.summary-list .table-header th {
+    font-weight: bold;
+    font-variant: small-caps;
+    text-transform: uppercase;
+    font-size: 10pt;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+}
+
+/* rows are selectable */
+div.summary-list .table-body td {
+    cursor: pointer;
+}
+
+/* Tabular view controls */
+
+div.tabular-header .search {
+    margin: 0 0 10px 10px;
+}
+
+
+div.tabular-header div.ctrl-btns {
+    display: inline-block;
+    float: right;
+    height: 44px;
+    margin-top: 24px;
+    margin-right: 20px;
+    position: absolute;
+    right: 0px;
+}
+
+div.tabular-header div.ctrl-btns div {
+    display: inline-block;
+    cursor: pointer;
+}
+
+div.tabular-header div.ctrl-btns div.separator  {
+    width: 0;
+    height: 40px;
+    padding: 0;
+    border-right: 1px solid #c7c7c0;
+}

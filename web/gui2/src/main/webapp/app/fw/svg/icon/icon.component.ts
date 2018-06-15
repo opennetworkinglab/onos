@@ -16,7 +16,6 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { IconService, glyphMapping } from '../icon.service';
 import { LogService } from '../../../log.service';
-import * as d3 from 'd3';
 
 /**
  * Icon Component
@@ -31,11 +30,20 @@ import * as d3 from 'd3';
 @Component({
   selector: 'onos-icon',
   templateUrl: './icon.component.html',
-  styleUrls: ['./icon.component.css', './icon.theme.css', './glyph.css', './glyph-theme.css']
+  styleUrls: [
+    './icon.component.css', './icon.theme.css',
+    './glyph.css', './glyph-theme.css',
+    './tooltip.css', './tooltip-theme.css'
+    ]
 })
 export class IconComponent implements OnInit {
     @Input() iconId: string;
-    @Input() iconSize = 20;
+    @Input() iconSize: number = 20;
+    @Input() toolTip: string = undefined;
+    @Input() classes: string = undefined;
+
+    // The displayed tooltip - undefined until mouse hovers over, then equals toolTip
+    toolTipDisp: string = undefined;
 
     constructor(
         private is: IconService,
@@ -47,7 +55,6 @@ export class IconComponent implements OnInit {
 
     ngOnInit() {
         this.is.loadIconDef(this.iconId);
-        this.log.debug('IconComponent initialized for ', this.iconId);
     }
 
     /**

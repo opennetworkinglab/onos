@@ -41,6 +41,10 @@ body {
 
 #view h2 {
     color: #3c3a3a;
+    margin: 32px 0 4px 16px;
+    padding: 0;
+    font-size: 18pt;
+    font-weight: lighter;
 }
 
 a {

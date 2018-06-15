@@ -17,7 +17,6 @@ import { Injectable } from '@angular/core';
 import { FnService } from '../util/fn.service';
 import { IconService } from '../svg/icon.service';
 import { LogService } from '../../log.service';
-import { TooltipService } from './tooltip.service';
 
 /**
  * ONOS GUI -- Widget -- Button Service
@@ -29,7 +28,6 @@ export class ButtonService {
         private is: IconService,
         private fs: FnService,
         private log: LogService,
-        private tts: TooltipService
     ) {
         this.log.debug('ButtonService constructed');
     }

@@ -33,7 +33,9 @@ const waitDelay = 500;
  *
  * Provides a mechanism to start/stop the loading animation, center screen.
  */
-@Injectable()
+@Injectable({
+  providedIn: 'root',
+})
 export class LoadingService {
     images: any[] = [];
     idx = 0;
@@ -127,7 +129,7 @@ export class LoadingService {
     }
 
     // return true if start() has been called but not stop()
-    waiting() {
+    waiting(): boolean {
         return !!this.wait;
     }
 

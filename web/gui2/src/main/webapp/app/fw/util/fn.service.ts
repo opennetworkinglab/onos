@@ -415,6 +415,35 @@ export class FnService {
     }
 
     /**
+     * returns true if the two objects have all the same properties
+     */
+    sameObjProps(obj1: Object, obj2: Object): boolean {
+        for (const key in obj1) {
+            if (obj1.hasOwnProperty(key)) {
+                if (!(obj1[key] === obj2[key])) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * returns true if the array contains the object
+     * does NOT use strict object reference equality,
+     * instead checks each property individually for equality
+     */
+    containsObj(arr: any[], obj: Object): boolean {
+        const len = arr.length;
+        for (let i = 0; i < len; i++) {
+            if (this.sameObjProps(arr[i], obj)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Return the given string with the first character capitalized.
      */
     cap(s: string): string {

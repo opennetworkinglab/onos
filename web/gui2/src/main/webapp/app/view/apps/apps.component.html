@@ -1,3 +1,100 @@
-<div id="ov-app">
-    <p>apps works!</p>
+<div id="ov-app" filedrop on-file-drop="appDropped()">
+    <div class="tabular-header">
+        <h2>
+            {{lionFn('title_apps')}}
+            ({{ tableData.length }}
+            {{ lionFn('total') }})
+        </h2>
+        <div class="ctrl-btns">
+            <div class="refresh" (click)="toggleRefresh()">
+                <onos-icon classes="{{ autoRefresh?'active refresh':'refresh' }}"
+                           iconId="refresh" iconSize="42" toolTip="{{ autoRefreshTip }}"></onos-icon>
+            </div>
+            <div class="separator"></div>
+
+            <!--<form id="inputFileForm">-->
+                <!--<input id="uploadFile"-->
+                       <!--type="file" size="50" accept=".oar,.jar"-->
+                       <!--file-model="appFile">-->
+            <!--</form>-->
+
+            <div class="active" trigger-form>
+                <onos-icon classes="{{ 'active upload' }}"
+                        iconId="upload" iconSize="42" toolTip="{{ uploadTip }}"></onos-icon>
+            </div>
+            <div (click)="appAction('activate')">
+                <onos-icon classes="{{ ctrlBtnState.installed?'active play':'play' }}"
+                           iconId="play" iconSize="42" toolTip="{{ activateTip }}"></onos-icon>
+            </div>
+            <div (click)="appAction('deactivate')">
+                <onos-icon classes="{{ ctrlBtnState.active?'active stop':'stop' }}"
+                        iconId="stop" iconSize="42" toolTip="{{ deactivateTip }}"></onos-icon>
+            </div>
+            <div (click)="appAction('uninstall')">
+                 <!--[ngClass]="{active: ctrlBtnState.selection}">-->
+                <!--tooltip tt-msg="uninstallTip"-->
+                <onos-icon classes="{{ ctrlBtnState.selection?'active garbage':'garbage' }}"
+                        iconId="garbage" iconSize="42" toolTip="{{ uninstallTip }}"></onos-icon>
+            </div>
+            <div (click)="downloadApp()">
+                <onos-icon classes="{{ ctrlBtnState.selection?'active download':'download' }}"
+                        iconId="download" iconSize="42" toolTip="{{ downloadTip }}"></onos-icon>
+            </div>
+        </div>
+
+        <!--<div class="search">-->
+            <!--<input type="text" ng-model="queryTxt" placeholder="Search"/>-->
+            <!--<select ng-model="queryBy">-->
+                <!--<option value="" disabled>Search By</option>-->
+                <!--<option value="$">All Fields</option>-->
+                <!--<option value="title">{{lionFn('title')}}</option>-->
+                <!--<option value="id">{{lionFn('app_id')}}</option>-->
+                <!--<option value="version">{{lionFn('version')}}</option>-->
+                <!--<option value="category">{{lionFn('category')}}</option>-->
+                <!--<option value="apporiginName">{{lionFn('origin')}}</option>-->
+
+            <!--</select>-->
+        <!--</div>-->
+
+
+    </div>
+
+    <div class="summary-list" onos-table-resize>
+        <table onos-flash-changes id-prop="id" width="100%">
+            <tr class="table-header">
+                <th colId="state" class="table-icon" sortable></th>
+                <th colId="icon" class="table-icon"></th>
+                <th colId="title" [ngClass]="{width: '340'}" sortable> {{lionFn('title')}} </th>
+                <th colId="id" [ngClass]="{width: '320px'}"sortable> {{lionFn('app_id')}} </th>
+                <th colId="version" [ngClass]="{width: '140px'}"sortable> {{lionFn('version')}} </th>
+                <th colId="category" [ngClass]="{width: '136px'}"sortable> {{lionFn('category')}} </th>
+                <th colId="origin" sortable> {{lionFn('origin')}} </th>
+            </tr>
+
+            <tr *ngIf="tableData.length === 0" class="no-data">
+                <td colspan="5">
+                    {{annots.no_rows_msg}}
+                </td>
+            </tr>
+            <!--&lt;!&ndash;TODO: Add back in  | filter:queryFilter&ndash;&gt;-->
+            <tr class="table-body" *ngFor="let app of tableData; trackBy $index"
+                (click)="selectCallback($event, app)"
+                [ngClass]="{selected: app.id === selId, 'data-change': isChanged(app.id)}">
+                <td class="table-icon">
+                    <onos-icon iconId="{{app._iconid_state}}"></onos-icon>
+                </td>
+                <td class="table-icon">
+                    <!--<img data-ng-src="./rs/applications/{{app.icon}}/icon"-->
+                                            <!--height="24px" width="24px" />-->
+                </td>
+                <td>{{ app.title }}</td>
+                <td>{{ app.id }}</td>
+                <td>{{ app.version }}</td>
+                <td>{{ app.category }}</td>
+                <td>{{ app.origin }}</td>
+            </tr>
+        </table>
+
+    </div>
+
 </div>

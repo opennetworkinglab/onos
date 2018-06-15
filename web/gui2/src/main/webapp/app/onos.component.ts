@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { LionService } from './fw/util/lion.service';
 import { LogService } from './log.service';
 import { KeyService } from './fw/util/key.service';
@@ -62,7 +62,7 @@ function cap(s: string): string {
   templateUrl: './onos.component.html',
   styleUrls: ['./onos.component.css', './onos.common.css']
 })
-export class OnosComponent implements OnInit {
+export class OnosComponent implements OnInit, OnDestroy {
     public title = 'onos';
 
     // view ID to help page url map.. injected via the servlet
@@ -110,12 +110,17 @@ export class OnosComponent implements OnInit {
 
         this.onos.viewMap = this.viewMap;
 
-//        this.wss.createWebSocket({
-//            wsport: Window.location.search().wsport
-//        });
-
         // TODO: Enable this   this.saucy(this.ee, this.ks);
         this.log.debug('OnosComponent initialized');
+    }
+
+    ngOnDestroy() {
+        if (this.wss.isConnected()) {
+            this.log.debug('Stopping Web Socket connection');
+            this.wss.closeWebSocket();
+        }
+
+        this.log.debug('OnosComponent destroyed');
     }
 
     saucy(ee, ks) {
