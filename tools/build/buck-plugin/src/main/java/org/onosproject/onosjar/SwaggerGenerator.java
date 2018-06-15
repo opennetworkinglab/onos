@@ -19,6 +19,7 @@ package org.onosproject.onosjar;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.ImmutableList;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
 import com.thoughtworks.qdox.JavaProjectBuilder;
@@ -34,6 +35,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.time.Year;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -77,6 +79,10 @@ public class SwaggerGenerator {
     private final String apiVersion;
     private final String apiPackage;
     private final String apiDescription;
+
+    private String x(File f) {
+        return f == null ? "null" : f.getAbsolutePath();
+    }
 
     public SwaggerGenerator(List<File> srcs, List<File> resources,
                             File srcDirectory, File resourceDirectory,
@@ -522,5 +528,39 @@ public class SwaggerGenerator {
 
     public static String apiRegistratorPath(String apiPackage) {
         return apiPackage.replaceAll("\\.", "/") + "/ApiDocRegistrator.java";
+    }
+
+    private static List<File> getFiles(String commaSeparatedList) {
+        String[] fileNames = commaSeparatedList.split(",");
+        ImmutableList.Builder<File> files = ImmutableList.builder();
+        Arrays.stream(fileNames).forEach(filename -> files.add(new File(filename)));
+        return files.build();
+    }
+
+    public static void main(String args[]) {
+        List<File> srcs = getFiles(args[0]);
+        List<File> resources = getFiles(args[1]);
+        File srcDirectory = null;//new File(args[2]);
+        File resourceDirectory = new File(args[3]);
+        File genSrcOutputDirectory = new File(args[4]);
+        File genResourcesOutputDirectory = new File(args[5]);
+        String webContext = args[6];
+        String apiTitle = args[7];
+        String apiVersion = args[8];
+        String apiPackage = args[9];
+        String apiDescription = args[10];
+
+        SwaggerGenerator generator = new SwaggerGenerator(
+                srcs,
+                resources,
+                srcDirectory, resourceDirectory,
+                genSrcOutputDirectory,
+                genResourcesOutputDirectory,
+                webContext,
+                apiTitle,
+                apiVersion,
+                apiPackage,
+                apiDescription);
+        generator.execute();
     }
 }

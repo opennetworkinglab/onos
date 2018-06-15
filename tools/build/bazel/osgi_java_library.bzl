@@ -36,7 +36,9 @@ def _all_resources(resources_root):
 def _webapp():
     return native.glob(["src/main/webapp/**"])
 
-# Implementation of the rule to call bnd to make an OSGI jar file
+"""
+    Implementation of the rule to call bnd to make an OSGI jar file
+"""
 def _bnd_impl(ctx):
     if (len(ctx.files.source) == 1):
         input_file = ctx.files.source[0]
@@ -53,7 +55,7 @@ def _bnd_impl(ctx):
     jar = input_file.path
     output = ctx.outputs.osgi_jar.path
     name = ctx.attr.source.label.name
-    group = ctx.attr.package_name_root
+    group = ctx.attr.group
     version = ctx.attr.version
     license = ""
     import_packages = ctx.attr.import_packages
@@ -129,11 +131,14 @@ def _bnd_impl(ctx):
         providers = [deps_provider],
     )
 
+"""
+    Rule definition for calling bnd to make an OSGi jar file.
+"""
 _bnd = rule(
     attrs = {
         "deps": attr.label_list(),
         "version": attr.string(),
-        "package_name_root": attr.string(),
+        "group": attr.string(),
         "source": attr.label(),
         "import_packages": attr.string(),
         "web_context": attr.string(),
@@ -152,32 +157,198 @@ _bnd = rule(
     implementation = _bnd_impl,
 )
 
+"""
+    Implementation of the rule to call swagger generator to create the registrator java class source
+"""
+def _swagger_java_impl(ctx):
+    api_title = ctx.attr.api_title
+    api_version = ctx.attr.api_version
+    api_description = ctx.attr.api_description
+    api_package = ctx.attr.api_package
+    web_context = ctx.attr.web_context
+
+    output_java = ctx.outputs.swagger_java.path
+    output_dir = output_java [:output_java.find("generated-sources")]
+
+    package_name = ctx.attr.package_name
+
+    srcs_arg = ""
+    resources_arg = ""
+    input_dependencies = []
+
+    for file in ctx.files.srcs:
+        srcs_arg += file.path + ","
+        input_dependencies.append(file)
+
+    for resource in resources_arg:
+        resources_arg += resource.path + ","
+
+    # call swagger generator to make the swagger JSON and java files
+    arguments = [
+        srcs_arg,
+        resources_arg,
+        "",
+        package_name + "/src/main/resources",
+        output_dir,
+        output_dir,
+        web_context,
+        api_title,
+        api_version,
+        api_package,
+        api_description,
+    ]
+
+    ctx.actions.run(
+        inputs = ctx.files.srcs,
+        outputs = [ctx.outputs.swagger_java],
+        arguments = arguments,
+        progress_message = "Running swagger generator on: %s" % ctx.attr.name,
+        executable = ctx.executable._swagger_generator_exe,
+    )
+
+"""
+Implementation of the rule to call swagger generator for swagger.json file
+"""
+def _swagger_json_impl(ctx):
+    api_title = ctx.attr.api_title
+    api_version = ctx.attr.api_version
+    api_description = ctx.attr.api_description
+    api_package = ctx.attr.api_package
+    web_context = ctx.attr.web_context
+
+    output_json = ctx.outputs.swagger_json.path
+    output_dir = output_json[:output_json.find("swagger.json")]
+
+    package_name = ctx.attr.package_name
+
+    srcs_arg = ""
+    resources_arg = ""
+    input_dependencies = []
+
+    for file in ctx.files.srcs:
+        srcs_arg += file.path + ","
+        input_dependencies.append(file)
+
+    for resource in resources_arg:
+        resources_arg += resource.path + ","
+
+    # call swagger generator to make the swagger JSON and java files
+    arguments = [
+        srcs_arg,
+        resources_arg,
+        "",
+        package_name + "/src/main/resources",
+        output_dir,
+        output_dir,
+        web_context,
+        api_title,
+        api_version,
+        api_package,
+        api_description,
+    ]
+
+    ctx.actions.run(
+        inputs = ctx.files.srcs,
+        outputs = [ctx.outputs.swagger_json],
+        arguments = arguments,
+        progress_message = "Running swagger generator on: %s" % ctx.attr.name,
+        executable = ctx.executable._swagger_generator_exe,
+    )
+
+"""
+    Rule definition to call swagger generator to create the registrator java class source
+"""
+_swagger_java = rule(
+    attrs = {
+        "srcs": attr.label_list(allow_files = True),
+        "package_name": attr.string(),
+        "api_title": attr.string(),
+        "api_version": attr.string(),
+        "api_description": attr.string(),
+        "api_package": attr.string(),
+        "web_context": attr.string(),
+        "_swagger_generator_exe": attr.label(
+            executable = True,
+            cfg = "host",
+            allow_files = True,
+            default = Label("//tools/build/buck-plugin:swagger_generator"),
+        ),
+        "swagger_java": attr.output(),
+    },
+    fragments = ["java"],
+    implementation = _swagger_java_impl,
+)
+
+"""
+    Rule definition to call swagger generator to create the swagger JSON
+"""
+_swagger_json = rule(
+    attrs = {
+        "srcs": attr.label_list(allow_files = True),
+        "package_name": attr.string(),
+        "api_title": attr.string(),
+        "api_version": attr.string(),
+        "api_description": attr.string(),
+        "api_package": attr.string(),
+        "web_context": attr.string(),
+        "_swagger_generator_exe": attr.label(
+            executable = True,
+            cfg = "host",
+            allow_files = True,
+            default = Label("//tools/build/buck-plugin:swagger_generator"),
+        ),
+        "swagger_json": attr.output(),
+    },
+    fragments = ["java"],
+    implementation = _swagger_json_impl,
+)
+
+"""
+    Converts a jar file to an OSGI compatible jar file.
+
+    Args:
+        name: name of the rule to create the OSGI jar file - required
+        jar: jar file to convert - required target
+        deps: dependencies needed by the jar file - required list of targets
+        version: Version of the generated jar file. Optional, defaults to the current ONOS version
+        group: Maven group ID for the resulting jar file. Optional, defaults to 'org.onosproject'
+        import_packages: OSGI import list. Optional, comma separated list, defaults to "*"
+        visibility: Visibility of the produced jar file to other BUILDs. Optional, defaults to private
+"""
 def wrapped_osgi_jar(
         name,
         jar,
         deps,
         version = ONOS_VERSION,
-        package_name_root = "org.onosproject",
+        group = "org.onosproject",
         import_packages = "*",
-        web_context = None,
-        web_xml = None,
         visibility = ["//visibility:private"]):
     _bnd(
         name = name,
         source = jar,
         deps = deps,
         version = version,
-        package_name_root = package_name_root,
+        group = group,
         visibility = visibility,
         import_packages = import_packages,
-        web_xml = web_xml,
+        web_xml = None,
     )
 
+"""
+    Creates an OSGI jar and test jar file from a set of source and test files.
+    See osgi_jar() for a description of shared parameters.
+    Args:
+        test_srcs: Test source file(s) to compile. Optional list of targets, defaults to src/test/java/**/*.java
+        test_deps: Dependencies for the test jar. Optional list of targets, defaults to a common set of dependencies
+        test_resources: Resources to include in the test jar. Optional list of targets, defaults to src/test/resources/**
+        exclude_tests: Tests that should not be run. Useful for excluding things like test files without any @Test methods.
+                       Optional ist of targets, defaults to []
+"""
 def osgi_jar_with_tests(
         name = None,
         deps = None,
         test_deps = None,
-        package_name_root = "org.onosproject",
+        group = "org.onosproject",
         srcs = None,
         resources_root = None,
         resources = None,
@@ -215,15 +386,50 @@ def osgi_jar_with_tests(
     all_test_deps = tests_jar_deps + [tests_name]
     web_xml = _webapp()
 
+    native_srcs = srcs
+    native_resources = resources
+    if web_context != None and api_title != None and len(resources) != 0:
+        # generate Swagger files if needed
+        _swagger_java(
+            name = name + "_swagger_java",
+            srcs = srcs + resources,
+            package_name = native.package_name(),
+            api_title = api_title,
+            api_version = api_version,
+            api_description = api_description,
+            web_context = web_context,
+            api_package = api_package,
+            swagger_java = ("src/main/resources/apidoc/generated-sources/" +
+                           api_package.replace(".", "/") +
+                           "/ApiDocRegistrator.java").replace("//", "/"),
+        )
+        _swagger_json(
+            name = name + "_swagger_json",
+            srcs = srcs + resources,
+            package_name = native.package_name(),
+            api_title = api_title,
+            api_version = api_version,
+            api_description = api_description,
+            web_context = web_context,
+            api_package = api_package,
+            swagger_json = "src/main/resources/apidoc/swagger.json",
+        )
+        native_resources = []
+        for r in resources:
+             if not "definitions" in r:
+                native_resources.append(r)
+        native_srcs = srcs + [ name + "_swagger_java" ]
+        native_resources.append(name + "_swagger_json");
+
     # compile the Java code
-    native.java_library(name = name + "-native", srcs = srcs, resources = resources, deps = deps, visibility = visibility)
+    native.java_library(name = name + "-native", srcs = native_srcs, resources = native_resources, deps = deps, visibility = visibility)
 
     _bnd(
         name = name,
         source = name + "-native",
         deps = deps,
         version = version,
-        package_name_root = package_name_root,
+        group = group,
         visibility = visibility,
         import_packages = import_packages,
         web_context = web_context,
@@ -245,17 +451,36 @@ def osgi_jar_with_tests(
             deps = all_test_deps,
         )
 
+"""
+    Creates an OSGI jar file from a set of source files.
+
+    Args:
+        name: Name of the rule to generate. Optional, defaults to a name based on the location in the source tree.
+              For example apps/mcast/app becomes onos-apps-mcast-app
+        deps: Dependencies of the generated jar file. Expressed as a list of targets
+        import_packages: OSGI import list. Optional, comma separated list, defaults to "*"
+        group: Maven group ID for the resulting jar file. Optional, defaults to 'org.onosproject'
+        srcs: Source file(s) to compile. Optional list of targets, defaults to src/main/java/**/*.java
+        resources_root: Relative path to the root of the tree of resources for this jar. Optional, defaults to src/main/resources
+        resources: Resources to include in the jar file. Optional list of targets, defaults to all files beneath resources_root
+        visibility: Visibility of the produced jar file to other BUILDs. Optional, defaults to public
+        version: Version of the generated jar file. Optional, defaults to the current ONOS version
+        web_context: Web context for a WAB file if needed. Only needed if the jar file provides a REST API. Optional string
+        api_title: Swagger API title. Optional string, only used if the jar file provides a REST API and has swagger annotations
+        api_version: Swagger API version. Optional string, only used if the jar file provides a REST API and has swagger annotations
+        api_description: Swagger API description. Optional string, only used if the jar file provides a REST API and has swagger annotations
+        api_package: Swagger API package name. Optional string, only used if the jar file provides a REST API and has swagger annotations
+"""
 def osgi_jar(
         name = None,
         deps = None,
         import_packages = None,
-        package_name_root = "org.onosproject",
+        group = "org.onosproject",
         srcs = None,
         resources_root = None,
         resources = None,
         visibility = ["//visibility:public"],
         version = ONOS_VERSION,
-        # TODO - implement these for swagger and web.xml
         web_context = None,
         api_title = "",
         api_version = "",
@@ -270,7 +495,7 @@ def osgi_jar(
         name = name,
         deps = deps,
         test_deps = [],
-        package_name_root = package_name_root,
+        group = group,
         srcs = srcs,
         resources = resources,
         resources_root = resources_root,
@@ -280,5 +505,9 @@ def osgi_jar(
         visibility = visibility,
         version = version,
         import_packages = import_packages,
+        api_title = api_title,
+        api_version = api_version,
+        api_description = api_description,
+        api_package = api_package,
         web_context = web_context,
     )

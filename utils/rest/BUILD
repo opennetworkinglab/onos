@@ -7,7 +7,7 @@ COMPILE_DEPS = COMPILE + JACKSON + [
 
 osgi_jar(
     name = "onlab-rest",
-    package_name_root = "org.onlab",
+    group = "org.onlab",
     visibility = ["//visibility:public"],
     deps = COMPILE_DEPS,
 )

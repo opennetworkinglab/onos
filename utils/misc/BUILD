@@ -13,7 +13,7 @@ osgi_jar_with_tests(
         "org.onlab.graph.GraphTest",
         "org.onlab.util.SlidingWindowCounterTest",
     ],
-    package_name_root = "org.onlab",
+    group = "org.onlab",
     visibility = ["//visibility:public"],
     deps = COMPILE_DEPS,
 )
