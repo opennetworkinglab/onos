@@ -30,7 +30,7 @@
 
     <properties>
         <protobuf.version>3.2.0</protobuf.version>
-        <piCommit>219b3d67299ec09b49f433d7341049256ab5f512</piCommit>
+        <piCommit>59c940916b4f5b182f33b4788d8c410972eaecce</piCommit>
         <piBaseUrl>https://github.com/p4lang/PI.git</piBaseUrl>
     </properties>
 
