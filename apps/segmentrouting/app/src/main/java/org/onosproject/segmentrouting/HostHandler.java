@@ -106,7 +106,10 @@ public class HostHandler {
                 srManager.getPairLocalPort(pairDeviceId).ifPresent(pairRemotePort -> {
                     // NOTE: Since the pairLocalPort is trunk port, use assigned vlan of original port
                     //       when the host is untagged
-                    VlanId vlanId = Optional.ofNullable(srManager.getInternalVlanId(location)).orElse(hostVlanId);
+                    VlanId vlanId = vlanForPairPort(hostVlanId, location);
+                    if (vlanId == null) {
+                        return;
+                    }
 
                     processBridgingRule(pairDeviceId, pairRemotePort, hostMac, vlanId, false);
                     ips.forEach(ip -> processRoutingRule(pairDeviceId, pairRemotePort, hostMac, vlanId,
@@ -143,7 +146,10 @@ public class HostHandler {
             if (pairDeviceId.isPresent() && pairLocalPort.isPresent()) {
                 // NOTE: Since the pairLocalPort is trunk port, use assigned vlan of original port
                 //       when the host is untagged
-                VlanId vlanId = Optional.ofNullable(srManager.getInternalVlanId(location)).orElse(hostVlanId);
+                VlanId vlanId = vlanForPairPort(hostVlanId, location);
+                if (vlanId == null) {
+                    return;
+                }
 
                 processBridgingRule(pairDeviceId.get(), pairLocalPort.get(), hostMac, vlanId, true);
                 ips.forEach(ip ->
@@ -302,7 +308,10 @@ public class HostHandler {
                     srManager.getPairLocalPort(pairDeviceId).ifPresent(pairRemotePort -> {
                         // NOTE: Since the pairLocalPort is trunk port, use assigned vlan of original port
                         //       when the host is untagged
-                        VlanId vlanId = Optional.ofNullable(srManager.getInternalVlanId(location)).orElse(hostVlanId);
+                        VlanId vlanId = vlanForPairPort(hostVlanId, location);
+                        if (vlanId == null) {
+                            return;
+                        }
 
                         ipsToRemove.forEach(ip ->
                                 processRoutingRule(pairDeviceId, pairRemotePort, hostMac, vlanId, ip, true)
@@ -431,7 +440,27 @@ public class HostHandler {
         }
     }
 
+    /**
+     * Returns VLAN ID to be used to program redirection flow on pair port.
+     *
+     * @param hostVlanId host VLAN ID
+     * @param location host location
+     * @return VLAN ID to be used; Or null if host VLAN does not match the interface config
+     */
+    VlanId vlanForPairPort(VlanId hostVlanId, ConnectPoint location) {
+        VlanId internalVlan = srManager.getInternalVlanId(location);
+        Set<VlanId> taggedVlan = srManager.getTaggedVlanId(location);
 
+        if (!hostVlanId.equals(VlanId.NONE) && taggedVlan.contains(hostVlanId)) {
+            return hostVlanId;
+        } else if (hostVlanId.equals(VlanId.NONE) && internalVlan != null) {
+            return internalVlan;
+        } else {
+            log.warn("VLAN mismatch. hostVlan={}, location={}, internalVlan={}, taggedVlan={}",
+                    hostVlanId, location, internalVlan, taggedVlan);
+            return null;
+        }
+    }
 
     /**
      * Update forwarding objective for unicast bridging and unicast routing.
