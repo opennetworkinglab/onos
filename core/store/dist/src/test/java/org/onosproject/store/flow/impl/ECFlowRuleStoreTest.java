@@ -16,6 +16,7 @@
 package org.onosproject.store.flow.impl;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
 import org.junit.After;
 import org.junit.Before;
@@ -26,6 +27,7 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.core.CoreServiceAdapter;
+import org.onosproject.mastership.MastershipInfo;
 import org.onosproject.mastership.MastershipServiceAdapter;
 import org.onosproject.net.device.DeviceServiceAdapter;
 import org.onosproject.net.DeviceId;
@@ -40,10 +42,16 @@ import org.onosproject.net.flow.oldbatch.FlowRuleBatchOperation;
 import org.onosproject.net.intent.IntentTestsMocks;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationServiceAdapter;
 import org.onosproject.store.persistence.PersistenceServiceAdapter;
+import org.onosproject.store.service.AsyncConsistentMap;
+import org.onosproject.store.service.AsyncConsistentMapAdapter;
+import org.onosproject.store.service.ConsistentMap;
+import org.onosproject.store.service.ConsistentMapBuilder;
 import org.onosproject.store.service.TestStorageService;
 
 import org.onlab.packet.Ip4Address;
 import java.util.Iterator;
+import java.util.Optional;
+
 import org.osgi.service.component.ComponentContext;
 
 import static org.easymock.EasyMock.createMock;
@@ -103,6 +111,16 @@ public class ECFlowRuleStoreTest {
         public NodeId getMasterFor(DeviceId deviceId) {
             return new NodeId("1");
         }
+
+        @Override
+        public MastershipInfo getMastershipFor(DeviceId deviceId) {
+            return new MastershipInfo(
+                1,
+                Optional.of(NodeId.nodeId("1")),
+                ImmutableMap.<NodeId, MastershipRole>builder()
+                    .put(NodeId.nodeId("1"), MastershipRole.MASTER)
+                    .build());
+        }
     }
 
 
@@ -132,8 +150,27 @@ public class ECFlowRuleStoreTest {
     @Before
     public void setUp() throws Exception {
         flowStoreImpl = new ECFlowRuleStore();
-        flowStoreImpl.storageService = new TestStorageService();
-        flowStoreImpl.replicaInfoManager = new ReplicaInfoManager();
+        flowStoreImpl.storageService = new TestStorageService() {
+            @Override
+            public <K, V> ConsistentMapBuilder<K, V> consistentMapBuilder() {
+                return new ConsistentMapBuilder<K, V>() {
+                    @Override
+                    public AsyncConsistentMap<K, V> buildAsyncMap() {
+                        return new AsyncConsistentMapAdapter<K, V>();
+                    }
+
+                    @Override
+                    public ConsistentMap<K, V> build() {
+                        return null;
+                    }
+                };
+            }
+        };
+
+        ReplicaInfoManager replicaInfoManager = new ReplicaInfoManager();
+        replicaInfoManager.mastershipService = new MasterOfAll();
+
+        flowStoreImpl.replicaInfoManager = replicaInfoManager;
         mockClusterService = createMock(ClusterService.class);
         flowStoreImpl.clusterService = mockClusterService;
         nodeId = new NodeId("1");

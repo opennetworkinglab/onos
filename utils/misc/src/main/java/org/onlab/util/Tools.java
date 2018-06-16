@@ -755,6 +755,31 @@ public abstract class Tools {
     }
 
     /**
+     * Returns a new CompletableFuture completed with the first result from a list of futures. If no future
+     * is completed successfully, the returned future will be completed with the first exception.
+     *
+     * @param futures the input futures
+     * @param <T> future result type
+     * @return a new CompletableFuture
+     */
+    public static <T> CompletableFuture<T> firstOf(List<CompletableFuture<T>> futures) {
+        CompletableFuture<T> resultFuture = new CompletableFuture<>();
+        CompletableFuture.allOf(futures.stream()
+            .map(future -> future.thenAccept(r -> resultFuture.complete(r)))
+            .toArray(CompletableFuture[]::new))
+            .whenComplete((r, e) -> {
+                if (!resultFuture.isDone()) {
+                    if (e != null) {
+                        resultFuture.completeExceptionally(e);
+                    } else {
+                        resultFuture.complete(null);
+                    }
+                }
+            });
+        return resultFuture;
+    }
+
+    /**
      * Returns a new CompletableFuture completed by with the first positive result from a list of
      * input CompletableFutures.
      *
