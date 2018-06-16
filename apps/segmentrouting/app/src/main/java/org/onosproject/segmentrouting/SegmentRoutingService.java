@@ -45,7 +45,12 @@ import java.util.Set;
  */
 public interface SegmentRoutingService {
     /**
-     * VLAN cross-connect priority.
+     * VLAN cross-connect ACL priority.
+     */
+    int XCONNECT_ACL_PRIORITY = 60000;
+
+    /**
+     * VLAN cross-connect Bridging priority.
      */
     int XCONNECT_PRIORITY = 1000;
 
