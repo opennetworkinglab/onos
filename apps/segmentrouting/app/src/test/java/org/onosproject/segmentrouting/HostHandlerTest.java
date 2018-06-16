@@ -123,7 +123,8 @@ public class HostHandlerTest {
     private static final HostLocation HOST_LOC61 = new HostLocation(CP61, 0);
     // Interface VLAN
     private static final VlanId INTF_VLAN_UNTAGGED = VlanId.vlanId((short) 10);
-    private static final Set<VlanId> INTF_VLAN_TAGGED = Sets.newHashSet(VlanId.vlanId((short) 20));
+    private static final VlanId INTF_VLAN_TAGGED_1 = VlanId.vlanId((short) 20);
+    private static final Set<VlanId> INTF_VLAN_TAGGED = Sets.newHashSet(INTF_VLAN_TAGGED_1);
     private static final VlanId INTF_VLAN_NATIVE = VlanId.vlanId((short) 30);
     private static final Set<VlanId> INTF_VLAN_PAIR = Sets.newHashSet(VlanId.vlanId((short) 10),
             VlanId.vlanId((short) 20), VlanId.vlanId((short) 30));
@@ -854,5 +855,16 @@ public class HostHandlerTest {
         assertEquals(2, BRIDGING_TABLE.size());
         assertNotNull(BRIDGING_TABLE.get(new MockBridgingTableKey(DEV1, HOST_MAC, INTF_VLAN_UNTAGGED)));
         assertNotNull(BRIDGING_TABLE.get(new MockBridgingTableKey(DEV2, HOST_MAC, INTF_VLAN_UNTAGGED)));
+    }
+
+    @Test
+    public void testVlanForPairPort() {
+        assertEquals(INTF_VLAN_UNTAGGED, hostHandler.vlanForPairPort(VlanId.NONE, CP11));
+        assertEquals(INTF_VLAN_NATIVE, hostHandler.vlanForPairPort(VlanId.NONE, CP13));
+        assertEquals(INTF_VLAN_TAGGED_1, hostHandler.vlanForPairPort(INTF_VLAN_TAGGED_1, CP13));
+        assertNull(hostHandler.vlanForPairPort(INTF_VLAN_UNTAGGED, CP11));
+        assertNull(hostHandler.vlanForPairPort(INTF_VLAN_UNTAGGED, CP13));
+        assertNull(hostHandler.vlanForPairPort(VlanId.NONE, CP51));
+        assertNull(hostHandler.vlanForPairPort(INTF_VLAN_UNTAGGED, CP51));
     }
 }
