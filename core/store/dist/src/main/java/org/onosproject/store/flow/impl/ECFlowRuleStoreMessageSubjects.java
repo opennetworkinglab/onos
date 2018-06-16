@@ -32,6 +32,9 @@ public final class ECFlowRuleStoreMessageSubjects {
     public static final MessageSubject GET_DEVICE_FLOW_ENTRIES
         = new MessageSubject("peer-forward-get-device-flow-entries");
 
+    public static final MessageSubject GET_DEVICE_FLOW_COUNT
+        = new MessageSubject("peer-forward-get-flow-count");
+
     public static final MessageSubject REMOVE_FLOW_ENTRY
         = new MessageSubject("peer-forward-remove-flow-entry");
 
@@ -40,7 +43,4 @@ public final class ECFlowRuleStoreMessageSubjects {
 
     public static final MessageSubject FLOW_TABLE_BACKUP
         = new MessageSubject("peer-flow-table-backup");
-
-    public static final MessageSubject FLOW_TABLE_ANTI_ENTROPY
-        = new MessageSubject("peer-flow-table-anti-entropy");
 }
