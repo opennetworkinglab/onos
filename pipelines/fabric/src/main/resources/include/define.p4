@@ -26,7 +26,7 @@
 #define _TRUE true
 #endif
 #ifndef _FALSE
-#define _FALSE true
+#define _FALSE false
 #endif
 
 #ifndef _PKT_OUT_HDR_ANNOT
