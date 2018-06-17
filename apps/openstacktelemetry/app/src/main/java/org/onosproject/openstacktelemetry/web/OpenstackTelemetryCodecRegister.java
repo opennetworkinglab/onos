@@ -22,8 +22,10 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.codec.CodecService;
 import org.onosproject.openstacktelemetry.api.FlowInfo;
+import org.onosproject.openstacktelemetry.api.StatsFlowRule;
 import org.onosproject.openstacktelemetry.api.StatsInfo;
 import org.onosproject.openstacktelemetry.codec.FlowInfoJsonCodec;
+import org.onosproject.openstacktelemetry.codec.StatsFlowRuleJsonCodec;
 import org.onosproject.openstacktelemetry.codec.StatsInfoJsonCodec;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -43,6 +45,7 @@ public class OpenstackTelemetryCodecRegister {
     protected void activate() {
         codecService.registerCodec(StatsInfo.class, new StatsInfoJsonCodec());
         codecService.registerCodec(FlowInfo.class, new FlowInfoJsonCodec());
+        codecService.registerCodec(StatsFlowRule.class, new StatsFlowRuleJsonCodec());
 
         log.info("Started");
     }
@@ -51,6 +54,7 @@ public class OpenstackTelemetryCodecRegister {
     protected void deactivate() {
         codecService.unregisterCodec(StatsInfo.class);
         codecService.unregisterCodec(FlowInfo.class);
+        codecService.unregisterCodec(StatsFlowRule.class);
 
         log.info("Stopped");
     }

@@ -91,7 +91,7 @@ public class InfluxDbTelemetryManager implements InfluxDbTelemetryAdminService {
             producer = null;
         }
 
-        log.info("Kafka producer has Stopped");
+        log.info("InfluxDB producer has Stopped");
     }
 
     @Override
