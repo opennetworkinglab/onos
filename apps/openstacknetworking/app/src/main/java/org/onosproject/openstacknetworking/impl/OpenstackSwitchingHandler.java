@@ -144,7 +144,7 @@ public final class OpenstackSwitchingHandler {
         switch (type) {
             case VXLAN:
                 setTunnelTagFlowRules(instPort, install);
-                setForwardingRules(instPort, install);
+                setForwardingRulesForVxlan(instPort, install);
                 break;
             case VLAN:
                 setVlanTagFlowRules(instPort, install);
@@ -152,8 +152,8 @@ public final class OpenstackSwitchingHandler {
                 break;
             case FLAT:
                 setFlatJumpRules(instPort, install);
-                setDownstreamRules(instPort, install);
-                setUpstreamRules(instPort, install);
+                setDownstreamRulesForFlat(instPort, install);
+                setUpstreamRulesForFlat(instPort, install);
                 break;
             default:
                 log.warn("Unsupported network tunnel type {}", type.name());
@@ -176,8 +176,12 @@ public final class OpenstackSwitchingHandler {
             case VLAN:
                 setVlanTagFlowRules(instPort, false);
                 break;
+            case FLAT:
+                setFlatJumpRules(instPort, false);
+                setUpstreamRulesForFlat(instPort, false);
+                setDownstreamRulesForFlat(instPort, false);
             default:
-                log.warn("Unsupported network tunnel type {}", type.name());
+                log.warn("Unsupported network type {}", type.name());
                 break;
         }
     }
@@ -241,7 +245,7 @@ public final class OpenstackSwitchingHandler {
                 install);
     }
 
-    private void setDownstreamRules(InstancePort instPort, boolean install) {
+    private void setDownstreamRulesForFlat(InstancePort instPort, boolean install) {
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPDst(instPort.ipAddress().toIpPrefix())
@@ -274,7 +278,7 @@ public final class OpenstackSwitchingHandler {
                 install);
     }
 
-    private void setUpstreamRules(InstancePort instPort, boolean install) {
+    private void setUpstreamRulesForFlat(InstancePort instPort, boolean install) {
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchInPort(instPort.portNumber())
                 .build();
@@ -316,7 +320,7 @@ public final class OpenstackSwitchingHandler {
      * @param instPort instance port object
      * @param install install flag, add the rule if true, remove it otherwise
      */
-    private void setForwardingRules(InstancePort instPort, boolean install) {
+    private void setForwardingRulesForVxlan(InstancePort instPort, boolean install) {
         // switching rules for the instPorts in the same node
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 // TODO: need to handle IPv6 in near future
@@ -600,31 +604,41 @@ public final class OpenstackSwitchingHandler {
         @Override
         public void event(InstancePortEvent event) {
             InstancePort instPort = event.subject();
+
             switch (event.type()) {
                 case OPENSTACK_INSTANCE_PORT_UPDATED:
                 case OPENSTACK_INSTANCE_PORT_DETECTED:
-                    eventExecutor.execute(() -> {
-                        log.info("Instance port detected MAC:{} IP:{}",
-                                instPort.macAddress(),
-                                instPort.ipAddress());
-                        instPortDetected(event.subject());
-                    });
+                    log.info("Instance port detected MAC:{} IP:{}",
+                                                        instPort.macAddress(),
+                                                        instPort.ipAddress());
+                    eventExecutor.execute(() ->
+                        instPortDetected(instPort)
+                    );
+
                     break;
                 case OPENSTACK_INSTANCE_PORT_VANISHED:
-                    eventExecutor.execute(() -> {
-                        log.info("Instance port vanished MAC:{} IP:{}",
-                                instPort.macAddress(),
-                                instPort.ipAddress());
-                        instPortRemoved(event.subject());
-                    });
+                    log.info("Instance port vanished MAC:{} IP:{}",
+                                                        instPort.macAddress(),
+                                                        instPort.ipAddress());
+                    eventExecutor.execute(() ->
+                        instPortRemoved(instPort)
+                    );
+
                     break;
+
+                // we do not consider MIGRATION_STARTED case, because the rules
+                // will be installed to corresponding switches at
+                // OPENSTACK_INSTANCE_PORT_UPDATED phase
+
+                // TODO: we may need to consider to refactor the VM migration
+                // event detection logic for better code readability
                 case OPENSTACK_INSTANCE_MIGRATION_ENDED:
-                    eventExecutor.execute(() -> {
-                        log.info("Instance port vanished MAC:{} IP:{}, due to VM migration",
-                                instPort.macAddress(),
-                                instPort.ipAddress());
-                        removeVportRules(event.subject());
-                    });
+                    log.info("Instance port vanished MAC:{} IP:{}, " +
+                                 "due to VM migration", instPort.macAddress(),
+                                                        instPort.ipAddress());
+                    eventExecutor.execute(() ->
+                        removeVportRules(instPort)
+                    );
                     break;
                 default:
                     break;
