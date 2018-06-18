@@ -137,7 +137,6 @@ public class SnmpAlarmProvider extends AbstractProvider
         mastershipService.addListener(mastershipListener);
         controller.getDevices().stream().forEach(d -> {
             triggerProbe(d.deviceId());
-            configureListeningConnection(d);
         });
         localIp = clusterService.getLocalNode().ip();
         log.info("Started");
@@ -168,6 +167,7 @@ public class SnmpAlarmProvider extends AbstractProvider
     @Override
     public void triggerProbe(DeviceId deviceId) {
         requestTraps(deviceId);
+        configureListeningConnection(controller.getDevice(deviceId));
     }
 
     private void configureListeningConnection(SnmpDevice device) {

@@ -39,7 +39,8 @@ public class SnmpDeviceConfig extends Config<DeviceId> {
 
     @Override
     public boolean isValid() {
-        return hasOnlyFields(IP, PORT, USERNAME, PASSWORD) &&
+        return hasOnlyFields(PROTOCOL, NOTIFICATION_PROTOCOL, IP, PORT,
+                             NOTIFICATION_PORT, USERNAME, PASSWORD) &&
                 ip() != null;
     }
 
