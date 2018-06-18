@@ -463,9 +463,12 @@ public class DeviceConfiguration implements DeviceProperties {
      */
     public Set<IpPrefix> getSubnets(DeviceId deviceId) {
         SegmentRouterInfo srinfo = deviceConfigMap.get(deviceId);
-        if (srinfo != null) {
+        if (srinfo != null && srinfo.subnets != null) {
+            // Note: ImmutableSet.Builder.addAll calls the iterator of parameter internally,
+            //       which is not protected by SynchronizedCollection mutex.
             ImmutableSet.Builder<IpPrefix> builder = ImmutableSet.builder();
-            return builder.addAll(srinfo.subnets.values()).build();
+            srinfo.subnets.forEach((k, v) -> builder.add(v));
+            return builder.build();
         }
         return null;
     }
