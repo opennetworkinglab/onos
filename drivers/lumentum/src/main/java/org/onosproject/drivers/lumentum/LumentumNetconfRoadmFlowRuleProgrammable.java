@@ -469,6 +469,7 @@ public class LumentumNetconfRoadmFlowRuleProgrammable extends AbstractHandlerBeh
 
         if (pair == null) {
             log.error("Lumentum RPC delete-connection, connection not found on the local cache");
+            throw new IllegalStateException("Lumentum RPC delete-connection, connection not found on the local cache");
         }
 
         String module = pair.getLeft().toString();
