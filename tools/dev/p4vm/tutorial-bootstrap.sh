@@ -39,7 +39,7 @@ mkdir -p .vim/ftdetect
 mkdir -p .vim/syntax
 echo "au BufRead,BufNewFile *.p4      set filetype=p4" >> .vim/ftdetect/p4.vim
 echo "set bg=dark" >> .vimrc
-wget https://raw.githubusercontent.com/p4lang/tutorials/master/P4D2_2018_East/vm/p4.vim
+wget https://github.com/p4lang/tutorials/blob/master/vm/p4.vim
 mv p4.vim .vim/syntax/p4.vim
 
 # Sublime
