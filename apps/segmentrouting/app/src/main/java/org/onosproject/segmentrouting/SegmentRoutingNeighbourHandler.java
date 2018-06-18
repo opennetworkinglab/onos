@@ -107,6 +107,15 @@ public class SegmentRoutingNeighbourHandler {
     }
 
     /**
+     * Reads the boolean configuration for responding to unknown hosts.
+     *
+     * @return respondToUnknownHosts boolean.
+     */
+    protected boolean respondToUnknownHosts() {
+        return srManager.respondToUnknownHosts;
+    }
+
+    /**
      * Utility to send a ND reply using the supplied information.
      *
      * @param pkt the request
@@ -114,14 +123,17 @@ public class SegmentRoutingNeighbourHandler {
      * @param hostService the host service
      */
     protected void sendResponse(NeighbourMessageContext pkt, MacAddress targetMac, HostService hostService) {
-        short vlanId = pkt.packet().getQinQVID();
-        HostId dstId = HostId.hostId(pkt.srcMac(), vlanId == Ethernet.VLAN_UNTAGGED
-                ? pkt.vlan() : VlanId.vlanId(vlanId));
-        Host dst = hostService.getHost(dstId);
-        if (dst == null) {
-            log.warn("Cannot send {} response to host {} - does not exist in the store",
-                     pkt.protocol(), dstId);
-            return;
+        // if this is false, check if host exists in the store
+        if (!respondToUnknownHosts()) {
+            short vlanId = pkt.packet().getQinQVID();
+            HostId dstId = HostId.hostId(pkt.srcMac(), vlanId == Ethernet.VLAN_UNTAGGED
+                    ? pkt.vlan() : VlanId.vlanId(vlanId));
+            Host dst = hostService.getHost(dstId);
+            if (dst == null) {
+                log.warn("Cannot send {} response to host {} - does not exist in the store",
+                         pkt.protocol(), dstId);
+                return;
+            }
         }
         pkt.reply(targetMac);
     }

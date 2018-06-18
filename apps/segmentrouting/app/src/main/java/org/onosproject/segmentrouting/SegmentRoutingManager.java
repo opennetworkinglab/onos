@@ -239,6 +239,10 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                     + "when all uplinks are gone")
     boolean singleHomedDown = false;
 
+    @Property(name = "respondToUnknownHosts", boolValue = true,
+            label = "Enable this to respond to ARP/NDP requests from unknown hosts.")
+    boolean respondToUnknownHosts = true;
+
     ArpHandler arpHandler = null;
     IcmpHandler icmpHandler = null;
     IpHandler ipHandler = null;
@@ -589,8 +593,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             return;
         }
 
-        String strActiveProving = Tools.get(properties, "activeProbing");
-        boolean expectActiveProbing = Boolean.parseBoolean(strActiveProving);
+        String strActiveProbing = Tools.get(properties, "activeProbing");
+        boolean expectActiveProbing = Boolean.parseBoolean(strActiveProbing);
         if (expectActiveProbing != activeProbing) {
             activeProbing = expectActiveProbing;
             log.info("{} active probing", activeProbing ? "Enabling" : "Disabling");
@@ -613,6 +617,13 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 log.warn("Disabling singleHomedDown does not re-enable already "
                         + "downed ports for single-homed hosts");
             }
+        }
+
+        String strRespondToUnknownHosts = Tools.get(properties, "respondToUnknownHosts");
+        boolean expectRespondToUnknownHosts = Boolean.parseBoolean(strRespondToUnknownHosts);
+        if (expectRespondToUnknownHosts != respondToUnknownHosts) {
+            respondToUnknownHosts = expectRespondToUnknownHosts;
+            log.info("{} responding to ARPs/NDPs from unknown hosts", respondToUnknownHosts ? "Enabling" : "Disabling");
         }
     }
 
