@@ -15,7 +15,6 @@
  */
 package org.onosproject.openstacknetworking.cli;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Strings;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
@@ -31,18 +30,15 @@ import org.openstack4j.model.network.NetFloatingIP;
 import org.openstack4j.model.network.Network;
 import org.openstack4j.model.network.Port;
 import org.openstack4j.model.network.Router;
-import org.openstack4j.model.network.RouterInterface;
 import org.openstack4j.model.network.Subnet;
-import org.openstack4j.openstack.networking.domain.NeutronRouterInterface;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.addRouterIface;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.CONTROLLER;
-import static org.openstack4j.core.transport.ObjectMapperSingleton.getContext;
 
 /**
  * Synchronizes OpenStack network states.
@@ -152,28 +148,6 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
                 osRouterAdminService.createFloatingIp(osFloating);
             }
             printFloatingIp(osFloating);
-        });
-    }
-
-    // TODO fix the logic to add router interface to router
-    private void addRouterIface(Port osPort, OpenstackRouterAdminService adminService) {
-        osPort.getFixedIps().forEach(p -> {
-            JsonNode jsonTree = mapper().createObjectNode()
-                    .put("id", osPort.getDeviceId())
-                    .put("tenant_id", osPort.getTenantId())
-                    .put("subnet_id", p.getSubnetId())
-                    .put("port_id", osPort.getId());
-            try {
-                RouterInterface rIface = getContext(NeutronRouterInterface.class)
-                        .readerFor(NeutronRouterInterface.class)
-                        .readValue(jsonTree);
-                if (adminService.routerInterface(rIface.getPortId()) != null) {
-                    adminService.updateRouterInterface(rIface);
-                } else {
-                    adminService.addRouterInterface(rIface);
-                }
-            } catch (IOException ignore) {
-            }
         });
     }
 

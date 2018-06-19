@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.net.DeviceId;
 import org.onosproject.openstacknetworking.api.InstancePort;
+import org.onosproject.openstacknetworking.api.OpenstackRouterAdminService;
 import org.onosproject.openstacknode.api.OpenstackAuth;
 import org.onosproject.openstacknode.api.OpenstackAuth.Perspective;
 import org.onosproject.openstacknode.api.OpenstackNode;
@@ -32,7 +33,9 @@ import org.openstack4j.core.transport.ObjectMapperSingleton;
 import org.openstack4j.model.ModelEntity;
 import org.openstack4j.model.common.Identifier;
 import org.openstack4j.model.network.Port;
+import org.openstack4j.model.network.RouterInterface;
 import org.openstack4j.openstack.OSFactory;
+import org.openstack4j.openstack.networking.domain.NeutronRouterInterface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,6 +44,7 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+import java.io.IOException;
 import java.io.InputStream;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
@@ -53,6 +57,7 @@ import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
 import static org.onosproject.openstacknetworking.api.Constants.PCISLOT;
 import static org.onosproject.openstacknetworking.api.Constants.PCI_VENDOR_INFO;
 import static org.onosproject.openstacknetworking.api.Constants.portNamePrefixMap;
+import static org.openstack4j.core.transport.ObjectMapperSingleton.getContext;
 
 /**
  * An utility that used in openstack networking app.
@@ -256,6 +261,34 @@ public final class OpenstackNetworkingUtil {
         }
 
         return intfName;
+    }
+
+    /**
+     * Adds router interfaces to openstack admin service.
+     * TODO fix the logic to add router interface to router
+     *
+     * @param osPort        port
+     * @param adminService  openstack admin service
+     */
+    public static void addRouterIface(Port osPort, OpenstackRouterAdminService adminService) {
+        osPort.getFixedIps().forEach(p -> {
+            JsonNode jsonTree = new ObjectMapper().createObjectNode()
+                    .put("id", osPort.getDeviceId())
+                    .put("tenant_id", osPort.getTenantId())
+                    .put("subnet_id", p.getSubnetId())
+                    .put("port_id", osPort.getId());
+            try {
+                RouterInterface rIface = getContext(NeutronRouterInterface.class)
+                        .readerFor(NeutronRouterInterface.class)
+                        .readValue(jsonTree);
+                if (adminService.routerInterface(rIface.getPortId()) != null) {
+                    adminService.updateRouterInterface(rIface);
+                } else {
+                    adminService.addRouterInterface(rIface);
+                }
+            } catch (IOException ignore) {
+            }
+        });
     }
 
     /**
