@@ -278,7 +278,7 @@ public class ClusterCommunicationManager implements ClusterCommunicationService 
                     return result;
                 } catch (Exception e) {
                     context.stop(e);
-                    Throwables.throwIfUnchecked(e.getCause());
+                    Throwables.throwIfUnchecked(Throwables.getRootCause(e));
                     throw new IllegalStateException(e.getCause());
                 }
             }
