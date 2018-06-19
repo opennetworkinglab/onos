@@ -40,8 +40,9 @@ tables {
   action_refs {
     id: 16800567
   }
-  direct_resource_ids: 302001589
+  direct_resource_ids: 318778805
   size: 1024
+  idle_timeout_behavior: NO_TIMEOUT
 }
 tables {
   preamble {
@@ -62,6 +63,7 @@ tables {
     id: 16808599
   }
   size: 1024
+  idle_timeout_behavior: NO_TIMEOUT
 }
 tables {
   preamble {
@@ -85,6 +87,7 @@ tables {
     id: 16808599
   }
   size: 1024
+  idle_timeout_behavior: NO_TIMEOUT
 }
 actions {
   preamble {
@@ -167,7 +170,7 @@ counters {
 }
 direct_counters {
   preamble {
-    id: 302001589
+    id: 318778805
     name: "c_ingress.l2_fwd_counter"
     alias: "l2_fwd_counter"
   }
@@ -178,7 +181,7 @@ direct_counters {
 }
 controller_packet_metadata {
   preamble {
-    id: 2868941301
+    id: 67146229
     name: "packet_in"
     annotations: "@controller_header(\"packet_in\")"
   }
@@ -190,7 +193,7 @@ controller_packet_metadata {
 }
 controller_packet_metadata {
   preamble {
-    id: 2868916615
+    id: 67121543
     name: "packet_out"
     annotations: "@controller_header(\"packet_out\")"
   }
@@ -199,4 +202,6 @@ controller_packet_metadata {
     name: "egress_port"
     bitwidth: 9
   }
+}
+type_info {
 }
