@@ -47,8 +47,7 @@ def watchDog(sw):
             if s.connect_ex(('127.0.0.1', sw.grpcPort)) == 0:
                 time.sleep(1)
             else:
-                warn("\n*** WARN: BMv2 instance %s (%s) died!\n"
-                     % (sw.deviceId, sw.name))
+                warn("\n*** WARN: BMv2 instance %s died!\n" % sw.name)
                 sw.printBmv2Log()
                 print ("-" * 80) + "\n"
                 return
