@@ -41,15 +41,11 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.Host;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.net.host.HostEvent;
-import org.onosproject.net.host.HostListener;
-import org.onosproject.net.host.HostService;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.PacketContext;
@@ -62,6 +58,8 @@ import org.onosproject.openstacknetworking.api.InstancePortListener;
 import org.onosproject.openstacknetworking.api.InstancePortService;
 import org.onosproject.openstacknetworking.api.OpenstackFlowRuleService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkAdminService;
+import org.onosproject.openstacknetworking.api.OpenstackNetworkEvent;
+import org.onosproject.openstacknetworking.api.OpenstackNetworkListener;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.onosproject.openstacknetworking.api.OpenstackRouterEvent;
 import org.onosproject.openstacknetworking.api.OpenstackRouterListener;
@@ -96,8 +94,6 @@ import static org.onosproject.openstacknetworking.api.Constants.GW_COMMON_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ARP_CONTROL_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ARP_GATEWAY_RULE;
-import static org.onosproject.openstacknetworking.impl.HostBasedInstancePort.ANNOTATION_NETWORK_ID;
-import static org.onosproject.openstacknetworking.impl.HostBasedInstancePort.ANNOTATION_PORT_ID;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.associatedFloatingIp;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getGwByComputeDevId;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getGwByInstancePort;
@@ -148,9 +144,6 @@ public class OpenstackRoutingArpHandler {
     protected OpenstackNetworkService osNetworkService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected HostService hostService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService configService;
 
     // TODO: need to find a way to unify aprMode and gatewayMac variables with
@@ -162,15 +155,18 @@ public class OpenstackRoutingArpHandler {
     protected String gatewayMac = DEFAULT_GATEWAY_MAC_STR;
 
     private final OpenstackRouterListener osRouterListener = new InternalRouterEventListener();
-    private final HostListener hostListener = new InternalHostListener();
     private final OpenstackNodeListener osNodeListener = new InternalNodeEventListener();
     private final InstancePortListener instPortListener = new InternalInstancePortListener();
 
+    private final OpenstackNetworkListener osNetworkListener = new InternalOpenstackNetworkListener();
+
     private ApplicationId appId;
     private NodeId localNodeId;
-    private Map<String, MacAddress> floatingIpMacMap = Maps.newConcurrentMap();
-    private Map<MacAddress, InstancePort> removedPorts = Maps.newConcurrentMap();
-    private Map<String, DeviceId> migrationPool = Maps.newConcurrentMap();
+    private final Map<String, MacAddress> floatingIpMacMap = Maps.newConcurrentMap();
+    private final Map<String, DeviceId> migrationPool = Maps.newConcurrentMap();
+    private final Map<MacAddress, InstancePort> terminatedInstPorts = Maps.newConcurrentMap();
+    private final Map<MacAddress, InstancePort> tobeRemovedInstPorts = Maps.newConcurrentMap();
+    private final Map<String, NetFloatingIP> pendingInstPortIds = Maps.newConcurrentMap();
 
     private final ExecutorService eventExecutor = newSingleThreadExecutor(
             groupedThreads(this.getClass().getSimpleName(), "event-handler", log));
@@ -182,9 +178,9 @@ public class OpenstackRoutingArpHandler {
         appId = coreService.registerApplication(OPENSTACK_NETWORKING_APP_ID);
         configService.registerProperties(getClass());
         localNodeId = clusterService.getLocalNode().id();
-        hostService.addListener(hostListener);
         osRouterService.addListener(osRouterListener);
         osNodeService.addListener(osNodeListener);
+        osNetworkService.addListener(osNetworkListener);
         instancePortService.addListener(instPortListener);
         leadershipService.runForLeadership(appId.name());
         packetService.addProcessor(packetProcessor, PacketProcessor.director(1));
@@ -194,10 +190,11 @@ public class OpenstackRoutingArpHandler {
     @Deactivate
     protected void deactivate() {
         packetService.removeProcessor(packetProcessor);
-        hostService.removeListener(hostListener);
+        instancePortService.removeListener(instPortListener);
         osRouterService.removeListener(osRouterListener);
         osNodeService.removeListener(osNodeListener);
         instancePortService.removeListener(instPortListener);
+        osNetworkService.removeListener(osNetworkListener);
         leadershipService.withdraw(appId.name());
         eventExecutor.shutdown();
         configService.unregisterProperties(getClass(), false);
@@ -363,6 +360,20 @@ public class OpenstackRoutingArpHandler {
         });
     }
 
+    private void initPendingInstPorts() {
+        osRouterService.floatingIps().forEach(f -> {
+            if (f.getPortId() != null) {
+                Port port = osNetworkAdminService.port(f.getPortId());
+                if (port != null) {
+                    if (!Strings.isNullOrEmpty(port.getDeviceId()) &&
+                            instancePortService.instancePort(f.getPortId()) == null) {
+                        pendingInstPortIds.put(f.getPortId(), f);
+                    }
+                }
+            }
+        });
+    }
+
     /**
      * Installs static ARP rules used in ARP BROAD_CAST mode.
      *
@@ -486,8 +497,12 @@ public class OpenstackRoutingArpHandler {
 
             // in VM purge case, we will have null instance port
             if (instPort == null) {
-                instPort = removedPorts.get(targetMac);
-                removedPorts.remove(targetMac);
+                instPort = tobeRemovedInstPorts.get(targetMac);
+                tobeRemovedInstPorts.remove(targetMac);
+            }
+
+            if (instPort == null) {
+                instPort = terminatedInstPorts.get(targetMac);
             }
 
             OpenstackNode gw = getGwByInstancePort(gateways, instPort);
@@ -578,12 +593,38 @@ public class OpenstackRoutingArpHandler {
                     );
                     break;
                 case OPENSTACK_FLOATING_IP_ASSOCIATED:
+
+                    if (instancePortService.instancePort(event.portId()) == null) {
+                        log.info("Try to associate the fip {} with a terminated VM",
+                                event.floatingIp().getFloatingIpAddress());
+                        pendingInstPortIds.put(event.portId(), event.floatingIp());
+                        return;
+                    }
+
                     eventExecutor.execute(() ->
                         // associate a floating IP with an existing VM
                         setFloatingIpArpRule(event.floatingIp(), completedGws, true)
                     );
                     break;
                 case OPENSTACK_FLOATING_IP_DISASSOCIATED:
+
+                    MacAddress mac = floatingIpMacMap.get(event.floatingIp().getFloatingIpAddress());
+
+                    if (mac != null && !tobeRemovedInstPorts.containsKey(mac) &&
+                            terminatedInstPorts.containsKey(mac)) {
+                        tobeRemovedInstPorts.put(mac, terminatedInstPorts.get(mac));
+                    }
+
+                    if (instancePortService.instancePort(event.portId()) == null) {
+
+                        if (pendingInstPortIds.containsKey(event.portId())) {
+                            log.info("Try to disassociate the fip {} with a terminated VM",
+                                    event.floatingIp().getFloatingIpAddress());
+                            pendingInstPortIds.remove(event.portId());
+                            return;
+                        }
+                    }
+
                     eventExecutor.execute(() ->
                         // disassociate a floating IP with the existing VM
                         setFloatingIpArpRule(event.floatingIp(), completedGws, false)
@@ -678,57 +719,109 @@ public class OpenstackRoutingArpHandler {
         }
     }
 
-    /**
-     * An internal host event listener, intended to uninstall
-     * ARP rules during host removal. Note that this is only valid when users
-     * remove host without disassociating floating IP with existing VM.
-     */
-    private class InternalHostListener implements HostListener {
+    private class InternalInstancePortListener implements InstancePortListener {
 
         @Override
-        public boolean isRelevant(HostEvent event) {
-            Host host = event.subject();
-            if (!isValidHost(host)) {
-                log.debug("Invalid host detected, ignore it {}", host);
-                return false;
-            }
-            return true;
+        public boolean isRelevant(InstancePortEvent event) {
+            // do not allow to proceed without leadership
+            NodeId leader = leadershipService.getLeader(appId.name());
+            return Objects.equals(localNodeId, leader);
         }
 
         @Override
-        public void event(HostEvent event) {
-            InstancePort instPort = HostBasedInstancePort.of(event.subject());
+        public void event(InstancePortEvent event) {
+            InstancePort instPort = event.subject();
+
+            Set<NetFloatingIP> ips = osRouterService.floatingIps();
+            NetFloatingIP fip = associatedFloatingIp(instPort, ips);
+            Set<OpenstackNode> gateways = osNodeService.completeNodes(GATEWAY);
+
             switch (event.type()) {
-                case HOST_REMOVED:
-                    storeTempInstPort(instPort);
+                case OPENSTACK_INSTANCE_PORT_DETECTED:
+                    terminatedInstPorts.remove(instPort.macAddress());
+
+                    if (pendingInstPortIds.containsKey(instPort.portId())) {
+                        Set<OpenstackNode> completedGws =
+                                osNodeService.completeNodes(GATEWAY);
+                        setFloatingIpArpRule(pendingInstPortIds.get(instPort.portId()),
+                                completedGws, true);
+                        pendingInstPortIds.remove(instPort.portId());
+                    }
+
                     break;
-                case HOST_UPDATED:
-                case HOST_ADDED:
+
+                case OPENSTACK_INSTANCE_PORT_VANISHED:
+                    terminatedInstPorts.put(instPort.macAddress(), instPort);
+                    break;
+
+                case OPENSTACK_INSTANCE_MIGRATION_STARTED:
+
+                    if (gateways.size() == 1) {
+                        return;
+                    }
+
+                    if (fip != null && isAssociatedWithVM(osNetworkService, fip)) {
+                        migrationPool.put(fip.getFloatingIpAddress(), event.subject().deviceId());
+
+                        eventExecutor.execute(() -> {
+                            setFloatingIpArpRuleWithPortEvent(fip, event.subject(),
+                                    gateways, true);
+                        });
+                    }
+
+                    break;
+                case OPENSTACK_INSTANCE_MIGRATION_ENDED:
+
+                    if (gateways.size() == 1) {
+                        return;
+                    }
+
+                    if (fip != null && isAssociatedWithVM(osNetworkService, fip)) {
+                        DeviceId newDeviceId = migrationPool.get(fip.getFloatingIpAddress());
+                        DeviceId oldDeviceId = event.subject().deviceId();
+                        migrationPool.remove(fip.getFloatingIpAddress());
+
+                        OpenstackNode oldGw = getGwByComputeDevId(gateways, oldDeviceId);
+                        OpenstackNode newGw = getGwByComputeDevId(gateways, newDeviceId);
+
+                        if (oldGw != null && oldGw.equals(newGw)) {
+                            return;
+                        }
+
+                        eventExecutor.execute(() ->
+                                setFloatingIpArpRuleWithPortEvent(fip, event.subject(),
+                                        gateways, false));
+                    }
+                    break;
                 default:
                     break;
             }
         }
+    }
 
-        private void storeTempInstPort(InstancePort port) {
-            Set<NetFloatingIP> ips = osRouterService.floatingIps();
-            for (NetFloatingIP fip : ips) {
-                if (Strings.isNullOrEmpty(fip.getFixedIpAddress())) {
-                    continue;
-                }
-                if (Strings.isNullOrEmpty(fip.getFloatingIpAddress())) {
-                    continue;
-                }
-                if (fip.getFixedIpAddress().equals(port.ipAddress().toString())) {
-                    removedPorts.put(port.macAddress(), port);
-                }
-            }
+    private class InternalOpenstackNetworkListener implements OpenstackNetworkListener {
+
+        @Override
+        public boolean isRelevant(OpenstackNetworkEvent event) {
+            // do not allow to proceed without leadership
+            NodeId leader = leadershipService.getLeader(appId.name());
+            return Objects.equals(localNodeId, leader);
         }
 
-        // TODO: should be extracted as an utility helper method sooner
-        private boolean isValidHost(Host host) {
-            return !host.ipAddresses().isEmpty() &&
-                    host.annotations().value(ANNOTATION_NETWORK_ID) != null &&
-                    host.annotations().value(ANNOTATION_PORT_ID) != null;
+        @Override
+        public void event(OpenstackNetworkEvent event) {
+            switch (event.type()) {
+                case OPENSTACK_PORT_REMOVED:
+                    Port osPort = event.port();
+                    MacAddress mac = MacAddress.valueOf(osPort.getMacAddress());
+                    if (terminatedInstPorts.containsKey(mac)) {
+                        tobeRemovedInstPorts.put(mac, terminatedInstPorts.get(mac));
+                        terminatedInstPorts.remove(mac);
+                    }
+                    break;
+                default:
+                    break;
+            }
         }
     }
 
@@ -751,6 +844,9 @@ public class OpenstackRoutingArpHandler {
 
                     // initialize FloatingIp to Mac map
                     initFloatingIpMacMap();
+
+                    // initialize pendingInstPorts
+                    initPendingInstPorts();
 
                     break;
                 case OPENSTACK_NODE_INCOMPLETE:
@@ -819,60 +915,6 @@ public class OpenstackRoutingArpHandler {
                     GW_COMMON_TABLE,
                     install
             );
-        }
-    }
-
-    private class InternalInstancePortListener implements InstancePortListener {
-
-        @Override
-        public boolean isRelevant(InstancePortEvent event) {
-            Set<NetFloatingIP> ips = osRouterService.floatingIps();
-            NetFloatingIP fip = associatedFloatingIp(event.subject(), ips);
-            Set<OpenstackNode> gateways = osNodeService.completeNodes(GATEWAY);
-
-            if (gateways.size() == 1) {
-                return false;
-            }
-
-            return fip != null && isAssociatedWithVM(osNetworkService, fip);
-        }
-
-        @Override
-        public void event(InstancePortEvent event) {
-            Set<NetFloatingIP> ips = osRouterService.floatingIps();
-            NetFloatingIP fip = associatedFloatingIp(event.subject(), ips);
-            Set<OpenstackNode> gateways = osNodeService.completeNodes(GATEWAY);
-
-            switch (event.type()) {
-                case OPENSTACK_INSTANCE_MIGRATION_STARTED:
-
-                    migrationPool.put(fip.getFloatingIpAddress(), event.subject().deviceId());
-
-                    eventExecutor.execute(() -> {
-                        setFloatingIpArpRuleWithPortEvent(fip, event.subject(),
-                                gateways, true);
-                    });
-                    break;
-                case OPENSTACK_INSTANCE_MIGRATION_ENDED:
-
-                    DeviceId newDeviceId = migrationPool.get(fip.getFloatingIpAddress());
-                    DeviceId oldDeviceId = event.subject().deviceId();
-                    migrationPool.remove(fip.getFloatingIpAddress());
-
-                    OpenstackNode oldGw = getGwByComputeDevId(gateways, oldDeviceId);
-                    OpenstackNode newGw = getGwByComputeDevId(gateways, newDeviceId);
-
-                    if (oldGw != null && oldGw.equals(newGw)) {
-                        return;
-                    }
-
-                    eventExecutor.execute(() ->
-                        setFloatingIpArpRuleWithPortEvent(fip, event.subject(),
-                                gateways, false));
-                    break;
-                default:
-                    break;
-            }
         }
     }
 }
