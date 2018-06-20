@@ -47,7 +47,6 @@ import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.flowobjective.ObjectiveContext;
 import org.onosproject.net.flowobjective.ObjectiveError;
 import org.onosproject.net.packet.PacketPriority;
-import org.onosproject.segmentrouting.DefaultRoutingHandler.PortFilterInfo;
 import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
 import org.onosproject.segmentrouting.config.DeviceConfiguration;
 import org.onosproject.segmentrouting.grouphandler.DefaultGroupHandler;
@@ -922,8 +921,7 @@ public class RoutingRulePopulator {
         }
         log.debug("Filtering on dev:{}, disabledPorts:{}, errorPorts:{}, filteredPorts:{}",
                   deviceId, disabledPorts, errorPorts, filteredPorts);
-        return srManager.defaultRoutingHandler.new PortFilterInfo(disabledPorts,
-                                                       errorPorts, filteredPorts);
+        return new PortFilterInfo(disabledPorts, errorPorts, filteredPorts);
     }
 
     /**
