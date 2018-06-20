@@ -15,10 +15,14 @@
  */
 package org.onosproject.segmentrouting;
 
+import com.google.common.annotations.Beta;
 import com.google.common.collect.Multimap;
+import org.apache.commons.lang3.NotImplementedException;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
+import org.onlab.packet.VlanId;
 import org.onosproject.cluster.NodeId;
+import org.onosproject.core.ApplicationId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
@@ -38,6 +42,7 @@ import org.onosproject.segmentrouting.mcast.McastStoreKey;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -46,12 +51,18 @@ import java.util.Set;
 public interface SegmentRoutingService {
     /**
      * VLAN cross-connect ACL priority.
+     *
+     * @deprecated in ONOS 1.12. Replaced by {@link org.onosproject.segmentrouting.xconnect.api.XconnectService}
      */
+    @Deprecated
     int XCONNECT_ACL_PRIORITY = 60000;
 
     /**
      * VLAN cross-connect Bridging priority.
+     *
+     * @deprecated in ONOS 1.12. Replaced by {@link org.onosproject.segmentrouting.xconnect.api.XconnectService}
      */
+    @Deprecated
     int XCONNECT_PRIORITY = 1000;
 
     /**
@@ -302,4 +313,51 @@ public interface SegmentRoutingService {
      * @return shouldProgram local cache
      */
     Map<DeviceId, Boolean> getShouldProgramCache();
+
+    /**
+     * Gets application id.
+     *
+     * @return application id
+     */
+    default ApplicationId appId() {
+        throw new NotImplementedException("appId not implemented");
+    }
+
+    /**
+     * Returns internal VLAN for untagged hosts on given connect point.
+     * <p>
+     * The internal VLAN is either vlan-untagged for an access port,
+     * or vlan-native for a trunk port.
+     *
+     * @param connectPoint connect point
+     * @return internal VLAN or null if both vlan-untagged and vlan-native are undefined
+     */
+    @Beta
+    default VlanId getInternalVlanId(ConnectPoint connectPoint) {
+        throw new NotImplementedException("getInternalVlanId not implemented");
+    }
+
+
+    /**
+     * Returns optional pair device ID of given device.
+     *
+     * @param deviceId device ID
+     * @return optional pair device ID. Might be empty if pair device is not configured
+     */
+    @Beta
+    default Optional<DeviceId> getPairDeviceId(DeviceId deviceId) {
+        throw new NotImplementedException("getPairDeviceId not implemented");
+    }
+
+
+    /**
+     * Returns optional pair device local port of given device.
+     *
+     * @param deviceId device ID
+     * @return optional pair device ID. Might be empty if pair device is not configured
+     */
+    @Beta
+    default Optional<PortNumber> getPairLocalPort(DeviceId deviceId) {
+        throw new NotImplementedException("getPairLocalPort not implemented");
+    }
 }

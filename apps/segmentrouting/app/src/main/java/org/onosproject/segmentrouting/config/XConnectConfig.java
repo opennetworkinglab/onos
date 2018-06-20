@@ -32,7 +32,10 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * Configuration object for cross-connect.
+ *
+ * @deprecated in ONOS 1.12. Replaced by {@link org.onosproject.segmentrouting.xconnect.impl.XconnectManager}
  */
+@Deprecated
 public class XConnectConfig extends Config<ApplicationId> {
     private static final String VLAN = "vlan";
     private static final String PORTS = "ports";
