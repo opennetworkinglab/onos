@@ -28,6 +28,10 @@ P4RT_TEST_COMMIT="master"
 
 NUM_CORES=`grep -c ^processor /proc/cpuinfo`
 
+# If false, build tools without debug features to improve throughput of BMv2 and
+# reduce CPU/memory footprint.
+DEBUG_FLAGS=${DEBUG_FLAGS:-true}
+
 function do_requirements {
     sudo apt update
     sudo apt-get install -y --no-install-recommends \
@@ -259,7 +263,12 @@ function do_p4runtime {
     ./autogen.sh
     # FIXME: re-enable --with-sysrepo when gNMI support becomes more stable
     # ./configure --with-proto --with-sysrepo 'CXXFLAGS=-O0 -g'
-    ./configure --with-proto 'CXXFLAGS=-O0 -g'
+    if [ "${DEBUG_FLAGS}" = true ] ; then
+        CONF_FLAGS="'CXXFLAGS=-O0 -g'"
+    else
+        CONF_FLAGS=""
+    fi
+    ./configure --with-proto ${CONF_FLAGS}
     make -j${NUM_CORES}
     sudo make install
     sudo ldconfig
@@ -272,7 +281,12 @@ function do_bmv2 {
     checkout_bmv2
 
     ./autogen.sh
-    ./configure --enable-debugger --with-pi 'CXXFLAGS=-O0 -g'
+    if [ "${DEBUG_FLAGS}" = true ] ; then
+        CONF_FLAGS="--enable-debugger 'CXXFLAGS=-O0 -g'"
+    else
+        CONF_FLAGS="--disable-logging-macros --disable-elogger --without-nanomsg"
+    fi
+    ./configure --with-pi ${CONF_FLAGS}
     make -j${NUM_CORES}
     sudo make install
     sudo ldconfig
@@ -281,9 +295,14 @@ function do_bmv2 {
     cd targets/simple_switch_grpc
     ./autogen.sh
 
+    if [ "${DEBUG_FLAGS}" = true ] ; then
+        CONF_FLAGS="'CXXFLAGS=-O0 -g'"
+    else
+        CONF_FLAGS=""
+    fi
     # FIXME: re-enable --with-sysrepo when gNMI support becomes more stable
     # ./configure --with-sysrepo --with-thrift 'CXXFLAGS=-O0 -g'
-    ./configure --with-thrift 'CXXFLAGS=-O0 -g'
+    ./configure --with-thrift ${CONF_FLAGS}
     make -j${NUM_CORES}
     sudo make install
     sudo ldconfig
