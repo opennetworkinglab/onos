@@ -15,7 +15,6 @@
  */
 package org.onosproject.segmentrouting;
 
-import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
 import com.google.common.collect.ImmutableSet;
@@ -62,7 +61,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static org.onlab.util.Tools.groupedThreads;
@@ -432,10 +430,8 @@ public class DefaultRoutingHandler {
      *            seen link
      */
     // TODO This method should be refactored into three separated methods
-    public void populateRoutingRulesForLinkStatusChange(Link linkDown,
-                                                           Link linkUp,
-                                                           DeviceId switchDown,
-                                                           boolean seenBefore) {
+    public void populateRoutingRulesForLinkStatusChange(Link linkDown, Link linkUp,
+                                                        DeviceId switchDown, boolean seenBefore) {
         if (Stream.of(linkDown, linkUp, switchDown).filter(Objects::nonNull)
                 .count() != 1) {
             log.warn("Only one event can be handled for link status change .. aborting");
@@ -946,7 +942,6 @@ public class DefaultRoutingHandler {
            }
         }
 
-
         // To save on ECMP groups
         // avoid MPLS rules in non-edge-devices to non-edge-devices
         // avoid MPLS transit rules in edge-devices
@@ -1264,7 +1259,6 @@ public class DefaultRoutingHandler {
     void purgeEcmpGraph(DeviceId deviceId) {
         statusLock.lock();
         try {
-
             if (populationStatus == Status.STARTED) {
                 log.warn("Previous rule population is not finished. Cannot"
                         + " proceeed with purgeEcmpGraph for {}", deviceId);
@@ -1812,54 +1806,6 @@ public class DefaultRoutingHandler {
         return ImmutableSet.of(); //no next-hops found
     }
 
-    /**
-     * Represents two devices that are paired by configuration. An EdgePair for
-     * (dev1, dev2) is the same as as EdgePair for (dev2, dev1)
-     */
-    protected final class EdgePair {
-        DeviceId dev1;
-        DeviceId dev2;
-
-        EdgePair(DeviceId dev1, DeviceId dev2) {
-            this.dev1 = dev1;
-            this.dev2 = dev2;
-        }
-
-        boolean includes(DeviceId dev) {
-            return dev1.equals(dev) || dev2.equals(dev);
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (!(o instanceof EdgePair)) {
-                return false;
-            }
-            EdgePair that = (EdgePair) o;
-            return ((this.dev1.equals(that.dev1) && this.dev2.equals(that.dev2)) ||
-                    (this.dev1.equals(that.dev2) && this.dev2.equals(that.dev1)));
-        }
-
-        @Override
-        public int hashCode() {
-            if (dev1.toString().compareTo(dev2.toString()) <= 0) {
-                return Objects.hash(dev1, dev2);
-            } else {
-                return Objects.hash(dev2, dev1);
-            }
-        }
-
-        @Override
-        public String toString() {
-            return toStringHelper(this)
-                    .add("Dev1", dev1)
-                    .add("Dev2", dev2)
-                    .toString();
-        }
-    }
-
     //////////////////////////////////////
     //  Filtering rule creation
     //////////////////////////////////////
@@ -1882,49 +1828,6 @@ public class DefaultRoutingHandler {
         }
         executorService.schedule(new RetryFilters(deviceId, firstRun),
                                  RETRY_INTERVAL_MS, TimeUnit.MILLISECONDS);
-    }
-
-    /**
-     * Utility class used to temporarily store information about the ports on a
-     * device processed for filtering objectives.
-     */
-    public final class PortFilterInfo {
-        int disabledPorts = 0, errorPorts = 0, filteredPorts = 0;
-
-        public PortFilterInfo(int disabledPorts, int errorPorts,
-                           int filteredPorts) {
-            this.disabledPorts = disabledPorts;
-            this.filteredPorts = filteredPorts;
-            this.errorPorts = errorPorts;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(disabledPorts, filteredPorts, errorPorts);
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj) {
-                return true;
-            }
-            if ((obj == null) || (!(obj instanceof PortFilterInfo))) {
-                return false;
-            }
-            PortFilterInfo other = (PortFilterInfo) obj;
-            return ((disabledPorts == other.disabledPorts) &&
-                    (filteredPorts == other.filteredPorts) &&
-                    (errorPorts == other.errorPorts));
-        }
-
-        @Override
-        public String toString() {
-            MoreObjects.ToStringHelper helper = toStringHelper(this)
-                    .add("disabledPorts", disabledPorts)
-                    .add("errorPorts", errorPorts)
-                    .add("filteredPorts", filteredPorts);
-            return helper.toString();
-        }
     }
 
     /**
@@ -1963,5 +1866,4 @@ public class DefaultRoutingHandler {
             prevRun = (thisRun == null) ? prevRun : thisRun;
         }
     }
-
 }
