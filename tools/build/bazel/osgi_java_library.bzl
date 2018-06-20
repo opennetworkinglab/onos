@@ -17,6 +17,7 @@
 load("//tools/build/bazel:generate_workspace.bzl", "COMPILE", "TEST")
 load("//tools/build/bazel:variables.bzl", "ONOS_VERSION")
 load("//tools/build/bazel:generate_test_rules.bzl", "generate_test_rules")
+load("//tools/build/bazel:checkstyle.bzl", "checkstyle_test")
 
 def _all_java_sources():
     return native.glob(["src/main/java/**/*.java"])
@@ -450,6 +451,11 @@ def osgi_jar_with_tests(
             exclude_tests = exclude_tests,
             deps = all_test_deps,
         )
+
+    checkstyle_test(
+        name = name + "_checkstyle_test",
+        srcs = srcs,
+    )
 
 """
     Creates an OSGI jar file from a set of source files.

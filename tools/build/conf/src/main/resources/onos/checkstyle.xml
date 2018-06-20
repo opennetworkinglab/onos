@@ -122,6 +122,10 @@
     <!--   <property name="fileExtensions" value="java"/> -->
     <!-- </module> -->
 
+    <module name="SuppressionFilter">
+        <property name="file" value="tools/build/conf/src/main/resources/onos/suppressions.xml"/>
+    </module>
+
     <module name="RegexpHeader">
         <!-- The following line is different for maven due to how the maven checkstyle plugin works -->
         <property name="headerFile" value="tools/build/conf/src/main/resources/onos/onos-java.header"/>
@@ -164,13 +168,13 @@
             <property name="suppressLoadErrors" value="true"/>
         </module>
         <module name="JavadocType">
-            <property name="severity" value="warning"/>
+            <property name="severity" value="ignore"/>
         </module>
         <module name="JavadocVariable">
             <!-- Suppress check for private member Javadocs.
              Possibly revist fixing these. -->
             <property name="scope" value="public"/>
-            <property name="severity" value="warning"/>
+            <property name="severity" value="ignore"/>
         </module>
         <module name="JavadocStyle"/>
         <!-- @author tag should not be used -->
@@ -309,7 +313,7 @@
         <module name="InterfaceIsType"/>
 
         <module name="VisibilityModifier">
-            <property name="severity" value="warning"/>
+            <property name="severity" value="ignore"/>
         </module>
 
 
