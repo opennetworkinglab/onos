@@ -218,10 +218,20 @@ public class FlowRuleManager
         }
 
         String s = get(properties, "fallbackFlowPollFrequency");
-        try {
-            fallbackFlowPollFrequency = isNullOrEmpty(s) ? DEFAULT_POLL_FREQUENCY : Integer.parseInt(s);
-        } catch (NumberFormatException e) {
-            fallbackFlowPollFrequency = DEFAULT_POLL_FREQUENCY;
+        if (isNullOrEmpty(s)) {
+            log.info("fallbackFlowPollFrequency is not configured, " +
+                             "using current value of {} seconds",
+                     fallbackFlowPollFrequency);
+        } else {
+            try {
+                fallbackFlowPollFrequency = Integer.parseInt(s);
+                log.info("Configured. FallbackFlowPollFrequency is {} seconds",
+                         fallbackFlowPollFrequency);
+            } catch (NumberFormatException e) {
+                log.warn("Configured fallbackFlowPollFrequency value '{}' " +
+                                 "is not a number, using current value of {} seconds",
+                         fallbackFlowPollFrequency);
+            }
         }
     }
 
