@@ -15,6 +15,7 @@
  */
 package org.onosproject.store.serializers;
 
+import com.esotericsoftware.kryo.serializers.ClosureSerializer;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -159,10 +160,12 @@ import org.onosproject.net.flow.instructions.PiInstruction;
 import org.onosproject.net.flowobjective.DefaultFilteringObjective;
 import org.onosproject.net.flowobjective.DefaultForwardingObjective;
 import org.onosproject.net.flowobjective.DefaultNextObjective;
+import org.onosproject.net.flowobjective.DefaultObjectiveContext;
 import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.NextObjective;
 import org.onosproject.net.flowobjective.Objective;
+import org.onosproject.net.flowobjective.ObjectiveError;
 import org.onosproject.net.host.DefaultHostDescription;
 import org.onosproject.net.host.HostDescription;
 import org.onosproject.net.intent.ConnectivityIntent;
@@ -271,6 +274,7 @@ import org.onosproject.store.service.WorkQueueStats;
 import org.onosproject.ui.model.topo.UiTopoLayoutId;
 import org.onosproject.upgrade.Upgrade;
 
+import java.lang.invoke.SerializedLambda;
 import java.net.URI;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -339,6 +343,11 @@ public final class KryoNamespaces {
             .register(char[].class)
             .register(String[].class)
             .register(boolean[].class)
+            // For serializing lambda functions
+            .register(Object[].class)
+            .register(Class.class)
+            .register(SerializedLambda.class)
+            .register(new ClosureSerializer(), ClosureSerializer.Closure.class)
             .build("BASIC");
 
     /**
@@ -553,7 +562,9 @@ public final class KryoNamespaces {
                     FilteringObjective.Type.class,
                     DefaultNextObjective.class,
                     NextObjective.Type.class,
-                    Objective.Operation.class
+                    Objective.Operation.class,
+                    DefaultObjectiveContext.class,
+                    ObjectiveError.class
             )
             .register(new DefaultApplicationIdSerializer(), DefaultApplicationId.class)
             .register(new UriSerializer(), URI.class)
