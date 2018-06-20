@@ -29,12 +29,12 @@
 
     <url>http://onosproject.org</url>
 
-    <description>Segment Routing REST Server</description>
+    <description>Segment Routing REST API</description>
 
     <properties>
         <web.context>/onos/segmentrouting</web.context>
         <api.version>1.0</api.version>
-        <api.title>Segment Routing Rest Server</api.title>
+        <api.title>Segment Routing REST APIr</api.title>
         <api.description>
             REST API for Segment Routing Application
         </api.description>

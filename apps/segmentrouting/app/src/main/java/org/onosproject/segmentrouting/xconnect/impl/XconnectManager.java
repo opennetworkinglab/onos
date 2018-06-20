@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-present Open Networking Foundation
+ * Copyright 2018-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.onosproject.segmentrouting;
+package org.onosproject.segmentrouting.xconnect.impl;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import org.apache.felix.scr.annotations.Activate;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onlab.util.KryoNamespace;
+import org.onosproject.codec.CodecService;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
+import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
-import org.onosproject.net.config.NetworkConfigEvent;
+import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceListener;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
@@ -35,133 +47,197 @@ import org.onosproject.net.flowobjective.DefaultForwardingObjective;
 import org.onosproject.net.flowobjective.DefaultNextObjective;
 import org.onosproject.net.flowobjective.DefaultObjectiveContext;
 import org.onosproject.net.flowobjective.FilteringObjective;
+import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.NextObjective;
 import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.flowobjective.ObjectiveContext;
 import org.onosproject.net.flowobjective.ObjectiveError;
-import org.onosproject.segmentrouting.config.XConnectConfig;
-import org.onosproject.segmentrouting.storekey.XConnectStoreKey;
+import org.onosproject.segmentrouting.SegmentRoutingService;
+import org.onosproject.segmentrouting.xconnect.api.XconnectCodec;
+import org.onosproject.segmentrouting.xconnect.api.XconnectDesc;
+import org.onosproject.segmentrouting.xconnect.api.XconnectKey;
+import org.onosproject.segmentrouting.xconnect.api.XconnectService;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
+import org.onosproject.store.service.MapEvent;
+import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.Serializer;
+import org.onosproject.store.service.StorageService;
+import org.onosproject.store.service.Versioned;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-/**
- * Handles cross connect related events.
- *
- * @deprecated in ONOS 1.12. Replaced by {@link org.onosproject.segmentrouting.xconnect.impl.XconnectManager}
- */
-@Deprecated
-public class XConnectHandler {
-    private static final Logger log = LoggerFactory.getLogger(XConnectHandler.class);
-    private static final String CONFIG_NOT_FOUND = "XConnect config not found";
-    private static final String NOT_MASTER = "Not master controller";
-    private final SegmentRoutingManager srManager;
-    private final ConsistentMap<XConnectStoreKey, NextObjective> xConnectNextObjStore;
+@Service
+@Component(immediate = true)
+public class XconnectManager implements XconnectService {
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    private CoreService coreService;
 
-    XConnectHandler(SegmentRoutingManager srManager) {
-        this.srManager = srManager;
-        KryoNamespace.Builder xConnectKryo = new KryoNamespace.Builder()
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    private CodecService codecService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    private StorageService storageService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    public NetworkConfigService netCfgService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    public DeviceService deviceService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    public FlowObjectiveService flowObjectiveService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    public MastershipService mastershipService;
+
+    @Reference(cardinality = ReferenceCardinality.OPTIONAL_UNARY)
+    public SegmentRoutingService srService;
+
+    private static final String APP_NAME = "org.onosproject.xconnect";
+    private static final String ERROR_NOT_MASTER = "Not master controller";
+
+    private static Logger log = LoggerFactory.getLogger(XconnectManager.class);
+
+    private ApplicationId appId;
+    private ConsistentMap<XconnectKey, Set<PortNumber>> xconnectStore;
+    private ConsistentMap<XconnectKey, NextObjective> xconnectNextObjStore;
+
+    private final MapEventListener<XconnectKey, Set<PortNumber>> xconnectListener = new XconnectMapListener();
+    private final DeviceListener deviceListener = new InternalDeviceListener();
+
+    @Activate
+    void activate() {
+        appId = coreService.registerApplication(APP_NAME);
+        codecService.registerCodec(XconnectDesc.class, new XconnectCodec());
+
+        KryoNamespace.Builder serializer = KryoNamespace.newBuilder()
                 .register(KryoNamespaces.API)
-                .register(XConnectStoreKey.class)
-                .register(NextObjContext.class);
-        xConnectNextObjStore = srManager.storageService
-                .<XConnectStoreKey, NextObjective>consistentMapBuilder()
-                .withName("onos-xconnect-nextobj-store")
-                .withSerializer(Serializer.using(xConnectKryo.build()))
+                .register(XconnectKey.class);
+
+        xconnectStore = storageService.<XconnectKey, Set<PortNumber>>consistentMapBuilder()
+                .withName("onos-sr-xconnect")
+                .withRelaxedReadConsistency()
+                .withSerializer(Serializer.using(serializer.build()))
                 .build();
+        xconnectStore.addListener(xconnectListener);
+
+        xconnectNextObjStore = storageService.<XconnectKey, NextObjective>consistentMapBuilder()
+                .withName("onos-sr-xconnect-next")
+                .withRelaxedReadConsistency()
+                .withSerializer(Serializer.using(serializer.build()))
+                .build();
+
+        deviceService.addListener(deviceListener);
+
+        log.info("Started");
     }
 
-    /**
-     * Read initial XConnect for given device.
-     *
-     * @param deviceId ID of the device to be initialized
-     */
-    public void init(DeviceId deviceId) {
-        // Try to read XConnect config
-        XConnectConfig config =
-                srManager.cfgService.getConfig(srManager.appId, XConnectConfig.class);
-        if (config == null) {
-            log.info("Skip XConnect initialization: {}", CONFIG_NOT_FOUND);
-            return;
-        }
+    @Deactivate
+    void deactivate() {
+        xconnectStore.removeListener(xconnectListener);
+        deviceService.removeListener(deviceListener);
+        codecService.unregisterCodec(XconnectDesc.class);
 
-        config.getXconnects(deviceId).forEach(key -> populateXConnect(key, config.getPorts(key)));
+        log.info("Stopped");
     }
 
-    /**
-     * Processes Segment Routing App Config added event.
-     *
-     * @param event network config added event
-     */
-    void processXConnectConfigAdded(NetworkConfigEvent event) {
-        log.info("Processing XConnect CONFIG_ADDED");
-        XConnectConfig config = (XConnectConfig) event.config().get();
-        config.getXconnects().forEach(key -> populateXConnect(key, config.getPorts(key)));
+    @Override
+    public void addOrUpdateXconnect(DeviceId deviceId, VlanId vlanId, Set<PortNumber> ports) {
+        log.info("Adding or updating xconnect. deviceId={}, vlanId={}, ports={}",
+                deviceId, vlanId, ports);
+        final XconnectKey key = new XconnectKey(deviceId, vlanId);
+        xconnectStore.put(key, ports);
     }
 
-    /**
-     * Processes Segment Routing App Config updated event.
-     *
-     * @param event network config updated event
-     */
-    void processXConnectConfigUpdated(NetworkConfigEvent event) {
-        log.info("Processing XConnect CONFIG_UPDATED");
-        XConnectConfig prevConfig = (XConnectConfig) event.prevConfig().get();
-        XConnectConfig config = (XConnectConfig) event.config().get();
-        Set<XConnectStoreKey> prevKeys = prevConfig.getXconnects();
-        Set<XConnectStoreKey> keys = config.getXconnects();
+    @Override
+    public void removeXonnect(DeviceId deviceId, VlanId vlanId) {
+        log.info("Removing xconnect. deviceId={}, vlanId={}",
+                deviceId, vlanId);
+        final XconnectKey key = new XconnectKey(deviceId, vlanId);
+        xconnectStore.remove(key);
+    }
 
-        Set<XConnectStoreKey> pendingRemove = prevKeys.stream()
-                .filter(key -> !keys.contains(key)).collect(Collectors.toSet());
-        Set<XConnectStoreKey> pendingAdd = keys.stream()
-                .filter(key -> !prevKeys.contains(key)).collect(Collectors.toSet());
-        Set<XConnectStoreKey> pendingUpdate = keys.stream()
-                .filter(key -> prevKeys.contains(key) &&
-                        !config.getPorts(key).equals(prevConfig.getPorts(key)))
+    @Override
+    public Set<XconnectDesc> getXconnects() {
+        return xconnectStore.asJavaMap().entrySet().stream()
+                .map(e -> new XconnectDesc(e.getKey(), e.getValue()))
                 .collect(Collectors.toSet());
-
-        pendingRemove.forEach(key -> revokeXConnect(key, prevConfig.getPorts(key)));
-        pendingAdd.forEach(key -> populateXConnect(key, config.getPorts(key)));
-        pendingUpdate.forEach(key ->
-                updateXConnect(key, prevConfig.getPorts(key), config.getPorts(key)));
     }
 
-    /**
-     * Processes Segment Routing App Config removed event.
-     *
-     * @param event network config removed event
-     */
-    void processXConnectConfigRemoved(NetworkConfigEvent event) {
-        log.info("Processing XConnect CONFIG_REMOVED");
-        XConnectConfig prevConfig = (XConnectConfig) event.prevConfig().get();
-        prevConfig.getXconnects().forEach(key -> {
-            revokeXConnect(key, prevConfig.getPorts(key));
-        });
+    @Override
+    public boolean hasXconnect(ConnectPoint cp) {
+        return getXconnects().stream().anyMatch(desc ->
+                desc.key().deviceId().equals(cp.deviceId()) && desc.ports().contains(cp.port())
+        );
     }
 
-    /**
-     * Checks if there is any XConnect configured on given connect point.
-     *
-     * @param cp connect point
-     * @return true if there is XConnect configured on given connect point.
-     */
-    public boolean hasXConnect(ConnectPoint cp) {
-        // Try to read XConnect config
-        XConnectConfig config =
-                srManager.cfgService.getConfig(srManager.appId, XConnectConfig.class);
-        if (config == null) {
-            log.warn("Failed to read XConnect config: {}", CONFIG_NOT_FOUND);
-            return false;
+    private class XconnectMapListener implements MapEventListener<XconnectKey, Set<PortNumber>> {
+        @Override
+        public void event(MapEvent<XconnectKey, Set<PortNumber>> event) {
+            XconnectKey key = event.key();
+            Versioned<Set<PortNumber>> ports = event.newValue();
+            Versioned<Set<PortNumber>> oldPorts = event.oldValue();
+
+            switch (event.type()) {
+                case INSERT:
+                    populateXConnect(key, ports.value());
+                    break;
+                case UPDATE:
+                    updateXConnect(key, oldPorts.value(), ports.value());
+                    break;
+                case REMOVE:
+                    revokeXConnect(key, oldPorts.value());
+                    break;
+                default:
+                    break;
+            }
         }
-        return config.getXconnects(cp.deviceId()).stream()
-                .anyMatch(key -> config.getPorts(key).contains(cp.port()));
+    }
+
+    private class InternalDeviceListener implements DeviceListener {
+        @Override
+        public void event(DeviceEvent event) {
+            DeviceId deviceId = event.subject().id();
+            if (!mastershipService.isLocalMaster(deviceId)) {
+                return;
+            }
+
+            switch (event.type()) {
+                case DEVICE_ADDED:
+                case DEVICE_AVAILABILITY_CHANGED:
+                case DEVICE_UPDATED:
+                    if (deviceService.isAvailable(deviceId)) {
+                        init(deviceId);
+                    } else {
+                        cleanup(deviceId);
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    void init(DeviceId deviceId) {
+        getXconnects().stream()
+                .filter(desc -> desc.key().deviceId().equals(deviceId))
+                .forEach(desc -> populateXConnect(desc.key(), desc.ports()));
+    }
+
+    void cleanup(DeviceId deviceId) {
+        xconnectNextObjStore.entrySet().stream()
+                .filter(entry -> entry.getKey().deviceId().equals(deviceId))
+                .forEach(entry -> xconnectNextObjStore.remove(entry.getKey()));
+        log.debug("{} is removed from xConnectNextObjStore", deviceId);
     }
 
     /**
@@ -170,9 +246,9 @@ public class XConnectHandler {
      * @param key XConnect key
      * @param ports a set of ports to be cross-connected
      */
-    private void populateXConnect(XConnectStoreKey key, Set<PortNumber> ports) {
-        if (!srManager.mastershipService.isLocalMaster(key.deviceId())) {
-            log.info("Abort populating XConnect {}: {}", key, NOT_MASTER);
+    private void populateXConnect(XconnectKey key, Set<PortNumber> ports) {
+        if (!mastershipService.isLocalMaster(key.deviceId())) {
+            log.info("Abort populating XConnect {}: {}", key, ERROR_NOT_MASTER);
             return;
         }
 
@@ -188,7 +264,7 @@ public class XConnectHandler {
      * @param key XConnect store key
      * @param ports XConnect ports
      */
-    private void populateFilter(XConnectStoreKey key, Set<PortNumber> ports) {
+    private void populateFilter(XconnectKey key, Set<PortNumber> ports) {
         ports.forEach(port -> {
             FilteringObjective.Builder filtObjBuilder = filterObjBuilder(key, port);
             ObjectiveContext context = new DefaultObjectiveContext(
@@ -197,7 +273,7 @@ public class XConnectHandler {
                     (objective, error) ->
                             log.warn("Failed to populate XConnect FilterObj for {} on port {}: {}",
                                     key, port, error));
-            srManager.flowObjectiveService.filter(key.deviceId(), filtObjBuilder.add(context));
+            flowObjectiveService.filter(key.deviceId(), filtObjBuilder.add(context));
         });
     }
 
@@ -207,17 +283,23 @@ public class XConnectHandler {
      * @param key XConnect store key
      * @param ports XConnect ports
      */
-    private NextObjective populateNext(XConnectStoreKey key, Set<PortNumber> ports) {
+    private NextObjective populateNext(XconnectKey key, Set<PortNumber> ports) {
         NextObjective nextObj;
-        if (xConnectNextObjStore.containsKey(key)) {
-            nextObj = xConnectNextObjStore.get(key).value();
+        if (xconnectNextObjStore.containsKey(key)) {
+            nextObj = xconnectNextObjStore.get(key).value();
             log.debug("NextObj for {} found, id={}", key, nextObj.id());
         } else {
             NextObjective.Builder nextObjBuilder = nextObjBuilder(key, ports);
-            ObjectiveContext nextContext = new NextObjContext(Objective.Operation.ADD, key);
+            ObjectiveContext nextContext = new DefaultObjectiveContext(
+                    // To serialize this with kryo
+                    (Serializable & Consumer<Objective>) (objective) ->
+                            log.debug("XConnect NextObj for {} added", key),
+                    (Serializable & BiConsumer<Objective, ObjectiveError>) (objective, error) ->
+                            log.warn("Failed to add XConnect NextObj for {}: {}", key, error)
+            );
             nextObj = nextObjBuilder.add(nextContext);
-            srManager.flowObjectiveService.next(key.deviceId(), nextObj);
-            xConnectNextObjStore.put(key, nextObj);
+            flowObjectiveService.next(key.deviceId(), nextObj);
+            xconnectNextObjStore.put(key, nextObj);
             log.debug("NextObj for {} not found. Creating new NextObj with id={}", key, nextObj.id());
         }
         return nextObj;
@@ -229,13 +311,13 @@ public class XConnectHandler {
      * @param key XConnect store key
      * @param nextObj next objective
      */
-    private void populateFwd(XConnectStoreKey key, NextObjective nextObj) {
+    private void populateFwd(XconnectKey key, NextObjective nextObj) {
         ForwardingObjective.Builder fwdObjBuilder = fwdObjBuilder(key, nextObj.id());
         ObjectiveContext fwdContext = new DefaultObjectiveContext(
                 (objective) -> log.debug("XConnect FwdObj for {} populated", key),
                 (objective, error) ->
                         log.warn("Failed to populate XConnect FwdObj for {}: {}", key, error));
-        srManager.flowObjectiveService.forward(key.deviceId(), fwdObjBuilder.add(fwdContext));
+        flowObjectiveService.forward(key.deviceId(), fwdObjBuilder.add(fwdContext));
     }
 
     /**
@@ -243,13 +325,13 @@ public class XConnectHandler {
      *
      * @param key XConnect store key
      */
-    private void populateAcl(XConnectStoreKey key) {
+    private void populateAcl(XconnectKey key) {
         ForwardingObjective.Builder aclObjBuilder = aclObjBuilder(key.vlanId());
         ObjectiveContext aclContext = new DefaultObjectiveContext(
                 (objective) -> log.debug("XConnect AclObj for {} populated", key),
                 (objective, error) ->
                         log.warn("Failed to populate XConnect AclObj for {}: {}", key, error));
-        srManager.flowObjectiveService.forward(key.deviceId(), aclObjBuilder.add(aclContext));
+        flowObjectiveService.forward(key.deviceId(), aclObjBuilder.add(aclContext));
     }
 
     /**
@@ -258,16 +340,16 @@ public class XConnectHandler {
      * @param key XConnect key
      * @param ports XConnect ports
      */
-    private void revokeXConnect(XConnectStoreKey key, Set<PortNumber> ports) {
-        if (!srManager.mastershipService.isLocalMaster(key.deviceId())) {
-            log.info("Abort populating XConnect {}: {}", key, NOT_MASTER);
+    private void revokeXConnect(XconnectKey key, Set<PortNumber> ports) {
+        if (!mastershipService.isLocalMaster(key.deviceId())) {
+            log.info("Abort populating XConnect {}: {}", key, ERROR_NOT_MASTER);
             return;
         }
 
         ports = addPairPort(key.deviceId(), ports);
         revokeFilter(key, ports);
-        if (xConnectNextObjStore.containsKey(key)) {
-            NextObjective nextObj = xConnectNextObjStore.get(key).value();
+        if (xconnectNextObjStore.containsKey(key)) {
+            NextObjective nextObj = xconnectNextObjStore.get(key).value();
             revokeFwd(key, nextObj, null);
             revokeNext(key, nextObj, null);
         } else {
@@ -282,7 +364,7 @@ public class XConnectHandler {
      * @param key XConnect store key
      * @param ports XConnect ports
      */
-    private void revokeFilter(XConnectStoreKey key, Set<PortNumber> ports) {
+    private void revokeFilter(XconnectKey key, Set<PortNumber> ports) {
         ports.forEach(port -> {
             FilteringObjective.Builder filtObjBuilder = filterObjBuilder(key, port);
             ObjectiveContext context = new DefaultObjectiveContext(
@@ -291,7 +373,7 @@ public class XConnectHandler {
                     (objective, error) ->
                             log.warn("Failed to revoke XConnect FilterObj for {} on port {}: {}",
                                     key, port, error));
-            srManager.flowObjectiveService.filter(key.deviceId(), filtObjBuilder.remove(context));
+            flowObjectiveService.filter(key.deviceId(), filtObjBuilder.remove(context));
         });
     }
 
@@ -302,8 +384,8 @@ public class XConnectHandler {
      * @param nextObj next objective
      * @param nextFuture completable future for this next objective operation
      */
-    private void revokeNext(XConnectStoreKey key, NextObjective nextObj,
-            CompletableFuture<ObjectiveError> nextFuture) {
+    private void revokeNext(XconnectKey key, NextObjective nextObj,
+                            CompletableFuture<ObjectiveError> nextFuture) {
         ObjectiveContext context = new ObjectiveContext() {
             @Override
             public void onSuccess(Objective objective) {
@@ -321,9 +403,9 @@ public class XConnectHandler {
                 }
             }
         };
-        srManager.flowObjectiveService.next(key.deviceId(),
+        flowObjectiveService.next(key.deviceId(),
                 (NextObjective) nextObj.copy().remove(context));
-        xConnectNextObjStore.remove(key);
+        xconnectNextObjStore.remove(key);
     }
 
     /**
@@ -333,8 +415,8 @@ public class XConnectHandler {
      * @param nextObj next objective
      * @param fwdFuture completable future for this forwarding objective operation
      */
-    private void revokeFwd(XConnectStoreKey key, NextObjective nextObj,
-            CompletableFuture<ObjectiveError> fwdFuture) {
+    private void revokeFwd(XconnectKey key, NextObjective nextObj,
+                           CompletableFuture<ObjectiveError> fwdFuture) {
         ForwardingObjective.Builder fwdObjBuilder = fwdObjBuilder(key, nextObj.id());
         ObjectiveContext context = new ObjectiveContext() {
             @Override
@@ -353,8 +435,7 @@ public class XConnectHandler {
                 }
             }
         };
-        srManager.flowObjectiveService
-                .forward(key.deviceId(), fwdObjBuilder.remove(context));
+        flowObjectiveService.forward(key.deviceId(), fwdObjBuilder.remove(context));
     }
 
     /**
@@ -362,14 +443,13 @@ public class XConnectHandler {
      *
      * @param key XConnect store key
      */
-    private void revokeAcl(XConnectStoreKey key) {
+    private void revokeAcl(XconnectKey key) {
         ForwardingObjective.Builder aclObjBuilder = aclObjBuilder(key.vlanId());
         ObjectiveContext aclContext = new DefaultObjectiveContext(
                 (objective) -> log.debug("XConnect AclObj for {} populated", key),
                 (objective, error) ->
                         log.warn("Failed to populate XConnect AclObj for {}: {}", key, error));
-        srManager.flowObjectiveService
-                .forward(key.deviceId(), aclObjBuilder.remove(aclContext));
+        flowObjectiveService.forward(key.deviceId(), aclObjBuilder.remove(aclContext));
     }
 
     /**
@@ -379,23 +459,23 @@ public class XConnectHandler {
      * @param prevPorts previous XConnect ports
      * @param ports new XConnect ports
      */
-    private void updateXConnect(XConnectStoreKey key, Set<PortNumber> prevPorts,
-            Set<PortNumber> ports) {
+    private void updateXConnect(XconnectKey key, Set<PortNumber> prevPorts,
+                                Set<PortNumber> ports) {
         // NOTE: ACL flow doesn't include port information. No need to update it.
         //       Pair port is built-in and thus not going to change. No need to update it.
 
         // remove old filter
         prevPorts.stream().filter(port -> !ports.contains(port)).forEach(port ->
-            revokeFilter(key, ImmutableSet.of(port)));
+                revokeFilter(key, ImmutableSet.of(port)));
         // install new filter
         ports.stream().filter(port -> !prevPorts.contains(port)).forEach(port ->
-            populateFilter(key, ImmutableSet.of(port)));
+                populateFilter(key, ImmutableSet.of(port)));
 
         CompletableFuture<ObjectiveError> fwdFuture = new CompletableFuture<>();
         CompletableFuture<ObjectiveError> nextFuture = new CompletableFuture<>();
 
-        if (xConnectNextObjStore.containsKey(key)) {
-            NextObjective nextObj = xConnectNextObjStore.get(key).value();
+        if (xconnectNextObjStore.containsKey(key)) {
+            NextObjective nextObj = xconnectNextObjStore.get(key).value();
             revokeFwd(key, nextObj, fwdFuture);
 
             fwdFuture.thenAcceptAsync(fwdStatus -> {
@@ -417,31 +497,19 @@ public class XConnectHandler {
     }
 
     /**
-     * Remove all groups on given device.
-     *
-     * @param deviceId device ID
-     */
-    void removeDevice(DeviceId deviceId) {
-        xConnectNextObjStore.entrySet().stream()
-                .filter(entry -> entry.getKey().deviceId().equals(deviceId))
-                .forEach(entry -> xConnectNextObjStore.remove(entry.getKey()));
-        log.debug("{} is removed from xConnectNextObjStore", deviceId);
-    }
-
-    /**
      * Creates a next objective builder for XConnect.
      *
      * @param key XConnect key
      * @param ports set of XConnect ports
      * @return next objective builder
      */
-    private NextObjective.Builder nextObjBuilder(XConnectStoreKey key, Set<PortNumber> ports) {
-        int nextId = srManager.flowObjectiveService.allocateNextId();
+    private NextObjective.Builder nextObjBuilder(XconnectKey key, Set<PortNumber> ports) {
+        int nextId = flowObjectiveService.allocateNextId();
         TrafficSelector metadata =
                 DefaultTrafficSelector.builder().matchVlanId(key.vlanId()).build();
         NextObjective.Builder nextObjBuilder = DefaultNextObjective
                 .builder().withId(nextId)
-                .withType(NextObjective.Type.BROADCAST).fromApp(srManager.appId)
+                .withType(NextObjective.Type.BROADCAST).fromApp(appId)
                 .withMeta(metadata);
         ports.forEach(port -> {
             TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
@@ -458,7 +526,7 @@ public class XConnectHandler {
      * @param nextId next ID of the broadcast group for this XConnect key
      * @return forwarding objective builder
      */
-    private ForwardingObjective.Builder fwdObjBuilder(XConnectStoreKey key, int nextId) {
+    private ForwardingObjective.Builder fwdObjBuilder(XconnectKey key, int nextId) {
         /*
          * Driver should treat objectives with MacAddress.NONE and !VlanId.NONE
          * as the VLAN cross-connect broadcast rules
@@ -471,8 +539,8 @@ public class XConnectHandler {
         fob.withFlag(ForwardingObjective.Flag.SPECIFIC)
                 .withSelector(sbuilder.build())
                 .nextStep(nextId)
-                .withPriority(SegmentRoutingService.XCONNECT_PRIORITY)
-                .fromApp(srManager.appId)
+                .withPriority(XCONNECT_PRIORITY)
+                .fromApp(appId)
                 .makePermanent();
         return fob;
     }
@@ -493,8 +561,8 @@ public class XConnectHandler {
         fob.withFlag(ForwardingObjective.Flag.VERSATILE)
                 .withSelector(sbuilder.build())
                 .withTreatment(tbuilder.build())
-                .withPriority(SegmentRoutingService.XCONNECT_ACL_PRIORITY)
-                .fromApp(srManager.appId)
+                .withPriority(XCONNECT_ACL_PRIORITY)
+                .fromApp(appId)
                 .makePermanent();
         return fob;
     }
@@ -506,13 +574,13 @@ public class XConnectHandler {
      * @param port XConnect ports
      * @return next objective builder
      */
-    private FilteringObjective.Builder filterObjBuilder(XConnectStoreKey key, PortNumber port) {
+    private FilteringObjective.Builder filterObjBuilder(XconnectKey key, PortNumber port) {
         FilteringObjective.Builder fob = DefaultFilteringObjective.builder();
         fob.withKey(Criteria.matchInPort(port))
                 .addCondition(Criteria.matchVlanId(key.vlanId()))
                 .addCondition(Criteria.matchEthDst(MacAddress.NONE))
-                .withPriority(SegmentRoutingService.XCONNECT_PRIORITY);
-        return fob.permit().fromApp(srManager.appId);
+                .withPriority(XCONNECT_PRIORITY);
+        return fob.permit().fromApp(appId);
     }
 
     /**
@@ -523,31 +591,17 @@ public class XConnectHandler {
      * @return port specified in the xconnect config plus the pair port (if configured)
      */
     private Set<PortNumber> addPairPort(DeviceId deviceId, Set<PortNumber> ports) {
+        if (srService == null) {
+            return ports;
+        }
         Set<PortNumber> newPorts = Sets.newHashSet(ports);
-        srManager.getPairLocalPort(deviceId).ifPresent(newPorts::add);
+        srService.getPairLocalPort(deviceId).ifPresent(newPorts::add);
         return newPorts;
     }
 
-    // TODO: Lambda closure in DefaultObjectiveContext cannot be serialized properly
-    //       with Kryo 3.0.3. It will be fixed in 3.0.4. By then we can use
-    //       DefaultObjectiveContext again.
-    private final class NextObjContext implements ObjectiveContext {
-        Objective.Operation op;
-        XConnectStoreKey key;
+    // TODO DEVICE listener
+    // up : init
+    // down: removeDevice
 
-        private NextObjContext(Objective.Operation op, XConnectStoreKey key) {
-            this.op = op;
-            this.key = key;
-        }
 
-        @Override
-        public void onSuccess(Objective objective) {
-            log.debug("XConnect NextObj for {} {}ED", key, op);
-        }
-
-        @Override
-        public void onError(Objective objective, ObjectiveError error) {
-            log.warn("Failed to {} XConnect NextObj for {}: {}", op, key, error);
-        }
-    }
 }

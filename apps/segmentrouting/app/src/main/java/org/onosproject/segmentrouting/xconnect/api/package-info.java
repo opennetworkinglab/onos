@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-present Open Networking Foundation
+ * Copyright 2018-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.segmentrouting.web;
-
-import org.onlab.rest.AbstractWebApplication;
-
-import java.util.Set;
-
 /**
- * Segment Routing REST API.
+ * VLAN cross connect API.
  */
-public class SegmentRoutingWebApplication extends AbstractWebApplication {
-    @Override
-    public Set<Class<?>> getClasses() {
-        return getClasses(
-                PseudowireWebResource.class,
-                McastWebResource.class,
-                XconnectWebResource.class
-        );
-    }
-}
+package org.onosproject.segmentrouting.xconnect.api;
