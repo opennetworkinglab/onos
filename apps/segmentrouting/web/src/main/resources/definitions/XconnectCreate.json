@@ -1,0 +1,29 @@
+{
+  "type": "object",
+  "title": "xconnect-creation",
+  "required": [
+    "deviceId",
+    "vlanId",
+    "ports"
+  ],
+  "properties": {
+    "deviceId": {
+      "type": "string",
+      "example": "of:0000000000000201",
+      "description": "Device ID"
+    },
+    "vlanId": {
+      "type": "string",
+      "example": "94",
+      "description": "VLAN ID"
+    },
+    "ports": {
+      "type": "array",
+      "items": {
+        "type": "int8",
+        "description": "Port number"
+      },
+      "example": [1, 2]
+    }
+  }
+}

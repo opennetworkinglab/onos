@@ -1613,7 +1613,8 @@ public class McastHandler {
                 // Spine-facing port should have no subnet and no xconnect
                 if (srManager.deviceConfiguration() != null &&
                         srManager.deviceConfiguration().getPortSubnets(ingressDevice, port).isEmpty() &&
-                        !srManager.xConnectHandler.hasXConnect(new ConnectPoint(ingressDevice, port))) {
+                        (srManager.xconnectService == null ||
+                        !srManager.xconnectService.hasXconnect(new ConnectPoint(ingressDevice, port)))) {
                     portBuilder.add(port);
                 }
             }

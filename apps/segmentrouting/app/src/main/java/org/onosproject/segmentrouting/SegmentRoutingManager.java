@@ -123,6 +123,7 @@ import org.onosproject.segmentrouting.mcast.McastStoreKey;
 import org.onosproject.segmentrouting.storekey.PortNextObjectiveStoreKey;
 import org.onosproject.segmentrouting.storekey.VlanNextObjectiveStoreKey;
 import org.onosproject.segmentrouting.storekey.XConnectStoreKey;
+import org.onosproject.segmentrouting.xconnect.api.XconnectService;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.EventuallyConsistentMapBuilder;
@@ -223,6 +224,9 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     public WorkPartitionService workPartitionService;
+
+    @Reference(cardinality = ReferenceCardinality.OPTIONAL_UNARY)
+    public XconnectService xconnectService;
 
     @Property(name = "activeProbing", boolValue = true,
             label = "Enable active probing to discover dual-homed hosts.")
@@ -769,11 +773,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 ImmutableMap.copyOf(defaultRoutingHandler.shouldProgramCache);
     }
 
-    /**
-     * Extracts the application ID from the manager.
-     *
-     * @return application ID
-     */
+    @Override
     public ApplicationId appId() {
         return appId;
     }
@@ -840,33 +840,16 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         return tunnelHandler.getTunnel(tunnelId);
     }
 
-    // TODO Consider moving these to InterfaceService
-    /**
-     * Returns untagged VLAN configured on given connect point.
-     * <p>
-     * Only returns the first match if there are multiple untagged VLAN configured
-     * on the connect point.
-     *
-     * @param connectPoint connect point
-     * @return untagged VLAN or null if not configured
-     */
-    VlanId getUntaggedVlanId(ConnectPoint connectPoint) {
+    @Override
+    public VlanId getUntaggedVlanId(ConnectPoint connectPoint) {
         return interfaceService.getInterfacesByPort(connectPoint).stream()
                 .filter(intf -> !intf.vlanUntagged().equals(VlanId.NONE))
                 .map(Interface::vlanUntagged)
                 .findFirst().orElse(null);
     }
 
-    /**
-     * Returns tagged VLAN configured on given connect point.
-     * <p>
-     * Returns all matches if there are multiple tagged VLAN configured
-     * on the connect point.
-     *
-     * @param connectPoint connect point
-     * @return tagged VLAN or empty set if not configured
-     */
-    Set<VlanId> getTaggedVlanId(ConnectPoint connectPoint) {
+    @Override
+    public Set<VlanId> getTaggedVlanId(ConnectPoint connectPoint) {
         Set<Interface> interfaces = interfaceService.getInterfacesByPort(connectPoint);
         return interfaces.stream()
                 .map(Interface::vlanTagged)
@@ -874,16 +857,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 .collect(Collectors.toSet());
     }
 
-    /**
-     * Returns native VLAN configured on given connect point.
-     * <p>
-     * Only returns the first match if there are multiple native VLAN configured
-     * on the connect point.
-     *
-     * @param connectPoint connect point
-     * @return native VLAN or null if not configured
-     */
-    VlanId getNativeVlanId(ConnectPoint connectPoint) {
+    @Override
+    public VlanId getNativeVlanId(ConnectPoint connectPoint) {
         Set<Interface> interfaces = interfaceService.getInterfacesByPort(connectPoint);
         return interfaces.stream()
                 .filter(intf -> !intf.vlanNative().equals(VlanId.NONE))
@@ -892,38 +867,21 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 .orElse(null);
     }
 
-    /**
-     * Returns internal VLAN for untagged hosts on given connect point.
-     * <p>
-     * The internal VLAN is either vlan-untagged for an access port,
-     * or vlan-native for a trunk port.
-     *
-     * @param connectPoint connect point
-     * @return internal VLAN or null if both vlan-untagged and vlan-native are undefined
-     */
+    @Override
     public VlanId getInternalVlanId(ConnectPoint connectPoint) {
         VlanId untaggedVlanId = getUntaggedVlanId(connectPoint);
         VlanId nativeVlanId = getNativeVlanId(connectPoint);
         return untaggedVlanId != null ? untaggedVlanId : nativeVlanId;
     }
 
-    /**
-     * Returns optional pair device ID of given device.
-     *
-     * @param deviceId device ID
-     * @return optional pair device ID. Might be empty if pair device is not configured
-     */
-    Optional<DeviceId> getPairDeviceId(DeviceId deviceId) {
+    @Override
+    public Optional<DeviceId> getPairDeviceId(DeviceId deviceId) {
         SegmentRoutingDeviceConfig deviceConfig =
                 cfgService.getConfig(deviceId, SegmentRoutingDeviceConfig.class);
         return Optional.ofNullable(deviceConfig).map(SegmentRoutingDeviceConfig::pairDeviceId);
     }
-    /**
-     * Returns optional pair device local port of given device.
-     *
-     * @param deviceId device ID
-     * @return optional pair device ID. Might be empty if pair device is not configured
-     */
+
+    @Override
     public Optional<PortNumber> getPairLocalPort(DeviceId deviceId) {
         SegmentRoutingDeviceConfig deviceConfig =
                 cfgService.getConfig(deviceId, SegmentRoutingDeviceConfig.class);
