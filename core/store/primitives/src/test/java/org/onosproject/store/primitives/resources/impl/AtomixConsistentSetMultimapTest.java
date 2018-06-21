@@ -336,18 +336,19 @@ public class AtomixConsistentSetMultimapTest extends AtomixTestBase<AtomixConsis
     @Test
     public void testStreams() throws Exception {
         AtomixConsistentSetMultimap map = createResource("testStreams");
-        for (int i = 0; i < 10000; i++) {
-            allKeys.forEach(key -> {
-                map.put(key, UUID.randomUUID().toString().getBytes()).join();
-            });
+        for (int i = 0; i < 100; i++) {
+            for (int j = 0; j < 100; j++) {
+                map.put(String.valueOf(i), String.valueOf(j).getBytes()).join();
+            }
         }
 
         List<Map.Entry<String, byte[]>> entries = new ArrayList<>();
         AsyncIterator<Map.Entry<String, byte[]>> iterator = map.iterator().get(5, TimeUnit.SECONDS);
         while (iterator.hasNext().get(5, TimeUnit.SECONDS)) {
+            map.put(keyOne, UUID.randomUUID().toString().getBytes()).join();
             entries.add(iterator.next().get(5, TimeUnit.SECONDS));
         }
-        assertEquals(40000, entries.size());
+        assertEquals(10000, entries.size());
     }
 
     /**

@@ -17,21 +17,21 @@
 package org.onosproject.store.primitives.resources.impl;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.ConcurrentModificationException;
-import java.util.LinkedList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
+import java.util.function.Function;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multiset;
 import io.atomix.protocols.raft.proxy.RaftProxy;
-import io.atomix.utils.concurrent.AtomixFuture;
 import org.onlab.util.KryoNamespace;
 import org.onlab.util.Tools;
 import org.onosproject.store.serializers.KryoNamespaces;
@@ -43,9 +43,9 @@ import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.Versioned;
 
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapEvents.CHANGE;
-import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapEvents.ENTRY;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.ADD_LISTENER;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.CLEAR;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.CLOSE_ITERATOR;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.CONTAINS_ENTRY;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.CONTAINS_KEY;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.CONTAINS_VALUE;
@@ -56,10 +56,13 @@ import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSe
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.GET;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.Get;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.IS_EMPTY;
-import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.ITERATE;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.IteratorBatch;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.IteratorPosition;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.KEYS;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.KEY_SET;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.MultiRemove;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.NEXT;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.OPEN_ITERATOR;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.PUT;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.PUT_AND_GET;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.Put;
@@ -89,13 +92,11 @@ public class AtomixConsistentSetMultimap
         .register(AtomixConsistentSetMultimapEvents.NAMESPACE)
         .build());
 
-    private volatile EntryIterator iterator;
     private final Map<MultimapEventListener<String, byte[]>, Executor> mapEventListeners = new ConcurrentHashMap<>();
 
     public AtomixConsistentSetMultimap(RaftProxy proxy) {
         super(proxy);
         proxy.addEventListener(CHANGE, SERIALIZER::decode, this::handleChange);
-        proxy.addEventListener(ENTRY, SERIALIZER::decode, this::handleEntry);
         proxy.addStateChangeListener(state -> {
             if (state == RaftProxy.State.CONNECTED && isListening()) {
                 proxy.invoke(ADD_LISTENER);
@@ -106,13 +107,6 @@ public class AtomixConsistentSetMultimap
     private void handleChange(List<MultimapEvent<String, byte[]>> events) {
         events.forEach(event ->
             mapEventListeners.forEach((listener, executor) -> executor.execute(() -> listener.event(event))));
-    }
-
-    private void handleEntry(Map.Entry<String, byte[]> entry) {
-        EntryIterator iterator = this.iterator;
-        if (iterator != null) {
-            iterator.add(entry);
-        }
     }
 
     @Override
@@ -234,51 +228,87 @@ public class AtomixConsistentSetMultimap
 
     @Override
     public CompletableFuture<AsyncIterator<Map.Entry<String, byte[]>>> iterator() {
-        return proxy.<Integer>invoke(ITERATE, SERIALIZER::decode).thenApply(count -> {
-            iterator = new EntryIterator(count);
-            return iterator;
-        });
+        return proxy.<Long>invoke(OPEN_ITERATOR, SERIALIZER::decode).thenApply(ConsistentMultimapIterator::new);
     }
 
-    private class EntryIterator implements AsyncIterator<Map.Entry<String, byte[]>> {
-        private final Queue<CompletableFuture<Map.Entry<String, byte[]>>> in = new LinkedList<>();
-        private final Queue<CompletableFuture<Map.Entry<String, byte[]>>> out = new LinkedList<>();
-        private final int total;
-        private volatile int count;
+    /**
+     * Consistent multimap iterator.
+     */
+    private class ConsistentMultimapIterator implements AsyncIterator<Map.Entry<String, byte[]>> {
+        private final long id;
+        private volatile CompletableFuture<IteratorBatch> batch;
+        private volatile CompletableFuture<Void> closeFuture;
 
-        EntryIterator(int total) {
-            this.total = total;
+        ConsistentMultimapIterator(long id) {
+            this.id = id;
+            this.batch = CompletableFuture.completedFuture(
+                new IteratorBatch(0, Collections.emptyList()));
         }
 
-        synchronized void add(Map.Entry<String, byte[]> entry) {
-            CompletableFuture<Map.Entry<String, byte[]>> future = out.poll();
-            if (future != null) {
-                future.complete(entry);
-            } else {
-                in.add(CompletableFuture.completedFuture(entry));
+        /**
+         * Returns the current batch iterator or lazily fetches the next batch from the cluster.
+         *
+         * @return the next batch iterator
+         */
+        private CompletableFuture<Iterator<Map.Entry<String, byte[]>>> batch() {
+            return batch.thenCompose(iterator -> {
+                if (iterator != null && !iterator.hasNext()) {
+                    batch = fetch(iterator.position());
+                    return batch.thenApply(Function.identity());
+                }
+                return CompletableFuture.completedFuture(iterator);
+            });
+        }
+
+        /**
+         * Fetches the next batch of entries from the cluster.
+         *
+         * @param position the position from which to fetch the next batch
+         * @return the next batch of entries from the cluster
+         */
+        private CompletableFuture<IteratorBatch> fetch(int position) {
+            return proxy.<IteratorPosition, IteratorBatch>invoke(
+                NEXT,
+                SERIALIZER::encode,
+                new IteratorPosition(id, position),
+                SERIALIZER::decode)
+                .thenCompose(batch -> {
+                    if (batch == null) {
+                        return close().thenApply(v -> null);
+                    }
+                    return CompletableFuture.completedFuture(batch);
+                });
+        }
+
+        /**
+         * Closes the iterator.
+         *
+         * @return future to be completed once the iterator has been closed
+         */
+        private CompletableFuture<Void> close() {
+            if (closeFuture == null) {
+                synchronized (this) {
+                    if (closeFuture == null) {
+                        closeFuture = proxy.invoke(CLOSE_ITERATOR, SERIALIZER::encode, id);
+                    }
+                }
             }
+            return closeFuture;
         }
 
         @Override
-        public synchronized CompletableFuture<Boolean> hasNext() {
-            return CompletableFuture.completedFuture(count < total);
+        public CompletableFuture<Boolean> hasNext() {
+            return batch().thenApply(iterator -> iterator != null && iterator.hasNext());
         }
 
         @Override
-        public synchronized CompletableFuture<Map.Entry<String, byte[]>> next() {
-            if (count == total) {
-                return Tools.exceptionalFuture(new NoSuchElementException());
-            }
-            count++;
-
-            CompletableFuture<Map.Entry<String, byte[]>> next = in.poll();
-            if (next != null) {
-                return next;
-            }
-
-            CompletableFuture<Map.Entry<String, byte[]>> future = new AtomixFuture<>();
-            out.add(future);
-            return future;
+        public CompletableFuture<Map.Entry<String, byte[]>> next() {
+            return batch().thenCompose(iterator -> {
+                if (iterator == null) {
+                    return Tools.exceptionalFuture(new NoSuchElementException());
+                }
+                return CompletableFuture.completedFuture(iterator.next());
+            });
         }
     }
 
