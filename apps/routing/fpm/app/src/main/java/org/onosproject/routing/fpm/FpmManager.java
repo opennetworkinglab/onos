@@ -293,7 +293,7 @@ public class FpmManager implements FpmInfoService {
                     }
                 }
 
-                if (pdPushNextHopIPv4 == null || pdPushNextHopIPv4.size() == 0) {
+                if (pdPushNextHopIPv4.size() == 0) {
                     rurIPv4Address = interfaceService.getInterfaces()
                         .stream()
                         .filter(iface -> iface.name().contains("RUR"))
@@ -310,7 +310,7 @@ public class FpmManager implements FpmInfoService {
 
                 }
 
-                if (pdPushNextHopIPv6 == null) {
+                if (pdPushNextHopIPv6.size() == 0) {
                     rurIPv6Address = interfaceService.getInterfaces()
                         .stream()
                         .filter(iface -> iface.name().contains("RUR"))
@@ -327,13 +327,12 @@ public class FpmManager implements FpmInfoService {
                 }
 
                 log.info("PD pushing is enabled.");
-                if (pdPushNextHopIPv4 != null || pdPushNextHopIPv4.size() != 0) {
+                if (pdPushNextHopIPv4.size() != 0) {
                     log.info("ipv4 next-hop {} with {} items", pdPushNextHopIPv4.toString(), pdPushNextHopIPv4.size());
-
                 } else {
                     log.info("ipv4 next-hop is null");
                 }
-                if (pdPushNextHopIPv6 != null || pdPushNextHopIPv6.size() != 0) {
+                if (pdPushNextHopIPv6.size() != 0) {
                     log.info("ipv6 next-hop={} with {} items", pdPushNextHopIPv6.toString(), pdPushNextHopIPv6.size());
                 } else {
                     log.info("ipv6 next-hop is null");
