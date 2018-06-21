@@ -111,9 +111,9 @@ final class PiFlowRuleTranslatorImpl {
                     .build();
             // FIXME: P4Runtime limit
             // Need to ignore priority if no TCAM lookup match field
-            needPriority = fieldMatches.stream()
-                    .anyMatch(match -> match.type() == PiMatchType.TERNARY ||
-                            match.type() == PiMatchType.RANGE);
+            needPriority = tableModel.matchFields().stream()
+                    .anyMatch(match -> match.matchType() == PiMatchType.TERNARY ||
+                            match.matchType() == PiMatchType.RANGE);
         }
         // Translate treatment.
         final PiTableAction piTableAction = translateTreatment(rule.treatment(), interpreter, piTableId, pipelineModel);
