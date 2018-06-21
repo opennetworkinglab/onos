@@ -196,10 +196,11 @@ public class SimpleVirtualMastershipStore
         if (master != null) {
             roleBuilder.put(master, MastershipRole.MASTER);
         }
-        backups.getOrDefault(master, Collections.emptyList())
+        backups.getOrDefault(deviceId, Collections.emptyList())
             .forEach(nodeId -> roleBuilder.put(nodeId, MastershipRole.STANDBY));
         clusterService.getNodes().stream()
             .filter(node -> !masterMap.containsValue(node.id()))
+            .filter(node -> !backups.get(deviceId).contains(node.id()))
             .forEach(node -> roleBuilder.put(node.id(), MastershipRole.NONE));
         return new MastershipInfo(
             termMap.getOrDefault(deviceId, new AtomicInteger(NOTHING)).get(),
