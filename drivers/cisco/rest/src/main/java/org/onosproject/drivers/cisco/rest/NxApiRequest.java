@@ -139,6 +139,20 @@ public final class NxApiRequest {
         String request = generate(command, type);
         return post(controller, deviceId, request);
     }
+    /**
+     * Sends NX-API request message to the device.
+     * @param handler device's driver handler
+     * @param cmd NX-API command string
+     * @return the response string
+     */
+    static String postClis(DriverHandler handler, String cmd) {
+        RestSBController controller = checkNotNull(handler.get(RestSBController.class));
+        DeviceId deviceId = handler.data().deviceId();
+
+        String request = generate(cmd, CommandType.CLI);
+        InputStream stream = new ByteArrayInputStream(request.getBytes(StandardCharsets.UTF_8));
+        return controller.post(deviceId, API_URI, stream, MediaType.valueOf(APP_JSON_RPC), String.class);
+    }
 
     /**
      * Sends NX-API request message to the device.

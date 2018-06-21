@@ -48,9 +48,11 @@ public class ControllerConfigCiscoImpl extends AbstractHandlerBehaviour implemen
     private static final String SW1_CMD = "switch 1";
     private static final String DELETE_OF_CONFIG = "no switch 1";
     private static final String PROTO_VER_CMD = "protocol-version 1.3";
-    private static final String PIPELINE_CMD = "pipeline 201";
+    private static final String N9K_PIPELINE_CMD = "pipeline 201";
+    private static final String N7K_PIPELINE_CMD = "pipeline 301";
     private static final String OF_CONTROLLER_CONF_CMD = "controller ipv4 %s port %d vrf %s security none";
     private static final String NO_SHUTDOWN_CMD = "no shutdown";
+    private static final String SHOW_VERSION = "show version";
     private static final String COPY_RUNNING_CONFIG = "copy running-config startup-config";
 
     @Override
@@ -97,7 +99,12 @@ public class ControllerConfigCiscoImpl extends AbstractHandlerBehaviour implemen
         cmds.add(DELETE_OF_CONFIG);
         cmds.add(SW1_CMD);
         cmds.add(PROTO_VER_CMD);
-        cmds.add(PIPELINE_CMD);
+        if (checkSwitchN7K(handler)) {
+            cmds.add(N7K_PIPELINE_CMD);
+            log.info("This is N7K Switch");
+        }
+        cmds.add(N9K_PIPELINE_CMD);
+        log.info("This is N9K Switch");
 
         // can configure up to eight controllers
         controllers.stream().limit(8).forEach(c -> cmds
@@ -168,4 +175,25 @@ public class ControllerConfigCiscoImpl extends AbstractHandlerBehaviour implemen
     }
 
 
+    public boolean checkSwitchN7K(DriverHandler handler) {
+
+        String response = NxApiRequest.postClis(handler, SHOW_VERSION);
+
+        String msg = "";
+
+        try {
+            ObjectMapper om = new ObjectMapper();
+            JsonNode json = om.readTree(response);
+            JsonNode res = json.get("result");
+            msg = res.findValue("msg").asText();
+        } catch (IOException e) {
+            log.error("Exception thrown", e);
+            return false;
+        }
+
+        if (msg.contains("Nexus7700")) {
+            return true;
+        }
+        return false;
+    }
 }
