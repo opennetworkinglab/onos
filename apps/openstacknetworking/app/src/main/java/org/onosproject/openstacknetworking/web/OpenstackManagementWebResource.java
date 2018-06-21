@@ -15,6 +15,10 @@
  */
 package org.onosproject.openstacknetworking.web;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import org.onlab.util.ItemNotFoundException;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -30,6 +34,7 @@ import org.onosproject.openstacknode.api.OpenstackNodeAdminService;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
 import org.onosproject.rest.AbstractWebResource;
 import org.openstack4j.api.OSClient;
+import org.openstack4j.model.network.NetFloatingIP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +43,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -51,7 +58,11 @@ import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.CONTROLLE
 public class OpenstackManagementWebResource extends AbstractWebResource {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
+    private static final String FLOATINGIPS = "floatingips";
+
     private static final String DEVICE_OWNER_IFACE = "network:router_interface";
+    private final ObjectNode root = mapper().createObjectNode();
+    private final ArrayNode floatingipsNode = root.putArray(FLOATINGIPS);
 
     private final OpenstackSecurityGroupAdminService osSgAdminService =
             get(OpenstackSecurityGroupAdminService.class);
@@ -195,5 +206,46 @@ public class OpenstackManagementWebResource extends AbstractWebResource {
         flowRuleService.removeFlowRulesById(appId);
 
         return ok(mapper().createObjectNode()).build();
+    }
+
+    /**
+     * Obtains a collection of all floating IPs.
+     *
+     * @return 200 OK with a collection of floating IPs, 404 not found
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("floatingips/all")
+    public Response allFloatingIps() {
+
+        List<NetFloatingIP> floatingIps =
+                Lists.newArrayList(osRouterAdminService.floatingIps());
+        floatingIps.stream()
+                .sorted(Comparator.comparing(NetFloatingIP::getFloatingIpAddress))
+                .forEach(fip -> floatingipsNode.add(fip.getFloatingIpAddress()));
+
+        return ok(root).build();
+    }
+
+    /**
+     * Obtains a collection of all floating IPs mapped with fixed IPs.
+     *
+     * @return 200 OK with a collection of floating IPs mapped with fixed IPs,
+     *         404 not found
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("floatingips/mapped")
+    public Response mappedFloatingIps() {
+
+        List<NetFloatingIP> floatingIps =
+                Lists.newArrayList(osRouterAdminService.floatingIps());
+
+        floatingIps.stream()
+                .filter(fip -> !Strings.isNullOrEmpty(fip.getFixedIpAddress()))
+                .sorted(Comparator.comparing(NetFloatingIP::getFloatingIpAddress))
+                .forEach(fip -> floatingipsNode.add(fip.getFloatingIpAddress()));
+
+        return ok(root).build();
     }
 }
