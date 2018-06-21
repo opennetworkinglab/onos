@@ -36,16 +36,14 @@ import org.onosproject.grpc.nb.mastership.MastershipServiceNb.requestRoleForSync
 import org.onosproject.grpc.nb.mastership.MastershipServiceNb.requestRoleForSyncRequest;
 import org.onosproject.incubator.protobuf.models.cluster.NodeIdProtoTranslator;
 import org.onosproject.incubator.protobuf.models.net.MastershipRoleProtoTranslator;
-import org.onosproject.mastership.MastershipListener;
 import org.onosproject.mastership.MastershipService;
+import org.onosproject.mastership.MastershipServiceAdapter;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 
 import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 
 import static org.junit.Assert.assertEquals;
 
@@ -192,7 +190,7 @@ public class GrpcNbMastershipServiceTest {
         assertEquals(nid3, NodeIdProtoTranslator.translate(reply.getRoleInfo().getMaster()));
     }
 
-    private class MockMastershipService implements MastershipService {
+    private class MockMastershipService extends MastershipServiceAdapter {
 
         @Override
         public MastershipRole getLocalRole(DeviceId deviceId) {
@@ -200,22 +198,8 @@ public class GrpcNbMastershipServiceTest {
         }
 
         @Override
-        public CompletableFuture<MastershipRole> requestRoleFor(DeviceId deviceId) {
-            return null;
-        }
-
-        @Override
         public MastershipRole requestRoleForSync(DeviceId deviceId) {
             return mastershipMap.get(deviceId);
-        }
-
-        @Override
-        public CompletableFuture<Void> relinquishMastership(DeviceId deviceId) {
-            return null;
-        }
-
-        @Override
-        public void relinquishMastershipSync(DeviceId deviceId) {
         }
 
         @Override
@@ -228,19 +212,5 @@ public class GrpcNbMastershipServiceTest {
             return roleInfoMap.get(deviceId);
         }
 
-        @Override
-        public Set<DeviceId> getDevicesOf(NodeId nodeId) {
-            return null;
-        }
-
-        @Override
-        public void addListener(MastershipListener listener) {
-
-        }
-
-        @Override
-        public void removeListener(MastershipListener listener) {
-
-        }
     }
 }

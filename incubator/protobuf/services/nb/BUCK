@@ -12,6 +12,11 @@ COMPILE_DEPS = [
     '//incubator/protobuf/api:onos-grpc-api'
 ]
 
+TEST_DEPS = [
+    '//lib:TEST',
+    '//lib:TEST_ADAPTERS',
+]
+
 GRPC_DEPS = [
     '//lib:GRPC_1.3',
     '//incubator/grpc-dependencies:grpc-core-repkg-' + GRPC_VER,
@@ -58,6 +63,7 @@ grpc_jar(
 
 osgi_jar_with_tests(
     deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
     visibility = ['PUBLIC'],
 )
 
