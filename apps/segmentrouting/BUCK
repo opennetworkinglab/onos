@@ -5,7 +5,7 @@ BUNDLES = [
 
 onos_app (
     title = 'Segment Routing',
-    category = 'Traffic Steering',
+    category = 'Traffic Engineering',
     url = 'http://onosproject.org',
     included_bundles = BUNDLES,
     description = 'Segment routing application.',

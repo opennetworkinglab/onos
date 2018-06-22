@@ -25,7 +25,7 @@ BUNDLES = [
 onos_app (
     app_name = 'org.onosproject.fibinstaller',
     title = 'FIB Installer',
-    category = 'Traffic Steering',
+    category = 'Traffic Engineering',
     url = 'http://onosproject.org',
     description = 'Installs routing rules into switches',
     included_bundles = BUNDLES,

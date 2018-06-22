@@ -17,7 +17,7 @@ BUNDLES = [
 onos_app(
   app_name = 'org.onosproject.openroadm',
   title = 'Open ROADM',
-  category = 'Utility',
+  category = 'Optical',
   url = 'http://onosproject.org',
   included_bundles = BUNDLES,
   description = 'Open ROADM Application',

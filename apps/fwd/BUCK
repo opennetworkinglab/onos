@@ -14,7 +14,7 @@ osgi_jar_with_tests (
 
 onos_app (
     title = 'Reactive Forwarding',
-    category = 'Traffic Steering',
+    category = 'Traffic Engineering',
     url = 'http://onosproject.org',
     description = 'Provisions traffic between end-stations using hop-by-hop flow programming by ' +
         'intercepting packets for which there are currently no matching flow objectives on the ' +

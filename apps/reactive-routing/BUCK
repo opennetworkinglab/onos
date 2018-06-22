@@ -14,7 +14,7 @@ osgi_jar (
 
 onos_app (
     title = 'SDN-IP Reactive Routing',
-    category = 'Traffic Steering',
+    category = 'Traffic Engineering',
     url = 'http://onosproject.org',
     description = 'SDN-IP reactive routing application.',
     required_apps = [ 'org.onosproject.intentsynchronizer', 'org.onosproject.sdnip', 'org.onosproject.route-service'],

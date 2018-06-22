@@ -13,7 +13,7 @@ osgi_jar_with_tests (
 
 onos_app (
     title = 'Driver Support Matrix',
-    category = 'Utility',
+    category = 'GUI',
     url = 'http://onosproject.org',
     description = 'Extends the ONOS GUI with a view that allows the operator to visualize ' +
         'the currently loaded drivers.',

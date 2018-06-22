@@ -5,7 +5,7 @@ BUNDLES = [
 
 onos_app (
     title = 'OpenStack Node Bootstrap',
-    category = 'Utility',
+    category = 'Integration',
     url = 'http://onosproject.org',
     included_bundles = BUNDLES,
     description = 'SONA Openstack Node Bootstrap Application.',

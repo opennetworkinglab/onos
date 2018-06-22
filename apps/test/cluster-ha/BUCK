@@ -10,7 +10,7 @@ osgi_jar (
 )
 onos_app (
     title = 'Cluster HA Test',
-    category = 'Cluster Test Utility',
+    category = 'Test Utility',
     url = 'http://onosproject.org',
     description = 'Test for ONOS Cluster HA',
 )

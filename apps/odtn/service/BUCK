@@ -43,7 +43,7 @@ APPS = [
 onos_app (
     app_name = 'org.onosproject.odtn-service',
     title = 'ODTN Service Application',
-    category = 'Traffic Steering',
+    category = 'Traffic Engineering',
     url = 'http://onosproject.org',
     description = 'ODTN Service Application',
     required_apps = APPS,

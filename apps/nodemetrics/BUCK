@@ -11,7 +11,7 @@ onos_app(
     '3. The Native libraries like .so, .dll and .dylib are packed as jar along with sigar libs.'+
     '4. If the Native libraries are corrupted because of any reason,'+
     'so, the controller is vulnerable to crash of the entire JVM',
-    category = 'Utility',
+    category = 'Monitoring',
     url = 'http://samsung.com',
     included_bundles = BUNDLES
 )

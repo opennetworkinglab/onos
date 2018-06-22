@@ -8,7 +8,7 @@ osgi_jar_with_tests (
 
 onos_app (
     title = 'Multicast Forwarding',
-    category = 'Traffic Steering',
+    category = 'Traffic Engineering',
     url = 'http://onosproject.org',
     description = 'Multicast forwarding application.',
 )

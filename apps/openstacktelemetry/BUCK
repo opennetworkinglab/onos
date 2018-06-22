@@ -20,7 +20,7 @@ BUNDLES = [
 
 onos_app (
     title = 'OpenStack Telemetry Application',
-    category = 'Utility',
+    category = 'Integration',
     url = 'https://wiki.onosproject.org/display/ONOS/SONA%3A+DC+Network+Virtualization',
     included_bundles = BUNDLES,
     description = 'SONA Openstack Telemetry Application.'

@@ -17,7 +17,7 @@ onos_app (
     app_name = "org.onosproject.grpc.registry",
     included_bundles = ['//incubator/grpc-dependencies:grpc-core-repkg-' + GRPC_VER,
         '//lib:google-instrumentation-0.3.0'],
-    category = 'TODO',
+    category = 'Utility',
     url = 'http://onosproject.org',
     description = 'Service providing connections for remote apps communicating with the ONOS core via gRPC.',
 )

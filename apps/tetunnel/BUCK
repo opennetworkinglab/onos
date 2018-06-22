@@ -6,7 +6,7 @@ BUNDLES = [
 onos_app (
     app_name = 'org.onosproject.tetunnel',
     title = 'TE Tunnel Core',
-    category = 'Traffic Steering',
+    category = 'Traffic Engineering',
     url = 'http://onosproject.org',
     description = 'Application to create and manage TE tunnels.',
     included_bundles = BUNDLES,

@@ -15,7 +15,7 @@ osgi_jar_with_tests (
 
 onos_app (
     title = 'Packet Statistics',
-    category = 'Traffic Steering',
+    category = 'Traffic Engineering',
     url = 'http://onosproject.org',
     description = 'Application to calculate the number of packets of different types',
 )

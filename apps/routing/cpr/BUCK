@@ -25,7 +25,7 @@ BUNDLES = [
 onos_app (
     app_name = 'org.onosproject.cpr',
     title = 'Control Plane Redirect',
-    category = 'Traffic Steering',
+    category = 'Traffic Engineering',
     url = 'http://onosproject.org',
     description = 'Redirects routing control traffic to a control plane',
     included_bundles = BUNDLES,

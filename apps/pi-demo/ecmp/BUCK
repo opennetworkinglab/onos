@@ -17,7 +17,7 @@ BUNDLES = [
 onos_app (
     app_name = 'org.onosproject.pi-ecmp',
     title = 'PI Demo ECMP Fabric',
-    category = 'Traffic Steering',
+    category = 'Traffic Engineering',
     url = 'http://onosproject.org',
     description = 'Provides ECMP support for a 2-stage clos fabric topology of PI-enabled devices',
     included_bundles = BUNDLES,

@@ -25,7 +25,7 @@ osgi_jar_with_tests (
 
 onos_app (
     title = 'Trellis Troubleshooting Toolkit',
-    category = 'Utilities',
+    category = 'Monitoring',
     url = 'https://wiki.opencord.org/pages/viewpage.action?pageId=4456974',
     description = 'Provides static analysis of flows and groups ' +
     'to determine the possible paths a packet may take.',

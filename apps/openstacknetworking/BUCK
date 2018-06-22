@@ -5,7 +5,7 @@ BUNDLES = [
 
 onos_app (
     title = 'OpenStack Networking Application',
-    category = 'Utility',
+    category = 'Integration',
     url = 'https://wiki.onosproject.org/display/ONOS/SONA%3A+DC+Network+Virtualization',
     included_bundles = BUNDLES,
     description = 'SONA Openstack Networking Application.',

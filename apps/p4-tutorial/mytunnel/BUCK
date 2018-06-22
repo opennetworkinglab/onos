@@ -14,7 +14,7 @@ BUNDLES = [
 onos_app (
     app_name = 'org.onosproject.p4tutorial.mytunnel',
     title = 'MyTunnel Demo App',
-    category = 'Steering',
+    category = 'Traffic Engineering',
     url = 'http://onosproject.org',
     description = 'Provides forwarding between each pair of hosts via MyTunnel protocol',
     included_bundles = BUNDLES,

@@ -6,7 +6,7 @@ BUNDLES = [
 
 onos_app (
     title = 'Layer 2 Monitoring CFM Application',
-    category = 'Utility',
+    category = 'Monitoring',
     url = 'http://onosproject.org',
     description = 'Layer 2 Monitoring Connectivity Fault Management App',
     included_bundles = BUNDLES,

@@ -13,8 +13,8 @@ osgi_jar_with_tests (
 )
 
 onos_app (
-    title = 'OpenStack Interface',
-    category = 'Utility',
+    title = 'Topology &amp; Intent Metrics',
+    category = 'Monitoring',
     url = 'http://onosproject.org',
-    description = 'Openstack Interface Application.',
+    description = 'Monitoring of various metrics related to topology mutation and intent programming.',
 )

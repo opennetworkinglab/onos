@@ -24,7 +24,7 @@ osgi_jar_with_tests(
 
 onos_app(
   title = 'EVPN OpenFlow',
-  category = 'Traffic Steering',
+  category = 'Traffic Engineering',
   url = 'http://onosproject.org',
   description = 'Ethernet VPN (EVPN) introduces a new model for Ethernet services delivery.' +
   'It enables integrated Layer 2 service over Ethernet with multihoming.',

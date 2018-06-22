@@ -70,7 +70,7 @@ osgi_jar_with_tests(
 onos_app (
     title = 'Grpc Northbound Service',
     app_name = "org.onosproject.grpc.nb.service",
-    category = 'TODO',
+    category = 'Utility',
     url = 'http://onosproject.org',
     included_bundles = ['//incubator/grpc-dependencies:grpc-core-repkg-' + GRPC_VER,
             '//lib:google-instrumentation-0.3.0'],
