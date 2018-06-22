@@ -32,7 +32,7 @@ import static org.onosproject.net.pi.model.PiPacketOperationType.PACKET_OUT;
 /**
  * Test for DefaultPacketIn class.
  */
-public class DefaultPacketInTest {
+public class PacketInEventTest {
 
     private static final int DEFAULT_ORIGINAL_VALUE = 255;
     private static final int DEFAULT_BIT_WIDTH = 9;
@@ -46,10 +46,10 @@ public class DefaultPacketInTest {
     private PiPacketOperation packetOperation2;
     private PiPacketOperation nullPacketOperation = null;
 
-    private DefaultPacketIn packetIn;
-    private DefaultPacketIn sameAsPacketIn;
-    private DefaultPacketIn packetIn2;
-    private DefaultPacketIn packetIn3;
+    private PacketInEvent packetIn;
+    private PacketInEvent sameAsPacketIn;
+    private PacketInEvent packetIn2;
+    private PacketInEvent packetIn3;
 
     /**
      * Setup method for packetOperation and packetOperation2.
@@ -78,10 +78,10 @@ public class DefaultPacketInTest {
                                       .build())
                 .build();
 
-        packetIn = new DefaultPacketIn(deviceId, packetOperation);
-        sameAsPacketIn = new DefaultPacketIn(sameDeviceId, packetOperation);
-        packetIn2 = new DefaultPacketIn(deviceId2, packetOperation);
-        packetIn3 = new DefaultPacketIn(deviceId, packetOperation2);
+        packetIn = new PacketInEvent(deviceId, packetOperation);
+        sameAsPacketIn = new PacketInEvent(sameDeviceId, packetOperation);
+        packetIn2 = new PacketInEvent(deviceId2, packetOperation);
+        packetIn3 = new PacketInEvent(deviceId, packetOperation2);
     }
 
     /**
@@ -105,7 +105,7 @@ public class DefaultPacketInTest {
     @Test(expected = NullPointerException.class)
     public void testConstructorWithNullDeviceId() {
 
-        new DefaultPacketIn(nullDeviceId, packetOperation);
+        new PacketInEvent(nullDeviceId, packetOperation);
     }
 
     /**
@@ -114,7 +114,7 @@ public class DefaultPacketInTest {
     @Test(expected = NullPointerException.class)
     public void testConstructorWithNullPacketOperation() {
 
-        new DefaultPacketIn(deviceId, nullPacketOperation);
+        new PacketInEvent(deviceId, nullPacketOperation);
     }
 
     /**

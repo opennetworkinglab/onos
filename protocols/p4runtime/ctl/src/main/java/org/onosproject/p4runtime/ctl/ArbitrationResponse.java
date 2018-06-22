@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-present Open Networking Foundation
+ * Copyright 2018-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,47 +17,35 @@
 package org.onosproject.p4runtime.ctl;
 
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.MastershipRole;
 import org.onosproject.p4runtime.api.P4RuntimeEventSubject;
-import p4.v1.P4RuntimeOuterClass.Uint128;
 
 /**
  * Default implementation of arbitration in P4Runtime.
  */
-public class DefaultArbitration implements P4RuntimeEventSubject {
-    private MastershipRole role;
-    private Uint128 electionId;
+class ArbitrationResponse implements P4RuntimeEventSubject {
+
     private DeviceId deviceId;
+    private boolean isMaster;
 
     /**
-     * Creates arbitration with given role and election id.
+     * Creates arbitration with given role and master flag.
      *
-     * @param deviceId   the device
-     * @param role       the role
-     * @param electionId the election id
+     * @param deviceId the device
+     * @param isMaster true if arbitration response signals master status
      */
-     DefaultArbitration(DeviceId deviceId, MastershipRole role, Uint128 electionId) {
+    ArbitrationResponse(DeviceId deviceId, boolean isMaster) {
         this.deviceId = deviceId;
-        this.role = role;
-        this.electionId = electionId;
+        this.isMaster = isMaster;
     }
 
     /**
-     * Gets the role of this arbitration.
+     * Returns true if arbitration response signals master status, false
+     * otherwise.
      *
-     * @return the role
+     * @return boolean flag
      */
-    public MastershipRole role() {
-        return role;
-    }
-
-    /**
-     * Gets election id of this arbitration.
-     *
-     * @return the election id
-     */
-    public Uint128 electionId() {
-        return electionId;
+    boolean isMaster() {
+        return isMaster;
     }
 
     @Override

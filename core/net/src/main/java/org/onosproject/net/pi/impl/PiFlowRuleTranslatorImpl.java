@@ -146,7 +146,7 @@ final class PiFlowRuleTranslatorImpl {
             if (tableModel.supportsAging()) {
                 tableEntryBuilder.withTimeout((double) rule.timeout());
             } else {
-                log.warn("Flow rule is temporary, but table '{}' doesn't support " +
+                log.debug("Flow rule is temporary, but table '{}' doesn't support " +
                                  "aging, translating to permanent.", tableModel.id());
             }
 

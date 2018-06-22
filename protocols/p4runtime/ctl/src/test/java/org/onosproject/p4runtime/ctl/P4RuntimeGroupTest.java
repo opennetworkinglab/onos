@@ -144,7 +144,7 @@ public class P4RuntimeGroupTest {
     }
 
     @AfterClass
-    public static void globalTeerDown() {
+    public static void globalTearDown() {
         grpcServer.shutdown();
         grpcChannel.shutdown();
     }
@@ -156,7 +156,7 @@ public class P4RuntimeGroupTest {
         client = new P4RuntimeClientImpl(DEVICE_ID, P4_DEVICE_ID,
                                          grpcChannel,
                                          controller);
-        client.p4RuntimeElectionId = DEFAULT_ELECTION_ID;
+        client.becomeMaster();
     }
 
     @Test

@@ -42,12 +42,12 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.lang.String.format;
 import static org.onosproject.p4runtime.api.P4RuntimeClient.WriteOperationType.DELETE;
 import static org.onosproject.p4runtime.api.P4RuntimeClient.WriteOperationType.INSERT;
 import static org.onosproject.p4runtime.api.P4RuntimeClient.WriteOperationType.MODIFY;
@@ -226,7 +226,7 @@ public class P4RuntimeGroupProgrammable
 
         if (!membersToRemove.isEmpty() &&
                 !completeFuture(client.writeActionGroupMembers(groupProfileId, membersToRemove, DELETE, pipeconf),
-                               ACT_GRP_MEMS_STR, DELETE_STR)) {
+                                ACT_GRP_MEMS_STR, DELETE_STR)) {
             // add what we removed
             completeFuture(client.writeActionGroupMembers(groupProfileId, membersToRemove, INSERT, pipeconf),
                            ACT_GRP_MEMS_STR, DELETE_STR);
@@ -271,31 +271,18 @@ public class P4RuntimeGroupProgrammable
 
     private boolean completeFuture(CompletableFuture<Boolean> completableFuture,
                                    String topic, String action) {
-        try {
-            if (completableFuture.get()) {
-                return true;
-            } else {
-                log.warn("Unable to {} {}", action, topic);
-                return false;
-            }
-        } catch (InterruptedException | ExecutionException e) {
-            log.warn("Exception while performing {} {}: {}", action, topic, e.getMessage());
-            log.debug("Exception", e);
-            return false;
-        }
+        return getFutureWithDeadline(
+                completableFuture, format("performing %s %s", action, topic), false);
     }
 
     private Stream<Group> streamGroupsFromDevice(PiActionProfileId actProfId) {
-        try {
-            // Read PI groups and return original PD one.
-            return client.dumpGroups(actProfId, pipeconf).get().stream()
-                    .map(this::forgeGroupEntry)
-                    .filter(Objects::nonNull);
-        } catch (ExecutionException | InterruptedException e) {
-            log.error("Exception while dumping groups from action profile '{}' on {}: {}",
-                      actProfId.id(), deviceId, e);
-            return Stream.empty();
-        }
+        // Read PI groups and return original PD one.
+        Collection<PiActionGroup> groups = getFutureWithDeadline(
+                client.dumpGroups(actProfId, pipeconf),
+                "dumping groups", Collections.emptyList());
+        return groups.stream()
+                .map(this::forgeGroupEntry)
+                .filter(Objects::nonNull);
     }
 
     private Group forgeGroupEntry(PiActionGroup piGroup) {

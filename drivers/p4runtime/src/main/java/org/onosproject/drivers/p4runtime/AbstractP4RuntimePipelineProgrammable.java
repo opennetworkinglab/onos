@@ -18,9 +18,8 @@ package org.onosproject.drivers.p4runtime;
 
 import org.onlab.util.SharedExecutors;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.driver.AbstractHandlerBehaviour;
-import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.behaviour.PiPipelineProgrammable;
+import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.p4runtime.api.P4RuntimeClient;
 import org.onosproject.p4runtime.api.P4RuntimeController;
 import org.slf4j.Logger;
@@ -28,14 +27,14 @@ import org.slf4j.Logger;
 import java.nio.ByteBuffer;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Abstract implementation of the PiPipelineProgrammable behaviours for a P4Runtime device.
  */
-public abstract class AbstractP4RuntimePipelineProgrammable extends AbstractHandlerBehaviour
+public abstract class AbstractP4RuntimePipelineProgrammable
+        extends AbstractP4RuntimeHandlerBehaviour
         implements PiPipelineProgrammable {
 
     protected final Logger log = getLogger(getClass());
@@ -72,25 +71,31 @@ public abstract class AbstractP4RuntimePipelineProgrammable extends AbstractHand
             return false;
         }
 
-        try {
-            if (!client.initStreamChannel().get()) {
-                log.warn("Unable to init stream channel to {}.", deviceId);
-                return false;
-            }
-        } catch (InterruptedException | ExecutionException e) {
-            log.error("Exception while initializing stream channel on {}", deviceId, e);
+        // We need to be master to perform write RPC to the device.
+        // FIXME: properly perform mastership handling in the device provider
+        // This would probably mean deploying the pipeline after the device as
+        // been notified to the core.
+        final Boolean masterSuccess = getFutureWithDeadline(
+                client.becomeMaster(),
+                "becoming master ", null);
+        if (masterSuccess == null) {
+            // Error already logged by getFutureWithDeadline()
+            return false;
+        } else if (!masterSuccess) {
+            log.warn("Unable to become master for {}, aborting pipeconf deploy", deviceId);
             return false;
         }
 
-        try {
-            if (!client.setPipelineConfig(pipeconf, deviceDataBuffer).get()) {
-                log.warn("Unable to deploy pipeconf {} to {}", pipeconf.id(), deviceId);
-                return false;
-            }
-        } catch (InterruptedException | ExecutionException e) {
-            log.error("Exception while deploying pipeconf to {}", deviceId, e);
+        final Boolean deploySuccess = getFutureWithDeadline(
+                client.setPipelineConfig(pipeconf, deviceDataBuffer),
+                "deploying pipeconf", null);
+        if (deploySuccess == null) {
+            return false;
+        } else if (!deploySuccess) {
+            log.warn("Unable to deploy pipeconf {} to {}", pipeconf.id(), deviceId);
             return false;
         }
+
         return true;
     }
 

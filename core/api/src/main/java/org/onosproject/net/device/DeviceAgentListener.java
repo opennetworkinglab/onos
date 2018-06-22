@@ -18,7 +18,8 @@ package org.onosproject.net.device;
 import org.onosproject.event.EventListener;
 
 /**
- * A listener to receive events related to a transport channel established with a device.
+ * A listener to receive events related to a protocol agent controlling an
+ * infrastructure device.
  */
-public interface ChannelListener extends EventListener<ChannelEvent> {
+public interface DeviceAgentListener extends EventListener<DeviceAgentEvent> {
 }

@@ -31,7 +31,7 @@ import static org.onosproject.p4runtime.ctl.TableEntryEncoder.encodePiAction;
 /**
  * Encoder/Decoder of action profile member.
  */
-public final class ActionProfileMemberEncoder {
+final class ActionProfileMemberEncoder {
     private ActionProfileMemberEncoder() {
         // Hide default constructor
     }

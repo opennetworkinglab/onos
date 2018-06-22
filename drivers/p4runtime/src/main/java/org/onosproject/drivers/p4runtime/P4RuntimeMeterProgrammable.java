@@ -16,9 +16,9 @@
 
 package org.onosproject.drivers.p4runtime;
 
-import com.google.common.cache.LoadingCache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import org.onosproject.drivers.p4runtime.mirror.P4RuntimeMeterMirror;
 import org.onosproject.net.meter.Band;
 import org.onosproject.net.meter.DefaultBand;
@@ -37,11 +37,11 @@ import org.onosproject.net.pi.service.PiTranslationException;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Set;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
@@ -108,18 +108,13 @@ public class P4RuntimeMeterProgrammable extends AbstractP4RuntimeHandlerBehaviou
 
         final PiMeterHandle handle = PiMeterHandle.of(deviceId, piMeterCellConfig);
         ENTRY_LOCKS.getUnchecked(handle).lock();
-        boolean result = false;
-        try {
-            if (client.writeMeterCells(newArrayList(piMeterCellConfig), pipeconf).get()) {
-                meterMirror.put(handle, piMeterCellConfig);
-                result = true;
-            }
-
-        } catch (InterruptedException | ExecutionException e) {
-            log.warn("Exception while modify meter entry:", e);
-        } finally {
-            ENTRY_LOCKS.getUnchecked(handle).unlock();
+        final boolean result = getFutureWithDeadline(
+                client.writeMeterCells(newArrayList(piMeterCellConfig), pipeconf),
+                "writing meter cells", false);
+        if (result) {
+            meterMirror.put(handle, piMeterCellConfig);
         }
+        ENTRY_LOCKS.getUnchecked(handle).unlock();
 
         return result;
     }

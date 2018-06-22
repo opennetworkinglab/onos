@@ -139,7 +139,6 @@ public class PiPipeconfManager implements PiPipeconfService {
 
     @Override
     public void register(PiPipeconf pipeconf) throws IllegalStateException {
-        log.warn("Currently using local maps, needs to be moved to a distributed store");
         if (piPipeconfs.containsKey(pipeconf.id())) {
             throw new IllegalStateException(format("Pipeconf %s is already registered", pipeconf.id()));
         }
@@ -262,7 +261,7 @@ public class PiPipeconfManager implements PiPipeconfService {
                 cfgService.getConfig(deviceId, PiPipeconfConfig.class);
         PiPipeconfId id = pipeconfConfig.piPipeconfId();
         if (id.id().equals("")) {
-            log.warn("Not adding empty pipeconfId for device {}", deviceId);
+            log.debug("Ignoring empty pipeconf ID for device {}", deviceId);
         } else {
             pipeconfMappingStore.createOrUpdateBinding(deviceId, id);
         }

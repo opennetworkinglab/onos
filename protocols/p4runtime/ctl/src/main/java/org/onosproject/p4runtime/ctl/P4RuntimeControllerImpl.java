@@ -35,20 +35,21 @@ import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.grpc.api.GrpcChannelId;
 import org.onosproject.grpc.api.GrpcController;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.device.ChannelEvent;
-import org.onosproject.net.device.ChannelListener;
+import org.onosproject.net.device.DeviceAgentEvent;
+import org.onosproject.net.device.DeviceAgentListener;
 import org.onosproject.p4runtime.api.P4RuntimeClient;
 import org.onosproject.p4runtime.api.P4RuntimeController;
 import org.onosproject.p4runtime.api.P4RuntimeEvent;
 import org.onosproject.p4runtime.api.P4RuntimeEventListener;
-import org.onosproject.store.service.AtomicCounter;
 import org.onosproject.store.service.StorageService;
 import org.slf4j.Logger;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -65,14 +66,13 @@ public class P4RuntimeControllerImpl
         extends AbstractListenerManager<P4RuntimeEvent, P4RuntimeEventListener>
         implements P4RuntimeController {
 
-    private static final String P4R_ELECTION = "p4runtime-election";
     private static final int DEVICE_LOCK_EXPIRE_TIME_IN_MIN = 10;
     private final Logger log = getLogger(getClass());
     private final NameResolverProvider nameResolverProvider = new DnsNameResolverProvider();
     private final Map<DeviceId, ClientKey> deviceIdToClientKey = Maps.newHashMap();
     private final Map<ClientKey, P4RuntimeClient> clientKeyToClient = Maps.newHashMap();
     private final Map<DeviceId, GrpcChannelId> channelIds = Maps.newHashMap();
-    private final Map<DeviceId, List<ChannelListener>> channelListeners = Maps.newConcurrentMap();
+    private final ConcurrentMap<DeviceId, List<DeviceAgentListener>> deviceAgentListeners = Maps.newConcurrentMap();
     private final LoadingCache<DeviceId, ReadWriteLock> deviceLocks = CacheBuilder.newBuilder()
             .expireAfterAccess(DEVICE_LOCK_EXPIRE_TIME_IN_MIN, TimeUnit.MINUTES)
             .build(new CacheLoader<DeviceId, ReadWriteLock>() {
@@ -81,8 +81,7 @@ public class P4RuntimeControllerImpl
                     return new ReentrantReadWriteLock();
                 }
             });
-
-    private AtomicCounter electionIdGenerator;
+    private DistributedElectionIdGenerator electionIdGenerator;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private GrpcController grpcController;
@@ -93,8 +92,7 @@ public class P4RuntimeControllerImpl
     @Activate
     public void activate() {
         eventDispatcher.addSink(P4RuntimeEvent.class, listenerRegistry);
-        electionIdGenerator = storageService.getAtomicCounter(P4R_ELECTION);
-
+        electionIdGenerator = new DistributedElectionIdGenerator(storageService);
         log.info("Started");
     }
 
@@ -102,6 +100,8 @@ public class P4RuntimeControllerImpl
     @Deactivate
     public void deactivate() {
         grpcController = null;
+        electionIdGenerator.destroy();
+        electionIdGenerator = null;
         eventDispatcher.removeSink(P4RuntimeEvent.class);
         log.info("Stopped");
     }
@@ -119,13 +119,13 @@ public class P4RuntimeControllerImpl
                 .usePlaintext(true);
 
         deviceLocks.getUnchecked(deviceId).writeLock().lock();
-        log.info("Creating client for {} (server={}:{}, p4DeviceId={})...",
-                 deviceId, serverAddr, serverPort, p4DeviceId);
 
         try {
             if (deviceIdToClientKey.containsKey(deviceId)) {
                 final ClientKey existingKey = deviceIdToClientKey.get(deviceId);
                 if (newKey.equals(existingKey)) {
+                    log.info("Not creating client for {} as it already exists (server={}:{}, p4DeviceId={})...",
+                             deviceId, serverAddr, serverPort, p4DeviceId);
                     return true;
                 } else {
                     throw new IllegalStateException(
@@ -133,6 +133,8 @@ public class P4RuntimeControllerImpl
                                     "server endpoints already exists");
                 }
             } else {
+                log.info("Creating client for {} (server={}:{}, p4DeviceId={})...",
+                         deviceId, serverAddr, serverPort, p4DeviceId);
                 return doCreateClient(newKey, channelBuilder);
             }
         } finally {
@@ -187,12 +189,11 @@ public class P4RuntimeControllerImpl
     public void removeClient(DeviceId deviceId) {
 
         deviceLocks.getUnchecked(deviceId).writeLock().lock();
-
         try {
             if (deviceIdToClientKey.containsKey(deviceId)) {
                 final ClientKey clientKey = deviceIdToClientKey.get(deviceId);
-                grpcController.disconnectChannel(channelIds.get(deviceId));
                 clientKeyToClient.remove(clientKey).shutdown();
+                grpcController.disconnectChannel(channelIds.get(deviceId));
                 deviceIdToClientKey.remove(deviceId);
                 channelIds.remove(deviceId);
             }
@@ -222,7 +223,7 @@ public class P4RuntimeControllerImpl
                 log.debug("No client for {}, can't check for reachability", deviceId);
                 return false;
             }
-
+            // FIXME: we're not checking for a P4Runtime server, it could be any gRPC service
             return grpcController.isChannelOpen(channelIds.get(deviceId));
         } finally {
             deviceLocks.getUnchecked(deviceId).readLock().unlock();
@@ -230,67 +231,73 @@ public class P4RuntimeControllerImpl
     }
 
     @Override
-    public long getNewMasterElectionId() {
-        return electionIdGenerator.incrementAndGet();
+    public void addDeviceAgentListener(DeviceId deviceId, DeviceAgentListener listener) {
+        deviceAgentListeners.putIfAbsent(deviceId, new CopyOnWriteArrayList<>());
+        deviceAgentListeners.get(deviceId).add(listener);
     }
 
     @Override
-    public void addChannelListener(DeviceId deviceId, ChannelListener listener) {
-        channelListeners.compute(deviceId, (devId, listeners) -> {
-            List<ChannelListener> newListeners;
-            if (listeners != null) {
-                newListeners = listeners;
-            } else {
-                newListeners = new ArrayList<>();
-            }
-            newListeners.add(listener);
-            return newListeners;
+    public void removeDeviceAgentListener(DeviceId deviceId, DeviceAgentListener listener) {
+        deviceAgentListeners.computeIfPresent(deviceId, (did, listeners) -> {
+            listeners.remove(listener);
+            return listeners;
         });
     }
 
-    @Override
-    public void removeChannelListener(DeviceId deviceId, ChannelListener listener) {
-        channelListeners.compute(deviceId, (devId, listeners) -> {
-            if (listeners != null) {
-                listeners.remove(listener);
-                return listeners;
-            } else {
-                log.debug("Device {} has no listener registered", deviceId);
-                return null;
-            }
-        });
+    BigInteger newMasterElectionId(DeviceId deviceId) {
+        return electionIdGenerator.generate(deviceId);
     }
 
     void postEvent(P4RuntimeEvent event) {
-        if (event.type().equals(P4RuntimeEvent.Type.CHANNEL_EVENT)) {
-            DefaultChannelEvent channelError = (DefaultChannelEvent) event.subject();
-            DeviceId deviceId = event.subject().deviceId();
-            ChannelEvent channelEvent = null;
-            //If disconnection is already known we propagate it.
-            if (channelError.type().equals(ChannelEvent.Type.CHANNEL_DISCONNECTED)) {
-                channelEvent = new ChannelEvent(ChannelEvent.Type.CHANNEL_DISCONNECTED, channelError.deviceId(),
-                        channelError.throwable());
-            } else if (channelError.type().equals(ChannelEvent.Type.CHANNEL_ERROR)) {
-                //If we don't know what the error is we check for reachability
-                if (!isReacheable(deviceId)) {
-                    //if false the channel has disconnected
-                    channelEvent = new ChannelEvent(ChannelEvent.Type.CHANNEL_DISCONNECTED, channelError.deviceId(),
-                            channelError.throwable());
-                } else {
-                    // else we propagate the event.
-                    channelEvent = new ChannelEvent(ChannelEvent.Type.CHANNEL_ERROR, channelError.deviceId(),
-                            channelError.throwable());
-                }
-            }
-            //Ignoring CHANNEL_CONNECTED
-            if (channelEvent != null && channelListeners.get(deviceId) != null) {
-                for (ChannelListener listener : channelListeners.get(deviceId)) {
-                    listener.event(channelEvent);
-                }
-            }
-        } else {
-            post(event);
+        switch (event.type()) {
+            case CHANNEL_EVENT:
+                handleChannelEvent(event);
+                break;
+            case ARBITRATION_RESPONSE:
+                handleArbitrationReply(event);
+                break;
+            default:
+                post(event);
+                break;
         }
     }
 
+    private void handleChannelEvent(P4RuntimeEvent event) {
+        final ChannelEvent channelEvent = (ChannelEvent) event.subject();
+        final DeviceId deviceId = channelEvent.deviceId();
+        final DeviceAgentEvent.Type agentEventType;
+        switch (channelEvent.type()) {
+            case OPEN:
+                agentEventType = DeviceAgentEvent.Type.CHANNEL_OPEN;
+                break;
+            case CLOSED:
+                agentEventType = DeviceAgentEvent.Type.CHANNEL_CLOSED;
+                break;
+            case ERROR:
+                agentEventType = !isReacheable(deviceId)
+                        ? DeviceAgentEvent.Type.CHANNEL_CLOSED
+                        : DeviceAgentEvent.Type.CHANNEL_ERROR;
+                break;
+            default:
+                log.warn("Unrecognized channel event type {}", channelEvent.type());
+                return;
+        }
+        postDeviceAgentEvent(deviceId, new DeviceAgentEvent(agentEventType, deviceId));
+    }
+
+    private void handleArbitrationReply(P4RuntimeEvent event) {
+        final DeviceId deviceId = event.subject().deviceId();
+        final ArbitrationResponse response = (ArbitrationResponse) event.subject();
+        final DeviceAgentEvent.Type roleType = response.isMaster()
+                ? DeviceAgentEvent.Type.ROLE_MASTER
+                : DeviceAgentEvent.Type.ROLE_STANDBY;
+        postDeviceAgentEvent(deviceId, new DeviceAgentEvent(
+                roleType, response.deviceId()));
+    }
+
+    private void postDeviceAgentEvent(DeviceId deviceId, DeviceAgentEvent event) {
+        if (deviceAgentListeners.containsKey(deviceId)) {
+            deviceAgentListeners.get(deviceId).forEach(l -> l.event(event));
+        }
+    }
 }

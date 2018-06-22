@@ -26,7 +26,9 @@ import java.util.Collection;
 /**
  * Implementation of PacketProgrammable behaviour for P4Runtime.
  */
-public class P4RuntimePacketProgrammable extends AbstractP4RuntimeHandlerBehaviour implements PacketProgrammable {
+public class P4RuntimePacketProgrammable
+        extends AbstractP4RuntimeHandlerBehaviour
+        implements PacketProgrammable {
 
     @Override
     public void emit(OutboundPacket packet) {
@@ -38,7 +40,8 @@ public class P4RuntimePacketProgrammable extends AbstractP4RuntimeHandlerBehavio
         final PiPipelineInterpreter interpreter = device.is(PiPipelineInterpreter.class)
                 ? device.as(PiPipelineInterpreter.class) : null;
         if (interpreter == null) {
-            log.warn("Device {} with pipeconf {} has no interpreter, aborting emit operation", deviceId, pipeconf.id());
+            log.warn("Unable to get interpreter for {} with pipeconf {}, aborting emit operation",
+                     deviceId, pipeconf.id());
             return;
         }
 
@@ -46,11 +49,13 @@ public class P4RuntimePacketProgrammable extends AbstractP4RuntimeHandlerBehavio
             Collection<PiPacketOperation> operations = interpreter.mapOutboundPacket(packet);
             operations.forEach(piPacketOperation -> {
                 log.debug("Doing PiPacketOperation {}", piPacketOperation);
-                client.packetOut(piPacketOperation, pipeconf);
+                getFutureWithDeadline(
+                        client.packetOut(piPacketOperation, pipeconf),
+                        "sending packet-out", false);
             });
         } catch (PiPipelineInterpreter.PiInterpreterException e) {
-            log.error("Interpreter of pipeconf {} was unable to translate outbound packet: {}",
-                    pipeconf.id(), e.getMessage());
+            log.error("Unable to translate outbound packet for {} with pipeconf {}: {}",
+                      deviceId, pipeconf.id(), e.getMessage());
         }
     }
 }

@@ -30,38 +30,41 @@ import java.util.concurrent.CompletableFuture;
 public interface DeviceHandshaker extends DeviceConnect {
 
     /**
-     * Checks the reachability (connectivity) of a device.
-     * Reachability, unlike availability, denotes whether THIS particular node
-     * can send messages and receive replies from the specified device.
+     * Checks the reachability (connectivity) of a device. Reachability, unlike
+     * availability, denotes whether THIS particular node can send messages and
+     * receive replies from the specified device.
      *
      * @return CompletableFuture eventually true if reachable, false otherwise
      */
     CompletableFuture<Boolean> isReachable();
 
     /**
-     * Applies on the device a mastership role change as decided by the core.
+     * Notifies the device a mastership role change as decided by the core. The
+     * implementation of this method should trigger a {@link DeviceAgentEvent}
+     * signaling the mastership role accepted by the device.
      *
-     * @param newRole newly determined mastership role
-     * @return CompletableFuture with the mastership role accepted from the device
+     * @param newRole new mastership role
      */
-    CompletableFuture<MastershipRole> roleChanged(MastershipRole newRole);
+    void roleChanged(MastershipRole newRole);
 
     /**
-     * Applies a listener to a channel established with the device.
+     * Adds a device agent listener.
      *
-     * @param listener the channel listener
+     * @param listener device agent listener
      */
-    default void addChannelListener(ChannelListener listener) {
-        throw new UnsupportedOperationException("Listener Registration not supported");
+    default void addDeviceAgentListener(DeviceAgentListener listener) {
+        throw new UnsupportedOperationException(
+                "Device agent listener registration not supported");
     }
 
     /**
-     * Removes a listener to a channel established with the device.
+     * Removes a device agent listener.
      *
-     * @param listener the channel listener
+     * @param listener device agent listener
      */
-    default void removeChannelListener(ChannelListener listener) {
-        throw new UnsupportedOperationException("Listener Removal not supported");
+    default void removeDeviceAgentListener(DeviceAgentListener listener) {
+        throw new UnsupportedOperationException(
+                "Device agent listener removal not supported");
     }
 
 }

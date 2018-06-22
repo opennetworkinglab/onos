@@ -3,6 +3,7 @@ PROTOBUF_VER = '3.2.0'
 
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
+    '//lib:KRYO',
     '//protocols/grpc/api:onos-protocols-grpc-api',
     '//protocols/p4runtime/api:onos-protocols-p4runtime-api',
     '//protocols/p4runtime/proto:onos-protocols-p4runtime-proto',
@@ -10,6 +11,7 @@ COMPILE_DEPS = [
     '//lib:grpc-stub-' + GRPC_VER,
     '//lib:grpc-netty-' + GRPC_VER,
     '//lib:protobuf-java-' + PROTOBUF_VER,
+    '//core/store/serializers:onos-core-serializers',
 ]
 
 TEST_DEPS = [

@@ -19,13 +19,14 @@ package org.onosproject.p4runtime.api;
 import com.google.common.annotations.Beta;
 import org.onosproject.event.ListenerService;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.device.ChannelListener;
+import org.onosproject.net.device.DeviceAgentListener;
 
 /**
  * Controller of P4Runtime devices.
  */
 @Beta
-public interface P4RuntimeController extends ListenerService<P4RuntimeEvent, P4RuntimeEventListener> {
+public interface P4RuntimeController
+        extends ListenerService<P4RuntimeEvent, P4RuntimeEventListener> {
 
     /**
      * Instantiates a new client to operate on a P4Runtime device identified by
@@ -58,20 +59,22 @@ public interface P4RuntimeController extends ListenerService<P4RuntimeEvent, P4R
      *
      * @param deviceId device identifier
      * @return client instance
-     * @throws IllegalStateException if no client exists for the given device identifier
+     * @throws IllegalStateException if no client exists for the given device
+     *                               identifier
      */
     P4RuntimeClient getClient(DeviceId deviceId);
 
     /**
-     * Removes the client for the given device. If no client exists for the given device identifier, the
-     * result is a no-op.
+     * Removes the client for the given device. If no client exists for the
+     * given device identifier, the result is a no-op.
      *
      * @param deviceId device identifier
      */
     void removeClient(DeviceId deviceId);
 
     /**
-     * Returns true if a client exists for the given device identifier, false otherwise.
+     * Returns true if a client exists for the given device identifier, false
+     * otherwise.
      *
      * @param deviceId device identifier
      * @return true if client exists, false otherwise.
@@ -79,37 +82,31 @@ public interface P4RuntimeController extends ListenerService<P4RuntimeEvent, P4R
     boolean hasClient(DeviceId deviceId);
 
     /**
-     * Returns true if the P4Runtime server running on the given device is reachable, i.e. the channel is open and the
-     * server is able to respond to RPCs, false otherwise. Reachability can be tested only if a client was previously
-     * created using {@link #createClient(DeviceId, String, int, long)}, otherwise this method returns false.
+     * Returns true if the P4Runtime server running on the given device is
+     * reachable, i.e. the channel is open and the server is able to respond to
+     * RPCs, false otherwise. Reachability can be tested only if a client was
+     * previously created using {@link #createClient(DeviceId, String, int,
+     * long)}, otherwise this method returns false.
      *
      * @param deviceId device identifier.
-     * @return true if a client was created and is able to contact the P4Runtime server, false otherwise.
+     * @return true if a client was created and is able to contact the P4Runtime
+     * server, false otherwise.
      */
     boolean isReacheable(DeviceId deviceId);
 
     /**
-     * Gets new election id for device arbitration request.
-     *
-     * @return the election id
-     */
-    long getNewMasterElectionId();
-
-    /**
-     * Adds a listener for P4Runtime client-server channel events.
-     * If the channel for the device is not present and/or established the listener will get notified
-     * only after channel setup.
+     * Adds a listener for device agent events.
      *
      * @param deviceId device identifier
-     * @param listener the channel listener
+     * @param listener the device agent listener
      */
-    void addChannelListener(DeviceId deviceId, ChannelListener listener);
+    void addDeviceAgentListener(DeviceId deviceId, DeviceAgentListener listener);
 
     /**
-     * Removes the listener for P4Runtime client-server channel events.
+     * Removes the listener for device agent events.
      *
      * @param deviceId device identifier
-     * @param listener the channel listener
+     * @param listener the device agent listener
      */
-    void removeChannelListener(DeviceId deviceId, ChannelListener listener);
+    void removeDeviceAgentListener(DeviceId deviceId, DeviceAgentListener listener);
 }

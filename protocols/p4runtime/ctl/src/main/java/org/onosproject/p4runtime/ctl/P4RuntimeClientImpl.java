@@ -19,7 +19,6 @@ package org.onosproject.p4runtime.ctl;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
@@ -30,10 +29,9 @@ import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.onlab.osgi.DefaultServiceDirectory;
+import org.onlab.util.SharedExecutors;
 import org.onlab.util.Tools;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.MastershipRole;
-import org.onosproject.net.device.ChannelEvent;
 import org.onosproject.net.pi.model.PiActionProfileId;
 import org.onosproject.net.pi.model.PiCounterId;
 import org.onosproject.net.pi.model.PiMeterId;
@@ -52,6 +50,8 @@ import org.onosproject.net.pi.service.PiPipeconfService;
 import org.onosproject.p4runtime.api.P4RuntimeClient;
 import org.onosproject.p4runtime.api.P4RuntimeEvent;
 import org.slf4j.Logger;
+import p4.config.v1.P4InfoOuterClass.P4Info;
+import p4.tmp.P4Config;
 import p4.v1.P4RuntimeGrpc;
 import p4.v1.P4RuntimeOuterClass;
 import p4.v1.P4RuntimeOuterClass.ActionProfileGroup;
@@ -59,7 +59,6 @@ import p4.v1.P4RuntimeOuterClass.ActionProfileMember;
 import p4.v1.P4RuntimeOuterClass.Entity;
 import p4.v1.P4RuntimeOuterClass.ForwardingPipelineConfig;
 import p4.v1.P4RuntimeOuterClass.MasterArbitrationUpdate;
-import p4.v1.P4RuntimeOuterClass.PacketIn;
 import p4.v1.P4RuntimeOuterClass.ReadRequest;
 import p4.v1.P4RuntimeOuterClass.ReadResponse;
 import p4.v1.P4RuntimeOuterClass.SetForwardingPipelineConfigRequest;
@@ -69,9 +68,8 @@ import p4.v1.P4RuntimeOuterClass.TableEntry;
 import p4.v1.P4RuntimeOuterClass.Uint128;
 import p4.v1.P4RuntimeOuterClass.Update;
 import p4.v1.P4RuntimeOuterClass.WriteRequest;
-import p4.config.v1.P4InfoOuterClass.P4Info;
-import p4.tmp.P4Config;
 
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.Collections;
@@ -81,7 +79,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -99,13 +96,17 @@ import static org.slf4j.LoggerFactory.getLogger;
 import static p4.v1.P4RuntimeOuterClass.Entity.EntityCase.ACTION_PROFILE_GROUP;
 import static p4.v1.P4RuntimeOuterClass.Entity.EntityCase.ACTION_PROFILE_MEMBER;
 import static p4.v1.P4RuntimeOuterClass.Entity.EntityCase.TABLE_ENTRY;
+import static p4.v1.P4RuntimeOuterClass.PacketIn;
 import static p4.v1.P4RuntimeOuterClass.PacketOut;
 import static p4.v1.P4RuntimeOuterClass.SetForwardingPipelineConfigRequest.Action.VERIFY_AND_COMMIT;
 
 /**
  * Implementation of a P4Runtime client.
  */
-public final class P4RuntimeClientImpl implements P4RuntimeClient {
+final class P4RuntimeClientImpl implements P4RuntimeClient {
+
+    // Timeout in seconds to obtain the client lock.
+    private static final int LOCK_TIMEOUT = 10;
 
     private static final Map<WriteOperationType, Update.Type> UPDATE_TYPES = ImmutableMap.of(
             WriteOperationType.UNSPECIFIED, Update.Type.UNSPECIFIED,
@@ -116,18 +117,20 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
 
     private final Logger log = getLogger(getClass());
 
+    private final Lock requestLock = new ReentrantLock();
+    private final Context.CancellableContext cancellableContext =
+            Context.current().withCancellation();
+
     private final DeviceId deviceId;
     private final long p4DeviceId;
     private final P4RuntimeControllerImpl controller;
     private final P4RuntimeGrpc.P4RuntimeBlockingStub blockingStub;
-    private final Context.CancellableContext cancellableContext;
     private final ExecutorService executorService;
     private final Executor contextExecutor;
-    private final Lock writeLock = new ReentrantLock();
     private final StreamObserver<StreamMessageRequest> streamRequestObserver;
 
-    private Map<Uint128, CompletableFuture<Boolean>> arbitrationUpdateMap = Maps.newConcurrentMap();
-    protected Uint128 p4RuntimeElectionId;
+    // Used by this client for write requests.
+    private Uint128 clientElectionId = Uint128.newBuilder().setLow(1).build();
 
     /**
      * Default constructor.
@@ -142,45 +145,77 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
         this.deviceId = deviceId;
         this.p4DeviceId = p4DeviceId;
         this.controller = controller;
-        this.cancellableContext = Context.current().withCancellation();
         this.executorService = Executors.newFixedThreadPool(15, groupedThreads(
-                "onos/p4runtime-client-" + deviceId.toString(),
-                deviceId.toString() + "-%d"));
+                "onos-p4runtime-client-" + deviceId.toString(), "%d"));
         this.contextExecutor = this.cancellableContext.fixedContextExecutor(executorService);
-        //TODO Investigate deadline or timeout in supplyInContext Method
+        //TODO Investigate use of stub deadlines instead of timeout in supplyInContext
         this.blockingStub = P4RuntimeGrpc.newBlockingStub(channel);
-        P4RuntimeGrpc.P4RuntimeStub asyncStub = P4RuntimeGrpc.newStub(channel);
-        this.streamRequestObserver = asyncStub.streamChannel(new StreamChannelResponseObserver());
+        this.streamRequestObserver = P4RuntimeGrpc.newStub(channel)
+                .streamChannel(new StreamChannelResponseObserver());
     }
 
     /**
-     * Executes the given task (supplier) in the gRPC context executor of this client, such that if the context is
-     * cancelled (e.g. client shutdown) the RPC is automatically cancelled.
-     * <p>
-     * Important: Tasks submitted in parallel by different threads are forced executed sequentially.
-     * <p>
+     * Submits a task for async execution via the given executor.
+     * All tasks submitted with this method will be executed sequentially.
      */
-    private <U> CompletableFuture<U> supplyInContext(Supplier<U> supplier, String opDescription) {
+    private <U> CompletableFuture<U> supplyWithExecutor(
+            Supplier<U> supplier, String opDescription, Executor executor) {
         return CompletableFuture.supplyAsync(() -> {
             // TODO: explore a more relaxed locking strategy.
-            writeLock.lock();
+            try {
+                if (!requestLock.tryLock(LOCK_TIMEOUT, TimeUnit.SECONDS)) {
+                    log.error("LOCK TIMEOUT! This is likely a deadlock, "
+                                      + "please debug (executing {})",
+                              opDescription);
+                    throw new IllegalThreadStateException("Lock timeout");
+                }
+            } catch (InterruptedException e) {
+                log.warn("Thread interrupted while waiting for lock (executing {})",
+                         opDescription);
+                throw new RuntimeException(e);
+            }
             try {
                 return supplier.get();
             } catch (StatusRuntimeException ex) {
-                log.warn("Unable to execute {} on {}: {}", opDescription, deviceId, ex.toString());
+                log.warn("Unable to execute {} on {}: {}",
+                         opDescription, deviceId, ex.toString());
                 throw ex;
             } catch (Throwable ex) {
-                log.error("Exception in client of {}, executing {}", deviceId, opDescription, ex);
+                log.error("Exception in client of {}, executing {}",
+                          deviceId, opDescription, ex);
                 throw ex;
             } finally {
-                writeLock.unlock();
+                requestLock.unlock();
             }
-        }, contextExecutor);
+        }, executor);
+    }
+
+    /**
+     * Equivalent of supplyWithExecutor using the gRPC context executor of this
+     * client, such that if the context is cancelled (e.g. client shutdown) the
+     * RPC is automatically cancelled.
+     */
+    private <U> CompletableFuture<U> supplyInContext(
+            Supplier<U> supplier, String opDescription) {
+        return supplyWithExecutor(supplier, opDescription, contextExecutor);
     }
 
     @Override
-    public CompletableFuture<Boolean> initStreamChannel() {
-        return supplyInContext(this::doInitStreamChannel, "initStreamChannel");
+    public CompletableFuture<Boolean> start() {
+        return supplyInContext(this::doInitStreamChannel,
+                               "start-initStreamChannel");
+    }
+
+    @Override
+    public CompletableFuture<Void> shutdown() {
+        return supplyWithExecutor(this::doShutdown, "shutdown",
+                                  SharedExecutors.getPoolThreadExecutor());
+    }
+
+    @Override
+    public CompletableFuture<Boolean> becomeMaster() {
+        return supplyInContext(this::doBecomeMaster,
+                               "becomeMaster");
     }
 
     @Override
@@ -198,6 +233,11 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
     @Override
     public CompletableFuture<Collection<PiTableEntry>> dumpTable(PiTableId piTableId, PiPipeconf pipeconf) {
         return supplyInContext(() -> doDumpTable(piTableId, pipeconf), "dumpTable-" + piTableId);
+    }
+
+    @Override
+    public CompletableFuture<Collection<PiTableEntry>> dumpAllTables(PiPipeconf pipeconf) {
+        return supplyInContext(() -> doDumpTable(null, pipeconf), "dumpAllTables");
     }
 
     @Override
@@ -245,11 +285,6 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
     }
 
     @Override
-    public CompletableFuture<Boolean> sendMasterArbitrationUpdate() {
-        return supplyInContext(this::doArbitrationUpdate, "arbitrationUpdate");
-    }
-
-    @Override
     public CompletableFuture<Boolean> writeMeterCells(Collection<PiMeterCellConfig> cellIds, PiPipeconf pipeconf) {
 
         return supplyInContext(() -> doWriteMeterCells(cellIds, pipeconf),
@@ -272,42 +307,48 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
 
     /* Blocking method implementations below */
 
-    private boolean doArbitrationUpdate() {
+    private boolean doBecomeMaster() {
+        final Uint128 newId = bigIntegerToUint128(
+                controller.newMasterElectionId(deviceId));
+        if (sendMasterArbitrationUpdate(newId)) {
+            clientElectionId = newId;
+            return true;
+        }
+        return false;
+    }
 
-        CompletableFuture<Boolean> result = new CompletableFuture<>();
-        // TODO: currently we use 64-bit Long type for election id, should
-        // we use 128-bit ?
-        long nextElectId = controller.getNewMasterElectionId();
-        Uint128 newElectionId = Uint128.newBuilder()
-                .setLow(nextElectId)
-                .build();
-        MasterArbitrationUpdate arbitrationUpdate = MasterArbitrationUpdate.newBuilder()
-                .setDeviceId(p4DeviceId)
-                .setElectionId(newElectionId)
-                .build();
-        StreamMessageRequest requestMsg = StreamMessageRequest.newBuilder()
-                .setArbitration(arbitrationUpdate)
-                .build();
-        log.debug("Sending arbitration update to {} with election id {}...",
-                  deviceId, newElectionId);
-        arbitrationUpdateMap.put(newElectionId, result);
+    private boolean sendMasterArbitrationUpdate(Uint128 electionId) {
+        log.info("Sending arbitration update to {}... electionId={}",
+                  deviceId, uint128ToBigInteger(electionId));
         try {
-            streamRequestObserver.onNext(requestMsg);
-            return result.get();
+            streamRequestObserver.onNext(
+                    StreamMessageRequest.newBuilder()
+                            .setArbitration(
+                                    MasterArbitrationUpdate
+                                            .newBuilder()
+                                            .setDeviceId(p4DeviceId)
+                                            .setElectionId(electionId)
+                                            .build())
+                            .build());
+            return true;
         } catch (StatusRuntimeException e) {
             log.error("Unable to perform arbitration update on {}: {}", deviceId, e.getMessage());
-            arbitrationUpdateMap.remove(newElectionId);
-            return false;
-        } catch (InterruptedException | ExecutionException e) {
-            log.warn("Arbitration update failed for {} due to {}", deviceId, e);
-            arbitrationUpdateMap.remove(newElectionId);
-            return false;
         }
+        return false;
     }
+
     private boolean doInitStreamChannel() {
         // To listen for packets and other events, we need to start the RPC.
-        // Here we do it by sending a master arbitration update.
-        return doArbitrationUpdate();
+        // Here we send an empty StreamMessageRequest.
+        try {
+            log.info("Starting stream channel with {}...", deviceId);
+            streamRequestObserver.onNext(StreamMessageRequest.newBuilder().build());
+            return true;
+        } catch (StatusRuntimeException e) {
+            log.error("Unable to start stream channel with {}: {}",
+                      deviceId, e.getMessage());
+            return false;
+        }
     }
 
     private boolean doSetPipelineConfig(PiPipeconf pipeconf, ByteBuffer deviceData) {
@@ -338,7 +379,7 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
         SetForwardingPipelineConfigRequest request = SetForwardingPipelineConfigRequest
                 .newBuilder()
                 .setDeviceId(p4DeviceId)
-                .setElectionId(p4RuntimeElectionId)
+                .setElectionId(clientElectionId)
                 .setAction(VERIFY_AND_COMMIT)
                 .setConfig(pipelineConfig)
                 .build();
@@ -380,7 +421,7 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
 
         writeRequestBuilder
                 .setDeviceId(p4DeviceId)
-                .setElectionId(p4RuntimeElectionId)
+                .setElectionId(clientElectionId)
                 .addAllUpdates(updateMsgs)
                 .build();
 
@@ -388,7 +429,7 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
             blockingStub.write(writeRequestBuilder.build());
             return true;
         } catch (StatusRuntimeException e) {
-            logWriteErrors(piTableEntries, e, opType, "table entry");
+            checkAndLogWriteErrors(piTableEntries, e, opType, "table entry");
             return false;
         }
     }
@@ -397,13 +438,18 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
 
         log.debug("Dumping table {} from {} (pipeconf {})...", piTableId, deviceId, pipeconf.id());
 
-        P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(pipeconf);
         int tableId;
-        try {
-            tableId = browser.tables().getByName(piTableId.id()).getPreamble().getId();
-        } catch (P4InfoBrowser.NotFoundException e) {
-            log.warn("Unable to dump table: {}", e.getMessage());
-            return Collections.emptyList();
+        if (piTableId == null) {
+            // Dump all tables.
+            tableId = 0;
+        } else {
+            P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(pipeconf);
+            try {
+                tableId = browser.tables().getByName(piTableId.id()).getPreamble().getId();
+            } catch (P4InfoBrowser.NotFoundException e) {
+                log.warn("Unable to dump table: {}", e.getMessage());
+                return Collections.emptyList();
+            }
         }
 
         ReadRequest requestMsg = ReadRequest.newBuilder()
@@ -474,40 +520,29 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
         }
         // Decode packet message and post event.
         PiPacketOperation packetOperation = PacketIOCodec.decodePacketIn(packetInMsg, pipeconf, deviceId);
-        DefaultPacketIn packetInEventSubject = new DefaultPacketIn(deviceId, packetOperation);
+        PacketInEvent packetInEventSubject = new PacketInEvent(deviceId, packetOperation);
         P4RuntimeEvent event = new P4RuntimeEvent(P4RuntimeEvent.Type.PACKET_IN, packetInEventSubject);
         log.debug("Received packet in: {}", event);
         controller.postEvent(event);
     }
 
-    private void doArbitrationUpdateFromDevice(MasterArbitrationUpdate arbitrationMsg) {
-        log.debug("Received arbitration update from {}: {}", deviceId, arbitrationMsg);
-
-        Uint128 electionId = arbitrationMsg.getElectionId();
-        CompletableFuture<Boolean> mastershipFeature = arbitrationUpdateMap.remove(electionId);
-
-        if (mastershipFeature == null) {
-            log.warn("Can't find completable future of election id {}", electionId);
+    private void doArbitrationResponse(MasterArbitrationUpdate msg) {
+        // From the spec...
+        // - Election_id: The stream RPC with the highest election_id is the
+        // master. Switch populates with the highest election ID it
+        // has received from all connected controllers.
+        // - Status: Switch populates this with OK for the client that is the
+        // master, and with an error status for all other connected clients (at
+        // every mastership change).
+        if (!msg.hasElectionId() || !msg.hasStatus()) {
             return;
         }
-
-        this.p4RuntimeElectionId = electionId;
-        int statusCode = arbitrationMsg.getStatus().getCode();
-        MastershipRole arbitrationRole;
-        // arbitration update success
-
-        if (statusCode == Status.OK.getCode().value()) {
-            mastershipFeature.complete(true);
-            arbitrationRole = MastershipRole.MASTER;
-        } else {
-            mastershipFeature.complete(false);
-            arbitrationRole = MastershipRole.STANDBY;
-        }
-
-        DefaultArbitration arbitrationEventSubject = new DefaultArbitration(deviceId, arbitrationRole, electionId);
-        P4RuntimeEvent event = new P4RuntimeEvent(P4RuntimeEvent.Type.ARBITRATION,
-                                                  arbitrationEventSubject);
-        controller.postEvent(event);
+        final boolean isMaster = msg.getStatus().getCode() == Status.OK.getCode().value();
+        log.info("Received arbitration update from {}: isMaster={}, electionId={}",
+                 deviceId, isMaster, uint128ToBigInteger(msg.getElectionId()));
+        controller.postEvent(new P4RuntimeEvent(
+                P4RuntimeEvent.Type.ARBITRATION_RESPONSE,
+                new ArbitrationResponse(deviceId, isMaster)));
     }
 
     private Collection<PiCounterCellData> doReadAllCounterCells(
@@ -583,14 +618,14 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
 
         WriteRequest writeRequestMsg = WriteRequest.newBuilder()
                 .setDeviceId(p4DeviceId)
-                .setElectionId(p4RuntimeElectionId)
+                .setElectionId(clientElectionId)
                 .addAllUpdates(updateMsgs)
                 .build();
         try {
             blockingStub.write(writeRequestMsg);
             return true;
         } catch (StatusRuntimeException e) {
-            logWriteErrors(members, e, opType, "group member");
+            checkAndLogWriteErrors(members, e, opType, "group member");
             return false;
         }
     }
@@ -729,7 +764,7 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
 
         final WriteRequest writeRequestMsg = WriteRequest.newBuilder()
                 .setDeviceId(p4DeviceId)
-                .setElectionId(p4RuntimeElectionId)
+                .setElectionId(clientElectionId)
                 .addUpdates(Update.newBuilder()
                                     .setEntity(Entity.newBuilder()
                                                        .setActionProfileGroup(actionProfileGroup)
@@ -741,7 +776,7 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
             blockingStub.write(writeRequestMsg);
             return true;
         } catch (StatusRuntimeException e) {
-            logWriteErrors(Collections.singleton(group), e, opType, "group");
+            checkAndLogWriteErrors(Collections.singleton(group), e, opType, "group");
             return false;
         }
     }
@@ -814,7 +849,7 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
 
         writeRequestBuilder
                 .setDeviceId(p4DeviceId)
-                .setElectionId(p4RuntimeElectionId)
+                .setElectionId(clientElectionId)
                 .addAllUpdates(updateMsgs)
                 .build();
         try {
@@ -827,53 +862,34 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
         }
     }
 
-    /**
-     * Returns the internal P4 device ID associated with this client.
-     *
-     * @return P4 device ID
-     */
-    public long p4DeviceId() {
-        return p4DeviceId;
-    }
-
-    /**
-     * For testing purpose only. TODO: remove before release.
-     *
-     * @return blocking stub
-     */
-    public P4RuntimeGrpc.P4RuntimeBlockingStub blockingStub() {
-        return this.blockingStub;
-    }
-
-
-    @Override
-    public void shutdown() {
-
+    private Void doShutdown() {
         log.info("Shutting down client for {}...", deviceId);
-
-        writeLock.lock();
-        try {
-            if (streamRequestObserver != null) {
-                streamRequestObserver.onCompleted();
-                cancellableContext.cancel(new InterruptedException("Requested client shutdown"));
-            }
-
-            this.executorService.shutdown();
+        if (streamRequestObserver != null) {
             try {
-                executorService.awaitTermination(5, TimeUnit.SECONDS);
-            } catch (InterruptedException e) {
-                log.warn("Executor service didn't shutdown in time.");
-                Thread.currentThread().interrupt();
+                streamRequestObserver.onCompleted();
+            } catch (IllegalStateException e) {
+                // Thrown if stream channel is already completed. Can ignore.
+                log.debug("Ignored expection: {}", e);
             }
-        } finally {
-            writeLock.unlock();
+            cancellableContext.cancel(new InterruptedException(
+                    "Requested client shutdown"));
         }
+        this.executorService.shutdown();
+        try {
+            executorService.awaitTermination(5, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            log.warn("Executor service didn't shutdown in time.");
+            Thread.currentThread().interrupt();
+        }
+        return null;
     }
 
-    private <E extends PiEntity> void logWriteErrors(Collection<E> writeEntities,
-                                                     StatusRuntimeException ex,
-                                                     WriteOperationType opType,
-                                                     String entryType) {
+    private <E extends PiEntity> void checkAndLogWriteErrors(
+            Collection<E> writeEntities, StatusRuntimeException ex,
+            WriteOperationType opType, String entryType) {
+
+        checkGrpcException(ex);
+
         List<P4RuntimeOuterClass.Error> errors = null;
         String description = null;
         try {
@@ -946,10 +962,80 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
                       err.hasDetails() ? "\n" + err.getDetails().toString() : "");
     }
 
+    private void checkGrpcException(StatusRuntimeException ex) {
+        switch (ex.getStatus().getCode()) {
+            case OK:
+                break;
+            case CANCELLED:
+                break;
+            case UNKNOWN:
+                break;
+            case INVALID_ARGUMENT:
+                break;
+            case DEADLINE_EXCEEDED:
+                break;
+            case NOT_FOUND:
+                break;
+            case ALREADY_EXISTS:
+                break;
+            case PERMISSION_DENIED:
+                // Notify upper layers that this node is not master.
+                controller.postEvent(new P4RuntimeEvent(
+                        P4RuntimeEvent.Type.ARBITRATION_RESPONSE,
+                        new ArbitrationResponse(deviceId, false)));
+                break;
+            case RESOURCE_EXHAUSTED:
+                break;
+            case FAILED_PRECONDITION:
+                break;
+            case ABORTED:
+                break;
+            case OUT_OF_RANGE:
+                break;
+            case UNIMPLEMENTED:
+                break;
+            case INTERNAL:
+                break;
+            case UNAVAILABLE:
+                // Channel might be closed.
+                controller.postEvent(new P4RuntimeEvent(
+                        P4RuntimeEvent.Type.CHANNEL_EVENT,
+                        new ChannelEvent(deviceId, ChannelEvent.Type.ERROR)));
+                break;
+            case DATA_LOSS:
+                break;
+            case UNAUTHENTICATED:
+                break;
+            default:
+                break;
+        }
+    }
+
+    private Uint128 bigIntegerToUint128(BigInteger value) {
+        final byte[] arr = value.toByteArray();
+        final ByteBuffer bb = ByteBuffer.allocate(Long.BYTES * 2)
+                .put(new byte[Long.BYTES * 2 - arr.length])
+                .put(arr);
+        bb.rewind();
+        return Uint128.newBuilder()
+                .setHigh(bb.getLong())
+                .setLow(bb.getLong())
+                .build();
+    }
+
+    private BigInteger uint128ToBigInteger(Uint128 value) {
+        return new BigInteger(
+                ByteBuffer.allocate(Long.BYTES * 2)
+                        .putLong(value.getHigh())
+                        .putLong(value.getLow())
+                        .array());
+    }
+
     /**
      * Handles messages received from the device on the stream channel.
      */
-    private class StreamChannelResponseObserver implements StreamObserver<StreamMessageResponse> {
+    private class StreamChannelResponseObserver
+            implements StreamObserver<StreamMessageResponse> {
 
         @Override
         public void onNext(StreamMessageResponse message) {
@@ -958,40 +1044,40 @@ public final class P4RuntimeClientImpl implements P4RuntimeClient {
 
         private void doNext(StreamMessageResponse message) {
             try {
-                log.debug("Received message on stream channel from {}: {}", deviceId, message.getUpdateCase());
+                log.debug("Received message on stream channel from {}: {}",
+                          deviceId, message.getUpdateCase());
                 switch (message.getUpdateCase()) {
                     case PACKET:
-                        // Packet-in
                         doPacketIn(message.getPacket());
                         return;
                     case ARBITRATION:
-                        doArbitrationUpdateFromDevice(message.getArbitration());
+                        doArbitrationResponse(message.getArbitration());
                         return;
                     default:
-                        log.warn("Unrecognized stream message from {}: {}", deviceId, message.getUpdateCase());
+                        log.warn("Unrecognized stream message from {}: {}",
+                                 deviceId, message.getUpdateCase());
                 }
             } catch (Throwable ex) {
-                log.error("Exception while processing stream channel message from {}", deviceId, ex);
+                log.error("Exception while processing stream message from {}",
+                          deviceId, ex);
             }
         }
 
         @Override
         public void onError(Throwable throwable) {
-            log.warn("Error on stream channel for {}: {}", deviceId, Status.fromThrowable(throwable));
-            controller.postEvent(new P4RuntimeEvent(P4RuntimeEvent.Type.CHANNEL_EVENT,
-                    new DefaultChannelEvent(deviceId, ChannelEvent.Type.CHANNEL_ERROR,
-                            throwable)));
-            // FIXME: we might want to recreate the channel.
-            // In general, we want to be robust against any transient error and, if the channel is open, make sure the
-            // stream channel is always on.
+            log.warn("Error on stream channel for {}: {}",
+                     deviceId, Status.fromThrowable(throwable));
+            controller.postEvent(new P4RuntimeEvent(
+                    P4RuntimeEvent.Type.CHANNEL_EVENT,
+                    new ChannelEvent(deviceId, ChannelEvent.Type.ERROR)));
         }
 
         @Override
         public void onCompleted() {
             log.warn("Stream channel for {} has completed", deviceId);
-            controller.postEvent(new P4RuntimeEvent(P4RuntimeEvent.Type.CHANNEL_EVENT,
-                    new DefaultChannelEvent(deviceId, ChannelEvent.Type.CHANNEL_DISCONNECTED,
-                            "Stream channel has completed")));
+            controller.postEvent(new P4RuntimeEvent(
+                    P4RuntimeEvent.Type.CHANNEL_EVENT,
+                    new ChannelEvent(deviceId, ChannelEvent.Type.CLOSED)));
         }
     }
 }

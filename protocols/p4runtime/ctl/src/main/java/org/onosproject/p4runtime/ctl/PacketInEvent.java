@@ -25,14 +25,14 @@ import org.onosproject.p4runtime.api.P4RuntimePacketIn;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Default implementation of a packet-in in P4Runtime.
+ * P4Runtime packet-in.
  */
-final class DefaultPacketIn implements P4RuntimePacketIn {
+final class PacketInEvent implements P4RuntimePacketIn {
 
     private final DeviceId deviceId;
     private final PiPacketOperation operation;
 
-    DefaultPacketIn(DeviceId deviceId, PiPacketOperation operation) {
+    PacketInEvent(DeviceId deviceId, PiPacketOperation operation) {
         this.deviceId = checkNotNull(deviceId);
         this.operation = checkNotNull(operation);
     }
@@ -55,7 +55,7 @@ final class DefaultPacketIn implements P4RuntimePacketIn {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        DefaultPacketIn that = (DefaultPacketIn) o;
+        PacketInEvent that = (PacketInEvent) o;
         return Objects.equal(deviceId, that.deviceId) &&
                 Objects.equal(operation, that.operation);
     }
