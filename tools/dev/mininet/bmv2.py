@@ -1,3 +1,4 @@
+import multiprocessing
 import os
 import socket
 import re
@@ -41,6 +42,9 @@ def writeToFile(path, value):
 
 def watchDog(sw):
     while True:
+        if ONOSBmv2Switch.mininet_exception == 1:
+            sw.killBmv2(log=False)
+            return
         if sw.stopped:
             return
         with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
@@ -72,6 +76,11 @@ class ONOSHost(Host):
 
 class ONOSBmv2Switch(Switch):
     """BMv2 software switch with gRPC server"""
+    # Shared value used to notify to all instances of this class that a Mininet
+    # exception occurred. Mininet exception handling doesn't call the stop()
+    # method, so the mn process would hang after clean-up since Bmv2 would still
+    # be running.
+    mininet_exception = multiprocessing.Value('i', 0)
 
     def __init__(self, name, json=None, debugger=False, loglevel="warn",
                  elogger=False, grpcport=None, cpuport=255,
@@ -79,8 +88,8 @@ class ONOSBmv2Switch(Switch):
                  pktdump=False, valgrind=False, gnmi=False,
                  portcfg=True, onosdevid=None, **kwargs):
         Switch.__init__(self, name, **kwargs)
-        self.grpcPort = pickUnusedPort() if not grpcport else grpcport
-        self.thriftPort = pickUnusedPort() if not thriftport else thriftport
+        self.grpcPort = grpcport
+        self.thriftPort = thriftport
         self.cpuPort = cpuport
         self.json = json
         self.debugger = parseBoolean(debugger)
@@ -110,9 +119,6 @@ class ONOSBmv2Switch(Switch):
 
         # Remove files from previous executions
         self.cleanupTmpFiles()
-
-        writeToFile("/tmp/bmv2-%s-grpc-port" % self.name, self.grpcPort)
-        writeToFile("/tmp/bmv2-%s-thrift-port" % self.name, self.thriftPort)
 
     def getSourceIp(self, dstIP):
         """
@@ -226,6 +232,9 @@ class ONOSBmv2Switch(Switch):
 
         info("\nStarting BMv2 target: %s\n" % cmdString)
 
+        writeToFile("/tmp/bmv2-%s-grpc-port" % self.name, self.grpcPort)
+        writeToFile("/tmp/bmv2-%s-thrift-port" % self.name, self.thriftPort)
+
         try:
             if not self.dryrun:
                 # Start the switch
@@ -238,12 +247,17 @@ class ONOSBmv2Switch(Switch):
                 threading.Thread(target=watchDog, args=[self]).start()
 
             self.doOnosNetcfg(self.controllerIp(controllers))
-        except Exception as ex:
+        except Exception:
+            ONOSBmv2Switch.mininet_exception = 1
             self.killBmv2()
             self.printBmv2Log()
-            raise ex
+            raise
 
     def grpcTargetArgs(self):
+        if self.grpcPort is None:
+            self.grpcPort = pickUnusedPort()
+        if self.thriftPort is None:
+            self.thriftPort = pickUnusedPort()
         args = ['--device-id %s' % str(BMV2_DEFAULT_DEVICE_ID)]
         for port, intf in self.intfs.items():
             if not intf.IP():
@@ -284,7 +298,7 @@ class ONOSBmv2Switch(Switch):
                 break
             # Port is not open yet. If there is time, we wait a bit.
             if endtime > time.time():
-                time.sleep(0.2)
+                time.sleep(0.1)
             else:
                 # Time's up.
                 raise Exception("Switch did not start before timeout")
