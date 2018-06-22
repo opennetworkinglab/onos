@@ -16,6 +16,10 @@ osgi_jar_with_tests (
     deps = COMPILE_DEPS,
     test_deps = TEST_DEPS,
     web_context = '/onos/v1/acl',
+    api_title = 'ACL API',
+    api_version = '1.0',
+    api_description = 'REST API for ACL app',
+    api_package = 'org.onosproject.acl',
 )
 
 onos_app (

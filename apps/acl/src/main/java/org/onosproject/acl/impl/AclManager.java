@@ -106,7 +106,7 @@ public class AclManager implements AclService {
     private class InternalHostListener implements HostListener {
 
         /**
-         * Generate new ACL flow rules for new host following the given ACL rule.
+         * Generate new ACL flow rules for new or updated host following the given ACL rule.
          */
         private void processHostAddedEvent(HostEvent event, AclRule rule) {
             DeviceId deviceId = event.subject().location().deviceId();
@@ -130,9 +130,9 @@ public class AclManager implements AclService {
 
         @Override
         public void event(HostEvent event) {
-            // if a new host appears and an existing rule denies
+            // if a new host appears or is updated and an existing rule denies
             // its traffic, a new ACL flow rule is generated.
-            if (event.type() == HostEvent.Type.HOST_ADDED) {
+            if (event.type() == HostEvent.Type.HOST_ADDED || event.type() == HostEvent.Type.HOST_UPDATED) {
                 DeviceId deviceId = event.subject().location().deviceId();
                 if (mastershipService.getLocalRole(deviceId) == MastershipRole.MASTER) {
                     for (AclRule rule : aclStore.getAclRules()) {
