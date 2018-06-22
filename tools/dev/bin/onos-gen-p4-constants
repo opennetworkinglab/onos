@@ -3,7 +3,7 @@
 import argparse
 import re
 import google.protobuf.text_format as tf
-from p4.config import p4info_pb2
+from p4.config.v1 import p4info_pb2
 
 
 copyright = '''/*
