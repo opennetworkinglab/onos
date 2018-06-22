@@ -796,7 +796,7 @@ public class DeviceManager
             } else {
                 // we didn't get back what we asked for. Reelect someone else.
                 log.warn("Failed to assert role [{}] onto Device {}", response, deviceId);
-                if (response == MastershipRole.MASTER) {
+                if (requested == MastershipRole.MASTER) {
                     mastershipService.relinquishMastership(deviceId);
                     // TODO: Shouldn't we be triggering event?
                     //final Device device = getDevice(deviceId);
