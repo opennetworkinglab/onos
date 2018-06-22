@@ -299,7 +299,6 @@ APP_JARS = [
     '//apps/vtn/sfcmgr:onos-apps-vtn-sfcmgr',
     '//apps/vtn/vtnmgr:onos-apps-vtn-vtnmgr',
     '//apps/vtn/vtnweb:onos-apps-vtn-vtnweb',
-#   '//apps/p4runtime-test:onos-apps-p4runtime-test',
     '//apps/kafka-integration/api:onos-apps-kafka-integration-api',
     '//apps/kafka-integration/app:onos-apps-kafka-integration-app',
 ]
