@@ -28,6 +28,7 @@ public class LifecycleEvent extends AbstractEvent<LifecycleEvent.Type, DeviceRep
     public enum Type {
         TERM_START,
         TERM_ACTIVE,
+        TERM_UPDATE,
         TERM_END,
     }
 

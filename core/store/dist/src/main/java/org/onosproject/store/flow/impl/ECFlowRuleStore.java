@@ -911,7 +911,7 @@ public class ECFlowRuleStore
 
         @Override
         public void event(ReplicaInfoEvent event) {
-            if (event.subject().equals(deviceId) && event.type() == ReplicaInfoEvent.Type.MASTER_CHANGED) {
+            if (event.subject().equals(deviceId)) {
                 onReplicaInfoChange(event.replicaInfo());
             }
         }
@@ -953,6 +953,8 @@ public class ECFlowRuleStore
                     listenerRegistry.process(new LifecycleEvent(LifecycleEvent.Type.TERM_END, oldReplicaInfo));
                 }
                 listenerRegistry.process(new LifecycleEvent(LifecycleEvent.Type.TERM_START, this.replicaInfo));
+            } else if (oldReplicaInfo.term() == replicaInfo.term()) {
+                listenerRegistry.process(new LifecycleEvent(LifecycleEvent.Type.TERM_UPDATE, this.replicaInfo));
             }
         }
 

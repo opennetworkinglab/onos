@@ -688,6 +688,9 @@ public class DeviceFlowTable {
             case TERM_ACTIVE:
                 activateTerm(event.subject());
                 break;
+            case TERM_UPDATE:
+                updateTerm(event.subject());
+                break;
             default:
                 break;
         }
@@ -721,6 +724,23 @@ public class DeviceFlowTable {
             flowBuckets.values().forEach(bucket -> bucket.clear());
         }
         activeTerm = replicaInfo.term();
+    }
+
+    /**
+     * Handles an update to a term.
+     */
+    private void updateTerm(DeviceReplicaInfo replicaInfo) {
+        if (replicaInfo.term() == this.replicaInfo.term()) {
+            this.replicaInfo = replicaInfo;
+
+            // If the local node is neither the master or a backup for the device *and the term is active*,
+            // clear the flow table.
+            if (activeTerm == replicaInfo.term()
+                && !replicaInfo.isMaster(localNodeId)
+                && !replicaInfo.isBackup(localNodeId)) {
+                flowBuckets.values().forEach(bucket -> bucket.clear());
+            }
+        }
     }
 
     /**
