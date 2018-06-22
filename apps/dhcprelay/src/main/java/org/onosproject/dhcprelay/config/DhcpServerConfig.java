@@ -76,10 +76,18 @@ public class DhcpServerConfig {
             if (node.isTextual()) {
                 IpAddress ip = IpAddress.valueOf(node.asText());
                 if (ip.isIp4() && serverIp4Addr == null) {
-                    serverIp4Addr = ip.getIp4Address();
+                  try {
+                      serverIp4Addr = ip.getIp4Address();
+                  } catch (IllegalArgumentException iae) {
+                      log.warn("Invalid IPv4 address {} found in DHCP server config. Ignored.", ip.toString());
+                  }
                 }
                 if (ip.isIp6() && serverIp6Addr == null) {
+                  try {
                     serverIp6Addr = ip.getIp6Address();
+                  } catch (IllegalArgumentException iae) {
+                      log.warn("Invalid IPv6 address {} found in DHCP server config. Ignored.", ip.toString());
+                  }
                 }
             }
         });
@@ -90,10 +98,18 @@ public class DhcpServerConfig {
                 if (node.isTextual()) {
                     IpAddress ip = IpAddress.valueOf(node.asText());
                     if (ip.isIp4() && gatewayIp4Addr == null) {
-                        gatewayIp4Addr = ip.getIp4Address();
+                      try {
+                          gatewayIp4Addr = ip.getIp4Address();
+                      } catch (IllegalArgumentException iae) {
+                          log.warn("Invalid IPv4 address {} found in DHCP gateway config. Ignored.", ip.toString());
+                      }
                     }
                     if (ip.isIp6() && gatewayIp6Addr == null) {
-                        gatewayIp6Addr = ip.getIp6Address();
+                      try {
+                          gatewayIp6Addr = ip.getIp6Address();
+                      } catch (IllegalArgumentException iae) {
+                          log.warn("Invalid IPv6 address {} found in DHCP gateway config. Ignored.", ip.toString());
+                      }
                     }
                 }
             });
