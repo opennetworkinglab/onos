@@ -171,6 +171,16 @@ public class HostHandler {
                         processRoutingRule(pairDeviceId.get(), pairLocalPort.get(), hostMac, vlanId,
                                 ip, true));
             }
+
+            // Delete prefix from sr-device-subnet when the next hop host is removed
+            srManager.routeService.getRouteTables().forEach(tableId -> {
+                srManager.routeService.getRoutes(tableId).forEach(routeInfo -> {
+                    if (routeInfo.allRoutes().stream().anyMatch(rr -> ips.contains(rr.nextHop()))) {
+                        log.debug("HostRemoved. removeSubnet {}, {}", location, routeInfo.prefix());
+                        srManager.deviceConfiguration.removeSubnet(location, routeInfo.prefix());
+                    }
+                });
+            });
         });
     }
 
