@@ -109,7 +109,7 @@ public class DhcpRelayCommand extends AbstractShellCommand {
         boolean toResetFlag;
 
         if (counter != null) {
-            if (counter.equals("counter") || reset.equals("[counter]")) {
+            if (counter.equals("counter") || counter.equals("[counter]")) {
                 print(CONUTER_HEADER);
             } else {
                 print("first parameter is [counter]");

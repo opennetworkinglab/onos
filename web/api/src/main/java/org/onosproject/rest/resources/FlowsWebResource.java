@@ -29,6 +29,7 @@ import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleService;
+import org.onosproject.net.flow.IndexTableId;
 import org.onosproject.rest.AbstractWebResource;
 
 import javax.ws.rs.Consumes;
@@ -115,6 +116,31 @@ public class FlowsWebResource extends AbstractWebResource {
                 for (final FlowEntry entry : flowEntries) {
                     if ((entry.state() == FlowEntry.FlowEntryState.PENDING_ADD) ||
                        (entry.state() == FlowEntry.FlowEntryState.PENDING_REMOVE)) {
+                       flowsNode.add(codec(FlowEntry.class).encode(entry, this));
+                    }
+                }
+            }
+        }
+
+        return ok(root).build();
+    }
+
+     /**
+     * Gets all flow entries for a table. Returns array of all flow rules for a table.
+     * @param tableId table identifier
+     * @return 200 OK with a collection of flows
+     * @onos.rsModel FlowEntries
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("table/{tableId}")
+    public Response getTableFlows(@PathParam("tableId") int tableId) {
+        final Iterable<Device> devices = get(DeviceService.class).getDevices();
+        for (final Device device : devices) {
+            final Iterable<FlowEntry> flowEntries = service.getFlowEntries(device.id());
+            if (flowEntries != null) {
+                for (final FlowEntry entry : flowEntries) {
+                    if (((IndexTableId) entry.table()).id() == tableId) {
                        flowsNode.add(codec(FlowEntry.class).encode(entry, this));
                     }
                 }
