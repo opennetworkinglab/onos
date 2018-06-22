@@ -16,6 +16,7 @@
 
 package org.onosproject.routeservice;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 import org.onlab.packet.IpPrefix;
 
@@ -93,5 +94,14 @@ public class RouteSet {
         return Objects.equals(this.tableId, that.tableId) &&
                 Objects.equals(this.prefix, that.prefix) &&
                 Objects.equals(this.routes, that.routes);
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(RouteSet.class)
+                .add("tableId", tableId)
+                .add("prefix", prefix)
+                .add("routes", routes)
+                .toString();
     }
 }
