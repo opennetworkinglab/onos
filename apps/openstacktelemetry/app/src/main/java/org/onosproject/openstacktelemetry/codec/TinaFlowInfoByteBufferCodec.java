@@ -35,14 +35,19 @@ import java.nio.ByteBuffer;
 public class TinaFlowInfoByteBufferCodec extends ByteBufferCodec<FlowInfo> {
 
     private static final int MESSAGE_SIZE = 88;
+    private static final String OF_PREFIX = "of:";
 
     @Override
     public ByteBuffer encode(FlowInfo flowInfo) {
 
         ByteBuffer byteBuffer = ByteBuffer.allocate(MESSAGE_SIZE);
 
+        String  deviceId = flowInfo.deviceId().toString();
+        short switchId = (short) Integer.parseInt(deviceId.substring(3,
+                                                  deviceId.length()), 16);
+
         byteBuffer.put(flowInfo.flowType())
-                .putShort(Short.valueOf(flowInfo.deviceId().toString()))
+                .putShort(switchId)
                 .putInt(flowInfo.inputInterfaceId())
                 .putInt(flowInfo.outputInterfaceId())
                 .putShort(flowInfo.vlanId().toShort())
@@ -67,7 +72,8 @@ public class TinaFlowInfoByteBufferCodec extends ByteBufferCodec<FlowInfo> {
     public FlowInfo decode(ByteBuffer byteBuffer) {
 
         byte flowType = byteBuffer.get();
-        DeviceId deviceId = DeviceId.deviceId(String.valueOf(byteBuffer.getShort()));
+        String deviceIdStr = String.format("%016x", byteBuffer.getShort());
+        DeviceId deviceId = DeviceId.deviceId(OF_PREFIX + deviceIdStr);
         int inputInterfaceId = byteBuffer.getInt();
         int outputInterfaceId = byteBuffer.getInt();
         VlanId vlanId = VlanId.vlanId(byteBuffer.getShort());

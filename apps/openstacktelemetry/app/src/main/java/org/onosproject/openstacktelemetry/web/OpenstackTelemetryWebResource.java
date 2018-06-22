@@ -61,7 +61,8 @@ public class OpenstackTelemetryWebResource extends AbstractWebResource {
     private static final String JSON_NODE_FLOW_RULE = "rules";
     private static final String FLOW_RULE_ID = "STATS_FLOW_RULE_ID";
 
-    private final StatsFlowRuleAdminService statsFlowRuleService = get(StatsFlowRuleAdminService.class);
+    private final StatsFlowRuleAdminService
+                    statsFlowRuleService = get(StatsFlowRuleAdminService.class);
 
     @Context
     private UriInfo uriInfo;
@@ -81,7 +82,7 @@ public class OpenstackTelemetryWebResource extends AbstractWebResource {
 
         readNodeConfiguration(input).forEach(flowRule -> {
                 log.debug("FlowRule: {}", flowRule.toString());
-                statsFlowRuleService.createFlowRule(flowRule);
+                statsFlowRuleService.createStatFlowRule(flowRule);
             });
 
         UriBuilder locationBuilder = uriInfo.getBaseUriBuilder()
@@ -102,12 +103,11 @@ public class OpenstackTelemetryWebResource extends AbstractWebResource {
 
         readNodeConfiguration(input).forEach(flowRule -> {
             log.debug("FlowRule: {}", flowRule.toString());
-            statsFlowRuleService.deleteFlowRule(flowRule);
+            statsFlowRuleService.deleteStatFlowRule(flowRule);
         });
 
         return ok(root).build();
     }
-
 
     /**
      * Get flow rules which is installed on ONOS.
@@ -119,7 +119,6 @@ public class OpenstackTelemetryWebResource extends AbstractWebResource {
 
         return ok(root).build();
     }
-
 
     /**
      * Get flow information list.
@@ -133,7 +132,7 @@ public class OpenstackTelemetryWebResource extends AbstractWebResource {
         log.info("GET BULK FLOW RULE");
 
         Set<FlowInfo> flowInfoSet;
-        flowInfoSet = statsFlowRuleService.getFlowRule();
+        flowInfoSet = statsFlowRuleService.getFlowInfo();
 
         log.info("\n\n======================================================\n" +
                  "FlowInfo Set: \n{}" +
@@ -160,7 +159,6 @@ public class OpenstackTelemetryWebResource extends AbstractWebResource {
         return ok(root).build();
     }
 
-
     private Set<StatsFlowRule> readNodeConfiguration(InputStream input) {
         log.info("Input JSON Data: \n\t\t{}", input.toString());
         Set<StatsFlowRule> flowRuleSet = Sets.newHashSet();
@@ -186,18 +184,5 @@ public class OpenstackTelemetryWebResource extends AbstractWebResource {
         }
 
         return flowRuleSet;
-    }
-
-    /**
-     * OpenstackTelemetryImpl method.
-     *
-     * @return 200 OK
-     *
-     * @onos.rsModel dummy
-     */
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response dummy() {
-        return ok(root).build();
     }
 }

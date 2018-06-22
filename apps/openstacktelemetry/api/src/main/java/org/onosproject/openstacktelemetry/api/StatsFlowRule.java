@@ -36,7 +36,6 @@ public interface StatsFlowRule {
      */
     IpPrefix dstIpPrefix();
 
-
     /**
      * Returns IP protocol.
      *
@@ -59,9 +58,6 @@ public interface StatsFlowRule {
      */
     TpPort dstTpPort();
 
-
-
-
     /**
      * Builder of new flow rule entities.
      */
@@ -82,7 +78,6 @@ public interface StatsFlowRule {
          */
         Builder srcIpPrefix(IpPrefix srcIpPrefix);
 
-
         /**
          * Returns openstack flow rule builder with supplied srcIpPrefix.
          *
@@ -91,7 +86,6 @@ public interface StatsFlowRule {
          */
         Builder dstIpPrefix(IpPrefix dstIpPrefix);
 
-
         /**
          * Returns openstack flow rule builder with supplied ipProtocol.
          *
@@ -99,7 +93,6 @@ public interface StatsFlowRule {
          * @return openstack flow rule builder
          */
         Builder ipProtocol(byte ipProtocol);
-
 
         /**
          * Returns openstack flow rule builder with supplied srcTpPort.

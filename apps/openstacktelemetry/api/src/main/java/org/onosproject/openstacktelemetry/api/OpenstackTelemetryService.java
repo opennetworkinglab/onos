@@ -15,6 +15,8 @@
  */
 package org.onosproject.openstacktelemetry.api;
 
+import java.util.Set;
+
 /**
  * Openstack telemetry service interface.
  */
@@ -38,7 +40,7 @@ public interface OpenstackTelemetryService {
      * Publishes new flow information to off-platform application through
      * various northbound interfaces.
      *
-     * @param flowInfo virtual flow information
+     * @param flowInfos virtual flow information
      */
-    void publish(FlowInfo flowInfo);
+    void publish(Set<FlowInfo> flowInfos);
 }

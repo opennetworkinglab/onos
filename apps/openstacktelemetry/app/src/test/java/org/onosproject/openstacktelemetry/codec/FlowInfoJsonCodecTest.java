@@ -61,7 +61,7 @@ public class FlowInfoJsonCodecTest {
     private static final int VLAN_ID = 1;
     private static final int PROTOCOL = 1;
     private static final int FLOW_TYPE = 1;
-    private static final String DEVICE_ID = "foo";
+    private static final String DEVICE_ID = "of:00000000000000a1";
 
     private static final String SRC_IP_ADDRESS = "10.10.10.1";
     private static final int SRC_IP_PREFIX = 24;

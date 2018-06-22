@@ -10,6 +10,7 @@ COMPILE_DEPS = [
     '//lib:jersey-client',
     '//cli:onos-cli',
     '//lib:org.apache.karaf.shell.console',
+    '//apps/openstacknetworking/api:onos-apps-openstacknetworking-api',
     '//apps/openstacktelemetry/api:onos-apps-openstacktelemetry-api',
     '//lib:kafka-clients',
     '//lib:influxdb-java',

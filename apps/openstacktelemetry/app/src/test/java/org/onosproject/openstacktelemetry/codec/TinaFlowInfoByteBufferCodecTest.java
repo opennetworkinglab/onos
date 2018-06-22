@@ -37,7 +37,7 @@ import java.nio.ByteBuffer;
 public final class TinaFlowInfoByteBufferCodecTest {
 
     private static final byte FLOW_TYPE = 1;
-    private static final DeviceId DEVICE_ID = DeviceId.deviceId("1234");
+    private static final DeviceId DEVICE_ID = DeviceId.deviceId("of:00000000000000a1");
     private static final int INPUT_INTERFACE_ID = 10;
     private static final int OUTPUT_INTERFACE_ID = 10;
     private static final VlanId VLAN_ID = VlanId.vlanId("100");

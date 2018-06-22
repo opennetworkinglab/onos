@@ -124,6 +124,16 @@ public interface FlowInfo {
      */
     StatsInfo statsInfo();
 
+    /**
+     * Checks the rough equality of old flow info and new flow info.
+     * Note that we only test the equality for deviceId, srcIp, dstIP, srcPort,
+     * dstPort, protocol
+     *
+     * @param flowInfo flow info object ot be compared
+     * @return true if the two objects are identical, false otherwise
+     */
+    boolean roughEquals(FlowInfo flowInfo);
+
     interface Builder {
 
         /**

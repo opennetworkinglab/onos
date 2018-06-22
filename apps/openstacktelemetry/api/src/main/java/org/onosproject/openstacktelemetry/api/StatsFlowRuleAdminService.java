@@ -23,39 +23,33 @@ import java.util.Set;
 public interface StatsFlowRuleAdminService {
 
     /**
-     * Start this service.
+     * Starts this service.
      */
     void start();
 
     /**
-     * Stop this service.
+     * Stops this service.
      */
     void stop();
 
     /**
-     * Craete a flow rule.
+     * Creates a stat flow rule.
      *
-     * @param flowRule  Flow rule for a VM
+     * @param statFlowRule stat flow rule for a VM
      */
-    void createFlowRule(StatsFlowRule flowRule);
+    void createStatFlowRule(StatsFlowRule statFlowRule);
 
     /**
-     * Get flow rule list.
-     * @return flow rule list.
-     */
-    Set<FlowInfo> getFlowRule();
-
-    /**
-     * Get flow rule list.
-     * @param flowRule Flow rule for a VM
-     * @return flow rule list.
-     */
-    Set<FlowInfo> getFlowRule(StatsFlowRule flowRule);
-
-    /**
-     * Delete the flow rule.
+     * Gets a set of flow infos.
      *
-     * @param flowRule  Flow rule for Openstack VM
+     * @return a set of flow infos
      */
-    void deleteFlowRule(StatsFlowRule flowRule);
+    Set<FlowInfo> getFlowInfo();
+
+    /**
+     * Deletes stat flow rule.
+     *
+     * @param statFlowRule stat flow rule for a VM
+     */
+    void deleteStatFlowRule(StatsFlowRule statFlowRule);
 }

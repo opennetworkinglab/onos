@@ -23,5 +23,8 @@ onos_app (
     category = 'Integration',
     url = 'https://wiki.onosproject.org/display/ONOS/SONA%3A+DC+Network+Virtualization',
     included_bundles = BUNDLES,
-    description = 'SONA Openstack Telemetry Application.'
+    description = 'SONA Openstack Telemetry Application.',
+    required_apps = [
+        'org.onosproject.openstacknetworking'
+    ]
 )

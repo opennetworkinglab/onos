@@ -14,8 +14,9 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<app name="org.onosproject.openstacktelemetry" origin="Open Networking Foundation" version="${project.version}"
-     category="Utility" title="OpenStack Telemetry App" features="${project.artifactId}"
+<app name="org.onosproject.openstacktelemetry" origin="Open Networking Foundation"
+     version="${project.version}" category="Utility" title="OpenStack Telemetry App"
+     features="${project.artifactId}" apps="org.onosproject.openstacknetworking"
      featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features">
     <description>${project.description}</description>
     <artifact>mvn:${project.groupId}/onos-apps-openstacktelemetry-api/${project.version}</artifact>

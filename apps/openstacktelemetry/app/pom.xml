@@ -81,6 +81,12 @@
 
         <dependency>
             <groupId>org.onosproject</groupId>
+            <artifactId>onos-apps-openstacknetworking-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.onosproject</groupId>
             <artifactId>onlab-osgi</artifactId>
             <version>${project.version}</version>
         </dependency>
