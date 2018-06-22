@@ -17,6 +17,7 @@
 package org.onosproject.routeservice;
 
 import com.google.common.annotations.Beta;
+import com.google.common.base.MoreObjects;
 import org.onlab.packet.IpPrefix;
 
 import java.util.Objects;
@@ -96,5 +97,14 @@ public class RouteInfo {
         return Objects.equals(this.prefix, that.prefix) &&
                 Objects.equals(this.bestRoute, that.bestRoute) &&
                 Objects.equals(this.allRoutes, that.allRoutes);
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(RouteSet.class)
+                .add("prefix", prefix)
+                .add("bestRoute", bestRoute)
+                .add("allRoutes", allRoutes)
+                .toString();
     }
 }
