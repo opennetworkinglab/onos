@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 import org.onosproject.store.primitives.ConsistentMapBackedJavaMap;
 import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.ConsistentMap;
+import org.onosproject.store.service.ConsistentMapAdapter;
 import org.onosproject.store.service.ConsistentMapBuilder;
 import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapEventListener;

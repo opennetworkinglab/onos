@@ -31,6 +31,8 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.store.Timestamp;
 
 import static org.onosproject.store.service.EventuallyConsistentMapEvent.Type.*;
+
+import org.onosproject.store.service.EventuallyConsistentMapAdapter;
 import org.onosproject.store.service.EventuallyConsistentMapListener;
 import org.onosproject.store.service.EventuallyConsistentMapEvent;
 import org.onosproject.store.service.EventuallyConsistentMapBuilder;
@@ -40,7 +42,7 @@ import org.onosproject.store.service.EventuallyConsistentMap;
  * Testing version of an Eventually Consistent Map.
  */
 
-public final class VtnEventuallyConsistentMapTest<K, V> extends VtnEventuallyConsistentMapAdapter<K, V> {
+public final class VtnEventuallyConsistentMapTest<K, V> extends EventuallyConsistentMapAdapter<K, V> {
 
     private final HashMap<K, V> map;
     private final String mapName;

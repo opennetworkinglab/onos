@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-present Open Networking Foundation
+ * Copyright 2018-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.pcelabelstore.util;
 
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+package org.onosproject.pcelabelstore.api;
 
 import org.onosproject.incubator.net.resource.label.LabelResourceId;
 import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
-import org.onosproject.pcelabelstore.api.LspLocalLabelInfo;
-import org.onosproject.pcelabelstore.api.PceLabelStore;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
 
 /**
  * Provides test implementation of PceStore.
@@ -89,14 +87,14 @@ public class PceLabelStoreAdapter implements PceLabelStore {
 
     @Override
     public Map<DeviceId, LabelResourceId> getGlobalNodeLabels() {
-       return globalNodeLabelMap.entrySet().stream()
-                 .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue()));
+        return globalNodeLabelMap.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue()));
     }
 
     @Override
     public Map<Link, LabelResourceId> getAdjLabels() {
-       return adjLabelMap.entrySet().stream()
-                 .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue()));
+        return adjLabelMap.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue()));
     }
 
     @Override

@@ -13,26 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.provider.pcep.topology.impl;
+package org.onosproject.pcep.server;
 
-import static org.junit.Assert.assertNotNull;
+import org.jboss.netty.channel.Channel;
+import org.onosproject.pcepio.protocol.PcepFactories;
+import org.onosproject.pcepio.protocol.PcepFactory;
+import org.onosproject.pcepio.protocol.PcepMessage;
+import org.onosproject.pcepio.protocol.PcepStateReport;
+import org.onosproject.pcepio.protocol.PcepVersion;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.RejectedExecutionException;
 
-import org.jboss.netty.channel.Channel;
-import org.onosproject.pcep.server.ClientCapability;
-import org.onosproject.pcep.server.PccId;
-import org.onosproject.pcep.server.LspKey;
-import org.onosproject.pcep.server.PcepClient;
-import org.onosproject.pcep.server.PcepSyncStatus;
-import org.onosproject.pcepio.protocol.PcepFactories;
-import org.onosproject.pcepio.protocol.PcepFactory;
-import org.onosproject.pcepio.protocol.PcepMessage;
-import org.onosproject.pcepio.protocol.PcepStateReport;
-import org.onosproject.pcepio.protocol.PcepVersion;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * Representation of PCEP client adapter.

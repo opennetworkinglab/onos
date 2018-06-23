@@ -15,27 +15,22 @@
  */
 package org.onosproject.pcelabelstore.util;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-
-import org.onosproject.net.DeviceId;
-import org.onosproject.net.config.Config;
-import org.onosproject.net.config.ConfigApplyDelegate;
-import org.onosproject.net.config.ConfigFactory;
-import org.onosproject.net.config.NetworkConfigListener;
-import org.onosproject.net.config.NetworkConfigRegistry;
-import org.onosproject.net.config.NetworkConfigService;
-import org.onosproject.net.config.SubjectFactory;
-import org.onosproject.pcep.api.DeviceCapability;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.config.Config;
+import org.onosproject.net.config.ConfigApplyDelegate;
+import org.onosproject.net.config.ConfigFactory;
+import org.onosproject.net.config.NetworkConfigRegistryAdapter;
+import org.onosproject.pcep.api.DeviceCapability;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /* Mock test for network config registry. */
-public class MockNetConfigRegistryAdapter implements NetworkConfigService, NetworkConfigRegistry {
+public class MockNetConfigRegistryAdapter extends NetworkConfigRegistryAdapter {
     private ConfigFactory cfgFactory;
     private Map<DeviceId, DeviceCapability> classConfig = new HashMap<>();
 
@@ -90,105 +85,4 @@ public class MockNetConfigRegistryAdapter implements NetworkConfigService, Netwo
         }
     }
 
-    @Override
-    public void addListener(NetworkConfigListener listener) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void removeListener(NetworkConfigListener listener) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public Set<ConfigFactory> getConfigFactories() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public <S, C extends Config<S>> Set<ConfigFactory<S, C>> getConfigFactories(Class<S> subjectClass) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public <S, C extends Config<S>> ConfigFactory<S, C> getConfigFactory(Class<C> configClass) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Set<Class> getSubjectClasses() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public SubjectFactory getSubjectFactory(String subjectClassKey) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public SubjectFactory getSubjectFactory(Class subjectClass) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Class<? extends Config> getConfigClass(String subjectClassKey, String configKey) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public <S> Set<S> getSubjects(Class<S> subjectClass) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public <S, C extends Config<S>> Set<S> getSubjects(Class<S> subjectClass, Class<C> configClass) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public <S> Set<? extends Config<S>> getConfigs(S subject) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public <S, C extends Config<S>> C applyConfig(S subject, Class<C> configClass, JsonNode json) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public <S, C extends Config<S>> C applyConfig(String subjectClassKey, S subject, String configKey, JsonNode json) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public <S> void removeConfig(String subjectClassKey, S subject, String configKey) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public <S> void removeConfig(S subject) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public <S> void removeConfig() {
-        // TODO Auto-generated method stub
-
-    }
 }

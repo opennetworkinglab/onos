@@ -14,16 +14,9 @@
  * limitations under the License.
  */
 
-package org.onosproject.provider.pcep.topology.impl;
+package org.onosproject.pcep.api;
 
 import org.onosproject.net.DeviceId;
-import org.onosproject.pcep.api.PcepController;
-import org.onosproject.pcep.api.PcepDpid;
-import org.onosproject.pcep.api.PcepLinkListener;
-import org.onosproject.pcep.api.PcepSwitch;
-import org.onosproject.pcep.api.PcepSwitchListener;
-import org.onosproject.pcep.api.PcepTunnel;
-import org.onosproject.pcep.api.PcepTunnelListener;
 
 /**
  * Implementation of PCEP controller.

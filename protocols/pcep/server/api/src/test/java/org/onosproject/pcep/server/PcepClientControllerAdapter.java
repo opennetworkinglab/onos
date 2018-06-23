@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.provider.pcep.topology.impl;
+package org.onosproject.pcep.server;
 
 
-
+import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.onlab.packet.IpAddress;
@@ -24,13 +24,6 @@ import org.onosproject.incubator.net.tunnel.DefaultLabelStack;
 import org.onosproject.incubator.net.tunnel.LabelStack;
 import org.onosproject.incubator.net.tunnel.Tunnel;
 import org.onosproject.net.Path;
-import org.onosproject.pcep.server.ClientCapability;
-import org.onosproject.pcep.server.PccId;
-import org.onosproject.pcep.server.PcepClient;
-import org.onosproject.pcep.server.PcepClientController;
-import org.onosproject.pcep.server.PcepClientListener;
-import org.onosproject.pcep.server.PcepEventListener;
-import org.onosproject.pcep.server.PcepNodeListener;
 import org.onosproject.pcep.server.driver.PcepAgent;
 import org.onosproject.pcepio.protocol.PcepError;
 import org.onosproject.pcepio.protocol.PcepErrorInfo;
@@ -41,16 +34,14 @@ import org.onosproject.pcepio.protocol.PcepMessage;
 import org.onosproject.pcepio.protocol.PcepVersion;
 import org.onosproject.pcepio.types.PcepValueType;
 
-import com.google.common.collect.Sets;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.onosproject.pcepio.types.PcepErrorDetailInfo.ERROR_TYPE_19;
 import static org.onosproject.pcepio.types.PcepErrorDetailInfo.ERROR_VALUE_5;
@@ -89,7 +80,7 @@ public class PcepClientControllerAdapter implements PcepClientController {
         }
         PcepClientAdapter pc = new PcepClientAdapter();
         if (pccId.ipAddress().equals(IpAddress.valueOf(0xC010103))
-            || pccId.ipAddress().equals(IpAddress.valueOf(0xB6024E22))) {
+                || pccId.ipAddress().equals(IpAddress.valueOf(0xB6024E22))) {
             pc.setCapability(new ClientCapability(true, false, false, false, false));
         } else {
             pc.setCapability(new ClientCapability(true, true, true, false, false));
@@ -142,62 +133,62 @@ public class PcepClientControllerAdapter implements PcepClientController {
         PcepClient pc = getClient(pccId);
 
         switch (msg.getType()) {
-        case NONE:
-            break;
-        case OPEN:
-            break;
-        case KEEP_ALIVE:
-            //log.debug("Sending Keep Alive Message  to {" + pccIpAddress.toString() + "}");
-            pc.sendMessage(Collections.singletonList(pc.factory().buildKeepaliveMsg().build()));
-            break;
-        case PATH_COMPUTATION_REQUEST:
-            break;
-        case PATH_COMPUTATION_REPLY:
-            break;
-        case NOTIFICATION:
-            break;
-        case ERROR:
-            break;
-        case CLOSE:
-            //log.debug("Sending Close Message  to { }", pccIpAddress.toString());
-            pc.sendMessage(Collections.singletonList(pc.factory().buildCloseMsg().build()));
-            break;
-        case INITIATE:
-            if (!pc.capability().pcInstantiationCapability()) {
-                pc.sendMessage(Collections.singletonList(getErrMsg(pc.factory(),
-                        ERROR_TYPE_19, ERROR_VALUE_5)));
-            }
-            break;
-        case REPORT:
-            //Only update the listener if respective capability is supported else send PCEP-ERR msg
-            if (pc.capability().statefulPceCapability()) {
-                for (PcepEventListener l : pcepEventListener) {
-                    l.handleMessage(pccId, msg);
+            case NONE:
+                break;
+            case OPEN:
+                break;
+            case KEEP_ALIVE:
+                //log.debug("Sending Keep Alive Message  to {" + pccIpAddress.toString() + "}");
+                pc.sendMessage(Collections.singletonList(pc.factory().buildKeepaliveMsg().build()));
+                break;
+            case PATH_COMPUTATION_REQUEST:
+                break;
+            case PATH_COMPUTATION_REPLY:
+                break;
+            case NOTIFICATION:
+                break;
+            case ERROR:
+                break;
+            case CLOSE:
+                //log.debug("Sending Close Message  to { }", pccIpAddress.toString());
+                pc.sendMessage(Collections.singletonList(pc.factory().buildCloseMsg().build()));
+                break;
+            case INITIATE:
+                if (!pc.capability().pcInstantiationCapability()) {
+                    pc.sendMessage(Collections.singletonList(getErrMsg(pc.factory(),
+                            ERROR_TYPE_19, ERROR_VALUE_5)));
                 }
-            } else {
-                // Send PCEP-ERROR message.
-                pc.sendMessage(Collections.singletonList(getErrMsg(pc.factory(),
-                        ERROR_TYPE_19, ERROR_VALUE_5)));
-            }
-            break;
-        case UPDATE:
-            if (!pc.capability().statefulPceCapability()) {
-                pc.sendMessage(Collections.singletonList(getErrMsg(pc.factory(),
-                       ERROR_TYPE_19, ERROR_VALUE_5)));
-            }
-            break;
-        case LABEL_UPDATE:
-            if (!pc.capability().pceccCapability()) {
-                pc.sendMessage(Collections.singletonList(getErrMsg(pc.factory(),
-                        ERROR_TYPE_19, ERROR_VALUE_5)));
-            }
-            break;
-        case MAX:
-            break;
-        case END:
-            break;
-        default:
-            break;
+                break;
+            case REPORT:
+                //Only update the listener if respective capability is supported else send PCEP-ERR msg
+                if (pc.capability().statefulPceCapability()) {
+                    for (PcepEventListener l : pcepEventListener) {
+                        l.handleMessage(pccId, msg);
+                    }
+                } else {
+                    // Send PCEP-ERROR message.
+                    pc.sendMessage(Collections.singletonList(getErrMsg(pc.factory(),
+                            ERROR_TYPE_19, ERROR_VALUE_5)));
+                }
+                break;
+            case UPDATE:
+                if (!pc.capability().statefulPceCapability()) {
+                    pc.sendMessage(Collections.singletonList(getErrMsg(pc.factory(),
+                            ERROR_TYPE_19, ERROR_VALUE_5)));
+                }
+                break;
+            case LABEL_UPDATE:
+                if (!pc.capability().pceccCapability()) {
+                    pc.sendMessage(Collections.singletonList(getErrMsg(pc.factory(),
+                            ERROR_TYPE_19, ERROR_VALUE_5)));
+                }
+                break;
+            case MAX:
+                break;
+            case END:
+                break;
+            default:
+                break;
         }
     }
 
@@ -341,3 +332,4 @@ public class PcepClientControllerAdapter implements PcepClientController {
         return false;
     }
 }
+

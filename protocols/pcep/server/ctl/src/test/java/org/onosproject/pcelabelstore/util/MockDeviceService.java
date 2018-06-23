@@ -15,23 +15,18 @@
  */
 package org.onosproject.pcelabelstore.util;
 
+import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.device.DeviceListener;
+import org.onosproject.net.device.DeviceServiceAdapter;
+
 import java.util.LinkedList;
 import java.util.List;
-
-import org.onosproject.net.device.DeviceListener;
-import org.onosproject.net.device.PortStatistics;
-import org.onosproject.net.Device;
-import org.onosproject.net.Device.Type;
-import org.onosproject.net.DeviceId;
-import org.onosproject.net.MastershipRole;
-import org.onosproject.net.Port;
-import org.onosproject.net.PortNumber;
-import org.onosproject.net.device.DeviceService;
 
 /**
  * Test fixture for the device service.
  */
-public class MockDeviceService implements DeviceService {
+public class MockDeviceService extends DeviceServiceAdapter {
     private List<Device> devices = new LinkedList<>();
     private DeviceListener listener;
 
@@ -78,82 +73,5 @@ public class MockDeviceService implements DeviceService {
      */
     public DeviceListener getListener() {
         return listener;
-    }
-
-    @Override
-    public void removeListener(DeviceListener listener) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public int getDeviceCount() {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
-    @Override
-    public Iterable<Device> getDevices() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Iterable<Device> getDevices(Type type) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Iterable<Device> getAvailableDevices(Type type) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public MastershipRole getRole(DeviceId deviceId) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public List<Port> getPorts(DeviceId deviceId) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public List<PortStatistics> getPortStatistics(DeviceId deviceId) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public List<PortStatistics> getPortDeltaStatistics(DeviceId deviceId) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public Port getPort(DeviceId deviceId, PortNumber portNumber) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public boolean isAvailable(DeviceId deviceId) {
-        // TODO Auto-generated method stub
-        return false;
-    }
-
-    @Override
-    public String localStatus(DeviceId deviceId) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public long getLastUpdatedInstant(DeviceId deviceId) {
-        return 0;
     }
 }

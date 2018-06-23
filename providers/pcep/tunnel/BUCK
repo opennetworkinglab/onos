@@ -14,6 +14,9 @@ TEST_DEPS = [
     '//lib:TEST_ADAPTERS',
     '//lib:netty',
     '//lib:netty-transport',
+    '//protocols/pcep/server/api:onos-protocols-pcep-server-api-tests',
+    '//apps/pcep-api:onos-apps-pcep-api-tests',
+    '//incubator/api:onos-incubator-api-tests',
 ]
 
 osgi_jar_with_tests (

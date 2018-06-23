@@ -11,7 +11,15 @@ COMPILE_DEPS = [
     '//lib:netty',
 ]
 
+TEST_DEPS = [
+    '//lib:TEST',
+    '//lib:TEST_ADAPTERS',
+    '//incubator/api:onos-incubator-api-tests',
+    '//protocols/pcep/server/api:onos-protocols-pcep-server-api-tests',
+]
+
 osgi_jar_with_tests (
     deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
 )
 

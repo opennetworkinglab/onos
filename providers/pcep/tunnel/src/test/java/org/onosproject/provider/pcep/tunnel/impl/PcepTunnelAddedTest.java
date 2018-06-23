@@ -15,32 +15,8 @@
  */
 package org.onosproject.provider.pcep.tunnel.impl;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
-import static org.onosproject.incubator.net.tunnel.Tunnel.Type.MPLS;
-import static org.onosproject.incubator.net.tunnel.Tunnel.State.INIT;
-import static org.onosproject.pcep.server.PcepAnnotationKeys.BANDWIDTH;
-import static org.onosproject.pcep.server.PcepAnnotationKeys.LOCAL_LSP_ID;
-import static org.onosproject.pcep.server.PcepAnnotationKeys.LSP_SIG_TYPE;
-import static org.onosproject.pcep.server.PcepAnnotationKeys.PCC_TUNNEL_ID;
-import static org.onosproject.pcep.server.PcepAnnotationKeys.PLSP_ID;
-import static org.onosproject.pcep.server.PcepAnnotationKeys.DELEGATE;
-import static org.onosproject.pcep.server.LspType.WITHOUT_SIGNALLING_AND_WITHOUT_SR;
-import static org.onosproject.pcep.server.PcepSyncStatus.SYNCED;
-import static org.onosproject.net.Device.Type.ROUTER;
-import static org.onosproject.net.Link.State.ACTIVE;
-import static org.onosproject.net.MastershipRole.MASTER;
-
-import java.io.IOException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableSet;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.junit.After;
@@ -53,6 +29,7 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.incubator.net.tunnel.DefaultTunnel;
 import org.onosproject.incubator.net.tunnel.IpTunnelEndPoint;
 import org.onosproject.incubator.net.tunnel.Tunnel;
+import org.onosproject.incubator.net.tunnel.Tunnel.State;
 import org.onosproject.incubator.net.tunnel.Tunnel.Type;
 import org.onosproject.incubator.net.tunnel.TunnelAdminService;
 import org.onosproject.incubator.net.tunnel.TunnelDescription;
@@ -61,7 +38,7 @@ import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.incubator.net.tunnel.TunnelName;
 import org.onosproject.incubator.net.tunnel.TunnelProvider;
 import org.onosproject.incubator.net.tunnel.TunnelProviderService;
-import org.onosproject.incubator.net.tunnel.Tunnel.State;
+import org.onosproject.incubator.net.tunnel.TunnelServiceAdapter;
 import org.onosproject.mastership.MastershipServiceAdapter;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.ConnectPoint;
@@ -79,18 +56,44 @@ import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.device.DeviceServiceAdapter;
 import org.onosproject.net.link.LinkServiceAdapter;
 import org.onosproject.net.provider.ProviderId;
+import org.onosproject.pcep.api.PcepControllerAdapter;
+import org.onosproject.pcep.server.ClientCapability;
+import org.onosproject.pcep.server.LspKey;
+import org.onosproject.pcep.server.PccId;
+import org.onosproject.pcep.server.PcepClientAdapter;
+import org.onosproject.pcep.server.PcepClientControllerAdapter;
 import org.onosproject.pcepio.exceptions.PcepOutOfBoundMessageException;
 import org.onosproject.pcepio.exceptions.PcepParseException;
 import org.onosproject.pcepio.protocol.PcepFactories;
 import org.onosproject.pcepio.protocol.PcepMessage;
 import org.onosproject.pcepio.protocol.PcepMessageReader;
 import org.onosproject.pcepio.protocol.PcepVersion;
-import org.onosproject.pcep.server.ClientCapability;
-import org.onosproject.pcep.server.LspKey;
-import org.onosproject.pcep.server.PccId;
 
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableSet;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
+import static org.onosproject.incubator.net.tunnel.Tunnel.State.INIT;
+import static org.onosproject.incubator.net.tunnel.Tunnel.Type.MPLS;
+import static org.onosproject.net.Device.Type.ROUTER;
+import static org.onosproject.net.Link.State.ACTIVE;
+import static org.onosproject.net.MastershipRole.MASTER;
+import static org.onosproject.pcep.server.LspType.WITHOUT_SIGNALLING_AND_WITHOUT_SR;
+import static org.onosproject.pcep.server.PcepAnnotationKeys.BANDWIDTH;
+import static org.onosproject.pcep.server.PcepAnnotationKeys.DELEGATE;
+import static org.onosproject.pcep.server.PcepAnnotationKeys.LOCAL_LSP_ID;
+import static org.onosproject.pcep.server.PcepAnnotationKeys.LSP_SIG_TYPE;
+import static org.onosproject.pcep.server.PcepAnnotationKeys.PCC_TUNNEL_ID;
+import static org.onosproject.pcep.server.PcepAnnotationKeys.PLSP_ID;
+import static org.onosproject.pcep.server.PcepSyncStatus.SYNCED;
 
 /**
  * Tests handling of PCEP report message.

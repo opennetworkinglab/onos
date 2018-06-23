@@ -115,5 +115,12 @@
            <artifactId>onos-apps-pce-bandwidthmgmt</artifactId>
            <version>${project.version}</version>
        </dependency>
+       <dependency>
+           <groupId>org.onosproject</groupId>
+           <artifactId>onos-incubator-api</artifactId>
+           <classifier>tests</classifier>
+           <version>${project.version}</version>
+           <scope>test</scope>
+       </dependency>
    </dependencies>
 </project>

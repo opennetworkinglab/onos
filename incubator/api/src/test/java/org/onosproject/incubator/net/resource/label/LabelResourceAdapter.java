@@ -13,27 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.pcelabelstore.util;
+package org.onosproject.incubator.net.resource.label;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.Random;
-import java.util.Set;
-
-import org.onosproject.incubator.net.resource.label.DefaultLabelResource;
-import org.onosproject.incubator.net.resource.label.LabelResource;
-import org.onosproject.incubator.net.resource.label.LabelResourceAdminService;
-import org.onosproject.incubator.net.resource.label.LabelResourceDelegate;
-import org.onosproject.incubator.net.resource.label.LabelResourceEvent;
-import org.onosproject.incubator.net.resource.label.LabelResourceId;
-import org.onosproject.incubator.net.resource.label.LabelResourceListener;
-import org.onosproject.incubator.net.resource.label.LabelResourcePool;
-import org.onosproject.incubator.net.resource.label.LabelResourceProvider;
-import org.onosproject.incubator.net.resource.label.LabelResourceProviderRegistry;
-import org.onosproject.incubator.net.resource.label.LabelResourceProviderService;
-import org.onosproject.incubator.net.resource.label.LabelResourceService;
+import com.google.common.collect.Multimap;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceEvent;
@@ -42,14 +24,19 @@ import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 
-import com.google.common.collect.Multimap;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.Random;
+import java.util.Set;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Provides test implementation of class LabelResourceService.
  */
 public class LabelResourceAdapter
         extends AbstractListenerProviderRegistry<LabelResourceEvent, LabelResourceListener,
-                                                 LabelResourceProvider, LabelResourceProviderService>
+        LabelResourceProvider, LabelResourceProviderService>
         implements LabelResourceService, LabelResourceAdminService, LabelResourceProviderRegistry {
     public static final long GLOBAL_LABEL_SPACE_MIN = 4097;
     public static final long GLOBAL_LABEL_SPACE_MAX = 5121;
@@ -62,36 +49,36 @@ public class LabelResourceAdapter
     public boolean createDevicePool(DeviceId deviceId,
                                     LabelResourceId beginLabel,
                                     LabelResourceId endLabel) {
-       return true;
+        return true;
     }
 
     @Override
     public boolean createGlobalPool(LabelResourceId beginLabel,
                                     LabelResourceId endLabel) {
-       return true;
+        return true;
     }
 
     @Override
     public boolean destroyDevicePool(DeviceId deviceId) {
-       return true;
+        return true;
     }
 
     @Override
     public boolean destroyGlobalPool() {
-       return true;
+        return true;
     }
 
     public long getLabelId(long min, long max) {
-      return random.nextInt((int) max - (int) min + 1) + (int) min;
+        return random.nextInt((int) max - (int) min + 1) + (int) min;
     }
 
     @Override
     public Collection<LabelResource> applyFromDevicePool(DeviceId deviceId,
-                                                  long applyNum) {
+                                                         long applyNum) {
         Collection<LabelResource> labelList = new LinkedList<>();
         LabelResource label = new DefaultLabelResource(deviceId,
-                                  LabelResourceId.labelResourceId(
-                                  getLabelId(LOCAL_LABEL_SPACE_MIN, LOCAL_LABEL_SPACE_MAX)));
+                LabelResourceId.labelResourceId(
+                        getLabelId(LOCAL_LABEL_SPACE_MIN, LOCAL_LABEL_SPACE_MAX)));
         labelList.add(label);
         return labelList;
     }
@@ -100,50 +87,50 @@ public class LabelResourceAdapter
     public Collection<LabelResource> applyFromGlobalPool(long applyNum) {
         Collection<LabelResource> labelList = new LinkedList<>();
         LabelResource label = new DefaultLabelResource(DeviceId.deviceId("foo"),
-                                  LabelResourceId.labelResourceId(
-                                  getLabelId(GLOBAL_LABEL_SPACE_MIN, GLOBAL_LABEL_SPACE_MAX)));
+                LabelResourceId.labelResourceId(
+                        getLabelId(GLOBAL_LABEL_SPACE_MIN, GLOBAL_LABEL_SPACE_MAX)));
         labelList.add(label);
         return labelList;
     }
 
     @Override
     public boolean releaseToDevicePool(Multimap<DeviceId, LabelResource> release) {
-       return true;
+        return true;
     }
 
     @Override
     public boolean releaseToGlobalPool(Set<LabelResourceId> release) {
-       return true;
+        return true;
     }
 
     @Override
     public boolean isDevicePoolFull(DeviceId deviceId) {
-       return false;
+        return false;
     }
 
     @Override
     public boolean isGlobalPoolFull() {
-       return false;
+        return false;
     }
 
     @Override
     public long getFreeNumOfDevicePool(DeviceId deviceId) {
-       return 4;
+        return 4;
     }
 
     @Override
     public long getFreeNumOfGlobalPool() {
-       return 4;
+        return 4;
     }
 
     @Override
     public LabelResourcePool getDeviceLabelResourcePool(DeviceId deviceId) {
-       return null;
+        return null;
     }
 
     @Override
     public LabelResourcePool getGlobalLabelResourcePool() {
-       return null;
+        return null;
     }
 
     private class InternalLabelResourceDelegate implements LabelResourceDelegate {

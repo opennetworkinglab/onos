@@ -15,16 +15,16 @@
  */
 package org.onosproject.provider.pcep.tunnel.impl;
 
-import java.util.Set;
-
 import org.onosproject.incubator.net.tunnel.Tunnel;
+import org.onosproject.incubator.net.tunnel.Tunnel.State;
 import org.onosproject.incubator.net.tunnel.TunnelDescription;
 import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.incubator.net.tunnel.TunnelProvider;
 import org.onosproject.incubator.net.tunnel.TunnelProviderRegistry;
 import org.onosproject.incubator.net.tunnel.TunnelProviderService;
-import org.onosproject.incubator.net.tunnel.Tunnel.State;
 import org.onosproject.net.provider.ProviderId;
+
+import java.util.Set;
 
 public class TunnelProviderRegistryAdapter implements TunnelProviderRegistry {
     TunnelProvider provider;

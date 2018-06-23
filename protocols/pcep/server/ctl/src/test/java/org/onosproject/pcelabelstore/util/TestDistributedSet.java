@@ -21,6 +21,7 @@ import com.google.common.collect.Sets;
 import org.onosproject.store.primitives.DefaultDistributedSet;
 import org.onosproject.store.service.AsyncDistributedSet;
 import org.onosproject.store.service.DistributedSet;
+import org.onosproject.store.service.DistributedSetAdapter;
 import org.onosproject.store.service.DistributedSetBuilder;
 import org.onosproject.store.service.SetEvent;
 import org.onosproject.store.service.SetEventListener;

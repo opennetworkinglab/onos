@@ -12,15 +12,10 @@
  */
 package org.onosproject.provider.pcep.topology.impl;
 
-import static org.onosproject.net.Link.State.ACTIVE;
-
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -50,18 +45,24 @@ import org.onosproject.net.link.LinkProviderRegistry;
 import org.onosproject.net.link.LinkProviderService;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.pcep.api.DeviceCapability;
+import org.onosproject.pcep.api.PcepControllerAdapter;
 import org.onosproject.pcep.server.ClientCapability;
 import org.onosproject.pcep.server.PccId;
 import org.onosproject.pcep.server.PcepClient;
+import org.onosproject.pcep.server.PcepClientControllerAdapter;
 import org.onosproject.pcep.server.PcepNodeListener;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNull.nullValue;
+import static org.onosproject.net.Link.State.ACTIVE;
 /**
  * Test for PCEP topology provider.
  */

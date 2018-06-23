@@ -15,22 +15,14 @@
  */
 package org.onosproject.pcelabelstore.label;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.onosproject.net.Link.Type.DIRECT;
-import java.util.Iterator;
-import java.util.List;
-import java.util.LinkedList;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.graph.ScalarWeight;
 import org.onlab.packet.IpAddress;
-import org.onosproject.incubator.net.resource.label.LabelResourceId;
+import org.onosproject.incubator.net.resource.label.LabelResourceAdapter;
 import org.onosproject.incubator.net.resource.label.LabelResourceAdminService;
+import org.onosproject.incubator.net.resource.label.LabelResourceId;
 import org.onosproject.incubator.net.resource.label.LabelResourceService;
 import org.onosproject.incubator.net.tunnel.LabelStack;
 import org.onosproject.net.AnnotationKeys;
@@ -38,25 +30,34 @@ import org.onosproject.net.Annotations;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DefaultDevice;
+import org.onosproject.net.DefaultLink;
 import org.onosproject.net.DefaultPath;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.PortNumber;
+import org.onosproject.net.Link;
 import org.onosproject.net.Path;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.pcelabelstore.api.PceLabelStore;
-import org.onosproject.pcelabelstore.util.LabelResourceAdapter;
+import org.onosproject.pcelabelstore.api.PceLabelStoreAdapter;
 import org.onosproject.pcelabelstore.util.MockDeviceService;
 import org.onosproject.pcelabelstore.util.MockNetConfigRegistryAdapter;
 import org.onosproject.pcelabelstore.util.MockPcepClientController;
-import org.onosproject.pcelabelstore.util.PceLabelStoreAdapter;
-import org.onosproject.pcelabelstore.util.PcepClientAdapter;
+import org.onosproject.pcep.server.PcepClientAdapter;
 import org.onosproject.pcep.api.DeviceCapability;
 import org.onosproject.pcep.server.PccId;
 import org.onosproject.pcep.server.impl.PceccSrTeBeHandler;
 import org.onosproject.pcepio.protocol.PcepVersion;
-import org.onosproject.net.DefaultLink;
-import org.onosproject.net.Link;
+
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
+import static org.onosproject.net.Link.Type.DIRECT;
 
 /**
  * Unit tests for PceccSrTeBeHandler class.

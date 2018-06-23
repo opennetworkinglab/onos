@@ -43,5 +43,19 @@
              <artifactId>onos-optical-model</artifactId>
              <version>${project.version}</version>
          </dependency>
+         <dependency>
+             <groupId>org.onosproject</groupId>
+             <artifactId>onos-pcep-server-api</artifactId>
+             <version>${project.version}</version>
+             <classifier>tests</classifier>
+             <scope>test</scope>
+         </dependency>
+         <dependency>
+             <groupId>org.onosproject</groupId>
+             <artifactId>onos-apps-pcep-api</artifactId>
+             <version>${project.version}</version>
+             <classifier>tests</classifier>
+             <scope>test</scope>
+         </dependency>
      </dependencies>
 </project>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-present Open Networking Foundation
+ * Copyright 2015-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,37 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.pce.util;
-
-import java.util.Collection;
+package org.onosproject.incubator.net.tunnel;
 
 import org.onosproject.core.ApplicationId;
-import org.onosproject.incubator.net.tunnel.Tunnel;
-import org.onosproject.incubator.net.tunnel.Tunnel.Type;
-import org.onosproject.incubator.net.tunnel.TunnelEndPoint;
-import org.onosproject.incubator.net.tunnel.TunnelId;
-import org.onosproject.incubator.net.tunnel.TunnelListener;
-import org.onosproject.incubator.net.tunnel.TunnelName;
-import org.onosproject.incubator.net.tunnel.TunnelService;
-import org.onosproject.incubator.net.tunnel.TunnelSubscription;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.ElementId;
 import org.onosproject.net.Path;
 
-/**
- * Provides test implementation of class TunnelService.
- */
+import java.util.Collection;
+import java.util.Collections;
+
 public class TunnelServiceAdapter implements TunnelService {
-
-    @Override
-    public void addListener(TunnelListener listener) {
-    }
-
-    @Override
-    public void removeListener(TunnelListener listener) {
-    }
-
     @Override
     public Tunnel borrowTunnel(ApplicationId consumerId, TunnelId tunnelId, Annotations... annotations) {
         return null;
@@ -62,8 +43,8 @@ public class TunnelServiceAdapter implements TunnelService {
     }
 
     @Override
-    public Collection<Tunnel> borrowTunnel(ApplicationId consumerId, TunnelEndPoint src, TunnelEndPoint dst, Type type,
-                                           Annotations... annotations) {
+    public Collection<Tunnel> borrowTunnel(ApplicationId consumerId, TunnelEndPoint src, TunnelEndPoint dst,
+                                           Tunnel.Type type, Annotations... annotations) {
         return null;
     }
 
@@ -88,8 +69,8 @@ public class TunnelServiceAdapter implements TunnelService {
     }
 
     @Override
-    public boolean returnTunnel(ApplicationId consumerId, TunnelEndPoint src, TunnelEndPoint dst, Type type,
-                                Annotations... annotations) {
+    public boolean returnTunnel(ApplicationId consumerId, TunnelEndPoint src, TunnelEndPoint dst,
+                                Tunnel.Type type, Annotations... annotations) {
         return false;
     }
 
@@ -106,22 +87,22 @@ public class TunnelServiceAdapter implements TunnelService {
 
     @Override
     public Collection<TunnelSubscription> queryTunnelSubscription(ApplicationId consumerId) {
-        return null;
+        return Collections.emptySet();
     }
 
     @Override
-    public Collection<Tunnel> queryTunnel(Type type) {
-        return null;
+    public Collection<Tunnel> queryTunnel(Tunnel.Type type) {
+        return Collections.emptySet();
     }
 
     @Override
     public Collection<Tunnel> queryTunnel(TunnelEndPoint src, TunnelEndPoint dst) {
-        return null;
+        return Collections.emptySet();
     }
 
     @Override
     public Collection<Tunnel> queryAllTunnels() {
-        return null;
+        return Collections.emptyList();
     }
 
     @Override
@@ -132,5 +113,15 @@ public class TunnelServiceAdapter implements TunnelService {
     @Override
     public Iterable<Tunnel> getTunnels(DeviceId deviceId) {
         return null;
+    }
+
+    @Override
+    public void addListener(TunnelListener listener) {
+
+    }
+
+    @Override
+    public void removeListener(TunnelListener listener) {
+
     }
 }
