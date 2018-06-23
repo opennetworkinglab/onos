@@ -860,21 +860,34 @@ public class OpenstackRoutingFloatingIpHandler {
 
             switch (event.type()) {
                 case OPENSTACK_INSTANCE_PORT_DETECTED:
-                    terminatedInstPorts.remove(instPort.portId());
-                    terminatedOsPorts.remove(instPort.portId());
+                    if (instPort != null && instPort.portId() != null) {
+                        String portId = instPort.portId();
 
-                    if (pendingInstPortIds.containsKey(instPort.portId())) {
-                        setFloatingIpRules(pendingInstPortIds.get(instPort.portId()),
-                                osNetworkService.port(instPort.portId()), null, true);
-                        pendingInstPortIds.remove(instPort.portId());
+                        terminatedInstPorts.remove(portId);
+                        terminatedOsPorts.remove(portId);
+
+                        Port port = osNetworkService.port(portId);
+
+                        if (pendingInstPortIds.containsKey(portId) && port != null) {
+                            setFloatingIpRules(pendingInstPortIds.get(portId),
+                                    port, null, true);
+                            pendingInstPortIds.remove(portId);
+                        }
                     }
 
                     break;
 
                 case OPENSTACK_INSTANCE_PORT_VANISHED:
-                    terminatedInstPorts.put(instPort.portId(), instPort);
-                    terminatedOsPorts.put(instPort.portId(),
-                                    osNetworkService.port(instPort.portId()));
+                    if (instPort != null && instPort.portId() != null) {
+                        String portId = instPort.portId();
+                        Port port = osNetworkService.port(portId);
+
+                        if (port != null) {
+                            terminatedInstPorts.put(portId, instPort);
+                            terminatedOsPorts.put(portId, port);
+                        }
+                    }
+
                     break;
 
                 case OPENSTACK_INSTANCE_MIGRATION_STARTED:
