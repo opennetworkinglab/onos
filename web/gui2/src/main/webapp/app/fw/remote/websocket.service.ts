@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable } from '@angular/core';
+import { Injectable, Inject } from '@angular/core';
 import { FnService } from '../util/fn.service';
 import { GlyphService } from '../svg/glyph.service';
 import { LogService } from '../../log.service';
@@ -129,7 +129,7 @@ export class WebSocketService {
         private log: LogService,
         private ufs: UrlFnService,
         private wsock: WSock,
-        private window: Window
+        @Inject('Window') private window: Window
     ) {
         this.log.debug(window.location.hostname);
 

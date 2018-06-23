@@ -20,7 +20,9 @@ import { LogService } from '../../log.service';
 /**
  * ONOS GUI -- Random -- Encapsulated randomness
  */
-@Injectable()
+@Injectable({
+  providedIn: 'root',
+})
 export class RandomService {
 
     constructor(

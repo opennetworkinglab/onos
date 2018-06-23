@@ -27,7 +27,6 @@ class MockKeyService {}
  */
 describe('DeviceDetailsPanelDirective', () => {
     let log: LogService;
-    const windowMock = <any>{ location: <any> { hostname: 'localhost' } };
 
     beforeEach(() => {
         log = new ConsoleLoggerService();
@@ -35,8 +34,7 @@ describe('DeviceDetailsPanelDirective', () => {
         TestBed.configureTestingModule({
             providers: [ DeviceDetailsPanelDirective,
                 { provide: LogService, useValue: log },
-                { provide: KeyService, useClass: MockKeyService },
-                { provide: Window, useValue: windowMock },
+                { provide: KeyService, useClass: MockKeyService }
             ]
         });
     });

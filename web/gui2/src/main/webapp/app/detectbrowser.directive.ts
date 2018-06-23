@@ -30,7 +30,7 @@ export class DetectBrowserDirective {
     private fs: FnService,
     private log: LogService,
     private onos: OnosService,
-    @Inject(Window) private w: Window
+    @Inject('Window') private w: Window
   ) {
         const body: HTMLBodyElement = document.getElementsByTagName('body')[0];
 //        let body = d3.select('body');

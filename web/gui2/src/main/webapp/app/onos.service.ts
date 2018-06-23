@@ -27,7 +27,9 @@ export interface View {
 /**
  * ONOS GUI -- OnosService - a placeholder for the global onos variable
  */
-@Injectable()
+@Injectable({
+  providedIn: 'root',
+})
 export class OnosService {
     // Global variable
     public browser: string;

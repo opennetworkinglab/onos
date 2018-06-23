@@ -15,7 +15,7 @@
  */
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, Routes } from '@angular/router';
+import { DeviceRoutingModule } from './device-routing.module';
 import { DeviceComponent } from './device.component';
 import { DeviceDetailsPanelDirective } from './devicedetailspanel.directive';
 import { SvgModule } from '../../fw/svg/svg.module';
@@ -24,12 +24,9 @@ import { SvgModule } from '../../fw/svg/svg.module';
  * ONOS GUI -- Device View Module
  */
 @NgModule({
-  exports: [
-    DeviceComponent
-  ],
   imports: [
     CommonModule,
-    RouterModule,
+    DeviceRoutingModule,
     SvgModule
   ],
   declarations: [

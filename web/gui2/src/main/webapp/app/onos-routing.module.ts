@@ -14,32 +14,35 @@
  * limitations under the License.
  */
 import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Routes, RouterModule } from '@angular/router';
 
-import { EeService } from './ee.service';
-import { FnService } from './fn.service';
-import { KeyService } from './key.service';
-import { LionService } from './lion.service';
-import { PrefsService } from './prefs.service';
-import { RandomService } from './random.service';
-import { ThemeService } from './theme.service';
+const onosRoutes: Routes = [
+    {
+        path: 'apps',
+        loadChildren: 'app/view/apps/apps.module#AppsModule'
+    },
+    {
+        path: 'devices',
+        loadChildren: 'app/view/device/device.module#DeviceModule'
+    },
+    {
+        path: '',
+        redirectTo: '',
+        pathMatch: 'full'
+    }
+];
 
 /**
- * ONOS GUI -- Utilities Module
+ * ONOS GUI -- Main Routing Module - allows modules to be lazy loaded
+ *
+ * See https://angular.io/guide/lazy-loading-ngmodules
+ * for the theory of operation
  */
 @NgModule({
-  imports: [
-    CommonModule
-  ],
-  declarations: [],
-  providers: [
-    EeService,
-    FnService,
-    KeyService,
-    LionService,
-    PrefsService,
-    RandomService,
-    ThemeService
-  ]
+    imports: [
+        RouterModule.forRoot(onosRoutes)
+    ],
+    exports: [RouterModule],
+    providers: []
 })
-export class UtilModule { }
+export class OnosRoutingModule { }

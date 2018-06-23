@@ -26,7 +26,9 @@ export abstract class Logger {
  * ONOS GUI -- LogService
  * Inspired by https://robferguson.org/blog/2017/09/09/a-simple-logging-service-for-angular-4/
  */
-@Injectable()
+@Injectable({
+  providedIn: 'root',
+})
 export class LogService extends Logger {
   debug: any;
   info: any;

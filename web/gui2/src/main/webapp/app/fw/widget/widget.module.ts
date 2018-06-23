@@ -16,9 +16,7 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LayerModule } from '../layer/layer.module';
-import { RemoteModule } from '../remote/remote.module';
 import { SvgModule } from '../svg/svg.module';
-import { UtilModule } from '../util/util.module';
 
 import { ButtonService } from './button.service';
 import { ChartBuilderService } from './chartbuilder.service';

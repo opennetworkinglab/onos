@@ -20,7 +20,9 @@ import { LogService } from '../../log.service';
 /**
  * ONOS GUI -- Util -- Key Handler Service
  */
-@Injectable()
+@Injectable({
+  providedIn: 'root',
+})
 export class KeyService {
 
     constructor(

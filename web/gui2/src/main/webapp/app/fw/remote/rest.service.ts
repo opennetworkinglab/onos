@@ -21,7 +21,9 @@ import { UrlFnService } from './urlfn.service';
 /**
  * ONOS GUI -- Remote Communications Module -- REST Service
  */
-@Injectable()
+@Injectable({
+  providedIn: 'root',
+})
 export class RestService {
 
   constructor(

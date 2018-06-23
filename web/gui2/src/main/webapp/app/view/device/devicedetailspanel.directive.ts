@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Directive } from '@angular/core';
+import { Directive, Inject } from '@angular/core';
 import { KeyService } from '../../fw/util/key.service';
 import { LogService } from '../../log.service';
 
@@ -31,8 +31,7 @@ export class DeviceDetailsPanelDirective {
 
     constructor(
         private ks: KeyService,
-        private log: LogService,
-        private window: Window
+        private log: LogService
     ) {
         this.log.debug('DeviceDetailsPanelDirective constructed');
     }

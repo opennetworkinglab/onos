@@ -58,7 +58,7 @@ describe('UrlFnService', () => {
         TestBed.configureTestingModule({
             providers: [UrlFnService,
                 { provide: LogService, useValue: log },
-                { provide: Window, useFactory: (() => windowMock ) },
+                { provide: 'Window', useFactory: (() => windowMock ) },
             ]
         });
 

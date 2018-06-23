@@ -62,7 +62,7 @@ describe('DetectBrowserDirective', () => {
                 { provide: LogService, useValue: log },
                 { provide: OnosService, useClass: MockOnosService },
                 { provide: Document, useValue: document },
-                { provide: Window, useFactory: (() => mockWindow ) }
+                { provide: 'Window', useFactory: (() => mockWindow ) }
             ]
         });
     });

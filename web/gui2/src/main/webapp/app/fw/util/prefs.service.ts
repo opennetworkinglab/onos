@@ -21,7 +21,9 @@ import { WebSocketService } from '../remote/websocket.service';
 /**
  * ONOS GUI -- Util -- User Preference Service
  */
-@Injectable()
+@Injectable({
+  providedIn: 'root',
+})
 export class PrefsService {
 
     constructor(

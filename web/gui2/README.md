@@ -1,6 +1,8 @@
 # ONOS GUI 2.0.0
 
-This project is based on __[Angular 6](https://angular.io/docs)__, as an alternative to the 1.0.0 GUI which was based 
+This project is based on __[Angular 6](https://angular.io/docs)__ 
+and __[ES6](http://www.ecma-international.org/ecma-262/6.0/index.html)__ (aka __ES2015__), 
+as an alternative to the 1.0.0 GUI which was based 
 off __[AngularJS 1.3.5](https://angularjs.org/)__
 
 Building, testing and running lint are all handled by BUCK. See web/gui2/BUCK file.
@@ -13,10 +15,13 @@ and the gui will be accessible at [http://localhost:8181/onos/ui2](http://localh
 
 # Development
 There are 2 ways to go about development - 
-1. rebuild the code and rerun through BUCK OR (much like can be done with any ordinary ONOS app)
-2. use Angular 6 CLI (ng command) to rebuild on the fly (must faster for development) 
+1. rebuild the code and rerun through BUCK (much like can be done with any ordinary ONOS app) 
+ (this is not recommended though since in this mode the browser side code is built in '--prod' mode
+ and all debug symbols are stripped and debug statements are not logged and the code is uglified and minimized.
+ It is useful for testing "prod" mode works though) OR
+2. use Angular 6 CLI (__ng__ command) to rebuild on the fly (must faster for development) 
 
-For 1) if you change the code you can redeploy the application with (requies you to be in ~/onos directory):
+For 1) if you change the code you can redeploy the application without restarting ONOS with (requires you to be in ~/onos directory):
 ```
 onos-buck build //web/gui2:onos-web-gui2-oar --show-output|grep /app.oar | cut -d\  -f2 | xargs onos-app localhost reinstall!
 ```
@@ -24,7 +29,7 @@ onos-buck build //web/gui2:onos-web-gui2-oar --show-output|grep /app.oar | cut -
 For 2) it's well worth becoming familiar with Angular CLI.
 The project is created with [Angular CLI](https://github.com/angular/angular-cli) v6 to simplify development of the browser side code.
 
-This allows you to develop the Angular 6 Type Script code independent of ONOS in a separate container. 
+This allows you to develop the Angular 6 TypeScript code independent of ONOS in a separate container. 
 Since WebSockets have been implemented (Jun 18) there is a requirement to run ONOS in the background.
 
 There is no need to install node, npm or ng again on your system, and indeed if they are already installed, it's best
@@ -52,9 +57,12 @@ To use Angular CLI for development on your system, you need to:
 
 ## Development server
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+Run `ng serve --aot` for a dev server (because we are using ES6, we [must use AOT](https://github.com/angular/angular-cli/wiki/build)). 
+Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
 
-Press Ctrl-Shift-I in Chrome and Firefox to bring up the developer tools and the browser console. 
+Press Ctrl-Shift-I in Chrome and Firefox to bring up the developer tools and the browser console.
+
+There are certain extra debugging can be turned on by adding the parameter 'debug' For example to turn extra logging for WebSockets add on __?debug=txrx__ 
 
 ## Code scaffolding
 
@@ -62,13 +70,13 @@ Run `ng generate component component-name` to generate a new component. You can 
 
 ## Build
 The build is handled through the web/gui2/BUCK file. This downloads Node, NPM and Angular CLI
-It runs ```ng build``` and copies everything over in to WEB-INF/classes/dist (there
+It runs ```ng build --prod --extract-css``` and copies everything over in to WEB-INF/classes/dist (there
 is something weird in BUCK resources - if there is a file in the root dir of the
 outputted folder this is copied to the sources root directory, where as files
 are copied to WEB-INF/classes. To get around this I put all the outputted stuff in to 
 ```dist``` and it gets copied to /WEB-INF/classes/dist/ )
 
-To run it manually in Angular CLI run `ng build`
+To run it manually in Angular CLI run `ng build` (and add on --prod --extract-css --watch as necessary to alter its behaviour)
 
 ## Running unit tests
 This is automatically done when using "onos-buck test" - see the web/gui2/BUCK file for more details.

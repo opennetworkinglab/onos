@@ -149,7 +149,9 @@ function trieLookup(trie, word) {
 /**
  * ONOS GUI -- Util -- General Purpose Functions
  */
-@Injectable()
+@Injectable({
+  providedIn: 'root',
+})
 export class FnService {
     // internal state
     private debugFlags = new Map<string, boolean>([
@@ -159,14 +161,14 @@ export class FnService {
     constructor(
         private route: ActivatedRoute,
         private log: LogService,
-        @Inject(Window) private w: Window
+        @Inject('Window') private w: Window
     ) {
         this.route.queryParams.subscribe(params => {
             const debugparam: string = params['debug'];
             log.debug('Param:', debugparam);
             this.parseDebugFlags(debugparam);
         });
-        log.debug('FnService constructed');
+        this.log.debug('FnService constructed');
     }
 
     /**

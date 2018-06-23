@@ -62,7 +62,7 @@ describe('FnService', () => {
             providers: [FnService,
                 { provide: LogService, useValue: logSpy },
                 { provide: ActivatedRoute, useValue: ar },
-                { provide: Window, useFactory: (() => mockWindow ) }
+                { provide: 'Window', useFactory: (() => mockWindow ) }
             ]
         });
 

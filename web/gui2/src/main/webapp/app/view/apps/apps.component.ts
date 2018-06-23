@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, Inject } from '@angular/core';
 import { DialogService } from '../../fw/layer/dialog.service';
 import { FnService } from '../../fw/util/fn.service';
 import { IconService } from '../../fw/svg/icon.service';
@@ -97,6 +97,14 @@ export class AppsComponent extends TableBaseImpl implements OnInit, OnDestroy {
     friendlyProps: string[];
     ctrlBtnState: CtrlBtnState;
     detailsPanel: any;
+    appFile: any;
+    activateImmediately = '';
+
+    uploadTip: string;
+    activateTip: string;
+    deactivateTip: string;
+    uninstallTip: string;
+    downloadTip: string;
 
     constructor(
         protected fs: FnService,
@@ -109,7 +117,7 @@ export class AppsComponent extends TableBaseImpl implements OnInit, OnDestroy {
         private ps: PanelService,
         private ufs: UrlFnService,
         protected wss: WebSocketService,
-        private window: Window,
+        @Inject('Window') private window: Window,
     ) {
         super(fs, null, log, wss, 'app');
         this.responseCallback = this.appResponseCb;
@@ -130,6 +138,11 @@ export class AppsComponent extends TableBaseImpl implements OnInit, OnDestroy {
         } else {
             this.doLion();
         }
+        this.uploadTip = this.lionFn('tt_ctl_upload');
+        this.activateTip = this.lionFn('tt_ctl_activate');
+        this.deactivateTip = this.lionFn('tt_ctl_deactivate');
+        this.uninstallTip = this.lionFn('tt_ctl_uninstall');
+        this.downloadTip = this.lionFn('tt_ctl_download');
     }
 
     ngOnInit() {
@@ -243,5 +256,11 @@ export class AppsComponent extends TableBaseImpl implements OnInit, OnDestroy {
      */
     dummyLion(key: string): string {
         return '%' + key + '%';
+    }
+
+    appDropped() {
+        this.activateImmediately = activateOption;
+//        $scope.$emit('FileChanged'); // TODO: Implement this
+        this.appFile = null;
     }
 }

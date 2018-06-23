@@ -124,7 +124,7 @@ describe('DeviceComponent', () => {
                 { provide: TableDetailService, useClass: MockTableDetailService },
                 { provide: ThemeService, useClass: MockThemeService },
                 { provide: WebSocketService, useClass: MockWebSocketService },
-                { provide: Window, useValue: windowMock },
+                { provide: 'Window', useValue: windowMock },
              ]
         })
         .compileComponents();

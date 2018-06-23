@@ -19,7 +19,9 @@ import { LogService } from '../../log.service';
 /**
  * ONOS GUI -- Util -- EE functions
  */
-@Injectable()
+@Injectable({
+  providedIn: 'root',
+})
 export class EeService {
 
   constructor(

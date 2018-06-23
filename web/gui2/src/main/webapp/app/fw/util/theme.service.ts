@@ -20,7 +20,9 @@ import { LogService } from '../../log.service';
 /**
  * ONOS GUI -- Util -- Theme Service
  */
-@Injectable()
+@Injectable({
+  providedIn: 'root',
+})
 export class ThemeService {
     themes: string[] = ['light', 'dark'];
     thidx = 0;

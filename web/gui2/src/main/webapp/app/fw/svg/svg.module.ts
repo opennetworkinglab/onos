@@ -15,7 +15,6 @@
  */
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { UtilModule } from '../util/util.module';
 
 import { GeoDataService } from './geodata.service';
 import { GlyphService } from './glyph.service';
@@ -35,8 +34,7 @@ import { IconComponent } from './icon/icon.component';
     IconComponent
   ],
   imports: [
-    CommonModule,
-    UtilModule
+    CommonModule
   ],
   declarations: [
     IconComponent

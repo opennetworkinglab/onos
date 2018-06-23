@@ -15,7 +15,6 @@
  */
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { UtilModule } from '../util/util.module';
 
 import { FlashComponent } from './flash/flash.component';
 import { DetailsPanelService } from './detailspanel.service';
@@ -35,8 +34,7 @@ import { VeilComponent } from './veil/veil.component';
     VeilComponent
   ],
   imports: [
-    CommonModule,
-    UtilModule
+    CommonModule
   ],
   declarations: [
     FlashComponent,

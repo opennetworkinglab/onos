@@ -62,7 +62,8 @@ genrule(
         + 'npm5 install -g @angular/cli@6.0.0 2>&1;'
         + 'npm5 install 2>&1;'
         + 'ng -v;'
-        + 'ng build --extract-css --preserve-symlinks --base-href /onos/ui2/dist/ --deploy-url /onos/ui2/dist/ --output-path="$OUT" 2>&1',
+# Build it in production mode - optimization is turned off because of Angular CLI 6.0.x bug https://github.com/angular/angular-cli/issues/7799
+        + 'ng build --extract-css --prod --optimization=false --preserve-symlinks --base-href /onos/ui2/dist/ --deploy-url /onos/ui2/dist/ --output-path="$OUT" 2>&1',
     out = 'dist',
     visibility = [ 'PUBLIC' ],
 )

@@ -29,7 +29,7 @@ const WSSUFFIX = UICONTEXT + 'websock/';
 export class UrlFnService {
     constructor(
         private log: LogService,
-        @Inject(Window) private w: Window
+        @Inject('Window') private w: Window
     ) {
         this.log.debug('UrlFnService constructed');
     }

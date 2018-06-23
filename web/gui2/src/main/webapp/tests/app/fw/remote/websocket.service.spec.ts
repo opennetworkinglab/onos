@@ -76,7 +76,7 @@ describe('WebSocketService', () => {
                 { provide: LogService, useValue: logSpy },
                 { provide: GlyphService, useClass: MockGlyphService },
                 { provide: UrlFnService, useValue: new UrlFnService(logSpy, windowMock) },
-                { provide: Window, useFactory: (() => windowMock ) },
+                { provide: 'Window', useFactory: (() => windowMock ) },
                 { provide: WSock, useFactory: (() => {
                         return {
                             newWebSocket: (() => mockWebSocket)

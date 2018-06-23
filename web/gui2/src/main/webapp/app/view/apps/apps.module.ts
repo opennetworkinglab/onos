@@ -15,6 +15,7 @@
  */
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { AppsRoutingModule } from './apps-routing.module';
 import { AppsComponent } from './apps.component';
 import { TriggerFormDirective } from './triggerform.directive';
 import { SvgModule } from '../../fw/svg/svg.module';
@@ -27,11 +28,9 @@ import { SvgModule } from '../../fw/svg/svg.module';
  * the 'app' folder which is the root of the complete framework
  */
 @NgModule({
-    exports: [
-        AppsComponent
-    ],
     imports: [
         CommonModule,
+        AppsRoutingModule,
         SvgModule
     ],
     declarations: [

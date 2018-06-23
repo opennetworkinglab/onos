@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, Inject } from '@angular/core';
 import { DetailsPanelService } from '../../fw/layer/detailspanel.service';
 import { FnService } from '../../fw/util/fn.service';
 import { IconService } from '../../fw/svg/icon.service';
@@ -77,7 +77,7 @@ export class DeviceComponent extends TableBaseImpl implements OnInit, OnDestroy 
         private ps: PanelService,
         private tds: TableDetailService,
         protected wss: WebSocketService,
-        private window: Window,
+        @Inject('Window') private window: Window,
     ) {
         super(fs, ls, log, wss, 'device');
         this.responseCallback = this.deviceResponseCb;

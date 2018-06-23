@@ -124,7 +124,7 @@ describe('AppsComponent', () => {
                 { provide: ThemeService, useClass: MockThemeService },
                 { provide: UrlFnService, useClass: MockUrlFnService },
                 { provide: WebSocketService, useClass: MockWebSocketService },
-                { provide: Window, useValue: windowMock },
+                { provide: 'Window', useValue: windowMock },
             ]
         })
         .compileComponents();

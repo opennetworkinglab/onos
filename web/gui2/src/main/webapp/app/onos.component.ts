@@ -83,7 +83,7 @@ export class OnosComponent implements OnInit, OnDestroy {
         private ps: PanelService,
         private qhs: QuickHelpService,
         private ee: EeService,
-        private wss: WebSocketService,
+        public wss: WebSocketService,
         private ss: SpriteService,
         private log: LogService,
         private onos: OnosService

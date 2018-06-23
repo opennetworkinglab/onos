@@ -19,19 +19,22 @@ import { Logger } from './log.service';
 
 export let isDebugMode: boolean = !environment.production;
 
+const noop = (): any => undefined;
+
 /**
  * ONOS GUI -- LogService
  * Inspired by https://robferguson.org/blog/2017/09/09/a-simple-logging-service-for-angular-4/
  */
-@Injectable()
+@Injectable({
+  providedIn: 'root',
+})
 export class ConsoleLoggerService implements Logger {
-  private noop: () => void;
 
   get debug() {
     if (isDebugMode) {
       return console.debug.bind(console);
     } else {
-      return this.noop;
+      return noop;
     }
   }
 
@@ -39,7 +42,7 @@ export class ConsoleLoggerService implements Logger {
     if (isDebugMode) {
       return console.info.bind(console);
     } else {
-      return this.noop;
+      return noop;
     }
   }
 
@@ -52,7 +55,7 @@ export class ConsoleLoggerService implements Logger {
   }
 
   invokeConsoleMethod(type: string, args?: any): void {
-    const logFn: Function = (console)[type] || console.log || this.noop;
+    const logFn: Function = (console)[type] || console.log || noop;
     logFn.apply(console, [args]);
   }
 }

@@ -72,7 +72,7 @@ describe('LionService', () => {
                 { provide: UrlFnService, useClass: MockUrlFnService },
                 { provide: WSock, useClass: MockWSock },
                 { provide: WebSocketService, useClass: WebSocketService },
-                { provide: Window, useFactory: (() => windowMock ) },
+                { provide: 'Window', useFactory: (() => windowMock ) },
             ]
         });
     });

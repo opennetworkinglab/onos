@@ -17,6 +17,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Routes } from '@angular/router';
 import { SvgModule } from '../svg/svg.module';
+import { OnosRoutingModule } from '../../onos-routing.module';
 
 import { NavComponent } from './nav/nav.component';
 import { NavService } from './nav.service';
@@ -30,6 +31,7 @@ import { DeviceComponent } from '../../view/device/device.component';
 @NgModule({
   imports: [
     CommonModule,
+    OnosRoutingModule,
     RouterModule,
     SvgModule
   ],
