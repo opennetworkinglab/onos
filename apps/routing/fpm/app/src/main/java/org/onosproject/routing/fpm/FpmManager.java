@@ -304,13 +304,16 @@ public class FpmManager implements FpmInfoService {
                         .map(IpAddress::getIp4Address)
                         .findFirst()
                         .orElse(null);
+                    log.debug("RUR IPv4 address extracted from netcfg is: {}", rurIPv4Address);
                     if (rurIPv4Address != null) {
                         pdPushNextHopIPv4.add(rurIPv4Address);
+                    } else {
+                        log.debug("Unable to extract RUR IPv4 address from netcfg");
                     }
 
                 }
 
-                if (pdPushNextHopIPv6.size() == 0) {
+                if (pdPushNextHopIPv6 == null || pdPushNextHopIPv6.size() == 0) {
                     rurIPv6Address = interfaceService.getInterfaces()
                         .stream()
                         .filter(iface -> iface.name().contains("RUR"))
@@ -321,8 +324,11 @@ public class FpmManager implements FpmInfoService {
                         .map(IpAddress::getIp6Address)
                         .findFirst()
                         .orElse(null);
+                    log.debug("RUR IPv6 address extracted from netcfg is: {}", rurIPv6Address);
                     if (rurIPv6Address != null) {
                         pdPushNextHopIPv6.add(rurIPv6Address);
+                    } else {
+                        log.debug("Unable to extract RUR IPv6 address from netcfg");
                     }
                 }
 
@@ -453,8 +459,8 @@ public class FpmManager implements FpmInfoService {
         IpPrefix prefix = IpPrefix.valueOf(dstAddress, rtNetlink.dstLength());
 
         // Ignore routes that we sent.
-        if (gateway != null && ((prefix.isIp4() && (gateway.equals(pdPushNextHopIPv4))) ||
-            gateway.equals(pdPushNextHopIPv6))) {
+        if (gateway != null && ((prefix.isIp4() && (pdPushNextHopIPv4.contains(gateway))) ||
+                pdPushNextHopIPv6.contains(gateway))) {
             if (routeInDhcpStore(prefix) || routeInRipStore(prefix)) {
                 return;
             }
