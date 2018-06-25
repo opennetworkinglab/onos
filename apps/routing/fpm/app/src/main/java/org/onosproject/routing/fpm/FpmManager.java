@@ -460,8 +460,11 @@ public class FpmManager implements FpmInfoService {
         IpPrefix prefix = IpPrefix.valueOf(dstAddress, rtNetlink.dstLength());
 
         // Ignore routes that we sent.
-        if (gateway != null && ((prefix.isIp4() && (pdPushNextHopIPv4.contains(gateway))) ||
-                pdPushNextHopIPv6.contains(gateway))) {
+        if (gateway != null && (
+                (prefix.isIp4() && pdPushNextHopIPv4 != null &&
+                        pdPushNextHopIPv4.contains(gateway.getIp4Address())) ||
+                (prefix.isIp6() && pdPushNextHopIPv6 != null &&
+                        pdPushNextHopIPv6.contains(gateway.getIp6Address())))) {
             if (routeInDhcpStore(prefix) || routeInRipStore(prefix)) {
                 return;
             }
