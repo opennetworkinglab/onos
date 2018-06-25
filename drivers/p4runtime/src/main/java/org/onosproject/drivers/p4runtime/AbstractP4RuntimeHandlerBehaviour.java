@@ -16,8 +16,6 @@
 
 package org.onosproject.drivers.p4runtime;
 
-import io.grpc.ManagedChannelBuilder;
-import io.grpc.netty.NettyChannelBuilder;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
@@ -100,9 +98,9 @@ public class AbstractP4RuntimeHandlerBehaviour extends AbstractHandlerBehaviour 
         deviceId = handler().data().deviceId();
         controller = handler().get(P4RuntimeController.class);
 
-        String serverAddr = this.data().value(P4RUNTIME_SERVER_ADDR_KEY);
-        String serverPortString = this.data().value(P4RUNTIME_SERVER_PORT_KEY);
-        String p4DeviceIdString = this.data().value(P4RUNTIME_DEVICE_ID_KEY);
+        final String serverAddr = this.data().value(P4RUNTIME_SERVER_ADDR_KEY);
+        final String serverPortString = this.data().value(P4RUNTIME_SERVER_PORT_KEY);
+        final String p4DeviceIdString = this.data().value(P4RUNTIME_DEVICE_ID_KEY);
 
         if (serverAddr == null || serverPortString == null || p4DeviceIdString == null) {
             log.warn("Unable to create client for {}, missing driver data key (required is {}, {}, and {})",
@@ -110,11 +108,9 @@ public class AbstractP4RuntimeHandlerBehaviour extends AbstractHandlerBehaviour 
             return false;
         }
 
-        ManagedChannelBuilder channelBuilder = NettyChannelBuilder
-                .forAddress(serverAddr, Integer.valueOf(serverPortString))
-                .usePlaintext(true);
-
-        if (!controller.createClient(deviceId, Long.parseUnsignedLong(p4DeviceIdString), channelBuilder)) {
+        if (!controller.createClient(deviceId, serverAddr,
+                                     Integer.parseUnsignedInt(serverPortString),
+                                     Long.parseUnsignedLong(p4DeviceIdString))) {
             log.warn("Unable to create client for {}, aborting operation", deviceId);
             return false;
         }

@@ -1,15 +1,14 @@
+import json
 import multiprocessing
 import os
-import socket
+import random
 import re
-import json
+import socket
 import threading
-import urllib2
-
 import time
+import urllib2
 from contextlib import closing
-
-from mininet.log import info, warn, error
+from mininet.log import info, warn
 from mininet.node import Switch, Host
 
 SIMPLE_SWITCH_GRPC = 'simple_switch_grpc'
@@ -322,7 +321,7 @@ class ONOSBmv2Switch(Switch):
         except AttributeError:
             clist = controllers
         assert len(clist) > 0
-        return clist[0].IP()
+        return random.choice(clist).IP()
 
     def killBmv2(self, log=False):
         if self.bmv2popen is not None:

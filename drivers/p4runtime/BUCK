@@ -5,7 +5,6 @@ COMPILE_DEPS = [
     '//lib:KRYO',
     '//protocols/p4runtime/api:onos-protocols-p4runtime-api',
     '//incubator/grpc-dependencies:grpc-core-repkg-' + GRPC_VER,
-    '//lib:grpc-netty-' + GRPC_VER,
     '//core/store/serializers:onos-core-serializers',
 ]
 

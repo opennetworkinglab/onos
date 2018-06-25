@@ -8,6 +8,7 @@ COMPILE_DEPS = [
     '//protocols/p4runtime/proto:onos-protocols-p4runtime-proto',
     '//incubator/grpc-dependencies:grpc-core-repkg-' + GRPC_VER,
     '//lib:grpc-stub-' + GRPC_VER,
+    '//lib:grpc-netty-' + GRPC_VER,
     '//lib:protobuf-java-' + PROTOBUF_VER,
 ]
 
