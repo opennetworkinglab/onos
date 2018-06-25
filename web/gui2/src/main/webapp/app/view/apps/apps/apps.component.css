@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-present Open Networking Foundation
+ * Copyright 2015-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable } from '@angular/core';
-import { FnService } from '../util/fn.service';
-import { LogService } from '../../log.service';
 
-/**
- * ONOS GUI -- Widget -- Table Detail Panel Service
+/*
+ ONOS GUI -- Applications View (layout) -- CSS file
  */
-@Injectable()
-export class TableDetailService {
 
-  constructor(
-    private fs: FnService,
-    private log: LogService,
-  ) {
-    this.log.debug('TableDetailService constructed');
-  }
+#ov-app h2 {
+    display: inline-block;
+}
 
+#ov-app div.ctrl-btns {
+    width: 290px;
+}
+
+/* -- Drag-n-Drop oar file upload -- */
+#ov-app form#inputFileForm,
+#ov-app input#uploadFile {
+    display: none;
+}
+
+.dropping {
+
+}
+
+/* -- Confirmation Dialog -- */
+#app-dialog {
+    top: 140px;
+    padding: 12px;
+}
+
+#app-dialog p {
+    font-size: 12pt;
+}
+
+#app-dialog p.strong {
+    font-weight: bold;
+    padding: 8px;
+    text-align: center;
 }

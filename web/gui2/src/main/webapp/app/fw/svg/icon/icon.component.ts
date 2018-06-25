@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, OnChanges, Input } from '@angular/core';
 import { IconService, glyphMapping } from '../icon.service';
 import { LogService } from '../../../log.service';
 
@@ -36,7 +36,7 @@ import { LogService } from '../../../log.service';
     './tooltip.css', './tooltip-theme.css'
     ]
 })
-export class IconComponent implements OnInit {
+export class IconComponent implements OnInit, OnChanges {
     @Input() iconId: string;
     @Input() iconSize: number = 20;
     @Input() toolTip: string = undefined;
@@ -53,7 +53,19 @@ export class IconComponent implements OnInit {
         this.log.debug('IconComponent constructed');
     }
 
+    /**
+     * Icons are loaded in to the DOM under iconDefs
+     * TODO: Change this to use more standard Angular 6 mechanism
+     */
     ngOnInit() {
+        this.is.loadIconDef(this.iconId);
+    }
+
+    /**
+     * This is needed in case the iconId changes while icon component
+     * is displayed on screen.
+     */
+    ngOnChanges() {
         this.is.loadIconDef(this.iconId);
     }
 

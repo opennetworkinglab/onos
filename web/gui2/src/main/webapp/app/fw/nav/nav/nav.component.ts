@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { trigger, state, style, animate, transition } from '@angular/animations';
+
+import { LionService } from '../../util/lion.service';
 import { LogService } from '../../../log.service';
 import { NavService } from '../nav.service';
-import { trigger, state, style, animate, transition } from '@angular/animations';
 
 /**
  * ONOS GUI -- Navigation Module
@@ -27,30 +29,64 @@ import { trigger, state, style, animate, transition } from '@angular/animations'
   styleUrls: ['./nav.theme.css', './nav.component.css'],
   animations: [
     trigger('navState', [
-      state('inactive', style({
-        visibility: 'hidden',
-        transform: 'translateX(-100%)'
+      state('false', style({
+        transform: 'translateY(-100%)'
       })),
-      state('active', style({
-        visibility: 'visible',
-        transform: 'translateX(0%)'
+      state('true', style({
+        transform: 'translateY(0%)'
       })),
-      transition('inactive => active', animate('100ms ease-in')),
-      transition('active => inactive', animate('100ms ease-out'))
+      transition('0 => 1', animate('100ms ease-in')),
+      transition('1 => 0', animate('100ms ease-out'))
     ])
   ]
 })
-export class NavComponent implements OnInit {
+export class NavComponent implements OnInit, OnDestroy {
+    lionFn; // Function
 
-  constructor(
-    private log: LogService,
-    public ns: NavService
-  ) {
-    this.log.debug('NavComponent constructed');
-  }
+    constructor(
+        private log: LogService,
+        private lion: LionService,
+        public ns: NavService
+    ) {
+        this.log.debug('NavComponent constructed');
+    }
 
-  ngOnInit() {
-    this.log.debug('NavComponent initialized');
-  }
+    /**
+     * If LION is not ready we make do with a dummy function
+     * As soon a lion gets loaded this function will be replaced with
+     * the real thing
+     */
+    ngOnInit() {
+        if (this.lion.ubercache.length === 0) {
+            this.lionFn = this.dummyLion;
+            this.lion.loadCbs.set('nav', () => this.doLion());
+            this.log.debug('LION not available when NavComponent initialized');
+        } else {
+            this.doLion();
+        }
+    }
+
+    /**
+     * Nav component should never be closed, but in case it does, it's
+     * safer to tidy up after itself
+     */
+    ngOnDestroy() {
+        this.lion.loadCbs.delete('nav');
+    }
+
+    /**
+    * Read the LION bundle for App and set up the lionFn
+    */
+    doLion() {
+        this.lionFn = this.lion.bundle('core.fw.Nav');
+    }
+
+    /**
+    * A dummy implementation of the lionFn until the response is received and the LION
+    * bundle is received from the WebSocket
+    */
+    dummyLion(key: string): string {
+        return '%' + key + '%';
+    }
 
 }

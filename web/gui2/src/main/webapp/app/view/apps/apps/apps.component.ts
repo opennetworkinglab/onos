@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 import { Component, OnInit, OnDestroy, Inject } from '@angular/core';
-import { DialogService } from '../../fw/layer/dialog.service';
-import { FnService } from '../../fw/util/fn.service';
-import { IconService } from '../../fw/svg/icon.service';
-import { KeyService } from '../../fw/util/key.service';
-import { LionService } from '../../fw/util/lion.service';
-import { LoadingService } from '../../fw/layer/loading.service';
-import { LogService } from '../../log.service';
-import { PanelService } from '../../fw/layer/panel.service';
-import { TableBaseImpl, TableResponse } from '../../fw/widget/tablebase';
-import { UrlFnService } from '../../fw/remote/urlfn.service';
-import { WebSocketService } from '../../fw/remote/websocket.service';
+import { DialogService } from '../../../fw/layer/dialog.service';
+import { FnService } from '../../../fw/util/fn.service';
+import { IconService } from '../../../fw/svg/icon.service';
+import { KeyService } from '../../../fw/util/key.service';
+import { LionService } from '../../../fw/util/lion.service';
+import { LoadingService } from '../../../fw/layer/loading.service';
+import { LogService } from '../../../log.service';
+import { TableBaseImpl, TableResponse, TableFilter, SortParams, SortDir } from '../../../fw/widget/table.base';
+import { UrlFnService } from '../../../fw/remote/urlfn.service';
+import { WebSocketService } from '../../../fw/remote/websocket.service';
+import { TableFilterPipe } from '../../../fw/widget/tablefilter.pipe';
 
 const INSTALLED = 'INSTALLED';
 const ACTIVE = 'ACTIVE';
@@ -36,8 +36,12 @@ const detailsReq = 'appDetailsRequest';
 const detailsResp = 'appDetailsResponse';
 const fileUploadUrl = 'applications/upload';
 const activateOption = '?activate=true';
-const appUrlPrefix = 'rs/applications/';
-const iconUrlSuffix = '/icon';
+
+/** Prefix to access the REST service for applications */
+export const APPURLPREFIX = '../../ui/rs/applications/'; // TODO: This is a hack to work off GUIv1 URL
+/** Suffix to access the icon of the application - gives back an image */
+export const ICONURLSUFFIX = '/icon';
+
 const downloadSuffix = '/download';
 const dialogId = 'app-dialog';
 const dialogOpts = {
@@ -49,20 +53,26 @@ const strongWarning = {
 };
 const propOrder = ['id', 'state', 'category', 'version', 'origin', 'role'];
 
+/**
+ * Model of the data returned through the Web Socket about apps.
+ */
 interface AppTableResponse extends TableResponse {
-    apps: Apps[];
+    apps: App[];
 }
 
-interface Apps {
+/**
+ * Model of the data returned through Web Socket for a single App
+ */
+export interface App {
     category: string;
     desc: string;
-    features: string;
+    features: string[];
     icon: string;
     id: string;
     origin: string;
-    permissions: string;
+    permissions: string[];
     readme: string;
-    required_apps: string;
+    required_apps: string[];
     role: string;
     state: string;
     title: string;
@@ -71,6 +81,9 @@ interface Apps {
     _iconid_state: string;
 }
 
+/**
+ * Model of the Control Button
+ */
 interface CtrlBtnState {
     installed: boolean;
     selection: string;
@@ -85,7 +98,7 @@ interface CtrlBtnState {
   templateUrl: './apps.component.html',
   styleUrls: [
     './apps.component.css', './apps.theme.css',
-    '../../fw/widget/table.css', '../../fw/widget/table-theme.css'
+    '../../../fw/widget/table.css', '../../../fw/widget/table.theme.css'
     ]
 })
 export class AppsComponent extends TableBaseImpl implements OnInit, OnDestroy {
@@ -94,7 +107,6 @@ export class AppsComponent extends TableBaseImpl implements OnInit, OnDestroy {
     lionFn; // Function
     warnDeactivate: string;
     warnOwnRisk: string;
-    friendlyProps: string[];
     ctrlBtnState: CtrlBtnState;
     detailsPanel: any;
     appFile: any;
@@ -114,43 +126,49 @@ export class AppsComponent extends TableBaseImpl implements OnInit, OnDestroy {
         private lion: LionService,
         protected ls: LoadingService,
         protected log: LogService,
-        private ps: PanelService,
         private ufs: UrlFnService,
         protected wss: WebSocketService,
         @Inject('Window') private window: Window,
     ) {
         super(fs, null, log, wss, 'app');
         this.responseCallback = this.appResponseCb;
+        // pre-populate sort so active apps are at the top of the list
         this.sortParams = {
             firstCol: 'state',
-            firstDir: 'desc',
+            firstDir: SortDir.desc,
             secondCol: 'title',
-            secondDir: 'asc',
+            secondDir: SortDir.asc,
         };
-        // We want doLion() to be called only after the Lion service is populated (from the WebSocket)
-        this.lion.loadCb = (() => this.doLion());
+        // We want doLion() to be called only after the Lion
+        // service is populated (from the WebSocket)
+        // If lion is not ready we make do with a dummy function
+        // As soon a lion gets loaded this function will be replaced with
+        // the real thing
+        if (this.lion.ubercache.length === 0) {
+            this.lionFn = this.dummyLion;
+            this.lion.loadCbs.set('apps', () => this.doLion());
+        } else {
+            this.doLion();
+        }
+
         this.ctrlBtnState = <CtrlBtnState>{
             installed: false,
             active: false
         };
-        if (this.lion.ubercache.length === 0) {
-            this.lionFn = this.dummyLion;
-        } else {
-            this.doLion();
-        }
-        this.uploadTip = this.lionFn('tt_ctl_upload');
-        this.activateTip = this.lionFn('tt_ctl_activate');
-        this.deactivateTip = this.lionFn('tt_ctl_deactivate');
-        this.uninstallTip = this.lionFn('tt_ctl_uninstall');
-        this.downloadTip = this.lionFn('tt_ctl_download');
     }
 
+    /**
+     * Initialize querying the WebSocket for App table details
+     */
     ngOnInit() {
         this.init();
-        this.log.debug('AppComponent initialized');
     }
 
+    /**
+     * Stop sending queries to WebSocket
+     */
     ngOnDestroy() {
+        this.lion.loadCbs.delete('apps');
         this.destroy();
         this.log.debug('AppComponent destroyed');
     }
@@ -199,8 +217,8 @@ export class AppsComponent extends TableBaseImpl implements OnInit, OnDestroy {
             this.wss.sendEvent(appMgmtReq, {
                 action: action,
                 name: itemId,
-                sortCol: spar.sortCol,
-                sortDir: spar.sortDir,
+                sortCol: spar.firstCol,
+                sortDir: spar.firstDir,
             });
             if (action === 'uninstall') {
                 this.detailsPanel.hide();
@@ -229,13 +247,12 @@ export class AppsComponent extends TableBaseImpl implements OnInit, OnDestroy {
 
     downloadApp() {
         if (this.ctrlBtnState.selection) {
-            (<any>this.window).location = appUrlPrefix + this.selId + downloadSuffix;
+            (<any>this.window).location = APPURLPREFIX + this.selId + ICONURLSUFFIX;
         }
     }
 
     /**
-     * Read the LION bundle for App - this should replace the dummyLion implementation
-     * of lionFn with a function from the LION Service
+     * Read the LION bundle for App and set up the lionFn
      */
     doLion() {
         this.lionFn = this.lion.bundle('core.view.App');
@@ -243,19 +260,11 @@ export class AppsComponent extends TableBaseImpl implements OnInit, OnDestroy {
         this.warnDeactivate = this.lionFn('dlg_warn_deactivate');
         this.warnOwnRisk = this.lionFn('dlg_warn_own_risk');
 
-        this.friendlyProps = [
-            this.lionFn('app_id'), this.lionFn('state'),
-            this.lionFn('category'), this.lionFn('version'),
-            this.lionFn('origin'), this.lionFn('role'),
-        ];
-    }
-
-    /**
-     * A dummy implementation of the lionFn until the response is received and the LION
-     * bundle is received from the WebSocket
-     */
-    dummyLion(key: string): string {
-        return '%' + key + '%';
+        this.uploadTip = this.lionFn('tt_ctl_upload');
+        this.activateTip = this.lionFn('tt_ctl_activate');
+        this.deactivateTip = this.lionFn('tt_ctl_deactivate');
+        this.uninstallTip = this.lionFn('tt_ctl_uninstall');
+        this.downloadTip = this.lionFn('tt_ctl_download');
     }
 
     appDropped() {

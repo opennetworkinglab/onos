@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
-import { DialogService } from '../../layer/dialog.service';
+import { Component, Input, OnInit, OnDestroy, Inject } from '@angular/core';
 import { LionService } from '../../util/lion.service';
 import { LogService } from '../../../log.service';
 import { NavService } from '../../nav/nav.service';
-import { WebSocketService } from '../../remote/websocket.service';
 
 /**
  * ONOS GUI -- Masthead Component
@@ -28,39 +26,67 @@ import { WebSocketService } from '../../remote/websocket.service';
   templateUrl: './mast.component.html',
   styleUrls: ['./mast.component.css', './mast.theme.css']
 })
-export class MastComponent implements OnInit {
-    public username;
+export class MastComponent implements OnInit, OnDestroy {
+    @Input() username: string;
+
+    lionFn; // Function
+    viewMap = new Map<string, string>([]); // A map of app names
 
     constructor(
-        private ds: DialogService,
-        private ls: LionService,
+        private lion: LionService,
         private log: LogService,
         public ns: NavService,
-        private wss: WebSocketService
+        @Inject('Window') private window: Window,
     ) {
-        this.log.debug('MastComponent constructed');
-
+        this.viewMap.set('apps', 'https://wiki.onosproject.org/display/ONOS/GUI+Application+View');
+        this.viewMap.set('device', 'https://wiki.onosproject.org/display/ONOS/GUI+Device+View');
+        this.viewMap.set('', 'https://wiki.onosproject.org/display/ONOS/The+ONOS+Web+GUI');
     }
 
     ngOnInit() {
-        // onosUser is a global set via the index.html generated source
-        // TODO: Fix onosuser below to get it from index.html like before
-        // TODO: Fix the lionService
-        this.username = 'onosUser'; // || this.getLion('unknown_user');
-
+        if (this.lion.ubercache.length === 0) {
+            this.lionFn = this.dummyLion;
+            this.lion.loadCbs.set('mast', () => this.doLion());
+            this.log.debug('LION not available when MastComponent initialized');
+        } else {
+            this.doLion();
+        }
         this.log.debug('MastComponent initialized');
     }
 
-
-
-    /* In the case of Masthead, we cannot cache the lion bundle, because we
-     * call too early (before the lion data is uploaded from the server).
-     * So we'll dig into the lion service for each request...
+    /**
+     * Nav component should never be closed, but in case it does, it's
+     * safer to tidy up after itself
      */
-    getLion(x: string): string {
-      // lion is a function that takes a string and returns a string
-      const lion: (string) => string  = this.ls.bundle('core.fw.Mast');
-      return lion(x);
+    ngOnDestroy() {
+        this.lion.loadCbs.delete('mast');
     }
 
+    /**
+    * Read the LION bundle for App and set up the lionFn
+    */
+    doLion() {
+        this.lionFn = this.lion.bundle('core.fw.Mast');
+        if (this.username === undefined) {
+            this.username = this.lionFn('unknown_user');
+        }
+    }
+
+    /**
+    * A dummy implementation of the lionFn until the response is received and the LION
+    * bundle is received from the WebSocket
+    */
+    dummyLion(key: string): string {
+        return '%' + key + '%';
+    }
+
+    directTo() {
+        const curId = this.window.location.pathname.replace('/', '');
+        let helpUrl: string = this.viewMap.get(curId);
+        if (helpUrl === undefined) {
+            helpUrl = this.viewMap.get('');
+            this.log.warn('No help file linked for view:', curId);
+        }
+        this.window.open(helpUrl);
+    }
 }

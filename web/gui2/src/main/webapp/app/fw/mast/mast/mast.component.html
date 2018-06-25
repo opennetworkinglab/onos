@@ -13,6 +13,12 @@
 ~ See the License for the specific language governing permissions and
 ~ limitations under the License.
 -->
+<div id="mast-top-block"></div>
+<!-- The mast-top-block is an inline display element that pushes any
+  subsequent elements down the page. It has a height of 48px
+     The mast block overlays the mast-top-block. It is is positioned
+     absolutely so that the nav component can slide in behind it when
+     not shown -->
 <div id="mast" align="left">
     <span class="nav-menu-button clickable" (click)="ns.toggleNav()">
         <img src="data/img/nav-menu-mojo.png"/>
@@ -21,17 +27,14 @@
     <div id="mast-right">
         <nav>
             <div class="dropdown-parent">
-                <a class="clickable user-menu__name">{{username}} <i class="dropdown-icon"></i></a>
+                <a class="clickable user-menu__name">{{ username }} <i class="dropdown-icon"></i></a>
                 <div class="dropdown">
-                    <!--<a href="rs/logout"> {{getLion('logout')}} </a> !!FIXME-->
-                    <a href="rs/logout">logout</a>
+                    <a href="rs/logout"> {{ lionFn('logout') }} </a>
                 </div>
             </div>
             <div class="ctrl-btns">
-                <div class="active clickable icon"
-                     tooltip tt-msg="helpTip"
-                     ng-click="directTo()">
-                    <onos-icon iconId="query" iconSize="32"></onos-icon>
+                <div class="active clickable icon" (click)="directTo()">
+                    <onos-icon iconId="query" iconSize="32" toolTip="{{ lionFn('tt_help') }}"></onos-icon>
                 </div>
             </div>
         </nav>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-present Open Networking Foundation
+ * Copyright 2015-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,22 @@
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Params } from '@angular/router';
-import { LogService } from '../../../../app/log.service';
-import { AppsComponent } from '../../../../app/view/apps/apps.component';
-import { DialogService } from '../../../../app/fw/layer/dialog.service';
-import { FnService } from '../../../../app/fw/util/fn.service';
-import { IconComponent } from '../../../../app/fw/svg/icon/icon.component';
-import { IconService } from '../../../../app/fw/svg/icon.service';
-import { KeyService } from '../../../../app/fw/util/key.service';
-import { LionService } from '../../../../app/fw/util/lion.service';
-import { LoadingService } from '../../../../app/fw/layer/loading.service';
-import { PanelService } from '../../../../app/fw/layer/panel.service';
-import { ThemeService } from '../../../../app/fw/util/theme.service';
-import { UrlFnService } from '../../../../app/fw/remote/urlfn.service';
-import { WebSocketService } from '../../../../app/fw/remote/websocket.service';
+import { DebugElement } from '@angular/core';
+import { By } from '@angular/platform-browser';
+import { LogService } from '../../log.service';
+import { DeviceComponent } from './device.component';
+
+import { FnService, WindowSize } from '../../fw/util/fn.service';
+import { IconService } from '../../fw/svg/icon.service';
+import { GlyphService } from '../../fw/svg/glyph.service';
+import { IconComponent } from '../../fw/svg/icon/icon.component';
+import { KeyService } from '../../fw/util/key.service';
+import { LoadingService } from '../../fw/layer/loading.service';
+import { NavService } from '../../fw/nav/nav.service';
+import { MastService } from '../../fw/mast/mast.service';
+import { SvgUtilService } from '../../fw/svg/svgutil.service';
+import { ThemeService } from '../../fw/util/theme.service';
+import { WebSocketService } from '../../fw/remote/websocket.service';
 import { of } from 'rxjs';
 
 class MockActivatedRoute extends ActivatedRoute {
@@ -37,7 +40,7 @@ class MockActivatedRoute extends ActivatedRoute {
     }
 }
 
-class MockDialogService {}
+class MockDetailsPanelService {}
 
 class MockFnService {}
 
@@ -45,21 +48,24 @@ class MockIconService {
     loadIconDef() {}
 }
 
+class MockGlyphService {}
+
 class MockKeyService {}
 
 class MockLoadingService {
     startAnim() {}
     stop() {}
-    waiting() {}
 }
 
-class MockPanelService {}
+class MockNavService {}
+
+class MockMastService {}
 
 class MockTableBuilderService {}
 
-class MockThemeService {}
+class MockTableDetailService {}
 
-class MockUrlFnService {}
+class MockThemeService {}
 
 class MockWebSocketService {
     createWebSocket() {}
@@ -69,23 +75,15 @@ class MockWebSocketService {
 }
 
 /**
- * ONOS GUI -- Apps View -- Unit Tests
+ * ONOS GUI -- Device View Module - Unit Tests
  */
-describe('AppsComponent', () => {
+describe('DeviceComponent', () => {
     let fs: FnService;
     let ar: MockActivatedRoute;
     let windowMock: Window;
     let logServiceSpy: jasmine.SpyObj<LogService>;
-    let component: AppsComponent;
-    let fixture: ComponentFixture<AppsComponent>;
-    const bundleObj = {
-        'core.view.App': {
-            test: 'test1'
-        }
-    };
-    const mockLion = (key) =>  {
-        return bundleObj[key] || '%' + key + '%';
-    };
+    let component: DeviceComponent;
+    let fixture: ComponentFixture<DeviceComponent>;
 
     beforeEach(async(() => {
         const logSpy = jasmine.createSpyObj('LogService', ['info', 'debug', 'warn', 'error']);
@@ -105,39 +103,39 @@ describe('AppsComponent', () => {
         fs = new FnService(ar, logSpy, windowMock);
 
         TestBed.configureTestingModule({
-            declarations: [ AppsComponent, IconComponent ],
+            declarations: [ DeviceComponent, IconComponent ],
             providers: [
-                { provide: DialogService, useClass: MockDialogService },
                 { provide: FnService, useValue: fs },
                 { provide: IconService, useClass: MockIconService },
+                { provide: GlyphService, useClass: MockGlyphService },
                 { provide: KeyService, useClass: MockKeyService },
-                { provide: LionService, useFactory: (() => {
-                        return {
-                            bundle: ((bundleId) => mockLion),
-                            ubercache: new Array()
-                        };
-                    })
-                },
                 { provide: LoadingService, useClass: MockLoadingService },
+                { provide: MastService, useClass: MockMastService },
+                { provide: NavService, useClass: MockNavService },
                 { provide: LogService, useValue: logSpy },
-                { provide: PanelService, useClass: MockPanelService },
                 { provide: ThemeService, useClass: MockThemeService },
-                { provide: UrlFnService, useClass: MockUrlFnService },
                 { provide: WebSocketService, useClass: MockWebSocketService },
                 { provide: 'Window', useValue: windowMock },
-            ]
+             ]
         })
         .compileComponents();
         logServiceSpy = TestBed.get(LogService);
     }));
 
     beforeEach(() => {
-        fixture = TestBed.createComponent(AppsComponent);
+        fixture = TestBed.createComponent(DeviceComponent);
         component = fixture.debugElement.componentInstance;
         fixture.detectChanges();
     });
 
     it('should create', () => {
         expect(component).toBeTruthy();
+    });
+
+    it('should have .table-header with "Friendly Name..."', () => {
+        const appDe: DebugElement = fixture.debugElement;
+        const divDe = appDe.query(By.css('.table-header'));
+        const div: HTMLElement = divDe.nativeElement;
+        expect(div.textContent).toEqual('Friendly Name Device ID Master Ports Vendor H/W Version S/W Version Protocol ');
     });
 });

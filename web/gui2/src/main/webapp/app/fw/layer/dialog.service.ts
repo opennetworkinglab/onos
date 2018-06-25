@@ -19,21 +19,21 @@ import { Injectable } from '@angular/core';
 import { FnService } from '../util/fn.service';
 import { KeyService } from '../util/key.service';
 import { LogService } from '../../log.service';
-import { PanelService } from './panel.service';
 
 /**
  * ONOS GUI -- Layer -- Dialog Service
  *
  * Builds on the panel service to provide dialog functionality.
  */
-@Injectable()
+@Injectable({
+  providedIn: 'root',
+})
 export class DialogService {
 
   constructor(
     private fs: FnService,
     private ks: KeyService,
     private log: LogService,
-    private ps: PanelService,
   ) {
     this.log.debug('DialogService constructed');
   }

@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
+import { Observable, Subscription, fromEvent } from 'rxjs';
+import { map, filter } from 'rxjs/operators';
+
 import { LionService } from './fw/util/lion.service';
 import { LogService } from './log.service';
 import { KeyService } from './fw/util/key.service';
 import { ThemeService } from './fw/util/theme.service';
 import { GlyphService } from './fw/svg/glyph.service';
-import { PanelService } from './fw/layer/panel.service';
 import { QuickHelpService } from './fw/layer/quickhelp.service';
 import { EeService } from './fw/util/ee.service';
 import { WebSocketService, WsOptions } from './fw/remote/websocket.service';
@@ -62,8 +64,9 @@ function cap(s: string): string {
   templateUrl: './onos.component.html',
   styleUrls: ['./onos.component.css', './onos.common.css']
 })
-export class OnosComponent implements OnInit, OnDestroy {
-    public title = 'onos';
+export class OnosComponent implements OnInit, AfterViewInit, OnDestroy {
+    private quickHelpSub: Subscription;
+    private quickHelpHandler: Observable<string>;
 
     // view ID to help page url map.. injected via the servlet
     viewMap: View[]  = [
@@ -80,7 +83,6 @@ export class OnosComponent implements OnInit, OnDestroy {
         private ks: KeyService,
         private ts: ThemeService,
         private gs: GlyphService,
-        private ps: PanelService,
         private qhs: QuickHelpService,
         private ee: EeService,
         public wss: WebSocketService,
@@ -114,19 +116,62 @@ export class OnosComponent implements OnInit, OnDestroy {
         this.log.debug('OnosComponent initialized');
     }
 
+    /**
+     * Start the listener for keystrokes for QuickHelp
+     *
+     * This creates an observable that listens to the '/','\' and Esc keystrokes
+     * anywhere in the web page - it strips the keyCode out of the keystroke
+     * and passes this to another observable that filters only for these keystrokes
+     * and finally maps these key code to text literals to drive the
+     * quick help feature
+     */
+    ngAfterViewInit() {
+        const keyStrokeHandler =
+            fromEvent(document, 'keyup').pipe(map((x: KeyboardEvent) => x.keyCode));
+        this.quickHelpHandler = keyStrokeHandler.pipe(
+            filter(x => {
+                return [27, 191, 220].includes(x);
+            })
+        ).pipe(
+            map(x => {
+                let direction;
+                switch (x) {
+                    case 27:
+                        direction = 'esc';
+                        break;
+                    case 191:
+                        direction = 'fwdslash';
+                        break;
+                    case 220:
+                        direction = 'backslash';
+                        break;
+                    default:
+                        direction = 'esc';
+                }
+                return direction;
+            })
+        );
+
+        // TODO: Make a Quick Help component popup
+        this.quickHelpSub = this.quickHelpHandler.subscribe((keyname) => {
+            this.log.debug('Keystroke', keyname);
+        });
+    }
+
     ngOnDestroy() {
         if (this.wss.isConnected()) {
             this.log.debug('Stopping Web Socket connection');
             this.wss.closeWebSocket();
         }
 
+        this.quickHelpSub.unsubscribe();
         this.log.debug('OnosComponent destroyed');
     }
 
     saucy(ee, ks) {
-        const map = ee.genMap(sauce);
-        Object.keys(map).forEach(function (k) {
-            ks.addSeq(k, map[k]);
+        const map1 = ee.genMap(sauce);
+        Object.keys(map1).forEach(function (k) {
+            ks.addSeq(k, map1[k]);
         });
     }
 }

@@ -385,6 +385,10 @@ export class WebSocketService {
         }
     }
 
+    isHandling(handlerId: string): boolean {
+        return this.handlers.get(handlerId) !== undefined;
+    }
+
     /**
      * Add a listener function for listening for WebSocket opening.
      * The function must give a host and url and return void

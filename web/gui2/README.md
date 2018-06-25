@@ -13,6 +13,12 @@ feature:install onos-gui2
 ```
 and the gui will be accessible at [http://localhost:8181/onos/ui2](http://localhost:8181/onos/ui2)
 
+As usual with ONOS if you want to run it in a different language set the __ONOS_LOCALE__ environment variable
+to the locale you want before starting onos. e.g.
+```
+ONOS_LOCALE=fr_FR onos-buck run onos-local
+```
+
 # Development
 There are 2 ways to go about development - 
 1. rebuild the code and rerun through BUCK (much like can be done with any ordinary ONOS app) 
@@ -62,7 +68,12 @@ Navigate to `http://localhost:4200/`. The app will automatically reload if you c
 
 Press Ctrl-Shift-I in Chrome and Firefox to bring up the developer tools and the browser console.
 
-There are certain extra debugging can be turned on by adding the parameter 'debug' For example to turn extra logging for WebSockets add on __?debug=txrx__ 
+There are certain extra debugging can be turned on by adding the parameter 'debug' 
+For example to turn extra logging for WebSockets add on __?debug=txrx__
+
+On the Apps view - icons will appear to be missing - this is because they use a relative path to
+source the image, and this path is not available in this 'ng serve' mode. The icons work fine in the
+mode where it's run inside ONOS. 
 
 ## Code scaffolding
 

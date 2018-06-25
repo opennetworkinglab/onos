@@ -13,13 +13,16 @@
 ~ See the License for the specific language governing permissions and
 ~ limitations under the License.
 -->
-<nav id="nav" [@navState]="ns.showNav?'active':'inactive'">
-    <div class="nav-hdr">Platform</div>
+<nav id="nav" [@navState]="ns.showNav">
+    <div class="nav-hdr">{{ lionFn('cat_platform') }}</div>
+
     <a (click)="ns.hideNav()" routerLink="/apps" routerLinkActive="active">
-        <!--<div onosIcon iconId="nav_apps"></div>
-         Using the new IconComponent rather than the directive -->
         <onos-icon iconId="nav_apps"></onos-icon>Apps</a>
-    <div class="nav-hdr">Network</div>
+
+    <div class="nav-hdr">{{ lionFn('cat_network') }}</div>
+
     <a (click)="ns.hideNav()" routerLink="/devices" routerLinkActive="active">
         <onos-icon iconId="nav_devs"></onos-icon>Devices</a>
+
+    <div class="nav-hdr">{{ lionFn('cat_other') }}</div>
 </nav>

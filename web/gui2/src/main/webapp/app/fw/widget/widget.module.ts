@@ -21,11 +21,11 @@ import { SvgModule } from '../svg/svg.module';
 import { ButtonService } from './button.service';
 import { ChartBuilderService } from './chartbuilder.service';
 import { ListService } from './list.service';
-import { TableDetailService } from './tabledetail.service';
 import { ToolbarService } from './toolbar.service';
 import { SortableHeaderDirective } from './sortableheader.directive';
 import { TableResizeDirective } from './tableresize.directive';
 import { FlashChangesDirective } from './flashchanges.directive';
+import { TableFilterPipe } from './tablefilter.pipe';
 
 /**
  * ONOS GUI -- Widgets Module
@@ -39,14 +39,13 @@ import { FlashChangesDirective } from './flashchanges.directive';
   declarations: [
     SortableHeaderDirective,
     TableResizeDirective,
-    FlashChangesDirective
+    FlashChangesDirective,
+    TableFilterPipe
+  ],
+  exports: [
+    TableFilterPipe
   ],
   providers: [
-    ButtonService,
-    ChartBuilderService,
-    ListService,
-    TableDetailService,
-    ToolbarService
   ]
 })
 export class WidgetModule { }

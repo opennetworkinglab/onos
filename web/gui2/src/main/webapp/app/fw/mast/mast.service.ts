@@ -17,7 +17,7 @@ import { Injectable } from '@angular/core';
 import { FnService } from '../util/fn.service';
 import { LogService } from '../../log.service';
 
-const padMobile = 16;
+const PADMOBILE = 16;
 
 /**
  * ONOS GUI -- Masthead Service
@@ -32,7 +32,7 @@ export class MastService {
     private log: LogService
   ) {
     if (this.fs.isMobile()) {
-        this.mastHeight += padMobile;
+        this.mastHeight += PADMOBILE;
     }
 
     this.log.debug('MastService constructed');

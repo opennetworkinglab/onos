@@ -35,7 +35,7 @@ interface Lion {
 export class LionService {
 
     ubercache: any[] = [];
-    loadCb; // Function
+    loadCbs = new Map<string, () => void>([]); // A map of functions
 
     /**
      * Handler for uberlion event from WSS
@@ -51,9 +51,11 @@ export class LionService {
                 this.log.info('            :=> ', p);
             }
         }
-        if (this.loadCb) {
-            this.log.debug('Calling the load callback');
-            this.loadCb();
+        // If any component had registered a callback, call it now
+        // that LION is loaded
+        for (const cbname of this.loadCbs.keys()) {
+            this.log.debug('Updating', cbname, 'with LION');
+            this.loadCbs.get(cbname)();
         }
 
         this.log.debug('LION service: uber-lion bundle received:', data);

@@ -17,11 +17,9 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { FlashComponent } from './flash/flash.component';
-import { DetailsPanelService } from './detailspanel.service';
 import { DialogService } from './dialog.service';
 import { EditableTextService } from './editabletext.service';
 import { LoadingService } from './loading.service';
-import { PanelService } from './panel.service';
 import { QuickHelpService } from './quickhelp.service';
 import { VeilComponent } from './veil/veil.component';
 
@@ -41,12 +39,6 @@ import { VeilComponent } from './veil/veil.component';
     VeilComponent
   ],
   providers: [
-    DetailsPanelService,
-    DialogService,
-    EditableTextService,
-    LoadingService,
-    PanelService,
-    QuickHelpService
   ]
 })
 export class LayerModule { }

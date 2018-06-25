@@ -1,4 +1,4 @@
-#Migrating ONOS GUI
+# Migrating ONOS GUI
 Code written for Angular 1.x can be converted to Angular 5, through a line by line migration process (aka a hard slog)
 
 * It is important to know that Angular 5 code is written in TypeScript and all files end in .ts
@@ -8,6 +8,10 @@ Code written for Angular 1.x can be converted to Angular 5, through a line by li
   * See https://webapplog.com/es6/ for a list of things that ES6 brings
 * Each item (Service, Component, Directive, Pipe or Module) gets its own file ending with this type e.g. function.service.ts 
 * Each test file is the name of the item with .spec.ts e.g. function.service.spec.ts
+    * It is considered best practice to put the Unit test of a component or service
+   right next to it in the folder - some new unit tests have been placed in a
+   tests folder, but they will have to come back out from there in to the 
+   individual folders.
 * Modules are used to group together services, components, directives etc
 * When starting any new component use the `ng generate ..` This will create the associated test too
 
@@ -53,7 +57,7 @@ There is clearly a module (onosApp) here containing a controller (OnosCtrl) and 
 If documentation has been created (using `npm run compodoc`) this module can be inspected at
 [OnosModule](./documentation/modules/OnosModule.html)
 
-#Angular CLI
+# Angular CLI
 The Angular CLI tool has many handy modes to help you along the way.
 From the onos/web/gui folder you should be able to run 
 
@@ -98,7 +102,7 @@ LoadingComponent).
 Similarly a directive might be trying to do DOM manipulation and have a CSS - this 
 should be made in to a component instead (see IconComponent)
 
-###How do I know whether a Service or Directive should be made a Component in this new GUI?
+### How do I know whether a Service or Directive should be made a Component in this new GUI?
 The general rule to follow is _"if a service in the old GUI has an associated CSS 
 file or two then is should be a component in the new GUI"_. 
 
@@ -115,6 +119,8 @@ component and not accessible globally.
 ### Do not inject components in to services
 Components are graphical elements and should not be injected in to Services. 
 Services should be injected in to components, but not the other way round.
+Components can be added in to other components by putting the selector of 
+the child component e.g. <onos-icon> in to the html template of the parent.
 
 Take for instance the WebSocketService - this should remain a service, but I want 
 to display the LoadingComponent while it's waiting and the VeilComponent if it
@@ -259,6 +265,11 @@ The following services are partially migrated:
 * fw/remote/WebSocketService - fully implemented with Unit tests
 * fw/widget/TableBase - previously the TableBuilderService this has now been changed
 to a plain interface and class - any table views should extend this
+* fw/widget/PanelBase - previously the PanelService - this is an abstract base class
+  that both dialogs and details panels are based off
+* fw/widget/DetailsPanelBase - previously the DetailsPanelService - this has functions 
+  for accessing the WebSocket service for details. If extends PanelBase and is the 
+  base for AppsDetailsComponent and DeviceDetailsComponent
 
 
 # Devices View
@@ -274,7 +285,11 @@ the widths of both in sync.
 For CSS the old device view CSS is included and a link is made across to the
 common table CSS
 
-#Apps View
+The Details Panel is made visible when a row is selected - it is a component, and is
+embedded in to the repeated row. There are base classes for common details panel 
+behaviour 
+
+# Apps View
 This is a Component too, again extending TableBase. Apps view has much more functionality 
 though because it has controls for upload and download of applications.
 

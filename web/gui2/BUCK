@@ -105,10 +105,15 @@ genrule(
     bash =
         'export PATH=$(location :node-bin-' + NODE_VERSION + ')/bin:$PATH; '
         + 'cd $(location :onos-web-gui2-build)/../../onos-web-gui2-build__srcs;'
-        + 'pwd > "$OUT";'
-        + 'npm5 -v >> "$OUT";'
-        + 'ng -v >> "$OUT";'
-        + 'ng lint >> "$OUT"',
+#         + 'pwd > "$OUT";'
+#         + 'npm5 -v >> "$OUT";'
+#         + 'ng -v >> "$OUT";'
+        + 'ng lint >> "$OUT" 2>&1 || '
+        + 'if [ $? -eq 0 ]; then echo "Successfully ran lint";'
+        + 'else '
+        + ' cat $OUT >&2;'
+        + ' exit 1;'
+        + 'fi;',
     out = 'onos-web-gui2-lint-log.txt',
 )
 

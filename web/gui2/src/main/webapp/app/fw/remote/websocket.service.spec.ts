@@ -15,13 +15,13 @@
  */
 import { TestBed, inject } from '@angular/core/testing';
 
-import { LogService } from '../../../../app/log.service';
-import { WebSocketService, WsOptions, Callback, EventType } from '../../../../app/fw/remote/websocket.service';
-import { FnService } from '../../../../app/fw/util/fn.service';
-import { GlyphService } from '../../../../app/fw/svg/glyph.service';
+import { LogService } from '../../log.service';
+import { WebSocketService, WsOptions, Callback, EventType } from './websocket.service';
+import { FnService } from '../util/fn.service';
+import { GlyphService } from '../svg/glyph.service';
 import { ActivatedRoute, Params } from '@angular/router';
-import { UrlFnService } from '../../../../app/fw/remote/urlfn.service';
-import { WSock } from '../../../../app/fw/remote/wsock.service';
+import { UrlFnService } from './urlfn.service';
+import { WSock } from './wsock.service';
 import { of } from 'rxjs';
 
 class MockActivatedRoute extends ActivatedRoute {
@@ -101,7 +101,8 @@ describe('WebSocketService', () => {
             'noHandlersWarn', 'resetState',
             'createWebSocket', 'bindHandlers', 'unbindHandlers',
             'addOpenListener', 'removeOpenListener', 'sendEvent',
-            'setVeilDelegate', 'setLoadingDelegate', 'isConnected', 'closeWebSocket'
+            'setVeilDelegate', 'setLoadingDelegate', 'isConnected',
+             'closeWebSocket', 'isHandling'
         ])).toBeTruthy();
     });
 

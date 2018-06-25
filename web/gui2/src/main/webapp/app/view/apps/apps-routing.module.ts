@@ -15,7 +15,7 @@
  */
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
-import { AppsComponent } from './apps.component';
+import { AppsComponent } from './apps/apps.component';
 
 
 const appsRoutes: Routes = [

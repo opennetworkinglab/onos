@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { Component, OnInit, OnDestroy, Inject } from '@angular/core';
-import { DetailsPanelService } from '../../fw/layer/detailspanel.service';
 import { FnService } from '../../fw/util/fn.service';
 import { IconService } from '../../fw/svg/icon.service';
 import { KeyService } from '../../fw/util/key.service';
@@ -22,15 +21,19 @@ import { LoadingService } from '../../fw/layer/loading.service';
 import { LogService } from '../../log.service';
 import { MastService } from '../../fw/mast/mast.service';
 import { NavService } from '../../fw/nav/nav.service';
-import { PanelService } from '../../fw/layer/panel.service';
-import { TableBaseImpl, TableResponse } from '../../fw/widget/tablebase';
-import { TableDetailService } from '../../fw/widget/tabledetail.service';
+import { TableBaseImpl, TableResponse } from '../../fw/widget/table.base';
 import { WebSocketService } from '../../fw/remote/websocket.service';
 
+/**
+ * Model of the response from WebSocket
+ */
 interface DeviceTableResponse extends TableResponse {
     devices: Device[];
 }
 
+/**
+ * Model of the devices returned from the WebSocket
+ */
 interface Device {
     available: boolean;
     chassisid: string;
@@ -54,7 +57,7 @@ interface Device {
 @Component({
   selector: 'onos-device',
   templateUrl: './device.component.html',
-  styleUrls: ['./device.component.css', './device.theme.css', '../../fw/widget/table.css', '../../fw/widget/table-theme.css']
+  styleUrls: ['./device.component.css', './device.theme.css', '../../fw/widget/table.css', '../../fw/widget/table.theme.css']
 })
 export class DeviceComponent extends TableBaseImpl implements OnInit, OnDestroy {
 
@@ -66,7 +69,6 @@ export class DeviceComponent extends TableBaseImpl implements OnInit, OnDestroy 
     pipeconfTip = 'Show pipeconf view for selected device';
 
     constructor(
-        private dps: DetailsPanelService,
         protected fs: FnService,
         protected ls: LoadingService,
         private is: IconService,
@@ -74,8 +76,6 @@ export class DeviceComponent extends TableBaseImpl implements OnInit, OnDestroy 
         protected log: LogService,
         private mast: MastService,
         private nav: NavService,
-        private ps: PanelService,
-        private tds: TableDetailService,
         protected wss: WebSocketService,
         @Inject('Window') private window: Window,
     ) {

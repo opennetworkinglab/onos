@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-present Open Networking Foundation
+ * Copyright 2018-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,39 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable } from '@angular/core';
 import { FnService } from '../util/fn.service';
 import { LoadingService } from '../layer/loading.service';
 import { LogService } from '../../log.service';
 import { WebSocketService } from '../remote/websocket.service';
+import { Observable, of } from 'rxjs';
 
 const REFRESH_INTERVAL = 2000;
+const SEARCH_REGEX = '\\W';
 
 /**
- * Base model of table view - implemented by Table components
+ * Model of table annotations within this table base class
  */
-export interface TableBase {
-    annots: TableAnnots;
-    autoRefresh: boolean;
-    autoRefreshTip: string;
-    changedData: any;
-    payloadParams: any;
-    selId: string;
-    sortParams: any;
-    tableData: any[];
-    toggleRefresh(): void;
-    selectCallback(event: any, selRow: any): void;
-    parentSelCb(event: any, selRow: any): void;
-    sortCallback(): void;
-    responseCallback(): void;
-}
-
 interface TableAnnots {
     noRowsMsg: string;
 }
 
 /**
- * A model of data returned in a TableResponse
+ * A model of data returned from Web Socket in a TableResponse
  *
  * There is an interface extending from this one in the parent component
  */
@@ -56,23 +41,50 @@ export interface TableResponse {
 }
 
 /**
+ * A criteria for filtering the tableData
+ */
+export interface TableFilter {
+    queryStr: string;
+    queryBy: string;
+    sortBy: string;
+}
+
+/**
+ * Enumerated values for the sort dir
+ */
+export enum SortDir {
+    asc = 'asc', desc = 'desc'
+}
+
+/**
+ * A structure to format sort params for table
+ * This is sent to WebSocket as part of table request
+ */
+export interface SortParams {
+    firstCol: string;
+    firstDir: SortDir;
+    secondCol: string;
+    secondDir: SortDir;
+}
+
+/**
  * ONOS GUI -- Widget -- Table Base class
  */
-export class TableBaseImpl implements TableBase {
+export abstract class TableBaseImpl {
     // attributes from the interface
-    public annots: TableAnnots;
+    protected annots: TableAnnots;
+    protected changedData: string[] = [];
+    protected payloadParams: any;
+    protected sortParams: SortParams;
+    protected selectCallback; // Function
+    protected parentSelCb = null;
+    protected responseCallback; // Function
+    selId: string = undefined;
+    tableData: any[] = [];
+    tableDataFilter: TableFilter;
+    toggleRefresh; // Function
     autoRefresh: boolean = true;
     autoRefreshTip: string = 'Toggle auto refresh'; // TODO: get LION string
-    changedData: string[] = [];
-    payloadParams: any;
-    selId: string = undefined;
-    sortParams: any;
-    tableData: any[] = [];
-    toggleRefresh; // Function
-    selectCallback; // Function
-    parentSelCb = null;
-    sortCallback; // Function
-    responseCallback; // Function
 
     private root: string;
     private req: string;
@@ -87,18 +99,23 @@ export class TableBaseImpl implements TableBase {
         protected wss: WebSocketService,
         protected tag: string,
         protected idKey: string = 'id',
-        protected query: string = '',
         protected selCb = () => ({}) // Function
     ) {
         this.root = tag + 's';
         this.req = tag + 'DataRequest';
         this.resp = tag + 'DataResponse';
 
-        this.sortCallback = this.requestTableData;
         this.selectCallback = this.rowSelectionCb;
         this.toggleRefresh = () => {
             this.autoRefresh = !this.autoRefresh;
             this.autoRefresh ? this.startRefresh() : this.stopRefresh();
+        };
+
+        // Mapped to the search and searchBy inputs in template
+        // Changes are handled through TableFilterPipe
+        this.tableDataFilter = <TableFilter>{
+            queryStr: '',
+            queryBy: '$',
         };
     }
 
@@ -115,8 +132,8 @@ export class TableBaseImpl implements TableBase {
         // Now send the WebSocket request and make it repeat every 2 seconds
         this.requestTableData();
         this.startRefresh();
-
-        this.log.debug('TableBase initialized');
+        this.log.debug('TableBase initialized. Calling ', this.req,
+            'every', REFRESH_INTERVAL, 'ms');
     }
 
     destroy() {
@@ -137,7 +154,7 @@ export class TableBaseImpl implements TableBase {
         const newTableData: any[] = Array.from(data[this.root]);
         this.annots.noRowsMsg = data.annots.no_rows_msg;
 
-        // If the onResp() function is set then call it
+        // If the parents onResp() function is set then call it
         if (this.responseCallback) {
             this.responseCallback(data);
         }
@@ -161,9 +178,12 @@ export class TableBaseImpl implements TableBase {
 
     /**
      * Table Data Request
+     * Pass in sort parameters and the set will be returned sorted
+     * In the old GUI there was also a query parameter, but this was not
+     * implemented on the server end
      */
     requestTableData() {
-        const p = Object.assign({}, this.sortParams, this.payloadParams, this.query);
+        const p = Object.assign({}, this.sortParams, this.payloadParams);
 
         // Allow it to sit in pending events
         if (this.wss.isConnected()) {
@@ -178,11 +198,11 @@ export class TableBaseImpl implements TableBase {
     /**
      * Row Selected
      */
-    rowSelectionCb(event: any, selRow: any) {
+    rowSelectionCb(event: any, selRow: any): void {
         const selId: string = selRow[this.idKey];
         this.selId = (this.selId === selId) ? undefined : selId;
+        this.log.debug('Row', selId, 'selected');
         if (this.parentSelCb) {
-            this.log.debug('Parent called on Row', selId, 'selected');
             this.parentSelCb(event, selRow);
         }
     }
@@ -211,5 +231,55 @@ export class TableBaseImpl implements TableBase {
 
     isChanged(id: string): boolean {
         return (this.fs.inArray(id, this.changedData) === -1) ? false : true;
+    }
+
+    /**
+     * A dummy implementation of the lionFn until the response is received and the LION
+     * bundle is received from the WebSocket
+     */
+    dummyLion(key: string): string {
+        return '%' + key + '%';
+    }
+
+    /**
+     * Change the sort order of the data returned
+     *
+     * sortParams are passed to the server by WebSocket and the data is
+     * returned sorted
+     *
+     * This is usually assigned to the (click) event on a column, and the column
+     * name passed in e.g. (click)="onSort('origin')
+     * If the column that is passed in is already the firstCol, then reverse its direction
+     * If a new column is passed in, then make the existing col the 2nd sort order
+     */
+    onSort(colName: string) {
+        if (this.sortParams.firstCol === colName) {
+            if (this.sortParams.firstDir === SortDir.desc) {
+                this.sortParams.firstDir = SortDir.asc;
+                return;
+            } else {
+                this.sortParams.firstDir = SortDir.desc;
+                return;
+            }
+        } else {
+            this.sortParams.secondCol = this.sortParams.firstCol;
+            this.sortParams.secondDir = this.sortParams.firstDir;
+            this.sortParams.firstCol = colName;
+            this.sortParams.firstDir = SortDir.desc;
+        }
+        this.log.debug('Sort params', this.sortParams);
+        this.requestTableData();
+    }
+
+    sortIcon(column: string): string {
+        if (this.sortParams.firstCol === column) {
+            if (this.sortParams.firstDir === SortDir.asc) {
+                return 'upArrow';
+            } else {
+                return 'downArrow';
+            }
+        } else {
+            return '';
+        }
     }
 }

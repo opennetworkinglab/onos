@@ -191,7 +191,7 @@ export class IconService {
      */
     loadIconDef(iconCls: string): void {
         this.gs.loadDefs(this.ensureIconLibDefs(), [glyphMapping.get(iconCls)], true);
-        this.log.debug('icon defintion', iconCls, 'added to defs');
+        this.log.debug('icon definition', iconCls, 'added to defs');
     }
 
 

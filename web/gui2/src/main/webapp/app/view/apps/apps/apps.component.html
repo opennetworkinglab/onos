@@ -56,34 +56,45 @@
                         iconId="download" iconSize="42" toolTip="{{ downloadTip }}"></onos-icon>
             </div>
         </div>
-
-        <!--<div class="search">-->
-            <!--<input type="text" ng-model="queryTxt" placeholder="Search"/>-->
-            <!--<select ng-model="queryBy">-->
-                <!--<option value="" disabled>Search By</option>-->
-                <!--<option value="$">All Fields</option>-->
-                <!--<option value="title">{{lionFn('title')}}</option>-->
-                <!--<option value="id">{{lionFn('app_id')}}</option>-->
-                <!--<option value="version">{{lionFn('version')}}</option>-->
-                <!--<option value="category">{{lionFn('category')}}</option>-->
-                <!--<option value="apporiginName">{{lionFn('origin')}}</option>-->
-
-            <!--</select>-->
-        <!--</div>-->
-
+        <div class="search">
+            <input id="searchinput" [(ngModel)]="tableDataFilter.queryStr" type="search" #search placeholder="Search"/>
+                   <!--(keyup)="onSearch(search.value)" (search)="onSearch(search.value)"/>-->
+            <select [(ngModel)]="tableDataFilter.queryBy">
+                <!--(change)="onSearchBy($event)" (change)="search.value = ''">-->
+                <option value="" disabled>Search By</option>
+                <option value="$">All Fields</option>
+                <option value="title">{{lionFn('title')}}</option>
+                <option value="id">{{lionFn('app_id')}}</option>
+                <option value="version">{{lionFn('version')}}</option>
+                <option value="category">{{lionFn('category')}}</option>
+                <option value="origin">{{lionFn('origin')}}</option>
+            </select>
+        </div>
 
     </div>
 
     <div class="summary-list" onos-table-resize>
         <table onos-flash-changes id-prop="id" width="100%">
             <tr class="table-header">
-                <th colId="state" class="table-icon" sortable></th>
-                <th colId="icon" class="table-icon"></th>
-                <th colId="title" [ngClass]="{width: '340'}" sortable> {{lionFn('title')}} </th>
-                <th colId="id" [ngClass]="{width: '320px'}"sortable> {{lionFn('app_id')}} </th>
-                <th colId="version" [ngClass]="{width: '140px'}"sortable> {{lionFn('version')}} </th>
-                <th colId="category" [ngClass]="{width: '136px'}"sortable> {{lionFn('category')}} </th>
-                <th colId="origin" sortable> {{lionFn('origin')}} </th>
+                <th colId="state" [ngStyle]="{width: '32px'}" class="table-icon" (click)="onSort('state')">
+                    <onos-icon classes="active" [iconId]="sortIcon('state')"></onos-icon>
+                </th>
+                <th colId="icon" [ngStyle]="{width: '32px'}" class="table-icon"></th>
+                <th colId="title"  (click)="onSort('title')">{{lionFn('title')}}
+                    <onos-icon classes="active" [iconId]="sortIcon('title')"></onos-icon>
+                </th>
+                <th colId="id" (click)="onSort('id')">{{lionFn('app_id')}}
+                    <onos-icon classes="active" [iconId]="sortIcon('id')"></onos-icon>
+                </th>
+                <th colId="version" (click)="onSort('version')"> {{lionFn('version')}}
+                    <onos-icon classes="active" [iconId]="sortIcon('version')"></onos-icon>
+                </th>
+                <th colId="category" (click)="onSort('category')"> {{lionFn('category')}}
+                    <onos-icon classes="active" [iconId]="sortIcon('category')"></onos-icon>
+                </th>
+                <th colId="origin" (click)="onSort('origin')"> {{lionFn('origin')}}
+                    <onos-icon classes="active" [iconId]="sortIcon('origin')"></onos-icon>
+                </th>
             </tr>
 
             <tr *ngIf="tableData.length === 0" class="no-data">
@@ -91,16 +102,19 @@
                     {{annots.no_rows_msg}}
                 </td>
             </tr>
-            <!--&lt;!&ndash;TODO: Add back in  | filter:queryFilter&ndash;&gt;-->
-            <tr class="table-body" *ngFor="let app of tableData"
+            <!-- See https://angular.io/guide/pipes#appendix-no-filterpipe-or-orderbypipe
+                Angular has dropped the filter and order by pipe that were present in
+                AngularJS - filter and sort the data at source instead -->
+            <tr class="table-body" *ngFor="let app of tableData | filter: tableDataFilter"
                 (click)="selectCallback($event, app)"
                 [ngClass]="{selected: app.id === selId, 'data-change': isChanged(app.id)}">
                 <td class="table-icon">
                     <onos-icon iconId="{{app._iconid_state}}"></onos-icon>
                 </td>
                 <td class="table-icon">
-                    <!--<img data-ng-src="./rs/applications/{{app.icon}}/icon"-->
-                                            <!--height="24px" width="24px" />-->
+                    <!-- The path below gets the app icon from the old GUI path -->
+                    <img src="../../ui/rs/applications/{{app.icon}}/icon"
+                                            height="24px" width="24px" />
                 </td>
                 <td>{{ app.title }}</td>
                 <td>{{ app.id }}</td>
@@ -111,5 +125,13 @@
         </table>
 
     </div>
+    <!-- There are 2 ways this component can be included
+     1) Insert it in to the ngFor above and have it created as the row is rendered
+        for the row that has a selId != '' OR
+     2) Include it here and let selId dictate its state
+     The advantage in 2) is that panel can be animated in and out, as it is not
+     killed every time the selection changes.
+     -->
+    <onos-appsdetails  class="floatpanels" id="{{ selId }}"></onos-appsdetails>
 
 </div>

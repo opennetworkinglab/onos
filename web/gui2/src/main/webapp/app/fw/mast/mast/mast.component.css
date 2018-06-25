@@ -17,10 +17,20 @@
 /*
  ONOS GUI -- Masthead (layout) -- CSS file
  */
+#mast-top-block {
+    display: block;
+    z-index: -1;
+    height: 48px;
+    width: 100%;
+}
 
 #mast {
+    position: absolute;
+    width: 100%;
+    top: 0px;
     height: 48px;
     padding: 0;
+    z-index: 10000;
 }
 
 #mast a:hover {

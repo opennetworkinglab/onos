@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-present Open Networking Foundation
+ * Copyright 2018-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,10 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 
+/**
+ * The set of Routes in the application - can be chosen from nav menu or
+ * elsewhere like tabular icon for flows etc
+ */
 const onosRoutes: Routes = [
     {
         path: 'apps',
@@ -27,7 +31,7 @@ const onosRoutes: Routes = [
     },
     {
         path: '',
-        redirectTo: '',
+        redirectTo: 'devices', // Default to devices view - change to topo in future
         pathMatch: 'full'
     }
 ];

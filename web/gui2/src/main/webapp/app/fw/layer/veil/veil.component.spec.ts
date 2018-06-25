@@ -18,32 +18,55 @@
  ONOS GUI -- Layer -- Veil Service - Unit Tests
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ActivatedRoute, Params } from '@angular/router';
 
 import { VeilComponent } from './veil.component';
 import { ConsoleLoggerService } from '../../../consolelogger.service';
+import { FnService } from '../../../fw/util/fn.service';
 import { LogService } from '../../../log.service';
 import { KeyService } from '../../util/key.service';
 import { GlyphService } from '../../svg/glyph.service';
+import { of } from 'rxjs';
+
+class MockActivatedRoute extends ActivatedRoute {
+    constructor(params: Params) {
+        super();
+        this.queryParams = of(params);
+    }
+}
 
 class MockKeyService {}
 
 class MockGlyphService {}
 
 describe('VeilComponent', () => {
-    let log: LogService;
+    let fs: FnService;
+    let ar: MockActivatedRoute;
+    let windowMock: Window;
+    let logServiceSpy: jasmine.SpyObj<LogService>;
 
-    beforeEach(() => {
-        log = new ConsoleLoggerService();
+    beforeEach(async(() => {
+        const logSpy = jasmine.createSpyObj('LogService', ['info', 'debug', 'warn', 'error']);
+        ar = new MockActivatedRoute({});
+        windowMock = <any>{
+            location: <any> {
+                hostname: 'foo'
+            }
+        };
+        fs = new FnService(ar, logSpy, windowMock);
 
         TestBed.configureTestingModule({
             declarations: [ VeilComponent ],
             providers: [
-                { provide: LogService, useValue: log },
+                { provide: FnService, useValue: fs },
+                { provide: LogService, useValue: logSpy },
                 { provide: KeyService, useClass: MockKeyService },
                 { provide: GlyphService, useClass: MockGlyphService },
+                { provide: 'Window', useValue: windowMock },
             ]
         });
-    });
+        logServiceSpy = TestBed.get(LogService);
+    }));
 
     it('should create', () => {
         const fixture = TestBed.createComponent(VeilComponent);

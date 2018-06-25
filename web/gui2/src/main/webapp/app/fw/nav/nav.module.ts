@@ -22,9 +22,6 @@ import { OnosRoutingModule } from '../../onos-routing.module';
 import { NavComponent } from './nav/nav.component';
 import { NavService } from './nav.service';
 
-import { AppsComponent } from '../../view/apps/apps.component';
-import { DeviceComponent } from '../../view/device/device.component';
-
 /**
  * ONOS GUI -- Navigation Module
  */

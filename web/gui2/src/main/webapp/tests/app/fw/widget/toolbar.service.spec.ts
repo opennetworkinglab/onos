@@ -21,15 +21,12 @@ import { ToolbarService } from '../../../../app/fw/widget/toolbar.service';
 import { ButtonService } from '../../../../app/fw/widget/button.service';
 import { FnService } from '../../../../app/fw/util/fn.service';
 import { IconService } from '../../../../app/fw/svg/icon.service';
-import { PanelService } from '../../../../app/fw/layer/panel.service';
 
 class MockButtonService {}
 
 class MockIconService {}
 
 class MockFnService {}
-
-class MockPanelService {}
 
 /**
  * ONOS GUI -- Widget -- Toolbar Service - Unit Tests
@@ -46,7 +43,6 @@ describe('ToolbarService', () => {
                 { provide: ButtonService, useClass: MockButtonService },
                 { provide: IconService, useClass: MockIconService },
                 { provide: FnService, useClass: MockFnService },
-                { provide: PanelService, useClass: MockPanelService },
             ]
         });
     });

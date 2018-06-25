@@ -24,7 +24,9 @@ import { SvgUtilService } from '../svg/svgutil.service';
  *
  * Provides a mechanism to display key bindings and mouse gesture notes.
  */
-@Injectable()
+@Injectable({
+  providedIn: 'root',
+})
 export class QuickHelpService {
 
   constructor(

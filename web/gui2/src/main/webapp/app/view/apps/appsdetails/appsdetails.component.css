@@ -15,44 +15,8 @@
  */
 
 /*
- ONOS GUI -- Applications View (layout) -- CSS file
+ ONOS GUI -- Applications Details Panel (layout) -- CSS file
  */
-
-#ov-app h2 {
-    display: inline-block;
-}
-
-#ov-app div.ctrl-btns {
-    width: 290px;
-}
-
-/* -- Drag-n-Drop oar file upload -- */
-#ov-app form#inputFileForm,
-#ov-app input#uploadFile {
-    display: none;
-}
-
-.dropping {
-
-}
-
-/* -- Confirmation Dialog -- */
-#app-dialog {
-    top: 140px;
-    padding: 12px;
-}
-
-#app-dialog p {
-    font-size: 12pt;
-}
-
-#app-dialog p.strong {
-    font-weight: bold;
-    padding: 8px;
-    text-align: center;
-}
-
-/* -- Details Panel -- */
 #application-details-panel.floatpanel {
     z-index: 0;
 }
@@ -151,4 +115,3 @@
     padding: 6px 6px;
     text-align: left;
 }
-

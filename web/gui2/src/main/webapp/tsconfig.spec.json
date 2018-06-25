@@ -10,7 +10,7 @@
     ]
   },
   "files": [
-    "tests/test.ts",
+    "app/test.ts",
     "polyfills.ts"
   ],
   "include": [

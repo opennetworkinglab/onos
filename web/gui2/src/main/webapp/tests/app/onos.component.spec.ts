@@ -35,7 +35,6 @@ import { KeyService } from '../../app/fw/util/key.service';
 import { LionService } from '../../app/fw/util/lion.service';
 import { NavService } from '../../app/fw/nav/nav.service';
 import { OnosService } from '../../app/onos.service';
-import { PanelService } from '../../app/fw/layer/panel.service';
 import { QuickHelpService } from '../../app/fw/layer/quickhelp.service';
 import { SvgUtilService } from '../../app/fw/svg/svgutil.service';
 import { ThemeService } from '../../app/fw/util/theme.service';
@@ -64,8 +63,6 @@ class MockLionService {}
 class MockNavService {}
 
 class MockOnosService {}
-
-class MockPanelService {}
 
 class MockQuickHelpService {}
 
@@ -131,7 +128,6 @@ describe('OnosComponent', () => {
                 { provide: NavService, useClass: MockNavService },
                 { provide: OnosService, useClass: MockOnosService },
                 { provide: QuickHelpService, useClass: MockQuickHelpService },
-                { provide: PanelService, useClass: MockPanelService },
                 { provide: SpriteService, useClass: MockSpriteService },
                 { provide: ThemeService, useClass: MockThemeService },
                 { provide: WebSocketService, useClass: MockWebSocketService },

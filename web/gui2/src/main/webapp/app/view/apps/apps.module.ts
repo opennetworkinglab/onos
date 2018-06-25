@@ -15,10 +15,13 @@
  */
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { AppsRoutingModule } from './apps-routing.module';
-import { AppsComponent } from './apps.component';
+import { AppsComponent } from './apps/apps.component';
+import { AppsDetailsComponent } from './appsdetails/appsdetails.component';
 import { TriggerFormDirective } from './triggerform.directive';
 import { SvgModule } from '../../fw/svg/svg.module';
+import { WidgetModule } from '../../fw/widget/widget.module';
 
 /**
  * ONOS GUI -- Apps View Module
@@ -31,10 +34,13 @@ import { SvgModule } from '../../fw/svg/svg.module';
     imports: [
         CommonModule,
         AppsRoutingModule,
-        SvgModule
+        SvgModule,
+        WidgetModule,
+        FormsModule
     ],
     declarations: [
         AppsComponent,
+        AppsDetailsComponent,
         TriggerFormDirective
     ]
 })

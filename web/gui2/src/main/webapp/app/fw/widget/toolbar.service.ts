@@ -19,7 +19,6 @@ import { ButtonService } from './button.service';
 import { FnService } from '../util/fn.service';
 import { IconService } from '../svg/icon.service';
 import { LogService } from '../../log.service';
-import { PanelService } from '../layer/panel.service';
 
 /**
  * ONOS GUI -- Widget -- Toolbar Service
@@ -34,7 +33,6 @@ export class ToolbarService {
     private bns: ButtonService,
     private is: IconService,
     private log: LogService,
-    private ps: PanelService,
   ) {
     this.log.debug('ToolbarService constructed');
   }
