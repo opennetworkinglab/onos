@@ -85,20 +85,14 @@ public class ServerControllerConfig extends BasicServerDriver
             log.warn(
                 "I am not master for {}. " +
                 "Please use master {} to get controllers for this device",
-                deviceId,
-                mastershipService.getMasterFor(deviceId)
-            );
+                deviceId, mastershipService.getMasterFor(deviceId));
             return controllers;
         }
 
         // Hit the path that provides the server's controllers
         InputStream response = null;
         try {
-            response = getController().get(
-                deviceId,
-                CONTROLLERS_CONF_URL,
-                JSON
-            );
+            response = getController().get(deviceId, CONTROLLERS_CONF_URL, JSON);
         } catch (ProcessingException pEx) {
             log.error("Failed to get controllers of device: {}", deviceId);
             return controllers;
@@ -134,6 +128,11 @@ public class ServerControllerConfig extends BasicServerDriver
             int    ctrlPort  = ctrlObjNode.path(PARAM_CTRL_PORT).asInt();
             String ctrlType  = get(cn, PARAM_CTRL_TYPE);
 
+            // Implies no controller
+            if (ctrlIpStr.isEmpty()) {
+                continue;
+            }
+
             // Check data format and range
             IpAddress ctrlIp = null;
             try {
@@ -167,9 +166,7 @@ public class ServerControllerConfig extends BasicServerDriver
             log.warn(
                 "I am not master for {}. " +
                 "Please use master {} to set controllers for this device",
-                deviceId,
-                mastershipService.getMasterFor(deviceId)
-            );
+                deviceId, mastershipService.getMasterFor(deviceId));
             return;
         }
 
@@ -192,11 +189,8 @@ public class ServerControllerConfig extends BasicServerDriver
 
         // Post the controllers to the device
         int response = getController().post(
-            deviceId,
-            CONTROLLERS_CONF_URL,
-            new ByteArrayInputStream(sendObjNode.toString().getBytes()),
-            JSON
-        );
+            deviceId, CONTROLLERS_CONF_URL,
+            new ByteArrayInputStream(sendObjNode.toString().getBytes()), JSON);
 
         if (!checkStatusCode(response)) {
             log.error("Failed to set controllers on device {}", deviceId);
@@ -217,30 +211,23 @@ public class ServerControllerConfig extends BasicServerDriver
             log.warn(
                 "I am not master for {}. " +
                 "Please use master {} to remove controllers from this device",
-                deviceId,
-                mastershipService.getMasterFor(deviceId)
-            );
+                deviceId, mastershipService.getMasterFor(deviceId));
             return;
         }
 
-        /**
-         * TODO: Explicit removal of the requested controllers.
-         */
+        for (ControllerInfo ctrl : controllers) {
+            log.info("Remove controller with {}:{}:{}",
+                ctrl.type(), ctrl.ip().toString(), ctrl.port());
 
-        /**
-         * List of controllers is ignored for now.
-         * We just tell the server to remove its
-         * current controller information.
-         */
-        int response = getController().delete(
-            deviceId,
-            CONTROLLERS_CONF_URL,
-            null,
-            JSON
-        );
+            String remCtrlUrl = CONTROLLERS_CONF_URL + "/" + ctrl.ip().toString();
 
-        if (!checkStatusCode(response)) {
-            log.error("Failed to remove controllers from device {}", deviceId);
+            // Remove this controller
+            int response = getController().delete(deviceId, remCtrlUrl, null, JSON);
+
+            if (!checkStatusCode(response)) {
+                log.error("Failed to remove controller {}:{}:{} from device {}",
+                    ctrl.type(), ctrl.ip().toString(), ctrl.port(), deviceId);
+            }
         }
 
         return;
