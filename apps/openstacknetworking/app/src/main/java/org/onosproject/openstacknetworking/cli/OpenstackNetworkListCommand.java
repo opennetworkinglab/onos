@@ -40,7 +40,7 @@ import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.m
         description = "Lists all OpenStack networks")
 public class OpenstackNetworkListCommand extends AbstractShellCommand {
 
-    private static final String FORMAT = "%-40s%-20s%-20s%-20s%-8s";
+    private static final String FORMAT = "%-40s%-20s%-20s%-20s%-16s%-8s";
 
     @Override
     protected void execute() {
@@ -57,17 +57,28 @@ public class OpenstackNetworkListCommand extends AbstractShellCommand {
             return;
         }
 
-        print(FORMAT, "ID", "Name", "Network Mode", "VNI", "Subnets");
+        print(FORMAT, "ID", "Name", "Network Mode", "VNI", "Subnets", "HostRoutes");
         for (Network net: networks) {
-            List<String> subnets = service.subnets().stream()
+            List<Subnet> subnets = service.subnets().stream()
                     .filter(subnet -> subnet.getNetworkId().equals(net.getId()))
+                    .collect(Collectors.toList());
+
+            List<String> subnetsString = subnets.stream()
                     .map(Subnet::getCidr)
                     .collect(Collectors.toList());
+
+            List<String> hostRoutes = Lists.newArrayList();
+
+            subnets.forEach(subnet -> {
+                subnet.getHostRoutes().forEach(h -> hostRoutes.add(h.toString()));
+            });
+
             print(FORMAT, net.getId(),
                     net.getName(),
                     net.getNetworkType().toString(),
                     net.getProviderSegID(),
-                    subnets.isEmpty() ? "" : subnets);
+                    subnets.isEmpty() ? "" : subnetsString,
+                    hostRoutes.isEmpty() ? "" : hostRoutes);
         }
     }
 
