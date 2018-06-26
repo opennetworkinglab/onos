@@ -16,6 +16,7 @@
 package org.onosproject.openstacknetworking.impl;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -435,7 +436,7 @@ public class OpenstackSwitchingDhcpHandlerTest {
 
             @Override
             public List<? extends HostRoute> getHostRoutes() {
-                return null;
+                return Lists.newArrayList();
             }
 
             @Override

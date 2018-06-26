@@ -16,6 +16,7 @@
 package org.onosproject.openstacknetworking.impl;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -58,6 +59,7 @@ import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeEvent;
 import org.onosproject.openstacknode.api.OpenstackNodeListener;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
+import org.openstack4j.model.network.HostRoute;
 import org.openstack4j.model.network.IP;
 import org.openstack4j.model.network.Port;
 import org.openstack4j.model.network.Subnet;
@@ -70,6 +72,7 @@ import java.util.List;
 import java.util.Objects;
 
 import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_BroadcastAddress;
+import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_Classless_Static_Route;
 import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_DHCPServerIp;
 import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_DomainServer;
 import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_END;
@@ -102,6 +105,11 @@ public class OpenstackSwitchingDhcpHandler {
             ByteBuffer.allocate(4).putInt(-1).array();
     // we are using 1450 as a default DHCP MTU value
     private static final int DHCP_DATA_MTU_DEFAULT = 1450;
+    private static final int OCTET_BIT_LENGTH = 8;
+    private static final int V4_BYTE_SIZE = 4;
+    private static final int V4_CIDR_LOWER_BOUND = 0;
+    private static final int V4_CIDR_UPPER_BOUND = 33;
+    private static final int PADDING_SIZE = 4;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -397,6 +405,36 @@ public class OpenstackSwitchingDhcpHandler {
             option.setData(ByteBuffer.allocate(2).putShort((short) dhcpDataMtu).array());
             options.add(option);
 
+            // classless static route
+            if (!osSubnet.getHostRoutes().isEmpty()) {
+                option = new DhcpOption();
+                option.setCode(OptionCode_Classless_Static_Route.getValue());
+
+                int hostRoutesSize = hostRoutesSize(ImmutableList.copyOf(osSubnet.getHostRoutes()));
+                if (hostRoutesSize == 0) {
+                    throw new IllegalArgumentException("Illegal CIDR hostRoutesSize value!");
+                }
+
+                log.trace("hostRouteSize: {}", hostRoutesSize);
+
+                option.setLength((byte) hostRoutesSize);
+                ByteBuffer hostRouteByteBuf = ByteBuffer.allocate(hostRoutesSize);
+
+                osSubnet.getHostRoutes().forEach(h -> {
+                    log.debug("processing host route information: {}", h.toString());
+
+                    IpPrefix ipPrefix = IpPrefix.valueOf(h.getDestination());
+
+                    hostRouteByteBuf.put(bytesDestinationDescriptor(ipPrefix));
+
+                    hostRouteByteBuf.put(Ip4Address.valueOf(h.getNexthop()).toOctets());
+                });
+
+                option.setData(hostRouteByteBuf.array());
+
+                options.add(option);
+            }
+
             // router address
             option = new DhcpOption();
             option.setCode(OptionCode_RouterAddress.getValue());
@@ -412,6 +450,58 @@ public class OpenstackSwitchingDhcpHandler {
 
             dhcpReply.setOptions(options);
             return dhcpReply;
+        }
+
+        private int hostRoutesSize(List<HostRoute> hostRoutes) {
+            int size = 0;
+            int preFixLen;
+
+            for (HostRoute h : hostRoutes) {
+                preFixLen = IpPrefix.valueOf(h.getDestination()).prefixLength();
+                if (Math.max(V4_CIDR_LOWER_BOUND, preFixLen) == V4_CIDR_LOWER_BOUND ||
+                        Math.min(preFixLen, V4_CIDR_UPPER_BOUND) == V4_CIDR_UPPER_BOUND) {
+                    throw new IllegalArgumentException("Illegal CIDR length value!");
+                }
+
+                for (int i = 1; i <= V4_BYTE_SIZE; i++) {
+
+                    if (preFixLen == Math.min(preFixLen, i * OCTET_BIT_LENGTH)) {
+                        size = size + i + 1 + PADDING_SIZE;
+                        break;
+                    }
+                }
+            }
+            return size;
+        }
+
+        private byte[] bytesDestinationDescriptor(IpPrefix ipPrefix) {
+            ByteBuffer byteBuffer;
+            int prefixLen = ipPrefix.prefixLength();
+
+            // retrieve ipPrefix to the destination descriptor format
+            // ex) 10.1.1.0/24 -> [10,1,1,0]
+            String[] ipPrefixString = ipPrefix.getIp4Prefix().toString()
+                    .split("/")[0]
+                    .split("\\.");
+
+            // retrieve destination descriptor and put this to bytebuffer according to 3442
+            // ex) 10.0.0.0/8 -> 8.10
+            // ex) 10.17.0.0/16 -> 16.10.17
+            // ex) 10.27.129.0/24 -> 24.10.27.129
+            // ex) 10.229.0.128/25 -> 25.10.229.0.128
+            for (int i = 1; i <= V4_BYTE_SIZE; i++) {
+                if (prefixLen == Math.min(prefixLen, i * OCTET_BIT_LENGTH)) {
+                    byteBuffer = ByteBuffer.allocate(i + 1);
+                    byteBuffer.put((byte) prefixLen);
+
+                    for (int j = 0; j < i; j++) {
+                        byteBuffer.put((byte) Integer.parseInt(ipPrefixString[j]));
+                    }
+                    return byteBuffer.array();
+                }
+            }
+
+            return null;
         }
     }
 
