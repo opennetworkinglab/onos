@@ -37,6 +37,7 @@ import org.slf4j.LoggerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
@@ -239,7 +240,13 @@ public class HttpSBControllerImpl implements HttpSBController {
         // FIXME: do we need to delete an entry by enclosing data in DELETE
         // request?
         // wouldn't it be nice to use PUT to implement the similar concept?
-        Response response = wt.request(mediaType).delete();
+        Response response = null;
+        try {
+            response = wt.request(mediaType).delete();
+        } catch (ProcessingException procEx) {
+            log.error("Cannot issue DELETE {} request on device {}", request, device);
+            return Status.SERVICE_UNAVAILABLE.getStatusCode();
+        }
 
         return response.getStatus();
     }
