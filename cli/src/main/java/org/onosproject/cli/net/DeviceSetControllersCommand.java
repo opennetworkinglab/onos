@@ -64,8 +64,19 @@ public class DeviceSetControllersCommand extends AbstractShellCommand {
     @Override
     protected void execute() {
 
-        Arrays.asList(controllersListStrings).forEach(
-                cInfoString -> controllers.add(parseCInfoString(cInfoString)));
+        if (controllersListStrings == null && !removeCont && !removeAll) {
+            print("No controller are given, skipping.");
+            return;
+        }
+        if (controllersListStrings != null) {
+            Arrays.asList(controllersListStrings).forEach(
+                    cInfoString -> {
+                        ControllerInfo controllerInfo = parseCInfoString(cInfoString);
+                        if (controllerInfo != null) {
+                            controllers.add(controllerInfo);
+                        }
+                    });
+        }
         DriverService service = get(DriverService.class);
         deviceId = DeviceId.deviceId(uri);
         DriverHandler h = service.createHandler(deviceId);
@@ -118,15 +129,24 @@ public class DeviceSetControllersCommand extends AbstractShellCommand {
                 return null;
             }
 
-            String[] data = config[0].split(":");
-            String type = data[0];
-            IpAddress ip = IpAddress.valueOf(data[1]);
-            int port = Integer.parseInt(data[2]);
-
-            return new ControllerInfo(ip, port, type, annotation);
+            return getControllerInfo(annotation, config[0]);
         } else {
-            print(config[0]);
-            return new ControllerInfo(config[0]);
+            return getControllerInfo(null, config[0]);
         }
+    }
+
+    private ControllerInfo getControllerInfo(Annotations annotation, String s) {
+        String[] data = s.split(":");
+        if (data.length != 3) {
+            print("Wrong format of the controller %s, should be in the format <protocol>:<ip>:<port>", s);
+            return null;
+        }
+        String type = data[0];
+        IpAddress ip = IpAddress.valueOf(data[1]);
+        int port = Integer.parseInt(data[2]);
+        if (annotation != null) {
+            return new ControllerInfo(ip, port, type, annotation);
+        }
+        return new ControllerInfo(ip, port, type);
     }
 }

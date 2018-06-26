@@ -25,6 +25,8 @@ import org.onosproject.net.behaviour.ControllerInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.StringWriter;
@@ -40,17 +42,28 @@ public final class XmlConfigParser {
     public static final Logger log = LoggerFactory
             .getLogger(XmlConfigParser.class);
 
+    private static final String DISALLOW_DTD_FEATURE = "http://apache.org/xml/features/disallow-doctype-decl";
+    private static final String DISALLOW_EXTERNAL_DTD =
+            "http://apache.org/xml/features/nonvalidating/load-external-dtd";
+
     private XmlConfigParser() {
         //not called, preventing any allocation
     }
 
 
     public static HierarchicalConfiguration loadXml(InputStream xmlStream) {
-        XMLConfiguration cfg = new XMLConfiguration();
         try {
+            XMLConfiguration cfg = new XMLConfiguration();
+            DocumentBuilderFactory dbfactory = DocumentBuilderFactory.newInstance();
+            //Disabling DTDs in order to avoid XXE xml-based attacks.
+            disableFeature(dbfactory, DISALLOW_DTD_FEATURE);
+            disableFeature(dbfactory, DISALLOW_EXTERNAL_DTD);
+            dbfactory.setXIncludeAware(false);
+            dbfactory.setExpandEntityReferences(false);
+            cfg.setDocumentBuilder(dbfactory.newDocumentBuilder());
             cfg.load(xmlStream);
             return cfg;
-        } catch (ConfigurationException e) {
+        } catch (ConfigurationException | ParserConfigurationException e) {
             throw new IllegalArgumentException("Cannot load xml from Stream", e);
         }
     }
@@ -63,8 +76,8 @@ public final class XmlConfigParser {
         List<ControllerInfo> controllers = new ArrayList<>();
         List<HierarchicalConfiguration> fields =
                 cfg.configurationsAt("data.capable-switch." +
-                                             "logical-switches." +
-                                             "switch.controllers.controller");
+                        "logical-switches." +
+                        "switch.controllers.controller");
         for (HierarchicalConfiguration sub : fields) {
             controllers.add(new ControllerInfo(
                     IpAddress.valueOf(sub.getString("ip-address")),
@@ -78,8 +91,8 @@ public final class XmlConfigParser {
     protected static String parseSwitchId(HierarchicalConfiguration cfg) {
         HierarchicalConfiguration field =
                 cfg.configurationAt("data.capable-switch." +
-                                            "logical-switches." +
-                                            "switch");
+                        "logical-switches." +
+                        "switch");
         return field.getProperty("id").toString();
     }
 
@@ -98,9 +111,9 @@ public final class XmlConfigParser {
         cfg.setProperty("edit-config.target", target);
         cfg.setProperty("edit-config.default-operation", netconfOperation);
         cfg.setProperty("edit-config.config.capable-switch.id",
-                        parseCapableSwitchId(actualCfg));
+                parseCapableSwitchId(actualCfg));
         cfg.setProperty("edit-config.config.capable-switch." +
-                                "logical-switches.switch.id", parseSwitchId(actualCfg));
+                "logical-switches.switch.id", parseSwitchId(actualCfg));
         List<ConfigurationNode> newControllers = new ArrayList<>();
         for (ControllerInfo ci : controllers) {
             XMLConfiguration controller = new XMLConfiguration();
@@ -113,7 +126,7 @@ public final class XmlConfigParser {
             newControllers.add(controller.getRootNode());
         }
         cfg.addNodes("edit-config.config.capable-switch.logical-switches." +
-                             "switch.controllers", newControllers);
+                "switch.controllers", newControllers);
         XMLConfiguration editcfg = (XMLConfiguration) cfg;
         StringWriter stringWriter = new StringWriter();
         try {
@@ -123,9 +136,9 @@ public final class XmlConfigParser {
         }
         String s = stringWriter.toString()
                 .replaceAll("<controller>",
-                            "<controller nc:operation=\"" + controllerOperation + "\">");
+                        "<controller nc:operation=\"" + controllerOperation + "\">");
         s = s.replace("<target>" + target + "</target>",
-                      "<target><" + target + "/></target>");
+                "<target><" + target + "/></target>");
         return s;
 
     }
@@ -134,6 +147,7 @@ public final class XmlConfigParser {
 
     /**
      * Parses a config reply and returns the result.
+     *
      * @param reply a tree-like source
      * @return the configuration result
      */
@@ -144,5 +158,15 @@ public final class XmlConfigParser {
             }
         }
         return false;
+    }
+
+    private static void disableFeature(DocumentBuilderFactory dbfactory, String feature) {
+        try {
+            dbfactory.setFeature(feature, true);
+        } catch (ParserConfigurationException e) {
+            // This should catch a failed setFeature feature
+            log.info("ParserConfigurationException was thrown. The feature '" +
+                    feature + "' is probably not supported by your XML processor.");
+        }
     }
 }
