@@ -1008,14 +1008,14 @@ public class OpenstackRoutingHandler {
             switch (event.type()) {
                 case OPENSTACK_NODE_COMPLETE:
                 case OPENSTACK_NODE_INCOMPLETE:
+                case OPENSTACK_NODE_UPDATED:
+                case OPENSTACK_NODE_REMOVED:
                     eventExecutor.execute(() -> {
                         log.info("Reconfigure routers for {}", osNode.hostname());
                         reconfigureRouters();
                     });
                     break;
                 case OPENSTACK_NODE_CREATED:
-                case OPENSTACK_NODE_UPDATED:
-                case OPENSTACK_NODE_REMOVED:
                 default:
                     break;
             }
