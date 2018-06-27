@@ -41,10 +41,20 @@ public class TinaFlowInfoByteBufferCodec extends ByteBufferCodec<FlowInfo> {
     public ByteBuffer encode(FlowInfo flowInfo) {
 
         ByteBuffer byteBuffer = ByteBuffer.allocate(MESSAGE_SIZE);
+        int srcPort = 0;
+        int dstPort = 0;
 
         String  deviceId = flowInfo.deviceId().toString();
         short switchId = (short) Integer.parseInt(deviceId.substring(3,
                                                   deviceId.length()), 16);
+
+        if (flowInfo.srcPort() != null) {
+            srcPort = flowInfo.srcPort().toInt();
+        }
+
+        if (flowInfo.dstPort() != null) {
+            dstPort = flowInfo.dstPort().toInt();
+        }
 
         byteBuffer.put(flowInfo.flowType())
                 .putShort(switchId)
@@ -53,10 +63,10 @@ public class TinaFlowInfoByteBufferCodec extends ByteBufferCodec<FlowInfo> {
                 .putShort(flowInfo.vlanId().toShort())
                 .put(flowInfo.srcIp().address().toOctets())
                 .put((byte) flowInfo.srcIp().prefixLength())
-                .putShort((short) flowInfo.srcPort().toInt())
+                .putShort((short) srcPort)
                 .put(flowInfo.dstIp().address().toOctets())
                 .put((byte) flowInfo.dstIp().prefixLength())
-                .putShort((short) flowInfo.dstPort().toInt())
+                .putShort((short) dstPort)
                 .put(flowInfo.protocol())
                 .put(flowInfo.srcMac().toBytes())
                 .put(flowInfo.dstMac().toBytes());

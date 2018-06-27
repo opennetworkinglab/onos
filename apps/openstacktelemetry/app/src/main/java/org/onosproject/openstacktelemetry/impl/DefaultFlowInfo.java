@@ -142,12 +142,13 @@ public final class DefaultFlowInfo implements FlowInfo {
 
     @Override
     public boolean roughEquals(FlowInfo flowInfo) {
-        return deviceId.equals(flowInfo.deviceId()) &&
-                srcIp.equals(flowInfo.srcIp()) &&
-                dstIp.equals(flowInfo.dstIp()) &&
-                srcPort.equals(flowInfo.srcPort()) &&
-                dstPort.equals(flowInfo.dstPort()) &&
-                (protocol == flowInfo.protocol());
+        final DefaultFlowInfo other = (DefaultFlowInfo) flowInfo;
+        return Objects.equals(this.deviceId, other.deviceId) &&
+                Objects.equals(this.srcIp, other.srcIp) &&
+                Objects.equals(this.dstIp, other.dstIp) &&
+                Objects.equals(this.srcPort, other.srcPort) &&
+                Objects.equals(this.dstPort, other.dstPort) &&
+                Objects.equals(this.protocol, other.protocol);
     }
 
     @Override

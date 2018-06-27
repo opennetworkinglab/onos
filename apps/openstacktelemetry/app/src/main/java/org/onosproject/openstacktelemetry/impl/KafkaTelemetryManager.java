@@ -128,6 +128,7 @@ public class KafkaTelemetryManager implements KafkaTelemetryAdminService {
             return null;
         }
 
+        log.debug("Send telemetry record to kafka server...");
         return producer.send(record);
     }
 
