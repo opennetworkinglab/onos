@@ -16,6 +16,7 @@
 package org.onosproject.net.device.impl;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.util.concurrent.Futures;
@@ -672,7 +673,9 @@ public class DeviceManager
             }
             PortDescriptionsConfig portConfig = networkConfigService.getConfig(deviceId, PortDescriptionsConfig.class);
             if (portConfig != null) {
-                //updating the ports if configration exists
+                // Updating the ports if configuration exists (on new lists as
+                // the passed one might be immutable)
+                portDescriptions = Lists.newArrayList(portDescriptions);
                 portDescriptions.addAll(portConfig.portDescriptions());
             }
             portDescriptions = portDescriptions.stream()
