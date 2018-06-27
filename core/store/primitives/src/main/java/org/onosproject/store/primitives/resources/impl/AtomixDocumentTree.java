@@ -16,11 +16,11 @@
 
 package org.onosproject.store.primitives.resources.impl;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 
 import com.google.common.util.concurrent.MoreExecutors;
@@ -79,7 +79,7 @@ public class AtomixDocumentTree extends AbstractRaftPrimitive implements AsyncDo
             .register(AtomixDocumentTreeEvents.NAMESPACE)
             .build());
 
-    private final Map<DocumentTreeListener<byte[]>, InternalListener> eventListeners = new HashMap<>();
+    private final Map<DocumentTreeListener<byte[]>, InternalListener> eventListeners = new ConcurrentHashMap<>();
 
     public AtomixDocumentTree(RaftProxy proxy) {
         super(proxy);
