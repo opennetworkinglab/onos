@@ -21,7 +21,7 @@
     <parent>
         <artifactId>onos-incubator-protobuf-dependencies</artifactId>
         <groupId>org.onosproject</groupId>
-        <version>1.12.1-rc7</version>
+        <version>1.12.1-SNAPSHOT</version>
         <relativePath>../protobuf-dependencies/pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
