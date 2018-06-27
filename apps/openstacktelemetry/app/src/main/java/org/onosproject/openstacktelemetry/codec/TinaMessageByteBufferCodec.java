@@ -60,7 +60,7 @@ public class TinaMessageByteBufferCodec {
         ByteBuffer byteBuffer = ByteBuffer.allocate(flowInfos.size() * ENTRY_SIZE);
 
         TinaFlowInfoByteBufferCodec codec = new TinaFlowInfoByteBufferCodec();
-        flowInfos.forEach(flowInfo -> byteBuffer.put(codec.encode(flowInfo)));
+        flowInfos.forEach(flowInfo -> byteBuffer.put(codec.encode(flowInfo).array()));
 
         return byteBuffer.array();
     }
