@@ -15,14 +15,17 @@
  */
 package org.onosproject.store.primitives.impl;
 
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.Maps;
 import org.onosproject.store.service.AsyncDocumentTree;
 import org.onosproject.store.service.DocumentPath;
+import org.onosproject.store.service.DocumentTreeEvent;
 import org.onosproject.store.service.DocumentTreeListener;
 import org.onosproject.store.service.Versioned;
 import org.slf4j.Logger;
@@ -38,6 +41,7 @@ public class CachingAsyncDocumentTree<V> extends DelegatingAsyncDocumentTree<V> 
     private static final int DEFAULT_CACHE_SIZE = 10000;
     private final Logger log = getLogger(getClass());
 
+    private final Map<DocumentTreeListener<V>, DocumentTreeListener<V>> eventListeners = Maps.newConcurrentMap();
     private final LoadingCache<DocumentPath, CompletableFuture<Versioned<V>>> cache;
     private final DocumentTreeListener<V> cacheUpdater;
     private final Consumer<Status> statusListener;
@@ -68,6 +72,7 @@ public class CachingAsyncDocumentTree<V> extends DelegatingAsyncDocumentTree<V> 
             } else {
                 cache.put(event.path(), CompletableFuture.completedFuture(event.newValue().get()));
             }
+            eventListeners.values().forEach(listener -> listener.event(event));
         };
         statusListener = status -> {
             log.debug("{} status changed to {}", this.name(), status);
@@ -77,7 +82,7 @@ public class CachingAsyncDocumentTree<V> extends DelegatingAsyncDocumentTree<V> 
                 cache.invalidateAll();
             }
         };
-        super.addListener(cacheUpdater);
+        super.addListener(root(), cacheUpdater);
         super.addStatusChangeListener(statusListener);
     }
 
@@ -128,5 +133,34 @@ public class CachingAsyncDocumentTree<V> extends DelegatingAsyncDocumentTree<V> 
     public CompletableFuture<Versioned<V>> removeNode(DocumentPath path) {
         return super.removeNode(path)
                 .whenComplete((r, e) -> cache.invalidate(path));
+    }
+
+    @Override
+    public CompletableFuture<Void> addListener(DocumentPath path, DocumentTreeListener<V> listener) {
+        eventListeners.put(listener, new InternalListener(path, listener));
+        return CompletableFuture.completedFuture(null);
+    }
+
+    @Override
+    public CompletableFuture<Void> removeListener(DocumentTreeListener<V> listener) {
+        eventListeners.remove(listener);
+        return CompletableFuture.completedFuture(null);
+    }
+
+    private class InternalListener implements DocumentTreeListener<V> {
+        private final DocumentPath path;
+        private final DocumentTreeListener<V> listener;
+
+        public InternalListener(DocumentPath path, DocumentTreeListener<V> listener) {
+            this.path = path;
+            this.listener = listener;
+        }
+
+        @Override
+        public void event(DocumentTreeEvent<V> event) {
+            if (event.path().isDescendentOf(path)) {
+                listener.event(event);
+            }
+        }
     }
 }
