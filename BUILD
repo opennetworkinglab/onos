@@ -1,5 +1,5 @@
 load("//tools/build/bazel:generate_workspace.bzl", "ONOS_VERSION")
-load(":modules.bzl", "APPS", "CORE")
+load(":modules.bzl", "APPS", "CORE", )
 
 filegroup(
     name = "onos",
@@ -37,13 +37,12 @@ genrule(
 )
 
 # Generates the principal onos.tar.gz bundle
-# FIXME: Need to include OAR files as dependencies and feature bundles as well
 genrule(
     name = "onos-package",
     srcs = [
         "//tools/package/features:onos-features",
         ":onos-karaf",
-    ],
+    ] + APPS,
     outs = ["onos.tar.gz"],
     cmd = "$(location tools/package/onos_stage.py) $(location onos.tar.gz) %s $(location :onos-karaf) $(SRCS)" % ONOS_VERSION,
     output_to_bindir = True,

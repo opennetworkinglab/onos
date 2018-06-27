@@ -25,7 +25,7 @@ def addFile(tar, dest, file, file_size):
 
 def addString(tar, dest, string):
     if dest not in written_files:
-        print dest, string
+        # print dest, string
         info = TarInfo(dest)
         info.size = len(string)
         info.mtime = now
