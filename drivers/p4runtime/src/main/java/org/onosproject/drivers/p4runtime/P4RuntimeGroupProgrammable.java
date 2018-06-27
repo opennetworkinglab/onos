@@ -70,11 +70,13 @@ public class P4RuntimeGroupProgrammable
 
     // If true, we ignore re-installing groups that are already known in the
     // device mirror.
-    private boolean checkMirrorBeforeUpdate = true;
+    private static final String CHECK_MIRROR_BEFORE_UPDATE = "checkMirrorBeforeUpdate";
+    private static final boolean DEFAULT_CHECK_MIRROR_BEFORE_UPDATE = true;
 
     // If true, we avoid querying the device and return what's already known by
     // the ONOS store.
-    private boolean ignoreDeviceWhenGet = true;
+    private static final String IGNORE_DEVICE_WHEN_GET = "ignoreDeviceWhenGet";
+    private static final boolean DEFAULT_IGNORE_DEVICE_WHEN_GET = false;
 
     protected GroupStore groupStore;
     private P4RuntimeGroupMirror groupMirror;
@@ -109,7 +111,7 @@ public class P4RuntimeGroupProgrammable
         if (!setupBehaviour()) {
             return Collections.emptyList();
         }
-        if (!ignoreDeviceWhenGet) {
+        if (!driverBoolProperty(IGNORE_DEVICE_WHEN_GET, DEFAULT_IGNORE_DEVICE_WHEN_GET)) {
             return pipeconf.pipelineModel().actionProfiles().stream()
                     .map(PiActionProfileModel::id)
                     .flatMap(this::streamGroupsFromDevice)
@@ -174,7 +176,7 @@ public class P4RuntimeGroupProgrammable
                          groupToApply.id(), deviceId);
                 return;
             }
-            if (checkMirrorBeforeUpdate
+            if (driverBoolProperty(CHECK_MIRROR_BEFORE_UPDATE, DEFAULT_CHECK_MIRROR_BEFORE_UPDATE)
                     && groupOnDevice.equals(groupToApply)) {
                 // Group on device has the same members, ignore operation.
                 return;
