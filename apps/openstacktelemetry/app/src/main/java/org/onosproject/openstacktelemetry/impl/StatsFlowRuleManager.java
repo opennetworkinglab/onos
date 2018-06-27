@@ -319,12 +319,13 @@ public class StatsFlowRuleManager implements StatsFlowRuleAdminService {
 
             // TODO: need to collect error and drop packets stats
             // TODO: need to make the refresh interval configurable
-            sBuilder.withStartupTime(0)
+            sBuilder.withStartupTime(System.currentTimeMillis())
+                    .withFstPktArrTime(System.currentTimeMillis())
+                    .withLstPktOffset(REFRESH_INTERVAL * MILLISECONDS)
                     .withCurrAccPkts((int) entry.packets())
                     .withCurrAccBytes(entry.bytes())
                     .withErrorPkts((short) 0)
-                    .withDropPkts((short) 0)
-                    .withLstPktOffset(REFRESH_INTERVAL * MILLISECONDS);
+                    .withDropPkts((short) 0);
 
             fBuilder.withStatsInfo(sBuilder.build());
 
