@@ -12,7 +12,7 @@ from shutil import copy, copytree, rmtree
 from subprocess import call, check_call, check_output
 
 # FIXME pull the version from the Buck version file
-ONOS_VERSION='1.12.1-SNAPSHOT'
+ONOS_VERSION='1.12.1-rc7'
 
 # SonarQube property file name and template
 FILE_NAME = 'sonar-project.properties'
