@@ -16,8 +16,11 @@
 package org.onosproject.store.primitives.impl;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -25,6 +28,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.util.concurrent.MoreExecutors;
 import org.onosproject.store.service.AsyncConsistentMultimap;
 import org.onosproject.store.service.MultimapEventListener;
 import org.onosproject.store.service.Versioned;
@@ -41,6 +45,7 @@ public class CachingAsyncConsistentMultimap<K, V> extends DelegatingAsyncConsist
     private static final int DEFAULT_CACHE_SIZE = 10000;
     private final Logger log = getLogger(getClass());
 
+    private final Map<MultimapEventListener<K, V>, Executor> mapEventListeners = new ConcurrentHashMap<>();
     private final LoadingCache<K, CompletableFuture<Versioned<Collection<? extends V>>>> cache;
     private final MultimapEventListener<K, V> cacheUpdater;
     private final Consumer<Status> statusListener;
@@ -102,6 +107,7 @@ public class CachingAsyncConsistentMultimap<K, V> extends DelegatingAsyncConsist
                 default:
                     break;
             }
+            mapEventListeners.forEach((listener, executor) -> executor.execute(() -> listener.event(event)));
         };
         statusListener = status -> {
             log.debug("{} status changed to {}", this.name(), status);
@@ -111,7 +117,7 @@ public class CachingAsyncConsistentMultimap<K, V> extends DelegatingAsyncConsist
                 cache.invalidateAll();
             }
         };
-        super.addListener(cacheUpdater);
+        super.addListener(cacheUpdater, MoreExecutors.directExecutor());
         super.addStatusChangeListener(statusListener);
     }
 
@@ -170,6 +176,18 @@ public class CachingAsyncConsistentMultimap<K, V> extends DelegatingAsyncConsist
                     cache.invalidate(key);
                 }
             });
+    }
+
+    @Override
+    public CompletableFuture<Void> addListener(MultimapEventListener<K, V> listener, Executor executor) {
+        mapEventListeners.put(listener, executor);
+        return CompletableFuture.completedFuture(null);
+    }
+
+    @Override
+    public CompletableFuture<Void> removeListener(MultimapEventListener<K, V> listener) {
+        mapEventListeners.remove(listener);
+        return CompletableFuture.completedFuture(null);
     }
 
     @Override
