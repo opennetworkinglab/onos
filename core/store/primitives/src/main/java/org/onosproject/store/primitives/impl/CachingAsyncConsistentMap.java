@@ -17,12 +17,16 @@ package org.onosproject.store.primitives.impl;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
+import com.google.common.util.concurrent.MoreExecutors;
 import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.Versioned;
@@ -52,6 +56,7 @@ public class CachingAsyncConsistentMap<K, V> extends DelegatingAsyncConsistentMa
     private static final int DEFAULT_CACHE_SIZE = 10000;
     private final Logger log = getLogger(getClass());
 
+    private final Map<MapEventListener<K, V>, Executor> mapEventListeners = new ConcurrentHashMap<>();
     private final LoadingCache<K, CompletableFuture<Versioned<V>>> cache;
     private final AsyncConsistentMap<K, V> backingMap;
     private final MapEventListener<K, V> cacheUpdater;
@@ -85,6 +90,7 @@ public class CachingAsyncConsistentMap<K, V> extends DelegatingAsyncConsistentMa
             } else {
                 cache.put(event.key(), CompletableFuture.completedFuture(newValue));
             }
+            mapEventListeners.forEach((listener, executor) -> executor.execute(() -> listener.event(event)));
         };
         statusListener = status -> {
             log.debug("{} status changed to {}", this.name(), status);
@@ -94,7 +100,7 @@ public class CachingAsyncConsistentMap<K, V> extends DelegatingAsyncConsistentMa
                 cache.invalidateAll();
             }
         };
-        super.addListener(cacheUpdater);
+        super.addListener(cacheUpdater, MoreExecutors.directExecutor());
         super.addStatusChangeListener(statusListener);
     }
 
@@ -223,5 +229,17 @@ public class CachingAsyncConsistentMap<K, V> extends DelegatingAsyncConsistentMa
                         cache.invalidate(key);
                     }
                 });
+    }
+
+    @Override
+    public CompletableFuture<Void> addListener(MapEventListener<K, V> listener, Executor executor) {
+        mapEventListeners.put(listener, executor);
+        return CompletableFuture.completedFuture(null);
+    }
+
+    @Override
+    public CompletableFuture<Void> removeListener(MapEventListener<K, V> listener) {
+        mapEventListeners.remove(listener);
+        return CompletableFuture.completedFuture(null);
     }
 }
