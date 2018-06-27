@@ -20,9 +20,9 @@ import org.onosproject.drivers.server.behavior.CpuStatisticsDiscovery;
 import org.onosproject.drivers.server.behavior.MonitoringStatisticsDiscovery;
 import org.onosproject.drivers.server.devices.CpuDevice;
 import org.onosproject.drivers.server.devices.CpuVendor;
-import org.onosproject.drivers.server.devices.NicDevice;
-import org.onosproject.drivers.server.devices.NicRxFilter;
-import org.onosproject.drivers.server.devices.NicRxFilter.RxFilter;
+import org.onosproject.drivers.server.devices.nic.NicDevice;
+import org.onosproject.drivers.server.devices.nic.NicRxFilter;
+import org.onosproject.drivers.server.devices.nic.NicRxFilter.RxFilter;
 import org.onosproject.drivers.server.devices.ServerDeviceDescription;
 import org.onosproject.drivers.server.devices.RestServerSBDevice;
 import org.onosproject.drivers.server.stats.CpuStatistics;
@@ -104,13 +104,10 @@ public class ServerDevicesDiscovery extends BasicServerDriver
     /**
      * Parameters to be exchanged with the server's agent.
      */
-    private static final String PARAM_ID               = "id";
-    private static final String PARAM_CPUS             = "cpus";
     private static final String PARAM_MANUFACTURER     = "manufacturer";
     private static final String PARAM_HW_VENDOR        = "hwVersion";
     private static final String PARAM_SW_VENDOR        = "swVersion";
     private static final String PARAM_SERIAL           = "serial";
-    private static final String PARAM_NICS             = "nics";
     private static final String PARAM_TIMING_STATS     = "timing_stats";
     private static final String PARAM_TIMING_AUTOSCALE = "autoscale_timing_stats";
 
@@ -121,9 +118,6 @@ public class ServerDevicesDiscovery extends BasicServerDriver
     private static final String NIC_PARAM_SPEED            = "speed";
     private static final String NIC_PARAM_STATUS           = "status";
     private static final String NIC_PARAM_HW_ADDR          = "hwAddr";
-    private static final String NIC_PARAM_RX_FILTER        = "rxFilter";
-    private static final String NIC_PARAM_RX_METHOD        = "method";
-    private static final String NIC_PARAM_RX_METHOD_VALUES = "values";
 
     /**
      * NIC statistics.
@@ -260,7 +254,7 @@ public class ServerDevicesDiscovery extends BasicServerDriver
         }
 
         // Get all the attributes
-        String id     = get(jsonNode, PARAM_ID);
+        String id     = get(jsonNode, BasicServerDriver.PARAM_ID);
         String vendor = get(jsonNode, PARAM_MANUFACTURER);
         String hw     = get(jsonNode, PARAM_HW_VENDOR);
         String sw     = get(jsonNode, PARAM_SW_VENDOR);
@@ -268,7 +262,7 @@ public class ServerDevicesDiscovery extends BasicServerDriver
 
         // CPUs are composite attributes
         Set<CpuDevice> cpuSet = new HashSet<CpuDevice>();
-        JsonNode cpuNode = objNode.path(PARAM_CPUS);
+        JsonNode cpuNode = objNode.path(BasicServerDriver.PARAM_CPUS);
 
         // Construct CPU objects
         for (JsonNode cn : cpuNode) {
@@ -311,7 +305,7 @@ public class ServerDevicesDiscovery extends BasicServerDriver
             }
             boolean status     = nicObjNode.path(NIC_PARAM_STATUS).asInt() > 0;
             String hwAddr      = get(nn, NIC_PARAM_HW_ADDR);
-            JsonNode tagNode   = nicObjNode.path(NIC_PARAM_RX_FILTER);
+            JsonNode tagNode   = nicObjNode.path(BasicServerDriver.NIC_PARAM_RX_FILTER);
             if (tagNode == null) {
                 throw new IllegalArgumentException(
                     "The Rx filters of NIC " + nicId + " are not reported"
@@ -348,11 +342,9 @@ public class ServerDevicesDiscovery extends BasicServerDriver
             nicSet.add(nic);
         }
 
-        /**
-         * Construct a complete server device object.
-         * Lists of NICs and CPUs extend the information
-         * already in RestSBDevice (parent class).
-         */
+        // Construct a complete server device object.
+        // Lists of NICs and CPUs extend the information
+        // already in RestSBDevice (parent class).
         RestServerSBDevice dev = new DefaultRestServerSBDevice(
             device.ip(), device.port(), device.username(),
             device.password(), device.protocol(), device.url(),
@@ -400,10 +392,8 @@ public class ServerDevicesDiscovery extends BasicServerDriver
         // .. and object
         RestServerSBDevice device = null;
 
-        /*
-         * In case this method is called before discoverDeviceDetails,
-         * there is missing information to be gathered.
-         */
+        // In case this method is called before discoverDeviceDetails,
+        // there is missing information to be gathered.
         short i = 0;
         while ((device == null) && (i < DISCOVERY_RETRIES)) {
             i++;
@@ -517,7 +507,7 @@ public class ServerDevicesDiscovery extends BasicServerDriver
      * @param deviceId the device ID to be queried
      * @return list of (per core) CpuStatistics
      */
-     private Collection<CpuStatistics> getCpuStatistics(DeviceId deviceId) {
+     public Collection<CpuStatistics> getCpuStatistics(DeviceId deviceId) {
         // List of port statistics to return
         Collection<CpuStatistics> cpuStats = null;
 
@@ -589,11 +579,10 @@ public class ServerDevicesDiscovery extends BasicServerDriver
         // Load the JSON into objects
         ObjectMapper mapper = new ObjectMapper();
         Map<String, Object> jsonMap = null;
-        JsonNode jsonNode  = null;
         ObjectNode objNode = null;
         try {
             jsonMap  = mapper.readValue(response, Map.class);
-            jsonNode = mapper.convertValue(jsonMap, JsonNode.class);
+            JsonNode jsonNode = mapper.convertValue(jsonMap, JsonNode.class);
             objNode = (ObjectNode) jsonNode;
         } catch (IOException ioEx) {
             log.error(
@@ -773,7 +762,7 @@ public class ServerDevicesDiscovery extends BasicServerDriver
             return cpuStats;
         }
 
-        JsonNode cpuNode = objNode.path(PARAM_CPUS);
+        JsonNode cpuNode = objNode.path(BasicServerDriver.PARAM_CPUS);
 
         for (JsonNode cn : cpuNode) {
             ObjectNode cpuObjNode = (ObjectNode) cn;

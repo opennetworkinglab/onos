@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.drivers.server.devices;
+package org.onosproject.drivers.server.devices.nic;
 
 import org.onlab.packet.MplsLabel;
 
@@ -30,26 +30,17 @@ public class MplsRxFilterValue extends RxFilterValue {
 
     public MplsRxFilterValue() {
         super();
-
         this.mplsLabel = null;
     }
 
     public MplsRxFilterValue(MplsLabel mplsLabel) {
         super();
-
-        checkNotNull(mplsLabel, "MPLS label of Rx filter is NULL");
-
-        this.mplsLabel = mplsLabel;
+        setValue(mplsLabel);
     }
 
     public MplsRxFilterValue(MplsRxFilterValue other) {
         super();
-
-        if (other.value() == null) {
-            return;
-        }
-
-        this.mplsLabel = other.value();
+        setValue(other.value());
     }
 
     /**
@@ -68,7 +59,6 @@ public class MplsRxFilterValue extends RxFilterValue {
      */
     public void setValue(MplsLabel mplsLabel) {
         checkNotNull(mplsLabel, "MPLS label of Rx filter is NULL");
-
         this.mplsLabel = mplsLabel;
     }
 

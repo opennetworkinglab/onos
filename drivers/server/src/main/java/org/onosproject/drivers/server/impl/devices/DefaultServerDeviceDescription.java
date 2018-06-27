@@ -17,7 +17,7 @@
 package org.onosproject.drivers.server.impl.devices;
 
 import org.onosproject.drivers.server.devices.CpuDevice;
-import org.onosproject.drivers.server.devices.NicDevice;
+import org.onosproject.drivers.server.devices.nic.NicDevice;
 import org.onosproject.drivers.server.devices.ServerDeviceDescription;
 
 import org.onosproject.net.device.DefaultDeviceDescription;

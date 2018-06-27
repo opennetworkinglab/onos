@@ -16,8 +16,8 @@
 
 package org.onosproject.drivers.server.impl.devices;
 
-import org.onosproject.drivers.server.devices.NicDevice;
-import org.onosproject.drivers.server.devices.NicRxFilter;
+import org.onosproject.drivers.server.devices.nic.NicDevice;
+import org.onosproject.drivers.server.devices.nic.NicRxFilter;
 
 import org.onlab.packet.MacAddress;
 

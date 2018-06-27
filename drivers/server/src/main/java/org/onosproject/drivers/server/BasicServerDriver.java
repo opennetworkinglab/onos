@@ -46,6 +46,16 @@ public class BasicServerDriver extends AbstractHandlerBehaviour {
     public    static final String BASE_URL = ROOT_URL + "/metron";
 
     /**
+     * Common parameters to be exchanged with the server's agent.
+     */
+    public static final String PARAM_ID             = "id";
+    public static final String PARAM_NICS           = "nics";
+    public static final String PARAM_CPUS           = "cpus";
+    public static final String NIC_PARAM_RX_FILTER  = "rxFilter";
+    public static final String NIC_PARAM_RX_METHOD  = "method";
+
+
+    /**
      * Successful HTTP status codes.
      */
     private static final int STATUS_OK = Response.Status.OK.getStatusCode();
@@ -99,7 +109,7 @@ public class BasicServerDriver extends AbstractHandlerBehaviour {
      *
      * @return RestSBController instance
      */
-    protected RestSBController getController() {
+    public RestSBController getController() {
         synchronized (CONTROLLER_LOCK) {
             if (controller == null) {
                 init();

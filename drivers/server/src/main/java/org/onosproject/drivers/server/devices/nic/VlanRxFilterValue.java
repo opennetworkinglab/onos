@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.drivers.server.devices;
+package org.onosproject.drivers.server.devices.nic;
 
 import org.onlab.packet.VlanId;
 
@@ -30,26 +30,17 @@ public class VlanRxFilterValue extends RxFilterValue {
 
     public VlanRxFilterValue() {
         super();
-
-        this.vlanId = null;
+        this.vlanId = VlanId.NONE;
     }
 
     public VlanRxFilterValue(VlanId vlanId) {
         super();
-
-        checkNotNull(vlanId, "VLAN ID of Rx filter is NULL");
-
-        this.vlanId = vlanId;
+        setValue(vlanId);
     }
 
     public VlanRxFilterValue(VlanRxFilterValue other) {
         super();
-
-        if (other.value() == null) {
-            return;
-        }
-
-        this.vlanId = other.value();
+        setValue(other.value());
     }
 
     /**

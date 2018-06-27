@@ -16,6 +16,7 @@
 
 package org.onosproject.drivers.server.devices;
 
+import org.onosproject.drivers.server.devices.nic.NicDevice;
 import org.onosproject.net.device.DeviceDescription;
 
 import java.util.Collection;

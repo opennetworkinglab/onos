@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.drivers.server.devices;
+package org.onosproject.drivers.server.devices.nic;
 
 import org.onlab.packet.MacAddress;
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.drivers.server.devices;
+package org.onosproject.drivers.server.devices.nic;
 
 import org.apache.commons.lang.ArrayUtils;
 import com.google.common.base.MoreObjects;
@@ -35,9 +35,27 @@ public class NicRxFilter {
      * Supported Rx filters.
      */
     public enum RxFilter {
+        /**
+         * NIC dispatches traffic according to VLAN tags.
+         */
         VLAN("vlan"),
+        /**
+         * NIC dispatches traffic according to the destination MAC addresses.
+         */
         MAC("mac"),
-        MPLS("mpls");
+        /**
+         * NIC dispatches traffic according to MPLS tags.
+         */
+        MPLS("mpls"),
+        /**
+         * NIC dispatches traffic according to (generic) flow rules.
+         */
+        FLOW("flow"),
+        /**
+         * NIC dispatches traffic by hashing the values of some header fields.
+         * This is also known as Receive-Side Scaling (RSS).
+         */
+        RSS("rss");
 
         private String rxFilter;
 
@@ -57,6 +75,15 @@ public class NicRxFilter {
             return MAP.containsKey(rxFilter.toString());
         }
 
+        public static boolean isSupportedSet(Set<RxFilter> rxFilters) {
+            for (RxFilter rf : rxFilters) {
+                if (!MAP.containsKey(rf.toString())) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
         private RxFilter(String rxFilter) {
             this.rxFilter = rxFilter;
         }
@@ -65,6 +92,7 @@ public class NicRxFilter {
         public String toString() {
             return this.rxFilter;
         }
+
     }
 
     private Set<RxFilter> rxFilters;
