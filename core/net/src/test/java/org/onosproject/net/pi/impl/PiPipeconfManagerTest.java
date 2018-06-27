@@ -120,8 +120,7 @@ public class PiPipeconfManagerTest {
         assertEquals("Incorrect driver service", driverService, piPipeconfService.driverService);
         assertEquals("Incorrect driverAdminService service", driverAdminService, piPipeconfService.driverAdminService);
         assertEquals("Incorrect configuration service", cfgService, piPipeconfService.cfgService);
-        assertTrue("Incorrect config factory", cfgFactories.contains(piPipeconfService.factory));
-        assertTrue("Incorrect network configuration listener", netCfgListeners.contains(piPipeconfService.cfgListener));
+        assertTrue("Incorrect config factory", cfgFactories.contains(piPipeconfService.configFactory));
     }
 
     @Test
@@ -130,15 +129,13 @@ public class PiPipeconfManagerTest {
         assertEquals("Incorrect driver service", null, piPipeconfService.driverService);
         assertEquals("Incorrect driverAdminService service", null, piPipeconfService.driverAdminService);
         assertEquals("Incorrect configuration service", null, piPipeconfService.cfgService);
-        assertFalse("Config factory should be unregistered", cfgFactories.contains(piPipeconfService.factory));
-        assertFalse("Network configuration listener should be unregistered",
-                    netCfgListeners.contains(piPipeconfService.cfgListener));
+        assertFalse("Config factory should be unregistered", cfgFactories.contains(piPipeconfService.configFactory));
     }
 
     @Test
     public void register() {
         piPipeconfService.register(piPipeconf);
-        assertTrue("PiPipeconf should be registered", piPipeconfService.piPipeconfs.containsValue(piPipeconf));
+        assertTrue("PiPipeconf should be registered", piPipeconfService.pipeconfs.containsValue(piPipeconf));
     }
 
     @Test
