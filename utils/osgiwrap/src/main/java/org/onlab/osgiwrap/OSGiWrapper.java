@@ -273,8 +273,13 @@ public class OSGiWrapper {
         Jar dot = analyzer.getJar();
 
         log("wab %s", wab);
-        analyzer.setBundleClasspath("WEB-INF/classes," +
-                                    analyzer.getProperty(analyzer.BUNDLE_CLASSPATH));
+
+        String specifiedClasspath = analyzer.getProperty(analyzer.BUNDLE_CLASSPATH);
+        String bundleClasspath = "WEB-INF/classes";
+        if (specifiedClasspath != null) {
+            bundleClasspath += "," + specifiedClasspath;
+        }
+        analyzer.setBundleClasspath(bundleClasspath);
 
         Set<String> paths = new HashSet<>(dot.getResources().keySet());
 

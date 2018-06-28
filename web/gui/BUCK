@@ -51,7 +51,7 @@ genrule(
     name = 'onos-tools-gui',
     srcs = glob(['src/main/webapp/*.js', 'src/main/webapp/app/**/*.js'], excludes = ['src/main/webapp/dist/*.js']),
     bash = '$(location :onos-tools-gui-exe) '
-        + '$(location :node-release-' + NODE_VERSION + ') '
+        + ' $(location :node-release-' + NODE_VERSION + ') '
         + '$(location :node-bin-' + NODE_VERSION + ') > $OUT',
     out = 'onos-tools-gui.log',
     visibility = [ 'PUBLIC' ],

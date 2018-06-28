@@ -18,3 +18,6 @@ load("//tools/build/bazel:osgi_java_library.bzl", "osgi_jar", "osgi_jar_with_tes
 load("//tools/build/bazel:onos_app.bzl", "onos_app")
 
 generated_java_libraries()
+
+
+

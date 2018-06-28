@@ -39,9 +39,9 @@ def _osgi_feature_impl(ctx):
     for dep in ctx.attr.included_bundles:
         coord = maven_coordinates(dep.label)
         xmlArgs += ["-b", coord]
-        if java_common.provider in dep:
-            inputs += [dep.files.to_list()[0]]
-            bundleArgs += [dep.files.to_list()[0].path, coord]
+
+        inputs += [dep.files.to_list()[0]]
+        bundleArgs += [dep.files.to_list()[0].path, coord]
 
     for f in ctx.attr.excluded_bundles:
         xmlArgs += ["-e", maven_coordinates(dep.label)]

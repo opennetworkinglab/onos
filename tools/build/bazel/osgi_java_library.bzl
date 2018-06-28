@@ -35,11 +35,18 @@ def _all_resources(resources_root):
         return native.glob([resources_root + "**"])
 
 def _webapp():
-    return native.glob(["src/main/webapp/**"])
+    return native.glob(["src/main/webapp/WEB-INF/web.xml"])
+
+def _include_resources_to_string(include_resources):
+    result = ""
+    for (path, filename) in include_resources.items():
+        result += (path + "=" + filename)
+    return result
 
 """
     Implementation of the rule to call bnd to make an OSGI jar file
 """
+
 def _bnd_impl(ctx):
     if (len(ctx.files.source) == 1):
         input_file = ctx.files.source[0]
@@ -61,7 +68,7 @@ def _bnd_impl(ctx):
     license = ""
     import_packages = ctx.attr.import_packages
     exportPackages = "*"
-    includeResources = ""
+    include_resources = ctx.attr.include_resources
     web_context = ctx.attr.web_context
     if web_context == None or web_context == "":
         web_context = "NONE"
@@ -109,7 +116,7 @@ def _bnd_impl(ctx):
         license,
         import_packages,
         exportPackages,
-        includeResources,
+        include_resources,
         web_context,
         web_xml_root_path,
         dynamicimportPackages,
@@ -144,6 +151,7 @@ _bnd = rule(
         "import_packages": attr.string(),
         "web_context": attr.string(),
         "web_xml": attr.label_list(allow_files = True),
+        "include_resources": attr.string(),
         "_bnd_exe": attr.label(
             executable = True,
             cfg = "host",
@@ -161,6 +169,7 @@ _bnd = rule(
 """
     Implementation of the rule to call swagger generator to create the registrator java class source
 """
+
 def _swagger_java_impl(ctx):
     api_title = ctx.attr.api_title
     api_version = ctx.attr.api_version
@@ -169,7 +178,7 @@ def _swagger_java_impl(ctx):
     web_context = ctx.attr.web_context
 
     output_java = ctx.outputs.swagger_java.path
-    output_dir = output_java [:output_java.find("generated-sources")]
+    output_dir = output_java[:output_java.find("generated-sources")]
 
     package_name = ctx.attr.package_name
 
@@ -210,6 +219,7 @@ def _swagger_java_impl(ctx):
 """
 Implementation of the rule to call swagger generator for swagger.json file
 """
+
 def _swagger_json_impl(ctx):
     api_title = ctx.attr.api_title
     api_version = ctx.attr.api_version
@@ -316,6 +326,7 @@ _swagger_json = rule(
         import_packages: OSGI import list. Optional, comma separated list, defaults to "*"
         visibility: Visibility of the produced jar file to other BUILDs. Optional, defaults to private
 """
+
 def wrapped_osgi_jar(
         name,
         jar,
@@ -345,6 +356,7 @@ def wrapped_osgi_jar(
         exclude_tests: Tests that should not be run. Useful for excluding things like test files without any @Test methods.
                        Optional ist of targets, defaults to []
 """
+
 def osgi_jar_with_tests(
         name = None,
         deps = None,
@@ -353,6 +365,7 @@ def osgi_jar_with_tests(
         srcs = None,
         resources_root = None,
         resources = None,
+        include_resources = {},
         test_srcs = None,
         exclude_tests = None,
         test_resources = None,
@@ -389,7 +402,7 @@ def osgi_jar_with_tests(
 
     native_srcs = srcs
     native_resources = resources
-    if web_context != None and api_title != None and len(resources) != 0:
+    if web_context != None and api_title != "" and len(resources) != 0:
         # generate Swagger files if needed
         _swagger_java(
             name = name + "_swagger_java",
@@ -401,8 +414,8 @@ def osgi_jar_with_tests(
             web_context = web_context,
             api_package = api_package,
             swagger_java = ("src/main/resources/apidoc/generated-sources/" +
-                           api_package.replace(".", "/") +
-                           "/ApiDocRegistrator.java").replace("//", "/"),
+                            api_package.replace(".", "/") +
+                            "/ApiDocRegistrator.java").replace("//", "/"),
         )
         _swagger_json(
             name = name + "_swagger_json",
@@ -417,10 +430,10 @@ def osgi_jar_with_tests(
         )
         native_resources = []
         for r in resources:
-             if not "definitions" in r:
+            if not "definitions" in r:
                 native_resources.append(r)
-        native_srcs = srcs + [ name + "_swagger_java" ]
-        native_resources.append(name + "_swagger_json");
+        native_srcs = srcs + [name + "_swagger_java"]
+        native_resources.append(name + "_swagger_json")
 
     # compile the Java code
     native.java_library(name = name + "-native", srcs = native_srcs, resources = native_resources, deps = deps, visibility = visibility)
@@ -435,6 +448,7 @@ def osgi_jar_with_tests(
         import_packages = import_packages,
         web_context = web_context,
         web_xml = web_xml,
+        include_resources = _include_resources_to_string(include_resources),
     )
     if test_srcs != []:
         native.java_library(
@@ -477,6 +491,7 @@ def osgi_jar_with_tests(
         api_description: Swagger API description. Optional string, only used if the jar file provides a REST API and has swagger annotations
         api_package: Swagger API package name. Optional string, only used if the jar file provides a REST API and has swagger annotations
 """
+
 def osgi_jar(
         name = None,
         deps = None,
@@ -485,6 +500,7 @@ def osgi_jar(
         srcs = None,
         resources_root = None,
         resources = None,
+        include_resources = {},
         visibility = ["//visibility:public"],
         version = ONOS_VERSION,
         web_context = None,
