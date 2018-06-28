@@ -296,6 +296,58 @@ public final class OpenstackSwitchingArpHandler {
     }
 
     /**
+     * Installs flow rules which convert ARP request packet into ARP reply
+     * by adding a fake gateway MAC address as Source Hardware Address.
+     *
+     * @param osSubnet  openstack subnet
+     * @param install   flag which indicates whether to install rule or remove rule
+     */
+    private void setFakeGatewayArpRule(Subnet osSubnet, boolean install, OpenstackNode osNode) {
+
+        if (arpMode.equals(ARP_BROADCAST_MODE)) {
+            String gateway = osSubnet.getGateway();
+
+            TrafficSelector selector = DefaultTrafficSelector.builder()
+                    .matchEthType(EthType.EtherType.ARP.ethType().toShort())
+                    .matchArpOp(ARP.OP_REQUEST)
+                    .matchArpTpa(Ip4Address.valueOf(gateway))
+                    .build();
+
+            TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                    .setArpOp(ARP.OP_REPLY)
+                    .setArpSha(MacAddress.valueOf(gatewayMac))
+                    .setArpSpa(Ip4Address.valueOf(gateway))
+                    .setOutput(PortNumber.IN_PORT)
+                    .build();
+
+            if (osNode == null) {
+                osNodeService.completeNodes(COMPUTE).forEach(n ->
+                        osFlowRuleService.setRule(
+                                appId,
+                                n.intgBridge(),
+                                selector,
+                                treatment,
+                                PRIORITY_ARP_GATEWAY_RULE,
+                                DHCP_ARP_TABLE,
+                                install
+                        )
+                );
+            } else {
+                osFlowRuleService.setRule(
+                        appId,
+                        osNode.intgBridge(),
+                        selector,
+                        treatment,
+                        PRIORITY_ARP_GATEWAY_RULE,
+                        DHCP_ARP_TABLE,
+                        install
+                );
+            }
+
+        }
+    }
+
+    /**
      * An internal packet processor which processes ARP request, and results in
      * packet-out ARP reply.
      */
@@ -355,11 +407,11 @@ public final class OpenstackSwitchingArpHandler {
                 case OPENSTACK_SUBNET_CREATED:
                 case OPENSTACK_SUBNET_UPDATED:
                     addSubnetGateway(event.subnet());
-                    setFakeGatewayArpRule(event.subnet(), true);
+                    setFakeGatewayArpRule(event.subnet(), true, null);
                     break;
                 case OPENSTACK_SUBNET_REMOVED:
                     removeSubnetGateway(event.subnet());
-                    setFakeGatewayArpRule(event.subnet(), false);
+                    setFakeGatewayArpRule(event.subnet(), false, null);
                     break;
                 case OPENSTACK_NETWORK_CREATED:
                 case OPENSTACK_NETWORK_UPDATED:
@@ -370,45 +422,6 @@ public final class OpenstackSwitchingArpHandler {
                 default:
                     // do nothing for the other events
                     break;
-            }
-        }
-
-        /**
-         * Installs flow rules which convert ARP request packet into ARP reply
-         * by adding a fake gateway MAC address as Source Hardware Address.
-         *
-         * @param osSubnet  openstack subnet
-         * @param install   flag which indicates whether to install rule or remove rule
-         */
-        private void setFakeGatewayArpRule(Subnet osSubnet, boolean install) {
-
-            if (arpMode.equals(ARP_BROADCAST_MODE)) {
-                String gateway = osSubnet.getGateway();
-
-                TrafficSelector selector = DefaultTrafficSelector.builder()
-                        .matchEthType(EthType.EtherType.ARP.ethType().toShort())
-                        .matchArpOp(ARP.OP_REQUEST)
-                        .matchArpTpa(Ip4Address.valueOf(gateway))
-                        .build();
-
-                TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                        .setArpOp(ARP.OP_REPLY)
-                        .setArpSha(MacAddress.valueOf(gatewayMac))
-                        .setArpSpa(Ip4Address.valueOf(gateway))
-                        .setOutput(PortNumber.IN_PORT)
-                        .build();
-
-                osNodeService.completeNodes(COMPUTE).forEach(n ->
-                    osFlowRuleService.setRule(
-                            appId,
-                            n.intgBridge(),
-                            selector,
-                            treatment,
-                            PRIORITY_ARP_GATEWAY_RULE,
-                            DHCP_ARP_TABLE,
-                            install
-                    )
-                );
             }
         }
     }
@@ -449,6 +462,7 @@ public final class OpenstackSwitchingArpHandler {
                     break;
                 case ARP_BROADCAST_MODE:
                     setDefaultArpRuleForBroadcastMode(osNode, install);
+                    osNetworkService.subnets().forEach(subnet -> setFakeGatewayArpRule(subnet, install, osNode));
                     break;
                 default:
                     log.warn("Invalid ARP mode {}. Please use either " +

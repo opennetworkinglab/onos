@@ -17,6 +17,7 @@ package org.onosproject.openstacknetworking.impl;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -217,12 +218,37 @@ public class OpenstackRoutingHandler {
         VlanId vlanId = externalPeerRouter == null ? VlanId.NONE : externalPeerRouter.externalPeerRouterVlanId();
 
         if (exGateway == null) {
-            osNetworkAdminService.deleteExternalPeerRouter(exGateway);
+            deleteUnassociatedExternalPeerRouter();
             osRouterService.routerInterfaces(osRouter.getId()).forEach(iface -> setSourceNat(iface, false));
         } else {
             osNetworkAdminService.deriveExternalPeerRouterMac(exGateway, osRouter, vlanId);
             osRouterService.routerInterfaces(osRouter.getId()).forEach(iface ->
                     setSourceNat(iface, exGateway.isEnableSnat()));
+        }
+    }
+
+    private void deleteUnassociatedExternalPeerRouter() {
+        log.trace("Deleting unassociated external peer router");
+
+        try {
+            Set<String> routerIps = Sets.newConcurrentHashSet();
+
+            osRouterService.routers().stream()
+                    .filter(router -> getGatewayIpAddress(router) != null)
+                    .map(router -> getGatewayIpAddress(router).toString())
+                    .forEach(routerIps::add);
+
+            osNetworkAdminService.externalPeerRouters().stream()
+                    .filter(externalPeerRouter ->
+                            !routerIps.contains(externalPeerRouter.externalPeerRouterIp().toString()))
+                    .forEach(externalPeerRouter -> {
+                        osNetworkAdminService
+                                .deleteExternalPeerRouter(externalPeerRouter.externalPeerRouterIp().toString());
+                        log.trace("Deleted unassociated external peer router {}",
+                                externalPeerRouter.externalPeerRouterIp().toString());
+                    });
+        } catch (Exception e) {
+            log.error("Exception occurred because of {}", e.toString());
         }
     }
 
@@ -357,6 +383,9 @@ public class OpenstackRoutingHandler {
 
     private IpAddress getGatewayIpAddress(Router osRouter) {
 
+        if (osRouter.getExternalGatewayInfo() == null) {
+            return null;
+        }
         String extNetId = osNetworkAdminService.network(osRouter.getExternalGatewayInfo().getNetworkId()).getId();
         Optional<Subnet> extSubnet = osNetworkAdminService.subnets().stream()
                 .filter(subnet -> subnet.getNetworkId().equals(extNetId))

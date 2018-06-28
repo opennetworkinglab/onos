@@ -438,6 +438,10 @@ public class OpenstackNetworkManager
 
     @Override
     public void deleteExternalPeerRouter(ExternalGateway externalGateway) {
+        if (externalGateway == null) {
+            return;
+        }
+
         IpAddress targetIp = getExternalPeerRouterIp(externalGateway);
         if (targetIp == null) {
             return;
@@ -555,6 +559,9 @@ public class OpenstackNetworkManager
     }
 
     private IpAddress getExternalPeerRouterIp(ExternalGateway externalGateway) {
+        if (externalGateway == null) {
+            return null;
+        }
         Optional<Subnet> externalSubnet = subnets(externalGateway.getNetworkId())
                 .stream()
                 .findFirst();
