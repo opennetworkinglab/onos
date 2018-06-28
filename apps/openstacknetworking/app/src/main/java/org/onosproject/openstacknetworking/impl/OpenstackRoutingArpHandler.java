@@ -199,11 +199,8 @@ public class OpenstackRoutingArpHandler {
         log.info("Stopped");
     }
 
-    // TODO: need to find a way to unify aprMode and gatewayMac variables with
-    // that in SwitchingArpHandler
     @Modified
     void modified(ComponentContext context) {
-
         log.info("Modified");
     }
 

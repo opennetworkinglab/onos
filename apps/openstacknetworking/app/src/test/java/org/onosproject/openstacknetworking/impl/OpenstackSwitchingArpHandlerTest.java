@@ -226,6 +226,16 @@ public class OpenstackSwitchingArpHandlerTest {
         public PortNumber portNumber() {
             return null;
         }
+
+        @Override
+        public State state() {
+            return null;
+        }
+
+        @Override
+        public InstancePort updateState(State newState) {
+            return null;
+        }
     }
 
     /**

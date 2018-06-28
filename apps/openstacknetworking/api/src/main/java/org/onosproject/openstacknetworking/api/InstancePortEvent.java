@@ -50,7 +50,17 @@ public class InstancePortEvent extends AbstractEvent<InstancePortEvent.Type, Ins
         /**
          * Signifies that the instance is migration is ended.
          */
-        OPENSTACK_INSTANCE_MIGRATION_ENDED
+        OPENSTACK_INSTANCE_MIGRATION_ENDED,
+
+        /**
+         * Signifies that the instance is terminated.
+         */
+        OPENSTACK_INSTANCE_TERMINATED,
+
+        /**
+         * Signifies that the instance is restarted.
+         */
+        OPENSTACK_INSTANCE_RESTARTED,
     }
 
     /**

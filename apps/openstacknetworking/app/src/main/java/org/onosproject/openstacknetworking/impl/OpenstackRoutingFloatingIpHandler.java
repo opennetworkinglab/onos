@@ -133,10 +133,10 @@ public class OpenstackRoutingFloatingIpHandler {
     private final OpenstackRouterListener floatingIpListener = new InternalFloatingIpListener();
     private final InstancePortListener instancePortListener = new InternalInstancePortListener();
     private final OpenstackNodeListener osNodeListener = new InternalNodeListener();
-    private final Map<String, DeviceId> migrationPool = Maps.newConcurrentMap();
     private final OpenstackNetworkListener osNetworkListener = new InternalOpenstackNetworkListener();
     private final InstancePortListener instPortListener = new InternalInstancePortListener();
 
+    private final Map<String, DeviceId> migrationPool = Maps.newConcurrentMap();
     private Map<String, Port> terminatedOsPorts = Maps.newConcurrentMap();
     private Map<String, InstancePort> terminatedInstPorts = Maps.newConcurrentMap();
     private Map<String, InstancePort> tobeRemovedInstPorts = Maps.newConcurrentMap();

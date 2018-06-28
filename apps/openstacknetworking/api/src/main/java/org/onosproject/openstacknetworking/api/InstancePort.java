@@ -26,6 +26,33 @@ import org.onosproject.net.PortNumber;
 public interface InstancePort {
 
     /**
+     * List of instance port states.
+     */
+    enum State {
+
+        /**
+         * Signifies that the given instance port is in active state.
+         */
+        ACTIVE,
+
+        /**
+         * Signifies that the given instance port is in inactive state due to
+         * host termination.
+         */
+        INACTIVE,
+
+        /**
+         * Signifies that the given instance port is in pending removal state.
+         */
+        PENDING_REMOVAL,
+
+        /**
+         * Signifies that the given instance port is in migrating state.
+         */
+        MIGRATING
+    }
+
+    /**
      * Returns the OpenStack network ID of the instance port.
      *
      * @return openstack network id
@@ -66,4 +93,88 @@ public interface InstancePort {
      * @return port number
      */
     PortNumber portNumber();
+
+    /**
+     * Returns the state of the instance port.
+     *
+     * @return state of port
+     */
+    State state();
+
+    /**
+     * Returns new instance port instance with given state.
+     *
+     * @param newState updated state
+     * @return updated instance port
+     */
+    InstancePort updateState(State newState);
+
+    /**
+     * Builder of new instance port.
+     */
+    interface Builder {
+
+        /**
+         * Builds an immutable instance port instance.
+         *
+         * @return instance port
+         */
+        InstancePort build();
+
+        /**
+         * Returns instance port builder with supplied network identifier.
+         *
+         * @param networkId network identifier
+         * @return instance port builder
+         */
+        Builder networkId(String networkId);
+
+        /**
+         * Returns instance port builder with supplied port identifier.
+         *
+         * @param portId port identifier
+         * @return instance port builder
+         */
+        Builder portId(String portId);
+
+        /**
+         * Returns instance port builder with supplied Mac Address.
+         *
+         * @param macAddress MAC address
+         * @return instance port builder
+         */
+        Builder macAddress(MacAddress macAddress);
+
+        /**
+         * Returns instance port builder with supplied IP Address.
+         *
+         * @param ipAddress IP address
+         * @return instance port builder
+         */
+        Builder ipAddress(IpAddress ipAddress);
+
+        /**
+         * Returns instance port builder with supplied Device identifier.
+         *
+         * @param deviceId device identifier
+         * @return instance port builder
+         */
+        Builder deviceId(DeviceId deviceId);
+
+        /**
+         * Returns instance port builder with supplied port number.
+         *
+         * @param portNumber port number
+         * @return instance port builder
+         */
+        Builder portNumber(PortNumber portNumber);
+
+        /**
+         * Returns instance port builder with supplied state.
+         *
+         * @param state state
+         * @return instance port builder
+         */
+        Builder state(State state);
+    }
 }

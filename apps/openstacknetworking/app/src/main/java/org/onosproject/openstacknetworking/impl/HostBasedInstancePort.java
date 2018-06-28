@@ -28,6 +28,7 @@ import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.openstacknetworking.api.InstancePort.State.ACTIVE;
 
 /**
  * Implementation of instance port based on host subsystem.
@@ -96,6 +97,16 @@ public final class HostBasedInstancePort implements InstancePort {
     @Override
     public PortNumber portNumber() {
         return host.location().port();
+    }
+
+    @Override
+    public State state() {
+        return ACTIVE;
+    }
+
+    @Override
+    public InstancePort updateState(State newState) {
+        return null;
     }
 
     @Override
