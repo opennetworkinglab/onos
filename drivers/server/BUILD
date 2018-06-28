@@ -1,5 +1,6 @@
 COMPILE_DEPS = CORE_DEPS + JACKSON + [
     "@javax_ws_rs_api//jar",
+    "@joda_time//jar",
     "//incubator/api:onos-incubator-api",
     "//utils/rest:onlab-rest",
     "//protocols/rest/api:onos-protocols-rest-api",

@@ -84,12 +84,12 @@ public interface CpuStatistics {
     Optional<Float> minLatency();
 
     /**
-     * Returns the median latency incurred by a CPU core,
+     * Returns the average latency incurred by a CPU core,
      * expressed in latencyUnit() monitoring units.
      *
-     * @return median latency incurred by a CPU core
+     * @return average latency incurred by a CPU core
      */
-    Optional<Float> medianLatency();
+    Optional<Float> averageLatency();
 
     /**
      * Returns the maximum latency incurred by a CPU core,

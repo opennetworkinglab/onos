@@ -150,7 +150,6 @@ public class ServerDevicesDiscovery extends BasicServerDriver
     private static final String MON_PARAM_FREE_CPUS  = "freeCpus";
     private static final String MON_PARAM_MIN        = "min";
     private static final String MON_PARAM_AVERAGE    = "average";
-    private static final String MON_PARAM_MEDIAN     = "median";
     private static final String MON_PARAM_MAX        = "max";
 
     /**
@@ -764,9 +763,9 @@ public class ServerDevicesDiscovery extends BasicServerDriver
                 if (latencyNode.get(MON_PARAM_MIN) != null) {
                     minLatency = latencyNode.path(MON_PARAM_MIN).floatValue();
                 }
-                float medianLatency = (float) 0;
-                if (latencyNode.get(MON_PARAM_MEDIAN) != null) {
-                    medianLatency = latencyNode.path(MON_PARAM_MEDIAN).floatValue();
+                float averageLatency = (float) 0;
+                if (latencyNode.get(MON_PARAM_AVERAGE) != null) {
+                    averageLatency = latencyNode.path(MON_PARAM_AVERAGE).floatValue();
                 }
                 float maxLatency = (float) 0;
                 if (latencyNode.get(MON_PARAM_MAX) != null) {
@@ -774,7 +773,7 @@ public class ServerDevicesDiscovery extends BasicServerDriver
                 }
 
                 cpuBuilder.setMinLatency(minLatency)
-                    .setMedianLatency(medianLatency)
+                    .setAverageLatency(averageLatency)
                     .setMaxLatency(maxLatency);
             }
 
@@ -924,13 +923,13 @@ public class ServerDevicesDiscovery extends BasicServerDriver
             return timingBuilder.build();
         }
 
-        ObjectNode autoscaleTimingObjNode = (ObjectNode) autoscaleTimingNode;
+        ObjectNode autoScaleTimingObjNode = (ObjectNode) autoscaleTimingNode;
         // Time (ns) to autoscale a server's load
-        long autoscaleTime = 0;
-        if (autoscaleTimingObjNode.get(TIMING_PARAM_AUTOSCALE) != null) {
-            autoscaleTime = autoscaleTimingObjNode.path(TIMING_PARAM_AUTOSCALE).asLong();
+        long autoScaleTime = 0;
+        if (autoScaleTimingObjNode.get(TIMING_PARAM_AUTOSCALE) != null) {
+            autoScaleTime = autoScaleTimingObjNode.path(TIMING_PARAM_AUTOSCALE).asLong();
         }
-        timingBuilder.setAutoscaleTime(autoscaleTime);
+        timingBuilder.setAutoScaleTime(autoScaleTime);
 
         return timingBuilder.build();
     }
@@ -947,7 +946,7 @@ public class ServerDevicesDiscovery extends BasicServerDriver
 
         zeroTimingBuilder.setParsingTime(0)
                          .setLaunchingTime(0)
-                         .setAutoscaleTime(0);
+                         .setAutoScaleTime(0);
 
         return zeroTimingBuilder.build();
     }

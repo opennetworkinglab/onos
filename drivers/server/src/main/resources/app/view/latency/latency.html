@@ -1,0 +1,27 @@
+<!-- partial HTML -->
+<div id="ov-latency">
+    <div id="chart-loader" ng-show="!devId && showLoader">
+        No Servers
+    </div>
+    <div ng-show="!devId">
+        <canvas id="bar" class="chart chart-bar" chart-data="data"
+                chart-labels="labels" chart-legend="true" chart-click="onClick"
+                chart-series="series" chart-options="options" height="100%">
+        </canvas>
+    </div>
+    <div ng-show="devId">
+        <h2>
+            Chart for Device {{devId || "(No device selected)"}}
+        </h2>
+        <div class="ctrl-btns">
+            <select ng-options="deviceId as deviceId for deviceId in deviceIds"
+                    ng-model="selectedItem" ng-change="onChange(selectedItem)">
+                <option value="">-- select a device --</option>
+            </select>
+        </div>
+        <canvas id="line" class="chart chart-line" chart-data="data"
+                chart-labels="labels" chart-legend="true"
+                chart-series="series" chart-options="options" height="100%">
+        </canvas>
+    </div>
+</div>

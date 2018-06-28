@@ -53,6 +53,22 @@ public interface MonitoringUnit {
             return MAP.get(tu);
         }
 
+        public static float toGbps(float value, ThroughputUnit fromUnit) {
+            if (value == 0) {
+                return value;
+            }
+
+            if (fromUnit == BPS) {
+                return value / 1000000000;
+            } else if (fromUnit == KBPS) {
+                return value / 1000000;
+            } else if (fromUnit == MBPS) {
+                return value / 1000;
+            }
+
+            return value;
+        }
+
         @Override
         public String toString() {
             return this.throughputUnit;
@@ -88,6 +104,22 @@ public interface MonitoringUnit {
         public static MonitoringUnit getByName(String lu) {
             lu = lu.toLowerCase();
             return MAP.get(lu);
+        }
+
+        public static float toNano(float value, LatencyUnit fromUnit) {
+            if (value == 0) {
+                return value;
+            }
+
+            if (fromUnit == MICRO_SECOND) {
+                return value * 1000;
+            } else if (fromUnit == MILLI_SECOND) {
+                return value * 1000000;
+            } else if (fromUnit == SECOND) {
+                return value * 1000000000;
+            }
+
+            return value;
         }
 
         @Override

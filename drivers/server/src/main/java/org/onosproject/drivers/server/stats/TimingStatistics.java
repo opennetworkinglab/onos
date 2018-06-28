@@ -52,10 +52,10 @@ public interface TimingStatistics {
 
     /**
      * Time (ns) to perform a local reconfiguration.
-     * (i.e., the agent autoscales the number of CPUs).
+     * (i.e., the agent auto-scales the number of CPUs).
      *
-     * @return time in nanoseconds to autoscale
+     * @return time in nanoseconds to auto scale
      */
-    long autoscaleTime();
+    long autoScaleTime();
 
 }

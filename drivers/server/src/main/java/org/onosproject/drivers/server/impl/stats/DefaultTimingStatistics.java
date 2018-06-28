@@ -36,22 +36,22 @@ public final class DefaultTimingStatistics implements TimingStatistics {
     private final MonitoringUnit unit;
     private final long deployCommandParsingTime;
     private final long deployCommandLaunchingTime;
-    private long autoscaleTime;
+    private long autoScaleTime;
 
     private DefaultTimingStatistics(
             MonitoringUnit unit,
             long parsingTime,
             long launchingTime,
-            long autoscaleTime) {
+            long autoScaleTime) {
         checkNotNull(unit, "Time statistics unit is null");
         checkArgument(parsingTime   >= 0, "Parsing time is negative");
         checkArgument(launchingTime >= 0, "Launching time is negative");
-        checkArgument(autoscaleTime >= 0, "Autoscale time is negative");
+        checkArgument(autoScaleTime >= 0, "Auto-scale time is negative");
 
         this.unit = unit;
         this.deployCommandParsingTime   = parsingTime;
         this.deployCommandLaunchingTime = launchingTime;
-        this.autoscaleTime = autoscaleTime;
+        this.autoScaleTime = autoScaleTime;
     }
 
     // Constructor for serializer
@@ -59,7 +59,7 @@ public final class DefaultTimingStatistics implements TimingStatistics {
         this.unit = null;
         this.deployCommandParsingTime   = 0;
         this.deployCommandLaunchingTime = 0;
-        this.autoscaleTime = 0;
+        this.autoScaleTime = 0;
     }
 
     /**
@@ -92,8 +92,8 @@ public final class DefaultTimingStatistics implements TimingStatistics {
     }
 
     @Override
-    public long autoscaleTime() {
-        return this.autoscaleTime;
+    public long autoScaleTime() {
+        return this.autoScaleTime;
     }
 
     @Override
@@ -104,7 +104,7 @@ public final class DefaultTimingStatistics implements TimingStatistics {
                 .add("parsingTime", this.deployCommandParsingTime())
                 .add("launchingTime", this.deployCommandLaunchingTime())
                 .add("deploymentTime", this.totalDeploymentTime())
-                .add("autoScaleTime", this.autoscaleTime())
+                .add("autoScaleTime", this.autoScaleTime())
                 .toString();
     }
 
@@ -113,7 +113,7 @@ public final class DefaultTimingStatistics implements TimingStatistics {
         MonitoringUnit unit = DEF_UNIT;
         long deployCommandParsingTime;
         long deployCommandLaunchingTime;
-        long autoscaleTime;
+        long autoScaleTime;
 
         private Builder() {
 
@@ -160,11 +160,11 @@ public final class DefaultTimingStatistics implements TimingStatistics {
         /**
          * Sets autoscale time.
          *
-         * @param autoscaleTime time required to autoscale
+         * @param autoScaleTime time required to autoscale
          * @return builder object
          */
-        public Builder setAutoscaleTime(long autoscaleTime) {
-            this.autoscaleTime = autoscaleTime;
+        public Builder setAutoScaleTime(long autoScaleTime) {
+            this.autoScaleTime = autoScaleTime;
 
             return this;
         }
@@ -176,11 +176,8 @@ public final class DefaultTimingStatistics implements TimingStatistics {
          */
         public DefaultTimingStatistics build() {
             return new DefaultTimingStatistics(
-                unit,
-                deployCommandParsingTime,
-                deployCommandLaunchingTime,
-                autoscaleTime
-            );
+                unit, deployCommandParsingTime,
+                deployCommandLaunchingTime, autoScaleTime);
         }
     }
 

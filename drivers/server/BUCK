@@ -2,6 +2,7 @@ COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//lib:JACKSON',
     '//lib:javax.ws.rs-api',
+    '//lib:joda-time',
     '//incubator/api:onos-incubator-api',
     '//utils/rest:onlab-rest',
     '//protocols/rest/api:onos-protocols-rest-api',

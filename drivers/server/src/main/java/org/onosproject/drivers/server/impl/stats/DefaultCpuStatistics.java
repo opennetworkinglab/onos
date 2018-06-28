@@ -53,7 +53,7 @@ public final class DefaultCpuStatistics implements CpuStatistics {
     private final Optional<Float> averageThroughput;
     private final Optional<MonitoringUnit> latencyUnit;
     private final Optional<Float> minLatency;
-    private final Optional<Float> medianLatency;
+    private final Optional<Float> averageLatency;
     private final Optional<Float> maxLatency;
 
     private DefaultCpuStatistics(DeviceId deviceId, int id, float load, int queue, boolean isBusy) {
@@ -62,7 +62,7 @@ public final class DefaultCpuStatistics implements CpuStatistics {
 
     private DefaultCpuStatistics(DeviceId deviceId, int id, float load, int queue, boolean isBusy,
             MonitoringUnit throughputUnit, float averageThroughput, MonitoringUnit latencyUnit,
-            float minLatency, float medianLatency, float maxLatency) {
+            float minLatency, float averageLatency, float maxLatency) {
         checkNotNull(deviceId, "Device ID is NULL");
         checkArgument((id >= 0) && (id < MAX_CPU_NB),
             "Invalid CPU core ID " + String.valueOf(id) + ", not in [0, " + String.valueOf(MAX_CPU_NB - 1) + "]");
@@ -83,8 +83,8 @@ public final class DefaultCpuStatistics implements CpuStatistics {
                 Optional.empty() : Optional.ofNullable(latencyUnit);
         this.minLatency = (minLatency < 0) ?
                 Optional.empty() : Optional.ofNullable(minLatency);
-        this.medianLatency = (medianLatency < 0) ?
-                Optional.empty() : Optional.ofNullable(medianLatency);
+        this.averageLatency = (averageLatency < 0) ?
+                Optional.empty() : Optional.ofNullable(averageLatency);
         this.maxLatency = (maxLatency < 0) ?
                 Optional.empty() : Optional.ofNullable(maxLatency);
     }
@@ -101,7 +101,7 @@ public final class DefaultCpuStatistics implements CpuStatistics {
         this.averageThroughput = null;
         this.latencyUnit = null;
         this.minLatency = null;
-        this.medianLatency = null;
+        this.averageLatency = null;
         this.maxLatency = null;
     }
 
@@ -155,8 +155,8 @@ public final class DefaultCpuStatistics implements CpuStatistics {
     }
 
     @Override
-    public Optional<Float> medianLatency() {
-        return this.medianLatency;
+    public Optional<Float> averageLatency() {
+        return this.averageLatency;
     }
 
     @Override
@@ -177,7 +177,7 @@ public final class DefaultCpuStatistics implements CpuStatistics {
                 .add("averageThroughput", averageThroughput.orElse(null))
                 .add("latencyUnit", latencyUnit.orElse(null))
                 .add("minLatency", minLatency.orElse(null))
-                .add("medianLatency", medianLatency.orElse(null))
+                .add("averageLatency", averageLatency.orElse(null))
                 .add("maxLatency", maxLatency.orElse(null))
                 .toString();
     }
@@ -194,7 +194,7 @@ public final class DefaultCpuStatistics implements CpuStatistics {
         float averageThroughput = -1;
         MonitoringUnit latencyUnit = DEF_LATENCY_UNIT;
         float minLatency = -1;
-        float medianLatency = -1;
+        float averageLatency = -1;
         float maxLatency = -1;
 
         private Builder() {
@@ -310,13 +310,13 @@ public final class DefaultCpuStatistics implements CpuStatistics {
         }
 
         /**
-         * Sets the median latency.
+         * Sets the average latency.
          *
-         * @param medianLatency median latency
+         * @param averageLatency average latency
          * @return builder object
          */
-        public Builder setMedianLatency(float medianLatency) {
-            this.medianLatency = medianLatency;
+        public Builder setAverageLatency(float averageLatency) {
+            this.averageLatency = averageLatency;
 
             return this;
         }
@@ -342,7 +342,7 @@ public final class DefaultCpuStatistics implements CpuStatistics {
             return new DefaultCpuStatistics(
                 deviceId, id, load, queue, isBusy,
                 throughputUnit, averageThroughput,
-                latencyUnit, minLatency, medianLatency, maxLatency);
+                latencyUnit, minLatency, averageLatency, maxLatency);
         }
     }
 
