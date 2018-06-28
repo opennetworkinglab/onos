@@ -248,6 +248,10 @@ public class OpenstackSecurityGroupHandler {
 
     private void updateSecurityGroupRule(InstancePort instPort, Port port, SecurityGroupRule sgRule, boolean install) {
 
+        if (instPort == null || port == null || sgRule == null) {
+            return;
+        }
+
         if (sgRule.getRemoteGroupId() != null && !sgRule.getRemoteGroupId().isEmpty()) {
             getRemoteInstPorts(port.getTenantId(), sgRule.getRemoteGroupId())
                 .forEach(rInstPort -> {
