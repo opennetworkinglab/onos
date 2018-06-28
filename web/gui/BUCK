@@ -1,4 +1,4 @@
-NODE_VERSION = '8.0.1'
+NODE_VERSION = 'v8.11.1'
 
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
@@ -39,7 +39,7 @@ RESOURCES = {
 include_defs('//bucklets/node.bucklet')
 sh_src='onos-gui-build'
 
-fetch_node(version = 'v8.1.2')
+fetch_node(version = NODE_VERSION)
 
 export_file (
     name = 'onos-tools-gui-exe',
@@ -51,8 +51,8 @@ genrule(
     name = 'onos-tools-gui',
     srcs = glob(['src/main/webapp/*.js', 'src/main/webapp/app/**/*.js'], excludes = ['src/main/webapp/dist/*.js']),
     bash = '$(location :onos-tools-gui-exe) '
-        + '$(location //web/gui:node-release-v8.1.2) '
-        + '$(location //web/gui:node-bin-v8.1.2) > $OUT',
+        + '$(location :node-release-' + NODE_VERSION + ') '
+        + '$(location :node-bin-' + NODE_VERSION + ') > $OUT',
     out = 'onos-tools-gui.log',
     visibility = [ 'PUBLIC' ],
 )
