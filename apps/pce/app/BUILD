@@ -9,8 +9,12 @@ COMPILE_DEPS = CORE_DEPS + JACKSON + KRYO + [
     "//apps/pce/bandwidthmgmt:onos-apps-pce-bandwidthmgmt",
 ]
 
+TEST_DEPS = TEST_REST + [
+    "//incubator/api:onos-incubator-api-tests",
+]
+
 osgi_jar_with_tests(
-    test_deps = TEST_REST,
+    test_deps = TEST_DEPS,
     deps = COMPILE_DEPS,
 )
 

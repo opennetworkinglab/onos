@@ -1,5 +1,5 @@
 load("//tools/build/bazel:generate_workspace.bzl", "ONOS_VERSION")
-load(":modules.bzl", "APPS", "CORE", )
+load(":modules.bzl", "APPS", "CORE")
 
 filegroup(
     name = "onos",
