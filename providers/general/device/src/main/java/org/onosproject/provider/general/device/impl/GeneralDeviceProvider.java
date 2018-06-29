@@ -548,21 +548,20 @@ public class GeneralDeviceProvider extends AbstractProvider
     }
 
     private PiPipeconf getPipeconf(DeviceId deviceId, PiPipelineProgrammable pipelineProg) {
-        PiPipeconfId pipeconfId = piPipeconfService.ofDevice(deviceId).orElseGet(() -> {
-            // No pipeconf has been associated with this device.
+        PiPipeconfId pipeconfId = getPipeconfFromCfg(deviceId);
+        if (pipeconfId == null || pipeconfId.id().isEmpty()) {
+            // No pipeconf has been provided in the cfg.
             // Check if device driver provides a default one.
             if (pipelineProg.getDefaultPipeconf().isPresent()) {
-                PiPipeconf defaultPipeconf = pipelineProg.getDefaultPipeconf().get();
+                final PiPipeconf defaultPipeconf = pipelineProg.getDefaultPipeconf().get();
                 log.info("Using default pipeconf {} for {}", defaultPipeconf.id(), deviceId);
-                return defaultPipeconf.id();
+                pipeconfId = defaultPipeconf.id();
             } else {
+                log.warn("Device {} is pipeline programmable but no pipeconf can be associated to it", deviceId);
                 return null;
             }
-        });
-        if (pipeconfId == null) {
-            log.warn("Device {} is pipeline programmable but no pipeconf can be associated to it", deviceId);
-            return null;
         }
+        // Check if registered
         if (!piPipeconfService.getPipeconf(pipeconfId).isPresent()) {
             log.warn("Pipeconf {} is not registered", pipeconfId);
             return null;
@@ -770,6 +769,15 @@ public class GeneralDeviceProvider extends AbstractProvider
 
     private void scheduleDevicePolling() {
         cfgService.getSubjects(DeviceId.class, GeneralProviderDeviceConfig.class).forEach(this::checkAndConnect);
+    }
+
+    private PiPipeconfId getPipeconfFromCfg(DeviceId deviceId) {
+        PiPipeconfConfig config = cfgService.getConfig(
+                deviceId, PiPipeconfConfig.class);
+        if (config == null) {
+            return null;
+        }
+        return config.piPipeconfId();
     }
 
     private void checkAndConnect(DeviceId deviceId) {
