@@ -111,8 +111,10 @@ public class SegmentRoutingNeighbourHandler {
      * @param pkt the request
      * @param targetMac the target mac
      * @param hostService the host service
+     * @param isRouter true if this reply is sent on behalf of a router
      */
-    protected void sendResponse(NeighbourMessageContext pkt, MacAddress targetMac, HostService hostService) {
+    protected void sendResponse(NeighbourMessageContext pkt, MacAddress targetMac, HostService hostService,
+                                boolean isRouter) {
         HostId dstId = HostId.hostId(pkt.srcMac(), pkt.vlan());
         Host dst = hostService.getHost(dstId);
         if (dst == null) {
@@ -120,6 +122,7 @@ public class SegmentRoutingNeighbourHandler {
                      pkt.protocol(), dstId);
             return;
         }
+        pkt.setIsRouter(isRouter);
         pkt.reply(targetMac);
     }
 
