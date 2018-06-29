@@ -121,8 +121,10 @@ public class SegmentRoutingNeighbourHandler {
      * @param pkt the request
      * @param targetMac the target mac
      * @param hostService the host service
+     * @param isRouter true if this reply is sent on behalf of a router
      */
-    protected void sendResponse(NeighbourMessageContext pkt, MacAddress targetMac, HostService hostService) {
+    protected void sendResponse(NeighbourMessageContext pkt, MacAddress targetMac, HostService hostService,
+                                boolean isRouter) {
         // if this is false, check if host exists in the store
         if (!respondToUnknownHosts()) {
             short vlanId = pkt.packet().getQinQVID();
@@ -135,6 +137,7 @@ public class SegmentRoutingNeighbourHandler {
                 return;
             }
         }
+        pkt.setIsRouter(isRouter);
         pkt.reply(targetMac);
     }
 

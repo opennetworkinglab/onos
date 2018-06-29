@@ -97,7 +97,7 @@ public class DefaultNeighbourMessageActions implements NeighbourMessageActions {
             break;
         case NDP:
             sendTo(buildNdpReply((Ip6Address) context.target(), targetMac,
-                    context.packet()), context.inPort());
+                    context.packet(), context.isRouter()), context.inPort());
             break;
         default:
             break;
@@ -140,10 +140,11 @@ public class DefaultNeighbourMessageActions implements NeighbourMessageActions {
      * @param srcIp   the IP address to use as the reply source
      * @param srcMac  the MAC address to use as the reply source
      * @param request the Neighbor Solicitation request we got
+     * @param isRouter true if this reply is sent on behalf of a router
      * @return an Ethernet frame containing the Neighbor Advertisement reply
      */
     private Ethernet buildNdpReply(Ip6Address srcIp, MacAddress srcMac,
-                                   Ethernet request) {
+                                   Ethernet request, boolean isRouter) {
         Ethernet eth = new Ethernet();
         eth.setDestinationMACAddress(request.getSourceMAC());
         eth.setSourceMACAddress(srcMac);
@@ -164,6 +165,9 @@ public class DefaultNeighbourMessageActions implements NeighbourMessageActions {
         nadv.setTargetAddress(srcIp.toOctets());
         nadv.setSolicitedFlag((byte) 1);
         nadv.setOverrideFlag((byte) 1);
+        if (isRouter) {
+            nadv.setRouterFlag((byte) 1);
+        }
         nadv.addOption(NeighborDiscoveryOptions.TYPE_TARGET_LL_ADDRESS,
                 srcMac.toBytes());
 

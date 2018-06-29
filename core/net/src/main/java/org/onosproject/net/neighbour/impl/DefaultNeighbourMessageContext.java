@@ -54,6 +54,8 @@ public class DefaultNeighbourMessageContext implements NeighbourMessageContext {
 
     private final NeighbourMessageActions actions;
 
+    private boolean isRouter;
+
     /**
      * Creates a new neighbour message context.
      *
@@ -77,6 +79,7 @@ public class DefaultNeighbourMessageContext implements NeighbourMessageContext {
         this.type = type;
         this.target = target;
         this.sender = sender;
+        this.isRouter = false;
     }
 
     @Override
@@ -152,8 +155,18 @@ public class DefaultNeighbourMessageContext implements NeighbourMessageContext {
     }
 
     @Override
+    public boolean isRouter() {
+        return this.isRouter;
+    }
+
+    @Override
+    public void setIsRouter(boolean isRouter) {
+        this.isRouter = isRouter;
+    }
+
+    @Override
     public int hashCode() {
-        return Objects.hash(protocol, type, target, sender, eth, inPort);
+        return Objects.hash(protocol, type, target, sender, eth, inPort, isRouter);
     }
 
     @Override
@@ -169,7 +182,8 @@ public class DefaultNeighbourMessageContext implements NeighbourMessageContext {
                 Objects.equals(target, that.target) &&
                 Objects.equals(sender, that.sender) &&
                 Objects.equals(eth, that.eth) &&
-                Objects.equals(inPort, that.inPort);
+                Objects.equals(inPort, that.inPort) &&
+                Objects.equals(isRouter, that.isRouter);
     }
 
     /**

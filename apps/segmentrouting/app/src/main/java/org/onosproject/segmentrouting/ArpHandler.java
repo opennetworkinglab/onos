@@ -107,7 +107,7 @@ public class ArpHandler extends SegmentRoutingNeighbourHandler {
                         pkt.inPort().deviceId(), pkt.sender());
                 return;
             }
-            sendResponse(pkt, targetMac, hostService);
+            sendResponse(pkt, targetMac, hostService, true);
         } else {
             // NOTE: Ignore ARP packets except those target for the router
             //       We will reconsider enabling this when we have host learning support

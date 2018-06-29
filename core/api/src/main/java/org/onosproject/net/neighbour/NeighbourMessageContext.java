@@ -131,4 +131,21 @@ public interface NeighbourMessageContext {
      * Drops the incoming message.
      */
     void drop();
+
+    /**
+     * Gets whether this neighbour message context involves a router.
+     *
+     * @return true if this neighbour message context involves a router
+     */
+    default boolean isRouter() {
+        return false;
+    }
+
+    /**
+     * Sets whether this neighbour message context involves a router.
+     *
+     * @param isRouter true if this neighbour message context involves a router
+     */
+    default void setIsRouter(boolean isRouter) {
+    }
 }
