@@ -394,14 +394,19 @@ public class StatsFlowRuleManager implements StatsFlowRuleAdminService {
         DeviceId srcDeviceId = getDeviceId(statsFlowRule.srcIpPrefix().address());
         DeviceId dstDeviceId = getDeviceId(statsFlowRule.dstIpPrefix().address());
 
-        if (srcDeviceId == null || dstDeviceId == null) {
+        if (srcDeviceId == null && dstDeviceId == null) {
             return;
         }
 
-        connectTables(srcDeviceId, STAT_INBOUND_TABLE, DHCP_ARP_TABLE,
-                statsFlowRule, METRIC_PRIORITY_SOURCE, install);
-        connectTables(dstDeviceId, STAT_OUTBOUND_TABLE, FORWARDING_TABLE,
-                inverseFlowRule, METRIC_PRIORITY_TARGET, install);
+        if (srcDeviceId != null) {
+            connectTables(srcDeviceId, STAT_INBOUND_TABLE, DHCP_ARP_TABLE,
+                    statsFlowRule, METRIC_PRIORITY_SOURCE, install);
+        }
+
+        if (dstDeviceId != null) {
+            connectTables(dstDeviceId, STAT_OUTBOUND_TABLE, FORWARDING_TABLE,
+                    inverseFlowRule, METRIC_PRIORITY_TARGET, install);
+        }
     }
 
     /**
@@ -415,8 +420,8 @@ public class StatsFlowRuleManager implements StatsFlowRuleAdminService {
             Optional<Host> host = hostService.getHostsByIp(ipAddress).stream().findAny();
             return host.map(host1 -> host1.location().deviceId()).orElse(null);
         } else {
-            log.error("Failed to get DeviceID which is connected to {}. " +
-                            "The VM is not instantiated correctly now.",
+            log.warn("Failed to get DeviceID which is connected to {}. " +
+                            "The destination is either a bare-metal or located out of DC",
                     ipAddress.toString());
             return null;
         }
