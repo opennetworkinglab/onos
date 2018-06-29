@@ -58,6 +58,8 @@ public abstract class BuckArtifact {
 
     abstract String url();
 
+    abstract String url(boolean withClassifier);
+
     private String jarTarget() {
         return name != null ? name() : fileName();
     }
@@ -183,6 +185,11 @@ public abstract class BuckArtifact {
         String url() {
             return url;
         }
+
+        @Override
+        String url(boolean withClassifier) {
+            return url;
+        }
     }
 
     private static class MavenArtifact extends BuckArtifact {
@@ -211,6 +218,18 @@ public abstract class BuckArtifact {
             }
             mvnUrl.append(artifact.getVersion());
             return mvnUrl.toString();
+        }
+
+        @Override
+        String url(boolean withClassifier) {
+            String url = url();
+            if (withClassifier && !isOsgiReady()) {
+                int i = url.lastIndexOf(':');
+                if (i > 0) {
+                    url = url.substring(0, i) + ":NON-OSGI" + url.substring(i);
+                }
+            }
+            return url;
         }
 
         //FIXME get sources jars

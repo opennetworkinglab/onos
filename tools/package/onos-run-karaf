@@ -5,12 +5,12 @@
 
 ONOS_TAR=
 
-cd /tmp
+[ -f $ONOS_TAR ] || (echo "$ONOS_TAR not found" && exit 1)
 
 # Kill any running instances
 [ -f /tmp/onos.pid ] && kill -9 $(cat /tmp/onos.pid) &>/dev/null
 
-ONOS_DIR=$(tar tf $ONOS_TAR | head -n 1 | cut -d/ -f1)
+ONOS_DIR=/tmp/$(tar tf $ONOS_TAR | head -n 1 | cut -d/ -f1)
 ONOS_MD5=$ONOS_DIR/CHECKSUM
 
 # Extract MD5 of the ONOS tar file and of the previous installation, if one exists
@@ -38,25 +38,21 @@ if [ ! -d $ONOS_DIR -o "$oldMD5" != "$newMD5" -o -d $ONOS_DIR -a -n "$clean" ]; 
     rm -fr $ONOS_DIR
 
     # Unroll new image from the specified tar file
-    [ -f $ONOS_TAR ] && tar zxf $ONOS_TAR
+    [ -f $ONOS_TAR ] && tar zxf $ONOS_TAR -C /tmp
 
     # Write out this installation's MD5 checksum
     echo "$newMD5" > $ONOS_MD5
 
-    # Change into the ONOS home directory
-    cd $ONOS_DIR
-    export ONOS_HOME=$PWD
-
     # Run using the secure SSH client
     [ ! -f ~/.ssh/id_rsa.pub ] && ssh-keygen -t rsa -f ~/.ssh/id_rsa -P '' -q
-    $ONOS_HOME/bin/onos-user-key $(id -un) "$(cut -d\  -f2 ~/.ssh/id_rsa.pub)"
-    $ONOS_HOME/bin/onos-user-password onos rocks
+    $ONOS_DIR/bin/onos-user-key $(id -un) "$(cut -d\  -f2 ~/.ssh/id_rsa.pub)"
+    $ONOS_DIR/bin/onos-user-password onos rocks
 
     # Create config/cluster.json (cluster metadata)
     IP=${ONOS_IP:-127.0.0.1}
     echo "Creating local cluster configs for IP $IP..."
-    [ -d $ONOS_HOME/config ] || mkdir -p $ONOS_HOME/config
-    cat > $ONOS_HOME/config/cluster.json <<-EOF
+    [ -d $ONOS_DIR/config ] || mkdir -p $ONOS_DIR/config
+    cat > $ONOS_DIR/config/cluster.json <<-EOF
     {
       "name": "default",
       "nodes": [ {"id": "$IP", "ip": "$IP", "port": 9876 } ],
@@ -70,11 +66,11 @@ EOF
 else
     # Otherwise, run using the previous installation
     echo "Running previous installation..."
-
-    # Change into the ONOS home directory
-    cd $ONOS_DIR
-    export ONOS_HOME=$PWD
 fi
+
+# Change into the ONOS home directory
+cd $ONOS_DIR
+export ONOS_HOME=$PWD
 
 # Start ONOS as a server, but include any specified options
 ./bin/onos-service server "$@" &>onos.log &

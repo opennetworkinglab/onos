@@ -203,7 +203,7 @@ public class BuckLibGenerator {
         artifactMap.append("\nartifact_map = {}");
 
         artifacts.forEach(artifact -> {
-            artifactMap.append("\nartifact_map[str(Label(\"" + artifact.bazelExport() + "\"))] = \"" + artifact.url() + "\"");
+            artifactMap.append("\nartifact_map[str(Label(\"" + artifact.bazelExport() + "\"))] = \"" + artifact.url(true) + "\"");
         });
 
         artifactMap.append("\n\ndef maven_coordinates(label):\n" +

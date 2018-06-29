@@ -36,7 +36,7 @@ NON_OSGI_TAG = 'NON-OSGI'
 
 def mvnUrl(bundle):
     #mvn-uri := 'mvn:' [ repository-url '!' ] group-id '/' artifact-id [ '/' [version] [ '/' [type] [ '/' classifier ] ] ] ]
-    parts = bundle.split(':')
+    parts = bundle.split(':')[1:]
     prefix = 'mvn:'
     suffix = ''
     if len(parts) > 3:

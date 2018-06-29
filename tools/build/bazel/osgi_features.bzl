@@ -116,7 +116,7 @@ def _osgi_feature_repo_impl(ctx):
     for dep in ctx.attr.exported_features:
         for f in dep.files.to_list():
             inputs += [f]
-            cmd += "cat %s;" % f.path
+            cmd += "cat %s;" % f.path if f.path.endswith(".xml") else ""
     cmd += "echo '%s') > %s;" % (FEATURES_FOOTER, output.path)
 
     ctx.actions.run_shell(
