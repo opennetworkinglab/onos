@@ -92,6 +92,10 @@ public class RoutingRulePopulator {
     private DeviceConfiguration config;
     private RouteSimplifierUtils routeSimplifierUtils;
 
+    // used for signalling the driver to remove vlan table and tmac entry also
+    private static final long CLEANUP_DOUBLE_TAGGED_HOST_ENTRIES = 1;
+    private static final long DOUBLE_TAGGED_METADATA_MASK = 0xffffffffffffffffL;
+
     /**
      * Creates a RoutingRulePopulator object.
      *
@@ -1135,7 +1139,7 @@ public class RoutingRulePopulator {
      */
     void processDoubleTaggedFilter(DeviceId deviceId, PortNumber portNum, VlanId outerVlan,
                                    VlanId innerVlan, boolean install) {
-        FilteringObjective.Builder fob = buildDoubleTaggedFilteringObj(deviceId, portNum, outerVlan, innerVlan);
+        FilteringObjective.Builder fob = buildDoubleTaggedFilteringObj(deviceId, portNum, outerVlan, innerVlan, false);
         if (fob == null) {
             // error encountered during build
             return;
@@ -1155,7 +1159,8 @@ public class RoutingRulePopulator {
     }
 
     private FilteringObjective.Builder buildDoubleTaggedFilteringObj(DeviceId deviceId, PortNumber portNum,
-                                                                     VlanId outerVlan, VlanId innerVlan) {
+                                                                     VlanId outerVlan, VlanId innerVlan,
+                                                                     boolean cleanupDoubleTaggedRules) {
         MacAddress deviceMac;
         try {
             deviceMac = config.getDeviceMac(deviceId);
@@ -1174,6 +1179,13 @@ public class RoutingRulePopulator {
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
         // Pop outer vlan
         tBuilder.popVlan();
+
+        // special metadata for driver
+        if (cleanupDoubleTaggedRules) {
+            tBuilder.writeMetadata(CLEANUP_DOUBLE_TAGGED_HOST_ENTRIES, DOUBLE_TAGGED_METADATA_MASK);
+        } else {
+            tBuilder.writeMetadata(0, DOUBLE_TAGGED_METADATA_MASK);
+        }
 
         // NOTE: Some switch hardware share the same filtering flow among different ports.
         //       We use this metadata to let the driver know that there is no more enabled port
