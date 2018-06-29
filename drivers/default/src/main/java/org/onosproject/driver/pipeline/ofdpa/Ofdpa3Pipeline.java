@@ -38,6 +38,7 @@ import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.flow.FlowRuleOperationsContext;
+import org.onosproject.net.flow.IndexTableId;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criteria;
@@ -47,6 +48,7 @@ import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.TunnelIdCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flow.instructions.Instruction;
+import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType;
@@ -242,6 +244,18 @@ public class Ofdpa3Pipeline extends Ofdpa2Pipeline {
     }
 
     /**
+     *
+     * @param meta The metadata instruction of this treatment
+     * @return True if we should remove both VLAN and Mac Termination flow entries.
+     *         This is only used for double tagged hosts.
+     */
+    public boolean shouldRemoveDoubleTagged(Instruction meta) {
+
+        Instructions.MetadataInstruction metadataInstruction = (Instructions.MetadataInstruction) meta;
+        return ((metadataInstruction.metadata() & metadataInstruction.metadataMask()) == 1);
+    }
+
+    /**
      * Configure filtering rules of outer and inner VLAN IDs, and a MAC address.
      * Filtering happens in three tables (VLAN_TABLE, VLAN_1_TABLE, TMAC_TABLE).
      *
@@ -257,6 +271,12 @@ public class Ofdpa3Pipeline extends Ofdpa2Pipeline {
         VlanIdCriterion innervidCriterion = null;
         VlanIdCriterion outerVidCriterion = null;
         boolean popVlan = false;
+        boolean removeDoubleTagged = true;
+        if (filteringObjective.meta().writeMetadata() != null) {
+            removeDoubleTagged = shouldRemoveDoubleTagged(filteringObjective.meta().writeMetadata());
+        }
+        log.info("HERE , removeDoubleTagged {}", removeDoubleTagged);
+
         TrafficTreatment meta = filteringObjective.meta();
         if (!filteringObjective.key().equals(Criteria.dummy()) &&
                 filteringObjective.key().type() == Criterion.Type.IN_PORT) {
@@ -336,7 +356,14 @@ public class Ofdpa3Pipeline extends Ofdpa2Pipeline {
                         if (matchInPortTmacTable()
                                 || (filteringObjective.meta() != null
                                 && filteringObjective.meta().clearedDeferred())) {
-                            ops = ops.remove(flowRule);
+
+                            // if metadata instruction not null and not removeDoubleTagged move on.
+                            if ((filteringObjective.meta().writeMetadata() != null) && (!removeDoubleTagged)) {
+                                log.info("Skipping removal of tmac rule for device {}", deviceId);
+                                continue;
+                            } else {
+                                ops = ops.remove(flowRule);
+                            }
                         } else {
                             log.debug("Abort TMAC flow removal on {}. Some other ports still share this TMAC flow");
                         }
@@ -351,6 +378,12 @@ public class Ofdpa3Pipeline extends Ofdpa2Pipeline {
         for (FlowRule flowRule : rules) {
             log.trace("{} flow rule in VLAN table: {} for dev: {}",
                       (install) ? "adding" : "removing", flowRule, deviceId);
+            // if context is remove, table is vlan_1 and removeDoubleTagged is false, continue.
+            if (flowRule.table().equals(IndexTableId.of(VLAN_TABLE)) &&
+                    !removeDoubleTagged && !install) {
+                log.info("Skipping removal of vlan table rule for now!");
+                continue;
+            }
             ops = install ? ops.add(flowRule) : ops.remove(flowRule);
         }
 
