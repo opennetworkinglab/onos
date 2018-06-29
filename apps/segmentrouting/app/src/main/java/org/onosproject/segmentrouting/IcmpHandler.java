@@ -333,7 +333,7 @@ public class IcmpHandler extends SegmentRoutingNeighbourHandler {
                         pkt.inPort().deviceId(), pkt.sender());
                 return;
             }
-            sendResponse(pkt, routerMac, hostService);
+            sendResponse(pkt, routerMac, hostService, true);
         } else {
 
             // Process NDP targets towards EUI-64 address.
@@ -343,7 +343,7 @@ public class IcmpHandler extends SegmentRoutingNeighbourHandler {
                 Optional<Ip6Address> linkLocalIp = getLinkLocalIp(pkt.inPort());
                 if (linkLocalIp.isPresent() && pkt.target().equals(linkLocalIp.get())) {
                     MacAddress routerMac = config.getDeviceMac(deviceId);
-                    sendResponse(pkt, routerMac, hostService);
+                    sendResponse(pkt, routerMac, hostService, true);
                 }
             } catch (DeviceConfigNotFoundException e) {
                 log.warn(e.getMessage() + " Unable to handle NDP packet to {}. Aborting.", pkt.target());
