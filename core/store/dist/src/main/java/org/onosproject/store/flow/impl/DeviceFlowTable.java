@@ -373,7 +373,7 @@ public class DeviceFlowTable {
             // If the backup can be run (no concurrent backup to the node in progress) then run it.
             BackupOperation operation = new BackupOperation(nodeId, bucket.bucketId().bucket());
             if (startBackup(operation, timestamp)) {
-                backup(bucket, nodeId).whenCompleteAsync((succeeded, error) -> {
+                backup(bucket.copy(), nodeId).whenCompleteAsync((succeeded, error) -> {
                     if (error != null) {
                         log.debug("Backup operation {} failed", operation, error);
                         failBackup(operation);
@@ -639,11 +639,11 @@ public class DeviceFlowTable {
     /**
      * Handles a flow bucket request.
      *
-     * @param bucket the bucket number
+     * @param bucketId the bucket number
      * @return the flow bucket
      */
-    private FlowBucket onGetBucket(int bucket) {
-        return flowBuckets.get(bucket);
+    private FlowBucket onGetBucket(int bucketId) {
+        return flowBuckets.get(bucketId).copy();
     }
 
     /**

@@ -18,6 +18,7 @@ package org.onosproject.store.flow.impl;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import com.google.common.collect.Maps;
 import org.onosproject.net.flow.DefaultFlowEntry;
@@ -39,11 +40,22 @@ public class FlowBucket {
     private static final Logger LOGGER = LoggerFactory.getLogger(FlowBucket.class);
     private final BucketId bucketId;
     private volatile long term;
-    private volatile LogicalTimestamp timestamp = new LogicalTimestamp(0);
-    private final Map<FlowId, Map<StoredFlowEntry, StoredFlowEntry>> flowBucket = Maps.newConcurrentMap();
+    private volatile LogicalTimestamp timestamp;
+    private final Map<FlowId, Map<StoredFlowEntry, StoredFlowEntry>> flowBucket;
 
     FlowBucket(BucketId bucketId) {
+        this(bucketId, 0, new LogicalTimestamp(0), Maps.newConcurrentMap());
+    }
+
+    private FlowBucket(
+        BucketId bucketId,
+        long term,
+        LogicalTimestamp timestamp,
+        Map<FlowId, Map<StoredFlowEntry, StoredFlowEntry>> flowBucket) {
         this.bucketId = bucketId;
+        this.term = term;
+        this.timestamp = timestamp;
+        this.flowBucket = flowBucket;
     }
 
     /**
@@ -112,6 +124,22 @@ public class FlowBucket {
             .stream()
             .mapToInt(entry -> entry.values().size())
             .sum();
+    }
+
+    /**
+     * Returns a new copy of the flow bucket.
+     *
+     * @return a new copy of the flow bucket
+     */
+    FlowBucket copy() {
+        return new FlowBucket(
+            bucketId,
+            term,
+            timestamp,
+            flowBucket.entrySet()
+                .stream()
+                .map(e -> Maps.immutableEntry(e.getKey(), Maps.newHashMap(e.getValue())))
+                .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue())));
     }
 
     /**
