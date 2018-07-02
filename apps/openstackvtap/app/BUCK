@@ -1,0 +1,31 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:JACKSON',
+    '//lib:KRYO',
+    '//core/store/serializers:onos-core-serializers',
+    '//lib:javax.ws.rs-api',
+    '//utils/rest:onlab-rest',
+    '//lib:jersey-client',
+    '//cli:onos-cli',
+    '//lib:org.apache.karaf.shell.console',
+    '//apps/openstacknetworking/api:onos-apps-openstacknetworking-api',
+    '//apps/openstackvtap/api:onos-apps-openstackvtap-api',
+]
+
+TEST_DEPS = [
+    '//lib:TEST_ADAPTERS',
+    '//core/api:onos-api-tests',
+    '//core/common:onos-core-common-tests',
+    '//web/api:onos-rest-tests',
+    '//lib:TEST_REST',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
+    web_context = '/onos/openstackvtap',
+    api_title = 'OpenStack Network vTap REST API',
+    api_version = '1.0',
+    api_description = 'OpenStack Network vTap REST API',
+    api_package = 'org.onosproject.openstackvtap.web',
+)

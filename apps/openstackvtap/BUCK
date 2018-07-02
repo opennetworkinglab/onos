@@ -1,0 +1,15 @@
+BUNDLES = [
+    '//apps/openstackvtap/api:onos-apps-openstackvtap-api',
+    '//apps/openstackvtap/app:onos-apps-openstackvtap-app',
+]
+
+onos_app (
+    title = 'OpenStack vTap Application',
+    category = 'Integration',
+    url = 'https://wiki.onosproject.org/display/ONOS/SONA%3A+DC+Network+Virtualization',
+    included_bundles = BUNDLES,
+    description = 'SONA Openstack vTap Application.',
+    required_apps = [
+        'org.onosproject.openstacknetworking'
+    ]
+)

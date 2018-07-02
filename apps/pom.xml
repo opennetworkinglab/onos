@@ -98,6 +98,7 @@
         <module>l3vpn</module>
         <module>openstacknetworkingui</module>
         <module>openstacktelemetry</module>
+        <module>openstackvtap</module>
         <module>cfm</module>
         <module>routeradvertisement</module>
         <module>simplefabric</module>
