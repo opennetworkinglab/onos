@@ -88,8 +88,8 @@ public class StatsFlowRuleManager implements StatsFlowRuleAdminService {
 
     private static final byte FLOW_TYPE_SONA = 1; // VLAN
 
-    private static final int MILLISECONDS = 1000;
-    private static final int REFRESH_INTERVAL = 5;
+    private static final long MILLISECONDS = 1000L;
+    private static final long REFRESH_INTERVAL = 5L;
 
     private ApplicationId appId;
 
@@ -328,7 +328,7 @@ public class StatsFlowRuleManager implements StatsFlowRuleAdminService {
             // TODO: need to make the refresh interval configurable
             sBuilder.withStartupTime(System.currentTimeMillis())
                     .withFstPktArrTime(System.currentTimeMillis())
-                    .withLstPktOffset(REFRESH_INTERVAL * MILLISECONDS)
+                    .withLstPktOffset((int) (REFRESH_INTERVAL * MILLISECONDS))
                     .withCurrAccPkts((int) entry.packets())
                     .withCurrAccBytes(entry.bytes())
                     .withErrorPkts((short) 0)

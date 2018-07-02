@@ -180,6 +180,7 @@ public final class OpenstackSwitchingHandler {
                 setFlatJumpRules(instPort, false);
                 setUpstreamRulesForFlat(instPort, false);
                 setDownstreamRulesForFlat(instPort, false);
+                break;
             default:
                 log.warn("Unsupported network type {}", type.name());
                 break;
