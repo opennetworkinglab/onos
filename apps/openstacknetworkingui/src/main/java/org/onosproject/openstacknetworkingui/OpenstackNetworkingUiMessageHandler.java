@@ -15,30 +15,42 @@
  */
 package org.onosproject.openstacknetworkingui;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Streams;
+import org.apache.commons.io.IOUtils;
 import org.onlab.osgi.ServiceDirectory;
+import org.onlab.util.DefaultHashMap;
 import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.NodeId;
+import org.onosproject.mastership.MastershipService;
+import org.onosproject.net.AnnotationKeys;
+import org.onosproject.net.Annotations;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Element;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.net.Path;
+import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.net.config.basics.BasicDeviceConfig;
+import org.onosproject.net.config.basics.BasicElementConfig;
+import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.driver.Driver;
+import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.topology.PathService;
 import org.onosproject.ui.JsonUtils;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiConnection;
 import org.onosproject.ui.UiMessageHandler;
-import org.apache.commons.io.IOUtils;
-
 import org.onosproject.ui.topo.Highlights;
 import org.onosproject.ui.topo.HostHighlight;
 import org.onosproject.ui.topo.NodeBadge;
@@ -61,10 +73,18 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
-
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.onosproject.net.AnnotationKeys.DRIVER;
 import static org.onosproject.net.DefaultEdgeLink.createEdgeLink;
+import static org.onosproject.net.Device.Type.SWITCH;
+import static org.onosproject.net.config.basics.BasicElementConfig.LOC_TYPE_GEO;
+import static org.onosproject.net.config.basics.BasicElementConfig.LOC_TYPE_GRID;
+import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_REMOVED;
 
 /**
  * OpenStack Networking UI message handler.
@@ -106,15 +126,20 @@ public class OpenstackNetworkingUiMessageHandler extends UiMessageHandler {
     private HostService hostService;
     private PathService pathService;
     private ClusterService clusterService;
+    private DriverService driverService;
+    private MastershipService mastershipService;
     private String restUrl;
     private String restAuthInfo;
     private Mode currentMode = Mode.IDLE;
     private Element elementOfNote;
     private final Client client = ClientBuilder.newClient();
+    private static Map<String, ObjectNode> metaUi = new ConcurrentHashMap<>();
+    private static final DefaultHashMap<DeviceEvent.Type, String> DEVICE_EVENT =
+            new DefaultHashMap<>("updateDevice");
 
-
-    // ===============-=-=-=-=-=-======================-=-=-=-=-=-=-================================
-
+    static {
+        DEVICE_EVENT.put(DEVICE_REMOVED, "removeDevice");
+    }
 
     @Override
     public void init(UiConnection connection, ServiceDirectory directory) {
@@ -123,8 +148,106 @@ public class OpenstackNetworkingUiMessageHandler extends UiMessageHandler {
         hostService = directory.get(HostService.class);
         pathService = directory.get(PathService.class);
         clusterService = directory.get(ClusterService.class);
+        driverService = directory.get((DriverService.class));
+        mastershipService = directory.get(MastershipService.class);
+
+        // Removes non switch devices such as an ovsdb device
+        removeNonSwitchDevices();
     }
 
+    private void removeNonSwitchDevices() {
+        Streams.stream(deviceService.getAvailableDevices())
+                .filter(device -> device.type() != SWITCH)
+                .forEach(device -> sendMessage(deviceMessage(new DeviceEvent(DEVICE_REMOVED, device))));
+    }
+
+    // Produces a device event message to the client.
+    protected ObjectNode deviceMessage(DeviceEvent event) {
+        Device device = event.subject();
+        String uiType = device.annotations().value(AnnotationKeys.UI_TYPE);
+        String driverName = device.annotations().value(DRIVER);
+        Driver driver = driverName == null ? null : driverService.getDriver(driverName);
+        String devType = uiType != null ? uiType :
+                (driver != null ? driver.getProperty(AnnotationKeys.UI_TYPE) : null);
+        if (devType == null) {
+            devType = device.type().toString().toLowerCase();
+        }
+        String name = device.annotations().value(AnnotationKeys.NAME);
+        name = isNullOrEmpty(name) ? device.id().toString() : name;
+
+        ObjectNode payload = objectNode()
+                .put("id", device.id().toString())
+                .put("type", devType)
+                .put("online", deviceService.isAvailable(device.id()))
+                .put("master", master(device.id()));
+
+        payload.set("labels", labels("", name, device.id().toString()));
+        payload.set("props", props(device.annotations()));
+
+        BasicDeviceConfig cfg = get(NetworkConfigService.class)
+                .getConfig(device.id(), BasicDeviceConfig.class);
+        if (!addLocation(cfg, payload)) {
+            addMetaUi(device.id().toString(), payload);
+        }
+
+        String type = DEVICE_EVENT.get(event.type());
+        return JsonUtils.envelope(type, payload);
+    }
+
+    // Returns the name of the master node for the specified device id.
+    private String master(DeviceId deviceId) {
+        NodeId master = mastershipService.getMasterFor(deviceId);
+        return master != null ? master.toString() : "";
+    }
+
+    // Encodes the specified list of labels a JSON array.
+    private ArrayNode labels(String... labels) {
+        ArrayNode json = arrayNode();
+        for (String label : labels) {
+            json.add(label);
+        }
+        return json;
+    }
+
+    private boolean addLocation(BasicElementConfig cfg, ObjectNode payload) {
+        if (cfg != null) {
+            String locType = cfg.locType();
+            boolean isGeo = Objects.equals(locType, LOC_TYPE_GEO);
+            boolean isGrid = Objects.equals(locType, LOC_TYPE_GRID);
+            if (isGeo || isGrid) {
+                try {
+                    ObjectNode loc = objectNode()
+                            .put("locType", locType)
+                            .put("latOrY", isGeo ? cfg.latitude() : cfg.gridY())
+                            .put("longOrX", isGeo ? cfg.longitude() : cfg.gridX());
+                    payload.set("location", loc);
+                    return true;
+                } catch (NumberFormatException e) {
+                    log.warn("Invalid location data: {}", cfg);
+                }
+            }
+        }
+        return false;
+    }
+
+    // Adds meta UI information for the specified object.
+    private void addMetaUi(String id, ObjectNode payload) {
+        ObjectNode meta = metaUi.get(id);
+        if (meta != null) {
+            payload.set("metaUi", meta);
+        }
+    }
+
+    // Produces JSON structure from annotations.
+    private JsonNode props(Annotations annotations) {
+        ObjectNode props = objectNode();
+        if (annotations != null) {
+            for (String key : annotations.keys()) {
+                props.put(key, annotations.value(key));
+            }
+        }
+        return props;
+    }
     @Override
     protected Collection<RequestHandler> createRequestHandlers() {
         return ImmutableSet.of(

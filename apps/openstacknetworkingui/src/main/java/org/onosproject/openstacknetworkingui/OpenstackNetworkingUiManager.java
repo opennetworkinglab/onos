@@ -27,9 +27,9 @@ import org.apache.felix.scr.annotations.Service;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.Link.Type;
 import org.onosproject.net.Port;
 import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.link.DefaultLinkDescription;
 import org.onosproject.net.link.LinkDescription;
 import org.onosproject.net.link.LinkStore;
@@ -42,13 +42,14 @@ import org.onosproject.ui.UiView;
 import org.onosproject.ui.UiViewHidden;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.onosproject.net.Link.Type;
 
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static org.onosproject.net.Device.Type.SWITCH;
 
 /**
  * Implementation of OpenStack Networking UI service.
@@ -61,7 +62,6 @@ public class OpenstackNetworkingUiManager implements OpenstackNetworkingUiServic
     private static final String VIEW_ID = "sonaTopov";
     private static final String PORT_NAME = "portName";
     private static final String VXLAN = "vxlan";
-    private static final String OVS = "ovs";
     private static final String APP_ID = "org.onosproject.openstacknetworkingui";
     private static final String SONA_GUI = "sonagui";
 
@@ -74,10 +74,8 @@ public class OpenstackNetworkingUiManager implements OpenstackNetworkingUiServic
     protected DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DriverService driverService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected LinkStore linkStore;
+
     Set<Device> vDevices;
 
     private OpenstackNetworkingUiMessageHandler messageHandler = new OpenstackNetworkingUiMessageHandler();
@@ -105,7 +103,7 @@ public class OpenstackNetworkingUiManager implements OpenstackNetworkingUiServic
         uiExtensionService.register(extension);
 
         vDevices = Streams.stream(deviceService.getAvailableDevices())
-                .filter(this::isVirtualDevice)
+                .filter(device -> device.type() == SWITCH)
                 .collect(Collectors.toSet());
 
         vDevices.forEach(this::createLinksConnectedToTargetvDevice);
@@ -150,9 +148,6 @@ public class OpenstackNetworkingUiManager implements OpenstackNetworkingUiServic
                 .stream()
                 .filter(port -> port.annotations().value(PORT_NAME).equals(VXLAN))
                 .findAny();
-    }
-    private boolean isVirtualDevice(Device device) {
-        return driverService.getDriver(device.id()).name().equals(OVS);
     }
 
     private void createLinksConnectedToTargetvDevice(Device targetvDevice) {
