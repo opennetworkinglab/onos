@@ -211,7 +211,7 @@ public abstract class AtomixTestBase<T extends AbstractRaftPrimitive> {
         try {
             latch.await(30000, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         }
 
         return servers;

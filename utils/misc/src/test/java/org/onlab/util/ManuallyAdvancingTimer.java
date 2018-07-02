@@ -295,7 +295,7 @@ public class ManuallyAdvancingTimer extends java.util.Timer {
             currExecTime = TestUtils.getField(currTask, "nextExecutionTime");
         } catch (TestUtils.TestUtilsException e) {
             e.printStackTrace();
-            throw new RuntimeException("Could not get nextExecutionTime");
+            throw new IllegalStateException("Could not get nextExecutionTime");
         }
         while (currExecTime <= timerKeeper.currentTimeInMillis()) {
             if (executeTask(queue.pop())) {
@@ -309,7 +309,7 @@ public class ManuallyAdvancingTimer extends java.util.Timer {
                 currExecTime = TestUtils.getField(currTask, "nextExecutionTime");
             } catch (TestUtils.TestUtilsException e) {
                 e.printStackTrace();
-                throw new RuntimeException("Could not get nextExecutionTime");
+                throw new IllegalStateException("Could not get nextExecutionTime");
             }
         }
         return totalRun;
@@ -461,7 +461,7 @@ public class ManuallyAdvancingTimer extends java.util.Timer {
                     executionTimeTwo = TestUtils.getField(o2, "nextExecutionTime");
                 } catch (TestUtils.TestUtilsException e) {
                     e.printStackTrace();
-                    throw new RuntimeException("Could not get next execution time.");
+                    throw new IllegalStateException("Could not get next execution time.");
                 }
                 if (executionTimeOne == executionTimeTwo) {
                     return 0;

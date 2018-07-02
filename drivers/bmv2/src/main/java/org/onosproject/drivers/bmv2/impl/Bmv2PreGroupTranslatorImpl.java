@@ -57,7 +57,7 @@ public final class Bmv2PreGroupTranslatorImpl {
      */
     public static Bmv2PreGroup translate(Group group) {
         if (!group.type().equals(GroupDescription.Type.ALL)) {
-            throw new RuntimeException("Unable to translate the group to BMv2 PRE group." +
+            throw new IllegalStateException("Unable to translate the group to BMv2 PRE group." +
                                                "A BMv2 PRE group is to be of ALL type. GroupId="
                                                + group.id());
         }
@@ -231,11 +231,11 @@ public final class Bmv2PreGroupTranslatorImpl {
     private static void checkOutputInstructions(GroupId groupId,
                                                 Set<Instructions.OutputInstruction> outputInstructions) {
         if (outputInstructions.isEmpty()) {
-            throw new RuntimeException(String.format("Group bucket contains no output instruction. GroupId=%s",
+            throw new IllegalStateException(String.format("Group bucket contains no output instruction. GroupId=%s",
                                                      groupId));
         }
         if (outputInstructions.size() != 1) {
-            throw new RuntimeException(String.format("Group bucket contains more than one output instructions. " +
+            throw new IllegalStateException(String.format("Group bucket contains more than one output instructions. " +
                                                              "Only one is supported. GroupId=%s", groupId));
         }
     }
@@ -249,7 +249,7 @@ public final class Bmv2PreGroupTranslatorImpl {
      */
     private static void validatePort(PortNumber portNumber) {
         if (portNumber.toLong() < 0 || portNumber.toLong() >= BMV2_PORT_MAP_SIZE) {
-            throw new RuntimeException(String.format("Port number %d is not a valid BMv2 physical port number." +
+            throw new IllegalStateException(String.format("Port number %d is not a valid BMv2 physical port number." +
                                                              "Valid port range is [0,255]", portNumber));
         }
     }

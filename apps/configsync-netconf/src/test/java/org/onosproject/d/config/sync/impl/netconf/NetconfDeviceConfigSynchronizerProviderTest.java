@@ -284,7 +284,7 @@ public class NetconfDeviceConfigSynchronizerProviderTest {
 
             return new DefaultCompositeStream(id, xml);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException(e);
         }
     }
 

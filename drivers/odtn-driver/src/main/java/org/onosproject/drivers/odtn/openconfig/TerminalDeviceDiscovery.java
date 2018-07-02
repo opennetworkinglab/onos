@@ -213,7 +213,7 @@ public class TerminalDeviceDiscovery
            doc.appendChild(rpc);
            return NetconfRpcParserUtil.toString(doc);
            } catch (Exception e) {
-           throw new RuntimeException(new NetconfException("Exception in getDeviceDetailsBuilder", e));
+           throw new IllegalStateException(new NetconfException("Exception in getDeviceDetailsBuilder", e));
            }
          */
     }

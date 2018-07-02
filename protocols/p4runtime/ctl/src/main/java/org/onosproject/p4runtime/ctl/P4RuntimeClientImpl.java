@@ -172,7 +172,7 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
             } catch (InterruptedException e) {
                 log.warn("Thread interrupted while waiting for lock (executing {})",
                          opDescription);
-                throw new RuntimeException(e);
+                throw new IllegalStateException(e);
             }
             try {
                 return supplier.get();

@@ -94,7 +94,8 @@ final class SafeThriftClient {
             }
         }
 
-        throw new RuntimeException("Class needs to implement Iface directly. Use wrap(TServiceClient, Class) instead.");
+        throw new IllegalStateException(
+                "Class needs to implement Iface directly. Use wrap(TServiceClient, Class) instead.");
     }
 
     /**
@@ -202,7 +203,7 @@ final class SafeThriftClient {
                             Thread.sleep(timeBetweenRetries);
                         } catch (InterruptedException e2) {
                             Thread.currentThread().interrupt();
-                            throw new RuntimeException(e);
+                            throw new IllegalStateException(e);
                         }
                     }
                 }

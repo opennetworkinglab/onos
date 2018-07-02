@@ -445,7 +445,7 @@ public class AtomixConsistentSetMultimapTest extends AtomixTestBase<AtomixConsis
             AtomixConsistentSetMultimap map = newPrimitive(mapName);
             return map;
         } catch (Throwable e) {
-            throw new RuntimeException(e.toString());
+            throw new IllegalStateException(e.toString());
         }
     }
 

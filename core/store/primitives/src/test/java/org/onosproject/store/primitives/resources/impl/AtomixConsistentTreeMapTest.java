@@ -485,7 +485,7 @@ public class AtomixConsistentTreeMapTest extends AtomixTestBase<AtomixConsistent
             AtomixConsistentTreeMap map = newPrimitive(mapName);
             return map;
         } catch (Throwable e) {
-            throw new RuntimeException(e.toString());
+            throw new IllegalStateException(e.toString());
         }
     }
     private static class TestMapEventListener

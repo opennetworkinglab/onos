@@ -115,6 +115,14 @@
         <property name="message" value="javafx classes are not supported by all JDKs."/>
     </module>
 
+    <!-- Don't allow usage of RuntimeException -->
+    <module name="RegexpSingleline">
+        <property name="format" value="throw[ ]*new[ ]*RuntimeException"/>
+        <property name="minimum" value="0"/>
+        <property name="maximum" value="0"/>
+        <property name="message" value="Don't throw generic exception types"/>
+    </module>
+
     <!-- Checks for Headers                                -->
     <!-- See http://checkstyle.sf.net/config_header.html   -->
     <!-- <module name="Header"> -->

@@ -804,7 +804,7 @@ public class EventuallyConsistentMapImplTest {
             } else if (subject.equals(UPDATE_REQUEST_SUBJECT)) {
                 requestHandler = (Consumer<Collection<UpdateRequest<String>>>) handler;
             } else {
-                throw new RuntimeException("Unexpected message subject " + subject.toString());
+                throw new IllegalStateException("Unexpected message subject " + subject.toString());
             }
         }
 
@@ -814,7 +814,7 @@ public class EventuallyConsistentMapImplTest {
             if (subject.equals(ANTI_ENTROPY_MESSAGE_SUBJECT)) {
                 antiEntropyHandler = (Function<AntiEntropyAdvertisement<String>, AntiEntropyResponse>) handler;
             } else if (!subject.equals(INITIALIZE_MESSAGE_SUBJECT)) {
-                throw new RuntimeException("Unexpected message subject " + subject.toString());
+                throw new IllegalStateException("Unexpected message subject " + subject.toString());
             }
         }
     }
