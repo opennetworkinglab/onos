@@ -71,10 +71,10 @@ import static org.onosproject.net.flow.criteria.Criterion.Type.TCP_DST;
 import static org.onosproject.net.flow.criteria.Criterion.Type.TCP_SRC;
 import static org.onosproject.net.flow.criteria.Criterion.Type.UDP_DST;
 import static org.onosproject.net.flow.criteria.Criterion.Type.UDP_SRC;
-import static org.onosproject.openstacknetworking.api.Constants.DHCP_ARP_TABLE;
-import static org.onosproject.openstacknetworking.api.Constants.FORWARDING_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.STAT_INBOUND_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.STAT_OUTBOUND_TABLE;
+import static org.onosproject.openstacknetworking.api.Constants.VTAP_INBOUND_TABLE;
+import static org.onosproject.openstacknetworking.api.Constants.VTAP_OUTBOUND_TABLE;
 import static org.onosproject.openstacktelemetry.api.Constants.OPENSTACK_TELEMETRY_APP_ID;
 
 /**
@@ -399,12 +399,12 @@ public class StatsFlowRuleManager implements StatsFlowRuleAdminService {
         }
 
         if (srcDeviceId != null) {
-            connectTables(srcDeviceId, STAT_INBOUND_TABLE, DHCP_ARP_TABLE,
+            connectTables(srcDeviceId, STAT_INBOUND_TABLE, VTAP_INBOUND_TABLE,
                     statsFlowRule, METRIC_PRIORITY_SOURCE, install);
         }
 
         if (dstDeviceId != null) {
-            connectTables(dstDeviceId, STAT_OUTBOUND_TABLE, FORWARDING_TABLE,
+            connectTables(dstDeviceId, STAT_OUTBOUND_TABLE, VTAP_OUTBOUND_TABLE,
                     inverseFlowRule, METRIC_PRIORITY_TARGET, install);
         }
     }

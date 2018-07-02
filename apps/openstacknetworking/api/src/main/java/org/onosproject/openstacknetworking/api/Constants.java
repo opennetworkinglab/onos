@@ -76,18 +76,31 @@ public final class Constants {
     public static final int PRIORITY_ARP_REPLY_RULE = 40000;
     public static final int PRIORITY_ARP_REQUEST_RULE = 40000;
 
+    // flow table index
     public static final int STAT_INBOUND_TABLE = 0;
-    public static final int DHCP_ARP_TABLE = 1;
-    public static final int FLAT_TABLE = 2;
-    public static final int VTAG_TABLE = 10;
-    public static final int ACL_TABLE = 20;
-    public static final int CT_TABLE = 21;
-    public static final int JUMP_TABLE = 30;
-    public static final int ROUTING_TABLE = 40;
-    public static final int STAT_OUTBOUND_TABLE = 49;
-    public static final int FORWARDING_TABLE = 50;
+    public static final int VTAP_INBOUND_TABLE = 1;
+    public static final int VTAP_INBOUND_MIRROR_TABLE = 2;
+    public static final int STAT_FLAT_OUTBOUND_TABLE = 10;
+    public static final int VTAP_FLAT_OUTBOUND_TABLE = 11;
+    public static final int VTAP_FLAT_OUTBOUND_MIRROR_TABLE = 12;
+    public static final int DHCP_ARP_TABLE = 5;
+    public static final int FLAT_TABLE = 20;
+    public static final int VTAG_TABLE = 30;
+    public static final int ACL_TABLE = 40;
+    public static final int CT_TABLE = 41;
+    public static final int JUMP_TABLE = 50;
+    public static final int ROUTING_TABLE = 60;
+    public static final int STAT_OUTBOUND_TABLE = 70;
+    public static final int VTAP_OUTBOUND_TABLE = 71;
+    public static final int VTAP_OUTBOUND_MIRROR_TABLE = 72;
+    public static final int FORWARDING_TABLE = 80;
     public static final int GW_COMMON_TABLE = 0;
     public static final int ERROR_TABLE = 100;
+
+    // group table index
+    public static final int VTAP_INBOUND_GROUP_TABLE = 1;
+    public static final int VTAP_FLAT_OUTBOUND_GROUP_TABLE = 2;
+    public static final int VTAP_OUTBOUND_GROUP_TABLE = 3;
 
     public static Map<String, String> portNamePrefixMap() {
         return PORT_NAME_PREFIX_MAP;

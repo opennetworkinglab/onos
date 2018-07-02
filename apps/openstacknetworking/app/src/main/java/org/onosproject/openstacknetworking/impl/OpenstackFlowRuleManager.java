@@ -143,12 +143,28 @@ public class OpenstackFlowRuleManager implements OpenstackFlowRuleService {
     }
 
     private void initializePipeline(DeviceId deviceId) {
-        connectTables(deviceId, Constants.STAT_INBOUND_TABLE, Constants.DHCP_ARP_TABLE);
+        // for inbound table transition
+        connectTables(deviceId, Constants.STAT_INBOUND_TABLE, Constants.VTAP_INBOUND_TABLE);
+        connectTables(deviceId, Constants.VTAP_INBOUND_TABLE, Constants.DHCP_ARP_TABLE);
+
+        // for vTag and ACL table transition
         connectTables(deviceId, Constants.DHCP_ARP_TABLE, Constants.VTAG_TABLE);
         connectTables(deviceId, Constants.VTAG_TABLE, Constants.ACL_TABLE);
         connectTables(deviceId, Constants.ACL_TABLE, Constants.JUMP_TABLE);
+
+        // for JUMP table transition
+        // we need JUMP table for bypassing routing table which contains large
+        // amount of flow rules which might cause performance degradation during
+        // table lookup
         setupJumpTable(deviceId);
-        connectTables(deviceId, Constants.STAT_OUTBOUND_TABLE, Constants.FORWARDING_TABLE);
+
+        // for outbound table transition
+        connectTables(deviceId, Constants.STAT_OUTBOUND_TABLE, Constants.VTAP_OUTBOUND_TABLE);
+        connectTables(deviceId, Constants.VTAP_OUTBOUND_TABLE, Constants.FORWARDING_TABLE);
+
+        // for FLAT outbound table transition
+        connectTables(deviceId, Constants.STAT_FLAT_OUTBOUND_TABLE, Constants.VTAP_FLAT_OUTBOUND_TABLE);
+        connectTables(deviceId, Constants.VTAP_FLAT_OUTBOUND_TABLE, Constants.FLAT_TABLE);
     }
 
     @Override
