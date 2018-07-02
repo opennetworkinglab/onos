@@ -25,6 +25,7 @@ COMPILE_DEPS = [
 TEST_DEPS = [
     '//lib:TEST_ADAPTERS',
     '//core/api:onos-api-tests',
+    '//apps/openstacknode/api:onos-apps-openstacknode-api-tests',
     '//core/common:onos-core-common-tests',
     '//web/api:onos-rest-tests',
     '//lib:TEST_REST',

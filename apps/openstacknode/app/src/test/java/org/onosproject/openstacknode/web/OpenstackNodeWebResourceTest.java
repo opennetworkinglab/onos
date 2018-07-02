@@ -29,7 +29,7 @@ import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeAdminService;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
 import org.onosproject.openstacknode.codec.OpenstackNodeCodec;
-import org.onosproject.openstacknode.impl.DefaultOpenstackNode;
+import org.onosproject.openstacknode.api.DefaultOpenstackNode;
 import org.onosproject.rest.resources.ResourceTest;
 
 import javax.ws.rs.client.Entity;

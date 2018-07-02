@@ -26,7 +26,7 @@ import org.onosproject.openstacknode.api.NodeState;
 import org.onosproject.openstacknode.api.OpenstackAuth;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackPhyInterface;
-import org.onosproject.openstacknode.impl.DefaultOpenstackNode;
+import org.onosproject.openstacknode.api.DefaultOpenstackNode;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;

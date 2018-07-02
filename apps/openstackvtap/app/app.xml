@@ -16,7 +16,7 @@
   -->
 <app name="org.onosproject.openstackvtap" origin="Open Networking Foundation"
      version="${project.version}" category="Utility" title="OpenStack vTap App"
-     features="${project.artifactId}" apps="org.onosproject.openstackvtap"
+     features="${project.artifactId}" apps="org.onosproject.openstacknetworking"
      featuresRepo="mvn:${project.groupId}/${project.artifactId}/${project.version}/xml/features">
     <description>${project.description}</description>
     <artifact>mvn:${project.groupId}/onos-apps-openstackvtap-api/${project.version}</artifact>

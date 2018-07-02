@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.openstacknode.impl;
+package org.onosproject.openstacknode.api;
 
 import com.google.common.testing.EqualsTester;
 import org.junit.Test;
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.Device;
-import org.onosproject.openstacknode.api.NodeState;
-import org.onosproject.openstacknode.api.OpenstackNode;
 
 /**
  * Unit tests for DefaultOpenstackNode.

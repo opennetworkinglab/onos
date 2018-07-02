@@ -43,9 +43,9 @@
         <api.version>1.0.0</api.version>
         <api.title>OpenStack vTap REST API</api.title>
         <api.description>
-            APIs for interacting with OpenStack Telemetry entity.
+            APIs for interacting with OpenStack vTap entity.
         </api.description>
-        <api.package>org.onosproject.openstacktelemetry.web</api.package>
+        <api.package>org.onosproject.openstackvtap.web</api.package>
     </properties>
 
     <dependencies>

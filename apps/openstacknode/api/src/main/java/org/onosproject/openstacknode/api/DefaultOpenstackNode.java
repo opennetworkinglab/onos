@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.openstacknode.impl;
+package org.onosproject.openstacknode.api;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Strings;
@@ -27,10 +27,6 @@ import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.group.DefaultGroupKey;
 import org.onosproject.net.group.GroupKey;
-import org.onosproject.openstacknode.api.NodeState;
-import org.onosproject.openstacknode.api.OpenstackAuth;
-import org.onosproject.openstacknode.api.OpenstackNode;
-import org.onosproject.openstacknode.api.OpenstackPhyInterface;
 
 import java.util.ArrayList;
 import java.util.Collection;

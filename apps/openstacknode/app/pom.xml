@@ -108,6 +108,14 @@
 
         <dependency>
             <groupId>org.onosproject</groupId>
+            <artifactId>onos-apps-openstacknode-api</artifactId>
+            <version>${project.version}</version>
+            <classifier>tests</classifier>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.onosproject</groupId>
             <artifactId>onos-api</artifactId>
             <classifier>tests</classifier>
             <scope>test</scope>
@@ -219,7 +227,6 @@
             <artifactId>jersey-hk2</artifactId>
             <scope>test</scope>
         </dependency>
-
     </dependencies>
 
     <build>

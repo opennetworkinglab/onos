@@ -57,7 +57,7 @@
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-apps-openstacknode-app</artifactId>
+            <artifactId>onos-apps-openstacknode-api</artifactId>
             <version>${project.version}</version>
             <classifier>tests</classifier>
         </dependency>

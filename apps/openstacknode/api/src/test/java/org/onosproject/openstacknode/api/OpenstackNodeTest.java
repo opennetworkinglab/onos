@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.openstacknode.impl;
+package org.onosproject.openstacknode.api;
 
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.IpAddress;
@@ -21,8 +21,6 @@ import org.onosproject.net.DefaultDevice;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.openstacknode.api.NodeState;
-import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNode.NodeType;
 
 import static org.onosproject.net.Device.Type.SWITCH;

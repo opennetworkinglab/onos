@@ -29,7 +29,7 @@ TEST_DEPS = [
     '//core/common:onos-core-common-tests',
     '//web/api:onos-rest-tests',
     '//lib:TEST_REST',
-    '//apps/openstacknode/app:onos-apps-openstacknode-app-tests',
+    '//apps/openstacknode/api:onos-apps-openstacknode-api-tests',
 ]
 
 osgi_jar_with_tests (

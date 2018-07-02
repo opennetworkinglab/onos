@@ -30,7 +30,7 @@ import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.openstacknode.api.NodeState;
 import org.onosproject.openstacknode.api.OpenstackNode;
-import org.onosproject.openstacknode.impl.OpenstackNodeTest;
+import org.onosproject.openstacknode.api.OpenstackNodeTest;
 import org.openstack4j.model.network.NetFloatingIP;
 import org.openstack4j.openstack.networking.domain.NeutronFloatingIP;
 
