@@ -175,6 +175,7 @@ function topos {
 # Sets the primary instance to the specified instance number.
 function setPrimaryInstance {
     export ONOS_INSTANCES=$(env | grep 'OC[0-9]*=' | sort | cut -d= -f2)
+    export ONOS_CORES=$(env | grep 'OCC[0-9]*=' | sort | cut -d= -f2)
     export OCI=$(env | egrep "OC[0-9]+" | sort | egrep OC${1:-1} | cut -d= -f2)
     echo $OCI
 }
@@ -209,9 +210,10 @@ export CELL_SLAVES="$CELL_SLAVE_1 $CELL_SLAVE_2 $CELL_SLAVE_3 $CELL_SLAVE_4"
 # Clears cell environment
 function clearCell {
     unset ONOS_CELL ONOS_NIC ONOS_IP ONOS_APPS ONOS_BOOT_FEATURES
-    unset OCI OCN OCT ONOS_INSTANCES ONOS_FEATURES
+    unset OCI OCN OCT ONOS_INSTANCES ONOS_CORES ONOS_FEATURES
     unset ONOS_USER ONOS_GROUP ONOS_WEB_USER ONOS_WEB_PASS
     unset $(env | sed -n 's:\(^OC[0-9]\{1,\}\)=.*:\1 :g p')
+    unset $(env | sed -n 's:\(^OCC[0-9]\{1,\}\)=.*:\1 :g p')
     unset $(env | sed -n 's:\(^OCMI[0-9]\{1,\}\)=.*:\1 :g p')
     unset $(env | sed -n 's:\(^OCMA[0-9]\{1,\}\)=.*:\1 :g p')
 }
@@ -226,7 +228,7 @@ function cell {
         aux="/tmp/cell-$$"
         duration=${2:-0}
         spec=${3:-3+1}
-        spec=${spec/+/%2B}
+        spec=${spec//+/%2B}
         user=${4:-$(id -un)}
         hint=${5:-""}
         query="duration=$duration&spec=$spec&user=$user&cellNameHint=$hint"
@@ -249,10 +251,10 @@ function cell {
 
     "")
         env | egrep "^ONOS_CELL"
-        env | egrep "^OCI"
+        env | egrep "^OCC[0-9]+" | sort
         env | egrep "^OC[0-9]+" | sort
-        env | egrep "^OC[NT]"
-        env | egrep "^ONOS_" | egrep -v 'ONOS_ROOT|ONOS_CELL|ONOS_INSTANCES|ONOS_DEVICES|ONOS_HOSTS' | sort
+        env | egrep "^OC[INT]" | sort
+        env | egrep "^ONOS_" | egrep -v 'ONOS_ROOT|ONOS_CELL|ONOS_INSTANCES|ONOS_CORES|ONOS_DEVICES|ONOS_HOSTS' | sort
         ;;
 
     *)
