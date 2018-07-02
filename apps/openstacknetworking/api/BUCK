@@ -1,4 +1,4 @@
-include_defs('//apps/openstacknetworking/openstack4j.bucklet')
+include_defs('//apps/openstacknode/openstack4j.bucklet')
 
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',

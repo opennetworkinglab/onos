@@ -13,7 +13,7 @@ BUNDLES = [
     '//lib:converter-moshi',
     '//lib:protobuf-java-3.2.0',
     '//incubator/grpc-dependencies:grpc-core-repkg-' + GRPC_VER,
-    "//lib:google-instrumentation-0.3.0",
+    '//lib:google-instrumentation-0.3.0',
     '//apps/openstacktelemetry/api:onos-apps-openstacktelemetry-api',
     '//apps/openstacktelemetry/app:onos-apps-openstacktelemetry-app',
 ]

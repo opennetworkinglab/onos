@@ -1,5 +1,5 @@
 INCLUDE_PACKAGES = 'com.google.common.net,com.google.common.io,com.fasterxml.jackson.annotation'
-EXCLUDE_PACKAGES = '!org.openstack4j,!org.openstack4j.*'
+EXCLUDE_PACKAGES = '!org.openstack4j,!org.openstack4j.*,!org.openstack4j.model.network'
 ALL_PACKAGES = '*'
 
 def get_openstack4j_deps_path():

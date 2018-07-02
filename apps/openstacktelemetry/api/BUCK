@@ -1,9 +1,12 @@
+include_defs('//apps/openstacknode/openstack4j.bucklet')
+
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//lib:kafka-clients',
     '//lib:jersey-client',
     '//lib:javax.ws.rs-api',
     '//lib:influxdb-java',
+    '//lib:openstack4j-core',
 ]
 
 TEST_DEPS = [
@@ -14,5 +17,7 @@ TEST_DEPS = [
 
 osgi_jar_with_tests (
     deps = COMPILE_DEPS,
-    test_deps = TEST_DEPS
+    test_deps = TEST_DEPS,
+
+    import_packages = INCLUDE_PACKAGES + ',' + EXCLUDE_PACKAGES  + ',' + ALL_PACKAGES,
 )
