@@ -24,20 +24,33 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * A MAC Rx filter value.
  */
-public class MacRxFilterValue extends RxFilterValue implements Comparable {
+public final class MacRxFilterValue extends RxFilterValue implements Comparable {
 
     private MacAddress mac;
 
+    /**
+     * Constructs a MAC-based Rx filter.
+     */
     public MacRxFilterValue() {
         super();
         this.mac = null;
     }
 
+    /**
+     * Constructs a MAC-based Rx filter with specific MAC address.
+     *
+     * @param mac a MAC address to use as a filter
+     */
     public MacRxFilterValue(MacAddress mac) {
         super();
         setValue(mac);
     }
 
+    /**
+     * Constructs a MAC-based Rx filter out of an existing one.
+     *
+     * @param other a source MacRxFilterValue object
+     */
     public MacRxFilterValue(MacRxFilterValue other) {
         super();
         setValue(other.value());

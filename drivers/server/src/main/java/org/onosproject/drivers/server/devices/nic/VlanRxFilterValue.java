@@ -28,16 +28,29 @@ public class VlanRxFilterValue extends RxFilterValue {
 
     private VlanId vlanId;
 
+    /**
+     * Constructs a VLAN-based Rx filter.
+     */
     public VlanRxFilterValue() {
         super();
         this.vlanId = VlanId.NONE;
     }
 
+    /**
+     * Constructs a VLAN-based Rx filter with specific ID.
+     *
+     * @param vlanId a VLAN ID to use as a filter
+     */
     public VlanRxFilterValue(VlanId vlanId) {
         super();
         setValue(vlanId);
     }
 
+    /**
+     * Constructs a VLAN-based Rx filter out of an existing one.
+     *
+     * @param other a source VlanRxFilterValue object
+     */
     public VlanRxFilterValue(VlanRxFilterValue other) {
         super();
         setValue(other.value());
@@ -59,7 +72,6 @@ public class VlanRxFilterValue extends RxFilterValue {
      */
     public void setValue(VlanId vlanId) {
         checkNotNull(vlanId, "VLAN ID of Rx filter is NULL");
-
         this.vlanId = vlanId;
     }
 

@@ -24,20 +24,33 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * An MPLS Rx filter value.
  */
-public class MplsRxFilterValue extends RxFilterValue {
+public final class MplsRxFilterValue extends RxFilterValue {
 
     private MplsLabel mplsLabel;
 
+    /**
+     * Constructs an MPLS-based Rx filter.
+     */
     public MplsRxFilterValue() {
         super();
         this.mplsLabel = null;
     }
 
+    /**
+     * Constructs an MPLS-based Rx filter with specific label.
+     *
+     * @param mplsLabel an MPLS label to use as a filter
+     */
     public MplsRxFilterValue(MplsLabel mplsLabel) {
         super();
         setValue(mplsLabel);
     }
 
+    /**
+     * Constructs an MPLS-based Rx filter out of an existing one.
+     *
+     * @param other a source MplsRxFilterValue object
+     */
     public MplsRxFilterValue(MplsRxFilterValue other) {
         super();
         setValue(other.value());

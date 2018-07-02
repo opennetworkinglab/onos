@@ -33,6 +33,9 @@
 
         <behaviour api="org.onosproject.drivers.server.behavior.MonitoringStatisticsDiscovery"
                    impl="org.onosproject.drivers.server.ServerDevicesDiscovery"/>
+
+        <behaviour api="org.onosproject.net.flow.FlowRuleProgrammable"
+                   impl="org.onosproject.drivers.server.FlowRuleProgrammableServerImpl"/>
     </driver>
 </drivers>
 
