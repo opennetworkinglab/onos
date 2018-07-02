@@ -85,6 +85,7 @@ import static org.onosproject.openstacknode.api.NodeState.INIT;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.CONTROLLER;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
 import static org.onosproject.openstacknode.api.OpenstackNodeService.APP_ID;
+import static org.onosproject.openstacknode.util.OpenstackNodeUtil.getBooleanProperty;
 import static org.onosproject.openstacknode.util.OpenstackNodeUtil.getConnectedClient;
 import static org.onosproject.openstacknode.util.OpenstackNodeUtil.isOvsdbConnected;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -98,9 +99,11 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
     private final Logger log = getLogger(getClass());
 
     private static final String OVSDB_PORT = "ovsdbPortNum";
+    private static final String AUTO_RECOVERY = "autoRecovery";
     private static final String DEFAULT_OF_PROTO = "tcp";
     private static final int DEFAULT_OVSDB_PORT = 6640;
     private static final int DEFAULT_OFPORT = 6653;
+    private static final boolean DEFAULT_AUTO_RECOVERY = true;
     private static final int DPID_BEGIN = 3;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -133,6 +136,11 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
     @Property(name = OVSDB_PORT, intValue = DEFAULT_OVSDB_PORT,
             label = "OVSDB server listen port")
     private int ovsdbPort = DEFAULT_OVSDB_PORT;
+
+    @Property(name = AUTO_RECOVERY, boolValue = DEFAULT_AUTO_RECOVERY,
+            label = "A flag which indicates whether auto-recover openstack " +
+                    "node status at the receiving of switch reconnecting event.")
+    private boolean autoRecovery = DEFAULT_AUTO_RECOVERY;
 
     private final ExecutorService eventExecutor = newSingleThreadExecutor(
             groupedThreads(this.getClass().getSimpleName(), "event-handler", log));
@@ -172,11 +180,7 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
 
     @Modified
     protected void modified(ComponentContext context) {
-        Dictionary<?, ?> properties = context.getProperties();
-        int updatedOvsdbPort = Tools.getIntegerProperty(properties, OVSDB_PORT);
-        if (!Objects.equals(updatedOvsdbPort, ovsdbPort)) {
-            ovsdbPort = updatedOvsdbPort;
-        }
+        readComponentConfiguration(context);
 
         log.info("Modified");
     }
@@ -201,7 +205,8 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
             }
 
             if (osNode.type() == GATEWAY) {
-                addOrRemoveSystemInterface(osNode, INTEGRATION_BRIDGE, osNode.uplinkPort(), true);
+                addOrRemoveSystemInterface(osNode, INTEGRATION_BRIDGE,
+                                        osNode.uplinkPort(), true);
             }
 
             if (osNode.dataIp() != null &&
@@ -211,12 +216,14 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
 
             if (osNode.vlanIntf() != null &&
                     !isIntfEnabled(osNode, osNode.vlanIntf())) {
-                addOrRemoveSystemInterface(osNode, INTEGRATION_BRIDGE, osNode.vlanIntf(), true);
+                addOrRemoveSystemInterface(osNode, INTEGRATION_BRIDGE,
+                                        osNode.vlanIntf(), true);
             }
 
             osNode.phyIntfs().forEach(i -> {
                 if (!isIntfEnabled(osNode, i.intf())) {
-                    addOrRemoveSystemInterface(osNode, INTEGRATION_BRIDGE, i.intf(), true);
+                    addOrRemoveSystemInterface(osNode, INTEGRATION_BRIDGE,
+                                        i.intf(), true);
                 }
             });
 
@@ -279,7 +286,9 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
      * @param intfName interface name
      * @param addOrRemove add port is true, remove it otherwise
      */
-    private void addOrRemoveSystemInterface(OpenstackNode osNode, String bridgeName, String intfName,
+    private void addOrRemoveSystemInterface(OpenstackNode osNode,
+                                            String bridgeName,
+                                            String intfName,
                                             boolean addOrRemove) {
         Device device = deviceService.getDevice(osNode.ovsdb());
         if (device == null || !device.is(BridgeConfig.class)) {
@@ -334,8 +343,10 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
             return null;
         }
 
-        ExtensionTreatmentResolver resolver = device.as(ExtensionTreatmentResolver.class);
-        ExtensionTreatment treatment = resolver.getExtensionInstruction(NICIRA_SET_TUNNEL_DST.type());
+        ExtensionTreatmentResolver resolver =
+                                   device.as(ExtensionTreatmentResolver.class);
+        ExtensionTreatment treatment =
+                resolver.getExtensionInstruction(NICIRA_SET_TUNNEL_DST.type());
         try {
             treatment.setPropertyValue("tunnelDst", remoteIp.getIp4Address());
             return treatment;
@@ -434,7 +445,8 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
             if (isCurrentStateDone(osNode)) {
                 setState(osNode, osNode.state().nextState());
             } else {
-                log.trace("Processing {} state for {}", osNode.state(), osNode.hostname());
+                log.trace("Processing {} state for {}", osNode.state(),
+                                                        osNode.hostname());
                 osNode.state().process(this, osNode);
             }
         }
@@ -459,6 +471,35 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
             return false;
         } else {
             return client.getSupportedServices().size() != 0;
+        }
+    }
+
+    /**
+     * Extracts properties from the component configuration context.
+     *
+     * @param context the component context
+     */
+    private void readComponentConfiguration(ComponentContext context) {
+        Dictionary<?, ?> properties = context.getProperties();
+
+        Integer ovsdbPortConfigured = Tools.getIntegerProperty(properties, OVSDB_PORT);
+        if (ovsdbPortConfigured == null) {
+            ovsdbPort = DEFAULT_OVSDB_PORT;
+            log.info("OVSDB port is NOT configured, default value is {}", ovsdbPort);
+        } else {
+            ovsdbPort = ovsdbPortConfigured;
+            log.info("Configured. OVSDB port is {}", ovsdbPort);
+        }
+
+        Boolean autoRecoveryConfigured =
+                getBooleanProperty(properties, AUTO_RECOVERY);
+        if (autoRecoveryConfigured == null) {
+            autoRecovery = DEFAULT_AUTO_RECOVERY;
+            log.info("Auto recovery flag is NOT " +
+                    "configured, default value is {}", autoRecovery);
+        } else {
+            autoRecovery = autoRecoveryConfigured;
+            log.info("Configured. Auto recovery flag is {}", autoRecovery);
         }
     }
 
@@ -533,8 +574,17 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                             log.debug("Integration bridge created on {}", osNode.hostname());
                             bootstrapNode(osNode);
                         } else if (osNode.state() == COMPLETE) {
-                            log.warn("Device {} disconnected", device.id());
+                            log.info("Device {} disconnected", device.id());
                             setState(osNode, INCOMPLETE);
+                        }
+
+                        if (autoRecovery) {
+                            if (osNode.state() == INCOMPLETE ||
+                                    osNode.state() == DEVICE_CREATED) {
+                                log.info("Device {} is reconnected", device.id());
+                                osNodeAdminService.updateNode(
+                                        osNode.updateState(NodeState.INIT));
+                            }
                         }
                     });
                     break;
@@ -547,7 +597,8 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                                 Objects.equals(portName, osNode.vlanIntf()) ||
                                 Objects.equals(portName, osNode.uplinkPort()) ||
                                         containsPhyIntf(osNode, portName))) {
-                            log.debug("Interface {} added to {}", portName, event.subject().id());
+                            log.debug("Interface {} added to {}",
+                                                portName, event.subject().id());
                             bootstrapNode(osNode);
                         }
                     });
@@ -559,9 +610,10 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                         if (osNode.state() == COMPLETE && (
                                 Objects.equals(portName, DEFAULT_TUNNEL) ||
                                 Objects.equals(portName, osNode.vlanIntf()) ||
-                                        Objects.equals(portName, osNode.uplinkPort()) ||
+                                Objects.equals(portName, osNode.uplinkPort()) ||
                                         containsPhyIntf(osNode, portName))) {
-                            log.warn("Interface {} removed from {}", portName, event.subject().id());
+                            log.warn("Interface {} removed from {}",
+                                                portName, event.subject().id());
                             setState(osNode, INCOMPLETE);
                         }
                     });

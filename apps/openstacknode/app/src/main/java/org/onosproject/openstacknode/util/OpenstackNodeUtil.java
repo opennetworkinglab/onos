@@ -15,6 +15,7 @@
  */
 package org.onosproject.openstacknode.util;
 
+import com.google.common.base.Strings;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.openstacknode.api.OpenstackAuth;
 import org.onosproject.openstacknode.api.OpenstackAuth.Perspective;
@@ -38,6 +39,9 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import java.security.cert.X509Certificate;
+import java.util.Dictionary;
+
+import static org.onlab.util.Tools.get;
 
 /**
  * An utility that used in openstack node app.
@@ -129,6 +133,26 @@ public final class OpenstackNodeUtil {
             log.error("Authentication failed due to {}", e.toString());
             return null;
         }
+    }
+
+    /**
+     * Gets Boolean property from the propertyName
+     * Return null if propertyName is not found.
+     *
+     * @param properties   properties to be looked up
+     * @param propertyName the name of the property to look up
+     * @return value when the propertyName is defined or return null
+     */
+    public static Boolean getBooleanProperty(Dictionary<?, ?> properties,
+                                             String propertyName) {
+        Boolean value;
+        try {
+            String s = get(properties, propertyName);
+            value = Strings.isNullOrEmpty(s) ? null : Boolean.valueOf(s);
+        } catch (ClassCastException e) {
+            value = null;
+        }
+        return value;
     }
 
     /**
