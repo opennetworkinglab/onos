@@ -778,7 +778,9 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                     }
                     break;
                 case PORT_REMOVED:
-                    // Nothing to do?
+                    if (hostRemovalEnabled) {
+                        processPortDown(new ConnectPoint(device.id(), event.port().number()));
+                    }
                     break;
                 default:
                     break;
