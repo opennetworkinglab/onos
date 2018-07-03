@@ -86,29 +86,24 @@ public final class DefaultOpenstackVtapCriterion implements OpenstackVtapCriteri
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(super.hashCode(),
-                srcIpPrefix,
-                dstIpPrefix,
-                ipProtocol,
-                srcTpPort,
-                dstTpPort);
+        return Objects.hashCode(srcIpPrefix, dstIpPrefix,
+                                ipProtocol, srcTpPort, dstTpPort);
     }
 
     @Override
-    public boolean equals(Object object) {
-        if (object != null && getClass() == object.getClass()) {
-            if (!super.equals(object)) {
-                return false;
-            }
-
-            DefaultOpenstackVtapCriterion that = (DefaultOpenstackVtapCriterion) object;
-            return Objects.equal(this.srcIpPrefix, that.srcIpPrefix) &&
-                    Objects.equal(this.dstIpPrefix, that.dstIpPrefix) &&
-                    Objects.equal(this.ipProtocol, that.ipProtocol) &&
-                    Objects.equal(this.srcTpPort, that.srcTpPort) &&
-                    Objects.equal(this.dstTpPort, that.dstTpPort);
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
         }
-        return false;
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DefaultOpenstackVtapCriterion that = (DefaultOpenstackVtapCriterion) o;
+        return Objects.equal(this.srcIpPrefix, that.srcIpPrefix) &&
+                Objects.equal(this.dstIpPrefix, that.dstIpPrefix) &&
+                Objects.equal(this.ipProtocol, that.ipProtocol) &&
+                Objects.equal(this.srcTpPort, that.srcTpPort) &&
+                Objects.equal(this.dstTpPort, that.dstTpPort);
     }
 
     /**

@@ -93,28 +93,24 @@ public final class DefaultOpenstackVtap extends AbstractDescription implements O
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(super.hashCode(),
-                id,
-                type,
-                vTapCriterion,
-                txDeviceIds,
-                rxDeviceIds);
+        return Objects.hashCode(id, type, vTapCriterion, txDeviceIds, rxDeviceIds);
     }
 
     @Override
-    public boolean equals(Object object) {
-        if (object != null && getClass() == object.getClass()) {
-            if (!super.equals(object)) {
-                return false;
-            }
-            DefaultOpenstackVtap that = (DefaultOpenstackVtap) object;
-            return Objects.equal(this.id, that.id)
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DefaultOpenstackVtap that = (DefaultOpenstackVtap) o;
+        return Objects.equal(this.id, that.id)
                     && Objects.equal(this.type, that.type)
                     && Objects.equal(this.vTapCriterion, that.vTapCriterion)
                     && Objects.equal(this.txDeviceIds, that.txDeviceIds)
                     && Objects.equal(this.rxDeviceIds, that.rxDeviceIds);
-        }
-        return false;
     }
 
     /**
