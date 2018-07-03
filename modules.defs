@@ -192,6 +192,7 @@ ONOS_APPS = [
     '//apps/test/netcfg-monitor:onos-apps-test-netcfg-monitor-oar',
     '//apps/test/messaging-perf:onos-apps-test-messaging-perf-oar',
     '//apps/test/primitive-perf:onos-apps-test-primitive-perf-oar',
+    '//apps/test/proxy:onos-apps-test-proxy-oar',
     '//apps/test/transaction-perf:onos-apps-test-transaction-perf-oar',
     '//apps/virtualbng:onos-apps-virtualbng-oar',
     '//apps/vpls:onos-apps-vpls-oar',
