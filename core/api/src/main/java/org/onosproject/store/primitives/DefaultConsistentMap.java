@@ -16,6 +16,7 @@
 package org.onosproject.store.primitives;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
@@ -32,6 +33,7 @@ import java.util.function.Predicate;
 
 import org.onlab.util.Tools;
 import org.onosproject.store.service.AsyncConsistentMap;
+import org.onosproject.store.service.AsyncIterator;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.ConsistentMapException;
 import org.onosproject.store.service.ConsistentMapException.ConcurrentModification;
@@ -184,6 +186,11 @@ public class DefaultConsistentMap<K, V> extends Synchronous<AsyncConsistentMap<K
     }
 
     @Override
+    public Iterator<Entry<K, Versioned<V>>> iterator() {
+        return new DefaultIterator<>(complete(asyncMap.iterator()));
+    }
+
+    @Override
     public void addListener(MapEventListener<K, V> listener, Executor executor) {
         complete(asyncMap.addListener(listener, executor));
     }
@@ -206,6 +213,24 @@ public class DefaultConsistentMap<K, V> extends Synchronous<AsyncConsistentMap<K
     @Override
     public Collection<Consumer<Status>> statusChangeListeners() {
         return asyncMap.statusChangeListeners();
+    }
+
+    private class DefaultIterator<K, V> implements Iterator<Entry<K, Versioned<V>>> {
+        private final AsyncIterator<Entry<K, Versioned<V>>> iterator;
+
+        public DefaultIterator(AsyncIterator<Map.Entry<K, Versioned<V>>> iterator) {
+            this.iterator = iterator;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return complete(iterator.hasNext());
+        }
+
+        @Override
+        public Map.Entry<K, Versioned<V>> next() {
+            return complete(iterator.next());
+        }
     }
 
     @Override

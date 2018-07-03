@@ -20,14 +20,20 @@ import io.atomix.protocols.raft.proxy.RaftProxy;
 import io.atomix.protocols.raft.service.RaftService;
 import org.junit.Test;
 import org.onlab.util.Tools;
+import org.onosproject.store.service.AsyncIterator;
 import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapEventListener;
+import org.onosproject.store.service.Versioned;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertArrayEquals;
@@ -478,6 +484,25 @@ public class AtomixConsistentTreeMapTest extends AtomixTestBase<AtomixConsistent
 
         // TODO: delete() is not supported
         //map.delete().join();
+    }
+
+    @Test
+    public void testIterator() throws Exception {
+        AtomixConsistentTreeMap map = newPrimitive("testIterator");
+        for (int i = 0; i < 100; i++) {
+            for (int j = 0; j < 100; j++) {
+                map.put(String.valueOf(i), String.valueOf(j).getBytes()).join();
+            }
+        }
+
+        List<Map.Entry<String, Versioned<byte[]>>> entries = new ArrayList<>();
+        AsyncIterator<Map.Entry<String, Versioned<byte[]>>> iterator = map.iterator().get(5, TimeUnit.SECONDS);
+        while (iterator.hasNext().get(5, TimeUnit.SECONDS)) {
+            map.put("foo", UUID.randomUUID().toString().getBytes()).join();
+            entries.add(iterator.next().get(5, TimeUnit.SECONDS));
+        }
+        assertEquals(100, entries.size());
+        assertEquals(101, map.asConsistentMap().stream().count());
     }
 
     private AtomixConsistentTreeMap createResource(String mapName) {

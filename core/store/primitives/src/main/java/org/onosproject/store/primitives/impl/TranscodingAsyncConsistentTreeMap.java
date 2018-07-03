@@ -21,6 +21,7 @@ import org.onlab.util.Tools;
 import org.onosproject.store.primitives.MapUpdate;
 import org.onosproject.store.primitives.TransactionId;
 import org.onosproject.store.service.AsyncConsistentTreeMap;
+import org.onosproject.store.service.AsyncIterator;
 import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.TransactionLog;
@@ -340,6 +341,11 @@ public class TranscodingAsyncConsistentTreeMap<V1, V2>
     }
 
     @Override
+    public CompletableFuture<AsyncIterator<Map.Entry<String, Versioned<V1>>>> iterator() {
+        return backingMap.iterator().thenApply(TranscodingIterator::new);
+    }
+
+    @Override
     public CompletableFuture<Void> addListener(
             MapEventListener<String, V1> listener,
             Executor executor) {
@@ -385,6 +391,25 @@ public class TranscodingAsyncConsistentTreeMap<V1, V2>
     @Override
     public CompletableFuture<Void> rollback(TransactionId transactionId) {
         throw new UnsupportedOperationException("This operation is not yet supported.");
+    }
+
+    private class TranscodingIterator implements AsyncIterator<Map.Entry<String, Versioned<V1>>> {
+        private final AsyncIterator<Map.Entry<String, Versioned<V2>>> iterator;
+
+        public TranscodingIterator(AsyncIterator<Map.Entry<String, Versioned<V2>>> iterator) {
+            this.iterator = iterator;
+        }
+
+        @Override
+        public CompletableFuture<Boolean> hasNext() {
+            return iterator.hasNext();
+        }
+
+        @Override
+        public CompletableFuture<Map.Entry<String, Versioned<V1>>> next() {
+            return iterator.next().thenApply(entry ->
+                Maps.immutableEntry(entry.getKey(), entry.getValue().map(valueDecoder)));
+        }
     }
 
     private class InternalBackingMapEventListener

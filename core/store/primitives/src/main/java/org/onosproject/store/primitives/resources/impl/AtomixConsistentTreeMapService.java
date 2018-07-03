@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 import com.google.common.collect.Maps;
 import io.atomix.protocols.raft.service.Commit;
@@ -75,17 +76,17 @@ public class AtomixConsistentTreeMapService extends AtomixConsistentMapService {
             .register(MapEntryValue.class)
             .register(MapEntryValue.Type.class)
             .register(new HashMap().keySet().getClass())
-            .register(TreeMap.class)
+            .register(ConcurrentSkipListMap.class)
             .build());
 
     @Override
-    protected TreeMap<String, MapEntryValue> createMap() {
-        return Maps.newTreeMap();
+    protected NavigableMap<String, MapEntryValue> createMap() {
+        return new ConcurrentSkipListMap<>();
     }
 
     @Override
-    protected TreeMap<String, MapEntryValue> entries() {
-        return (TreeMap<String, MapEntryValue>) super.entries();
+    protected NavigableMap<String, MapEntryValue> entries() {
+        return (NavigableMap<String, MapEntryValue>) super.entries();
     }
 
     @Override

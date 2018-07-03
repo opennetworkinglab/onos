@@ -30,6 +30,7 @@ import com.google.common.base.MoreObjects;
 import org.onosproject.store.primitives.MapUpdate;
 import org.onosproject.store.primitives.TransactionId;
 import org.onosproject.store.service.AsyncConsistentMap;
+import org.onosproject.store.service.AsyncIterator;
 import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.TransactionLog;
 import org.onosproject.store.service.Version;
@@ -147,6 +148,11 @@ public class DelegatingAsyncConsistentMap<K, V>
     @Override
     public CompletableFuture<Boolean> replace(K key, long oldVersion, V newValue) {
         return delegateMap.replace(key, oldVersion, newValue);
+    }
+
+    @Override
+    public CompletableFuture<AsyncIterator<Entry<K, Versioned<V>>>> iterator() {
+        return delegateMap.iterator();
     }
 
     @Override

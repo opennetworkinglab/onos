@@ -15,6 +15,11 @@
  */
 package org.onosproject.store.primitives.resources.impl;
 
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Map;
+
+import com.google.common.collect.Maps;
 import io.atomix.protocols.raft.operation.OperationId;
 import io.atomix.protocols.raft.operation.OperationType;
 import io.atomix.utils.ArraySizeHashPrinter;
@@ -58,7 +63,10 @@ public enum AtomixConsistentMapOperations implements OperationId {
     PREPARE(OperationType.COMMAND),
     PREPARE_AND_COMMIT(OperationType.COMMAND),
     COMMIT(OperationType.COMMAND),
-    ROLLBACK(OperationType.COMMAND);
+    ROLLBACK(OperationType.COMMAND),
+    OPEN_ITERATOR(OperationType.COMMAND),
+    NEXT(OperationType.QUERY),
+    CLOSE_ITERATOR(OperationType.COMMAND);
 
     private final OperationType type;
 
@@ -107,6 +115,9 @@ public enum AtomixConsistentMapOperations implements OperationId {
             .register(MapEntryUpdateResult.Status.class)
             .register(Versioned.class)
             .register(byte[].class)
+            .register(Maps.immutableEntry("", "").getClass())
+            .register(IteratorBatch.class)
+            .register(IteratorPosition.class)
             .build("AtomixConsistentMapOperations");
 
     /**
@@ -559,6 +570,79 @@ public enum AtomixConsistentMapOperations implements OperationId {
                     .add("key", key)
                     .add("defaultValue", ArraySizeHashPrinter.of(defaultValue))
                     .toString();
+        }
+    }
+
+    /**
+     * Iterator position.
+     */
+    public static class IteratorPosition {
+        private long iteratorId;
+        private int position;
+
+        private IteratorPosition() {
+        }
+
+        public IteratorPosition(long iteratorId, int position) {
+            this.iteratorId = iteratorId;
+            this.position = position;
+        }
+
+        public long iteratorId() {
+            return iteratorId;
+        }
+
+        public int position() {
+            return position;
+        }
+    }
+
+    /**
+     * Iterator batch.
+     */
+    public static class IteratorBatch implements Iterator<Map.Entry<String, Versioned<byte[]>>> {
+        private int position;
+        private Collection<Map.Entry<String, Versioned<byte[]>>> entries;
+        private transient volatile Iterator<Map.Entry<String, Versioned<byte[]>>> iterator;
+
+        private IteratorBatch() {
+        }
+
+        public IteratorBatch(int position, Collection<Map.Entry<String, Versioned<byte[]>>> entries) {
+            this.position = position;
+            this.entries = entries;
+        }
+
+        public int position() {
+            return position;
+        }
+
+        public Collection<Map.Entry<String, Versioned<byte[]>>> entries() {
+            return entries;
+        }
+
+        private Iterator<Map.Entry<String, Versioned<byte[]>>> iterator() {
+            Iterator<Map.Entry<String, Versioned<byte[]>>> iterator = this.iterator;
+            if (iterator == null) {
+                synchronized (entries) {
+                    iterator = this.iterator;
+                    if (iterator == null) {
+                        iterator = entries.iterator();
+                        this.iterator = iterator;
+                    }
+                }
+            }
+            return iterator;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return iterator().hasNext();
+        }
+
+        @Override
+        public Map.Entry<String, Versioned<byte[]>> next() {
+            return iterator().next();
         }
     }
 }

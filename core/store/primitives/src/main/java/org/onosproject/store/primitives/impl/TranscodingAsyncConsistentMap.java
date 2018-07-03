@@ -21,6 +21,7 @@ import org.onlab.util.Tools;
 import org.onosproject.store.primitives.MapUpdate;
 import org.onosproject.store.primitives.TransactionId;
 import org.onosproject.store.service.AsyncConsistentMap;
+import org.onosproject.store.service.AsyncIterator;
 import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.TransactionLog;
@@ -248,6 +249,11 @@ public class TranscodingAsyncConsistentMap<K1, V1, K2, V2> implements AsyncConsi
     }
 
     @Override
+    public CompletableFuture<AsyncIterator<Entry<K1, Versioned<V1>>>> iterator() {
+        return backingMap.iterator().thenApply(TranscodingIterator::new);
+    }
+
+    @Override
     public CompletableFuture<Void> addListener(MapEventListener<K1, V1> listener, Executor executor) {
         synchronized (listeners) {
             InternalBackingMapEventListener backingMapListener =
@@ -326,6 +332,25 @@ public class TranscodingAsyncConsistentMap<K1, V1, K2, V2> implements AsyncConsi
     @Override
     public Collection<Consumer<Status>> statusChangeListeners() {
         return backingMap.statusChangeListeners();
+    }
+
+    private class TranscodingIterator implements AsyncIterator<Entry<K1, Versioned<V1>>> {
+        private final AsyncIterator<Map.Entry<K2, Versioned<V2>>> iterator;
+
+        public TranscodingIterator(AsyncIterator<Map.Entry<K2, Versioned<V2>>> iterator) {
+            this.iterator = iterator;
+        }
+
+        @Override
+        public CompletableFuture<Boolean> hasNext() {
+            return iterator.hasNext();
+        }
+
+        @Override
+        public CompletableFuture<Map.Entry<K1, Versioned<V1>>> next() {
+            return iterator.next().thenApply(entry ->
+                Maps.immutableEntry(keyDecoder.apply(entry.getKey()), entry.getValue().map(valueDecoder)));
+        }
     }
 
     private class InternalBackingMapEventListener implements MapEventListener<K2, V2> {

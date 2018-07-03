@@ -16,15 +16,19 @@
 package org.onosproject.store.primitives.resources.impl;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.ConcurrentModificationException;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 import io.atomix.protocols.raft.proxy.RaftProxy;
@@ -50,6 +54,7 @@ import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperat
 import org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.TransactionRollback;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.AsyncConsistentMap;
+import org.onosproject.store.service.AsyncIterator;
 import org.onosproject.store.service.ConsistentMapException;
 import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapEventListener;
@@ -62,6 +67,7 @@ import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMa
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.ADD_LISTENER;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.BEGIN;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.CLEAR;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.CLOSE_ITERATOR;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.COMMIT;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.CONTAINS_KEY;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.CONTAINS_VALUE;
@@ -69,7 +75,11 @@ import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMa
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.GET;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.GET_OR_DEFAULT;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.IS_EMPTY;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.IteratorBatch;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.IteratorPosition;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.KEY_SET;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.NEXT;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.OPEN_ITERATOR;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.PREPARE;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.PREPARE_AND_COMMIT;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.PUT;
@@ -91,11 +101,11 @@ import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMa
  */
 public class AtomixConsistentMap extends AbstractRaftPrimitive implements AsyncConsistentMap<String, byte[]> {
     private static final Serializer SERIALIZER = Serializer.using(KryoNamespace.newBuilder()
-            .register(KryoNamespaces.BASIC)
-            .register(AtomixConsistentMapOperations.NAMESPACE)
-            .register(AtomixConsistentMapEvents.NAMESPACE)
-            .nextId(KryoNamespaces.BEGIN_USER_CUSTOM_ID + 100)
-            .build());
+        .register(KryoNamespaces.BASIC)
+        .register(AtomixConsistentMapOperations.NAMESPACE)
+        .register(AtomixConsistentMapEvents.NAMESPACE)
+        .nextId(KryoNamespaces.BEGIN_USER_CUSTOM_ID + 100)
+        .build());
 
     private final Map<MapEventListener<String, byte[]>, Executor> mapEventListeners = new ConcurrentHashMap<>();
 
@@ -115,7 +125,7 @@ public class AtomixConsistentMap extends AbstractRaftPrimitive implements AsyncC
 
     private void handleEvent(List<MapEvent<String, byte[]>> events) {
         events.forEach(event ->
-                mapEventListeners.forEach((listener, executor) -> executor.execute(() -> listener.event(event))));
+            mapEventListeners.forEach((listener, executor) -> executor.execute(() -> listener.event(event))));
     }
 
     @Override
@@ -146,10 +156,10 @@ public class AtomixConsistentMap extends AbstractRaftPrimitive implements AsyncC
     @Override
     public CompletableFuture<Versioned<byte[]>> getOrDefault(String key, byte[] defaultValue) {
         return proxy.invoke(
-                GET_OR_DEFAULT,
-                serializer()::encode,
-                new GetOrDefault(key, defaultValue),
-                serializer()::decode);
+            GET_OR_DEFAULT,
+            serializer()::encode,
+            new GetOrDefault(key, defaultValue),
+            serializer()::decode);
     }
 
     @Override
@@ -171,122 +181,122 @@ public class AtomixConsistentMap extends AbstractRaftPrimitive implements AsyncC
     @SuppressWarnings("unchecked")
     public CompletableFuture<Versioned<byte[]>> put(String key, byte[] value) {
         return proxy.<Put, MapEntryUpdateResult<String, byte[]>>invoke(
-                PUT,
-                serializer()::encode,
-                new Put(key, value),
-                serializer()::decode)
-                .whenComplete((r, e) -> throwIfLocked(r))
-                .thenApply(v -> v.result());
+            PUT,
+            serializer()::encode,
+            new Put(key, value),
+            serializer()::decode)
+            .whenComplete((r, e) -> throwIfLocked(r))
+            .thenApply(v -> v.result());
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public CompletableFuture<Versioned<byte[]>> putAndGet(String key, byte[] value) {
         return proxy.<Put, MapEntryUpdateResult<String, byte[]>>invoke(
-                PUT_AND_GET,
-                serializer()::encode,
-                new Put(key, value),
-                serializer()::decode)
-                .whenComplete((r, e) -> throwIfLocked(r))
-                .thenApply(v -> v.result());
+            PUT_AND_GET,
+            serializer()::encode,
+            new Put(key, value),
+            serializer()::decode)
+            .whenComplete((r, e) -> throwIfLocked(r))
+            .thenApply(v -> v.result());
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public CompletableFuture<Versioned<byte[]>> putIfAbsent(String key, byte[] value) {
         return proxy.<Put, MapEntryUpdateResult<String, byte[]>>invoke(
-                PUT_IF_ABSENT,
-                serializer()::encode,
-                new Put(key, value),
-                serializer()::decode)
-                .whenComplete((r, e) -> throwIfLocked(r))
-                .thenApply(v -> v.result());
+            PUT_IF_ABSENT,
+            serializer()::encode,
+            new Put(key, value),
+            serializer()::decode)
+            .whenComplete((r, e) -> throwIfLocked(r))
+            .thenApply(v -> v.result());
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public CompletableFuture<Versioned<byte[]>> remove(String key) {
         return proxy.<Remove, MapEntryUpdateResult<String, byte[]>>invoke(
-                REMOVE,
-                serializer()::encode,
-                new Remove(key),
-                serializer()::decode)
-                .whenComplete((r, e) -> throwIfLocked(r))
-                .thenApply(v -> v.result());
+            REMOVE,
+            serializer()::encode,
+            new Remove(key),
+            serializer()::decode)
+            .whenComplete((r, e) -> throwIfLocked(r))
+            .thenApply(v -> v.result());
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public CompletableFuture<Boolean> remove(String key, byte[] value) {
         return proxy.<RemoveValue, MapEntryUpdateResult<String, byte[]>>invoke(
-                REMOVE_VALUE,
-                serializer()::encode,
-                new RemoveValue(key, value),
-                serializer()::decode)
-                .whenComplete((r, e) -> throwIfLocked(r))
-                .thenApply(v -> v.updated());
+            REMOVE_VALUE,
+            serializer()::encode,
+            new RemoveValue(key, value),
+            serializer()::decode)
+            .whenComplete((r, e) -> throwIfLocked(r))
+            .thenApply(v -> v.updated());
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public CompletableFuture<Boolean> remove(String key, long version) {
         return proxy.<RemoveVersion, MapEntryUpdateResult<String, byte[]>>invoke(
-                REMOVE_VERSION,
-                serializer()::encode,
-                new RemoveVersion(key, version),
-                serializer()::decode)
-                .whenComplete((r, e) -> throwIfLocked(r))
-                .thenApply(v -> v.updated());
+            REMOVE_VERSION,
+            serializer()::encode,
+            new RemoveVersion(key, version),
+            serializer()::decode)
+            .whenComplete((r, e) -> throwIfLocked(r))
+            .thenApply(v -> v.updated());
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public CompletableFuture<Versioned<byte[]>> replace(String key, byte[] value) {
         return proxy.<Replace, MapEntryUpdateResult<String, byte[]>>invoke(
-                REPLACE,
-                serializer()::encode,
-                new Replace(key, value),
-                serializer()::decode)
-                .whenComplete((r, e) -> throwIfLocked(r))
-                .thenApply(v -> v.result());
+            REPLACE,
+            serializer()::encode,
+            new Replace(key, value),
+            serializer()::decode)
+            .whenComplete((r, e) -> throwIfLocked(r))
+            .thenApply(v -> v.result());
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public CompletableFuture<Boolean> replace(String key, byte[] oldValue, byte[] newValue) {
         return proxy.<ReplaceValue, MapEntryUpdateResult<String, byte[]>>invoke(
-                REPLACE_VALUE,
-                serializer()::encode,
-                new ReplaceValue(key, oldValue, newValue),
-                serializer()::decode)
-                .whenComplete((r, e) -> throwIfLocked(r))
-                .thenApply(v -> v.updated());
+            REPLACE_VALUE,
+            serializer()::encode,
+            new ReplaceValue(key, oldValue, newValue),
+            serializer()::decode)
+            .whenComplete((r, e) -> throwIfLocked(r))
+            .thenApply(v -> v.updated());
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public CompletableFuture<Boolean> replace(String key, long oldVersion, byte[] newValue) {
         return proxy.<ReplaceVersion, MapEntryUpdateResult<String, byte[]>>invoke(
-                REPLACE_VERSION,
-                serializer()::encode,
-                new ReplaceVersion(key, oldVersion, newValue),
-                serializer()::decode)
-                .whenComplete((r, e) -> throwIfLocked(r))
-                .thenApply(v -> v.updated());
+            REPLACE_VERSION,
+            serializer()::encode,
+            new ReplaceVersion(key, oldVersion, newValue),
+            serializer()::decode)
+            .whenComplete((r, e) -> throwIfLocked(r))
+            .thenApply(v -> v.updated());
     }
 
     @Override
     public CompletableFuture<Void> clear() {
         return proxy.<MapEntryUpdateResult.Status>invoke(CLEAR, serializer()::decode)
-                .whenComplete((r, e) -> throwIfLocked(r))
-                .thenApply(v -> null);
+            .whenComplete((r, e) -> throwIfLocked(r))
+            .thenApply(v -> null);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public CompletableFuture<Versioned<byte[]>> computeIf(String key,
-            Predicate<? super byte[]> condition,
-            BiFunction<? super String, ? super byte[], ? extends byte[]> remappingFunction) {
+        Predicate<? super byte[]> condition,
+        BiFunction<? super String, ? super byte[], ? extends byte[]> remappingFunction) {
         return get(key).thenCompose(r1 -> {
             byte[] existingValue = r1 == null ? null : r1.value();
             // if the condition evaluates to false, return existing value.
@@ -307,40 +317,40 @@ public class AtomixConsistentMap extends AbstractRaftPrimitive implements AsyncC
 
             if (r1 == null) {
                 return proxy.<Put, MapEntryUpdateResult<String, byte[]>>invoke(
-                        PUT_IF_ABSENT,
-                        serializer()::encode,
-                        new Put(key, computedValue),
-                        serializer()::decode)
-                        .whenComplete((r, e) -> throwIfLocked(r))
-                        .thenCompose(r -> checkLocked(r))
-                        .thenApply(result -> new Versioned<>(computedValue, result.version()));
+                    PUT_IF_ABSENT,
+                    serializer()::encode,
+                    new Put(key, computedValue),
+                    serializer()::decode)
+                    .whenComplete((r, e) -> throwIfLocked(r))
+                    .thenCompose(r -> checkLocked(r))
+                    .thenApply(result -> new Versioned<>(computedValue, result.version()));
             } else if (computedValue == null) {
                 return proxy.<RemoveVersion, MapEntryUpdateResult<String, byte[]>>invoke(
-                        REMOVE_VERSION,
-                        serializer()::encode,
-                        new RemoveVersion(key, r1.version()),
-                        serializer()::decode)
-                        .whenComplete((r, e) -> throwIfLocked(r))
-                        .thenCompose(r -> checkLocked(r))
-                        .thenApply(v -> null);
+                    REMOVE_VERSION,
+                    serializer()::encode,
+                    new RemoveVersion(key, r1.version()),
+                    serializer()::decode)
+                    .whenComplete((r, e) -> throwIfLocked(r))
+                    .thenCompose(r -> checkLocked(r))
+                    .thenApply(v -> null);
             } else {
                 return proxy.<ReplaceVersion, MapEntryUpdateResult<String, byte[]>>invoke(
-                        REPLACE_VERSION,
-                        serializer()::encode,
-                        new ReplaceVersion(key, r1.version(), computedValue),
-                        serializer()::decode)
-                        .whenComplete((r, e) -> throwIfLocked(r))
-                        .thenCompose(r -> checkLocked(r))
-                        .thenApply(result -> result.status() == MapEntryUpdateResult.Status.OK
-                                ? new Versioned(computedValue, result.version()) : result.result());
+                    REPLACE_VERSION,
+                    serializer()::encode,
+                    new ReplaceVersion(key, r1.version(), computedValue),
+                    serializer()::decode)
+                    .whenComplete((r, e) -> throwIfLocked(r))
+                    .thenCompose(r -> checkLocked(r))
+                    .thenApply(result -> result.status() == MapEntryUpdateResult.Status.OK
+                        ? new Versioned(computedValue, result.version()) : result.result());
             }
         });
     }
 
     private CompletableFuture<MapEntryUpdateResult<String, byte[]>> checkLocked(
-            MapEntryUpdateResult<String, byte[]> result) {
+        MapEntryUpdateResult<String, byte[]> result) {
         if (result.status() == MapEntryUpdateResult.Status.PRECONDITION_FAILED ||
-                result.status() == MapEntryUpdateResult.Status.WRITE_LOCK) {
+            result.status() == MapEntryUpdateResult.Status.WRITE_LOCK) {
             return Tools.exceptionalFuture(new ConsistentMapException.ConcurrentModification());
         }
         return CompletableFuture.completedFuture(result);
@@ -348,7 +358,7 @@ public class AtomixConsistentMap extends AbstractRaftPrimitive implements AsyncC
 
     @Override
     public synchronized CompletableFuture<Void> addListener(MapEventListener<String, byte[]> listener,
-            Executor executor) {
+        Executor executor) {
         if (mapEventListeners.isEmpty()) {
             return proxy.invoke(ADD_LISTENER).thenRun(() -> mapEventListeners.put(listener, executor));
         } else {
@@ -380,54 +390,141 @@ public class AtomixConsistentMap extends AbstractRaftPrimitive implements AsyncC
     @Override
     public CompletableFuture<Version> begin(TransactionId transactionId) {
         return proxy.<TransactionBegin, Long>invoke(
-                BEGIN,
-                serializer()::encode,
-                new TransactionBegin(transactionId),
-                serializer()::decode)
-                .thenApply(Version::new);
+            BEGIN,
+            serializer()::encode,
+            new TransactionBegin(transactionId),
+            serializer()::decode)
+            .thenApply(Version::new);
     }
 
     @Override
     public CompletableFuture<Boolean> prepare(TransactionLog<MapUpdate<String, byte[]>> transactionLog) {
         return proxy.<TransactionPrepare, PrepareResult>invoke(
-                PREPARE,
-                serializer()::encode,
-                new TransactionPrepare(transactionLog),
-                serializer()::decode)
-                .thenApply(v -> v == PrepareResult.OK);
+            PREPARE,
+            serializer()::encode,
+            new TransactionPrepare(transactionLog),
+            serializer()::decode)
+            .thenApply(v -> v == PrepareResult.OK);
     }
 
     @Override
     public CompletableFuture<Boolean> prepareAndCommit(TransactionLog<MapUpdate<String, byte[]>> transactionLog) {
         return proxy.<TransactionPrepareAndCommit, PrepareResult>invoke(
-                PREPARE_AND_COMMIT,
-                serializer()::encode,
-                new TransactionPrepareAndCommit(transactionLog),
-                serializer()::decode)
-                .thenApply(v -> v == PrepareResult.OK);
+            PREPARE_AND_COMMIT,
+            serializer()::encode,
+            new TransactionPrepareAndCommit(transactionLog),
+            serializer()::decode)
+            .thenApply(v -> v == PrepareResult.OK);
     }
 
     @Override
     public CompletableFuture<Void> commit(TransactionId transactionId) {
         return proxy.<TransactionCommit, CommitResult>invoke(
-                COMMIT,
-                serializer()::encode,
-                new TransactionCommit(transactionId),
-                serializer()::decode)
-                .thenApply(v -> null);
+            COMMIT,
+            serializer()::encode,
+            new TransactionCommit(transactionId),
+            serializer()::decode)
+            .thenApply(v -> null);
     }
 
     @Override
     public CompletableFuture<Void> rollback(TransactionId transactionId) {
         return proxy.invoke(
-                ROLLBACK,
-                serializer()::encode,
-                new TransactionRollback(transactionId),
-                serializer()::decode)
-                .thenApply(v -> null);
+            ROLLBACK,
+            serializer()::encode,
+            new TransactionRollback(transactionId),
+            serializer()::decode)
+            .thenApply(v -> null);
     }
 
     private boolean isListening() {
         return !mapEventListeners.isEmpty();
+    }
+
+    @Override
+    public CompletableFuture<AsyncIterator<Entry<String, Versioned<byte[]>>>> iterator() {
+        return proxy.<Long>invoke(OPEN_ITERATOR, SERIALIZER::decode)
+            .thenApply(ConsistentMultimapIterator::new);
+    }
+
+    /**
+     * Consistent multimap iterator.
+     */
+    private class ConsistentMultimapIterator implements AsyncIterator<Map.Entry<String, Versioned<byte[]>>> {
+        private final long id;
+        private volatile CompletableFuture<IteratorBatch> batch;
+        private volatile CompletableFuture<Void> closeFuture;
+
+        ConsistentMultimapIterator(long id) {
+            this.id = id;
+            this.batch = CompletableFuture.completedFuture(
+                new IteratorBatch(0, Collections.emptyList()));
+        }
+
+        /**
+         * Returns the current batch iterator or lazily fetches the next batch from the cluster.
+         *
+         * @return the next batch iterator
+         */
+        private CompletableFuture<Iterator<Entry<String, Versioned<byte[]>>>> batch() {
+            return batch.thenCompose(iterator -> {
+                if (iterator != null && !iterator.hasNext()) {
+                    batch = fetch(iterator.position());
+                    return batch.thenApply(Function.identity());
+                }
+                return CompletableFuture.completedFuture(iterator);
+            });
+        }
+
+        /**
+         * Fetches the next batch of entries from the cluster.
+         *
+         * @param position the position from which to fetch the next batch
+         * @return the next batch of entries from the cluster
+         */
+        private CompletableFuture<IteratorBatch> fetch(int position) {
+            return proxy.<IteratorPosition, IteratorBatch>invoke(
+                NEXT,
+                SERIALIZER::encode,
+                new IteratorPosition(id, position),
+                SERIALIZER::decode)
+                .thenCompose(batch -> {
+                    if (batch == null) {
+                        return close().thenApply(v -> null);
+                    }
+                    return CompletableFuture.completedFuture(batch);
+                });
+        }
+
+        /**
+         * Closes the iterator.
+         *
+         * @return future to be completed once the iterator has been closed
+         */
+        private CompletableFuture<Void> close() {
+            if (closeFuture == null) {
+                synchronized (this) {
+                    if (closeFuture == null) {
+                        closeFuture = proxy.invoke(CLOSE_ITERATOR, SERIALIZER::encode, id);
+                    }
+                }
+            }
+            return closeFuture;
+        }
+
+        @Override
+        public CompletableFuture<Boolean> hasNext() {
+            return batch().thenApply(iterator -> iterator != null && iterator.hasNext());
+        }
+
+        @Override
+        public CompletableFuture<Map.Entry<String, Versioned<byte[]>>> next() {
+            return batch().thenCompose(iterator -> {
+                if (iterator == null) {
+                    return Tools.exceptionalFuture(new NoSuchElementException());
+                }
+                return CompletableFuture.completedFuture(iterator.next());
+            });
+        }
     }
 }

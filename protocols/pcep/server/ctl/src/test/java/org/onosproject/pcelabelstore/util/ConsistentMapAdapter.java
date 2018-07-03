@@ -16,6 +16,7 @@
 package org.onosproject.pcelabelstore.util;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executor;
@@ -157,6 +158,11 @@ public class ConsistentMapAdapter<K, V> implements ConsistentMap<K, V> {
     @Override
     public boolean replace(K key, long oldVersion, V newValue) {
         return false;
+    }
+
+    @Override
+    public Iterator<Map.Entry<K, Versioned<V>>> iterator() {
+        return null;
     }
 
     @Override

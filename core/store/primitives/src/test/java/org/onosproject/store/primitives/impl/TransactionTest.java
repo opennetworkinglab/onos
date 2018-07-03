@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -377,6 +378,11 @@ public class TransactionTest {
                 return true;
             }
             return false;
+        }
+
+        @Override
+        public Iterator<Map.Entry<K, Versioned<V>>> iterator() {
+            return map.entrySet().iterator();
         }
 
         @Override
