@@ -15,13 +15,47 @@
  */
 package org.onosproject.openstackvtap.api;
 
+import org.onosproject.event.ListenerService;
+import org.onosproject.net.DeviceId;
+
+import java.util.Set;
+
 /**
- * Openstack vtap interface.
+ * Service for interacting with the inventory of vTap.
  */
-public interface OpenstackVtapService {
+public interface OpenstackVtapService
+        extends ListenerService<OpenstackVtapEvent, OpenstackVtapListener> {
 
     /**
-     * A dummy method.
+     * Returns the number of vTaps in the store.
+     *
+     * @param type               vTap type
+     * @return vTap count
      */
-    void dummy();
+    int getVtapCount(OpenstackVtap.Type type);
+
+    /**
+     * Returns a collection of selected vTaps in the store.
+     *
+     * @param type               vTap type
+     * @return iterable collection of selected vTaps
+     */
+    Set<OpenstackVtap> getVtaps(OpenstackVtap.Type type);
+
+    /**
+     * Returns the vTap with the specified identifier.
+     *
+     * @param vTapId             vTap identifier
+     * @return vTap or null if not exist
+     */
+    OpenstackVtap getVtap(OpenstackVtapId vTapId);
+
+    /**
+     * Returns a collection of vTaps which are associated with the given device.
+     *
+     * @param type               vTap type
+     * @param deviceId           device identifier
+     * @return a set of vTaps
+     */
+    Set<OpenstackVtap> getVtapsByDeviceId(OpenstackVtap.Type type, DeviceId deviceId);
 }

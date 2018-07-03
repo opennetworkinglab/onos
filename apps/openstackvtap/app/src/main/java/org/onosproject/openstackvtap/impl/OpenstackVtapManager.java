@@ -15,7 +15,13 @@
  */
 package org.onosproject.openstackvtap.impl;
 
+import org.onosproject.net.DeviceId;
+import org.onosproject.openstackvtap.api.OpenstackVtap;
+import org.onosproject.openstackvtap.api.OpenstackVtapId;
+import org.onosproject.openstackvtap.api.OpenstackVtapListener;
 import org.onosproject.openstackvtap.api.OpenstackVtapService;
+
+import java.util.Set;
 
 /**
  * Implementation of openstack vtap.
@@ -23,6 +29,30 @@ import org.onosproject.openstackvtap.api.OpenstackVtapService;
 public class OpenstackVtapManager implements OpenstackVtapService {
 
     @Override
-    public void dummy() {
+    public int getVtapCount(OpenstackVtap.Type type) {
+        return 0;
+    }
+
+    @Override
+    public Set<OpenstackVtap> getVtaps(OpenstackVtap.Type type) {
+        return null;
+    }
+
+    @Override
+    public OpenstackVtap getVtap(OpenstackVtapId vTapId) {
+        return null;
+    }
+
+    @Override
+    public Set<OpenstackVtap> getVtapsByDeviceId(OpenstackVtap.Type type, DeviceId deviceId) {
+        return null;
+    }
+
+    @Override
+    public void addListener(OpenstackVtapListener listener) {
+    }
+
+    @Override
+    public void removeListener(OpenstackVtapListener listener) {
     }
 }
