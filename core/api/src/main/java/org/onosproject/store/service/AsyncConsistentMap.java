@@ -17,6 +17,7 @@
 package org.onosproject.store.service;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
@@ -54,7 +55,8 @@ import org.onosproject.store.primitives.MapUpdate;
  * the returned future will be {@link CompletableFuture#complete completed} when the
  * operation finishes.
  */
-public interface AsyncConsistentMap<K, V> extends DistributedPrimitive, Transactional<MapUpdate<K, V>> {
+public interface AsyncConsistentMap<K, V>
+    extends DistributedPrimitive, Transactional<MapUpdate<K, V>>, AsyncIterable<Map.Entry<K, Versioned<V>>> {
 
     @Override
     default DistributedPrimitive.Type primitiveType() {

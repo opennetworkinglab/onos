@@ -134,6 +134,11 @@ public class AsyncConsistentMapAdapter<K, V> implements AsyncConsistentMap<K, V>
     }
 
     @Override
+    public CompletableFuture<AsyncIterator<Map.Entry<K, Versioned<V>>>> iterator() {
+        return null;
+    }
+
+    @Override
     public CompletableFuture<Void> addListener(MapEventListener<K, V> listener, Executor executor) {
         return null;
     }

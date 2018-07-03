@@ -24,6 +24,8 @@ import java.util.concurrent.Executor;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import com.google.common.util.concurrent.MoreExecutors;
 
@@ -34,7 +36,7 @@ import com.google.common.util.concurrent.MoreExecutors;
  * @param <K> type of key
  * @param <V> type of value
  */
-public interface ConsistentMap<K, V> extends DistributedPrimitive {
+public interface ConsistentMap<K, V> extends DistributedPrimitive, Iterable<Map.Entry<K, Versioned<V>>> {
 
     /**
      * Returns the number of entries in the map.
@@ -281,6 +283,17 @@ public interface ConsistentMap<K, V> extends DistributedPrimitive {
      * @return true if the value was replaced
      */
     boolean replace(K key, long oldVersion, V newValue);
+
+    /**
+     * Streams entries from the map.
+     * <p>
+     * This method is optimized for large maps.
+     *
+     * @return the map entry stream
+     */
+    default Stream<Entry<K, Versioned<V>>> stream() {
+        return StreamSupport.stream(spliterator(), false);
+    }
 
     /**
      * Registers the specified listener to be notified whenever the map is updated.

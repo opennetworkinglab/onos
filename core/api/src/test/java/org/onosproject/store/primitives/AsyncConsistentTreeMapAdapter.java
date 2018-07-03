@@ -19,6 +19,7 @@ package org.onosproject.store.primitives;
 import com.google.common.collect.Maps;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.store.service.AsyncConsistentTreeMap;
+import org.onosproject.store.service.AsyncIterator;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.ConsistentTreeMap;
 import org.onosproject.store.service.MapEventListener;
@@ -365,6 +366,11 @@ public class AsyncConsistentTreeMapAdapter<V> implements AsyncConsistentTreeMap<
 
     @Override
     public CompletableFuture<Void> rollback(TransactionId transactionId) {
+        return null;
+    }
+
+    @Override
+    public CompletableFuture<AsyncIterator<Map.Entry<String, Versioned<V>>>> iterator() {
         return null;
     }
 }

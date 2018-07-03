@@ -30,6 +30,7 @@ import java.util.function.Predicate;
 import org.onosproject.store.primitives.MapUpdate;
 import org.onosproject.store.primitives.TransactionId;
 import org.onosproject.store.service.AsyncConsistentTreeMap;
+import org.onosproject.store.service.AsyncIterator;
 import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.TransactionLog;
 import org.onosproject.store.service.Version;
@@ -236,6 +237,11 @@ public class DelegatingAsyncConsistentTreeMap<V>
     public CompletableFuture<Boolean> replace(String key, long oldVersion,
                                               V newValue) {
         return delegateMap.replace(key, oldVersion, newValue);
+    }
+
+    @Override
+    public CompletableFuture<AsyncIterator<Map.Entry<String, Versioned<V>>>> iterator() {
+        return delegateMap.iterator();
     }
 
     @Override

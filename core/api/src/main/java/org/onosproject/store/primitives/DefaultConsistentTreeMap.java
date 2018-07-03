@@ -18,6 +18,7 @@ package org.onosproject.store.primitives;
 
 import com.google.common.base.Throwables;
 import org.onosproject.store.service.AsyncConsistentTreeMap;
+import org.onosproject.store.service.AsyncIterator;
 import org.onosproject.store.service.ConsistentMapException;
 import org.onosproject.store.service.ConsistentTreeMap;
 import org.onosproject.store.service.MapEventListener;
@@ -25,6 +26,7 @@ import org.onosproject.store.service.Synchronous;
 import org.onosproject.store.service.Versioned;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.NavigableSet;
@@ -277,6 +279,11 @@ public class DefaultConsistentTreeMap<V>
     }
 
     @Override
+    public Iterator<Map.Entry<String, Versioned<V>>> iterator() {
+        return new DefaultIterator<>(complete(treeMap.iterator()));
+    }
+
+    @Override
     public void addListener(MapEventListener<String, V> listener,
                             Executor executor) {
         complete(treeMap.addListener(listener, executor));
@@ -285,6 +292,24 @@ public class DefaultConsistentTreeMap<V>
     @Override
     public void removeListener(MapEventListener<String, V> listener) {
         complete(treeMap.removeListener(listener));
+    }
+
+    private class DefaultIterator<K, V> implements Iterator<Map.Entry<K, Versioned<V>>> {
+        private final AsyncIterator<Map.Entry<K, Versioned<V>>> iterator;
+
+        public DefaultIterator(AsyncIterator<Map.Entry<K, Versioned<V>>> iterator) {
+            this.iterator = iterator;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return complete(iterator.hasNext());
+        }
+
+        @Override
+        public Map.Entry<K, Versioned<V>> next() {
+            return complete(iterator.next());
+        }
     }
 
     @Override

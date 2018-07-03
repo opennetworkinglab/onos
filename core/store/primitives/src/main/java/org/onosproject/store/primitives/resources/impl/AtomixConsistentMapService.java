@@ -15,6 +15,7 @@
  */
 package org.onosproject.store.primitives.resources.impl;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -66,6 +67,7 @@ import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMa
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.ADD_LISTENER;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.BEGIN;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.CLEAR;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.CLOSE_ITERATOR;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.COMMIT;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.CONTAINS_KEY;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.CONTAINS_VALUE;
@@ -73,7 +75,11 @@ import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMa
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.GET;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.GET_OR_DEFAULT;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.IS_EMPTY;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.IteratorBatch;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.IteratorPosition;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.KEY_SET;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.NEXT;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.OPEN_ITERATOR;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.PREPARE;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.PREPARE_AND_COMMIT;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMapOperations.PUT;
@@ -95,22 +101,25 @@ import static org.onosproject.store.primitives.resources.impl.AtomixConsistentMa
  */
 public class AtomixConsistentMapService extends AbstractRaftService {
 
+    private static final int MAX_ITERATOR_BATCH_SIZE = 1024 * 32;
+
     private static final Serializer SERIALIZER = Serializer.using(KryoNamespace.newBuilder()
-            .register(KryoNamespaces.BASIC)
-            .register(AtomixConsistentMapOperations.NAMESPACE)
-            .register(AtomixConsistentMapEvents.NAMESPACE)
-            .nextId(KryoNamespaces.BEGIN_USER_CUSTOM_ID + 100)
-            .register(TransactionScope.class)
-            .register(TransactionLog.class)
-            .register(TransactionId.class)
-            .register(MapEntryValue.class)
-            .register(MapEntryValue.Type.class)
-            .register(new HashMap().keySet().getClass())
-            .build());
+        .register(KryoNamespaces.BASIC)
+        .register(AtomixConsistentMapOperations.NAMESPACE)
+        .register(AtomixConsistentMapEvents.NAMESPACE)
+        .nextId(KryoNamespaces.BEGIN_USER_CUSTOM_ID + 100)
+        .register(TransactionScope.class)
+        .register(TransactionLog.class)
+        .register(TransactionId.class)
+        .register(MapEntryValue.class)
+        .register(MapEntryValue.Type.class)
+        .register(new HashMap().keySet().getClass())
+        .build());
 
     protected Map<Long, RaftSession> listeners = new LinkedHashMap<>();
     private Map<String, MapEntryValue> map;
     protected Set<String> preparedKeys = Sets.newHashSet();
+    private Map<Long, IteratorContext> iterators = Maps.newHashMap();
     protected Map<TransactionId, TransactionScope> activeTransactions = Maps.newHashMap();
     protected long currentVersion;
 
@@ -119,7 +128,7 @@ public class AtomixConsistentMapService extends AbstractRaftService {
     }
 
     protected Map<String, MapEntryValue> createMap() {
-        return Maps.newHashMap();
+        return Maps.newConcurrentMap();
     }
 
     protected Map<String, MapEntryValue> entries() {
@@ -137,6 +146,10 @@ public class AtomixConsistentMapService extends AbstractRaftService {
         writer.writeObject(entries(), serializer()::encode);
         writer.writeObject(activeTransactions, serializer()::encode);
         writer.writeLong(currentVersion);
+
+        Map<Long, Long> iterators = Maps.newHashMap();
+        this.iterators.forEach((id, context) -> iterators.put(id, context.sessionId));
+        writer.writeObject(iterators, serializer()::encode);
     }
 
     @Override
@@ -149,6 +162,11 @@ public class AtomixConsistentMapService extends AbstractRaftService {
         map = reader.readObject(serializer()::decode);
         activeTransactions = reader.readObject(serializer()::decode);
         currentVersion = reader.readLong();
+
+        Map<Long, Long> iterators = reader.readObject(serializer()::decode);
+        this.iterators = Maps.newHashMap();
+        iterators.forEach((id, session) ->
+            this.iterators.put(id, new IteratorContext(session, entries().entrySet().iterator())));
     }
 
     @Override
@@ -182,6 +200,9 @@ public class AtomixConsistentMapService extends AbstractRaftService {
         executor.register(PREPARE_AND_COMMIT, serializer()::decode, this::prepareAndCommit, serializer()::encode);
         executor.register(COMMIT, serializer()::decode, this::commit, serializer()::encode);
         executor.register(ROLLBACK, serializer()::decode, this::rollback, serializer()::encode);
+        executor.register(OPEN_ITERATOR, this::openIterator, serializer()::encode);
+        executor.register(NEXT, serializer()::decode, this::next, serializer()::encode);
+        executor.register(CLOSE_ITERATOR, serializer()::decode, this::closeIterator);
     }
 
     /**
@@ -204,8 +225,8 @@ public class AtomixConsistentMapService extends AbstractRaftService {
     protected boolean containsValue(Commit<? extends ContainsValue> commit) {
         Match<byte[]> valueMatch = Match.ifValue(commit.value().value());
         return entries().values().stream()
-                .filter(value -> value.type() != MapEntryValue.Type.TOMBSTONE)
-                .anyMatch(value -> valueMatch.matches(value.value()));
+            .filter(value -> value.type() != MapEntryValue.Type.TOMBSTONE)
+            .anyMatch(value -> valueMatch.matches(value.value()));
     }
 
     /**
@@ -242,8 +263,8 @@ public class AtomixConsistentMapService extends AbstractRaftService {
      */
     protected int size() {
         return (int) entries().values().stream()
-                .filter(value -> value.type() != MapEntryValue.Type.TOMBSTONE)
-                .count();
+            .filter(value -> value.type() != MapEntryValue.Type.TOMBSTONE)
+            .count();
     }
 
     /**
@@ -253,7 +274,7 @@ public class AtomixConsistentMapService extends AbstractRaftService {
      */
     protected boolean isEmpty() {
         return entries().values().stream()
-                .noneMatch(value -> value.type() != MapEntryValue.Type.TOMBSTONE);
+            .noneMatch(value -> value.type() != MapEntryValue.Type.TOMBSTONE);
     }
 
     /**
@@ -263,9 +284,9 @@ public class AtomixConsistentMapService extends AbstractRaftService {
      */
     protected Set<String> keySet() {
         return entries().entrySet().stream()
-                .filter(entry -> entry.getValue().type() != MapEntryValue.Type.TOMBSTONE)
-                .map(Map.Entry::getKey)
-                .collect(Collectors.toSet());
+            .filter(entry -> entry.getValue().type() != MapEntryValue.Type.TOMBSTONE)
+            .map(Map.Entry::getKey)
+            .collect(Collectors.toSet());
     }
 
     /**
@@ -275,9 +296,9 @@ public class AtomixConsistentMapService extends AbstractRaftService {
      */
     protected Collection<Versioned<byte[]>> values() {
         return entries().entrySet().stream()
-                .filter(entry -> entry.getValue().type() != MapEntryValue.Type.TOMBSTONE)
-                .map(entry -> toVersioned(entry.getValue()))
-                .collect(Collectors.toList());
+            .filter(entry -> entry.getValue().type() != MapEntryValue.Type.TOMBSTONE)
+            .map(entry -> toVersioned(entry.getValue()))
+            .collect(Collectors.toList());
     }
 
     /**
@@ -287,9 +308,9 @@ public class AtomixConsistentMapService extends AbstractRaftService {
      */
     protected Set<Map.Entry<String, Versioned<byte[]>>> entrySet() {
         return entries().entrySet().stream()
-                .filter(entry -> entry.getValue().type() != MapEntryValue.Type.TOMBSTONE)
-                .map(e -> Maps.immutableEntry(e.getKey(), toVersioned(e.getValue())))
-                .collect(Collectors.toSet());
+            .filter(entry -> entry.getValue().type() != MapEntryValue.Type.TOMBSTONE)
+            .map(e -> Maps.immutableEntry(e.getKey(), toVersioned(e.getValue())))
+            .collect(Collectors.toSet());
     }
 
     /**
@@ -301,7 +322,7 @@ public class AtomixConsistentMapService extends AbstractRaftService {
      */
     protected boolean valuesEqual(MapEntryValue oldValue, MapEntryValue newValue) {
         return (oldValue == null && newValue == null)
-                || (oldValue != null && newValue != null && valuesEqual(oldValue.value(), newValue.value()));
+            || (oldValue != null && newValue != null && valuesEqual(oldValue.value(), newValue.value()));
     }
 
     /**
@@ -313,7 +334,7 @@ public class AtomixConsistentMapService extends AbstractRaftService {
      */
     protected boolean valuesEqual(byte[] oldValue, byte[] newValue) {
         return (oldValue == null && newValue == null)
-                || (oldValue != null && newValue != null && Arrays.equals(oldValue, newValue));
+            || (oldValue != null && newValue != null && Arrays.equals(oldValue, newValue));
     }
 
     /**
@@ -343,13 +364,13 @@ public class AtomixConsistentMapService extends AbstractRaftService {
             // If the key has been locked by a transaction, return a WRITE_LOCK error.
             if (preparedKeys.contains(key)) {
                 return new MapEntryUpdateResult<>(
-                        MapEntryUpdateResult.Status.WRITE_LOCK,
-                        commit.index(),
-                        key,
-                        toVersioned(oldValue));
+                    MapEntryUpdateResult.Status.WRITE_LOCK,
+                    commit.index(),
+                    key,
+                    toVersioned(oldValue));
             }
             entries().put(commit.value().key(),
-                    new MapEntryValue(MapEntryValue.Type.VALUE, newValue.version(), newValue.value()));
+                new MapEntryValue(MapEntryValue.Type.VALUE, newValue.version(), newValue.value()));
             Versioned<byte[]> result = toVersioned(oldValue);
             publish(new MapEvent<>(MapEvent.Type.INSERT, "", key, toVersioned(newValue), result));
             return new MapEntryUpdateResult<>(MapEntryUpdateResult.Status.OK, commit.index(), key, result);
@@ -357,13 +378,13 @@ public class AtomixConsistentMapService extends AbstractRaftService {
             // If the key has been locked by a transaction, return a WRITE_LOCK error.
             if (preparedKeys.contains(key)) {
                 return new MapEntryUpdateResult<>(
-                        MapEntryUpdateResult.Status.WRITE_LOCK,
-                        commit.index(),
-                        key,
-                        toVersioned(oldValue));
+                    MapEntryUpdateResult.Status.WRITE_LOCK,
+                    commit.index(),
+                    key,
+                    toVersioned(oldValue));
             }
             entries().put(commit.value().key(),
-                    new MapEntryValue(MapEntryValue.Type.VALUE, newValue.version(), newValue.value()));
+                new MapEntryValue(MapEntryValue.Type.VALUE, newValue.version(), newValue.value()));
             Versioned<byte[]> result = toVersioned(oldValue);
             publish(new MapEvent<>(MapEvent.Type.UPDATE, "", key, toVersioned(newValue), result));
             return new MapEntryUpdateResult<>(MapEntryUpdateResult.Status.OK, commit.index(), key, result);
@@ -387,25 +408,25 @@ public class AtomixConsistentMapService extends AbstractRaftService {
             // If the key has been locked by a transaction, return a WRITE_LOCK error.
             if (preparedKeys.contains(key)) {
                 return new MapEntryUpdateResult<>(
-                        MapEntryUpdateResult.Status.WRITE_LOCK,
-                        commit.index(),
-                        key,
-                        toVersioned(oldValue));
+                    MapEntryUpdateResult.Status.WRITE_LOCK,
+                    commit.index(),
+                    key,
+                    toVersioned(oldValue));
             }
             MapEntryValue newValue = new MapEntryValue(
-                    MapEntryValue.Type.VALUE,
-                    commit.index(),
-                    commit.value().value());
+                MapEntryValue.Type.VALUE,
+                commit.index(),
+                commit.value().value());
             entries().put(commit.value().key(), newValue);
             Versioned<byte[]> result = toVersioned(newValue);
             publish(new MapEvent<>(MapEvent.Type.INSERT, "", key, result, null));
             return new MapEntryUpdateResult<>(MapEntryUpdateResult.Status.OK, commit.index(), key, null);
         }
         return new MapEntryUpdateResult<>(
-                MapEntryUpdateResult.Status.PRECONDITION_FAILED,
-                commit.index(),
-                key,
-                toVersioned(oldValue));
+            MapEntryUpdateResult.Status.PRECONDITION_FAILED,
+            commit.index(),
+            key,
+            toVersioned(oldValue));
     }
 
     /**
@@ -425,10 +446,10 @@ public class AtomixConsistentMapService extends AbstractRaftService {
             // If the key has been locked by a transaction, return a WRITE_LOCK error.
             if (preparedKeys.contains(key)) {
                 return new MapEntryUpdateResult<>(
-                        MapEntryUpdateResult.Status.WRITE_LOCK,
-                        commit.index(),
-                        key,
-                        toVersioned(oldValue));
+                    MapEntryUpdateResult.Status.WRITE_LOCK,
+                    commit.index(),
+                    key,
+                    toVersioned(oldValue));
             }
             entries().put(commit.value().key(), newValue);
             Versioned<byte[]> result = toVersioned(newValue);
@@ -438,10 +459,10 @@ public class AtomixConsistentMapService extends AbstractRaftService {
             // If the key has been locked by a transaction, return a WRITE_LOCK error.
             if (preparedKeys.contains(key)) {
                 return new MapEntryUpdateResult<>(
-                        MapEntryUpdateResult.Status.WRITE_LOCK,
-                        commit.index(),
-                        key,
-                        toVersioned(oldValue));
+                    MapEntryUpdateResult.Status.WRITE_LOCK,
+                    commit.index(),
+                    key,
+                    toVersioned(oldValue));
             }
             entries().put(commit.value().key(), newValue);
             Versioned<byte[]> result = toVersioned(newValue);
@@ -454,8 +475,8 @@ public class AtomixConsistentMapService extends AbstractRaftService {
     /**
      * Handles a remove commit.
      *
-     * @param index the commit index
-     * @param key the key to remove
+     * @param index     the commit index
+     * @param key       the key to remove
      * @param predicate predicate to determine whether to remove the entry
      * @return map entry update result
      */
@@ -502,7 +523,7 @@ public class AtomixConsistentMapService extends AbstractRaftService {
      */
     protected MapEntryUpdateResult<String, byte[]> removeValue(Commit<? extends RemoveValue> commit) {
         return removeIf(commit.index(), commit.value().key(), v ->
-                valuesEqual(v, new MapEntryValue(MapEntryValue.Type.VALUE, commit.index(), commit.value().value())));
+            valuesEqual(v, new MapEntryValue(MapEntryValue.Type.VALUE, commit.index(), commit.value().value())));
     }
 
     /**
@@ -518,23 +539,23 @@ public class AtomixConsistentMapService extends AbstractRaftService {
     /**
      * Handles a replace commit.
      *
-     * @param index the commit index
-     * @param key the key to replace
-     * @param newValue the value with which to replace the key
+     * @param index     the commit index
+     * @param key       the key to replace
+     * @param newValue  the value with which to replace the key
      * @param predicate a predicate to determine whether to replace the key
      * @return map entry update result
      */
     private MapEntryUpdateResult<String, byte[]> replaceIf(
-            long index, String key, MapEntryValue newValue, Predicate<MapEntryValue> predicate) {
+        long index, String key, MapEntryValue newValue, Predicate<MapEntryValue> predicate) {
         MapEntryValue oldValue = entries().get(key);
 
         // If the key is not set or the current value doesn't match the predicate, return a PRECONDITION_FAILED error.
         if (valueIsNull(oldValue) || !predicate.test(oldValue)) {
             return new MapEntryUpdateResult<>(
-                    MapEntryUpdateResult.Status.PRECONDITION_FAILED,
-                    index,
-                    key,
-                    toVersioned(oldValue));
+                MapEntryUpdateResult.Status.PRECONDITION_FAILED,
+                index,
+                key,
+                toVersioned(oldValue));
         }
 
         // If the key has been locked by a transaction, return a WRITE_LOCK error.
@@ -568,7 +589,7 @@ public class AtomixConsistentMapService extends AbstractRaftService {
     protected MapEntryUpdateResult<String, byte[]> replaceValue(Commit<? extends ReplaceValue> commit) {
         MapEntryValue value = new MapEntryValue(MapEntryValue.Type.VALUE, commit.index(), commit.value().newValue());
         return replaceIf(commit.index(), commit.value().key(), value,
-                v -> valuesEqual(v.value(), commit.value().oldValue()));
+            v -> valuesEqual(v.value(), commit.value().oldValue()));
     }
 
     /**
@@ -580,7 +601,7 @@ public class AtomixConsistentMapService extends AbstractRaftService {
     protected MapEntryUpdateResult<String, byte[]> replaceVersion(Commit<? extends ReplaceVersion> commit) {
         MapEntryValue value = new MapEntryValue(MapEntryValue.Type.VALUE, commit.index(), commit.value().newValue());
         return replaceIf(commit.index(), commit.value().key(), value,
-                v -> v.version() == commit.value().oldVersion());
+            v -> v.version() == commit.value().oldVersion());
     }
 
     /**
@@ -607,6 +628,67 @@ public class AtomixConsistentMapService extends AbstractRaftService {
         }
         entries().putAll(entriesToAdd);
         return MapEntryUpdateResult.Status.OK;
+    }
+
+    /**
+     * Handles an open iterator commit.
+     *
+     * @param commit the open iterator commit
+     * @return iterator identifier
+     */
+    protected long openIterator(Commit<Void> commit) {
+        iterators.put(commit.index(), new IteratorContext(
+            commit.session().sessionId().id(),
+            entries().entrySet().iterator()));
+        return commit.index();
+    }
+
+    /**
+     * Handles an iterator next commit.
+     *
+     * @param commit the next commit
+     * @return a list of entries to iterate
+     */
+    protected IteratorBatch next(Commit<IteratorPosition> commit) {
+        final long iteratorId = commit.value().iteratorId();
+        final int position = commit.value().position();
+
+        IteratorContext context = iterators.get(iteratorId);
+        if (context == null) {
+            return null;
+        }
+
+        List<Map.Entry<String, Versioned<byte[]>>> entries = new ArrayList<>();
+        int size = 0;
+        while (context.iterator.hasNext()) {
+            context.position++;
+            if (context.position > position) {
+                Map.Entry<String, MapEntryValue> entry = context.iterator.next();
+                String key = entry.getKey();
+                Versioned<byte[]> value = toVersioned(entry.getValue());
+                size += key.length();
+                size += value.value() != null ? value.value().length : 0;
+                entries.add(Maps.immutableEntry(key, value));
+
+                if (size >= MAX_ITERATOR_BATCH_SIZE) {
+                    break;
+                }
+            }
+        }
+
+        if (entries.isEmpty()) {
+            return null;
+        }
+        return new IteratorBatch(context.position, entries);
+    }
+
+    /**
+     * Handles a close iterator commit.
+     *
+     * @param commit the close iterator commit
+     */
+    protected void closeIterator(Commit<Long> commit) {
+        iterators.remove(commit.value());
     }
 
     /**
@@ -719,13 +801,13 @@ public class AtomixConsistentMapService extends AbstractRaftService {
             TransactionScope transactionScope = activeTransactions.get(transactionLog.transactionId());
             if (transactionScope == null) {
                 activeTransactions.put(
-                        transactionLog.transactionId(),
-                        new TransactionScope(transactionLog.version(), commit.value().transactionLog()));
+                    transactionLog.transactionId(),
+                    new TransactionScope(transactionLog.version(), commit.value().transactionLog()));
                 return PrepareResult.PARTIAL_FAILURE;
             } else {
                 activeTransactions.put(
-                        transactionLog.transactionId(),
-                        transactionScope.prepared(commit));
+                    transactionLog.transactionId(),
+                    transactionScope.prepared(commit));
                 return PrepareResult.OK;
             }
         } catch (Exception e) {
@@ -795,34 +877,34 @@ public class AtomixConsistentMapService extends AbstractRaftService {
                 if (!valueIsNull(newValue)) {
                     if (!valueIsNull(previousValue)) {
                         event = new MapEvent<>(
-                                MapEvent.Type.UPDATE,
-                                "",
-                                key,
-                                toVersioned(newValue),
-                                toVersioned(previousValue));
+                            MapEvent.Type.UPDATE,
+                            "",
+                            key,
+                            toVersioned(newValue),
+                            toVersioned(previousValue));
                     } else {
                         event = new MapEvent<>(
-                                MapEvent.Type.INSERT,
-                                "",
-                                key,
-                                toVersioned(newValue),
-                                null);
+                            MapEvent.Type.INSERT,
+                            "",
+                            key,
+                            toVersioned(newValue),
+                            null);
                     }
                 } else {
                     event = new MapEvent<>(
-                            MapEvent.Type.REMOVE,
-                            "",
-                            key,
-                            null,
-                            toVersioned(previousValue));
-                }
-            } else {
-                event = new MapEvent<>(
                         MapEvent.Type.REMOVE,
                         "",
                         key,
                         null,
                         toVersioned(previousValue));
+                }
+            } else {
+                event = new MapEvent<>(
+                    MapEvent.Type.REMOVE,
+                    "",
+                    key,
+                    null,
+                    toVersioned(previousValue));
             }
             eventsToPublish.add(event);
         }
@@ -847,11 +929,11 @@ public class AtomixConsistentMapService extends AbstractRaftService {
         } else {
             try {
                 transactionScope.transactionLog().records()
-                        .forEach(record -> {
-                            if (record.type() != MapUpdate.Type.VERSION_MATCH) {
-                                preparedKeys.remove(record.key());
-                            }
-                        });
+                    .forEach(record -> {
+                        if (record.type() != MapUpdate.Type.VERSION_MATCH) {
+                            preparedKeys.remove(record.key());
+                        }
+                    });
                 return RollbackResult.OK;
             } finally {
                 discardTombstones();
@@ -874,8 +956,8 @@ public class AtomixConsistentMapService extends AbstractRaftService {
             }
         } else {
             long lowWaterMark = activeTransactions.values().stream()
-                    .mapToLong(TransactionScope::version)
-                    .min().getAsLong();
+                .mapToLong(TransactionScope::version)
+                .min().getAsLong();
             Iterator<Map.Entry<String, MapEntryValue>> iterator = entries().entrySet().iterator();
             while (iterator.hasNext()) {
                 MapEntryValue value = iterator.next().getValue();
@@ -888,12 +970,13 @@ public class AtomixConsistentMapService extends AbstractRaftService {
 
     /**
      * Utility for turning a {@code MapEntryValue} to {@code Versioned}.
+     *
      * @param value map entry value
      * @return versioned instance
      */
     protected Versioned<byte[]> toVersioned(MapEntryValue value) {
         return value != null && value.type() != MapEntryValue.Type.TOMBSTONE
-                ? new Versioned<>(value.value(), value.version()) : null;
+            ? new Versioned<>(value.value(), value.version()) : null;
     }
 
     /**
@@ -1032,6 +1115,17 @@ public class AtomixConsistentMapService extends AbstractRaftService {
          */
         TransactionScope prepared(Commit<? extends TransactionPrepare> commit) {
             return new TransactionScope(version, commit.value().transactionLog());
+        }
+    }
+
+    private static class IteratorContext {
+        private final long sessionId;
+        private final Iterator<Map.Entry<String, MapEntryValue>> iterator;
+        private int position = 0;
+
+        IteratorContext(long sessionId, Iterator<Map.Entry<String, MapEntryValue>> iterator) {
+            this.sessionId = sessionId;
+            this.iterator = iterator;
         }
     }
 }
