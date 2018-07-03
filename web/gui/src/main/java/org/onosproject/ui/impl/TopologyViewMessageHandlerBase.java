@@ -158,6 +158,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         DEVICE_GLYPHS.put(Device.Type.ONU, "m_onu");
         DEVICE_GLYPHS.put(Device.Type.OPTICAL_AMPLIFIER, "unknown"); // TODO glyph needed
         DEVICE_GLYPHS.put(Device.Type.OTHER, "m_other");
+        DEVICE_GLYPHS.put(Device.Type.SERVER, "m_endpoint");
     }
 
     private static final String DEFAULT_HOST_GLYPH = "m_endstation";

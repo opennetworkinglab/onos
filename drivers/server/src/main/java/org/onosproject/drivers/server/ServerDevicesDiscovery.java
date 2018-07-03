@@ -358,14 +358,9 @@ public class ServerDevicesDiscovery extends BasicServerDriver
         getController().removeDevice(deviceId);
         getController().addDevice((RestSBDevice) dev);
 
-        /**
-         * TODO: Create a new Device type
-         * Device.Type.COMMODITY_SERVER
-         * and add a new icon in the GUI.
-         */
         try {
             desc = new DefaultServerDeviceDescription(
-                new URI(id), Device.Type.OTHER, vendor,
+                new URI(id), Device.Type.SERVER, vendor,
                 hw, sw, serial, new ChassisId(),
                 cpuSet, nicSet, DefaultAnnotations.EMPTY
             );
