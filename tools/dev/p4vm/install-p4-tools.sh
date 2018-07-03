@@ -264,11 +264,10 @@ function do_p4runtime {
     # FIXME: re-enable --with-sysrepo when gNMI support becomes more stable
     # ./configure --with-proto --with-sysrepo 'CXXFLAGS=-O0 -g'
     if [ "${DEBUG_FLAGS}" = true ] ; then
-        CONF_FLAGS="'CXXFLAGS=-O0 -g'"
+        ./configure --with-proto "CXXFLAGS=-O0 -g"
     else
-        CONF_FLAGS=""
+        ./configure --with-proto
     fi
-    ./configure --with-proto ${CONF_FLAGS}
     make -j${NUM_CORES}
     sudo make install
     sudo ldconfig
@@ -282,11 +281,10 @@ function do_bmv2 {
 
     ./autogen.sh
     if [ "${DEBUG_FLAGS}" = true ] ; then
-        CONF_FLAGS="--enable-debugger 'CXXFLAGS=-O0 -g'"
+        ./configure --with-pi --enable-debugger "CXXFLAGS=-O0 -g"
     else
-        CONF_FLAGS="--disable-logging-macros --disable-elogger --without-nanomsg"
+        ./configure --with-pi --disable-logging-macros --disable-elogger --without-nanomsg
     fi
-    ./configure --with-pi ${CONF_FLAGS}
     make -j${NUM_CORES}
     sudo make install
     sudo ldconfig
@@ -296,13 +294,12 @@ function do_bmv2 {
     ./autogen.sh
 
     if [ "${DEBUG_FLAGS}" = true ] ; then
-        CONF_FLAGS="'CXXFLAGS=-O0 -g'"
+        ./configure --with-thrift "CXXFLAGS=-O0 -g"
     else
-        CONF_FLAGS=""
+        ./configure --with-thrift
     fi
     # FIXME: re-enable --with-sysrepo when gNMI support becomes more stable
     # ./configure --with-sysrepo --with-thrift 'CXXFLAGS=-O0 -g'
-    ./configure --with-thrift ${CONF_FLAGS}
     make -j${NUM_CORES}
     sudo make install
     sudo ldconfig
