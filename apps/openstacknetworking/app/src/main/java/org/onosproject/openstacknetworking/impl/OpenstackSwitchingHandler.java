@@ -67,6 +67,7 @@ import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_FLAT_JU
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_FLAT_UPSTREAM_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_SWITCHING_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_TUNNEL_TAG_RULE;
+import static org.onosproject.openstacknetworking.api.Constants.STAT_FLAT_OUTBOUND_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.VTAG_TABLE;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.buildExtension;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
@@ -192,7 +193,7 @@ public final class OpenstackSwitchingHandler {
         selector.matchInPort(port.portNumber());
 
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
-        treatment.transition(FLAT_TABLE);
+        treatment.transition(STAT_FLAT_OUTBOUND_TABLE);
 
         osFlowRuleService.setRule(
                 appId,
