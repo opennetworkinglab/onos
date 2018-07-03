@@ -20,20 +20,20 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>onos-bmv2-protocol</artifactId>
+        <artifactId>onos-protocols-bmv2</artifactId>
         <groupId>org.onosproject</groupId>
-        <version>1.13.0-SNAPSHOT</version>
+        <version>1.14.0-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>onos-bmv2-protocol-thrift-api</artifactId>
+    <artifactId>onos-protocols-bmv2-thrift-api</artifactId>
 
     <packaging>bundle</packaging>
 
     <properties>
         <!-- BMv2 Commit ID and Thrift version -->
-        <bmv2.commit>8f675d0284e9e014f1b8ed502ba54e61d68108cf</bmv2.commit>
+        <bmv2.commit>ed130d01be985d814c17de949839d484e76400b1</bmv2.commit>
         <bmv2.thrift.version>0.9.3</bmv2.thrift.version>
         <bmv2.baseurl>https://cdn.rawgit.com/opennetworkinglab/onos-bmv2/${bmv2.commit}</bmv2.baseurl>
         <bmv2.thrift.javanamespace>org.onosproject.bmv2.thriftapi</bmv2.thrift.javanamespace>
@@ -74,7 +74,8 @@
                 <artifactId>download-maven-plugin</artifactId>
                 <version>1.3.0</version>
                 <executions>
-                    <execution>
+<!--
+                     <execution>
                         <id>download-bmv2-thrift-standard</id>
                         <phase>initialize</phase>
                         <goals>
@@ -96,7 +97,8 @@
                             <outputDirectory>${bmv2.thrift.srcdir}</outputDirectory>
                         </configuration>
                     </execution>
-                    <execution>
+ -->
+                     <execution>
                         <id>download-bmv2-thrift-simple_pre_lag</id>
                         <phase>initialize</phase>
                         <goals>
@@ -107,7 +109,8 @@
                             <outputDirectory>${bmv2.thrift.srcdir}</outputDirectory>
                         </configuration>
                     </execution>
-                    <execution>
+<!--
+                     <execution>
                         <id>download-bmv2-thrift-simple_switch</id>
                         <phase>initialize</phase>
                         <goals>
@@ -129,7 +132,8 @@
                             <outputDirectory>${bmv2.thrift.srcdir}</outputDirectory>
                         </configuration>
                     </execution>
-                </executions>
+ -->
+                 </executions>
             </plugin>
             <!-- Extract Thrift compiler -->
             <plugin>

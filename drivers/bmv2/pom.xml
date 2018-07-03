@@ -74,7 +74,7 @@
 
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-bmv2-protocol-thrift-api</artifactId>
+            <artifactId>onos-protocols-bmv2-thrift-api</artifactId>
             <version>${project.version}</version>
         </dependency>
 

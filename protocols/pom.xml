@@ -47,6 +47,7 @@
         <module>gnmi/stub</module>
         <module>p4runtime</module>
         <module>xmpp</module>
+        <module>bmv2</module>
     </modules>
 
     <dependencies>

@@ -250,7 +250,7 @@ public final class Bmv2PreGroupTranslatorImpl {
     private static void validatePort(PortNumber portNumber) {
         if (portNumber.toLong() < 0 || portNumber.toLong() >= BMV2_PORT_MAP_SIZE) {
             throw new IllegalStateException(String.format("Port number %d is not a valid BMv2 physical port number." +
-                                                             "Valid port range is [0,255]", portNumber));
+                                                             "Valid port range is [0,255]", portNumber.toLong()));
         }
     }
 
