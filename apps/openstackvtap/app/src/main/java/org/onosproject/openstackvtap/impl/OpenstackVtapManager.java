@@ -15,8 +15,17 @@
  */
 package org.onosproject.openstackvtap.impl;
 
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Service;
+import org.onlab.packet.VlanId;
+import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.PortNumber;
 import org.onosproject.openstackvtap.api.OpenstackVtap;
+import org.onosproject.openstackvtap.api.OpenstackVtap.Type;
+import org.onosproject.openstackvtap.api.OpenstackVtapAdminService;
+import org.onosproject.openstackvtap.api.OpenstackVtapCriterion;
+import org.onosproject.openstackvtap.api.OpenstackVtapEvent;
 import org.onosproject.openstackvtap.api.OpenstackVtapId;
 import org.onosproject.openstackvtap.api.OpenstackVtapListener;
 import org.onosproject.openstackvtap.api.OpenstackVtapService;
@@ -24,17 +33,46 @@ import org.onosproject.openstackvtap.api.OpenstackVtapService;
 import java.util.Set;
 
 /**
- * Implementation of openstack vtap.
+ * Provides basic implementation of the user APIs.
  */
-public class OpenstackVtapManager implements OpenstackVtapService {
+@Component(immediate = true)
+@Service
+public class OpenstackVtapManager
+        extends AbstractListenerManager<OpenstackVtapEvent, OpenstackVtapListener>
+        implements OpenstackVtapService, OpenstackVtapAdminService {
 
     @Override
-    public int getVtapCount(OpenstackVtap.Type type) {
+    public OpenstackVtap createVtap(Type type, OpenstackVtapCriterion vTapCriterion) {
+        return null;
+    }
+
+    @Override
+    public OpenstackVtap updateVtap(OpenstackVtapId vTapId, OpenstackVtap vTap) {
+        return null;
+    }
+
+    @Override
+    public OpenstackVtap removeVtap(OpenstackVtapId vTapId) {
+        return null;
+    }
+
+    @Override
+    public void setVtapOutput(DeviceId deviceId, Type type, PortNumber portNumber, VlanId vlanId) {
+
+    }
+
+    @Override
+    public void setVtapOutput(DeviceId deviceId, Type type, PortNumber portNumber, int vni) {
+
+    }
+
+    @Override
+    public int getVtapCount(Type type) {
         return 0;
     }
 
     @Override
-    public Set<OpenstackVtap> getVtaps(OpenstackVtap.Type type) {
+    public Set<OpenstackVtap> getVtaps(Type type) {
         return null;
     }
 
@@ -44,15 +82,7 @@ public class OpenstackVtapManager implements OpenstackVtapService {
     }
 
     @Override
-    public Set<OpenstackVtap> getVtapsByDeviceId(OpenstackVtap.Type type, DeviceId deviceId) {
+    public Set<OpenstackVtap> getVtapsByDeviceId(Type type, DeviceId deviceId) {
         return null;
-    }
-
-    @Override
-    public void addListener(OpenstackVtapListener listener) {
-    }
-
-    @Override
-    public void removeListener(OpenstackVtapListener listener) {
     }
 }
