@@ -75,7 +75,7 @@ public class DistributedOpenstackVtapStore
 
     private ConsistentMap<OpenstackVtapId, DefaultOpenstackVtap> vTapConsistentMap;
     private MapEventListener<OpenstackVtapId, DefaultOpenstackVtap>
-                                            vTapListener = new VTapEventListener();
+                                            vTapListener = new VtapEventListener();
     private Map<OpenstackVtapId, DefaultOpenstackVtap> vTapMap;
 
     private static final Serializer SERIALIZER = Serializer
@@ -115,7 +115,7 @@ public class DistributedOpenstackVtapStore
 
         vTapStatusListener = status -> {
             if (status == Status.ACTIVE) {
-                eventExecutor.execute(this::loadVTapIds);
+                eventExecutor.execute(this::loadVtapIds);
             }
         };
         vTapConsistentMap.addStatusChangeListener(vTapStatusListener);
@@ -130,56 +130,6 @@ public class DistributedOpenstackVtapStore
         eventExecutor.shutdown();
 
         log.info("Stopped {} - {}", this.getClass().getSimpleName());
-    }
-
-    private void loadVTapIds() {
-        vTapIdsByTxDeviceId.clear();
-        vTapIdsByRxDeviceId.clear();
-        vTapMap.values().forEach(vTap -> refreshDeviceIdsByVtap(null, vTap));
-    }
-
-    private boolean shouldUpdate(DefaultOpenstackVtap existing,
-                                 OpenstackVtap description,
-                                 boolean replaceDevices) {
-        if (existing == null) {
-            return true;
-        }
-
-        if ((description.type() != null && !description.type().equals(existing.type()))
-                || (description.vTapCriterion() != null &&
-                !description.vTapCriterion().equals(existing.vTapCriterion()))) {
-            return true;
-        }
-
-        if (description.txDeviceIds() != null) {
-            if (replaceDevices) {
-                if (!existing.txDeviceIds().equals(description.txDeviceIds())) {
-                    return true;
-                }
-            } else {
-                if (!existing.txDeviceIds().containsAll(description.txDeviceIds())) {
-                    return true;
-                }
-            }
-        }
-
-        if (description.rxDeviceIds() != null) {
-            if (replaceDevices) {
-                if (!existing.rxDeviceIds().equals(description.rxDeviceIds())) {
-                    return true;
-                }
-            } else {
-                if (!existing.rxDeviceIds().containsAll(description.rxDeviceIds())) {
-                    return true;
-                }
-            }
-        }
-
-        // check to see if any of the annotations provided by vTap
-        // differ from those in the existing vTap
-        return description.annotations().keys().stream()
-                .anyMatch(k -> !Objects.equals(description.annotations().value(k),
-                        existing.annotations().value(k)));
     }
 
     @Override
@@ -446,7 +396,57 @@ public class DistributedOpenstackVtapStore
                         .collect(Collectors.toSet()));
     }
 
-    private class VTapComparator implements Comparator<OpenstackVtap> {
+    private void loadVtapIds() {
+        vTapIdsByTxDeviceId.clear();
+        vTapIdsByRxDeviceId.clear();
+        vTapMap.values().forEach(vTap -> refreshDeviceIdsByVtap(null, vTap));
+    }
+
+    private boolean shouldUpdate(DefaultOpenstackVtap existing,
+                                 OpenstackVtap description,
+                                 boolean replaceDevices) {
+        if (existing == null) {
+            return true;
+        }
+
+        if ((description.type() != null && !description.type().equals(existing.type()))
+                || (description.vTapCriterion() != null &&
+                !description.vTapCriterion().equals(existing.vTapCriterion()))) {
+            return true;
+        }
+
+        if (description.txDeviceIds() != null) {
+            if (replaceDevices) {
+                if (!existing.txDeviceIds().equals(description.txDeviceIds())) {
+                    return true;
+                }
+            } else {
+                if (!existing.txDeviceIds().containsAll(description.txDeviceIds())) {
+                    return true;
+                }
+            }
+        }
+
+        if (description.rxDeviceIds() != null) {
+            if (replaceDevices) {
+                if (!existing.rxDeviceIds().equals(description.rxDeviceIds())) {
+                    return true;
+                }
+            } else {
+                if (!existing.rxDeviceIds().containsAll(description.rxDeviceIds())) {
+                    return true;
+                }
+            }
+        }
+
+        // check to see if any of the annotations provided by vTap
+        // differ from those in the existing vTap
+        return description.annotations().keys().stream()
+                .anyMatch(k -> !Objects.equals(description.annotations().value(k),
+                        existing.annotations().value(k)));
+    }
+
+    private class VtapComparator implements Comparator<OpenstackVtap> {
         @Override
         public int compare(OpenstackVtap v1, OpenstackVtap v2) {
             int diff = (v2.type().compareTo(v1.type()));
@@ -531,7 +531,7 @@ public class DistributedOpenstackVtapStore
         }
     }
 
-    private class VTapEventListener
+    private class VtapEventListener
             implements MapEventListener<OpenstackVtapId, DefaultOpenstackVtap> {
         @Override
         public void event(MapEvent<OpenstackVtapId, DefaultOpenstackVtap> event) {
@@ -540,7 +540,7 @@ public class DistributedOpenstackVtapStore
             DefaultOpenstackVtap oldValue =
                     event.oldValue() != null ? event.oldValue().value() : null;
 
-            log.debug("VTapEventListener {} -> {}, {}", event.type(), oldValue, newValue);
+            log.debug("VtapEventListener {} -> {}, {}", event.type(), oldValue, newValue);
             switch (event.type()) {
                 case INSERT:
                     refreshDeviceIdsByVtap(oldValue, newValue);

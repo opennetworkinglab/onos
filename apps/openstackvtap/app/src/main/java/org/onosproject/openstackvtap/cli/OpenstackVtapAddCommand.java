@@ -17,13 +17,15 @@ package org.onosproject.openstackvtap.cli;
 
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
-import org.onlab.packet.IPv4;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.TpPort;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.openstackvtap.api.OpenstackVtap;
 import org.onosproject.openstackvtap.api.OpenstackVtapAdminService;
 import org.onosproject.openstackvtap.impl.DefaultOpenstackVtapCriterion;
+
+import static org.onosproject.openstackvtap.util.OpenstackVtapUtil.getProtocolTypeFromString;
+import static org.onosproject.openstackvtap.util.OpenstackVtapUtil.getVtapTypeFromString;
 
 /**
  * Command line interface for adding openstack vTap rule.
@@ -32,15 +34,16 @@ import org.onosproject.openstackvtap.impl.DefaultOpenstackVtapCriterion;
         description = "OpenstackVtap activate")
 public class OpenstackVtapAddCommand extends AbstractShellCommand {
 
-    private final OpenstackVtapAdminService vTapService = get(OpenstackVtapAdminService.class);
+    private final OpenstackVtapAdminService vTapService =
+                                            get(OpenstackVtapAdminService.class);
 
     @Argument(index = 0, name = "srcIp",
-            description = "source IP address CIDR (e.g., \"10.1.0.0/16\")",
+            description = "source IP address CIDR (e.g., \"10.1.0.2/32\")",
             required = true, multiValued = false)
     String srcIp = "";
 
     @Argument(index = 1, name = "dstIp",
-            description = "destination IP address CIDR (e.g., \"10.1.0.0/16\")",
+            description = "destination IP address CIDR (e.g., \"10.1.0.3/32\")",
             required = true, multiValued = false)
     String dstIp = "";
 
@@ -69,7 +72,7 @@ public class OpenstackVtapAddCommand extends AbstractShellCommand {
         DefaultOpenstackVtapCriterion.Builder
                     defaultVtapCriterionBuilder = DefaultOpenstackVtapCriterion.builder();
         if (makeCriterion(defaultVtapCriterionBuilder)) {
-            OpenstackVtap.Type type = getVtapType(vTapTypeStr);
+            OpenstackVtap.Type type = getVtapTypeFromString(vTapTypeStr);
             if (type == null) {
                 print("Invalid vTap type");
                 return;
@@ -84,19 +87,6 @@ public class OpenstackVtapAddCommand extends AbstractShellCommand {
         }
     }
 
-    private static OpenstackVtap.Type getVtapType(String vTapTypeStr) {
-        switch (vTapTypeStr.toLowerCase()) {
-            case "all":
-                return OpenstackVtap.Type.VTAP_ALL;
-            case "tx":
-                return OpenstackVtap.Type.VTAP_TX;
-            case "rx":
-                return OpenstackVtap.Type.VTAP_RX;
-            default:
-                return OpenstackVtap.Type.VTAP_NONE;
-       }
-    }
-
     private boolean makeCriterion(DefaultOpenstackVtapCriterion.Builder vTapCriterionBuilder) {
         try {
             vTapCriterionBuilder.srcIpPrefix(IpPrefix.valueOf(srcIp));
@@ -106,25 +96,11 @@ public class OpenstackVtapAddCommand extends AbstractShellCommand {
             return false;
         }
 
-        switch (ipProto.toLowerCase()) {
-            case "tcp":
-                vTapCriterionBuilder.ipProtocol(IPv4.PROTOCOL_TCP);
-                break;
-            case "udp":
-                vTapCriterionBuilder.ipProtocol(IPv4.PROTOCOL_UDP);
-                break;
-            case "icmp":
-                vTapCriterionBuilder.ipProtocol(IPv4.PROTOCOL_ICMP);
-                break;
-            default:
-                log.warn("Invalid protocol type {}", ipProto);
-                return false;
-        }
+        vTapCriterionBuilder.ipProtocol(getProtocolTypeFromString(ipProto.toLowerCase()));
 
         vTapCriterionBuilder.srcTpPort(TpPort.tpPort(srcTpPort));
         vTapCriterionBuilder.dstTpPort(TpPort.tpPort(dstTpPort));
 
         return true;
     }
-
 }

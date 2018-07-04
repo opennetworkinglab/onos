@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 package org.onosproject.openstackvtap.cli;
+
+import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
-import org.apache.karaf.shell.commands.Argument;
 import org.onosproject.openstackvtap.api.OpenstackVtap;
 import org.onosproject.openstackvtap.api.OpenstackVtapService;
 
 import java.util.Set;
+
+import static org.onosproject.openstackvtap.util.OpenstackVtapUtil.getVtapTypeFromString;
 
 /**
  * Command line interface for listing openstack vTap rules.
@@ -42,25 +45,7 @@ public class OpenstackVtapListCommand extends AbstractShellCommand {
 
     @Override
     protected void execute() {
-        OpenstackVtap.Type type;
-        switch (vTapType) {
-            case "none":
-                type = OpenstackVtap.Type.VTAP_NONE;
-                break;
-            case "all":
-                type = OpenstackVtap.Type.VTAP_ALL;
-                break;
-            case "tx":
-                type = OpenstackVtap.Type.VTAP_TX;
-                break;
-            case "rx":
-                type = OpenstackVtap.Type.VTAP_RX;
-                break;
-            default:
-                print("Invalid vTap type");
-                return;
-        }
-
+        OpenstackVtap.Type type = getVtapTypeFromString(vTapType);
         Set<OpenstackVtap> openstackVtaps = vTapService.getVtaps(type);
         for (OpenstackVtap vTap : openstackVtaps) {
             print(FORMAT,
@@ -72,5 +57,4 @@ public class OpenstackVtapListCommand extends AbstractShellCommand {
             print(FORMAT_RX_DEVICES, vTap.rxDeviceIds());
         }
     }
-
 }

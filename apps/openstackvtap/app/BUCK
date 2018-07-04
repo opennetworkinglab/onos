@@ -9,6 +9,7 @@ COMPILE_DEPS = [
     '//cli:onos-cli',
     '//lib:org.apache.karaf.shell.console',
     '//apps/openstacknetworking/api:onos-apps-openstacknetworking-api',
+    '//apps/openstacknode/api:onos-apps-openstacknode-api',
     '//apps/openstackvtap/api:onos-apps-openstackvtap-api',
 ]
 

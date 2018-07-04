@@ -27,6 +27,7 @@ import org.onosproject.openstackvtap.api.OpenstackVtap;
 import org.onosproject.openstackvtap.api.OpenstackVtapAdminService;
 
 import static org.onlab.packet.VlanId.UNTAGGED;
+import static org.onosproject.openstackvtap.util.OpenstackVtapUtil.getVtapTypeFromString;
 
 /**
  * Command line interface for set openstack vTap output.
@@ -36,7 +37,8 @@ import static org.onlab.packet.VlanId.UNTAGGED;
 public class OpenstackVtapOutputCommand extends AbstractShellCommand {
 
     private final DeviceService deviceService = get(DeviceService.class);
-    private final OpenstackVtapAdminService vTapAdminService = get(OpenstackVtapAdminService.class);
+    private final OpenstackVtapAdminService vTapAdminService =
+                                            get(OpenstackVtapAdminService.class);
 
     @Argument(index = 0, name = "deviceId", description = "device id",
             required = true, multiValued = false)
@@ -52,18 +54,14 @@ public class OpenstackVtapOutputCommand extends AbstractShellCommand {
 
     @Argument(index = 3, name = "type", description = "vTap type [all|tx|rx]",
             required = false, multiValued = false)
-    String vTapType = "all";
+    String vTapTypeStr = "all";
 
     @Override
     protected void execute() {
         try {
             Device device = deviceService.getDevice(DeviceId.deviceId(id));
             if (device != null) {
-                OpenstackVtap.Type type = getVtapType(vTapType);
-                if (type == null) {
-                    print("Invalid vTap type");
-                    return;
-                }
+                OpenstackVtap.Type type = getVtapTypeFromString(vTapTypeStr);
 
                 vTapAdminService.setVtapOutput(device.id(), type,
                         PortNumber.portNumber(port), VlanId.vlanId((short) vlan));
@@ -76,19 +74,6 @@ public class OpenstackVtapOutputCommand extends AbstractShellCommand {
             }
         } catch (Exception e) {
             print("Invalid parameter: %s", e.toString());
-        }
-    }
-
-    private static OpenstackVtap.Type getVtapType(String str) {
-        switch (str) {
-            case "all":
-                return OpenstackVtap.Type.VTAP_ALL;
-            case "tx":
-                return OpenstackVtap.Type.VTAP_TX;
-            case "rx":
-                return OpenstackVtap.Type.VTAP_RX;
-            default:
-                return OpenstackVtap.Type.VTAP_NONE;
         }
     }
 }

@@ -17,18 +17,38 @@
     <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.1.0">
         <command>
             <action class="org.onosproject.openstackvtap.cli.OpenstackVtapAddCommand" />
+            <completers>
+                <ref component-id="vmIpCompleter"/>
+                <ref component-id="vmIpCompleter"/>
+                <ref component-id="protocolTypeCompleter"/>
+                <null/>
+                <null/>
+                <ref component-id="vtapTypeCompleter"/>
+            </completers>
         </command>
 
         <command>
             <action class="org.onosproject.openstackvtap.cli.OpenstackVtapListCommand" />
+            <completers>
+                <ref component-id="vtapTypeCompleter"/>
+            </completers>
         </command>
 
         <command>
             <action class="org.onosproject.openstackvtap.cli.OpenstackVtapDeleteCommand" />
+            <completers>
+                <ref component-id="vtapIdCompleter"/>
+            </completers>
         </command>
 
         <command>
             <action class="org.onosproject.openstackvtap.cli.OpenstackVtapOutputCommand" />
         </command>
     </command-bundle>
+
+    <bean id="vtapTypeCompleter" class="org.onosproject.openstackvtap.cli.VtapTypeCompleter"/>
+    <bean id="protocolTypeCompleter" class="org.onosproject.openstackvtap.cli.ProtocolTypeCompleter"/>
+    <bean id="vmIpCompleter" class="org.onosproject.openstackvtap.cli.VmIpCompleter"/>
+    <bean id="vtapIdCompleter" class="org.onosproject.openstackvtap.cli.VtapIdCompleter"/>
+
 </blueprint>
