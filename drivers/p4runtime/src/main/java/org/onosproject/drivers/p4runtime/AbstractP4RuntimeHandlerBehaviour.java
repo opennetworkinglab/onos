@@ -23,6 +23,7 @@ import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipeconfId;
+import org.onosproject.net.pi.model.PiPipelineInterpreter;
 import org.onosproject.net.pi.service.PiPipeconfService;
 import org.onosproject.net.pi.service.PiTranslationService;
 import org.onosproject.p4runtime.api.P4RuntimeClient;
@@ -42,9 +43,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class AbstractP4RuntimeHandlerBehaviour extends AbstractHandlerBehaviour {
 
-    // Timeout in seconds for device operations.
-    // TODO make configurable via driver properties
-    private static final int DEVICE_OP_TIMEOUT = 5;
+    // Default timeout in seconds for device operations.
+    private static final String DEVICE_REQ_TIMEOUT = "deviceRequestTimeout";
+    private static final int DEFAULT_DEVICE_REQ_TIMEOUT = 60;
 
     public static final String P4RUNTIME_SERVER_ADDR_KEY = "p4runtime_ip";
     public static final String P4RUNTIME_SERVER_PORT_KEY = "p4runtime_port";
@@ -80,11 +81,11 @@ public class AbstractP4RuntimeHandlerBehaviour extends AbstractHandlerBehaviour 
         }
 
         controller = handler().get(P4RuntimeController.class);
-        if (!controller.hasClient(deviceId)) {
+        client = controller.getClient(deviceId);
+        if (client == null) {
             log.warn("Unable to find client for {}, aborting operation", deviceId);
             return false;
         }
-        client = controller.getClient(deviceId);
 
         PiPipeconfService piPipeconfService = handler().get(PiPipeconfService.class);
         if (!piPipeconfService.ofDevice(deviceId).isPresent()) {
@@ -106,12 +107,27 @@ public class AbstractP4RuntimeHandlerBehaviour extends AbstractHandlerBehaviour 
     }
 
     /**
-     * Returns a P4Runtime client for this device, null if such client cannot
-     * be created.
+     * Returns an instance of the interpreter implementation for this device,
+     * null if an interpreter cannot be retrieved.
+     *
+     * @return interpreter or null
+     */
+    PiPipelineInterpreter getInterpreter() {
+        if (!device.is(PiPipelineInterpreter.class)) {
+            log.warn("Unable to get interpreter for {}, missing behaviour",
+                     deviceId);
+            return null;
+        }
+        return device.as(PiPipelineInterpreter.class);
+    }
+
+    /**
+     * Returns a P4Runtime client for this device, null if such client cannot be
+     * created.
      *
      * @return client or null
      */
-     P4RuntimeClient createClient() {
+    P4RuntimeClient createClient() {
         deviceId = handler().data().deviceId();
         controller = handler().get(P4RuntimeController.class);
 
@@ -125,21 +141,21 @@ public class AbstractP4RuntimeHandlerBehaviour extends AbstractHandlerBehaviour 
             return null;
         }
 
-         final int serverPort;
-         final long p4DeviceId;
+        final int serverPort;
+        final long p4DeviceId;
 
-         try {
+        try {
             serverPort = Integer.parseUnsignedInt(serverPortString);
         } catch (NumberFormatException e) {
             log.error("{} is not a valid P4Runtime port number", serverPortString);
             return null;
         }
-         try {
-             p4DeviceId = Long.parseUnsignedLong(p4DeviceIdString);
-         } catch (NumberFormatException e) {
-             log.error("{} is not a valid P4Runtime-internal device ID", p4DeviceIdString);
-             return null;
-         }
+        try {
+            p4DeviceId = Long.parseUnsignedLong(p4DeviceIdString);
+        } catch (NumberFormatException e) {
+            log.error("{} is not a valid P4Runtime-internal device ID", p4DeviceIdString);
+            return null;
+        }
 
         if (!controller.createClient(deviceId, serverAddr, serverPort, p4DeviceId)) {
             log.warn("Unable to create client for {}, aborting operation", deviceId);
@@ -167,6 +183,28 @@ public class AbstractP4RuntimeHandlerBehaviour extends AbstractHandlerBehaviour 
     }
 
     /**
+     * Returns the device request timeout driver property, or a default value
+     * if the property is not present or cannot be parsed.
+     *
+     * @return timeout value
+     */
+    private int getDeviceRequestTimeout() {
+        final String timeout = handler().driver()
+                .getProperty(DEVICE_REQ_TIMEOUT);
+        if (timeout == null) {
+            return DEFAULT_DEVICE_REQ_TIMEOUT;
+        } else {
+            try {
+                return Integer.parseInt(timeout);
+            } catch (NumberFormatException e) {
+                log.error("{} driver property '{}' is not a number, using default value {}",
+                          DEVICE_REQ_TIMEOUT, timeout, DEFAULT_DEVICE_REQ_TIMEOUT);
+                return DEFAULT_DEVICE_REQ_TIMEOUT;
+            }
+        }
+    }
+
+    /**
      * Convenience method to get the result of a completable future while
      * setting a timeout and checking for exceptions.
      *
@@ -181,7 +219,7 @@ public class AbstractP4RuntimeHandlerBehaviour extends AbstractHandlerBehaviour 
     <U> U getFutureWithDeadline(CompletableFuture<U> future, String opDescription,
                                 U defaultValue) {
         try {
-            return future.get(DEVICE_OP_TIMEOUT, TimeUnit.SECONDS);
+            return future.get(getDeviceRequestTimeout(), TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             log.error("Exception while {} on {}", opDescription, deviceId);
         } catch (ExecutionException e) {

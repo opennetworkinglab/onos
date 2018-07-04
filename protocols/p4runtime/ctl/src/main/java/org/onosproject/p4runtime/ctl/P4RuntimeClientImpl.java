@@ -105,8 +105,8 @@ import static p4.v1.P4RuntimeOuterClass.SetForwardingPipelineConfigRequest.Actio
  */
 final class P4RuntimeClientImpl implements P4RuntimeClient {
 
-    // Timeout in seconds to obtain the client lock.
-    private static final int LOCK_TIMEOUT = 10;
+    // Timeout in seconds to obtain the request lock.
+    private static final int LOCK_TIMEOUT = 60;
 
     private static final Map<WriteOperationType, Update.Type> UPDATE_TYPES = ImmutableMap.of(
             WriteOperationType.UNSPECIFIED, Update.Type.UNSPECIFIED,

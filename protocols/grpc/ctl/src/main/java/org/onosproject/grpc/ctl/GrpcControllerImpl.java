@@ -18,7 +18,7 @@ package org.onosproject.grpc.ctl;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
+import com.google.common.util.concurrent.Striped;
 import io.grpc.CallOptions;
 import io.grpc.Channel;
 import io.grpc.ClientCall;
@@ -60,7 +60,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -86,7 +85,7 @@ public class GrpcControllerImpl implements GrpcController {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private Map<GrpcChannelId, ManagedChannel> channels;
-    private final Map<GrpcChannelId, Lock> channelLocks = Maps.newConcurrentMap();
+    private final Striped<Lock> channelLocks = Striped.lock(30);
 
     @Activate
     public void activate() {
@@ -120,7 +119,7 @@ public class GrpcControllerImpl implements GrpcController {
         checkNotNull(channelId);
         checkNotNull(channelBuilder);
 
-        Lock lock = channelLocks.computeIfAbsent(channelId, k -> new ReentrantLock());
+        Lock lock = channelLocks.get(channelId);
         lock.lock();
 
         try {
@@ -156,7 +155,7 @@ public class GrpcControllerImpl implements GrpcController {
     public boolean isChannelOpen(GrpcChannelId channelId) {
         checkNotNull(channelId);
 
-        Lock lock = channelLocks.computeIfAbsent(channelId, k -> new ReentrantLock());
+        Lock lock = channelLocks.get(channelId);
         lock.lock();
 
         try {
@@ -182,7 +181,7 @@ public class GrpcControllerImpl implements GrpcController {
     public void disconnectChannel(GrpcChannelId channelId) {
         checkNotNull(channelId);
 
-        Lock lock = channelLocks.computeIfAbsent(channelId, k -> new ReentrantLock());
+        Lock lock = channelLocks.get(channelId);
         lock.lock();
 
         try {
@@ -201,7 +200,6 @@ public class GrpcControllerImpl implements GrpcController {
             }
 
             channels.remove(channelId);
-            channelLocks.remove(channelId);
         } finally {
             lock.unlock();
         }
@@ -229,7 +227,7 @@ public class GrpcControllerImpl implements GrpcController {
     public Optional<ManagedChannel> getChannel(GrpcChannelId channelId) {
         checkNotNull(channelId);
 
-        Lock lock = channelLocks.computeIfAbsent(channelId, k -> new ReentrantLock());
+        Lock lock = channelLocks.get(channelId);
         lock.lock();
 
         try {

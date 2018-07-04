@@ -62,11 +62,11 @@ public final class PortStatisticsDiscoveryImpl extends AbstractHandlerBehaviour 
 
         // Get a client for this device.
         P4RuntimeController controller = handler().get(P4RuntimeController.class);
-        if (!controller.hasClient(deviceId)) {
+        P4RuntimeClient client = controller.getClient(deviceId);
+        if (client == null) {
             log.warn("Unable to find client for {}, aborting operation", deviceId);
             return Collections.emptyList();
         }
-        P4RuntimeClient client = controller.getClient(deviceId);
 
         // Get the pipeconf of this device.
         PiPipeconfService piPipeconfService = handler().get(PiPipeconfService.class);

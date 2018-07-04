@@ -22,7 +22,6 @@ import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipeconfId;
 
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * A service to manage the configurations of protocol-independent pipelines.
@@ -36,17 +35,21 @@ public interface PiPipeconfService {
      * Registers the given pipeconf.
      *
      * @param pipeconf a pipeconf
-     * @throws IllegalStateException if the same pipeconf identifier is already registered.
+     * @throws IllegalStateException if the same pipeconf identifier is already
+     *                               registered.
      */
     void register(PiPipeconf pipeconf) throws IllegalStateException;
 
     /**
-     * Unregisters the Pipeconf identified by the given PiPipeconfId. Unregistering a Pipeconf removes it from the ONOS
-     * controller, thus making it un-capable of controlling (e.g installing flow rules) the devices that have the
-     * pipeconf's P4 program deployed. For now this method DOES NOT remove the P4 program from the devices.
+     * Unregisters the Pipeconf identified by the given PiPipeconfId.
+     * Unregistering a Pipeconf removes it from the ONOS controller, thus making
+     * it un-capable of controlling (e.g installing flow rules) the devices that
+     * have the pipeconf's P4 program deployed. For now this method DOES NOT
+     * remove the P4 program from the devices.
      *
      * @param pipeconfId a pipeconfId
-     * @throws IllegalStateException if the same pipeconf identifier is already registered.
+     * @throws IllegalStateException if the same pipeconf identifier is already
+     *                               registered.
      */
     void remove(PiPipeconfId pipeconfId) throws IllegalStateException;
 
@@ -58,8 +61,9 @@ public interface PiPipeconfService {
     Iterable<PiPipeconf> getPipeconfs();
 
     /**
-     * Returns the pipeconf instance associated with the given identifier, if present. If not present, it means that no
-     * pipeconf with such identifier has been registered so far.
+     * Returns the pipeconf instance associated with the given identifier, if
+     * present. If not present, it means that no pipeconf with such identifier
+     * has been registered so far.
      *
      * @param id a pipeconf identifier
      * @return an optional pipeconf
@@ -67,21 +71,39 @@ public interface PiPipeconfService {
     Optional<PiPipeconf> getPipeconf(PiPipeconfId id);
 
     /**
-     * Binds the given pipeconf to the given infrastructure device. As a result of this method call, if the given
-     * pipeconf exposes any pipeline-specific behaviours, those will be merged to the device's driver. Returns a
-     * completable future to provide async methods with a boolean if the merge of the drivers succeeded.
+     * Signals that the given pipeconf is associated to the given infrastructure
+     * device. As a result of this method, the pipeconf for the given device can
+     * be later retrieved using {@link #ofDevice(DeviceId)}
+     *
+     * @param pipeconfId a pipeconf identifier
+     * @param deviceId   a device identifier
+     */
+    void bindToDevice(PiPipeconfId pipeconfId, DeviceId deviceId);
+
+    /**
+     * Returns the name of a driver that is equivalent to the base driver of the
+     * given device plus all the pipeline-specific behaviors exposed by the
+     * given pipeconf (previously registered using {@link
+     * #register(PiPipeconf)}). If such driver does not exist, this method
+     * creates one and registers is with all necessary ONOS subsystems, such
+     * that the returned name can be used to retrieve the driver instance using
+     * {@link org.onosproject.net.driver.DriverService#getDriver(String)}.
+     * <p>
+     * This method needs to be called on all nodes of the cluster that wants to
+     * use such merged driver.
+     * <p>
+     * Returns null if such merged driver cannot be created.
      *
      * @param deviceId   a device identifier
      * @param pipeconfId a pipeconf identifier
-     * @return a CompletableFuture with a boolean, true if operation succeeded
+     * @return driver name or null.
      */
-    // TODO: This service doesn't make any effort in deploying the configuration to the device.
-    // Someone else should do that.
-    CompletableFuture<Boolean> bindToDevice(PiPipeconfId pipeconfId, DeviceId deviceId);
+    String mergeDriver(DeviceId deviceId, PiPipeconfId pipeconfId);
 
     /**
-     * Returns the pipeconf identifier currently associated with the given device identifier, if present. If not
-     * present, it means no pipeconf has been associated with that device so far.
+     * Returns the pipeconf identifier currently associated with the given
+     * device identifier, if present. If not present, it means no pipeconf has
+     * been associated with that device so far.
      *
      * @param deviceId device identifier
      * @return an optional pipeconf identifier

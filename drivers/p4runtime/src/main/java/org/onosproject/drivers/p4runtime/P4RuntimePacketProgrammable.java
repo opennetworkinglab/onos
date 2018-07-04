@@ -37,11 +37,9 @@ public class P4RuntimePacketProgrammable
             return;
         }
 
-        final PiPipelineInterpreter interpreter = device.is(PiPipelineInterpreter.class)
-                ? device.as(PiPipelineInterpreter.class) : null;
+        final PiPipelineInterpreter interpreter = getInterpreter();
         if (interpreter == null) {
-            log.warn("Unable to get interpreter for {} with pipeconf {}, aborting emit operation",
-                     deviceId, pipeconf.id());
+            // Error logged by getInterpreter().
             return;
         }
 

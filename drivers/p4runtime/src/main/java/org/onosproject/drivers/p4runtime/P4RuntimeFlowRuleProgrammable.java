@@ -28,7 +28,6 @@ import org.onosproject.net.flow.DefaultFlowEntry;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleProgrammable;
-import org.onosproject.net.pi.model.PiPipelineInterpreter;
 import org.onosproject.net.pi.model.PiPipelineModel;
 import org.onosproject.net.pi.model.PiTableId;
 import org.onosproject.net.pi.runtime.PiCounterCellData;
@@ -118,10 +117,6 @@ public class P4RuntimeFlowRuleProgrammable
             return false;
         }
 
-        if (!device.is(PiPipelineInterpreter.class)) {
-            log.warn("Unable to get interpreter of {}", deviceId);
-            return false;
-        }
         pipelineModel = pipeconf.pipelineModel();
         tableMirror = handler().get(P4RuntimeTableMirror.class);
         translator = piTranslationService.flowRuleTranslator();
@@ -143,10 +138,10 @@ public class P4RuntimeFlowRuleProgrammable
         final List<PiTableEntry> inconsistentEntries = Lists.newArrayList();
 
         // Read table entries.
-        final Collection<PiTableEntry> installedEntries;
         // TODO: ONOS-7596 read counters with table entries
-        installedEntries = getFutureWithDeadline(client.dumpAllTables(pipeconf),
-                                                 "dumping tables", Collections.emptyList());
+        final Collection<PiTableEntry> installedEntries = getFutureWithDeadline(
+                client.dumpAllTables(pipeconf), "dumping all tables",
+                Collections.emptyList());
 
         if (installedEntries.isEmpty()) {
             return Collections.emptyList();

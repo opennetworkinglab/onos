@@ -85,11 +85,11 @@ public class PortStatisticsDiscoveryImpl extends AbstractHandlerBehaviour implem
         PiPipeconf pipeconf = piPipeconfService.getPipeconf(piPipeconfService.ofDevice(deviceId).get()).get();
 
         P4RuntimeController controller = handler().get(P4RuntimeController.class);
-        if (!controller.hasClient(deviceId)) {
+        P4RuntimeClient client = controller.getClient(deviceId);
+        if (client == null) {
             log.warn("Unable to find client for {}, aborting operation", deviceId);
             return Collections.emptyList();
         }
-        P4RuntimeClient client = controller.getClient(deviceId);
 
         Map<Long, DefaultPortStatistics.Builder> portStatBuilders = Maps.newHashMap();
         deviceService.getPorts(deviceId)

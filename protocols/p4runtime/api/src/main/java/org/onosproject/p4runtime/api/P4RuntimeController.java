@@ -36,10 +36,10 @@ public interface P4RuntimeController
      * channel to the device is open, false otherwise.
      * <p>
      * Only one client can exist for the same device ID. Calls to this method
-     * are idempotent for the same [device ID, address, port, p4DeviceId] tuple,
-     * i.e. returns true if such client already exists but a new one is not
-     * created. Throws an {@link IllegalStateException} if a client for device
-     * ID already exists but for different [address, port, p4DeviceId].
+     * are idempotent for the same [device ID, address, port, p4DeviceId]
+     * triplet, i.e. returns true if such client already exists but a new one is
+     * not created. Throws an {@link IllegalStateException} if a client for
+     * device ID already exists but for different [address, port, p4DeviceId].
      *
      * @param deviceId   device identifier
      * @param serverAddr address of the P4Runtime server
@@ -49,18 +49,17 @@ public interface P4RuntimeController
      * open
      * @throws IllegalStateException if a client already exists for this device
      *                               ID but for different [address, port,
-     *                               p4DeviceId].
+     *                               p4DeviceId] triplet.
      */
     boolean createClient(DeviceId deviceId, String serverAddr, int serverPort,
                          long p4DeviceId);
 
     /**
-     * Returns a client to operate on the given device.
+     * Returns a client to operate on the given device, or null if a client for
+     * such device does not exist in this controller.
      *
      * @param deviceId device identifier
-     * @return client instance
-     * @throws IllegalStateException if no client exists for the given device
-     *                               identifier
+     * @return client instance or null
      */
     P4RuntimeClient getClient(DeviceId deviceId);
 
@@ -92,7 +91,7 @@ public interface P4RuntimeController
      * @return true if a client was created and is able to contact the P4Runtime
      * server, false otherwise.
      */
-    boolean isReacheable(DeviceId deviceId);
+    boolean isReachable(DeviceId deviceId);
 
     /**
      * Adds a listener for device agent events.

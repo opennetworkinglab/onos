@@ -59,11 +59,11 @@ public abstract class AbstractP4RuntimePipelineProgrammable
         DeviceId deviceId = handler().data().deviceId();
         P4RuntimeController controller = handler().get(P4RuntimeController.class);
 
-        if (!controller.hasClient(deviceId)) {
+        P4RuntimeClient client = controller.getClient(deviceId);
+        if (client == null) {
             log.warn("Unable to find client for {}, aborting pipeconf deploy", deviceId);
             return false;
         }
-        P4RuntimeClient client = controller.getClient(deviceId);
 
         ByteBuffer deviceDataBuffer = createDeviceDataBuffer(pipeconf);
         if (deviceDataBuffer == null) {

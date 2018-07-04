@@ -18,6 +18,7 @@
     <driver name="barefoot" manufacturer="Barefoot Networks" hwVersion="1.0" swVersion="1.0" extends="p4runtime">
         <behaviour api="org.onosproject.net.behaviour.PiPipelineProgrammable"
                    impl="org.onosproject.drivers.barefoot.TofinoPipelineProgrammable"/>
+        <property name="tableDeleteBeforeUpdate">true</property>
     </driver>
 </drivers>
 
