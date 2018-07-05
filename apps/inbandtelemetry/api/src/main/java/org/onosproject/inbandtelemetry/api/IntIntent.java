@@ -286,7 +286,7 @@ public final class IntIntent {
             checkArgument(!selector.criteria().isEmpty(), "Empty selector cannot match any flow.");
             checkArgument(!metadataTypes.isEmpty(), "Metadata types cannot be empty.");
             checkNotNull(headerType, "Header type cannot be null.");
-            checkNotNull(!reportTypes.isEmpty(), "Report types cannot be empty.");
+            checkArgument(!reportTypes.isEmpty(), "Report types cannot be empty.");
             checkNotNull(telemetryMode, "Telemetry mode cannot be null.");
 
             return new IntIntent(selector, metadataTypes, headerType, reportTypes, telemetryMode);

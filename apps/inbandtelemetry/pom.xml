@@ -32,6 +32,5 @@
 
     <modules>
         <module>api</module>
-        <module>impl</module>
     </modules>
 </project>

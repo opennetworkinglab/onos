@@ -108,6 +108,7 @@
         <module>imr</module>
         <module>t3</module>
         <module>nodemetrics</module>
+        <module>inbandtelemetry</module>
     </modules>
 
     <properties>
