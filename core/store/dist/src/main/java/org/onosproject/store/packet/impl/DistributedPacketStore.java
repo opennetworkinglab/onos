@@ -224,9 +224,7 @@ public class DistributedPacketStore
         }
 
         private boolean addInternal(PacketRequest request) {
-            Collection<? extends PacketRequest> values =
-                Versioned.valueOrNull(requests.putAndGet(key(request), request));
-            return values.size() == 1;
+            return requests.put(key(request), request);
         }
 
         private void remove(PacketRequest request) {
