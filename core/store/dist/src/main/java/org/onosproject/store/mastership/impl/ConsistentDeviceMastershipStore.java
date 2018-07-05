@@ -22,7 +22,9 @@ import static org.onosproject.mastership.MastershipEvent.Type.SUSPENDED;
 import static org.slf4j.LoggerFactory.getLogger;
 import static com.google.common.base.Preconditions.checkArgument;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -301,24 +303,24 @@ public class ConsistentDeviceMastershipStore
     }
 
     private MastershipInfo buildMastershipFromLeadership(Leadership leadership) {
-        ImmutableMap.Builder<NodeId, MastershipRole> builder = ImmutableMap.builder();
+        Map<NodeId, MastershipRole> roles = new HashMap<>();
         if (leadership.leaderNodeId() != null) {
-            builder.put(leadership.leaderNodeId(), MastershipRole.MASTER);
+            roles.put(leadership.leaderNodeId(), MastershipRole.MASTER);
         }
         leadership.candidates().stream()
             .filter(nodeId -> !Objects.equals(leadership.leaderNodeId(), nodeId))
-            .forEach(nodeId -> builder.put(nodeId, MastershipRole.STANDBY));
+            .forEach(nodeId -> roles.putIfAbsent(nodeId, MastershipRole.STANDBY));
         clusterService.getNodes().stream()
             .filter(node -> !Objects.equals(leadership.leaderNodeId(), node.id()))
             .filter(node -> !leadership.candidates().contains(node.id()))
-            .forEach(node -> builder.put(node.id(), MastershipRole.NONE));
+            .forEach(node -> roles.putIfAbsent(node.id(), MastershipRole.NONE));
 
         return new MastershipInfo(
             leadership.leader() != null ? leadership.leader().term() : 0,
             leadership.leader() != null
                 ? Optional.of(leadership.leader().nodeId())
                 : Optional.empty(),
-            builder.build());
+            ImmutableMap.copyOf(roles));
     }
 
     private class InternalDeviceMastershipEventListener implements LeadershipEventListener {
