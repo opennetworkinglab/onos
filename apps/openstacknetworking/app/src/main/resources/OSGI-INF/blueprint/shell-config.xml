@@ -74,6 +74,12 @@
                 <ref component-id="arpModeCompleter"/>
             </completers>
         </command>
+        <command>
+            <action class="org.onosproject.openstacknetworking.cli.OpenstackAddAclCommand"></action>
+        </command>
+        <command>
+            <action class="org.onosproject.openstacknetworking.cli.OpenstackRemoveAclCommand"></action>
+        </command>
     </command-bundle>
 
     <bean id="ipAddressCompleter" class="org.onosproject.openstacknetworking.cli.IpAddressCompleter"/>
