@@ -383,10 +383,14 @@ public class DistributedOpenstackVtapStore
                                                  DeviceId deviceId) {
         Set<OpenstackVtapId> vtapIds = Sets.newHashSet();
         if (type.isValid(OpenstackVtap.Type.VTAP_TX)) {
-            vtapIds.addAll(vTapIdsByTxDeviceId.get(deviceId));
+            if (vTapIdsByTxDeviceId.get(deviceId) != null) {
+                vtapIds.addAll(vTapIdsByTxDeviceId.get(deviceId));
+            }
         }
         if (type.isValid(OpenstackVtap.Type.VTAP_RX)) {
-            vtapIds.addAll(vTapIdsByRxDeviceId.get(deviceId));
+            if (vTapIdsByRxDeviceId.get(deviceId) != null) {
+                vtapIds.addAll(vTapIdsByRxDeviceId.get(deviceId));
+            }
         }
 
         return ImmutableSet.copyOf(

@@ -204,14 +204,15 @@ public class OpenstackVtapManager
         hostService.addListener(hostListener);
         osNodeService.addListener(osNodeListener);
 
-        // TODO: need to sweep through device store and add flow rules and
-        // group tables to mirror VM traffic
+        initFlowAndGroupForCompNodes();
 
         log.info("Started {} - {}", appId.name(), this.getClass().getSimpleName());
     }
 
     @Deactivate
     public void deactivate() {
+        clearFlowAndGroupForCompNodes();
+
         osNodeService.removeListener(osNodeListener);
         hostService.removeListener(hostListener);
         deviceService.removeListener(deviceListener);
@@ -221,8 +222,6 @@ public class OpenstackVtapManager
 
         eventExecutor.shutdown();
         leadershipService.withdraw(appId.name());
-
-        // TODO: need to purge vtap related flow rules and group tables
 
         log.info("Stopped {} - {}", appId.name(), this.getClass().getSimpleName());
     }
@@ -422,6 +421,14 @@ public class OpenstackVtapManager
     }
 
     /**
+     * Initializes the flow rules and group tables for all completed compute nodes.
+     */
+    private void initFlowAndGroupForCompNodes() {
+        osNodeService.completeNodes(COMPUTE).forEach(node ->
+                                initFlowAndGroupByDeviceId(node.intgBridge()));
+    }
+
+    /**
      * Initializes the flow rules and group table of the given device identifier.
      *
      * @param deviceId device identifier
@@ -475,11 +482,19 @@ public class OpenstackVtapManager
     }
 
     /**
+     * Purges all flow rules and group tables for completed compute nodes.
+     */
+    private void clearFlowAndGroupForCompNodes() {
+        osNodeService.completeNodes(COMPUTE).forEach(node ->
+                clearFlowAndGroupByDeviceId(node.intgBridge()));
+    }
+
+    /**
      * Purges all flow rules and group tables using the given device identifier.
      *
      * @param deviceId  device identifier
      */
-    private void clearRulesGroupTable(DeviceId deviceId) {
+    private void clearFlowAndGroupByDeviceId(DeviceId deviceId) {
         Set<FlowRule> purgedRules = Sets.newConcurrentHashSet();
         for (FlowRule flowRule : flowRuleService.getFlowRulesById(appId)) {
             if (flowRule.deviceId().equals(deviceId)) {
@@ -754,7 +769,7 @@ public class OpenstackVtapManager
                     eventExecutor.execute(() -> initFlowAndGroupByDeviceId(deviceId));
                     break;
                 case OPENSTACK_NODE_REMOVED:
-                    eventExecutor.execute(() -> clearRulesGroupTable(deviceId));
+                    eventExecutor.execute(() -> clearFlowAndGroupByDeviceId(deviceId));
                 default:
                     break;
             }
