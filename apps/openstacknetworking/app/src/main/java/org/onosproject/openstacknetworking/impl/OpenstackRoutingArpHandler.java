@@ -149,7 +149,7 @@ public class OpenstackRoutingArpHandler {
     // TODO: need to find a way to unify aprMode and gatewayMac variables with
     // that in SwitchingArpHandler
     @Property(name = ARP_MODE, value = DEFAULT_ARP_MODE_STR,
-            label = "ARP processing mode, broadcast (default) | proxy ")
+            label = "ARP processing mode, broadcast | proxy (default)")
     protected String arpMode = DEFAULT_ARP_MODE_STR;
 
     protected String gatewayMac = DEFAULT_GATEWAY_MAC_STR;

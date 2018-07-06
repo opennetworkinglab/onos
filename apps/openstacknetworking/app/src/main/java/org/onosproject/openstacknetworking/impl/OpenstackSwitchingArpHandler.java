@@ -136,7 +136,7 @@ public final class OpenstackSwitchingArpHandler {
     private String gatewayMac = DEFAULT_GATEWAY_MAC_STR;
 
     @Property(name = ARP_MODE, value = DEFAULT_ARP_MODE_STR,
-            label = "ARP processing mode, broadcast (default) | proxy ")
+            label = "ARP processing mode, broadcast | proxy (default)")
     protected String arpMode = DEFAULT_ARP_MODE_STR;
 
     private final InternalPacketProcessor packetProcessor = new InternalPacketProcessor();
