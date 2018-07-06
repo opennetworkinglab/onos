@@ -29,12 +29,12 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
-import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -51,16 +51,12 @@ import org.onosproject.net.flow.criteria.IPProtocolCriterion;
 import org.onosproject.net.flow.criteria.TcpPortCriterion;
 import org.onosproject.net.flow.criteria.UdpPortCriterion;
 import org.onosproject.net.host.HostService;
-import org.onosproject.openstacknetworking.api.InstancePort;
-import org.onosproject.openstacknetworking.api.InstancePortService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.onosproject.openstacktelemetry.api.FlowInfo;
 import org.onosproject.openstacktelemetry.api.OpenstackTelemetryService;
 import org.onosproject.openstacktelemetry.api.StatsFlowRule;
 import org.onosproject.openstacktelemetry.api.StatsFlowRuleAdminService;
 import org.onosproject.openstacktelemetry.api.StatsInfo;
-import org.openstack4j.model.network.Network;
-import org.openstack4j.model.network.NetworkType;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,7 +67,6 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.packet.Ethernet.TYPE_IPV4;
 import static org.onlab.packet.IPv4.PROTOCOL_TCP;
 import static org.onlab.packet.IPv4.PROTOCOL_UDP;
@@ -88,11 +83,11 @@ import static org.onosproject.openstacknetworking.api.Constants.STAT_OUTBOUND_TA
 import static org.onosproject.openstacknetworking.api.Constants.VTAP_FLAT_OUTBOUND_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.VTAP_INBOUND_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.VTAP_OUTBOUND_TABLE;
+import static org.onosproject.openstacktelemetry.api.Constants.FLAT;
 import static org.onosproject.openstacktelemetry.api.Constants.OPENSTACK_TELEMETRY_APP_ID;
+import static org.onosproject.openstacktelemetry.api.Constants.VLAN;
+import static org.onosproject.openstacktelemetry.api.Constants.VXLAN;
 import static org.onosproject.openstacktelemetry.util.OpenstackTelemetryUtil.getBooleanProperty;
-import static org.openstack4j.model.network.NetworkType.FLAT;
-import static org.openstack4j.model.network.NetworkType.VLAN;
-import static org.openstack4j.model.network.NetworkType.VXLAN;
 
 /**
  * Flow rule manager for network statistics of a VM.
@@ -126,16 +121,13 @@ public class StatsFlowRuleManager implements StatsFlowRuleAdminService {
     protected HostService hostService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DeviceService deviceService;
+    protected ComponentConfigService componentConfigService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MastershipService mastershipService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OpenstackNetworkService osNetworkService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected InstancePortService instancePortService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OpenstackTelemetryService telemetryService;
@@ -173,6 +165,8 @@ public class StatsFlowRuleManager implements StatsFlowRuleAdminService {
     protected void activate() {
         appId = coreService.registerApplication(OPENSTACK_TELEMETRY_APP_ID);
 
+        componentConfigService.registerProperties(getClass());
+
         this.start();
 
         log.info("Started");
@@ -180,6 +174,9 @@ public class StatsFlowRuleManager implements StatsFlowRuleAdminService {
 
     @Deactivate
     protected void deactivate() {
+
+        componentConfigService.unregisterProperties(getClass(), false);
+
         log.info("Stopped");
     }
 
@@ -209,10 +206,6 @@ public class StatsFlowRuleManager implements StatsFlowRuleAdminService {
     public void createStatFlowRule(StatsFlowRule statsFlowRule) {
 
         setStatFlowRule(statsFlowRule, true);
-
-        log.info("Install stat flow rule for SrcIp:{} DstIp:{}",
-                statsFlowRule.srcIpPrefix().toString(),
-                statsFlowRule.dstIpPrefix().toString());
     }
 
     @Override
@@ -221,10 +214,6 @@ public class StatsFlowRuleManager implements StatsFlowRuleAdminService {
         flowRuleService.removeFlowRulesById(appId);
 
         setStatFlowRule(statsFlowRule, false);
-
-        log.info("Remove stat flow rule for SrcIp:{} DstIp:{}",
-                statsFlowRule.srcIpPrefix().toString(),
-                statsFlowRule.dstIpPrefix().toString());
     }
 
     private void connectTables(DeviceId deviceId, int fromTable, int toTable,
@@ -459,8 +448,11 @@ public class StatsFlowRuleManager implements StatsFlowRuleAdminService {
      * @param install flow rule installation flag
      */
     private void setStatFlowRuleBase(StatsFlowRule statsFlowRule, boolean install) {
-        DeviceId srcDeviceId = getDeviceId(statsFlowRule.srcIpPrefix().address());
-        DeviceId dstDeviceId = getDeviceId(statsFlowRule.dstIpPrefix().address());
+
+        IpPrefix srcIp = statsFlowRule.srcIpPrefix();
+        IpPrefix dstIp = statsFlowRule.dstIpPrefix();
+        DeviceId srcDeviceId = getDeviceId(srcIp.address());
+        DeviceId dstDeviceId = getDeviceId(dstIp.address());
 
         if (srcDeviceId == null && dstDeviceId == null) {
             return;
@@ -469,42 +461,47 @@ public class StatsFlowRuleManager implements StatsFlowRuleAdminService {
         if (srcDeviceId != null) {
             connectTables(srcDeviceId, STAT_INBOUND_TABLE, VTAP_INBOUND_TABLE,
                     statsFlowRule, METRIC_PRIORITY_SOURCE, install);
-        }
 
-        if (dstDeviceId != null && egressStats) {
-            NetworkType type = getNetworkType(statsFlowRule.dstIpPrefix());
-            if (type == VXLAN || type == VLAN) {
-                connectTables(dstDeviceId, STAT_OUTBOUND_TABLE, VTAP_OUTBOUND_TABLE,
-                        statsFlowRule, METRIC_PRIORITY_TARGET, install);
-            } else if (type == FLAT) {
-                connectTables(dstDeviceId, STAT_FLAT_OUTBOUND_TABLE, VTAP_FLAT_OUTBOUND_TABLE,
-                        statsFlowRule, METRIC_PRIORITY_TARGET, install);
+            if (install) {
+                log.info("Install ingress stat flow rule for SrcIp:{} DstIp:{}",
+                                            srcIp.toString(), dstIp.toString());
+            } else {
+                log.info("Remove ingress stat flow rule for SrcIp:{} DstIp:{}",
+                                            srcIp.toString(), dstIp.toString());
             }
         }
-    }
 
-    /**
-     * Obtains the network type that is used by the VM which has the given IP.
-     *
-     * @param ipPrefix IP prefix
-     * @return network type
-     */
-    private NetworkType getNetworkType(IpPrefix ipPrefix) {
+        Set<IpPrefix> vxlanIps = osNetworkService.getFixedIpsByNetworkType(VXLAN);
+        Set<IpPrefix> vlanIps = osNetworkService.getFixedIpsByNetworkType(VLAN);
+        Set<IpPrefix> flatIps = osNetworkService.getFixedIpsByNetworkType(FLAT);
 
-        MacAddress mac = checkNotNull(getMacAddress(ipPrefix.address()), MAC_NOT_NULL);
-        InstancePort instPort = instancePortService.instancePort(mac);
+        int fromTable, toTable;
 
-        if (instPort == null) {
-            return null;
+        if (dstDeviceId != null && egressStats) {
+
+            IpPrefix dstIpPrefix = statsFlowRule.dstIpPrefix();
+
+            if (vxlanIps.contains(dstIpPrefix) || vlanIps.contains(dstIpPrefix)) {
+                fromTable = STAT_OUTBOUND_TABLE;
+                toTable = VTAP_OUTBOUND_TABLE;
+            } else if (flatIps.contains(dstIpPrefix)) {
+                fromTable = STAT_FLAT_OUTBOUND_TABLE;
+                toTable = VTAP_FLAT_OUTBOUND_TABLE;
+            } else {
+                return;
+            }
+
+            connectTables(dstDeviceId, fromTable, toTable,
+                    statsFlowRule, METRIC_PRIORITY_TARGET, install);
+
+            if (install) {
+                log.info("Install egress stat flow rule for SrcIp:{} DstIp:{}",
+                                            srcIp.toString(), dstIp.toString());
+            } else {
+                log.info("Remove egress stat flow rule for SrcIp:{} DstIp:{}",
+                                            srcIp.toString(), dstIp.toString());
+            }
         }
-
-        Network network = osNetworkService.network(instPort.networkId());
-
-        if (network != null) {
-            return network.getNetworkType();
-        }
-
-        return null;
     }
 
     /**

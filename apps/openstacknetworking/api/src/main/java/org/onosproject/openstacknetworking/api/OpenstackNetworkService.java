@@ -16,6 +16,7 @@
 package org.onosproject.openstacknetworking.api;
 
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onosproject.event.ListenerService;
 import org.openstack4j.model.network.ExternalGateway;
@@ -98,6 +99,14 @@ public interface OpenstackNetworkService
      * @return set of ports
      */
     Set<Port> ports(String networkId);
+
+    /**
+     * Obtains a set of fixed IP addresses managed by the given network type.
+     *
+     * @param type network type (FLAT, VXLAN, VLAN, etc.)
+     * @return a set of fixed IP addresses
+     */
+    Set<IpPrefix> getFixedIpsByNetworkType(String type);
 
     /**
      * Returns external router mac with supplied external gateway.

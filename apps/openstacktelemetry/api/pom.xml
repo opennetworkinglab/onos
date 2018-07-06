@@ -54,37 +54,10 @@
         </dependency>
 
         <dependency>
-            <groupId>org.pacesys</groupId>
-            <artifactId>openstack4j-core</artifactId>
-            <version>${openstack4j.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.apache.servicemix.bundles</groupId>
             <artifactId>org.apache.servicemix.bundles.kafka-clients</artifactId>
             <version>${kafka-client.version}</version>
         </dependency>
 
     </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-bundle-plugin</artifactId>
-                <extensions>true</extensions>
-                <configuration>
-                    <instructions>
-                        <Bundle-SymbolicName>
-                            ${project.groupId}.${project.artifactId}
-                        </Bundle-SymbolicName>
-                        <Import-Package>
-                            !org.openstack4j.*,
-                            *
-                        </Import-Package>
-                    </instructions>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
 </project>

@@ -17,6 +17,7 @@ package org.onosproject.openstacknetworking.impl;
 
 import com.google.common.collect.ImmutableSet;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onosproject.openstacknetworking.api.ExternalPeerRouter;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkListener;
@@ -75,6 +76,11 @@ public class OpenstackNetworkServiceAdapter implements OpenstackNetworkService {
     @Override
     public Set<Port> ports(String networkId) {
         return ImmutableSet.of();
+    }
+
+    @Override
+    public Set<IpPrefix> getFixedIpsByNetworkType(String type) {
+        return null;
     }
 
     @Override

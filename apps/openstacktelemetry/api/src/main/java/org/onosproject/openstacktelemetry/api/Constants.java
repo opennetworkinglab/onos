@@ -65,4 +65,7 @@ public final class Constants {
     public static final boolean DEFAULT_DISABLE = false;
     public static final boolean DEFAULT_ENABLE = true;
 
+    public static final String VXLAN = "VXLAN";
+    public static final String VLAN = "VLAN";
+    public static final String FLAT = "FLAT";
 }

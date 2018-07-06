@@ -17,6 +17,7 @@ package org.onosproject.openstacknetworking.impl;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -26,6 +27,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.ARP;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onlab.util.KryoNamespace;
@@ -51,9 +53,11 @@ import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
+import org.openstack4j.model.common.IdEntity;
 import org.openstack4j.model.network.ExternalGateway;
 import org.openstack4j.model.network.IP;
 import org.openstack4j.model.network.Network;
+import org.openstack4j.model.network.NetworkType;
 import org.openstack4j.model.network.Port;
 import org.openstack4j.model.network.Router;
 import org.openstack4j.model.network.Subnet;
@@ -110,6 +114,8 @@ public class OpenstackNetworkManager
     private static final String ERR_IN_USE = " still in use";
     private static final String ERR_DUPLICATE = " already exists";
     private static final String PORT_NAME_PREFIX_VM = "tap";
+
+    private static final int PREFIX_LENGTH = 32;
 
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -353,6 +359,49 @@ public class OpenstackNetworkManager
                 .filter(port -> Objects.equals(port.getNetworkId(), netId))
                 .collect(Collectors.toSet());
         return ImmutableSet.copyOf(osPorts);
+    }
+
+    @Override
+    public Set<IpPrefix> getFixedIpsByNetworkType(String type) {
+        if (type == null) {
+            return Sets.newHashSet();
+        }
+
+        Set<Network> networks = osNetworkStore.networks();
+        Set<String> networkIds = Sets.newConcurrentHashSet();
+
+        switch (type.toUpperCase()) {
+            case "FLAT" :
+                networkIds = networks.stream()
+                        .filter(n -> n.getNetworkType() == NetworkType.FLAT)
+                        .map(IdEntity::getId).collect(Collectors.toSet());
+                break;
+            case "VXLAN" :
+                networkIds = networks.stream()
+                        .filter(n -> n.getNetworkType() == NetworkType.VXLAN)
+                        .map(IdEntity::getId).collect(Collectors.toSet());
+                break;
+            case "VLAN" :
+                networkIds = networks.stream()
+                        .filter(n -> n.getNetworkType() == NetworkType.VLAN)
+                        .map(IdEntity::getId).collect(Collectors.toSet());
+                break;
+            default:
+                break;
+        }
+
+        Set<IP> ips = Sets.newConcurrentHashSet();
+        for (String networkId : networkIds) {
+            osNetworkStore.ports()
+                    .stream()
+                    .filter(p -> p.getNetworkId().equals(networkId))
+                    .filter(p -> p.getFixedIps() != null)
+                    .forEach(p -> ips.addAll(p.getFixedIps()));
+        }
+
+        return ips.stream().map(ip -> IpPrefix.valueOf(
+                IpAddress.valueOf(ip.getIpAddress()), PREFIX_LENGTH))
+                .collect(Collectors.toSet());
     }
 
     @Override
