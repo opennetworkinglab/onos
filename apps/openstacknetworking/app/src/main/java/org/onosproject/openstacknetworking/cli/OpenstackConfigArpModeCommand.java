@@ -31,6 +31,7 @@ import org.onosproject.openstacknode.api.OpenstackNodeAdminService;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.checkArpMode;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getPropertyValue;
 
 /**
@@ -41,8 +42,6 @@ import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.g
 public class OpenstackConfigArpModeCommand extends AbstractShellCommand {
 
     private static final String ARP_MODE_NAME = "arpMode";
-    private static final String PROXY_MODE = "proxy";
-    private static final String BROADCAST_MODE = "broadcast";
 
     @Argument(index = 0, name = "arpMode",
             description = "ARP mode (proxy | broadcast)",
@@ -53,7 +52,7 @@ public class OpenstackConfigArpModeCommand extends AbstractShellCommand {
     protected void execute() {
 
         if (checkArpMode(arpMode)) {
-            configArpMode();
+            configArpMode(arpMode);
 
             ComponentConfigService service = get(ComponentConfigService.class);
             String switchingComponent = OpenstackSwitchingArpHandler.class.getName();
@@ -77,21 +76,6 @@ public class OpenstackConfigArpModeCommand extends AbstractShellCommand {
         }
     }
 
-    private boolean checkArpMode(String arpMode) {
-
-        if (isNullOrEmpty(arpMode)) {
-            error("ARP mode should not be empty string or null");
-            return false;
-        } else {
-            if (arpMode.equals(PROXY_MODE) || arpMode.equals(BROADCAST_MODE)) {
-                return true;
-            } else {
-                error("ARP mode should be either proxy or broadcast");
-                return false;
-            }
-        }
-    }
-
     private void purgeRules() {
         FlowRuleService flowRuleService = AbstractShellCommand.get(FlowRuleService.class);
         CoreService coreService = AbstractShellCommand.get(CoreService.class);
@@ -103,7 +87,7 @@ public class OpenstackConfigArpModeCommand extends AbstractShellCommand {
         flowRuleService.removeFlowRulesById(appId);
     }
 
-    private void configArpMode() {
+    private void configArpMode(String arpMode) {
         ComponentConfigService service = get(ComponentConfigService.class);
         String switchingComponent = OpenstackSwitchingArpHandler.class.getName();
         String routingComponent = OpenstackRoutingArpHandler.class.getName();

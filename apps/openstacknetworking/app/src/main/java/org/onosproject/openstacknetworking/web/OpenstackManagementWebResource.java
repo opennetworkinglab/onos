@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import org.onlab.util.ItemNotFoundException;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.flow.FlowRuleService;
@@ -27,6 +28,8 @@ import org.onosproject.openstacknetworking.api.Constants;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkAdminService;
 import org.onosproject.openstacknetworking.api.OpenstackRouterAdminService;
 import org.onosproject.openstacknetworking.api.OpenstackSecurityGroupAdminService;
+import org.onosproject.openstacknetworking.impl.OpenstackRoutingArpHandler;
+import org.onosproject.openstacknetworking.impl.OpenstackSwitchingArpHandler;
 import org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil;
 import org.onosproject.openstacknode.api.NodeState;
 import org.onosproject.openstacknode.api.OpenstackNode;
@@ -40,6 +43,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -48,7 +52,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import static org.onlab.util.Tools.nullIsIllegal;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.addRouterIface;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.checkArpMode;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getPropertyValue;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.CONTROLLER;
 
 /**
@@ -59,8 +66,12 @@ public class OpenstackManagementWebResource extends AbstractWebResource {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private static final String FLOATINGIPS = "floatingips";
+    private static final String ARP_MODE_NAME = "arpMode";
 
     private static final String DEVICE_OWNER_IFACE = "network:router_interface";
+
+    private static final String ARP_MODE_REQUIRED = "ARP mode is not specified";
+
     private final ObjectNode root = mapper().createObjectNode();
     private final ArrayNode floatingipsNode = root.putArray(FLOATINGIPS);
 
@@ -164,11 +175,7 @@ public class OpenstackManagementWebResource extends AbstractWebResource {
     @Path("sync/rules")
     public Response syncRules() {
 
-        osNodeService.completeNodes().forEach(osNode -> {
-            OpenstackNode updated = osNode.updateState(NodeState.INIT);
-            osNodeAdminService.updateNode(updated);
-        });
-
+        syncRulesBase();
         return ok(mapper().createObjectNode()).build();
     }
 
@@ -199,11 +206,47 @@ public class OpenstackManagementWebResource extends AbstractWebResource {
     @Path("purge/rules")
     public Response purgeRules() {
 
-        ApplicationId appId = coreService.getAppId(Constants.OPENSTACK_NETWORKING_APP_ID);
-        if (appId == null) {
-            throw new ItemNotFoundException("application not found");
+        purgeRulesBase();
+        return ok(mapper().createObjectNode()).build();
+    }
+
+    /**
+     * Configures the ARP mode (proxy | broadcast).
+     *
+     * @param arpmode ARP mode
+     * @return 200 OK with config result, 404 not found
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("config/arpmode/{arpmode}")
+    public Response configArpMode(@PathParam("arpmode") String arpmode) {
+
+        String arpModeStr = nullIsIllegal(arpmode, ARP_MODE_REQUIRED);
+        if (checkArpMode(arpModeStr)) {
+            configArpModeBase(arpModeStr);
+
+            ComponentConfigService service = get(ComponentConfigService.class);
+            String switchingComponent = OpenstackSwitchingArpHandler.class.getName();
+            String routingComponent = OpenstackRoutingArpHandler.class.getName();
+
+            // we check the arpMode configured in each component, and purge and
+            // reinstall all rules only if the arpMode is changed to the configured one
+            while (true) {
+                String switchingValue =
+                        getPropertyValue(service.getProperties(switchingComponent), ARP_MODE_NAME);
+                String routingValue =
+                        getPropertyValue(service.getProperties(routingComponent), ARP_MODE_NAME);
+
+                if (arpModeStr.equals(switchingValue) && arpModeStr.equals(routingValue)) {
+                    break;
+                }
+            }
+
+            purgeRulesBase();
+            syncRulesBase();
+        } else {
+            throw new IllegalArgumentException("The ARP mode is not valid");
         }
-        flowRuleService.removeFlowRulesById(appId);
 
         return ok(mapper().createObjectNode()).build();
     }
@@ -247,5 +290,29 @@ public class OpenstackManagementWebResource extends AbstractWebResource {
                 .forEach(fip -> floatingipsNode.add(fip.getFloatingIpAddress()));
 
         return ok(root).build();
+    }
+
+    private void syncRulesBase() {
+        osNodeService.completeNodes().forEach(osNode -> {
+            OpenstackNode updated = osNode.updateState(NodeState.INIT);
+            osNodeAdminService.updateNode(updated);
+        });
+    }
+
+    private void purgeRulesBase() {
+        ApplicationId appId = coreService.getAppId(Constants.OPENSTACK_NETWORKING_APP_ID);
+        if (appId == null) {
+            throw new ItemNotFoundException("application not found");
+        }
+        flowRuleService.removeFlowRulesById(appId);
+    }
+
+    private void configArpModeBase(String arpMode) {
+        ComponentConfigService service = get(ComponentConfigService.class);
+        String switchingComponent = OpenstackSwitchingArpHandler.class.getName();
+        String routingComponent = OpenstackRoutingArpHandler.class.getName();
+
+        service.setProperty(switchingComponent, ARP_MODE_NAME, arpMode);
+        service.setProperty(routingComponent, ARP_MODE_NAME, arpMode);
     }
 }

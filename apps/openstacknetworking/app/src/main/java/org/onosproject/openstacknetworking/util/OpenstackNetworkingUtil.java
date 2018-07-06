@@ -60,6 +60,7 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onosproject.openstacknetworking.api.Constants.PCISLOT;
 import static org.onosproject.openstacknetworking.api.Constants.PCI_VENDOR_INFO;
 import static org.onosproject.openstacknetworking.api.Constants.portNamePrefixMap;
@@ -83,6 +84,9 @@ public final class OpenstackNetworkingUtil {
     private static final String KEYSTONE_V3 = "v3";
     private static final String IDENTITY_PATH = "identity/";
     private static final String SSL_TYPE = "SSL";
+
+    private static final String PROXY_MODE = "proxy";
+    private static final String BROADCAST_MODE = "broadcast";
 
     private static final String ERR_FLOW = "Failed set flows for floating IP %s: ";
 
@@ -361,6 +365,21 @@ public final class OpenstackNetworkingUtil {
         Optional<ConfigProperty> property =
                 properties.stream().filter(p -> p.name().equals(name)).findFirst();
         return property.map(ConfigProperty::value).orElse(null);
+    }
+
+    /**
+     * Checks the validity of ARP mode.
+     *
+     * @param arpMode ARP mode
+     * @return returns true if the ARP mode is valid, false otherwise
+     */
+    public static boolean checkArpMode(String arpMode) {
+
+        if (isNullOrEmpty(arpMode)) {
+            return false;
+        } else {
+            return arpMode.equals(PROXY_MODE) || arpMode.equals(BROADCAST_MODE);
+        }
     }
 
     /**
