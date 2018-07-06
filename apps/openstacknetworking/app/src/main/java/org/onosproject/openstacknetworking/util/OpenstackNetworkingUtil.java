@@ -19,10 +19,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
+import org.onosproject.cfg.ConfigProperty;
 import org.onosproject.net.DeviceId;
 import org.onosproject.openstacknetworking.api.InstancePort;
-import org.onosproject.openstacknetworking.api.OpenstackRouterAdminService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
+import org.onosproject.openstacknetworking.api.OpenstackRouterAdminService;
 import org.onosproject.openstacknode.api.OpenstackAuth;
 import org.onosproject.openstacknode.api.OpenstackAuth.Perspective;
 import org.onosproject.openstacknode.api.OpenstackNode;
@@ -54,6 +55,7 @@ import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -346,6 +348,19 @@ public final class OpenstackNetworkingUtil {
             } catch (IOException ignore) {
             }
         });
+    }
+
+    /**
+     * Obtains the property value with specified property key name.
+     *
+     * @param properties    a collection of properties
+     * @param name          key name
+     * @return mapping value
+     */
+    public static String getPropertyValue(Set<ConfigProperty> properties, String name) {
+        Optional<ConfigProperty> property =
+                properties.stream().filter(p -> p.name().equals(name)).findFirst();
+        return property.map(ConfigProperty::value).orElse(null);
     }
 
     /**

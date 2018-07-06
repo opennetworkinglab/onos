@@ -137,7 +137,7 @@ public class OpenstackFlowRuleManager implements OpenstackFlowRuleService {
 
             @Override
             public void onError(FlowRuleOperations ops) {
-                log.debug("Failed to privision vni or forwarding table");
+                log.debug("Failed to provision vni or forwarding table");
             }
         }));
     }

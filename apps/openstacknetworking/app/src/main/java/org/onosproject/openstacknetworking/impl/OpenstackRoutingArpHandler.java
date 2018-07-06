@@ -32,8 +32,8 @@ import org.onlab.packet.Ethernet;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
-import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
+import org.onosproject.cfg.ConfigProperty;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.LeadershipService;
 import org.onosproject.cluster.NodeId;
@@ -77,7 +77,6 @@ import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
 import java.nio.ByteBuffer;
-import java.util.Dictionary;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -97,6 +96,7 @@ import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ARP_GAT
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.associatedFloatingIp;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getGwByComputeDevId;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getGwByInstancePort;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getPropertyValue;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.isAssociatedWithVM;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -146,8 +146,6 @@ public class OpenstackRoutingArpHandler {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService configService;
 
-    // TODO: need to find a way to unify aprMode and gatewayMac variables with
-    // that in SwitchingArpHandler
     @Property(name = ARP_MODE, value = DEFAULT_ARP_MODE_STR,
             label = "ARP processing mode, broadcast | proxy (default)")
     protected String arpMode = DEFAULT_ARP_MODE_STR;
@@ -205,21 +203,19 @@ public class OpenstackRoutingArpHandler {
     // that in SwitchingArpHandler
     @Modified
     void modified(ComponentContext context) {
-        Dictionary<?, ?> properties = context.getProperties();
-        String updateArpMode;
-
-        updateArpMode = Tools.get(properties, ARP_MODE);
-        if (!Strings.isNullOrEmpty(updateArpMode) && !updateArpMode.equals(arpMode)) {
-            arpMode = updateArpMode;
-        }
 
         log.info("Modified");
+    }
+
+    private String getArpMode() {
+        Set<ConfigProperty> properties = configService.getProperties(this.getClass().getName());
+        return getPropertyValue(properties, ARP_MODE);
     }
 
     private void processArpPacket(PacketContext context, Ethernet ethernet) {
         ARP arp = (ARP) ethernet.getPayload();
 
-        if (arp.getOpCode() == ARP.OP_REQUEST && arpMode.equals(ARP_PROXY_MODE)) {
+        if (arp.getOpCode() == ARP.OP_REQUEST && ARP_PROXY_MODE.equals(getArpMode())) {
             if (log.isTraceEnabled()) {
                 log.trace("ARP request received from {} for {}",
                         Ip4Address.valueOf(arp.getSenderProtocolAddress()).toString(),
@@ -381,7 +377,7 @@ public class OpenstackRoutingArpHandler {
      * @param install flow rule installation flag
      */
     private void setFloatingIpArpRuleForGateway(OpenstackNode gateway, boolean install) {
-        if (arpMode.equals(ARP_BROADCAST_MODE)) {
+        if (ARP_BROADCAST_MODE.equals(getArpMode())) {
 
             Set<OpenstackNode> completedGws = osNodeService.completeNodes(GATEWAY);
             Set<OpenstackNode> finalGws = Sets.newConcurrentHashSet();
@@ -442,7 +438,7 @@ public class OpenstackRoutingArpHandler {
                                                    InstancePort port,
                                                    Set<OpenstackNode> gateways,
                                                    boolean install) {
-        if (arpMode.equals(ARP_BROADCAST_MODE)) {
+        if (ARP_BROADCAST_MODE.equals(getArpMode())) {
 
             OpenstackNode gw = getGwByInstancePort(gateways, port);
 
@@ -469,7 +465,7 @@ public class OpenstackRoutingArpHandler {
     private synchronized void setFloatingIpArpRule(NetFloatingIP fip,
                                                    Set<OpenstackNode> gateways,
                                                    boolean install) {
-        if (arpMode.equals(ARP_BROADCAST_MODE)) {
+        if (ARP_BROADCAST_MODE.equals(getArpMode())) {
 
             if (fip == null) {
                 log.warn("Failed to set ARP broadcast rule for floating IP");
@@ -671,7 +667,7 @@ public class OpenstackRoutingArpHandler {
         }
 
         private void setFakeGatewayArpRule(ExternalGateway extGw, boolean install) {
-            if (arpMode.equals(ARP_BROADCAST_MODE)) {
+            if (ARP_BROADCAST_MODE.equals(getArpMode())) {
 
                 if (extGw == null) {
                     return;
@@ -859,7 +855,7 @@ public class OpenstackRoutingArpHandler {
         }
 
         private void setDefaultArpRule(OpenstackNode osNode, boolean install) {
-            switch (arpMode) {
+            switch (getArpMode()) {
                 case ARP_PROXY_MODE:
                     setDefaultArpRuleForProxyMode(osNode, install);
                     break;
@@ -868,7 +864,7 @@ public class OpenstackRoutingArpHandler {
                     break;
                 default:
                     log.warn("Invalid ARP mode {}. Please use either " +
-                            "broadcast or proxy mode.", arpMode);
+                            "broadcast or proxy mode.", getArpMode());
                     break;
             }
         }

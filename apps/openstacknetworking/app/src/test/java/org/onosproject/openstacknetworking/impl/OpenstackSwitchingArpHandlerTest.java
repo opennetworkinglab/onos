@@ -45,7 +45,6 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.onosproject.net.NetTestTools.connectPoint;
-import static org.onosproject.openstacknetworking.api.Constants.ARP_PROXY_MODE;
 
 public class OpenstackSwitchingArpHandlerTest {
 
@@ -68,7 +67,6 @@ public class OpenstackSwitchingArpHandlerTest {
         arpHandler.osNetworkService = new TestOpenstackNetworkService();
         arpHandler.osNodeService = new TestOpenstackNodeService();
         arpHandler.osFlowRuleService = new TestOpenstackFlowRuleService();
-        arpHandler.arpMode = ARP_PROXY_MODE;
         arpHandler.clusterService = new TestClusterService();
         arpHandler.leadershipService = new TestLeadershipService();
         arpHandler.activate();
