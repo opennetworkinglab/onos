@@ -22,7 +22,7 @@
     <parent>
         <artifactId>onos-app-evpn-route-service</artifactId>
         <groupId>org.onosproject</groupId>
-        <version>1.13.2-SNAPSHOT</version>
+        <version>1.13.2-rc3</version>
     </parent>
 
     <artifactId>onos-app-evpn-route-service-api</artifactId>
