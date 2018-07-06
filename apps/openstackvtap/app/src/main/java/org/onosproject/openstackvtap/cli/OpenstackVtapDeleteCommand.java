@@ -40,7 +40,7 @@ public class OpenstackVtapDeleteCommand extends AbstractShellCommand {
         if (vTap != null) {
             print("Removed OpenstackVtap with id { %s }", vTap.id().toString());
         } else {
-            print("Failed to remove OpenstackVtap with id { %s }", vTap.id().toString());
+            print("Failed to remove OpenstackVtap with id { %s }", vTapId);
         }
     }
 }
