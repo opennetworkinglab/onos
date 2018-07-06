@@ -770,6 +770,7 @@ public class OpenstackVtapManager
                     break;
                 case OPENSTACK_NODE_REMOVED:
                     eventExecutor.execute(() -> clearFlowAndGroupByDeviceId(deviceId));
+                    break;
                 default:
                     break;
             }
