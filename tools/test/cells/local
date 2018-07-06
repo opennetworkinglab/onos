@@ -3,6 +3,8 @@
 export ONOS_NIC=192.168.56.*
 export OC1="192.168.56.101"
 export OC2="192.168.56.102"
+export OCC1="192.168.56.101"
+export OCC2="192.168.56.102"
 export OCN="192.168.56.103"
 
 export ONOS_APPS="drivers,openflow,fwd,proxyarp,mobility"
