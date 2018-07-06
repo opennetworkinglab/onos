@@ -79,15 +79,15 @@ public class P4RuntimeHandshaker extends AbstractP4RuntimeHandlerBehaviour imple
 
     @Override
     public void addDeviceAgentListener(DeviceAgentListener listener) {
-        // Don't use controller class variable as it might be uninitialized.
+        // Don't use controller/deviceId class variables as they might be uninitialized.
         handler().get(P4RuntimeController.class)
-                .addDeviceAgentListener(deviceId, listener);
+                .addDeviceAgentListener(data().deviceId(), listener);
     }
 
     @Override
     public void removeDeviceAgentListener(DeviceAgentListener listener) {
-        // Don't use controller class variable as it might be uninitialized.
+        // Don't use controller/deviceId class variable as they might be uninitialized.
         handler().get(P4RuntimeController.class)
-                .removeDeviceAgentListener(deviceId, listener);
+                .removeDeviceAgentListener(data().deviceId(), listener);
     }
 }

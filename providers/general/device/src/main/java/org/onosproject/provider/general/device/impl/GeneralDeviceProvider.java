@@ -621,20 +621,24 @@ public class GeneralDeviceProvider extends AbstractProvider
     }
 
     private void doDisconnectDevice(DeviceId deviceId) {
-        log.info("Initiating disconnection from {}...", deviceId);
-        // Remove from core (if master)
-        if (mastershipService.isLocalMaster(deviceId)
-                && deviceService.isAvailable(deviceId)) {
+        log.debug("Initiating disconnection from {}...", deviceId);
+        final DeviceHandshaker handshaker = handshakers.remove(deviceId);
+        final boolean isAvailable = deviceService.isAvailable(deviceId);
+        // Signal disconnection to core (if master).
+        if (isAvailable && mastershipService.isLocalMaster(deviceId)) {
             providerService.deviceDisconnected(deviceId);
         }
+        // Cancel tasks.
         cancelStatsPolling(deviceId);
-        // Perform disconnection with device.
-        final DeviceHandshaker handshaker = handshakers.remove(deviceId);
+        // Disconnect device.
         if (handshaker == null) {
-            // Gracefully ignore
-            log.warn("Missing DeviceHandshaker behavior for {}, " +
-                             "no guarantees of complete disconnection",
-                     deviceId);
+            if (isAvailable) {
+                // If not available don't bother logging. We are probably
+                // invoking this method multiple times for the same device.
+                log.warn("Missing DeviceHandshaker behavior for {}, " +
+                                 "no guarantees of complete disconnection",
+                         deviceId);
+            }
             return;
         }
         handshaker.removeDeviceAgentListener(deviceAgentListener);
@@ -706,6 +710,19 @@ public class GeneralDeviceProvider extends AbstractProvider
 
         @Override
         public void event(NetworkConfigEvent event) {
+            connectionExecutor.execute(() -> consumeConfigEvent(event));
+        }
+
+        @Override
+        public boolean isRelevant(NetworkConfigEvent event) {
+            return (event.configClass().equals(GeneralProviderDeviceConfig.class) ||
+                    event.configClass().equals(BasicDeviceConfig.class) ||
+                    event.configClass().equals(PiPipeconfConfig.class)) &&
+                    (event.type() == NetworkConfigEvent.Type.CONFIG_ADDED ||
+                            event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED);
+        }
+
+        private void consumeConfigEvent(NetworkConfigEvent event) {
             DeviceId deviceId = (DeviceId) event.subject();
             //Assuming that the deviceId comes with uri 'device:'
             if (notMyScheme(deviceId)) {
@@ -769,15 +786,6 @@ public class GeneralDeviceProvider extends AbstractProvider
                 }
             }
             return false;
-        }
-
-        @Override
-        public boolean isRelevant(NetworkConfigEvent event) {
-            return (event.configClass().equals(GeneralProviderDeviceConfig.class) ||
-                    event.configClass().equals(BasicDeviceConfig.class) ||
-                    event.configClass().equals(PiPipeconfConfig.class)) &&
-                    (event.type() == NetworkConfigEvent.Type.CONFIG_ADDED ||
-                            event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED);
         }
     }
 

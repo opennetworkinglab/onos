@@ -223,12 +223,16 @@ public class P4RuntimeControllerImpl
 
     @Override
     public void addDeviceAgentListener(DeviceId deviceId, DeviceAgentListener listener) {
+        checkNotNull(deviceId, "deviceId cannot be null");
+        checkNotNull(listener, "listener cannot be null");
         deviceAgentListeners.putIfAbsent(deviceId, new CopyOnWriteArrayList<>());
         deviceAgentListeners.get(deviceId).add(listener);
     }
 
     @Override
     public void removeDeviceAgentListener(DeviceId deviceId, DeviceAgentListener listener) {
+        checkNotNull(deviceId, "deviceId cannot be null");
+        checkNotNull(listener, "listener cannot be null");
         deviceAgentListeners.computeIfPresent(deviceId, (did, listeners) -> {
             listeners.remove(listener);
             return listeners;
