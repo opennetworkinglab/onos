@@ -36,6 +36,9 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Set;
 
+import static org.onosproject.openstacktelemetry.codec.TinaMessageByteBufferCodec.KAFKA_KEY;
+import static org.onosproject.openstacktelemetry.codec.TinaMessageByteBufferCodec.KAFKA_TOPIC;
+
 /**
  * Openstack telemetry manager.
  */
@@ -44,9 +47,6 @@ import java.util.Set;
 public class OpenstackTelemetryManager implements OpenstackTelemetryService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-
-    private static final String KAFKA_TOPIC = "sona.flow";
-    private static final String KAFKA_KEY = "flowdata";
 
     private List<TelemetryService> telemetryServices = Lists.newArrayList();
 
@@ -89,6 +89,8 @@ public class OpenstackTelemetryManager implements OpenstackTelemetryService {
             if (service instanceof RestTelemetryManager) {
                 invokeRestPublisher((RestTelemetryService) service, flowInfos);
             }
+
+            log.trace("Publishing Flow Infos {}", flowInfos);
         });
     }
 

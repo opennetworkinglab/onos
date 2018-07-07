@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -98,6 +99,9 @@ public class OpenstackTelemetryWebResource extends AbstractWebResource {
      * @param input openstack flow rule JSON input stream
      * @return 200 OK if processing is correct.
      */
+    @DELETE
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public Response deleteBulkFlowRule(InputStream input) {
         log.info("DELETE BULK FLOW RULE: {}", input.toString());
 
@@ -132,7 +136,7 @@ public class OpenstackTelemetryWebResource extends AbstractWebResource {
         log.info("GET BULK FLOW RULE");
 
         Set<FlowInfo> flowInfoSet;
-        flowInfoSet = statsFlowRuleService.getFlowInfo();
+        flowInfoSet = statsFlowRuleService.getFlowInfos();
 
         log.info("\n\n======================================================\n" +
                  "FlowInfo Set: \n{}" +
@@ -151,11 +155,10 @@ public class OpenstackTelemetryWebResource extends AbstractWebResource {
     }
 
     @GET
-    @Path("list/{src_ip_prefix}/{dst_ip_prefix}")
+    @Path("list/{srcIpPrefix}/{dstIpPrefix}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getFlowRule(
-            @PathParam("src_ip_prefix") String srcIpPrefix,
-            @PathParam("dst_ip_prefix") String dstIpPrefix) {
+    public Response getFlowRule(@PathParam("srcIpPrefix") String srcIpPrefix,
+                                @PathParam("dstIpPrefix") String dstIpPrefix) {
         return ok(root).build();
     }
 

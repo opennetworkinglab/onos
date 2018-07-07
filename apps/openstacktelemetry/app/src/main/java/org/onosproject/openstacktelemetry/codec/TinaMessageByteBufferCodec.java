@@ -25,6 +25,9 @@ import java.util.Set;
  */
 public class TinaMessageByteBufferCodec {
 
+    public static final String KAFKA_TOPIC = "sona.flow";
+    public static final String KAFKA_KEY = "flowdata";
+
     private static final int HEADER_SIZE = 8;
     private static final int ENTRY_SIZE = 88;
     private static final int MILLISECONDS = 1000;

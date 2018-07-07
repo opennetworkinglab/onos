@@ -124,7 +124,7 @@ public class KafkaTelemetryManager implements KafkaTelemetryAdminService {
     public Future<RecordMetadata> publish(ProducerRecord<String, byte[]> record) {
 
         if (producer == null) {
-            log.warn("Kafka telemetry service has not been enabled!");
+            log.debug("Kafka telemetry service has not been enabled!");
             return null;
         }
 

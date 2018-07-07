@@ -44,7 +44,7 @@ public interface StatsFlowRuleAdminService {
      *
      * @return a set of flow infos
      */
-    Set<FlowInfo> getFlowInfo();
+    Set<FlowInfo> getFlowInfos();
 
     /**
      * Deletes stat flow rule.
