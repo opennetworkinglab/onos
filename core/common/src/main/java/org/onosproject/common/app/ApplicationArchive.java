@@ -233,13 +233,17 @@ public class ApplicationArchive
         return new String(bytes, 0, Math.min(bytes.length, length), StandardCharsets.UTF_8);
     }
 
+    private String filterAppNameForFilesystem(String name) {
+        return name.replace("/", "^");
+    }
+
     /**
      * Purges the application archive directory.
      *
      * @param appName application name
      */
     public synchronized void purgeApplication(String appName) {
-        File appDir = new File(appsDir, appName);
+        File appDir = new File(appsDir, filterAppNameForFilesystem(appName));
         try {
             Tools.removeDirectory(appDir);
         } catch (IOException e) {
@@ -353,7 +357,7 @@ public class ApplicationArchive
         boolean isSelfContained = false;
         ZipInputStream zis = new ZipInputStream(stream);
         ZipEntry entry;
-        File appDir = new File(appsDir, desc.name());
+        File appDir = new File(appsDir, filterAppNameForFilesystem(desc.name()));
         while ((entry = zis.getNextEntry()) != null) {
             if (!entry.isDirectory()) {
                 byte[] data = ByteStreams.toByteArray(zis);
@@ -437,7 +441,7 @@ public class ApplicationArchive
     private void saveApplication(InputStream stream, ApplicationDescription desc,
                                  boolean isSelfContainedJar)
             throws IOException {
-        String name = desc.name() + (isSelfContainedJar ? JAR : OAR);
+        String name = filterAppNameForFilesystem(desc.name()) + (isSelfContainedJar ? JAR : OAR);
         Files.write(toByteArray(stream), appFile(desc.name(), name));
     }
 
@@ -499,7 +503,7 @@ public class ApplicationArchive
 
     // Returns the name of the file located under the specified app directory.
     private File appFile(String appName, String fileName) {
-        return new File(new File(appsDir, appName), fileName);
+        return new File(new File(appsDir, filterAppNameForFilesystem(appName)), fileName);
     }
 
     // Returns the icon file located under the specified app directory.
