@@ -781,7 +781,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
         }
         for (Device device : services.device().getDevices()) {
             if ((device.type() != Device.Type.ROADM) &&
-                    (device.type() != Device.Type.OTN)) {
+                    (device.type() != Device.Type.OTN) && device.type() != Device.Type.CONTROLLER) {
                 sendMessage(deviceMessage(new DeviceEvent(DEVICE_ADDED, device)));
             }
         }
