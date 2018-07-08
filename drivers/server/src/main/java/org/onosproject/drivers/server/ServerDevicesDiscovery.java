@@ -224,11 +224,7 @@ public class ServerDevicesDiscovery extends BasicServerDriver
         // Hit the path that provides the server's resources
         InputStream response = null;
         try {
-            response = getController().get(
-                deviceId,
-                RESOURCE_DISCOVERY_URL,
-                JSON
-            );
+            response = getController().get(deviceId, RESOURCE_DISCOVERY_URL, JSON);
         } catch (ProcessingException pEx) {
             log.error("Failed to discover the device details of: {}", deviceId);
             return desc;
@@ -300,25 +296,21 @@ public class ServerDevicesDiscovery extends BasicServerDriver
             Port.Type portType = PORT_TYPE_MAP.get(portTypeStr);
             if (portType == null) {
                 throw new IllegalArgumentException(
-                    portTypeStr + " is not a valid port type for NIC " + nicId
-                );
+                    portTypeStr + " is not a valid port type for NIC " + nicId);
             }
             boolean status     = nicObjNode.path(NIC_PARAM_STATUS).asInt() > 0;
             String hwAddr      = get(nn, NIC_PARAM_HW_ADDR);
             JsonNode tagNode   = nicObjNode.path(BasicServerDriver.NIC_PARAM_RX_FILTER);
             if (tagNode == null) {
                 throw new IllegalArgumentException(
-                    "The Rx filters of NIC " + nicId + " are not reported"
-                );
+                    "The Rx filters of NIC " + nicId + " are not reported");
             }
 
             // Convert the JSON list into an array of strings
             List<String> rxFilters = null;
             try {
-                rxFilters = mapper.readValue(
-                    tagNode.traverse(),
-                    new TypeReference<ArrayList<String>>() { }
-                );
+                rxFilters = mapper.readValue(tagNode.traverse(),
+                    new TypeReference<ArrayList<String>>() { });
             } catch (IOException ioEx) {
                 continue;
             }
@@ -365,9 +357,8 @@ public class ServerDevicesDiscovery extends BasicServerDriver
                 cpuSet, nicSet, DefaultAnnotations.EMPTY
             );
         } catch (URISyntaxException uEx) {
-            log.error(
-                "Failed to create a server device description for: {}", deviceId
-            );
+            log.error("Failed to create a server device description for: {}",
+                deviceId);
             return null;
         }
 
@@ -439,11 +430,9 @@ public class ServerDevicesDiscovery extends BasicServerDriver
                             .annotations(annotations.build())
                             .build());
 
-            log.info(
-                "Port discovery on device {}: NIC {} is {} at {} Mbps",
+            log.info("Port discovery on device {}: NIC {} is {} at {} Mbps",
                 deviceId, nic.port(), nic.status() ? "up" : "down",
-                nic.speed()
-            );
+                nic.speed());
         }
 
         return ImmutableList.copyOf(portDescriptions);
@@ -472,13 +461,13 @@ public class ServerDevicesDiscovery extends BasicServerDriver
         // Get global monitoring statistics
         MonitoringStatistics monStats = getGlobalMonitoringStatistics(deviceId);
         if (monStats == null) {
-            return portStats;
+            return Collections.EMPTY_LIST;
         }
 
         // Filter out the NIC statistics
         portStats = monStats.nicStatisticsAll();
         if (portStats == null) {
-            return portStats;
+            return Collections.EMPTY_LIST;
         }
 
         log.debug("Port statistics: {}", portStats.toString());
@@ -509,13 +498,13 @@ public class ServerDevicesDiscovery extends BasicServerDriver
         // Get global monitoring statistics
         MonitoringStatistics monStats = getGlobalMonitoringStatistics(deviceId);
         if (monStats == null) {
-            return cpuStats;
+            return Collections.EMPTY_LIST;
         }
 
         // Filter out the CPU statistics
         cpuStats = monStats.cpuStatisticsAll();
         if (cpuStats == null) {
-            return cpuStats;
+            return Collections.EMPTY_LIST;
         }
 
         log.debug("CPU statistics: {}", cpuStats.toString());
@@ -547,10 +536,8 @@ public class ServerDevicesDiscovery extends BasicServerDriver
         try {
             device = (RestServerSBDevice) getController().getDevice(deviceId);
         } catch (ClassCastException ccEx) {
-            log.error(
-                "Failed to retrieve global monitoring statistics from device {}",
-                deviceId
-            );
+            log.error("Failed to retrieve global monitoring statistics from device {}",
+                deviceId);
             return monStats;
         }
         checkNotNull(device, DEVICE_NULL);
@@ -558,16 +545,10 @@ public class ServerDevicesDiscovery extends BasicServerDriver
         // Hit the path that provides the server's global resources
         InputStream response = null;
         try {
-            response = getController().get(
-                deviceId,
-                GLOBAL_STATS_URL,
-                JSON
-            );
+            response = getController().get(deviceId, GLOBAL_STATS_URL, JSON);
         } catch (ProcessingException pEx) {
-            log.error(
-                "Failed to retrieve global monitoring statistics from device {}",
-                deviceId
-            );
+            log.error("Failed to retrieve global monitoring statistics from device {}",
+                deviceId);
             return monStats;
         }
 
@@ -580,18 +561,14 @@ public class ServerDevicesDiscovery extends BasicServerDriver
             JsonNode jsonNode = mapper.convertValue(jsonMap, JsonNode.class);
             objNode = (ObjectNode) jsonNode;
         } catch (IOException ioEx) {
-            log.error(
-                "Failed to retrieve global monitoring statistics from device {}",
-                deviceId
-            );
+            log.error("Failed to retrieve global monitoring statistics from device {}",
+                deviceId);
             return monStats;
         }
 
         if (jsonMap == null) {
-            log.error(
-                "Failed to retrieve global monitoring statistics from device {}",
-                deviceId
-            );
+            log.error("Failed to retrieve global monitoring statistics from device {}",
+                deviceId);
             return monStats;
         }
 
@@ -651,10 +628,8 @@ public class ServerDevicesDiscovery extends BasicServerDriver
         try {
             device = (RestServerSBDevice) getController().getDevice(deviceId);
         } catch (ClassCastException ccEx) {
-            log.error(
-                "Failed to retrieve monitoring statistics from device {}",
-                deviceId
-            );
+            log.error("Failed to retrieve monitoring statistics from device {}",
+                deviceId);
             return monStats;
         }
         checkNotNull(device, DEVICE_NULL);
@@ -665,16 +640,10 @@ public class ServerDevicesDiscovery extends BasicServerDriver
         // Hit the path that provides the server's specific resources
         InputStream response = null;
         try {
-            response = getController().get(
-                deviceId,
-                scUrl,
-                JSON
-            );
+            response = getController().get(deviceId, scUrl, JSON);
         } catch (ProcessingException pEx) {
-            log.error(
-                "Failed to retrieve monitoring statistics from device {}",
-                deviceId
-            );
+            log.error("Failed to retrieve monitoring statistics from device {}",
+                deviceId);
             return monStats;
         }
 
@@ -688,18 +657,14 @@ public class ServerDevicesDiscovery extends BasicServerDriver
             jsonNode = mapper.convertValue(jsonMap, JsonNode.class);
             objNode = (ObjectNode) jsonNode;
         } catch (IOException ioEx) {
-            log.error(
-                "Failed to retrieve monitoring statistics from device {}",
-                deviceId
-            );
+            log.error("Failed to retrieve monitoring statistics from device {}",
+                deviceId);
             return monStats;
         }
 
         if (jsonMap == null) {
-            log.error(
-                "Failed to retrieve monitoring statistics from device {}",
-                deviceId
-            );
+            log.error("Failed to retrieve monitoring statistics from device {}",
+                deviceId);
             return monStats;
         }
 
