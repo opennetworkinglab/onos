@@ -208,7 +208,7 @@ public class MeterManager
                 .forDevice(request.deviceId())
                 .fromApp(request.appId())
                 .withBands(request.bands())
-                .withId(id)
+                .withCellId(id)
                 .withUnit(request.unit());
 
         if (request.isBurst()) {
@@ -228,7 +228,7 @@ public class MeterManager
                 .forDevice(request.deviceId())
                 .fromApp(request.appId())
                 .withBands(request.bands())
-                .withId(meterId)
+                .withCellId(meterId)
                 .withUnit(request.unit());
 
         if (request.isBurst()) {

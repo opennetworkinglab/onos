@@ -205,6 +205,7 @@ import org.onosproject.net.intent.constraint.WaypointConstraint;
 import org.onosproject.net.link.DefaultLinkDescription;
 import org.onosproject.net.meter.MeterCellId;
 import org.onosproject.net.meter.MeterCellId.MeterCellType;
+import org.onosproject.net.meter.MeterFailReason;
 import org.onosproject.net.meter.MeterId;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.DefaultPacketRequest;
@@ -439,6 +440,7 @@ public final class KryoNamespaces {
                     MeterCellId.class,
                     MeterCellType.class,
                     MeterId.class,
+                    MeterFailReason.class,
                     Version.class,
                     ControllerNode.State.class,
                     ApplicationState.class,
