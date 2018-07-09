@@ -101,7 +101,7 @@ public abstract class DefaultNicFlowRule extends DefaultFlowRule implements NicF
             NicRuleScope     scope) {
         super(flowRule);
 
-        checkNotNull(!Strings.isNullOrEmpty(trafficClassId),
+        checkArgument(!Strings.isNullOrEmpty(trafficClassId),
             "NIC rule's traffic class ID is NULL or empty");
         checkNotNull(interfaceName,
             "NIC rule's interface name is NULL");

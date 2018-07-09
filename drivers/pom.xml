@@ -56,6 +56,7 @@
         <module>microsemi/ea1000</module>
         <module>gnmi</module>
         <module>odtn-driver</module>
+        <module>server</module>
     </modules>
 
     <!--<properties>
