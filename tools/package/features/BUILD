@@ -1,4 +1,5 @@
 load("//tools/build/bazel:osgi_features.bzl", "osgi_feature", "osgi_feature_repo")
+load("//:modules.bzl", "FEATURES")
 
 osgi_feature(
     name = "onos-thirdparty-base",
@@ -36,7 +37,6 @@ osgi_feature(
         "@typesafe_config//jar",
         "@concurrent_trees//jar",
         "@commons_io//jar",
-        "@jersey_client//jar",
         "@mapdb//jar",
         "@bcpkix_jdk15on//jar",
         "@bcprov_jdk15on//jar",
@@ -46,6 +46,7 @@ osgi_feature(
         "@sigar//jar",
     ],
     required_features = [],
+    visibility = ["//visibility:public"],
 )
 
 osgi_feature(
@@ -68,12 +69,14 @@ osgi_feature(
         "@jersey_container_servlet//jar",
         "@jersey_container_servlet_core//jar",
         "@jersey_media_multipart//jar",
+        "@jersey_client//jar",
         "@mimepull//jar",
     ],
     required_features = [
         "war",
         "onos-thirdparty-base",
     ],
+    visibility = ["//visibility:public"],
 )
 
 osgi_feature(
@@ -82,13 +85,16 @@ osgi_feature(
     included_bundles = [
         "//utils/misc:onlab-misc",
         "//utils/osgi:onlab-osgi",
+        "//utils/rest:onlab-rest",
         "//core/api:onos-api",
         "//incubator/api:onos-incubator-api",
     ],
     required_features = [
         "scr",
         "onos-thirdparty-base",
+        "onos-thirdparty-web",
     ],
+    visibility = ["//visibility:public"],
 )
 
 osgi_feature(
@@ -98,25 +104,14 @@ osgi_feature(
         "//core/net:onos-core-net",
         "//core/common:onos-core-common",
         "//core/store/dist:onos-core-dist",
-        #        "//core/store/primitives:onos-core-primitives",
-        #        "//core/store/persistence:onos-core-persistence",
-        #        "//core/store/serializers:onos-core-serializers",
+        "//core/store/primitives:onos-core-primitives",
+        "//core/store/persistence:onos-core-persistence",
+        "//core/store/serializers:onos-core-serializers",
     ],
     required_features = ["onos-api"],
+    visibility = ["//visibility:public"],
 )
 
-FEATURES = [
-    "//tools/package/features:onos-thirdparty-base",
-    "//tools/package/features:onos-thirdparty-web",
-    "//tools/package/features:onos-api",
-    "//tools/package/features:onos-core",
-    #    "//tools/package/features:onos-incubator",
-    #    "//tools/package/features:onos-rest",
-    #    "//tools/package/features:onos-gui",
-    #    "//tools/package/features:onos-gui2",
-    #    "//tools/package/features:onos-cli",
-    #    "//tools/package/features:onos-security",
-]
 
 osgi_feature_repo(
     name = "onos-features",

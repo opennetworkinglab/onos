@@ -83,7 +83,7 @@ CORE = UTILS + API + [
 
 ONOS_DRIVERS = [
     # Drivers
-    "//drivers/default:onos-drivers-default",
+    "//drivers/default:onos-drivers-default-oar",
     "//drivers/arista:onos-drivers-arista-oar",
     "//drivers/ciena/waveserver:onos-drivers-ciena-waveserver-oar",
     "//drivers/ciena/c5162:onos-drivers-ciena-c5162-oar",
@@ -294,6 +294,19 @@ APP_JARS = [
     #   '//apps/p4runtime-test:onos-apps-p4runtime-test',
     #"//apps/kafka-integration/api:onos-apps-kafka-integration-api",
     #"//apps/kafka-integration/app:onos-apps-kafka-integration-app",
+]
+
+FEATURES = [
+    "//tools/package/features:onos-thirdparty-base",
+    "//tools/package/features:onos-thirdparty-web",
+    "//tools/package/features:onos-api",
+    "//tools/package/features:onos-core",
+    #    "//tools/package/features:onos-incubator",
+    #    "//tools/package/features:onos-rest",
+    #    "//tools/package/features:onos-gui",
+    #    "//tools/package/features:onos-gui2",
+    #    "//tools/package/features:onos-cli",
+    #    "//tools/package/features:onos-security",
 ]
 
 APPS = ONOS_DRIVERS + ONOS_PROVIDERS + ONOS_APPS + MODELS + PIPELINES + \

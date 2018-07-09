@@ -249,7 +249,7 @@ def onos_app(
         app_name = _get_app_name()
 
     maven_coords = "%s:%s:oar:%s" % (ONOS_GROUP_ID, name, ONOS_VERSION)
-    feature_xml_coords = "%s:%s:xml:features:%s" % (ONOS_GROUP_ID, name, ONOS_VERSION)
+    feature_xml_coords = "mvn:%s:%s:xml:features:%s" % (ONOS_GROUP_ID, name, ONOS_VERSION)
 
     if title == None:
         print("Missing title for %s" % _get_name())
@@ -264,7 +264,7 @@ def onos_app(
     #    feature_coords = '$(maven_coords %s)' % included_bundles[0]
 
     if not feature_coords:
-        feature_coords = "%s:%s:%s" % (ONOS_GROUP_ID, name, ONOS_VERSION)
+        feature_coords = "mvn:%s:%s:%s" % (ONOS_GROUP_ID, name, ONOS_VERSION)
 
     # TODO - intra app dependecies
     apps = []

@@ -16,7 +16,6 @@ TEST_DEPS = [
 osgi_jar_with_tests(
     name = "onlab-junit",
     srcs = glob([SRC + "*.java"]),
-    group = "org.onlab",
     test_deps = TEST_DEPS,
     test_srcs = glob([TEST_SRC + "*.java"]),
     visibility = ["//visibility:public"],

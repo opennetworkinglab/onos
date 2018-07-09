@@ -1,5 +1,5 @@
 load("//tools/build/bazel:generate_workspace.bzl", "ONOS_VERSION")
-load(":modules.bzl", "APPS", "CORE")
+load(":modules.bzl", "APPS", "CORE", "FEATURES")
 
 filegroup(
     name = "onos",
@@ -42,7 +42,7 @@ genrule(
     srcs = [
         "//tools/package/features:onos-features",
         ":onos-karaf",
-    ] + APPS,
+    ] + APPS + FEATURES,
     outs = ["onos.tar.gz"],
     cmd = "$(location tools/package/onos_stage.py) $(location onos.tar.gz) %s $(location :onos-karaf) $(SRCS)" % ONOS_VERSION,
     output_to_bindir = True,
