@@ -102,10 +102,10 @@ public class ControllerConfigCiscoImpl extends AbstractHandlerBehaviour implemen
         if (checkSwitchN7K(handler)) {
             cmds.add(N7K_PIPELINE_CMD);
             log.info("This is N7K Switch");
+        } else {
+            cmds.add(N9K_PIPELINE_CMD);
+            log.info("This is N9K Switch");
         }
-        cmds.add(N9K_PIPELINE_CMD);
-        log.info("This is N9K Switch");
-
         // can configure up to eight controllers
         controllers.stream().limit(8).forEach(c -> cmds
                 .add(String.format(OF_CONTROLLER_CONF_CMD, c.ip().toString(), c.port(), "management")));
