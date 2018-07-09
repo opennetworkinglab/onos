@@ -1867,11 +1867,10 @@ public class Ofdpa2GroupHandler {
 
     protected void processPendingRemoveNextObjs(GroupKey key) {
         pendingRemoveNextObjectives.asMap().forEach((nextObjective, groupKeys) -> {
+            groupKeys.remove(key);
             if (groupKeys.isEmpty()) {
                 pendingRemoveNextObjectives.invalidate(nextObjective);
                 pass(nextObjective);
-            } else {
-                groupKeys.remove(key);
             }
         });
     }
