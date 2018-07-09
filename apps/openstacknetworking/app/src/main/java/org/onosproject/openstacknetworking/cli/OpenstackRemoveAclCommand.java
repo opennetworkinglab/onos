@@ -19,7 +19,6 @@ import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
-import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.TpPort;
 import org.onosproject.cli.AbstractShellCommand;
@@ -40,13 +39,19 @@ import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWOR
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_FORCED_ACL_RULE;
 
 @Command(scope = "onos", name = "openstack-remove-acl",
-        description = "Add acl rules to VM")
+        description = "Remove acl rules to VM")
 public class OpenstackRemoveAclCommand extends AbstractShellCommand {
     @Argument(index = 0, name = "src ip", description = "src ip address", required = true)
-    private String dstIp = null;
+    private String srcIpStr = null;
 
-    @Argument(index = 1, name = "dst port", description = "dst port", required = true)
-    private int portNumber = 0;
+    @Argument(index = 1, name = "src ip", description = "src tcp port", required = true)
+    private int srcPort = 0;
+
+    @Argument(index = 2, name = "dst ip", description = "dst ip address", required = true)
+    private String dstIpStr = null;
+
+    @Argument(index = 3, name = "dst port", description = "dst tcp port", required = true)
+    private int dstPort = 0;
 
     @Override
     protected void execute() {
@@ -58,41 +63,59 @@ public class OpenstackRemoveAclCommand extends AbstractShellCommand {
 
         InstancePortService instancePortService = AbstractShellCommand.get(InstancePortService.class);
 
+        IpAddress srcIpAddress = null;
+
+        IpAddress dstIpAddress = null;
+
         try {
-            IpAddress dstIpAddress = IpAddress.valueOf(
-                    IpAddress.Version.INET, Ip4Address.valueOf(dstIp).toOctets());
+            srcIpAddress = IpAddress.valueOf(srcIpStr);
 
-            log.info("Allow the packet again from srcIp: {}, dstPort: {}", dstIpAddress.toString(), portNumber);
-
-            TrafficSelector selector = DefaultTrafficSelector.builder()
-                    .matchEthType(Ethernet.TYPE_IPV4)
-                    .matchIPProtocol(IPv4.PROTOCOL_TCP)
-                    .matchIPSrc(dstIpAddress.toIpPrefix())
-                    .matchTcpDst(TpPort.tpPort(portNumber))
-                    .build();
-
-            TrafficTreatment treatment = DefaultTrafficTreatment.builder().
-                    drop().build();
-
-            Optional<InstancePort> instancePort = instancePortService.instancePorts().stream()
-                    .filter(port -> port.ipAddress().toString().equals(dstIpAddress.toString()))
-                    .findAny();
-
-            if (!instancePort.isPresent()) {
-                log.info("Instance port that matches with the given ip address isn't present {}");
-                return;
-            }
-
-            flowRuleService.setRule(
-                    appId,
-                    instancePort.get().deviceId(),
-                    selector,
-                    treatment,
-                    PRIORITY_FORCED_ACL_RULE,
-                    DHCP_ARP_TABLE,
-                    false);
+            dstIpAddress = IpAddress.valueOf(dstIpStr);
         } catch (IllegalArgumentException e) {
             log.error("IllegalArgumentException occurred because of {}", e.toString());
         }
+
+        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_IPV4)
+                .matchIPSrc(srcIpAddress.toIpPrefix())
+                .matchIPDst(dstIpAddress.toIpPrefix());
+
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder().
+                drop().build();
+
+        if (srcPort != 0 || dstPort != 0) {
+            sBuilder.matchIPProtocol(IPv4.PROTOCOL_TCP);
+            if (srcPort != 0) {
+                sBuilder.matchTcpSrc(TpPort.tpPort(srcPort));
+            }
+
+            if (dstPort != 0) {
+                sBuilder.matchTcpDst(TpPort.tpPort(dstPort));
+            }
+        }
+
+        log.info("Deny the packet from srcIp: {}, dstPort: {} to dstIp: {}, dstPort: {}",
+                srcIpAddress.toString(),
+                srcPort,
+                dstIpAddress.toString(),
+                dstPort);
+
+        Optional<InstancePort> instancePort = instancePortService.instancePorts().stream()
+                .filter(port -> port.ipAddress().toString().equals(dstIpStr))
+                .findAny();
+
+        if (!instancePort.isPresent()) {
+            log.info("Instance port that matches with the given dst ip address isn't present {}");
+            return;
+        }
+
+        flowRuleService.setRule(
+                appId,
+                instancePort.get().deviceId(),
+                sBuilder.build(),
+                treatment,
+                PRIORITY_FORCED_ACL_RULE,
+                DHCP_ARP_TABLE,
+                false);
     }
 }
