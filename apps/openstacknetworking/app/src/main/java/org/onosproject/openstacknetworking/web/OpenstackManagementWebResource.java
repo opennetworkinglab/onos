@@ -68,6 +68,8 @@ public class OpenstackManagementWebResource extends AbstractWebResource {
     private static final String FLOATINGIPS = "floatingips";
     private static final String ARP_MODE_NAME = "arpMode";
 
+    private static final long TIMEOUT_MS = 10000; // we wait 10s for init each node
+
     private static final String DEVICE_OWNER_IFACE = "network:router_interface";
 
     private static final String ARP_MODE_REQUIRED = "ARP mode is not specified";
@@ -296,6 +298,21 @@ public class OpenstackManagementWebResource extends AbstractWebResource {
         osNodeService.completeNodes().forEach(osNode -> {
             OpenstackNode updated = osNode.updateState(NodeState.INIT);
             osNodeAdminService.updateNode(updated);
+
+            long timeoutExpiredMs = System.currentTimeMillis() + TIMEOUT_MS;
+            while (updated.state() != NodeState.COMPLETE) {
+                long  waitMs = timeoutExpiredMs - System.currentTimeMillis();
+
+                if (updated.state() == NodeState.COMPLETE) {
+                    log.info("Finished sync rules for node {}", updated.hostname());
+                    break;
+                }
+
+                if (waitMs <= 0) {
+                    log.warn("Failed to sync rules for node {}", updated.hostname());
+                    break;
+                }
+            }
         });
     }
 

@@ -29,6 +29,8 @@ import org.onosproject.openstacknode.api.OpenstackNodeService;
         description = "Re-installs flow rules for OpenStack networking")
 public class OpenstackSyncRulesCommand extends AbstractShellCommand {
 
+    private static final long TIMEOUT_MS = 10000; // we wait 10s for init each node
+
     @Override
     protected void execute() {
         // All handlers in this application reacts the node complete event and
@@ -42,6 +44,21 @@ public class OpenstackSyncRulesCommand extends AbstractShellCommand {
         osNodeService.completeNodes().forEach(osNode -> {
             OpenstackNode updated = osNode.updateState(NodeState.INIT);
             osNodeAdminService.updateNode(updated);
+
+            long timeoutExpiredMs = System.currentTimeMillis() + TIMEOUT_MS;
+            while (updated.state() != NodeState.COMPLETE) {
+                long  waitMs = timeoutExpiredMs - System.currentTimeMillis();
+
+                if (updated.state() == NodeState.COMPLETE) {
+                    print("Finished sync rules for node {}", updated.hostname());
+                    break;
+                }
+
+                if (waitMs <= 0) {
+                    error("Failed to sync rules for node {}", updated.hostname());
+                    break;
+                }
+            }
         });
         print("Successfully requested re-installing flow rules.");
     }
