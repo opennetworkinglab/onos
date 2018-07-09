@@ -618,15 +618,29 @@ public final class OpenstackSwitchingArpHandler {
             switch (event.type()) {
                 case OPENSTACK_NODE_COMPLETE:
                     setDefaultArpRule(osNode, true);
-                    setAllArpRules(true);
+                    setAllArpRules(osNode, true);
+                    addAllSubnetGateways();
                     break;
                 case OPENSTACK_NODE_INCOMPLETE:
                     setDefaultArpRule(osNode, false);
-                    setAllArpRules(false);
+                    setAllArpRules(osNode, false);
                     break;
                 default:
                     break;
             }
+        }
+
+        private void addAllSubnetGateways() {
+            osNetworkService.networks().forEach(n -> {
+                if (n.getNetworkType() != NetworkType.FLAT) {
+                    osNetworkService.subnets()
+                            .stream()
+                            .filter(s -> s.getNetworkId().equals(n.getId()))
+                            .filter(s -> !Strings.isNullOrEmpty(s.getGateway()))
+                            .filter(s -> !gateways.contains(s.getGateway()))
+                            .forEach(OpenstackSwitchingArpHandler.this::addSubnetGateway);
+                }
+            });
         }
 
         private void setDefaultArpRule(OpenstackNode osNode, boolean install) {
@@ -695,11 +709,13 @@ public final class OpenstackSwitchingArpHandler {
             );
         }
 
-        private void setAllArpRules(boolean install) {
+        private void setAllArpRules(OpenstackNode osNode, boolean install) {
             if (ARP_BROADCAST_MODE.equals(getArpMode())) {
-                instancePortService.instancePorts().forEach(p -> {
-                    setArpRequestRule(p, install);
-                    setArpReplyRule(p, install);
+                instancePortService.instancePorts().stream()
+                        .filter(p -> p.deviceId().equals(osNode.intgBridge()))
+                        .forEach(p -> {
+                            setArpRequestRule(p, install);
+                            setArpReplyRule(p, install);
                 });
             }
         }
