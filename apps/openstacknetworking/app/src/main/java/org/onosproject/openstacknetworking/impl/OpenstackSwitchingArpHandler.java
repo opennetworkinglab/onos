@@ -637,7 +637,7 @@ public final class OpenstackSwitchingArpHandler {
                             .stream()
                             .filter(s -> s.getNetworkId().equals(n.getId()))
                             .filter(s -> !Strings.isNullOrEmpty(s.getGateway()))
-                            .filter(s -> !gateways.contains(s.getGateway()))
+                            .filter(s -> !gateways.contains(IpAddress.valueOf(s.getGateway())))
                             .forEach(OpenstackSwitchingArpHandler.this::addSubnetGateway);
                 }
             });
