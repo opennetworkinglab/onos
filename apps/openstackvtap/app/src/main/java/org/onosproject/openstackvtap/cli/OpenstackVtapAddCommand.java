@@ -92,7 +92,7 @@ public class OpenstackVtapAddCommand extends AbstractShellCommand {
             vTapCriterionBuilder.srcIpPrefix(IpPrefix.valueOf(srcIp));
             vTapCriterionBuilder.dstIpPrefix(IpPrefix.valueOf(dstIp));
         } catch (Exception e) {
-            print("Inputted valid source IP & destination IP in CIDR (e.g., \"10.1.0.0/16\")");
+            print("Inputted valid source IP & destination IP in CIDR (e.g., \"10.1.0.4/32\")");
             return false;
         }
 

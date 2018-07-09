@@ -177,6 +177,10 @@ public class OpenstackVtapManager
     private static final int FLAT_OUTBOUND_NEXT_TABLE = FLAT_TABLE;
     private static final int OUTBOUND_NEXT_TABLE = FORWARDING_TABLE;
 
+    private static final IpPrefix ARBITRARY_IP_PREFIX =
+                    IpPrefix.valueOf(IpAddress.valueOf("0.0.0.0"), 0);
+    private static final String TABLE_PROPERTY_KEY = "table";
+
     private final DeviceListener deviceListener = new InternalDeviceListener();
     private final HostListener hostListener = new InternalHostListener();
     private final OpenstackNodeListener osNodeListener = new InternalOpenstackNodeListener();
@@ -250,20 +254,19 @@ public class OpenstackVtapManager
     }
 
     @Override
-    public OpenstackVtap createVtap(Type type,
-                                    OpenstackVtapCriterion vTapCriterionOpenstack) {
-        checkNotNull(vTapCriterionOpenstack, VTAP_DESC_NULL);
+    public OpenstackVtap createVtap(Type type, OpenstackVtapCriterion vTapCriterion) {
+        checkNotNull(vTapCriterion, VTAP_DESC_NULL);
 
         Set<DeviceId> txDevices = type.isValid(Type.VTAP_TX) ?
-                getEdgeDevice(type, vTapCriterionOpenstack) : ImmutableSet.of();
+                getEdgeDevice(type, vTapCriterion) : ImmutableSet.of();
         Set<DeviceId> rxDevices = type.isValid(Type.VTAP_RX) ?
-                getEdgeDevice(type, vTapCriterionOpenstack) : ImmutableSet.of();
+                getEdgeDevice(type, vTapCriterion) : ImmutableSet.of();
 
         OpenstackVtap description =
                             DefaultOpenstackVtap.builder()
                                                 .id(OpenstackVtapId.vTapId())
                                                 .type(type)
-                                                .vTapCriterion(vTapCriterionOpenstack)
+                                                .vTapCriterion(vTapCriterion)
                                                 .txDeviceIds(txDevices)
                                                 .rxDeviceIds(rxDevices)
                                                 .build();
@@ -540,40 +543,47 @@ public class OpenstackVtapManager
     }
 
     private void connectTables(DeviceId deviceId, int fromTable, int toTable, int toGroup,
-                               OpenstackVtapCriterion vTapCriterionOpenstack, int rulePriority,
+                               OpenstackVtapCriterion vTapCriterion, int rulePriority,
                                boolean install) {
         log.trace("Table Transition: table[{}] -> table[{}] or group[{}]", fromTable, toTable, toGroup);
 
         TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder()
-                .matchEthType(TYPE_IPV4)
-                .matchIPSrc(vTapCriterionOpenstack.srcIpPrefix())
-                .matchIPDst(vTapCriterionOpenstack.dstIpPrefix());
+                .matchEthType(TYPE_IPV4);
 
-        switch (vTapCriterionOpenstack.ipProtocol()) {
+        // if the IpPrefix is "0.0.0.0/0", we do not include such a match into the flow rule
+        if (!vTapCriterion.srcIpPrefix().equals(ARBITRARY_IP_PREFIX)) {
+            selectorBuilder.matchIPSrc(vTapCriterion.srcIpPrefix());
+        }
+
+        if (!vTapCriterion.dstIpPrefix().equals(ARBITRARY_IP_PREFIX)) {
+            selectorBuilder.matchIPDst(vTapCriterion.dstIpPrefix());
+        }
+
+        switch (vTapCriterion.ipProtocol()) {
             case PROTOCOL_TCP:
-                selectorBuilder.matchIPProtocol(vTapCriterionOpenstack.ipProtocol());
+                selectorBuilder.matchIPProtocol(vTapCriterion.ipProtocol());
 
                 // Add port match only if the port number is greater than zero
-                if (vTapCriterionOpenstack.srcTpPort().toInt() > 0) {
-                    selectorBuilder.matchTcpSrc(vTapCriterionOpenstack.srcTpPort());
+                if (vTapCriterion.srcTpPort().toInt() > 0) {
+                    selectorBuilder.matchTcpSrc(vTapCriterion.srcTpPort());
                 }
-                if (vTapCriterionOpenstack.dstTpPort().toInt() > 0) {
-                    selectorBuilder.matchTcpDst(vTapCriterionOpenstack.dstTpPort());
+                if (vTapCriterion.dstTpPort().toInt() > 0) {
+                    selectorBuilder.matchTcpDst(vTapCriterion.dstTpPort());
                 }
                 break;
             case PROTOCOL_UDP:
-                selectorBuilder.matchIPProtocol(vTapCriterionOpenstack.ipProtocol());
+                selectorBuilder.matchIPProtocol(vTapCriterion.ipProtocol());
 
                 // Add port match only if the port number is greater than zero
-                if (vTapCriterionOpenstack.srcTpPort().toInt() > 0) {
-                    selectorBuilder.matchUdpSrc(vTapCriterionOpenstack.srcTpPort());
+                if (vTapCriterion.srcTpPort().toInt() > 0) {
+                    selectorBuilder.matchUdpSrc(vTapCriterion.srcTpPort());
                 }
-                if (vTapCriterionOpenstack.dstTpPort().toInt() > 0) {
-                    selectorBuilder.matchUdpDst(vTapCriterionOpenstack.dstTpPort());
+                if (vTapCriterion.dstTpPort().toInt() > 0) {
+                    selectorBuilder.matchUdpDst(vTapCriterion.dstTpPort());
                 }
                 break;
             case PROTOCOL_ICMP:
-                selectorBuilder.matchIPProtocol(vTapCriterionOpenstack.ipProtocol());
+                selectorBuilder.matchIPProtocol(vTapCriterion.ipProtocol());
                 break;
             default:
                 break;
@@ -640,7 +650,7 @@ public class OpenstackVtapManager
                     resolver.getExtensionInstruction(NICIRA_RESUBMIT_TABLE.type());
 
         try {
-            extensionInstruction.setPropertyValue("table", ((short) tableId));
+            extensionInstruction.setPropertyValue(TABLE_PROPERTY_KEY, ((short) tableId));
         } catch (Exception e) {
             log.error("Failed to set extension treatment for resubmit table {}", id);
         }
@@ -683,12 +693,12 @@ public class OpenstackVtapManager
         flowRuleService.apply(flowOpsBuilder.build(new FlowRuleOperationsContext() {
             @Override
             public void onSuccess(FlowRuleOperations ops) {
-                log.trace("Installed flow rules for tapping");
+                log.debug("Installed flow rules for tapping");
             }
 
             @Override
             public void onError(FlowRuleOperations ops) {
-                log.error("Failed to install flow rules for tapping");
+                log.debug("Failed to install flow rules for tapping");
             }
         }));
     }
