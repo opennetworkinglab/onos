@@ -166,6 +166,8 @@
             manufacturer="PMC GPON Networks" hwVersion="PASffffffff v-1" swVersion="vOLT.*">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.OltPipeline"/>
+        <behaviour api="org.onosproject.net.behaviour.MeterQuery"
+                   impl="org.onosproject.driver.query.FullMetersAvailable"/>
     </driver>
     <driver name="voltha" extends="default"
             manufacturer="VOLTHA Project" hwVersion=".*" swVersion=".*">
