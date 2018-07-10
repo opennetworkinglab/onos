@@ -83,8 +83,11 @@ genrule(
 # FIXME: Still work in progress
 genrule(
     name = "onos-run",
+    srcs = [
+        ":onos-package",
+        "tools/package/onos-run-karaf",
+    ],
     outs = ["onos-runner"],
-    srcs = [":onos-package", "tools/package/onos-run-karaf"],
     cmd = "sed \"s#ONOS_TAR=#ONOS_TAR=$(location :onos-package)#\" $(location tools/package/onos-run-karaf) > $(location onos-runner); chmod +x $(location onos-runner)",
     executable = True,
     output_to_bindir = True,

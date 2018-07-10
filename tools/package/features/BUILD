@@ -112,7 +112,6 @@ osgi_feature(
     visibility = ["//visibility:public"],
 )
 
-
 osgi_feature_repo(
     name = "onos-features",
     exported_features = FEATURES,
