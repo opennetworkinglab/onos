@@ -1,0 +1,11 @@
+BUNDLES = [
+    "//apps/evpn-route-service/api:onos-apps-evpn-route-service-api",
+    "//apps/evpn-route-service/app:onos-apps-evpn-route-service-app",
+]
+
+onos_app (
+    title = "EVPN Routing",
+    category = "Traffic Engineering",
+    url = "http://onosproject.org",
+    included_bundles = BUNDLES,
+)
