@@ -73,6 +73,7 @@ public class OpenstackRemoveAclCommand extends AbstractShellCommand {
             dstIpAddress = IpAddress.valueOf(dstIpStr);
         } catch (IllegalArgumentException e) {
             log.error("IllegalArgumentException occurred because of {}", e.toString());
+            return;
         }
 
         TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
