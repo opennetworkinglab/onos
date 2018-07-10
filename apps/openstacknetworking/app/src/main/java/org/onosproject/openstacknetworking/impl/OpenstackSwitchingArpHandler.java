@@ -607,6 +607,12 @@ public final class OpenstackSwitchingArpHandler {
 
         @Override
         public boolean isRelevant(OpenstackNodeEvent event) {
+
+            // add subnet gateway to local storage in all cluster nodes
+            // TODO: need to persistent the gateway collection into eventually
+            // consistent map sooner or later
+            addAllSubnetGateways();
+
             // do not allow to proceed without leadership
             NodeId leader = leadershipService.getLeader(appId.name());
             return Objects.equals(localNodeId, leader) && event.subject().type() == COMPUTE;
@@ -619,7 +625,6 @@ public final class OpenstackSwitchingArpHandler {
                 case OPENSTACK_NODE_COMPLETE:
                     setDefaultArpRule(osNode, true);
                     setAllArpRules(osNode, true);
-                    addAllSubnetGateways();
                     break;
                 case OPENSTACK_NODE_INCOMPLETE:
                     setDefaultArpRule(osNode, false);

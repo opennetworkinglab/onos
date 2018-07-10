@@ -52,6 +52,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import static java.lang.Thread.sleep;
 import static org.onlab.util.Tools.nullIsIllegal;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.addRouterIface;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.checkArpMode;
@@ -68,7 +69,7 @@ public class OpenstackManagementWebResource extends AbstractWebResource {
     private static final String FLOATINGIPS = "floatingips";
     private static final String ARP_MODE_NAME = "arpMode";
 
-    private static final long TIMEOUT_MS = 10000; // we wait 10s for init each node
+    private static final long SLEEP_MS = 3000; // we wait 3s for init each node
 
     private static final String DEVICE_OWNER_IFACE = "network:router_interface";
 
@@ -299,19 +300,16 @@ public class OpenstackManagementWebResource extends AbstractWebResource {
             OpenstackNode updated = osNode.updateState(NodeState.INIT);
             osNodeAdminService.updateNode(updated);
 
-            long timeoutExpiredMs = System.currentTimeMillis() + TIMEOUT_MS;
-            while (updated.state() != NodeState.COMPLETE) {
-                long  waitMs = timeoutExpiredMs - System.currentTimeMillis();
+            try {
+                sleep(SLEEP_MS);
+            } catch (InterruptedException e) {
+                log.error("Exception caused during node synchronization...");
+            }
 
-                if (updated.state() == NodeState.COMPLETE) {
-                    log.info("Finished sync rules for node {}", updated.hostname());
-                    break;
-                }
-
-                if (waitMs <= 0) {
-                    log.warn("Failed to sync rules for node {}", updated.hostname());
-                    break;
-                }
+            if (osNodeService.node(osNode.hostname()).state() == NodeState.COMPLETE) {
+                log.info("Finished sync rules for node {}", osNode.hostname());
+            } else {
+                log.info("Failed to sync rules for node {}", osNode.hostname());
             }
         });
     }

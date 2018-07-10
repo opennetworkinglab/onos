@@ -22,6 +22,8 @@ import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeAdminService;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
 
+import static java.lang.Thread.sleep;
+
 /**
  * Re-installs flow rules for OpenStack networking.
  */
@@ -29,7 +31,7 @@ import org.onosproject.openstacknode.api.OpenstackNodeService;
         description = "Re-installs flow rules for OpenStack networking")
 public class OpenstackSyncRulesCommand extends AbstractShellCommand {
 
-    private static final long TIMEOUT_MS = 10000; // we wait 10s for init each node
+    private static final long SLEEP_MS = 3000; // we wait 3s for init each node
 
     @Override
     protected void execute() {
@@ -45,19 +47,16 @@ public class OpenstackSyncRulesCommand extends AbstractShellCommand {
             OpenstackNode updated = osNode.updateState(NodeState.INIT);
             osNodeAdminService.updateNode(updated);
 
-            long timeoutExpiredMs = System.currentTimeMillis() + TIMEOUT_MS;
-            while (updated.state() != NodeState.COMPLETE) {
-                long  waitMs = timeoutExpiredMs - System.currentTimeMillis();
+            try {
+                sleep(SLEEP_MS);
+            } catch (InterruptedException e) {
+                log.error("Exception caused during node synchronization...");
+            }
 
-                if (updated.state() == NodeState.COMPLETE) {
-                    print("Finished sync rules for node {}", updated.hostname());
-                    break;
-                }
-
-                if (waitMs <= 0) {
-                    error("Failed to sync rules for node {}", updated.hostname());
-                    break;
-                }
+            if (osNodeService.node(osNode.hostname()).state() == NodeState.COMPLETE) {
+                print("Finished sync rules for node %s", osNode.hostname());
+            } else {
+                error("Failed to sync rules for node %s", osNode.hostname());
             }
         });
         print("Successfully requested re-installing flow rules.");
