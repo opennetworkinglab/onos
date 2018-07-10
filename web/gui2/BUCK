@@ -93,7 +93,8 @@ genrule(
         + '    echo "Install Google Chrome or Chromium Browser to allow this step to run." >&2;'
         + ' else '
         + '  echo "Error running \'ng test\' on \'//web/gui2:onos-web-gui2-test\'. See $ORIGOUTPUT/onos-web-gui2-test-log.txt for more details" >&2;'
-        + '  tail -n 100 $ORIGOUTPUT/onos-web-gui2-test-log.txt >&2;'
+        + '  tail -n 100 $OUT >&2;'
+        + '  exit 1;'
         + ' fi;'
         + 'fi;',
     out = 'onos-web-gui2-test-log.txt',
@@ -105,9 +106,6 @@ genrule(
     bash =
         'export PATH=$(location :node-bin-' + NODE_VERSION + ')/bin:$PATH; '
         + 'cd $(location :onos-web-gui2-build)/../../onos-web-gui2-build__srcs;'
-#         + 'pwd > "$OUT";'
-#         + 'npm5 -v >> "$OUT";'
-#         + 'ng -v >> "$OUT";'
         + 'ng lint >> "$OUT" 2>&1 || '
         + 'if [ $? -eq 0 ]; then echo "Successfully ran lint";'
         + 'else '
