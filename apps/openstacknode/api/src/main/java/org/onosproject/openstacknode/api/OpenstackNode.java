@@ -20,6 +20,7 @@ import org.onlab.packet.MacAddress;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.behaviour.ControllerInfo;
 import org.onosproject.net.group.GroupKey;
 
 import java.util.Collection;
@@ -200,6 +201,13 @@ public interface OpenstackNode {
     String endPoint();
 
     /**
+     * Returns a collection of customized controllers.
+     *
+     * @return customized controllers
+     */
+    Collection<ControllerInfo> controllers();
+
+    /**
      * Builder of new node entities.
      */
     interface Builder {
@@ -282,6 +290,14 @@ public interface OpenstackNode {
          * @return openstack node builder
          */
         Builder phyIntfs(Collection<OpenstackPhyInterface> phyIntfs);
+
+        /**
+         * Returns openstack node builder with supplied customized controllers.
+         *
+         * @param controllers a collection of customized controllers
+         * @return openstack node builder
+         */
+        Builder controllers(Collection<ControllerInfo> controllers);
 
         /**
          * Returns openstack node builder with supplied authentication info.

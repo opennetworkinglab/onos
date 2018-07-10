@@ -256,13 +256,19 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
             return;
         }
 
-        Set<IpAddress> controllerIps = clusterService.getNodes().stream()
+        List<ControllerInfo> controllers;
+
+        if (osNode.controllers() != null && osNode.controllers().size() > 0) {
+            controllers = (List<ControllerInfo>) osNode.controllers();
+        } else {
+            Set<IpAddress> controllerIps = clusterService.getNodes().stream()
                     .map(ControllerNode::ip)
                     .collect(Collectors.toSet());
 
-        List<ControllerInfo> controllers = controllerIps.stream()
-                .map(ip -> new ControllerInfo(ip, DEFAULT_OFPORT, DEFAULT_OF_PROTO))
-                .collect(Collectors.toList());
+            controllers = controllerIps.stream()
+                    .map(ip -> new ControllerInfo(ip, DEFAULT_OFPORT, DEFAULT_OF_PROTO))
+                    .collect(Collectors.toList());
+        }
 
         String dpid = deviceId.toString().substring(DPID_BEGIN);
 

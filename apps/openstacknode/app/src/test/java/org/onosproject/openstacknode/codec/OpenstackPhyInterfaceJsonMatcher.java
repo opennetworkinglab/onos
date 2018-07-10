@@ -20,6 +20,9 @@ import org.hamcrest.Description;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
 import org.onosproject.openstacknode.api.OpenstackPhyInterface;
 
+/**
+ * Hamcrest matcher for openstack physical interface.
+ */
 public final class OpenstackPhyInterfaceJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNode> {
 
     private final OpenstackPhyInterface phyIntf;

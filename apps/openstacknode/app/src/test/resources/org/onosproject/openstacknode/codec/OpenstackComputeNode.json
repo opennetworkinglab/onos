@@ -14,5 +14,15 @@
       "network": "oamnetwork",
       "intf": "eth4"
     }
+  ],
+  "controllers": [
+    {
+      "ip": "10.10.10.2",
+      "port": 6653
+    },
+    {
+      "ip": "10.10.10.3",
+      "port": 6663
+    }
   ]
 }

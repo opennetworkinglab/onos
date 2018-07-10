@@ -22,6 +22,9 @@ import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+/**
+ * Implementation class of openstack authentication.
+ */
 public class DefaultOpenstackAuth implements OpenstackAuth {
 
     private final String version;

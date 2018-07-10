@@ -22,6 +22,9 @@ import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+/**
+ * Implementation class of openstack physical interface.
+ */
 public class DefaultOpenstackPhyInterface implements OpenstackPhyInterface {
 
     private final String network;

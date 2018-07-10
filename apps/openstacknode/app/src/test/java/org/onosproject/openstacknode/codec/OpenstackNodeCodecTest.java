@@ -28,6 +28,7 @@ import org.onosproject.codec.JsonCodec;
 import org.onosproject.codec.impl.CodecManager;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.behaviour.ControllerInfo;
 import org.onosproject.openstacknode.api.NodeState;
 import org.onosproject.openstacknode.api.OpenstackAuth;
 import org.onosproject.openstacknode.api.OpenstackNode;
@@ -57,6 +58,7 @@ public class OpenstackNodeCodecTest {
     MockCodecContext context;
     JsonCodec<OpenstackNode> openstackNodeCodec;
     JsonCodec<OpenstackPhyInterface> openstackPhyIntfJsonCodec;
+    JsonCodec<ControllerInfo> openstackControllerJsonCodec;
     JsonCodec<OpenstackAuth> openstackAuthJsonCodec;
     final CoreService mockCoreService = createMock(CoreService.class);
     private static final String REST_APP_ID = "org.onosproject.rest";
@@ -66,10 +68,12 @@ public class OpenstackNodeCodecTest {
         context = new MockCodecContext();
         openstackNodeCodec = new OpenstackNodeCodec();
         openstackPhyIntfJsonCodec = new OpenstackPhyInterfaceCodec();
+        openstackControllerJsonCodec = new OpenstackControllerCodec();
         openstackAuthJsonCodec = new OpenstackAuthCodec();
 
         assertThat(openstackNodeCodec, notNullValue());
         assertThat(openstackPhyIntfJsonCodec, notNullValue());
+        assertThat(openstackControllerJsonCodec, notNullValue());
         assertThat(openstackAuthJsonCodec, notNullValue());
 
         expect(mockCoreService.registerApplication(REST_APP_ID))
@@ -93,6 +97,11 @@ public class OpenstackNodeCodecTest {
                                 .intf("eth4")
                                 .build();
 
+        ControllerInfo controller1 =
+                new ControllerInfo(IpAddress.valueOf("10.10.10.2"), 6653, "tcp");
+        ControllerInfo controller2 =
+                new ControllerInfo(IpAddress.valueOf("10.10.10.3"), 6663, "tcp");
+
         OpenstackNode node = DefaultOpenstackNode.builder()
                                 .hostname("compute")
                                 .type(OpenstackNode.NodeType.COMPUTE)
@@ -102,6 +111,7 @@ public class OpenstackNodeCodecTest {
                                 .vlanIntf("vxlan")
                                 .dataIp(IpAddress.valueOf("20.20.20.2"))
                                 .phyIntfs(ImmutableList.of(phyIntf1, phyIntf2))
+                                .controllers(ImmutableList.of(controller1, controller2))
                                 .build();
 
         ObjectNode nodeJson = openstackNodeCodec.encode(node, context);
@@ -124,6 +134,7 @@ public class OpenstackNodeCodecTest {
         assertThat(node.intgBridge().toString(), is("of:00000000000000a1"));
         assertThat(node.vlanIntf(), is("eth2"));
         assertThat(node.phyIntfs().size(), is(2));
+        assertThat(node.controllers().size(), is(2));
 
         node.phyIntfs().forEach(intf -> {
             if (intf.network().equals("mgmtnetwork")) {
@@ -131,6 +142,15 @@ public class OpenstackNodeCodecTest {
             }
             if (intf.network().equals("oamnetwork")) {
                 assertThat(intf.intf(), is("eth4"));
+            }
+        });
+
+        node.controllers().forEach(ctrl -> {
+            if (ctrl.ip().toString().equals("10.10.10.2")) {
+                assertThat(ctrl.port(), is(6653));
+            }
+            if (ctrl.ip().toString().equals("10.10.10.3")) {
+                assertThat(ctrl.port(), is(6663));
             }
         });
     }
@@ -227,6 +247,9 @@ public class OpenstackNodeCodecTest {
         public <T> JsonCodec<T> codec(Class<T> entityClass) {
             if (entityClass == OpenstackPhyInterface.class) {
                 return (JsonCodec<T>) openstackPhyIntfJsonCodec;
+            }
+            if (entityClass == ControllerInfo.class) {
+                return (JsonCodec<T>) openstackControllerJsonCodec;
             }
             if (entityClass == OpenstackAuth.class) {
                 return (JsonCodec<T>) openstackAuthJsonCodec;

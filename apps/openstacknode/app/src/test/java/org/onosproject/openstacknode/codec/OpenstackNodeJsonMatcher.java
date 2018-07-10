@@ -18,6 +18,7 @@ package org.onosproject.openstacknode.codec;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
+import org.onosproject.net.behaviour.ControllerInfo;
 import org.onosproject.openstacknode.api.Constants;
 import org.onosproject.openstacknode.api.OpenstackAuth;
 import org.onosproject.openstacknode.api.OpenstackNode;
@@ -36,6 +37,7 @@ public final class OpenstackNodeJsonMatcher extends TypeSafeDiagnosingMatcher<Js
     private static final String INTEGRATION_BRIDGE = "integrationBridge";
     private static final String STATE = "state";
     private static final String PHYSICAL_INTERFACES = "phyIntfs";
+    private static final String CONTROLLERS = "controllers";
     private static final String AUTHENTICATION = "authentication";
     private static final String END_POINT = "endPoint";
 
@@ -149,6 +151,32 @@ public final class OpenstackNodeJsonMatcher extends TypeSafeDiagnosingMatcher<Js
 
                 if (!intfFound) {
                     description.appendText("PhyIntf not found " + phyIntf.toString());
+                    return false;
+                }
+            }
+        }
+
+        // check controllers
+        JsonNode jsonControllers = jsonNode.get(CONTROLLERS);
+        if (jsonControllers != null) {
+            if (jsonControllers.size() != node.controllers().size()) {
+                description.appendText("controllers size was " + jsonControllers.size());
+                return false;
+            }
+
+            for (ControllerInfo controller : node.controllers()) {
+                boolean ctrlFound = false;
+                for (int ctrlIndex = 0; ctrlIndex < jsonControllers.size(); ctrlIndex++) {
+                    OpenstackControllerJsonMatcher ctrlMatcher =
+                            OpenstackControllerJsonMatcher.matchesOpenstackController(controller);
+                    if (ctrlMatcher.matches(jsonControllers.get(ctrlIndex))) {
+                        ctrlFound = true;
+                        break;
+                    }
+                }
+
+                if (!ctrlFound) {
+                    description.appendText("Controller not found " + controller.toString());
                     return false;
                 }
             }

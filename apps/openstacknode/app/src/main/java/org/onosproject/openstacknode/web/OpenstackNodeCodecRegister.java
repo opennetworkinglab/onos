@@ -21,10 +21,12 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.codec.CodecService;
+import org.onosproject.net.behaviour.ControllerInfo;
 import org.onosproject.openstacknode.api.OpenstackAuth;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackPhyInterface;
 import org.onosproject.openstacknode.codec.OpenstackAuthCodec;
+import org.onosproject.openstacknode.codec.OpenstackControllerCodec;
 import org.onosproject.openstacknode.codec.OpenstackNodeCodec;
 import org.onosproject.openstacknode.codec.OpenstackPhyInterfaceCodec;
 
@@ -46,6 +48,7 @@ public class OpenstackNodeCodecRegister {
         codecService.registerCodec(OpenstackNode.class, new OpenstackNodeCodec());
         codecService.registerCodec(OpenstackAuth.class, new OpenstackAuthCodec());
         codecService.registerCodec(OpenstackPhyInterface.class, new OpenstackPhyInterfaceCodec());
+        codecService.registerCodec(ControllerInfo.class, new OpenstackControllerCodec());
 
         log.info("Started");
     }
@@ -55,6 +58,7 @@ public class OpenstackNodeCodecRegister {
         codecService.unregisterCodec(OpenstackNode.class);
         codecService.unregisterCodec(OpenstackAuth.class);
         codecService.unregisterCodec(OpenstackPhyInterface.class);
+        codecService.unregisterCodec(ControllerInfo.class);
 
         log.info("Stopped");
     }

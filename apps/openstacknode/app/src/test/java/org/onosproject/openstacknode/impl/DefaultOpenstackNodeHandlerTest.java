@@ -49,6 +49,7 @@ import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.BridgeConfig;
 import org.onosproject.net.behaviour.BridgeDescription;
 import org.onosproject.net.behaviour.BridgeName;
+import org.onosproject.net.behaviour.ControllerInfo;
 import org.onosproject.net.behaviour.DefaultBridgeDescription;
 import org.onosproject.net.behaviour.ExtensionTreatmentResolver;
 import org.onosproject.net.behaviour.InterfaceConfig;
@@ -152,6 +153,10 @@ public class DefaultOpenstackNodeHandlerTest {
     private static final Set<OpenstackPhyInterface> COMPUTE_2_PHY_INTFS = createPhyIntfs();
     private static final Set<OpenstackPhyInterface> COMPUTE_3_PHY_INTFS = createPhyIntfs();
 
+    private static final Set<ControllerInfo> COMPUTE_1_CONTROLLERS = createControllers();
+    private static final Set<ControllerInfo> COMPUTE_2_CONTROLLERS = createControllers();
+    private static final Set<ControllerInfo> COMPUTE_3_CONTROLLERS = createControllers();
+
     private static final Device COMPUTE_1_INTG_DEVICE = createOpenFlowDevice(1, INTEGRATION_BRIDGE);
     private static final Device COMPUTE_2_INTG_DEVICE = createOpenFlowDevice(2, INTEGRATION_BRIDGE);
     private static final Device COMPUTE_3_INTG_DEVICE = createOpenFlowDevice(3, INTEGRATION_BRIDGE);
@@ -170,7 +175,8 @@ public class DefaultOpenstackNodeHandlerTest {
             COMPUTE_1_INTG_DEVICE,
             COMPUTE_1_IP,
             INIT,
-            COMPUTE_1_PHY_INTFS
+            COMPUTE_1_PHY_INTFS,
+            COMPUTE_1_CONTROLLERS
     );
 
     private static final OpenstackNode COMPUTE_2 = createNode(
@@ -179,7 +185,8 @@ public class DefaultOpenstackNodeHandlerTest {
             COMPUTE_2_INTG_DEVICE,
             COMPUTE_2_IP,
             DEVICE_CREATED,
-            COMPUTE_2_PHY_INTFS
+            COMPUTE_2_PHY_INTFS,
+            COMPUTE_2_CONTROLLERS
     );
 
     private static final OpenstackNode COMPUTE_3 = createNode(
@@ -188,7 +195,8 @@ public class DefaultOpenstackNodeHandlerTest {
             COMPUTE_3_INTG_DEVICE,
             COMPUTE_3_IP,
             COMPLETE,
-            COMPUTE_3_PHY_INTFS
+            COMPUTE_3_PHY_INTFS,
+            COMPUTE_3_CONTROLLERS
     );
 
     private static final OpenstackNode GATEWAY_1 = createGatewayNode(
@@ -397,19 +405,24 @@ public class DefaultOpenstackNodeHandlerTest {
         return Sets.newConcurrentHashSet();
     }
 
+    private static Set<ControllerInfo> createControllers() {
+        return Sets.newConcurrentHashSet();
+    }
+
     private static OpenstackNode createNode(String hostname,
                                             OpenstackNode.NodeType type,
                                             Device intgBridge,
                                             IpAddress ipAddr,
                                             NodeState state,
-                                            Set<OpenstackPhyInterface> phyIntfs) {
+                                            Set<OpenstackPhyInterface> phyIntfs,
+                                            Set<ControllerInfo> controllers) {
         return new TestOpenstackNode(
                 hostname,
                 type,
                 intgBridge.id(),
                 ipAddr,
                 ipAddr,
-                null, null, state, phyIntfs, null, null);
+                null, null, state, phyIntfs, controllers, null, null);
     }
 
     private static OpenstackNode createGatewayNode(String hostname,
@@ -424,7 +437,7 @@ public class DefaultOpenstackNodeHandlerTest {
                 intgBridge.id(),
                 ipAddr,
                 ipAddr,
-                null, uplinkPort, state, null, null, null);
+                null, uplinkPort, state, null, null, null, null);
     }
 
     private static final class TestDevice extends DefaultDevice {
@@ -483,6 +496,7 @@ public class DefaultOpenstackNodeHandlerTest {
                                   String uplinkPort,
                                   NodeState state,
                                   Set<OpenstackPhyInterface> phyIntfs,
+                                  Set<ControllerInfo> controllers,
                                   OpenstackAuth auth,
                                   String endPoint) {
             super(hostname,
@@ -494,6 +508,7 @@ public class DefaultOpenstackNodeHandlerTest {
                     uplinkPort,
                     state,
                     phyIntfs,
+                    controllers,
                     auth,
                     endPoint);
         }

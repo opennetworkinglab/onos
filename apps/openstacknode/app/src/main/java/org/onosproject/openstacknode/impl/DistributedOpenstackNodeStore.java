@@ -25,6 +25,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.net.behaviour.ControllerInfo;
 import org.onosproject.openstacknode.api.DefaultOpenstackNode;
 import org.onosproject.openstacknode.api.NodeState;
 import org.onosproject.openstacknode.api.OpenstackNode;
@@ -83,6 +84,7 @@ public class DistributedOpenstackNodeStore
             .register(NodeState.class)
             .register(OpenstackPhyInterface.class)
             .register(DefaultOpenstackPhyInterface.class)
+            .register(ControllerInfo.class)
             .register(DefaultOpenstackAuth.class)
             .register(DefaultOpenstackAuth.Perspective.class)
             .register(DefaultOpenstackAuth.Protocol.class)

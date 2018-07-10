@@ -22,11 +22,12 @@ import org.onlab.packet.IpAddress;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.behaviour.ControllerInfo;
+import org.onosproject.openstacknode.api.DefaultOpenstackNode;
 import org.onosproject.openstacknode.api.NodeState;
 import org.onosproject.openstacknode.api.OpenstackAuth;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackPhyInterface;
-import org.onosproject.openstacknode.api.DefaultOpenstackNode;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -55,6 +56,7 @@ public final class OpenstackNodeCodec extends JsonCodec<OpenstackNode> {
     private static final String INTEGRATION_BRIDGE = "integrationBridge";
     private static final String STATE = "state";
     private static final String PHYSICAL_INTERFACES = "phyIntfs";
+    private static final String CONTROLLERS = "controllers";
     private static final String AUTHENTICATION = "authentication";
     private static final String END_POINT = "endPoint";
 
@@ -99,6 +101,12 @@ public final class OpenstackNodeCodec extends JsonCodec<OpenstackNode> {
             phyIntfs.add(phyIntfJson);
         });
         result.set(PHYSICAL_INTERFACES, phyIntfs);
+
+        ArrayNode controllers = context.mapper().createArrayNode();
+        node.controllers().forEach(controller -> {
+            ObjectNode controllerJson = context.codec(ControllerInfo.class).encode(controller, context);
+            controllers.add(controllerJson);
+        });
 
         if (node.authentication() != null) {
             ObjectNode authJson = context.codec(OpenstackAuth.class)
@@ -162,6 +170,21 @@ public final class OpenstackNodeCodec extends JsonCodec<OpenstackNode> {
             });
         }
         nodeBuilder.phyIntfs(phyIntfs);
+
+        // parse customized controllers
+        List<ControllerInfo> controllers = new ArrayList<>();
+        JsonNode controllersJson = json.get(CONTROLLERS);
+        if (controllersJson != null) {
+
+            final JsonCodec<ControllerInfo>
+                    controllerCodec = context.codec(ControllerInfo.class);
+
+            IntStream.range(0, controllersJson.size()).forEach(i -> {
+                ObjectNode controllerJson = get(controllersJson, i);
+                controllers.add(controllerCodec.decode(controllerJson, context));
+            });
+        }
+        nodeBuilder.controllers(controllers);
 
         // parse authentication
         JsonNode authJson = json.get(AUTHENTICATION);

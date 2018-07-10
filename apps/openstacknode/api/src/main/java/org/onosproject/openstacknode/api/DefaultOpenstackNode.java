@@ -24,6 +24,7 @@ import org.onosproject.core.GroupId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.behaviour.ControllerInfo;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.group.DefaultGroupKey;
 import org.onosproject.net.group.GroupKey;
@@ -53,6 +54,7 @@ public class DefaultOpenstackNode implements OpenstackNode {
     private final String uplinkPort;
     private final NodeState state;
     private final Collection<OpenstackPhyInterface> phyIntfs;
+    private final Collection<ControllerInfo> controllers;
     private final OpenstackAuth auth;
     private final String endPoint;
 
@@ -72,6 +74,7 @@ public class DefaultOpenstackNode implements OpenstackNode {
      * @param uplinkPort    uplink port name
      * @param state         node state
      * @param phyIntfs      physical interfaces
+     * @param controllers   customized controllers
      * @param auth          keystone authentication info
      * @param endPoint      openstack endpoint URL
      */
@@ -83,6 +86,7 @@ public class DefaultOpenstackNode implements OpenstackNode {
                                    String uplinkPort,
                                    NodeState state,
                                    Collection<OpenstackPhyInterface> phyIntfs,
+                                   Collection<ControllerInfo> controllers,
                                    OpenstackAuth auth,
                                    String endPoint) {
         this.hostname = hostname;
@@ -94,6 +98,7 @@ public class DefaultOpenstackNode implements OpenstackNode {
         this.uplinkPort = uplinkPort;
         this.state = state;
         this.phyIntfs = phyIntfs;
+        this.controllers = controllers;
         this.auth = auth;
         this.endPoint = endPoint;
     }
@@ -235,6 +240,7 @@ public class DefaultOpenstackNode implements OpenstackNode {
                     Objects.equals(uplinkPort, that.uplinkPort) &&
                     Objects.equals(vlanIntf, that.vlanIntf) &&
                     Objects.equals(phyIntfs, that.phyIntfs) &&
+                    Objects.equals(controllers, that.controllers) &&
                     Objects.equals(auth, that.auth) &&
                     Objects.equals(endPoint, that.endPoint);
         }
@@ -251,6 +257,7 @@ public class DefaultOpenstackNode implements OpenstackNode {
                 vlanIntf,
                 uplinkPort,
                 phyIntfs,
+                controllers,
                 auth,
                 endPoint);
     }
@@ -267,6 +274,7 @@ public class DefaultOpenstackNode implements OpenstackNode {
                 .add("uplinkPort", uplinkPort)
                 .add("state", state)
                 .add("phyIntfs", phyIntfs)
+                .add("controllers", controllers)
                 .add("auth", auth)
                 .add("endpoint", endPoint)
                 .toString();
@@ -284,6 +292,7 @@ public class DefaultOpenstackNode implements OpenstackNode {
                 .uplinkPort(uplinkPort)
                 .state(newState)
                 .phyIntfs(phyIntfs)
+                .controllers(controllers)
                 .authentication(auth)
                 .endPoint(endPoint)
                 .build();
@@ -297,6 +306,16 @@ public class DefaultOpenstackNode implements OpenstackNode {
         }
 
         return phyIntfs;
+    }
+
+
+    @Override
+    public Collection<ControllerInfo> controllers() {
+        if (controllers == null) {
+            return new ArrayList<>();
+        }
+
+        return controllers;
     }
 
     @Override
@@ -354,6 +373,7 @@ public class DefaultOpenstackNode implements OpenstackNode {
                 .uplinkPort(osNode.uplinkPort())
                 .state(osNode.state())
                 .phyIntfs(osNode.phyIntfs())
+                .controllers(osNode.controllers())
                 .authentication(osNode.authentication())
                 .endPoint(osNode.endPoint());
     }
@@ -372,6 +392,7 @@ public class DefaultOpenstackNode implements OpenstackNode {
         private String uplinkPort;
         private NodeState state;
         private Collection<OpenstackPhyInterface> phyIntfs;
+        private Collection<ControllerInfo> controllers;
         private OpenstackAuth auth;
         private String endPoint;
 
@@ -409,6 +430,7 @@ public class DefaultOpenstackNode implements OpenstackNode {
                     uplinkPort,
                     state,
                     phyIntfs,
+                    controllers,
                     auth,
                     endPoint);
         }
@@ -466,6 +488,12 @@ public class DefaultOpenstackNode implements OpenstackNode {
         @Override
         public Builder phyIntfs(Collection<OpenstackPhyInterface> phyIntfs) {
             this.phyIntfs = phyIntfs;
+            return this;
+        }
+
+        @Override
+        public Builder controllers(Collection<ControllerInfo> controllers) {
+            this.controllers = controllers;
             return this;
         }
 
