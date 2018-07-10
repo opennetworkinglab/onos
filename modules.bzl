@@ -301,11 +301,11 @@ FEATURES = [
     "//tools/package/features:onos-thirdparty-web",
     "//tools/package/features:onos-api",
     "//tools/package/features:onos-core",
-    #    "//tools/package/features:onos-incubator",
-    #    "//tools/package/features:onos-rest",
+    "//tools/package/features:onos-incubator",
+    "//tools/package/features:onos-cli",
+    "//tools/package/features:onos-rest",
     #    "//tools/package/features:onos-gui",
     #    "//tools/package/features:onos-gui2",
-    #    "//tools/package/features:onos-cli",
     #    "//tools/package/features:onos-security",
 ]
 
