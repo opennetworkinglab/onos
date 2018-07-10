@@ -55,7 +55,7 @@ def _bnd_impl(ctx):
 
     jar = input_file.path
     output = ctx.outputs.osgi_jar.path
-    name = ctx.attr.source.label.name
+    name = ctx.attr.name
     group = ctx.attr.group
     version = ctx.attr.version
     license = ""

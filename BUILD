@@ -82,7 +82,7 @@ genrule(
 # Runs ONOS as a single instance from the /tmp directory
 # FIXME: Still work in progress
 genrule(
-    name = "onos-run",
+    name = "onos-local",
     srcs = [
         ":onos-package",
         "tools/package/onos-run-karaf",

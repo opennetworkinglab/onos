@@ -33,7 +33,7 @@ def _osgi_feature_impl(ctx):
         "-t",
         ctx.attr.description,
     ]
-    bundleArgs = [ctx.outputs.bundle_zip.path]
+    bundleArgs = [ctx.outputs.feature_zip.path]
     inputs = []
 
     for dep in ctx.attr.included_bundles:
@@ -58,15 +58,15 @@ def _osgi_feature_impl(ctx):
         outputs = [ctx.outputs.feature_xml],
         arguments = xmlArgs,
         progress_message = "Generating feature %s XML" % ctx.attr.name,
-        executable = ctx.executable._writer,
+        executable = ctx.executable._feature_writer,
     )
 
     ctx.actions.run(
         inputs = inputs,
-        outputs = [ctx.outputs.bundle_zip],
+        outputs = [ctx.outputs.feature_zip],
         arguments = bundleArgs,
         progress_message = "Generating feature %s bundle" % ctx.attr.name,
-        executable = ctx.executable._bundler,
+        executable = ctx.executable._feature_bundler,
     )
 
 osgi_feature = rule(
@@ -77,22 +77,22 @@ osgi_feature = rule(
         "included_bundles": attr.label_list(),
         "excluded_bundles": attr.label_list(default = []),
         "generate_file": attr.bool(default = False),
-        "_writer": attr.label(
+        "_feature_writer": attr.label(
             executable = True,
             cfg = "host",
             allow_files = True,
-            default = Label("//tools/build/bazel:onos_app_writer"),
+            default = Label("//tools/build/bazel:onos_app_tools"),
         ),
-        "_bundler": attr.label(
+        "_feature_bundler": attr.label(
             executable = True,
             cfg = "host",
             allow_files = True,
-            default = Label("//tools/build/bazel:onos_feature"),
+            default = Label("//tools/build/bazel:osgi_feature_bundler"),
         ),
     },
     outputs = {
         "feature_xml": "feature-%{name}.xml",
-        "bundle_zip": "feature-%{name}.zip",
+        "feature_zip": "feature-%{name}.zip",
     },
     implementation = _osgi_feature_impl,
 )

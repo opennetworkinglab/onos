@@ -1,27 +1,20 @@
 py_binary(
-    name = "onos_app_writer",
-    srcs = ["onos_app.py"],
-    main = "onos_app.py",
+    name = "osgi_feature_bundler",
+    srcs = ["osgi_feature_bundler.py"],
+    main = "osgi_feature_bundler.py",
     visibility = ["//visibility:public"],
 )
 
 py_binary(
-    name = "onos_app_oar",
-    srcs = ["onos_oar.py"],
-    main = "onos_oar.py",
+    name = "onos_app_tools",
+    srcs = ["onos_app_tools.py"],
+    main = "onos_app_tools.py",
     visibility = ["//visibility:public"],
 )
 
 py_binary(
-    name = "onos_stage",
-    srcs = ["onos_stage.py"],
-    main = "onos_stage.py",
-    visibility = ["//visibility:public"],
-)
-
-py_binary(
-    name = "onos_feature",
-    srcs = ["onos_feature.py"],
-    main = "onos_feature.py",
+    name = "onos_app_bundler",
+    srcs = ["onos_app_bundler.py"],
+    main = "onos_app_bundler.py",
     visibility = ["//visibility:public"],
 )

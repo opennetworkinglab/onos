@@ -53,73 +53,68 @@ def _onos_oar_impl(ctx):
         outputs = [ctx.outputs.app_oar],
         arguments = arguments,
         progress_message = "Running oar file generator: %s" % ctx.attr.name,
-        executable = ctx.executable._onos_app_oar_exe,
+        executable = ctx.executable._onos_app_bundler,
     )
 
-# Implementation of the rule to build an app.xml or features file for an application
+# Implementation of the rule to build an app.xml desriptor file for ONOS app
 def _onos_app_xml_impl(ctx):
-    output = ctx.outputs.app_xml.path
-    app_name = ctx.attr.app_name
-    origin = ctx.attr.origin
-    version = ctx.attr.version
-    title = ctx.attr.title
-    category = ctx.attr.category
-    url = ctx.attr.url
-    mode = ctx.attr.mode
-    feature_coords = ctx.attr.feature_coords
-    description = ctx.attr.description
-    apps = ctx.attr.apps
-    included_bundles = ctx.attr.included_bundles
-    excluded_bundles = ctx.attr.excluded_bundles
-    required_features = ctx.attr.required_features
-    required_apps = ctx.attr.required_apps
-    security = ctx.attr.security
-    artifacts_args = []
-
-    # call the app.xml generator
+    # Build-up arguments for the app.xml and feature.xml generator
     arguments = [
-        "-O",
-        output,
-        "-n",
-        feature_coords,
-        "-a",
-        app_name,
-        "-o",
-        origin,
-        "-c",
-        category,
-        "-u",
-        url,
-        "-v",
-        version,
-        "-t",
-        title,
-        "-D",
-        description,
-        mode,
+        "-n", ctx.attr.feature_coords,
+        "-a", ctx.attr.app_name,
+        "-o", ctx.attr.origin,
+        "-c", ctx.attr.category,
+        "-u", ctx.attr.url,
+        "-v", ctx.attr.version,
+        "-t", ctx.attr.title,
+        "-D", ctx.attr.description,
     ]
 
-    for bundle in included_bundles:
-        arguments += ["-b", maven_coordinates(bundle.label).replace("mvn:", "")]
-    for bundle in excluded_bundles:
-        arguments += ["-e", maven_coordinates(bundle.label).replace("mvn:", "")]
-    for feature in required_features:
-        arguments += ["-f", feature]
-    for app in required_apps:
+    for bundle in ctx.attr.included_bundles:
+        arguments += ["-b", maven_coordinates(bundle.label)]
+    for bundle in ctx.attr.excluded_bundles:
+        arguments += ["-e", maven_coordinates(bundle.label)]
+    for app in ctx.attr.required_apps:
         arguments += ["-d", app]
 
-    if security != "":
-        arguments += ["-s", security]
+    if ctx.attr.security != "":
+        arguments += ["-s", ctx.attr.security]
 
     ctx.actions.run(
         inputs = [],
         outputs = [ctx.outputs.app_xml],
-        arguments = arguments,
-        progress_message = "Running app xml generator: %s" % ctx.attr.name,
-        executable = ctx.executable._onos_app_writer_exe,
+        arguments = arguments + [ "-A", "-O", ctx.outputs.app_xml.path ],
+        progress_message = "Generating app.xml descriptor for app: %s" % ctx.attr.name,
+        executable = ctx.executable._onos_app_tools,
     )
 
-# OAR file rule
+# Implementation of the rule to build the feature.xml file for ONOS app
+def _onos_feature_xml_impl(ctx):
+    # Build-up arguments
+    arguments = [
+        "-n", ctx.attr.feature_coords,
+        "-a", ctx.attr.app_name,
+        "-u", ctx.attr.url,
+        "-v", ctx.attr.version,
+        "-t", ctx.attr.title,
+        "-D", ctx.attr.description,
+    ]
+
+    for bundle in ctx.attr.included_bundles:
+        arguments += ["-b", maven_coordinates(bundle.label)]
+    for feature in ctx.attr.required_features:
+        arguments += ["-f", feature]
+
+    ctx.actions.run(
+        inputs = [],
+        outputs = [ctx.outputs.feature_xml],
+        arguments = arguments + [ "-F", "-O", ctx.outputs.feature_xml.path ],
+        progress_message = "Generating feature.xml for app: %s" % ctx.attr.name,
+        executable = ctx.executable._onos_app_tools,
+    )
+
+
+# Rule to generate the ONOS app OAR file.
 _onos_oar = rule(
     attrs = {
         "deps": attr.label_list(),
@@ -130,11 +125,11 @@ _onos_oar = rule(
         "feature_xml": attr.label(),
         "feature_xml_coords": attr.string(),
         "included_bundles": attr.label_list(),
-        "_onos_app_oar_exe": attr.label(
+        "_onos_app_bundler": attr.label(
             executable = True,
             cfg = "host",
             allow_files = True,
-            default = Label("//tools/build/bazel:onos_app_oar"),
+            default = Label("//tools/build/bazel:onos_app_bundler"),
         ),
     },
     outputs = {
@@ -143,7 +138,7 @@ _onos_oar = rule(
     implementation = _onos_oar_impl,
 )
 
-# app.xml rule
+# Rule to generate app.xml descriptor for an ONOS application.
 _onos_app_xml = rule(
     attrs = {
         "app_name": attr.string(),
@@ -157,15 +152,13 @@ _onos_app_xml = rule(
         "apps": attr.label_list(),
         "included_bundles": attr.label_list(),
         "excluded_bundles": attr.label_list(),
-        "required_features": attr.string_list(),
-        "security": attr.string(),
-        "mode": attr.string(),
         "required_apps": attr.string_list(),
-        "_onos_app_writer_exe": attr.label(
+        "security": attr.string(),
+        "_onos_app_tools": attr.label(
             executable = True,
             cfg = "host",
             allow_files = True,
-            default = Label("//tools/build/bazel:onos_app_writer"),
+            default = Label("//tools/build/bazel:onos_app_tools"),
         ),
     },
     outputs = {
@@ -174,35 +167,29 @@ _onos_app_xml = rule(
     implementation = _onos_app_xml_impl,
 )
 
-# feature.xml rule
+# Rule to generate feature.xml descriptor for an ONOS application.
 _onos_feature_xml = rule(
     attrs = {
         "app_name": attr.string(),
-        "origin": attr.string(),
         "version": attr.string(),
         "title": attr.string(),
         "category": attr.string(),
         "url": attr.string(),
         "feature_coords": attr.string(),
         "description": attr.string(),
-        "apps": attr.label_list(),
         "included_bundles": attr.label_list(),
-        "excluded_bundles": attr.label_list(),
         "required_features": attr.string_list(),
-        "security": attr.string(),
-        "mode": attr.string(),
-        "required_apps": attr.string_list(),
-        "_onos_app_writer_exe": attr.label(
+        "_onos_app_tools": attr.label(
             executable = True,
             cfg = "host",
             allow_files = True,
-            default = Label("//tools/build/bazel:onos_app_writer"),
+            default = Label("//tools/build/bazel:onos_app_tools"),
         ),
     },
     outputs = {
-        "app_xml": "%{name}.xml",
+        "feature_xml": "%{name}.xml",
     },
-    implementation = _onos_app_xml_impl,
+    implementation = _onos_feature_xml_impl,
 )
 
 def _basename(path):
@@ -224,7 +211,7 @@ def _local_label(name, suffix):
     base_label_name = "//" + native.package_name() + ":"
     return base_label_name + name + suffix
 
-# Rule to build an ONOS application OAR file
+# Macro to build an ONOS application OAR file.
 def onos_app(
         app_name = None,
         name = None,
@@ -259,17 +246,13 @@ def onos_app(
         target = _local_label(name, "")
         included_bundles = [target]
 
-    # TODO - have to implement this eventually
-    #if not feature_coords and len(included_bundles) == 1:
-    #    feature_coords = '$(maven_coords %s)' % included_bundles[0]
-
     if not feature_coords:
         feature_coords = "mvn:%s:%s:%s" % (ONOS_GROUP_ID, name, ONOS_VERSION)
 
     # TODO - intra app dependecies
     apps = []
 
-    # rule that generates the app.xml
+    # Generate the app.xml file
     _onos_app_xml(
         name = name + "-app-xml",
         app_name = app_name,
@@ -284,29 +267,22 @@ def onos_app(
         included_bundles = included_bundles,
         excluded_bundles = excluded_bundles,
         required_apps = required_apps,
-        mode = "-A",
     )
 
-    # rule that generates the features.xml
-    # TODO - rename this
-    _onos_app_xml(
+   # Generate feature.xml file
+    _onos_feature_xml(
         name = name + "-feature-xml",
         app_name = app_name,
-        origin = origin,
         version = version,
         title = title,
-        category = category,
-        url = url,
         feature_coords = feature_coords,
         description = description,
-        apps = apps,
         included_bundles = included_bundles,
-        excluded_bundles = excluded_bundles,
         required_features = required_features,
-        mode = "-F",
     )
 
-    # rule to generate the OAR file based on the app.xml, features.xml, and app jar file
+    # Generate the OAR file based on the app.xml, features.xml, and specified
+    # bundles to be included.
     _onos_oar(
         name = name + "-oar",
         included_bundles = included_bundles,

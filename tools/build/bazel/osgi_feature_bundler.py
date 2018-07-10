@@ -1,10 +1,26 @@
 #!/usr/bin/env python
-#FIXME Add license
+"""
+ Copyright 2018-present Open Networking Foundation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+ http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+"""
 
 from zipfile import ZipFile, ZipInfo
 
-def generateOar(output, files=[]):
-    # Note this is not a compressed zip
+# Utility to write out the ZIP bundle containing the artifacts required by an
+# OSGI feature.
+
+def writeFeatureBundle(output, files=[]):
     with ZipFile(output, 'w') as zip:
         for file, mvnCoords in files:
             filename = file.split('/')[-1]
@@ -41,4 +57,4 @@ if __name__ == '__main__':
         sys.exit(2)
 
     files = zip(*[iter(args)]*2)
-    generateOar(output, files)
+    writeFeatureBundle(output, files)
