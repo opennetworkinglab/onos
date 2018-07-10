@@ -24,27 +24,13 @@ control Next (
     inout parsed_headers_t hdr,
     inout fabric_metadata_t fabric_metadata,
     inout standard_metadata_t standard_metadata) {
-    action_selector(HashAlgorithm.crc16, 32w64, 32w16) ecmp_selector;
-    direct_counter(CounterType.packets_and_bytes) vlan_meta_counter;
-    direct_counter(CounterType.packets_and_bytes) simple_counter;
-    direct_counter(CounterType.packets_and_bytes) hashed_counter;
 
-    action output(port_num_t port_num) {
-        standard_metadata.egress_spec = port_num;
-    }
-
-    action set_vlan(vlan_id_t new_vlan_id) {
-        hdr.vlan_tag.vlan_id = new_vlan_id;
-    }
-
+    /*
+     * General actions.
+     */
     action pop_vlan() {
         hdr.ethernet.ether_type = hdr.vlan_tag.ether_type;
         hdr.vlan_tag.setInvalid();
-    }
-
-    action set_vlan_output(vlan_id_t new_vlan_id, port_num_t port_num){
-        hdr.vlan_tag.vlan_id = new_vlan_id;
-        output(port_num);
     }
 
     action rewrite_smac(mac_addr_t smac) {
@@ -53,18 +39,6 @@ control Next (
 
     action rewrite_dmac(mac_addr_t dmac) {
         hdr.ethernet.dst_addr = dmac;
-    }
-
-    action l3_routing(port_num_t port_num, mac_addr_t smac, mac_addr_t dmac) {
-        rewrite_smac(smac);
-        rewrite_dmac(dmac);
-        output(port_num);
-    }
-
-    action l3_routing_vlan(port_num_t port_num, mac_addr_t smac, mac_addr_t dmac, vlan_id_t new_vlan_id) {
-        rewrite_smac(smac);
-        rewrite_dmac(dmac);
-        set_vlan_output(new_vlan_id, port_num);
     }
 
     action push_mpls (mpls_label_t label, bit<3> tc) {
@@ -77,20 +51,15 @@ control Next (
         hdr.mpls.ttl = DEFAULT_MPLS_TTL;
     }
 
-    action mpls_routing_v4 (port_num_t port_num, mac_addr_t smac, mac_addr_t dmac,
-                            mpls_label_t label) {
-        l3_routing(port_num, smac, dmac);
+    /*
+     * VLAN Metadata Table.
+     * Modify VLAN Id according to metadata from NextObjective(next id).
+     */
+    direct_counter(CounterType.packets_and_bytes) vlan_meta_counter;
 
-        // TODO: set tc according to diffserv from ipv4
-        push_mpls(label, 3w0);
-    }
-
-    action mpls_routing_v6 (port_num_t port_num, mac_addr_t smac, mac_addr_t dmac,
-                            mpls_label_t label) {
-        l3_routing(port_num, smac, dmac);
-
-        // TODO: set tc according to traffic_class from ipv4
-        push_mpls(label, 3w0);
+    action set_vlan(vlan_id_t new_vlan_id) {
+        hdr.vlan_tag.vlan_id = new_vlan_id;
+        vlan_meta_counter.count();
     }
 
     table vlan_meta {
@@ -100,10 +69,54 @@ control Next (
 
         actions = {
             set_vlan;
-            nop;
+            @defaultonly nop;
         }
         default_action = nop;
         counters = vlan_meta_counter;
+    }
+
+    /*
+     * Simple Table.
+     * Do a single egress action based on next id.
+     */
+    direct_counter(CounterType.packets_and_bytes) simple_counter;
+
+    action output_simple(port_num_t port_num) {
+        standard_metadata.egress_spec = port_num;
+        simple_counter.count();
+    }
+
+    action set_vlan_output(vlan_id_t new_vlan_id, port_num_t port_num){
+        hdr.vlan_tag.vlan_id = new_vlan_id;
+        output_simple(port_num);
+    }
+
+    action l3_routing_simple(port_num_t port_num, mac_addr_t smac, mac_addr_t dmac) {
+        rewrite_smac(smac);
+        rewrite_dmac(dmac);
+        output_simple(port_num);
+    }
+
+    action mpls_routing_v4_simple(port_num_t port_num, mac_addr_t smac, mac_addr_t dmac,
+                            mpls_label_t label) {
+        l3_routing_simple(port_num, smac, dmac);
+
+        // TODO: set tc according to diffserv from ipv4
+        push_mpls(label, 3w0);
+    }
+
+    action mpls_routing_v6_simple (port_num_t port_num, mac_addr_t smac, mac_addr_t dmac,
+                            mpls_label_t label) {
+        l3_routing_simple(port_num, smac, dmac);
+
+        // TODO: set tc according to traffic_class from ipv4
+        push_mpls(label, 3w0);
+    }
+
+    action l3_routing_vlan(port_num_t port_num, mac_addr_t smac, mac_addr_t dmac, vlan_id_t new_vlan_id) {
+        rewrite_smac(smac);
+        rewrite_dmac(dmac);
+        set_vlan_output(new_vlan_id, port_num);
     }
 
     table simple {
@@ -112,13 +125,51 @@ control Next (
         }
 
         actions = {
-            output;
+            output_simple;
             set_vlan_output;
-            l3_routing;
-            mpls_routing_v4;
+            l3_routing_simple;
+            mpls_routing_v4_simple;
+            mpls_routing_v6_simple;
             l3_routing_vlan;
         }
         counters = simple_counter;
+    }
+
+    /*
+     * Hashed table.
+     * Execute an action profile group based on next id.
+     * One action profile group may contains multple egress decision.
+     * The execution picks one action profile group memebr by using 5-tuple
+     * hashing.
+     */
+    action_selector(HashAlgorithm.crc16, 32w64, 32w16) ecmp_selector;
+    direct_counter(CounterType.packets_and_bytes) hashed_counter;
+
+    action output_hashed(port_num_t port_num) {
+        standard_metadata.egress_spec = port_num;
+        hashed_counter.count();
+    }
+
+    action l3_routing_hashed(port_num_t port_num, mac_addr_t smac, mac_addr_t dmac) {
+        rewrite_smac(smac);
+        rewrite_dmac(dmac);
+        output_hashed(port_num);
+    }
+
+    action mpls_routing_v4_hashed (port_num_t port_num, mac_addr_t smac, mac_addr_t dmac,
+                            mpls_label_t label) {
+        l3_routing_hashed(port_num, smac, dmac);
+
+        // TODO: set tc according to diffserv from ipv4
+        push_mpls(label, 3w0);
+    }
+
+    action mpls_routing_v6_hashed (port_num_t port_num, mac_addr_t smac, mac_addr_t dmac,
+                            mpls_label_t label) {
+        l3_routing_hashed(port_num, smac, dmac);
+
+        // TODO: set tc according to traffic_class from ipv4
+        push_mpls(label, 3w0);
     }
 
     table hashed {
@@ -132,9 +183,9 @@ control Next (
         }
 
         actions = {
-            l3_routing;
-            mpls_routing_v4;
-            mpls_routing_v6;
+            l3_routing_hashed;
+            mpls_routing_v4_hashed;
+            mpls_routing_v6_hashed;
         }
 
         implementation = ecmp_selector;
@@ -142,13 +193,15 @@ control Next (
     }
 
     /*
-     * Work in progress
+     * Multicast Table.
+     * Setup multicast group id for packet replication engine (PRE).
      */
+    direct_counter(CounterType.packets_and_bytes) multicast_counter;
+
     action set_mcast_group(group_id_t gid) {
         standard_metadata.mcast_grp = gid;
+        multicast_counter.count();
     }
-
-    direct_counter(CounterType.packets_and_bytes) multicast_counter;
 
     table multicast {
         key = {
@@ -184,9 +237,16 @@ control EgressNextControl (
     inout fabric_metadata_t fabric_metadata,
     inout standard_metadata_t standard_metadata) {
 
+    /*
+     * Egress VLAN Table.
+     * Pops VLAN tag according to interface(Port and VLAN) configuration.
+     */
+    direct_counter(CounterType.packets_and_bytes) egress_vlan_counter;
+
     action pop_vlan() {
         hdr.ethernet.ether_type = hdr.vlan_tag.ether_type;
         hdr.vlan_tag.setInvalid();
+        egress_vlan_counter.count();
     }
 
     table egress_vlan {
@@ -196,9 +256,10 @@ control EgressNextControl (
         }
         actions = {
             pop_vlan;
-            nop;
+            @defaultonly nop;
         }
         default_action = nop;
+        counters = egress_vlan_counter;
     }
 
     apply {

@@ -120,7 +120,7 @@ public class FabricInterpreterTest {
         PiAction mappedAction = interpreter.mapTreatment(treatment,
                                                          FabricConstants.FABRIC_INGRESS_FORWARDING_ACL);
         PiAction expectedAction = PiAction.builder()
-                .withId(FabricConstants.FABRIC_INGRESS_FORWARDING_DUPLICATE_TO_CONTROLLER)
+                .withId(FabricConstants.FABRIC_INGRESS_FORWARDING_SEND_TO_CONTROLLER)
                 .build();
 
         assertEquals(expectedAction, mappedAction);
@@ -153,7 +153,7 @@ public class FabricInterpreterTest {
         PiActionParam param = new PiActionParam(FabricConstants.PORT_NUM,
                                                 ImmutableByteSequence.copyFrom(portNumVal));
         PiAction expectedAction = PiAction.builder()
-                .withId(FabricConstants.FABRIC_INGRESS_NEXT_OUTPUT)
+                .withId(FabricConstants.FABRIC_INGRESS_NEXT_OUTPUT_SIMPLE)
                 .withParameter(param)
                 .build();
 
@@ -180,7 +180,7 @@ public class FabricInterpreterTest {
         PiActionParam portParam = new PiActionParam(FabricConstants.PORT_NUM,
                                                 ImmutableByteSequence.copyFrom(portNumVal));
         PiAction expectedAction = PiAction.builder()
-                .withId(FabricConstants.FABRIC_INGRESS_NEXT_L3_ROUTING)
+                .withId(FabricConstants.FABRIC_INGRESS_NEXT_L3_ROUTING_HASHED)
                 .withParameters(ImmutableList.of(ethSrcParam, ethDstParam, portParam))
                 .build();
 
@@ -236,7 +236,7 @@ public class FabricInterpreterTest {
                 ImmutableByteSequence.copyFrom(MPLS_10.toInt()).fit(20);
         PiActionParam mplsParam = new PiActionParam(FabricConstants.LABEL, mplsVal);
         PiAction expectedAction = PiAction.builder()
-                .withId(FabricConstants.FABRIC_INGRESS_NEXT_MPLS_ROUTING_V4)
+                .withId(FabricConstants.FABRIC_INGRESS_NEXT_MPLS_ROUTING_V4_HASHED)
                 .withParameters(ImmutableList.of(ethSrcParam, ethDstParam, portParam, mplsParam))
                 .build();
         assertEquals(expectedAction, mappedAction);

@@ -27,26 +27,15 @@ control Forwarding (
     inout fabric_metadata_t fabric_metadata,
     inout standard_metadata_t standard_metadata) {
 
+    /*
+     * Bridging Table.
+     * Matches destination mac address and VLAN Id and make egress decision.
+     */
     direct_counter(CounterType.packets_and_bytes) bridging_counter;
-    direct_counter(CounterType.packets_and_bytes) mpls_counter;
-    direct_counter(CounterType.packets_and_bytes) unicast_v4_counter;
-    direct_counter(CounterType.packets_and_bytes) acl_counter;
 
-    action drop() {
-        mark_to_drop();
-    }
-
-    action set_next_id(next_id_t next_id) {
+    action set_next_id_bridging(next_id_t next_id) {
         fabric_metadata.next_id = next_id;
-    }
-
-    action pop_mpls_and_next(next_id_t next_id) {
-        hdr.mpls.setInvalid();
-        fabric_metadata.next_id = next_id;
-    }
-
-    action duplicate_to_controller() {
-        standard_metadata.egress_spec = CPU_PORT;
+        bridging_counter.count();
     }
 
     table bridging {
@@ -56,9 +45,21 @@ control Forwarding (
         }
 
         actions = {
-            set_next_id;
+            set_next_id_bridging;
         }
         counters = bridging_counter;
+    }
+
+    /*
+     * MPLS Table.
+     * Matches MPLS label and make egress decision.
+     */
+    direct_counter(CounterType.packets_and_bytes) mpls_counter;
+
+    action pop_mpls_and_next(next_id_t next_id) {
+        hdr.mpls.setInvalid();
+        fabric_metadata.next_id = next_id;
+        mpls_counter.count();
     }
 
     table mpls {
@@ -72,63 +73,48 @@ control Forwarding (
         counters = mpls_counter;
     }
 
+    /*
+     * IPv4 Unicast Table.
+     * Matches IPv4 prefix and make egress decision.
+     */
+    direct_counter(CounterType.packets_and_bytes) unicast_v4_counter;
+
+    action set_next_id_unicast_v4(next_id_t next_id) {
+        fabric_metadata.next_id = next_id;
+        unicast_v4_counter.count();
+    }
+
     table unicast_v4 {
         key = {
             hdr.ipv4.dst_addr: lpm;
         }
 
         actions = {
-            set_next_id;
+            set_next_id_unicast_v4;
         }
         counters = unicast_v4_counter;
     }
 
-#ifdef WITH_MULTICAST
-    direct_counter(CounterType.packets_and_bytes) multicast_v4_counter;
+    /*
+     * ACL Table.
+     * Make final egress decision based on general metch fields.
+     */
+    direct_counter(CounterType.packets_and_bytes) acl_counter;
 
-    table multicast_v4 {
-        key = {
-            hdr.vlan_tag.vlan_id: exact;
-            hdr.ipv4.dst_addr: lpm;
-        }
-
-        actions = {
-            set_next_id;
-        }
-        counters = multicast_v4_counter;
-    }
-#endif // WITH_MULTICAST
-
-#ifdef WITH_IPV6
-    direct_counter(CounterType.packets_and_bytes) unicast_v6_counter;
-
-    table unicast_v6 {
-        key = {
-            hdr.ipv6.dst_addr: lpm;
-        }
-
-        actions = {
-            set_next_id;
-        }
-        counters = unicast_v6_counter;
+    action set_next_id_acl(next_id_t next_id) {
+        fabric_metadata.next_id = next_id;
+        acl_counter.count();
     }
 
-#ifdef WITH_MULTICAST
-    direct_counter(CounterType.packets_and_bytes) multicast_v6_counter;
-
-    table multicast_v6 {
-        key = {
-            hdr.vlan_tag.vlan_id: exact;
-            hdr.ipv6.dst_addr: lpm;
-        }
-
-        actions = {
-            set_next_id;
-        }
-        counters = multicast_v6_counter;
+    action send_to_controller() {
+        standard_metadata.egress_spec = CPU_PORT;
+        acl_counter.count();
     }
-#endif // WITH_MULTICAST
-#endif // WITH_IPV6
+
+    action drop() {
+        mark_to_drop();
+        acl_counter.count();
+    }
 
     table acl {
         key = {
@@ -148,16 +134,89 @@ control Forwarding (
         }
 
         actions = {
-            set_next_id;
-            duplicate_to_controller;
+            set_next_id_acl;
+            send_to_controller;
             drop;
-            nop;
+            @defaultonly nop;
         }
 
         const default_action = nop();
         size = 256;
         counters = acl_counter;
     }
+
+#ifdef WITH_MULTICAST
+    /*
+     * IPv4 Multicast Table.
+     * Maches multcast IPv4 address and make egress decision.
+     */
+    direct_counter(CounterType.packets_and_bytes) multicast_v4_counter;
+    action set_next_id_multicast_v4(next_id_t next_id) {
+        fabric_metadata.next_id = next_id;
+        multicast_v4_counter.count();
+    }
+
+    table multicast_v4 {
+        key = {
+            hdr.vlan_tag.vlan_id: exact;
+            hdr.ipv4.dst_addr: lpm;
+        }
+
+        actions = {
+            set_next_id_multicast_v4;
+        }
+        counters = multicast_v4_counter;
+    }
+#endif // WITH_MULTICAST
+
+#ifdef WITH_IPV6
+    /*
+     * IPv6 Unicast Table.
+     * Matches IPv6 prefix and make egress decision.
+     */
+    direct_counter(CounterType.packets_and_bytes) unicast_v6_counter;
+
+    action set_next_id_unicast_v6(next_id_t next_id) {
+        fabric_metadata.next_id = next_id;
+        unicast_v6_counter.count();
+    }
+
+    table unicast_v6 {
+        key = {
+            hdr.ipv6.dst_addr: lpm;
+        }
+
+        actions = {
+            set_next_id_unicast_v6;
+        }
+        counters = unicast_v6_counter;
+    }
+
+#ifdef WITH_MULTICAST
+    /*
+     * IPv6 Multicast Table.
+     * Maches multcast IPv6 address and make egress decision.
+     */
+    direct_counter(CounterType.packets_and_bytes) multicast_v6_counter;
+
+    action set_next_id_multicast_v6(next_id_t next_id) {
+        fabric_metadata.next_id = next_id;
+        multicast_v6_counter.count();
+    }
+
+    table multicast_v6 {
+        key = {
+            hdr.vlan_tag.vlan_id: exact;
+            hdr.ipv6.dst_addr: lpm;
+        }
+
+        actions = {
+            set_next_id_multicast_v6;
+        }
+        counters = multicast_v6_counter;
+    }
+#endif // WITH_MULTICAST
+#endif // WITH_IPV6
 
     apply {
         if(fabric_metadata.fwd_type == FWD_BRIDGING) bridging.apply();

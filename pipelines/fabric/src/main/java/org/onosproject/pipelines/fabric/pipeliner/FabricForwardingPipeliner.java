@@ -34,6 +34,7 @@ import org.onosproject.net.flow.criteria.MplsCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.ObjectiveError;
+import org.onosproject.net.pi.model.PiActionId;
 import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiActionParam;
 import org.onosproject.pipelines.fabric.FabricConstants;
@@ -178,7 +179,8 @@ public class FabricForwardingPipeliner {
                 .build();
         TrafficTreatment treatment = fwd.treatment();
         if (fwd.nextId() != null) {
-            treatment = buildSetNextIdTreatment(fwd.nextId());
+            treatment = buildSetNextIdTreatment(fwd.nextId(),
+                                                FabricConstants.FABRIC_INGRESS_FORWARDING_SET_NEXT_ID_BRIDGING);
         }
 
         FlowRule flowRule = DefaultFlowRule.builder()
@@ -206,7 +208,8 @@ public class FabricForwardingPipeliner {
                 .build();
         TrafficTreatment treatment = fwd.treatment();
         if (fwd.nextId() != null) {
-            treatment = buildSetNextIdTreatment(fwd.nextId());
+            treatment = buildSetNextIdTreatment(fwd.nextId(),
+                                                FabricConstants.FABRIC_INGRESS_FORWARDING_SET_NEXT_ID_BRIDGING);
         }
         FlowRule flowRule = DefaultFlowRule.builder()
                 .withSelector(selector)
@@ -229,7 +232,8 @@ public class FabricForwardingPipeliner {
                 .build();
         TrafficTreatment treatment = fwd.treatment();
         if (fwd.nextId() != null) {
-            treatment = buildSetNextIdTreatment(fwd.nextId());
+            treatment = buildSetNextIdTreatment(fwd.nextId(),
+                                                FabricConstants.FABRIC_INGRESS_FORWARDING_SET_NEXT_ID_UNICAST_V4);
         }
         FlowRule flowRule = DefaultFlowRule.builder()
                 .withSelector(selector)
@@ -286,11 +290,11 @@ public class FabricForwardingPipeliner {
      * @param nextId the next id for action
      * @return treatment with set_next_id action; empty treatment if next id is null
      */
-    private static TrafficTreatment buildSetNextIdTreatment(Integer nextId) {
+    private static TrafficTreatment buildSetNextIdTreatment(Integer nextId, PiActionId actionId) {
         PiActionParam nextIdParam = new PiActionParam(FabricConstants.NEXT_ID,
                                                       ImmutableByteSequence.copyFrom(nextId.byteValue()));
         PiAction nextIdAction = PiAction.builder()
-                .withId(FabricConstants.FABRIC_INGRESS_FORWARDING_SET_NEXT_ID)
+                .withId(actionId)
                 .withParameter(nextIdParam)
                 .build();
 

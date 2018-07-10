@@ -262,12 +262,19 @@ public class FabricForwardingPipelineTest extends FabricPipelinerTest {
         } else {
             PiActionParam nextIdParam = new PiActionParam(FabricConstants.NEXT_ID,
                                                           ImmutableByteSequence.copyFrom(nextId.byteValue()));
-            PiAction setNextIdAction = PiAction.builder()
-                    .withId(FabricConstants.FABRIC_INGRESS_FORWARDING_SET_NEXT_ID)
-                    .withParameter(nextIdParam)
-                    .build();
+            PiAction.Builder setNextIdAction = PiAction.builder()
+                    .withParameter(nextIdParam);
+
+            if (expectedTableId.equals(FabricConstants.FABRIC_INGRESS_FORWARDING_BRIDGING)) {
+                setNextIdAction.withId(FabricConstants.FABRIC_INGRESS_FORWARDING_SET_NEXT_ID_BRIDGING);
+            } else if (expectedTableId.equals(FabricConstants.FABRIC_INGRESS_FORWARDING_UNICAST_V4)) {
+                setNextIdAction.withId(FabricConstants.FABRIC_INGRESS_FORWARDING_SET_NEXT_ID_UNICAST_V4);
+            } else if (expectedTableId.equals(FabricConstants.FABRIC_INGRESS_FORWARDING_UNICAST_V6)) {
+                setNextIdAction.withId(FabricConstants.FABRIC_INGRESS_FORWARDING_SET_NEXT_ID_UNICAST_V6);
+            }
+
             setNextIdTreatment = DefaultTrafficTreatment.builder()
-                    .piTableAction(setNextIdAction)
+                    .piTableAction(setNextIdAction.build())
                     .build();
         }
 

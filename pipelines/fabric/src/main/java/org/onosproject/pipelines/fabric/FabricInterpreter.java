@@ -164,13 +164,13 @@ public class FabricInterpreter extends AbstractHandlerBehaviour
             throws PiInterpreterException {
 
         if (FILTERING_CTRL_TBLS.contains(piTableId)) {
-            return FabricTreatmentInterpreter.mapFilteringTreatment(treatment);
+            return FabricTreatmentInterpreter.mapFilteringTreatment(treatment, piTableId);
         } else if (FORWARDING_CTRL_TBLS.contains(piTableId)) {
-            return FabricTreatmentInterpreter.mapForwardingTreatment(treatment);
+            return FabricTreatmentInterpreter.mapForwardingTreatment(treatment, piTableId);
         } else if (NEXT_CTRL_TBLS.contains(piTableId)) {
-            return FabricTreatmentInterpreter.mapNextTreatment(treatment);
+            return FabricTreatmentInterpreter.mapNextTreatment(treatment, piTableId);
         } else if (E_NEXT_CTRL_TBLS.contains(piTableId)) {
-            return FabricTreatmentInterpreter.mapEgressNextTreatment(treatment);
+            return FabricTreatmentInterpreter.mapEgressNextTreatment(treatment, piTableId);
         } else {
             throw new PiInterpreterException(String.format("Table %s unsupported", piTableId));
         }

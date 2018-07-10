@@ -24,15 +24,23 @@ control Filtering (
     inout parsed_headers_t hdr,
     inout fabric_metadata_t fabric_metadata,
     inout standard_metadata_t standard_metadata) {
+
+    /*
+     * Ingress Port VLAN Table.
+     * Process packets for different interfaces (Port number + VLAN).
+     * For example, an untagged packet will be tagged when it entered to an
+     * interface with untagged VLAN configuration.
+     */
     direct_counter(CounterType.packets_and_bytes) ingress_port_vlan_counter;
-    direct_counter(CounterType.packets_and_bytes) fwd_classifier_counter;
 
     action drop() {
         mark_to_drop();
+        ingress_port_vlan_counter.count();
     }
 
     action set_vlan(vlan_id_t new_vlan_id) {
         hdr.vlan_tag.vlan_id = new_vlan_id;
+        ingress_port_vlan_counter.count();
     }
 
     action push_internal_vlan(vlan_id_t new_vlan_id) {
@@ -43,17 +51,13 @@ control Filtering (
         hdr.vlan_tag.pri = 0;
         hdr.vlan_tag.ether_type = hdr.ethernet.ether_type;
         hdr.ethernet.ether_type = ETHERTYPE_VLAN;
-        set_vlan(new_vlan_id);
+        hdr.vlan_tag.vlan_id = new_vlan_id;
 
         // pop internal vlan before packet in
         fabric_metadata.pop_vlan_when_packet_in = _TRUE;
+        ingress_port_vlan_counter.count();
     }
 
-    action set_forwarding_type(fwd_type_t fwd_type) {
-        fabric_metadata.fwd_type = fwd_type;
-    }
-
-    // Originally Ingress port and Vlan table in OF-DPA pipeline
     table ingress_port_vlan {
         key = {
             standard_metadata.ingress_port: exact;
@@ -64,7 +68,7 @@ control Filtering (
         actions = {
             push_internal_vlan;
             set_vlan;
-            nop;
+            @defaultonly nop;
             drop;
         }
 
@@ -72,7 +76,25 @@ control Filtering (
         counters = ingress_port_vlan_counter;
     }
 
-    // Originally TMAC table in OF-DPA pipeline
+    /*
+     * Forwarding Classifier.
+     * Setup Forwarding Type metadata for Forwarding control block.
+     * There are six types of tables in Forwarding control block:
+     * - Bridging: default forwarding type
+     * - MPLS: destination mac address is the router mac and ethernet type is
+     *         MPLS(0x8847)
+     * - IP Multicast: destination mac address is multicast address and ethernet
+     *                 type is IP(0x0800 or 0x86dd)
+     * - IP Unicast: destination mac address is router mac and ethernet type is
+     *               IP(0x0800 or 0x86dd)
+     */
+    direct_counter(CounterType.packets_and_bytes) fwd_classifier_counter;
+
+    action set_forwarding_type(fwd_type_t fwd_type) {
+        fabric_metadata.fwd_type = fwd_type;
+        fwd_classifier_counter.count();
+    }
+
     table fwd_classifier {
         key = {
             standard_metadata.ingress_port: exact;

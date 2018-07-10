@@ -118,6 +118,8 @@ public final class FabricConstants {
             PiCounterId.of("FabricIngress.forwarding.multicast_v4_counter");
     public static final PiCounterId FABRIC_INGRESS_FORWARDING_UNICAST_V6_COUNTER =
             PiCounterId.of("FabricIngress.forwarding.unicast_v6_counter");
+    public static final PiCounterId FABRIC_EGRESS_EGRESS_NEXT_EGRESS_VLAN_COUNTER =
+            PiCounterId.of("FabricEgress.egress_next.egress_vlan_counter");
     public static final PiCounterId FABRIC_INGRESS_FORWARDING_UNICAST_V4_COUNTER =
             PiCounterId.of("FabricIngress.forwarding.unicast_v4_counter");
     public static final PiCounterId FABRIC_INGRESS_NEXT_SIMPLE_COUNTER =
@@ -129,44 +131,60 @@ public final class FabricConstants {
     public static final PiCounterId FABRIC_INGRESS_NEXT_HASHED_COUNTER =
             PiCounterId.of("FabricIngress.next.hashed_counter");
     // Action IDs
-    public static final PiActionId FABRIC_INGRESS_FILTERING_DROP =
-            PiActionId.of("FabricIngress.filtering.drop");
+    public static final PiActionId FABRIC_INGRESS_FORWARDING_SEND_TO_CONTROLLER =
+            PiActionId.of("FabricIngress.forwarding.send_to_controller");
+    public static final PiActionId FABRIC_INGRESS_NEXT_MPLS_ROUTING_V6_SIMPLE =
+            PiActionId.of("FabricIngress.next.mpls_routing_v6_simple");
+    public static final PiActionId FABRIC_INGRESS_FORWARDING_SET_NEXT_ID_BRIDGING =
+            PiActionId.of("FabricIngress.forwarding.set_next_id_bridging");
     public static final PiActionId FABRIC_INGRESS_NEXT_SET_VLAN =
             PiActionId.of("FabricIngress.next.set_vlan");
-    public static final PiActionId FABRIC_INGRESS_FORWARDING_POP_MPLS_AND_NEXT =
-            PiActionId.of("FabricIngress.forwarding.pop_mpls_and_next");
-    public static final PiActionId FABRIC_EGRESS_EGRESS_NEXT_POP_VLAN =
-            PiActionId.of("FabricEgress.egress_next.pop_vlan");
-    public static final PiActionId FABRIC_INGRESS_FILTERING_SET_FORWARDING_TYPE =
-            PiActionId.of("FabricIngress.filtering.set_forwarding_type");
-    public static final PiActionId NOP = PiActionId.of("nop");
-    public static final PiActionId FABRIC_INGRESS_FILTERING_SET_VLAN =
-            PiActionId.of("FabricIngress.filtering.set_vlan");
-    public static final PiActionId FABRIC_INGRESS_NEXT_MPLS_ROUTING_V6 =
-            PiActionId.of("FabricIngress.next.mpls_routing_v6");
     public static final PiActionId FABRIC_EGRESS_PKT_IO_EGRESS_POP_VLAN =
             PiActionId.of("FabricEgress.pkt_io_egress.pop_vlan");
-    public static final PiActionId FABRIC_INGRESS_NEXT_L3_ROUTING_VLAN =
-            PiActionId.of("FabricIngress.next.l3_routing_vlan");
-    public static final PiActionId NO_ACTION = PiActionId.of("NoAction");
+    public static final PiActionId FABRIC_INGRESS_FILTERING_SET_VLAN =
+            PiActionId.of("FabricIngress.filtering.set_vlan");
+    public static final PiActionId FABRIC_INGRESS_NEXT_L3_ROUTING_SIMPLE =
+            PiActionId.of("FabricIngress.next.l3_routing_simple");
     public static final PiActionId FABRIC_INGRESS_NEXT_SET_MCAST_GROUP =
             PiActionId.of("FabricIngress.next.set_mcast_group");
-    public static final PiActionId FABRIC_INGRESS_FORWARDING_DUPLICATE_TO_CONTROLLER =
-            PiActionId.of("FabricIngress.forwarding.duplicate_to_controller");
-    public static final PiActionId FABRIC_INGRESS_NEXT_L3_ROUTING =
-            PiActionId.of("FabricIngress.next.l3_routing");
-    public static final PiActionId FABRIC_INGRESS_NEXT_MPLS_ROUTING_V4 =
-            PiActionId.of("FabricIngress.next.mpls_routing_v4");
-    public static final PiActionId FABRIC_INGRESS_NEXT_SET_VLAN_OUTPUT =
-            PiActionId.of("FabricIngress.next.set_vlan_output");
-    public static final PiActionId FABRIC_INGRESS_FORWARDING_SET_NEXT_ID =
-            PiActionId.of("FabricIngress.forwarding.set_next_id");
     public static final PiActionId FABRIC_INGRESS_FILTERING_PUSH_INTERNAL_VLAN =
             PiActionId.of("FabricIngress.filtering.push_internal_vlan");
+    public static final PiActionId FABRIC_INGRESS_NEXT_MPLS_ROUTING_V6_HASHED =
+            PiActionId.of("FabricIngress.next.mpls_routing_v6_hashed");
+    public static final PiActionId FABRIC_INGRESS_FORWARDING_POP_MPLS_AND_NEXT =
+            PiActionId.of("FabricIngress.forwarding.pop_mpls_and_next");
+    public static final PiActionId FABRIC_INGRESS_NEXT_L3_ROUTING_HASHED =
+            PiActionId.of("FabricIngress.next.l3_routing_hashed");
+    public static final PiActionId FABRIC_EGRESS_EGRESS_NEXT_POP_VLAN =
+            PiActionId.of("FabricEgress.egress_next.pop_vlan");
+    public static final PiActionId FABRIC_INGRESS_NEXT_MPLS_ROUTING_V4_HASHED =
+            PiActionId.of("FabricIngress.next.mpls_routing_v4_hashed");
+    public static final PiActionId FABRIC_INGRESS_FORWARDING_SET_NEXT_ID_UNICAST_V6 =
+            PiActionId.of("FabricIngress.forwarding.set_next_id_unicast_v6");
+    public static final PiActionId FABRIC_INGRESS_FORWARDING_SET_NEXT_ID_UNICAST_V4 =
+            PiActionId.of("FabricIngress.forwarding.set_next_id_unicast_v4");
+    public static final PiActionId NOP = PiActionId.of("nop");
     public static final PiActionId FABRIC_INGRESS_FORWARDING_DROP =
             PiActionId.of("FabricIngress.forwarding.drop");
-    public static final PiActionId FABRIC_INGRESS_NEXT_OUTPUT =
-            PiActionId.of("FabricIngress.next.output");
+    public static final PiActionId FABRIC_INGRESS_NEXT_OUTPUT_SIMPLE =
+            PiActionId.of("FabricIngress.next.output_simple");
+    public static final PiActionId FABRIC_INGRESS_FILTERING_DROP =
+            PiActionId.of("FabricIngress.filtering.drop");
+    public static final PiActionId FABRIC_INGRESS_FILTERING_SET_FORWARDING_TYPE =
+            PiActionId.of("FabricIngress.filtering.set_forwarding_type");
+    public static final PiActionId FABRIC_INGRESS_NEXT_SET_VLAN_OUTPUT =
+            PiActionId.of("FabricIngress.next.set_vlan_output");
+    public static final PiActionId NO_ACTION = PiActionId.of("NoAction");
+    public static final PiActionId FABRIC_INGRESS_FORWARDING_SET_NEXT_ID_MULTICAST_V6 =
+            PiActionId.of("FabricIngress.forwarding.set_next_id_multicast_v6");
+    public static final PiActionId FABRIC_INGRESS_FORWARDING_SET_NEXT_ID_MULTICAST_V4 =
+            PiActionId.of("FabricIngress.forwarding.set_next_id_multicast_v4");
+    public static final PiActionId FABRIC_INGRESS_NEXT_MPLS_ROUTING_V4_SIMPLE =
+            PiActionId.of("FabricIngress.next.mpls_routing_v4_simple");
+    public static final PiActionId FABRIC_INGRESS_NEXT_L3_ROUTING_VLAN =
+            PiActionId.of("FabricIngress.next.l3_routing_vlan");
+    public static final PiActionId FABRIC_INGRESS_FORWARDING_SET_NEXT_ID_ACL =
+            PiActionId.of("FabricIngress.forwarding.set_next_id_acl");
     // Action Param IDs
     public static final PiActionParamId DMAC = PiActionParamId.of("dmac");
     public static final PiActionParamId PORT_NUM =
