@@ -80,7 +80,6 @@ genrule(
 )
 
 # Runs ONOS as a single instance from the /tmp directory
-# FIXME: Still work in progress
 genrule(
     name = "onos-local",
     srcs = [
