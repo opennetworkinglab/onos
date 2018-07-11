@@ -1,10 +1,6 @@
-COMPILE_DEPS = CORE_DEPS + JACKSON + KRYO + [
-    "@javax_ws_rs_api//jar",
-    "@org_apache_karaf_shell_console//jar",
+COMPILE_DEPS = CORE_DEPS + JACKSON + KRYO + REST + CLI + [
     "//apps/dhcp/api:onos-apps-dhcp-api",
-    "//utils/rest:onlab-rest",
     "//core/store/serializers:onos-core-serializers",
-    "//cli:onos-cli",
 ]
 
 osgi_jar_with_tests(

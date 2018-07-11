@@ -1,12 +1,8 @@
-COMPILE_DEPS = CORE_DEPS + JACKSON + KRYO + [
-    "@org_apache_karaf_shell_console//jar",
+COMPILE_DEPS = CORE_DEPS + JACKSON + KRYO + CLI + REST + [
     "@concurrent_trees//jar",
-    "@javax_ws_rs_api//jar",
     "@jersey_server//jar",
     "//core/store/serializers:onos-core-serializers",
     "//apps/route-service/api:onos-apps-route-service-api",
-    "//cli:onos-cli",
-    "//utils/rest:onlab-rest",
 ]
 
 TEST_DEPS = TEST + [

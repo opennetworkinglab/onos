@@ -1,8 +1,4 @@
-COMPILE_DEPS = CORE_DEPS + [
-    "@org_apache_karaf_shell_console//jar",
-    "@javax_ws_rs_api//jar",
-    "//cli:onos-cli",
-    "//utils/rest:onlab-rest",
+COMPILE_DEPS = CORE_DEPS + CLI + REST + [
     "//core/store/serializers:onos-core-serializers",
     "//apps/mcast/api:onos-apps-mcast-api",
 ]

@@ -1,6 +1,4 @@
-COMPILE_DEPS = CORE_DEPS + JACKSON + KRYO + [
-    "@org_apache_karaf_shell_console//jar",
-    "//cli:onos-cli",
+COMPILE_DEPS = CORE_DEPS + JACKSON + KRYO + CLI + [
     "//core/common:onos-core-common",
     "//core/store/serializers:onos-core-serializers",
     "//incubator/api:onos-incubator-api",

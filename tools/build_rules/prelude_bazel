@@ -5,6 +5,8 @@ load(
     "GRPC_1_3",
     "JACKSON",
     "KRYO",
+    "CLI",
+    "REST",
     "METRICS",
     "NETTY",
     "TEST",

@@ -1,9 +1,7 @@
 load("//tools/build/bazel:generate_workspace.bzl", "ONOS_VERSION")
 
-COMPILE_DEPS = CORE_DEPS + JACKSON + [
-    "@org_apache_karaf_shell_console//jar",
+COMPILE_DEPS = CORE_DEPS + JACKSON + CLI + [
     "//incubator/api:onos-incubator-api",
-    "//cli:onos-cli",
 ]
 
 osgi_jar_with_tests(

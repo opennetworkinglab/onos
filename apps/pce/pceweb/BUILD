@@ -1,7 +1,5 @@
-COMPILE_DEPS = CORE_DEPS + JACKSON + [
-    "@org_apache_karaf_shell_console//jar",
+COMPILE_DEPS = CORE_DEPS + JACKSON + CLI + [
     "//apps/pce/app:onos-apps-pce-app",
-    "//cli:onos-cli",
     "//incubator/api:onos-incubator-api",
 ]
 

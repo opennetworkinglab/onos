@@ -109,6 +109,14 @@
       "asm",
       "minlog",
       "objenesis"
+    ],
+    "CLI": [
+      "org.apache.karaf.shell.console",
+      "//cli:onos-cli"
+    ],
+    "REST": [
+      "javax.ws.rs-api",
+      "//utils/rest:onlab-rest"
     ]
   },
 
