@@ -8,7 +8,7 @@ BUNDLES = [
 onos_app(
     category = "Monitoring",
     description = "Provides managements of alarms. Stores retrieved alarms from devices. " +
-        "Offers CLI, UI and REST integration to obtain and display them from ONOS.",
+                  "Offers CLI, UI and REST integration to obtain and display them from ONOS.",
     included_bundles = BUNDLES,
     origin = "BTI Systems",
     title = "Fault Management",

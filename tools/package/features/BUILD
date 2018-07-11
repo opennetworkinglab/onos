@@ -118,36 +118,39 @@ osgi_feature(
     visibility = ["//visibility:public"],
 )
 
-osgi_feature (
+osgi_feature(
     name = "onos-incubator",
     description = "ONOS core incubator components",
-    required_features = ["onos-core"],
     included_bundles = [
-      "//incubator/net:onos-incubator-net",
-      "//incubator/store:onos-incubator-store",
-      "//incubator/rpc:onos-incubator-rpc",
+        "//incubator/net:onos-incubator-net",
+        "//incubator/store:onos-incubator-store",
+        "//incubator/rpc:onos-incubator-rpc",
     ],
+    required_features = ["onos-core"],
     visibility = ["//visibility:public"],
 )
 
-osgi_feature (
+osgi_feature(
     name = "onos-rest",
     description = "ONOS REST API components",
-    required_features = ["onos-api", "onos-thirdparty-web"],
     included_bundles = [
-      "//utils/rest:onlab-rest",
-      "//web/api:onos-rest",
+        "//utils/rest:onlab-rest",
+        "//web/api:onos-rest",
+    ],
+    required_features = [
+        "onos-api",
+        "onos-thirdparty-web",
     ],
     visibility = ["//visibility:public"],
 )
 
-osgi_feature (
+osgi_feature(
     name = "onos-cli",
-    description ="ONOS admin command console components",
-    required_features = ["onos-api"],
+    description = "ONOS admin command console components",
     included_bundles = [
-      "//cli:onos-cli",
+        "//cli:onos-cli",
     ],
+    required_features = ["onos-api"],
     visibility = ["//visibility:public"],
 )
 
