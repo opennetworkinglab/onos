@@ -9,6 +9,9 @@
 \./apps/openroadm/
 \./apps/openstackrouting/pom.xml
 \./apps/openstackswitching/pom.xml
+\./apps/t3/app/pom.xml
+\./apps/t3/pom.xml
+\./apps/t3/web/pom.xml
 \./apps/tenbi
 \./apps/vrouter/pom.xml
 \./apps/yms
