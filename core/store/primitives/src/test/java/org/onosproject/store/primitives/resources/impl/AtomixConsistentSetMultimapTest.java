@@ -23,8 +23,11 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.TreeMultiset;
@@ -34,9 +37,13 @@ import org.apache.commons.collections.keyvalue.DefaultMapEntry;
 import org.junit.Test;
 import org.onlab.util.Tools;
 import org.onosproject.store.service.AsyncIterator;
+import org.onosproject.store.service.MultimapEvent;
+import org.onosproject.store.service.MultimapEventListener;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -441,6 +448,45 @@ public class AtomixConsistentSetMultimapTest extends AtomixTestBase<AtomixConsis
         map.destroy().join();
     }
 
+    @Test
+    public void testMultimapEvents() throws Throwable {
+        final byte[] value1 = Tools.getBytesUtf8("value1");
+        final byte[] value2 = Tools.getBytesUtf8("value2");
+        final byte[] value3 = Tools.getBytesUtf8("value3");
+
+        AtomixConsistentSetMultimap map = createResource("testFourMap");
+        TestMultimapEventListener listener = new TestMultimapEventListener();
+
+        // add listener; insert new value into map and verify an INSERT event is received.
+        map.addListener(listener).thenCompose(v -> map.put("foo", value1)).join();
+        MultimapEvent<String, byte[]> event = listener.event();
+        assertNotNull(event);
+        assertEquals(MultimapEvent.Type.INSERT, event.type());
+        assertTrue(Arrays.equals(value1, event.newValue()));
+
+        // remove listener and verify listener is not notified.
+        map.removeListener(listener).thenCompose(v -> map.put("foo", value2)).join();
+        assertFalse(listener.eventReceived());
+
+        // add listener; insert new value into map and verify an INSERT event is received.
+        map.addListener(listener)
+            .thenCompose(v -> map.replaceValues("foo", Arrays.asList(value2, value3))).join();
+        event = listener.event();
+        assertNotNull(event);
+        assertEquals(MultimapEvent.Type.REMOVE, event.type());
+        assertArrayEquals(value1, event.oldValue());
+        event = listener.event();
+        assertNotNull(event);
+        assertEquals(MultimapEvent.Type.INSERT, event.type());
+        assertArrayEquals(value3, event.newValue());
+
+        // remove listener and verify listener is not notified.
+        map.removeListener(listener).thenCompose(v -> map.put("foo", value2)).join();
+        assertFalse(listener.eventReceived());
+
+        map.removeListener(listener).join();
+    }
+
     private AtomixConsistentSetMultimap createResource(String mapName) {
         try {
             AtomixConsistentSetMultimap map = newPrimitive(mapName);
@@ -546,6 +592,28 @@ public class AtomixConsistentSetMultimapTest extends AtomixTestBase<AtomixConsis
             } else {
                 return o1.getKey().compareTo(o2.getKey());
             }
+        }
+    }
+
+    private static class TestMultimapEventListener implements MultimapEventListener<String, byte[]> {
+
+        private final BlockingQueue<MultimapEvent<String, byte[]>> queue = new ArrayBlockingQueue<>(1);
+
+        @Override
+        public void event(MultimapEvent<String, byte[]> event) {
+            try {
+                queue.put(event);
+            } catch (InterruptedException e) {
+                Throwables.propagate(e);
+            }
+        }
+
+        public boolean eventReceived() {
+            return !queue.isEmpty();
+        }
+
+        public MultimapEvent<String, byte[]> event() throws InterruptedException {
+            return queue.take();
         }
     }
 }

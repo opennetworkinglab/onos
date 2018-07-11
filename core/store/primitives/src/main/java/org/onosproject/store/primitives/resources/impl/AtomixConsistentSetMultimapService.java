@@ -486,11 +486,28 @@ public class AtomixConsistentSetMultimapService extends AbstractRaftService {
 
     protected Versioned<Collection<? extends byte[]>> replace(
             Commit<? extends Replace> commit) {
-        if (!backingMap.containsKey(commit.value().key())) {
-            backingMap.put(commit.value().key(),
-                    new NonTransactionalCommit());
+        String key = commit.value().key();
+        if (!backingMap.containsKey(key)) {
+            backingMap.put(key, new NonTransactionalCommit());
         }
-        return backingMap.get(commit.value().key()).addCommit(commit);
+
+        Versioned<Collection<? extends byte[]>> values = backingMap.get(commit.value().key()).addCommit(commit);
+        if (values != null) {
+            Set<byte[]> addedValues = Sets.newTreeSet(new ByteArrayComparator());
+            addedValues.addAll(commit.value().values());
+
+            Set<byte[]> removedValues = Sets.newTreeSet(new ByteArrayComparator());
+            removedValues.addAll(values.value());
+
+            List<MultimapEvent<String, byte[]>> events = Lists.newArrayList();
+            Sets.difference(removedValues, addedValues)
+                .forEach(value -> events.add(new MultimapEvent<>("", key, null, value)));
+            Sets.difference(addedValues, removedValues)
+                .forEach(value -> events.add(new MultimapEvent<>("", key, value, null)));
+
+            publish(events);
+        }
+        return values;
     }
 
     /**
