@@ -29,14 +29,14 @@
     <groupId>org.onosproject</groupId>
     <artifactId>onos-dependencies</artifactId>
     <packaging>pom</packaging>
-    <version>1.13.2</version>
+    <version>1.13.3-SNAPSHOT</version>
 
     <name>${project.artifactId}</name>
     <description>Open Network Operating System shared dependencies</description>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <onos-build-conf.version>1.13.2</onos-build-conf.version>
+        <onos-build-conf.version>1.13.3-SNAPSHOT</onos-build-conf.version>
         <netty4.version>4.1.8.Final</netty4.version>
         <openflowj.version>3.2.1.onos</openflowj.version>
         <onos-maven-plugin.version>1.12</onos-maven-plugin.version>

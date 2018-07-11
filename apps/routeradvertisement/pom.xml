@@ -27,11 +27,11 @@
     <parent>
         <groupId>org.onosproject</groupId>
         <artifactId>onos-apps</artifactId>
-        <version>1.13.2</version>
+        <version>1.13.3-SNAPSHOT</version>
     </parent>
 
     <artifactId>onos-app-routeradvertisement</artifactId>
-    <version>1.13.2</version>
+    <version>1.13.3-SNAPSHOT</version>
     <packaging>bundle</packaging>
 
     <description>ONOS IPv6 RA application</description>
