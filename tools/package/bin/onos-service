@@ -10,7 +10,7 @@
 # Do modify the keystore location/password and truststore location/password accordingly
 #export JAVA_OPTS="${JAVA_OPTS:--DenableNettyTLS=true -Djavax.net.ssl.keyStore=/home/ubuntu/onos.jks -Djavax.net.ssl.keyStorePassword=222222 -Djavax.net.ssl.trustStore=/home/ubuntu/onos.jks -Djavax.net.ssl.trustStorePassword=222222}"
 
-export JAVA_OPTS=-Dds.lock.timeout.milliseconds=10000
+export JAVA_OPTS="${JAVA_OPTS:--Dds.lock.timeout.milliseconds=10000}"
 
 set -e  # exit on error
 set -u  # exit on undefined variable
