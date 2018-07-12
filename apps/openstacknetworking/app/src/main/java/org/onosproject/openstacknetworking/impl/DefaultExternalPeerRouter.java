@@ -26,11 +26,11 @@ import java.util.Objects;
 /**
  * Implementation of external peer router.
  */
-public class DefaultExternalPeerRouter implements ExternalPeerRouter {
+public final class DefaultExternalPeerRouter implements ExternalPeerRouter {
 
-    private IpAddress externalPeerRouterIp;
-    private MacAddress externalPeerRouterMac;
-    private VlanId externalPeerRouterVlanId;
+    private final IpAddress externalPeerRouterIp;
+    private final MacAddress externalPeerRouterMac;
+    private final VlanId externalPeerRouterVlanId;
 
     public DefaultExternalPeerRouter(IpAddress externalPeerRouterIp,
                                      MacAddress externalPeerRouterMac,
