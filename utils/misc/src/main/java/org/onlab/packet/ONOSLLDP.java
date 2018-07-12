@@ -54,7 +54,6 @@ public class ONOSLLDP extends LLDP {
     private static final byte CHASSIS_TLV_SUBTYPE = 4;
 
     private static final byte PORT_TLV_TYPE = 2;
-    private static final byte PORT_TLV_SIZE = 5;
     private static final byte PORT_TLV_SUBTYPE = 2;
 
     private static final byte TTL_TLV_TYPE = 3;
@@ -130,10 +129,10 @@ public class ONOSLLDP extends LLDP {
 
     public void setPortId(final int portNumber) {
         byte[] port = ArrayUtils.addAll(new byte[] {PORT_TLV_SUBTYPE},
-                                        ByteBuffer.allocate(4).putInt(portNumber).array());
+                String.valueOf(portNumber).getBytes(StandardCharsets.UTF_8));
 
         LLDPTLV portTLV = new LLDPTLV();
-        portTLV.setLength(PORT_TLV_SIZE);
+        portTLV.setLength((short) port.length);
         portTLV.setType(PORT_TLV_TYPE);
         portTLV.setValue(port);
         this.setPortId(portTLV);
@@ -208,7 +207,9 @@ public class ONOSLLDP extends LLDP {
     public Integer getPort() {
         ByteBuffer portBB = ByteBuffer.wrap(this.getPortId().getValue());
         portBB.position(1);
-        return portBB.getInt();
+
+        return Integer.parseInt(new String(portBB.array(),
+                portBB.position(), portBB.remaining(), StandardCharsets.UTF_8));
     }
 
     /**
