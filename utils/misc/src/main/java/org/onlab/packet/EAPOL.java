@@ -29,7 +29,8 @@ import static org.onlab.packet.PacketUtils.checkInput;
  */
 public class EAPOL extends BasePacket {
 
-    private byte version = 0x01;
+    // private byte version = 0x01;
+    private byte version = 0x03;
     private byte eapolType;
     private short packetLength;
 
@@ -37,12 +38,13 @@ public class EAPOL extends BasePacket {
 
     // EAPOL Packet Type
     public static final byte EAPOL_PACKET = 0x0;
-    public static final byte EAPOL_START  = 0x1;
+    public static final byte EAPOL_START = 0x1;
     public static final byte EAPOL_LOGOFF = 0x2;
-    public static final byte EAPOL_KEY    = 0x3;
-    public static final byte EAPOL_ASF    = 0x4;
+    public static final byte EAPOL_KEY = 0x3;
+    public static final byte EAPOL_ASF = 0x4;
+    public static final byte EAPOL_MKA = 0X5;
 
-    public static final MacAddress PAE_GROUP_ADDR = MacAddress.valueOf(new byte[] {
+    public static final MacAddress PAE_GROUP_ADDR = MacAddress.valueOf(new byte[]{
             (byte) 0x01, (byte) 0x80, (byte) 0xc2, (byte) 0x00, (byte) 0x00, (byte) 0x03
     });
 
@@ -187,13 +189,16 @@ public class EAPOL extends BasePacket {
 
             if (eapol.packetLength > 0) {
                 checkHeaderLength(length, HEADER_LENGTH + eapol.packetLength);
-                // deserialize the EAP Payload
-                eapol.payload = EAP.deserializer().deserialize(data,
-                        bb.position(), bb.limit() - bb.position());
-
+                if (eapol.getEapolType() == EAPOL_MKA) {
+                    eapol.payload = EAPOLMkpdu.deserializer().deserialize(data,
+                            bb.position(), bb.limit() - bb.position());
+                } else {
+                    // deserialize the EAP Payload
+                    eapol.payload = EAP.deserializer().deserialize(data,
+                            bb.position(), bb.limit() - bb.position());
+                }
                 eapol.payload.setParent(eapol);
             }
-
             return eapol;
         };
     }
