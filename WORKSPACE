@@ -13,7 +13,4 @@ git_repository(
 load("@build_bazel_rules_nodejs//:defs.bzl", "node_repositories")
 node_repositories(package_json = ["//tools/gui:package.json"])
 
-load("//tools/build/bazel:nodejs_workspace.bzl", "packages_example_setup_workspace")
-packages_example_setup_workspace()
-
 ONOS_VERSION = '1.14.0-SNAPSHOT'
