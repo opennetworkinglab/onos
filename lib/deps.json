@@ -262,6 +262,7 @@
     // Note update BVER in tools/dev/bin/patch-yang-libs and YANG_VER in tools/build/onos-buck
     "onos-yang-model":"mvn:org.onosproject:onos-yang-model:2.5",
     "onos-yang-compiler-api":"mvn:org.onosproject:onos-yang-compiler-api:2.5",
+    "onos-yang-compiler-main":"mvn:org.onosproject:onos-yang-compiler-main:2.5",
     "onos-yang-runtime":"mvn:org.onosproject:onos-yang-runtime:2.5",
     "onos-yang-serializers-json":"mvn:org.onosproject:onos-yang-serializers-json:2.5",
     "onos-yang-serializers-xml":"mvn:org.onosproject:onos-yang-serializers-xml:2.5",

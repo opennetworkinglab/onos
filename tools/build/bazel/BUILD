@@ -18,3 +18,10 @@ py_binary(
     main = "onos_app_bundler.py",
     visibility = ["//visibility:public"],
 )
+
+java_binary(
+    name = "onos_yang_compiler",
+    main_class = "org.onosproject.yang.compiler.main.YangCompilerMain",
+    visibility = ["//visibility:public"],
+    runtime_deps = ["@onos_yang_compiler_main//jar"],
+)

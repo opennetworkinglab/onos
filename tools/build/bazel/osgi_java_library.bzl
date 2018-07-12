@@ -365,6 +365,7 @@ def osgi_jar_with_tests(
         srcs = None,
         resources_root = None,
         resources = None,
+        resource_jars = [],
         include_resources = {},
         test_srcs = None,
         exclude_tests = None,
@@ -436,7 +437,12 @@ def osgi_jar_with_tests(
         native_resources.append(name + "_swagger_json")
 
     # compile the Java code
-    native.java_library(name = name + "-native", srcs = native_srcs, resources = native_resources, deps = deps, visibility = visibility)
+    if len(resource_jars) > 0:
+        native.java_library(name = name + "-native", srcs = native_srcs, resource_jars = resource_jars,
+                            deps = deps, visibility = visibility)
+    else:
+        native.java_library(name = name + "-native", srcs = native_srcs, resources = native_resources,
+                            deps = deps, visibility = visibility)
 
     _bnd(
         name = name,
@@ -500,6 +506,7 @@ def osgi_jar(
         srcs = None,
         resources_root = None,
         resources = None,
+        resource_jars = [],
         include_resources = {},
         visibility = ["//visibility:public"],
         version = ONOS_VERSION,
@@ -521,6 +528,7 @@ def osgi_jar(
         srcs = srcs,
         resources = resources,
         resources_root = resources_root,
+        resource_jars = resource_jars,
         test_srcs = [],
         exclude_tests = [],
         test_resources = [],
