@@ -390,14 +390,13 @@ public class RouteManager implements RouteService, RouteAdminService {
             switch (event.type()) {
             case HOST_ADDED:
             case HOST_UPDATED:
+            case HOST_MOVED:
                 log.trace("Scheduled host event {}", event);
                 hostEventExecutor.execute(() -> hostUpdated(event.subject()));
                 break;
             case HOST_REMOVED:
                 log.trace("Scheduled host event {}", event);
                 hostEventExecutor.execute(() -> hostRemoved(event.subject()));
-                break;
-            case HOST_MOVED:
                 break;
             default:
                 break;
