@@ -107,6 +107,7 @@ public class YangWebResource extends AbstractWebResource {
      * code "200 OK" is returned.Otherwise,
      * HTTP error status code "400 Bad Request" is returned.
      *
+     * @onos.rsModel YangModelsGet
      * @return HTTP response
      */
     @GET
@@ -117,7 +118,7 @@ public class YangWebResource extends AbstractWebResource {
         modelRegistry = getService(YangModelRegistry.class);
         ObjectNode result = mapper().createObjectNode();
         Set<YangModel> models = modelRegistry.getModels();
-        ArrayNode ids = result.putArray("Model_ids");
+        ArrayNode ids = result.putArray("model_ids");
         for (YangModel m : models) {
             ids.add(m.getYangModelId());
         }
@@ -130,6 +131,7 @@ public class YangWebResource extends AbstractWebResource {
      * resource plus HTTP status code "200 OK" is returned. Otherwise,
      * HTTP error status code "400 Bad Request" is returned.
      *
+     * @onos.rsModel YangModulesGet
      * @param id for model
      * @return HTTP response
      */
