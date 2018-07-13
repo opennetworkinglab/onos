@@ -58,8 +58,6 @@ import org.onosproject.openstacknetworking.api.InstancePortListener;
 import org.onosproject.openstacknetworking.api.InstancePortService;
 import org.onosproject.openstacknetworking.api.OpenstackFlowRuleService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkAdminService;
-import org.onosproject.openstacknetworking.api.OpenstackNetworkEvent;
-import org.onosproject.openstacknetworking.api.OpenstackNetworkListener;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.onosproject.openstacknetworking.api.OpenstackRouterEvent;
 import org.onosproject.openstacknetworking.api.OpenstackRouterListener;
@@ -98,6 +96,7 @@ import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.g
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getGwByInstancePort;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getPropertyValue;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.isAssociatedWithVM;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.swapStaleLocation;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -156,14 +155,12 @@ public class OpenstackRoutingArpHandler {
     private final OpenstackNodeListener osNodeListener = new InternalNodeEventListener();
     private final InstancePortListener instPortListener = new InternalInstancePortListener();
 
-    private final OpenstackNetworkListener osNetworkListener = new InternalOpenstackNetworkListener();
-
     private ApplicationId appId;
     private NodeId localNodeId;
+
     private final Map<String, MacAddress> floatingIpMacMap = Maps.newConcurrentMap();
-    private final Map<String, DeviceId> migrationPool = Maps.newConcurrentMap();
-    private final Map<MacAddress, InstancePort> terminatedInstPorts = Maps.newConcurrentMap();
-    private final Map<MacAddress, InstancePort> tobeRemovedInstPorts = Maps.newConcurrentMap();
+
+    // TODO: pendingInstPortIds should be purged later
     private final Map<String, NetFloatingIP> pendingInstPortIds = Maps.newConcurrentMap();
 
     private final ExecutorService eventExecutor = newSingleThreadExecutor(
@@ -178,7 +175,6 @@ public class OpenstackRoutingArpHandler {
         localNodeId = clusterService.getLocalNode().id();
         osRouterService.addListener(osRouterListener);
         osNodeService.addListener(osNodeListener);
-        osNetworkService.addListener(osNetworkListener);
         instancePortService.addListener(instPortListener);
         leadershipService.runForLeadership(appId.name());
         packetService.addProcessor(packetProcessor, PacketProcessor.director(1));
@@ -192,7 +188,6 @@ public class OpenstackRoutingArpHandler {
         osRouterService.removeListener(osRouterListener);
         osNodeService.removeListener(osNodeListener);
         instancePortService.removeListener(instPortListener);
-        osNetworkService.removeListener(osNetworkListener);
         leadershipService.withdraw(appId.name());
         eventExecutor.shutdown();
         configService.unregisterProperties(getClass(), false);
@@ -358,8 +353,7 @@ public class OpenstackRoutingArpHandler {
             if (f.getPortId() != null) {
                 Port port = osNetworkAdminService.port(f.getPortId());
                 if (port != null) {
-                    if (!Strings.isNullOrEmpty(port.getDeviceId()) &&
-                            instancePortService.instancePort(f.getPortId()) == null) {
+                    if (!Strings.isNullOrEmpty(port.getDeviceId())) {
                         pendingInstPortIds.put(f.getPortId(), f);
                     }
                 }
@@ -488,16 +482,6 @@ public class OpenstackRoutingArpHandler {
 
             instPort = instancePortService.instancePort(targetMac);
 
-            // in VM purge case, we will have null instance port
-            if (instPort == null) {
-                instPort = tobeRemovedInstPorts.get(targetMac);
-                tobeRemovedInstPorts.remove(targetMac);
-            }
-
-            if (instPort == null) {
-                instPort = terminatedInstPorts.get(targetMac);
-            }
-
             OpenstackNode gw = getGwByInstancePort(gateways, instPort);
 
             if (gw == null) {
@@ -586,38 +570,12 @@ public class OpenstackRoutingArpHandler {
                     );
                     break;
                 case OPENSTACK_FLOATING_IP_ASSOCIATED:
-
-                    if (instancePortService.instancePort(event.portId()) == null) {
-                        log.info("Try to associate the fip {} with a terminated VM",
-                                event.floatingIp().getFloatingIpAddress());
-                        pendingInstPortIds.put(event.portId(), event.floatingIp());
-                        return;
-                    }
-
                     eventExecutor.execute(() ->
                         // associate a floating IP with an existing VM
                         setFloatingIpArpRule(event.floatingIp(), completedGws, true)
                     );
                     break;
                 case OPENSTACK_FLOATING_IP_DISASSOCIATED:
-
-                    MacAddress mac = floatingIpMacMap.get(event.floatingIp().getFloatingIpAddress());
-
-                    if (mac != null && !tobeRemovedInstPorts.containsKey(mac) &&
-                            terminatedInstPorts.containsKey(mac)) {
-                        tobeRemovedInstPorts.put(mac, terminatedInstPorts.get(mac));
-                    }
-
-                    if (instancePortService.instancePort(event.portId()) == null) {
-
-                        if (pendingInstPortIds.containsKey(event.portId())) {
-                            log.info("Try to disassociate the fip {} with a terminated VM",
-                                    event.floatingIp().getFloatingIpAddress());
-                            pendingInstPortIds.remove(event.portId());
-                            return;
-                        }
-                    }
-
                     eventExecutor.execute(() ->
                         // disassociate a floating IP with the existing VM
                         setFloatingIpArpRule(event.floatingIp(), completedGws, false)
@@ -731,7 +689,6 @@ public class OpenstackRoutingArpHandler {
 
             switch (event.type()) {
                 case OPENSTACK_INSTANCE_PORT_DETECTED:
-                    terminatedInstPorts.remove(instPort.macAddress());
 
                     if (pendingInstPortIds.containsKey(instPort.portId())) {
                         Set<OpenstackNode> completedGws =
@@ -742,11 +699,6 @@ public class OpenstackRoutingArpHandler {
                     }
 
                     break;
-
-                case OPENSTACK_INSTANCE_PORT_VANISHED:
-                    terminatedInstPorts.put(instPort.macAddress(), instPort);
-                    break;
-
                 case OPENSTACK_INSTANCE_MIGRATION_STARTED:
 
                     if (gateways.size() == 1) {
@@ -754,25 +706,24 @@ public class OpenstackRoutingArpHandler {
                     }
 
                     if (fip != null && isAssociatedWithVM(osNetworkService, fip)) {
-                        migrationPool.put(fip.getFloatingIpAddress(), event.subject().deviceId());
-
-                        eventExecutor.execute(() -> {
+                        eventExecutor.execute(() ->
                             setFloatingIpArpRuleWithPortEvent(fip, event.subject(),
-                                    gateways, true);
-                        });
+                                    gateways, true)
+                        );
                     }
 
                     break;
                 case OPENSTACK_INSTANCE_MIGRATION_ENDED:
+
+                    InstancePort revisedInstPort = swapStaleLocation(event.subject());
 
                     if (gateways.size() == 1) {
                         return;
                     }
 
                     if (fip != null && isAssociatedWithVM(osNetworkService, fip)) {
-                        DeviceId newDeviceId = migrationPool.get(fip.getFloatingIpAddress());
-                        DeviceId oldDeviceId = event.subject().deviceId();
-                        migrationPool.remove(fip.getFloatingIpAddress());
+                        DeviceId newDeviceId = event.subject().deviceId();
+                        DeviceId oldDeviceId = revisedInstPort.deviceId();
 
                         OpenstackNode oldGw = getGwByComputeDevId(gateways, oldDeviceId);
                         OpenstackNode newGw = getGwByComputeDevId(gateways, newDeviceId);
@@ -782,34 +733,8 @@ public class OpenstackRoutingArpHandler {
                         }
 
                         eventExecutor.execute(() ->
-                                setFloatingIpArpRuleWithPortEvent(fip, event.subject(),
-                                        gateways, false));
-                    }
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
-
-    private class InternalOpenstackNetworkListener implements OpenstackNetworkListener {
-
-        @Override
-        public boolean isRelevant(OpenstackNetworkEvent event) {
-            // do not allow to proceed without leadership
-            NodeId leader = leadershipService.getLeader(appId.name());
-            return Objects.equals(localNodeId, leader);
-        }
-
-        @Override
-        public void event(OpenstackNetworkEvent event) {
-            switch (event.type()) {
-                case OPENSTACK_PORT_REMOVED:
-                    Port osPort = event.port();
-                    MacAddress mac = MacAddress.valueOf(osPort.getMacAddress());
-                    if (terminatedInstPorts.containsKey(mac)) {
-                        tobeRemovedInstPorts.put(mac, terminatedInstPorts.get(mac));
-                        terminatedInstPorts.remove(mac);
+                                setFloatingIpArpRuleWithPortEvent(fip,
+                                        revisedInstPort, gateways, false));
                     }
                     break;
                 default:

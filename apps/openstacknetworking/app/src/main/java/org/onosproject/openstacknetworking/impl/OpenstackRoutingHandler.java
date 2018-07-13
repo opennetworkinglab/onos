@@ -1072,30 +1072,39 @@ public class OpenstackRoutingHandler {
         public void event(InstancePortEvent event) {
             InstancePort instPort = event.subject();
             switch (event.type()) {
-                case OPENSTACK_INSTANCE_PORT_UPDATED:
                 case OPENSTACK_INSTANCE_PORT_DETECTED:
-                    eventExecutor.execute(() -> {
-                        log.info("RoutingHandler: Instance port detected MAC:{} IP:{}",
-                                instPort.macAddress(),
-                                instPort.ipAddress());
-                        instPortDetected(event.subject());
-                    });
+                case OPENSTACK_INSTANCE_PORT_UPDATED:
+                    log.info("RoutingHandler: Instance port detected MAC:{} IP:{}",
+                                                            instPort.macAddress(),
+                                                            instPort.ipAddress());
+
+                    eventExecutor.execute(() -> instPortDetected(event.subject()));
+
                     break;
                 case OPENSTACK_INSTANCE_PORT_VANISHED:
-                    eventExecutor.execute(() -> {
-                        log.info("RoutingHandler: Instance port vanished MAC:{} IP:{}",
-                                instPort.macAddress(),
-                                instPort.ipAddress());
-                        instPortRemoved(event.subject());
-                    });
+                    log.info("RoutingHandler: Instance port vanished MAC:{} IP:{}",
+                                                            instPort.macAddress(),
+                                                            instPort.ipAddress());
+
+                    eventExecutor.execute(() -> instPortRemoved(event.subject()));
+
+                    break;
+                case OPENSTACK_INSTANCE_MIGRATION_STARTED:
+                    log.info("RoutingHandler: Migration started for MAC:{} IP:{}",
+                                                            instPort.macAddress(),
+                                                            instPort.ipAddress());
+
+                    eventExecutor.execute(() -> instPortDetected(instPort));
+
                     break;
                 case OPENSTACK_INSTANCE_MIGRATION_ENDED:
+                    log.info("RoutingHandler: Migration finished for MAC:{} IP:{}",
+                                                            instPort.macAddress(),
+                                                            instPort.ipAddress());
                     eventExecutor.execute(() -> {
-                        log.info("RoutingHandler: Instance port vanished MAC:{} IP:{} due to VM migration",
-                                instPort.macAddress(),
-                                instPort.ipAddress());
                         // TODO: need to reconfigure rules to point to update VM
                     });
+
                     break;
                 default:
                     break;

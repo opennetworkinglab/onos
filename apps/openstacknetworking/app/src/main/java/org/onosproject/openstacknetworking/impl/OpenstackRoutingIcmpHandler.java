@@ -120,7 +120,8 @@ public class OpenstackRoutingIcmpHandler {
     private static final KryoNamespace SERIALIZER_ICMP_MAP = KryoNamespace.newBuilder()
             .register(KryoNamespaces.API)
             .register(InstancePort.class)
-            .register(HostBasedInstancePort.class)
+            .register(DefaultInstancePort.class)
+            .register(InstancePort.State.class)
             .build();
 
     private ApplicationId appId;

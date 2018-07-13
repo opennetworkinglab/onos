@@ -17,6 +17,7 @@ package org.onosproject.openstacknetworking.impl;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -28,6 +29,7 @@ import org.onlab.packet.MacAddress;
 import org.onosproject.core.CoreService;
 import org.onosproject.event.ListenerRegistry;
 import org.onosproject.net.Host;
+import org.onosproject.net.HostLocation;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostListener;
 import org.onosproject.net.host.HostService;
@@ -46,9 +48,12 @@ import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.openstacknetworking.api.Constants.ANNOTATION_NETWORK_ID;
+import static org.onosproject.openstacknetworking.api.Constants.ANNOTATION_PORT_ID;
 import static org.onosproject.openstacknetworking.api.InstancePort.State.ACTIVE;
-import static org.onosproject.openstacknetworking.impl.HostBasedInstancePort.ANNOTATION_NETWORK_ID;
-import static org.onosproject.openstacknetworking.impl.HostBasedInstancePort.ANNOTATION_PORT_ID;
+import static org.onosproject.openstacknetworking.api.InstancePort.State.INACTIVE;
+import static org.onosproject.openstacknetworking.api.InstancePort.State.MIGRATED;
+import static org.onosproject.openstacknetworking.api.InstancePort.State.MIGRATING;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -56,7 +61,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * It also provides instance port events for the hosts mapped to OpenStack VM interface.
  */
 @Service
-@Component(immediate = false)
+@Component(immediate = true)
 public class InstancePortManager
         extends ListenerRegistry<InstancePortEvent, InstancePortListener>
         implements InstancePortService, InstancePortAdminService {
@@ -193,16 +198,6 @@ public class InstancePortManager
         return ImmutableSet.copyOf(ports);
     }
 
-    @Override
-    public void migrationPortAdded(InstancePort port) {
-        // TODO need to be removed
-    }
-
-    @Override
-    public void migrationPortRemoved(InstancePort port) {
-        // TODO need to be removed
-    }
-
     private boolean isInstancePortInUse(String portId) {
         // TODO add checking logic
         return false;
@@ -246,13 +241,45 @@ public class InstancePortManager
                     updateInstancePort(instPort);
                     break;
                 case HOST_ADDED:
-                    createInstancePort(instPort);
+                    InstancePort existingPort = instancePort(instPort.portId());
+                    if (existingPort == null) {
+                        // first time to add instance
+                        createInstancePort(instPort);
+                    } else {
+                        // the instance was restarted
+                        if (existingPort.state() == InstancePort.State.INACTIVE) {
+                            updateInstancePort(existingPort.updateState(ACTIVE));
+                        }
+                    }
                     break;
                 case HOST_REMOVED:
-                    removeInstancePort(instPort.portId());
+                    // we will remove instance port from persistent store,
+                    // only if we receive port removal signal from neutron
+                    // by default, we update the instance port state to INACTIVE
+                    // to indicate the instance is terminated
+                    updateInstancePort(instPort.updateState(INACTIVE));
                     break;
                 case HOST_MOVED:
-                    // TODO: require implementation for VM migration case
+                    Host oldHost = event.prevSubject();
+                    Host currHost = event.subject();
+
+                    // in the middle of VM migration
+                    if (oldHost.locations().size() < currHost.locations().size()) {
+                        updateInstancePort(instPort.updateState(MIGRATING));
+                    }
+
+                    // finish of VM migration
+                    if (oldHost.locations().size() > currHost.locations().size()) {
+                        Set<HostLocation> diff =
+                                Sets.difference(oldHost.locations(), currHost.locations());
+                        HostLocation location = diff.stream().findFirst().orElse(null);
+
+                        if (location != null) {
+                            InstancePort updated = instPort.updateState(MIGRATED);
+                            updateInstancePort(updated.updatePrevData(
+                                        location.deviceId(), location.port()));
+                        }
+                    }
                     break;
                 default:
                     break;

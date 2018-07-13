@@ -640,8 +640,8 @@ public class OpenstackSecurityGroupHandler {
         public void event(InstancePortEvent event) {
             InstancePort instPort = event.subject();
             switch (event.type()) {
-                case OPENSTACK_INSTANCE_PORT_UPDATED:
                 case OPENSTACK_INSTANCE_PORT_DETECTED:
+                case OPENSTACK_INSTANCE_PORT_UPDATED:
                     log.debug("Instance port detected MAC:{} IP:{}",
                             instPort.macAddress(),
                             instPort.ipAddress());

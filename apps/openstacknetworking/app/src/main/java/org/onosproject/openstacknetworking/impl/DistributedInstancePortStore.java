@@ -48,6 +48,7 @@ import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
 import static org.onosproject.openstacknetworking.api.InstancePort.State.ACTIVE;
 import static org.onosproject.openstacknetworking.api.InstancePort.State.INACTIVE;
+import static org.onosproject.openstacknetworking.api.InstancePort.State.MIGRATED;
 import static org.onosproject.openstacknetworking.api.InstancePort.State.MIGRATING;
 import static org.onosproject.openstacknetworking.api.InstancePortEvent.Type.OPENSTACK_INSTANCE_MIGRATION_ENDED;
 import static org.onosproject.openstacknetworking.api.InstancePortEvent.Type.OPENSTACK_INSTANCE_MIGRATION_STARTED;
@@ -169,12 +170,7 @@ public class DistributedInstancePortStore
                     break;
                 case UPDATE:
                     log.debug("Instance port updated");
-                    eventExecutor.execute(() -> {
-                            notifyDelegate(new InstancePortEvent(
-                                    OPENSTACK_INSTANCE_PORT_UPDATED,
-                                    event.newValue().value()));
-                            processInstancePortUpdate(event);
-                    });
+                    eventExecutor.execute(() -> processInstancePortUpdate(event));
                     break;
                 case REMOVE:
                     log.debug("Instance port removed");
@@ -198,25 +194,41 @@ public class DistributedInstancePortStore
                 notifyDelegate(new InstancePortEvent(
                         OPENSTACK_INSTANCE_MIGRATION_STARTED,
                         event.newValue().value()));
+                return;
             }
 
-            if (oldState == MIGRATING && newState == ACTIVE) {
+            if (oldState == MIGRATING && newState == MIGRATED) {
                 notifyDelegate(new InstancePortEvent(
                         OPENSTACK_INSTANCE_MIGRATION_ENDED,
                         event.newValue().value()));
+                updateInstancePort(event.newValue().value().updateState(ACTIVE));
+                return;
             }
 
             if (oldState == ACTIVE && newState == INACTIVE) {
                 notifyDelegate(new InstancePortEvent(
                         OPENSTACK_INSTANCE_TERMINATED,
                         event.newValue().value()));
+                return;
             }
 
             if (oldState == INACTIVE && newState == ACTIVE) {
                 notifyDelegate(new InstancePortEvent(
                         OPENSTACK_INSTANCE_RESTARTED,
                         event.newValue().value()));
+                return;
             }
+
+            // this should be auto-transition
+            if (oldState == MIGRATED && newState == ACTIVE) {
+                return;
+            }
+
+            notifyDelegate(new InstancePortEvent(
+                    OPENSTACK_INSTANCE_PORT_UPDATED,
+                    event.newValue().value()));
+
+            // TODO: need to handle cold migration
         }
     }
 }

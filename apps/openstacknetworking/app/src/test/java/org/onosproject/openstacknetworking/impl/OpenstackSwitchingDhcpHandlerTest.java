@@ -545,7 +545,17 @@ public class OpenstackSwitchingDhcpHandlerTest {
         }
 
         @Override
+        public DeviceId oldDeviceId() {
+            return null;
+        }
+
+        @Override
         public PortNumber portNumber() {
+            return null;
+        }
+
+        @Override
+        public PortNumber oldPortNumber() {
             return null;
         }
 
@@ -556,6 +566,11 @@ public class OpenstackSwitchingDhcpHandlerTest {
 
         @Override
         public InstancePort updateState(State newState) {
+            return null;
+        }
+
+        @Override
+        public InstancePort updatePrevData(DeviceId oldDeviceId, PortNumber oldPortNumber) {
             return null;
         }
     }

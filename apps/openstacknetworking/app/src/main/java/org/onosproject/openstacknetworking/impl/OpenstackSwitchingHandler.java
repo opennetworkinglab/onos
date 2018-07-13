@@ -69,6 +69,7 @@ import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_SWITCHI
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_TUNNEL_TAG_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.STAT_FLAT_OUTBOUND_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.VTAG_TABLE;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.swapStaleLocation;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.buildExtension;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -608,39 +609,39 @@ public final class OpenstackSwitchingHandler {
             InstancePort instPort = event.subject();
 
             switch (event.type()) {
-                case OPENSTACK_INSTANCE_PORT_UPDATED:
                 case OPENSTACK_INSTANCE_PORT_DETECTED:
-                    log.info("Instance port detected MAC:{} IP:{}",
+                case OPENSTACK_INSTANCE_PORT_UPDATED:
+                    log.info("SwitchingHandler: Instance port detected MAC:{} IP:{}",
                                                         instPort.macAddress(),
                                                         instPort.ipAddress());
-                    eventExecutor.execute(() ->
-                        instPortDetected(instPort)
-                    );
+
+                    eventExecutor.execute(() -> instPortDetected(instPort));
 
                     break;
                 case OPENSTACK_INSTANCE_PORT_VANISHED:
-                    log.info("Instance port vanished MAC:{} IP:{}",
+                    log.info("SwitchingHandler: Instance port vanished MAC:{} IP:{}",
                                                         instPort.macAddress(),
                                                         instPort.ipAddress());
-                    eventExecutor.execute(() ->
-                        instPortRemoved(instPort)
-                    );
+
+                    eventExecutor.execute(() -> instPortRemoved(instPort));
 
                     break;
-
-                // we do not consider MIGRATION_STARTED case, because the rules
-                // will be installed to corresponding switches at
-                // OPENSTACK_INSTANCE_PORT_UPDATED phase
-
-                // TODO: we may need to consider to refactor the VM migration
-                // event detection logic for better code readability
-                case OPENSTACK_INSTANCE_MIGRATION_ENDED:
-                    log.info("Instance port vanished MAC:{} IP:{}, " +
-                                 "due to VM migration", instPort.macAddress(),
+                case OPENSTACK_INSTANCE_MIGRATION_STARTED:
+                    log.info("SwitchingHandler: Migration started for MAC:{} IP:{}",
+                                                        instPort.macAddress(),
                                                         instPort.ipAddress());
-                    eventExecutor.execute(() ->
-                        removeVportRules(instPort)
-                    );
+
+                    eventExecutor.execute(() -> instPortDetected(instPort));
+
+                    break;
+                case OPENSTACK_INSTANCE_MIGRATION_ENDED:
+                    log.info("SwitchingHandler: Migration finished for MAC:{} IP:{}",
+                                                        instPort.macAddress(),
+                                                        instPort.ipAddress());
+
+                    InstancePort revisedInstPort = swapStaleLocation(instPort);
+                    eventExecutor.execute(() -> removeVportRules(revisedInstPort));
+
                     break;
                 default:
                     break;

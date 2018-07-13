@@ -16,8 +16,6 @@
 package org.onosproject.openstacknetworking.impl;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -32,9 +30,7 @@ import org.onosproject.core.CoreService;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
-import org.onosproject.net.DefaultHost;
 import org.onosproject.net.Device;
-import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
@@ -50,8 +46,7 @@ import org.onosproject.net.host.HostProviderService;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.openstacknetworking.api.InstancePort;
-import org.onosproject.openstacknetworking.api.InstancePortService;
+import org.onosproject.openstacknetworking.api.InstancePortAdminService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeEvent;
@@ -62,7 +57,7 @@ import org.openstack4j.model.network.NetworkType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -70,11 +65,12 @@ import java.util.stream.Collectors;
 
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
+import static org.onosproject.openstacknetworking.api.Constants.ANNOTATION_CREATE_TIME;
+import static org.onosproject.openstacknetworking.api.Constants.ANNOTATION_NETWORK_ID;
+import static org.onosproject.openstacknetworking.api.Constants.ANNOTATION_PORT_ID;
+import static org.onosproject.openstacknetworking.api.Constants.ANNOTATION_SEGMENT_ID;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
 import static org.onosproject.openstacknetworking.api.Constants.portNamePrefixMap;
-import static org.onosproject.openstacknetworking.impl.HostBasedInstancePort.ANNOTATION_CREATE_TIME;
-import static org.onosproject.openstacknetworking.impl.HostBasedInstancePort.ANNOTATION_NETWORK_ID;
-import static org.onosproject.openstacknetworking.impl.HostBasedInstancePort.ANNOTATION_PORT_ID;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.CONTROLLER;
 
 @Service
@@ -85,7 +81,6 @@ public final class OpenstackSwitchingHostProvider extends AbstractProvider imple
 
     private static final String PORT_NAME_PREFIX_VM = "tap";
     private static final String ERR_ADD_HOST = "Failed to add host: ";
-    private static final String ANNOTATION_SEGMENT_ID = "segId";
     private static final String SONA_HOST_SCHEME = "sona";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -110,7 +105,7 @@ public final class OpenstackSwitchingHostProvider extends AbstractProvider imple
     protected OpenstackNodeService osNodeService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected InstancePortService instancePortService;
+    protected InstancePortAdminService instancePortAdminService;
 
     private final ExecutorService deviceEventExecutor =
             Executors.newSingleThreadExecutor(groupedThreads("openstacknetworking", "device-event"));
@@ -118,9 +113,6 @@ public final class OpenstackSwitchingHostProvider extends AbstractProvider imple
     private final InternalOpenstackNodeListener internalNodeListener = new InternalOpenstackNodeListener();
 
     private HostProviderService hostProvider;
-
-    private Map<HostId, Device> hostDeviceMap = Maps.newConcurrentMap();
-    private Set<Host> migratingHosts = Sets.newConcurrentHashSet();
 
     /**
      * Creates OpenStack switching host provider.
@@ -183,58 +175,55 @@ public final class OpenstackSwitchingHostProvider extends AbstractProvider imple
             return;
         }
 
-        MacAddress macAddr = MacAddress.valueOf(osPort.getMacAddress());
+        MacAddress mac = MacAddress.valueOf(osPort.getMacAddress());
+        HostId hostId = HostId.hostId(mac);
+
+        // typically one openstack port should only be bound to one fix IP address;
+        // however, openstack4j binds multiple fixed IPs to one port, this might
+        // be a defect of openstack4j implementation
+
+        // TODO: we need to find a way to bind multiple ports from multiple
+        // openstack networks into one host sooner or later
         Set<IpAddress> fixedIps = osPort.getFixedIps().stream()
-                .map(ip -> IpAddress.valueOf(ip.getIpAddress()))
-                .collect(Collectors.toSet());
+                                    .map(ip -> IpAddress.valueOf(ip.getIpAddress()))
+                                    .collect(Collectors.toSet());
+
+        // connect point is the combination of switch ID with port number where
+        // the host is attached to
         ConnectPoint connectPoint = new ConnectPoint(port.element().id(), port.number());
-        HostId oldHostId = HostId.hostId(macAddr);
 
-        // In VM migration case, a duplicated host port (port created in at new
-        // compute node) will be detected at OVS; in this case, we will store
-        // the old host instance into migration list, and overwrite old host
-        // with new host instance issue host creation event to ONOS core
-        Device oldDevice = hostDeviceMap.get(oldHostId);
+        long createTime = System.currentTimeMillis();
 
-        if (device != null && oldDevice != null && !oldDevice.equals(device)) {
-            Host host = hostService.getHost(oldHostId);
-            if (host != null) {
-                migratingHosts.add(host);
+        // we check whether the host already attached to some locations
+        Host host = hostService.getHost(hostId);
+        if (host != null) {
+            Set<HostLocation> locations = host.locations().stream()
+                    .filter(l -> l.deviceId().equals(connectPoint.deviceId()))
+                    .filter(l -> l.port().equals(connectPoint.port()))
+                    .collect(Collectors.toSet());
+            if (locations.size() == 0) {
+                hostProvider.addLocationToHost(hostId,
+                                    new HostLocation(connectPoint, createTime));
             }
-        }
+        } else {
 
-        if (device != null) {
-            hostDeviceMap.put(oldHostId, device);
-        }
+            DefaultAnnotations.Builder annotations = DefaultAnnotations.builder()
+                    .set(ANNOTATION_NETWORK_ID, osPort.getNetworkId())
+                    .set(ANNOTATION_PORT_ID, osPort.getId())
+                    .set(ANNOTATION_CREATE_TIME, String.valueOf(createTime));
 
-        DefaultAnnotations.Builder annotations = DefaultAnnotations.builder()
-                .set(ANNOTATION_NETWORK_ID, osPort.getNetworkId())
-                .set(ANNOTATION_PORT_ID, osPort.getId())
-                .set(ANNOTATION_CREATE_TIME, String.valueOf(System.currentTimeMillis()));
+            // FLAT does not require segment ID
+            if (osNet.getNetworkType() != NetworkType.FLAT) {
+                annotations.set(ANNOTATION_SEGMENT_ID, osNet.getProviderSegID());
+            }
 
-        if (osNet.getNetworkType() != NetworkType.FLAT) {
-            annotations.set(ANNOTATION_SEGMENT_ID, osNet.getProviderSegID());
-
-        }
-
-        long currentTime = System.currentTimeMillis();
-
-        HostDescription hostDesc = new DefaultHostDescription(
-                macAddr,
-                VlanId.NONE,
-                new HostLocation(connectPoint, currentTime),
-                fixedIps,
-                annotations.build());
-
-        HostId hostId = HostId.hostId(macAddr);
-        hostProvider.hostDetected(hostId, hostDesc, false);
-
-        if (device != null && oldDevice != null && !oldDevice.equals(device)) {
-            Host oldHost = hostService.getHost(oldHostId);
-            Host newHost = new DefaultHost(oldHost.providerId(), hostId, macAddr,
-                    VlanId.NONE, new HostLocation(connectPoint, currentTime),
-                    fixedIps, annotations.build());
-            instancePortService.migrationPortAdded(HostBasedInstancePort.of(newHost));
+            HostDescription hostDesc = new DefaultHostDescription(
+                    mac,
+                    VlanId.NONE,
+                    new HostLocation(connectPoint, createTime),
+                    fixedIps,
+                    annotations.build());
+            hostProvider.hostDetected(hostId, hostDesc, false);
         }
     }
 
@@ -248,33 +237,26 @@ public final class OpenstackSwitchingHostProvider extends AbstractProvider imple
      */
     private void processPortRemoved(DeviceEvent event) {
         Port port = event.port();
-        DeviceId deviceId = event.subject().id();
         ConnectPoint connectPoint = new ConnectPoint(port.element().id(), port.number());
 
-        Set<Host> hostsToBeRemoved = hostService.getConnectedHosts(connectPoint);
+        Set<Host> hosts = hostService.getConnectedHosts(connectPoint);
 
-        if (hostsToBeRemoved.size() == 0) {
+        hosts.forEach(h -> {
+            Optional<HostLocation> hostLocation = h.locations().stream()
+                    .filter(l -> l.deviceId().equals(port.element().id()))
+                    .filter(l -> l.port().equals(port.number())).findAny();
 
-            for (Host host : migratingHosts) {
-                if (host.location() == null) {
-                    continue;
-                }
-                String hostLocation = host.location().toString();
-                StringBuilder deviceIdWithPort = new StringBuilder();
-                deviceIdWithPort.append(deviceId.toString());
-                deviceIdWithPort.append("/");
-                deviceIdWithPort.append(port.number().toString());
-
-                if (hostLocation.equals(deviceIdWithPort.toString())) {
-                    InstancePort instPort = HostBasedInstancePort.of(host);
-                    instancePortService.migrationPortRemoved(instPort);
-                    migratingHosts.remove(host);
-                }
+            // if the host contains only one filtered location, we remove the host
+            if (h.locations().size() == 1) {
+                hostProvider.hostVanished(h.id());
             }
 
-        } else {
-            hostsToBeRemoved.forEach(host -> hostProvider.hostVanished(host.id()));
-        }
+            // if the host contains multiple locations, we simply remove the
+            // host location
+            if (h.locations().size() > 1 && hostLocation.isPresent()) {
+                hostProvider.removeLocationFromHost(h.id(), hostLocation.get());
+            }
+        });
     }
 
     /**

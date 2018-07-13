@@ -49,7 +49,17 @@ public interface InstancePort {
         /**
          * Signifies that the given instance port is in migrating state.
          */
-        MIGRATING
+        MIGRATING,
+
+        /**
+         * Signifies that the given instance port will be removed soon.
+         */
+        REMOVED,
+
+        /**
+         * Signifies that the given instance port has been migrated.
+         */
+        MIGRATED,
     }
 
     /**
@@ -88,11 +98,27 @@ public interface InstancePort {
     DeviceId deviceId();
 
     /**
+     * Returns the old device ID of the instance port.
+     * This method returns valid value only if the VM is in migration phase.
+     *
+     * @return device id
+     */
+    DeviceId oldDeviceId();
+
+    /**
      * Returns the port number of the instance port.
      *
      * @return port number
      */
     PortNumber portNumber();
+
+    /**
+     * Returns the old port number of the instance port.
+     * This method returns valid value only if the VM is in migration phase.
+     *
+     * @return port number
+     */
+    PortNumber oldPortNumber();
 
     /**
      * Returns the state of the instance port.
@@ -108,6 +134,15 @@ public interface InstancePort {
      * @return updated instance port
      */
     InstancePort updateState(State newState);
+
+    /**
+     * Returns new instance port instance with given prev data.
+     *
+     * @param oldDeviceId       old device ID
+     * @param oldPortNumber     old port number
+     * @return updated instance port
+     */
+    InstancePort updatePrevData(DeviceId oldDeviceId, PortNumber oldPortNumber);
 
     /**
      * Builder of new instance port.
@@ -162,12 +197,28 @@ public interface InstancePort {
         Builder deviceId(DeviceId deviceId);
 
         /**
+         * Returns instance port builder with supplied old Device identifier.
+         *
+         * @param oldDeviceId device identifier
+         * @return instance port builder
+         */
+        Builder oldDeviceId(DeviceId oldDeviceId);
+
+        /**
          * Returns instance port builder with supplied port number.
          *
          * @param portNumber port number
          * @return instance port builder
          */
         Builder portNumber(PortNumber portNumber);
+
+        /**
+         * Returns instance port builder with supplied old port number.
+         *
+         * @param oldPortNumber port number
+         * @return instance port builder
+         */
+        Builder oldPortNumber(PortNumber oldPortNumber);
 
         /**
          * Returns instance port builder with supplied state.

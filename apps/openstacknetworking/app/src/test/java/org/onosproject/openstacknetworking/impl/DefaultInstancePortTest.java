@@ -35,8 +35,8 @@ import org.onosproject.openstacknetworking.api.InstancePort;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
+import static org.onosproject.openstacknetworking.api.Constants.ANNOTATION_CREATE_TIME;
 import static org.onosproject.openstacknetworking.api.InstancePort.State.ACTIVE;
-import static org.onosproject.openstacknetworking.impl.HostBasedInstancePort.ANNOTATION_CREATE_TIME;
 
 /**
  * Unit tests for the default instance port class.

@@ -49,8 +49,10 @@ import java.util.Set;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.onosproject.openstacknetworking.api.Constants.ANNOTATION_CREATE_TIME;
 import static org.onosproject.openstacknetworking.api.InstancePort.State.ACTIVE;
 import static org.onosproject.openstacknetworking.api.InstancePort.State.INACTIVE;
+import static org.onosproject.openstacknetworking.api.InstancePort.State.MIGRATED;
 import static org.onosproject.openstacknetworking.api.InstancePort.State.MIGRATING;
 import static org.onosproject.openstacknetworking.api.InstancePortEvent.Type.OPENSTACK_INSTANCE_MIGRATION_ENDED;
 import static org.onosproject.openstacknetworking.api.InstancePortEvent.Type.OPENSTACK_INSTANCE_MIGRATION_STARTED;
@@ -59,7 +61,6 @@ import static org.onosproject.openstacknetworking.api.InstancePortEvent.Type.OPE
 import static org.onosproject.openstacknetworking.api.InstancePortEvent.Type.OPENSTACK_INSTANCE_PORT_VANISHED;
 import static org.onosproject.openstacknetworking.api.InstancePortEvent.Type.OPENSTACK_INSTANCE_RESTARTED;
 import static org.onosproject.openstacknetworking.api.InstancePortEvent.Type.OPENSTACK_INSTANCE_TERMINATED;
-import static org.onosproject.openstacknetworking.impl.HostBasedInstancePort.ANNOTATION_CREATE_TIME;
 
 /**
  * Unit tests for instance port manager.
@@ -311,8 +312,7 @@ public class InstancePortManagerTest {
                 1, target.instancePorts().size());
         assertNotNull("Instance port did not match", target.instancePort(PORT_ID_1));
 
-        validateEvents(OPENSTACK_INSTANCE_PORT_DETECTED,
-                OPENSTACK_INSTANCE_PORT_UPDATED, OPENSTACK_INSTANCE_TERMINATED);
+        validateEvents(OPENSTACK_INSTANCE_PORT_DETECTED, OPENSTACK_INSTANCE_TERMINATED);
     }
 
     /**
@@ -330,8 +330,7 @@ public class InstancePortManagerTest {
                 1, target.instancePorts().size());
         assertNotNull("Instance port did not match", target.instancePort(PORT_ID_1));
 
-        validateEvents(OPENSTACK_INSTANCE_PORT_DETECTED,
-                OPENSTACK_INSTANCE_PORT_UPDATED, OPENSTACK_INSTANCE_RESTARTED);
+        validateEvents(OPENSTACK_INSTANCE_PORT_DETECTED, OPENSTACK_INSTANCE_RESTARTED);
     }
 
     /**
@@ -342,15 +341,14 @@ public class InstancePortManagerTest {
         InstancePort instancePort = instancePort1;
         target.createInstancePort(instancePort);
 
-        InstancePort inactiveInstancePort = instancePort.updateState(MIGRATING);
-        target.updateInstancePort(inactiveInstancePort);
+        InstancePort migratingPort = instancePort.updateState(MIGRATING);
+        target.updateInstancePort(migratingPort);
 
         assertEquals("Number of instance port did not match",
                 1, target.instancePorts().size());
         assertNotNull("Instance port did not match", target.instancePort(PORT_ID_1));
 
-        validateEvents(OPENSTACK_INSTANCE_PORT_DETECTED,
-                OPENSTACK_INSTANCE_PORT_UPDATED, OPENSTACK_INSTANCE_MIGRATION_STARTED);
+        validateEvents(OPENSTACK_INSTANCE_PORT_DETECTED, OPENSTACK_INSTANCE_MIGRATION_STARTED);
     }
 
     /**
@@ -359,17 +357,17 @@ public class InstancePortManagerTest {
     @Test
     public void testMigrateInstanceEnd() {
         InstancePort instancePort = instancePort1;
-        InstancePort inactiveInstancePort = instancePort.updateState(MIGRATING);
+        InstancePort migratingPort = instancePort.updateState(MIGRATING);
+        target.createInstancePort(migratingPort);
 
-        target.createInstancePort(inactiveInstancePort);
-        target.updateInstancePort(instancePort);
+        InstancePort migratedPort = instancePort.updateState(MIGRATED);
+        target.updateInstancePort(migratedPort);
 
         assertEquals("Number of instance port did not match",
                 1, target.instancePorts().size());
         assertNotNull("Instance port did not match", target.instancePort(PORT_ID_1));
 
-        validateEvents(OPENSTACK_INSTANCE_PORT_DETECTED,
-                OPENSTACK_INSTANCE_PORT_UPDATED, OPENSTACK_INSTANCE_MIGRATION_ENDED);
+        validateEvents(OPENSTACK_INSTANCE_PORT_DETECTED, OPENSTACK_INSTANCE_MIGRATION_ENDED);
     }
 
     /**
@@ -393,8 +391,7 @@ public class InstancePortManagerTest {
                 0, target.instancePorts().size());
         assertNull("Instance port did not match", target.instancePort(PORT_ID_1));
 
-        validateEvents(OPENSTACK_INSTANCE_PORT_DETECTED,
-                OPENSTACK_INSTANCE_PORT_UPDATED, OPENSTACK_INSTANCE_TERMINATED,
+        validateEvents(OPENSTACK_INSTANCE_PORT_DETECTED, OPENSTACK_INSTANCE_TERMINATED,
                 OPENSTACK_INSTANCE_PORT_VANISHED);
     }
 
@@ -419,8 +416,7 @@ public class InstancePortManagerTest {
                 0, target.instancePorts().size());
         assertNull("Instance port did not match", target.instancePort(PORT_ID_1));
 
-        validateEvents(OPENSTACK_INSTANCE_PORT_DETECTED,
-                OPENSTACK_INSTANCE_PORT_UPDATED, OPENSTACK_INSTANCE_MIGRATION_STARTED,
+        validateEvents(OPENSTACK_INSTANCE_PORT_DETECTED, OPENSTACK_INSTANCE_MIGRATION_STARTED,
                 OPENSTACK_INSTANCE_PORT_VANISHED);
     }
 

@@ -45,24 +45,30 @@ public final class DefaultInstancePort implements InstancePort {
     private final MacAddress macAddress;
     private final IpAddress ipAddress;
     private final DeviceId deviceId;
+    private final DeviceId oldDeviceId;
     private final PortNumber portNumber;
+    private final PortNumber oldPortNumber;
     private final State state;
 
     // private constructor not intended for invoked from external
     private DefaultInstancePort(String networkId, String portId,
                                 MacAddress macAddress, IpAddress ipAddress,
-                                DeviceId deviceId, PortNumber portNumber,
+                                DeviceId deviceId, DeviceId oldDeviceId,
+                                PortNumber portNumber, PortNumber oldPortNumber,
                                 State state) {
         this.networkId = networkId;
         this.portId = portId;
         this.macAddress = macAddress;
         this.ipAddress = ipAddress;
         this.deviceId = deviceId;
+        this.oldDeviceId = oldDeviceId;
         this.portNumber = portNumber;
+        this.oldPortNumber = oldPortNumber;
         this.state = state;
     }
 
-    private DefaultInstancePort(Host host, State state) {
+    private DefaultInstancePort(Host host, State state,
+                                DeviceId oldDeviceId, PortNumber oldPortNumber) {
         this.networkId = host.annotations().value(ANNOTATION_NETWORK_ID);
         this.portId = host.annotations().value(ANNOTATION_PORT_ID);
         this.macAddress = host.mac();
@@ -72,6 +78,8 @@ public final class DefaultInstancePort implements InstancePort {
         this.deviceId = host.location().deviceId();
         this.portNumber = host.location().port();
         this.state = state;
+        this.oldDeviceId = oldDeviceId;
+        this.oldPortNumber = oldPortNumber;
     }
 
     public static DefaultInstancePort from(Host host, State state) {
@@ -83,7 +91,22 @@ public final class DefaultInstancePort implements InstancePort {
         checkArgument(!Strings.isNullOrEmpty(
                                 host.annotations().value(ANNOTATION_CREATE_TIME)));
 
-        return new DefaultInstancePort(host, state);
+        return new DefaultInstancePort(host, state, null, null);
+    }
+
+    public static DefaultInstancePort from(Host host,
+                                           State state,
+                                           DeviceId oldDeviceId,
+                                           PortNumber oldPortNumber) {
+        checkNotNull(host);
+        checkArgument(!Strings.isNullOrEmpty(
+                host.annotations().value(ANNOTATION_NETWORK_ID)));
+        checkArgument(!Strings.isNullOrEmpty(
+                host.annotations().value(ANNOTATION_PORT_ID)));
+        checkArgument(!Strings.isNullOrEmpty(
+                host.annotations().value(ANNOTATION_CREATE_TIME)));
+
+        return new DefaultInstancePort(host, state, oldDeviceId, oldPortNumber);
     }
 
     @Override
@@ -112,13 +135,32 @@ public final class DefaultInstancePort implements InstancePort {
     }
 
     @Override
+    public DeviceId oldDeviceId() {
+        return oldDeviceId;
+    }
+
+    @Override
     public PortNumber portNumber() {
         return portNumber;
     }
 
     @Override
+    public PortNumber oldPortNumber() {
+        return oldPortNumber;
+    }
+
+    @Override
     public State state() {
         return state;
+    }
+
+    /**
+     * Obtains an instance port builder.
+     *
+     * @return instance port builder
+     */
+    public static Builder builder() {
+        return new Builder();
     }
 
     @Override
@@ -129,8 +171,26 @@ public final class DefaultInstancePort implements InstancePort {
                 .macAddress(macAddress)
                 .ipAddress(ipAddress)
                 .deviceId(deviceId)
+                .oldDeviceId(oldDeviceId)
                 .portNumber(portNumber)
+                .oldPortNumber(oldPortNumber)
                 .state(newState)
+                .build();
+    }
+
+    @Override
+    public InstancePort updatePrevData(DeviceId oldDeviceId,
+                                       PortNumber oldPortNumber) {
+        return new Builder()
+                .networkId(networkId)
+                .portId(portId)
+                .macAddress(macAddress)
+                .ipAddress(ipAddress)
+                .deviceId(deviceId)
+                .oldDeviceId(oldDeviceId)
+                .portNumber(portNumber)
+                .oldPortNumber(oldPortNumber)
+                .state(state)
                 .build();
     }
 
@@ -142,7 +202,9 @@ public final class DefaultInstancePort implements InstancePort {
                 .add("macAddress", macAddress)
                 .add("ipAddress", ipAddress)
                 .add("deviceId", deviceId)
+                .add("oldDeviceId", oldDeviceId)
                 .add("portNumber", portNumber)
+                .add("oldPortNumber", oldPortNumber)
                 .add("state", state)
                 .toString();
     }
@@ -159,7 +221,9 @@ public final class DefaultInstancePort implements InstancePort {
                     Objects.equals(macAddress, that.macAddress) &&
                     Objects.equals(ipAddress, that.ipAddress) &&
                     Objects.equals(deviceId, that.deviceId) &&
+                    Objects.equals(oldDeviceId, that.oldDeviceId) &&
                     Objects.equals(portNumber, that.portNumber) &&
+                    Objects.equals(oldPortNumber, that.oldPortNumber) &&
                     Objects.equals(state, that.state);
         }
         return false;
@@ -172,7 +236,9 @@ public final class DefaultInstancePort implements InstancePort {
                 macAddress,
                 ipAddress,
                 deviceId,
+                oldDeviceId,
                 portNumber,
+                oldPortNumber,
                 state);
     }
 
@@ -186,7 +252,9 @@ public final class DefaultInstancePort implements InstancePort {
         private MacAddress macAddress;
         private IpAddress ipAddress;
         private DeviceId deviceId;
+        private DeviceId oldDeviceId;
         private PortNumber portNumber;
+        private PortNumber oldPortNumber;
         private State state;
 
         // private constructor not intended to use from external
@@ -209,7 +277,9 @@ public final class DefaultInstancePort implements InstancePort {
                     macAddress,
                     ipAddress,
                     deviceId,
+                    oldDeviceId,
                     portNumber,
+                    oldPortNumber,
                     state);
         }
 
@@ -244,8 +314,20 @@ public final class DefaultInstancePort implements InstancePort {
         }
 
         @Override
+        public InstancePort.Builder oldDeviceId(DeviceId oldDeviceId) {
+            this.oldDeviceId = oldDeviceId;
+            return this;
+        }
+
+        @Override
         public InstancePort.Builder portNumber(PortNumber portNumber) {
             this.portNumber = portNumber;
+            return this;
+        }
+
+        @Override
+        public InstancePort.Builder oldPortNumber(PortNumber oldPortNumber) {
+            this.oldPortNumber = oldPortNumber;
             return this;
         }
 

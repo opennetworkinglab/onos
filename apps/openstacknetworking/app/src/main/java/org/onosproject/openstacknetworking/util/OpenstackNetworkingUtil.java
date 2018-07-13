@@ -24,6 +24,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.openstacknetworking.api.InstancePort;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.onosproject.openstacknetworking.api.OpenstackRouterAdminService;
+import org.onosproject.openstacknetworking.impl.DefaultInstancePort;
 import org.onosproject.openstacknode.api.OpenstackAuth;
 import org.onosproject.openstacknode.api.OpenstackAuth.Perspective;
 import org.onosproject.openstacknode.api.OpenstackNode;
@@ -380,6 +381,25 @@ public final class OpenstackNetworkingUtil {
         } else {
             return arpMode.equals(PROXY_MODE) || arpMode.equals(BROADCAST_MODE);
         }
+    }
+
+    /**
+     * Swaps current location with old location info.
+     * The revised instance port will be used to mod the flow rules after migration.
+     *
+     * @param instPort instance port
+     * @return location swapped instance port
+     */
+    public static InstancePort swapStaleLocation(InstancePort instPort) {
+        return DefaultInstancePort.builder()
+                .deviceId(instPort.oldDeviceId())
+                .portNumber(instPort.oldPortNumber())
+                .state(instPort.state())
+                .ipAddress(instPort.ipAddress())
+                .macAddress(instPort.macAddress())
+                .networkId(instPort.networkId())
+                .portId(instPort.portId())
+                .build();
     }
 
     /**
