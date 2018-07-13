@@ -232,6 +232,7 @@
     "servlet-api": "mvn:javax.servlet:servlet-api:2.5",
     "slf4j-api": "mvn:org.slf4j:slf4j-api:1.7.25",
     "slf4j-jdk14": "mvn:org.slf4j:slf4j-jdk14:1.7.25",
+    "slf4j-nop": "mvn:org.slf4j:slf4j-nop:1.7.25",
     "typesafe-config": "mvn:com.typesafe:config:1.2.1",
     "validation-api": "mvn:javax.validation:validation-api:1.1.0.Final",
     "checkstyle": "mvn:com.puppycrawl.tools:checkstyle:8.10",

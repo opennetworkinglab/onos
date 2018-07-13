@@ -259,16 +259,16 @@ PROTOCOL_APPS = [
 
 MODELS = [
     "//models/ietf:onos-models-ietf-oar",
-    #"//models/common:onos-models-common-oar",
+    "//models/common:onos-models-common-oar",
     "//models/huawei:onos-models-huawei-oar",
-    #"//models/openconfig:onos-models-openconfig-oar",
-    #"//models/openconfig-infinera:onos-models-openconfig-infinera-oar",
+    "//models/openconfig:onos-models-openconfig-oar",
+    "//models/openconfig-infinera:onos-models-openconfig-infinera-oar",
     "//models/openroadm:onos-models-openroadm-oar",
     "//models/tapi:onos-models-tapi-oar",
-    #"//models/l3vpn:onos-models-l3vpn-oar",
-    #"//models/microsemi:onos-models-microsemi-oar",
-    #"//models/polatis:onos-models-polatis-oar",
-    #"//models/ciena/waveserverai:onos-models-ciena-waveserverai-oar",
+    "//models/l3vpn:onos-models-l3vpn-oar",
+    "//models/microsemi:onos-models-microsemi-oar",
+    "//models/polatis:onos-models-polatis-oar",
+    "//models/ciena/waveserverai:onos-models-ciena-waveserverai-oar",
 ]
 
 PIPELINES = [

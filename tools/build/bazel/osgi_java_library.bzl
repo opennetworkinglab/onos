@@ -372,6 +372,7 @@ def osgi_jar_with_tests(
         test_resources = None,
         visibility = ["//visibility:public"],
         version = ONOS_VERSION,
+        suppress_errorprone = False,
         web_context = None,
         api_title = "",
         api_version = "",
@@ -436,13 +437,15 @@ def osgi_jar_with_tests(
         native_srcs = srcs + [name + "_swagger_java"]
         native_resources.append(name + "_swagger_json")
 
+    javacopts = [ "-XepDisableAllChecks" ] if suppress_errorprone else []
+
     # compile the Java code
     if len(resource_jars) > 0:
         native.java_library(name = name + "-native", srcs = native_srcs, resource_jars = resource_jars,
-                            deps = deps, visibility = visibility)
+                            deps = deps, visibility = visibility, javacopts = javacopts)
     else:
         native.java_library(name = name + "-native", srcs = native_srcs, resources = native_resources,
-                            deps = deps, visibility = visibility)
+                            deps = deps, visibility = visibility, javacopts = javacopts)
 
     _bnd(
         name = name,
@@ -510,6 +513,7 @@ def osgi_jar(
         include_resources = {},
         visibility = ["//visibility:public"],
         version = ONOS_VERSION,
+        suppress_errorprone = False,
         web_context = None,
         api_title = "",
         api_version = "",
@@ -533,6 +537,7 @@ def osgi_jar(
         exclude_tests = [],
         test_resources = [],
         visibility = visibility,
+        suppress_errorprone = suppress_errorprone,
         version = version,
         import_packages = import_packages,
         api_title = api_title,

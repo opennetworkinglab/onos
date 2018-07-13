@@ -160,7 +160,8 @@ def yang_library(
     # Produce a Java library from the generated Java sources
     osgi_jar(name = name, srcs = srcs,
              resource_jars = [name + "-generate"], deps = deps,
-             visibility = ["//visibility:public"])
+             visibility = ["//visibility:public"],
+             suppress_errorprone = True)
 
 def yang_model(
     name = None,
