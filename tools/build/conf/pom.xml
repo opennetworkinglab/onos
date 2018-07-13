@@ -27,7 +27,7 @@
 
     <groupId>org.onosproject</groupId>
     <artifactId>onos-build-conf</artifactId>
-    <version>1.12.1-SNAPSHOT</version>
+    <version>1.12.1</version>
     <description>Various ONOS build settings</description>
 
     <properties>
