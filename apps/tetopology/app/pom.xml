@@ -21,11 +21,11 @@
     <parent>
         <groupId>org.onosproject</groupId>
         <artifactId>onos-tetopology</artifactId>
-        <version>1.12.1</version>
+        <version>1.12.2-SNAPSHOT</version>
     </parent>
 
     <artifactId>onos-app-tetopology</artifactId>
-    <version>1.12.1</version>
+    <version>1.12.2-SNAPSHOT</version>
     <packaging>bundle</packaging>
 
     <description>IETF TE topology application</description>

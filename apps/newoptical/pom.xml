@@ -20,7 +20,7 @@
     <parent>
         <artifactId>onos-apps</artifactId>
         <groupId>org.onosproject</groupId>
-        <version>1.12.1</version>
+        <version>1.12.2-SNAPSHOT</version>
     </parent>
 
     <artifactId>onos-app-newoptical</artifactId>
