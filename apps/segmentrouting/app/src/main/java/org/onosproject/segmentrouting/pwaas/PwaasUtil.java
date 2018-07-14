@@ -43,12 +43,46 @@ public final class PwaasUtil {
 
     private static final Logger log = LoggerFactory.getLogger(PwaasUtil.class);
 
-    private static DeviceService deviceService = AbstractShellCommand.get(DeviceService.class);;
+    private static DeviceService deviceService;
+    private static InterfaceService intfService;
 
-    private static InterfaceService intfService = AbstractShellCommand.get(InterfaceService.class);
+    // Suppress ExceptionInInitializerError and simply set the value to null,
+    // such that unit tests have a chance to replace the variable with mocked service
+    static {
+        try {
+            deviceService = AbstractShellCommand.get(DeviceService.class);
+        } catch (NullPointerException e) {
+            deviceService = null;
+        }
+        try {
+            intfService = AbstractShellCommand.get(InterfaceService.class);
+        } catch (NullPointerException e) {
+            intfService = null;
+        }
+    }
+
+    static final String ERR_SERVICE_UNAVAIL = "Service %s not available";
+    static final String ERR_SAME_DEV =
+            "Pseudowire connection points can not reside in the same node, in pseudowire %d.";
+    static final String ERR_EMPTY_INNER_WHEN_OUTER_PRESENT =
+            "Inner tag should not be empty when outer tag is set for pseudowire %d for %s.";
+    static final String ERR_WILDCARD_VLAN =
+            "Wildcard VLAN matching not yet supported for pseudowire %d.";
+    static final String ERR_DOUBLE_TO_UNTAGGED =
+            "Support for double tag <-> untag is not supported for pseudowire %d.";
+    static final String ERR_DOUBLE_TO_SINGLE =
+            "Support for double-tag<-> single-tag is not supported for pseudowire %d.";
+    static final String ERR_SINGLE_TO_UNTAGGED =
+            "single-tag <-> untag is not supported for pseudowire %d.";
+    static final String ERR_VLAN_TRANSLATION =
+            "We do not support VLAN translation for pseudowire %d.";
+    static final String ERR_DEV_NOT_FOUND =
+            "Device %s does not exist for pseudowire %d.";
+    static final String ERR_PORT_NOT_FOUND =
+            "Port %s of device %s does not exist for pseudowire %d.";
 
     private PwaasUtil() {
-        return;
+
     }
 
     /**
@@ -129,12 +163,15 @@ public final class PwaasUtil {
      * supported and if policy will be successfully instantiated in the
      * network.
      *
+     * @param cP1 pseudo wire endpoint 1
+     * @param cP2 pseudo wire endpoint 2
      * @param ingressInner the ingress inner tag
      * @param ingressOuter the ingress outer tag
      * @param egressInner the egress inner tag
      * @param egressOuter the egress outer tag
+     * @param tunnelId tunnel ID
      */
-    private static void verifyPolicy(ConnectPoint cP1,
+    static void verifyPolicy(ConnectPoint cP1,
                               ConnectPoint cP2,
                               VlanId ingressInner,
                               VlanId ingressOuter,
@@ -143,42 +180,34 @@ public final class PwaasUtil {
                               Long tunnelId) {
 
         if (cP1.deviceId().equals(cP2.deviceId())) {
-            throw new IllegalArgumentException(String.format("Pseudowire connection points can not reside in the " +
-                                                                     "same node, in pseudowire %d.", tunnelId));
+            throw new IllegalArgumentException(String.format(ERR_SAME_DEV, tunnelId));
         }
 
         // We can have multiple tags, all of them can be NONE,
         // indicating untagged traffic, however, the outer tag can
         // not have value if the inner tag is None
         if (ingressInner.equals(VlanId.NONE) && !ingressOuter.equals(VlanId.NONE)) {
-            throw new IllegalArgumentException(String.format("Inner tag should not be empty when " +
-                                                                     "outer tag is set for pseudowire %d for cP1.",
-                                                             tunnelId));
+            throw new IllegalArgumentException(String.format(ERR_EMPTY_INNER_WHEN_OUTER_PRESENT,
+                    tunnelId, "cp1"));
         }
 
         if (egressInner.equals(VlanId.NONE) && !egressOuter.equals(VlanId.NONE)) {
-            throw new IllegalArgumentException(String.valueOf(String.format("Inner tag should not be empty when" +
-                                                                                    " outer tag is set for " +
-                                                                                    "pseudowire %d " +
-                                                                                    "for cP2.", tunnelId)));
+            throw new IllegalArgumentException(String.format(ERR_EMPTY_INNER_WHEN_OUTER_PRESENT,
+                    tunnelId, "cp2"));
         }
 
         if (ingressInner.equals(VlanId.ANY) ||
                 ingressOuter.equals(VlanId.ANY) ||
                 egressInner.equals(VlanId.ANY) ||
                 egressOuter.equals(VlanId.ANY)) {
-            throw new IllegalArgumentException(String.valueOf(String.format("Wildcard VLAN matching not yet " +
-                                                                                    "supported for pseudowire %d.",
-                                                                            tunnelId)));
+            throw new IllegalArgumentException(String.format(ERR_WILDCARD_VLAN, tunnelId));
         }
 
         if (((!ingressOuter.equals(VlanId.NONE) && !ingressInner.equals(VlanId.NONE)) &&
                 (egressOuter.equals(VlanId.NONE) && egressInner.equals(VlanId.NONE)))
                 || ((ingressOuter.equals(VlanId.NONE) && ingressInner.equals(VlanId.NONE)) &&
                 (!egressOuter.equals(VlanId.NONE) && !egressInner.equals(VlanId.NONE)))) {
-            throw new IllegalArgumentException(String.valueOf(String.format("Support for double tag <-> untag is not" +
-                                                                                    "supported for pseudowire %d.",
-                                                                            tunnelId)));
+            throw new IllegalArgumentException(String.format(ERR_DOUBLE_TO_UNTAGGED, tunnelId));
         }
         if ((!ingressInner.equals(VlanId.NONE) &&
                 ingressOuter.equals(VlanId.NONE) &&
@@ -186,50 +215,42 @@ public final class PwaasUtil {
                 || (egressOuter.equals(VlanId.NONE) &&
                 !egressInner.equals(VlanId.NONE) &&
                 !ingressOuter.equals(VlanId.NONE))) {
-            throw new IllegalArgumentException(String.valueOf(String.format("Support for double-tag<->" +
-                                                                                    "single-tag is not supported" +
-                                                                                    " for pseudowire %d.", tunnelId)));
+            throw new IllegalArgumentException(String.format(ERR_DOUBLE_TO_SINGLE, tunnelId));
         }
 
         if ((ingressInner.equals(VlanId.NONE) && !egressInner.equals(VlanId.NONE))
                 || (!ingressInner.equals(VlanId.NONE) && egressInner.equals(VlanId.NONE))) {
-            throw new IllegalArgumentException(String.valueOf(String.format("single-tag <-> untag is not supported" +
-                                                                                    " for pseudowire %d.", tunnelId)));
+            throw new IllegalArgumentException(String.format(ERR_SINGLE_TO_UNTAGGED, tunnelId));
         }
 
+        // FIXME PW VLAN translation is not supported on Dune
+        //       Need to explore doing that in egress table later if there is a requirement
+        if (!ingressInner.equals(egressInner) || !ingressOuter.equals(egressOuter)) {
+            throw new IllegalArgumentException(String.format(ERR_VLAN_TRANSLATION, tunnelId));
+        }
 
-        if (!ingressInner.equals(egressInner) && !ingressOuter.equals(egressOuter)) {
-            throw new IllegalArgumentException(String.valueOf(String.format("We do not support changing both tags " +
-                                                                                    "in double tagged pws, only the " +
-                                                                                    "outer," +
-                                                                                    " for pseudowire %d.", tunnelId)));
+        if (deviceService == null) {
+            throw new IllegalStateException(String.format(ERR_SERVICE_UNAVAIL, "DeviceService"));
         }
 
         // check if cp1 and port of cp1 exist
         if (deviceService.getDevice(cP1.deviceId()) == null) {
-            throw new IllegalArgumentException(String.valueOf(String.format("cP1 device %s does not exist for" +
-                                                                                    " pseudowire %d.", cP1.deviceId(),
-                                                                            tunnelId)));
+            throw new IllegalArgumentException(String.format(ERR_DEV_NOT_FOUND, cP1.deviceId(), tunnelId));
         }
 
         if (deviceService.getPort(cP1) == null) {
-            throw new IllegalArgumentException(String.valueOf(String.format("Port %s for cP1 device %s does not" +
-                                                                                    " exist for pseudowire %d.",
-                                                                            cP1.port(),
-                                                                            cP1.deviceId(), tunnelId)));
+            throw new IllegalArgumentException(String.format(ERR_PORT_NOT_FOUND, cP1.port(),
+                    cP1.deviceId(), tunnelId));
         }
 
         // check if cp2 and port of cp2 exist
         if (deviceService.getDevice(cP2.deviceId()) == null) {
-            throw new IllegalArgumentException(String.valueOf(String.format("cP2 device %s does not exist for" +
-                                                                                    " pseudowire %d.", cP2.deviceId(),
-                                                                            tunnelId)));
+            throw new IllegalArgumentException(String.format(ERR_DEV_NOT_FOUND, cP2.deviceId(), tunnelId));
         }
 
         if (deviceService.getPort(cP2) == null) {
-            throw new IllegalArgumentException(String.valueOf(String.format("Port %s for cP2 device %s does " +
-                                                                                    "not exist for pseudowire %d.",
-                                                                            cP2.port(), cP2.deviceId(), tunnelId)));
+            throw new IllegalArgumentException(String.format(ERR_PORT_NOT_FOUND, cP2.port(),
+                    cP2.deviceId(), tunnelId));
         }
     }
 
@@ -311,6 +332,10 @@ public final class PwaasUtil {
                                                                             tunnel.tunnelId())));
         }
         vlanSet.get(cP2).add(vlanToCheckCP2);
+
+        if (intfService == null) {
+            throw new IllegalStateException(String.format(ERR_SERVICE_UNAVAIL, "InterfaceService"));
+        }
 
         // check that vlans for the connect points are not used
         intfService.getInterfacesByPort(cP1).stream()
