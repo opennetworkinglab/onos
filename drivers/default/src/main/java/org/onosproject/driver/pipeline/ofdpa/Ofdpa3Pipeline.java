@@ -568,8 +568,9 @@ public class Ofdpa3Pipeline extends Ofdpa2Pipeline {
                     .matchVlanId(innerVlanIdCriterion.vlanId());
 
             TrafficTreatment.Builder singleVlanTreatment = DefaultTrafficTreatment.builder()
-                    // .pushVlan()
-                    .setVlanId(egressVlan)
+                    // FIXME PW VLAN translation is not supported on Dune
+                    //       Need to explore doing that in egress table later if there is a requirement
+                    // .setVlanId(egressVlan)
                     .extension(new Ofdpa3SetMplsType(VPWS), deviceId)
                     .extension(new Ofdpa3SetMplsL2Port(mplsLogicalPort), deviceId)
                     .setTunnelId(tunnelId)
