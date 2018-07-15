@@ -1,0 +1,9 @@
+{
+  "networkId": "net-id-1",
+  "portId": "port-id-1",
+  "deviceId": "of:000000000000000a",
+  "portNumber": "[tap-1](1)",
+  "ipAddress": "10.10.10.1",
+  "macAddress": "11:22:33:44:55:66",
+  "state": "ACTIVE"
+}

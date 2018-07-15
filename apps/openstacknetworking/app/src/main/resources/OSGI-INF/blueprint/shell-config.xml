@@ -75,10 +75,13 @@
             </completers>
         </command>
         <command>
-            <action class="org.onosproject.openstacknetworking.cli.OpenstackAddAclCommand"></action>
+            <action class="org.onosproject.openstacknetworking.cli.OpenstackAddAclCommand" />
         </command>
         <command>
-            <action class="org.onosproject.openstacknetworking.cli.OpenstackRemoveAclCommand"></action>
+            <action class="org.onosproject.openstacknetworking.cli.OpenstackRemoveAclCommand" />
+        </command>
+        <command>
+            <action class="org.onosproject.openstacknetworking.cli.InstancePortListCommand" />
         </command>
     </command-bundle>
 
