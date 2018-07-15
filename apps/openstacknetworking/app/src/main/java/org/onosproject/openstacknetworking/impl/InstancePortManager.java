@@ -247,8 +247,8 @@ public class InstancePortManager
                         createInstancePort(instPort);
                     } else {
                         // the instance was restarted
-                        if (existingPort.state() == InstancePort.State.INACTIVE) {
-                            updateInstancePort(existingPort.updateState(ACTIVE));
+                        if (existingPort.state() == INACTIVE) {
+                            updateInstancePort(instPort);
                         }
                     }
                     break;
@@ -276,7 +276,7 @@ public class InstancePortManager
 
                         if (location != null) {
                             InstancePort updated = instPort.updateState(MIGRATED);
-                            updateInstancePort(updated.updatePrevData(
+                            updateInstancePort(updated.updatePrevLocation(
                                         location.deviceId(), location.port()));
                         }
                     }

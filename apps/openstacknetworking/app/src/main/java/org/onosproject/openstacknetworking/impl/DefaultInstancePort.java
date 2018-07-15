@@ -179,8 +179,8 @@ public final class DefaultInstancePort implements InstancePort {
     }
 
     @Override
-    public InstancePort updatePrevData(DeviceId oldDeviceId,
-                                       PortNumber oldPortNumber) {
+    public InstancePort updatePrevLocation(DeviceId oldDeviceId,
+                                           PortNumber oldPortNumber) {
         return new Builder()
                 .networkId(networkId)
                 .portId(portId)

@@ -570,7 +570,7 @@ public class OpenstackSwitchingDhcpHandlerTest {
         }
 
         @Override
-        public InstancePort updatePrevData(DeviceId oldDeviceId, PortNumber oldPortNumber) {
+        public InstancePort updatePrevLocation(DeviceId oldDeviceId, PortNumber oldPortNumber) {
             return null;
         }
     }

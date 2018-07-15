@@ -75,7 +75,8 @@ import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.CONTROLLE
 
 @Service
 @Component(immediate = true)
-public final class OpenstackSwitchingHostProvider extends AbstractProvider implements HostProvider {
+public final class OpenstackSwitchingHostProvider
+        extends AbstractProvider implements HostProvider {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -108,9 +109,11 @@ public final class OpenstackSwitchingHostProvider extends AbstractProvider imple
     protected InstancePortAdminService instancePortAdminService;
 
     private final ExecutorService deviceEventExecutor =
-            Executors.newSingleThreadExecutor(groupedThreads("openstacknetworking", "device-event"));
-    private final InternalDeviceListener internalDeviceListener = new InternalDeviceListener();
-    private final InternalOpenstackNodeListener internalNodeListener = new InternalOpenstackNodeListener();
+            Executors.newSingleThreadExecutor(groupedThreads(this.getClass().getSimpleName(), "device-event"));
+    private final InternalDeviceListener internalDeviceListener =
+            new InternalDeviceListener();
+    private final InternalOpenstackNodeListener internalNodeListener =
+            new InternalOpenstackNodeListener();
 
     private HostProviderService hostProvider;
 
@@ -185,8 +188,8 @@ public final class OpenstackSwitchingHostProvider extends AbstractProvider imple
         // TODO: we need to find a way to bind multiple ports from multiple
         // openstack networks into one host sooner or later
         Set<IpAddress> fixedIps = osPort.getFixedIps().stream()
-                                    .map(ip -> IpAddress.valueOf(ip.getIpAddress()))
-                                    .collect(Collectors.toSet());
+                .map(ip -> IpAddress.valueOf(ip.getIpAddress()))
+                .collect(Collectors.toSet());
 
         // connect point is the combination of switch ID with port number where
         // the host is attached to
@@ -196,33 +199,45 @@ public final class OpenstackSwitchingHostProvider extends AbstractProvider imple
 
         // we check whether the host already attached to some locations
         Host host = hostService.getHost(hostId);
+
+        // build host annotations to include a set of meta info from neutron
+        DefaultAnnotations.Builder annotations = DefaultAnnotations.builder()
+                .set(ANNOTATION_NETWORK_ID, osPort.getNetworkId())
+                .set(ANNOTATION_PORT_ID, osPort.getId())
+                .set(ANNOTATION_CREATE_TIME, String.valueOf(createTime));
+
+        // FLAT does not require segment ID
+        if (osNet.getNetworkType() != NetworkType.FLAT) {
+            annotations.set(ANNOTATION_SEGMENT_ID, osNet.getProviderSegID());
+        }
+
+        // build host description object
+        HostDescription hostDesc = new DefaultHostDescription(
+                mac,
+                VlanId.NONE,
+                new HostLocation(connectPoint, createTime),
+                fixedIps,
+                annotations.build());
+
         if (host != null) {
             Set<HostLocation> locations = host.locations().stream()
                     .filter(l -> l.deviceId().equals(connectPoint.deviceId()))
                     .filter(l -> l.port().equals(connectPoint.port()))
                     .collect(Collectors.toSet());
+
+            // newly added location is not in the existing location list,
+            // therefore, we simply add this into the location list
             if (locations.size() == 0) {
                 hostProvider.addLocationToHost(hostId,
-                                    new HostLocation(connectPoint, createTime));
+                        new HostLocation(connectPoint, createTime));
+            }
+
+            // newly added location is in the existing location list,
+            // the hostDetected method invocation in turn triggers host Update event
+            if (locations.size() == 1) {
+                hostProvider.hostDetected(hostId, hostDesc, false);
             }
         } else {
-
-            DefaultAnnotations.Builder annotations = DefaultAnnotations.builder()
-                    .set(ANNOTATION_NETWORK_ID, osPort.getNetworkId())
-                    .set(ANNOTATION_PORT_ID, osPort.getId())
-                    .set(ANNOTATION_CREATE_TIME, String.valueOf(createTime));
-
-            // FLAT does not require segment ID
-            if (osNet.getNetworkType() != NetworkType.FLAT) {
-                annotations.set(ANNOTATION_SEGMENT_ID, osNet.getProviderSegID());
-            }
-
-            HostDescription hostDesc = new DefaultHostDescription(
-                    mac,
-                    VlanId.NONE,
-                    new HostLocation(connectPoint, createTime),
-                    fixedIps,
-                    annotations.build());
             hostProvider.hostDetected(hostId, hostDesc, false);
         }
     }
@@ -388,8 +403,8 @@ public final class OpenstackSwitchingHostProvider extends AbstractProvider imple
                             port.isEnabled())
                     .forEach(port -> {
                         log.debug("Instance port {} is detected from {}",
-                                  port.annotations().value(PORT_NAME),
-                                  osNode.hostname());
+                                port.annotations().value(PORT_NAME),
+                                osNode.hostname());
                         processPortAdded(port,
                                 deviceService.getDevice(osNode.intgBridge()));
                     });
@@ -415,7 +430,7 @@ public final class OpenstackSwitchingHostProvider extends AbstractProvider imple
                     .forEach(host -> {
                         log.info("Remove stale host {}", host.id());
                         hostProvider.hostVanished(host.id());
-                });
+                    });
         }
     }
 }

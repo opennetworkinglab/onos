@@ -611,11 +611,19 @@ public final class OpenstackSwitchingHandler {
             switch (event.type()) {
                 case OPENSTACK_INSTANCE_PORT_DETECTED:
                 case OPENSTACK_INSTANCE_PORT_UPDATED:
+                case OPENSTACK_INSTANCE_RESTARTED:
                     log.info("SwitchingHandler: Instance port detected MAC:{} IP:{}",
                                                         instPort.macAddress(),
                                                         instPort.ipAddress());
 
                     eventExecutor.execute(() -> instPortDetected(instPort));
+
+                    break;
+                case OPENSTACK_INSTANCE_TERMINATED:
+                    log.info("SwitchingHandler: Instance port terminated MAC:{} IP:{}",
+                                                        instPort.macAddress(),
+                                                        instPort.ipAddress());
+                    eventExecutor.execute(() -> removeVportRules(instPort));
 
                     break;
                 case OPENSTACK_INSTANCE_PORT_VANISHED:

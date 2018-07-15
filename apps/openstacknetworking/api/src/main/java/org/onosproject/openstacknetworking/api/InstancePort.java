@@ -136,13 +136,13 @@ public interface InstancePort {
     InstancePort updateState(State newState);
 
     /**
-     * Returns new instance port instance with given prev data.
+     * Returns new instance port instance with the given prev location data.
      *
      * @param oldDeviceId       old device ID
      * @param oldPortNumber     old port number
      * @return updated instance port
      */
-    InstancePort updatePrevData(DeviceId oldDeviceId, PortNumber oldPortNumber);
+    InstancePort updatePrevLocation(DeviceId oldDeviceId, PortNumber oldPortNumber);
 
     /**
      * Builder of new instance port.

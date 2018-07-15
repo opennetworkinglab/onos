@@ -140,7 +140,6 @@ public class OpenstackRoutingFloatingIpHandler {
     private final InstancePortListener instPortListener = new InternalInstancePortListener();
 
     private Map<String, Port> terminatedOsPorts = Maps.newConcurrentMap();
-    private Map<String, NetFloatingIP> pendingInstPortIds = Maps.newConcurrentMap();
 
     private ApplicationId appId;
     private NodeId localNodeId;
@@ -606,9 +605,6 @@ public class OpenstackRoutingFloatingIpHandler {
         if (!Strings.isNullOrEmpty(osPort.getDeviceId())) {
 
             if (instancePortService.instancePort(osPort.getId()) == null) {
-                log.info("Try to associate the fip {} with a terminated VM",
-                        osFip.getFloatingIpAddress());
-                pendingInstPortIds.put(osPort.getId(), osFip);
                 return;
             }
 
@@ -634,15 +630,7 @@ public class OpenstackRoutingFloatingIpHandler {
         if (!Strings.isNullOrEmpty(osPort.getDeviceId())) {
 
             if (instancePortService.instancePort(osPort.getId()) == null) {
-
-                // in case there is pending instance port, we simply remove that
-                // port, otherwise, we directly go with rule removal
-                if (pendingInstPortIds.containsKey(osPort.getId())) {
-                    log.info("Try to disassociate the fip {} with a terminated VM",
-                            osFip.getFloatingIpAddress());
-                    pendingInstPortIds.remove(osPort.getId());
-                    return;
-                }
+                return;
             }
 
             setFloatingIpRules(osFip, osPort, null, false);
@@ -742,12 +730,7 @@ public class OpenstackRoutingFloatingIpHandler {
                                 continue;
                             }
 
-                            // Note that, at OPENSTACK_INSTANCE_PORT_DETECTED phase,
-                            // we will install floating IP related rules by
-                            // referring to the key and value stored in pending map
-                            if (!Strings.isNullOrEmpty(osPort.getDeviceId()) &&
-                                    instancePortService.instancePort(fip.getPortId()) == null) {
-                                pendingInstPortIds.put(fip.getPortId(), fip);
+                            if (instancePortService.instancePort(fip.getPortId()) == null) {
                                 continue;
                             }
 
@@ -848,11 +831,10 @@ public class OpenstackRoutingFloatingIpHandler {
 
                         Port port = osNetworkService.port(portId);
 
-                        if (pendingInstPortIds.containsKey(portId) && port != null) {
-                            setFloatingIpRules(pendingInstPortIds.get(portId),
-                                    port, null, true);
-                            pendingInstPortIds.remove(portId);
-                        }
+                        osRouterAdminService.floatingIps().stream()
+                                .filter(f -> f.getPortId() != null)
+                                .filter(f -> f.getPortId().equals(instPort.portId()))
+                                .forEach(f -> setFloatingIpRules(f, port, null, true));
                     }
 
                     break;
