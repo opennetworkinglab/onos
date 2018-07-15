@@ -161,7 +161,8 @@ def yang_library(
     osgi_jar(name = name, srcs = srcs,
              resource_jars = [name + "-generate"], deps = deps,
              visibility = ["//visibility:public"],
-             suppress_errorprone = True)
+             suppress_errorprone = True,
+             suppress_checkstyle = True)
 
 def yang_model(
     name = None,

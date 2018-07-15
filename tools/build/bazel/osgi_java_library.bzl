@@ -373,6 +373,7 @@ def osgi_jar_with_tests(
         visibility = ["//visibility:public"],
         version = ONOS_VERSION,
         suppress_errorprone = False,
+        suppress_checkstyle = False,
         web_context = None,
         api_title = "",
         api_version = "",
@@ -475,10 +476,11 @@ def osgi_jar_with_tests(
             deps = all_test_deps,
         )
 
-    checkstyle_test(
-        name = name + "_checkstyle_test",
-        srcs = srcs,
-    )
+    if not suppress_checkstyle:
+        checkstyle_test(
+            name = name + "_checkstyle_test",
+            srcs = srcs,
+        )
 
 """
     Creates an OSGI jar file from a set of source files.
@@ -494,6 +496,8 @@ def osgi_jar_with_tests(
         resources: Resources to include in the jar file. Optional list of targets, defaults to all files beneath resources_root
         visibility: Visibility of the produced jar file to other BUILDs. Optional, defaults to public
         version: Version of the generated jar file. Optional, defaults to the current ONOS version
+        suppress_errorprone: If true, don't run ErrorProne tests. Default is false
+        suppress_checkstyle: If true, don't run checkstyle tests. Default is false
         web_context: Web context for a WAB file if needed. Only needed if the jar file provides a REST API. Optional string
         api_title: Swagger API title. Optional string, only used if the jar file provides a REST API and has swagger annotations
         api_version: Swagger API version. Optional string, only used if the jar file provides a REST API and has swagger annotations
@@ -514,6 +518,7 @@ def osgi_jar(
         visibility = ["//visibility:public"],
         version = ONOS_VERSION,
         suppress_errorprone = False,
+        suppress_checkstyle = False,
         web_context = None,
         api_title = "",
         api_version = "",
@@ -538,6 +543,7 @@ def osgi_jar(
         test_resources = [],
         visibility = visibility,
         suppress_errorprone = suppress_errorprone,
+        suppress_checkstyle = suppress_checkstyle,
         version = version,
         import_packages = import_packages,
         api_title = api_title,
