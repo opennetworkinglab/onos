@@ -16,9 +16,11 @@
 
 package org.onosproject.net.pi.impl;
 
+import com.google.common.collect.Sets;
 import org.onosproject.net.Device;
 import org.onosproject.net.group.Group;
 import org.onosproject.net.group.GroupBucket;
+import org.onosproject.net.group.GroupDescription;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipelineInterpreter;
 import org.onosproject.net.pi.runtime.PiAction;
@@ -31,6 +33,7 @@ import org.onosproject.net.pi.runtime.PiTableAction;
 import org.onosproject.net.pi.service.PiTranslationException;
 
 import java.nio.ByteBuffer;
+import java.util.Set;
 
 import static java.lang.String.format;
 import static org.onosproject.net.pi.impl.PiFlowRuleTranslatorImpl.translateTreatment;
@@ -41,6 +44,11 @@ import static org.onosproject.net.pi.runtime.PiTableAction.Type.ACTION;
  * Implementation of group translation logic.
  */
 final class PiGroupTranslatorImpl {
+
+    private static final Set<GroupDescription.Type> SUPPORTED_GROUP_TYPES =
+            Sets.immutableEnumSet(
+                    GroupDescription.Type.SELECT,
+                    GroupDescription.Type.INDIRECT);
 
     private PiGroupTranslatorImpl() {
         // Hides constructor.
@@ -57,13 +65,18 @@ final class PiGroupTranslatorImpl {
      */
     static PiActionGroup translate(Group group, PiPipeconf pipeconf, Device device) throws PiTranslationException {
 
+        if (!SUPPORTED_GROUP_TYPES.contains(group.type())) {
+            throw new PiTranslationException(format(
+                    "group type %s not supported", group.type()));
+        }
+
         final PiPipelineInterpreter interpreter = getInterpreterOrNull(device, pipeconf);
 
         final PiActionGroup.Builder piActionGroupBuilder = PiActionGroup.builder()
                 .withId(PiActionGroupId.of(group.id().id()));
 
         if (!(group.appCookie() instanceof PiGroupKey)) {
-            throw new PiTranslationException("Group app cookie is not PI (class should be PiGroupKey)");
+            throw new PiTranslationException("group app cookie is not PI (class should be PiGroupKey)");
         }
         final PiGroupKey groupKey = (PiGroupKey) group.appCookie();
 
