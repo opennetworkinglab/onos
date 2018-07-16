@@ -15,7 +15,6 @@
  */
 package org.onosproject.openstacknetworkingui;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Streams;
 import org.apache.felix.scr.annotations.Activate;
@@ -117,32 +116,6 @@ public class OpenstackNetworkingUiManager implements OpenstackNetworkingUiServic
         log.info("Stopped");
     }
 
-    @Override
-    public void sendMessage(String type, ObjectNode payload) {
-        messageHandler.sendMessagetoUi(type, payload);
-    }
-
-    @Override
-    public void setRestServerIp(String ipAddress) {
-        messageHandler.setRestUrl(ipAddress);
-    }
-
-    @Override
-    public String restServerUrl() {
-        return messageHandler.restUrl();
-    }
-
-    @Override
-    public void setRestServerAuthInfo(String id, String password) {
-        messageHandler.setRestAuthInfo(id, password);
-    }
-
-    @Override
-    public String restServerAuthInfo() {
-        return messageHandler.restAuthInfo();
-    }
-
-
     private Optional<Port> vxlanPort(DeviceId deviceId) {
         return deviceService.getPorts(deviceId)
                 .stream()
@@ -178,5 +151,4 @@ public class OpenstackNetworkingUiManager implements OpenstackNetworkingUiServic
     private LinkDescription createLinkDescription(ConnectPoint srcConnectPoint, ConnectPoint dstConnectPoint) {
         return new DefaultLinkDescription(srcConnectPoint, dstConnectPoint, Type.DIRECT, true);
     }
-
 }

@@ -56,10 +56,12 @@
         wss.sendEvent(displayStop);
     }
 
-    function sendFlowTraceRequest(src, dst) {
+    function sendFlowTraceRequest(src, dst, srcDeviceId, dstDeviceId) {
         wss.sendEvent(flowTraceRequest, {
             srcIp: src,
-            dstIp: dst
+            dstIp: dst,
+            srcDeviceId: srcDeviceId,
+            dstDeviceId: dstDeviceId,
         });
         flash.flash('sendFlowTraceRequest called');
     }
@@ -106,7 +108,7 @@
                 margin: 20,
                 hideMargin: -20
             }
-        var traceSuccess = data.trace_success == true ? "SUCCESS" : "FALSE";
+        var traceSuccess = data.traceSuccess == true ? "SUCCESS" : "FALSE";
         ds.openDialog(flowTraceResultDialogId, flowTraceResultDialogOpt)
                     .setTitle('Flow Trace Result: ' + traceSuccess)
                     .addContent(createTraceResultInfoDiv(data))
@@ -136,15 +138,15 @@
         var tbodySelection = texts.select('.table-body').select('table').select('tbody');
         var rowNum = 1;
 
-        data.trace_result.forEach(function(result) {
-            result.flow_rules.forEach(function(flowRule) {
+        data.traceResult.forEach(function(result) {
+            result.flowRules.forEach(function(flowRule) {
                 tbodySelection.append('tr');
                 var tbodyTrSelection = tbodySelection.select('tr:nth-child(' + rowNum + ')');
-                tbodyTrSelection.append('td').text(result.trace_node_name);
+                tbodyTrSelection.append('td').text(result.traceNodeName);
                 tbodyTrSelection.append('td').text(flowRule.table);
                 tbodyTrSelection.append('td').text(flowRule.priority);
-                tbodyTrSelection.append('td').text(jsonToSring(flowRule.selector));
-                tbodyTrSelection.append('td').text(jsonToSring(flowRule.actions));
+                tbodyTrSelection.append('td').text(flowRule.selector);
+                tbodyTrSelection.append('td').text(flowRule.actions);
                 if (jsonToSring(flowRule.actions).includes("drop")) {
                     tbodyTrSelection.attr("class", "drop");
                 }

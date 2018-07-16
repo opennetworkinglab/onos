@@ -47,7 +47,6 @@
         <init-param>
             <param-name>jersey.config.server.provider.classnames</param-name>
             <param-value>
-                org.onosproject.openstacknetworkingui.web.FlowTraceWebResource
             </param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>

@@ -16,6 +16,7 @@
 package org.onosproject.openstacknetworkingui;
 
 import org.onlab.osgi.DefaultServiceDirectory;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.HostId;
 import org.onosproject.net.host.HostService;
 import org.onosproject.ui.UiTopoOverlay;
@@ -38,6 +39,7 @@ public class OpenstackNetworkingUiOverlay extends UiTopoOverlay {
     private static final String SUMMARY_VERSION = "0.9";
     private static final String VNI = "VNI";
     private static final String ANNOTATION_SEGMENT_ID = "segId";
+    private static final String DEVICE_ID = "DeviceId";
 
     private static final String NOT_AVAILABLE = "N/A";
 
@@ -68,9 +70,11 @@ public class OpenstackNetworkingUiOverlay extends UiTopoOverlay {
     @Override
     public void modifyHostDetails(PropertyPanel pp, HostId hostId) {
         String vni = hostService.getHost(hostId).annotations().value(ANNOTATION_SEGMENT_ID);
+        DeviceId deviceId = hostService.getHost(hostId).location().deviceId();
 
         pp.removeProps(VLAN);
-        pp.addProp(SONA, VNI, vni == null ? NOT_AVAILABLE : vni)
+        pp.addProp(VNI, VNI, vni == null ? NOT_AVAILABLE : vni)
+                .addProp(DEVICE_ID, DEVICE_ID, deviceId.toString())
                 .addButton(FLOW_TRACE_BUTTON)
                 .addButton(RESET_BUTTON)
                 .addButton(TO_GATEWAY_BUTTON)

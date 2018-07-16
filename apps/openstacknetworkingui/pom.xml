@@ -37,13 +37,6 @@
         <onos.app.category>UI</onos.app.category>
         <onos.app.url>http://onosproject.org</onos.app.url>
         <onos.app.readme>OpenStack Networking UI Application</onos.app.readme>
-        <web.context>/onos/openstacknetworkingui</web.context>
-        <api.version>1.0.0</api.version>
-        <api.title>OpenStack Networking UI REST API</api.title>
-        <api.description>
-            APIs for interacting with OpenStack Networking Monitoring server.
-        </api.description>
-        <api.package>org.onosproject.openstacknetworkingui.web</api.package>
     </properties>
 
     <dependencies>
@@ -68,6 +61,23 @@
             <groupId>org.onosproject</groupId>
             <artifactId>onos-cli</artifactId>
             <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-apps-openstacknetworking-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-apps-openstacknode-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.sshd</groupId>
+            <artifactId>sshd-core</artifactId>
         </dependency>
 
         <dependency>

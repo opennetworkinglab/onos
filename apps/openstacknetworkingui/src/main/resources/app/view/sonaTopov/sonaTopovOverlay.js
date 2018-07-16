@@ -22,10 +22,12 @@
     var $log, tov, sts, flash, ds, wss;
     var traceSrc = null;
     var traceDst = null;
+    var srcDeviceId = null;
+    var dstDeviceId = null;
 
     var traceInfoDialogId = 'traceInfoDialogId',
         traceInfoDialogOpt = {
-            width: 200,
+            width: 300,
             edge: 'left',
             margin: 20,
             hideMargin: -20
@@ -64,11 +66,13 @@
                 cb: function (data) {
 
                     if (traceSrc == null && data.navPath == 'host') {
-                        traceSrc = data.title;
+                        traceSrc = data.propValues.ip;
+                        srcDeviceId = data.propValues.DeviceId
 
                         flash.flash('Src ' + traceSrc + ' selected. Please select the dst');
                     } else if (traceDst == null && data.title != traceSrc && data.navPath == 'host') {
-                        traceDst = data.title;
+                        traceDst = data.propValues.ip;
+                        dstDeviceId = data.propValues.DeviceId;
                         openTraceInfoDialog();
                         flash.flash('Dst ' + traceDst + ' selected. Press Request button');
                     }
@@ -95,6 +99,7 @@
                     if (traceSrc != null && data.title == traceSrc && data.navPath == 'host') {
                         //Set traceSrc to traceDst in case trace to gateway
                         traceDst = traceSrc;
+                        dstDeviceId = 'toGateway';
                         openTraceInfoDialog();
                         flash.flash('Trace to Gateway');
                     }
@@ -107,6 +112,7 @@
                     if (traceSrc != null && data.title == traceSrc && data.navPath == 'host') {
                         //Set traceDst to 8.8.8.8 to check external connection
                         traceDst = '8.8.8.8';
+                        dstDeviceId = 'toExternal';
                         openTraceInfoDialog();
                         flash.flash('Trace to External')
                     }
@@ -184,6 +190,16 @@
             tBodySelection.append('td').text(dst).attr("class", "value");
         }
 
+        texts.select('table').select('tbody').append('tr');
+        tBodySelection = texts.select('table').select('tbody').select('tr:nth-child(3)');
+        tBodySelection.append('td').text('SrcDeviceId').attr("class", "label");
+        tBodySelection.append('td').text(srcDeviceId).attr("class", "value");
+
+        texts.select('table').select('tbody').append('tr');
+        tBodySelection = texts.select('table').select('tbody').select('tr:nth-child(4)');
+        tBodySelection.append('td').text('DstDeviceId').attr("class", "label");
+        tBodySelection.append('td').text(dstDeviceId).attr("class", "value");
+
         texts.append('hr');
 
         return texts;
@@ -191,7 +207,7 @@
     }
 
     function flowTraceResultBtn() {
-        sts.sendFlowTraceRequest(traceSrc, traceDst);
+        sts.sendFlowTraceRequest(traceSrc, traceDst, srcDeviceId, dstDeviceId);
         ds.closeDialog();
         traceSrc = null;
         traceDst = null;

@@ -139,4 +139,29 @@ public interface OpenstackNetworkService
      */
     Set<ExternalPeerRouter> externalPeerRouters();
 
+    /**
+     * Returns ip prefix with supplied port ID.
+     *
+     * @param portId openstack port id
+     * @return ip prefix
+     */
+    IpPrefix ipPrefix(String portId);
+
+    /**
+     * Returns network type with supplied network ID.
+     *
+     * @param netId openstack network id
+     * @return network type
+     */
+    String networkType(String netId);
+
+    /**
+     * Returns gateway ip address upplied port ID.
+     *
+     * @param portId openstack port id
+     * @return gateway ip address
+     */
+    String gatewayIp(String portId);
+
+
 }

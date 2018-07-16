@@ -7,6 +7,13 @@ COMPILE_DEPS = [
   '//lib:jersey-client',
   '//cli:onos-cli',
   '//lib:org.apache.karaf.shell.console',
+  '//lib:sshd-core',
+  '//apps/openstacknode/api:onos-apps-openstacknode-api',
+  '//apps/openstacknetworking/api:onos-apps-openstacknetworking-api',
+]
+
+EXCLUDED_BUNDLES = [
+  '//lib:sshd-core',
 ]
 
 TEST_DEPS = [
@@ -18,11 +25,6 @@ TEST_DEPS = [
 osgi_jar_with_tests (
   deps = COMPILE_DEPS,
   test_deps = TEST_DEPS,
-  web_context = '/onos/openstacknetworkingui',
-  api_title = 'OpenStack Networking UI REST API',
-  api_version = '0.9',
-  api_description = 'OpenStack Networking UI REST API',
-  api_package = 'org.onosproject.openstacknetworkingui.web',
 )
 
 onos_app (
@@ -31,4 +33,8 @@ onos_app (
   category = 'GUI',
   url = 'http://onosproject.org',
   description = 'Openstack Networking UI Service',
+  excluded_bundles = EXCLUDED_BUNDLES,
+  required_apps = [
+      'org.onosproject.openstacknetworking',
+  ]
 )

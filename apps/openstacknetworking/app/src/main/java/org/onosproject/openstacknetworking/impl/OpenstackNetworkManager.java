@@ -567,6 +567,64 @@ public class OpenstackNetworkManager
     public Set<ExternalPeerRouter> externalPeerRouters() {
         return ImmutableSet.copyOf(externalPeerRouterMap.asJavaMap().values());
     }
+
+    @Override
+    public IpPrefix ipPrefix(String portId) {
+        checkNotNull(portId);
+
+        Port port = port(portId);
+
+        checkNotNull(port);
+
+        IpAddress ipAddress = port.getFixedIps().stream()
+                .map(ip -> IpAddress.valueOf(ip.getIpAddress()))
+                .findAny().orElse(null);
+
+        checkNotNull(ipAddress);
+
+        Network network = network(port.getNetworkId());
+
+        checkNotNull(network);
+
+        return subnets(network.getId()).stream()
+                .map(s -> IpPrefix.valueOf(s.getCidr()))
+                .filter(prefix -> prefix.contains(ipAddress))
+                .findAny().orElse(null);
+    }
+
+    @Override
+    public String networkType(String netId) {
+        Network network = network(netId);
+
+        checkNotNull(network);
+
+        return network.getNetworkType().toString();
+    }
+
+    @Override
+    public String gatewayIp(String portId) {
+        checkNotNull(portId);
+
+        Port port = port(portId);
+
+        checkNotNull(port);
+
+        IpAddress ipAddress = port.getFixedIps().stream()
+                .map(ip -> IpAddress.valueOf(ip.getIpAddress()))
+                .findAny().orElse(null);
+
+        checkNotNull(ipAddress);
+
+        Network network = network(port.getNetworkId());
+
+        checkNotNull(network);
+
+        return subnets(network.getId()).stream()
+                .filter(s -> IpPrefix.valueOf(s.getCidr()).contains(ipAddress))
+                .map(s -> s.getGateway())
+                .findAny().orElse(null);
+    }
+
     private boolean isNetworkInUse(String netId) {
         return !subnets(netId).isEmpty() && !ports(netId).isEmpty();
     }

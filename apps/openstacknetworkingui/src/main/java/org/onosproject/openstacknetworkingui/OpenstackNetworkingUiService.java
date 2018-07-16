@@ -15,48 +15,8 @@
  */
 package org.onosproject.openstacknetworkingui;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 /**
  * Service for OpenStack Networking UI.
  */
 public interface OpenstackNetworkingUiService {
-
-    /**
-     * Sends message to OpenStack Networking UI.
-     *
-     * @param type event type
-     * @param payload payload
-     */
-    void sendMessage(String type, ObjectNode payload);
-
-    /**
-     * Sets the REST server ip address.
-     *
-     * @param ipAddress rest server ip address
-     */
-    void setRestServerIp(String ipAddress);
-
-    /**
-     * Gets the REST server url.
-     *
-     * @return REST server url
-     */
-    String restServerUrl();
-
-    /**
-     * Sets the REST server authorization information.
-     *
-     * @param id id
-     * @param password password
-     */
-    void setRestServerAuthInfo(String id, String password);
-
-    /**
-     * Gets the REST server authorization information.
-     *
-     * @return REST server authorization information as String
-     */
-    String restServerAuthInfo();
-
 }
