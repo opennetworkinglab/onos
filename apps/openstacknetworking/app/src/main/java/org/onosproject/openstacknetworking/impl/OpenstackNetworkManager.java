@@ -442,7 +442,7 @@ public class OpenstackNetworkManager
 
         if (externalPeerRouterMap.containsKey(targetIp.toString()) &&
                 !externalPeerRouterMap.get(
-                        targetIp.toString()).value().externalPeerRouterMac().equals(MacAddress.NONE)) {
+                        targetIp.toString()).value().macAddress().equals(MacAddress.NONE)) {
             return;
         }
 
@@ -479,8 +479,12 @@ public class OpenstackNetworkManager
                 treatment,
                 ByteBuffer.wrap(ethRequest.serialize())));
 
-        externalPeerRouterMap.put(
-                targetIp.toString(), new DefaultExternalPeerRouter(targetIp, MacAddress.NONE, vlanId));
+        externalPeerRouterMap.put(targetIp.toString(),
+                                    DefaultExternalPeerRouter.builder()
+                                                    .ipAddress(targetIp)
+                                                    .macAddress(MacAddress.NONE)
+                                                    .vlanId(vlanId)
+                                                    .build());
 
         log.info("Initializes external peer router map with peer router IP {}", targetIp.toString());
     }
@@ -517,7 +521,11 @@ public class OpenstackNetworkManager
     public void updateExternalPeerRouterMac(IpAddress ipAddress, MacAddress macAddress) {
         try {
             externalPeerRouterMap.computeIfPresent(ipAddress.toString(), (id, existing) ->
-                new DefaultExternalPeerRouter(ipAddress, macAddress, existing.externalPeerRouterVlanId()));
+                    DefaultExternalPeerRouter.builder()
+                            .ipAddress(ipAddress)
+                            .macAddress(macAddress)
+                            .vlanId(existing.vlanId())
+                            .build());
 
             log.info("Updated external peer router map {}",
                     externalPeerRouterMap.get(ipAddress.toString()).value().toString());
@@ -531,7 +539,12 @@ public class OpenstackNetworkManager
     public void updateExternalPeerRouter(IpAddress ipAddress, MacAddress macAddress, VlanId vlanId) {
         try {
             externalPeerRouterMap.computeIfPresent(ipAddress.toString(), (id, existing) ->
-                new DefaultExternalPeerRouter(ipAddress, macAddress, vlanId));
+                    DefaultExternalPeerRouter.builder()
+                            .ipAddress(ipAddress)
+                            .macAddress(macAddress)
+                            .vlanId(vlanId)
+                            .build());
+
         } catch (Exception e) {
             log.error("Exception occurred because of {}", e.toString());
         }
@@ -545,7 +558,7 @@ public class OpenstackNetworkManager
             return null;
         }
         if (externalPeerRouterMap.containsKey(ipAddress.toString())) {
-            return externalPeerRouterMap.get(ipAddress.toString()).value().externalPeerRouterMac();
+            return externalPeerRouterMap.get(ipAddress.toString()).value().macAddress();
         } else {
             throw new NoSuchElementException();
         }
@@ -556,7 +569,10 @@ public class OpenstackNetworkManager
 
         try {
             externalPeerRouterMap.computeIfPresent(ipAddress.toString(), (id, existing) ->
-                    new DefaultExternalPeerRouter(ipAddress, existing.externalPeerRouterMac(), vlanId));
+                    DefaultExternalPeerRouter.builder()
+                            .ipAddress(ipAddress)
+                            .macAddress(existing.macAddress())
+                            .vlanId(vlanId).build());
 
         } catch (Exception e) {
             log.error("Exception occurred because of {}", e.toString());

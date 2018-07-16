@@ -366,10 +366,10 @@ public class OpenstackRoutingIcmpHandler {
         Ethernet icmpRequestEth = new Ethernet();
         icmpRequestEth.setEtherType(Ethernet.TYPE_IPV4)
                 .setSourceMACAddress(DEFAULT_GATEWAY_MAC)
-                .setDestinationMACAddress(externalPeerRouter.externalPeerRouterMac());
+                .setDestinationMACAddress(externalPeerRouter.macAddress());
 
-        if (!externalPeerRouter.externalPeerRouterVlanId().equals(VlanId.NONE)) {
-            icmpRequestEth.setVlanID(externalPeerRouter.externalPeerRouterVlanId().toShort());
+        if (!externalPeerRouter.vlanId().equals(VlanId.NONE)) {
+            icmpRequestEth.setVlanID(externalPeerRouter.vlanId().toShort());
         }
 
         icmpRequestEth.setPayload(ipPacket);

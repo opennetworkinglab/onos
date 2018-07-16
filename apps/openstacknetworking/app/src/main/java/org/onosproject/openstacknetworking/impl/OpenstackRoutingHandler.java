@@ -215,7 +215,7 @@ public class OpenstackRoutingHandler {
         });
 
         ExternalPeerRouter externalPeerRouter = osNetworkAdminService.externalPeerRouter(exGateway);
-        VlanId vlanId = externalPeerRouter == null ? VlanId.NONE : externalPeerRouter.externalPeerRouterVlanId();
+        VlanId vlanId = externalPeerRouter == null ? VlanId.NONE : externalPeerRouter.vlanId();
 
         if (exGateway == null) {
             deleteUnassociatedExternalPeerRouter();
@@ -240,12 +240,12 @@ public class OpenstackRoutingHandler {
 
             osNetworkAdminService.externalPeerRouters().stream()
                     .filter(externalPeerRouter ->
-                            !routerIps.contains(externalPeerRouter.externalPeerRouterIp().toString()))
+                            !routerIps.contains(externalPeerRouter.ipAddress().toString()))
                     .forEach(externalPeerRouter -> {
                         osNetworkAdminService
-                                .deleteExternalPeerRouter(externalPeerRouter.externalPeerRouterIp().toString());
+                                .deleteExternalPeerRouter(externalPeerRouter.ipAddress().toString());
                         log.trace("Deleted unassociated external peer router {}",
-                                externalPeerRouter.externalPeerRouterIp().toString());
+                                externalPeerRouter.ipAddress().toString());
                     });
         } catch (Exception e) {
             log.error("Exception occurred because of {}", e.toString());

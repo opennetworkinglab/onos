@@ -56,9 +56,29 @@ public class DefaultExternalPeerRouterTest {
      */
     @Before
     public void setUp() {
-        router1 = new DefaultExternalPeerRouter(ROUTER_IP_1, ROUTER_MAC_1, VLAN_ID_1);
-        sameAsRouter1 = new DefaultExternalPeerRouter(ROUTER_IP_1, ROUTER_MAC_1, VLAN_ID_1);
-        router2 = new DefaultExternalPeerRouter(ROUTER_IP_2, ROUTER_MAC_2, VLAN_ID_2);
+        ExternalPeerRouter.Builder builder1 = DefaultExternalPeerRouter.builder();
+
+        router1 = builder1
+                    .ipAddress(ROUTER_IP_1)
+                    .macAddress(ROUTER_MAC_1)
+                    .vlanId(VLAN_ID_1)
+                    .build();
+
+        ExternalPeerRouter.Builder builder2 = DefaultExternalPeerRouter.builder();
+
+        sameAsRouter1 = builder2
+                    .ipAddress(ROUTER_IP_1)
+                    .macAddress(ROUTER_MAC_1)
+                    .vlanId(VLAN_ID_1)
+                    .build();
+
+        ExternalPeerRouter.Builder builder3 = DefaultExternalPeerRouter.builder();
+
+        router2 = builder3
+                    .ipAddress(ROUTER_IP_2)
+                    .macAddress(ROUTER_MAC_2)
+                    .vlanId(VLAN_ID_2)
+                    .build();
     }
 
     /**
@@ -78,8 +98,8 @@ public class DefaultExternalPeerRouterTest {
     public void testConstruction() {
         ExternalPeerRouter router = router1;
 
-        assertThat(router.externalPeerRouterIp(), is(router1.externalPeerRouterIp()));
-        assertThat(router.externalPeerRouterMac(), is(router1.externalPeerRouterMac()));
-        assertThat(router.externalPeerRouterVlanId(), is(router1.externalPeerRouterVlanId()));
+        assertThat(router.ipAddress(), is(router1.ipAddress()));
+        assertThat(router.macAddress(), is(router1.macAddress()));
+        assertThat(router.vlanId(), is(router1.vlanId()));
     }
 }

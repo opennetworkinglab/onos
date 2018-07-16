@@ -267,7 +267,7 @@ public class OpenstackRoutingArpHandler {
             try {
 
                 Set<String> extRouterIps = osNetworkService.externalPeerRouters().
-                        stream().map(r -> r.externalPeerRouterIp().toString()).collect(Collectors.toSet());
+                        stream().map(r -> r.ipAddress().toString()).collect(Collectors.toSet());
 
                 // if SPA is NOT contained in existing external router IP set, we ignore it
                 if (!extRouterIps.contains(spa.toString())) {

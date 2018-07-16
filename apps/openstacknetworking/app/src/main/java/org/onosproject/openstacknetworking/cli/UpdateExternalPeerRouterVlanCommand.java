@@ -61,7 +61,7 @@ public class UpdateExternalPeerRouterVlanCommand extends AbstractShellCommand {
             print(NO_ELEMENT);
             return;
         } else if (osNetAdminService.externalPeerRouters().stream()
-                .noneMatch(router -> router.externalPeerRouterIp().toString().equals(ipAddress))) {
+                .noneMatch(router -> router.ipAddress().toString().equals(ipAddress))) {
             print(NO_ELEMENT);
             return;
         }
@@ -104,9 +104,9 @@ public class UpdateExternalPeerRouterVlanCommand extends AbstractShellCommand {
         List<ExternalPeerRouter> routers = Lists.newArrayList(osNetAdminService.externalPeerRouters());
 
         for (ExternalPeerRouter r: routers) {
-            print(FORMAT, r.externalPeerRouterIp(),
-                    r.externalPeerRouterMac().toString(),
-                    r.externalPeerRouterVlanId());
+            print(FORMAT, r.ipAddress(),
+                    r.macAddress().toString(),
+                    r.vlanId());
         }
     }
 }

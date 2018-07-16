@@ -38,7 +38,7 @@ public class MacAddressCompleter implements Completer {
         StringsCompleter delegate = new StringsCompleter();
         OpenstackNetworkService osNetService = AbstractShellCommand.get(OpenstackNetworkService.class);
         Set<MacAddress> set = osNetService.externalPeerRouters().stream()
-                .map(ExternalPeerRouter::externalPeerRouterMac)
+                .map(ExternalPeerRouter::macAddress)
                 .collect(Collectors.toSet());
         SortedSet<String> strings = delegate.getStrings();
 

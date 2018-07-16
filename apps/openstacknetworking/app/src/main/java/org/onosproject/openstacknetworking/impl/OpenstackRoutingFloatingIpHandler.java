@@ -479,8 +479,8 @@ public class OpenstackRoutingFloatingIpHandler {
                 .setEthDst(instPort.macAddress())
                 .setIpDst(instPort.ipAddress().getIp4Address());
 
-        if (!externalPeerRouter.externalPeerRouterVlanId().equals(VlanId.NONE)) {
-            externalSelectorBuilder.matchVlanId(externalPeerRouter.externalPeerRouterVlanId()).build();
+        if (!externalPeerRouter.vlanId().equals(VlanId.NONE)) {
+            externalSelectorBuilder.matchVlanId(externalPeerRouter.vlanId()).build();
             externalTreatmentBuilder.popVlan();
         }
 
@@ -542,14 +542,14 @@ public class OpenstackRoutingFloatingIpHandler {
             TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
                     .setIpSrc(floating.getIp4Address())
                     .setEthSrc(instPort.macAddress())
-                    .setEthDst(externalPeerRouter.externalPeerRouterMac());
+                    .setEthDst(externalPeerRouter.macAddress());
 
             if (osNet.getNetworkType().equals(NetworkType.VLAN)) {
                 tBuilder.popVlan();
             }
 
-            if (!externalPeerRouter.externalPeerRouterVlanId().equals(VlanId.NONE)) {
-                tBuilder.pushVlan().setVlanId(externalPeerRouter.externalPeerRouterVlanId());
+            if (!externalPeerRouter.vlanId().equals(VlanId.NONE)) {
+                tBuilder.pushVlan().setVlanId(externalPeerRouter.vlanId());
             }
             osFlowRuleService.setRule(
                     appId,

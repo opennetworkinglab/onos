@@ -38,7 +38,7 @@ public class IpAddressCompleter implements Completer {
         StringsCompleter delegate = new StringsCompleter();
         OpenstackNetworkService osNetService = AbstractShellCommand.get(OpenstackNetworkService.class);
         Set<IpAddress> set = osNetService.externalPeerRouters().stream()
-                .map(ExternalPeerRouter::externalPeerRouterIp)
+                .map(ExternalPeerRouter::ipAddress)
                 .collect(Collectors.toSet());
         SortedSet<String> strings = delegate.getStrings();
 

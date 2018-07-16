@@ -326,8 +326,8 @@ public class OpenstackRoutingSnatHandler {
                 .setEthDst(packetIn.parsed().getSourceMAC())
                 .setIpDst(internalIp);
 
-        if (!externalPeerRouter.externalPeerRouterVlanId().equals(VlanId.NONE)) {
-            sBuilder.matchVlanId(externalPeerRouter.externalPeerRouterVlanId());
+        if (!externalPeerRouter.vlanId().equals(VlanId.NONE)) {
+            sBuilder.matchVlanId(externalPeerRouter.vlanId());
             tBuilder.popVlan();
         }
 
@@ -429,22 +429,22 @@ public class OpenstackRoutingSnatHandler {
                 sBuilder.matchTcpSrc(TpPort.tpPort(tcpPacket.getSourcePort()))
                         .matchTcpDst(TpPort.tpPort(tcpPacket.getDestinationPort()));
                 tBuilder.setTcpSrc(patPort)
-                        .setEthDst(externalPeerRouter.externalPeerRouterMac());
+                        .setEthDst(externalPeerRouter.macAddress());
                 break;
             case IPv4.PROTOCOL_UDP:
                 UDP udpPacket = (UDP) iPacket.getPayload();
                 sBuilder.matchUdpSrc(TpPort.tpPort(udpPacket.getSourcePort()))
                         .matchUdpDst(TpPort.tpPort(udpPacket.getDestinationPort()));
                 tBuilder.setUdpSrc(patPort)
-                        .setEthDst(externalPeerRouter.externalPeerRouterMac());
+                        .setEthDst(externalPeerRouter.macAddress());
                 break;
             default:
                 log.debug("Unsupported IPv4 protocol {}");
                 break;
         }
 
-        if (!externalPeerRouter.externalPeerRouterVlanId().equals(VlanId.NONE)) {
-            tBuilder.pushVlan().setVlanId(externalPeerRouter.externalPeerRouterVlanId());
+        if (!externalPeerRouter.vlanId().equals(VlanId.NONE)) {
+            tBuilder.pushVlan().setVlanId(externalPeerRouter.vlanId());
         }
 
         tBuilder.setIpSrc(externalIp);
@@ -491,11 +491,11 @@ public class OpenstackRoutingSnatHandler {
         iPacket.resetChecksum();
         iPacket.setParent(ethPacketIn);
         ethPacketIn.setSourceMACAddress(DEFAULT_GATEWAY_MAC);
-        ethPacketIn.setDestinationMACAddress(externalPeerRouter.externalPeerRouterMac());
+        ethPacketIn.setDestinationMACAddress(externalPeerRouter.macAddress());
         ethPacketIn.setPayload(iPacket);
 
-        if (!externalPeerRouter.externalPeerRouterVlanId().equals(VlanId.NONE)) {
-            ethPacketIn.setVlanID(externalPeerRouter.externalPeerRouterVlanId().toShort());
+        if (!externalPeerRouter.vlanId().equals(VlanId.NONE)) {
+            ethPacketIn.setVlanID(externalPeerRouter.vlanId().toShort());
         }
 
         ethPacketIn.resetChecksum();

@@ -23,34 +23,41 @@ import org.onosproject.openstacknetworking.api.ExternalPeerRouter;
 
 import java.util.Objects;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 /**
  * Implementation of external peer router.
  */
 public final class DefaultExternalPeerRouter implements ExternalPeerRouter {
 
-    private final IpAddress externalPeerRouterIp;
-    private final MacAddress externalPeerRouterMac;
-    private final VlanId externalPeerRouterVlanId;
+    private final IpAddress ipAddress;
+    private final MacAddress macAddress;
+    private final VlanId vlanId;
 
-    public DefaultExternalPeerRouter(IpAddress externalPeerRouterIp,
-                                     MacAddress externalPeerRouterMac,
-                                     VlanId externalPeerRouterVlanId) {
-        this.externalPeerRouterIp = externalPeerRouterIp;
-        this.externalPeerRouterMac = externalPeerRouterMac;
-        this.externalPeerRouterVlanId = externalPeerRouterVlanId;
+    private static final String NOT_NULL_MSG = "External Peer Router % cannot be null";
+
+    // private constructor not intended for invoked from external
+    private DefaultExternalPeerRouter(IpAddress ipAddress,
+                                     MacAddress macAddress,
+                                     VlanId vlanId) {
+        this.ipAddress = ipAddress;
+        this.macAddress = macAddress;
+        this.vlanId = vlanId;
     }
 
     @Override
-    public IpAddress externalPeerRouterIp() {
-        return this.externalPeerRouterIp;
+    public IpAddress ipAddress() {
+        return this.ipAddress;
     }
+
     @Override
-    public MacAddress externalPeerRouterMac() {
-        return this.externalPeerRouterMac;
+    public MacAddress macAddress() {
+        return this.macAddress;
     }
+
     @Override
-    public VlanId externalPeerRouterVlanId() {
-        return this.externalPeerRouterVlanId;
+    public VlanId vlanId() {
+        return this.vlanId;
     }
 
     @Override
@@ -61,26 +68,75 @@ public final class DefaultExternalPeerRouter implements ExternalPeerRouter {
 
         if (obj instanceof DefaultExternalPeerRouter) {
             DefaultExternalPeerRouter that = (DefaultExternalPeerRouter) obj;
-            return Objects.equals(externalPeerRouterIp, that.externalPeerRouterIp) &&
-                    Objects.equals(externalPeerRouterMac, that.externalPeerRouterMac) &&
-                    Objects.equals(externalPeerRouterVlanId, that.externalPeerRouterVlanId);
+            return Objects.equals(ipAddress, that.ipAddress) &&
+                    Objects.equals(macAddress, that.macAddress) &&
+                    Objects.equals(vlanId, that.vlanId);
         }
         return false;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(externalPeerRouterIp,
-                externalPeerRouterMac,
-                externalPeerRouterVlanId);
+        return Objects.hash(ipAddress, macAddress, vlanId);
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
-                .add("externalPeerRouterIp", externalPeerRouterIp)
-                .add("externalPeerRouterMac", externalPeerRouterMac)
-                .add("externalPeerRouterVlanId", externalPeerRouterVlanId)
+                .add("ipAddress", ipAddress)
+                .add("macAddress", macAddress)
+                .add("vlanId", vlanId)
                 .toString();
+    }
+
+    /**
+     * Obtains an external peer router builder.
+     *
+     * @return external peer router builder
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * A builder class for external peer router.
+     */
+    public static final class Builder implements ExternalPeerRouter.Builder {
+
+        private IpAddress ipAddress;
+        private MacAddress macAddress;
+        private VlanId vlanId;
+
+        // private constructor not intended to use from external
+        private Builder() {
+        }
+
+        @Override
+        public ExternalPeerRouter build() {
+
+            checkArgument(ipAddress != null, NOT_NULL_MSG, "IP address");
+            checkArgument(macAddress != null, NOT_NULL_MSG, "MAC address");
+            checkArgument(vlanId != null, NOT_NULL_MSG, "VLAN ID");
+
+            return new DefaultExternalPeerRouter(ipAddress, macAddress, vlanId);
+        }
+
+        @Override
+        public Builder ipAddress(IpAddress ipAddress) {
+            this.ipAddress = ipAddress;
+            return this;
+        }
+
+        @Override
+        public Builder macAddress(MacAddress macAddress) {
+            this.macAddress = macAddress;
+            return this;
+        }
+
+        @Override
+        public Builder vlanId(VlanId vlanId) {
+            this.vlanId = vlanId;
+            return this;
+        }
     }
 }

@@ -38,7 +38,7 @@ public class VlanIdCompleter implements Completer {
         StringsCompleter delegate = new StringsCompleter();
         OpenstackNetworkService osNetService = AbstractShellCommand.get(OpenstackNetworkService.class);
         Set<VlanId> set = osNetService.externalPeerRouters().stream()
-                .map(ExternalPeerRouter::externalPeerRouterVlanId)
+                .map(ExternalPeerRouter::vlanId)
                 .collect(Collectors.toSet());
         SortedSet<String> strings = delegate.getStrings();
 

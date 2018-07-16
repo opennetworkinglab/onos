@@ -23,24 +23,62 @@ import org.onlab.packet.VlanId;
  * Representation of external peer router.
  */
 public interface ExternalPeerRouter {
+
     /**
-     * Returns external peer router ip address.
+     * Returns external peer router IP address.
      *
      * @return ip address.
      */
-    IpAddress externalPeerRouterIp();
+    IpAddress ipAddress();
 
     /**
-     * Returns external peer router mac address.
+     * Returns external peer router MAC address.
      *
      * @return mac address
      */
-    MacAddress externalPeerRouterMac();
+    MacAddress macAddress();
 
     /**
-     * Returns external peer router vlan id.
+     * Returns external peer router VLAN ID.
      *
      * @return vlan id
      */
-    VlanId externalPeerRouterVlanId();
+    VlanId vlanId();
+
+    /**
+     * Builder of new external peer router.
+     */
+    interface Builder {
+
+        /**
+         * Builds an immutable external peer router instance.
+         *
+         * @return external peer router
+         */
+        ExternalPeerRouter build();
+
+        /**
+         * Returns router builder with supplied IP address.
+         *
+         * @param ipAddress IP address of external peer router
+         * @return peer router builder
+         */
+        Builder ipAddress(IpAddress ipAddress);
+
+        /**
+         * Returns router builder with supplied MAC address.
+         *
+         * @param macAddress MAC address of external peer router
+         * @return peer router builder
+         */
+        Builder macAddress(MacAddress macAddress);
+
+        /**
+         * Returns router builder with supplied VLAN ID.
+         *
+         * @param vlanId VLAN ID of external peer router
+         * @return peer router builder
+         */
+        Builder vlanId(VlanId vlanId);
+    }
 }

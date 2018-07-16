@@ -42,7 +42,7 @@ public class DeleteExternalPeerRouterCommand extends AbstractShellCommand {
         OpenstackNetworkAdminService service = AbstractShellCommand.get(OpenstackNetworkAdminService.class);
 
         if (service.externalPeerRouters().stream()
-                .noneMatch(router -> router.externalPeerRouterIp().toString().equals(ipAddress))) {
+                .noneMatch(router -> router.ipAddress().toString().equals(ipAddress))) {
             print(NO_ELEMENT);
             return;
         }
@@ -56,9 +56,9 @@ public class DeleteExternalPeerRouterCommand extends AbstractShellCommand {
         List<ExternalPeerRouter> routers = Lists.newArrayList(service.externalPeerRouters());
 
         for (ExternalPeerRouter router: routers) {
-            print(FORMAT, router.externalPeerRouterIp(),
-                    router.externalPeerRouterMac().toString(),
-                    router.externalPeerRouterVlanId());
+            print(FORMAT, router.ipAddress(),
+                    router.macAddress().toString(),
+                    router.vlanId());
         }
 
     }

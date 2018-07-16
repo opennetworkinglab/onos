@@ -15,6 +15,9 @@
  */
 package org.onosproject.openstacknetworking.cli;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Lists;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
@@ -22,6 +25,8 @@ import org.onosproject.openstacknetworking.api.ExternalPeerRouter;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 
 import java.util.List;
+
+import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
 
 /**
  * Lists external peer router lists.
@@ -35,14 +40,25 @@ public class ExternalPeerRouterListCommand extends AbstractShellCommand {
     @Override
     protected void execute() {
         OpenstackNetworkService service = AbstractShellCommand.get(OpenstackNetworkService.class);
-
-        print(FORMAT, "Router IP", "Mac Address", "VLAN ID");
         List<ExternalPeerRouter> routers = Lists.newArrayList(service.externalPeerRouters());
 
-        for (ExternalPeerRouter router: routers) {
-            print(FORMAT, router.externalPeerRouterIp(),
-                    router.externalPeerRouterMac().toString(),
-                    router.externalPeerRouterVlanId());
+        if (outputJson()) {
+            print("%s", json(this, routers));
+        } else {
+            print(FORMAT, "Router IP", "Mac Address", "VLAN ID");
+            for (ExternalPeerRouter router: routers) {
+                print(FORMAT, router.ipAddress(),
+                        router.macAddress().toString(),
+                        router.vlanId());
+            }
         }
+    }
+
+    private JsonNode json(AbstractShellCommand context, List<ExternalPeerRouter> routers) {
+        ObjectMapper mapper = new ObjectMapper();
+        ArrayNode result = mapper.enable(INDENT_OUTPUT).createArrayNode();
+        routers.forEach(r -> result.add(context.jsonForEntity(r, ExternalPeerRouter.class)));
+
+        return result;
     }
 }
