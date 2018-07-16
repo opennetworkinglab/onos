@@ -10,8 +10,8 @@ APPS = [
 
 yang_model(
     app_name = "org.onosproject.models.ciena.waveserverai",
-    title = "Ciena Waveserver Ai YANG Models",
     custom_registrator = True,
-    deps = COMPILE_DEPS,
     required_apps = APPS,
+    title = "Ciena Waveserver Ai YANG Models",
+    deps = COMPILE_DEPS,
 )

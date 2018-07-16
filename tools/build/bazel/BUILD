@@ -25,6 +25,6 @@ java_binary(
     visibility = ["//visibility:public"],
     runtime_deps = [
         "@onos_yang_compiler_main//jar",
-        "@slf4j_nop//jar", # TODO: Change to jdk14 after fixing verbosity
+        "@slf4j_nop//jar",  # TODO: Change to jdk14 after fixing verbosity
     ],
 )

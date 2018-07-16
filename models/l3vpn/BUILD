@@ -10,8 +10,8 @@ APPS = [
 
 yang_model(
     app_name = "org.onosproject.models.l3vpn",
-    title = "L3VPN YANG Models",
     custom_registrator = True,
-    deps = COMPILE_DEPS,
     required_apps = APPS,
+    title = "L3VPN YANG Models",
+    deps = COMPILE_DEPS,
 )

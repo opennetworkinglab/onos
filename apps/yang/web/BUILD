@@ -1,7 +1,7 @@
 COMPILE_DEPS = CORE_DEPS + JACKSON + REST + ONOS_YANG + [
-  "@jersey_media_multipart//jar",
-  "@onos_yang_runtime//jar",
-  "//apps/yang:onos-apps-yang",
+    "@jersey_media_multipart//jar",
+    "@onos_yang_runtime//jar",
+    "//apps/yang:onos-apps-yang",
 ]
 
 osgi_jar_with_tests(
@@ -9,7 +9,7 @@ osgi_jar_with_tests(
     api_package = "org.onosproject.yang.web",
     api_title = "YANG Runtime",
     api_version = "1.0",
-    deps = COMPILE_DEPS,
     test_deps = TEST_ADAPTERS,
     web_context = "/onos/yang",
+    deps = COMPILE_DEPS,
 )

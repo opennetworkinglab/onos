@@ -10,8 +10,8 @@ APPS = [
 
 yang_model(
     app_name = "org.onosproject.models.microsemi",
-    title = "Microsemi YANG Models",
     custom_registrator = True,
-    deps = COMPILE_DEPS,
     required_apps = APPS,
+    title = "Microsemi YANG Models",
+    deps = COMPILE_DEPS,
 )

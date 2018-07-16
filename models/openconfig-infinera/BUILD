@@ -9,9 +9,9 @@ APPS = [
 ]
 
 yang_model(
-  app_name = "org.onosproject.models.openconfig-infinera",
-  title = "OpenConfig Infinera XT3300 YANG Models",
-  custom_registrator = False,
-  deps = COMPILE_DEPS,
-  required_apps = APPS,
+    app_name = "org.onosproject.models.openconfig-infinera",
+    custom_registrator = False,
+    required_apps = APPS,
+    title = "OpenConfig Infinera XT3300 YANG Models",
+    deps = COMPILE_DEPS,
 )

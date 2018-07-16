@@ -9,9 +9,9 @@ APPS = [
 ]
 
 yang_model(
-  app_name = "org.onosproject.models.openconfig",
-  title = "OpenConfig YANG Models",
-  custom_registrator = True,
-  deps = COMPILE_DEPS,
-  required_apps = APPS,
+    app_name = "org.onosproject.models.openconfig",
+    custom_registrator = True,
+    required_apps = APPS,
+    title = "OpenConfig YANG Models",
+    deps = COMPILE_DEPS,
 )
