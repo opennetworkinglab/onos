@@ -23,30 +23,42 @@ div.dropping {
     border: solid 3px #0095d6;
 }
 
-
-/* -- confirmation dialog -- */
-.light #app-dialog p.strong {
-    color: white;
-    background-color: #ce5b58;
+#ov-app .tabular-header {
+    text-align: left;
+}
+#ov-app div.summary-list .table-header td {
+    font-weight: bold;
+    font-variant: small-caps;
+    text-transform: uppercase;
+    font-size: 10pt;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    background-color: #e5e5e6;
+    color: #3c3a3a;
 }
 
-.light #app-dialog.floatpanel.dialog {
-    background-color: #ffffff;
+#ov-app div.summary-list .table-body {
+    overflow:scroll;
+    max-height:70vh;
 }
+#ov-app h2 {
+    display: inline-block;
+}
+
+#ov-app, div.ctrl-btns {
+}
+
+#ov-app th, td {
+    text-align: left;
+    padding:  8px;
+}
+
 
 /* ========== DARK Theme ========== */
 
 
 .dark .app-title {
     color: #dddddd;
-}
-
-/* -- confirmation dialog -- */
-.dark #app-dialog p.strong {
-    color: red;
-    background-color: #ecd98e;
-}
-.dark #app-dialog.floatpanel.dialog {
-    background-color: #282528;
-    color:#ddddee;
 }

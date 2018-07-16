@@ -19,11 +19,14 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
 import { DebugElement } from '@angular/core';
 import { By } from '@angular/platform-browser';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 
 import { LogService } from '../../../log.service';
 import { AppsComponent } from './apps.component';
 import { AppsDetailsComponent } from '../appsdetails/appsdetails.component';
+import { ConfirmComponent } from '../../../fw/layer/confirm/confirm.component';
 import { DialogService } from '../../../fw/layer/dialog.service';
+import { FlashComponent } from '../../../fw/layer/flash/flash.component';
 import { FnService } from '../../../fw/util/fn.service';
 import { IconComponent } from '../../../fw/svg/icon/icon.component';
 import { IconService } from '../../../fw/svg/icon.service';
@@ -46,6 +49,8 @@ class MockActivatedRoute extends ActivatedRoute {
 class MockDialogService {}
 
 class MockFnService {}
+
+class MockHttpClient {}
 
 class MockIconService {
     loadIconDef() {}
@@ -108,10 +113,18 @@ describe('AppsComponent', () => {
 
         TestBed.configureTestingModule({
             imports: [ BrowserAnimationsModule, FormsModule ],
-            declarations: [ AppsComponent, IconComponent, AppsDetailsComponent, TableFilterPipe ],
+            declarations: [
+                AppsComponent,
+                ConfirmComponent,
+                IconComponent,
+                AppsDetailsComponent,
+                TableFilterPipe,
+                FlashComponent
+            ],
             providers: [
                 { provide: DialogService, useClass: MockDialogService },
                 { provide: FnService, useValue: fs },
+                { provide: HttpClient, useClass: MockHttpClient },
                 { provide: IconService, useClass: MockIconService },
                 { provide: KeyService, useClass: MockKeyService },
                 { provide: LionService, useFactory: (() => {

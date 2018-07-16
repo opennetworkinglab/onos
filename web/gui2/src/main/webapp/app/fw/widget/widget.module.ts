@@ -43,7 +43,8 @@ import { TableFilterPipe } from './tablefilter.pipe';
     TableFilterPipe
   ],
   exports: [
-    TableFilterPipe
+    TableFilterPipe,
+    TableResizeDirective
   ],
   providers: [
   ]

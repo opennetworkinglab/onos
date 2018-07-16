@@ -1,5 +1,5 @@
 <!--
-~ Copyright 2014-present Open Networking Foundation
+~ Copyright 2018-present Open Networking Foundation
 ~
 ~ Licensed under the Apache License, Version 2.0 (the "License");
 ~ you may not use this file except in compliance with the License.
@@ -13,41 +13,42 @@
 ~ See the License for the specific language governing permissions and
 ~ limitations under the License.
 -->
-<div id="ov-app" filedrop on-file-drop="appDropped()">
+<div id="ov-app" (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)">
     <div class="tabular-header">
+        <onos-flash id="appMsgFlash" message="{{ alertMsg }}" dwell="5000" warning="true" (closed)="alertMsg = ''"></onos-flash>
+        <onos-confirm message="{{ confirmMsg }}" warning="{{ strongWarning }}" (chosen)="dOk($event)"></onos-confirm>
         <h2>
             {{lionFn('title_apps')}}
             ({{ tableData.length }}
             {{ lionFn('total') }})
         </h2>
         <div class="ctrl-btns">
+            <form #inputFileForm="ngForm">
+                <input id="uploadFile" hidden
+                       type="file" size="50" accept=".oar,.jar"
+                       name="appFile" (change)="fileEvent($event)">
+            </form>
+
             <div class="refresh" (click)="toggleRefresh()">
                 <onos-icon classes="{{ autoRefresh?'active refresh':'refresh' }}"
                            iconId="refresh" iconSize="42" toolTip="{{ autoRefreshTip }}"></onos-icon>
             </div>
             <div class="separator"></div>
 
-            <!--<form id="inputFileForm">-->
-                <!--<input id="uploadFile"-->
-                       <!--type="file" size="50" accept=".oar,.jar"-->
-                       <!--file-model="appFile">-->
-            <!--</form>-->
-
-            <div class="active" trigger-form>
+            <div class="active" (click)="triggerForm()">
                 <onos-icon classes="{{ 'active upload' }}"
-                        iconId="upload" iconSize="42" toolTip="{{ uploadTip }}"></onos-icon>
+                           iconId="upload" iconSize="42" toolTip="{{ uploadTip }}"></onos-icon>
             </div>
-            <div (click)="appAction('activate')">
+
+            <div (click)="confirmAction(AppActionEnum.ACTIVATE)">
                 <onos-icon classes="{{ ctrlBtnState.installed?'active play':'play' }}"
                            iconId="play" iconSize="42" toolTip="{{ activateTip }}"></onos-icon>
             </div>
-            <div (click)="appAction('deactivate')">
+            <div (click)="confirmAction(AppActionEnum.DEACTIVATE)">
                 <onos-icon classes="{{ ctrlBtnState.active?'active stop':'stop' }}"
                         iconId="stop" iconSize="42" toolTip="{{ deactivateTip }}"></onos-icon>
             </div>
-            <div (click)="appAction('uninstall')">
-                 <!--[ngClass]="{active: ctrlBtnState.selection}">-->
-                <!--tooltip tt-msg="uninstallTip"-->
+            <div (click)="confirmAction(AppActionEnum.UNINSTALL)">
                 <onos-icon classes="{{ ctrlBtnState.selection?'active garbage':'garbage' }}"
                         iconId="garbage" iconSize="42" toolTip="{{ uninstallTip }}"></onos-icon>
             </div>
@@ -73,57 +74,61 @@
 
     </div>
 
-    <div class="summary-list" onos-table-resize>
-        <table onos-flash-changes id-prop="id" width="100%">
-            <tr class="table-header">
-                <th colId="state" [ngStyle]="{width: '32px'}" class="table-icon" (click)="onSort('state')">
-                    <onos-icon classes="active" [iconId]="sortIcon('state')"></onos-icon>
-                </th>
-                <th colId="icon" [ngStyle]="{width: '32px'}" class="table-icon"></th>
-                <th colId="title"  (click)="onSort('title')">{{lionFn('title')}}
-                    <onos-icon classes="active" [iconId]="sortIcon('title')"></onos-icon>
-                </th>
-                <th colId="id" (click)="onSort('id')">{{lionFn('app_id')}}
-                    <onos-icon classes="active" [iconId]="sortIcon('id')"></onos-icon>
-                </th>
-                <th colId="version" (click)="onSort('version')"> {{lionFn('version')}}
-                    <onos-icon classes="active" [iconId]="sortIcon('version')"></onos-icon>
-                </th>
-                <th colId="category" (click)="onSort('category')"> {{lionFn('category')}}
-                    <onos-icon classes="active" [iconId]="sortIcon('category')"></onos-icon>
-                </th>
-                <th colId="origin" (click)="onSort('origin')"> {{lionFn('origin')}}
-                    <onos-icon classes="active" [iconId]="sortIcon('origin')"></onos-icon>
-                </th>
-            </tr>
-
-            <tr *ngIf="tableData.length === 0" class="no-data">
-                <td colspan="5">
-                    {{annots.no_rows_msg}}
-                </td>
-            </tr>
-            <!-- See https://angular.io/guide/pipes#appendix-no-filterpipe-or-orderbypipe
-                Angular has dropped the filter and order by pipe that were present in
-                AngularJS - filter and sort the data at source instead -->
-            <tr class="table-body" *ngFor="let app of tableData | filter: tableDataFilter"
-                (click)="selectCallback($event, app)"
-                [ngClass]="{selected: app.id === selId, 'data-change': isChanged(app.id)}">
-                <td class="table-icon">
-                    <onos-icon iconId="{{app._iconid_state}}"></onos-icon>
-                </td>
-                <td class="table-icon">
-                    <!-- The path below gets the app icon from the old GUI path -->
-                    <img src="../../ui/rs/applications/{{app.icon}}/icon"
-                                            height="24px" width="24px" />
-                </td>
-                <td>{{ app.title }}</td>
-                <td>{{ app.id }}</td>
-                <td>{{ app.version }}</td>
-                <td>{{ app.category }}</td>
-                <td>{{ app.origin }}</td>
-            </tr>
-        </table>
-
+    <div id="summary-list" class="summary-list">
+        <div class="table-header">
+            <table onosTableResize>
+                <tr>
+                    <th colId="state" [ngStyle]="{width: '32px'}" class="table-icon" (click)="onSort('state')">
+                        <onos-icon classes="active" [iconId]="sortIcon('state')"></onos-icon>
+                    </th>
+                    <th colId="icon" [ngStyle]="{width: '32px'}" class="table-icon"></th>
+                    <th colId="title"  (click)="onSort('title')">{{lionFn('title')}}
+                        <onos-icon classes="active" [iconId]="sortIcon('title')"></onos-icon>
+                    </th>
+                    <th colId="id" (click)="onSort('id')">{{lionFn('app_id')}}
+                        <onos-icon classes="active" [iconId]="sortIcon('id')"></onos-icon>
+                    </th>
+                    <th colId="version" (click)="onSort('version')"> {{lionFn('version')}}
+                        <onos-icon classes="active" [iconId]="sortIcon('version')"></onos-icon>
+                    </th>
+                    <th colId="category" (click)="onSort('category')"> {{lionFn('category')}}
+                        <onos-icon classes="active" [iconId]="sortIcon('category')"></onos-icon>
+                    </th>
+                    <th colId="origin" (click)="onSort('origin')"> {{lionFn('origin')}}
+                        <onos-icon classes="active" [iconId]="sortIcon('origin')"></onos-icon>
+                    </th>
+                </tr>
+            </table>
+        </div>
+        <div class="table-body">
+            <table onosTableResize>
+                <tr *ngIf="tableData.length === 0" class="no-data">
+                    <td colspan="5">
+                        {{annots.no_rows_msg}}
+                    </td>
+                </tr>
+                <!-- See https://angular.io/guide/pipes#appendix-no-filterpipe-or-orderbypipe
+                    Angular has dropped the filter and order by pipe that were present in
+                    AngularJS - filter and sort the data at source instead -->
+                <tr *ngFor="let app of tableData | filter: tableDataFilter"
+                    (click)="selectCallback($event, app)"
+                    [ngClass]="{selected: app.id === selId, 'data-change': isChanged(app.id)}">
+                    <td class="table-icon">
+                        <onos-icon iconId="{{app._iconid_state}}"></onos-icon>
+                    </td>
+                    <td class="table-icon">
+                        <!-- The path below gets the app icon from the old GUI path -->
+                        <img src="../../ui/rs/applications/{{app.icon}}/icon"
+                                                height="24px" width="24px" />
+                    </td>
+                    <td>{{ app.title }}</td>
+                    <td>{{ app.id }}</td>
+                    <td>{{ app.version }}</td>
+                    <td>{{ app.category }}</td>
+                    <td>{{ app.origin }}</td>
+                </tr>
+            </table>
+        </div>
     </div>
     <!-- There are 2 ways this component can be included
      1) Insert it in to the ngFor above and have it created as the row is rendered

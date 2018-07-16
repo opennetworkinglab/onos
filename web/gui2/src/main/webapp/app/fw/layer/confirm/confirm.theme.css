@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-present Open Networking Foundation
+ * Copyright 2018-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,25 +15,19 @@
  */
 
 /*
- ONOS GUI -- Applications View (layout) -- CSS file
+ ONOS GUI -- Confirm Component (theme) -- CSS file
  */
-#ov-app .tabular-header {
-    text-align: left;
+/* temporarily removed .light */
+#app-dialog p.strong {
+    color: white;
+    background-color: #ce5b58;
 }
 
-#ov-app h2 {
-    display: inline-block;
+#app-dialog.floatpanel.dialog {
+    background-color: #ffffff;
 }
 
-#ov-app div.ctrl-btns {
-}
-
-/* -- Drag-n-Drop oar file upload -- */
-#ov-app form#inputFileForm,
-#ov-app input#uploadFile {
-    display: none;
-}
-
-.dropping {
-
+#app-dialog p.strong {
+    color: white;
+    background-color: #ce5b58;
 }

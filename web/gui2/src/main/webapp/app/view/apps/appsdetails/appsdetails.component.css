@@ -103,6 +103,8 @@
 
 #application-details-panel .bottom {
     padding: 0px;
+    overflow: auto;
+    height: 200px;
 }
 
 #application-details-panel .bottom table {

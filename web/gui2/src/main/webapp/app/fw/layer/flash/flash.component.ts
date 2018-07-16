@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
+import { Component, Input, Output, OnChanges, SimpleChange, EventEmitter } from '@angular/core';
 import { LogService } from '../../../log.service';
 import { trigger, state, style, animate, transition } from '@angular/animations';
 
@@ -24,55 +24,68 @@ import { trigger, state, style, animate, transition } from '@angular/animations'
  * Provides a mechanism to flash short informational messages to the screen
  * to alert the user of something, e.g. "Hosts visible" or "Hosts hidden".
  *
+ * It can be used in a warning mode, where text will appear in red
+ * The dwell time (milliseconds) can be controlled or the default is 1200ms
+ *
  * To use add an element to the template like
- *   <onos-flash #flashComponent (click)="flashComponent.flash('Hosts visible')"></onos-flash>
- * 1) The (click) can be removed and the call to flash() can be called from anywhere else in the template.
- * 2) This whole element can be disabled until needed with an ngIf
+ *   <onos-flash message="Hosts visible" dwell="2000" warning="true"></onos-flash>
+ * This whole element can be disabled until needed with an ngIf, but if this is done
+ * the animated fade-in and fade-out will not happen
+ * There is also a (closed) event that tells you when the message is closed, or
+ * fades-out
  */
 @Component({
     selector: 'onos-flash',
     templateUrl: './flash.component.html',
-    styleUrls: ['./flash.component.css'],
+    styleUrls: [
+        './flash.component.css',
+        '../dialog.css',
+        '../dialog.theme.css',
+    ],
     animations: [
         trigger('flashState', [
-            state('inactive', style({
+            state('false', style({
+//                transform: 'translateY(-400%)',
                 opacity: '0.0',
             })),
-            state('active', style({
+            state('true', style({
+//                transform: 'translateY(0%)',
                 opacity: '1.0',
             })),
-            transition('inactive => active', animate('200ms ease-in')),
-            transition('active => inactive', animate('200ms ease-out'))
+            transition('0 => 1', animate('200ms ease-in')),
+            transition('1 => 0', animate('200ms ease-out'))
         ])
     ]
 })
-export class FlashComponent {
-    public message: string;
+export class FlashComponent implements OnChanges {
+    @Input() message: string;
+    @Input() dwell: number = 1200; // milliseconds
+    @Input() warning: boolean = false;
+    @Output() closed: EventEmitter<boolean> = new EventEmitter();
 
-    public width: string = '100%';
-    public height: number = 200;
-    public rx: number = 10;
-    public vbox: string = '-200 -' + (this.height / 2) + ' 400 ' + this.height;
-    public xpad: number = 20;
-    public ypad: number = 10;
-    public enabled: boolean = false;
-
-    constructor(
-        private log: LogService,
-    ) {
-        this.log.debug('FlashComponent constructed');
-    }
+    public visible: boolean = false;
 
     /**
      * Flash a message up for 1200ms then disappear again.
      * See animation parameter for the ease in and ease out params
      */
-    flash(message: string): void {
-        this.message = message;
-        this.enabled = true;
+    ngOnChanges(changes: {[propertyName: string]: SimpleChange}) {
+        if (changes['message'] && this.message && this.message !== '') {
+            this.visible = true;
 
-        setTimeout(() => {
-            this.enabled = false;
-        }, 1200);
+            setTimeout(() => {
+                this.visible = false;
+                this.closed.emit(false);
+            }, this.dwell);
+        }
+    }
+
+    /**
+     * The message will flash up for 'dwell' milliseconds
+     * If dwell is > 2000ms, then there will be a button that allows it to be dismissed now
+     */
+    closeNow() {
+        this.visible = false;
+        this.closed.emit(false);
     }
 }

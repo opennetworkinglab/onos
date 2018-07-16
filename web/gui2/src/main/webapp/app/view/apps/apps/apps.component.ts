@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-present Open Networking Foundation
+ * Copyright 2018-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the 'License');
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 import { Component, OnInit, OnDestroy, Inject } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+
 import { DialogService } from '../../../fw/layer/dialog.service';
 import { FnService } from '../../../fw/util/fn.service';
 import { IconService } from '../../../fw/svg/icon.service';
@@ -28,14 +30,13 @@ import { TableFilterPipe } from '../../../fw/widget/tablefilter.pipe';
 
 const INSTALLED = 'INSTALLED';
 const ACTIVE = 'ACTIVE';
-const appMgmtReq = 'appManagementRequest';
-const topPdg = 60;
-const panelWidth = 540;
-const pName = 'application-details-panel';
-const detailsReq = 'appDetailsRequest';
-const detailsResp = 'appDetailsResponse';
-const fileUploadUrl = 'applications/upload';
-const activateOption = '?activate=true';
+const APPMGMTREQ = 'appManagementRequest';
+const DETAILSREQ = 'appDetailsRequest';
+const FILEUPLOADURL = 'upload';
+const FILEDOWNLOADURL = 'download';
+const ACTIVATEOPTION = '?activate=true';
+const DRAGDROPMSG1 = 'Drag and drop one file at a time';
+const DRAGDROPMSGEXT = 'Only files ending in .oar can be dropped';
 
 /** Prefix to access the REST service for applications */
 export const APPURLPREFIX = '../../ui/rs/applications/'; // TODO: This is a hack to work off GUIv1 URL
@@ -81,6 +82,13 @@ export interface App {
     _iconid_state: string;
 }
 
+export enum AppAction {
+    NONE = 0,
+    ACTIVATE = 1,
+    DEACTIVATE = 2,
+    UNINSTALL = 3,
+}
+
 /**
  * Model of the Control Button
  */
@@ -91,7 +99,7 @@ interface CtrlBtnState {
 }
 
 /**
- * ONOS GUI -- Apps View Component
+ * ONOS GUI -- Apps View Component extends TableBaseImpl
  */
 @Component({
   selector: 'onos-apps',
@@ -108,15 +116,18 @@ export class AppsComponent extends TableBaseImpl implements OnInit, OnDestroy {
     warnDeactivate: string;
     warnOwnRisk: string;
     ctrlBtnState: CtrlBtnState;
-    detailsPanel: any;
     appFile: any;
-    activateImmediately = '';
 
     uploadTip: string;
     activateTip: string;
     deactivateTip: string;
     uninstallTip: string;
     downloadTip: string;
+    alertMsg: string;
+    AppActionEnum: any = AppAction;
+    appAction: AppAction = AppAction.NONE;
+    confirmMsg: string = '';
+    strongWarning: string = '';
 
     constructor(
         protected fs: FnService,
@@ -129,9 +140,11 @@ export class AppsComponent extends TableBaseImpl implements OnInit, OnDestroy {
         private ufs: UrlFnService,
         protected wss: WebSocketService,
         @Inject('Window') private window: Window,
+        private httpClient: HttpClient
     ) {
         super(fs, null, log, wss, 'app');
         this.responseCallback = this.appResponseCb;
+        this.parentSelCb =  this.rowSelection;
         // pre-populate sort so active apps are at the top of the list
         this.sortParams = {
             firstCol: 'state',
@@ -180,75 +193,97 @@ export class AppsComponent extends TableBaseImpl implements OnInit, OnDestroy {
         this.log.debug('App response received for ', data.apps.length, 'apps');
     }
 
-    refreshCtrls() {
-        let row;
-        let rowIdx;
-        if (this.ctrlBtnState.selection) {
-            rowIdx = this.fs.find(this.selId, this.tableData);
-            row = rowIdx >= 0 ? this.tableData[rowIdx] : null;
+    /**
+     * called when a row is selected - sets the state of control icons
+     */
+    rowSelection(event: any, selRow: any) {
+        this.ctrlBtnState.installed = this.selId && selRow && selRow.state === INSTALLED;
+        this.ctrlBtnState.active = this.selId && selRow && selRow.state === ACTIVE;
+        this.ctrlBtnState.selection = this.selId;
+        this.log.debug('Row ', this.selId, 'selected', this.ctrlBtnState);
+    }
 
-            this.ctrlBtnState.installed = row && row.state === INSTALLED;
-            this.ctrlBtnState.active = row && row.state === ACTIVE;
-        } else {
-            this.ctrlBtnState.installed = false;
-            this.ctrlBtnState.active = false;
+
+    /**
+     * Perform one of the app actions - activate, deactivate or uninstall
+     * Raises a dialog which calls back the dOk() below
+     */
+    confirmAction(action: AppAction): void {
+        this.appAction = action;
+        const appActionLc = (<string>AppAction[this.appAction]).toLowerCase();
+
+        this.confirmMsg = this.lionFn(appActionLc) + ' ' + this.selId;
+        if (strongWarning[this.selId]) {
+            this.strongWarning = this.warnDeactivate + '\n' + this.warnOwnRisk;
         }
+
+        this.log.debug('Initiating', this.appAction, 'of', this.selId);
     }
 
-    createConfirmationText(action, itemId) {
-//        let content = this.ds.createDiv();
-//        content.append('p').text(this.lionFn(action) + ' ' + itemId);
-//        if (strongWarning[itemId]) {
-//            content.append('p').html(
-//                this.fs.sanitize(this.warnDeactivate) +
-//                '<br>' +
-//                this.fs.sanitize(this.warnOwnRisk)
-//            ).classed('strong', true);
-//        }
-//        return content;
-    }
+    /**
+     * Callback when the Confirm dialog is shown and a choice is made
+     */
+    dOk(choice: boolean) {
+        const appActionLc = (<string>AppAction[this.appAction]).toLowerCase();
+        if (choice) {
+            this.log.debug('Confirmed', appActionLc, 'on', this.selId);
 
-    confirmAction(action): void {
-        const itemId = this.selId;
-        const spar = this.sortParams;
-
-        function dOk() {
-            this.log.debug('Initiating', action, 'of', itemId);
-            this.wss.sendEvent(appMgmtReq, {
-                action: action,
-                name: itemId,
-                sortCol: spar.firstCol,
-                sortDir: spar.firstDir,
+            this.wss.sendEvent(APPMGMTREQ, {
+                action: appActionLc,
+                name: this.selId,
+                sortCol: this.sortParams.firstCol,
+                sortDir: SortDir[this.sortParams.firstDir],
             });
-            if (action === 'uninstall') {
-                this.detailsPanel.hide();
+            if (this.appAction === AppAction.UNINSTALL) {
+                this.selId = '';
             } else {
-                this.wss.sendEvent(detailsReq, { id: itemId });
+                this.wss.sendEvent(DETAILSREQ, { id: this.selId });
             }
-        }
 
-        function dCancel() {
-            this.log.debug('Canceling', action, 'of', itemId);
+        } else {
+            this.log.debug('Cancelled', appActionLc, 'on', this.selId);
         }
-
-//        this.ds.openDialog(dialogId, dialogOpts)
-//            .setTitle(this.lionFn('dlg_confirm_action'))
-//            .addContent(this.createConfirmationText(action, itemId))
-//            .addOk(dOk)
-//            .addCancel(dCancel)
-//            .bindKeys();
-    }
-
-    appAction(action) {
-        if (this.ctrlBtnState.selection) {
-            this.confirmAction(action);
-        }
+        this.confirmMsg = '';
+        this.strongWarning = '';
     }
 
     downloadApp() {
         if (this.ctrlBtnState.selection) {
-            (<any>this.window).location = APPURLPREFIX + this.selId + ICONURLSUFFIX;
+            (<any>this.window).location = APPURLPREFIX + this.selId + '/' + FILEDOWNLOADURL;
         }
+    }
+
+    /**
+     * When the file is selected this fires
+     * It passes the file on to the server through a POST request
+     * If there is an error its logged and raised to the user through Flash Component
+     */
+    fileEvent(event: any, activateImmediately?: boolean) {
+        this.log.debug('File event for', event.target.files[0]);
+        const formData = new FormData();
+        formData.append('file', event.target.files[0]);
+        let url = APPURLPREFIX + FILEUPLOADURL;
+        if (activateImmediately) {
+            url += ACTIVATEOPTION;
+        }
+        this.httpClient
+            .post<any>(APPURLPREFIX + FILEUPLOADURL, formData)
+            .subscribe(
+                data => this.log.debug(data),
+                err => {
+                    this.log.warn(err.message);
+                    this.alertMsg = err.message; // This will activate flash msg
+                }
+            );
+
+    }
+
+    /**
+     * When the upload button is clicked pass this on to the file input (hidden)
+     */
+    triggerForm() {
+        document.getElementById('uploadFile')
+                .dispatchEvent(new MouseEvent('click'));
     }
 
     /**
@@ -267,9 +302,39 @@ export class AppsComponent extends TableBaseImpl implements OnInit, OnDestroy {
         this.downloadTip = this.lionFn('tt_ctl_download');
     }
 
-    appDropped() {
-        this.activateImmediately = activateOption;
-//        $scope.$emit('FileChanged'); // TODO: Implement this
-        this.appFile = null;
+    onDrop(event: DragEvent) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        const dt = event.dataTransfer;
+        const droppedFiles = dt.files;
+
+        this.log.debug(droppedFiles.length, 'File(s) dropped');
+        if (droppedFiles.length !== 1) {
+            this.log.error(DRAGDROPMSG1, droppedFiles.length, 'were dropped');
+            this.alertMsg = DRAGDROPMSG1;
+            return;
+        } else if (droppedFiles[0].name.slice(droppedFiles[0].name.length - 4) !== '.oar') {
+            this.log.error(DRAGDROPMSGEXT, droppedFiles[0].name, 'rejected');
+            this.alertMsg = DRAGDROPMSGEXT;
+            return;
+        }
+
+        const fileEvent = {
+            target: {
+                files: droppedFiles
+            }
+        };
+        this.fileEvent(fileEvent, true);
+    }
+
+    onDragOver(evt) {
+        evt.preventDefault();
+        evt.stopPropagation();
+    }
+
+    onDragLeave(evt) {
+        evt.preventDefault();
+        evt.stopPropagation();
     }
 }

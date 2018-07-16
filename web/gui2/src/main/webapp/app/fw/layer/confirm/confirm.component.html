@@ -13,9 +13,9 @@
 ~ See the License for the specific language governing permissions and
 ~ limitations under the License.
 -->
-<div id="flash" class="dialog" [ngClass]="warning?'warning':''" [@flashState]="visible">
-    <div id="flashBox" *ngIf="visible">
-        <p id="flashText">{{ message }}</p>
-        <div class="dialog-button" *ngIf="dwell>1200" (click)="closeNow()">Dismiss</div>
-    </div>
+<div id="app-dialog" class="floatpanel dialog" [@confirmDlgState]="message!==''">
+    <p>{{ message }}</p>
+    <p *ngIf="warning" class="warning strong">{{ warning }}</p>
+    <div tabindex="10" class="dialog-button" (click)="choice(true)">OK</div>
+    <div tabindex="11" class="dialog-button" (click)="choice(false)">Cancel</div>
 </div>

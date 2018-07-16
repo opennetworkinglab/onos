@@ -19,7 +19,7 @@ import { FormsModule } from '@angular/forms';
 import { AppsRoutingModule } from './apps-routing.module';
 import { AppsComponent } from './apps/apps.component';
 import { AppsDetailsComponent } from './appsdetails/appsdetails.component';
-import { TriggerFormDirective } from './triggerform.directive';
+import { LayerModule } from '../../fw/layer/layer.module';
 import { SvgModule } from '../../fw/svg/svg.module';
 import { WidgetModule } from '../../fw/widget/widget.module';
 
@@ -36,12 +36,12 @@ import { WidgetModule } from '../../fw/widget/widget.module';
         AppsRoutingModule,
         SvgModule,
         WidgetModule,
-        FormsModule
+        FormsModule,
+        LayerModule
     ],
     declarations: [
         AppsComponent,
-        AppsDetailsComponent,
-        TriggerFormDirective
+        AppsDetailsComponent
     ]
 })
 export class AppsModule { }

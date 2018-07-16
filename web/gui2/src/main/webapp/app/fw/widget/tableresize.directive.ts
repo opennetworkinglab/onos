@@ -13,25 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Directive } from '@angular/core';
+import { Directive, ElementRef } from '@angular/core';
 import { FnService } from '../util/fn.service';
 import { LogService } from '../../log.service';
-import { MastService } from '../mast/mast.service';
 
 /**
  * ONOS GUI -- Widget -- Table Resize Directive
  */
 @Directive({
-  selector: '[onosTableResize]'
+    selector: '[onosTableResize]',
 })
 export class TableResizeDirective {
 
     constructor(
         private fs: FnService,
-        private log: LogService,
-        private ms: MastService
+        public log: LogService,
+        private el: ElementRef,
     ) {
+
+        this.windowSize();
         this.log.debug('TableResizeDirective constructed');
     }
 
+    windowSize() {
+        const wsz = this.fs.windowSize(0, 30);
+        this.el.nativeElement.style.width = wsz.width + 'px';
+    }
 }

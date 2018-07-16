@@ -15,33 +15,54 @@
  */
 
 /*
- ONOS GUI -- Flash Service (layout) -- CSS file
+ ONOS GUI -- Flash Component (layout) -- CSS file
  */
 
 #flash {
-    z-index: 1400;
-}
-
-#flash svg {
-    /*position: absolute;*/
-    bottom: 0;
-    opacity: 0.8;
-}
-
-#flash svg g.flashItem text {
-    stroke: none;
-    text-anchor: middle;
-    alignment-baseline: middle;
-    font-size: 16pt;
-}
-
-/* Used for temp div */
-.centered {
     position: fixed;
     top: 50%;
     left: 50%;
-    -webkit-transform: translate(-50%, -50%);
     transform: translate(-50%, -50%);
-    margin: 0;
+    z-index: 1400;
+}
+
+#flash.warning div#flashBox {
+    border: 2px solid #222222;
+    border-radius: 10px;
+    background: #FFFFFF;
     padding: 10px;
+}
+
+#flash div#flashBox {
+    background: #CCCCCC;
+    border-radius: 10px;
+    padding: 1px;
+}
+
+#flash div#flashBox div.dialog-button {
+    transform :translateY(-32px);
+}
+
+#flash.warning p#flashText {
+    stroke: #FF0000;
+    color: #FF0000;
+    text-anchor: middle;
+    alignment-baseline: middle;
+    text-align: center;
+    font-size: 16pt;
+    border-radius: 10px;
+    background: #FFFFFF;
+    padding: 10px;
+}
+
+#flash p#flashText {
+    stroke: none;
+    color: #222222;
+    text-anchor: middle;
+    alignment-baseline: middle;
+    text-align: center;
+    font-size: 16pt;
+    border-radius: 10px;
+    background: #CCCCCC;
+    padding: 5px;
 }

@@ -51,14 +51,22 @@ public class ApplicationResource extends BaseResource {
     public Response upload(@QueryParam("activate") @DefaultValue("false") String activate,
                            @FormDataParam("file") InputStream stream) throws IOException {
         ApplicationAdminService service = get(ApplicationAdminService.class);
-        Application app = service.install(stream);
-        synchronized (LAST_INSTALLED_APP_NAME_LOCK) {
-            lastInstalledAppName = app.id().name();
+        try {
+            Application app = service.install(stream);
+            synchronized (LAST_INSTALLED_APP_NAME_LOCK) {
+                lastInstalledAppName = app.id().name();
+            }
+            if (Objects.equals(activate, "true")) {
+                service.activate(app.id());
+            }
+            return Response.ok().build();
+        } catch (IllegalStateException e) {
+            return Response.status(
+                    Response.Status.PRECONDITION_FAILED.getStatusCode(),
+                    e.getMessage()).build();
+        } catch (Exception e) {
+            throw e;
         }
-        if (Objects.equals(activate, "true")) {
-            service.activate(app.id());
-        }
-        return Response.ok().build();
     }
 
     /**

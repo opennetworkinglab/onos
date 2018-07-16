@@ -15,9 +15,9 @@
  */
 import { TestBed, inject } from '@angular/core/testing';
 
-import { LogService } from '../../../../app/log.service';
-import { ConsoleLoggerService } from '../../../../app/consolelogger.service';
-import { FnService } from '../../../../app/fw/util/fn.service';
+import { LogService } from '../../log.service';
+import { ConsoleLoggerService } from '../../consolelogger.service';
+import { FnService } from '../../fw/util/fn.service';
 import { ActivatedRoute, Params } from '@angular/router';
 import { of } from 'rxjs';
 import * as d3 from 'd3';

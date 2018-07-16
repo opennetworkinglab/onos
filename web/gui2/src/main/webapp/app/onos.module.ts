@@ -15,10 +15,8 @@
  */
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { HttpClientModule } from '@angular/common/http';
 import { NgModule } from '@angular/core';
-
-import { AppsModule } from './view/apps/apps.module';
-import { DeviceModule } from './view/device/device.module';
 
 import { LayerModule } from './fw/layer/layer.module';
 import { MastModule } from './fw/mast/mast.module';
@@ -45,6 +43,7 @@ import { OnosService } from './onos.service';
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
+    HttpClientModule,
     LayerModule,
     MastModule,
     NavModule,

@@ -16,6 +16,7 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
+import { ConfirmComponent } from './confirm/confirm.component';
 import { FlashComponent } from './flash/flash.component';
 import { DialogService } from './dialog.service';
 import { EditableTextService } from './editabletext.service';
@@ -28,6 +29,7 @@ import { VeilComponent } from './veil/veil.component';
  */
 @NgModule({
   exports: [
+    ConfirmComponent,
     FlashComponent,
     VeilComponent
   ],
@@ -35,6 +37,7 @@ import { VeilComponent } from './veil/veil.component';
     CommonModule
   ],
   declarations: [
+    ConfirmComponent,
     FlashComponent,
     VeilComponent
   ],

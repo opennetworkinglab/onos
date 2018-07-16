@@ -14,30 +14,47 @@
  * limitations under the License.
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-import { ConsoleLoggerService } from '../../../../../app/consolelogger.service';
-import { LogService } from '../../../../../app/log.service';
-import { FlashComponent } from '../../../../../app/fw/layer/flash/flash.component';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { DebugElement } from '@angular/core';
+import { By } from '@angular/platform-browser';
+
+import { ConsoleLoggerService } from '../../../consolelogger.service';
+import { LogService } from '../../../log.service';
+import { FlashComponent } from './flash.component';
 
 /**
  * ONOS GUI -- Layer -- Flash Component - Unit Tests
  */
 describe('FlashComponent', () => {
     let log: LogService;
+    let component: FlashComponent;
+    let fixture: ComponentFixture<FlashComponent>;
 
-    beforeEach(() => {
+    beforeEach(async(() => {
         log = new ConsoleLoggerService();
         TestBed.configureTestingModule({
+            imports: [ BrowserAnimationsModule ],
             declarations: [ FlashComponent ],
             providers: [
                 { provide: LogService, useValue: log },
             ]
         });
-    });
+    }));
 
+    beforeEach(() => {
+        fixture = TestBed.createComponent(FlashComponent);
+        component = fixture.debugElement.componentInstance;
+        fixture.detectChanges();
+    });
 
     it('should create', () => {
-        const fixture = TestBed.createComponent(FlashComponent);
-        const component = fixture.componentInstance;
         expect(component).toBeTruthy();
     });
+
+//    it('should have a div#flash', () => {
+//        component.enabled = true;
+//        const appDe: DebugElement = fixture.debugElement;
+//        const divDe = appDe.query(By.css('div#flash'));
+//        expect(divDe).toBeTruthy();
+//    });
 });
