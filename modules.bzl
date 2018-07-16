@@ -147,7 +147,7 @@ ONOS_PROVIDERS = [
 ONOS_APPS = [
     # Apps
     "//apps/dhcp:onos-apps-dhcp-oar",
-    #"//apps/dhcprelay:onos-apps-dhcprelay-oar",
+    "//apps/dhcprelay:onos-apps-dhcprelay-oar",
     "//apps/fwd:onos-apps-fwd-oar",
     #"//apps/packet-stats:onos-apps-packet-stats-oar",
     "//apps/acl:onos-apps-acl-oar",
@@ -155,7 +155,7 @@ ONOS_APPS = [
     "//apps/cip:onos-apps-cip-oar",
     #"//apps/drivermatrix:onos-apps-drivermatrix-oar",
     #"//apps/events:onos-apps-events-oar",
-    #"//apps/proxyarp:onos-apps-proxyarp-oar",
+    "//apps/proxyarp:onos-apps-proxyarp-oar",
     "//apps/segmentrouting:onos-apps-segmentrouting-oar",
     #"//apps/gangliametrics:onos-apps-gangliametrics-oar",
     #"//apps/graphitemetrics:onos-apps-graphitemetrics-oar",
@@ -170,7 +170,7 @@ ONOS_APPS = [
     #"//apps/newoptical:onos-apps-newoptical-oar",
     "//apps/optical-model:onos-apps-optical-model-oar",
     #"//apps/optical-rest:onos-apps-optical-rest-oar",
-    #"//apps/pathpainter:onos-apps-pathpainter-oar",
+    "//apps/pathpainter:onos-apps-pathpainter-oar",
     "//apps/pcep-api:onos-apps-pcep-api-oar",
     #"//apps/pim:onos-apps-pim-oar",
     #"//apps/linkprops:onos-apps-linkprops-oar",
@@ -179,7 +179,7 @@ ONOS_APPS = [
     #"//apps/sdnip:onos-apps-sdnip-oar",
     #"//apps/test/cluster-ha:onos-apps-test-cluster-ha-oar",
     #"//apps/test/demo:onos-apps-test-demo-oar",
-    #"//apps/test/distributed-primitives:onos-apps-test-distributed-primitives-oar",
+    "//apps/test/distributed-primitives:onos-apps-test-distributed-primitives-oar",
     #"//apps/test/election:onos-apps-test-election-oar",
     #"//apps/test/flow-perf:onos-apps-test-flow-perf-oar",
     #"//apps/test/intent-perf:onos-apps-test-intent-perf-oar",
@@ -194,7 +194,7 @@ ONOS_APPS = [
     #"//apps/vrouter:onos-apps-vrouter-oar",
     #"//apps/routing/fibinstaller:onos-apps-routing-fibinstaller-oar",
     #"//apps/routing/cpr:onos-apps-routing-cpr-oar",
-    #"//apps/routing/fpm:onos-apps-routing-fpm-oar",
+    "//apps/routing/fpm:onos-apps-routing-fpm-oar",
     #"//apps/vtn:onos-apps-vtn-oar",
     "//apps/faultmanagement:onos-apps-faultmanagement-oar",
     #"//apps/openstacknode:onos-apps-openstacknode-oar",
@@ -234,7 +234,7 @@ ONOS_APPS = [
     #"//apps/p4-tutorial/pipeconf:onos-apps-p4-tutorial-pipeconf-oar",
     #"//apps/p4-tutorial/mytunnel:onos-apps-p4-tutorial-mytunnel-oar",
     #"//apps/cfm:onos-apps-cfm-oar",
-    #"//apps/routeradvertisement:onos-apps-routeradvertisement-oar",
+    "//apps/routeradvertisement:onos-apps-routeradvertisement-oar",
     #"//apps/powermanagement:onos-apps-powermanagement-oar",
     #"//apps/t3:onos-apps-t3-oar",
     #"//apps/simplefabric:onos-apps-simplefabric-oar",
@@ -278,15 +278,15 @@ PIPELINES = [
 
 APP_JARS = [
     #"//apps/cpman/api:onos-apps-cpman-api",
-    #"//apps/routing-api:onos-apps-routing-api",
+    "//apps/routing-api:onos-apps-routing-api",
     "//apps/dhcp/api:onos-apps-dhcp-api",
     "//apps/dhcp/app:onos-apps-dhcp-app",
     #"//apps/imr/api:onos-apps-imr-api",
     #"//apps/imr/app:onos-apps-imr-app",
-    #"//apps/dhcprelay:onos-apps-dhcprelay",
+    "//apps/dhcprelay:onos-apps-dhcprelay",
     "//apps/fwd:onos-apps-fwd",
     #"//apps/iptopology-api:onos-apps-iptopology-api",
-    #"//apps/routing/common:onos-apps-routing-common",
+    "//apps/routing/common:onos-apps-routing-common",
     #"//apps/vtn/vtnrsc:onos-apps-vtn-vtnrsc",
     #"//apps/vtn/sfcmgr:onos-apps-vtn-sfcmgr",
     #"//apps/vtn/vtnmgr:onos-apps-vtn-vtnmgr",
@@ -310,4 +310,4 @@ FEATURES = [
 ]
 
 APPS = ONOS_DRIVERS + ONOS_PROVIDERS + ONOS_APPS + MODELS + PIPELINES + \
-       PROTOCOL_APPS
+       PROTOCOL_APPS + APP_JARS

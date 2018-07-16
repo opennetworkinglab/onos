@@ -19,6 +19,7 @@ others=$(env | sort | egrep "^OC[0-9]+" | cut -d= -f2 | grep -vE "^$OCT\$")
 ssh $remote "
   for other in ${others//$'\n'/ } ; do
     echo \"Pushing to \$other ...\";
+    ssh -o StrictHostKeyChecking=no $ONOS_USER@\$other rm -rf /tmp/\$(basename $ONOS_TAR) &&
     scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
         /tmp/\$(basename $ONOS_TAR) \
         $ONOS_USER@[\$other]:/tmp/\$(basename $ONOS_TAR)

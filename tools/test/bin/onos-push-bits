@@ -87,6 +87,7 @@ else
   if [ -n "$locHash" ] && [ "$locHash" = "$remHash" ]; then
       echo "ONOS bits $ONOS_TAR already up-to-date on $node..."
   else
+      ssh $remote rm -f $ONOS_TAR
       scp -q $ONOS_TAR $remote_with_bracket:/tmp
   fi
 fi
