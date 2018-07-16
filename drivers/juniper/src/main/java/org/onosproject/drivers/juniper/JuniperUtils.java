@@ -105,6 +105,7 @@ public final class JuniperUtils {
     private static final String LLDP_LO_PORT = "lldp-local-port-id";
     private static final String LLDP_REM_CHASS = "lldp-remote-chassis-id";
     private static final String LLDP_REM_PORT = "lldp-remote-port-id";
+    private static final String LLDP_REM_PORT_DES = "lldp-remote-port-description";
     private static final String REGEX_ADD =
             ".*Private base address\\s*([:,0-9,a-f,A-F]*).*";
     private static final Pattern ADD_PATTERN =
@@ -525,11 +526,13 @@ public final class JuniperUtils {
                 MacAddress mac = MacAddress.valueOf(
                         neighbor.getString(LLDP_REM_CHASS));
                 long remotePortIndex =
-                        neighbor.getInt(LLDP_REM_PORT);
+                        neighbor.getInt(LLDP_REM_PORT, -1);
+                String remotePortDescription = neighbor.getString(LLDP_REM_PORT_DES, null);
                 LinkAbstraction link = new LinkAbstraction(
                         localPortName,
                         mac.toLong(),
-                        remotePortIndex);
+                        remotePortIndex,
+                        remotePortDescription);
                 neighbour.add(link);
             }
         }
@@ -543,11 +546,13 @@ public final class JuniperUtils {
         protected String localPortName;
         protected ChassisId remoteChassisId;
         protected long remotePortIndex;
+        protected String remotePortDescription;
 
-        protected LinkAbstraction(String pName, long chassisId, long pIndex) {
+        protected LinkAbstraction(String pName, long chassisId, long pIndex, String pDescription) {
             this.localPortName = pName;
             this.remoteChassisId = new ChassisId(chassisId);
             this.remotePortIndex = pIndex;
+            this.remotePortDescription = pDescription;
         }
     }
 

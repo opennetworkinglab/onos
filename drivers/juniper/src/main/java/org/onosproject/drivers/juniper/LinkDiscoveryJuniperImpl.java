@@ -19,6 +19,7 @@ package org.onosproject.drivers.juniper;
 import com.google.common.annotations.Beta;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
@@ -109,15 +110,18 @@ public class LinkDiscoveryJuniperImpl extends AbstractHandlerBehaviour
             //find destination port by interface index
             Optional<Port> remotePort = deviceService.getPorts(remoteDevice.id())
                     .stream().filter(port -> {
-                if (port.number().toLong()
-                                == linkAbs.remotePortIndex) {
+                if (port.number().toLong() == linkAbs.remotePortIndex) {
+                    return true;
+                }
+                if (port.annotations().value(AnnotationKeys.PORT_NAME) != null
+                        && port.annotations().value(AnnotationKeys.PORT_NAME).equals(linkAbs.remotePortDescription)) {
                     return true;
                 }
                 return false;
             }).findAny();
             if (!remotePort.isPresent()) {
-                log.warn("Port number {} does not exist in device {}",
-                         linkAbs.remotePortIndex, remoteDevice.id());
+                log.warn("Port number {} and Port description {} do not exist in device {}",
+                         linkAbs.remotePortIndex, linkAbs.remotePortDescription, remoteDevice.id());
                 continue;
             }
 
