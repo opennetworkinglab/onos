@@ -111,7 +111,7 @@ public class OpenstackSecurityGroupManager
 
     @Override
     public void removeSecurityGroup(String sgId) {
-        checkNotNull(sgId, ERR_NULL_SG_ID);
+        checkArgument(!Strings.isNullOrEmpty(sgId), ERR_NULL_SG_ID);
 
         osSecurityGroupStore.removeSecurityGroup(sgId);
         log.info(String.format(MSG_SG, sgId, MSG_REMOVED));
