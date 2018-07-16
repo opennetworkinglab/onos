@@ -239,28 +239,6 @@ direct_counters {
   }
   direct_table_id: 33594717
 }
-meters {
-  preamble {
-    id: 335581151
-    name: "ingress.port_meters_ingress.ingress_port_meter"
-    alias: "ingress_port_meter"
-  }
-  spec {
-    unit: BYTES
-  }
-  size: 511
-}
-meters {
-  preamble {
-    id: 335569641
-    name: "egress.port_meters_egress.egress_port_meter"
-    alias: "egress_port_meter"
-  }
-  spec {
-    unit: BYTES
-  }
-  size: 511
-}
 direct_meters {
   preamble {
     id: 352337889

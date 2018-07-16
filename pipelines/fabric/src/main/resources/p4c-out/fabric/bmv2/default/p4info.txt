@@ -245,87 +245,6 @@ tables {
 }
 tables {
   preamble {
-    id: 33578363
-    name: "FabricIngress.forwarding.multicast_v4"
-    alias: "multicast_v4"
-  }
-  match_fields {
-    id: 1
-    name: "hdr.vlan_tag.vlan_id"
-    bitwidth: 12
-    match_type: EXACT
-  }
-  match_fields {
-    id: 2
-    name: "hdr.ipv4.dst_addr"
-    bitwidth: 32
-    match_type: LPM
-  }
-  action_refs {
-    id: 16809157
-  }
-  action_refs {
-    id: 16800567
-    annotations: "@defaultonly()"
-  }
-  direct_resource_ids: 318797896
-  size: 1024
-  idle_timeout_behavior: NO_TIMEOUT
-}
-tables {
-  preamble {
-    id: 33568751
-    name: "FabricIngress.forwarding.unicast_v6"
-    alias: "unicast_v6"
-  }
-  match_fields {
-    id: 1
-    name: "hdr.ipv6.dst_addr"
-    bitwidth: 128
-    match_type: LPM
-  }
-  action_refs {
-    id: 16823773
-  }
-  action_refs {
-    id: 16800567
-    annotations: "@defaultonly()"
-  }
-  direct_resource_ids: 318820865
-  size: 1024
-  idle_timeout_behavior: NO_TIMEOUT
-}
-tables {
-  preamble {
-    id: 33581295
-    name: "FabricIngress.forwarding.multicast_v6"
-    alias: "multicast_v6"
-  }
-  match_fields {
-    id: 1
-    name: "hdr.vlan_tag.vlan_id"
-    bitwidth: 12
-    match_type: EXACT
-  }
-  match_fields {
-    id: 2
-    name: "hdr.ipv6.dst_addr"
-    bitwidth: 128
-    match_type: LPM
-  }
-  action_refs {
-    id: 16819612
-  }
-  action_refs {
-    id: 16800567
-    annotations: "@defaultonly()"
-  }
-  direct_resource_ids: 318815310
-  size: 1024
-  idle_timeout_behavior: NO_TIMEOUT
-}
-tables {
-  preamble {
     id: 33562709
     name: "FabricIngress.next.vlan_meta"
     alias: "vlan_meta"
@@ -584,42 +503,6 @@ actions {
     id: 16833260
     name: "FabricIngress.forwarding.drop"
     alias: "forwarding.drop"
-  }
-}
-actions {
-  preamble {
-    id: 16809157
-    name: "FabricIngress.forwarding.set_next_id_multicast_v4"
-    alias: "set_next_id_multicast_v4"
-  }
-  params {
-    id: 1
-    name: "next_id"
-    bitwidth: 32
-  }
-}
-actions {
-  preamble {
-    id: 16823773
-    name: "FabricIngress.forwarding.set_next_id_unicast_v6"
-    alias: "set_next_id_unicast_v6"
-  }
-  params {
-    id: 1
-    name: "next_id"
-    bitwidth: 32
-  }
-}
-actions {
-  preamble {
-    id: 16819612
-    name: "FabricIngress.forwarding.set_next_id_multicast_v6"
-    alias: "set_next_id_multicast_v6"
-  }
-  params {
-    id: 1
-    name: "next_id"
-    bitwidth: 32
   }
 }
 actions {
@@ -965,39 +848,6 @@ direct_counters {
     unit: BOTH
   }
   direct_table_id: 33574876
-}
-direct_counters {
-  preamble {
-    id: 318797896
-    name: "FabricIngress.forwarding.multicast_v4_counter"
-    alias: "multicast_v4_counter"
-  }
-  spec {
-    unit: BOTH
-  }
-  direct_table_id: 33578363
-}
-direct_counters {
-  preamble {
-    id: 318820865
-    name: "FabricIngress.forwarding.unicast_v6_counter"
-    alias: "unicast_v6_counter"
-  }
-  spec {
-    unit: BOTH
-  }
-  direct_table_id: 33568751
-}
-direct_counters {
-  preamble {
-    id: 318815310
-    name: "FabricIngress.forwarding.multicast_v6_counter"
-    alias: "multicast_v6_counter"
-  }
-  spec {
-    unit: BOTH
-  }
-  direct_table_id: 33581295
 }
 direct_counters {
   preamble {

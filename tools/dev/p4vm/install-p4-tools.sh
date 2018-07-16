@@ -17,9 +17,9 @@ set -e
 BUILD_DIR=~/p4tools
 # in case BMV2_COMMIT value is updated, the same variable in
 # protocols/bmv2/thrift-api/BUCK file should also be updated
-BMV2_COMMIT="ed130d01be985d814c17de949839d484e76400b1"
-PI_COMMIT="59c940916b4f5b182f33b4788d8c410972eaecce"
-P4C_COMMIT="618d15155dcc2d784cc14a8e83131b407cf893e2"
+BMV2_COMMIT="a3f0ebe4c0f10a656f8aa1ad68cb20402a62b0ee"
+PI_COMMIT="7e94b025bac6db63bc8534e5dd21a008984e38bc"
+P4C_COMMIT="2d089af757212a057c6690998861ef67439305f4"
 PROTOBUF_COMMIT="tags/v3.2.0"
 GRPC_COMMIT="tags/v1.3.2"
 LIBYANG_COMMIT="v0.14-r1"
@@ -163,6 +163,9 @@ function do_protobuf {
     sudo make install
     sudo ldconfig
     unset CFLAGS CXXFLAGS LDFLAGS
+
+    cd python
+    sudo python setup.py install --cpp_implementation
 }
 
 function do_grpc {
@@ -180,6 +183,9 @@ function do_grpc {
     sudo make install
     sudo ldconfig
     unset LDFLAGS
+
+    sudo pip install -r requirements.txt
+    sudo pip install .
 }
 
 function do_libyang {
@@ -281,7 +287,7 @@ function do_bmv2 {
 
     ./autogen.sh
     if [ "${DEBUG_FLAGS}" = true ] ; then
-        ./configure --with-pi --enable-debugger "CXXFLAGS=-O0 -g"
+        ./configure --with-pi --enable-debugger --disable-elogger "CXXFLAGS=-O0 -g"
     else
         ./configure --with-pi --disable-logging-macros --disable-elogger --without-nanomsg
     fi

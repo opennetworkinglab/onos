@@ -33,7 +33,7 @@
 
     <properties>
         <!-- BMv2 Commit ID and Thrift version -->
-        <bmv2.commit>ed130d01be985d814c17de949839d484e76400b1</bmv2.commit>
+        <bmv2.commit>a3f0ebe4c0f10a656f8aa1ad68cb20402a62b0ee</bmv2.commit>
         <bmv2.thrift.version>0.9.3</bmv2.thrift.version>
         <bmv2.baseurl>https://cdn.rawgit.com/opennetworkinglab/onos-bmv2/${bmv2.commit}</bmv2.baseurl>
         <bmv2.thrift.javanamespace>org.onosproject.bmv2.thriftapi</bmv2.thrift.javanamespace>

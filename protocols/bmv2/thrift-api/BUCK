@@ -4,7 +4,7 @@ COMPILE_DEPS = [
 ]
 
 # BMV2_COMMIT should be set to the same value as specified in install-p4-tools.sh
-BMV2_COMMIT = 'ed130d01be985d814c17de949839d484e76400b1'
+BMV2_COMMIT = 'a3f0ebe4c0f10a656f8aa1ad68cb20402a62b0ee'
 BMV2_BASEURL = 'https://cdn.rawgit.com/p4lang/behavioral-model/' + BMV2_COMMIT
 BMV2_NAMESPACE = 'org.onosproject.bmv2.thriftapi'
 
