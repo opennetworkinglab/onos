@@ -18,7 +18,7 @@ package org.onosproject.openstacknode.api;
 /**
  * Service for administering inventory of opestackNode.
  */
-public interface OpenstackNodeAdminService {
+public interface OpenstackNodeAdminService extends OpenstackNodeService {
 
     /**
      * Creates a new node.

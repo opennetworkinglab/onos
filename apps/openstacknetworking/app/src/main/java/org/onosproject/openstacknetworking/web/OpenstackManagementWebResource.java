@@ -34,7 +34,6 @@ import org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil;
 import org.onosproject.openstacknode.api.NodeState;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeAdminService;
-import org.onosproject.openstacknode.api.OpenstackNodeService;
 import org.onosproject.rest.AbstractWebResource;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.model.network.NetFloatingIP;
@@ -84,8 +83,6 @@ public class OpenstackManagementWebResource extends AbstractWebResource {
             get(OpenstackNetworkAdminService.class);
     private final OpenstackRouterAdminService osRouterAdminService =
             get(OpenstackRouterAdminService.class);
-    private final OpenstackNodeService osNodeService =
-            get(OpenstackNodeService.class);
     private final OpenstackNodeAdminService osNodeAdminService =
             get(OpenstackNodeAdminService.class);
     private final FlowRuleService flowRuleService = get(FlowRuleService.class);
@@ -101,7 +98,7 @@ public class OpenstackManagementWebResource extends AbstractWebResource {
     @Path("sync/states")
     public Response syncStates() {
 
-        Optional<OpenstackNode> node = osNodeService.nodes(CONTROLLER).stream().findFirst();
+        Optional<OpenstackNode> node = osNodeAdminService.nodes(CONTROLLER).stream().findFirst();
         if (!node.isPresent()) {
             throw new ItemNotFoundException("Auth info is not found");
         }
@@ -296,7 +293,7 @@ public class OpenstackManagementWebResource extends AbstractWebResource {
     }
 
     private void syncRulesBase() {
-        osNodeService.completeNodes().forEach(osNode -> {
+        osNodeAdminService.completeNodes().forEach(osNode -> {
             OpenstackNode updated = osNode.updateState(NodeState.INIT);
             osNodeAdminService.updateNode(updated);
 
@@ -306,7 +303,7 @@ public class OpenstackManagementWebResource extends AbstractWebResource {
                 log.error("Exception caused during node synchronization...");
             }
 
-            if (osNodeService.node(osNode.hostname()).state() == NodeState.COMPLETE) {
+            if (osNodeAdminService.node(osNode.hostname()).state() == NodeState.COMPLETE) {
                 log.info("Finished sync rules for node {}", osNode.hostname());
             } else {
                 log.info("Failed to sync rules for node {}", osNode.hostname());
