@@ -15,8 +15,7 @@
  */
 package org.onosproject.openstacknetworking.cli;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Lists;
 import org.apache.karaf.shell.commands.Argument;
@@ -29,8 +28,8 @@ import org.openstack4j.openstack.networking.domain.NeutronSecurityGroup;
 import java.util.Comparator;
 import java.util.List;
 
-import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.modelEntityToJson;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.prettyJson;
 
 /**
  * Lists OpenStack security groups.
@@ -53,26 +52,22 @@ public class OpenstackSecurityGroupListCommand extends AbstractShellCommand {
         sgs.sort(Comparator.comparing(SecurityGroup::getId));
 
         if (outputJson()) {
-            try {
-                print("%s", mapper().writeValueAsString(json(sgs)));
-            } catch (JsonProcessingException e) {
-                error("Failed to list security groups in JSON format");
+            print("%s", json(sgs));
+        } else {
+            print("Hint: use --json option to see security group rules as well\n");
+            print(FORMAT, "ID", "Name");
+            for (SecurityGroup sg: service.securityGroups()) {
+                print(FORMAT, sg.getId(), sg.getName());
             }
-            return;
-        }
-
-        print("Hint: use --json option to see security group rules as well\n");
-        print(FORMAT, "ID", "Name");
-        for (SecurityGroup sg: service.securityGroups()) {
-            print(FORMAT, sg.getId(), sg.getName());
         }
     }
 
-    private JsonNode json(List<SecurityGroup> securityGroups) {
-        ArrayNode result = mapper().enable(INDENT_OUTPUT).createArrayNode();
+    private String json(List<SecurityGroup> securityGroups) {
+        ObjectMapper mapper = new ObjectMapper();
+        ArrayNode result = mapper.createArrayNode();
         for (SecurityGroup sg: securityGroups) {
             result.add(modelEntityToJson(sg, NeutronSecurityGroup.class));
         }
-        return result;
+        return prettyJson(mapper, result.toString());
     }
 }

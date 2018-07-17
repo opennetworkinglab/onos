@@ -15,7 +15,6 @@
  */
 package org.onosproject.openstacknetworking.cli;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Lists;
@@ -27,7 +26,7 @@ import org.onosproject.openstacknetworking.api.InstancePortService;
 import java.util.Comparator;
 import java.util.List;
 
-import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.prettyJson;
 
 /**
  * Lists OpenStack instance ports.
@@ -55,11 +54,11 @@ public class InstancePortListCommand extends AbstractShellCommand {
         }
     }
 
-    private JsonNode json(AbstractShellCommand context, List<InstancePort> ports) {
+    private String json(AbstractShellCommand context, List<InstancePort> ports) {
         ObjectMapper mapper = new ObjectMapper();
-        ArrayNode result = mapper.enable(INDENT_OUTPUT).createArrayNode();
+        ArrayNode result = mapper.createArrayNode();
         ports.forEach(p -> result.add(context.jsonForEntity(p, InstancePort.class)));
 
-        return result;
+        return prettyJson(mapper, result.toString());
     }
 }

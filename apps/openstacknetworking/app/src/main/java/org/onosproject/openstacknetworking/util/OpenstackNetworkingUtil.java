@@ -369,6 +369,23 @@ public final class OpenstackNetworkingUtil {
     }
 
     /**
+     * Prints out the JSON string in pretty format.
+     *
+     * @param mapper        Object mapper
+     * @param jsonString    JSON string
+     * @return pretty formatted JSON string
+     */
+    public static String prettyJson(ObjectMapper mapper, String jsonString) {
+        try {
+            Object jsonObject = mapper.readValue(jsonString, Object.class);
+            return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonObject);
+        } catch (IOException e) {
+            log.debug("Json string parsing exception caused by {}", e);
+        }
+        return null;
+    }
+
+    /**
      * Checks the validity of ARP mode.
      *
      * @param arpMode ARP mode

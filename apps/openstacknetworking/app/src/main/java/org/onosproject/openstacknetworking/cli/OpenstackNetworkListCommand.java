@@ -15,8 +15,7 @@
  */
 package org.onosproject.openstacknetworking.cli;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Lists;
 import org.apache.karaf.shell.commands.Command;
@@ -30,8 +29,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.modelEntityToJson;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.prettyJson;
 
 /**
  * Lists OpenStack networks.
@@ -49,44 +48,40 @@ public class OpenstackNetworkListCommand extends AbstractShellCommand {
         networks.sort(Comparator.comparing(Network::getName));
 
         if (outputJson()) {
-            try {
-                print("%s", mapper().writeValueAsString(json(networks)));
-            } catch (JsonProcessingException e) {
-                print("Failed to list networks in JSON format");
+            print("%s", json(networks));
+        } else {
+            print(FORMAT, "ID", "Name", "Network Mode", "VNI", "Subnets", "HostRoutes");
+            for (Network net: networks) {
+                List<Subnet> subnets = service.subnets().stream()
+                        .filter(subnet -> subnet.getNetworkId().equals(net.getId()))
+                        .collect(Collectors.toList());
+
+                List<String> subnetsString = subnets.stream()
+                        .map(Subnet::getCidr)
+                        .collect(Collectors.toList());
+
+                List<String> hostRoutes = Lists.newArrayList();
+
+                subnets.forEach(subnet -> {
+                    subnet.getHostRoutes().forEach(h -> hostRoutes.add(h.toString()));
+                });
+
+                print(FORMAT, net.getId(),
+                        net.getName(),
+                        net.getNetworkType().toString(),
+                        net.getProviderSegID(),
+                        subnets.isEmpty() ? "" : subnetsString,
+                        hostRoutes.isEmpty() ? "" : hostRoutes);
             }
-            return;
-        }
-
-        print(FORMAT, "ID", "Name", "Network Mode", "VNI", "Subnets", "HostRoutes");
-        for (Network net: networks) {
-            List<Subnet> subnets = service.subnets().stream()
-                    .filter(subnet -> subnet.getNetworkId().equals(net.getId()))
-                    .collect(Collectors.toList());
-
-            List<String> subnetsString = subnets.stream()
-                    .map(Subnet::getCidr)
-                    .collect(Collectors.toList());
-
-            List<String> hostRoutes = Lists.newArrayList();
-
-            subnets.forEach(subnet -> {
-                subnet.getHostRoutes().forEach(h -> hostRoutes.add(h.toString()));
-            });
-
-            print(FORMAT, net.getId(),
-                    net.getName(),
-                    net.getNetworkType().toString(),
-                    net.getProviderSegID(),
-                    subnets.isEmpty() ? "" : subnetsString,
-                    hostRoutes.isEmpty() ? "" : hostRoutes);
         }
     }
 
-    private JsonNode json(List<Network> networks) {
-        ArrayNode result = mapper().enable(INDENT_OUTPUT).createArrayNode();
+    private String json(List<Network> networks) {
+        ObjectMapper mapper = new ObjectMapper();
+        ArrayNode result = mapper.createArrayNode();
         for (Network net: networks) {
             result.add(modelEntityToJson(net, NeutronNetwork.class));
         }
-        return result;
+        return prettyJson(mapper, result.toString());
     }
 }

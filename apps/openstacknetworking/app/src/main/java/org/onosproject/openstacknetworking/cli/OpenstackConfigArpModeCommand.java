@@ -77,8 +77,8 @@ public class OpenstackConfigArpModeCommand extends AbstractShellCommand {
     }
 
     private void purgeRules() {
-        FlowRuleService flowRuleService = AbstractShellCommand.get(FlowRuleService.class);
-        CoreService coreService = AbstractShellCommand.get(CoreService.class);
+        FlowRuleService flowRuleService = get(FlowRuleService.class);
+        CoreService coreService = get(CoreService.class);
         ApplicationId appId = coreService.getAppId(Constants.OPENSTACK_NETWORKING_APP_ID);
         if (appId == null) {
             error("Failed to purge OpenStack networking flow rules.");
@@ -101,8 +101,8 @@ public class OpenstackConfigArpModeCommand extends AbstractShellCommand {
     private void syncRules() {
         // All handlers in this application reacts the node complete event and
         // tries to re-configure flow rules for the complete node.
-        OpenstackNodeService osNodeService = AbstractShellCommand.get(OpenstackNodeService.class);
-        OpenstackNodeAdminService osNodeAdminService = AbstractShellCommand.get(OpenstackNodeAdminService.class);
+        OpenstackNodeService osNodeService = get(OpenstackNodeService.class);
+        OpenstackNodeAdminService osNodeAdminService = get(OpenstackNodeAdminService.class);
         if (osNodeService == null) {
             error("Failed to re-install flow rules for OpenStack networking.");
             return;

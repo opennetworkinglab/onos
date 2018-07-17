@@ -15,8 +15,7 @@
  */
 package org.onosproject.openstacknetworking.cli;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -33,8 +32,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.modelEntityToJson;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.prettyJson;
 
 /**
  * Lists OpenStack ports.
@@ -60,32 +59,29 @@ public class OpenstackPortListCommand extends AbstractShellCommand {
         }
 
         if (outputJson()) {
-            try {
-                print("%s", mapper().writeValueAsString(json(ports)));
-            } catch (JsonProcessingException e) {
-                print("Failed to list ports in JSON format");
-            }
-            return;
-        }
+            print("%s", json(ports));
 
-        print(FORMAT, "ID", "Network", "MAC", "Fixed IPs");
-        for (Port port: ports) {
-            List<String> fixedIps = port.getFixedIps().stream()
-                    .map(IP::getIpAddress)
-                    .collect(Collectors.toList());
-            Network osNet = service.network(port.getNetworkId());
-            print(FORMAT, port.getId(),
-                    osNet.getName(),
-                    port.getMacAddress(),
-                    fixedIps.isEmpty() ? "" : fixedIps);
+        } else {
+            print(FORMAT, "ID", "Network", "MAC", "Fixed IPs");
+            for (Port port: ports) {
+                List<String> fixedIps = port.getFixedIps().stream()
+                        .map(IP::getIpAddress)
+                        .collect(Collectors.toList());
+                Network osNet = service.network(port.getNetworkId());
+                print(FORMAT, port.getId(),
+                        osNet.getName(),
+                        port.getMacAddress(),
+                        fixedIps.isEmpty() ? "" : fixedIps);
+            }
         }
     }
 
-    private JsonNode json(List<Port> ports) {
-        ArrayNode result = mapper().enable(INDENT_OUTPUT).createArrayNode();
+    private String json(List<Port> ports) {
+        ObjectMapper mapper = new ObjectMapper();
+        ArrayNode result = mapper.createArrayNode();
         for (Port port: ports) {
             result.add(modelEntityToJson(port, NeutronPort.class));
         }
-        return result;
+        return prettyJson(mapper, result.toString());
     }
 }

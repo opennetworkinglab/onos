@@ -15,8 +15,7 @@
  */
 package org.onosproject.openstacknetworking.cli;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Lists;
 import org.apache.karaf.shell.commands.Command;
@@ -34,8 +33,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.modelEntityToJson;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.prettyJson;
 
 /**
  * Lists OpenStack routers.
@@ -57,34 +56,30 @@ public class OpenstackRouterListCommand extends AbstractShellCommand {
         routers.sort(Comparator.comparing(Router::getName));
 
         if (outputJson()) {
-            try {
-                print("%s", mapper().writeValueAsString(json(routers)));
-            } catch (JsonProcessingException e) {
-                print("Failed to list routers in JSON format");
-            }
-            return;
-        }
-        print(FORMAT, "ID", "Name", "External", "Internal");
-        for (Router router: routers) {
-            String exNetId = router.getExternalGatewayInfo() != null ?
-                router.getExternalGatewayInfo().getNetworkId() : null;
+            print("%s", json(routers));
+        } else {
+            print(FORMAT, "ID", "Name", "External", "Internal");
+            for (Router router: routers) {
+                String exNetId = router.getExternalGatewayInfo() != null ?
+                        router.getExternalGatewayInfo().getNetworkId() : null;
 
-            List<String> externals = Lists.newArrayList();
-            if (exNetId != null) {
-                // FIXME fix openstack4j to provide external gateway ip info
-                externals = netService.ports(exNetId).stream()
-                        .filter(port -> Objects.equals(port.getDeviceId(),
-                                router.getId()))
-                        .flatMap(port -> port.getFixedIps().stream())
-                        .map(IP::getIpAddress)
-                        .collect(Collectors.toList());
-            }
+                List<String> externals = Lists.newArrayList();
+                if (exNetId != null) {
+                    // FIXME fix openstack4j to provide external gateway ip info
+                    externals = netService.ports(exNetId).stream()
+                            .filter(port -> Objects.equals(port.getDeviceId(),
+                                    router.getId()))
+                            .flatMap(port -> port.getFixedIps().stream())
+                            .map(IP::getIpAddress)
+                            .collect(Collectors.toList());
+                }
 
-            List<String> internals = Lists.newArrayList();
-            routerService.routerInterfaces(router.getId()).forEach(iface -> {
+                List<String> internals = Lists.newArrayList();
+                routerService.routerInterfaces(router.getId()).forEach(iface -> {
                     internals.add(getRouterIfaceIp(iface));
-            });
-            print(FORMAT, router.getId(), router.getName(), externals, internals);
+                });
+                print(FORMAT, router.getId(), router.getName(), externals, internals);
+            }
         }
     }
 
@@ -96,11 +91,12 @@ public class OpenstackRouterListCommand extends AbstractShellCommand {
         return ipAddr == null ? "" : ipAddr.getIpAddress();
     }
 
-    private JsonNode json(List<Router> routers) {
-        ArrayNode result = mapper().enable(INDENT_OUTPUT).createArrayNode();
+    private String json(List<Router> routers) {
+        ObjectMapper mapper = new ObjectMapper();
+        ArrayNode result = mapper.createArrayNode();
         for (Router router: routers) {
             result.add(modelEntityToJson(router, NeutronRouter.class));
         }
-        return result;
+        return prettyJson(mapper, result.toString());
     }
 }

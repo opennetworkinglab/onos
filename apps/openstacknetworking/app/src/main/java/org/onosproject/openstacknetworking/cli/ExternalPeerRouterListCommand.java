@@ -15,7 +15,6 @@
  */
 package org.onosproject.openstacknetworking.cli;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Lists;
@@ -26,7 +25,7 @@ import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 
 import java.util.List;
 
-import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.prettyJson;
 
 /**
  * Lists external peer router lists.
@@ -54,11 +53,11 @@ public class ExternalPeerRouterListCommand extends AbstractShellCommand {
         }
     }
 
-    private JsonNode json(AbstractShellCommand context, List<ExternalPeerRouter> routers) {
+    private String json(AbstractShellCommand context, List<ExternalPeerRouter> routers) {
         ObjectMapper mapper = new ObjectMapper();
-        ArrayNode result = mapper.enable(INDENT_OUTPUT).createArrayNode();
+        ArrayNode result = mapper.createArrayNode();
         routers.forEach(r -> result.add(context.jsonForEntity(r, ExternalPeerRouter.class)));
 
-        return result;
+        return prettyJson(mapper, result.toString());
     }
 }
