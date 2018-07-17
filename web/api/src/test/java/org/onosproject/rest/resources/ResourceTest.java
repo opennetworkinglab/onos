@@ -21,6 +21,7 @@ import org.glassfish.jersey.test.TestProperties;
 import org.glassfish.jersey.test.jetty.JettyTestContainerFactory;
 import org.glassfish.jersey.test.spi.TestContainerException;
 import org.glassfish.jersey.test.spi.TestContainerFactory;
+import org.onlab.rest.AuthorizationFilter;
 
 /**
  * Base class for REST API tests.
@@ -46,6 +47,7 @@ public class ResourceTest extends JerseyTest {
 
     private void configureProperties() {
         set(TestProperties.CONTAINER_PORT, 0);
+        AuthorizationFilter.disableForTests();
     }
 
     /**

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2015-present Open Networking Foundation
+  ~ Copyright 2017-present Open Networking Foundation
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -14,11 +14,12 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee"
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://java.sun.com/xml/ns/javaee"
          xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
          xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
          id="ONOS" version="2.5">
-    <display-name>ONOS DEMO APP API v1.0</display-name>
+    <display-name>Intent Monitor and Reroute REST API</display-name>
 
     <security-constraint>
         <web-resource-collection>
@@ -45,10 +46,8 @@
         <servlet-name>JAX-RS Service</servlet-name>
         <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
         <init-param>
-            <param-name>jersey.config.server.provider.classnames</param-name>
-            <param-value>
-                org.onosproject.demo.DemoResource
-            </param-value>
+            <param-name>javax.ws.rs.Application</param-name>
+            <param-value>org.onosproject.imr.rest.ImrWebApplication</param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
     </servlet>
