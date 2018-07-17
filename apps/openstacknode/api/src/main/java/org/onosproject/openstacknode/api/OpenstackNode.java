@@ -208,6 +208,13 @@ public interface OpenstackNode {
     Collection<ControllerInfo> controllers();
 
     /**
+     * Returns the ssh authentication info.
+     *
+     * @return ssh authentication info
+     */
+    OpenstackSshAuth sshAuthInfo();
+
+    /**
      * Builder of new node entities.
      */
     interface Builder {
@@ -314,6 +321,14 @@ public interface OpenstackNode {
          * @return openstack node builder
          */
         Builder endPoint(String endPoint);
+
+        /**
+         * Returns openstack node builder with supplied ssh authentication info.
+         *
+         * @param sshAuth ssh authentication info
+         * @return openstack node builder
+         */
+        Builder sshAuthInfo(OpenstackSshAuth sshAuth);
     }
 }
 

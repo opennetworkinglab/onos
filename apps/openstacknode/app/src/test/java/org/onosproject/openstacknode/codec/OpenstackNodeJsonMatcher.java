@@ -23,6 +23,7 @@ import org.onosproject.openstacknode.api.Constants;
 import org.onosproject.openstacknode.api.OpenstackAuth;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackPhyInterface;
+import org.onosproject.openstacknode.api.OpenstackSshAuth;
 
 import static org.onosproject.openstacknode.api.Constants.DATA_IP;
 import static org.onosproject.openstacknode.api.Constants.MANAGEMENT_IP;
@@ -40,6 +41,7 @@ public final class OpenstackNodeJsonMatcher extends TypeSafeDiagnosingMatcher<Js
     private static final String CONTROLLERS = "controllers";
     private static final String AUTHENTICATION = "authentication";
     private static final String END_POINT = "endPoint";
+    private static final String SSH_AUTH = "sshAuth";
 
     private OpenstackNodeJsonMatcher(OpenstackNode node) {
         this.node = node;
@@ -116,6 +118,17 @@ public final class OpenstackNodeJsonMatcher extends TypeSafeDiagnosingMatcher<Js
             OpenstackAuthJsonMatcher authMatcher =
                     OpenstackAuthJsonMatcher.matchOpenstackAuth(auth);
             if (!authMatcher.matches(jsonAuth)) {
+                return false;
+            }
+        }
+
+        // check openstack ssh auth
+        JsonNode jsonSshAuth = jsonNode.get(SSH_AUTH);
+        if (jsonSshAuth != null) {
+            OpenstackSshAuth sshAuth = node.sshAuthInfo();
+            OpenstackSshAuthJsonMatcher sshAuthJsonMatcher =
+                    OpenstackSshAuthJsonMatcher.matchOpenstackSshAuth(sshAuth);
+            if (!sshAuthJsonMatcher.matches(jsonSshAuth)) {
                 return false;
             }
         }

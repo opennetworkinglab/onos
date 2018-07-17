@@ -33,9 +33,11 @@ import org.onosproject.openstacknode.api.NodeState;
 import org.onosproject.openstacknode.api.OpenstackAuth;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackPhyInterface;
+import org.onosproject.openstacknode.api.OpenstackSshAuth;
 import org.onosproject.openstacknode.impl.DefaultOpenstackAuth;
 import org.onosproject.openstacknode.api.DefaultOpenstackNode;
 import org.onosproject.openstacknode.impl.DefaultOpenstackPhyInterface;
+import org.onosproject.openstacknode.impl.DefaultOpenstackSshAuth;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -60,6 +62,8 @@ public class OpenstackNodeCodecTest {
     JsonCodec<OpenstackPhyInterface> openstackPhyIntfJsonCodec;
     JsonCodec<ControllerInfo> openstackControllerJsonCodec;
     JsonCodec<OpenstackAuth> openstackAuthJsonCodec;
+    JsonCodec<OpenstackSshAuth> openstackSshAuthJsonCodec;
+
     final CoreService mockCoreService = createMock(CoreService.class);
     private static final String REST_APP_ID = "org.onosproject.rest";
 
@@ -70,11 +74,13 @@ public class OpenstackNodeCodecTest {
         openstackPhyIntfJsonCodec = new OpenstackPhyInterfaceCodec();
         openstackControllerJsonCodec = new OpenstackControllerCodec();
         openstackAuthJsonCodec = new OpenstackAuthCodec();
+        openstackSshAuthJsonCodec = new OpenstackSshAuthCodec();
 
         assertThat(openstackNodeCodec, notNullValue());
         assertThat(openstackPhyIntfJsonCodec, notNullValue());
         assertThat(openstackControllerJsonCodec, notNullValue());
         assertThat(openstackAuthJsonCodec, notNullValue());
+        assertThat(openstackSshAuthJsonCodec, notNullValue());
 
         expect(mockCoreService.registerApplication(REST_APP_ID))
                 .andReturn(APP_ID).anyTimes();
@@ -97,6 +103,11 @@ public class OpenstackNodeCodecTest {
                                 .intf("eth4")
                                 .build();
 
+        OpenstackSshAuth sshAuth = DefaultOpenstackSshAuth.builder()
+                .id("sdn")
+                .password("sdn")
+                .build();
+
         ControllerInfo controller1 =
                 new ControllerInfo(IpAddress.valueOf("10.10.10.2"), 6653, "tcp");
         ControllerInfo controller2 =
@@ -112,6 +123,7 @@ public class OpenstackNodeCodecTest {
                                 .dataIp(IpAddress.valueOf("20.20.20.2"))
                                 .phyIntfs(ImmutableList.of(phyIntf1, phyIntf2))
                                 .controllers(ImmutableList.of(controller1, controller2))
+                                .sshAuthInfo(sshAuth)
                                 .build();
 
         ObjectNode nodeJson = openstackNodeCodec.encode(node, context);
@@ -135,6 +147,8 @@ public class OpenstackNodeCodecTest {
         assertThat(node.vlanIntf(), is("eth2"));
         assertThat(node.phyIntfs().size(), is(2));
         assertThat(node.controllers().size(), is(2));
+        assertThat(node.sshAuthInfo().id(), is("sdn"));
+        assertThat(node.sshAuthInfo().password(), is("sdn"));
 
         node.phyIntfs().forEach(intf -> {
             if (intf.network().equals("mgmtnetwork")) {
@@ -253,6 +267,9 @@ public class OpenstackNodeCodecTest {
             }
             if (entityClass == OpenstackAuth.class) {
                 return (JsonCodec<T>) openstackAuthJsonCodec;
+            }
+            if (entityClass == OpenstackSshAuth.class) {
+                return (JsonCodec<T>) openstackSshAuthJsonCodec;
             }
             return manager.getCodec(entityClass);
         }

@@ -25,10 +25,12 @@ import org.onosproject.net.behaviour.ControllerInfo;
 import org.onosproject.openstacknode.api.OpenstackAuth;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackPhyInterface;
+import org.onosproject.openstacknode.api.OpenstackSshAuth;
 import org.onosproject.openstacknode.codec.OpenstackAuthCodec;
 import org.onosproject.openstacknode.codec.OpenstackControllerCodec;
 import org.onosproject.openstacknode.codec.OpenstackNodeCodec;
 import org.onosproject.openstacknode.codec.OpenstackPhyInterfaceCodec;
+import org.onosproject.openstacknode.codec.OpenstackSshAuthCodec;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -49,6 +51,7 @@ public class OpenstackNodeCodecRegister {
         codecService.registerCodec(OpenstackAuth.class, new OpenstackAuthCodec());
         codecService.registerCodec(OpenstackPhyInterface.class, new OpenstackPhyInterfaceCodec());
         codecService.registerCodec(ControllerInfo.class, new OpenstackControllerCodec());
+        codecService.registerCodec(OpenstackSshAuth.class, new OpenstackSshAuthCodec());
 
         log.info("Started");
     }
@@ -59,6 +62,7 @@ public class OpenstackNodeCodecRegister {
         codecService.unregisterCodec(OpenstackAuth.class);
         codecService.unregisterCodec(OpenstackPhyInterface.class);
         codecService.unregisterCodec(ControllerInfo.class);
+        codecService.unregisterCodec(OpenstackSshAuth.class);
 
         log.info("Stopped");
     }

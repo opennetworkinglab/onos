@@ -25,7 +25,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 /**
  * Implementation class of openstack authentication.
  */
-public class DefaultOpenstackAuth implements OpenstackAuth {
+public final class DefaultOpenstackAuth implements OpenstackAuth {
 
     private final String version;
     private final Integer port;
@@ -48,7 +48,7 @@ public class DefaultOpenstackAuth implements OpenstackAuth {
      * @param project       project name
      * @param perspective   user perspective
      */
-    protected DefaultOpenstackAuth(String version, Integer port, Protocol protocol,
+    private DefaultOpenstackAuth(String version, Integer port, Protocol protocol,
                                    String username, String password, String project,
                                    Perspective perspective) {
 

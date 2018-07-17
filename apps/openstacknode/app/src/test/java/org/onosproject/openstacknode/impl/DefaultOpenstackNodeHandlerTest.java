@@ -74,6 +74,7 @@ import org.onosproject.openstacknode.api.NodeState;
 import org.onosproject.openstacknode.api.OpenstackAuth;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackPhyInterface;
+import org.onosproject.openstacknode.api.OpenstackSshAuth;
 import org.onosproject.ovsdb.controller.OvsdbClientService;
 import org.onosproject.ovsdb.controller.OvsdbController;
 
@@ -422,7 +423,7 @@ public class DefaultOpenstackNodeHandlerTest {
                 intgBridge.id(),
                 ipAddr,
                 ipAddr,
-                null, null, state, phyIntfs, controllers, null, null);
+                null, null, state, phyIntfs, controllers, null, null, null);
     }
 
     private static OpenstackNode createGatewayNode(String hostname,
@@ -437,7 +438,8 @@ public class DefaultOpenstackNodeHandlerTest {
                 intgBridge.id(),
                 ipAddr,
                 ipAddr,
-                null, uplinkPort, state, null, null, null, null);
+                null, uplinkPort, state,
+                null, null, null, null, null);
     }
 
     private static final class TestDevice extends DefaultDevice {
@@ -498,7 +500,8 @@ public class DefaultOpenstackNodeHandlerTest {
                                   Set<OpenstackPhyInterface> phyIntfs,
                                   Set<ControllerInfo> controllers,
                                   OpenstackAuth auth,
-                                  String endPoint) {
+                                  String endPoint,
+                                  OpenstackSshAuth sshAuth) {
             super(hostname,
                     type,
                     intgBridge,
@@ -510,7 +513,8 @@ public class DefaultOpenstackNodeHandlerTest {
                     phyIntfs,
                     controllers,
                     auth,
-                    endPoint);
+                    endPoint,
+                    sshAuth);
         }
 
         @Override

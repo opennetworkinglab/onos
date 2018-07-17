@@ -21,7 +21,7 @@ import org.hamcrest.TypeSafeDiagnosingMatcher;
 import org.onosproject.openstacknode.api.OpenstackAuth;
 
 /**
- * Hamcrest matcher for opensatck auth.
+ * Hamcrest matcher for openstack auth.
  */
 public final class OpenstackAuthJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNode> {
 

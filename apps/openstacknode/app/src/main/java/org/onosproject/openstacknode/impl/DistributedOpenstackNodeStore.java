@@ -88,6 +88,7 @@ public class DistributedOpenstackNodeStore
             .register(DefaultOpenstackAuth.class)
             .register(DefaultOpenstackAuth.Perspective.class)
             .register(DefaultOpenstackAuth.Protocol.class)
+            .register(DefaultOpenstackSshAuth.class)
             .register(Collection.class)
             .build();
 
