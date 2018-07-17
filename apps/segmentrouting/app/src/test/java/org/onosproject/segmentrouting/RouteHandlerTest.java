@@ -406,23 +406,25 @@ public class RouteHandlerTest {
 
         ROUTE_STORE.put(P1, Sets.newHashSet(RR3));
 
+        reset(srManager.deviceConfiguration);
+        srManager.deviceConfiguration.removeSubnet(CP2, P1);
+        expectLastCall().once();
+        replay(srManager.deviceConfiguration);
+
         HostEvent he = new HostEvent(HostEvent.Type.HOST_MOVED, H3S, H3D);
         routeHandler.processHostMovedEvent(he);
 
-        assertEquals(2, ROUTING_TABLE.size());
+        assertEquals(1, ROUTING_TABLE.size());
         MockRoutingTableValue rtv1 = ROUTING_TABLE.get(new MockRoutingTableKey(CP1.deviceId(), P1));
-        MockRoutingTableValue rtv2 = ROUTING_TABLE.get(new MockRoutingTableKey(CP2.deviceId(), P1));
         assertEquals(M3, rtv1.macAddress);
-        assertEquals(M3, rtv2.macAddress);
         assertEquals(V3, rtv1.vlanId);
-        assertEquals(V3, rtv2.vlanId);
         assertEquals(CP1.port(), rtv1.portNumber);
-        assertEquals(P9, rtv2.portNumber);
 
         // ECMP route table hasn't changed
-        assertEquals(2, SUBNET_TABLE.size());
+        assertEquals(1, SUBNET_TABLE.size());
         assertTrue(SUBNET_TABLE.get(CP1).contains(P1));
-        assertTrue(SUBNET_TABLE.get(CP2).contains(P1));
+
+        verify(srManager.deviceConfiguration);
     }
 
     @Test
@@ -443,6 +445,35 @@ public class RouteHandlerTest {
 
         assertEquals(0, ROUTING_TABLE.size());
         assertEquals(0, SUBNET_TABLE.size());
+
+        verify(srManager.deviceConfiguration);
+    }
+
+    @Test
+    public void testSingleHomedToDualHomed() {
+        testDualHomedSingleLocationFail();
+
+        reset(srManager.deviceConfiguration);
+        srManager.deviceConfiguration.addSubnet(CP2, P1);
+        expectLastCall().once();
+        replay(srManager.deviceConfiguration);
+
+        HostEvent he = new HostEvent(HostEvent.Type.HOST_MOVED, H3D, H3S);
+        routeHandler.processHostMovedEvent(he);
+
+        assertEquals(2, ROUTING_TABLE.size());
+        MockRoutingTableValue rtv1 = ROUTING_TABLE.get(new MockRoutingTableKey(CP1.deviceId(), P1));
+        MockRoutingTableValue rtv2 = ROUTING_TABLE.get(new MockRoutingTableKey(CP2.deviceId(), P1));
+        assertEquals(M3, rtv1.macAddress);
+        assertEquals(M3, rtv2.macAddress);
+        assertEquals(V3, rtv1.vlanId);
+        assertEquals(V3, rtv2.vlanId);
+        assertEquals(CP1.port(), rtv1.portNumber);
+        assertEquals(CP2.port(), rtv2.portNumber);
+
+        assertEquals(2, SUBNET_TABLE.size());
+        assertTrue(SUBNET_TABLE.get(CP1).contains(P1));
+        assertTrue(SUBNET_TABLE.get(CP2).contains(P1));
 
         verify(srManager.deviceConfiguration);
     }
