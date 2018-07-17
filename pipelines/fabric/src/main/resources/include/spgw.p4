@@ -29,11 +29,6 @@ control spgw_ingress(
 
     direct_counter(CounterType.packets_and_bytes) ue_counter;
 
-    action drop_now() {
-        mark_to_drop();
-        exit;
-    }
-
     action gtpu_decap() {
         gtpu_ipv4.setInvalid();
         gtpu_udp.setInvalid();

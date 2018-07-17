@@ -7,15 +7,19 @@
         ["tmp", 4, false],
         ["tmp_0", 32, false],
         ["tmp_1", 32, false],
-        ["next_tmp_0", 1, false],
+        ["next_tmp_2", 1, false],
+        ["next_tmp_3", 1, false],
+        ["next_tmp_4", 1, false],
+        ["next_hasReturned_0", 1, false],
         ["fabric_metadata_t.fwd_type", 3, false],
         ["fabric_metadata_t.next_id", 32, false],
         ["fabric_metadata_t.pop_vlan_when_packet_in", 1, false],
+        ["fabric_metadata_t.drop_if_egress_is_ingress", 1, false],
         ["fabric_metadata_t.ip_proto", 8, false],
         ["fabric_metadata_t.l4_src_port", 16, false],
         ["fabric_metadata_t.l4_dst_port", 16, false],
         ["fabric_metadata_t.original_ether_type", 16, false],
-        ["_padding_0", 7, false]
+        ["_padding_0", 3, false]
       ]
     },
     {
@@ -2536,6 +2540,35 @@
             "column" : 8,
             "source_fragment" : "standard_metadata.mcast_grp = gid"
           }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["scalars", "fabric_metadata_t.drop_if_egress_is_ingress"]
+            },
+            {
+              "type" : "expression",
+              "value" : {
+                "type" : "expression",
+                "value" : {
+                  "op" : "b2d",
+                  "left" : null,
+                  "right" : {
+                    "type" : "bool",
+                    "value" : true
+                  }
+                }
+              }
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/control/next.p4",
+            "line" : 203,
+            "column" : 8,
+            "source_fragment" : "fabric_metadata.drop_if_egress_is_ingress = true"
+          }
         }
       ]
     },
@@ -2635,37 +2668,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "next_tmp_0"]
-            },
-            {
-              "type" : "expression",
-              "value" : {
-                "type" : "expression",
-                "value" : {
-                  "op" : "b2d",
-                  "left" : null,
-                  "right" : {
-                    "type" : "bool",
-                    "value" : true
-                  }
-                }
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name" : "act_2",
-      "id" : 33,
-      "runtime_data" : [],
-      "primitives" : [
-        {
-          "op" : "assign",
-          "parameters" : [
-            {
-              "type" : "field",
-              "value" : ["scalars", "next_tmp_0"]
+              "value" : ["scalars", "next_hasReturned_0"]
             },
             {
               "type" : "expression",
@@ -2686,8 +2689,224 @@
       ]
     },
     {
+      "name" : "act_2",
+      "id" : 33,
+      "runtime_data" : [],
+      "primitives" : [
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["scalars", "next_tmp_4"]
+            },
+            {
+              "type" : "expression",
+              "value" : {
+                "type" : "expression",
+                "value" : {
+                  "op" : "b2d",
+                  "left" : null,
+                  "right" : {
+                    "type" : "bool",
+                    "value" : true
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name" : "act_3",
       "id" : 34,
+      "runtime_data" : [],
+      "primitives" : [
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["scalars", "next_tmp_4"]
+            },
+            {
+              "type" : "expression",
+              "value" : {
+                "type" : "expression",
+                "value" : {
+                  "op" : "b2d",
+                  "left" : null,
+                  "right" : {
+                    "type" : "bool",
+                    "value" : false
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "act_4",
+      "id" : 35,
+      "runtime_data" : [],
+      "primitives" : [
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["scalars", "next_tmp_3"]
+            },
+            {
+              "type" : "expression",
+              "value" : {
+                "type" : "expression",
+                "value" : {
+                  "op" : "b2d",
+                  "left" : null,
+                  "right" : {
+                    "type" : "bool",
+                    "value" : true
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "act_5",
+      "id" : 36,
+      "runtime_data" : [],
+      "primitives" : [
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["scalars", "next_tmp_3"]
+            },
+            {
+              "type" : "expression",
+              "value" : {
+                "type" : "expression",
+                "value" : {
+                  "op" : "b2d",
+                  "left" : null,
+                  "right" : {
+                    "type" : "bool",
+                    "value" : false
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "act_6",
+      "id" : 37,
+      "runtime_data" : [],
+      "primitives" : [
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["scalars", "next_tmp_2"]
+            },
+            {
+              "type" : "expression",
+              "value" : {
+                "type" : "expression",
+                "value" : {
+                  "op" : "b2d",
+                  "left" : null,
+                  "right" : {
+                    "type" : "bool",
+                    "value" : true
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "act_7",
+      "id" : 38,
+      "runtime_data" : [],
+      "primitives" : [
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["scalars", "next_tmp_2"]
+            },
+            {
+              "type" : "expression",
+              "value" : {
+                "type" : "expression",
+                "value" : {
+                  "op" : "b2d",
+                  "left" : null,
+                  "right" : {
+                    "type" : "bool",
+                    "value" : false
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "act_8",
+      "id" : 39,
+      "runtime_data" : [],
+      "primitives" : [
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["scalars", "next_hasReturned_0"]
+            },
+            {
+              "type" : "expression",
+              "value" : {
+                "type" : "expression",
+                "value" : {
+                  "op" : "b2d",
+                  "left" : null,
+                  "right" : {
+                    "type" : "bool",
+                    "value" : true
+                  }
+                }
+              }
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/control/next.p4",
+            "line" : 223,
+            "column" : 20,
+            "source_fragment" : "return"
+          }
+        }
+      ]
+    },
+    {
+      "name" : "act_9",
+      "id" : 40,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -2727,16 +2946,16 @@
           ],
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 221,
-            "column" : 20,
+            "line" : 230,
+            "column" : 16,
             "source_fragment" : "hdr.ipv4.ttl = hdr.ipv4.ttl - 1"
           }
         }
       ]
     },
     {
-      "name" : "act_4",
-      "id" : 35,
+      "name" : "act_10",
+      "id" : 41,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -2793,8 +3012,8 @@
       ]
     },
     {
-      "name" : "act_5",
-      "id" : 36,
+      "name" : "act_11",
+      "id" : 42,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -2852,13 +3071,40 @@
     },
     {
       "name" : "nop",
-      "id" : 37,
+      "id" : 43,
       "runtime_data" : [],
       "primitives" : []
     },
     {
+      "name" : "drop_now",
+      "id" : 44,
+      "runtime_data" : [],
+      "primitives" : [
+        {
+          "op" : "drop",
+          "parameters" : [],
+          "source_info" : {
+            "filename" : "include/control/../action.p4",
+            "line" : 24,
+            "column" : 4,
+            "source_fragment" : "mark_to_drop()"
+          }
+        },
+        {
+          "op" : "exit",
+          "parameters" : [],
+          "source_info" : {
+            "filename" : "include/control/../action.p4",
+            "line" : 25,
+            "column" : 4,
+            "source_fragment" : "exit"
+          }
+        }
+      ]
+    },
+    {
       "name" : "FabricEgress.pkt_io_egress.pop_vlan",
-      "id" : 38,
+      "id" : 45,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -2899,7 +3145,7 @@
     },
     {
       "name" : "FabricEgress.egress_next.pop_vlan",
-      "id" : 39,
+      "id" : 46,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -2916,7 +3162,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 247,
+            "line" : 253,
             "column" : 8,
             "source_fragment" : "hdr.ethernet.ether_type = hdr.vlan_tag.ether_type"
           }
@@ -2931,7 +3177,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 248,
+            "line" : 254,
             "column" : 8,
             "source_fragment" : "hdr.vlan_tag.setInvalid()"
           }
@@ -2939,8 +3185,8 @@
       ]
     },
     {
-      "name" : "act_6",
-      "id" : 40,
+      "name" : "act_12",
+      "id" : 47,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -3345,12 +3591,12 @@
           "direct_meters" : null,
           "action_ids" : [16, 17, 18, 1],
           "actions" : ["FabricIngress.forwarding.set_next_id_acl", "FabricIngress.forwarding.send_to_controller", "FabricIngress.forwarding.drop", "nop"],
-          "base_default_next" : "FabricIngress.next.vlan_meta",
+          "base_default_next" : "tbl_act_1",
           "next_tables" : {
-            "FabricIngress.forwarding.set_next_id_acl" : "FabricIngress.next.vlan_meta",
-            "FabricIngress.forwarding.send_to_controller" : "FabricIngress.next.vlan_meta",
-            "FabricIngress.forwarding.drop" : "FabricIngress.next.vlan_meta",
-            "nop" : "FabricIngress.next.vlan_meta"
+            "FabricIngress.forwarding.set_next_id_acl" : "tbl_act_1",
+            "FabricIngress.forwarding.send_to_controller" : "tbl_act_1",
+            "FabricIngress.forwarding.drop" : "tbl_act_1",
+            "nop" : "tbl_act_1"
           },
           "default_entry" : {
             "action_id" : 1,
@@ -3360,8 +3606,31 @@
           }
         },
         {
-          "name" : "FabricIngress.next.vlan_meta",
+          "name" : "tbl_act_1",
           "id" : 8,
+          "key" : [],
+          "match_type" : "exact",
+          "type" : "simple",
+          "max_size" : 1024,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [32],
+          "actions" : ["act_1"],
+          "base_default_next" : "FabricIngress.next.vlan_meta",
+          "next_tables" : {
+            "act_1" : "FabricIngress.next.vlan_meta"
+          },
+          "default_entry" : {
+            "action_id" : 32,
+            "action_const" : true,
+            "action_data" : [],
+            "action_entry_const" : true
+          }
+        },
+        {
+          "name" : "FabricIngress.next.vlan_meta",
+          "id" : 9,
           "source_info" : {
             "filename" : "include/control/next.p4",
             "line" : 65,
@@ -3398,7 +3667,7 @@
         },
         {
           "name" : "FabricIngress.next.simple",
-          "id" : 9,
+          "id" : 10,
           "source_info" : {
             "filename" : "include/control/next.p4",
             "line" : 122,
@@ -3423,37 +3692,14 @@
           "actions" : ["FabricIngress.next.output_simple", "FabricIngress.next.set_vlan_output", "FabricIngress.next.l3_routing_simple", "FabricIngress.next.mpls_routing_v4_simple", "FabricIngress.next.mpls_routing_v6_simple", "FabricIngress.next.l3_routing_vlan", "NoAction"],
           "base_default_next" : null,
           "next_tables" : {
-            "__HIT__" : "tbl_act_1",
-            "__MISS__" : "tbl_act_2"
+            "__HIT__" : "tbl_act_2",
+            "__MISS__" : "tbl_act_3"
           },
           "default_entry" : {
             "action_id" : 6,
             "action_const" : false,
             "action_data" : [],
             "action_entry_const" : false
-          }
-        },
-        {
-          "name" : "tbl_act_1",
-          "id" : 10,
-          "key" : [],
-          "match_type" : "exact",
-          "type" : "simple",
-          "max_size" : 1024,
-          "with_counters" : false,
-          "support_timeout" : false,
-          "direct_meters" : null,
-          "action_ids" : [32],
-          "actions" : ["act_1"],
-          "base_default_next" : "node_18",
-          "next_tables" : {
-            "act_1" : "node_18"
-          },
-          "default_entry" : {
-            "action_id" : 32,
-            "action_const" : true,
-            "action_data" : [],
-            "action_entry_const" : true
           }
         },
         {
@@ -3468,9 +3714,9 @@
           "direct_meters" : null,
           "action_ids" : [33],
           "actions" : ["act_2"],
-          "base_default_next" : "node_18",
+          "base_default_next" : "node_19",
           "next_tables" : {
-            "act_2" : "node_18"
+            "act_2" : "node_19"
           },
           "default_entry" : {
             "action_id" : 33,
@@ -3491,9 +3737,9 @@
           "direct_meters" : null,
           "action_ids" : [34],
           "actions" : ["act_3"],
-          "base_default_next" : "FabricIngress.next.hashed",
+          "base_default_next" : "node_19",
           "next_tables" : {
-            "act_3" : "FabricIngress.next.hashed"
+            "act_3" : "node_19"
           },
           "default_entry" : {
             "action_id" : 34,
@@ -3528,20 +3774,64 @@
           "direct_meters" : null,
           "action_ids" : [26, 27, 28, 7],
           "actions" : ["FabricIngress.next.l3_routing_hashed", "FabricIngress.next.mpls_routing_v4_hashed", "FabricIngress.next.mpls_routing_v6_hashed", "NoAction"],
-          "base_default_next" : "FabricIngress.next.multicast",
+          "base_default_next" : null,
           "next_tables" : {
-            "FabricIngress.next.l3_routing_hashed" : "FabricIngress.next.multicast",
-            "FabricIngress.next.mpls_routing_v4_hashed" : "FabricIngress.next.multicast",
-            "FabricIngress.next.mpls_routing_v6_hashed" : "FabricIngress.next.multicast",
-            "NoAction" : "FabricIngress.next.multicast"
+            "__HIT__" : "tbl_act_4",
+            "__MISS__" : "tbl_act_5"
+          }
+        },
+        {
+          "name" : "tbl_act_4",
+          "id" : 14,
+          "key" : [],
+          "match_type" : "exact",
+          "type" : "simple",
+          "max_size" : 1024,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [35],
+          "actions" : ["act_4"],
+          "base_default_next" : "node_23",
+          "next_tables" : {
+            "act_4" : "node_23"
+          },
+          "default_entry" : {
+            "action_id" : 35,
+            "action_const" : true,
+            "action_data" : [],
+            "action_entry_const" : true
+          }
+        },
+        {
+          "name" : "tbl_act_5",
+          "id" : 15,
+          "key" : [],
+          "match_type" : "exact",
+          "type" : "simple",
+          "max_size" : 1024,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [36],
+          "actions" : ["act_5"],
+          "base_default_next" : "node_23",
+          "next_tables" : {
+            "act_5" : "node_23"
+          },
+          "default_entry" : {
+            "action_id" : 36,
+            "action_const" : true,
+            "action_data" : [],
+            "action_entry_const" : true
           }
         },
         {
           "name" : "FabricIngress.next.multicast",
-          "id" : 14,
+          "id" : 16,
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 206,
+            "line" : 207,
             "column" : 10,
             "source_fragment" : "multicast"
           },
@@ -3561,10 +3851,10 @@
           "direct_meters" : null,
           "action_ids" : [29, 8],
           "actions" : ["FabricIngress.next.set_mcast_group", "NoAction"],
-          "base_default_next" : "node_24",
+          "base_default_next" : null,
           "next_tables" : {
-            "FabricIngress.next.set_mcast_group" : "node_24",
-            "NoAction" : "node_24"
+            "__HIT__" : "tbl_act_6",
+            "__MISS__" : "tbl_act_7"
           },
           "default_entry" : {
             "action_id" : 8,
@@ -3574,8 +3864,8 @@
           }
         },
         {
-          "name" : "tbl_act_4",
-          "id" : 15,
+          "name" : "tbl_act_6",
+          "id" : 17,
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -3583,22 +3873,22 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [35],
-          "actions" : ["act_4"],
-          "base_default_next" : "node_26",
+          "action_ids" : [37],
+          "actions" : ["act_6"],
+          "base_default_next" : "node_27",
           "next_tables" : {
-            "act_4" : "node_26"
+            "act_6" : "node_27"
           },
           "default_entry" : {
-            "action_id" : 35,
+            "action_id" : 37,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
           }
         },
         {
-          "name" : "tbl_act_5",
-          "id" : 16,
+          "name" : "tbl_act_7",
+          "id" : 18,
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -3606,14 +3896,106 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [36],
-          "actions" : ["act_5"],
-          "base_default_next" : null,
+          "action_ids" : [38],
+          "actions" : ["act_7"],
+          "base_default_next" : "node_27",
           "next_tables" : {
-            "act_5" : null
+            "act_7" : "node_27"
           },
           "default_entry" : {
-            "action_id" : 36,
+            "action_id" : 38,
+            "action_const" : true,
+            "action_data" : [],
+            "action_entry_const" : true
+          }
+        },
+        {
+          "name" : "tbl_act_8",
+          "id" : 19,
+          "key" : [],
+          "match_type" : "exact",
+          "type" : "simple",
+          "max_size" : 1024,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [39],
+          "actions" : ["act_8"],
+          "base_default_next" : "node_29",
+          "next_tables" : {
+            "act_8" : "node_29"
+          },
+          "default_entry" : {
+            "action_id" : 39,
+            "action_const" : true,
+            "action_data" : [],
+            "action_entry_const" : true
+          }
+        },
+        {
+          "name" : "tbl_act_9",
+          "id" : 20,
+          "key" : [],
+          "match_type" : "exact",
+          "type" : "simple",
+          "max_size" : 1024,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [40],
+          "actions" : ["act_9"],
+          "base_default_next" : "node_33",
+          "next_tables" : {
+            "act_9" : "node_33"
+          },
+          "default_entry" : {
+            "action_id" : 40,
+            "action_const" : true,
+            "action_data" : [],
+            "action_entry_const" : true
+          }
+        },
+        {
+          "name" : "tbl_act_10",
+          "id" : 21,
+          "key" : [],
+          "match_type" : "exact",
+          "type" : "simple",
+          "max_size" : 1024,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [41],
+          "actions" : ["act_10"],
+          "base_default_next" : "node_35",
+          "next_tables" : {
+            "act_10" : "node_35"
+          },
+          "default_entry" : {
+            "action_id" : 41,
+            "action_const" : true,
+            "action_data" : [],
+            "action_entry_const" : true
+          }
+        },
+        {
+          "name" : "tbl_act_11",
+          "id" : 22,
+          "key" : [],
+          "match_type" : "exact",
+          "type" : "simple",
+          "max_size" : 1024,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [42],
+          "actions" : ["act_11"],
+          "base_default_next" : null,
+          "next_tables" : {
+            "act_11" : null
+          },
+          "default_entry" : {
+            "action_id" : 42,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
@@ -3755,29 +4137,126 @@
           "false_next" : "FabricIngress.forwarding.acl"
         },
         {
-          "name" : "node_18",
-          "id" : 4,
-          "expression" : {
-            "type" : "expression",
-            "value" : {
-              "op" : "d2b",
-              "left" : null,
-              "right" : {
-                "type" : "field",
-                "value" : ["scalars", "next_tmp_0"]
-              }
-            }
-          },
-          "true_next" : "node_19",
-          "false_next" : "FabricIngress.next.hashed"
-        },
-        {
           "name" : "node_19",
-          "id" : 5,
+          "id" : 4,
           "source_info" : {
             "filename" : "include/control/next.p4",
             "line" : 219,
+            "column" : 12,
+            "source_fragment" : "!simple.apply().hit"
+          },
+          "expression" : {
+            "type" : "expression",
+            "value" : {
+              "op" : "not",
+              "left" : null,
+              "right" : {
+                "type" : "expression",
+                "value" : {
+                  "op" : "d2b",
+                  "left" : null,
+                  "right" : {
+                    "type" : "field",
+                    "value" : ["scalars", "next_tmp_4"]
+                  }
+                }
+              }
+            }
+          },
+          "true_next" : "FabricIngress.next.hashed",
+          "false_next" : "node_29"
+        },
+        {
+          "name" : "node_23",
+          "id" : 5,
+          "source_info" : {
+            "filename" : "include/control/next.p4",
+            "line" : 220,
             "column" : 16,
+            "source_fragment" : "!hashed.apply().hit"
+          },
+          "expression" : {
+            "type" : "expression",
+            "value" : {
+              "op" : "not",
+              "left" : null,
+              "right" : {
+                "type" : "expression",
+                "value" : {
+                  "op" : "d2b",
+                  "left" : null,
+                  "right" : {
+                    "type" : "field",
+                    "value" : ["scalars", "next_tmp_3"]
+                  }
+                }
+              }
+            }
+          },
+          "true_next" : "FabricIngress.next.multicast",
+          "false_next" : "node_29"
+        },
+        {
+          "name" : "node_27",
+          "id" : 6,
+          "source_info" : {
+            "filename" : "include/control/next.p4",
+            "line" : 221,
+            "column" : 20,
+            "source_fragment" : "!multicast.apply().hit"
+          },
+          "expression" : {
+            "type" : "expression",
+            "value" : {
+              "op" : "not",
+              "left" : null,
+              "right" : {
+                "type" : "expression",
+                "value" : {
+                  "op" : "d2b",
+                  "left" : null,
+                  "right" : {
+                    "type" : "field",
+                    "value" : ["scalars", "next_tmp_2"]
+                  }
+                }
+              }
+            }
+          },
+          "true_next" : "tbl_act_8",
+          "false_next" : "node_29"
+        },
+        {
+          "name" : "node_29",
+          "id" : 7,
+          "expression" : {
+            "type" : "expression",
+            "value" : {
+              "op" : "not",
+              "left" : null,
+              "right" : {
+                "type" : "expression",
+                "value" : {
+                  "op" : "d2b",
+                  "left" : null,
+                  "right" : {
+                    "type" : "field",
+                    "value" : ["scalars", "next_hasReturned_0"]
+                  }
+                }
+              }
+            }
+          },
+          "true_next" : "node_30",
+          "false_next" : "node_33"
+        },
+        {
+          "name" : "node_30",
+          "id" : 8,
+          "source_info" : {
+            "filename" : "include/control/next.p4",
+            "line" : 228,
+            "column" : 12,
             "source_fragment" : "!hdr.mpls.isValid()"
           },
           "expression" : {
@@ -3798,16 +4277,16 @@
               }
             }
           },
-          "true_next" : "node_20",
-          "false_next" : "FabricIngress.next.hashed"
+          "true_next" : "node_31",
+          "false_next" : "node_33"
         },
         {
-          "name" : "node_20",
-          "id" : 6,
+          "name" : "node_31",
+          "id" : 9,
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 220,
-            "column" : 19,
+            "line" : 229,
+            "column" : 15,
             "source_fragment" : "hdr.ipv4.isValid()"
           },
           "expression" : {
@@ -3821,12 +4300,12 @@
               }
             }
           },
-          "true_next" : "tbl_act_3",
-          "false_next" : "FabricIngress.next.hashed"
+          "true_next" : "tbl_act_9",
+          "false_next" : "node_33"
         },
         {
-          "name" : "node_24",
-          "id" : 7,
+          "name" : "node_33",
+          "id" : 10,
           "source_info" : {
             "filename" : "include/control/port_counter.p4",
             "line" : 27,
@@ -3847,12 +4326,12 @@
               }
             }
           },
-          "true_next" : "tbl_act_4",
-          "false_next" : "node_26"
+          "true_next" : "tbl_act_10",
+          "false_next" : "node_35"
         },
         {
-          "name" : "node_26",
-          "id" : 8,
+          "name" : "node_35",
+          "id" : 11,
           "source_info" : {
             "filename" : "include/control/port_counter.p4",
             "line" : 30,
@@ -3874,7 +4353,7 @@
             }
           },
           "false_next" : null,
-          "true_next" : "tbl_act_5"
+          "true_next" : "tbl_act_11"
         }
       ]
     },
@@ -3887,14 +4366,37 @@
         "column" : 8,
         "source_fragment" : "FabricEgress"
       },
-      "init_table" : "FabricEgress.egress_next.egress_vlan",
+      "init_table" : "node_39",
       "tables" : [
         {
+          "name" : "tbl_drop_now",
+          "id" : 23,
+          "key" : [],
+          "match_type" : "exact",
+          "type" : "simple",
+          "max_size" : 1024,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [44],
+          "actions" : ["drop_now"],
+          "base_default_next" : "FabricEgress.egress_next.egress_vlan",
+          "next_tables" : {
+            "drop_now" : "FabricEgress.egress_next.egress_vlan"
+          },
+          "default_entry" : {
+            "action_id" : 44,
+            "action_const" : true,
+            "action_data" : [],
+            "action_entry_const" : true
+          }
+        },
+        {
           "name" : "FabricEgress.egress_next.egress_vlan",
-          "id" : 17,
+          "id" : 24,
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 252,
+            "line" : 258,
             "column" : 10,
             "source_fragment" : "egress_vlan"
           },
@@ -3918,15 +4420,15 @@
           "with_counters" : true,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [39, 37],
+          "action_ids" : [46, 43],
           "actions" : ["FabricEgress.egress_next.pop_vlan", "nop"],
-          "base_default_next" : "node_31",
+          "base_default_next" : "node_42",
           "next_tables" : {
-            "FabricEgress.egress_next.pop_vlan" : "node_31",
-            "nop" : "node_31"
+            "FabricEgress.egress_next.pop_vlan" : "node_42",
+            "nop" : "node_42"
           },
           "default_entry" : {
-            "action_id" : 37,
+            "action_id" : 43,
             "action_const" : false,
             "action_data" : [],
             "action_entry_const" : false
@@ -3934,7 +4436,7 @@
         },
         {
           "name" : "tbl_pkt_io_egress_pop_vlan",
-          "id" : 18,
+          "id" : 25,
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -3942,22 +4444,22 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [38],
+          "action_ids" : [45],
           "actions" : ["FabricEgress.pkt_io_egress.pop_vlan"],
-          "base_default_next" : "tbl_act_6",
+          "base_default_next" : "tbl_act_12",
           "next_tables" : {
-            "FabricEgress.pkt_io_egress.pop_vlan" : "tbl_act_6"
+            "FabricEgress.pkt_io_egress.pop_vlan" : "tbl_act_12"
           },
           "default_entry" : {
-            "action_id" : 38,
+            "action_id" : 45,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
           }
         },
         {
-          "name" : "tbl_act_6",
-          "id" : 19,
+          "name" : "tbl_act_12",
+          "id" : 26,
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -3965,14 +4467,14 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [40],
-          "actions" : ["act_6"],
+          "action_ids" : [47],
+          "actions" : ["act_12"],
           "base_default_next" : null,
           "next_tables" : {
-            "act_6" : null
+            "act_12" : null
           },
           "default_entry" : {
-            "action_id" : 40,
+            "action_id" : 47,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
@@ -3982,8 +4484,61 @@
       "action_profiles" : [],
       "conditionals" : [
         {
-          "name" : "node_31",
-          "id" : 9,
+          "name" : "node_39",
+          "id" : 12,
+          "source_info" : {
+            "filename" : "include/control/next.p4",
+            "line" : 272,
+            "column" : 12,
+            "source_fragment" : "fabric_metadata.drop_if_egress_is_ingress == true ..."
+          },
+          "expression" : {
+            "type" : "expression",
+            "value" : {
+              "op" : "and",
+              "left" : {
+                "type" : "expression",
+                "value" : {
+                  "op" : "==",
+                  "left" : {
+                    "type" : "expression",
+                    "value" : {
+                      "op" : "d2b",
+                      "left" : null,
+                      "right" : {
+                        "type" : "field",
+                        "value" : ["scalars", "fabric_metadata_t.drop_if_egress_is_ingress"]
+                      }
+                    }
+                  },
+                  "right" : {
+                    "type" : "bool",
+                    "value" : true
+                  }
+                }
+              },
+              "right" : {
+                "type" : "expression",
+                "value" : {
+                  "op" : "==",
+                  "left" : {
+                    "type" : "field",
+                    "value" : ["standard_metadata", "ingress_port"]
+                  },
+                  "right" : {
+                    "type" : "field",
+                    "value" : ["standard_metadata", "egress_port"]
+                  }
+                }
+              }
+            }
+          },
+          "true_next" : "tbl_drop_now",
+          "false_next" : "FabricEgress.egress_next.egress_vlan"
+        },
+        {
+          "name" : "node_42",
+          "id" : 13,
           "source_info" : {
             "filename" : "include/control/packetio.p4",
             "line" : 42,
@@ -4005,11 +4560,11 @@
             }
           },
           "false_next" : null,
-          "true_next" : "node_32"
+          "true_next" : "node_43"
         },
         {
-          "name" : "node_32",
-          "id" : 10,
+          "name" : "node_43",
+          "id" : 14,
           "source_info" : {
             "filename" : "include/control/packetio.p4",
             "line" : 43,
@@ -4055,7 +4610,7 @@
             }
           },
           "true_next" : "tbl_pkt_io_egress_pop_vlan",
-          "false_next" : "tbl_act_6"
+          "false_next" : "tbl_act_12"
         }
       ]
     }

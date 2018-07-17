@@ -739,6 +739,13 @@ actions {
 }
 actions {
   preamble {
+    id: 16823970
+    name: "drop_now"
+    alias: "drop_now"
+  }
+}
+actions {
+  preamble {
     id: 16801047
     name: "FabricEgress.pkt_io_egress.pop_vlan"
     alias: "pkt_io_egress.pop_vlan"

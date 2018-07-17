@@ -200,6 +200,7 @@ control Next (
 
     action set_mcast_group(group_id_t gid) {
         standard_metadata.mcast_grp = gid;
+        fabric_metadata.drop_if_egress_is_ingress = _TRUE;
         multicast_counter.count();
     }
 
@@ -215,20 +216,25 @@ control Next (
 
     apply {
         vlan_meta.apply();
-        if (simple.apply().hit) {
-            if (!hdr.mpls.isValid()) {
-                if(hdr.ipv4.isValid()) {
-                    hdr.ipv4.ttl = hdr.ipv4.ttl - 1;
+        if (!simple.apply().hit) {
+            if (!hashed.apply().hit) {
+                if (!multicast.apply().hit) {
+                    // Next ID doesn't match any table.
+                    return;
                 }
-#ifdef WITH_IPV6
-                else if (hdr.ipv6.isValid()) {
-                    hdr.ipv6.hop_limit = hdr.ipv6.hop_limit - 1;
-                }
-#endif // WITH_IPV6
             }
         }
-        hashed.apply();
-        multicast.apply();
+        // Decrement TTL
+        if (!hdr.mpls.isValid()) {
+            if(hdr.ipv4.isValid()) {
+                hdr.ipv4.ttl = hdr.ipv4.ttl - 1;
+            }
+#ifdef WITH_IPV6
+            else if (hdr.ipv6.isValid()) {
+                hdr.ipv6.hop_limit = hdr.ipv6.hop_limit - 1;
+            }
+#endif // WITH_IPV6
+        }
     }
 }
 
@@ -263,6 +269,10 @@ control EgressNextControl (
     }
 
     apply {
+        if (fabric_metadata.drop_if_egress_is_ingress == _TRUE
+             && standard_metadata.ingress_port == standard_metadata.egress_port) {
+            drop_now();
+        }
         egress_vlan.apply();
     }
 }

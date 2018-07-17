@@ -483,8 +483,8 @@ actions {
 }
 actions {
   preamble {
-    id: 16820193
-    name: "FabricIngress.spgw_ingress.drop_now"
+    id: 16823970
+    name: "drop_now"
     alias: "drop_now"
   }
 }

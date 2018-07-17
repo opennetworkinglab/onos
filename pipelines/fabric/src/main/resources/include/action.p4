@@ -19,4 +19,9 @@
 #include "header.p4"
 action nop() {
 }
+
+action drop_now() {
+    mark_to_drop();
+    exit;
+}
 #endif
