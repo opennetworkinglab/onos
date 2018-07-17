@@ -339,10 +339,14 @@ public class FlowObjectiveIntentInstaller implements IntentInstaller<FlowObjecti
                     });
                     return;
                 }
-                if (intentInstallationContext.errorContexts().isEmpty()) {
+                if (intentInstallationContext.errorContexts().isEmpty() && error == null) {
                     intentInstallCoordinator.intentInstallSuccess(intentInstallationContext.intentOperationContext());
-                } else {
+                } else if (!intentInstallationContext.errorContexts().isEmpty()) {
                     intentInstallCoordinator.intentInstallFailed(intentInstallationContext.intentOperationContext());
+                } else {
+                    // waiting for error handling.
+                    // if ctx.retryTimes() > OBJECTIVE_RETRY_THRESHOLD
+                    // then handleObjectiveError will be executed.
                 }
             }
         }
