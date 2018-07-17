@@ -17,13 +17,23 @@ EOF
 
 # Build and install P4 tools
 bash /vagrant/install-p4-tools.sh
+# We'll delete bmv2 sources later...
+cp ~/p4tools/bmv2/tools/veth_setup.sh ~/veth_setup.sh
+cp ~/p4tools/bmv2/tools/veth_teardown.sh ~/veth_teardown.sh
 
 # Mininet
-git clone git://github.com/mininet/mininet ~/mininet
+git clone git://github.com/mininet/mininet
 sudo ~/mininet/util/install.sh -nv
 
 # Trellis routing repo
 git clone https://github.com/opennetworkinglab/routing.git
 
+# fabric-p4test
+git clone https://github.com/opennetworkinglab/fabric-p4test.git
+
 # Set Python path for bmv2 in fabric.p4
 echo 'export PYTHONPATH=$PYTHONPATH:~/onos/tools/dev/mininet/bmv2.py' >> ~/.bashrc
+
+# FIXME: for some reason protobuf python bindings are not properly installed
+cd ~/p4tools/protobuf/python
+sudo pip install .

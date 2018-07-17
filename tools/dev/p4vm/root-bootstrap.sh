@@ -24,8 +24,10 @@ fi
 apt-get install software-properties-common -y
 add-apt-repository ppa:webupd8team/java -y
 apt-get update
-echo "oracle-java8-installer shared/accepted-oracle-license-v1-1 select true" | debconf-set-selections
 
+DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade
+
+echo "oracle-java8-installer shared/accepted-oracle-license-v1-1 select true" | debconf-set-selections
 apt-get -y --no-install-recommends install \
     avahi-daemon \
     bridge-utils \

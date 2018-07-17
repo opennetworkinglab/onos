@@ -9,6 +9,10 @@
 # 4 GB of RAM
 # 2 cores
 # 8 GB free hard drive space (~4 GB to build everything)
+#
+# To execute up to a given step, pass the step name as the first argument. For
+# example, to install PI, but not BMv2, p4c, etc:
+#   ./install-p4-tools.sh PI
 # -----------------------------------------------------------------------------
 
 # Exit on errors.
@@ -24,13 +28,15 @@ PROTOBUF_COMMIT="tags/v3.2.0"
 GRPC_COMMIT="tags/v1.3.2"
 LIBYANG_COMMIT="v0.14-r1"
 SYSREPO_COMMIT="v0.7.2"
-P4RT_TEST_COMMIT="master"
 
 NUM_CORES=`grep -c ^processor /proc/cpuinfo`
 
 # If false, build tools without debug features to improve throughput of BMv2 and
 # reduce CPU/memory footprint.
 DEBUG_FLAGS=${DEBUG_FLAGS:-true}
+
+# Execute up to the given step (first argument), or all if not defined.
+LAST_STEP=${1:-all}
 
 function do_requirements {
     sudo apt update
@@ -83,7 +89,7 @@ function do_requirements {
         wget \
         unzip
 
-    sudo -H pip install setuptools cffi grpcio scapy ipaddr
+    sudo -H pip install setuptools cffi ipaddr pypcap
 }
 
 function do_requirements_1404 {
@@ -245,7 +251,7 @@ function checkout_bmv2 {
 function do_pi_bmv2_deps {
     checkout_bmv2
     # From bmv2's install_deps.sh.
-    # Nanomsg is required also by p4runtime.
+    # Nanomsg is required also by PI.
     tmpdir=`mktemp -d -p .`
     cd ${tmpdir}
     bash ../travis/install-thrift.sh
@@ -256,12 +262,12 @@ function do_pi_bmv2_deps {
     sudo rm -rf $tmpdir
 }
 
-function do_p4runtime {
+function do_PI {
     cd ${BUILD_DIR}
-    if [ ! -d p4runtime ]; then
-        git clone https://github.com/p4lang/PI.git p4runtime
+    if [ ! -d PI ]; then
+        git clone https://github.com/p4lang/PI.git
     fi
-    cd p4runtime
+    cd PI
     git fetch
     git checkout ${PI_COMMIT}
     git submodule update --init --recursive
@@ -329,16 +335,27 @@ function do_p4c {
     sudo ldconfig
 }
 
-function do_p4rt_test {
+function do_scapy-vxlan {
     cd ${BUILD_DIR}
-    if [ ! -d p4rt-test ]; then
-        git clone https://github.com/TakeshiTseng/P4-runtime-test-tool.git p4rt-test
+    if [ ! -d scapy-vxlan ]; then
+        git clone https://github.com/p4lang/scapy-vxlan.git
     fi
-    cd p4rt-test
+    cd scapy-vxlan
+
     git pull origin master
 
-    sudo rm -f /usr/local/bin/p4rt-test
-    sudo ln -s ${BUILD_DIR}/p4rt-test/main.py /usr/local/bin/p4rt-test
+    sudo python setup.py install
+}
+
+function do_ptf {
+    cd ${BUILD_DIR}
+    if [ ! -d ptf ]; then
+        git clone https://github.com/p4lang/ptf.git
+    fi
+    cd ptf
+    git pull origin master
+
+    sudo python setup.py install
 }
 
 function check_commit {
@@ -367,12 +384,12 @@ function check_and_do {
     commit_id="$1"
     proj_dir="$2"
     func_name="$3"
-    simple_name="$4"
+    step_name="$4"
+    commit_file=${BUILD_DIR}/${proj_dir}/.last_built_commit_${step_name}
     if [ ${MUST_DO_ALL} = true ] \
-        || [ ${commit_id} = "master" ] \
-        || check_commit ${commit_id} ${proj_dir}/.last_built_commit; then
+        || check_commit ${commit_id} ${commit_file}; then
         echo "#"
-        echo "# Building ${simple_name} (${commit_id})"
+        echo "# Building ${step_name} (${commit_id})"
         echo "#"
         # Print commands used to install to aid debugging
         set -x
@@ -392,13 +409,17 @@ function check_and_do {
             DID_REQUIREMENTS=true
         fi
         eval ${func_name}
-        echo ${commit_id} > ${BUILD_DIR}/${proj_dir}/.last_built_commit
+        echo ${commit_id} > ${commit_file}
         # Build all next projects as they might depend on this one.
         MUST_DO_ALL=true
         # Disable printing to reduce output
         set +x
     else
-        echo "${proj_dir} is up to date (commit ${commit_id})"
+        echo "${step_name} is up to date (commit ${commit_id})"
+    fi
+    # Exit if last step.
+    if [ ${step_name} = ${LAST_STEP} ]; then
+        exit
     fi
 }
 
@@ -411,9 +432,10 @@ check_and_do ${GRPC_COMMIT} grpc do_grpc grpc
 # check_and_do ${LIBYANG_COMMIT} libyang do_libyang libyang
 # check_and_do ${SYSREPO_COMMIT} sysrepo do_sysrepo sysrepo
 check_and_do ${BMV2_COMMIT} bmv2 do_pi_bmv2_deps bmv2-deps
-check_and_do ${PI_COMMIT} p4runtime do_p4runtime p4runtime
+check_and_do ${PI_COMMIT} PI do_PI PI
 check_and_do ${BMV2_COMMIT} bmv2 do_bmv2 bmv2
 check_and_do ${P4C_COMMIT} p4c do_p4c p4c
-check_and_do ${P4RT_TEST_COMMIT} p4rt-test do_p4rt_test p4rt-test
+check_and_do master scapy-vxlan do_scapy-vxlan scapy-vxlan
+check_and_do master ptf do_ptf ptf
 
 echo "Done!"
