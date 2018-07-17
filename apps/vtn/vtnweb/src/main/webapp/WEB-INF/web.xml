@@ -20,7 +20,6 @@
          id="ONOS" version="2.5">
     <display-name>VTNRSC REST API v1.0</display-name>
 
-    <!-- TODO: this should be uncommented
     <security-constraint>
         <web-resource-collection>
             <web-resource-name>Secured</web-resource-name>
@@ -28,18 +27,19 @@
         </web-resource-collection>
         <auth-constraint>
             <role-name>admin</role-name>
+            <role-name>viewer</role-name>
         </auth-constraint>
     </security-constraint>
 
     <security-role>
         <role-name>admin</role-name>
+        <role-name>viewer</role-name>
     </security-role>
 
     <login-config>
         <auth-method>BASIC</auth-method>
         <realm-name>karaf</realm-name>
     </login-config>
-    -->
 
     <servlet>
         <servlet-name>JAX-RS Service</servlet-name>

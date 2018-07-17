@@ -1,5 +1,4 @@
 #!/bin/bash
-
 #
 # Copyright 2015-present Open Networking Foundation
 #
@@ -44,4 +43,4 @@ fi
 
 file=$(basename $yang)
 modelId="$(echo $file | sed -E 's/(.zip|.jar|.yang)$//g')"
-curl $URL?modelId=$modelId -F"file=@$yang"
+$curl $URL?modelId=$modelId -F"file=@$yang"

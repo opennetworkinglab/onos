@@ -19,6 +19,7 @@ package org.onlab.rest;
 import com.google.common.collect.ImmutableSet;
 import org.onlab.rest.exceptions.BadRequestMapper;
 import org.onlab.rest.exceptions.EntityNotFoundMapper;
+import org.onlab.rest.exceptions.ForbiddenMapper;
 import org.onlab.rest.exceptions.IllegalArgumentExceptionMapper;
 import org.onlab.rest.exceptions.IllegalStateExceptionMapper;
 import org.onlab.rest.exceptions.NotFoundMapper;
@@ -43,7 +44,9 @@ public abstract class AbstractWebApplication extends Application {
      */
     protected Set<Class<?>> getClasses(Class<?>... classes) {
         ImmutableSet.Builder<Class<?>> builder = ImmutableSet.builder();
-        builder.add(ServiceNotFoundMapper.class,
+        builder.add(AuthorizationFilter.class,
+                    ForbiddenMapper.class,
+                    ServiceNotFoundMapper.class,
                     EntityNotFoundMapper.class,
                     NotFoundMapper.class,
                     ServerErrorMapper.class,

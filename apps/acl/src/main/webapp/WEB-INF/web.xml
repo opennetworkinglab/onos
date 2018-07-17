@@ -31,11 +31,13 @@
         </web-resource-collection>
         <auth-constraint>
             <role-name>admin</role-name>
+            <role-name>viewer</role-name>
         </auth-constraint>
     </security-constraint>
 
     <security-role>
         <role-name>admin</role-name>
+        <role-name>viewer</role-name>
     </security-role>
 
     <login-config>
