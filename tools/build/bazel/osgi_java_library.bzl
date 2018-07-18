@@ -18,6 +18,7 @@ load("//tools/build/bazel:generate_workspace.bzl", "COMPILE", "TEST")
 load("//tools/build/bazel:variables.bzl", "ONOS_VERSION")
 load("//tools/build/bazel:generate_test_rules.bzl", "generate_test_rules")
 load("//tools/build/bazel:checkstyle.bzl", "checkstyle_test")
+load("//tools/build/bazel:javadoc.bzl", "javadoc")
 
 def _all_java_sources():
     return native.glob(["src/main/java/**/*.java"])
@@ -374,6 +375,7 @@ def osgi_jar_with_tests(
         version = ONOS_VERSION,
         suppress_errorprone = False,
         suppress_checkstyle = False,
+        suppress_javadocs = False,
         web_context = None,
         api_title = "",
         api_version = "",
@@ -460,6 +462,11 @@ def osgi_jar_with_tests(
         web_xml = web_xml,
         include_resources = _include_resources_to_string(include_resources),
     )
+
+    # rule for building javadocs
+    if not suppress_javadocs:
+      javadoc(name = name + "-javadocs", deps = deps, srcs = srcs, visibility = visibility)
+
     if test_srcs != []:
         native.java_library(
             name = tests_name,
@@ -519,6 +526,7 @@ def osgi_jar(
         version = ONOS_VERSION,
         suppress_errorprone = False,
         suppress_checkstyle = False,
+        suppress_javadocs = False,
         web_context = None,
         api_title = "",
         api_version = "",
@@ -544,6 +552,7 @@ def osgi_jar(
         visibility = visibility,
         suppress_errorprone = suppress_errorprone,
         suppress_checkstyle = suppress_checkstyle,
+        suppress_javadocs = suppress_javadocs,
         version = version,
         import_packages = import_packages,
         api_title = api_title,

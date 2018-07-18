@@ -162,7 +162,9 @@ def yang_library(
              resource_jars = [name + "-generate"], deps = deps,
              visibility = ["//visibility:public"],
              suppress_errorprone = True,
-             suppress_checkstyle = True)
+             suppress_checkstyle = True,
+             suppress_javadocs = True,
+    )
 
 def yang_model(
     name = None,

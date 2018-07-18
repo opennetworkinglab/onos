@@ -12,4 +12,5 @@ osgi_jar_with_tests(
     test_deps = TEST_ADAPTERS,
     web_context = "/onos/yang",
     deps = COMPILE_DEPS,
+    suppress_javadocs = True,
 )
