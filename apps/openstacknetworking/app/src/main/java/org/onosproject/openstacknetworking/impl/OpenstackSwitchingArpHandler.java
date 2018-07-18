@@ -85,6 +85,7 @@ import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ARP_GAT
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ARP_REPLY_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ARP_REQUEST_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ARP_SUBNET_RULE;
+import static org.onosproject.openstacknetworking.api.InstancePort.State.ACTIVE;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getPropertyValue;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.swapStaleLocation;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.buildExtension;
@@ -718,6 +719,7 @@ public final class OpenstackSwitchingArpHandler {
         private void setAllArpRules(OpenstackNode osNode, boolean install) {
             if (ARP_BROADCAST_MODE.equals(getArpMode())) {
                 instancePortService.instancePorts().stream()
+                        .filter(p -> p.state() == ACTIVE)
                         .filter(p -> p.deviceId().equals(osNode.intgBridge()))
                         .forEach(p -> {
                             setArpRequestRule(p, install);

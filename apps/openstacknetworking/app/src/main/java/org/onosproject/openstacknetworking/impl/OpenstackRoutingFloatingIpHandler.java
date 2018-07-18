@@ -92,6 +92,7 @@ import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.i
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.swapStaleLocation;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.buildExtension;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
+import static org.openstack4j.model.network.NetworkType.FLAT;
 
 /**
  * Handles OpenStack floating IP events.
@@ -681,7 +682,11 @@ public class OpenstackRoutingFloatingIpHandler {
                     eventExecutor.execute(() -> {
                         NetFloatingIP osFip = event.floatingIp();
                         if (!Strings.isNullOrEmpty(osFip.getPortId())) {
-                            disassociateFloatingIp(osFip, osFip.getPortId());
+                            // in case the floating IP is not associated with any port due to
+                            // port removal, we simply do not execute floating IP disassociation
+                            if (osNetworkService.port(osFip.getPortId()) != null) {
+                                disassociateFloatingIp(osFip, osFip.getPortId());
+                            }
                         }
                         log.info("Removed floating IP {}", osFip.getFloatingIpAddress());
                     });
@@ -939,7 +944,8 @@ public class OpenstackRoutingFloatingIpHandler {
         public boolean isRelevant(OpenstackNetworkEvent event) {
             // do not allow to proceed without leadership
             NodeId leader = leadershipService.getLeader(appId.name());
-            return Objects.equals(localNodeId, leader);
+            return Objects.equals(localNodeId, leader) &&
+                    event.subject().getNetworkType() != FLAT;
         }
 
         @Override

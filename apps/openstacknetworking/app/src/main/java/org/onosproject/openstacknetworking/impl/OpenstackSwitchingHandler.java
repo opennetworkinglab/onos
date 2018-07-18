@@ -315,7 +315,6 @@ public final class OpenstackSwitchingHandler {
                 install);
     }
 
-
     /**
      * Configures the flow rules which are used for L2 packet switching.
      * Note that these rules will be inserted in switching table (table 5).

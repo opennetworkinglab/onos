@@ -97,6 +97,7 @@ import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_STATEFU
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_SWITCHING_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.ROUTING_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.STAT_OUTBOUND_TABLE;
+import static org.onosproject.openstacknetworking.api.InstancePort.State.ACTIVE;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.buildExtension;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
@@ -353,6 +354,8 @@ public class OpenstackRoutingHandler {
         osNodeService.completeNodes(OpenstackNode.NodeType.GATEWAY)
                 .forEach(gwNode -> {
                         instancePortService.instancePorts(netId)
+                                .stream()
+                                .filter(port -> port.state() == ACTIVE)
                                 .forEach(port -> setRulesForSnatIngressRule(gwNode.intgBridge(),
                                     Long.parseLong(osNet.getProviderSegID()),
                                     IpPrefix.valueOf(port.ipAddress(), 32),

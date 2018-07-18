@@ -527,16 +527,26 @@ public class OpenstackRoutingArpHandler {
                     );
                     break;
                 case OPENSTACK_FLOATING_IP_ASSOCIATED:
-                    eventExecutor.execute(() ->
-                        // associate a floating IP with an existing VM
-                        setFloatingIpArpRule(event.floatingIp(), completedGws, true)
-                    );
+                    eventExecutor.execute(() -> {
+                        NetFloatingIP osFip = event.floatingIp();
+
+                        if (!Strings.isNullOrEmpty(osFip.getPortId()) &&
+                                instancePortService.instancePort(osFip.getPortId()) != null) {
+                            // associate a floating IP with an existing VM
+                            setFloatingIpArpRule(event.floatingIp(), completedGws, true);
+                        }
+                    });
                     break;
                 case OPENSTACK_FLOATING_IP_DISASSOCIATED:
-                    eventExecutor.execute(() ->
-                        // disassociate a floating IP with the existing VM
-                        setFloatingIpArpRule(event.floatingIp(), completedGws, false)
-                    );
+                    eventExecutor.execute(() -> {
+                        NetFloatingIP osFip = event.floatingIp();
+
+                        if (!Strings.isNullOrEmpty(osFip.getPortId()) &&
+                                instancePortService.instancePort(osFip.getPortId()) != null) {
+                            // associate a floating IP with an existing VM
+                            setFloatingIpArpRule(event.floatingIp(), completedGws, false);
+                        }
+                    });
                     break;
                 case OPENSTACK_FLOATING_IP_CREATED:
                     eventExecutor.execute(() -> {
@@ -545,7 +555,8 @@ public class OpenstackRoutingArpHandler {
                         // during floating IP creation, if the floating IP is
                         // associated with any port of VM, then we will set
                         // floating IP related ARP rules to gateway node
-                        if (!Strings.isNullOrEmpty(osFip.getPortId())) {
+                        if (!Strings.isNullOrEmpty(osFip.getPortId()) &&
+                                instancePortService.instancePort(osFip.getPortId()) != null) {
                             setFloatingIpArpRule(osFip, completedGws, true);
                         }
                     });
@@ -557,7 +568,8 @@ public class OpenstackRoutingArpHandler {
                         // during floating IP deletion, if the floating IP is
                         // still associated with any port of VM, then we will
                         // remove floating IP related ARP rules from gateway node
-                        if (!Strings.isNullOrEmpty(osFip.getPortId())) {
+                        if (!Strings.isNullOrEmpty(osFip.getPortId()) &&
+                                instancePortService.instancePort(osFip.getPortId()) != null) {
                             setFloatingIpArpRule(event.floatingIp(), completedGws, false);
                         }
                     });
