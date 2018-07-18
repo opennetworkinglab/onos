@@ -83,10 +83,17 @@
         <command>
             <action class="org.onosproject.openstacknetworking.cli.InstancePortListCommand" />
         </command>
+        <command>
+            <action class="org.onosproject.openstacknetworking.cli.PurgeInstancePortsCommand" />
+            <completers>
+                <ref component-id="instancePortIdCompleter"/>
+            </completers>
+        </command>
     </command-bundle>
 
     <bean id="ipAddressCompleter" class="org.onosproject.openstacknetworking.cli.IpAddressCompleter"/>
     <bean id="macAddressCompleter" class="org.onosproject.openstacknetworking.cli.MacAddressCompleter"/>
     <bean id="vlanIdCompleter" class="org.onosproject.openstacknetworking.cli.VlanIdCompleter"/>
     <bean id="arpModeCompleter" class="org.onosproject.openstacknetworking.cli.ArpModeCompleter"/>
+    <bean id="instancePortIdCompleter" class="org.onosproject.openstacknetworking.cli.InstancePortIdCompleter"/>
 </blueprint>
