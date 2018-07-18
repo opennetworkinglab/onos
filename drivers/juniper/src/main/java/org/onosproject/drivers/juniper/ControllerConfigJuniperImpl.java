@@ -54,7 +54,7 @@ public class ControllerConfigJuniperImpl extends AbstractHandlerBehaviour implem
         List<ControllerInfo> controllers = Lists.newArrayList();
         String reply = retrieveResultCommand(buildRpcGetOpenFlowController());
 
-        if (reply == null || (reply != null && reply.isEmpty())) {
+        if (reply == null || reply.isEmpty()) {
             log.error("Cannot get the controllers from switch");
         } else {
             controllers = getOpenFlowControllersFromConfig(XmlConfigParser
