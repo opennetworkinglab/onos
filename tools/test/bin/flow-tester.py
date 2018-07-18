@@ -4,7 +4,7 @@ from optparse import OptionParser
 
 def run(url, request):
     data = json.dumps(request)
-    r = requests.post(url, data)
+    r = requests.post(url, data, auth=("onos", "rocks"))
     return r
 
 def runTasks(flowPerDevice, neighbours, url, servers, doJson, remove):
