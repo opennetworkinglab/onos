@@ -529,6 +529,11 @@ public class HostHandler {
                                                 MacAddress mac, VlanId innerVlan,
                                                 VlanId outerVlan, EthType outerTpid,
                                                 IpAddress ip, boolean revoke) {
+        if (!srManager.handleDoubleTaggedHosts) {
+            log.debug("Ignore double tagged host {}/{}/{}", mac, outerVlan, innerVlan);
+            return;
+        }
+
         ConnectPoint location = new ConnectPoint(deviceId, port);
         if (!srManager.deviceConfiguration.inSameSubnet(location, ip)) {
             log.info("{} is not included in the subnet config of {}/{}. Ignored.", ip, deviceId, port);
@@ -543,6 +548,30 @@ public class HostHandler {
             srManager.defaultRoutingHandler.populateDoubleTaggedRoute(
                     deviceId, ip.toIpPrefix(), mac, innerVlan, outerVlan, outerTpid, port);
         }
+    }
+
+    void populateAllDoubleTaggedHost() {
+        log.info("Populating all double tagged hosts");
+        Sets.newHashSet(srManager.hostService.getHosts()).stream().filter(this::isDoubleTaggedHost)
+                .forEach(h -> h.locations().forEach(l ->
+                    h.ipAddresses().forEach(i ->
+                        processDoubleTaggedRoutingRule(l.deviceId(), l.port(), h.mac(), h.innerVlan(),
+                                h.vlan(), h.tpid(), i, false)
+                    )
+            )
+        );
+    }
+
+    void revokeAllDoubleTaggedHost() {
+        log.info("Revoking all double tagged hosts");
+        Sets.newHashSet(srManager.hostService.getHosts()).stream().filter(this::isDoubleTaggedHost)
+                .forEach(h -> h.locations().forEach(l ->
+                    h.ipAddresses().forEach(i ->
+                        processDoubleTaggedRoutingRule(l.deviceId(), l.port(), h.mac(), h.innerVlan(),
+                            h.vlan(), h.tpid(), i, true)
+                    )
+            )
+        );
     }
 
     /**
