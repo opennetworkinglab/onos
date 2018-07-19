@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-present Open Networking Foundation
+ * Copyright 2018-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit, OnDestroy, Inject } from '@angular/core';
-import { FnService } from '../../fw/util/fn.service';
-import { IconService } from '../../fw/svg/icon.service';
-import { KeyService } from '../../fw/util/key.service';
-import { LoadingService } from '../../fw/layer/loading.service';
-import { LogService } from '../../log.service';
-import { MastService } from '../../fw/mast/mast.service';
-import { NavService } from '../../fw/nav/nav.service';
-import { TableBaseImpl, TableResponse } from '../../fw/widget/table.base';
-import { WebSocketService } from '../../fw/remote/websocket.service';
+import { Component, OnInit, OnDestroy} from '@angular/core';
+import { FnService } from '../../../fw/util/fn.service';
+import { LoadingService } from '../../../fw/layer/loading.service';
+import { LogService } from '../../../log.service';
+import { TableBaseImpl, TableResponse, SortDir } from '../../../fw/widget/table.base';
+import { WebSocketService } from '../../../fw/remote/websocket.service';
+import { ActivatedRoute, Router } from '@angular/router';
 
 /**
  * Model of the response from WebSocket
@@ -55,9 +52,9 @@ interface Device {
  * ONOS GUI -- Device View Component
  */
 @Component({
-  selector: 'onos-device',
-  templateUrl: './device.component.html',
-  styleUrls: ['./device.component.css', './device.theme.css', '../../fw/widget/table.css', '../../fw/widget/table.theme.css']
+    selector: 'onos-device',
+    templateUrl: './device.component.html',
+    styleUrls: ['./device.component.css', './device.theme.css', '../../../fw/widget/table.css', '../../../fw/widget/table.theme.css']
 })
 export class DeviceComponent extends TableBaseImpl implements OnInit, OnDestroy {
 
@@ -71,16 +68,29 @@ export class DeviceComponent extends TableBaseImpl implements OnInit, OnDestroy 
     constructor(
         protected fs: FnService,
         protected ls: LoadingService,
-        private is: IconService,
-        private ks: KeyService,
         protected log: LogService,
-        private mast: MastService,
-        private nav: NavService,
+        protected as: ActivatedRoute,
+        protected router: Router,
         protected wss: WebSocketService,
-        @Inject('Window') private window: Window,
     ) {
         super(fs, ls, log, wss, 'device');
         this.responseCallback = this.deviceResponseCb;
+
+        this.as.queryParams.subscribe(params => {
+            this.selId = params['devId'];
+
+        });
+
+        this.payloadParams = {
+            devId: this.selId
+        };
+
+        this.sortParams = {
+            firstCol: 'name',
+            firstDir: SortDir.asc,
+            secondCol: 'id',
+            secondDir: SortDir.desc,
+        };
     }
 
     ngOnInit() {
@@ -95,6 +105,13 @@ export class DeviceComponent extends TableBaseImpl implements OnInit, OnDestroy 
 
     deviceResponseCb(data: DeviceTableResponse) {
         this.log.debug('Device response received for ', data.devices.length, 'devices');
+    }
+
+    navto(path) {
+        this.log.debug('navigate');
+        if (this.selId) {
+            this.router.navigate([path], { queryParams: { devId: this.selId } });
+        }
     }
 
 }

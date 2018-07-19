@@ -25,6 +25,37 @@
     padding: 5px;
     position: absolute;
     z-index: 5000;
-    display: none;
+    display: inline-block;
     pointer-events: none;
+    top: 40px;
+    right: auto;
+    /* width: 240px; */
+}
+
+.tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+.tooltip .tooltiptext {
+    display: inline-block;
+    visibility: hidden;
+    background-color: #dbeffc;
+    color: #3c3a3a;
+    border-color: #c7c7c0;
+    text-align: center;
+    border-radius: 6px;
+    font-size: 80%;
+    padding: 5px;
+
+    /* Position the tooltip */
+    position: absolute;
+    z-index: 5000;
+    top: 42px;
+    right: 10%;
+    white-space: nowrap;
+}
+
+.tooltip:hover .tooltiptext {
+    visibility: visible;
 }

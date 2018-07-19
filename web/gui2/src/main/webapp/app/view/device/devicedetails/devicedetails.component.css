@@ -1,0 +1,114 @@
+/*
+ * Copyright 2018-present Open Networking Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#device-details-panel.floatpanel {
+    z-index: 0;
+    font-size: 10pt;
+    top: 185px;
+}
+
+#device-details-panel.floatpanel a {
+    font-weight: bold;
+}
+
+#device-details-panel .container {
+    padding: 0 30px;
+}
+
+#device-details-panel .close-btn {
+    position: absolute;
+    right:5px;
+    top: 5px;
+    cursor: pointer;
+}
+
+#device-details-panel .dev-icon {
+    display: inline-block;
+    padding: 0 6px 0 0;
+    vertical-align: middle;
+}
+
+#device-details-panel h2 {
+    display: inline-block;
+    margin: 8px 0;
+    font-weight: bold;
+    font-size: 16pt;
+}
+
+#device-details-panel h2 input {
+    font-size: 0.90em;
+    width: 106%;
+}
+
+#device-details-panel .actionBtns div {
+    padding: 12px 6px;
+}
+
+#device-details-panel hr {
+    width: 100%;
+    margin: 2px auto;
+}
+
+#device-details-panel .top-tables {
+    font-size: 10pt;
+    white-space: nowrap;
+}
+
+#device-details-panel td.label {
+    font-weight: bold;
+    text-align: right;
+    padding-right: 6px;
+}
+
+#device-details-panel .bottom table {
+    border-spacing: 0;
+    height: 358px;
+    width: 520px;
+    overflow: auto;
+    display: block;
+}
+
+#device-details-panel .bottom th {
+    letter-spacing: 0.02em;
+}
+
+#device-details-panel .bottom th,
+#device-details-panel .bottom td {
+    padding: 6px 12px;
+    text-align: center;
+}
+
+#device-details-panel .top div.left {
+    float: left;
+    text-align: left;
+    padding: 0 10px 0 0;
+}
+
+#device-details-panel .top div.right {
+    display: inline-block;
+}
+
+#device-details-panel .editable {
+    border-bottom: 1px dashed #ca504b;
+}
+
+#device-details-panel .clickable {
+    cursor: pointer;
+}
+
+#device-details-panel .bottom thead tr {
+    background-color: #e5e5e6;
+}

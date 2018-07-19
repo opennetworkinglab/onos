@@ -16,13 +16,22 @@
 <nav id="nav" [@navState]="ns.showNav">
     <div class="nav-hdr">{{ lionFn('cat_platform') }}</div>
 
-    <a (click)="ns.hideNav()" routerLink="/apps" routerLinkActive="active">
-        <onos-icon iconId="nav_apps"></onos-icon>Apps</a>
+    <a (click)="ns.hideNav()" routerLink="/app" routerLinkActive="active">
+        <onos-icon iconId="nav_apps"></onos-icon> Apps</a>
 
     <div class="nav-hdr">{{ lionFn('cat_network') }}</div>
 
-    <a (click)="ns.hideNav()" routerLink="/devices" routerLinkActive="active">
-        <onos-icon iconId="nav_devs"></onos-icon>Devices</a>
+    <a (click)="ns.hideNav()" routerLink="/device" routerLinkActive="active">
+        <onos-icon iconId="nav_devs"></onos-icon> Devices</a>
+
+    <a (click)="ns.hideNav()" routerLink="/link" routerLinkActive="active">
+        <onos-icon iconId="nav_links"></onos-icon> Links</a>
+
+    <a (click)="ns.hideNav()" routerLink="/host" routerLinkActive="active">
+        <onos-icon iconId="nav_hosts"></onos-icon> Hosts</a>
+
+    <a (click)="ns.hideNav()" routerLink="/tunnel" routerLinkActive="active">
+        <onos-icon iconId="nav_tunnels"></onos-icon> Tunnels</a>
 
     <div class="nav-hdr">{{ lionFn('cat_other') }}</div>
 </nav>

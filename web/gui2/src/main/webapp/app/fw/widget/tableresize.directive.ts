@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Directive, ElementRef } from '@angular/core';
+import { AfterContentChecked, Directive, ElementRef, Inject } from '@angular/core';
 import { FnService } from '../util/fn.service';
 import { LogService } from '../../log.service';
+import { MastService } from '../mast/mast.service';
+import { HostListener } from '@angular/core';
+import * as d3 from 'd3';
 
 /**
  * ONOS GUI -- Widget -- Table Resize Directive
@@ -23,20 +26,58 @@ import { LogService } from '../../log.service';
 @Directive({
     selector: '[onosTableResize]',
 })
-export class TableResizeDirective {
+export class TableResizeDirective implements AfterContentChecked {
 
-    constructor(
-        private fs: FnService,
-        public log: LogService,
-        private el: ElementRef,
-    ) {
+    pdg = 22;
+    tables: any;
 
-        this.windowSize();
-        this.log.debug('TableResizeDirective constructed');
+    constructor(protected fs: FnService,
+        protected log: LogService,
+        protected mast: MastService,
+        protected el: ElementRef,
+        @Inject('Window') private w: Window) {
+
+        log.info('TableResizeDirective constructed');
     }
 
-    windowSize() {
+    ngAfterContentChecked() {
+        this.tables = {
+            thead: d3.select('div.table-header').select('table'),
+            tbody: d3.select('div.table-body').select('table')
+        };
+        this.windowSize(this.tables);
+    }
+
+    windowSize(tables: any) {
         const wsz = this.fs.windowSize(0, 30);
-        this.el.nativeElement.style.width = wsz.width + 'px';
+        this.adjustTable(tables, wsz.width, wsz.height);
     }
+
+    @HostListener('window:resize', ['event'])
+    onResize(event: any) {
+        this.windowSize(this.tables);
+        return {
+            h: this.w.innerHeight,
+            w: this.w.innerWidth
+        };
+    }
+
+    adjustTable(tables: any, width: number, height: number) {
+        this._width(tables.thead, width + 'px');
+        this._width(tables.tbody, width + 'px');
+
+        this.setHeight(tables.thead, d3.select('div.table-body'), height);
+    }
+
+    _width(elem, width) {
+        elem.style('width', width);
+    }
+
+    setHeight(thead: any, body: any, height: number) {
+        const h = height - (this.mast.mastHeight +
+            this.fs.noPxStyle(d3.select('.tabular-header'), 'height') +
+            this.fs.noPxStyle(thead, 'height') + this.pdg);
+        body.style('height', h + 'px');
+    }
+
 }

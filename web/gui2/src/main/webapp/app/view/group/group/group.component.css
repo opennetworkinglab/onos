@@ -1,0 +1,101 @@
+/*
+ * Copyright 2018-present Open Networking Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+/*
+ ONOS GUI -- Group View (layout) -- CSS file
+ */
+
+#ov-group h2 {
+    display: inline-block;
+}
+
+#ov-group div.ctrl-btns {
+}
+
+#ov-group td {
+    text-align: center;
+}
+#ov-group td.right {
+    text-align: right;
+}
+#ov-group td.buckets {
+    text-align: left;
+    padding-left: 36px;
+}
+
+#ov-group .tabular-header {
+    text-align: left;
+}
+#ov-group div.summary-list .table-header td {
+    font-weight: bold;
+    font-variant: small-caps;
+    text-transform: uppercase;
+    font-size: 10pt;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    background-color: #e5e5e6;
+    color: #3c3a3a;
+}
+
+/* More in generic panel.css */
+
+#group-details-panel.floatpanel {
+    z-index: 0;
+}
+
+
+#group-details-panel .container {
+    padding: 8px 12px;
+}
+
+#group-details-panel .close-btn {
+    position: absolute;
+    right: 12px;
+    top: 12px;
+    cursor: pointer;
+}
+
+#group-details-panel .dev-icon {
+    display: inline-block;
+    padding: 0 6px 0 0;
+    vertical-align: middle;
+}
+
+#group-details-panel h2 {
+    display: inline-block;
+    margin: 8px 0;
+    font-size: 16pt;
+    font-weight: lighter;
+}
+
+#group-details-panel h3 {
+    display: inline-block;
+    margin: 8px 0;
+    font-size: 11pt;
+    font-variant: small-caps;
+    text-transform: uppercase;
+}
+
+#group-details-panel .top-content table {
+    font-size: 10pt;
+}
+
+#group-details-panel td.label {
+    font-weight: bold;
+    text-align: right;
+    padding-right: 6px;
+}

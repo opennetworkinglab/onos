@@ -21,10 +21,10 @@ import { By } from '@angular/platform-browser';
 
 import { LogService } from '../../../log.service';
 import { AppsDetailsComponent } from './appsdetails.component';
-import { FnService } from '../../../../app/fw/util/fn.service';
-import { IconComponent } from '../../../../app/fw/svg/icon/icon.component';
-import { IconService } from '../../../../app/fw/svg/icon.service';
-import { LionService } from '../../../../app/fw/util/lion.service';
+import { FnService } from '../../../fw/util/fn.service';
+import { IconComponent } from '../../../fw/svg/icon/icon.component';
+import { IconService } from '../../../fw/svg/icon.service';
+import { LionService } from '../../../fw/util/lion.service';
 import { UrlFnService } from '../../../fw/remote/urlfn.service';
 import { WebSocketService } from '../../../fw/remote/websocket.service';
 import { of } from 'rxjs';

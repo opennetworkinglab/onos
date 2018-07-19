@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-present Open Networking Foundation
+ * Copyright 2018-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,26 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DeviceRoutingModule } from './device-routing.module';
-import { DeviceComponent } from './device.component';
-import { DeviceDetailsPanelDirective } from './devicedetailspanel.directive';
+import { DeviceComponent } from './device/device.component';
 import { SvgModule } from '../../fw/svg/svg.module';
+import { WidgetModule } from '../../fw/widget/widget.module';
+import { FormsModule } from '@angular/forms';
+import { DeviceDetailsComponent } from './devicedetails/devicedetails.component';
 
 /**
  * ONOS GUI -- Device View Module
  */
 @NgModule({
-  imports: [
-    CommonModule,
-    DeviceRoutingModule,
-    SvgModule
-  ],
-  declarations: [
-    DeviceComponent,
-    DeviceDetailsPanelDirective
-  ]
+    imports: [
+        CommonModule,
+        DeviceRoutingModule,
+        SvgModule,
+        WidgetModule,
+        FormsModule
+    ],
+    declarations: [
+        DeviceComponent,
+        DeviceDetailsComponent
+    ]
 })
 export class DeviceModule { }

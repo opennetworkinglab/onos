@@ -101,8 +101,20 @@ export class AppsDetailsComponent extends DetailsPanelBaseImpl implements OnInit
         this.log.debug('App Details Component destroyed');
     }
 
+    /**
+     * Details Panel Data Request on row selection changes
+     * Should be called whenever id changes
+     * If id is empty, no request is made
+     */
     ngOnChanges() {
-        this.requestDetailsPanelData(this.id);
+        if (this.id === '') {
+            return '';
+        } else {
+            const query = {
+                'id': this.id
+            };
+            this.requestDetailsPanelData(query);
+        }
     }
 
     iconUrl(appId: string): string {

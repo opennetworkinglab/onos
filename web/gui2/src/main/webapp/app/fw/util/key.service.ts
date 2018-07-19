@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Injectable } from '@angular/core';
-import { FnService } from '../util/fn.service';
+import { FnService } from './fn.service';
 import { LogService } from '../../log.service';
 
 /**

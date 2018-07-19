@@ -36,24 +36,24 @@
             <div class="separator"></div>
 
             <div class="active" (click)="triggerForm()">
-                <onos-icon classes="{{ 'active upload' }}"
+                <onos-icon classes="{{ 'active-rect upload' }}"
                            iconId="upload" iconSize="42" toolTip="{{ uploadTip }}"></onos-icon>
             </div>
 
-            <div (click)="confirmAction(AppActionEnum.ACTIVATE)">
-                <onos-icon classes="{{ ctrlBtnState.installed?'active play':'play' }}"
+            <div (click)="(!!selId) ? confirmAction(AppActionEnum.ACTIVATE) : ''">
+                <onos-icon classes="{{ ctrlBtnState.installed?'active-rect play':'play' }}"
                            iconId="play" iconSize="42" toolTip="{{ activateTip }}"></onos-icon>
             </div>
-            <div (click)="confirmAction(AppActionEnum.DEACTIVATE)">
-                <onos-icon classes="{{ ctrlBtnState.active?'active stop':'stop' }}"
+            <div (click)="(!!selId) ? confirmAction(AppActionEnum.DEACTIVATE) : ''">
+                <onos-icon classes="{{ ctrlBtnState.active?'active-rect stop':'stop' }}"
                         iconId="stop" iconSize="42" toolTip="{{ deactivateTip }}"></onos-icon>
             </div>
-            <div (click)="confirmAction(AppActionEnum.UNINSTALL)">
-                <onos-icon classes="{{ ctrlBtnState.selection?'active garbage':'garbage' }}"
+            <div (click)="(!!selId) ? confirmAction(AppActionEnum.UNINSTALL) : ''">
+                <onos-icon classes="{{ ctrlBtnState.selection?'active-rect garbage':'garbage' }}"
                         iconId="garbage" iconSize="42" toolTip="{{ uninstallTip }}"></onos-icon>
             </div>
-            <div (click)="downloadApp()">
-                <onos-icon classes="{{ ctrlBtnState.selection?'active download':'download' }}"
+            <div (click)="(!!selId) ? downloadApp() : ''">
+                <onos-icon classes="{{ ctrlBtnState.selection?'active-rect download':'download' }}"
                         iconId="download" iconSize="42" toolTip="{{ downloadTip }}"></onos-icon>
             </div>
         </div>
@@ -74,34 +74,34 @@
 
     </div>
 
-    <div id="summary-list" class="summary-list">
+    <div id="summary-list" class="summary-list" onosTableResize>
         <div class="table-header">
-            <table onosTableResize>
+            <table>
                 <tr>
                     <th colId="state" [ngStyle]="{width: '32px'}" class="table-icon" (click)="onSort('state')">
-                        <onos-icon classes="active" [iconId]="sortIcon('state')"></onos-icon>
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('state')"></onos-icon>
                     </th>
                     <th colId="icon" [ngStyle]="{width: '32px'}" class="table-icon"></th>
                     <th colId="title"  (click)="onSort('title')">{{lionFn('title')}}
-                        <onos-icon classes="active" [iconId]="sortIcon('title')"></onos-icon>
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('title')"></onos-icon>
                     </th>
                     <th colId="id" (click)="onSort('id')">{{lionFn('app_id')}}
-                        <onos-icon classes="active" [iconId]="sortIcon('id')"></onos-icon>
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('id')"></onos-icon>
                     </th>
                     <th colId="version" (click)="onSort('version')"> {{lionFn('version')}}
-                        <onos-icon classes="active" [iconId]="sortIcon('version')"></onos-icon>
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('version')"></onos-icon>
                     </th>
                     <th colId="category" (click)="onSort('category')"> {{lionFn('category')}}
-                        <onos-icon classes="active" [iconId]="sortIcon('category')"></onos-icon>
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('category')"></onos-icon>
                     </th>
                     <th colId="origin" (click)="onSort('origin')"> {{lionFn('origin')}}
-                        <onos-icon classes="active" [iconId]="sortIcon('origin')"></onos-icon>
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('origin')"></onos-icon>
                     </th>
                 </tr>
             </table>
         </div>
         <div class="table-body">
-            <table onosTableResize>
+            <table>
                 <tr *ngIf="tableData.length === 0" class="no-data">
                     <td colspan="5">
                         {{annots.no_rows_msg}}
@@ -137,6 +137,6 @@
      The advantage in 2) is that panel can be animated in and out, as it is not
      killed every time the selection changes.
      -->
-    <onos-appsdetails  class="floatpanels" id="{{ selId }}"></onos-appsdetails>
+    <onos-appsdetails class="floatpanels" id="{{ selId }}" (closeEvent)="deselectRow($event)"></onos-appsdetails>
 
 </div>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-present Open Networking Foundation
+ * Copyright 2018-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,21 +17,26 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Params } from '@angular/router';
 import { DebugElement } from '@angular/core';
 import { By } from '@angular/platform-browser';
-import { LogService } from '../../log.service';
+import { LogService } from '../../../log.service';
 import { DeviceComponent } from './device.component';
+import { } from 'jasmine';
 
-import { FnService, WindowSize } from '../../fw/util/fn.service';
-import { IconService } from '../../fw/svg/icon.service';
-import { GlyphService } from '../../fw/svg/glyph.service';
-import { IconComponent } from '../../fw/svg/icon/icon.component';
-import { KeyService } from '../../fw/util/key.service';
-import { LoadingService } from '../../fw/layer/loading.service';
-import { NavService } from '../../fw/nav/nav.service';
-import { MastService } from '../../fw/mast/mast.service';
-import { SvgUtilService } from '../../fw/svg/svgutil.service';
-import { ThemeService } from '../../fw/util/theme.service';
-import { WebSocketService } from '../../fw/remote/websocket.service';
+import { FnService } from '../../../fw/util/fn.service';
+import { IconService } from '../../../fw/svg/icon.service';
+import { GlyphService } from '../../../fw/svg/glyph.service';
+import { IconComponent } from '../../../fw/svg/icon/icon.component';
+import { KeyService } from '../../../fw/util/key.service';
+import { LoadingService } from '../../../fw/layer/loading.service';
+import { NavService } from '../../../fw/nav/nav.service';
+import { MastService } from '../../../fw/mast/mast.service';
+import { TableFilterPipe } from '../../../fw/widget/tablefilter.pipe';
+import { ThemeService } from '../../../fw/util/theme.service';
+import { WebSocketService } from '../../../fw/remote/websocket.service';
 import { of } from 'rxjs';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { FormsModule } from '@angular/forms';
+import { DeviceDetailsComponent } from './../devicedetails/devicedetails.component';
+import { RouterTestingModule } from '@angular/router/testing';
 
 class MockActivatedRoute extends ActivatedRoute {
     constructor(params: Params) {
@@ -40,38 +45,30 @@ class MockActivatedRoute extends ActivatedRoute {
     }
 }
 
-class MockDetailsPanelService {}
-
-class MockFnService {}
-
 class MockIconService {
-    loadIconDef() {}
+    loadIconDef() { }
 }
 
-class MockGlyphService {}
+class MockGlyphService { }
 
-class MockKeyService {}
+class MockKeyService { }
 
 class MockLoadingService {
-    startAnim() {}
-    stop() {}
+    startAnim() { }
+    stop() { }
 }
 
-class MockNavService {}
+class MockNavService { }
 
-class MockMastService {}
+class MockMastService { }
 
-class MockTableBuilderService {}
-
-class MockTableDetailService {}
-
-class MockThemeService {}
+class MockThemeService { }
 
 class MockWebSocketService {
-    createWebSocket() {}
+    createWebSocket() { }
     isConnected() { return false; }
-    unbindHandlers() {}
-    bindHandlers() {}
+    unbindHandlers() { }
+    bindHandlers() { }
 }
 
 /**
@@ -87,15 +84,15 @@ describe('DeviceComponent', () => {
 
     beforeEach(async(() => {
         const logSpy = jasmine.createSpyObj('LogService', ['info', 'debug', 'warn', 'error']);
-        ar = new MockActivatedRoute({'debug': 'txrx'});
+        ar = new MockActivatedRoute({ 'debug': 'txrx' });
 
         windowMock = <any>{
-            location: <any> {
+            location: <any>{
                 hostname: 'foo',
                 host: 'foo',
                 port: '80',
                 protocol: 'http',
-                search: { debug: 'true'},
+                search: { debug: 'true' },
                 href: 'ws://foo:123/onos/ui/websock/path',
                 absUrl: 'ws://foo:123/onos/ui/websock/path'
             }
@@ -103,7 +100,8 @@ describe('DeviceComponent', () => {
         fs = new FnService(ar, logSpy, windowMock);
 
         TestBed.configureTestingModule({
-            declarations: [ DeviceComponent, IconComponent ],
+            imports: [BrowserAnimationsModule, FormsModule, RouterTestingModule],
+            declarations: [DeviceComponent, IconComponent, TableFilterPipe, DeviceDetailsComponent],
             providers: [
                 { provide: FnService, useValue: fs },
                 { provide: IconService, useClass: MockIconService },
@@ -116,9 +114,8 @@ describe('DeviceComponent', () => {
                 { provide: ThemeService, useClass: MockThemeService },
                 { provide: WebSocketService, useClass: MockWebSocketService },
                 { provide: 'Window', useValue: windowMock },
-             ]
-        })
-        .compileComponents();
+            ]
+        }).compileComponents();
         logServiceSpy = TestBed.get(LogService);
     }));
 
@@ -132,10 +129,29 @@ describe('DeviceComponent', () => {
         expect(component).toBeTruthy();
     });
 
+    it('should have a div.tabular-header inside a div#ov-device', () => {
+        const devDe: DebugElement = fixture.debugElement;
+        const divDe = devDe.query(By.css('div#ov-device div.tabular-header'));
+        expect(divDe).toBeTruthy();
+    });
+
     it('should have .table-header with "Friendly Name..."', () => {
-        const appDe: DebugElement = fixture.debugElement;
-        const divDe = appDe.query(By.css('.table-header'));
+        const devDe: DebugElement = fixture.debugElement;
+        const divDe = devDe.query(By.css('div#ov-device div.table-header'));
         const div: HTMLElement = divDe.nativeElement;
         expect(div.textContent).toEqual('Friendly Name Device ID Master Ports Vendor H/W Version S/W Version Protocol ');
+    });
+
+    it('should have a refresh button inside the div.tabular-header', () => {
+        const devDe: DebugElement = fixture.debugElement;
+        const divDe = devDe.query(By.css('div#ov-device div.tabular-header div.ctrl-btns div.refresh'));
+        expect(divDe).toBeTruthy();
+    });
+
+
+    it('should have a div.table-body ', () => {
+        const devDe: DebugElement = fixture.debugElement;
+        const divDe = devDe.query(By.css('div#ov-device  div.table-body'));
+        expect(divDe).toBeTruthy();
     });
 });

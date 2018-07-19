@@ -31,14 +31,13 @@ div.summary-list table {
 
 div.summary-list div.table-body {
     overflow-y: scroll;
-    max-height:70vh;
 }
 
 div.summary-list div.table-body::-webkit-scrollbar {
     display: none;
 }
 
-div.summary-list tr.no-data td {
+div.summary-list div.table-body tr.no-data td {
     text-align: center;
     font-style: italic;
 }

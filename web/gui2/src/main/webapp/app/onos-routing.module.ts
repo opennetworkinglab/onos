@@ -22,16 +22,44 @@ import { Routes, RouterModule } from '@angular/router';
  */
 const onosRoutes: Routes = [
     {
-        path: 'apps',
+        path: 'app',
         loadChildren: 'app/view/apps/apps.module#AppsModule'
     },
     {
-        path: 'devices',
+        path: 'device',
         loadChildren: 'app/view/device/device.module#DeviceModule'
     },
     {
+        path: 'link',
+        loadChildren: 'app/view/link/link.module#LinkModule'
+    },
+    {
+        path: 'host',
+        loadChildren: 'app/view/host/host.module#HostModule'
+    },
+    {
+        path: 'tunnel',
+        loadChildren: 'app/view/tunnel/tunnel.module#TunnelModule'
+    },
+    {
+        path: 'flow',
+        loadChildren: 'app/view/flow/flow.module#FlowModule'
+    },
+    {
+        path: 'port',
+        loadChildren: 'app/view/port/port.module#PortModule'
+    },
+    {
+        path: 'group',
+        loadChildren: 'app/view/group/group.module#GroupModule'
+    },
+    {
+        path: 'meter',
+        loadChildren: 'app/view/meter/meter.module#MeterModule'
+    },
+    {
         path: '',
-        redirectTo: 'devices', // Default to devices view - change to topo in future
+        redirectTo: 'device', // Default to devices view - change to topo in future
         pathMatch: 'full'
     }
 ];

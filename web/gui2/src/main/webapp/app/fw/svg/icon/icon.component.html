@@ -13,6 +13,7 @@
 ~ See the License for the specific language governing permissions and
 ~ limitations under the License.
 -->
+<div class="tooltip">
 <svg class="embeddedIcon" [attr.width]="iconSize" [attr.height]="iconSize" viewBox="0 0 50 50" (mouseover)="toolTipDisp = toolTip" (mouseout)="toolTipDisp = undefined">
     <g class="icon" [ngClass]="classes">
         <rect width="50" height="50" rx="5"></rect>
@@ -20,4 +21,8 @@
     </g>
 </svg>
 <!-- I'm fixing class as light as view encapsulation changes how the hirerarchy of css is handled -->
-<p id="tooltip" class="light" *ngIf="toolTip" [ngStyle]="{ 'display': toolTipDisp ? 'inline-block':'none' }">{{ toolTipDisp }}</p>
+
+<!-- <p id="tooltip" class="light" *ngIf="toolTip" [ngStyle]="{ 'display': toolTipDisp ? 'inline-block':'none'}">{{ toolTipDisp }}</p> -->
+
+    <span class="tooltiptext" [ngStyle]="{ 'display': toolTipDisp ? 'inline-block':'none'}">{{toolTipDisp}}</span>
+</div>

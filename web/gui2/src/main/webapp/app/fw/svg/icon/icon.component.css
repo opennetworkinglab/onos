@@ -30,16 +30,58 @@ svg.embeddedIcon g.icon {
     fill: none;
 }
 
-svg.embeddedIcon g.icon rect {
-    stroke: none;
-    fill: none;
+.ctrl-btns div svg.embeddedIcon g.icon use {
+    fill: #e0dfd6;
 }
 
-svg.embeddedIcon g.icon .glyph {
-    stroke: none;
-    fill-rule: evenodd;
+.ctrl-btns div.active svg.embeddedIcon g.icon use {
+    fill: #939598;
+}
+.ctrl-btns div.active:hover svg.embeddedIcon g.icon use {
+    fill: #ce5b58;
 }
 
-svg.embeddedIcon .icon.appInactive .glyph {
-    fill: none !important;
+.ctrl-btns div.current-view svg.embeddedIcon g.icon rect {
+    fill: #518ecc;
 }
+.ctrl-btns div.current-view svg.embeddedIcon g.icon use {
+    fill: white;
+}
+
+svg.embeddedIcon .icon.active .glyph {
+    fill: #04bf34;
+}
+
+svg.embeddedIcon .icon.inactive .glyph {
+    fill: #c0242b;
+}
+
+svg.embeddedIcon .icon.active-rect .glyph {
+    fill:#939598;
+}
+
+svg.embeddedIcon .icon.active-sort .glyph {
+    fill:#333333;
+}
+
+svg.embeddedIcon g.icon.active-rect:hover use {
+    fill: #ce5b58;
+}
+
+svg.embeddedIcon g.icon.active-type .glyph {
+    fill: #3c3a3a;
+}
+
+svg.embeddedIcon g.icon.active-close:hover use {
+    fill: #ce5b58;
+}
+
+svg.embeddedIcon g.icon.active-close .glyph {
+    fill: #333333;
+}
+
+svg.embeddedIcon g.icon.details-icon .glyph {
+    fill: #0071bd;;
+}
+
+

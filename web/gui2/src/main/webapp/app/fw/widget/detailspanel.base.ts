@@ -19,6 +19,7 @@ import { LogService } from '../../log.service';
 import { WebSocketService } from '../remote/websocket.service';
 
 import { PanelBaseImpl } from './panel.base';
+import { Output, EventEmitter, Input } from '@angular/core';
 
 /**
  * A generic model of the data returned from the *DetailsResponse
@@ -36,6 +37,9 @@ interface DetailsResponse {
  * This replaces the detailspanel service in the old gui
  */
 export abstract class DetailsPanelBaseImpl extends PanelBaseImpl {
+
+    @Input() id: string;
+    @Output() closeEvent = new EventEmitter<string>();
 
     private root: string;
     private req: string;
@@ -85,16 +89,10 @@ export abstract class DetailsPanelBaseImpl extends PanelBaseImpl {
     }
 
     /**
-     * Details Panel Data Request - should be called whenever id changes
-     * If id is empty, no request is made
+     * Details Panel Data Request - should be called whenever row id changes
      */
-    requestDetailsPanelData(id: string) {
-        if (id === '') {
-            return;
-        }
+    requestDetailsPanelData(query: any) {
         this.closed = false;
-        const query = {'id': id};
-
         // Do not send if the Web Socket hasn't opened
         if (this.wss.isConnected()) {
             if (this.fs.debugOn('panel')) {
@@ -109,5 +107,8 @@ export abstract class DetailsPanelBaseImpl extends PanelBaseImpl {
      */
     close(): void {
         this.closed = true;
+        this.id = null;
+        this.closeEvent.emit(this.id);
     }
+
 }

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { Injectable } from '@angular/core';
-import { FnService } from '../util/fn.service';
 import { LogService } from '../../log.service';
 
 /**
@@ -26,7 +25,6 @@ import { LogService } from '../../log.service';
 export class RandomService {
 
     constructor(
-        private fs: FnService,
         private log: LogService
     ) {
         this.log.debug('RandomService constructed');

@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 import { Injectable } from '@angular/core';
-import { FnService } from '../../fw/util/fn.service';
+import { FnService } from '../util/fn.service';
 import { LogService } from '../../log.service';
 import * as gds from './glyphdata.service';
 import * as d3 from 'd3';
+import { SvgUtilService } from './svgutil.service';
 
 // constants
 const msgGS = 'GlyphService.';
@@ -31,14 +32,25 @@ const rgs = 'registerGlyphSet(): ';
 export class GlyphService {
     // internal state
     glyphs = d3.map();
+    api: Object;
 
     constructor(
         private fs: FnService,
-//        private gd: GlyphDataService,
-        private log: LogService
+        //        private gd: GlyphDataService,
+        private log: LogService,
+        private sus: SvgUtilService
     ) {
         this.clear();
         this.init();
+        this.api = {
+            registerGlyphs: this.registerGlyphs,
+            registerGlyphSet: this.registerGlyphSet,
+            ids: this.ids,
+            glyph: this.glyph,
+            glyphDefined: this.glyphDefined,
+            loadDefs: this.loadDefs,
+            addGlyph: this.addGlyph,
+        };
         this.log.debug('GlyphService constructed');
     }
 
@@ -121,7 +133,7 @@ export class GlyphService {
         }
 
         for (const [key, value] of data.entries()) {
-//        angular.forEach(data, function (value, key) {
+            //        angular.forEach(data, function (value, key) {
             if (key[0] !== '_') {
                 this.addToMap(key, value, vb, overwrite, dups);
             }
@@ -167,11 +179,28 @@ export class GlyphService {
                     }
                 }
                 defs.append('symbol')
-                      .attr('id', g.id)
-                      .attr('viewBox', g.vb)
-                      .append('path')
-                      .attr('d', g.d);
+                    .attr('id', g.id)
+                    .attr('viewBox', g.vb)
+                    .append('path')
+                    .attr('d', g.d);
             }
         });
+    }
+
+    addGlyph(elem: any, glyphId: string, size: number, overlay: any, trans: any) {
+        const sz = size || 40,
+            ovr = !!overlay,
+            xns = this.fs.isA(trans),
+            atr = {
+                width: sz,
+                height: sz,
+                'class': 'glyph',
+                'xlink:href': '#' + glyphId,
+            };
+
+        if (xns) {
+            atr.class = this.sus.translate(trans);
+        }
+        return elem.append('use').attr(atr).classed('overlay', ovr);
     }
 }

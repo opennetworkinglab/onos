@@ -1,0 +1,124 @@
+<!--
+~ Copyright 2018-present Open Networking Foundation
+~
+~ Licensed under the Apache License, Version 2.0 (the "License");
+~ you may not use this file except in compliance with the License.
+~ You may obtain a copy of the License at
+~
+~     http://www.apache.org/licenses/LICENSE-2.0
+~
+~ Unless required by applicable law or agreed to in writing, software
+~ distributed under the License is distributed on an "AS IS" BASIS,
+~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+~ See the License for the specific language governing permissions and
+~ limitations under the License.
+-->
+<div id="ov-group" xmlns="http://www.w3.org/1999/html">
+    <div class="tabular-header">
+        <h2>
+            Groups for Device {{id}} ({{tableData.length}} total)
+        </h2>
+        <div class="ctrl-btns">
+            <div class="refresh" (click)="toggleRefresh()">
+                <!-- See icon.theme.css for the defintions of the classes active and refresh-->
+                <onos-icon classes="{{ autoRefresh?'active refresh':'refresh' }}" iconId="refresh" iconSize="42" toolTip="{{ autoRefreshTip }}"></onos-icon>
+            </div>
+            <div class="separator"></div>
+            <span *ngIf="brief" (click)="briefToggle()">
+                <div>
+                    <onos-icon classes="{{ id ? 'active-rect' :undefined}}" iconId="plus" iconSize="42" toolTip="{{detailTip}}"></onos-icon>
+                </div>
+            </span>
+
+            <span *ngIf="!brief" (click)="briefToggle()">
+                <div>
+                    <onos-icon classes="{{ id ? 'active-rect' :undefined}}" iconId="minus" iconSize="42" toolTip="{{briefTip}}"></onos-icon>
+                </div>
+            </span>
+            <div class="separator"></div>
+            <div routerLink="/device" [queryParams]="{ devId: id }" routerLinkActive="active">
+                <onos-icon classes="{{ id ? 'active-rect':undefined }}" iconId="deviceTable" iconSize="42" toolTip="{{deviceTip}}"></onos-icon>
+            </div>
+
+            <div routerLink="/flow" [queryParams]="{ devId: id }" routerLinkActive="active">
+                <onos-icon classes="{{ id ? 'active-rect' :undefined}}" iconId="flowTable" iconSize="42" toolTip="{{ flowTip }}"></onos-icon>
+            </div>
+
+            <div routerLink="/port" [queryParams]="{ devId: id }" routerLinkActive="active">
+                <onos-icon classes="{{ id ? 'active-rect' :undefined}}" iconId="portTable" iconSize="42" toolTip="{{ portTip }}"></onos-icon>
+            </div>
+
+            <div>
+                <onos-icon classes="{{ id ? 'current-view' :undefined}}" iconId="groupTable" iconSize="42"></onos-icon>
+            </div>
+
+            <div routerLink="/meter" [queryParams]="{ devId: id }" routerLinkActive="active">
+                <onos-icon classes="{{ id ? 'active-rect' :undefined}}" iconId="meterTable" iconSize="42" toolTip="{{ meterTip }}"></onos-icon>
+            </div>
+
+            <div routerLink="/pipeconf" [queryParams]="{ devId: id }" routerLinkActive="active">
+                <onos-icon classes="{{ id ? 'active-rect' :undefined}}" iconId="pipeconfTable" iconSize="42" toolTip="{{ pipeconfTip }}"></onos-icon>
+            </div>
+        </div>
+
+        <div class="search">
+            <input id="searchinput" [(ngModel)]="tableDataFilter.queryStr" type="search" #search placeholder="Search" />
+            <select [(ngModel)]="tableDataFilter.queryBy">
+                <option value="" disabled>Search By</option>
+                <option value="$">All Fields</option>
+                <option value="id">Group Id</option>
+                <option value="app_id">App Id</option>
+                <option value="state">State</option>
+                <option value="type">Type</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="summary-list" onosTableResize>
+        <div class="table-header">
+            <table>
+                <tr>
+                    <td colId="id" (click)="onSort('id')">Group Id
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('id')"></onos-icon>
+                    </td>
+                    <td colId="app_id" (click)="onSort('app_id')">App Id
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('app_id')"></onos-icon>
+                    </td>
+                    <td colId="state" (click)="onSort('state')">State
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('state')"></onos-icon>
+                    </td>
+                    <td colId="type" (click)="onSort('type')">Type
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('type')"></onos-icon>
+                    </td>
+                    <td colId="packets" (click)="onSort('packets')">Packets
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('packets')"></onos-icon>
+                    </td>
+                    <td colId="bytes" (click)="onSort('bytes')">Bytes
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('bytes')"></onos-icon>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="table-body">
+            <table>
+                <tr class="no-data" *ngIf="tableData.length === 0">
+                    <td colspan="6">{{ annots.noRowsMsg }}</td>
+                </tr>
+                <ng-template ngFor let-group [ngForOf]="tableData | filter : tableDataFilter">
+                    <tr [ngClass]="{'data-change': isChanged(group.id)}">
+                        <td>{{group.id}}</td>
+                        <td>{{group.app_id}}</td>
+                        <td>{{group.state}}</td>
+                        <td>{{group.type}}</td>
+                        <td>{{group.packets}}</td>
+                        <td>{{group.bytes}}</td>
+                    </tr>
+                    <tr (click)="selectCallback($event, group)" [hidden]="brief" [ngClass]="{'data-change': isChanged(group.id)}">
+                        <td class="buckets" colspan="6" [innerHTML]="group.buckets"></td>
+                    </tr>
+                </ng-template>
+            </table>
+        </div>
+    </div>
+</div>

@@ -337,4 +337,13 @@ export class AppsComponent extends TableBaseImpl implements OnInit, OnDestroy {
         evt.preventDefault();
         evt.stopPropagation();
     }
+
+    deselectRow(event) {
+        this.log.debug('Details panel close event');
+        this.selId = event;
+        this.ctrlBtnState = <CtrlBtnState>{
+            installed: undefined,
+            active: undefined
+        };
+    }
 }

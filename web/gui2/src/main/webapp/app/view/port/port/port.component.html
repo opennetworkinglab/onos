@@ -1,0 +1,136 @@
+<!--
+~ Copyright 2018-present Open Networking Foundation
+~
+~ Licensed under the Apache License, Version 2.0 (the "License");
+~ you may not use this file except in compliance with the License.
+~ You may obtain a copy of the License at
+~
+~     http://www.apache.org/licenses/LICENSE-2.0
+~
+~ Unless required by applicable law or agreed to in writing, software
+~ distributed under the License is distributed on an "AS IS" BASIS,
+~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+~ See the License for the specific language governing permissions and
+~ limitations under the License.
+-->
+<!-- Port partial HTML -->
+<div id="ov-port">
+    <div class="tabular-header">
+        <h2>
+            Ports for Device {{devId}} ({{tableData.length}} Total)
+        </h2>
+
+        <div class="ctrl-btns">
+            <div class="refresh" (click)="toggleRefresh()">
+                <!-- See icon.theme.css for the defintions of the classes active and refresh-->
+                <onos-icon classes="{{ autoRefresh?'active refresh':'refresh' }}" iconId="refresh" iconSize="42" toolTip="{{ autoRefreshTip }}"></onos-icon>
+            </div>
+
+            <div class="separator"></div>
+
+            <div class="refresh" (click)="toggleNZState()">
+                <onos-icon classes="{{ isNz() ? 'refresh' :'active refresh'}}" iconId="nonzero" iconSize="42" toolTip="{{toggleNZTip}}">
+                </onos-icon>
+            </div>
+
+            <div class="refresh" (click)="toggleDeltaState()">
+                <onos-icon classes="{{ isDelta() ? 'active refresh' :'refresh'}}" iconId="delta" iconSize="42" toolTip="{{toggleDeltaTip}}"></onos-icon>
+            </div>
+
+            <div class="separator"></div>
+
+            <div routerLink="/device" [queryParams]="{ devId: devId }" routerLinkActive="active">
+                <onos-icon classes="{{ devId ? 'active-rect':undefined }}" iconId="deviceTable" iconSize="42" toolTip="{{deviceTip}}"></onos-icon>
+            </div>
+
+            <div routerLink="/flow" [queryParams]="{ devId: devId }" routerLinkActive="active">
+                <onos-icon classes="{{ devId ? 'active-rect' :undefined}}" iconId="flowTable" iconSize="42" toolTip="{{ flowTip }}"></onos-icon>
+            </div>
+
+            <div>
+                <onos-icon classes="{{ devId ? 'current-view' :undefined}}" iconId="portTable" iconSize="42"></onos-icon>
+            </div>
+
+            <div routerLink="/group" [queryParams]="{ devId: devId }" routerLinkActive="active">
+                <onos-icon classes="{{ devId ? 'active-rect' :undefined}}" iconId="groupTable" iconSize="42" toolTip="{{ groupTip }}"></onos-icon>
+            </div>
+
+            <div routerLink="/meter" [queryParams]="{ devId: devId }" routerLinkActive="active">
+                <onos-icon classes="{{ devId ? 'active-rect' :undefined}}" iconId="meterTable" iconSize="42" toolTip="{{ meterTip }}"></onos-icon>
+            </div>
+
+            <div routerLink="/pipeconf" [queryParams]="{ devId: devId }" routerLinkActive="active">
+                <onos-icon classes="{{ devId ? 'active-rect' :undefined}}" iconId="pipeconfTable" iconSize="42" toolTip="{{ pipeconfTip }}"></onos-icon>
+            </div>
+        </div>
+
+        <div class="search">
+            <input id="searchinput" [(ngModel)]="tableDataFilter.queryStr" type="search" #search placeholder="Search" />
+            <select [(ngModel)]="tableDataFilter.queryBy">
+                <option value="" disabled>Search By</option>
+                <option value="$">All Fields</option>
+                <option value="id">Port ID</option>
+                <option value="pkt_rx">Pkts Received</option>
+                <option value="pkt_tx">Pkts Sent</option>
+                <option value="bytes_rx">Bytes Received</option>
+                <option value="bytes_tx">Bytes Sent</option>
+                <option value="pkt_rx_drp">Pkts RX Dropped</option>
+                <option value="pkt_rx_drp">Pkts TX Dropped</option>
+                <option value="duration">Duration (sec)</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="summary-list" onosTableResize>
+        <div class="table-header">
+            <table>
+                <tr>
+                    <td colId="id" (click)="onSort('id')">Port ID
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('id')"></onos-icon>
+                    </td>
+                    <td colId="pkt_rx" (click)="onSort('pkt_rx')">Pkts Received
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('pkt_rx')"></onos-icon>
+                    </td>
+                    <td colId="pkt_tx" (click)="onSort('pkt_tx')">Pkts Sent
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('pkt_tx')"></onos-icon>
+                    </td>
+                    <td colId="bytes_rx" (click)="onSort('bytes_rx')">Bytes Received
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('bytes_rx')"></onos-icon>
+                    </td>
+                    <td colId="bytes_tx" (click)="onSort('bytes_tx')">Bytes Sent
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('bytes_tx')"></onos-icon>
+                    </td>
+                    <td colId="pkt_rx_drp" (click)="onSort('pkt_rx_drp')">Pkts RX Dropped
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('pkt_rx_drp')"></onos-icon>
+                    </td>
+                    <td colId="pkt_tx_drp" (click)="onSort('pkt_tx_drp')">Pkts TX Dropped
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('pkt_tx_drp')"></onos-icon>
+                    </td>
+                    <td colId="duration" (click)="onSort('duration')">Duration (sec)
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('duration')"></onos-icon>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="table-body">
+            <table>
+                <tr class="table-body" *ngIf="tableData.length === 0" class="no-data">
+                    <td colspan="9">{{annots.noRowsMsg}}</td>
+                </tr>
+
+                <tr *ngFor="let port of tableData | filter : tableDataFilter" (click)="selectCallback($event, port)" [ngClass]="{selected: port.id === selId, 'data-change': isChanged(port.id)}">
+                    <td>{{port.id}}</td>
+                    <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.pkt_rx}}</td>
+                    <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.pkt_tx}}</td>
+                    <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.bytes_rx}}</td>
+                    <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.bytes_tx}}</td>
+                    <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.pkt_rx_drp}}</td>
+                    <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.pkt_tx_drp}}</td>
+                    <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.duration}}</td>
+                </tr>
+            </table>
+        </div>
+        <onos-portdetails class="floatpanels" id="{{ selId }}" devId="{{devId}}" (closeEvent)="deselectRow($event)"></onos-portdetails>
+    </div>
+</div>

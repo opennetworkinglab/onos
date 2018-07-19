@@ -1,0 +1,71 @@
+/*
+ * Copyright 2018-present Open Networking Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
+ ONOS GUI -- Group View (theme) -- CSS file
+ */
+
+/* a "logical" row is made up of 2 "physical" rows -- color as such */
+#ov-group tr:nth-child(4n + 1),
+#ov-group tr:nth-child(4n + 2) {
+    background-color: #fbfbfb;
+}
+#ov-group tr:nth-child(4n + 3),
+#ov-group tr:nth-child(4n) {
+    background-color: #f4f4f4;
+}
+
+/* highlighted color */
+#ov-group tr:nth-child(4n + 1).data-change,
+#ov-group tr:nth-child(4n + 2).data-change,
+#ov-group tr:nth-child(4n + 3).data-change,
+#ov-group tr:nth-child(4n).data-change {
+    background-color: #FDFFDC;
+}
+
+#ov-group td.selector,
+#ov-group td.treatment {
+    opacity: 0.65;
+}
+
+/* ========== DARK Theme ========== */
+
+.dark #ov-group tr:nth-child(4n + 1),
+.dark #ov-group tr:nth-child(4n + 2) {
+    background-color: #333333;
+}
+.dark #ov-group tr:nth-child(4n + 3),
+.dark #ov-group tr:nth-child(4n) {
+    background-color: #3a3a3a;
+}
+
+.dark #ov-group tr:nth-child(4n + 1).data-change,
+.dark #ov-group tr:nth-child(4n + 2).data-change,
+.dark #ov-group tr:nth-child(4n + 3).data-change,
+.dark #ov-group tr:nth-child(4n).data-change {
+    background-color: #423708;
+}
+
+.light #group-details-panel .bottom th {
+    background-color: #e5e5e6;
+}
+
+.light #group-details-panel .bottom tr:nth-child(odd) {
+    background-color: #fbfbfb;
+}
+.light #group-details-panel .bottom tr:nth-child(even) {
+    background-color: #f4f4f4;
+}

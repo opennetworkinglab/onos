@@ -67,6 +67,11 @@ export interface SortParams {
     secondDir: SortDir;
 }
 
+export interface PayloadParams {
+    devId: string;
+}
+
+
 /**
  * ONOS GUI -- Widget -- Table Base class
  */
@@ -74,7 +79,7 @@ export abstract class TableBaseImpl {
     // attributes from the interface
     protected annots: TableAnnots;
     protected changedData: string[] = [];
-    protected payloadParams: any;
+    protected payloadParams: PayloadParams;
     protected sortParams: SortParams;
     protected selectCallback; // Function
     protected parentSelCb = null;
@@ -164,7 +169,7 @@ export abstract class TableBaseImpl {
         if (JSON.stringify(newTableData) !== JSON.stringify(this.tableData)) {
             this.log.debug('table data has changed');
             const oldTableData: any[] = this.tableData;
-            this.tableData = [ ...newTableData ]; // ES6 spread syntax
+            this.tableData = [...newTableData]; // ES6 spread syntax
             // only flash the row if the data already exists
             if (oldTableData.length > 0) {
                 for (const idx in newTableData) {
@@ -281,5 +286,13 @@ export abstract class TableBaseImpl {
         } else {
             return '';
         }
+    }
+
+    /**
+     * De-selects the row
+     */
+    deselectRow(event) {
+        this.log.debug('Details panel close event');
+        this.selId = event;
     }
 }

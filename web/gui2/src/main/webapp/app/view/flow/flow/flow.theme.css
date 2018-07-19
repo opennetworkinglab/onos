@@ -1,0 +1,80 @@
+/*
+ * Copyright 2018-present Open Networking Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
+ ONOS GUI -- Flow View (theme) -- CSS file
+ */
+
+
+/* a "logical" row is made up of 3 "physical" rows -- color as such */
+ #ov-flow tr:nth-child(6n + 1),
+ #ov-flow tr:nth-child(6n + 2),
+ #ov-flow tr:nth-child(6n + 3) {
+    background-color: #fbfbfb;
+}
+ #ov-flow tr:nth-child(6n + 4),
+ #ov-flow tr:nth-child(6n + 5),
+ #ov-flow tr:nth-child(6n) {
+    background-color: #f4f4f4;
+}
+
+/* highlighted color */
+ #ov-flow tr:nth-child(6n + 1).data-change,
+ #ov-flow tr:nth-child(6n + 2).data-change,
+ #ov-flow tr:nth-child(6n + 3).data-change,
+ #ov-flow tr:nth-child(6n + 4).data-change,
+ #ov-flow tr:nth-child(6n + 5).data-change,
+ #ov-flow tr:nth-child(6n).data-change {
+    background-color: #FDFFDC;
+}
+
+#ov-flow td.selector,
+#ov-flow td.treatment {
+    opacity: 0.65;
+}
+
+/* ========== DARK Theme ========== */
+
+.dark #ov-flow tr:nth-child(6n + 1),
+.dark #ov-flow tr:nth-child(6n + 2),
+.dark #ov-flow tr:nth-child(6n + 3) {
+    background-color: #333333;
+}
+.dark #ov-flow tr:nth-child(6n + 4),
+.dark #ov-flow tr:nth-child(6n + 5),
+.dark #ov-flow tr:nth-child(6n) {
+    background-color: #3a3a3a;
+}
+
+.dark #ov-flow tr:nth-child(6n + 1).data-change,
+.dark #ov-flow tr:nth-child(6n + 2).data-change,
+.dark #ov-flow tr:nth-child(6n + 3).data-change,
+.dark #ov-flow tr:nth-child(6n + 4).data-change,
+.dark #ov-flow tr:nth-child(6n + 5).data-change,
+.dark #ov-flow tr:nth-child(6n).data-change {
+    background-color: #423708;
+}
+
+.light #flow-details-panel .bottom th {
+    background-color: #e5e5e6;
+}
+
+.light #flow-details-panel .bottom tr:nth-child(odd) {
+    background-color: #fbfbfb;
+}
+.light #flow-details-panel .bottom tr:nth-child(even) {
+    background-color: #f4f4f4;
+}

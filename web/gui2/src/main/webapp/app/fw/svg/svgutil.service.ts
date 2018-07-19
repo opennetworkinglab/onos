@@ -23,7 +23,7 @@ import { LogService } from '../../log.service';
  * The SVG Util Service provides a miscellany of utility functions.
  */
 @Injectable({
-  providedIn: 'root',
+    providedIn: 'root',
 })
 export class SvgUtilService {
 

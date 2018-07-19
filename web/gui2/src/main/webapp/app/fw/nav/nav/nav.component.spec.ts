@@ -21,7 +21,7 @@ import { By } from '@angular/platform-browser';
 import { of } from 'rxjs';
 
 import { ConsoleLoggerService } from '../../../consolelogger.service';
-import { FnService } from '../../../fw/util/fn.service';
+import { FnService } from '../../util/fn.service';
 import { IconComponent } from '../../svg/icon/icon.component';
 import { IconService } from '../../svg/icon.service';
 import { LionService } from '../../util/lion.service';
@@ -127,6 +127,6 @@ describe('NavComponent', () => {
         const appDe: DebugElement = fixture.debugElement;
         const divDe = appDe.query(By.css('nav#nav a'));
         const div: HTMLElement = divDe.nativeElement;
-        expect(div.textContent).toEqual('Apps');
+        expect(div.textContent).toEqual(' Apps');
     });
 });

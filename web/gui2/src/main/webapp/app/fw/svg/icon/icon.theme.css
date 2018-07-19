@@ -18,26 +18,13 @@
  ONOS GUI -- Icon Service (theme) -- CSS file
  */
 
-.light div.close-btn svg.embeddedIcon g.icon .glyph {
+div.close-btn svg.embeddedIcon g.icon .glyph {
     fill: #333333;
 }
 
 /* Sortable table headers */
-.light div.tableColSort svg.embeddedIcon .icon .glyph {
+div.tableColSort svg.embeddedIcon .icon .glyph {
     fill: #353333;
-}
-
-/* active / inactive (check/xmark) icons */
-.light svg.embeddedIcon .icon.active .glyph {
-    fill: #04bf34;
-}
-
-.light svg.embeddedIcon .icon.inactive .glyph {
-    fill: #c0242b;
-}
-
-.light table svg.embeddedIcon .icon .glyph {
-    fill: #3c3a3a;
 }
 
 /* --- Control Buttons --- */
@@ -50,9 +37,10 @@ svg.embeddedIcon g.icon use {
 
 
 /* ACTIVE */
-svg.embeddedIcon g.icon.active use {
+.ctrl-btns div.active svg.embeddedIcon g.icon use {
     fill: #939598;
 }
+
 svg.embeddedIcon g.icon.active:hover use {
     fill: #ce5b58;
 }
@@ -82,25 +70,25 @@ svg.embeddedIcon g.icon.refresh.active:hover use {
 
 /* ========== DARK Theme ========== */
 
-.dark div.close-btn svg.embeddedIcon g.icon .glyph {
+ div.close-btn svg.embeddedIcon g.icon .glyph {
     fill: #8d8d8d;
 }
 
-.dark div.tableColSort svg.embeddedIcon .icon .glyph {
+ div.tableColSort svg.embeddedIcon .icon .glyph {
     fill: #888888;
 }
 
-.dark svg.embeddedIcon .icon.active .glyph {
+ /*svg.embeddedIcon .icon.active .glyph {
     fill: #04bf34;
 }
-
-.dark svg.embeddedIcon .icon.inactive .glyph {
+ svg.embeddedIcon .icon.inactive .glyph {
     fill: #c0242b;
-}
+}*/
 
-.dark table svg.embeddedIcon .icon .glyph {
+ table svg.embeddedIcon .icon .glyph {
     fill: #9999aa;
 }
+
 /*
 svg.embeddedIcon g.icon .glyph {
     fill: #007dc4;
@@ -110,3 +98,11 @@ svg.embeddedIcon:hover g.icon .glyph {
     fill: #20b2ff;
 }
 */
+
+svg.embeddedIcon g.icon.devIcon_SWITCH .glyph {
+    fill: #0071bd;;
+}
+
+svg.embeddedIcon g.icon.hostIcon_endstation .glyph {
+    fill: #0071bd;;
+}

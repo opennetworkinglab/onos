@@ -1,0 +1,60 @@
+<!--
+~ Copyright 2015-present Open Networking Foundation
+~
+~ Licensed under the Apache License, Version 2.0 (the "License");
+~ you may not use this file except in compliance with the License.
+~ You may obtain a copy of the License at
+~
+~     http://www.apache.org/licenses/LICENSE-2.0
+~
+~ Unless required by applicable law or agreed to in writing, software
+~ distributed under the License is distributed on an "AS IS" BASIS,
+~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+~ See the License for the specific language governing permissions and
+~ limitations under the License.
+-->
+<div id="port-details-panel" class="floatpanel" [@portDetailsState]="id!=='' && !closed">
+    <div class="container">
+        <div class="top">
+            <div class="close-btn">
+                <onos-icon class="close-btn" classes="active-close" iconId="close" iconSize="20" (click)="close()"></onos-icon>
+            </div>
+            <div class="port-icon">
+                <onos-icon classes="details-icon" iconId="m_ports" [iconSize]="42"></onos-icon>
+            </div>
+            <h2>{{detailsData.devId}} port {{detailsData.id}}</h2>
+            <div class="top-content">
+                <div class="top-tables">
+                    <div class="left">
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <td class="label" width="110">ID :</td>
+                                    <td class="value" width="80">{{detailsData.id}}</td>
+                                </tr>
+                                <tr>
+                                    <td class="label" width="110">Device :</td>
+                                    <td class="value" width="80">{{detailsData.devId}}</td>
+                                </tr>
+                                <tr>
+                                    <td class="label" width="110">Type :</td>
+                                    <td class="value" width="80">{{detailsData.type}}</td>
+                                </tr>
+                                <tr>
+                                    <td class="label" width="110">Speed :</td>
+                                    <td class="value" width="80">{{detailsData.speed}}</td>
+                                </tr>
+                                <tr>
+                                    <td class="label" width="110">Enabled :</td>
+                                    <td class="value" width="80">{{detailsData.enabled}}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <hr>
+        </div>
+        <div class="bottom"></div>
+    </div>
+</div>

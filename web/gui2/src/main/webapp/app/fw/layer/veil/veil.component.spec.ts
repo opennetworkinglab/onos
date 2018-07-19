@@ -22,7 +22,7 @@ import { ActivatedRoute, Params } from '@angular/router';
 
 import { VeilComponent } from './veil.component';
 import { ConsoleLoggerService } from '../../../consolelogger.service';
-import { FnService } from '../../../fw/util/fn.service';
+import { FnService } from '../../util/fn.service';
 import { LogService } from '../../../log.service';
 import { KeyService } from '../../util/key.service';
 import { GlyphService } from '../../svg/glyph.service';

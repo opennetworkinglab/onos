@@ -15,8 +15,7 @@
  */
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
-import { DeviceComponent } from './device.component';
-
+import { DeviceComponent } from './device/device.component';
 
 const deviceRoutes: Routes = [
     {

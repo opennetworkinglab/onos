@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-present Open Networking Foundation
+ * Copyright 2018-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-/*
- ONOS GUI -- Device View (theme) -- CSS file
- */
-
-.light #device-details-panel .bottom th {
+ 
+ #ov-tunnel .tabular-header {
+    text-align: left;
+}
+#ov-tunnel div.summary-list .table-header td {
+    font-weight: bold;
+    font-variant: small-caps;
+    text-transform: uppercase;
+    font-size: 10pt;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    letter-spacing: 0.02em;
+    cursor: pointer;
     background-color: #e5e5e6;
 }
 
-.light #device-details-panel .bottom tr:nth-child(odd) {
-    background-color: #fbfbfb;
-}
-.light #device-details-panel .bottom tr:nth-child(even) {
-    background-color: #f4f4f4;
+#ov-tunnel h2 {
+    display: inline-block;
 }
 
+#ov-tunnel th, td {
+    text-align: left;
+    padding:  8px;
+}

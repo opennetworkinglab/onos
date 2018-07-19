@@ -40,6 +40,8 @@ export const glyphMapping = new Map<string, string>([
     ['nonzero', 'nonzero'],
     ['close', 'xClose'],
 
+    ['m_ports', 'm_ports'],
+
     ['topo', 'topo'],
 
     ['refresh', 'refresh'],

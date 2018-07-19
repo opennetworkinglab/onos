@@ -1,0 +1,66 @@
+<!--
+~ Copyright 2018-present Open Networking Foundation
+~
+~ Licensed under the Apache License, Version 2.0 (the "License");
+~ you may not use this file except in compliance with the License.
+~ You may obtain a copy of the License at
+~
+~     http://www.apache.org/licenses/LICENSE-2.0
+~
+~ Unless required by applicable law or agreed to in writing, software
+~ distributed under the License is distributed on an "AS IS" BASIS,
+~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+~ See the License for the specific language governing permissions and
+~ limitations under the License.
+-->
+<div id="ov-link">
+    <div class="tabular-header">
+        <h2>Links ({{tableData.length}} total)</h2>
+        <div class="ctrl-btns">
+            <div class="refresh" (click)="toggleRefresh()">
+                <onos-icon classes="{{ autoRefresh?'active refresh':'refresh'}}" iconId="refresh" iconSize="42" toolTip="{{ autoRefreshTip }}"></onos-icon>
+            </div>
+        </div>
+    </div>
+    <div class="summary-list" onosTableResize>
+        <div class="table-header">
+            <table>
+                <tr>
+                    <td colId="available" class="table-icon"></td>
+                    <td colId="one" (click)="onSort('one')">Port 1
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('one')"></onos-icon>
+                    </td>
+                    <td colId="two" (click)="onSort('two')">Port 2
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('two')"></onos-icon>
+                    </td>
+                    <td colId="type" (click)="onSort('type')">Type
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('type')"></onos-icon>
+                    </td>
+                    <td colId="direction" (click)="onSort('direction')">Direction
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('direction')"></onos-icon>
+                    </td>
+                    <td colId="durable" (click)="onSort('durable')">Durable
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('durable')"></onos-icon>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="table-body">
+            <table>
+                <tr *ngIf="tableData.length === 0" class="no-data">
+                    <td colspan="6">{{ annots.noRowsMsg }}</td>
+                </tr>
+                <tr *ngFor="let link of tableData">
+                    <td class="table-icon">
+                        <onos-icon classes="{{link._iconid_state === 'active'? 'active':'inactive'}}" iconId="{{link._iconid_state}}"></onos-icon>
+                    </td>
+                    <td>{{link.one}}</td>
+                    <td>{{link.two}}</td>
+                    <td>{{link.type}}</td>
+                    <td [innerHtml]="link.direction"></td>
+                    <td>{{link.durable}}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>

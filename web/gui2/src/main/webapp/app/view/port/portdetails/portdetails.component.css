@@ -1,0 +1,90 @@
+/*
+ * Copyright 2018-present Open Networking Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#port-details-panel.floatpanel {
+    z-index: 0;
+    padding-top: 10px;
+    font-size: 10pt;
+    top: 185px;
+}
+
+#port-details-panel .container {
+    padding: 8px 12px;
+}
+
+#port-details-panel .close-btn {
+    position: absolute;
+    right: 5px;
+    top: 5px;
+    cursor: pointer;
+}
+
+#port-details-panel .port-icon {
+    display: inline-block;
+    padding: 0 6px 0 0;
+    vertical-align: middle;
+}
+
+#port-details-panel h2 {
+    display: inline-block;
+    margin: 8px 0;
+    font-weight: bold;
+    font-size: 16pt;
+}
+
+#port-details-panel h2 input {
+    font-size: 0.90em;
+    width: 106%;
+}
+
+#port-details-panel .actionBtns div {
+    padding: 12px 6px;
+}
+
+#port-details-panel hr {
+    clear: both;
+    width: 100%;
+    margin: 2px auto;
+}
+
+#port-details-panel .top-tables {
+    font-size: 10pt;
+    white-space: nowrap;
+}
+
+#port-details-panel td.label {
+    font-weight: bold;
+    text-align: right;
+    padding-right: 6px;
+}
+
+#port-details-panel .bottom {
+    border-spacing: 0;
+    height: 400px;
+    width: 520px;
+    overflow: auto;
+    display: block;
+}
+
+#port-details-panel .top div.left {
+    float: left;
+    text-align: left;
+    padding: 0 10px 0 0;
+}
+
+#port-details-panel .top div.right {
+    display: inline-block;
+}
