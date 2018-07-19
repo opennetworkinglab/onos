@@ -13,37 +13,30 @@
 # limitations under the License.
 
 def _impl(ctx):
-  dir = ctx.label.name
   jar = ctx.outputs.jar
 
-  dep_list = []
-  for dep in ctx.files.deps:
-    dep_list += [dep.path]
-
-  src_list = []
+  src_list = ""
   for src in ctx.files.srcs:
-    src_list += [src.path]
+    if src.path.endswith(".srcjar"):
+      src_list += " " + src.path
 
   cmd = [
-      "mkdir %s" % dir,
-      "javadoc -quiet -tag onos.rsModel:a:\"onos model\" -d %s -cp %s %s" \
-          % (dir, ":".join(dep_list), " ".join(src_list)),
-      "jar cf %s -C %s ." % (jar.path, dir),
+      "for sj in %s; do jar xf $sj; done" % src_list,
+      "dir=$(find . -type d -name java)",
+      "[ -n \"$dir\" -a -d \"$dir\" ] && jar cf %s -C $dir ." % jar.path,
   ]
 
   ctx.action(
-      inputs = ctx.files.srcs + ctx.files.deps,
+      inputs = ctx.files.srcs,
       outputs = [jar],
-      progress_message = "Generating javadocs jar for %s" %  ctx.attr.name,
+      progress_message = "Generating source jar for %s" %  ctx.attr.name,
       command = ";\n".join(cmd)
   )
 
-javadoc = rule(
+java_sources = rule(
     attrs = {
-        "deps": attr.label_list(allow_files = True),
         "srcs": attr.label_list(allow_files = True),
     },
     implementation = _impl,
     outputs = {"jar" : "%{name}.jar"},
 )
-
