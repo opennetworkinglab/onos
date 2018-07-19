@@ -212,8 +212,10 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
         providerRegistry.unregister(this);
         hostService.removeListener(hostListener);
         defaultServerInfoList.forEach(this::stopMonitoringIps);
+        defaultServerInfoList.forEach(info -> info.getDhcpServerIp4().ifPresent(this::cancelDhcpPacket));
         defaultServerInfoList.clear();
         indirectServerInfoList.forEach(this::stopMonitoringIps);
+        indirectServerInfoList.forEach(info -> info.getDhcpServerIp4().ifPresent(this::cancelDhcpPacket));
         indirectServerInfoList.clear();
     }
 
