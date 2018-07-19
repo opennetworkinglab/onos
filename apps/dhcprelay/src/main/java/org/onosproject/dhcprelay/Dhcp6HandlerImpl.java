@@ -260,8 +260,10 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
         providerRegistry.unregister(this);
         hostService.removeListener(hostListener);
         defaultServerInfoList.forEach(this::stopMonitoringIps);
+        defaultServerInfoList.forEach(info -> info.getDhcpServerIp6().ifPresent(this::cancelDhcpPacket));
         defaultServerInfoList.clear();
         indirectServerInfoList.forEach(this::stopMonitoringIps);
+        indirectServerInfoList.forEach(info -> info.getDhcpServerIp6().ifPresent(this::cancelDhcpPacket));
         indirectServerInfoList.clear();
     }
 
