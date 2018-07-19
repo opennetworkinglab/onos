@@ -18,6 +18,7 @@ load("//tools/build/bazel:generate_workspace.bzl", "COMPILE", "TEST")
 load("//tools/build/bazel:variables.bzl", "ONOS_VERSION")
 load("//tools/build/bazel:generate_test_rules.bzl", "generate_test_rules")
 load("//tools/build/bazel:checkstyle.bzl", "checkstyle_test")
+load("//tools/build/bazel:pom_file.bzl", "pom_file")
 load("//tools/build/bazel:java_sources.bzl", "java_sources")
 load("//tools/build/bazel:javadoc.bzl", "javadoc")
 
@@ -464,7 +465,10 @@ def osgi_jar_with_tests(
         include_resources = _include_resources_to_string(include_resources),
     )
 
-    # rule for building source jars
+    # rule for generating pom file for publishing
+    pom_file(name = name + "-pom", artifact = name, deps = deps, visibility = visibility)
+
+    # rule for building source jar
     if not suppress_javadocs:
       java_sources(name = name + "-sources", srcs = srcs, visibility = visibility)
 

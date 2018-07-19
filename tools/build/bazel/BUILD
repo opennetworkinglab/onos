@@ -19,6 +19,13 @@ py_binary(
     visibility = ["//visibility:public"],
 )
 
+py_binary(
+    name = "pom_generator",
+    srcs = ["pom_generator.py"],
+    main = "pom_generator.py",
+    visibility = ["//visibility:public"],
+)
+
 java_binary(
     name = "onos_yang_compiler",
     main_class = "org.onosproject.yang.compiler.main.YangCompilerMain",

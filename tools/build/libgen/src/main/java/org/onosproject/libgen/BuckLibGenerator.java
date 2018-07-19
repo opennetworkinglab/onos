@@ -203,15 +203,23 @@ public class BuckLibGenerator {
         artifactMap.append("\nartifact_map = {}");
 
         artifacts.forEach(artifact -> {
-            artifactMap.append("\nartifact_map[str(Label(\"" + artifact.bazelExport() + "\"))] = \"" + artifact.url(true) + "\"");
+            artifactMap.append("\nartifact_map[\"" + artifact.bazelExport() + "\"] = \"" + artifact.url(true) + "\"");
         });
 
-        artifactMap.append("\n\ndef maven_coordinates(label):\n" +
+        artifactMap.append(
+                "\n\n" +
+                "def maven_coordinates(label):\n" +
                 "    label_string = str(label)\n" +
                 "    if label_string in artifact_map:\n" +
                 "        return artifact_map[label_string]\n" +
-                "    else:\n" +
-                "        return \"mvn:%s:%s:%s\" % (ONOS_GROUP_ID, label.name, ONOS_VERSION)\n");
+                "    if (label_string.endswith(\":jar\")):\n" +
+                "        label_string = label_string.replace(\":jar\", \"\")\n" +
+                "        if label_string in artifact_map:\n" +
+                "            return artifact_map[label_string]\n" +
+                "    if type(label) == \"string\":\n" +
+                "        return \"mvn:%s:%s:%s\" % (ONOS_GROUP_ID, label_string, ONOS_VERSION)\n" +
+                "    return \"mvn:%s:%s:%s\" % (ONOS_GROUP_ID, label.name, ONOS_VERSION)\n\n"
+        );
 
         return artifactMap.toString();
     }
