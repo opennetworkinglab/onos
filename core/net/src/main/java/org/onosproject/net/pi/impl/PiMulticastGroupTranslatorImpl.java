@@ -18,11 +18,14 @@ package org.onosproject.net.pi.impl;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import org.onosproject.net.Device;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
 import org.onosproject.net.group.Group;
 import org.onosproject.net.group.GroupDescription;
+import org.onosproject.net.pi.model.PiPipeconf;
+import org.onosproject.net.pi.model.PiPipelineInterpreter;
 import org.onosproject.net.pi.runtime.PiMulticastGroupEntry;
 import org.onosproject.net.pi.runtime.PiPreReplica;
 import org.onosproject.net.pi.service.PiTranslationException;
@@ -30,6 +33,7 @@ import org.onosproject.net.pi.service.PiTranslationException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -52,10 +56,12 @@ final class PiMulticastGroupTranslatorImpl {
      * The passed group is expected to have type {@link GroupDescription.Type#ALL}.
      *
      * @param group    group
+     * @param pipeconf pipeconf
+     * @param device   device
      * @return PI PRE entry
      * @throws PiTranslationException if the group cannot be translated
      */
-    static PiMulticastGroupEntry translate(Group group)
+    static PiMulticastGroupEntry translate(Group group, PiPipeconf pipeconf, Device device)
             throws PiTranslationException {
 
         checkNotNull(group);
@@ -84,24 +90,45 @@ final class PiMulticastGroupTranslatorImpl {
 
         return PiMulticastGroupEntry.builder()
                 .withGroupId(group.id().id())
-                .addReplicas(getReplicas(outInstructions))
+                .addReplicas(getReplicas(outInstructions, device))
                 .build();
     }
 
-    private static Set<PiPreReplica> getReplicas(Collection<OutputInstruction> instructions) {
+    private static Set<PiPreReplica> getReplicas(
+            Collection<OutputInstruction> instructions, Device device)
+            throws PiTranslationException {
         // Account for multiple replicas for the same port.
         final Map<PortNumber, Set<PiPreReplica>> replicaMap = Maps.newHashMap();
         final List<PortNumber> ports = instructions.stream()
                 .map(OutputInstruction::port)
                 .collect(Collectors.toList());
         for (PortNumber port : ports) {
-            replicaMap.putIfAbsent(port, Sets.newHashSet());
+            if (port.isLogical()) {
+                port = logicalToPipelineSpecific(port, device);
+            }
             // Use incremental instance IDs for replicas of the same port.
+            replicaMap.putIfAbsent(port, Sets.newHashSet());
             replicaMap.get(port).add(
                     new PiPreReplica(port, replicaMap.get(port).size() + 1));
         }
         return replicaMap.values().stream()
                 .flatMap(Collection::stream)
                 .collect(Collectors.toSet());
+    }
+
+    private static PortNumber logicalToPipelineSpecific(
+            PortNumber logicalPort, Device device)
+            throws PiTranslationException {
+        if (!device.is(PiPipelineInterpreter.class)) {
+            throw new PiTranslationException(
+                    "missing interpreter, cannot map logical port " + logicalPort.toString());
+        }
+        final PiPipelineInterpreter interpreter = device.as(PiPipelineInterpreter.class);
+        Optional<Integer> mappedPort = interpreter.mapLogicalPortNumber(logicalPort);
+        if (!mappedPort.isPresent()) {
+            throw new PiTranslationException(
+                    "interpreter cannot map logical port " + logicalPort.toString());
+        }
+        return PortNumber.portNumber(mappedPort.get());
     }
 }

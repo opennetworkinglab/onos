@@ -60,6 +60,9 @@ import static org.onosproject.net.pi.model.PiPacketOperationType.PACKET_OUT;
  */
 public class FabricInterpreter extends AbstractHandlerBehaviour
         implements PiPipelineInterpreter {
+
+    public static final int PORT_BITWIDTH = 9;
+
     private static final ImmutableBiMap<Integer, PiTableId> TABLE_ID_MAP =
             ImmutableBiMap.<Integer, PiTableId>builder()
                     // Filtering
@@ -191,7 +194,7 @@ public class FabricInterpreter extends AbstractHandlerBehaviour
         try {
             return PiControlMetadata.builder()
                     .withId(FabricConstants.EGRESS_PORT)
-                    .withValue(copyFrom(portNumber).fit(FabricConstants.PORT_BITWIDTH))
+                    .withValue(copyFrom(portNumber).fit(PORT_BITWIDTH))
                     .build();
         } catch (ImmutableByteSequence.ByteSequenceTrimException e) {
             throw new PiInterpreterException(format(

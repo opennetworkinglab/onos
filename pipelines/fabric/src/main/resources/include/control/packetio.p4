@@ -31,9 +31,9 @@ inout standard_metadata_t standard_metadata) {
 }
 
 control PacketIoEgress(
-inout parsed_headers_t hdr,
-inout fabric_metadata_t fabric_metadata,
-inout standard_metadata_t standard_metadata) {
+        inout parsed_headers_t hdr,
+        inout fabric_metadata_t fabric_metadata,
+        inout standard_metadata_t standard_metadata) {
     action pop_vlan() {
         hdr.ethernet.ether_type = hdr.vlan_tag.ether_type;
         hdr.vlan_tag.setInvalid();
@@ -42,6 +42,11 @@ inout standard_metadata_t standard_metadata) {
         if (standard_metadata.egress_port == CPU_PORT) {
             if (hdr.vlan_tag.isValid() && fabric_metadata.pop_vlan_when_packet_in == _TRUE) {
                 pop_vlan();
+            }
+            if (fabric_metadata.is_multicast == _TRUE &&
+                fabric_metadata.clone_to_cpu == _FALSE) {
+                // Is multicast but clone was not requested.
+                drop_now();
             }
             hdr.packet_in.setValid();
             hdr.packet_in.ingress_port = standard_metadata.ingress_port;

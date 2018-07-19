@@ -29,7 +29,6 @@ import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.PiCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flow.instructions.Instruction;
-import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flowobjective.DefaultNextObjective;
 import org.onosproject.net.flowobjective.NextObjective;
@@ -47,12 +46,14 @@ import org.onosproject.net.pi.runtime.PiActionGroupId;
 import org.onosproject.net.pi.runtime.PiActionParam;
 import org.onosproject.net.pi.runtime.PiGroupKey;
 import org.onosproject.pipelines.fabric.FabricConstants;
+import org.onosproject.pipelines.fabric.FabricUtils;
 import org.slf4j.Logger;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static org.onosproject.pipelines.fabric.FabricUtils.getOutputPort;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -158,20 +159,6 @@ public class FabricNextPipeliner {
         if (includesPopVlanInst(treatment)) {
             processVlanPopRule(outputPort, next, resultBuilder);
         }
-    }
-
-    private Optional<OutputInstruction> getOutputInstruction(TrafficTreatment treatment) {
-        return treatment.allInstructions()
-                .stream()
-                .filter(inst -> inst.type() == Instruction.Type.OUTPUT)
-                .map(inst -> (OutputInstruction) inst)
-                .findFirst();
-    }
-
-    private PortNumber getOutputPort(TrafficTreatment treatment) {
-        return getOutputInstruction(treatment)
-                .map(OutputInstruction::port)
-                .orElse(null);
     }
 
     private boolean includesPopVlanInst(TrafficTreatment treatment) {
@@ -355,7 +342,7 @@ public class FabricNextPipeliner {
 
     private GroupDescription getAllGroup(NextObjective next) {
         final List<GroupBucket> bucketList = next.next().stream()
-                .map(this::getOutputInstruction)
+                .map(FabricUtils::getOutputInstruction)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .map(i -> DefaultTrafficTreatment.builder().add(i).build())
@@ -364,11 +351,21 @@ public class FabricNextPipeliner {
 
         if (bucketList.size() != next.next().size()) {
             log.warn("Got BROADCAST NextObjective with {} treatments but " +
-                             "only {} have OUTPUT instructions, cannot " +
+                             "found only {} OUTPUT instructions, cannot " +
                              "translate to ALL groups",
                      next.next().size(), bucketList.size());
             return null;
         }
+
+        // FIXME: remove once support for clone sessions is available
+        // Right now we add a CPU port to all multicast groups. The egress
+        // pipeline is expected to drop replicated packets to the CPU if a clone
+        // was  not requested in the ingress pipeline.
+        bucketList.add(
+                DefaultGroupBucket.createAllGroupBucket(
+                        DefaultTrafficTreatment.builder()
+                                .setOutput(PortNumber.CONTROLLER)
+                                .build()));
 
         final int groupId = next.id();
         final GroupBuckets buckets = new GroupBuckets(bucketList);

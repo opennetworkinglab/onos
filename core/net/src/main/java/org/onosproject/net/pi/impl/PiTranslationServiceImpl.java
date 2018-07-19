@@ -165,7 +165,8 @@ public class PiTranslationServiceImpl implements PiTranslationService {
         @Override
         public PiMulticastGroupEntry translate(Group original, PiPipeconf pipeconf)
                 throws PiTranslationException {
-            return PiMulticastGroupTranslatorImpl.translate(original);
+            return PiMulticastGroupTranslatorImpl.translate(
+                    original, pipeconf, getDevice(original.deviceId()));
         }
     }
 

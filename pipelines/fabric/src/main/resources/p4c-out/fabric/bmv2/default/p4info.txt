@@ -229,7 +229,10 @@ tables {
     id: 16785374
   }
   action_refs {
-    id: 16810628
+    id: 16801806
+  }
+  action_refs {
+    id: 16784835
   }
   action_refs {
     id: 16833260
@@ -493,9 +496,16 @@ actions {
 }
 actions {
   preamble {
-    id: 16810628
-    name: "FabricIngress.forwarding.send_to_controller"
-    alias: "send_to_controller"
+    id: 16801806
+    name: "FabricIngress.forwarding.punt_to_cpu"
+    alias: "punt_to_cpu"
+  }
+}
+actions {
+  preamble {
+    id: 16784835
+    name: "FabricIngress.forwarding.clone_to_cpu"
+    alias: "clone_to_cpu"
   }
 }
 actions {

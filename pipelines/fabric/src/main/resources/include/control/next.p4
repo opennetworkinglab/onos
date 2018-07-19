@@ -200,7 +200,7 @@ control Next (
 
     action set_mcast_group(group_id_t gid) {
         standard_metadata.mcast_grp = gid;
-        fabric_metadata.drop_if_egress_is_ingress = _TRUE;
+        fabric_metadata.is_multicast = _TRUE;
         multicast_counter.count();
     }
 
@@ -269,7 +269,7 @@ control EgressNextControl (
     }
 
     apply {
-        if (fabric_metadata.drop_if_egress_is_ingress == _TRUE
+        if (fabric_metadata.is_multicast == _TRUE
              && standard_metadata.ingress_port == standard_metadata.egress_port) {
             drop_now();
         }

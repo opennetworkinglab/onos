@@ -106,8 +106,16 @@ control Forwarding (
         acl_counter.count();
     }
 
-    action send_to_controller() {
+    // Send immendiatelly to CPU - skip the rest of pipeline.
+    action punt_to_cpu() {
         standard_metadata.egress_spec = CPU_PORT;
+        acl_counter.count();
+        exit;
+    }
+
+    action clone_to_cpu() {
+        // FIXME: works only if pkt will be replicated via PRE multicast group.
+        fabric_metadata.clone_to_cpu = _TRUE;
         acl_counter.count();
     }
 
@@ -135,7 +143,8 @@ control Forwarding (
 
         actions = {
             set_next_id_acl;
-            send_to_controller;
+            punt_to_cpu;
+            clone_to_cpu;
             drop;
             @defaultonly nop;
         }

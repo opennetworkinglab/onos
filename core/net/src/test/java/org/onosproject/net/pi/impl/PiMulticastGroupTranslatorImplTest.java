@@ -111,9 +111,9 @@ public class PiMulticastGroupTranslatorImplTest {
     public void testTranslatePreGroups() throws Exception {
 
         PiMulticastGroupEntry multicastGroup = PiMulticastGroupTranslatorImpl
-                .translate(ALL_GROUP);
+                .translate(ALL_GROUP, null, null);
         PiMulticastGroupEntry multicastGroup2 = PiMulticastGroupTranslatorImpl
-                .translate(ALL_GROUP_2);
+                .translate(ALL_GROUP_2, null, null);
 
         new EqualsTester()
                 .addEqualityGroup(multicastGroup, PI_MULTICAST_GROUP)

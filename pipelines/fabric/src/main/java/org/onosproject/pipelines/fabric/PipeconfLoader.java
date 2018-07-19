@@ -21,6 +21,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.Pipeliner;
 import org.onosproject.net.device.PortStatisticsDiscovery;
 import org.onosproject.net.pi.model.DefaultPiPipeconf;
@@ -41,6 +42,7 @@ import java.io.FileNotFoundException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
@@ -75,6 +77,8 @@ public class PipeconfLoader {
     private static final String P4INFO_TXT = "p4info.txt";
     private static final String TOFINO_BIN = "tofino.bin";
     private static final String TOFINO_CTX_JSON = "context.json";
+
+    private static final int BMV2_CPU_PORT = 255;
 
     private static final Collection<PiPipeconf> PIPECONFS = buildAllPipeconf();
 
@@ -144,7 +148,8 @@ public class PipeconfLoader {
         if (bmv2JsonUrl == null || p4InfoUrl == null) {
             throw new FileNotFoundException();
         }
-        return basePipeconfBuilder(profile, platform, p4InfoUrl)
+        return basePipeconfBuilder(
+                profile, platform, p4InfoUrl, Bmv2FabricInterpreter.class)
                 .addExtension(ExtensionType.BMV2_JSON, bmv2JsonUrl)
                 .build();
     }
@@ -160,14 +165,16 @@ public class PipeconfLoader {
         if (tofinoBinUrl == null || contextJsonUrl == null || p4InfoUrl == null) {
             throw new FileNotFoundException();
         }
-        return basePipeconfBuilder(profile, platform, p4InfoUrl)
+        return basePipeconfBuilder(
+                profile, platform, p4InfoUrl, FabricInterpreter.class)
                 .addExtension(ExtensionType.TOFINO_BIN, tofinoBinUrl)
                 .addExtension(ExtensionType.TOFINO_CONTEXT_JSON, contextJsonUrl)
                 .build();
     }
 
     private static DefaultPiPipeconf.Builder basePipeconfBuilder(
-            String profile, String platform, URL p4InfoUrl) {
+            String profile, String platform, URL p4InfoUrl,
+            Class<? extends FabricInterpreter> interpreterClass) {
         final String pipeconfId = platform.equals(DEFAULT_PLATFORM)
                 // Omit platform if default, e.g. with BMv2 pipeconf
                 ? format("%s.%s", BASE_PIPECONF_ID, profile)
@@ -177,7 +184,7 @@ public class PipeconfLoader {
                 .withId(new PiPipeconfId(pipeconfId))
                 .withPipelineModel(model)
                 .addBehaviour(PiPipelineInterpreter.class,
-                              FabricInterpreter.class)
+                              interpreterClass)
                 .addBehaviour(Pipeliner.class,
                               FabricPipeliner.class)
                 .addBehaviour(PortStatisticsDiscovery.class,
@@ -190,6 +197,18 @@ public class PipeconfLoader {
             return P4InfoParser.parse(p4InfoUrl);
         } catch (P4InfoParserException e) {
             throw new IllegalStateException(e);
+        }
+    }
+
+    // TODO: define interpreters with logical port mapping for Tofino platforms.
+    public static class Bmv2FabricInterpreter extends FabricInterpreter {
+        @Override
+        public Optional<Integer> mapLogicalPortNumber(PortNumber port) {
+            if (port.equals(PortNumber.CONTROLLER)) {
+                return Optional.of(BMV2_CPU_PORT);
+            } else {
+                return Optional.empty();
+            }
         }
     }
 }

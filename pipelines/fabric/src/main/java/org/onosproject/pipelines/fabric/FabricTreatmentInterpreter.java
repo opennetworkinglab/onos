@@ -42,15 +42,16 @@ import java.util.List;
 
 import static java.lang.String.format;
 import static org.onosproject.net.flow.instructions.Instruction.Type.L2MODIFICATION;
-import static org.onosproject.net.flow.instructions.Instruction.Type.OUTPUT;
 import static org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType.VLAN_ID;
 import static org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType.VLAN_PUSH;
+import static org.onosproject.pipelines.fabric.FabricUtils.getOutputPort;
 import static org.slf4j.LoggerFactory.getLogger;
 
 
 final class FabricTreatmentInterpreter {
     private static final Logger log = getLogger(FabricTreatmentInterpreter.class);
-    private static final String INVALID_TREATMENT = "Invalid treatment for %s block: %s";
+    private static final String INVALID_TREATMENT = "Invalid treatment for %s block [%s]";
+    private static final String INVALID_TREATMENT_WITH_EXP = "Invalid treatment for %s block: %s [%s]";
     private static final PiAction NOP = PiAction.builder()
             .withId(FabricConstants.NOP)
             .build();
@@ -142,26 +143,22 @@ final class FabricTreatmentInterpreter {
         if (treatment.equals(DefaultTrafficTreatment.emptyTreatment())) {
             return null;
         }
-        List<Instruction> insts = treatment.allInstructions();
-        OutputInstruction outInst = insts.stream()
-                .filter(inst -> inst.type() == OUTPUT)
-                .map(inst -> (OutputInstruction) inst)
-                .findFirst()
-                .orElse(null);
-
-        if (outInst == null) {
-            throw new PiInterpreterException(format(INVALID_TREATMENT, "forwarding", treatment));
+        PortNumber outPort = getOutputPort(treatment);
+        if (outPort == null
+                || !outPort.equals(PortNumber.CONTROLLER)
+                || treatment.allInstructions().size() > 1) {
+            throw new PiInterpreterException(
+                    format(INVALID_TREATMENT_WITH_EXP,
+                           "forwarding", "supports only punt/clone to CPU actions",
+                           treatment));
         }
 
-        PortNumber portNumber = outInst.port();
-        if (!portNumber.equals(PortNumber.CONTROLLER)) {
-            throw new PiInterpreterException(format("Unsupported port number %s," +
-                                                            "supports punt action only",
-                                                    portNumber));
-        }
+        final PiActionId actionId = treatment.clearedDeferred()
+                ? FabricConstants.FABRIC_INGRESS_FORWARDING_PUNT_TO_CPU
+                : FabricConstants.FABRIC_INGRESS_FORWARDING_CLONE_TO_CPU;
 
         return PiAction.builder()
-                .withId(FabricConstants.FABRIC_INGRESS_FORWARDING_SEND_TO_CONTROLLER)
+                .withId(actionId)
                 .build();
     }
 
@@ -214,7 +211,8 @@ final class FabricTreatmentInterpreter {
                             modMplsInst = (ModMplsLabelInstruction) l2Inst;
                             break;
                         default:
-                            log.warn("Unsupported l2 instruction sub type: {}", l2Inst.subtype());
+                            log.warn("Unsupported l2 instruction sub type {} [table={}, {}]",
+                                     l2Inst.subtype(), tableId, treatment);
                             break;
                     }
                     break;
@@ -222,7 +220,8 @@ final class FabricTreatmentInterpreter {
                     outInst = (OutputInstruction) inst;
                     break;
                 default:
-                    log.warn("Unsupported instruction sub type: {}", inst.type());
+                    log.warn("Unsupported instruction sub type {} [table={}, {}]",
+                             inst.type(), tableId, treatment);
                     break;
             }
         }

@@ -120,7 +120,7 @@ public class FabricInterpreterTest {
         PiAction mappedAction = interpreter.mapTreatment(treatment,
                                                          FabricConstants.FABRIC_INGRESS_FORWARDING_ACL);
         PiAction expectedAction = PiAction.builder()
-                .withId(FabricConstants.FABRIC_INGRESS_FORWARDING_SEND_TO_CONTROLLER)
+                .withId(FabricConstants.FABRIC_INGRESS_FORWARDING_CLONE_TO_CPU)
                 .build();
 
         assertEquals(expectedAction, mappedAction);
