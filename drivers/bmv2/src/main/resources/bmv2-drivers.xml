@@ -19,10 +19,12 @@
         <behaviour api="org.onosproject.net.behaviour.PiPipelineProgrammable"
                    impl="org.onosproject.drivers.bmv2.Bmv2PipelineProgrammable"/>
         <property name="tableDeleteBeforeUpdate">true</property>
+        <!--
         <behaviour api="org.onosproject.net.group.GroupProgrammable"
                    impl="org.onosproject.drivers.bmv2.Bmv2GroupProgrammable"/>
         <behaviour api="org.onosproject.net.device.DeviceHandshaker"
                    impl="org.onosproject.drivers.bmv2.Bmv2DeviceHandshaker"/>
+        -->
     </driver>
 </drivers>
 

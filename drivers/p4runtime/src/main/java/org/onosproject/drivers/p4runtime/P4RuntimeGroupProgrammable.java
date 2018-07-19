@@ -16,13 +16,17 @@
 
 package org.onosproject.drivers.p4runtime;
 
-import com.google.common.collect.Maps;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.Striped;
+import org.apache.commons.lang3.tuple.Pair;
 import org.onosproject.drivers.p4runtime.mirror.P4RuntimeGroupMirror;
+import org.onosproject.drivers.p4runtime.mirror.P4RuntimeMulticastGroupMirror;
 import org.onosproject.drivers.p4runtime.mirror.TimedEntry;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.group.DefaultGroup;
 import org.onosproject.net.group.Group;
+import org.onosproject.net.group.GroupDescription;
 import org.onosproject.net.group.GroupOperation;
 import org.onosproject.net.group.GroupOperations;
 import org.onosproject.net.group.GroupProgrammable;
@@ -32,18 +36,20 @@ import org.onosproject.net.pi.model.PiActionProfileModel;
 import org.onosproject.net.pi.runtime.PiActionGroup;
 import org.onosproject.net.pi.runtime.PiActionGroupHandle;
 import org.onosproject.net.pi.runtime.PiActionGroupMember;
+import org.onosproject.net.pi.runtime.PiMulticastGroupEntry;
+import org.onosproject.net.pi.runtime.PiMulticastGroupEntryHandle;
 import org.onosproject.net.pi.service.PiGroupTranslator;
+import org.onosproject.net.pi.service.PiMulticastGroupTranslator;
 import org.onosproject.net.pi.service.PiTranslatedEntity;
 import org.onosproject.net.pi.service.PiTranslationException;
+import org.onosproject.p4runtime.api.P4RuntimeClient;
 import org.slf4j.Logger;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -55,6 +61,10 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Implementation of the group programmable behaviour for P4Runtime.
+ * <p>
+ * This implementation distinguishes between ALL groups, and other types. ALL
+ * groups are handled via PRE multicast group programming, while other types are
+ * handled via action profile group programming.
  */
 public class P4RuntimeGroupProgrammable
         extends AbstractP4RuntimeHandlerBehaviour
@@ -80,11 +90,12 @@ public class P4RuntimeGroupProgrammable
 
     protected GroupStore groupStore;
     private P4RuntimeGroupMirror groupMirror;
-    private PiGroupTranslator translator;
+    private PiGroupTranslator groupTranslator;
+    private P4RuntimeMulticastGroupMirror mcGroupMirror;
+    private PiMulticastGroupTranslator mcGroupTranslator;
 
     // Needed to synchronize operations over the same group.
-    private static final Map<PiActionGroupHandle, Lock> GROUP_LOCKS =
-            Maps.newConcurrentMap();
+    private static final Striped<Lock> STRIPED_LOCKS = Striped.lock(30);
 
     @Override
     protected boolean setupBehaviour() {
@@ -92,8 +103,10 @@ public class P4RuntimeGroupProgrammable
             return false;
         }
         groupMirror = this.handler().get(P4RuntimeGroupMirror.class);
+        mcGroupMirror = this.handler().get(P4RuntimeMulticastGroupMirror.class);
         groupStore = handler().get(GroupStore.class);
-        translator = piTranslationService.groupTranslator();
+        groupTranslator = piTranslationService.groupTranslator();
+        mcGroupTranslator = piTranslationService.multicastGroupTranslator();
         return true;
     }
 
@@ -103,7 +116,17 @@ public class P4RuntimeGroupProgrammable
         if (!setupBehaviour()) {
             return;
         }
-        groupOps.operations().forEach(op -> processGroupOp(deviceId, op));
+        groupOps.operations().stream()
+                // Get group type and operation type
+                .map(op -> Pair.of(groupStore.getGroup(deviceId, op.groupId()),
+                                   op.opType()))
+                .forEach(pair -> {
+                    if (pair.getLeft().type().equals(GroupDescription.Type.ALL)) {
+                        processMcGroupOp(deviceId, pair.getLeft(), pair.getRight());
+                    } else {
+                        processGroupOp(deviceId, pair.getLeft(), pair.getRight());
+                    }
+                });
     }
 
     @Override
@@ -111,42 +134,75 @@ public class P4RuntimeGroupProgrammable
         if (!setupBehaviour()) {
             return Collections.emptyList();
         }
+        final ImmutableList.Builder<Group> groups = ImmutableList.builder();
+
         if (!driverBoolProperty(IGNORE_DEVICE_WHEN_GET, DEFAULT_IGNORE_DEVICE_WHEN_GET)) {
-            return pipeconf.pipelineModel().actionProfiles().stream()
-                    .map(PiActionProfileModel::id)
-                    .flatMap(this::streamGroupsFromDevice)
-                    .collect(Collectors.toList());
+            groups.addAll(pipeconf.pipelineModel().actionProfiles().stream()
+                                  .map(PiActionProfileModel::id)
+                                  .flatMap(this::streamGroupsFromDevice)
+                                  .iterator());
+            // FIXME: enable reading MC groups from device once reading from
+            // PRE is supported in PI
+            // groups.addAll(getMcGroupsFromDevice());
         } else {
-            return groupMirror.getAll(deviceId).stream()
-                    .map(TimedEntry::entry)
-                    .map(this::forgeGroupEntry)
-                    .collect(Collectors.toList());
+            groups.addAll(groupMirror.getAll(deviceId).stream()
+                                  .map(TimedEntry::entry)
+                                  .map(this::forgeGroupEntry)
+                                  .iterator());
         }
+        // FIXME: same as before..
+        groups.addAll(mcGroupMirror.getAll(deviceId).stream()
+                              .map(TimedEntry::entry)
+                              .map(this::forgeMcGroupEntry)
+                              .iterator());
+
+        return groups.build();
     }
 
-    private void processGroupOp(DeviceId deviceId, GroupOperation groupOp) {
-        final Group pdGroup = groupStore.getGroup(deviceId, groupOp.groupId());
-
+    private void processGroupOp(DeviceId deviceId, Group pdGroup, GroupOperation.Type opType) {
         final PiActionGroup piGroup;
         try {
-            piGroup = translator.translate(pdGroup, pipeconf);
+            piGroup = groupTranslator.translate(pdGroup, pipeconf);
         } catch (PiTranslationException e) {
-            log.warn("Unable translate group, aborting {} operation: {}",
-                     groupOp.opType(), e.getMessage());
+            log.warn("Unable to translate group, aborting {} operation: {} [{}]",
+                     opType, e.getMessage(), pdGroup);
             return;
         }
-
         final PiActionGroupHandle handle = PiActionGroupHandle.of(deviceId, piGroup);
 
         final PiActionGroup groupOnDevice = groupMirror.get(handle) == null
                 ? null
                 : groupMirror.get(handle).entry();
 
-        final Lock lock = GROUP_LOCKS.computeIfAbsent(handle, k -> new ReentrantLock());
+        final Lock lock = STRIPED_LOCKS.get(handle);
         lock.lock();
         try {
             processPiGroup(handle, piGroup,
-                           groupOnDevice, pdGroup, groupOp.opType());
+                           groupOnDevice, pdGroup, opType);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private void processMcGroupOp(DeviceId deviceId, Group pdGroup, GroupOperation.Type opType) {
+        final PiMulticastGroupEntry mcGroup;
+        try {
+            mcGroup = mcGroupTranslator.translate(pdGroup, pipeconf);
+        } catch (PiTranslationException e) {
+            log.warn("Unable to translate multicast group, aborting {} operation: {} [{}]",
+                     opType, e.getMessage(), pdGroup);
+            return;
+        }
+        final PiMulticastGroupEntryHandle handle = PiMulticastGroupEntryHandle.of(
+                deviceId, mcGroup);
+        final PiMulticastGroupEntry groupOnDevice = mcGroupMirror.get(handle) == null
+                ? null
+                : mcGroupMirror.get(handle).entry();
+        final Lock lock = STRIPED_LOCKS.get(handle);
+        lock.lock();
+        try {
+            processMcGroup(handle, mcGroup,
+                           groupOnDevice, pdGroup, opType);
         } finally {
             lock.unlock();
         }
@@ -167,7 +223,7 @@ public class P4RuntimeGroupProgrammable
 
             if (writeGroupToDevice(groupToApply)) {
                 groupMirror.put(handle, groupToApply);
-                translator.learn(handle, new PiTranslatedEntity<>(
+                groupTranslator.learn(handle, new PiTranslatedEntity<>(
                         pdGroup, groupToApply, handle));
             }
         } else if (operationType == GroupOperation.Type.MODIFY) {
@@ -183,8 +239,8 @@ public class P4RuntimeGroupProgrammable
             }
             if (modifyGroupFromDevice(groupToApply, groupOnDevice)) {
                 groupMirror.put(handle, groupToApply);
-                translator.learn(handle,
-                                 new PiTranslatedEntity<>(pdGroup, groupToApply, handle));
+                groupTranslator.learn(handle,
+                                      new PiTranslatedEntity<>(pdGroup, groupToApply, handle));
             }
         } else {
             if (groupOnDevice == null) {
@@ -194,9 +250,47 @@ public class P4RuntimeGroupProgrammable
             }
             if (deleteGroupFromDevice(groupOnDevice)) {
                 groupMirror.remove(handle);
-                translator.forget(handle);
+                groupTranslator.forget(handle);
             }
         }
+    }
+
+    private void processMcGroup(PiMulticastGroupEntryHandle handle,
+                                PiMulticastGroupEntry groupToApply,
+                                PiMulticastGroupEntry groupOnDevice,
+                                Group pdGroup, GroupOperation.Type opType) {
+        if (opType == GroupOperation.Type.DELETE) {
+            if (writeMcGroupOnDevice(groupToApply, DELETE)) {
+                mcGroupMirror.remove(handle);
+                mcGroupTranslator.forget(handle);
+            }
+            return;
+        }
+
+        final P4RuntimeClient.WriteOperationType p4OpType =
+                opType == GroupOperation.Type.ADD ? INSERT : MODIFY;
+
+        if (driverBoolProperty(CHECK_MIRROR_BEFORE_UPDATE,
+                               DEFAULT_CHECK_MIRROR_BEFORE_UPDATE)
+                && p4OpType == MODIFY
+                && groupOnDevice != null
+                && groupOnDevice.equals(groupToApply)) {
+            // Ignore.
+            return;
+        }
+
+        if (writeMcGroupOnDevice(groupToApply, p4OpType)) {
+            mcGroupMirror.put(handle, groupToApply);
+            mcGroupTranslator.learn(handle, new PiTranslatedEntity<>(
+                    pdGroup, groupToApply, handle));
+        }
+    }
+
+    private boolean writeMcGroupOnDevice(PiMulticastGroupEntry group, P4RuntimeClient.WriteOperationType opType) {
+        return getFutureWithDeadline(
+                client.writePreMulticastGroupEntries(
+                        Collections.singleton(group), opType),
+                "performing multicast group " + opType, false);
     }
 
     private boolean modifyGroupFromDevice(PiActionGroup groupToApply, PiActionGroup groupOnDevice) {
@@ -287,9 +381,19 @@ public class P4RuntimeGroupProgrammable
                 .filter(Objects::nonNull);
     }
 
+    private Collection<Group> getMcGroupsFromDevice() {
+        Collection<PiMulticastGroupEntry> groups = getFutureWithDeadline(
+                client.readAllMulticastGroupEntries(),
+                "dumping multicast groups", Collections.emptyList());
+        return groups.stream()
+                .map(this::forgeMcGroupEntry)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
     private Group forgeGroupEntry(PiActionGroup piGroup) {
         final PiActionGroupHandle handle = PiActionGroupHandle.of(deviceId, piGroup);
-        if (!translator.lookup(handle).isPresent()) {
+        if (!groupTranslator.lookup(handle).isPresent()) {
             log.warn("Missing PI group from translation store: {} - {}:{}",
                      pipeconf.id(), piGroup.actionProfileId(),
                      piGroup.id());
@@ -297,7 +401,25 @@ public class P4RuntimeGroupProgrammable
         }
         final long life = groupMirror.get(handle) != null
                 ? groupMirror.get(handle).lifeSec() : 0;
-        final Group original = translator.lookup(handle).get().original();
+        final Group original = groupTranslator.lookup(handle).get().original();
+        return addedGroup(original, life);
+    }
+
+    private Group forgeMcGroupEntry(PiMulticastGroupEntry mcGroup) {
+        final PiMulticastGroupEntryHandle handle = PiMulticastGroupEntryHandle.of(
+                deviceId, mcGroup);
+        if (!mcGroupTranslator.lookup(handle).isPresent()) {
+            log.warn("Missing PI multicast group {} from translation store",
+                     mcGroup.groupId());
+            return null;
+        }
+        final long life = mcGroupMirror.get(handle) != null
+                ? mcGroupMirror.get(handle).lifeSec() : 0;
+        final Group original = mcGroupTranslator.lookup(handle).get().original();
+        return addedGroup(original, life);
+    }
+
+    private Group addedGroup(Group original, long life) {
         final DefaultGroup forgedGroup = new DefaultGroup(original.id(), original);
         forgedGroup.setState(Group.GroupState.ADDED);
         forgedGroup.setLife(life);

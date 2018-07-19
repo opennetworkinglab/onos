@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-present Open Networking Foundation
+ * Copyright 2018-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,42 +19,30 @@ package org.onosproject.net.pi.runtime;
 import com.google.common.annotations.Beta;
 
 /**
- * Type of runtime entity of a protocol-independent pipeline.
+ * Configuration entry of a Packet Replication Engine (PRE) of
+ * protocol-independent pipeline.
  */
 @Beta
-public enum PiEntityType {
-    /**
-     * Table entry.
-     */
-    TABLE_ENTRY,
+public interface PiPreEntry extends PiEntity {
 
     /**
-     * Action profile group.
+     * Type of PRE entry.
      */
-    GROUP,
+    enum PiPreEntryType {
+        /**
+         * Multicast group entry.
+         */
+        MULTICAST_GROUP,
+        /**
+         * Clone session entry.
+         */
+        CLONE_SESSION
+    }
 
     /**
-     * Action profile group member.
+     * Returns the type of this PRE entry.
+     *
+     * @return PRE entry type
      */
-    GROUP_MEMBER,
-
-    /**
-     * Meter config.
-     */
-    METER_CELL_CONFIG,
-
-    /**
-     * Register entry.
-     */
-    REGISTER_CELL,
-
-    /**
-     * Packet Replication Engine (PRE) multicast group entry.
-     */
-    PRE_MULTICAST_GROUP_ENTRY,
-
-    /**
-     * Packet Replication Engine (PRE) clone session entry.
-     */
-    PRE_CLONE_SESSION_ENTRY
+    PiPreEntryType preEntryType();
 }

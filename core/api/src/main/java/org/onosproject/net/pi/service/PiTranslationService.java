@@ -45,4 +45,12 @@ public interface PiTranslationService {
      * @return meter translator
      */
     PiMeterTranslator meterTranslator();
+
+    /**
+     * Returns a group translator for packet replication engine (PRE)
+     * multicast groups.
+     *
+     * @return multicast group translator
+     */
+    PiMulticastGroupTranslator multicastGroupTranslator();
 }

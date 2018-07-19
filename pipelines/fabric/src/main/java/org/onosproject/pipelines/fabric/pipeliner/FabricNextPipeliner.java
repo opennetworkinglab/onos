@@ -17,7 +17,6 @@
 package org.onosproject.pipelines.fabric.pipeliner;
 
 import org.onlab.packet.VlanId;
-import org.onlab.util.ImmutableByteSequence;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.driver.Driver;
@@ -51,6 +50,7 @@ import org.onosproject.pipelines.fabric.FabricConstants;
 import org.slf4j.Logger;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -160,12 +160,16 @@ public class FabricNextPipeliner {
         }
     }
 
-    private PortNumber getOutputPort(TrafficTreatment treatment) {
+    private Optional<OutputInstruction> getOutputInstruction(TrafficTreatment treatment) {
         return treatment.allInstructions()
                 .stream()
                 .filter(inst -> inst.type() == Instruction.Type.OUTPUT)
                 .map(inst -> (OutputInstruction) inst)
-                .findFirst()
+                .findFirst();
+    }
+
+    private PortNumber getOutputPort(TrafficTreatment treatment) {
+        return getOutputInstruction(treatment)
                 .map(OutputInstruction::port)
                 .orElse(null);
     }
@@ -302,60 +306,81 @@ public class FabricNextPipeliner {
     }
 
     private void processBroadcastNext(NextObjective next, PipelinerTranslationResult.Builder resultBuilder) {
-        int groupId = next.id();
-        List<GroupBucket> bucketList = next.next().stream()
-                .filter(treatment -> treatment != null)
-                .map(DefaultGroupBucket::createAllGroupBucket)
-                .collect(Collectors.toList());
-
-        if (bucketList.size() != next.next().size()) {
-            // some action not converted
-            // set error
-            log.warn("Expected bucket size {}, got {}", next.next().size(), bucketList.size());
+        final GroupDescription allGroup = getAllGroup(next);
+        if (allGroup == null) {
+            // Error already logged.
             resultBuilder.setError(ObjectiveError.BADPARAMS);
             return;
         }
 
-        GroupBuckets buckets = new GroupBuckets(bucketList);
-        //Used DefaultGroupKey instead of PiGroupKey
-        //as we don't have any action profile to apply to the groups of ALL type
-        GroupKey groupKey = new DefaultGroupKey(FabricPipeliner.KRYO.serialize(groupId));
-
-        resultBuilder.addGroup(new DefaultGroupDescription(deviceId,
-                                                           GroupDescription.Type.ALL,
-                                                           buckets,
-                                                           groupKey,
-                                                           groupId,
-                                                           next.appId()));
+        resultBuilder.addGroup(allGroup);
         //flow rule
-        TrafficSelector selector = buildNextIdSelector(next.id());
-        PiActionParam groupIdParam = new PiActionParam(FabricConstants.GID,
-                                                       ImmutableByteSequence.copyFrom(groupId));
+        final TrafficSelector selector = buildNextIdSelector(next.id());
+        final PiActionParam groupIdParam = new PiActionParam(
+                FabricConstants.GID, allGroup.givenGroupId());
 
-        PiAction setMcGroupAction = PiAction.builder()
+        final PiAction setMcGroupAction = PiAction.builder()
                 .withId(FabricConstants.FABRIC_INGRESS_NEXT_SET_MCAST_GROUP)
                 .withParameter(groupIdParam)
                 .build();
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+        final TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                 .piTableAction(setMcGroupAction)
                 .build();
 
-        resultBuilder.addFlowRule(DefaultFlowRule.builder()
-                                          .withSelector(selector)
-                                          .withTreatment(treatment)
-                                          .forTable(FabricConstants.FABRIC_INGRESS_NEXT_MULTICAST)
-                                          .makePermanent()
-                                          .withPriority(next.priority())
-                                          .forDevice(deviceId)
-                                          .fromApp(next.appId())
-                                          .build());
+        resultBuilder.addFlowRule(
+                DefaultFlowRule.builder()
+                        .withSelector(selector)
+                        .withTreatment(treatment)
+                        .forTable(FabricConstants.FABRIC_INGRESS_NEXT_MULTICAST)
+                        .makePermanent()
+                        .withPriority(next.priority())
+                        .forDevice(deviceId)
+                        .fromApp(next.appId())
+                        .build());
 
         // Egress VLAN handling
-        next.next().forEach(trafficTreatment -> {
-            PortNumber outputPort = getOutputPort(trafficTreatment);
-            if (includesPopVlanInst(trafficTreatment) && outputPort != null) {
+        next.next().forEach(t -> {
+            PortNumber outputPort = getOutputPort(t);
+            if (includesPopVlanInst(t) && outputPort != null) {
                 processVlanPopRule(outputPort, next, resultBuilder);
             }
+            if (t.allInstructions().size() > 2) {
+                // More than OUTPUT and VLAN_POP...
+                log.warn("Some instructions of BROADCAST NextObjective might" +
+                                 "not have been applied, supported only " +
+                                 "OUTPUT and VLAN_POP, but found {}", t);
+            }
         });
+    }
+
+    private GroupDescription getAllGroup(NextObjective next) {
+        final List<GroupBucket> bucketList = next.next().stream()
+                .map(this::getOutputInstruction)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(i -> DefaultTrafficTreatment.builder().add(i).build())
+                .map(DefaultGroupBucket::createAllGroupBucket)
+                .collect(Collectors.toList());
+
+        if (bucketList.size() != next.next().size()) {
+            log.warn("Got BROADCAST NextObjective with {} treatments but " +
+                             "only {} have OUTPUT instructions, cannot " +
+                             "translate to ALL groups",
+                     next.next().size(), bucketList.size());
+            return null;
+        }
+
+        final int groupId = next.id();
+        final GroupBuckets buckets = new GroupBuckets(bucketList);
+        // Used DefaultGroupKey instead of PiGroupKey
+        // as we don't have any action profile to apply to the groups of ALL type
+        final GroupKey groupKey = new DefaultGroupKey(FabricPipeliner.KRYO.serialize(groupId));
+
+        return new DefaultGroupDescription(deviceId,
+                                           GroupDescription.Type.ALL,
+                                           buckets,
+                                           groupKey,
+                                           groupId,
+                                           next.appId());
     }
 }

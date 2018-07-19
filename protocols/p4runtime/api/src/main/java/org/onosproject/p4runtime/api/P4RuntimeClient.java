@@ -28,6 +28,7 @@ import org.onosproject.net.pi.runtime.PiCounterCellData;
 import org.onosproject.net.pi.runtime.PiCounterCellId;
 import org.onosproject.net.pi.runtime.PiMeterCellConfig;
 import org.onosproject.net.pi.runtime.PiMeterCellId;
+import org.onosproject.net.pi.runtime.PiMulticastGroupEntry;
 import org.onosproject.net.pi.runtime.PiPacketOperation;
 import org.onosproject.net.pi.runtime.PiTableEntry;
 
@@ -225,4 +226,23 @@ public interface P4RuntimeClient {
      */
     CompletableFuture<Boolean> writeMeterCells(
             Collection<PiMeterCellConfig> cellConfigs, PiPipeconf pipeconf);
+
+    /**
+     * Performs the given write operation for the given PI multicast groups
+     * entries.
+     *
+     * @param entries multicast group entries
+     * @param opType  write operation type
+     * @return true if the operation was successful, false otherwise
+     */
+    CompletableFuture<Boolean> writePreMulticastGroupEntries(
+            Collection<PiMulticastGroupEntry> entries,
+            WriteOperationType opType);
+
+    /**
+     * Returns all multicast groups on device.
+     *
+     * @return multicast groups
+     */
+    CompletableFuture<Collection<PiMulticastGroupEntry>> readAllMulticastGroupEntries();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-present Open Networking Foundation
+ * Copyright 2018-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,12 @@
 
 package org.onosproject.net.pi.impl;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.testing.EqualsTester;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.MacAddress;
-import org.onlab.util.ImmutableByteSequence;
-import org.onosproject.TestApplicationId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.DefaultApplicationId;
-import org.onosproject.core.GroupId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultFlowRule;
@@ -35,82 +30,39 @@ import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.net.flow.instructions.Instructions;
-import org.onosproject.net.group.DefaultGroup;
-import org.onosproject.net.group.DefaultGroupBucket;
-import org.onosproject.net.group.DefaultGroupDescription;
-import org.onosproject.net.group.Group;
-import org.onosproject.net.group.GroupBucket;
-import org.onosproject.net.group.GroupBuckets;
-import org.onosproject.net.group.GroupDescription;
 import org.onosproject.net.pi.model.PiPipeconf;
-import org.onosproject.net.pi.runtime.PiAction;
-import org.onosproject.net.pi.runtime.PiActionGroup;
-import org.onosproject.net.pi.runtime.PiActionGroupMember;
-import org.onosproject.net.pi.runtime.PiActionGroupMemberId;
-import org.onosproject.net.pi.runtime.PiActionParam;
-import org.onosproject.net.pi.runtime.PiGroupKey;
 import org.onosproject.net.pi.runtime.PiMatchKey;
-import org.onosproject.net.pi.runtime.PiTableAction;
 import org.onosproject.net.pi.runtime.PiTableEntry;
 import org.onosproject.net.pi.runtime.PiTernaryFieldMatch;
 import org.onosproject.pipelines.basic.PipeconfLoader;
 
-import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.onlab.util.ImmutableByteSequence.copyFrom;
-import static org.onosproject.net.group.GroupDescription.Type.SELECT;
-import static org.onosproject.pipelines.basic.BasicConstants.ACT_PRF_WCMP_SELECTOR_ID;
-import static org.onosproject.pipelines.basic.BasicConstants.ACT_PRM_PORT_ID;
-import static org.onosproject.pipelines.basic.BasicConstants.ACT_SET_EGRESS_PORT_WCMP_ID;
 import static org.onosproject.pipelines.basic.BasicConstants.HDR_ETH_DST_ID;
 import static org.onosproject.pipelines.basic.BasicConstants.HDR_ETH_SRC_ID;
 import static org.onosproject.pipelines.basic.BasicConstants.HDR_ETH_TYPE_ID;
 import static org.onosproject.pipelines.basic.BasicConstants.HDR_IN_PORT_ID;
-import static org.onosproject.pipelines.basic.BasicConstants.PORT_BITWIDTH;
 import static org.onosproject.pipelines.basic.BasicConstants.TBL_TABLE0_ID;
-import static org.onosproject.pipelines.basic.BasicConstants.TBL_WCMP_TABLE_ID;
 
 /**
- * Tests for {@link PiFlowRuleTranslatorImpl}.
+ * Test for {@link PiFlowRuleTranslatorImpl}.
  */
 @SuppressWarnings("ConstantConditions")
-public class PiTranslatorServiceTest {
-
+public class PiFlowRuleTranslatorImplTest {
     private static final short IN_PORT_MASK = 0x01ff; // 9-bit mask
     private static final short ETH_TYPE_MASK = (short) 0xffff;
     private static final DeviceId DEVICE_ID = DeviceId.deviceId("device:dummy:1");
-    private static final ApplicationId APP_ID = TestApplicationId.create("dummy");
-    private static final GroupId GROUP_ID = GroupId.valueOf(1);
-    private static final List<GroupBucket> BUCKET_LIST = ImmutableList.of(outputBucket(1),
-                                                                          outputBucket(2),
-                                                                          outputBucket(3)
-    );
-    private static final PiGroupKey GROUP_KEY = new PiGroupKey(TBL_WCMP_TABLE_ID, ACT_PRF_WCMP_SELECTOR_ID,
-                                                               GROUP_ID.id());
-    private static final GroupBuckets BUCKETS = new GroupBuckets(BUCKET_LIST);
-    private static final GroupDescription GROUP_DESC =
-            new DefaultGroupDescription(DEVICE_ID, SELECT, BUCKETS, GROUP_KEY, GROUP_ID.id(), APP_ID);
-    private static final Group GROUP = new DefaultGroup(GROUP_ID, GROUP_DESC);
-    private static final int DEFAULT_MEMBER_WEIGHT = 1;
-    private static final int BASE_MEM_ID = 65535;
-    private Collection<PiActionGroupMember> expectedMembers;
 
     private Random random = new Random();
     private PiPipeconf pipeconf;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         pipeconf = PipeconfLoader.BASIC_PIPECONF;
-        expectedMembers = ImmutableSet.of(outputMember(1),
-                                          outputMember(2),
-                                          outputMember(3));
     }
 
     @Test
@@ -216,55 +168,5 @@ public class PiTranslatorServiceTest {
         assertThat("Match key should be empty",
                    defActionEntry.matchKey(), is(equalTo(PiMatchKey.EMPTY)));
         assertThat("Priority should not be set", !defActionEntry.priority().isPresent());
-
-    }
-
-    private static GroupBucket outputBucket(int portNum) {
-        ImmutableByteSequence paramVal = copyFrom(portNum);
-        PiActionParam param = new PiActionParam(ACT_PRM_PORT_ID, paramVal);
-        PiTableAction action = PiAction.builder().withId(ACT_SET_EGRESS_PORT_WCMP_ID).withParameter(param).build();
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .add(Instructions.piTableAction(action))
-                .build();
-        return DefaultGroupBucket.createSelectGroupBucket(treatment);
-    }
-
-    private static PiActionGroupMember outputMember(int portNum)
-            throws ImmutableByteSequence.ByteSequenceTrimException {
-        PiActionParam param = new PiActionParam(ACT_PRM_PORT_ID, copyFrom(portNum).fit(PORT_BITWIDTH));
-        PiAction piAction = PiAction.builder()
-                .withId(ACT_SET_EGRESS_PORT_WCMP_ID)
-                .withParameter(param).build();
-        return PiActionGroupMember.builder()
-                .withAction(piAction)
-                .withId(PiActionGroupMemberId.of(BASE_MEM_ID + portNum))
-                .withWeight(DEFAULT_MEMBER_WEIGHT)
-                .build();
-    }
-
-    /**
-     * Test add group with buckets.
-     */
-    @Test
-    public void testTranslateGroups() throws Exception {
-
-        PiActionGroup piGroup1 = PiGroupTranslatorImpl.translate(GROUP, pipeconf, null);
-        PiActionGroup piGroup2 = PiGroupTranslatorImpl.translate(GROUP, pipeconf, null);
-
-        new EqualsTester()
-                .addEqualityGroup(piGroup1, piGroup2)
-                .testEquals();
-
-        assertThat("Group ID must be equal",
-                   piGroup1.id().id(), is(equalTo(GROUP_ID.id())));
-        assertThat("Action profile ID must be equal",
-                   piGroup1.actionProfileId(), is(equalTo(ACT_PRF_WCMP_SELECTOR_ID)));
-
-        // members installed
-        Collection<PiActionGroupMember> members = piGroup1.members();
-        assertThat("The number of group members must be equal",
-                   piGroup1.members().size(), is(expectedMembers.size()));
-        assertThat("Group members must be equal",
-                   members.containsAll(expectedMembers) && expectedMembers.containsAll(members));
     }
 }

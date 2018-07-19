@@ -44,6 +44,7 @@ import org.onosproject.net.pi.runtime.PiCounterCellId;
 import org.onosproject.net.pi.runtime.PiEntity;
 import org.onosproject.net.pi.runtime.PiMeterCellConfig;
 import org.onosproject.net.pi.runtime.PiMeterCellId;
+import org.onosproject.net.pi.runtime.PiMulticastGroupEntry;
 import org.onosproject.net.pi.runtime.PiPacketOperation;
 import org.onosproject.net.pi.runtime.PiTableEntry;
 import org.onosproject.net.pi.service.PiPipeconfService;
@@ -59,6 +60,8 @@ import p4.v1.P4RuntimeOuterClass.ActionProfileMember;
 import p4.v1.P4RuntimeOuterClass.Entity;
 import p4.v1.P4RuntimeOuterClass.ForwardingPipelineConfig;
 import p4.v1.P4RuntimeOuterClass.MasterArbitrationUpdate;
+import p4.v1.P4RuntimeOuterClass.MulticastGroupEntry;
+import p4.v1.P4RuntimeOuterClass.PacketReplicationEngineEntry;
 import p4.v1.P4RuntimeOuterClass.ReadRequest;
 import p4.v1.P4RuntimeOuterClass.ReadResponse;
 import p4.v1.P4RuntimeOuterClass.SetForwardingPipelineConfigRequest;
@@ -95,9 +98,11 @@ import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 import static p4.v1.P4RuntimeOuterClass.Entity.EntityCase.ACTION_PROFILE_GROUP;
 import static p4.v1.P4RuntimeOuterClass.Entity.EntityCase.ACTION_PROFILE_MEMBER;
+import static p4.v1.P4RuntimeOuterClass.Entity.EntityCase.PACKET_REPLICATION_ENGINE_ENTRY;
 import static p4.v1.P4RuntimeOuterClass.Entity.EntityCase.TABLE_ENTRY;
 import static p4.v1.P4RuntimeOuterClass.PacketIn;
 import static p4.v1.P4RuntimeOuterClass.PacketOut;
+import static p4.v1.P4RuntimeOuterClass.PacketReplicationEngineEntry.TypeCase.MULTICAST_GROUP_ENTRY;
 import static p4.v1.P4RuntimeOuterClass.SetForwardingPipelineConfigRequest.Action.VERIFY_AND_COMMIT;
 
 /**
@@ -155,8 +160,8 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
     }
 
     /**
-     * Submits a task for async execution via the given executor.
-     * All tasks submitted with this method will be executed sequentially.
+     * Submits a task for async execution via the given executor. All tasks
+     * submitted with this method will be executed sequentially.
      */
     private <U> CompletableFuture<U> supplyWithExecutor(
             Supplier<U> supplier, String opDescription, Executor executor) {
@@ -292,6 +297,20 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
     }
 
     @Override
+    public CompletableFuture<Boolean> writePreMulticastGroupEntries(
+            Collection<PiMulticastGroupEntry> entries,
+            WriteOperationType opType) {
+        return supplyInContext(() -> doWriteMulticastGroupEntries(entries, opType),
+                               "writePreMulticastGroupEntries");
+    }
+
+    @Override
+    public CompletableFuture<Collection<PiMulticastGroupEntry>> readAllMulticastGroupEntries() {
+        return supplyInContext(this::doReadAllMulticastGroupEntries,
+                               "readAllMulticastGroupEntries");
+    }
+
+    @Override
     public CompletableFuture<Collection<PiMeterCellConfig>> readMeterCells(Set<PiMeterCellId> cellIds,
                                                                            PiPipeconf pipeconf) {
         return supplyInContext(() -> doReadMeterCells(cellIds, pipeconf),
@@ -300,7 +319,7 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
 
     @Override
     public CompletableFuture<Collection<PiMeterCellConfig>> readAllMeterCells(Set<PiMeterId> meterIds,
-                                                                                PiPipeconf pipeconf) {
+                                                                              PiPipeconf pipeconf) {
         return supplyInContext(() -> doReadAllMeterCells(meterIds, pipeconf),
                                "readAllMeterCells-" + meterIds.hashCode());
     }
@@ -319,7 +338,7 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
 
     private boolean sendMasterArbitrationUpdate(Uint128 electionId) {
         log.info("Sending arbitration update to {}... electionId={}",
-                  deviceId, uint128ToBigInteger(electionId));
+                 deviceId, uint128ToBigInteger(electionId));
         try {
             streamRequestObserver.onNext(
                     StreamMessageRequest.newBuilder()
@@ -395,8 +414,6 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
 
     private boolean doWriteTableEntries(Collection<PiTableEntry> piTableEntries, WriteOperationType opType,
                                         PiPipeconf pipeconf) {
-        WriteRequest.Builder writeRequestBuilder = WriteRequest.newBuilder();
-
         if (piTableEntries.size() == 0) {
             return true;
         }
@@ -419,19 +436,7 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
             return false;
         }
 
-        writeRequestBuilder
-                .setDeviceId(p4DeviceId)
-                .setElectionId(clientElectionId)
-                .addAllUpdates(updateMsgs)
-                .build();
-
-        try {
-            blockingStub.write(writeRequestBuilder.build());
-            return true;
-        } catch (StatusRuntimeException e) {
-            checkAndLogWriteErrors(piTableEntries, e, opType, "table entry");
-            return false;
-        }
+        return write(updateMsgs, piTableEntries, opType, "table entry");
     }
 
     private Collection<PiTableEntry> doDumpTable(PiTableId piTableId, PiPipeconf pipeconf) {
@@ -444,6 +449,10 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
             tableId = 0;
         } else {
             P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(pipeconf);
+            if (browser == null) {
+                log.warn("Unable to get a P4Info browser for pipeconf {}", pipeconf);
+                return Collections.emptyList();
+            }
             try {
                 tableId = browser.tables().getByName(piTableId.id()).getPreamble().getId();
             } catch (P4InfoBrowser.NotFoundException e) {
@@ -616,18 +625,7 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
             return true;
         }
 
-        WriteRequest writeRequestMsg = WriteRequest.newBuilder()
-                .setDeviceId(p4DeviceId)
-                .setElectionId(clientElectionId)
-                .addAllUpdates(updateMsgs)
-                .build();
-        try {
-            blockingStub.write(writeRequestMsg);
-            return true;
-        } catch (StatusRuntimeException e) {
-            checkAndLogWriteErrors(members, e, opType, "group member");
-            return false;
-        }
+        return write(updateMsgs, members, opType, "group member");
     }
 
     private Collection<PiActionGroup> doDumpGroups(PiActionProfileId piActionProfileId, PiPipeconf pipeconf) {
@@ -762,23 +760,15 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
             return false;
         }
 
-        final WriteRequest writeRequestMsg = WriteRequest.newBuilder()
-                .setDeviceId(p4DeviceId)
-                .setElectionId(clientElectionId)
-                .addUpdates(Update.newBuilder()
-                                    .setEntity(Entity.newBuilder()
-                                                       .setActionProfileGroup(actionProfileGroup)
-                                                       .build())
-                                    .setType(UPDATE_TYPES.get(opType))
-                                    .build())
+        final Update updateMsg = Update.newBuilder()
+                .setEntity(Entity.newBuilder()
+                                   .setActionProfileGroup(actionProfileGroup)
+                                   .build())
+                .setType(UPDATE_TYPES.get(opType))
                 .build();
-        try {
-            blockingStub.write(writeRequestMsg);
-            return true;
-        } catch (StatusRuntimeException e) {
-            checkAndLogWriteErrors(Collections.singleton(group), e, opType, "group");
-            return false;
-        }
+
+        return write(Collections.singleton(updateMsg), Collections.singleton(group),
+                     opType, "group");
     }
 
     private Collection<PiMeterCellConfig> doReadAllMeterCells(
@@ -830,11 +820,9 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
         return MeterEntryCodec.decodeMeterEntities(responseEntities, pipeconf);
     }
 
-    private boolean doWriteMeterCells(Collection<PiMeterCellConfig> cellIds, PiPipeconf pipeconf) {
+    private boolean doWriteMeterCells(Collection<PiMeterCellConfig> cellConfigs, PiPipeconf pipeconf) {
 
-        WriteRequest.Builder writeRequestBuilder = WriteRequest.newBuilder();
-
-        Collection<Update> updateMsgs = MeterEntryCodec.encodePiMeterCellConfigs(cellIds, pipeconf)
+        Collection<Update> updateMsgs = MeterEntryCodec.encodePiMeterCellConfigs(cellConfigs, pipeconf)
                 .stream()
                 .map(meterEntryMsg ->
                              Update.newBuilder()
@@ -847,19 +835,91 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
             return true;
         }
 
-        writeRequestBuilder
+        return write(updateMsgs, cellConfigs, WriteOperationType.MODIFY, "meter cell config");
+    }
+
+    private boolean doWriteMulticastGroupEntries(
+            Collection<PiMulticastGroupEntry> entries,
+            WriteOperationType opType) {
+
+        final List<Update> updateMsgs = entries.stream()
+                .map(MulticastGroupEntryCodec::encode)
+                .map(mcMsg -> PacketReplicationEngineEntry.newBuilder()
+                        .setMulticastGroupEntry(mcMsg)
+                        .build())
+                .map(preMsg -> Entity.newBuilder()
+                        .setPacketReplicationEngineEntry(preMsg)
+                        .build())
+                .map(entityMsg -> Update.newBuilder()
+                        .setEntity(entityMsg)
+                        .setType(UPDATE_TYPES.get(opType))
+                        .build())
+                .collect(Collectors.toList());
+        return write(updateMsgs, entries, opType, "multicast group entry");
+    }
+
+    private Collection<PiMulticastGroupEntry> doReadAllMulticastGroupEntries() {
+
+        final Entity entity = Entity.newBuilder()
+                .setPacketReplicationEngineEntry(
+                        PacketReplicationEngineEntry.newBuilder()
+                                .setMulticastGroupEntry(
+                                        MulticastGroupEntry.newBuilder()
+                                                .build())
+                                .build())
+                .build();
+
+        final ReadRequest req = ReadRequest.newBuilder()
+                .setDeviceId(p4DeviceId)
+                .addEntities(entity)
+                .build();
+
+        Iterator<ReadResponse> responses;
+        try {
+            responses = blockingStub.read(req);
+        } catch (StatusRuntimeException e) {
+            log.warn("Unable to read multicast group entries from {}: {}", deviceId, e.getMessage());
+            return Collections.emptyList();
+        }
+
+        Iterable<ReadResponse> responseIterable = () -> responses;
+        final List<PiMulticastGroupEntry> mcEntries = StreamSupport
+                .stream(responseIterable.spliterator(), false)
+                .map(ReadResponse::getEntitiesList)
+                .flatMap(List::stream)
+                .filter(e -> e.getEntityCase()
+                        .equals(PACKET_REPLICATION_ENGINE_ENTRY))
+                .map(Entity::getPacketReplicationEngineEntry)
+                .filter(e -> e.getTypeCase().equals(MULTICAST_GROUP_ENTRY))
+                .map(PacketReplicationEngineEntry::getMulticastGroupEntry)
+                .map(MulticastGroupEntryCodec::decode)
+                .collect(Collectors.toList());
+
+        log.debug("Retrieved {} multicast group entries from {}...",
+                  mcEntries.size(), deviceId);
+
+        return mcEntries;
+    }
+
+    private <E extends PiEntity> boolean write(Collection<Update> updates,
+                                               Collection<E> writeEntities,
+                                               WriteOperationType opType,
+                                               String entryType) {
+        try {
+            blockingStub.write(writeRequest(updates));
+            return true;
+        } catch (StatusRuntimeException e) {
+            checkAndLogWriteErrors(writeEntities, e, opType, entryType);
+            return false;
+        }
+    }
+
+    private WriteRequest writeRequest(Iterable<Update> updateMsgs) {
+        return WriteRequest.newBuilder()
                 .setDeviceId(p4DeviceId)
                 .setElectionId(clientElectionId)
                 .addAllUpdates(updateMsgs)
                 .build();
-        try {
-            blockingStub.write(writeRequestBuilder.build());
-            return true;
-        } catch (StatusRuntimeException e) {
-            log.warn("Unable to write meter entries : {}", e.getMessage());
-            log.debug("exception", e);
-            return false;
-        }
     }
 
     private Void doShutdown() {
@@ -926,7 +986,7 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
             errors.stream()
                     .filter(err -> err.getCanonicalCode() != Status.OK.getCode().value())
                     .forEach(err -> log.warn("Unable to {} {} (unknown): {}",
-                                 opType.name(), entryType, parseP4Error(err)));
+                                             opType.name(), entryType, parseP4Error(err)));
         }
     }
 

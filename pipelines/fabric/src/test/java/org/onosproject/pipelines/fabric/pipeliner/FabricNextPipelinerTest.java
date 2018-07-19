@@ -350,7 +350,13 @@ public class FabricNextPipelinerTest extends FabricPipelinerTest {
 
         //create the expected group
         GroupDescription actualGroup = groupsInstalled.get(0);
-        List<TrafficTreatment> treatments = ImmutableList.of(treatment1, treatment2);
+        TrafficTreatment groupTreatment1 = DefaultTrafficTreatment.builder()
+                .setOutput(PORT_1)
+                .build();
+        TrafficTreatment groupTreatment2 = DefaultTrafficTreatment.builder()
+                .setOutput(PORT_2)
+                .build();
+        List<TrafficTreatment> treatments = ImmutableList.of(groupTreatment1, groupTreatment2);
 
         List<GroupBucket> buckets = treatments.stream()
                 .map(DefaultGroupBucket::createAllGroupBucket)
