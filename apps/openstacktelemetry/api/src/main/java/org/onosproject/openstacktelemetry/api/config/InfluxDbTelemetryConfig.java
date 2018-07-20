@@ -58,6 +58,13 @@ public interface InfluxDbTelemetryConfig extends TelemetryConfig {
     String database();
 
     /**
+     * Obtains InfluxDB measurement name.
+     *
+     * @return InfluxDB measurement name
+     */
+    String measurement();
+
+    /**
      * Obtains InfluxDB enable batch flag.
      *
      * @return InfluxDB enable batch flag
@@ -107,6 +114,14 @@ public interface InfluxDbTelemetryConfig extends TelemetryConfig {
          * @return builder instance
          */
         Builder withPassword(String password);
+
+         /**
+         * Sets InfluxDB measurement.
+         *
+         * @param measurement InfluxDB measurement
+         * @return builder instance
+         */
+        Builder withMeasurement(String measurement);
 
         /**
          * Sets InfluxDB database.

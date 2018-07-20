@@ -31,7 +31,7 @@
     <description>SONA Openstack Telemetry Application</description>
 
     <properties>
-        <influxdb-java.version>2.2</influxdb-java.version>
+        <influxdb-java.version>2.9</influxdb-java.version>
         <kafka-client.version>0.8.2.2_1</kafka-client.version>
         <protobuf-java.version>3.2.0</protobuf-java.version>
         <io-grpc.version>1.3.1</io-grpc.version>

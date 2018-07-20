@@ -20,4 +20,18 @@ package org.onosproject.openstacktelemetry.api;
  */
 public interface InfluxRecord<K, V> {
 
+    /**
+     * Gets measurement name in InfluxDB.
+     *
+     * @return measurement name
+     */
+    K measurement();
+
+    /**
+     * Gets flow information and its statistics data.
+     *
+     * @return flow information and its statistics data
+     */
+    V flowInfos();
+
 }

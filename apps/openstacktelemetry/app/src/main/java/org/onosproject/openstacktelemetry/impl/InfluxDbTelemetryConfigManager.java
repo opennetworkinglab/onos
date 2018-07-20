@@ -38,6 +38,7 @@ import java.util.Dictionary;
 import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_DISABLE;
 import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_INFLUXDB_DATABASE;
 import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_INFLUXDB_ENABLE_BATCH;
+import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_INFLUXDB_MEASUREMENT;
 import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_INFLUXDB_PASSWORD;
 import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_INFLUXDB_SERVER_IP;
 import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_INFLUXDB_SERVER_PORT;
@@ -59,6 +60,7 @@ public class InfluxDbTelemetryConfigManager implements InfluxDbTelemetryConfigSe
     private static final String USERNAME = "username";
     private static final String PASSWORD = "password";
     private static final String DATABASE = "database";
+    private static final String MEASUREMENT = "measurement";
     private static final String ENABLE_BATCH = "enableBatch";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -86,6 +88,10 @@ public class InfluxDbTelemetryConfigManager implements InfluxDbTelemetryConfigSe
     @Property(name = DATABASE, value = DEFAULT_INFLUXDB_DATABASE,
             label = "Database of InfluxDB server")
     protected String database = DEFAULT_INFLUXDB_DATABASE;
+
+    @Property(name = MEASUREMENT, value = DEFAULT_INFLUXDB_MEASUREMENT,
+            label = "Measurement of InfluxDB server")
+    protected String measurement = DEFAULT_INFLUXDB_MEASUREMENT;
 
     @Property(name = ENABLE_BATCH, boolValue = DEFAULT_INFLUXDB_ENABLE_BATCH,
             label = "Flag value of enabling batch mode of InfluxDB server")
@@ -141,6 +147,7 @@ public class InfluxDbTelemetryConfigManager implements InfluxDbTelemetryConfigSe
                 .withUsername(username)
                 .withPassword(password)
                 .withDatabase(database)
+                .withMeasurement(measurement)
                 .withEnableBatch(enableBatch)
                 .build();
     }
@@ -177,6 +184,10 @@ public class InfluxDbTelemetryConfigManager implements InfluxDbTelemetryConfigSe
         String databaseStr = Tools.get(properties, DATABASE);
         database = databaseStr != null ? databaseStr : DEFAULT_INFLUXDB_DATABASE;
         log.info("Configured. InfluxDB server database is {}", database);
+
+        String measurementStr = Tools.get(properties, MEASUREMENT);
+        measurement = measurementStr != null ? measurementStr : DEFAULT_INFLUXDB_MEASUREMENT;
+        log.info("Configured. InfluxDB server measurement is {}", measurement);
 
         Boolean enableBatchConfigured = getBooleanProperty(properties, ENABLE_BATCH);
         if (enableBatchConfigured == null) {

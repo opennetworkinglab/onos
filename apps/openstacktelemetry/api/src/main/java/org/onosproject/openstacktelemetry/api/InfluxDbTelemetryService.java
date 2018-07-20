@@ -15,6 +15,8 @@
  */
 package org.onosproject.openstacktelemetry.api;
 
+import java.util.Set;
+
 /**
  * Service API for publishing openstack telemetry through InfluxDB producer.
  */
@@ -25,5 +27,5 @@ public interface InfluxDbTelemetryService extends TelemetryService {
      *
      * @param record a network metric to be published
      */
-    void publish(InfluxRecord<String, Object> record);
+    void publish(InfluxRecord<String, Set<FlowInfo>> record);
 }

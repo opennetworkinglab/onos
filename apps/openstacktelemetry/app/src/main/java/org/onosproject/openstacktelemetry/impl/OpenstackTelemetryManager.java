@@ -36,6 +36,7 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Set;
 
+import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_INFLUXDB_MEASUREMENT;
 import static org.onosproject.openstacktelemetry.codec.TinaMessageByteBufferCodec.KAFKA_KEY;
 import static org.onosproject.openstacktelemetry.codec.TinaMessageByteBufferCodec.KAFKA_TOPIC;
 
@@ -73,7 +74,6 @@ public class OpenstackTelemetryManager implements OpenstackTelemetryService {
     @Override
     public void publish(Set<FlowInfo> flowInfos) {
         telemetryServices.forEach(service -> {
-
             if (service instanceof GrpcTelemetryManager) {
                 invokeGrpcPublisher((GrpcTelemetryService) service, flowInfos);
             }
@@ -99,7 +99,9 @@ public class OpenstackTelemetryManager implements OpenstackTelemetryService {
     }
 
     private void invokeInfluxDbPublisher(InfluxDbTelemetryService service, Set<FlowInfo> flowInfos) {
-        // TODO: need provide implementation
+        DefaultInfluxRecord<String, Set<FlowInfo>> influxRecord
+                = new DefaultInfluxRecord<>(DEFAULT_INFLUXDB_MEASUREMENT, flowInfos);
+        service.publish(influxRecord);
     }
 
     private void invokeKafkaPublisher(KafkaTelemetryService service, Set<FlowInfo> flowInfos) {

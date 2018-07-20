@@ -39,6 +39,7 @@ public final class Constants {
     public static final String DEFAULT_INFLUXDB_USERNAME = "onos";
     public static final String DEFAULT_INFLUXDB_PASSWORD = "onos";
     public static final String DEFAULT_INFLUXDB_DATABASE = "onos";
+    public static final String DEFAULT_INFLUXDB_MEASUREMENT = "sonaflow";
     public static final boolean DEFAULT_INFLUXDB_ENABLE_BATCH = true;
 
     // default configuration variables for Kafka

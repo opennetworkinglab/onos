@@ -26,7 +26,7 @@ public final class DefaultStatsFlowRule implements StatsFlowRule {
     private final IpPrefix srcIpPrefix;
     private final IpPrefix dstIpPrefix;
     private final byte     ipProtocol;
-    private final TpPort srcTpPort;
+    private final TpPort   srcTpPort;
     private final TpPort   dstTpPort;
 
     private static final String NOT_NULL_MSG = "Element % cannot be null";

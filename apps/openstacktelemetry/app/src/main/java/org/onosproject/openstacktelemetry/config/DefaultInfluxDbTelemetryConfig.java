@@ -36,18 +36,21 @@ public final class DefaultInfluxDbTelemetryConfig implements InfluxDbTelemetryCo
     private final String username;
     private final String password;
     private final String database;
+    private final String measurement;
     private final boolean enableBatch;
     private final Map<String, Object> configMap;
 
     private DefaultInfluxDbTelemetryConfig(String address, int port,
                                            String username, String password,
-                                           String database, boolean enableBatch,
+                                           String database, String measurement,
+                                           boolean enableBatch,
                                            Map<String, Object> configMap) {
         this.address = address;
         this.port = port;
         this.username = username;
         this.password = password;
         this.database = database;
+        this.measurement = measurement;
         this.enableBatch = enableBatch;
         this.configMap = configMap;
     }
@@ -78,6 +81,11 @@ public final class DefaultInfluxDbTelemetryConfig implements InfluxDbTelemetryCo
     }
 
     @Override
+    public String measurement() {
+        return measurement;
+    }
+
+    @Override
     public boolean enableBatch() {
         return enableBatch;
     }
@@ -104,6 +112,7 @@ public final class DefaultInfluxDbTelemetryConfig implements InfluxDbTelemetryCo
                     Objects.equals(this.username, other.username) &&
                     Objects.equals(this.password, other.password) &&
                     Objects.equals(this.database, other.database) &&
+                    Objects.equals(this.measurement, other.measurement) &&
                     Objects.equals(this.enableBatch, other.enableBatch) &&
                     Objects.equals(this.configMap, other.configMap);
         }
@@ -112,7 +121,8 @@ public final class DefaultInfluxDbTelemetryConfig implements InfluxDbTelemetryCo
 
     @Override
     public int hashCode() {
-        return Objects.hash(address, port, username, password, database, enableBatch, configMap);
+        return Objects.hash(address, port, username, password, database,
+                            measurement, enableBatch, configMap);
     }
 
     @Override
@@ -123,6 +133,7 @@ public final class DefaultInfluxDbTelemetryConfig implements InfluxDbTelemetryCo
                 .add("username", username)
                 .add("password", password)
                 .add("database", database)
+                .add("measurement", measurement)
                 .add("enableBatch", enableBatch)
                 .add("configMap", configMap)
                 .toString();
@@ -143,6 +154,7 @@ public final class DefaultInfluxDbTelemetryConfig implements InfluxDbTelemetryCo
         private String username;
         private String password;
         private String database;
+        private String measurement;
         private boolean enableBatch;
         private Map<String, Object> configMap;
 
@@ -177,6 +189,12 @@ public final class DefaultInfluxDbTelemetryConfig implements InfluxDbTelemetryCo
         }
 
         @Override
+        public Builder withMeasurement(String measurement) {
+            this.measurement = measurement;
+            return this;
+        }
+
+        @Override
         public Builder withEnableBatch(boolean enableBatch) {
             this.enableBatch = enableBatch;
             return this;
@@ -194,9 +212,10 @@ public final class DefaultInfluxDbTelemetryConfig implements InfluxDbTelemetryCo
             checkNotNull(username, "InfluxDB server username cannot be null");
             checkNotNull(password, "InfluxDB server password cannot be null");
             checkNotNull(database, "InfluxDB server database cannot be null");
+            checkNotNull(measurement, "InfluxDB server measurement cannot be null");
 
             return new DefaultInfluxDbTelemetryConfig(address, port, username,
-                    password, database, enableBatch, configMap);
+                    password, database, measurement, enableBatch, configMap);
         }
     }
 }
