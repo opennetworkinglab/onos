@@ -25,6 +25,7 @@ import org.onosproject.protocol.rest.RestSBDevice.AuthenticationScheme;
 import org.onlab.packet.IpAddress;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 
 import java.util.Objects;
@@ -88,6 +89,36 @@ public class DefaultRestServerSBDevice
     @Override
     public int numberOfNics() {
         return this.nics.size();
+    }
+
+    @Override
+    public long portNumberFromName(String portName) {
+        if (Strings.isNullOrEmpty(portName)) {
+            return -1;
+        }
+
+        for (NicDevice nic : this.nics) {
+            if (nic.name().equals(portName)) {
+                return nic.portNumber();
+            }
+        }
+
+        return -1;
+    }
+
+    @Override
+    public String portNameFromNumber(long portNumber) {
+        if (portNumber < 0) {
+            return "";
+        }
+
+        for (NicDevice nic : this.nics) {
+            if (nic.portNumber() == portNumber) {
+                return nic.name();
+            }
+        }
+
+        return "";
     }
 
     @Override

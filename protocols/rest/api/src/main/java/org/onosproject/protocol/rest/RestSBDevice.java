@@ -43,7 +43,7 @@ public interface RestSBDevice {
     IpAddress ip();
 
     /**
-     * Returns the password of this device.
+     * Returns the port of this device.
      *
      * @return port
      */

@@ -53,4 +53,20 @@ public interface RestServerSBDevice extends RestSBDevice {
      */
     int numberOfNics();
 
+    /**
+     * Returns the port number of a specific NIC.
+     *
+     * @param portName name of the NIC
+     * @return NIC port number
+     */
+    long portNumberFromName(String portName);
+
+    /**
+     * Returns the port name of a specific NIC.
+     *
+     * @param portNumber NIC port number
+     * @return NIC name
+     */
+    String portNameFromNumber(long portNumber);
+
 }

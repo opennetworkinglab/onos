@@ -43,6 +43,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.ws.rs.ProcessingException;
 
+import com.google.common.base.Strings;
+
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -66,7 +68,6 @@ public class FlowRuleProgrammableServerImpl extends BasicServerDriver
      * Parameters to be exchanged with the server's agent.
      */
     private static final String PARAM_RULES        = "rules";
-    private static final String PARAM_NIC_ID       = "nicId";
     private static final String PARAM_CPU_ID       = "cpuId";
     private static final String PARAM_CPU_RULES    = "cpuRules";
     private static final String PARAM_RULE_ID      = "ruleId";
@@ -127,7 +128,6 @@ public class FlowRuleProgrammableServerImpl extends BasicServerDriver
 
             // Each device might have multiple NICs
             for (JsonNode nicNode : scNode.path(PARAM_NICS)) {
-                String nicId = get(nicNode, PARAM_NIC_ID);
                 JsonNode cpusNode = nicNode.path(PARAM_CPUS);
 
                 // Each NIC can dispatch to multiple CPU cores
@@ -281,20 +281,18 @@ public class FlowRuleProgrammableServerImpl extends BasicServerDriver
         Map<Long, ArrayNode> cpuObjSet =
             new ConcurrentHashMap<Long, ArrayNode>();
 
-        String nicId = null;
+        String nic = null;
 
         for (FlowRule rule : rules) {
             NicFlowRule nicRule = (NicFlowRule) rule;
             long coreIndex = nicRule.cpuCoreIndex();
 
             // Keep the ID of the target NIC
-            if (nicId == null) {
-                long nicIfaceNb = nicRule.interfaceNumber();
-                checkArgument(nicIfaceNb > 0,
-                    "Attempted to install NIC rules on an invalid NIC ID: "
-                    + nicIfaceNb);
-                // NIC IDs in the dataplane start from 0
-                nicId = Long.toString(nicIfaceNb - 1);
+            if (nic == null) {
+                nic = findNicInterfaceWithPort(deviceId, nicRule.interfaceNumber());
+                checkArgument(
+                    !Strings.isNullOrEmpty(nic),
+                    "Attempted to install rules on an invalid NIC");
             }
 
             // Create a JSON array for this CPU core
@@ -314,8 +312,7 @@ public class FlowRuleProgrammableServerImpl extends BasicServerDriver
         }
 
         ObjectNode nicObjNode = mapper.createObjectNode();
-        // TODO: Fix this as it might cause issues
-        nicObjNode.put("nicId", "fd" + nicId);
+        nicObjNode.put("nicName", nic);
 
         ArrayNode cpusArrayNode = nicObjNode.putArray(PARAM_CPUS);
 

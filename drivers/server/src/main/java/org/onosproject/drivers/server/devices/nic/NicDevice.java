@@ -27,37 +27,37 @@ import static org.onosproject.net.Port.Type;
 public interface NicDevice extends Comparable {
 
     /**
-     * Returns the ID of this NIC.
+     * Returns the name of this NIC.
      *
-     * @return NIC ID
+     * @return NIC name
      */
-    String id();
+    String name();
 
     /**
      * Returns the port number of this NIC.
      *
-     * @return integer port number for the NIC
+     * @return NIC port number
      */
-    int port();
+    long portNumber();
 
     /**
      * Returns the type of the port of this NIC.
      *
-     * @return port type
+     * @return NIC port type
      */
     Type portType();
 
     /**
      * Returns the speed of the NIC in Mbps.
      *
-     * @return integer NIC speed in Mbps
+     * @return NIC speed in Mbps
      */
     long speed();
 
     /**
      * Returns the current status of the NIC.
      *
-     * @return boolean NIC status (up=true, down=false)
+     * @return NIC status (up=true, down=false)
      */
     boolean status();
 
@@ -71,7 +71,7 @@ public interface NicDevice extends Comparable {
     /**
      * Returns the MAC address of the NIC.
      *
-     * @return MacAddress hardware address of the NIC
+     * @return hardware address of the NIC
      */
     MacAddress macAddress();
 

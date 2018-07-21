@@ -22,6 +22,7 @@ import org.onosproject.drivers.server.devices.nic.NicRxFilter;
 import org.onlab.packet.MacAddress;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Strings;
 
 import java.util.Objects;
 
@@ -34,8 +35,8 @@ import static com.google.common.base.Preconditions.checkArgument;
  */
 public class DefaultNicDevice implements NicDevice, Comparable {
 
-    private final String     id;
-    private final int        port;
+    private final String     name;
+    private final long       portNumber;
     private final long       speed;
     private final Type       portType;
     private boolean          status;
@@ -46,21 +47,18 @@ public class DefaultNicDevice implements NicDevice, Comparable {
     public static final long MAX_SPEED = 200000;
 
     public DefaultNicDevice(
-            String      id,
-            int         port,
+            String      name,
+            long        portNumber,
             Type        portType,
             long        speed,
             boolean     status,
             String      macStr,
             NicRxFilter rxFilterMechanisms) {
-        checkNotNull(id, "NIC ID cannot be null");
-        checkArgument(!id.isEmpty(), "NIC ID cannot be empty");
-        checkArgument(port >= 0, "NIC port number must be non-negative");
+        checkArgument(!Strings.isNullOrEmpty(name), "NIC name cannot be empty or NULL");
+        checkArgument(portNumber >= 0, "NIC port number must be non-negative");
         checkNotNull(portType, "NIC port type cannot be null");
-        checkArgument(
-            (speed >= 0) && (speed <= MAX_SPEED),
-            "NIC speed must be positive and less or equal than " + MAX_SPEED + " Mbps"
-        );
+        checkArgument((speed >= 0) && (speed <= MAX_SPEED),
+            "NIC speed must be positive and less or equal than " + MAX_SPEED + " Mbps");
         checkNotNull(macStr, "NIC MAC address cannot be null");
         checkNotNull(rxFilterMechanisms, "NIC Rx filter mechanisms cannot be null");
 
@@ -69,8 +67,8 @@ public class DefaultNicDevice implements NicDevice, Comparable {
             status = false;
         }
 
-        this.id         = id;
-        this.port       = port;
+        this.name       = name;
+        this.portNumber = portNumber;
         this.speed      = speed;
         this.portType   = portType;
         this.status     = status;
@@ -79,13 +77,13 @@ public class DefaultNicDevice implements NicDevice, Comparable {
     }
 
     @Override
-    public String id() {
-        return this.id;
+    public String name() {
+        return this.name;
     }
 
     @Override
-    public int port() {
-        return this.port;
+    public long portNumber() {
+        return this.portNumber;
     }
 
     @Override
@@ -133,8 +131,8 @@ public class DefaultNicDevice implements NicDevice, Comparable {
     public String toString() {
         return MoreObjects.toStringHelper(this)
                 .omitNullValues()
-                .add("id",        id())
-                .add("port",      port())
+                .add("name",      name())
+                .add("port",      portNumber())
                 .add("mac",       macAddress.toString())
                 .add("portType",  portType())
                 .add("speed",     speed())
@@ -152,15 +150,15 @@ public class DefaultNicDevice implements NicDevice, Comparable {
             return false;
         }
         NicDevice device = (NicDevice) obj;
-        return  this.id().equals(device.id()) &&
-                this.port() ==  device.port() &&
+        return  this.name().equals(device.name()) &&
+                this.portNumber() ==  device.portNumber() &&
                 this.speed  == device.speed() &&
                 this.macAddress.equals(device.macAddress());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, port, speed, macAddress);
+        return Objects.hash(name, portNumber, speed, macAddress);
     }
 
     @Override
@@ -176,9 +174,9 @@ public class DefaultNicDevice implements NicDevice, Comparable {
         if (other instanceof NicDevice) {
             NicDevice otherNic = (NicDevice) other;
 
-            if (this.port() == otherNic.port()) {
+            if (this.portNumber() == otherNic.portNumber()) {
                 return 0;
-            } else if (this.port() > otherNic.port()) {
+            } else if (this.portNumber() > otherNic.portNumber()) {
                 return 1;
             } else {
                 return -1;

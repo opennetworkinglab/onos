@@ -15,6 +15,9 @@
  */
 package org.onosproject.drivers.server;
 
+import org.onosproject.drivers.server.devices.RestServerSBDevice;
+
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.protocol.rest.RestSBController;
@@ -22,6 +25,7 @@ import org.onosproject.protocol.rest.RestSBController;
 import org.onlab.osgi.ServiceNotFoundException;
 
 import org.slf4j.Logger;
+
 import com.fasterxml.jackson.databind.JsonNode;
 
 import java.util.EnumSet;
@@ -133,6 +137,25 @@ public class BasicServerDriver extends AbstractHandlerBehaviour {
         }
 
         return handler;
+    }
+
+    /**
+     * Finds the NIC name that corresponds to a device's port number.
+     *
+     * @param deviceId a device ID
+     * @param port a NIC port number
+     * @return device's NIC name
+     */
+    public static String findNicInterfaceWithPort(DeviceId deviceId, long port) {
+        RestServerSBDevice device = null;
+        try {
+            device = (RestServerSBDevice) controller.getDevice(deviceId);
+        } catch (ClassCastException ccEx) {
+            return null;
+        }
+        checkNotNull(device, DEVICE_NULL);
+
+        return device.portNameFromNumber(port);
     }
 
     /**

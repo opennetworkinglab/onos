@@ -49,11 +49,11 @@ public final class DefaultCpuStatistics implements CpuStatistics {
         checkNotNull(deviceId, "Device ID is NULL");
         checkArgument(
             (id >= 0) && (id < MAX_CPU_NB),
-            "CPU core ID must be in [0, " + String.valueOf(MAX_CPU_NB - 1) + "]"
+            "Invalid CPU core ID " + String.valueOf(id) + ", not in [0, " + String.valueOf(MAX_CPU_NB - 1) + "]"
         );
         checkArgument(
             (load >= MIN_CPU_LOAD) && (load <= MAX_CPU_LOAD),
-            "CPU load must be in [" + MIN_CPU_LOAD + ", " + MAX_CPU_LOAD + "]"
+            "Invalid CPU load " + Float.toString(load) + ", not in [" + MIN_CPU_LOAD + ", " + MAX_CPU_LOAD + "]"
         );
 
         this.deviceId = deviceId;

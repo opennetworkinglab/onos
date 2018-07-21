@@ -62,6 +62,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.ImmutableList;
 
@@ -80,6 +81,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -111,7 +113,8 @@ public class ServerDevicesDiscovery extends BasicServerDriver
     private static final String PARAM_TIMING_STATS     = "timing_stats";
     private static final String PARAM_TIMING_AUTOSCALE = "autoscale_timing_stats";
 
-    private static final String NIC_PARAM_ID               = "id";
+    private static final String NIC_PARAM_NAME             = "name";
+    private static final String NIC_PARAM_PORT_INDEX       = "index";
     private static final String NIC_PARAM_PORT_TYPE        = "portType";
     private static final String NIC_PARAM_PORT_TYPE_FIBER  = "fiber";
     private static final String NIC_PARAM_PORT_TYPE_COPPER = "copper";
@@ -284,26 +287,28 @@ public class ServerDevicesDiscovery extends BasicServerDriver
         Set<NicDevice> nicSet = new HashSet<NicDevice>();
         JsonNode nicNode = objNode.path(PARAM_NICS);
 
+        DefaultAnnotations.Builder annotations = DefaultAnnotations.builder();
+
         // Construct NIC objects
         for (JsonNode nn : nicNode) {
             ObjectNode nicObjNode = (ObjectNode) nn;
 
             // All the NIC attributes
-            String nicId       = get(nn, NIC_PARAM_ID);
-            int port           = Integer.parseInt(nicId.replaceAll("\\D+", ""));
+            String nicName     = get(nn, NIC_PARAM_NAME);
+            long nicIndex      = nicObjNode.path(NIC_PARAM_PORT_INDEX).asLong();
             long speed         = nicObjNode.path(NIC_PARAM_SPEED).asLong();
             String portTypeStr = get(nn, NIC_PARAM_PORT_TYPE);
             Port.Type portType = PORT_TYPE_MAP.get(portTypeStr);
             if (portType == null) {
                 throw new IllegalArgumentException(
-                    portTypeStr + " is not a valid port type for NIC " + nicId);
+                    portTypeStr + " is not a valid port type for NIC " + nicName);
             }
             boolean status     = nicObjNode.path(NIC_PARAM_STATUS).asInt() > 0;
             String hwAddr      = get(nn, NIC_PARAM_HW_ADDR);
             JsonNode tagNode   = nicObjNode.path(BasicServerDriver.NIC_PARAM_RX_FILTER);
             if (tagNode == null) {
                 throw new IllegalArgumentException(
-                    "The Rx filters of NIC " + nicId + " are not reported");
+                    "The Rx filters of NIC " + nicName + " are not reported");
             }
 
             // Convert the JSON list into an array of strings
@@ -325,10 +330,12 @@ public class ServerDevicesDiscovery extends BasicServerDriver
                 rxFilterMechanism.addRxFilter(rf);
             }
 
+            // Store NIC name to number mapping as an annotation
+            annotations.set(nicName, Long.toString(nicIndex));
+
             // Construct a NIC device for this server
             NicDevice nic = new DefaultNicDevice(
-                nicId, port, portType, speed, status, hwAddr, rxFilterMechanism
-            );
+                nicName, nicIndex, portType, speed, status, hwAddr, rxFilterMechanism);
 
             // Add it to the set
             nicSet.add(nic);
@@ -354,7 +361,7 @@ public class ServerDevicesDiscovery extends BasicServerDriver
             desc = new DefaultServerDeviceDescription(
                 new URI(id), Device.Type.SERVER, vendor,
                 hw, sw, serial, new ChassisId(),
-                cpuSet, nicSet, DefaultAnnotations.EMPTY
+                cpuSet, nicSet, annotations.build()
             );
         } catch (URISyntaxException uEx) {
             log.error("Failed to create a server device description for: {}",
@@ -404,26 +411,22 @@ public class ServerDevicesDiscovery extends BasicServerDriver
 
         if ((device == null) || (device.nics() == null)) {
             log.error("No ports available on {}", deviceId);
-            return ImmutableList.copyOf(portDescriptions);
+            return Collections.EMPTY_LIST;
         }
 
         // Sorted list of NIC ports
         Set<NicDevice> nics = new TreeSet(device.nics());
 
         // Iterate through the NICs of this device to populate the list
-        long portCounter = 0;
         for (NicDevice nic : nics) {
-            // The port number of this NIC
-            PortNumber portNumber = PortNumber.portNumber(++portCounter);
-
             // Include the name of this device as an annotation
             DefaultAnnotations.Builder annotations = DefaultAnnotations.builder()
-                                .set(AnnotationKeys.PORT_NAME, nic.id());
+                                .set(AnnotationKeys.PORT_NAME, nic.name());
 
             // Create a port description and add it to the list
             portDescriptions.add(
                     DefaultPortDescription.builder()
-                            .withPortNumber(portNumber)
+                            .withPortNumber(PortNumber.portNumber(nic.portNumber(), nic.name()))
                             .isEnabled(nic.status())
                             .type(nic.portType())
                             .portSpeed(nic.speed())
@@ -431,7 +434,7 @@ public class ServerDevicesDiscovery extends BasicServerDriver
                             .build());
 
             log.info("Port discovery on device {}: NIC {} is {} at {} Mbps",
-                deviceId, nic.port(), nic.status() ? "up" : "down",
+                deviceId, nic.portNumber(), nic.status() ? "up" : "down",
                 nic.speed());
         }
 
@@ -455,9 +458,6 @@ public class ServerDevicesDiscovery extends BasicServerDriver
      * @return list of (per port) PortStatistics
      */
     private Collection<PortStatistics> getPortStatistics(DeviceId deviceId) {
-        // List of port statistics to return
-        Collection<PortStatistics> portStats = null;
-
         // Get global monitoring statistics
         MonitoringStatistics monStats = getGlobalMonitoringStatistics(deviceId);
         if (monStats == null) {
@@ -465,7 +465,7 @@ public class ServerDevicesDiscovery extends BasicServerDriver
         }
 
         // Filter out the NIC statistics
-        portStats = monStats.nicStatisticsAll();
+        Collection<PortStatistics> portStats = monStats.nicStatisticsAll();
         if (portStats == null) {
             return Collections.EMPTY_LIST;
         }
@@ -492,9 +492,6 @@ public class ServerDevicesDiscovery extends BasicServerDriver
      * @return list of (per core) CpuStatistics
      */
      public Collection<CpuStatistics> getCpuStatistics(DeviceId deviceId) {
-        // List of port statistics to return
-        Collection<CpuStatistics> cpuStats = null;
-
         // Get global monitoring statistics
         MonitoringStatistics monStats = getGlobalMonitoringStatistics(deviceId);
         if (monStats == null) {
@@ -502,7 +499,7 @@ public class ServerDevicesDiscovery extends BasicServerDriver
         }
 
         // Filter out the CPU statistics
-        cpuStats = monStats.cpuStatisticsAll();
+        Collection<CpuStatistics> cpuStats = monStats.cpuStatisticsAll();
         if (cpuStats == null) {
             return Collections.EMPTY_LIST;
         }
@@ -716,11 +713,11 @@ public class ServerDevicesDiscovery extends BasicServerDriver
      */
     private Collection<CpuStatistics> parseCpuStatistics(
             DeviceId deviceId, JsonNode objNode) {
-        Collection<CpuStatistics> cpuStats = Lists.newArrayList();
-
         if (objNode == null) {
-            return cpuStats;
+            return Collections.EMPTY_LIST;
         }
+
+        Collection<CpuStatistics> cpuStats = Lists.newArrayList();
 
         JsonNode cpuNode = objNode.path(BasicServerDriver.PARAM_CPUS);
 
@@ -760,11 +757,19 @@ public class ServerDevicesDiscovery extends BasicServerDriver
      */
     private Collection<PortStatistics> parseNicStatistics(
             DeviceId deviceId, JsonNode objNode) {
-        Collection<PortStatistics> nicStats = Lists.newArrayList();
-
         if (objNode == null) {
-            return nicStats;
+            return Collections.EMPTY_LIST;
         }
+
+        RestServerSBDevice device = null;
+        try {
+            device = (RestServerSBDevice) getController().getDevice(deviceId);
+        } catch (ClassCastException ccEx) {
+            return Collections.EMPTY_LIST;
+        }
+        checkNotNull(device, DEVICE_NULL);
+
+        Collection<PortStatistics> nicStats = Lists.newArrayList();
 
         JsonNode nicNode = objNode.path(PARAM_NICS);
 
@@ -772,8 +777,11 @@ public class ServerDevicesDiscovery extends BasicServerDriver
             ObjectNode nicObjNode = (ObjectNode) nn;
 
             // All the NIC attributes
-            String nicId  = get(nn, NIC_PARAM_ID);
-            int port = Integer.parseInt(nicId.replaceAll("\\D+", ""));
+            String nicName  = get(nn, NIC_PARAM_NAME);
+            checkArgument(!Strings.isNullOrEmpty(nicName), "NIC name is empty or NULL");
+
+            long portNumber = device.portNumberFromName(nicName);
+            checkArgument(portNumber >= 0, "Unknown port ID " + portNumber + " for NIC " + nicName);
 
             long rxCount   = nicObjNode.path(NIC_STATS_RX_COUNT).asLong();
             long rxBytes   = nicObjNode.path(NIC_STATS_RX_BYTES).asLong();
@@ -789,7 +797,7 @@ public class ServerDevicesDiscovery extends BasicServerDriver
                 DefaultPortStatistics.builder();
 
             nicBuilder.setDeviceId(deviceId)
-                    .setPort(port)
+                    .setPort((int) portNumber)
                     .setPacketsReceived(rxCount)
                     .setPacketsSent(txCount)
                     .setBytesReceived(rxBytes)
