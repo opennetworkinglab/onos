@@ -197,7 +197,7 @@ public final class OpenstackSwitchingHostProvider
 
         long createTime = System.currentTimeMillis();
 
-        // we check whether the host already attached to some locations
+        // we check whether the host already attached to same locations
         Host host = hostService.getHost(hostId);
 
         // build host annotations to include a set of meta info from neutron
@@ -206,7 +206,7 @@ public final class OpenstackSwitchingHostProvider
                 .set(ANNOTATION_PORT_ID, osPort.getId())
                 .set(ANNOTATION_CREATE_TIME, String.valueOf(createTime));
 
-        // FLAT does not require segment ID
+        // FLAT typed network does not require segment ID
         if (osNet.getNetworkType() != NetworkType.FLAT) {
             annotations.set(ANNOTATION_SEGMENT_ID, osNet.getProviderSegID());
         }

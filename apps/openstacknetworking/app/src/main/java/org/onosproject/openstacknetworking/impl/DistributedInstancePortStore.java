@@ -190,7 +190,7 @@ public class DistributedInstancePortStore
             InstancePort.State oldState = event.oldValue().value().state();
             InstancePort.State newState = event.newValue().value().state();
 
-            if (oldState == ACTIVE && newState == MIGRATING) {
+            if ((oldState == ACTIVE || oldState == INACTIVE) && newState == MIGRATING) {
                 notifyDelegate(new InstancePortEvent(
                         OPENSTACK_INSTANCE_MIGRATION_STARTED,
                         event.newValue().value()));
@@ -227,8 +227,6 @@ public class DistributedInstancePortStore
             notifyDelegate(new InstancePortEvent(
                     OPENSTACK_INSTANCE_PORT_UPDATED,
                     event.newValue().value()));
-
-            // TODO: need to handle cold migration
         }
     }
 }

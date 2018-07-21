@@ -246,15 +246,34 @@ public class InstancePortManager
                         // first time to add instance
                         createInstancePort(instPort);
                     } else {
-                        // the instance was restarted
                         if (existingPort.state() == INACTIVE) {
-                            updateInstancePort(instPort);
+
+                            if (instPort.deviceId().equals(existingPort.deviceId())) {
+
+                                // VM RESTART case
+                                // if the ID of switch where VM is attached to is
+                                // identical, we can assume that the VM was
+                                // restarted in the same location;
+                                // note that the switch port number where VM is
+                                // attached can be varied per each restart
+                                updateInstancePort(instPort);
+                            } else {
+
+                                // VM COLD MIGRATION case
+                                // if the ID of switch where VM is attached to is
+                                // varied, we can assume that the VM was migrated
+                                // to a new location
+                                updateInstancePort(instPort.updateState(MIGRATING));
+                                InstancePort updated = instPort.updateState(MIGRATED);
+                                updateInstancePort(updated.updatePrevLocation(
+                                        existingPort.deviceId(), existingPort.portNumber()));
+                            }
                         }
                     }
                     break;
                 case HOST_REMOVED:
                     // we will remove instance port from persistent store,
-                    // only if we receive port removal signal from neutron
+                    // only if we receive port removal signal from neutron.
                     // by default, we update the instance port state to INACTIVE
                     // to indicate the instance is terminated
                     updateInstancePort(instPort.updateState(INACTIVE));
