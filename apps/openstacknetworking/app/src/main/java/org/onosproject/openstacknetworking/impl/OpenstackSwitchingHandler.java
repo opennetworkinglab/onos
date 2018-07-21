@@ -23,8 +23,10 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.Ethernet;
-import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.LeadershipService;
+import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.mastership.MastershipService;
@@ -41,6 +43,8 @@ import org.onosproject.openstacknetworking.api.InstancePortEvent;
 import org.onosproject.openstacknetworking.api.InstancePortListener;
 import org.onosproject.openstacknetworking.api.InstancePortService;
 import org.onosproject.openstacknetworking.api.OpenstackFlowRuleService;
+import org.onosproject.openstacknetworking.api.OpenstackNetworkEvent;
+import org.onosproject.openstacknetworking.api.OpenstackNetworkListener;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.onosproject.openstacknetworking.api.OpenstackSecurityGroupService;
 import org.onosproject.openstacknetworking.util.RulePopulatorUtil;
@@ -51,6 +55,7 @@ import org.openstack4j.model.network.NetworkType;
 import org.openstack4j.model.network.Port;
 import org.slf4j.Logger;
 
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
@@ -96,6 +101,15 @@ public final class OpenstackSwitchingHandler {
     protected DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DriverService driverService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ClusterService clusterService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected LeadershipService leadershipService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OpenstackFlowRuleService osFlowRuleService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -108,26 +122,29 @@ public final class OpenstackSwitchingHandler {
     protected OpenstackNodeService osNodeService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DriverService driverService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OpenstackSecurityGroupService securityGroupService;
 
     private final ExecutorService eventExecutor = newSingleThreadExecutor(
             groupedThreads(this.getClass().getSimpleName(), "event-handler"));
     private final InstancePortListener instancePortListener = new InternalInstancePortListener();
+    private final InternalOpenstackNetworkListener osNetworkListener =
+                                            new InternalOpenstackNetworkListener();
     private ApplicationId appId;
+    private NodeId localNodeId;
 
     @Activate
     void activate() {
         appId = coreService.registerApplication(OPENSTACK_NETWORKING_APP_ID);
+        localNodeId = clusterService.getLocalNode().id();
         instancePortService.addListener(instancePortListener);
+        osNetworkService.addListener(osNetworkListener);
 
         log.info("Started");
     }
 
     @Deactivate
     void deactivate() {
+        osNetworkService.removeListener(osNetworkListener);
         instancePortService.removeListener(instancePortListener);
         eventExecutor.shutdown();
 
@@ -499,43 +516,75 @@ public final class OpenstackSwitchingHandler {
                 install);
     }
 
-    private void setNetworkAdminRules(Network network, boolean install) {
-        TrafficSelector selector;
-        if (network.getNetworkType() == NetworkType.VXLAN) {
+    private void setNetworkBlockRules(Network network, boolean install) {
 
-            selector = DefaultTrafficSelector.builder()
-                    .matchTunnelId(Long.valueOf(network.getProviderSegID()))
-                    .build();
-        } else {
-            selector = DefaultTrafficSelector.builder()
-                    .matchVlanId(VlanId.vlanId(network.getProviderSegID()))
-                    .build();
+        NetworkType type = network.getNetworkType();
+
+        // TODO: we block a network traffic by referring to segment ID for now
+        // we might need to find a better way to block the traffic of a network
+        // in case the segment ID is overlapped in different types network (VXLAN, VLAN)
+        switch (type) {
+            case VXLAN:
+                setNetworkBlockRulesForVxlan(network.getProviderSegID(), install);
+                break;
+            case VLAN:
+                setNetworkBlockRulesForVlan(network.getProviderSegID(), install);
+                break;
+            case FLAT:
+                // TODO: need to find a way to block flat typed network
+                break;
+            default:
+                break;
         }
+    }
+
+    private void setNetworkBlockRulesForVxlan(String segmentId, boolean install) {
+        TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchTunnelId(Long.valueOf(segmentId))
+                .build();
 
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                 .drop()
                 .build();
 
-        osNodeService.completeNodes().stream()
-                .filter(osNode -> osNode.type() == COMPUTE)
+        osNodeService.completeNodes(COMPUTE)
                 .forEach(osNode ->
                     osFlowRuleService.setRule(
-                            appId,
-                            osNode.intgBridge(),
-                            selector,
-                            treatment,
-                            PRIORITY_ADMIN_RULE,
-                            ACL_TABLE,
-                            install)
+                        appId,
+                        osNode.intgBridge(),
+                        selector,
+                        treatment,
+                        PRIORITY_ADMIN_RULE,
+                        ACL_TABLE,
+                        install)
                 );
     }
 
-    // TODO: need to be purged sooner or later
-    private void setPortAdminRules(Port port, boolean install) {
-        InstancePort instancePort =
-                instancePortService.instancePort(MacAddress.valueOf(port.getMacAddress()));
+    private void setNetworkBlockRulesForVlan(String segmentId, boolean install) {
         TrafficSelector selector = DefaultTrafficSelector.builder()
-                .matchInPort(instancePort.portNumber())
+                .matchTunnelId(Long.valueOf(segmentId))
+                .build();
+
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .drop()
+                .build();
+
+        osNodeService.completeNodes(COMPUTE)
+                .forEach(osNode ->
+                    osFlowRuleService.setRule(
+                        appId,
+                        osNode.intgBridge(),
+                        selector,
+                        treatment,
+                        PRIORITY_ADMIN_RULE,
+                        ACL_TABLE,
+                        install)
+                );
+    }
+
+    private void setPortBlockRules(InstancePort instPort, boolean install) {
+        TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchInPort(instPort.portNumber())
                 .build();
 
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
@@ -544,7 +593,7 @@ public final class OpenstackSwitchingHandler {
 
         osFlowRuleService.setRule(
                 appId,
-                instancePort.deviceId(),
+                instPort.deviceId(),
                 selector,
                 treatment,
                 PRIORITY_ADMIN_RULE,
@@ -606,6 +655,7 @@ public final class OpenstackSwitchingHandler {
         @Override
         public void event(InstancePortEvent event) {
             InstancePort instPort = event.subject();
+            Port osPort = osNetworkService.port(instPort.portId());
 
             switch (event.type()) {
                 case OPENSTACK_INSTANCE_PORT_DETECTED:
@@ -616,6 +666,11 @@ public final class OpenstackSwitchingHandler {
                                                         instPort.ipAddress());
 
                     eventExecutor.execute(() -> instPortDetected(instPort));
+
+                    if (osPort != null) {
+                        eventExecutor.execute(() ->
+                                setPortBlockRules(instPort, !osPort.isAdminStateUp()));
+                    }
 
                     break;
                 case OPENSTACK_INSTANCE_TERMINATED:
@@ -632,6 +687,10 @@ public final class OpenstackSwitchingHandler {
 
                     eventExecutor.execute(() -> instPortRemoved(instPort));
 
+                    if (osPort != null) {
+                        setPortBlockRules(instPort, false);
+                    }
+
                     break;
                 case OPENSTACK_INSTANCE_MIGRATION_STARTED:
                     log.info("SwitchingHandler: Migration started for MAC:{} IP:{}",
@@ -639,6 +698,11 @@ public final class OpenstackSwitchingHandler {
                                                         instPort.ipAddress());
 
                     eventExecutor.execute(() -> instPortDetected(instPort));
+
+                    if (osPort != null) {
+                        eventExecutor.execute(() ->
+                                setPortBlockRules(instPort, !osPort.isAdminStateUp()));
+                    }
 
                     break;
                 case OPENSTACK_INSTANCE_MIGRATION_ENDED:
@@ -663,6 +727,62 @@ public final class OpenstackSwitchingHandler {
         private void instPortRemoved(InstancePort instPort) {
             setNetworkRules(instPort, false);
             // TODO add something else if needed
+        }
+    }
+
+    private class InternalOpenstackNetworkListener implements OpenstackNetworkListener {
+
+        @Override
+        public boolean isRelevant(OpenstackNetworkEvent event) {
+
+            // do not allow to proceed without leadership
+            NodeId leader = leadershipService.getLeader(appId.name());
+            return Objects.equals(localNodeId, leader);
+        }
+
+        @Override
+        public void event(OpenstackNetworkEvent event) {
+
+            if (event.subject() == null || event.port() == null) {
+                return;
+            }
+
+            boolean isNwAdminStateUp = event.subject().isAdminStateUp();
+            boolean isPortAdminStateUp = event.port().isAdminStateUp();
+
+            InstancePort instPort = instancePortService.instancePort(event.port().getId());
+
+            switch (event.type()) {
+                case OPENSTACK_NETWORK_CREATED:
+                case OPENSTACK_NETWORK_UPDATED:
+                    eventExecutor.execute(() ->
+                            setNetworkBlockRules(event.subject(), !isNwAdminStateUp));
+
+                    break;
+                case OPENSTACK_NETWORK_REMOVED:
+                    eventExecutor.execute(() ->
+                            setNetworkBlockRules(event.subject(), false));
+                    break;
+                case OPENSTACK_PORT_CREATED:
+                case OPENSTACK_PORT_UPDATED:
+
+                    if (instPort != null) {
+                        eventExecutor.execute(() ->
+                                setPortBlockRules(instPort, !isPortAdminStateUp));
+                    }
+
+                    break;
+                case OPENSTACK_PORT_REMOVED:
+
+                    if (instPort != null) {
+                        eventExecutor.execute(() ->
+                                setPortBlockRules(instPort, false));
+                    }
+
+                    break;
+                default:
+                    break;
+            }
         }
     }
 }
