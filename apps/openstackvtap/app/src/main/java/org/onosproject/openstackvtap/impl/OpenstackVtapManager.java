@@ -505,7 +505,7 @@ public class OpenstackVtapManager
             }
         }
 
-        flowRuleService.removeFlowRules((FlowRule[]) purgedRules.toArray());
+        flowRuleService.removeFlowRules(purgedRules.toArray(new FlowRule[0]));
 
         groupService.getGroups(deviceId, appId).forEach(group -> {
             groupService.removeGroup(deviceId, group.appCookie(), appId);

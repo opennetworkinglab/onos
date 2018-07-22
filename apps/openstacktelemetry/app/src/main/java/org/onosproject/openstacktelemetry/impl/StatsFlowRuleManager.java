@@ -28,7 +28,6 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
-import org.onlab.util.SharedScheduledExecutorService;
 import org.onlab.util.SharedScheduledExecutors;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
@@ -180,7 +179,6 @@ public class StatsFlowRuleManager implements StatsFlowRuleAdminService {
 
     private ApplicationId appId;
     private TelemetryCollector collector;
-    private SharedScheduledExecutorService executor;
     private ScheduledFuture result;
 
     private final Set<FlowInfo> gFlowInfoSet = Sets.newHashSet();
@@ -196,21 +194,17 @@ public class StatsFlowRuleManager implements StatsFlowRuleAdminService {
     @Activate
     protected void activate() {
         appId = coreService.registerApplication(OPENSTACK_TELEMETRY_APP_ID);
-
         componentConfigService.registerProperties(getClass());
-        executor = SharedScheduledExecutors.getSingleThreadExecutor();
-
-        this.start();
+        start();
 
         log.info("Started");
     }
 
     @Deactivate
     protected void deactivate() {
-
         componentConfigService.unregisterProperties(getClass(), false);
-
         flowRuleService.removeFlowRulesById(appId);
+        stop();
 
         log.info("Stopped");
     }
@@ -227,7 +221,8 @@ public class StatsFlowRuleManager implements StatsFlowRuleAdminService {
         log.info("Start publishing thread");
         collector = new TelemetryCollector();
 
-        result = executor.scheduleAtFixedRate(collector, INITIAL_DELAY,
+        result = SharedScheduledExecutors.getSingleThreadExecutor()
+                    .scheduleAtFixedRate(collector, INITIAL_DELAY,
                         REFRESH_INTERVAL, TIME_UNIT_SECOND, RECOVER_FROM_FAILURE);
     }
 
