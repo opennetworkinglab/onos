@@ -1,0 +1,108 @@
+/* css for sample app custom view */
+
+#ov-int-app-main {
+    padding: 20px;
+}
+.light #ov-int-app-main {
+    color: navy;
+}
+.dark #ov-int-app-main {
+    color: #88f;
+}
+
+#ov-int-app-main .button-panel {
+    margin: 10px;
+    width: 200px;
+}
+
+.light #ov-int-app-main .button-panel {
+    background-color: #ccf;
+}
+
+.dark #ov-int-app-main .button-panel {
+    background-color: #444;
+}
+
+#ov-int-app-main .int-app-button {
+    cursor: pointer;
+    padding: 4px;
+    text-align: center;
+}
+
+
+.light #ov-int-app-main .int-app-button {
+    color: white;
+    background-color: #99d;
+}
+.dark #ov-int-app-main .int-app-button {
+    color: black;
+    background-color: #aaa;
+}
+
+#ov-int-app-main .config-button-panel {
+    margin: 10px;
+    width: 200px;
+}
+
+.light #ov-int-app-main .config-button-panel {
+    background-color: #ccf;
+}
+
+.dark #ov-int-app-main .config-button-panel {
+    background-color: #444;
+}
+
+#ov-int-app-main .int-app-config-button {
+    cursor: pointer;
+    padding: 4px;
+    text-align: center;
+}
+
+
+.light #ov-int-app-main .int-app-config-button {
+    color: white;
+    background-color: #99d;
+}
+.dark #ov-int-app-main .int-app-config-button {
+    color: black;
+    background-color: #aaa;
+}
+/*---------------------------------------------------------------------------*/
+#ov-int-app-main h2 {
+    display: inline-block;
+}
+/* #ov-int-app-main .table-body{
+    display: inline-block;
+    overflow-y: scroll;
+    max-height:100px;
+} */
+
+/* Panel Styling */
+#ov-int-app-main-item-details-panel.floatpanel {
+    position: absolute;
+    top: 115px;
+}
+
+.light #ov-int-app-main-item-details-panel.floatpanel {
+    background-color: rgb(229, 234, 237);
+}
+.dark #ov-int-app-main-item-details-panel.floatpanel {
+    background-color: #3A4042;
+}
+
+#ov-int-app-main-item-details-panel h3 {
+    margin: 0;
+    font-size: large;
+}
+
+#ov-int-app-main-item-details-panel h4 {
+    margin: 0;
+}
+
+#ov-int-app-main-item-details-panel td {
+    padding: 5px;
+}
+#ov-int-app-main-item-details-panel td.label {
+    font-style: italic;
+    opacity: 0.8;
+}

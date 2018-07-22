@@ -1,0 +1,110 @@
+<!-- partial HTML -->
+<div id="ov-int-app-main">
+    <div class="config-panel">
+        <div>
+            Collector IP
+            <input type="text" required pattern="^([0-9]{1,3}\.){3}[0-9]{1,3}$" ng-model="collectorIp">
+
+            Collector Port
+            <input type="text" required pattern="^[0-9]{0,5}$" ng-model="collectorPort">
+        </div>
+    </div>
+    <div class="config-button-panel">
+        <div class = "int-app-config-button" ng-click="sendIntConfigString()">
+            Deploy
+        </div>
+    </div>
+    <hr>
+    <div class="input-panel">
+        <div>
+            Src Address
+            <input type="text" required pattern="^([0-9]{1,3}\.){3}[0-9]{1,3}(/[0-9]{1,2})?$" ng-model="ip4SrcPrefix">
+
+            Dst Address
+            <input type="text" required pattern="^([0-9]{1,3}\.){3}[0-9]{1,3}(/[0-9]{1,2})?$" ng-model="ip4DstPrefix">
+
+            Src Port
+            <input type="text" required pattern="^[0-9]{0,5}$" ng-model="l4SrcPort">
+
+            Dst Port
+            <input type="text" required pattern="^[0-9]{0,5}$" ng-model="l4DstPort">
+
+            Protocol
+            <select name="protocol" ng-model="protocol">
+                <option selected disabled hidden style="display: none" value=''></option>
+                <option value="TCP">TCP</option>
+                <option value="UDP">UDP</option>
+            </select>
+        </div>
+        <div>
+            <input type="checkbox" ng-model= "metaSwId">Switch Id
+            <input type="checkbox" ng-model= "metaPortId">Port Id
+            <input type="checkbox" ng-model= "metaHopLatency">Hop Latency
+            <input type="checkbox" ng-model= "metaQOccupancy">Queue Occupancy
+            <input type="checkbox" ng-model= "metaIngressTstamp">Ingress Timestamp
+            <input type="checkbox" ng-model= "metaEgressTstamp">Egress Timestamp
+            <!--<input type="checkbox" ng-model= "metaQCongestion">Queue Congestion Status-->
+            <input type="checkbox" ng-model= "metaEgressTx">Egress Port Tx Utilization
+        </div>
+    </div>
+
+    <div class="button-panel">
+        <div class = "int-app-button" ng-click="sendIntIntentString()">
+            Deploy
+        </div>
+    </div>
+    <!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
+    <div class='int-app-main-intents'>
+        <div class="tabular-header">
+            <h2>Installed INT Intents ({{tableData.length}} total)</h2>
+            <div class="ctrl-btns">
+                <div class="refresh" ng-class="{active: autoRefresh}"
+                     icon icon-id="refresh" icon-size="36"
+                     tooltip tt-msg="autoRefreshTip"
+                     ng-click="toggleRefresh()">
+                </div>
+
+                <!-- tooltip tt-msg="uninstallTip" -->
+                <div icon icon-size="42" icon-id="garbage"
+                     ng-click="delIntIntent()"
+                     ng-class="{active: ctrlBtnState.selection}">
+                </div>
+            </div>
+        </div>
+
+        <div class="summary-list" onos-table-resize>
+
+            <div class="table-header" onos-sortable-header>
+                <table>
+                    <tr>
+                        <td colId="id" sortable>ID </td>
+                        <td colId="srcAddr" sortable>Src Address </td>
+                        <td colId="dstAddr" sortable>Dst Address </td>
+                        <td colId="srcPort" sortable>Src Port </td>
+                        <td colId="dstPort" sortable>Dst Port </td>
+                        <td colId="protocol" sortable>Protocol </td>
+                        <td colId="metadata" sortable>Metadata </td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="table-body">
+                <table>
+                    <tr ng-repeat="item in tableData track by $index"
+                        ng-click="selectCallback($event, item)"
+                        ng-class="{selected: item.id === selId}">
+                        <td>{{item.id}}</td>
+                        <td>{{item.srcAddr}}</td>
+                        <td>{{item.dstAddr}}</td>
+                        <td>{{item.srcPort}}</td>
+                        <td>{{item.dstPort}}</td>
+                        <td>{{item.protocol}}</td>
+                        <td>{{item.metadata}}</td>
+                    </tr>
+                </table>
+            </div>
+
+        </div>
+    </div>
+</div>
+<!-- +++++++++++++++++++++ -->

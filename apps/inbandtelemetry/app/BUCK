@@ -1,0 +1,32 @@
+BUNDLES = [
+    '//apps/inbandtelemetry/api:onos-apps-inbandtelemetry-api',
+    '//apps/inbandtelemetry/impl:onos-apps-inbandtelemetry-impl',
+    '//apps/inbandtelemetry/app:onos-apps-inbandtelemetry-app',
+]
+
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:KRYO',
+    '//lib:JACKSON',
+    '//core/store/serializers:onos-core-serializers',
+    '//apps/inbandtelemetry/api:onos-apps-inbandtelemetry-api',
+]
+
+TEST_DEPS = [
+    '//lib:TEST_REST',
+]
+
+osgi_jar_with_tests(
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
+)
+
+onos_app (
+    app_name = 'org.onosproject.inbandtelemetry.app',
+    title = 'P4 In-band Network Telemetry Sample Application',
+    category = 'Monitoring',
+    url = 'http://onosproject.org',
+    description = 'Provides managements of INT-capable devices. Specifies flows to enable INT and' +
+    'types of metadata to collect. Sets up INT-related information.',
+    included_bundles = BUNDLES,
+)
