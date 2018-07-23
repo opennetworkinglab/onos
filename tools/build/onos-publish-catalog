@@ -1,0 +1,40 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Generates a catalog for publishing ONOS artifacts to a Maven repository.
+# -----------------------------------------------------------------------------
+
+CATALOG=/tmp/onos.catalog
+
+rm -f $CATALOG
+
+SHLVL=1     # Required not to have Bazel rebuild everything!
+
+function writeCatalog {
+    bazel build $* --aspects tools/build/bazel/publish_catalog.bzl%publish_catalog 2>&1 \
+        | egrep "^DEBUG: " | cut -d\  -f3- >> $CATALOG
+}
+
+function jars {
+    egrep -v '(\# |grpc/api|build/conf)' tools/build/publish-target-list
+}
+
+function testJars {
+    egrep -v '(# |grpc/api|build/conf)' tools/build/publish-test-target-list
+}
+
+
+echo "Cataloging jar files..."
+writeCatalog $(jars)
+
+echo "Cataloging test jars..."
+writeCatalog $(testJars)
+
+echo "Cataloging source jars..."
+writeCatalog $(jars | sed 's/$/-sources/')
+echo "Cataloging javadoc jars..."
+writeCatalog $(jars | sed 's/$/-javadoc/')
+echo "Cataloging pom files..."
+writeCatalog $(jars | sed 's/$/-pom/')
+
+echo "Cataloging oar files..."
+writeCatalog $(bazel query 'kind("_onos_oar rule", //...)')

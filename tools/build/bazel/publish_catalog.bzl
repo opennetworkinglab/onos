@@ -6,7 +6,7 @@ load("//tools/build/bazel:generate_workspace.bzl", "maven_coordinates")
 #     egrep "DEBUG: .*mvn_jar.bzl" | cut -d\  -f3-
 
 def _remote(group_id, artifact_id, version, packaging, classifier):
-    p = group_id + "/" + artifact_id + "/" + version + "/" + artifact_id + "-" + version
+    p = group_id.replace(".", "/") + "/" + artifact_id + "/" + version + "/" + artifact_id + "-" + version
     if classifier != None:
       p += "-" + classifier
     p += "." + packaging
