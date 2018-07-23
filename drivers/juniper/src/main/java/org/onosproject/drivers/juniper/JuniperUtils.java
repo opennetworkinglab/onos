@@ -502,12 +502,37 @@ public final class JuniperUtils {
         ConnectPoint local = new ConnectPoint(localDevId, localPort.number());
         ConnectPoint remote = new ConnectPoint(remoteDevId, remotePort.number());
         DefaultAnnotations annotations = DefaultAnnotations.builder()
-                .set("layer", "IP")
+                .set(AnnotationKeys.LAYER, "ETHERNET")
                 .build();
         descs.add(new DefaultLinkDescription(
-                local, remote, Link.Type.INDIRECT, false, annotations));
+                local, remote, Link.Type.DIRECT, true, annotations));
         descs.add(new DefaultLinkDescription(
-                remote, local, Link.Type.INDIRECT, false, annotations));
+                remote, local, Link.Type.DIRECT, true, annotations));
+    }
+
+    /**
+     * Create one way LinkDescriptions.
+     *
+     * @param localDevId  the identity of the local device
+     * @param localPort   the port of the local device
+     * @param remoteDevId the identity of the remote device
+     * @param remotePort  the port of the remote device
+     * @param descs       the collection to which the link descriptions
+     *                    should be added
+     */
+    public static void createOneWayLinkDescription(DeviceId localDevId,
+                                                   Port localPort,
+                                                   DeviceId remoteDevId,
+                                                   Port remotePort,
+                                                   Set<LinkDescription> descs) {
+
+        ConnectPoint local = new ConnectPoint(localDevId, localPort.number());
+        ConnectPoint remote = new ConnectPoint(remoteDevId, remotePort.number());
+        DefaultAnnotations annotations = DefaultAnnotations.builder()
+                .set(AnnotationKeys.LAYER, "ETHERNET")
+                .build();
+        descs.add(new DefaultLinkDescription(
+                remote, local, Link.Type.DIRECT, true, annotations));
     }
 
     /**

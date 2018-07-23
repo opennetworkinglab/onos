@@ -136,12 +136,11 @@ public class LinkDiscoveryJuniperImpl extends AbstractHandlerBehaviour
                 continue;
             }
 
-            JuniperUtils.createBiDirLinkDescription(localDeviceId,
-                                                    localPort.get(),
-                                                    remoteDevice.id(),
-                                                    remotePort.get(),
-                                                    descriptions);
-
+            JuniperUtils.createOneWayLinkDescription(localDeviceId,
+                                                     localPort.get(),
+                                                     remoteDevice.id(),
+                                                     remotePort.get(),
+                                                     descriptions);
         }
         return descriptions;
     }

@@ -18,6 +18,7 @@ package org.onlab.packet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.ArrayUtils;
+import org.slf4j.Logger;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -31,15 +32,17 @@ import javax.crypto.spec.SecretKeySpec;
 
 import static org.onlab.packet.LLDPOrganizationalTLV.OUI_LENGTH;
 import static org.onlab.packet.LLDPOrganizationalTLV.SUBTYPE_LENGTH;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  *  ONOS LLDP containing organizational TLV for ONOS device discovery.
  */
 public class ONOSLLDP extends LLDP {
 
+    private static final Logger log = getLogger(ONOSLLDP.class);
+
     public static final String DEFAULT_DEVICE = "INVALID";
     public static final String DEFAULT_NAME = "ONOS Discovery";
-
 
     protected static final byte NAME_SUBTYPE = 1;
     protected static final byte DEVICE_SUBTYPE = 2;
@@ -62,11 +65,7 @@ public class ONOSLLDP extends LLDP {
     private static final byte CHASSIS_TLV_SIZE = 7;
     private static final byte CHASSIS_TLV_SUBTYPE = 4;
 
-    private static final byte PORT_TLV_TYPE = 2;
-    private static final byte PORT_TLV_SUBTYPE = 2;
-
     private static final byte TTL_TLV_TYPE = 3;
-
     private static final byte PORT_DESC_TLV_TYPE = 4;
 
     private final byte[] ttlValue = new byte[] {0, 0x78};
@@ -137,8 +136,19 @@ public class ONOSLLDP extends LLDP {
     }
 
     public void setPortId(final int portNumber) {
-        byte[] port = ArrayUtils.addAll(new byte[] {PORT_TLV_SUBTYPE},
+        byte[] port = ArrayUtils.addAll(new byte[] {PORT_TLV_COMPONENT_SUBTYPE},
                 String.valueOf(portNumber).getBytes(StandardCharsets.UTF_8));
+
+        LLDPTLV portTLV = new LLDPTLV();
+        portTLV.setLength((short) port.length);
+        portTLV.setType(PORT_TLV_TYPE);
+        portTLV.setValue(port);
+        this.setPortId(portTLV);
+    }
+
+    public void setPortName(final String portName) {
+        byte[] port = ArrayUtils.addAll(new byte[] {PORT_TLV_INTERFACE_NAME_SUBTYPE},
+                portName.getBytes(StandardCharsets.UTF_8));
 
         LLDPTLV portTLV = new LLDPTLV();
         portTLV.setLength((short) port.length);
@@ -235,6 +245,17 @@ public class ONOSLLDP extends LLDP {
         return null;
     }
 
+    public LLDPTLV getPortDescTLV() {
+        for (LLDPTLV tlv : this.getOptionalTLVList()) {
+            if (tlv.getType() == PORT_DESC_TLV_TYPE) {
+                return tlv;
+            }
+        }
+
+        log.error("Cannot find the port description tlv type.");
+        return null;
+    }
+
     public String getNameString() {
         LLDPOrganizationalTLV tlv = getNameTLV();
         if (tlv != null) {
@@ -259,12 +280,57 @@ public class ONOSLLDP extends LLDP {
         return null;
     }
 
+    public String getPortDescString() {
+        LLDPTLV tlv = getPortDescTLV();
+        if (tlv != null) {
+            return new String(tlv.getValue(), StandardCharsets.UTF_8);
+        }
+        return null;
+    }
+
     public Integer getPort() {
         ByteBuffer portBB = ByteBuffer.wrap(this.getPortId().getValue());
-        portBB.position(1);
+        byte type = portBB.get();
 
-        return Integer.parseInt(new String(portBB.array(),
-                portBB.position(), portBB.remaining(), StandardCharsets.UTF_8));
+        if (type == PORT_TLV_COMPONENT_SUBTYPE) {
+            return Integer.parseInt(new String(portBB.array(),
+                    portBB.position(), portBB.remaining(), StandardCharsets.UTF_8));
+        } else {
+            return -1;
+        }
+    }
+
+    public String getPortNameString() {
+        ByteBuffer portBB = ByteBuffer.wrap(this.getPortId().getValue());
+        byte type = portBB.get();
+
+        if (type == PORT_TLV_INTERFACE_NAME_SUBTYPE) {
+            return new String(portBB.array(), portBB.position(), portBB.remaining(), StandardCharsets.UTF_8);
+        } else {
+            log.error("Cannot find the port name tlv type.");
+            return null;
+        }
+    }
+
+    public MacAddress getChassisIdByMac() {
+        ByteBuffer portBB = ByteBuffer.wrap(this.getChassisId().getValue());
+        byte type = portBB.get();
+
+        if (type == CHASSIS_TLV_SUBTYPE) {
+            byte[] bytes = new byte[portBB.remaining()];
+
+            System.arraycopy(portBB.array(), portBB.position(), bytes, 0, MacAddress.MAC_ADDRESS_LENGTH);
+
+            return new MacAddress(bytes);
+        } else {
+            return MacAddress.NONE;
+        }
+    }
+
+    public short getTtlBySeconds() {
+        ByteBuffer portBB = ByteBuffer.wrap(this.getTtl().getValue());
+
+        return portBB.getShort();
     }
 
     public long getTimestamp() {
@@ -299,6 +365,22 @@ public class ONOSLLDP extends LLDP {
                return onosLldp;
            }
         }
+        return null;
+    }
+
+    /**
+     * Given an ethernet packet, returns the device the LLDP came from.
+     * @param eth an ethernet packet
+     * @return a the lldp packet or null
+     */
+    public static ONOSLLDP parseLLDP(Ethernet eth) {
+        if (eth.getEtherType() == Ethernet.TYPE_LLDP ||
+                eth.getEtherType() == Ethernet.TYPE_BSN) {
+
+            return new ONOSLLDP((LLDP) eth.getPayload());
+        }
+
+        log.error("Packet is not the LLDP or BSN.");
         return null;
     }
 

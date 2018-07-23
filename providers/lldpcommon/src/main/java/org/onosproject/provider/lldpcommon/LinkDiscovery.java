@@ -25,13 +25,18 @@ import org.onlab.packet.Ethernet;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.ONOSLLDP;
 import org.onlab.util.Timer;
+import org.onlab.util.Tools;
+import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DefaultAnnotations;
+import org.onosproject.net.DefaultPort;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link.Type;
 import org.onosproject.net.LinkKey;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.link.DefaultLinkDescription;
 import org.onosproject.net.link.LinkDescription;
 import org.onosproject.net.link.ProbedLinkProvider;
@@ -42,6 +47,10 @@ import org.slf4j.Logger;
 
 import java.nio.ByteBuffer;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -58,6 +67,9 @@ import static org.slf4j.LoggerFactory.getLogger;
  * discovery implementation.
  */
 public class LinkDiscovery implements TimerTask {
+
+    private static final String SCHEME_NAME = "linkdiscovery";
+    private static final String ETHERNET = "ETHERNET";
 
     private final Logger log = getLogger(getClass());
 
@@ -166,6 +178,27 @@ public class LinkDiscovery implements TimerTask {
             return false;
         }
 
+        if (processOnosLldp(packetContext, eth)) {
+            return true;
+        }
+
+        if (processLldp(packetContext, eth)) {
+            return true;
+        }
+
+        ONOSLLDP lldp = ONOSLLDP.parseLLDP(eth);
+
+        if (lldp == null) {
+            log.debug("Cannot parse the packet. It seems that it is not the lldp or bsn packet.");
+        } else {
+            log.debug("LLDP packet is dropped due to there are no handlers that properly handle this packet: {}",
+                    lldp.toString());
+        }
+
+        return false;
+    }
+
+    private boolean processOnosLldp(PacketContext packetContext, Ethernet eth) {
         ONOSLLDP onoslldp = ONOSLLDP.parseONOSLLDP(eth);
         if (onoslldp != null) {
             Type lt;
@@ -198,12 +231,121 @@ public class LinkDiscovery implements TimerTask {
                     context.providerService().linkDetected(ld);
                     context.touchLink(LinkKey.linkKey(src, dst));
                 } catch (IllegalStateException e) {
+                    log.debug("There is a exception during link creation: {}", e);
                     return true;
                 }
                 return true;
             }
         }
         return false;
+    }
+
+    private boolean processLldp(PacketContext packetContext, Ethernet eth) {
+        ONOSLLDP onoslldp = ONOSLLDP.parseLLDP(eth);
+        if (onoslldp != null) {
+            Type lt = eth.getEtherType() == Ethernet.TYPE_LLDP ?
+                    Type.DIRECT : Type.INDIRECT;
+
+            DeviceService deviceService = context.deviceService();
+            MacAddress srcChassisId = onoslldp.getChassisIdByMac();
+            String srcPortName = onoslldp.getPortNameString();
+            String srcPortDesc = onoslldp.getPortDescString();
+
+            log.debug("srcChassisId:{}, srcPortName:{}, srcPortDesc:{}", srcChassisId, srcPortName, srcPortDesc);
+
+            if (srcChassisId == null && srcPortDesc == null) {
+                log.warn("there are no valid port id");
+                return false;
+            }
+
+            Optional<Device> srcDevice = findSourceDeviceByChassisId(deviceService, srcChassisId);
+
+            if (!srcDevice.isPresent()) {
+                log.warn("source device not found. srcChassisId value: {}", srcChassisId);
+                return false;
+            }
+            Optional<Port> sourcePort = findSourcePortByName(
+                    srcPortName == null ? srcPortDesc : srcPortName,
+                    deviceService,
+                    srcDevice.get());
+
+            if (!sourcePort.isPresent()) {
+                log.warn("source port not found. sourcePort value: {}", sourcePort);
+                return false;
+            }
+
+            PortNumber srcPort = sourcePort.get().number();
+            PortNumber dstPort = packetContext.inPacket().receivedFrom().port();
+
+            DeviceId srcDeviceId = srcDevice.get().id();
+            DeviceId dstDeviceId = packetContext.inPacket().receivedFrom().deviceId();
+
+            ConnectPoint src = new ConnectPoint(srcDeviceId, srcPort);
+            ConnectPoint dst = new ConnectPoint(dstDeviceId, dstPort);
+
+            DefaultAnnotations annotations = DefaultAnnotations.builder()
+                    .set(AnnotationKeys.PROTOCOL, SCHEME_NAME.toUpperCase())
+                    .set(AnnotationKeys.LAYER, ETHERNET)
+                    .build();
+
+            LinkDescription ld = new DefaultLinkDescription(src, dst, lt, true, annotations);
+            try {
+                context.providerService().linkDetected(ld);
+                context.setTtl(LinkKey.linkKey(src, dst), onoslldp.getTtlBySeconds());
+            } catch (IllegalStateException e) {
+                log.debug("There is a exception during link creation: {}", e);
+                return true;
+            }
+            return true;
+        }
+        return false;
+    }
+
+    private Optional<Device> findSourceDeviceByChassisId(DeviceService deviceService, MacAddress srcChassisId) {
+        Supplier<Stream<Device>> deviceStream = () ->
+                StreamSupport.stream(deviceService.getAvailableDevices().spliterator(), false);
+        Optional<Device> remoteDeviceOptional = deviceStream.get()
+                .filter(device -> device.chassisId() != null
+                        && MacAddress.valueOf(device.chassisId().value()).equals(srcChassisId))
+                .findAny();
+
+        if (remoteDeviceOptional.isPresent()) {
+            log.debug("sourceDevice found by chassis id: {}", srcChassisId);
+            return remoteDeviceOptional;
+        } else {
+            remoteDeviceOptional = deviceStream.get().filter(device ->
+                    Tools.stream(deviceService.getPorts(device.id()))
+                            .anyMatch(port -> port.annotations().keys().contains(AnnotationKeys.PORT_MAC)
+                                    && MacAddress.valueOf(port.annotations().value(AnnotationKeys.PORT_MAC))
+                                    .equals(srcChassisId)))
+                    .findAny();
+            if (remoteDeviceOptional.isPresent()) {
+                log.debug("sourceDevice found by port mac: {}", srcChassisId);
+                return remoteDeviceOptional;
+            } else {
+                return Optional.empty();
+            }
+        }
+    }
+
+    private Optional<Port> findSourcePortByName(String remotePortName,
+                                                DeviceService deviceService,
+                                                Device remoteDevice) {
+        Optional<Port> remotePort = deviceService.getPorts(remoteDevice.id())
+                .stream().filter(port -> remotePortName.equals(port.annotations().value(AnnotationKeys.PORT_NAME)))
+                .findAny();
+
+        if (remotePort.isPresent()) {
+            return remotePort;
+        } else {
+            int portNumber = Integer.parseInt(remotePortName.replaceAll("\\D+", ""));
+            DefaultAnnotations.Builder annotations = DefaultAnnotations.builder()
+                    .set(AnnotationKeys.PORT_NAME, remotePortName);
+
+            return Optional.of(new DefaultPort(remoteDevice, PortNumber.portNumber(portNumber),
+                    true,
+                    annotations.build()));
+        }
     }
 
     // true if *NOT* this cluster's own probe.

@@ -347,6 +347,7 @@ public class PacketManager
     }
 
     private DefaultForwardingObjective.Builder createBuilder(PacketRequest request) {
+        ApplicationId requestedAppId = coreService.getAppId(request.appId().name()); // Validate app id
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                 .punt()
                 .wipeDeferred()
@@ -355,7 +356,7 @@ public class PacketManager
         return DefaultForwardingObjective.builder()
                 .withPriority(request.priority().priorityValue())
                 .withSelector(request.selector())
-                .fromApp(appId)
+                .fromApp(requestedAppId == null ? appId : requestedAppId)
                 .withFlag(ForwardingObjective.Flag.VERSATILE)
                 .withTreatment(treatment)
                 .makePermanent();

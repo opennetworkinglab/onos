@@ -798,6 +798,11 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
         }
 
         @Override
+        public void setTtl(LinkKey key, short ttl) {
+            linkTimes.put(key, System.currentTimeMillis() - staleLinkAge + SECONDS.toMillis(ttl));
+        }
+
+        @Override
         public DeviceService deviceService() {
             return deviceService;
         }

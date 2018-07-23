@@ -30,6 +30,7 @@ public class ONOSLLDPTest {
     private static final Integer PORT_NUMBER = 2;
     private static final Integer PORT_NUMBER_2 = 98761234;
     private static final String PORT_DESC = "Ethernet1";
+    private static final String PORT_NAME = "Ethernet2";
     private static final String TEST_SECRET = "test";
 
     private ONOSLLDP onoslldp = ONOSLLDP.onosSecureLLDP(DEVICE_ID, CHASSIS_ID, PORT_NUMBER, PORT_DESC, TEST_SECRET);
@@ -39,11 +40,21 @@ public class ONOSLLDPTest {
      */
     @Test
     public void testPortNumber() throws Exception {
-        assertEquals("the value from constructor with getPort value is miss matched",
+        assertEquals("the value from constructor with getPort value is mismatched",
                 PORT_NUMBER, onoslldp.getPort());
 
         onoslldp.setPortId(PORT_NUMBER_2);
-        assertEquals("the value from setPortId with getPort value is miss matched",
+        assertEquals("the value from setPortId with getPort value is mismatched",
                 PORT_NUMBER_2, onoslldp.getPort());
+    }
+
+    /**
+     * Tests port name and getters.
+     */
+    @Test
+    public void testPortName() throws Exception {
+        onoslldp.setPortName(PORT_NAME);
+        assertEquals("the value from setPortName with getPortNameString value is mismatched",
+                PORT_NAME, onoslldp.getPortNameString());
     }
 }

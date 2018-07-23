@@ -261,7 +261,7 @@ public class LinkDiscoveryAristaImpl extends AbstractHandlerBehaviour implements
         ConnectPoint local = new ConnectPoint(localDevId, localPort.number());
         ConnectPoint remote = new ConnectPoint(remoteDevId, remotePort.number());
         DefaultAnnotations annotations = DefaultAnnotations.builder()
-                .set("layer", "ETHERNET")
+                .set(AnnotationKeys.LAYER, "ETHERNET")
                 .build();
 
         linkDescriptions.add(new DefaultLinkDescription(
