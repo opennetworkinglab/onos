@@ -446,7 +446,7 @@ public class HostManager
             checkValidity();
 
             if (!allowedToChange(hostId)) {
-                log.info("Request to remove {} from {} is ignored due to provider mismatch",
+                log.info("Request to add {} to {} is ignored due to provider mismatch",
                         location, hostId);
                 return;
             }
