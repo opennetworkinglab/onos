@@ -125,8 +125,6 @@ public class OpenstackNetworkingUiMessageHandler extends UiMessageHandler {
     private OpenstackNodeService osNodeService;
     private InstancePortService instancePortService;
     private OpenstackNetworkService osNetService;
-    private String restUrl;
-    private String restAuthInfo;
     private Mode currentMode = Mode.IDLE;
     private Element elementOfNote;
 
@@ -171,7 +169,8 @@ public class OpenstackNetworkingUiMessageHandler extends UiMessageHandler {
             switch (mode) {
                 case MOUSE:
                     currentMode = Mode.MOUSE;
-                    sendMouseData();
+                    eventExecutor.execute(() -> sendMouseData());
+
                     break;
 
                 default:
@@ -197,8 +196,7 @@ public class OpenstackNetworkingUiMessageHandler extends UiMessageHandler {
                     dstIp,
                     srcDeviceId,
                     dstDeviceId);
-
-            processFlowTraceRequest(srcIp, dstIp, srcDeviceId, dstDeviceId);
+            eventExecutor.execute(() -> processFlowTraceRequest(srcIp, dstIp, srcDeviceId, dstDeviceId));
         }
     }
 
@@ -212,9 +210,9 @@ public class OpenstackNetworkingUiMessageHandler extends UiMessageHandler {
             String id = string(payload, ID);
             log.debug("Update Display: id [{}]", id);
             if (!Strings.isNullOrEmpty(id)) {
-                updateForMode(id);
+                eventExecutor.execute(() -> updateForMode(id));
             } else {
-                clearForMode();
+                eventExecutor.execute(() -> clearForMode());
             }
         }
     }
@@ -275,6 +273,11 @@ public class OpenstackNetworkingUiMessageHandler extends UiMessageHandler {
         sendMessage(TopoJson.highlightsMessage(highlights));
     }
 
+    /**
+     * Sends JSON-based message to UI.
+     * @param type type
+     * @param payload payload
+     */
     public void sendMessagetoUi(String type, ObjectNode payload) {
         sendMessage(JsonUtils.envelope(type, payload));
     }
@@ -282,7 +285,7 @@ public class OpenstackNetworkingUiMessageHandler extends UiMessageHandler {
     private int getVni(Host host) {
         String vni = host.annotations().value(ANNOTATION_SEGMENT_ID);
 
-        return vni == null ? 0 : Integer.valueOf(vni).intValue();
+        return vni == null ? 0 : Integer.parseInt(vni);
     }
 
     private void sendMouseData() {
@@ -428,7 +431,7 @@ public class OpenstackNetworkingUiMessageHandler extends UiMessageHandler {
         Device srcDevice = deviceService.getDevice(srcOpenstackNode.intgBridge());
         if (srcDevice.annotations().value(SW_VERSION).startsWith(OVS_VERSION_2_8)) {
             traceResultForwardJson = Ovs28FlowTraceResultParser.flowTraceResultInJson(
-                    traceResultForward, srcOpenstackNode.hostname());
+                    traceResultForward.trim(), srcOpenstackNode.hostname());
         } else {
             log.error("Currently OVS version {} is not supported",
                     deviceService.getDevice(srcOpenstackNode.intgBridge()));
@@ -519,7 +522,7 @@ public class OpenstackNetworkingUiMessageHandler extends UiMessageHandler {
             log.error("Exception occurred because of {}", e.toString());
         }
 
-        return traceResult.trim();
+        return traceResult;
     }
 
     private String traceRequestString(String srcIp, String dstIp, OpenstackNode openstackNode) {
