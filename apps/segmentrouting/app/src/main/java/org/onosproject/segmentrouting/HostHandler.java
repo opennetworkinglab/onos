@@ -184,9 +184,6 @@ public class HostHandler {
 
         // For each old location
         Sets.difference(prevLocations, newLocations).forEach(prevLocation -> {
-            // First of all, verify each old location
-            srManager.probingService.probeHost(host, prevLocation, ProbeMode.VERIFY);
-
             // Remove routing rules for old IPs
             Sets.difference(prevIps, newIps).forEach(ip ->
                     processRoutingRule(prevLocation.deviceId(), prevLocation.port(), hostMac, hostVlanId,
@@ -257,6 +254,7 @@ public class HostHandler {
             // Majorly for the 2nd step of [1A/x, 1B/x] -> [1A/x, 1B/y] -> [1A/y, 1B/y]
             // But will also cover [1A/x] -> [1A/y] -> [1A/y, 1B/y]
             if (srManager.activeProbing) {
+
                 srManager.getPairDeviceId(newLocation.deviceId()).ifPresent(pairDeviceId ->
                         srManager.getPairLocalPort(pairDeviceId).ifPresent(pairRemotePort ->
                                 probe(host, newLocation, pairDeviceId, pairRemotePort)
@@ -276,6 +274,9 @@ public class HostHandler {
                     processRoutingRule(unchangedLocation.deviceId(), unchangedLocation.port(), hostMac,
                         hostVlanId, ip, false)
             );
+
+            // Verify existing location and see if it is still valid
+            srManager.probingService.probeHost(host, unchangedLocation, ProbeMode.VERIFY);
         });
 
         // ensure dual-homed host locations have viable uplinks
