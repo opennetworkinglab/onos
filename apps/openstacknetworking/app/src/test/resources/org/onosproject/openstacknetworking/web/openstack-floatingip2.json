@@ -1,0 +1,11 @@
+{
+  "floatingip": {
+    "id": "id2",
+    "router_id": "router_id2",
+    "tenant_id": "tenant_id2",
+    "floating_network_id": "floating_network_id2",
+    "floating_ip_address": "2.2.2.2",
+    "fixed_ip_address": "",
+    "port_id": "port_id2"
+  }
+}

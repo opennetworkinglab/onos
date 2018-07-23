@@ -77,7 +77,7 @@ public class OpenstackFloatingIpWebResourceTest extends ResourceTest {
 
         final WebTarget wt = target();
         InputStream jsonStream = OpenstackFloatingIpWebResourceTest.class
-                .getResourceAsStream("openstack-floatingip.json");
+                .getResourceAsStream("openstack-floatingip1.json");
 
         Response response = wt.path(PATH).request(MediaType.APPLICATION_JSON_TYPE)
                 .post(Entity.json(jsonStream));
@@ -115,7 +115,7 @@ public class OpenstackFloatingIpWebResourceTest extends ResourceTest {
 
         final WebTarget wt = target();
         InputStream jsonStream = OpenstackFloatingIpWebResourceTest.class
-                .getResourceAsStream("openstack-floatingip.json");
+                .getResourceAsStream("openstack-floatingip1.json");
 
         Response response = wt.path(PATH).request(MediaType.APPLICATION_JSON_TYPE)
                 .post(Entity.json(jsonStream));
@@ -136,7 +136,7 @@ public class OpenstackFloatingIpWebResourceTest extends ResourceTest {
 
         final WebTarget wt = target();
         InputStream jsonStream = OpenstackFloatingIpWebResourceTest.class
-                .getResourceAsStream("openstack-floatingip.json");
+                .getResourceAsStream("openstack-floatingip1.json");
 
         Response response = wt.path(PATH + "/2f245a7b-796b-4f26-9cf9-9e82d248fda7")
                 .request(MediaType.APPLICATION_JSON_TYPE)
@@ -176,7 +176,7 @@ public class OpenstackFloatingIpWebResourceTest extends ResourceTest {
 
         final WebTarget wt = target();
         InputStream jsonStream = OpenstackFloatingIpWebResourceTest.class
-                .getResourceAsStream("openstack-floatingip.json");
+                .getResourceAsStream("openstack-floatingip1.json");
 
         Response response = wt.path(PATH + "/2f245a7b-796b-4f26-9cf9-9e82d248fda7")
                 .request(MediaType.APPLICATION_JSON_TYPE)

@@ -72,7 +72,7 @@ import static org.openstack4j.core.transport.ObjectMapperSingleton.getContext;
  */
 public final class OpenstackNetworkingUtil {
 
-    protected static final Logger log = LoggerFactory.getLogger(OpenstackNetworkingUtil.class);
+    private static final Logger log = LoggerFactory.getLogger(OpenstackNetworkingUtil.class);
 
     private static final int HEX_RADIX = 16;
     private static final String ZERO_FUNCTION_NUMBER = "0";
@@ -132,7 +132,8 @@ public final class OpenstackNetworkingUtil {
                     .writeValueAsString(entity);
             log.trace(strModelEntity);
             return (ObjectNode) mapper.readTree(strModelEntity.getBytes());
-        } catch (Exception e) {
+        } catch (IOException e) {
+            log.error("IOException occurred because of {}", e.toString());
             throw new IllegalStateException();
         }
     }
@@ -146,16 +147,21 @@ public final class OpenstackNetworkingUtil {
      */
     public static NetFloatingIP associatedFloatingIp(InstancePort port,
                                                      Set<NetFloatingIP> fips) {
-        for (NetFloatingIP fip : fips) {
-            if (Strings.isNullOrEmpty(fip.getFixedIpAddress())) {
-                continue;
+        try {
+            for (NetFloatingIP fip : fips) {
+                if (Strings.isNullOrEmpty(fip.getFixedIpAddress())) {
+                    continue;
+                }
+                if (Strings.isNullOrEmpty(fip.getFloatingIpAddress())) {
+                    continue;
+                }
+                if (fip.getFixedIpAddress().equals(port.ipAddress().toString())) {
+                    return fip;
+                }
             }
-            if (Strings.isNullOrEmpty(fip.getFloatingIpAddress())) {
-                continue;
-            }
-            if (fip.getFixedIpAddress().equals(port.ipAddress().toString())) {
-                return fip;
-            }
+        } catch (NullPointerException e) {
+            log.error("Exception occurred because of {}", e.toString());
+            throw new NullPointerException();
         }
         return null;
     }
@@ -284,12 +290,14 @@ public final class OpenstackNetworkingUtil {
      */
     public static String getIntfNameFromPciAddress(Port port) {
 
-        if (port.getProfile() == null) {
+
+        if (port.getProfile() == null || port.getProfile().isEmpty()) {
             log.error("Port profile is not found");
             return null;
         }
 
-        if (port.getProfile() != null && port.getProfile().get(PCISLOT) == null) {
+        if (!port.getProfile().containsKey(PCISLOT) ||
+                Strings.isNullOrEmpty(port.getProfile().get(PCISLOT).toString())) {
             log.error("Failed to retrieve the interface name because of no pci_slot information from the port");
             return null;
         }
@@ -311,8 +319,9 @@ public final class OpenstackNetworkingUtil {
 
         String vendorInfoForPort = String.valueOf(port.getProfile().get(PCI_VENDOR_INFO));
 
-        if (vendorInfoForPort == null) {
-            log.error("Failed to retrieve the interface name because of no pci vendor information from the port");
+        if (!portNamePrefixMap().containsKey(vendorInfoForPort)) {
+            log.error("Failed to retrieve the interface name because of no port name prefix for vendor ID {}",
+                    vendorInfoForPort);
             return null;
         }
         String portNamePrefix = portNamePrefixMap().get(vendorInfoForPort);

@@ -1,0 +1,39 @@
+{
+  "port": {
+    "id": "65c0ee9f-d634-4522-8954-51021b570b0d",
+    "admin_state_up": true,
+    "device_id": "1",
+    "device_owner": "compute:nova",
+    "fixed_ips": [
+      {
+        "ip_address": "10.0.0.2",
+        "subnet_id": "a0304c3a-4f08-4c43-88af-d796509c97d2"
+      }
+    ],
+    "allowed_address_pairs": [
+      {
+        "ip_address": "12.12.11.12",
+        "mac_address": "fa:14:2a:b3:cb:f0"
+      }
+    ],
+    "mac_address": "fa:16:3e:c9:cb:f0",
+    "network_id": "a87cc70a-3e15-4acf-8205-9b711a3531b7",
+    "status": "ACTIVE",
+    "tenant_id": "d6700c0c9ffa4f1cb322cd4a1f3906fa",
+    "security_groups": [
+      "f0ac4394-7e4a-4409-9701-ba8be283dbc3"
+    ],
+    "extra_dhcp_opts": [
+      {
+        "opt_value": "pxelinux.0",
+        "opt_name": "bootfile-name"
+      }
+    ],
+    "port_security_enabled": true,
+    "binding:host_id": "4df8d9ff-6f6f-438f-90a1-ef660d4586ad",
+    "binding:vif_type": "unbound",
+    "binding:vif_details": {},
+    "binding:vnic_type": "other",
+    "binding:profile": {"pci_slot": "0000:05:08.3", "physical_network": "sriov_net", "pci_vendor_info": "aaaa:bbbb"}
+  }
+}

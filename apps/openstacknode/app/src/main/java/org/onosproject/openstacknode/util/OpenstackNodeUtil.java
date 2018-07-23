@@ -49,7 +49,7 @@ import static org.onlab.util.Tools.get;
  * An utility that used in openstack node app.
  */
 public final class OpenstackNodeUtil {
-    protected static final Logger log = LoggerFactory.getLogger(OpenstackNodeUtil.class);
+    private static final Logger log = LoggerFactory.getLogger(OpenstackNodeUtil.class);
 
     // keystone endpoint related variables
     private static final String DOMAIN_DEFAULT = "default";
