@@ -46,7 +46,6 @@ import org.onosproject.net.host.HostProviderService;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.openstacknetworking.api.InstancePortAdminService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeEvent;
@@ -105,17 +104,14 @@ public final class OpenstackSwitchingHostProvider
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OpenstackNodeService osNodeService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected InstancePortAdminService instancePortAdminService;
+    private HostProviderService hostProviderService;
 
-    private final ExecutorService deviceEventExecutor =
+    private final ExecutorService executor =
             Executors.newSingleThreadExecutor(groupedThreads(this.getClass().getSimpleName(), "device-event"));
     private final InternalDeviceListener internalDeviceListener =
             new InternalDeviceListener();
     private final InternalOpenstackNodeListener internalNodeListener =
             new InternalOpenstackNodeListener();
-
-    private HostProviderService hostProvider;
 
     /**
      * Creates OpenStack switching host provider.
@@ -129,7 +125,7 @@ public final class OpenstackSwitchingHostProvider
         coreService.registerApplication(OPENSTACK_NETWORKING_APP_ID);
         deviceService.addListener(internalDeviceListener);
         osNodeService.addListener(internalNodeListener);
-        hostProvider = hostProviderRegistry.register(this);
+        hostProviderService = hostProviderRegistry.register(this);
 
         log.info("Started");
     }
@@ -140,7 +136,7 @@ public final class OpenstackSwitchingHostProvider
         osNodeService.removeListener(internalNodeListener);
         deviceService.removeListener(internalDeviceListener);
 
-        deviceEventExecutor.shutdown();
+        executor.shutdown();
 
         log.info("Stopped");
     }
@@ -151,6 +147,32 @@ public final class OpenstackSwitchingHostProvider
     }
 
     /**
+     * A helper method which logs the port addition event and performs port
+     * addition action.
+     *
+     * @param event device event
+     */
+    protected void portAddedHelper(DeviceEvent event) {
+        log.debug("Instance port {} is detected from {}",
+                event.port().annotations().value(PORT_NAME),
+                event.subject().id());
+        processPortAdded(event.port());
+    }
+
+    /**
+     * A helper method which logs the port removal event and performs port
+     * removal action.
+     *
+     * @param event device event
+     */
+    protected void portRemovedHelper(DeviceEvent event) {
+        log.debug("Instance port {} is removed from {}",
+                event.port().annotations().value(PORT_NAME),
+                event.subject().id());
+        processPortRemoved(event.port());
+    }
+
+    /**
      * Processes port addition event.
      * Once a port addition event is detected, it tries to create a host instance
      * with openstack augmented host information such as networkId, portId,
@@ -158,7 +180,7 @@ public final class OpenstackSwitchingHostProvider
      *
      * @param port port object used in ONOS
      */
-    private void processPortAdded(Port port, Device device) {
+    protected void processPortAdded(Port port) {
         // TODO check the node state is COMPLETE
         org.openstack4j.model.network.Port osPort = osNetworkService.port(port);
         if (osPort == null) {
@@ -228,17 +250,17 @@ public final class OpenstackSwitchingHostProvider
             // newly added location is not in the existing location list,
             // therefore, we simply add this into the location list
             if (locations.size() == 0) {
-                hostProvider.addLocationToHost(hostId,
+                hostProviderService.addLocationToHost(hostId,
                         new HostLocation(connectPoint, createTime));
             }
 
             // newly added location is in the existing location list,
             // the hostDetected method invocation in turn triggers host Update event
             if (locations.size() == 1) {
-                hostProvider.hostDetected(hostId, hostDesc, false);
+                hostProviderService.hostDetected(hostId, hostDesc, false);
             }
         } else {
-            hostProvider.hostDetected(hostId, hostDesc, false);
+            hostProviderService.hostDetected(hostId, hostDesc, false);
         }
     }
 
@@ -248,10 +270,9 @@ public final class OpenstackSwitchingHostProvider
      * instance through host provider by giving connect point information,
      * and vanishes it.
      *
-     * @param event device event
+     * @param port ONOS port
      */
-    private void processPortRemoved(DeviceEvent event) {
-        Port port = event.port();
+    protected void processPortRemoved(Port port) {
         ConnectPoint connectPoint = new ConnectPoint(port.element().id(), port.number());
 
         Set<Host> hosts = hostService.getConnectedHosts(connectPoint);
@@ -263,13 +284,13 @@ public final class OpenstackSwitchingHostProvider
 
             // if the host contains only one filtered location, we remove the host
             if (h.locations().size() == 1) {
-                hostProvider.hostVanished(h.id());
+                hostProviderService.hostVanished(h.id());
             }
 
             // if the host contains multiple locations, we simply remove the
             // host location
             if (h.locations().size() > 1 && hostLocation.isPresent()) {
-                hostProvider.removeLocationFromHost(h.id(), hostLocation.get());
+                hostProviderService.removeLocationFromHost(h.id(), hostLocation.get());
             }
         });
     }
@@ -298,7 +319,7 @@ public final class OpenstackSwitchingHostProvider
         }
 
         private boolean isDirectPort(String portName) {
-            return portNamePrefixMap().values().stream().filter(p -> portName.startsWith(p)).findAny().isPresent();
+            return portNamePrefixMap().values().stream().anyMatch(portName::startsWith);
         }
 
         @Override
@@ -307,53 +328,21 @@ public final class OpenstackSwitchingHostProvider
             switch (event.type()) {
                 case PORT_UPDATED:
                     if (!event.port().isEnabled()) {
-                        portRemovedHelper(deviceEventExecutor, event);
+                        executor.execute(() -> portRemovedHelper(event));
                     } else if (event.port().isEnabled()) {
-                        portAddedHelper(deviceEventExecutor, event);
+                        executor.execute(() -> portAddedHelper(event));
                     }
                     break;
                 case PORT_ADDED:
-                    portAddedHelper(deviceEventExecutor, event);
+                    executor.execute(() -> portAddedHelper(event));
                     break;
                 case PORT_REMOVED:
-                    portRemovedHelper(deviceEventExecutor, event);
+                    executor.execute(() -> portRemovedHelper(event));
                     break;
                 default:
                     break;
             }
         }
-    }
-
-    /**
-     * A helper method which logs the port addition event and performs port
-     * addition action.
-     *
-     * @param executor device executor service
-     * @param event device event
-     */
-    private void portAddedHelper(ExecutorService executor, DeviceEvent event) {
-        executor.execute(() -> {
-            log.debug("Instance port {} is detected from {}",
-                    event.port().annotations().value(PORT_NAME),
-                    event.subject().id());
-            processPortAdded(event.port(), event.subject());
-        });
-    }
-
-    /**
-     * A helper method which logs the port removal event and performs port
-     * removal action.
-     *
-     * @param executor device executor service
-     * @param event device event
-     */
-    private void portRemovedHelper(ExecutorService executor, DeviceEvent event) {
-        executor.execute(() -> {
-            log.debug("Instance port {} is removed from {}",
-                    event.port().annotations().value(PORT_NAME),
-                    event.subject().id());
-            processPortRemoved(event);
-        });
     }
 
     private class InternalOpenstackNodeListener implements OpenstackNodeListener {
@@ -378,10 +367,8 @@ public final class OpenstackSwitchingHostProvider
 
             switch (event.type()) {
                 case OPENSTACK_NODE_COMPLETE:
-                    deviceEventExecutor.execute(() -> {
-                        log.info("COMPLETE node {} is detected", osNode.hostname());
-                        processCompleteNode(event.subject());
-                    });
+                    log.info("COMPLETE node {} is detected", osNode.hostname());
+                    executor.execute(() -> processCompleteNode(event.subject()));
                     break;
                 case OPENSTACK_NODE_INCOMPLETE:
                     log.warn("{} is changed to INCOMPLETE state", osNode);
@@ -405,23 +392,20 @@ public final class OpenstackSwitchingHostProvider
                         log.debug("Instance port {} is detected from {}",
                                 port.annotations().value(PORT_NAME),
                                 osNode.hostname());
-                        processPortAdded(port,
-                                deviceService.getDevice(osNode.intgBridge()));
+                        processPortAdded(port);
                     });
 
-            portNamePrefixMap().values().forEach(portNamePrefix -> {
-                deviceService.getPorts(osNode.intgBridge()).stream()
-                        .filter(port -> port.annotations().value(PORT_NAME)
-                                .startsWith(portNamePrefix) &&
-                                port.isEnabled())
-                        .forEach(port -> {
-                            log.debug("Instance port {} is detected from {}",
-                                    port.annotations().value(portNamePrefix),
-                                    osNode.hostname());
-                            processPortAdded(port,
-                                    deviceService.getDevice(osNode.intgBridge()));
-                        });
-            });
+            portNamePrefixMap().values().forEach(portNamePrefix ->
+                    deviceService.getPorts(osNode.intgBridge()).stream()
+                    .filter(port -> port.annotations().value(PORT_NAME)
+                            .startsWith(portNamePrefix) &&
+                            port.isEnabled())
+                    .forEach(port -> {
+                        log.debug("Instance port {} is detected from {}",
+                                port.annotations().value(portNamePrefix),
+                                osNode.hostname());
+                        processPortAdded(port);
+                    }));
 
             Tools.stream(hostService.getHosts())
                     .filter(host -> deviceService.getPort(
@@ -429,7 +413,7 @@ public final class OpenstackSwitchingHostProvider
                             host.location().port()) == null)
                     .forEach(host -> {
                         log.info("Remove stale host {}", host.id());
-                        hostProvider.hostVanished(host.id());
+                        hostProviderService.hostVanished(host.id());
                     });
         }
     }
