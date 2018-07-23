@@ -29,6 +29,7 @@ import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.net.config.ConfigApplyDelegate;
+import org.onosproject.net.host.HostProbingService;
 import org.onosproject.net.host.ProbeMode;
 import org.onosproject.net.intf.Interface;
 import org.onosproject.net.ConnectPoint;
@@ -93,7 +94,7 @@ public class HostHandlerTest {
     private static final IpAddress HOST_IP12 = IpAddress.valueOf("10.0.1.2");
     private static final IpAddress HOST_IP13 = IpAddress.valueOf("10.0.1.3");
     private static final IpAddress HOST_IP14 = IpAddress.valueOf("10.0.1.4");
-    private static final IpAddress HOST_IP32 = IpAddress.valueOf("10.0.3.2");
+    private static final IpAddress HOST_IP33 = IpAddress.valueOf("10.0.3.3");
     // Device
     private static final DeviceId DEV1 = DeviceId.deviceId("of:0000000000000001");
     private static final DeviceId DEV2 = DeviceId.deviceId("of:0000000000000002");
@@ -122,8 +123,12 @@ public class HostHandlerTest {
     private static final HostLocation HOST_LOC31 = new HostLocation(CP31, 0);
     private static final ConnectPoint CP32 = new ConnectPoint(DEV3, P2);
     private static final HostLocation HOST_LOC32 = new HostLocation(CP32, 0);
+    private static final ConnectPoint CP33 = new ConnectPoint(DEV3, P3);
+    private static final HostLocation HOST_LOC33 = new HostLocation(CP33, 0);
     private static final ConnectPoint CP41 = new ConnectPoint(DEV4, P1);
     private static final HostLocation HOST_LOC41 = new HostLocation(CP41, 0);
+    private static final ConnectPoint CP42 = new ConnectPoint(DEV4, P2);
+    private static final HostLocation HOST_LOC42 = new HostLocation(CP42, 0);
     private static final ConnectPoint CP39 = new ConnectPoint(DEV3, P9);
     private static final ConnectPoint CP49 = new ConnectPoint(DEV4, P9);
     // Conenct Point for mastership test
@@ -169,13 +174,19 @@ public class HostHandlerTest {
             new Interface(null, CP31, Lists.newArrayList(INTF_IP1), MacAddress.NONE, null,
                     INTF_VLAN_UNTAGGED, null, null);
     private static final Interface INTF32 =
-            new Interface(null, CP32, Lists.newArrayList(INTF_IP3), MacAddress.NONE, null,
+            new Interface(null, CP32, Lists.newArrayList(INTF_IP1), MacAddress.NONE, null,
+                    INTF_VLAN_UNTAGGED, null, null);
+    private static final Interface INTF33 =
+            new Interface(null, CP33, Lists.newArrayList(INTF_IP3), MacAddress.NONE, null,
                     INTF_VLAN_OTHER, null, null);
     private static final Interface INTF39 =
             new Interface(null, CP39, Lists.newArrayList(INTF_IP1), MacAddress.NONE, null,
                     null, INTF_VLAN_PAIR, null);
     private static final Interface INTF41 =
             new Interface(null, CP41, Lists.newArrayList(INTF_IP1), MacAddress.NONE, null,
+                    INTF_VLAN_UNTAGGED, null, null);
+    private static final Interface INTF42 =
+            new Interface(null, CP42, Lists.newArrayList(INTF_IP1), MacAddress.NONE, null,
                     INTF_VLAN_UNTAGGED, null, null);
     private static final Interface INTF49 =
             new Interface(null, CP49, Lists.newArrayList(INTF_IP1), MacAddress.NONE, null,
@@ -191,12 +202,12 @@ public class HostHandlerTest {
     private static final Set<DeviceId> LOCAL_DEVICES = Sets.newHashSet(DEV1, DEV2, DEV3, DEV4);
     // A set of interfaces
     private static final Set<Interface> INTERFACES = Sets.newHashSet(INTF11, INTF12, INTF13, INTF21,
-            INTF22, INTF31, INTF32, INTF39, INTF41, INTF49);
+            INTF22, INTF31, INTF32, INTF33, INTF39, INTF41, INTF42, INTF49);
 
     private MockHostProbingService mockLocationProbingService;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         // Initialize pairDevice and pairLocalPort config
         ObjectMapper mapper = new ObjectMapper();
         ConfigApplyDelegate delegate = config -> { };
@@ -245,7 +256,7 @@ public class HostHandlerTest {
     }
 
     @Test
-    public void init() throws Exception {
+    public void init() {
         hostHandler.init(DEV1);
         assertEquals(1, ROUTING_TABLE.size());
         assertNotNull(ROUTING_TABLE.get(new MockRoutingTableKey(DEV1, HOST_IP11.toIpPrefix())));
@@ -262,13 +273,13 @@ public class HostHandlerTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testHostAddedAtWrongLocation() throws Exception {
+    public void testHostAddedAtWrongLocation() {
         hostHandler.processHostAddedAtLocation(HOST1, HOST_LOC13);
     }
 
 
     @Test()
-    public void testHostAddedAtCorrectLocation() throws Exception {
+    public void testHostAddedAtCorrectLocation() {
         hostHandler.processHostAddedAtLocation(HOST1, HOST_LOC11);
         assertEquals(1, ROUTING_TABLE.size());
         assertNotNull(ROUTING_TABLE.get(new MockRoutingTableKey(DEV1, HOST_IP11.toIpPrefix())));
@@ -277,7 +288,7 @@ public class HostHandlerTest {
     }
 
     @Test
-    public void testHostAdded() throws Exception {
+    public void testHostAdded() {
         Host subject;
 
         // Untagged host discovered on untagged port
@@ -322,7 +333,7 @@ public class HostHandlerTest {
     }
 
     @Test
-    public void testDualHomedHostAdded() throws Exception {
+    public void testDualHomedHostAdded() {
         // Add a dual-homed host that has 2 locations
         // Expect: add two routing rules and two bridging rules
         Host subject = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
@@ -337,21 +348,21 @@ public class HostHandlerTest {
     }
 
     @Test
-    public void testSingleHomedHostAddedOnPairLeaf() throws Exception {
+    public void testSingleHomedHostAddedOnPairLeaf() {
         Host host1 = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
-                Sets.newHashSet(HOST_LOC32), Sets.newHashSet(HOST_IP32), false);
+                Sets.newHashSet(HOST_LOC33), Sets.newHashSet(HOST_IP33), false);
 
         // Add a single-homed host with one location
         // Expect: the pair link should not be utilized
         hostHandler.processHostAddedEvent(new HostEvent(HostEvent.Type.HOST_ADDED, host1));
         assertEquals(1, ROUTING_TABLE.size());
-        assertEquals(P2, ROUTING_TABLE.get(new MockRoutingTableKey(DEV3, HOST_IP32.toIpPrefix())).portNumber);
+        assertEquals(P3, ROUTING_TABLE.get(new MockRoutingTableKey(DEV3, HOST_IP33.toIpPrefix())).portNumber);
         assertEquals(1, BRIDGING_TABLE.size());
-        assertEquals(P2, BRIDGING_TABLE.get(new MockBridgingTableKey(DEV3, HOST_MAC, INTF_VLAN_OTHER)).portNumber);
+        assertEquals(P3, BRIDGING_TABLE.get(new MockBridgingTableKey(DEV3, HOST_MAC, INTF_VLAN_OTHER)).portNumber);
     }
 
     @Test
-    public void testDualHomedHostAddedOneByOne() throws Exception {
+    public void testDualHomedHostAddedOneByOne() {
         Host host1 = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
                 Sets.newHashSet(HOST_LOC31), Sets.newHashSet(HOST_IP11), false);
         Host host2 = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
@@ -381,7 +392,7 @@ public class HostHandlerTest {
     }
 
     @Test
-    public void testHostRemoved() throws Exception {
+    public void testHostRemoved() {
         Host subject = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
                 Sets.newHashSet(HOST_LOC11), Sets.newHashSet(HOST_IP11), false);
 
@@ -401,7 +412,7 @@ public class HostHandlerTest {
     }
 
     @Test
-    public void testDualHomedHostRemoved() throws Exception {
+    public void testDualHomedHostRemoved() {
         // Add a dual-homed host that has 2 locations
         // Expect: add two routing rules and two bridging rules
         Host subject = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
@@ -422,7 +433,7 @@ public class HostHandlerTest {
     }
 
     @Test
-    public void testHostMoved() throws Exception {
+    public void testHostMoved() {
         Host host1 = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
                 Sets.newHashSet(HOST_LOC11), Sets.newHashSet(HOST_IP11), false);
         Host host2 = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
@@ -462,7 +473,7 @@ public class HostHandlerTest {
     }
 
     @Test
-    public void testDualHomedHostMoved() throws Exception {
+    public void testDualHomedHostMoved() {
         Host host1 = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
                 Sets.newHashSet(HOST_LOC11, HOST_LOC21), Sets.newHashSet(HOST_IP11, HOST_IP12), false);
         Host host2 = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
@@ -537,7 +548,7 @@ public class HostHandlerTest {
     }
 
     @Test
-    public void testHostMoveToInvalidLocation() throws Exception {
+    public void testHostMoveToInvalidLocation() {
         Host host1 = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
                 Sets.newHashSet(HOST_LOC11), Sets.newHashSet(HOST_IP11), false);
         Host host2 = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
@@ -571,7 +582,7 @@ public class HostHandlerTest {
     }
 
     @Test
-    public void testDualHomedHostMoveToInvalidLocation() throws Exception {
+    public void testDualHomedHostMoveToInvalidLocation() {
         Host host1 = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
                 Sets.newHashSet(HOST_LOC11, HOST_LOC21), Sets.newHashSet(HOST_IP11), false);
         Host host2 = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
@@ -623,7 +634,7 @@ public class HostHandlerTest {
     }
 
     @Test
-    public void testDualHomingSingleLocationFail() throws Exception {
+    public void testDualHomingSingleLocationFail() {
         Host host1 = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
                 Sets.newHashSet(HOST_LOC31, HOST_LOC41), Sets.newHashSet(HOST_IP11, HOST_IP12), false);
         Host host2 = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
@@ -667,7 +678,7 @@ public class HostHandlerTest {
     }
 
     @Test
-    public void testDualHomingBothLocationFail() throws Exception {
+    public void testDualHomingBothLocationFail() {
         Host host1 = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
                 Sets.newHashSet(HOST_LOC31, HOST_LOC41), Sets.newHashSet(HOST_IP11, HOST_IP12), false);
         Host host2 = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
@@ -705,7 +716,7 @@ public class HostHandlerTest {
     }
 
     @Test
-    public void testHostUpdated() throws Exception {
+    public void testHostUpdated() {
         Host host1 = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
                 Sets.newHashSet(HOST_LOC11), Sets.newHashSet(HOST_IP11), false);
         Host host2 = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
@@ -743,7 +754,7 @@ public class HostHandlerTest {
     }
 
     @Test
-    public void testDelayedIpAndLocation() throws Exception {
+    public void testDelayedIpAndLocation() {
         Host host1 = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
                 Sets.newHashSet(HOST_LOC31), Sets.newHashSet(), false);
         Host host2 = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
@@ -785,7 +796,7 @@ public class HostHandlerTest {
     }
 
     @Test
-    public void testDelayedIpAndLocation2() throws Exception {
+    public void testDelayedIpAndLocation2() {
         Host host1 = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
                 Sets.newHashSet(HOST_LOC31), Sets.newHashSet(), false);
         Host host2 = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
@@ -821,7 +832,7 @@ public class HostHandlerTest {
     }
 
     @Test
-    public void testDualHomedHostUpdated() throws Exception {
+    public void testDualHomedHostUpdated() {
         Host host1 = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
                 Sets.newHashSet(HOST_LOC11, HOST_LOC21), Sets.newHashSet(HOST_IP11, HOST_IP12), false);
         Host host2 = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
@@ -884,7 +895,7 @@ public class HostHandlerTest {
     }
 
     @Test
-    public void testHostRemovedWithRouteRemoved() throws Exception {
+    public void testHostRemovedWithRouteRemoved() {
         Host subject = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
                 Sets.newHashSet(HOST_LOC11), Sets.newHashSet(HOST_IP11), false);
 
@@ -933,5 +944,30 @@ public class HostHandlerTest {
 
         // Expect: subnet is removed from device config
         verify(deviceConfiguration);
+    }
+
+    @Test
+    public void testHostProbing() {
+        // Case: [1A/1, 1B/1] -> [1A/2, 1B/1]
+        // Expect: DISCOVER probe should be sent to every port on 1B that has the same VLAN as 1A/2
+        //         VERIFY probe should be sent to 1B/1
+        Host host1 = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
+                Sets.newHashSet(HOST_LOC31, HOST_LOC41), Sets.newHashSet(HOST_IP11), false);
+        Host host2 = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
+                Sets.newHashSet(HOST_LOC32, HOST_LOC41), Sets.newHashSet(HOST_IP11), false);
+        hostHandler.processHostAddedEvent(new HostEvent(HostEvent.Type.HOST_ADDED, host1));
+
+        hostHandler.srManager.probingService = createMock(HostProbingService.class);
+        hostHandler.srManager.probingService.probeHost(host2, CP41, ProbeMode.DISCOVER);
+        expectLastCall();
+        hostHandler.srManager.probingService.probeHost(host2, CP42, ProbeMode.DISCOVER);
+        expectLastCall();
+        hostHandler.srManager.probingService.probeHost(host2, CP41, ProbeMode.VERIFY);
+        expectLastCall();
+        replay(hostHandler.srManager.probingService);
+
+        hostHandler.processHostMovedEvent(new HostEvent(HostEvent.Type.HOST_MOVED, host2, host1));
+
+        verify(hostHandler.srManager.probingService);
     }
 }
