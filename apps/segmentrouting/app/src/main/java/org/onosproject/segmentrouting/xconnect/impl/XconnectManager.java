@@ -121,6 +121,7 @@ public class XconnectManager implements XconnectService {
 
         KryoNamespace.Builder serializer = KryoNamespace.newBuilder()
                 .register(KryoNamespaces.API)
+                .register(XconnectManager.class)
                 .register(XconnectKey.class);
 
         xconnectStore = storageService.<XconnectKey, Set<PortNumber>>consistentMapBuilder()
@@ -598,10 +599,4 @@ public class XconnectManager implements XconnectService {
         srService.getPairLocalPort(deviceId).ifPresent(newPorts::add);
         return newPorts;
     }
-
-    // TODO DEVICE listener
-    // up : init
-    // down: removeDevice
-
-
 }
