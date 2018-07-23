@@ -25,6 +25,8 @@ import org.onlab.junit.TestUtils;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
+import org.onosproject.cluster.ClusterServiceAdapter;
+import org.onosproject.cluster.LeadershipServiceAdapter;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreServiceAdapter;
 import org.onosproject.core.DefaultApplicationId;
@@ -120,6 +122,8 @@ public class InstancePortManagerTest {
         target = new InstancePortManager();
         TestUtils.setField(target, "coreService", new TestCoreService());
         TestUtils.setField(target, "hostService", new TestHostService());
+        TestUtils.setField(target, "leadershipService", new TestLeadershipService());
+        TestUtils.setField(target, "clusterService", new TestClusterService());
         target.instancePortStore = store;
         target.addListener(testInstancePortListener);
         target.activate();
@@ -431,6 +435,12 @@ public class InstancePortManagerTest {
         public ApplicationId registerApplication(String name) {
             return TEST_APP_ID;
         }
+    }
+
+    private static class TestLeadershipService extends LeadershipServiceAdapter {
+    }
+
+    private static class TestClusterService extends ClusterServiceAdapter {
     }
 
     private static class TestHostService extends HostServiceAdapter {

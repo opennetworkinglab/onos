@@ -26,6 +26,10 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.LeadershipService;
+import org.onosproject.cluster.NodeId;
+import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.event.ListenerRegistry;
 import org.onosproject.net.Host;
@@ -43,6 +47,7 @@ import org.onosproject.openstacknetworking.api.InstancePortStore;
 import org.onosproject.openstacknetworking.api.InstancePortStoreDelegate;
 import org.slf4j.Logger;
 
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -88,6 +93,12 @@ public class InstancePortManager
     protected InstancePortStore instancePortStore;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected LeadershipService leadershipService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ClusterService clusterService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected HostService hostService;
 
     private final InstancePortStoreDelegate
@@ -95,11 +106,17 @@ public class InstancePortManager
     private final InternalHostListener
                             hostListener = new InternalHostListener();
 
+    private ApplicationId appId;
+    private NodeId localNodeId;
+
     @Activate
     protected void activate() {
-        coreService.registerApplication(Constants.OPENSTACK_NETWORKING_APP_ID);
+        appId = coreService.registerApplication(Constants.OPENSTACK_NETWORKING_APP_ID);
+        localNodeId = clusterService.getLocalNode().id();
         instancePortStore.setDelegate(delegate);
         hostService.addListener(hostListener);
+        leadershipService.runForLeadership(appId.name());
+
         log.info("Started");
     }
 
@@ -107,6 +124,8 @@ public class InstancePortManager
     protected void deactivate() {
         hostService.removeListener(hostListener);
         instancePortStore.unsetDelegate(delegate);
+        leadershipService.withdraw(appId.name());
+
         log.info("Stopped");
     }
 
@@ -229,7 +248,10 @@ public class InstancePortManager
                 log.debug("Invalid host detected, ignore it {}", host);
                 return false;
             }
-            return true;
+
+            // do not allow to proceed without leadership
+            NodeId leader = leadershipService.getLeader(appId.name());
+            return Objects.equals(localNodeId, leader);
         }
 
         @Override
