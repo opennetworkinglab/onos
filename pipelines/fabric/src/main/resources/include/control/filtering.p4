@@ -99,7 +99,7 @@ control Filtering (
         key = {
             standard_metadata.ingress_port: exact;
             hdr.ethernet.dst_addr: exact;
-            fabric_metadata.original_ether_type: exact;
+            hdr.vlan_tag.ether_type: exact;
         }
 
         actions = {

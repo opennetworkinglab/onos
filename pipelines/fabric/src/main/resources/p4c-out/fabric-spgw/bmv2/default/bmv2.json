@@ -23,7 +23,6 @@
         ["fabric_metadata_t.ip_proto", 8, false],
         ["fabric_metadata_t.l4_src_port", 16, false],
         ["fabric_metadata_t.l4_dst_port", 16, false],
-        ["fabric_metadata_t.original_ether_type", 16, false],
         ["_padding_1", 6, false]
       ]
     },
@@ -382,19 +381,6 @@
                 }
               ],
               "op" : "extract"
-            },
-            {
-              "parameters" : [
-                {
-                  "type" : "field",
-                  "value" : ["scalars", "fabric_metadata_t.original_ether_type"]
-                },
-                {
-                  "type" : "field",
-                  "value" : ["ethernet", "ether_type"]
-                }
-              ],
-              "op" : "set"
             }
           ],
           "transitions" : [
@@ -447,19 +433,6 @@
                 }
               ],
               "op" : "extract"
-            },
-            {
-              "parameters" : [
-                {
-                  "type" : "field",
-                  "value" : ["scalars", "fabric_metadata_t.original_ether_type"]
-                },
-                {
-                  "type" : "field",
-                  "value" : ["vlan_tag", "ether_type"]
-                }
-              ],
-              "op" : "set"
             }
           ],
           "transitions" : [
@@ -869,7 +842,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "include/parser.p4",
-        "line" : 165,
+        "line" : 163,
         "column" : 8,
         "source_fragment" : "FabricDeparser"
       },
@@ -3601,25 +3574,6 @@
             "column" : 31,
             "source_fragment" : "0x0800; ..."
           }
-        },
-        {
-          "op" : "assign",
-          "parameters" : [
-            {
-              "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t.original_ether_type"]
-            },
-            {
-              "type" : "hexstr",
-              "value" : "0x0800"
-            }
-          ],
-          "source_info" : {
-            "filename" : "include/control/../define.p4",
-            "line" : 69,
-            "column" : 31,
-            "source_fragment" : "0x0800; ..."
-          }
         }
       ]
     },
@@ -5423,8 +5377,8 @@
             },
             {
               "match_type" : "exact",
-              "name" : "fabric_metadata.original_ether_type",
-              "target" : ["scalars", "fabric_metadata_t.original_ether_type"],
+              "name" : "hdr.vlan_tag.ether_type",
+              "target" : ["vlan_tag", "ether_type"],
               "mask" : null
             }
           ],
@@ -5623,12 +5577,6 @@
             },
             {
               "match_type" : "ternary",
-              "name" : "fabric_metadata.original_ether_type",
-              "target" : ["scalars", "fabric_metadata_t.original_ether_type"],
-              "mask" : null
-            },
-            {
-              "match_type" : "ternary",
               "name" : "hdr.ethernet.dst_addr",
               "target" : ["ethernet", "dst_addr"],
               "mask" : null
@@ -5643,6 +5591,12 @@
               "match_type" : "ternary",
               "name" : "hdr.vlan_tag.vlan_id",
               "target" : ["vlan_tag", "vlan_id"],
+              "mask" : null
+            },
+            {
+              "match_type" : "ternary",
+              "name" : "hdr.vlan_tag.ether_type",
+              "target" : ["vlan_tag", "ether_type"],
               "mask" : null
             },
             {
@@ -5672,7 +5626,7 @@
           ],
           "match_type" : "ternary",
           "type" : "simple",
-          "max_size" : 256,
+          "max_size" : 128,
           "with_counters" : true,
           "support_timeout" : false,
           "direct_meters" : null,
@@ -6399,7 +6353,7 @@
           "id" : 11,
           "source_info" : {
             "filename" : "include/control/forwarding.p4",
-            "line" : 247,
+            "line" : 246,
             "column" : 17,
             "source_fragment" : "fabric_metadata.fwd_type == FWD_IPV4_UNICAST"
           },

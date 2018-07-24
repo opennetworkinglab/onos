@@ -60,7 +60,7 @@ tables {
   }
   match_fields {
     id: 3
-    name: "fabric_metadata.original_ether_type"
+    name: "hdr.vlan_tag.ether_type"
     bitwidth: 16
     match_type: EXACT
   }
@@ -179,26 +179,26 @@ tables {
   }
   match_fields {
     id: 5
-    name: "fabric_metadata.original_ether_type"
-    bitwidth: 16
-    match_type: TERNARY
-  }
-  match_fields {
-    id: 6
     name: "hdr.ethernet.dst_addr"
     bitwidth: 48
     match_type: TERNARY
   }
   match_fields {
-    id: 7
+    id: 6
     name: "hdr.ethernet.src_addr"
     bitwidth: 48
     match_type: TERNARY
   }
   match_fields {
-    id: 8
+    id: 7
     name: "hdr.vlan_tag.vlan_id"
     bitwidth: 12
+    match_type: TERNARY
+  }
+  match_fields {
+    id: 8
+    name: "hdr.vlan_tag.ether_type"
+    bitwidth: 16
     match_type: TERNARY
   }
   match_fields {
@@ -243,7 +243,7 @@ tables {
   }
   const_default_action_id: 16819938
   direct_resource_ids: 318772272
-  size: 256
+  size: 128
   idle_timeout_behavior: NO_TIMEOUT
 }
 tables {

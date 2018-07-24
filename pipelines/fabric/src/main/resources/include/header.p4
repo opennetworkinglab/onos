@@ -157,7 +157,6 @@ struct fabric_metadata_t {
     bit<8> ip_proto;
     bit<16> l4_src_port;
     bit<16> l4_dst_port;
-    bit<16> original_ether_type;
 #ifdef WITH_SPGW
     spgw_meta_t spgw;
 #endif // WITH_SPGW

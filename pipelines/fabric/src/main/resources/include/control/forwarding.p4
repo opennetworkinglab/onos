@@ -130,11 +130,11 @@ control Forwarding (
             fabric_metadata.ip_proto: ternary; // 8
             fabric_metadata.l4_src_port: ternary; // 16
             fabric_metadata.l4_dst_port: ternary; // 16
-            fabric_metadata.original_ether_type: ternary; //16
 
             hdr.ethernet.dst_addr: ternary; // 48
             hdr.ethernet.src_addr: ternary; // 48
             hdr.vlan_tag.vlan_id: ternary; // 12
+            hdr.vlan_tag.ether_type: ternary; //16
             hdr.ipv4.src_addr: ternary; // 32
             hdr.ipv4.dst_addr: ternary; // 32
             hdr.icmp.icmp_type: ternary; // 8
@@ -150,7 +150,7 @@ control Forwarding (
         }
 
         const default_action = nop();
-        size = 256;
+        size = 128;
         counters = acl_counter;
     }
 
@@ -234,7 +234,6 @@ control Forwarding (
 
             // TODO: IPv6
             hdr.vlan_tag.ether_type = ETHERTYPE_IPV4;
-            fabric_metadata.original_ether_type = ETHERTYPE_IPV4;
         }
         else if (fabric_metadata.fwd_type == FWD_IPV4_UNICAST) unicast_v4.apply();
 #ifdef WITH_MULTICAST
