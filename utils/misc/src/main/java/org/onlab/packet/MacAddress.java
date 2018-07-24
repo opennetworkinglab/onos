@@ -74,6 +74,10 @@ public class MacAddress {
             MacAddress.valueOf("01:80:c2:00:00:00"),
             MacAddress.valueOf("01:80:c2:00:00:03"),
             MacAddress.valueOf("01:80:c2:00:00:0e"));
+    /**
+     * LACP MAC address.
+     */
+    public static final MacAddress LACP = valueOf("01:80:C2:00:00:02");
 
     public static final int MAC_ADDRESS_LENGTH = 6;
     private byte[] address = new byte[MacAddress.MAC_ADDRESS_LENGTH];
