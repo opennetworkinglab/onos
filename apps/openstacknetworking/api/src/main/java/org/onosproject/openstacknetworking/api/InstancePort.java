@@ -42,11 +42,6 @@ public interface InstancePort {
         INACTIVE,
 
         /**
-         * Signifies that the given instance port is in pending removal state.
-         */
-        PENDING_REMOVAL,
-
-        /**
          * Signifies that the given instance port is in migrating state.
          */
         MIGRATING,

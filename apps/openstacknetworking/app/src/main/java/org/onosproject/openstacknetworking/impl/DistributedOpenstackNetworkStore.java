@@ -29,6 +29,7 @@ import org.onosproject.core.CoreService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkEvent;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkStore;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkStoreDelegate;
+import org.onosproject.openstacknetworking.api.PreCommitPortService;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
@@ -68,6 +69,7 @@ import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type
 import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_NETWORK_REMOVED;
 import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_NETWORK_UPDATED;
 import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_PORT_CREATED;
+import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_PORT_PRE_REMOVE;
 import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_PORT_REMOVED;
 import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_PORT_SECURITY_GROUP_ADDED;
 import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_PORT_SECURITY_GROUP_REMOVED;
@@ -117,6 +119,9 @@ public class DistributedOpenstackNetworkStore
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StorageService storageService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected PreCommitPortService preCommitPortService;
 
     private final ExecutorService eventExecutor = newSingleThreadExecutor(
             groupedThreads(this.getClass().getSimpleName(), "event-handler", log));
@@ -255,6 +260,28 @@ public class DistributedOpenstackNetworkStore
 
     @Override
     public Port removePort(String portId) {
+
+        Port port = osPortStore.asJavaMap().get(portId);
+
+        if (port == null) {
+            return null;
+        }
+
+        eventExecutor.execute(() ->
+                notifyDelegate(new OpenstackNetworkEvent(
+                        OPENSTACK_PORT_PRE_REMOVE,
+                        network(port.getNetworkId()), port))
+        );
+
+        log.debug("Prepare OpenStack port remove");
+
+        while (true) {
+            if (preCommitPortService.subscriberCountByEventType(
+                    portId, OPENSTACK_PORT_PRE_REMOVE) == 0) {
+                break;
+            }
+        }
+
         Versioned<Port> osPort = osPortStore.remove(portId);
         return osPort == null ? null : osPort.value();
     }

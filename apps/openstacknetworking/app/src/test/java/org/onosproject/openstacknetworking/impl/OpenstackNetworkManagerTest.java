@@ -32,7 +32,9 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceServiceAdapter;
 import org.onosproject.net.packet.PacketServiceAdapter;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkEvent;
+import org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkListener;
+import org.onosproject.openstacknetworking.api.PreCommitPortService;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeAdminService;
 import org.onosproject.openstacknode.api.OpenstackNodeListener;
@@ -57,6 +59,7 @@ import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type
 import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_NETWORK_REMOVED;
 import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_NETWORK_UPDATED;
 import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_PORT_CREATED;
+import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_PORT_PRE_REMOVE;
 import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_PORT_REMOVED;
 import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_PORT_UPDATED;
 import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_SUBNET_CREATED;
@@ -120,6 +123,7 @@ public class OpenstackNetworkManagerTest {
         osNetworkStore = new DistributedOpenstackNetworkStore();
         TestUtils.setField(osNetworkStore, "coreService", new TestCoreService());
         TestUtils.setField(osNetworkStore, "storageService", new TestStorageService());
+        TestUtils.setField(osNetworkStore, "preCommitPortService", new TestPreCommitPortService());
         TestUtils.setField(osNetworkStore, "eventExecutor", MoreExecutors.newDirectExecutorService());
         osNetworkStore.activate();
 
@@ -476,7 +480,7 @@ public class OpenstackNetworkManagerTest {
         assertEquals("Number of port did not match", 0, target.ports().size());
         assertTrue("Port was not created", target.port(PORT_ID) == null);
 
-        validateEvents(OPENSTACK_PORT_CREATED, OPENSTACK_PORT_REMOVED);
+        validateEvents(OPENSTACK_PORT_CREATED, OPENSTACK_PORT_PRE_REMOVE, OPENSTACK_PORT_REMOVED);
     }
 
     /**
@@ -662,6 +666,29 @@ public class OpenstackNetworkManagerTest {
         @Override
         public OpenstackNode removeNode(String hostname) {
             return null;
+        }
+    }
+
+    private static class TestPreCommitPortService implements PreCommitPortService {
+
+        @Override
+        public void subscribePreCommit(String subject, Type eventType, String className) {
+
+        }
+
+        @Override
+        public void unsubscribePreCommit(String subject, Type eventType, String className) {
+
+        }
+
+        @Override
+        public int subscriberCountByEventType(String subject, Type eventType) {
+            return 0;
+        }
+
+        @Override
+        public int subscriberCount(String subject) {
+            return 0;
         }
     }
 

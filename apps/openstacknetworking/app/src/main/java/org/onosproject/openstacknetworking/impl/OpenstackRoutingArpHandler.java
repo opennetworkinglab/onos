@@ -15,7 +15,6 @@
  */
 package org.onosproject.openstacknetworking.impl;
 
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
@@ -347,14 +346,14 @@ public class OpenstackRoutingArpHandler {
                         finalGws.remove(gateway);
                         osRouterService.floatingIps().forEach(fip -> {
                             if (fip.getPortId() != null) {
-                                setFloatingIpArpRule(fip, finalGws, false);
+                                setFloatingIpArpRule(fip, fip.getPortId(), finalGws, false);
                                 finalGws.add(gateway);
                             }
                         });
                     }
                     osRouterService.floatingIps().forEach(fip -> {
                         if (fip.getPortId() != null) {
-                            setFloatingIpArpRule(fip, finalGws, true);
+                            setFloatingIpArpRule(fip, fip.getPortId(), finalGws, true);
                         }
                     });
                 } else {
@@ -365,14 +364,14 @@ public class OpenstackRoutingArpHandler {
                     finalGws.add(gateway);
                     osRouterService.floatingIps().forEach(fip -> {
                         if (fip.getPortId() != null) {
-                            setFloatingIpArpRule(fip, finalGws, false);
+                            setFloatingIpArpRule(fip, fip.getPortId(), finalGws, false);
                         }
                     });
                     finalGws.remove(gateway);
                     if (completedGws.size() >= 1) {
                         osRouterService.floatingIps().forEach(fip -> {
                             if (fip.getPortId() != null) {
-                                setFloatingIpArpRule(fip, finalGws, true);
+                                setFloatingIpArpRule(fip, fip.getPortId(), finalGws, true);
                             }
                         });
                     }
@@ -417,10 +416,11 @@ public class OpenstackRoutingArpHandler {
      * without the helps from controller.
      *
      * @param fip       floating IP address
+     * @param portId    port identifier
      * @param gateways  a set of gateway nodes
      * @param install   flow rule installation flag
      */
-    private synchronized void setFloatingIpArpRule(NetFloatingIP fip,
+    private synchronized void setFloatingIpArpRule(NetFloatingIP fip, String portId,
                                                    Set<OpenstackNode> gateways,
                                                    boolean install) {
         if (ARP_BROADCAST_MODE.equals(getArpMode())) {
@@ -430,13 +430,7 @@ public class OpenstackRoutingArpHandler {
                 return;
             }
 
-            if (fip.getPortId() == null) {
-                log.trace("Unknown target ARP request for {}, ignore it",
-                                                    fip.getFloatingIpAddress());
-                return;
-            }
-
-            InstancePort instPort = instancePortService.instancePort(fip.getPortId());
+            InstancePort instPort = instancePortService.instancePort(portId);
             MacAddress targetMac = instPort.macAddress();
 
             OpenstackNode gw = getGwByInstancePort(gateways, instPort);
@@ -530,22 +524,16 @@ public class OpenstackRoutingArpHandler {
                     eventExecutor.execute(() -> {
                         NetFloatingIP osFip = event.floatingIp();
 
-                        if (!Strings.isNullOrEmpty(osFip.getPortId()) &&
-                                instancePortService.instancePort(osFip.getPortId()) != null) {
-                            // associate a floating IP with an existing VM
-                            setFloatingIpArpRule(event.floatingIp(), completedGws, true);
-                        }
+                        // associate a floating IP with an existing VM
+                        setFloatingIpArpRule(event.floatingIp(), event.portId(), completedGws, true);
                     });
                     break;
                 case OPENSTACK_FLOATING_IP_DISASSOCIATED:
                     eventExecutor.execute(() -> {
                         NetFloatingIP osFip = event.floatingIp();
 
-                        if (!Strings.isNullOrEmpty(osFip.getPortId()) &&
-                                instancePortService.instancePort(osFip.getPortId()) != null) {
-                            // associate a floating IP with an existing VM
-                            setFloatingIpArpRule(event.floatingIp(), completedGws, false);
-                        }
+                        // associate a floating IP with an existing VM
+                        setFloatingIpArpRule(event.floatingIp(), event.portId(), completedGws, false);
                     });
                     break;
                 case OPENSTACK_FLOATING_IP_CREATED:
@@ -555,10 +543,7 @@ public class OpenstackRoutingArpHandler {
                         // during floating IP creation, if the floating IP is
                         // associated with any port of VM, then we will set
                         // floating IP related ARP rules to gateway node
-                        if (!Strings.isNullOrEmpty(osFip.getPortId()) &&
-                                instancePortService.instancePort(osFip.getPortId()) != null) {
-                            setFloatingIpArpRule(osFip, completedGws, true);
-                        }
+                        setFloatingIpArpRule(osFip, event.portId(), completedGws, true);
                     });
                     break;
                 case OPENSTACK_FLOATING_IP_REMOVED:
@@ -568,10 +553,7 @@ public class OpenstackRoutingArpHandler {
                         // during floating IP deletion, if the floating IP is
                         // still associated with any port of VM, then we will
                         // remove floating IP related ARP rules from gateway node
-                        if (!Strings.isNullOrEmpty(osFip.getPortId()) &&
-                                instancePortService.instancePort(osFip.getPortId()) != null) {
-                            setFloatingIpArpRule(event.floatingIp(), completedGws, false);
-                        }
+                        setFloatingIpArpRule(event.floatingIp(), event.portId(), completedGws, false);
                     });
                     break;
                 default:
@@ -662,7 +644,7 @@ public class OpenstackRoutingArpHandler {
                     osRouterService.floatingIps().stream()
                             .filter(f -> f.getPortId() != null)
                             .filter(f -> f.getPortId().equals(instPort.portId()))
-                            .forEach(f -> setFloatingIpArpRule(f, gateways, true));
+                            .forEach(f -> setFloatingIpArpRule(f, instPort.portId(), gateways, true));
 
                     break;
                 case OPENSTACK_INSTANCE_MIGRATION_STARTED:

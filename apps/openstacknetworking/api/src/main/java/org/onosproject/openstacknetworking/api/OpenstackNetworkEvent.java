@@ -69,9 +69,19 @@ public class OpenstackNetworkEvent extends AbstractEvent<OpenstackNetworkEvent.T
         OPENSTACK_PORT_CREATED,
 
         /**
+         * Signifies that the OpenStack port will be updated.
+         */
+        OPENSTACK_PORT_PRE_UPDATE,
+
+        /**
          * Signifies that the OpenStack port is updated.
          */
         OPENSTACK_PORT_UPDATED,
+
+        /**
+         * Signifies that the OpenStack port will be removed.
+         */
+        OPENSTACK_PORT_PRE_REMOVE,
 
         /**
          * Signifies that the OpenStack port is removed.
