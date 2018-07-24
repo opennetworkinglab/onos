@@ -105,7 +105,7 @@ def stage_file(file, repo_id, dest):
     if destination_repo_url is not None:
         # deploy to Nexus repo
         upload_base = "https://" + destination_repo_url + "/service/local/staging/deployByRepositoryId"
-        url = upload_base + "/" + repo_id + "/" + os.path.dirname(dest) + "/" + os.path.basename(file)
+        url = upload_base + "/" + repo_id + "/" + dest
         headers = {'Content-Type': 'application/xml'}
         with open(file, 'rb') as f:
             r = requests.post(url, files={file: f}, headers=headers, auth=(SONATYPE_USER, SONATYPE_PASSWORD))
