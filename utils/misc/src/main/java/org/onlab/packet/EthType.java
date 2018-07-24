@@ -38,6 +38,7 @@ public class EthType {
         MPLS_UNICAST(0x8847, "mpls_unicast", org.onlab.packet.MPLS.deserializer()),
         MPLS_MULTICAST(0x8848, "mpls_multicast", org.onlab.packet.MPLS.deserializer()),
         EAPOL(0x888e, "eapol", org.onlab.packet.EAPOL.deserializer()),
+        SLOW(0x8809, "slow", org.onlab.packet.Slow.deserializer()),
         UNKNOWN(0, "unknown", null);
 
 
