@@ -529,8 +529,8 @@ public class HostHandler {
                                                 MacAddress mac, VlanId innerVlan,
                                                 VlanId outerVlan, EthType outerTpid,
                                                 IpAddress ip, boolean revoke) {
-        if (!srManager.handleDoubleTaggedHosts) {
-            log.debug("Ignore double tagged host {}/{}/{}", mac, outerVlan, innerVlan);
+        if (!srManager.routeDoubleTaggedHosts) {
+            log.debug("Routing for double tagged host is disabled. Ignore {}/{}/{}", mac, outerVlan, innerVlan);
             return;
         }
 
@@ -551,7 +551,7 @@ public class HostHandler {
     }
 
     void populateAllDoubleTaggedHost() {
-        log.info("Populating all double tagged hosts");
+        log.info("Enabling routing for all double tagged hosts");
         Sets.newHashSet(srManager.hostService.getHosts()).stream().filter(this::isDoubleTaggedHost)
                 .forEach(h -> h.locations().forEach(l ->
                     h.ipAddresses().forEach(i ->
@@ -563,7 +563,7 @@ public class HostHandler {
     }
 
     void revokeAllDoubleTaggedHost() {
-        log.info("Revoking all double tagged hosts");
+        log.info("Disabling routing for all double tagged hosts");
         Sets.newHashSet(srManager.hostService.getHosts()).stream().filter(this::isDoubleTaggedHost)
                 .forEach(h -> h.locations().forEach(l ->
                     h.ipAddresses().forEach(i ->
