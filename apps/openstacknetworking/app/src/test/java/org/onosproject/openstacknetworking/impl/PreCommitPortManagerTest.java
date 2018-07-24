@@ -18,6 +18,11 @@ package org.onosproject.openstacknetworking.impl;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.junit.TestUtils;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreServiceAdapter;
+import org.onosproject.core.DefaultApplicationId;
+import org.onosproject.store.service.TestStorageService;
 
 import static org.junit.Assert.assertEquals;
 import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_PORT_PRE_REMOVE;
@@ -27,6 +32,8 @@ import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type
  * Unit tests for pre-commit port manager.
  */
 public class PreCommitPortManagerTest {
+
+    private static final ApplicationId TEST_APP_ID = new DefaultApplicationId(1, "test");
 
     private static final String PORT_ID_1 = "port-1";
     private static final String PORT_ID_2 = "port-2";
@@ -42,6 +49,8 @@ public class PreCommitPortManagerTest {
     @Before
     public void setUp() {
         target = new PreCommitPortManager();
+        TestUtils.setField(target, "coreService", new TestCoreService());
+        TestUtils.setField(target, "storageService", new TestStorageService());
         target.activate();
     }
 
@@ -51,6 +60,7 @@ public class PreCommitPortManagerTest {
     @After
     public void tearDown() {
         target.deactivate();
+        target = null;
     }
 
     /**
@@ -97,5 +107,16 @@ public class PreCommitPortManagerTest {
         target.subscribePreCommit(PORT_ID_2, OPENSTACK_PORT_PRE_REMOVE, CLASS_NAME_2);
 
         target.subscribePreCommit(PORT_ID_2, OPENSTACK_PORT_PRE_UPDATE, CLASS_NAME_1);
+    }
+
+    /**
+     * Mocks CoreService.
+     */
+    private static class TestCoreService extends CoreServiceAdapter {
+
+        @Override
+        public ApplicationId registerApplication(String name) {
+            return TEST_APP_ID;
+        }
     }
 }

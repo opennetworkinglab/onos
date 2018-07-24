@@ -15,20 +15,31 @@
  */
 package org.onosproject.openstacknetworking.impl;
 
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.util.KryoNamespace;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
+import org.onosproject.openstacknetworking.api.OpenstackNetworkEvent;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type;
 import org.onosproject.openstacknetworking.api.PreCommitPortService;
+import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.service.ConsistentMap;
+import org.onosproject.store.service.Serializer;
+import org.onosproject.store.service.StorageService;
 import org.slf4j.Logger;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -40,10 +51,30 @@ public class PreCommitPortManager implements PreCommitPortService {
 
     protected final Logger log = getLogger(getClass());
 
-    private Map<String, Map<Type, Set<String>>> store = Maps.newConcurrentMap();
+    private static final KryoNamespace SERIALIZER_PRE_COMMIT = KryoNamespace.newBuilder()
+            .register(KryoNamespaces.API)
+            .register(OpenstackNetworkEvent.Type.class)
+            .build();
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected CoreService coreService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected StorageService storageService;
+
+    private ConsistentMap<String, Map<Type, Set<String>>> store;
 
     @Activate
     protected void activate() {
+
+        ApplicationId appId = coreService.registerApplication(OPENSTACK_NETWORKING_APP_ID);
+
+        store = storageService.<String, Map<Type, Set<String>>>consistentMapBuilder()
+                .withSerializer(Serializer.using(SERIALIZER_PRE_COMMIT))
+                .withName("openstack-pre-commit-store")
+                .withApplicationId(appId)
+                .build();
+
         log.info("Started");
     }
 
@@ -54,7 +85,7 @@ public class PreCommitPortManager implements PreCommitPortService {
 
     @Override
     public void subscribePreCommit(String portId, Type eventType, String className) {
-        store.computeIfAbsent(portId, s -> Maps.newConcurrentMap());
+        store.computeIfAbsent(portId, s -> new HashMap<>());
 
         store.compute(portId, (k, v) -> {
 
@@ -62,8 +93,7 @@ public class PreCommitPortManager implements PreCommitPortService {
                 return null;
             }
 
-            Objects.requireNonNull(v).computeIfAbsent(eventType,
-                                     s -> Sets.newConcurrentHashSet());
+            Objects.requireNonNull(v).computeIfAbsent(eventType, s -> new HashSet<>());
 
 
             Objects.requireNonNull(v).compute(eventType, (i, j) -> {
@@ -96,7 +126,7 @@ public class PreCommitPortManager implements PreCommitPortService {
     @Override
     public int subscriberCountByEventType(String portId, Type eventType) {
 
-        Map<Type, Set<String>> typeMap = store.get(portId);
+        Map<Type, Set<String>> typeMap = store.asJavaMap().get(portId);
 
         if (typeMap == null || typeMap.isEmpty()) {
             return 0;
@@ -112,7 +142,7 @@ public class PreCommitPortManager implements PreCommitPortService {
     @Override
     public int subscriberCount(String portId) {
 
-        Map<Type, Set<String>> typeMap = store.get(portId);
+        Map<Type, Set<String>> typeMap = store.asJavaMap().get(portId);
 
         if (typeMap == null || typeMap.isEmpty()) {
             return 0;
