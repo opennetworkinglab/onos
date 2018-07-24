@@ -243,7 +243,7 @@ public class LinkDiscoveryProviderTest {
 
     private class MockLinkService extends LinkServiceAdapter {
         @Override
-        public Set<Link> getDeviceEgressLinks(DeviceId deviceId) {
+        public Set<Link> getDeviceIngressLinks(DeviceId deviceId) {
             Set<Link> links = new HashSet<>();
             providerService.discoveredLinkDescriptions().values()
                     .forEach(x -> links.add(DefaultLink.builder()

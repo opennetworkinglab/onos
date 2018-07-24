@@ -126,10 +126,10 @@ public class CienaWaveserverAiLinkDiscovery extends AbstractHandlerBehaviour
                         Device dest = lookup.get(destChassis);
                         if (dest != null) {
                             links.add(new DefaultLinkDescription(
-                                    new ConnectPoint(deviceId,
-                                                     PortNumber.portNumber(portAsLong, port)),
                                     new ConnectPoint(dest.id(),
-                                                     PortNumber.portNumber(destPortAsLong, destPort)),
+                                            PortNumber.portNumber(destPortAsLong, destPort)),
+                                    new ConnectPoint(deviceId,
+                                            PortNumber.portNumber(portAsLong, port)),
                                     Link.Type.TUNNEL, true));
                         } else {
                             log.error("DEST OTN CHASSIS is NULL for {}", xp.evaluate("port-id/text()", nodeListItem));

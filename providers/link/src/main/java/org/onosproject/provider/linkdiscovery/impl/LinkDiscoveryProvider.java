@@ -207,7 +207,7 @@ public class LinkDiscoveryProvider extends AbstractProvider
         }
 
         //The provider will get only existing links related to LinkDiscovery
-        Set<Link> storedLinks = linkService.getDeviceEgressLinks(deviceId)
+        Set<Link> storedLinks = linkService.getDeviceIngressLinks(deviceId)
                 .stream()
                 .filter(link -> {
                     String value = link.annotations().value(AnnotationKeys.PROTOCOL);

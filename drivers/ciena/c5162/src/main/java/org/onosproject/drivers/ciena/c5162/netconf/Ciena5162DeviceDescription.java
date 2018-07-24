@@ -245,11 +245,11 @@ public class Ciena5162DeviceDescription extends AbstractHandlerBehaviour
                         if (dest != null) {
 
                             links.add(new DefaultLinkDescription(
-                                    new ConnectPoint(deviceId,
-                                            PortNumber.portNumber(xp.evaluate("name/text()", iface))),
                                     new ConnectPoint(dest.id(),
                                             PortNumber.portNumber(xp.evaluate(
                                                     "state/lldp-remote-port-operational/port-id/text()", iface))),
+                                    new ConnectPoint(deviceId,
+                                            PortNumber.portNumber(xp.evaluate("name/text()", iface))),
                                     Link.Type.DIRECT, true));
                         } else {
                             log.warn("DEST chassisID not found: chassis {} port {}",
