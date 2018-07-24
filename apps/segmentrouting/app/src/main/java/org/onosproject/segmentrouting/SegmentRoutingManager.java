@@ -247,9 +247,9 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             label = "Enable this to respond to ARP/NDP requests from unknown hosts.")
     boolean respondToUnknownHosts = true;
 
-    @Property(name = "handleDoubleTaggedHosts", boolValue = false,
-            label = "Program flows and groups for double tagged hosts")
-    boolean handleDoubleTaggedHosts = false;
+    @Property(name = "routeDoubleTaggedHosts", boolValue = false,
+            label = "Program flows and groups to pop and route double tagged hosts")
+    boolean routeDoubleTaggedHosts = false;
 
     ArpHandler arpHandler = null;
     IcmpHandler icmpHandler = null;
@@ -634,13 +634,13 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             log.info("{} responding to ARPs/NDPs from unknown hosts", respondToUnknownHosts ? "Enabling" : "Disabling");
         }
 
-        String strHandleDoubleTaggedHosts = Tools.get(properties, "handleDoubleTaggedHosts");
-        boolean expectHandleDoubleTaggedHosts = Boolean.parseBoolean(strHandleDoubleTaggedHosts);
-        if (expectHandleDoubleTaggedHosts != handleDoubleTaggedHosts) {
-            handleDoubleTaggedHosts = expectHandleDoubleTaggedHosts;
-            log.info("{} programming for double tagged hosts ", handleDoubleTaggedHosts ? "Enabling" : "Disabling");
+        String strRouteDoubleTaggedHosts = Tools.get(properties, "routeDoubleTaggedHosts");
+        boolean expectRouteDoubleTaggedHosts = Boolean.parseBoolean(strRouteDoubleTaggedHosts);
+        if (expectRouteDoubleTaggedHosts != routeDoubleTaggedHosts) {
+            routeDoubleTaggedHosts = expectRouteDoubleTaggedHosts;
+            log.info("{} routing for double tagged hosts", routeDoubleTaggedHosts ? "Enabling" : "Disabling");
 
-            if (handleDoubleTaggedHosts) {
+            if (routeDoubleTaggedHosts) {
                 hostHandler.populateAllDoubleTaggedHost();
             } else {
                 hostHandler.revokeAllDoubleTaggedHost();
