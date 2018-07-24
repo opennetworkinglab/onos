@@ -296,7 +296,7 @@ public class InstancePortManagerTest {
     /**
      * Tests if updating an unregistered instance port fails with an exception.
      */
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testUpdateUnregisteredInstancePort() {
         target.updateInstancePort(instancePort1);
     }

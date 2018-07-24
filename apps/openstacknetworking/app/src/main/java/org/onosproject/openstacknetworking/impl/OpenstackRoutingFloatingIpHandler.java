@@ -90,7 +90,6 @@ import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.i
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.swapStaleLocation;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.buildExtension;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
-import static org.openstack4j.model.network.NetworkType.FLAT;
 
 /**
  * Handles OpenStack floating IP events.
@@ -204,11 +203,11 @@ public class OpenstackRoutingFloatingIpHandler {
         if (install) {
             preCommitPortService.subscribePreCommit(osPort.getId(),
                     OPENSTACK_PORT_PRE_REMOVE, this.getClass().getName());
-            log.info("Subscribed the port pre-remove event");
+            log.info("Subscribed the port {} on listening pre-remove event", osPort.getId());
         } else {
             preCommitPortService.unsubscribePreCommit(osPort.getId(),
                     OPENSTACK_PORT_PRE_REMOVE, this.getClass().getName());
-            log.info("Unsubscribed the port pre-remove event");
+            log.info("Unsubscribed the port {} on listening pre-remove event", osPort.getId());
         }
 
         updateComputeNodeRules(instPort, osNet, gateway, install);
@@ -690,6 +689,12 @@ public class OpenstackRoutingFloatingIpHandler {
                             if (osNetworkService.port(osFip.getPortId()) != null) {
                                 disassociateFloatingIp(osFip, osFip.getPortId());
                             }
+
+                            // since we skip floating IP disassociation, we need to
+                            // manually unsubscribe the port pre-remove event
+                            preCommitPortService.unsubscribePreCommit(osFip.getPortId(),
+                                    OPENSTACK_PORT_PRE_REMOVE, this.getClass().getName());
+                            log.info("Unsubscribed the port {} on listening pre-remove event", osFip.getPortId());
                         }
                         log.info("Removed floating IP {}", osFip.getFloatingIpAddress());
                     });
@@ -945,8 +950,7 @@ public class OpenstackRoutingFloatingIpHandler {
         public boolean isRelevant(OpenstackNetworkEvent event) {
             // do not allow to proceed without leadership
             NodeId leader = leadershipService.getLeader(appId.name());
-            return Objects.equals(localNodeId, leader) &&
-                    event.subject().getNetworkType() != FLAT;
+            return Objects.equals(localNodeId, leader);
         }
 
         @Override

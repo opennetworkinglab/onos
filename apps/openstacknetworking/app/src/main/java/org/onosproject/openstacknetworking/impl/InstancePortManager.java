@@ -146,6 +146,13 @@ public class InstancePortManager
         checkArgument(!Strings.isNullOrEmpty(instancePort.portId()),
                                                     ERR_NULL_INSTANCE_PORT_ID);
 
+        // in case OpenStack removes the port prior to OVS, we will not update
+        // the instance port as it does not exist in the store
+        if (instancePortStore.instancePort(instancePort.portId()) == null) {
+            log.warn("Unable to update instance port {}, as it does not exist", instancePort.portId());
+            return;
+        }
+
         instancePortStore.updateInstancePort(instancePort);
         log.info(String.format(MSG_INSTANCE_PORT, instancePort.portId(), MSG_UPDATED));
     }

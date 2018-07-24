@@ -15,6 +15,7 @@
  */
 package org.onosproject.openstacknetworking.impl;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
@@ -430,6 +431,12 @@ public class OpenstackRoutingArpHandler {
                 return;
             }
 
+            if (portId == null || fip.getPortId() == null) {
+                log.trace("Unknown target ARP request for {}, ignore it",
+                        fip.getFloatingIpAddress());
+                return;
+            }
+
             InstancePort instPort = instancePortService.instancePort(portId);
             MacAddress targetMac = instPort.macAddress();
 
@@ -521,45 +528,66 @@ public class OpenstackRoutingArpHandler {
                     );
                     break;
                 case OPENSTACK_FLOATING_IP_ASSOCIATED:
-                    eventExecutor.execute(() -> {
-                        NetFloatingIP osFip = event.floatingIp();
-
-                        // associate a floating IP with an existing VM
-                        setFloatingIpArpRule(event.floatingIp(), event.portId(), completedGws, true);
-                    });
+                    if (getValidPortId(event) != null) {
+                        eventExecutor.execute(() -> {
+                            // associate a floating IP with an existing VM
+                            setFloatingIpArpRule(event.floatingIp(), getValidPortId(event),
+                                    completedGws, true);
+                        });
+                    }
                     break;
                 case OPENSTACK_FLOATING_IP_DISASSOCIATED:
-                    eventExecutor.execute(() -> {
-                        NetFloatingIP osFip = event.floatingIp();
-
-                        // associate a floating IP with an existing VM
-                        setFloatingIpArpRule(event.floatingIp(), event.portId(), completedGws, false);
-                    });
+                    if (getValidPortId(event) != null) {
+                        eventExecutor.execute(() -> {
+                            // disassociate a floating IP with an existing VM
+                            setFloatingIpArpRule(event.floatingIp(), getValidPortId(event),
+                                    completedGws, false);
+                        });
+                    }
                     break;
                 case OPENSTACK_FLOATING_IP_CREATED:
-                    eventExecutor.execute(() -> {
-                        NetFloatingIP osFip = event.floatingIp();
-
-                        // during floating IP creation, if the floating IP is
-                        // associated with any port of VM, then we will set
-                        // floating IP related ARP rules to gateway node
-                        setFloatingIpArpRule(osFip, event.portId(), completedGws, true);
-                    });
+                    // during floating IP creation, if the floating IP is
+                    // associated with any port of VM, then we will set
+                    // floating IP related ARP rules to gateway node
+                    if (getValidPortId(event) != null) {
+                        eventExecutor.execute(() -> {
+                            // associate a floating IP with an existing VM
+                            setFloatingIpArpRule(event.floatingIp(), getValidPortId(event),
+                                    completedGws, true);
+                        });
+                    }
                     break;
                 case OPENSTACK_FLOATING_IP_REMOVED:
-                    eventExecutor.execute(() -> {
-                        NetFloatingIP osFip = event.floatingIp();
-
-                        // during floating IP deletion, if the floating IP is
-                        // still associated with any port of VM, then we will
-                        // remove floating IP related ARP rules from gateway node
-                        setFloatingIpArpRule(event.floatingIp(), event.portId(), completedGws, false);
-                    });
+                    // during floating IP deletion, if the floating IP is
+                    // still associated with any port of VM, then we will
+                    // remove floating IP related ARP rules from gateway node
+                    if (getValidPortId(event) != null) {
+                        eventExecutor.execute(() -> {
+                            // associate a floating IP with an existing VM
+                            setFloatingIpArpRule(event.floatingIp(), getValidPortId(event),
+                                    completedGws, false);
+                        });
+                    }
                     break;
                 default:
                     // do nothing for the other events
                     break;
             }
+        }
+
+        private String getValidPortId(OpenstackRouterEvent event) {
+            NetFloatingIP osFip = event.floatingIp();
+            String portId = osFip.getPortId();
+
+            if (Strings.isNullOrEmpty(portId)) {
+                portId = event.portId();
+            }
+
+            if (portId != null && instancePortService.instancePort(portId) != null) {
+                return portId;
+            }
+
+            return null;
         }
 
         private Set<IP> getExternalGatewaySnatIps(ExternalGateway extGw) {

@@ -93,6 +93,8 @@ public class DistributedOpenstackNetworkStore
     private static final String ERR_NOT_FOUND = " does not exist";
     private static final String ERR_DUPLICATE = " already exists";
 
+    private static final long TIMEOUT_MS = 2000; // wait for 2s
+
     private static final KryoNamespace SERIALIZER_NEUTRON_L2 = KryoNamespace.newBuilder()
             .register(KryoNamespaces.API)
             .register(Network.class)
@@ -275,9 +277,19 @@ public class DistributedOpenstackNetworkStore
 
         log.debug("Prepare OpenStack port remove");
 
+        long timeoutExpiredMs = System.currentTimeMillis() + TIMEOUT_MS;
+
         while (true) {
+
+            long waitMs = timeoutExpiredMs - System.currentTimeMillis();
+
             if (preCommitPortService.subscriberCountByEventType(
                     portId, OPENSTACK_PORT_PRE_REMOVE) == 0) {
+                break;
+            }
+
+            if (waitMs <= 0) {
+                log.debug("Timeout waiting for port removal.");
                 break;
             }
         }
