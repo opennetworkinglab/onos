@@ -1,0 +1,39 @@
+{
+  "port": {
+    "id": "port-id-1",
+    "admin_state_up": true,
+    "device_id": "device-id-1",
+    "device_owner": "compute:nova",
+    "fixed_ips": [
+      {
+        "ip_address": "10.0.0.3",
+        "subnet_id": "subnet-id-1"
+      }
+    ],
+    "allowed_address_pairs": [
+      {
+        "ip_address": "12.12.11.12",
+        "mac_address": "fa:14:2a:b3:cb:f0"
+      }
+    ],
+    "mac_address": "11:22:33:44:55:66",
+    "network_id": "network-id-1",
+    "status": "ACTIVE",
+    "tenant_id": "tenant-id-1",
+    "security_groups": [
+      "security-group-1"
+    ],
+    "extra_dhcp_opts": [
+      {
+        "opt_value": "pxelinux.0",
+        "opt_name": "bootfile-name"
+      }
+    ],
+    "port_security_enabled": true,
+    "binding:host_id": "4df8d9ff-6f6f-438f-90a1-ef660d4586ad",
+    "binding:vif_type": "unbound",
+    "binding:vif_details": {},
+    "binding:vnic_type": "other",
+    "binding:profile": {}
+  }
+}

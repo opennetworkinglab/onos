@@ -1,0 +1,27 @@
+{
+  "subnet": {
+    "id": "subnet-id-1",
+    "enable_dhcp": true,
+    "network_id": "network-id-1",
+    "tenant_id": "tenant-id-1",
+    "dns_nameservers": [
+      "8.8.8.8"
+    ],
+    "allocation_pools": [
+      {
+        "start": "10.0.0.2",
+        "end": "10.0.0.200"
+      }
+    ],
+    "host_routes": [
+      {
+        "destination": "",
+        "nexthop": ""
+      }
+    ],
+    "ip_version": 4,
+    "gateway_ip": "10.0.0.1",
+    "ipv6_address_mode": "",
+    "ipv6_ra_mode": ""
+  }
+}

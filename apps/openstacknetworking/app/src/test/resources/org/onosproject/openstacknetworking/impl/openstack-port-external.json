@@ -1,0 +1,34 @@
+{
+  "port": {
+    "id": "port-id-ext",
+    "admin_state_up": true,
+    "device_id": "router-id-1",
+    "device_owner": "compute:nova",
+    "fixed_ips": [
+      {
+        "ip_address": "172.27.0.13",
+        "subnet_id": "subnet-id-ext"
+      }
+    ],
+    "allowed_address_pairs": [],
+    "mac_address": "zz:xx:cc:vv:bb:nn",
+    "network_id": "network-id-ext",
+    "status": "ACTIVE",
+    "tenant_id": "tenant-id-1",
+    "security_groups": [
+      "security-group-1"
+    ],
+    "extra_dhcp_opts": [
+      {
+        "opt_value": "pxelinux.0",
+        "opt_name": "bootfile-name"
+      }
+    ],
+    "port_security_enabled": true,
+    "binding:host_id": "",
+    "binding:vif_type": "unbound",
+    "binding:vif_details": {},
+    "binding:vnic_type": "other",
+    "binding:profile": {}
+  }
+}

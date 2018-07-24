@@ -1,0 +1,20 @@
+{
+  "router": {
+    "id": "router-id-1",
+    "name": "router-1",
+    "status": "ACTIVE",
+    "external_gateway_info": {
+      "network_id": "network-id-ext",
+      "enable_snat": false
+    },
+    "admin_state_up": true,
+    "tenant_id": "tenant-id-1",
+    "routes": [
+      {
+        "destination": "string",
+        "nexthop": "string"
+      }
+    ],
+    "distributed": false
+  }
+}
