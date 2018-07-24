@@ -3,7 +3,7 @@
 # Generates a catalog for publishing ONOS artifacts to a Maven repository.
 # -----------------------------------------------------------------------------
 
-CATALOG=/tmp/onos.catalog
+CATALOG=${1:-/tmp/onos.catalog}
 
 rm -f $CATALOG
 

@@ -1,0 +1,9 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Publishes ONOS artifacts to a Maven repository (local or remote)
+# -----------------------------------------------------------------------------
+
+REPO_URL=$1
+CATALOG=/tmp/onos.$$.catalog
+
+onos-publish-catalog $CATALOG && onos-upload-artifacts.py $CATALOG $REPO_URL
