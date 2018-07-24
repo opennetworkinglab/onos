@@ -24,7 +24,6 @@ import xml.etree.ElementTree, shutil
 SONATYPE_USER=os.environ.get("SONATYPE_USER")
 SONATYPE_PASSWORD=os.environ.get("SONATYPE_PASSWORD")
 SONATYPE_PROFILE=os.environ.get("SONATYPE_PROFILE")
-UPLOAD_BASE="https://oss.sonatype.org/service/local/staging/deployByRepositoryId"
 
 CREATE_REPO_REQUEST_TEMPLATE = '''\
 <promoteRequest>
@@ -82,29 +81,41 @@ def generate_metadata_files(input_file):
 
 
 def create_staging_repo(description):
+    if destination_repo_url is None:
+        return None
     create_request = CREATE_REPO_REQUEST_TEMPLATE.replace("%(description)", description)
-    url = "https://oss.sonatype.org/service/local/staging/profiles/87c0ccf277f362/start"
+    url = "https://" + destination_repo_url + "/service/local/staging/profiles" + "/" + SONATYPE_PROFILE + "/start"
     headers = {'Content-Type': 'application/xml'}
     r = requests.post(url, create_request, headers=headers, auth=(SONATYPE_USER, SONATYPE_PASSWORD))
     root = xml.etree.ElementTree.fromstring(r.text)
     repo_id = root.find("data").find("stagedRepositoryId").text
-    print repo_id
     return repo_id
 
 
 def close_staging_repo(description, repo_id):
+    if repo_id is None:
+        return
     close_request = CLOSE_REPO_REQUEST_TEMPLATE.replace("%(description)", description).replace("%(repo_id)", repo_id)
-    url = "https://oss.sonatype.org/service/local/staging/profiles/87c0ccf277f362/finish"
+    url = "https://" + destination_repo_url + "/service/local/staging/profiles" + "/" + SONATYPE_PROFILE + "/finish"
     headers = {'Content-Type': 'application/xml'}
     r = requests.post(url, close_request, headers=headers, auth=(SONATYPE_USER, SONATYPE_PASSWORD))
 
 
 def stage_file(file, repo_id, dest):
-    url = UPLOAD_BASE + "/" + repo_id + "/" + os.path.dirname(dest) + "/" + os.path.basename(file)
-    headers = {'Content-Type': 'application/xml'}
-    print("Uploading " + file)
-    with open(file, 'rb') as f:
-        r = requests.post(url, files={file: f}, headers=headers, auth=(SONATYPE_USER, SONATYPE_PASSWORD))
+    if destination_repo_url is not None:
+        # deploy to Nexus repo
+        upload_base = "https://" + destination_repo_url + "/service/local/staging/deployByRepositoryId"
+        url = upload_base + "/" + repo_id + "/" + os.path.dirname(dest) + "/" + os.path.basename(file)
+        headers = {'Content-Type': 'application/xml'}
+        with open(file, 'rb') as f:
+            r = requests.post(url, files={file: f}, headers=headers, auth=(SONATYPE_USER, SONATYPE_PASSWORD))
+    else:
+        # deploy to local repo
+        dest_local_repo = os.path.expanduser(local_maven_repo + "/" + dest)
+        dest_local_repo_dir = os.path.dirname(dest_local_repo)
+        if not os.path.isdir(dest_local_repo_dir):
+            os.makedirs(dest_local_repo_dir)
+        shutil.copyfile(src, dest_local_repo)
 
 
 def stage_files(files, dest):
@@ -122,27 +133,43 @@ if __name__ == '__main__':
     import sys
 
     if len(sys.argv) < 2:
-        print 'USAGE'
-        sys.exit(1)
-
-    if SONATYPE_USER == None:
-        print "Environment variable SONATYPE_USER must be set"
-        sys.exit(1)
-
-    if SONATYPE_PASSWORD == None:
-        print "Environment variable SONATYPE_PASSWORD must be set"
-        sys.exit(1)
-
-    if SONATYPE_PROFILE == None:
-        print "Environment variable SONATYPE_PROFILE must be set"
+        print 'USAGE: upload-maven-artifacts catalog-file-name [nexus root url]'
         sys.exit(1)
 
     input_list_file = sys.argv[1]
+
+    local_maven_repo = None
+    destination_repo_url = None
+
+    if len(sys.argv) == 3:
+        destination_repo_url = sys.argv[2]
+    else:
+        local_maven_repo = os.environ.get("MAVEN_REPO")
+        if local_maven_repo is None:
+            local_maven_repo = "~/.m2/repository"
+
+    if destination_repo_url is not None:
+        if SONATYPE_USER is None:
+            print "Environment variable SONATYPE_USER must be set"
+            sys.exit(1)
+
+        if SONATYPE_PASSWORD is None:
+            print "Environment variable SONATYPE_PASSWORD must be set"
+            sys.exit(1)
+
+        if SONATYPE_PROFILE is None:
+            print "Environment variable SONATYPE_PROFILE must be set"
+            sys.exit(1)
+
+        print ("Uploading to remote repo: " + destination_repo_url)
+    else:
+        print ("Installing in local repo: " + local_maven_repo)
+
     list_file = open(input_list_file, "r")
     lines = list_file.readlines()
     list_file.close()
 
-    tempdir = tempfile.mkdtemp(prefix="upload-sonatype-")
+    tempdir = tempfile.mkdtemp(prefix="upload-maven-artifacts-")
     description = "test repo"
     repo_id = create_staging_repo(description)
     for line in lines:
