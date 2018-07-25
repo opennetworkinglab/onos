@@ -22,6 +22,7 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.util.ZipValidator;
 import org.onosproject.yang.YangLiveCompilerService;
 import org.onosproject.yang.compiler.tool.DefaultYangCompilationParam;
 import org.onosproject.yang.compiler.tool.YangCompilerManager;
@@ -119,12 +120,16 @@ public class YangLiveCompilerManager implements YangLiveCompilerService {
         ZipInputStream zis = new ZipInputStream(stream);
         ZipEntry entry;
         while ((entry = zis.getNextEntry()) != null) {
-            if (!entry.isDirectory()) {
-                byte[] data = toByteArray(zis);
-                zis.closeEntry();
-                File file = new File(dir, entry.getName());
-                createParentDirs(file);
-                write(data, file);
+            if (ZipValidator.validateZipEntry(entry, dir)) {
+                if (!entry.isDirectory()) {
+                    byte[] data = toByteArray(zis);
+                    zis.closeEntry();
+                    File file = new File(dir, entry.getName());
+                    createParentDirs(file);
+                    write(data, file);
+                }
+            } else {
+                throw new IOException("Zip archive is attempting to create a file outside of its root");
             }
         }
         zis.close();
