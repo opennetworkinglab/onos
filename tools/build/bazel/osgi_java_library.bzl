@@ -474,7 +474,7 @@ def osgi_jar_with_tests(
 
     # rule for building javadocs
     if not suppress_javadocs:
-      javadoc(name = name + "-javadocs", deps = deps, srcs = srcs, visibility = visibility)
+      javadoc(name = name + "-javadoc", deps = deps, srcs = srcs, visibility = visibility)
 
     if test_srcs != []:
         native.java_library(

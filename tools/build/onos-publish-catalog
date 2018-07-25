@@ -3,6 +3,8 @@
 # Generates a catalog for publishing ONOS artifacts to a Maven repository.
 # -----------------------------------------------------------------------------
 
+set -e -o pipefail
+
 CATALOG=${1:-/tmp/onos.catalog}
 
 rm -f $CATALOG

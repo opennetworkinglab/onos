@@ -53,10 +53,10 @@ def hashlib_compute(hash, input_file, output_file):
         output.close()
 
 
-def generate_metadata_files(input_file):
+def generate_metadata_files(input_file, dest):
     # create a temporary directory to hold the metadata files
     global tempdir
-    base_metadata_filename = tempdir + "/" + os.path.basename(input_file)
+    base_metadata_filename = tempdir + "/" + os.path.basename(dest)
 
     files = []
 
@@ -76,6 +76,11 @@ def generate_metadata_files(input_file):
     sha1 = hashlib.sha1()
     hashlib_compute(sha1, input_file, sha1_filename)
     files.append(sha1_filename)
+
+    # generate the base artifact
+    base_artifact_filename = base_metadata_filename
+    shutil.copyfile(input_file, base_artifact_filename)
+    files.append(base_artifact_filename)
 
     return files
 
@@ -102,20 +107,25 @@ def close_staging_repo(description, repo_id):
 
 
 def stage_file(file, repo_id, dest):
+    filename_in_repo = os.path.dirname(dest) + "/" + os.path.basename(file)
     if destination_repo_url is not None:
         # deploy to Nexus repo
         upload_base = "https://" + destination_repo_url + "/service/local/staging/deployByRepositoryId"
-        url = upload_base + "/" + repo_id + "/" + dest
+        url = upload_base + "/" + repo_id + "/" + filename_in_repo
         headers = {'Content-Type': 'application/xml'}
         with open(file, 'rb') as f:
-            r = requests.post(url, files={file: f}, headers=headers, auth=(SONATYPE_USER, SONATYPE_PASSWORD))
+            r = requests.post(url, data=f.read(), headers=headers, auth=(SONATYPE_USER, SONATYPE_PASSWORD))
+            if r.status_code != 201:
+                print (r.status_code)
+                print (r.text)
+                sys.exit(1)
     else:
         # deploy to local repo
-        dest_local_repo = os.path.expanduser(local_maven_repo + "/" + dest)
-        dest_local_repo_dir = os.path.dirname(dest_local_repo)
-        if not os.path.isdir(dest_local_repo_dir):
-            os.makedirs(dest_local_repo_dir)
-        shutil.copyfile(src, dest_local_repo)
+        file_in_local_repo = os.path.expanduser(local_maven_repo + "/" + filename_in_repo)
+        dir_in_local_repo = os.path.dirname(file_in_local_repo)
+        if not os.path.isdir(dir_in_local_repo):
+            os.makedirs(dir_in_local_repo)
+        shutil.copyfile(src, file_in_local_repo)
 
 
 def stage_files(files, dest):
@@ -124,8 +134,8 @@ def stage_files(files, dest):
 
 
 def upload_file(src, dest):
-    files = generate_metadata_files(src)
-    files.append(src)
+    print ("publishing: " + dest.replace("org/onosproject", ""))
+    files = generate_metadata_files(src, dest)
     stage_files(files, dest)
 
 

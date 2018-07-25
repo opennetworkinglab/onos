@@ -26,7 +26,7 @@ def _impl(target, ctx):
 
     c = artifact_id.split("-")
 
-    if len(c) > 1 and c[len(c)-1] in ("javadocs", "sources", "tests", "pom"):
+    if len(c) > 1 and c[len(c)-1] in ("javadoc", "sources", "tests", "pom"):
         classifier = c[len(c)-1]
         artifact_id = "-".join(c[:len(c)-1])
         if classifier == "pom":
