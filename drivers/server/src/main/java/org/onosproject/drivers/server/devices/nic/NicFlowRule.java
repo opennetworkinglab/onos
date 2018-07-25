@@ -20,6 +20,7 @@ import org.onosproject.net.flow.FlowRule;
 
 import org.onlab.packet.EthType;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 
 import java.util.Set;
@@ -127,7 +128,7 @@ public interface NicFlowRule extends FlowRule {
      *
      * @return source IP address field
      */
-    Ip4Prefix ipv4SrcAddress();
+    Ip4Address ipv4SrcAddress();
 
     /**
      * Returns the source IP mask field of this rule
@@ -143,7 +144,7 @@ public interface NicFlowRule extends FlowRule {
      *
      * @return destination IP address field
      */
-    Ip4Prefix ipv4DstAddress();
+    Ip4Address ipv4DstAddress();
 
     /**
      * Returns the destination IP mask field of this rule

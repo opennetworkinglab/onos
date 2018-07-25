@@ -33,6 +33,7 @@ import org.onosproject.net.flow.instructions.Instructions.MeterInstruction;
 
 import org.onlab.packet.EthType;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 
 import org.slf4j.Logger;
@@ -237,9 +238,9 @@ public abstract class DefaultNicFlowRule extends DefaultFlowRule implements NicF
     }
 
     @Override
-    public Ip4Prefix ipv4SrcAddress() {
+    public Ip4Address ipv4SrcAddress() {
         return (ipv4SrcAddrCriterion != null) ?
-            ipv4SrcAddrCriterion.ip().getIp4Prefix() : null;
+            ipv4SrcAddrCriterion.ip().address().getIp4Address() : null;
     }
 
     @Override
@@ -249,9 +250,9 @@ public abstract class DefaultNicFlowRule extends DefaultFlowRule implements NicF
     }
 
     @Override
-    public Ip4Prefix ipv4DstAddress() {
+    public Ip4Address ipv4DstAddress() {
         return (ipv4DstAddrCriterion != null) ?
-            ipv4DstAddrCriterion.ip().getIp4Prefix() : null;
+            ipv4DstAddrCriterion.ip().address().getIp4Address() : null;
     }
 
     @Override

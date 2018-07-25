@@ -18,6 +18,7 @@ package org.onosproject.drivers.server.devices.nic;
 
 import org.onosproject.net.flow.FlowRule;
 
+import org.onlab.packet.Ip4Address;
 import org.onlab.packet.MacAddress;
 
 /**
@@ -32,20 +33,17 @@ public class DefaultDpdkNicFlowRule extends DefaultNicFlowRule {
             long             interfaceNumber,
             long             cpuCoreIndex,
             NicRuleScope     scope) {
-        super(flowRule, trafficClassId, interfaceName, interfaceNumber,
-            cpuCoreIndex, scope);
+        super(flowRule, trafficClassId, interfaceName, interfaceNumber, cpuCoreIndex, scope);
     }
 
     @Override
     public String createRule() {
-        String rule = "flow create " + Long.toString(this.interfaceNumber) + " ";
-        return rule + ruleBody();
+        return "flow create " + Long.toString(this.interfaceNumber) + " " + ruleBody();
     }
 
     @Override
     public String removeRule() {
-        String rule = "flow remove " + Long.toString(this.interfaceNumber) + " ";
-        return rule + ruleBody();
+        return "flow destroy " + Long.toString(this.interfaceNumber) + " rule " + id().toString();
     }
 
     @Override
@@ -87,7 +85,8 @@ public class DefaultDpdkNicFlowRule extends DefaultNicFlowRule {
             }
 
             if (this.ipv4SrcMask() != null) {
-                rule += "src mask " + this.ipv4SrcMask().toString() + " ";
+                rule += "src spec " + this.ipv4SrcMask().address().getIp4Address().toString() + " ";
+                rule += "src mask " + Ip4Address.makeMaskPrefix(this.ipv4SrcMask().prefixLength()).toString() + " ";
             }
 
             if (this.ipv4DstAddress() != null) {
@@ -95,7 +94,8 @@ public class DefaultDpdkNicFlowRule extends DefaultNicFlowRule {
             }
 
             if (this.ipv4DstMask() != null) {
-                rule += "dst mask " + this.ipv4DstMask().toString() + " ";
+                rule += "dst spec " + this.ipv4DstMask().address().getIp4Address().toString() + " ";
+                rule += "dst mask " + Ip4Address.makeMaskPrefix(this.ipv4DstMask().prefixLength()).toString() + " ";
             }
 
             rule += "/ ";
