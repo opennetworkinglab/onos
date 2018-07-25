@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+JAVA_DOCS="-link https://docs.oracle.com/javase/8/docs/api/"
+
 def _impl(ctx):
   dir = ctx.label.name
   jar = ctx.outputs.jar
@@ -26,8 +28,8 @@ def _impl(ctx):
 
   cmd = [
       "mkdir %s" % dir,
-      "javadoc -quiet -tag onos.rsModel:a:\"onos model\" -d %s -cp %s %s" \
-          % (dir, ":".join(dep_list), " ".join(src_list)),
+      "javadoc -quiet -tag onos.rsModel:a:\"onos model\" %s -d %s -cp %s %s" \
+          % (JAVA_DOCS, dir, ":".join(dep_list), " ".join(src_list)),
       "jar cf %s -C %s ." % (jar.path, dir),
   ]
 
