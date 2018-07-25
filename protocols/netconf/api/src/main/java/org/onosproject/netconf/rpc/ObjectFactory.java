@@ -61,7 +61,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Hello }
-     * 
+     * @return hello message
      */
     public Hello createHello() {
         return new Hello();
@@ -69,7 +69,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link RpcErrorType }
-     * 
+     * @return error type
      */
     public RpcErrorType createRpcErrorType() {
         return new RpcErrorType();
@@ -77,7 +77,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link RpcType }
-     * 
+     * @return rpc type
      */
     public RpcType createRpcType() {
         return new RpcType();
@@ -85,7 +85,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link RpcReplyType }
-     * 
+     * @return rpc reply type
      */
     public RpcReplyType createRpcReplyType() {
         return new RpcReplyType();
@@ -93,7 +93,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link RpcOperationType }
-     * 
+     * @return rpc operation type
      */
     public RpcOperationType createRpcOperationType() {
         return new RpcOperationType();
@@ -101,7 +101,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link RpcResponseType }
-     * 
+     * @return rpc response type
      */
     public RpcResponseType createRpcResponseType() {
         return new RpcResponseType();
@@ -109,7 +109,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Hello.Capabilities }
-     * 
+     * @return hello capabilities
      */
     public Hello.Capabilities createHelloCapabilities() {
         return new Hello.Capabilities();
@@ -117,7 +117,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link ErrorInfoType }
-     * 
+     * @return error info type
      */
     public ErrorInfoType createErrorInfoType() {
         return new ErrorInfoType();
@@ -125,7 +125,7 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link RpcErrorType.ErrorMessage }
-     * 
+     * @return error message
      */
     public RpcErrorType.ErrorMessage createRpcErrorTypeErrorMessage() {
         return new RpcErrorType.ErrorMessage();

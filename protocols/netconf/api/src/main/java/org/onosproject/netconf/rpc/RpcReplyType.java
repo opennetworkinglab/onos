@@ -116,7 +116,7 @@ public class RpcReplyType {
      * Objects of the following type(s) are allowed in the list
      * {@link RpcErrorType }
      * 
-     * 
+     * @return list of rpc error types
      */
     public List<RpcErrorType> getRpcError() {
         if (rpcError == null) {
@@ -145,7 +145,7 @@ public class RpcReplyType {
      * Objects of the following type(s) are allowed in the list
      * {@link RpcResponseType }
      * 
-     * 
+     * @return list of rpc response types
      */
     public List<RpcResponseType> getRpcResponse() {
         if (rpcResponse == null) {

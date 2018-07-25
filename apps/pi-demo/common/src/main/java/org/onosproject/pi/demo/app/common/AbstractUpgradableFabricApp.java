@@ -481,6 +481,7 @@ public abstract class AbstractUpgradableFabricApp {
      * @param did     a device id
      * @param tableId a table id
      * @return a new flow rule builder
+     * @throws FlowRuleGeneratorException if device has no pipeline interpreter
      */
     protected FlowRule.Builder flowRuleBuilder(DeviceId did, PiTableId tableId)
             throws FlowRuleGeneratorException {

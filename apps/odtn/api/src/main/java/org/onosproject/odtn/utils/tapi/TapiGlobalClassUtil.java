@@ -32,7 +32,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Utility methods dealing with TAPI modelObject which includes global class grouping.
- * <p>
+ *
  * <p> tapi-common@2018-03-07.yang
  * grouping global-class {
  * leaf uuid {
@@ -43,6 +43,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * uses name-and-value;
  * }
  * }
+ * </p>
  * <p>
  * grouping name-and-value {
  * leaf value-name {

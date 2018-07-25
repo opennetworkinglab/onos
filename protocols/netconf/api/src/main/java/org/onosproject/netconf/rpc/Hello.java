@@ -28,10 +28,11 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for anonymous complex type.
+ * Java class for anonymous complex type.
  * 
- * <p>The following schema fragment specifies the expected         content contained within this class.
- * 
+ * <p>The following schema fragment specifies the expected content contained within this class.
+ * </p>
+ *
  * <pre>
  * &lt;complexType&gt;
  *   &lt;complexContent&gt;
@@ -169,7 +170,7 @@ public class Hello {
          * Objects of the following type(s) are allowed in the list
          * {@link String }
          * 
-         * 
+         * @return list of capabilities
          */
         public List<String> getCapability() {
             if (capability == null) {

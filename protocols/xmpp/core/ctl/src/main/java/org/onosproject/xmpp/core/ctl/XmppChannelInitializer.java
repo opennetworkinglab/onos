@@ -41,7 +41,7 @@ public class XmppChannelInitializer extends ChannelInitializer<SocketChannel> {
 
     /**
      * Initializes pipeline for XMPP channel.
-     * @throws Exception
+     * @throws Exception if unable to initialize the pipeline
      */
     @Override
     protected void initChannel(SocketChannel channel) throws Exception {

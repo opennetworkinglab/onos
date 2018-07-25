@@ -114,20 +114,17 @@ public class ErrorInfoType {
 
     /**
      * Gets the value of the badAttributeAndBadElementAndOkElement property.
-     * 
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the badAttributeAndBadElementAndOkElement property.
-     * 
-     * <p>
+     * This is why there is not a <CODE>set</CODE> method for the
+     * badAttributeAndBadElementAndOkElement property.
+     * </p>
      * For example, to add a new item, do as follows:
      * <pre>
      *    getBadAttributeAndBadElementAndOkElement().add(newItem);
      * </pre>
-     * 
-     * 
      * <p>
      * Objects of the following type(s) are allowed in the list
      * {@link JAXBElement }{@code <}{@link QName }{@code >}
@@ -136,8 +133,8 @@ public class ErrorInfoType {
      * {@link JAXBElement }{@code <}{@link QName }{@code >}
      * {@link JAXBElement }{@code <}{@link QName }{@code >}
      * {@link JAXBElement }{@code <}{@link String }{@code >}
-     * 
-     * 
+     * </p>
+     * @return list of properties
      */
     public List<JAXBElement<? extends Serializable>> getBadAttributeAndBadElementAndOkElement() {
         if (badAttributeAndBadElementAndOkElement == null) {
@@ -148,26 +145,23 @@ public class ErrorInfoType {
 
     /**
      * Gets the value of the any property.
-     * 
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
      * This is why there is not a <CODE>set</CODE> method for the any property.
-     * 
-     * <p>
+     * </p>
      * For example, to add a new item, do as follows:
      * <pre>
      *    getAny().add(newItem);
      * </pre>
-     * 
-     * 
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list
      * {@link Element }
      * {@link Object }
-     * 
-     * 
+     * </p>
+     * @return list of properties
      */
     public List<Object> getAny() {
         if (any == null) {
