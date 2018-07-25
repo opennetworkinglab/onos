@@ -104,8 +104,11 @@ public final class JuniperUtils {
 
     private static final String LLDP_LO_PORT = "lldp-local-port-id";
     private static final String LLDP_REM_CHASS = "lldp-remote-chassis-id";
+    private static final String LLDP_REM_PORT_SUBTYPE = "lldp-remote-port-id-subtype";
     private static final String LLDP_REM_PORT = "lldp-remote-port-id";
     private static final String LLDP_REM_PORT_DES = "lldp-remote-port-description";
+    private static final String LLDP_SUBTYPE_MAC = "Mac address";
+    private static final String LLDP_SUBTYPE_INTERFACE_NAME = "Interface name";
     private static final String REGEX_ADD =
             ".*Private base address\\s*([:,0-9,a-f,A-F]*).*";
     private static final Pattern ADD_PATTERN =
@@ -523,15 +526,24 @@ public final class JuniperUtils {
                     neighborsInfo.configurationsAt(LLDP_NBR_INFO);
             for (HierarchicalConfiguration neighbor : neighbors) {
                 String localPortName = neighbor.getString(LLDP_LO_PORT);
-                MacAddress mac = MacAddress.valueOf(
-                        neighbor.getString(LLDP_REM_CHASS));
-                long remotePortIndex =
-                        neighbor.getInt(LLDP_REM_PORT, -1);
+                MacAddress mac = MacAddress.valueOf(neighbor.getString(LLDP_REM_CHASS));
+                String remotePortId = null;
+                long remotePortIndex = -1;
+                String remotePortIdSubtype = neighbor.getString(LLDP_REM_PORT_SUBTYPE, null);
+                if (remotePortIdSubtype != null) {
+                    if (remotePortIdSubtype.equals(LLDP_SUBTYPE_MAC)
+                            || remotePortIdSubtype.equals(LLDP_SUBTYPE_INTERFACE_NAME)) {
+                        remotePortId = neighbor.getString(LLDP_REM_PORT, null);
+                    } else {
+                        remotePortIndex = neighbor.getLong(LLDP_REM_PORT, -1);
+                    }
+                }
                 String remotePortDescription = neighbor.getString(LLDP_REM_PORT_DES, null);
                 LinkAbstraction link = new LinkAbstraction(
                         localPortName,
                         mac.toLong(),
                         remotePortIndex,
+                        remotePortId,
                         remotePortDescription);
                 neighbour.add(link);
             }
@@ -546,12 +558,14 @@ public final class JuniperUtils {
         protected String localPortName;
         protected ChassisId remoteChassisId;
         protected long remotePortIndex;
+        protected String remotePortId;
         protected String remotePortDescription;
 
-        protected LinkAbstraction(String pName, long chassisId, long pIndex, String pDescription) {
+        protected LinkAbstraction(String pName, long chassisId, long pIndex, String pPortId, String pDescription) {
             this.localPortName = pName;
             this.remoteChassisId = new ChassisId(chassisId);
             this.remotePortIndex = pIndex;
+            this.remotePortId = pPortId;
             this.remotePortDescription = pDescription;
         }
     }
