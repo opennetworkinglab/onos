@@ -98,7 +98,6 @@ public class OpenstackNetworkingUiMessageHandler extends UiMessageHandler {
     private static final String FLOW_TRACE_RESULT = "flowTraceResult";
     private static final String SRC_DEVICE_ID = "srcDeviceId";
     private static final String DST_DEVICE_ID = "dstDeviceId";
-    private static final String SW_VERSION = "sw";
     private static final String OVS_VERSION_2_8 = "2.8";
     private static final String OVS_VERSION_2_6 = "2.6";
     private static final String FLAT = "FLAT";
@@ -429,7 +428,7 @@ public class OpenstackNetworkingUiMessageHandler extends UiMessageHandler {
         ObjectNode traceResultForwardJson = null;
 
         Device srcDevice = deviceService.getDevice(srcOpenstackNode.intgBridge());
-        if (srcDevice.annotations().value(SW_VERSION).startsWith(OVS_VERSION_2_8)) {
+        if (srcDevice.swVersion().startsWith(OVS_VERSION_2_8)) {
             traceResultForwardJson = Ovs28FlowTraceResultParser.flowTraceResultInJson(
                     traceResultForward.trim(), srcOpenstackNode.hostname());
         } else {
