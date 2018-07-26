@@ -23,13 +23,30 @@ import java.util.zip.ZipEntry;
 /**
  * Utilities for validation of Zip files.
  */
-public final class ZipValidator {
+public final class FilePathValidator {
 
     /**
      * Do not allow construction.
      */
-    private ZipValidator() {
+    private FilePathValidator() {
+    }
 
+    /**
+     * Validates a File. Checks that the file being created does not
+     * lie outside the target directory.
+     *
+     * @param destinationFile file to check
+     * @param destinationDir target directory
+     * @return true if the Entry resolves to a file inside the target directory; false otherwise
+     */
+    public static boolean validateFile(File destinationFile, File destinationDir) {
+        try {
+            String canonicalDestinationDirPath = destinationDir.getCanonicalPath();
+            String canonicalDestinationFile = destinationFile.getCanonicalPath();
+            return canonicalDestinationFile.startsWith(canonicalDestinationDirPath + File.separator);
+        } catch (IOException ioe) {
+            return false;
+        }
     }
 
     /**
