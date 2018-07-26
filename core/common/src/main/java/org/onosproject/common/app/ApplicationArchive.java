@@ -25,7 +25,7 @@ import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang.StringUtils;
 import org.onlab.util.Tools;
-import org.onlab.util.ZipValidator;
+import org.onlab.util.FilePathValidator;
 import org.onosproject.app.ApplicationDescription;
 import org.onosproject.app.ApplicationEvent;
 import org.onosproject.app.ApplicationException;
@@ -234,17 +234,16 @@ public class ApplicationArchive
         return new String(bytes, 0, Math.min(bytes.length, length), StandardCharsets.UTF_8);
     }
 
-    private String filterAppNameForFilesystem(String name) {
-        return name.replace("/", "^");
-    }
-
     /**
      * Purges the application archive directory.
      *
      * @param appName application name
      */
     public synchronized void purgeApplication(String appName) {
-        File appDir = new File(appsDir, filterAppNameForFilesystem(appName));
+        File appDir = new File(appsDir, appName);
+        if (!FilePathValidator.validateFile(appDir, appsDir)) {
+            throw new ApplicationException("Application attempting to create files outside the apps directory");
+        }
         try {
             Tools.removeDirectory(appDir);
         } catch (IOException e) {
@@ -358,12 +357,15 @@ public class ApplicationArchive
         boolean isSelfContained = false;
         ZipInputStream zis = new ZipInputStream(stream);
         ZipEntry entry;
-        File appDir = new File(appsDir, filterAppNameForFilesystem(desc.name()));
+        File appDir = new File(appsDir, desc.name());
+        if (!FilePathValidator.validateFile(appDir, appsDir)) {
+            throw new ApplicationException("Application attempting to create files outside the apps directory");
+        }
         while ((entry = zis.getNextEntry()) != null) {
             if (!entry.isDirectory()) {
                 byte[] data = ByteStreams.toByteArray(zis);
                 zis.closeEntry();
-                if (ZipValidator.validateZipEntry(entry, appDir)) {
+                if (FilePathValidator.validateZipEntry(entry, appDir)) {
                     File file = new File(appDir, entry.getName());
                     if (isTopLevel(file)) {
                         createParentDirs(file);
@@ -446,7 +448,7 @@ public class ApplicationArchive
     private void saveApplication(InputStream stream, ApplicationDescription desc,
                                  boolean isSelfContainedJar)
             throws IOException {
-        String name = filterAppNameForFilesystem(desc.name()) + (isSelfContainedJar ? JAR : OAR);
+        String name = desc.name() + (isSelfContainedJar ? JAR : OAR);
         Files.write(toByteArray(stream), appFile(desc.name(), name));
     }
 
@@ -508,7 +510,11 @@ public class ApplicationArchive
 
     // Returns the name of the file located under the specified app directory.
     private File appFile(String appName, String fileName) {
-        return new File(new File(appsDir, filterAppNameForFilesystem(appName)), fileName);
+        File file = new File(new File(appsDir, appName), fileName);
+        if (!FilePathValidator.validateFile(file, appsDir)) {
+            throw new ApplicationException("Application attempting to create files outside the apps directory");
+        }
+        return file;
     }
 
     // Returns the icon file located under the specified app directory.
