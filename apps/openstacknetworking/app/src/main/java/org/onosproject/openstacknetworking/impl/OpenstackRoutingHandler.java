@@ -751,19 +751,6 @@ public class OpenstackRoutingHandler {
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPDst(dstIp.getIp4Address().toIpPrefix());
 
-        switch (networkMode) {
-            case VXLAN:
-                sBuilder.matchTunnelId(Long.valueOf(segmentId));
-                break;
-
-            case VLAN:
-                sBuilder.matchVlanId(VlanId.vlanId(segmentId));
-                break;
-
-            default:
-                break;
-        }
-
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
 
         switch (networkMode) {
