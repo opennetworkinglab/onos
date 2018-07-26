@@ -22,7 +22,7 @@ import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.util.ZipValidator;
+import org.onlab.util.FilePathValidator;
 import org.onosproject.yang.YangLiveCompilerService;
 import org.onosproject.yang.compiler.tool.DefaultYangCompilationParam;
 import org.onosproject.yang.compiler.tool.YangCompilerManager;
@@ -120,7 +120,7 @@ public class YangLiveCompilerManager implements YangLiveCompilerService {
         ZipInputStream zis = new ZipInputStream(stream);
         ZipEntry entry;
         while ((entry = zis.getNextEntry()) != null) {
-            if (ZipValidator.validateZipEntry(entry, dir)) {
+            if (FilePathValidator.validateZipEntry(entry, dir)) {
                 if (!entry.isDirectory()) {
                     byte[] data = toByteArray(zis);
                     zis.closeEntry();
