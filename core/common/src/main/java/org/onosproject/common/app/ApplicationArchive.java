@@ -25,7 +25,6 @@ import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang.StringUtils;
 import org.onlab.util.Tools;
-import org.onlab.util.ZipValidator;
 import org.onosproject.app.ApplicationDescription;
 import org.onosproject.app.ApplicationEvent;
 import org.onosproject.app.ApplicationException;
@@ -363,16 +362,12 @@ public class ApplicationArchive
             if (!entry.isDirectory()) {
                 byte[] data = ByteStreams.toByteArray(zis);
                 zis.closeEntry();
-                if (ZipValidator.validateZipEntry(entry, appDir)) {
-                    File file = new File(appDir, entry.getName());
-                    if (isTopLevel(file)) {
-                        createParentDirs(file);
-                        write(data, file);
-                    } else {
-                        isSelfContained = true;
-                    }
+                File file = new File(appDir, entry.getName());
+                if (isTopLevel(file)) {
+                    createParentDirs(file);
+                    write(data, file);
                 } else {
-                    throw new ApplicationException("Application Zip archive is attempting to leave application root");
+                    isSelfContained = true;
                 }
             }
         }
