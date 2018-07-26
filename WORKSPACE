@@ -1,8 +1,10 @@
 load("//tools/build/bazel:generate_workspace.bzl", "generated_maven_jars")
 load("//tools/build/bazel:p4lang_workspace.bzl", "generate_p4lang")
+load("//tools/build/bazel:grpc_workspace.bzl", "generate_grpc")
 
 generated_maven_jars()
 generate_p4lang()
+generate_grpc()
 
 git_repository(
         name = "build_bazel_rules_nodejs",
