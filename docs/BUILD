@@ -1,5 +1,5 @@
 load("//tools/build/bazel:project_javadoc.bzl", "project_javadoc")
-load("//tools/build/bazel:generate_workspace.bzl", "ONOS_VERSION", "CORE_DEPS")
+load("//tools/build/bazel:generate_workspace.bzl", "CORE_DEPS", "ONOS_VERSION")
 
 SOURCES = glob(["src/main/javadoc/doc-files/*"]) + [
     "src/main/javadoc/overview.html",
@@ -21,7 +21,6 @@ SOURCES = glob(["src/main/javadoc/doc-files/*"]) + [
     "//incubator/rpc:onos-incubator-rpc-sources",
     "//cli:onos-cli-sources",
     "//web/api:onos-rest",
-
     "//apps/cpman/api:onos-apps-cpman-api-sources",
     "//apps/routing-api:onos-apps-routing-api-sources",
     "//apps/dhcp/api:onos-apps-dhcp-api-sources",
@@ -43,8 +42,8 @@ INTERNAL_SOURCES = [
     "//protocols/ovsdb/rfc:onos-protocols-ovsdb-rfc-sources",
     "//protocols/ovsdb/api:onos-protocols-ovsdb-api-sources",
     "//protocols/ovsdb/ctl:onos-protocols-ovsdb-ctl-sources",
-#    "//protocols/p4runtime/api:onos-protocols-p4runtime-api-sources",
-#    "//protocols/p4runtime/model:onos-protocols-p4runtime-model-sources",
+    #    "//protocols/p4runtime/api:onos-protocols-p4runtime-api-sources",
+    #    "//protocols/p4runtime/model:onos-protocols-p4runtime-model-sources",
     "//protocols/pcep/pcepio:onos-protocols-pcep-pcepio-sources",
     "//protocols/pcep/server/api:onos-protocols-pcep-server-api-sources",
     "//protocols/pcep/server/ctl:onos-protocols-pcep-server-ctl-sources",
@@ -62,9 +61,7 @@ INTERNAL_SOURCES = [
     "//protocols/restconf/client/ctl:onos-protocols-restconf-client-ctl-sources",
     "//protocols/xmpp/core/api:onos-protocols-xmpp-core-api-sources",
     "//protocols/xmpp/core/ctl:onos-protocols-xmpp-core-ctl-sources",
-
     "//drivers/utilities:onos-drivers-utilities-sources",
-
     "//providers/netconf/device:onos-providers-netconf-device-sources",
     "//providers/openflow/device:onos-providers-openflow-device-sources",
     "//providers/openflow/packet:onos-providers-openflow-packet-sources",
@@ -80,8 +77,7 @@ INTERNAL_SOURCES = [
     "//providers/lisp/device:onos-providers-lisp-device-sources",
     "//providers/tl1/device:onos-providers-tl1-device-sources",
     "//providers/general/device:onos-providers-general-device-sources",
-#    "//providers/p4runtime/packet:onos-providers-p4runtime-packet-sources",
-
+    #    "//providers/p4runtime/packet:onos-providers-p4runtime-packet-sources",
     "//apps/pcep-api:onos-apps-pcep-api-sources",
     "//apps/optical-model:onos-apps-optical-model-sources",
     "//apps/mappingmanagement/api:onos-apps-mappingmanagement-api-sources",
@@ -120,9 +116,9 @@ JAVADOC_DEPS = CORE_DEPS + KRYO + REST + CLI + JACKSON + TEST + NETTY + METRICS 
 ]
 
 EXTERNAL_GROUPS = {
-    "Network Model &amp; Services": [ "org.onosproject.*" ],
-    "Incubator for Network Model &amp; Services": [ "org.onosproject.incubator.*" ],
-    "Utilities": [ "org.onlab.*" ],
+    "Network Model &amp; Services": ["org.onosproject.*"],
+    "Incubator for Network Model &amp; Services": ["org.onosproject.incubator.*"],
+    "Utilities": ["org.onlab.*"],
     "App &amp; Extensions": [
         "org.onosproject.dhcp",
         "org.onosproject.cpman",
@@ -131,8 +127,8 @@ EXTERNAL_GROUPS = {
 }
 
 INTERNAL_GROUPS = {
-    "Network Model &amp; Services": [ "org.onosproject.*" ],
-    "Incubator for Network Model &amp; Services": [ "org.onosproject.incubator.*" ],
+    "Network Model &amp; Services": ["org.onosproject.*"],
+    "Incubator for Network Model &amp; Services": ["org.onosproject.incubator.*"],
     "Core Subsystems": [
         "org.onosproject.cfg.impl",
         "org.onosproject.cluster.impl",
@@ -182,7 +178,7 @@ INTERNAL_GROUPS = {
         "org.onosproject.incubator.net.resource.label",
         "org.onosproject.incubator.store.meter.impl",
     ],
-    "Utilities": [ "org.onlab.*" ],
+    "Utilities": ["org.onlab.*"],
     "GUI, REST &amp; Command-Line": [
         "org.onosproject.ui.impl*",
         "org.onosproject.rest.*",
@@ -279,10 +275,10 @@ INTERNAL_GROUPS = {
         "org.onosproject.bgp*",
         "org.onosproject.provider.bgp*",
     ],
-    "OSPF Protocol &amp; Providers": [ "org.onosproject.ospf*" ],
-    "ISIS Protocol &amp; Providers": [ "org.onosproject.isis*" ],
-    "LISP Protocol &amp; Providers": [ "org.onosproject.lisp*" ],
-    "SNMP Protocol &amp; Providers": [ "org.onosproject.snmp*" ],
+    "OSPF Protocol &amp; Providers": ["org.onosproject.ospf*"],
+    "ISIS Protocol &amp; Providers": ["org.onosproject.isis*"],
+    "LISP Protocol &amp; Providers": ["org.onosproject.lisp*"],
+    "SNMP Protocol &amp; Providers": ["org.onosproject.snmp*"],
     "REST Protocol &amp; Providers": [
         "org.onosproject.protocol.rest*",
         "org.onosproject.provider.rest*",
@@ -291,22 +287,22 @@ INTERNAL_GROUPS = {
         "org.onosproject.provider.*",
         "org.onosproject.protocol.*",
     ],
-    "Device Drivers": [ "org.onosproject.driver*" ],
+    "Device Drivers": ["org.onosproject.driver*"],
 }
 
 project_javadoc(
     name = "external",
-    title = "ONOS Java API (%s)" % ONOS_VERSION,
     srcs = SOURCES,
-    deps = JAVADOC_DEPS,
     groups = EXTERNAL_GROUPS,
+    title = "ONOS Java API (%s)" % ONOS_VERSION,
+    deps = JAVADOC_DEPS,
 )
 
 project_javadoc(
-  name = "internal",
-  title = "ONOS Java API (%s)" % ONOS_VERSION,
-  srcs = SOURCES + INTERNAL_SOURCES,
-  deps = JAVADOC_DEPS,
-  groups = INTERNAL_GROUPS,
-  internal = True,
+    name = "internal",
+    srcs = SOURCES + INTERNAL_SOURCES,
+    groups = INTERNAL_GROUPS,
+    internal = True,
+    title = "ONOS Java API (%s)" % ONOS_VERSION,
+    deps = JAVADOC_DEPS,
 )
