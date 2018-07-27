@@ -10,8 +10,7 @@ osgi_feature_repo(
 osgi_feature(
     name = "onos-thirdparty-base",
     description = "ONOS 3rd party dependencies",
-    included_bundles = [
-        "@atomix//jar",
+    included_bundles = ATOMIX + [
         "@commons_lang//jar",
         "@commons_lang3//jar",
         "@commons_text//jar",
@@ -40,7 +39,6 @@ osgi_feature(
         "@jackson_annotations//jar",
         "@jackson_databind//jar",
         "@commons_collections//jar",
-        "@typesafe_config//jar",
         "@concurrent_trees//jar",
         "@commons_io//jar",
         "@mapdb//jar",
