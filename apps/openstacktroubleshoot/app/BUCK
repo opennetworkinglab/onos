@@ -1,0 +1,29 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:JACKSON',
+    '//lib:KRYO',
+    '//lib:org.apache.karaf.shell.console',
+    '//cli:onos-cli',
+    '//lib:javax.ws.rs-api',
+    '//utils/rest:onlab-rest',
+    '//apps/openstacktroubleshoot/api:onos-apps-openstacktroubleshoot-api',
+]
+
+TEST_DEPS = [
+    '//lib:TEST_ADAPTERS',
+    '//core/api:onos-api-tests',
+    '//core/common:onos-core-common-tests',
+    '//web/api:onos-rest-tests',
+    '//lib:TEST_REST',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
+    web_context = '/onos/openstacktroubleshoot',
+    api_title = 'OpenStack Troubleshoot API',
+    api_version = '1.0',
+    api_description = 'REST API for OpenStack Troubleshoot',
+    api_package = 'org.onosproject.openstacktroubleshoot.web',
+)
+
