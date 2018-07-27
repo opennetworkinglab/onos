@@ -29,6 +29,7 @@ import org.onlab.packet.DHCP;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.Ip4Address;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.TpPort;
@@ -97,7 +98,8 @@ public class OpenstackSwitchingDhcpHandler {
 
     private static final String DHCP_SERVER_MAC = "dhcpServerMac";
     private static final String DHCP_DATA_MTU = "dhcpDataMtu";
-    private static final Ip4Address DEFAULT_DNS = Ip4Address.valueOf("8.8.8.8");
+    private static final Ip4Address DEFAULT_PRIMARY_DNS = Ip4Address.valueOf("8.8.8.8");
+    private static final Ip4Address DEFAULT_SECONDARY_DNS = Ip4Address.valueOf("8.8.4.4");
     private static final byte PACKET_TTL = (byte) 127;
     // TODO add MTU, static route option codes to ONOS DHCP and remove here
     private static final byte DHCP_OPTION_MTU = (byte) 26;
@@ -394,9 +396,30 @@ public class OpenstackSwitchingDhcpHandler {
 
             // domain server
             option = new DhcpOption();
+
+            List<String> dnsServers = osSubnet.getDnsNames();
             option.setCode(OptionCode_DomainServer.getValue());
-            option.setLength((byte) 4);
-            option.setData(DEFAULT_DNS.toOctets());
+
+            if (dnsServers.isEmpty()) {
+                option.setLength((byte) 8);
+                ByteBuffer dnsByteBuf = ByteBuffer.allocate(8);
+                dnsByteBuf.put(DEFAULT_PRIMARY_DNS.toOctets());
+                dnsByteBuf.put(DEFAULT_SECONDARY_DNS.toOctets());
+
+                option.setData(dnsByteBuf.array());
+            } else {
+                int dnsLength = 4 * dnsServers.size();
+
+                option.setLength((byte) dnsLength);
+
+                ByteBuffer dnsByteBuf = ByteBuffer.allocate(8);
+
+                for (int i = 0; i < dnsServers.size(); i++) {
+                    dnsByteBuf.put(IpAddress.valueOf(dnsServers.get(i)).toOctets());
+                }
+                option.setData(dnsByteBuf.array());
+            }
+
             options.add(option);
 
             option = new DhcpOption();

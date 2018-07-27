@@ -426,7 +426,7 @@ public class OpenstackSwitchingDhcpHandlerTest {
 
             @Override
             public List<String> getDnsNames() {
-                return null;
+                return Lists.newArrayList();
             }
 
             @Override
