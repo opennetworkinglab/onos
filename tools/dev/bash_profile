@@ -175,6 +175,17 @@ function topos {
 # Sets the primary instance to the specified instance number.
 function setPrimaryInstance {
     export ONOS_INSTANCES=$(env | grep 'OC[0-9]*=' | sort | cut -d= -f2)
+
+    if [ -z "$OCC1" ]; then
+        aux=/tmp/cell-$$.aux
+        let i=1
+        for n in $ONOS_INSTANCES; do
+            echo "export OCC$i=$n" >> $aux
+            let i=i+1
+        done
+        [ -f $aux ] && source $aux && rm $aux
+    fi
+
     export ONOS_CORES=$(env | grep 'OCC[0-9]*=' | sort | cut -d= -f2)
     export OCI=$(env | egrep "OC[0-9]+" | sort | egrep OC${1:-1} | cut -d= -f2)
     echo $OCI

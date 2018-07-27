@@ -8,7 +8,7 @@
 
 let err=0
 
-for node in $OCT $OCN $(env | sort | egrep "^OC[C]*[0-9]+" | cut -d= -f2); do
+for node in $OCT $OCN $(env | sort | egrep "^OC[C]*[0-9]+" | cut -d= -f2 | sort -u); do
     for i in {1..18}; do
         printf "%s: " $node; ssh -n -q -o StrictHostKeyChecking=no -o PasswordAuthentication=no -o ConnectTimeout=10 $ONOS_USER@$node hostname
         if [ $? -eq 0 ]; then
