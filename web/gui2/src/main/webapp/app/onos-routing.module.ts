@@ -38,6 +38,10 @@ const onosRoutes: Routes = [
         loadChildren: 'app/view/partition/partition.module#PartitionModule'
     },
     {
+        path: 'cluster',
+        loadChildren: 'app/view/cluster/cluster.module#ClusterModule'
+    },
+    {
         path: 'device',
         loadChildren: 'app/view/device/device.module#DeviceModule'
     },

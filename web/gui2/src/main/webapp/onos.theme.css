@@ -86,3 +86,98 @@ body.dark {
     color: #dddddd;
     background-color: #222222;
 }
+
+.floatpanel {
+    background-color: white;
+    color: #3c3a3a;
+    border: 1px solid #c7c7c0;
+}
+
+#details-panel .floatpanel a {
+    font-weight: bold;
+}
+
+#details-panel .container {
+    padding: 8px 12px;
+
+}
+
+#details-panel .container .bottom {
+    /*overflow-y: scroll;*/
+}
+
+#details-panel .close-btn {
+    position: absolute;
+    right:5px;
+    width: 20px;
+    height: 20px;
+    top: 5px;
+    cursor: pointer;
+}
+
+#details-panel .dev-icon {
+    display: inline-block;
+    padding: 0 6px 0 0;
+    vertical-align: middle;
+}
+
+#details-panel h2 {
+    display: inline-block;
+    margin: 8px 0;
+    font-weight: bold;
+    font-size: 16pt;
+}
+
+#details-panel h2 input {
+    font-size: 0.90em;
+}
+
+#details-panel .actionBtns div {
+    padding: 12px 6px;
+}
+
+#details-panel hr {
+    margin: 2px auto;
+}
+
+#details-panel td.label {
+    font-weight: bold;
+    text-align: right;
+    padding-right: 6px;
+}
+
+#details-panel .bottom table {
+    border-spacing: 0;
+    table-layout:fixed;
+    /*overflow: auto;*/
+    display: block;
+}
+
+#details-panel .bottom th {
+    letter-spacing: 0.02em;
+}
+
+#details-panel .bottom th,
+#details-panel .bottom td {
+    padding: 6px 12px;
+    text-align: center;
+}
+
+#details-panel .bottom thead tr {
+    background-color: #e5e5e6;
+}
+
+svg.embeddedIcon g.icon .glyph {
+    fill: #0071bd;
+    stroke: none;
+    fill-rule: evenodd;
+}
+
+div.close-btn svg.embeddedIcon g.icon .glyph {
+    fill: #333333;
+}
+
+svg.embeddedIcon g.icon rect {
+    stroke: none;
+    fill: none;
+}

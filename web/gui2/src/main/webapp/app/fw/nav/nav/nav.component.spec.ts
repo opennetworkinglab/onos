@@ -130,6 +130,13 @@ describe('NavComponent', () => {
         expect(div.textContent).toEqual(' Applications');
     });
 
+    it('should have an cluster view link inside a nav#nav', () => {
+        const appDe: DebugElement = fixture.debugElement;
+        const divDe = appDe.query(By.css('nav#nav a#cluster'));
+        const div: HTMLElement = divDe.nativeElement;
+        expect(div.textContent).toEqual(' Cluster Nodes');
+    });
+
     it('should have an processor view link inside a nav#nav', () => {
         const appDe: DebugElement = fixture.debugElement;
         const divDe = appDe.query(By.css('nav#nav a#processor'));

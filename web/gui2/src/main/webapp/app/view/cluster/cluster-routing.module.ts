@@ -13,16 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { TunnelModule } from './tunnel.module';
+import { NgModule } from '@angular/core';
+import { Routes, RouterModule } from '@angular/router';
+import {ClusterComponent} from './cluster/cluster.component';
 
-describe('TunnelModule', () => {
-  let tunnelModule: TunnelModule;
+const clusterRoutes: Routes = [
+    {
+        path: '',
+        component: ClusterComponent
+    }
+];
 
-  beforeEach(() => {
-    tunnelModule = new TunnelModule();
-  });
-
-  it('should create an instance', () => {
-    expect(tunnelModule).toBeTruthy();
-  });
-});
+/**
+ * ONOS GUI -- Cluster Tabular View Feature Routing Module - allows it to be lazy loaded
+ *
+ * See https://angular.io/guide/lazy-loading-ngmodules
+ */
+@NgModule({
+    imports: [RouterModule.forChild(clusterRoutes)],
+    exports: [RouterModule]
+})
+export class ClusterRoutingModule { }

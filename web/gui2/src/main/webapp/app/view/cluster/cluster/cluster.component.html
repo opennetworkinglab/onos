@@ -1,0 +1,72 @@
+<!--
+~ Copyright 2018-present Open Networking Foundation
+~
+~ Licensed under the Apache License, Version 2.0 (the "License");
+~ you may not use this file except in compliance with the License.
+~ You may obtain a copy of the License at
+~
+~     http://www.apache.org/licenses/LICENSE-2.0
+~
+~ Unless required by applicable law or agreed to in writing, software
+~ distributed under the License is distributed on an "AS IS" BASIS,
+~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+~ See the License for the specific language governing permissions and
+~ limitations under the License.
+-->
+<div id="ov-cluster">
+    <div class="tabular-header">
+        <h2>
+            {{lionFn('title_cluster_nodes')}}
+            ({{tableData.length}} {{lionFn('total')}})
+        </h2>
+        <div class="ctrl-btns">
+            <div class="refresh" (click)="toggleRefresh()">
+                <onos-icon classes="{{ autoRefresh?'active refresh':'refresh' }}"
+                           iconId="refresh" iconSize="42" toolTip="{{ autoRefreshTip }}"></onos-icon>
+            </div>
+        </div>
+    </div>
+
+    <div class="summary-list" class="summary-list" onosTableResize>
+        <div class="table-header">
+            <table>
+                <tr>
+                    <td colId="_iconid_state" style="width:84px" class="table-icon">
+                        {{lionFn('active')}}
+                    </td>
+                    <td colId="_iconid_started" style="width:90px" class="table-icon">
+                        {{lionFn('started')}}
+                    </td>
+                    <td colId="id"> {{lionFn('node_id')}}</td>
+                    <td colId="ip"> {{lionFn('ip_address')}}</td>
+                    <td colId="tcp"> {{lionFn('tcp_port')}}</td>
+                    <td colId="updated"> {{lionFn('last_updated')}}</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="table-body">
+            <table>
+                <tr *ngIf="tableData.length === 0" class="no-data">
+                    <td colspan="9">{{ annots.noRowsMsg }}</td>
+                </tr>
+
+                <tr *ngFor="let node of tableData" (click)="selectCallback($event, node)"
+                    onosClusterDetails id="{{ selId }}" (closeEvent)="deselectRow($event)"
+                    [ngClass]="{selected: node.id === selId, 'data-change': isChanged(node.id)}">
+                    <td class="table-icon" style="width:84px">
+                        <onos-icon classes="{{ node._iconid_state}}" iconId={{node._iconid_state}}></onos-icon>
+                    </td>
+                    <td class="table-icon" style="width:90px">
+                        <onos-icon classes="{{node._iconid_started}}"
+                                   iconId="{{node._iconid_started}}"></onos-icon>
+                    </td>
+                    <td>{{node.id}}</td>
+                    <td>{{node.ip}}</td>
+                    <td>{{node.tcp}}</td>
+                    <td>{{node.updated}}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-present Open Networking Foundation
+ * Copyright 2018-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +15,17 @@
  */
 
 /*
- ONOS GUI -- core (layout) -- CSS file
+ ONOS GUI -- Cluster View (theme) -- CSS file
  */
 
-#view {
-    padding: 0px;
-    width: 100%;
-    height: 100%;
+.light #cluster-details-panel .bottom th {
+    background-color: #e5e5e6;
 }
 
-#view h2 {
-    -webkit-margin-before: 0;
-    -webkit-margin-after: 0;
+.light #cluster-details-panel .bottom tr:nth-child(odd) {
+    background-color: #fbfbfb;
+}
+.light #cluster-details-panel .bottom tr:nth-child(even) {
+    background-color: #f4f4f4;
 }
 
-#floatpanels {
-    z-index: 0;
-    font-size: 10pt;
-    width:821px;
-    top: 145px;
-}
