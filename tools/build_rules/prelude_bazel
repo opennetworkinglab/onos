@@ -13,6 +13,7 @@ load(
     "TEST_ADAPTERS",
     "TEST_REST",
     "ONOS_YANG",
+    "ATOMIX",
     "generated_java_libraries",
 )
 load("//tools/build/bazel:osgi_java_library.bzl", "osgi_jar", "osgi_jar_with_tests")

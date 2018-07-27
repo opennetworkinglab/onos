@@ -1,5 +1,4 @@
-COMPILE_DEPS = CORE_DEPS + KRYO + [
-    "@atomix//jar",
+COMPILE_DEPS = CORE_DEPS + KRYO + ATOMIX + [
     "//core/common:onos-core-common",
     "//core/store/serializers:onos-core-serializers",
     "//incubator/api:onos-incubator-api",
