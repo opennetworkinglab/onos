@@ -51,10 +51,13 @@ import org.openstack4j.model.network.IP;
 import org.openstack4j.model.network.IPVersionType;
 import org.openstack4j.model.network.Ipv6AddressMode;
 import org.openstack4j.model.network.Ipv6RaMode;
+import org.openstack4j.model.network.Network;
+import org.openstack4j.model.network.NetworkType;
 import org.openstack4j.model.network.Pool;
 import org.openstack4j.model.network.Port;
 import org.openstack4j.model.network.State;
 import org.openstack4j.model.network.Subnet;
+import org.openstack4j.model.network.builder.NetworkBuilder;
 import org.openstack4j.model.network.builder.PortBuilder;
 import org.openstack4j.model.network.builder.SubnetBuilder;
 import org.openstack4j.openstack.networking.domain.NeutronIP;
@@ -293,6 +296,11 @@ public class OpenstackSwitchingDhcpHandlerTest {
             return new TestSubnet();
         }
 
+        @Override
+        public Network network(String networkId) {
+            return new TestNetwork();
+        }
+
         /**
          * Mocks the Neutron port.
          */
@@ -410,6 +418,106 @@ public class OpenstackSwitchingDhcpHandlerTest {
         }
 
         /**
+         * Mocks the Neutron network.
+         */
+        private class TestNetwork implements Network {
+
+            @Override
+            public State getStatus() {
+                return null;
+            }
+
+            @Override
+            public List<String> getSubnets() {
+                return null;
+            }
+
+            @Override
+            public String getProviderPhyNet() {
+                return null;
+            }
+
+            @Override
+            public boolean isAdminStateUp() {
+                return false;
+            }
+
+            @Override
+            public NetworkType getNetworkType() {
+                return null;
+            }
+
+            @Override
+            public boolean isRouterExternal() {
+                return false;
+            }
+
+            @Override
+            public boolean isShared() {
+                return false;
+            }
+
+            @Override
+            public String getProviderSegID() {
+                return null;
+            }
+
+            @Override
+            public List<? extends Subnet> getNeutronSubnets() {
+                return null;
+            }
+
+            @Override
+            public Integer getMTU() {
+                return Integer.valueOf(4000);
+            }
+
+            @Override
+            public List<String> getAvailabilityZoneHints() {
+                return null;
+            }
+
+            @Override
+            public List<String> getAvailabilityZones() {
+                return null;
+            }
+
+            @Override
+            public NetworkBuilder toBuilder() {
+                return null;
+            }
+
+            @Override
+            public String getTenantId() {
+                return null;
+            }
+
+            @Override
+            public void setTenantId(String s) {
+
+            }
+
+            @Override
+            public String getName() {
+                return null;
+            }
+
+            @Override
+            public void setName(String s) {
+
+            }
+
+            @Override
+            public String getId() {
+                return null;
+            }
+
+            @Override
+            public void setId(String s) {
+
+            }
+        }
+        /**
          * Mocks the Neutron subnet.
          */
         private class TestSubnet implements Subnet {
@@ -421,7 +529,7 @@ public class OpenstackSwitchingDhcpHandlerTest {
 
             @Override
             public String getNetworkId() {
-                return null;
+                return "1";
             }
 
             @Override

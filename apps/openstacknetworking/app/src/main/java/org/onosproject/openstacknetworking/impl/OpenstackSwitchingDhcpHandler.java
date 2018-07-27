@@ -62,6 +62,7 @@ import org.onosproject.openstacknode.api.OpenstackNodeListener;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
 import org.openstack4j.model.network.HostRoute;
 import org.openstack4j.model.network.IP;
+import org.openstack4j.model.network.Network;
 import org.openstack4j.model.network.Port;
 import org.openstack4j.model.network.Subnet;
 import org.osgi.service.component.ComponentContext;
@@ -87,6 +88,7 @@ import static org.onosproject.openstacknetworking.api.Constants.DEFAULT_GATEWAY_
 import static org.onosproject.openstacknetworking.api.Constants.DHCP_ARP_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_DHCP_RULE;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -425,7 +427,11 @@ public class OpenstackSwitchingDhcpHandler {
             option = new DhcpOption();
             option.setCode(DHCP_OPTION_MTU);
             option.setLength((byte) 2);
-            option.setData(ByteBuffer.allocate(2).putShort((short) dhcpDataMtu).array());
+            Network osNetwork = osNetworkService.network(osSubnet.getNetworkId());
+            checkNotNull(osNetwork);
+            checkNotNull(osNetwork.getMTU());
+
+            option.setData(ByteBuffer.allocate(2).putShort(osNetwork.getMTU().shortValue()).array());
             options.add(option);
 
             // classless static route
