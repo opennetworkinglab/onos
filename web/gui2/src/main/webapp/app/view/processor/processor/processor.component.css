@@ -15,25 +15,42 @@
  */
 
 /*
- ONOS GUI -- Confirm Component (layout) -- CSS file
+ ONOS GUI -- Processor View (layout) -- CSS file
  */
-#app-dialog {
-    top: 140px;
-    padding: 12px;
+ #ov-processor .tabular-header {
+    text-align: left;
 }
 
-#app-dialog h3 {
+#ov-processor h2 {
     display: inline-block;
-    font-weight: bold;
-    font-size: 18pt;
 }
 
-#app-dialog p {
-    font-size: 12pt;
+#ov-processor div.summary-list .table-header td {
+    font-weight: bold;
+    font-variant: small-caps;
+    text-transform: uppercase;
+    font-size: 10pt;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    background-color: #e5e5e6;
+    color: #3c3a3a;
 }
 
-#app-dialog p.strong {
-    font-weight: bold;
-    padding: 8px;
+#ov-processor td {
+    text-align: left;
+}
+
+#ov-processor tr.no-data td {
     text-align: center;
 }
+
+#ov-processor td.priority {
+    text-align: center;
+}
+
+#ov-processor td.number {
+    text-align: right;
+}
+

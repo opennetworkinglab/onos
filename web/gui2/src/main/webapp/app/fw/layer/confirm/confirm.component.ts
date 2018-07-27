@@ -16,6 +16,7 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { trigger, state, style, animate, transition } from '@angular/animations';
 import { LogService } from '../../../log.service';
+import { LionService } from '../../../fw/util/lion.service';
 
 /**
  * ONOS GUI -- Layer -- Confirm Component
@@ -55,14 +56,19 @@ import { LogService } from '../../../log.service';
     ]
 })
 export class ConfirmComponent {
+
+    lionFn; // Function
+
     @Input() message: string;
     @Input() warning: string;
     @Output() chosen: EventEmitter<boolean> = new EventEmitter();
 
     constructor(
         private log: LogService,
+        private lion: LionService,
     ) {
         this.log.debug('ConfirmComponent constructed');
+        this.doLion();
     }
 
     /**
@@ -70,5 +76,12 @@ export class ConfirmComponent {
      */
     choice(chosen: boolean): void {
         this.chosen.emit(chosen);
+    }
+
+    /**
+     * Read the LION bundle for App to get confirm dialouge header
+     */
+    doLion() {
+        this.lionFn = this.lion.bundle('core.view.App');
     }
 }

@@ -13,27 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { NgModule } from '@angular/core';
+import { Routes, RouterModule } from '@angular/router';
+import { ProcessorComponent } from './processor/processor.component';
 
-/*
- ONOS GUI -- Confirm Component (layout) -- CSS file
- */
-#app-dialog {
-    top: 140px;
-    padding: 12px;
-}
+const processorRoutes: Routes = [
+    {
+        path: '',
+        component: ProcessorComponent
+    }
+];
 
-#app-dialog h3 {
-    display: inline-block;
-    font-weight: bold;
-    font-size: 18pt;
-}
-
-#app-dialog p {
-    font-size: 12pt;
-}
-
-#app-dialog p.strong {
-    font-weight: bold;
-    padding: 8px;
-    text-align: center;
-}
+@NgModule({
+    imports: [RouterModule.forChild(processorRoutes)],
+    exports: [RouterModule]
+})
+export class ProcessorRoutingModule { }

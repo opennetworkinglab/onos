@@ -26,6 +26,10 @@ const onosRoutes: Routes = [
         loadChildren: 'app/view/apps/apps.module#AppsModule'
     },
     {
+        path: 'processor',
+        loadChildren: 'app/view/processor/processor.module#ProcessorModule'
+    },
+    {
         path: 'device',
         loadChildren: 'app/view/device/device.module#DeviceModule'
     },
@@ -36,6 +40,10 @@ const onosRoutes: Routes = [
     {
         path: 'host',
         loadChildren: 'app/view/host/host.module#HostModule'
+    },
+    {
+        path: 'intent',
+        loadChildren: 'app/view/intent/intent.module#IntentModule'
     },
     {
         path: 'tunnel',

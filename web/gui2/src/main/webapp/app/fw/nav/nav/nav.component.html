@@ -19,6 +19,9 @@
     <a (click)="ns.hideNav()" routerLink="/app" routerLinkActive="active">
         <onos-icon iconId="nav_apps"></onos-icon> Apps</a>
 
+    <a (click)="ns.hideNav()" routerLink="/processor" routerLinkActive="active">
+        <onos-icon iconId="nav_processors"></onos-icon> Packet Processors</a>
+
     <div class="nav-hdr">{{ lionFn('cat_network') }}</div>
 
     <a (click)="ns.hideNav()" routerLink="/device" routerLinkActive="active">
@@ -29,6 +32,9 @@
 
     <a (click)="ns.hideNav()" routerLink="/host" routerLinkActive="active">
         <onos-icon iconId="nav_hosts"></onos-icon> Hosts</a>
+
+    <a (click)="ns.hideNav()" routerLink="/intent" routerLinkActive="active">
+        <onos-icon iconId="nav_intents"></onos-icon> Intents</a>
 
     <a (click)="ns.hideNav()" routerLink="/tunnel" routerLinkActive="active">
         <onos-icon iconId="nav_tunnels"></onos-icon> Tunnels</a>

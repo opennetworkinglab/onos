@@ -17,6 +17,7 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { DebugElement } from '@angular/core';
 import { By } from '@angular/platform-browser';
+import { LionService } from '../../../fw/util/lion.service';
 
 import { ConsoleLoggerService } from '../../../consolelogger.service';
 import { LogService } from '../../../log.service';
@@ -29,6 +30,14 @@ describe('ConfirmComponent', () => {
     let log: LogService;
     let component: ConfirmComponent;
     let fixture: ComponentFixture<ConfirmComponent>;
+    const bundleObj = {
+        'core.view.App': {
+            test: 'test1'
+        }
+    };
+    const mockLion = (key) => {
+        return bundleObj[key] || '%' + key + '%';
+    };
 
     beforeEach(async(() => {
         log = new ConsoleLoggerService();
@@ -37,6 +46,15 @@ describe('ConfirmComponent', () => {
             declarations: [ ConfirmComponent ],
             providers: [
                 { provide: LogService, useValue: log },
+                {
+                    provide: LionService, useFactory: (() => {
+                        return {
+                            bundle: ((bundleId) => mockLion),
+                            ubercache: new Array(),
+                            loadCbs: new Map<string, () => void>([])
+                        };
+                    })
+                },
             ]
         });
     }));
@@ -49,6 +67,13 @@ describe('ConfirmComponent', () => {
 
     it('should create', () => {
         expect(component).toBeTruthy();
+    });
+
+    it('should have a h3 inside a div#app-dialog', () => {
+        const appDe: DebugElement = fixture.debugElement;
+        const divDe = appDe.query(By.css('div#app-dialog h3'));
+        const div: HTMLElement = divDe.nativeElement;
+        expect(div.textContent).toEqual(' %dlg_confirm_action% ');
     });
 
     it('should have a div.dialog-button inside a div#app-dialog', () => {
