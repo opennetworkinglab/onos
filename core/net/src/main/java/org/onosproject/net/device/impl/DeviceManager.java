@@ -18,7 +18,6 @@ package org.onosproject.net.device.impl;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
-import com.google.common.util.concurrent.Futures;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -565,13 +564,11 @@ public class DeviceManager
                 deviceDescription = deviceAnnotationOp.combine(deviceId, deviceDescription, Optional.of(annoConfig));
             }
 
+            MastershipRole role = mastershipService.requestRoleForSync(deviceId);
+            log.info("Local role is {} for {}", role, deviceId);
             DeviceEvent event = store.createOrUpdateDevice(provider().id(), deviceId,
-                                                           deviceDescription);
-            Futures.getUnchecked(mastershipService.requestRoleFor(deviceId)
-                                         .thenAccept(role -> {
-                                             log.info("Local role is {} for {}", role, deviceId);
-                                             applyRole(deviceId, role);
-                                         }));
+                    deviceDescription);
+            applyRole(deviceId, role);
 
             if (portConfig != null) {
                 //updating the ports if configration exists
