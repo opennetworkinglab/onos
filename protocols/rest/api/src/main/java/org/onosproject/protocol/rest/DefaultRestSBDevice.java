@@ -79,13 +79,34 @@ public class DefaultRestSBDevice implements RestSBDevice {
                 Optional.empty() : Optional.ofNullable(swVersion);
         this.testUrl = StringUtils.isEmpty(testUrl) ?
                 Optional.empty() : Optional.ofNullable(testUrl);
-        if (this.manufacturer.isPresent()
-                && this.hwVersion.isPresent()
-                && this.swVersion.isPresent()) {
-            this.isProxy = true;
-        } else {
-            this.isProxy = false;
-        }
+        this.isProxy = false;
+    }
+
+    public DefaultRestSBDevice(IpAddress ip, int port, String name, String password,
+                               String protocol, String url, boolean isActive, String testUrl, String manufacturer,
+                               String hwVersion, String swVersion, boolean isProxy,
+                               AuthenticationScheme authenticationScheme, String token) {
+        Preconditions.checkNotNull(ip, "IP address cannot be null");
+        Preconditions.checkArgument(port > 0, "Port address cannot be negative");
+        Preconditions.checkNotNull(protocol, "protocol address cannot be null");
+        this.ip = ip;
+        this.port = port;
+        this.username = name;
+        this.password = StringUtils.isEmpty(password) ? null : password;
+        this.isActive = isActive;
+        this.protocol = protocol;
+        this.url = StringUtils.isEmpty(url) ? null : url;
+        this.authenticationScheme = authenticationScheme;
+        this.token = token;
+        this.manufacturer = StringUtils.isEmpty(manufacturer) ?
+                Optional.empty() : Optional.ofNullable(manufacturer);
+        this.hwVersion = StringUtils.isEmpty(hwVersion) ?
+                Optional.empty() : Optional.ofNullable(hwVersion);
+        this.swVersion = StringUtils.isEmpty(swVersion) ?
+                Optional.empty() : Optional.ofNullable(swVersion);
+        this.testUrl = StringUtils.isEmpty(testUrl) ?
+                Optional.empty() : Optional.ofNullable(testUrl);
+        this.isProxy = isProxy;
     }
 
     @Override

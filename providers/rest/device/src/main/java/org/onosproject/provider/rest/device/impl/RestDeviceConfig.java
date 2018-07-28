@@ -39,14 +39,15 @@ public class RestDeviceConfig extends Config<DeviceId> {
     private static final String MANUFACTURER = "manufacturer";
     private static final String HWVERSION = "hwVersion";
     private static final String SWVERSION = "swVersion";
+    private static final String PROXY = "isProxy";
     private static final String AUTHENTICATION_SCHEME = "authenticationScheme";
     private static final String TOKEN = "token";
 
     @Override
     public boolean isValid() {
         return hasOnlyFields(IP, PORT, USERNAME, PASSWORD, PROTOCOL, URL,
-                TESTURL, MANUFACTURER, HWVERSION, SWVERSION, AUTHENTICATION_SCHEME,
-                TOKEN) &&
+                TESTURL, MANUFACTURER, HWVERSION, SWVERSION, PROXY,
+                AUTHENTICATION_SCHEME, TOKEN) &&
                 ip() != null;
     }
 
@@ -138,6 +139,18 @@ public class RestDeviceConfig extends Config<DeviceId> {
      */
     public String swVersion() {
         return get(SWVERSION, "");
+    }
+
+    /**
+     * Gets whether the REST device is a proxy or not.
+     *
+     * @return proxy
+     */
+    public boolean isProxy() {
+        if (!hasField(PROXY)) {
+            return false;
+        }
+        return get(PROXY, false);
     }
 
     /**

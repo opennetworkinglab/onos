@@ -241,35 +241,26 @@ public class RestDeviceProvider extends AbstractProvider
     private void deviceAdded(RestSBDevice restSBDev) {
         checkNotNull(restSBDev, ISNOTNULL);
 
-        //check if the server is controlling a single or multiple devices
+        Driver driver = driverService.getDriver(restSBDev.manufacturer().get(),
+                                             restSBDev.hwVersion().get(),
+                                             restSBDev.swVersion().get());
+
+        // Check if the server is controlling a single or multiple devices
         if (restSBDev.isProxy()) {
-
-            Driver driver = driverService.getDriver(restSBDev.manufacturer().get(),
-                                                    restSBDev.hwVersion().get(),
-                                                    restSBDev.swVersion().get());
-
             if (driver != null && driver.hasBehaviour(DevicesDiscovery.class)) {
-
-                //Creates the driver to communicate with the server
-                DevicesDiscovery devicesDiscovery =
-                        devicesDiscovery(restSBDev, driver);
+                DevicesDiscovery devicesDiscovery = devicesDiscovery(restSBDev, driver);
                 Set<DeviceId> deviceIds = devicesDiscovery.deviceIds();
                 restSBDev.setActive(true);
                 deviceIds.forEach(deviceId -> {
                     controller.addProxiedDevice(deviceId, restSBDev);
-                    DeviceDescription devDesc =
-                            devicesDiscovery.deviceDetails(deviceId);
-                    checkNotNull(devDesc,
-                                 "deviceDescription cannot be null");
-                    providerService.deviceConnected(
-                            deviceId, mergeAnn(restSBDev.deviceId(), devDesc));
+                    DeviceDescription devDesc = devicesDiscovery.deviceDetails(deviceId);
+                    checkNotNull(devDesc, "DeviceDescription cannot be null");
+                    providerService.deviceConnected(deviceId, mergeAnn(restSBDev.deviceId(), devDesc));
 
                     if (driver.hasBehaviour(DeviceDescriptionDiscovery.class)) {
                         DriverHandler h = driverService.createHandler(deviceId);
-                        DeviceDescriptionDiscovery devDisc =
-                                h.behaviour(DeviceDescriptionDiscovery.class);
-                        providerService.updatePorts(deviceId,
-                                                    devDisc.discoverPortDetails());
+                        DeviceDescriptionDiscovery devDisc = h.behaviour(DeviceDescriptionDiscovery.class);
+                        providerService.updatePorts(deviceId, devDisc.discoverPortDetails());
                     }
 
                     checkAndUpdateDevice(deviceId);
@@ -279,21 +270,36 @@ public class RestDeviceProvider extends AbstractProvider
             }
         } else {
             DeviceId deviceId = restSBDev.deviceId();
-            ChassisId cid = new ChassisId();
-            String ipAddress = restSBDev.ip().toString();
-            SparseAnnotations annotations = DefaultAnnotations.builder()
-                    .set(IPADDRESS, ipAddress)
-                    .set(AnnotationKeys.PROTOCOL, REST.toUpperCase())
-                    .build();
-            DeviceDescription deviceDescription = new DefaultDeviceDescription(
-                    deviceId.uri(),
-                    Device.Type.SWITCH,
-                    UNKNOWN, UNKNOWN,
-                    UNKNOWN, UNKNOWN,
-                    cid,
-                    annotations);
-            restSBDev.setActive(true);
-            providerService.deviceConnected(deviceId, deviceDescription);
+            if (driver != null && driver.hasBehaviour(DevicesDiscovery.class)) {
+                restSBDev.setActive(true);
+                DevicesDiscovery devicesDiscovery = devicesDiscovery(restSBDev, driver);
+                DeviceDescription deviceDescription = devicesDiscovery.deviceDetails(deviceId);
+                checkNotNull(deviceDescription, "DeviceDescription cannot be null");
+                providerService.deviceConnected(deviceId, deviceDescription);
+
+                if (driver.hasBehaviour(DeviceDescriptionDiscovery.class)) {
+                    DriverHandler h = driverService.createHandler(deviceId);
+                    DeviceDescriptionDiscovery deviceDiscovery = h.behaviour(DeviceDescriptionDiscovery.class);
+                    providerService.updatePorts(deviceId, deviceDiscovery.discoverPortDetails());
+                }
+            } else {
+                ChassisId cid = new ChassisId();
+                String ipAddress = restSBDev.ip().toString();
+                SparseAnnotations annotations = DefaultAnnotations.builder()
+                        .set(IPADDRESS, ipAddress)
+                        .set(AnnotationKeys.PROTOCOL, REST.toUpperCase())
+                        .build();
+                DeviceDescription deviceDescription = new DefaultDeviceDescription(
+                        deviceId.uri(),
+                        Device.Type.SWITCH,
+                        UNKNOWN, UNKNOWN,
+                        UNKNOWN, UNKNOWN,
+                        cid,
+                        annotations);
+                restSBDev.setActive(true);
+                providerService.deviceConnected(deviceId, deviceDescription);
+            }
+
             checkAndUpdateDevice(deviceId);
         }
     }
@@ -312,16 +318,14 @@ public class RestDeviceProvider extends AbstractProvider
 
     private DevicesDiscovery devicesDiscovery(RestSBDevice restSBDevice, Driver driver) {
         DriverData driverData = new DefaultDriverData(driver, restSBDevice.deviceId());
-        DevicesDiscovery devicesDiscovery = driver.createBehaviour(driverData,
-                                                                   DevicesDiscovery.class);
+        DevicesDiscovery devicesDiscovery = driver.createBehaviour(driverData, DevicesDiscovery.class);
         devicesDiscovery.setHandler(new DefaultDriverHandler(driverData));
         return devicesDiscovery;
     }
 
     private void checkAndUpdateDevice(DeviceId deviceId) {
         if (deviceService.getDevice(deviceId) == null) {
-            log.warn("Device {} has not been added to store, " +
-                             "maybe due to a problem in connectivity", deviceId);
+            log.warn("Device {} has not been added to store, maybe due to a problem in connectivity", deviceId);
         } else {
             boolean isReachable = isReachable(deviceId);
             if (isReachable && deviceService.isAvailable(deviceId)) {
@@ -398,6 +402,7 @@ public class RestDeviceProvider extends AbstractProvider
                 config.manufacturer(),
                 config.hwVersion(),
                 config.swVersion(),
+                config.isProxy(),
                 config.authenticationScheme(),
                 config.token()
         );
@@ -456,8 +461,7 @@ public class RestDeviceProvider extends AbstractProvider
 
     private void discoverPorts(DeviceId deviceId) {
         Device device = deviceService.getDevice(deviceId);
-        DeviceDescriptionDiscovery deviceDescriptionDiscovery =
-                device.as(DeviceDescriptionDiscovery.class);
+        DeviceDescriptionDiscovery deviceDescriptionDiscovery = device.as(DeviceDescriptionDiscovery.class);
         providerService.updatePorts(deviceId, deviceDescriptionDiscovery.discoverPortDetails());
     }
 
@@ -497,6 +501,11 @@ public class RestDeviceProvider extends AbstractProvider
     private class InternalNetworkConfigListener implements NetworkConfigListener {
         @Override
         public void event(NetworkConfigEvent event) {
+            if (!isRelevant(event)) {
+                log.warn("Irrelevant network configuration event: {}", event);
+                return;
+            }
+
             ExecutorService bg = SharedExecutors.getSingleThreadExecutor();
             if (event.type() == CONFIG_REMOVED) {
                 DeviceId did = (DeviceId) event.subject();
