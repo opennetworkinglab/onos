@@ -99,9 +99,9 @@ public class ServerDevicesDiscovery extends BasicServerDriver
     /**
      * Resource endpoints of the server agent (REST server-side).
      */
-    private static final String RESOURCE_DISCOVERY_URL   = BASE_URL + "/resources";
-    private static final String GLOBAL_STATS_URL         = BASE_URL + "/stats";
-    private static final String SERVICE_CHAINS_STATS_URL = BASE_URL + "/chains_stats";  // + /ID
+    private static final String RESOURCE_DISCOVERY_URL   = BASE_URL + SLASH + "resources";
+    private static final String GLOBAL_STATS_URL         = BASE_URL + SLASH + "stats";
+    private static final String SERVICE_CHAINS_STATS_URL = BASE_URL + SLASH + "chains_stats";  // + /ID
 
     /**
      * Parameters to be exchanged with the server's agent.
@@ -211,9 +211,6 @@ public class ServerDevicesDiscovery extends BasicServerDriver
      * @return a DeviceDescription with the device's features
      */
     private DeviceDescription getDeviceDetails(DeviceId deviceId) {
-        // Create a description for this server device
-        ServerDeviceDescription desc = null;
-
         // Retrieve the device ID, if null given
         if (deviceId == null) {
             deviceId = getHandler().data().deviceId();
@@ -230,7 +227,7 @@ public class ServerDevicesDiscovery extends BasicServerDriver
             response = getController().get(deviceId, RESOURCE_DISCOVERY_URL, JSON);
         } catch (ProcessingException pEx) {
             log.error("Failed to discover the device details of: {}", deviceId);
-            return desc;
+            return null;
         }
 
         // Load the JSON into objects
@@ -244,12 +241,12 @@ public class ServerDevicesDiscovery extends BasicServerDriver
             objNode = (ObjectNode) jsonNode;
         } catch (IOException ioEx) {
             log.error("Failed to discover the device details of: {}", deviceId);
-            return desc;
+            return null;
         }
 
         if (jsonMap == null) {
             log.error("Failed to discover the device details of: {}", deviceId);
-            return desc;
+            return null;
         }
 
         // Get all the attributes
@@ -357,6 +354,9 @@ public class ServerDevicesDiscovery extends BasicServerDriver
         getController().removeDevice(deviceId);
         getController().addDevice((RestSBDevice) dev);
 
+        // Create a description for this server device
+        ServerDeviceDescription desc = null;
+
         try {
             desc = new DefaultServerDeviceDescription(
                 new URI(id), Device.Type.SERVER, vendor,
@@ -376,43 +376,30 @@ public class ServerDevicesDiscovery extends BasicServerDriver
 
     @Override
     public List<PortDescription> discoverPortDetails() {
-        // List of port descriptions to return
-        List<PortDescription> portDescriptions = Lists.newArrayList();
-
         // Retrieve the device ID
         DeviceId deviceId = getHandler().data().deviceId();
         checkNotNull(deviceId, DEVICE_ID_NULL);
+
         // .. and object
         RestServerSBDevice device = null;
-
-        // In case this method is called before discoverDeviceDetails,
-        // there is missing information to be gathered.
-        short i = 0;
-        while ((device == null) && (i < DISCOVERY_RETRIES)) {
-            i++;
-
-            try {
-                device = (RestServerSBDevice) getController().getDevice(deviceId);
-            } catch (ClassCastException ccEx) {
-                try {
-                    Thread.sleep(1);
-                } catch (InterruptedException intEx) {
-                    // Just retry
-                    continue;
-                }
-            }
-
-            // No device
-            if (device == null) {
-                // This method will add the device to the RestSBController
-                this.getDeviceDetails(deviceId);
-            }
+        try {
+            device = (RestServerSBDevice) getController().getDevice(deviceId);
+        } catch (ClassCastException ccEx) {
+            log.error("Failed to discover ports for device {}", deviceId);
+            return Collections.EMPTY_LIST;
         }
 
-        if ((device == null) || (device.nics() == null)) {
+        if (device == null) {
+            log.error("No device with ID {} is available for port discovery", deviceId);
+            return Collections.EMPTY_LIST;
+        }
+        if ((device.nics() == null) || (device.nics().size() == 0)) {
             log.error("No ports available on {}", deviceId);
             return Collections.EMPTY_LIST;
         }
+
+        // List of port descriptions to return
+        List<PortDescription> portDescriptions = Lists.newArrayList();
 
         // Sorted list of NIC ports
         Set<NicDevice> nics = new TreeSet(device.nics());
@@ -537,7 +524,9 @@ public class ServerDevicesDiscovery extends BasicServerDriver
                 deviceId);
             return monStats;
         }
-        checkNotNull(device, DEVICE_NULL);
+        if ((device == null) || (!device.isActive())) {
+            return monStats;
+        }
 
         // Hit the path that provides the server's global resources
         InputStream response = null;
@@ -546,6 +535,7 @@ public class ServerDevicesDiscovery extends BasicServerDriver
         } catch (ProcessingException pEx) {
             log.error("Failed to retrieve global monitoring statistics from device {}",
                 deviceId);
+            raiseDeviceDisconnect(device);
             return monStats;
         }
 
@@ -560,12 +550,14 @@ public class ServerDevicesDiscovery extends BasicServerDriver
         } catch (IOException ioEx) {
             log.error("Failed to retrieve global monitoring statistics from device {}",
                 deviceId);
+            raiseDeviceDisconnect(device);
             return monStats;
         }
 
         if (jsonMap == null) {
             log.error("Failed to retrieve global monitoring statistics from device {}",
                 deviceId);
+            raiseDeviceDisconnect(device);
             return monStats;
         }
 
@@ -629,10 +621,12 @@ public class ServerDevicesDiscovery extends BasicServerDriver
                 deviceId);
             return monStats;
         }
-        checkNotNull(device, DEVICE_NULL);
+        if (device == null) {
+            return monStats;
+        }
 
         // Create a resource-specific URL
-        String scUrl = SERVICE_CHAINS_STATS_URL + "/" + tcId.toString();
+        String scUrl = SERVICE_CHAINS_STATS_URL + SLASH + tcId.toString();
 
         // Hit the path that provides the server's specific resources
         InputStream response = null;
@@ -641,6 +635,7 @@ public class ServerDevicesDiscovery extends BasicServerDriver
         } catch (ProcessingException pEx) {
             log.error("Failed to retrieve monitoring statistics from device {}",
                 deviceId);
+            raiseDeviceDisconnect(device);
             return monStats;
         }
 
@@ -656,12 +651,14 @@ public class ServerDevicesDiscovery extends BasicServerDriver
         } catch (IOException ioEx) {
             log.error("Failed to retrieve monitoring statistics from device {}",
                 deviceId);
+            raiseDeviceDisconnect(device);
             return monStats;
         }
 
         if (jsonMap == null) {
             log.error("Failed to retrieve monitoring statistics from device {}",
                 deviceId);
+            raiseDeviceDisconnect(device);
             return monStats;
         }
 
@@ -711,9 +708,8 @@ public class ServerDevicesDiscovery extends BasicServerDriver
      * @param objNode input JSON node with CPU statistics information
      * @return list of (per core) CpuStatistics
      */
-    private Collection<CpuStatistics> parseCpuStatistics(
-            DeviceId deviceId, JsonNode objNode) {
-        if (objNode == null) {
+    private Collection<CpuStatistics> parseCpuStatistics(DeviceId deviceId, JsonNode objNode) {
+        if ((deviceId == null) || (objNode == null)) {
             return Collections.EMPTY_LIST;
         }
 
@@ -755,9 +751,8 @@ public class ServerDevicesDiscovery extends BasicServerDriver
      * @param objNode input JSON node with NIC statistics information
      * @return list of (per port) PortStatistics
      */
-    private Collection<PortStatistics> parseNicStatistics(
-            DeviceId deviceId, JsonNode objNode) {
-        if (objNode == null) {
+    private Collection<PortStatistics> parseNicStatistics(DeviceId deviceId, JsonNode objNode) {
+        if ((deviceId == null) || (objNode == null)) {
             return Collections.EMPTY_LIST;
         }
 
@@ -767,7 +762,9 @@ public class ServerDevicesDiscovery extends BasicServerDriver
         } catch (ClassCastException ccEx) {
             return Collections.EMPTY_LIST;
         }
-        checkNotNull(device, DEVICE_NULL);
+        if (device == null) {
+            return Collections.EMPTY_LIST;
+        }
 
         Collection<PortStatistics> nicStats = Lists.newArrayList();
 

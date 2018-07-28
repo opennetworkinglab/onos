@@ -53,7 +53,7 @@ public class ServerControllerConfig extends BasicServerDriver
     /**
      * Resource endpoints of the server agent (REST server-side).
      */
-    private static final String CONTROLLERS_CONF_URL = BASE_URL + "/controllers";
+    private static final String CONTROLLERS_CONF_URL = BASE_URL + SLASH + "controllers";
 
     /**
      * Parameters to be exchanged with the server's agent.
@@ -219,7 +219,7 @@ public class ServerControllerConfig extends BasicServerDriver
             log.info("Remove controller with {}:{}:{}",
                 ctrl.type(), ctrl.ip().toString(), ctrl.port());
 
-            String remCtrlUrl = CONTROLLERS_CONF_URL + "/" + ctrl.ip().toString();
+            String remCtrlUrl = CONTROLLERS_CONF_URL + SLASH + ctrl.ip().toString();
 
             // Remove this controller
             int response = getController().delete(deviceId, remCtrlUrl, null, JSON);

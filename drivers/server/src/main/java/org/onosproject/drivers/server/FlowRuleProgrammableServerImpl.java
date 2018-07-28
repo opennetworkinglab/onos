@@ -62,7 +62,7 @@ public class FlowRuleProgrammableServerImpl extends BasicServerDriver
     /**
      * Resource endpoints of the server agent (REST server-side).
      */
-    private static final String RULE_MANAGEMENT_URL = BASE_URL + "/rules";
+    private static final String RULE_MANAGEMENT_URL = BASE_URL + SLASH + "rules";
 
     /**
      * Parameters to be exchanged with the server's agent.
@@ -360,19 +360,23 @@ public class FlowRuleProgrammableServerImpl extends BasicServerDriver
      * @return boolean removal status
      */
     private boolean removeNicFlowRule(DeviceId deviceId, long ruleId) {
-        // Remove rule with ID from this server
-        int response = getController().delete(deviceId,
-            RULE_MANAGEMENT_URL + "/" + Long.toString(ruleId), null, JSON);
+        int response = -1;
 
-        if (!checkStatusCode(response)) {
-            log.error("Failed to remove flow rule {} from device {}",
-                ruleId, deviceId);
+        // Try to remove the rule, although server might be unreachable
+        try {
+            response = getController().delete(deviceId,
+                RULE_MANAGEMENT_URL + SLASH + Long.toString(ruleId), null, JSON);
+        } catch (Exception ex) {
+            log.error("Failed to remove flow rule {} from device {}", ruleId, deviceId);
             return false;
         }
 
-        log.info("Successfully removed flow rule {} from device {}",
-            ruleId, deviceId);
+        if (!checkStatusCode(response)) {
+            log.error("Failed to remove flow rule {} from device {}", ruleId, deviceId);
+            return false;
+        }
 
+        log.info("Successfully removed flow rule {} from device {}", ruleId, deviceId);
         return true;
     }
 
