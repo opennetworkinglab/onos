@@ -432,6 +432,26 @@ public abstract class Tools {
     }
 
     /**
+     * Get Float property from the propertyName
+     * Return null if propertyName is not found.
+     *
+     * @param properties   properties to be looked up
+     * @param propertyName the name of the property to look up
+     * @return value when the propertyName is defined or return null
+     */
+    public static Float getFloatProperty(Dictionary<?, ?> properties,
+                                             String propertyName) {
+        Float value;
+        try {
+            String s = get(properties, propertyName);
+            value = Strings.isNullOrEmpty(s) ? null : Float.valueOf(s);
+        } catch (NumberFormatException | ClassCastException e) {
+            value = null;
+        }
+        return value;
+    }
+
+    /**
      * Returns a function that retries execution on failure.
      * @param base base function
      * @param exceptionClass type of exception for which to retry
