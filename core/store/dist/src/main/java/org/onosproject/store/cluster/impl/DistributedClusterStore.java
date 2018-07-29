@@ -459,6 +459,11 @@ public class DistributedClusterStore
         this.minStandardDeviationMillis = minStandardDeviationMillis;
         try {
             failureDetector = new PhiAccrualFailureDetector(minStandardDeviationMillis);
+            nodeStates.forEach((nodeId, state) -> {
+                if (state != State.INACTIVE) {
+                    failureDetector.report(nodeId);
+                }
+            });
         } catch (IllegalArgumentException e) {
             log.warn(e.getMessage());
             this.minStandardDeviationMillis = DEFAULT_MIN_STANDARD_DEVIATION_MILLIS;
