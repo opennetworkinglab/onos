@@ -100,7 +100,6 @@ public class ClusterManager
         store.setDelegate(delegate);
         eventDispatcher.addSink(ClusterEvent.class, listenerRegistry);
         clusterMetadataService.addListener(metadataListener);
-        processMetadata(clusterMetadataService.getClusterMetadata());
         log.info("Started");
     }
 

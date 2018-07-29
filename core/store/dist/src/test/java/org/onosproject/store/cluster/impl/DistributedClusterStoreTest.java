@@ -104,6 +104,9 @@ public class DistributedClusterStoreTest {
     @Test
     public void addNodes() {
         clusterStore.setDelegate(delegate);
+        nodes = clusterStore.getNodes();
+        assertThat(nodes.size(), is(1));
+
         assertThat(clusterStore.hasDelegate(), is(true));
         clusterStore.addNode(NID1, IP1, PORT1);
         clusterStore.addNode(NID2, IP2, PORT2);
@@ -119,7 +122,7 @@ public class DistributedClusterStoreTest {
         assertThat(clusterStore.getState(clusterStore.getLocalNode().id()),
                 is(ControllerNode.State.ACTIVE));
         nodes = clusterStore.getNodes();
-        assertThat(nodes.size(), is(2));
+        assertThat(nodes.size(), is(3));
         clusterStore.markFullyStarted(true);
 
         clusterStore.unsetDelegate(delegate);

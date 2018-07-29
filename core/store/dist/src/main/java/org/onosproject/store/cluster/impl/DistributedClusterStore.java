@@ -175,6 +175,8 @@ public class DistributedClusterStore
         heartbeatFuture = heartbeatScheduler.scheduleWithFixedDelay(this::heartbeat, 0,
                 heartbeatInterval, TimeUnit.MILLISECONDS);
 
+        clusterMetadataService.getClusterMetadata().getNodes().forEach(this::addNode);
+
         log.info("Started");
     }
 
