@@ -342,8 +342,8 @@ public class DistributedClusterStore
             if (clusterMetadataService.getClusterMetadata().getNodes().contains(hb.source())) {
                 // Avoid reporting heartbeats that have been enqueued by setting a minimum interval.
                 long heartbeatTime = System.currentTimeMillis();
-                long lastHeartbeatTime = failureDetector.getLastHeartbeatTime(hb.source().id());
-                if (heartbeatTime - lastHeartbeatTime > heartbeatInterval / 2) {
+                Long lastHeartbeatTime = failureDetector.getLastHeartbeatTime(hb.source().id());
+                if (lastHeartbeatTime == null || heartbeatTime - lastHeartbeatTime > heartbeatInterval / 2) {
                     failureDetector.report(hb.source().id(), heartbeatTime);
                 }
                 updateNode(hb.source().id(), hb.state, hb.version);
