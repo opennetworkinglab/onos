@@ -73,6 +73,7 @@ import java.util.Dictionary;
 import java.util.List;
 import java.util.Objects;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_BroadcastAddress;
 import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_Classless_Static_Route;
 import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_DHCPServerIp;
@@ -80,7 +81,6 @@ import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_DomainServer;
 import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_END;
 import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_LeaseTime;
 import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_MessageType;
-import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_RouterAddress;
 import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_SubnetMask;
 import static org.onlab.packet.DHCP.MsgType.DHCPACK;
 import static org.onlab.packet.DHCP.MsgType.DHCPOFFER;
@@ -88,7 +88,6 @@ import static org.onosproject.openstacknetworking.api.Constants.DEFAULT_GATEWAY_
 import static org.onosproject.openstacknetworking.api.Constants.DHCP_ARP_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_DHCP_RULE;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -111,7 +110,7 @@ public class OpenstackSwitchingDhcpHandler {
     private static final int DHCP_DATA_MTU_DEFAULT = 1450;
     private static final int OCTET_BIT_LENGTH = 8;
     private static final int V4_BYTE_SIZE = 4;
-    private static final int V4_CIDR_LOWER_BOUND = 0;
+    private static final int V4_CIDR_LOWER_BOUND = -1;
     private static final int V4_CIDR_UPPER_BOUND = 33;
     private static final int PADDING_SIZE = 4;
 
@@ -146,8 +145,6 @@ public class OpenstackSwitchingDhcpHandler {
             label = "Fake MAC address for virtual network subnet gateway")
     private String dhcpServerMac = DEFAULT_GATEWAY_MAC_STR;
 
-    @Property(name = DHCP_DATA_MTU, intValue = DHCP_DATA_MTU_DEFAULT,
-            label = "DHCP data Maximum Transmission Unit")
     private int dhcpDataMtu = DHCP_DATA_MTU_DEFAULT;
 
     private final PacketProcessor packetProcessor = new InternalPacketProcessor();
@@ -182,17 +179,11 @@ public class OpenstackSwitchingDhcpHandler {
     protected void modified(ComponentContext context) {
         Dictionary<?, ?> properties = context.getProperties();
         String updatedMac;
-        Integer updateMtu;
 
         updatedMac = Tools.get(properties, DHCP_SERVER_MAC);
-        updateMtu = Tools.getIntegerProperty(properties, DHCP_DATA_MTU);
 
         if (!Strings.isNullOrEmpty(updatedMac) && !updatedMac.equals(dhcpServerMac)) {
             dhcpServerMac = updatedMac;
-        }
-
-        if (updateMtu != null && updateMtu != dhcpDataMtu) {
-            dhcpDataMtu = updateMtu;
         }
 
         log.info("Modified");
@@ -464,13 +455,6 @@ public class OpenstackSwitchingDhcpHandler {
                 options.add(option);
             }
 
-            // router address
-            option = new DhcpOption();
-            option.setCode(OptionCode_RouterAddress.getValue());
-            option.setLength((byte) 4);
-            option.setData(Ip4Address.valueOf(osSubnet.getGateway()).toOctets());
-            options.add(option);
-
             // end option
             option = new DhcpOption();
             option.setCode(OptionCode_END.getValue());
@@ -492,8 +476,7 @@ public class OpenstackSwitchingDhcpHandler {
                     throw new IllegalArgumentException("Illegal CIDR length value!");
                 }
 
-                for (int i = 1; i <= V4_BYTE_SIZE; i++) {
-
+                for (int i = 0; i <= V4_BYTE_SIZE; i++) {
                     if (preFixLen == Math.min(preFixLen, i * OCTET_BIT_LENGTH)) {
                         size = size + i + 1 + PADDING_SIZE;
                         break;
@@ -513,12 +496,13 @@ public class OpenstackSwitchingDhcpHandler {
                     .split("/")[0]
                     .split("\\.");
 
-            // retrieve destination descriptor and put this to bytebuffer according to 3442
+            // retrieve destination descriptor and put this to bytebuffer according to RFC 3442
+            // ex) 0.0.0.0/0 -> 0
             // ex) 10.0.0.0/8 -> 8.10
             // ex) 10.17.0.0/16 -> 16.10.17
             // ex) 10.27.129.0/24 -> 24.10.27.129
             // ex) 10.229.0.128/25 -> 25.10.229.0.128
-            for (int i = 1; i <= V4_BYTE_SIZE; i++) {
+            for (int i = 0; i <= V4_BYTE_SIZE; i++) {
                 if (prefixLen == Math.min(prefixLen, i * OCTET_BIT_LENGTH)) {
                     byteBuffer = ByteBuffer.allocate(i + 1);
                     byteBuffer.put((byte) prefixLen);

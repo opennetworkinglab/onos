@@ -25,6 +25,7 @@ import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.UDP;
 import org.onlab.packet.dhcp.DhcpOption;
@@ -60,6 +61,7 @@ import org.openstack4j.model.network.Subnet;
 import org.openstack4j.model.network.builder.NetworkBuilder;
 import org.openstack4j.model.network.builder.PortBuilder;
 import org.openstack4j.model.network.builder.SubnetBuilder;
+import org.openstack4j.openstack.networking.domain.NeutronHostRoute;
 import org.openstack4j.openstack.networking.domain.NeutronIP;
 
 import java.nio.ByteBuffer;
@@ -70,6 +72,11 @@ import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
+import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_Classless_Static_Route;
+import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_DomainServer;
+import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_END;
+import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_MessageType;
+import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_RequestedIP;
 import static org.onosproject.net.NetTestTools.connectPoint;
 
 /**
@@ -81,6 +88,9 @@ public class OpenstackSwitchingDhcpHandlerTest {
 
     protected PacketProcessor packetProcessor;
 
+    private static final byte DHCP_OPTION_MTU = (byte) 26;
+
+    private static final short MTU = 1450;
     private static final HostId CLIENT_HOST =
                          HostId.hostId(MacAddress.valueOf("1a:1a:1a:1a:1a:1a"));
     private static final String EXPECTED_IP = "10.2.0.2";
@@ -89,6 +99,21 @@ public class OpenstackSwitchingDhcpHandlerTest {
     private static final Ip4Address BROADCAST =
                          Ip4Address.valueOf("255.255.255.255");
     private static final int TRANSACTION_ID = 1986;
+    private static final Ip4Address DEFAULT_PRIMARY_DNS = Ip4Address.valueOf("8.8.8.8");
+    private static final Ip4Address DEFAULT_SECONDARY_DNS = Ip4Address.valueOf("8.8.4.4");
+    private static final String HOST_ROUTE_1_DESTINATION = "0.0.0.0/0";
+    private static final String HOST_ROUTE_1_NEXTHOP = "10.2.0.1";
+    private static final String HOST_ROUTE_2_DESTINATION = "10.0.0.0/8";
+    private static final String HOST_ROUTE_2_NEXTHOP = "10.2.0.1";
+    private static final String HOST_ROUTE_3_DESTINATION = "10.0.0.0/16";
+    private static final String HOST_ROUTE_3_NEXTHOP = "10.2.0.1";
+    private static final String HOST_ROUTE_4_DESTINATION = "10.0.0.0/24";
+    private static final String HOST_ROUTE_4_NEXTHOP = "10.2.0.1";
+    private static final HostRoute HOST_ROUTE_1 = new NeutronHostRoute(HOST_ROUTE_1_DESTINATION, HOST_ROUTE_1_NEXTHOP);
+    private static final HostRoute HOST_ROUTE_2 = new NeutronHostRoute(HOST_ROUTE_2_DESTINATION, HOST_ROUTE_2_NEXTHOP);
+    private static final HostRoute HOST_ROUTE_3 = new NeutronHostRoute(HOST_ROUTE_3_DESTINATION, HOST_ROUTE_3_NEXTHOP);
+    private static final HostRoute HOST_ROUTE_4 = new NeutronHostRoute(HOST_ROUTE_4_DESTINATION, HOST_ROUTE_4_NEXTHOP);
+    private static final int HOST_ROUTES_SIZE = 26;
 
     private static final String IP_SUBNET_ID = "1";
 
@@ -213,7 +238,7 @@ public class OpenstackSwitchingDhcpHandlerTest {
         List<DhcpOption> optionList = new ArrayList<>();
 
         // DHCP message type
-        option.setCode(DHCP.DHCPOptionCode.OptionCode_MessageType.getValue());
+        option.setCode(OptionCode_MessageType.getValue());
         option.setLength((byte) 1);
         byte[] optionData = {(byte) msgType.getValue()};
         option.setData(optionData);
@@ -221,15 +246,50 @@ public class OpenstackSwitchingDhcpHandlerTest {
 
         // DHCP requested IP address
         option = new DhcpOption();
-        option.setCode(DHCP.DHCPOptionCode.OptionCode_RequestedIP.getValue());
+        option.setCode(OptionCode_RequestedIP.getValue());
         option.setLength((byte) 4);
         optionData = Ip4Address.valueOf(EXPECTED_IP).toOctets();
         option.setData(optionData);
         optionList.add(option);
 
+        // DHCP domain server
+        Subnet subnet = dhcpHandler.osNetworkService.subnet("subnet");
+
+        option = new DhcpOption();
+        option.setCode(OptionCode_DomainServer.getValue());
+        option.setLength((byte) 8);
+        ByteBuffer dnsByteBuf = ByteBuffer.allocate(8);
+        dnsByteBuf.put(DEFAULT_PRIMARY_DNS.toOctets());
+        dnsByteBuf.put(DEFAULT_SECONDARY_DNS.toOctets());
+        option.setData(dnsByteBuf.array());
+        optionList.add(option);
+
+        // MTU
+        option = new DhcpOption();
+        option.setCode(DHCP_OPTION_MTU);
+        option.setLength((byte) 2);
+        option.setData(ByteBuffer.allocate(2).putShort(MTU).array());
+        optionList.add(option);
+
+        // classless static route
+        option = new DhcpOption();
+        option.setCode(OptionCode_Classless_Static_Route.getValue());
+
+        option.setLength((byte) HOST_ROUTES_SIZE);
+        ByteBuffer hostRouteByteBuf = ByteBuffer.allocate(HOST_ROUTES_SIZE);
+
+        subnet.getHostRoutes().forEach(h -> {
+            IpPrefix ipPrefix = IpPrefix.valueOf(h.getDestination());
+            hostRouteByteBuf.put(bytesDestinationDescriptor(ipPrefix));
+            hostRouteByteBuf.put(Ip4Address.valueOf(h.getNexthop()).toOctets());
+        });
+
+        option.setData(hostRouteByteBuf.array());
+        optionList.add(option);
+
         // DHCP options end...
         option = new DhcpOption();
-        option.setCode(DHCP.DHCPOptionCode.OptionCode_END.getValue());
+        option.setCode(OptionCode_END.getValue());
         option.setLength((byte) 1);
         optionList.add(option);
 
@@ -240,6 +300,37 @@ public class OpenstackSwitchingDhcpHandlerTest {
         ethFrame.setPayload(ipv4Pkt);
 
         return ethFrame;
+    }
+
+    private byte[] bytesDestinationDescriptor(IpPrefix ipPrefix) {
+        ByteBuffer byteBuffer;
+        int prefixLen = ipPrefix.prefixLength();
+
+        // retrieve ipPrefix to the destination descriptor format
+        // ex) 10.1.1.0/24 -> [10,1,1,0]
+        String[] ipPrefixString = ipPrefix.getIp4Prefix().toString()
+                .split("/")[0]
+                .split("\\.");
+
+        // retrieve destination descriptor and put this to bytebuffer according to RFC 3442
+        // ex) 0.0.0.0/0 -> 0
+        // ex) 10.0.0.0/8 -> 8.10
+        // ex) 10.17.0.0/16 -> 16.10.17
+        // ex) 10.27.129.0/24 -> 24.10.27.129
+        // ex) 10.229.0.128/25 -> 25.10.229.0.128
+        for (int i = 0; i <= 4; i++) {
+            if (prefixLen == Math.min(prefixLen, i * 8)) {
+                byteBuffer = ByteBuffer.allocate(i + 1);
+                byteBuffer.put((byte) prefixLen);
+
+                for (int j = 0; j < i; j++) {
+                    byteBuffer.put((byte) Integer.parseInt(ipPrefixString[j]));
+                }
+                return byteBuffer.array();
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -517,6 +608,7 @@ public class OpenstackSwitchingDhcpHandlerTest {
 
             }
         }
+
         /**
          * Mocks the Neutron subnet.
          */
@@ -534,7 +626,11 @@ public class OpenstackSwitchingDhcpHandlerTest {
 
             @Override
             public List<String> getDnsNames() {
-                return Lists.newArrayList();
+                List<String> dnsServers = Lists.newArrayList();
+                dnsServers.add(DEFAULT_PRIMARY_DNS.toString());
+                dnsServers.add(DEFAULT_SECONDARY_DNS.toString());
+
+                return dnsServers;
             }
 
             @Override
@@ -544,7 +640,14 @@ public class OpenstackSwitchingDhcpHandlerTest {
 
             @Override
             public List<? extends HostRoute> getHostRoutes() {
-                return Lists.newArrayList();
+                List<HostRoute> hostRoutes = Lists.newArrayList();
+
+                hostRoutes.add(HOST_ROUTE_1);
+                hostRoutes.add(HOST_ROUTE_2);
+                hostRoutes.add(HOST_ROUTE_3);
+                hostRoutes.add(HOST_ROUTE_4);
+
+                return hostRoutes;
             }
 
             @Override
