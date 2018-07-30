@@ -24,6 +24,12 @@ function testJars {
     egrep -v '(# |grpc/api|build/conf)' tools/build/publish-test-target-list
 }
 
+# Required to avoid having Bazel re-build stuff unnecessarily
+export SHLVL=1
+
+# Inject the onos-dependencies pom from lib/pom.xml
+VERSION=$(egrep ONOS_VERSION tools/build/bazel/variables.bzl | cut -d\" -f2)
+echo "lib/pom.xml	org/onosproject/onos-dependencies/$VERSION/onos-dependencies-$VERSION.pom" >> $CATALOG
 
 echo "Cataloging jar files..."
 writeCatalog $(jars)
