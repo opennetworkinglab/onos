@@ -44,7 +44,8 @@ public final class ClusterMetadata implements Provided {
     private final ProviderId providerId;
     private final String name;
     private final ControllerNode localNode;
-    private final Set<Node> nodes;
+    private final Set<ControllerNode> controllerNodes;
+    private final Set<Node> storageNodes;
 
     public static final Funnel<ClusterMetadata> HASH_FUNNEL = new Funnel<ClusterMetadata>() {
         @Override
@@ -58,22 +59,26 @@ public final class ClusterMetadata implements Provided {
         providerId = null;
         name = null;
         localNode = null;
-        nodes = null;
+        controllerNodes = null;
+        storageNodes = null;
     }
 
     public ClusterMetadata(
         ProviderId providerId,
         String name,
         ControllerNode localNode,
-        Set<Node> nodes) {
+        Set<ControllerNode> controllerNodes,
+        Set<Node> storageNodes) {
         this.providerId = checkNotNull(providerId);
         this.name = checkNotNull(name);
         this.localNode = localNode;
-        this.nodes = ImmutableSet.copyOf(checkNotNull(nodes));
+        this.controllerNodes = ImmutableSet.copyOf(checkNotNull(controllerNodes));
+        this.storageNodes = ImmutableSet.copyOf(checkNotNull(storageNodes));
     }
 
-    public ClusterMetadata(String name, ControllerNode localNode, Set<Node> nodes) {
-        this(new ProviderId("none", "none"), name, localNode, nodes);
+    public ClusterMetadata(
+            String name, ControllerNode localNode, Set<ControllerNode> controllerNodes, Set<Node> storageNodes) {
+        this(new ProviderId("none", "none"), name, localNode, controllerNodes, storageNodes);
     }
 
     @Override
@@ -102,8 +107,17 @@ public final class ClusterMetadata implements Provided {
      * Returns the collection of {@link org.onosproject.cluster.ControllerNode nodes} that make up the cluster.
      * @return cluster nodes
      */
+    @Deprecated
     public Collection<ControllerNode> getNodes() {
-        return (Collection) nodes;
+        return getControllerNodes();
+    }
+
+    /**
+     * Returns the collection of {@link org.onosproject.cluster.ControllerNode nodes} that make up the cluster.
+     * @return controller nodes
+     */
+    public Collection<ControllerNode> getControllerNodes() {
+        return controllerNodes;
     }
 
     /**
@@ -112,7 +126,7 @@ public final class ClusterMetadata implements Provided {
      * @return the collection of storage nodes
      */
     public Collection<Node> getStorageNodes() {
-        return nodes;
+        return storageNodes;
     }
 
     /**
@@ -131,13 +145,14 @@ public final class ClusterMetadata implements Provided {
         return MoreObjects.toStringHelper(ClusterMetadata.class)
                 .add("providerId", providerId)
                 .add("name", name)
-                .add("nodes", nodes)
+                .add("controllerNodes", controllerNodes)
+                .add("storageNodes", storageNodes)
                 .toString();
     }
 
     @Override
     public int hashCode() {
-        return Arrays.deepHashCode(new Object[] {providerId, name, nodes});
+        return Arrays.deepHashCode(new Object[] {providerId, name, controllerNodes, storageNodes});
     }
 
     /*
@@ -157,8 +172,10 @@ public final class ClusterMetadata implements Provided {
         ClusterMetadata that = (ClusterMetadata) object;
 
         return Objects.equals(this.name, that.name) &&
-               this.localNode.equals(that.localNode) &&
-               Objects.equals(this.nodes.size(), that.nodes.size()) &&
-               Sets.symmetricDifference(this.nodes, that.nodes).isEmpty();
+                this.localNode.equals(that.localNode) &&
+                Objects.equals(this.controllerNodes.size(), that.controllerNodes.size()) &&
+                Sets.symmetricDifference(this.controllerNodes, that.controllerNodes).isEmpty() &&
+                Objects.equals(this.storageNodes.size(), that.storageNodes.size()) &&
+                Sets.symmetricDifference(this.storageNodes, that.storageNodes).isEmpty();
     }
 }

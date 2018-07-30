@@ -20,26 +20,30 @@
               exec="onos ${OC1} cfg set org.onosproject.net.intent.impl.compiler.IntentConfigurableRegistrator useFlowObjectives true"/>
 
         <group name="Cleanup">
-            <parallel var="${OC#}">
-                <step name="Push-Bits-${#}" exec="onos-push-bits ${OC#}"
-                      unless="${OCT}"/>
-                <step name="Uninstall-${#}" exec="onos-uninstall ${OC#}"/>
-                <step name="Kill-${#}" env="~" exec="onos-kill ${OC#}"
-                      requires="Uninstall-${#}"/>
-            </parallel>
-            <parallel var="${OCC#}">
-                <step name="Atomix-Kill-${#}"
-                      env="~"
-                      exec="atomix-kill ${OCC#}"/>
-                <step name="Atomix-Uninstall-${#}"
-                      exec="atomix-uninstall ${OCC#}"
-                      requires="Atomix-Kill-${#}"/>
-            </parallel>
+            <group name="Cleanup-ONOS">
+                <parallel var="${OC#}">
+                    <step name="Push-Bits-${#}" exec="onos-push-bits ${OC#}"
+                          unless="${OCT}"/>
+                    <step name="Uninstall-${#}" exec="onos-uninstall ${OC#}"/>
+                    <step name="Kill-${#}" env="~" exec="onos-kill ${OC#}"
+                          requires="Uninstall-${#}"/>
+                </parallel>
+            </group>
+            <group name="Cleanup-Atomix" if="${OCC1}">
+                <parallel var="${OCC#}">
+                    <step name="Atomix-Kill-${#}"
+                          env="~"
+                          exec="atomix-kill ${OCC#}"/>
+                    <step name="Atomix-Uninstall-${#}"
+                          exec="atomix-uninstall ${OCC#}"
+                          requires="Atomix-Kill-${#}"/>
+                </parallel>
+            </group>
         </group>
 
-        <group name="Install-Atomix">
-            <step name="Generate-Cluster-Key" exec="onos-gen-cluster-key -f" />
+        <step name="Generate-Cluster-Key" exec="onos-gen-cluster-key -f"/>
 
+        <group name="Install-Atomix" if="${OCC1}">
             <group name="Parallel-Install-Atomix">
                 <parallel var="${OCC#}">
                     <step name="Parallel-Install-Atomix-${#}" exec="atomix-install ${OCC#}"

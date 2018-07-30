@@ -33,68 +33,74 @@ import json
 convert = lambda text: int(text) if text.isdigit() else text.lower()
 alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
 
-def get_OCC_vars():
-  vars = []
-  for var in environ:
-    if re.match(r"OCC[0-9]+", var):
-      vars.append(var)
-  return sorted(vars, key=alphanum_key)
 
-def get_nodes(ips=None, default_port=5679):
-    node = lambda id, ip, port : { 'id': id, 'ip': ip, 'port': port }
+def get_vars(type):
+    types = {'controller': 'OC', 'storage': 'OCC'}
+    vars = []
+    for var in environ:
+        if re.match(r"{}[0-9]+".format(types[type]), var):
+            vars.append(var)
+    return sorted(vars, key=alphanum_key)
+
+
+def get_nodes(type, ips=None, default_port=5679):
+    node = lambda id, ip, port: {'id': id, 'ip': ip, 'port': port}
+    prefixes = {'controller': 'onos', 'storage': 'atomix'}
     result = []
     if not ips:
-        ips = [ environ[v] for v in get_OCC_vars() ]
+        ips = [environ[v] for v in get_vars(type)]
     i = 1
     for ip_string in ips:
         address_tuple = ip_string.split(":")
         if len(address_tuple) == 3:
-            id=address_tuple[0]
-            ip=address_tuple[1]
-            port=int(address_tuple[2])
+            id = address_tuple[0]
+            ip = address_tuple[1]
+            port = int(address_tuple[2])
         else:
-            id='atomix-{}'.format(i)
+            id = '{}-{}'.format(prefixes[type], i)
             i += 1
-            ip=ip_string
-            port=default_port
+            ip = ip_string
+            port = default_port
         result.append(node(id, ip, port))
     return result
 
+
 if __name__ == '__main__':
-  parser = argparse.ArgumentParser(
-      description="Generate the partitions json file given a list of IPs or from the $OC* environment variables.")
-  parser.add_argument(
-      '-s', '--partition-size', type=int, default=3,
-      help="Number of nodes per partition. Note that partition sizes smaller than 3 are not fault tolerant. Defaults to 3." )
-  parser.add_argument(
-      '-n', '--num-partitions', type=int,
-      help="Number of partitions. Defaults to the number of nodes in the cluster." )
- # TODO: make filename and nodes independent. This will break backwards compatibility with existing usage.
-  parser.add_argument(
-     'filename', metavar='filename', type=str, nargs='?',
-     help='File to write output to. If none is provided, output is written to stdout.')
-  parser.add_argument(
-      'nodes', metavar='node_ip', type=str, nargs='*',
-      help='IP Address(es) of the node(s) in the cluster. If no IPs are given, ' +
-           'will use the $OC* environment variables. NOTE: these arguemnts' +
-           ' are only processed after the filename argument.')
+    parser = argparse.ArgumentParser(
+        description="Generate the partitions json file given a list of IPs or from environment variables.")
+    parser.add_argument(
+        'filename', metavar='filename', type=str, nargs='?',
+        help='File to write output to. If none is provided, output is written to stdout.')
+    parser.add_argument(
+        '--controller-nodes', '-c', metavar='node_ip', type=str, nargs='+',
+        help='IP Address(es) of the controller nodes. If no IPs are given, ' +
+             'will use the $OC* environment variables. NOTE: these arguemnts' +
+             ' are only processed after the filename argument.')
+    parser.add_argument(
+        '--storage-nodes', '-s', metavar='node_ip', type=str, nargs='+',
+        help='IP Address(es) of the storage nodes. If no IPs are given, ' +
+             'will use the $OCC* environment variables. NOTE: these arguemnts' +
+             ' are only processed after the filename argument.')
 
-  args = parser.parse_args()
-  filename = args.filename
-  partition_size = args.partition_size
-  cluster = get_nodes(args.nodes)
-  num_partitions = args.num_partitions
-  if not num_partitions:
-    num_partitions = len(cluster)
+    args = parser.parse_args()
+    filename = args.filename
+    controller = get_nodes('controller', args.controller_nodes)
+    storage = get_nodes('storage', args.storage_nodes)
 
-  data = {
-           'name': 'onos',
-           'cluster': cluster
-         }
-  output = json.dumps(data, indent=4)
+    if len(storage) > 0:
+        data = {
+            'name': 'onos',
+            'storage': storage
+        }
+    else:
+        data = {
+            'name': 'onos',
+            'controller': controller
+        }
+    output = json.dumps(data, indent=4)
 
-  if filename:
-    with open(filename, 'w') as f:
-      f.write(output)
-  else:
-    print output
+    if filename:
+        with open(filename, 'w') as f:
+            f.write(output)
+    else:
+        print output

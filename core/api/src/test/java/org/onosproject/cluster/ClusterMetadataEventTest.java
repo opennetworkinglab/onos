@@ -38,11 +38,11 @@ public class ClusterMetadataEventTest {
     private final ControllerNode n2 =
             new DefaultControllerNode(nid2, IpAddress.valueOf("10.0.0.2"), 9876);
     private final ClusterMetadata metadata1 =
-            new ClusterMetadata("foo", n1, ImmutableSet.of(n1));
+            new ClusterMetadata("foo", n1, ImmutableSet.of(), ImmutableSet.of(n1));
     private final ClusterMetadata metadata2 =
-            new ClusterMetadata("bar", n1, ImmutableSet.of(n1, n2));
+            new ClusterMetadata("bar", n1, ImmutableSet.of(), ImmutableSet.of(n1, n2));
     private final ClusterMetadata metadata3 =
-            new ClusterMetadata("baz", n1, ImmutableSet.of(n2));
+            new ClusterMetadata("baz", n1, ImmutableSet.of(), ImmutableSet.of(n2));
 
     private final ClusterMetadataEvent event1 =
             new ClusterMetadataEvent(ClusterMetadataEvent.Type.METADATA_CHANGED, metadata1, time1);

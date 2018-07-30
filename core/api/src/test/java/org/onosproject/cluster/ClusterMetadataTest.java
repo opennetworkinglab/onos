@@ -39,11 +39,11 @@ public class ClusterMetadataTest {
             new DefaultControllerNode(nid2, IpAddress.valueOf("10.0.0.2"), 9876);
 
     private final ClusterMetadata metadata1 =
-            new ClusterMetadata("foo", n1, ImmutableSet.of(n1));
+            new ClusterMetadata("foo", n1, ImmutableSet.of(), ImmutableSet.of(n1));
     private final ClusterMetadata sameAsMetadata1 =
-            new ClusterMetadata("foo", n1, ImmutableSet.of(n1));
+            new ClusterMetadata("foo", n1, ImmutableSet.of(), ImmutableSet.of(n1));
     private final ClusterMetadata metadata2 =
-            new ClusterMetadata("bar", n1, ImmutableSet.of(n1, n2));
+            new ClusterMetadata("bar", n1, ImmutableSet.of(n1), ImmutableSet.of(n1, n2));
     private final ProviderId defaultProvider =
             new ProviderId("none", "none");
     /**
@@ -64,8 +64,10 @@ public class ClusterMetadataTest {
     @Test
     public void checkConstruction() {
         assertThat(metadata2.getName(), is("bar"));
-        assertThat(metadata2.getNodes(), hasSize(2));
-        assertThat(metadata2.getNodes(), contains(n1, n2));
+        assertThat(metadata2.getControllerNodes(), hasSize(1));
+        assertThat(metadata2.getControllerNodes(), contains(n1));
+        assertThat(metadata2.getStorageNodes(), hasSize(2));
+        assertThat(metadata2.getStorageNodes(), contains(n1, n2));
         assertThat(metadata1.providerId(), is(defaultProvider));
     }
 }

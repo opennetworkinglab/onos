@@ -27,7 +27,11 @@ public class ClusterMetadataServiceAdapter implements ClusterMetadataService {
     public ClusterMetadata getClusterMetadata() {
         final NodeId nid = new NodeId("test-node");
         final IpAddress addr = IpAddress.valueOf(0);
-        return new ClusterMetadata("test-cluster", new DefaultControllerNode(nid, addr), Sets.newHashSet());
+        return new ClusterMetadata(
+                "test-cluster",
+                new DefaultControllerNode(nid, addr),
+                Sets.newHashSet(),
+                Sets.newHashSet());
     }
 
     @Override

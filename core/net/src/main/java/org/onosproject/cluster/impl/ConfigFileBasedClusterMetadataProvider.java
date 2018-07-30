@@ -28,6 +28,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -111,10 +112,14 @@ public class ConfigFileBasedClusterMetadataProvider implements ClusterMetadataPr
     private ClusterMetadataPrototype toPrototype(ClusterMetadata metadata) {
         ClusterMetadataPrototype prototype = new ClusterMetadataPrototype();
         prototype.setName(metadata.getName());
-        prototype.setCluster(metadata.getNodes()
-            .stream()
-            .map(this::toPrototype)
-            .collect(Collectors.toSet()));
+        prototype.setController(metadata.getNodes()
+                .stream()
+                .map(this::toPrototype)
+                .collect(Collectors.toSet()));
+        prototype.setStorage(metadata.getStorageNodes()
+                .stream()
+                .map(this::toPrototype)
+                .collect(Collectors.toSet()));
         return prototype;
     }
 
@@ -241,13 +246,20 @@ public class ConfigFileBasedClusterMetadataProvider implements ClusterMetadataPr
                         metadata.getNode().getPort() != null
                             ? metadata.getNode().getPort()
                             : DefaultControllerNode.DEFAULT_PORT) : null,
-                metadata.getCluster()
-                    .stream()
-                    .map(node -> new DefaultControllerNode(
-                        NodeId.nodeId(node.getId()),
-                        IpAddress.valueOf(node.getIp()),
-                        node.getPort() != null ? node.getPort() : 5679))
-                    .collect(Collectors.toSet())),
+                    metadata.getController()
+                        .stream()
+                        .map(node -> new DefaultControllerNode(
+                            NodeId.nodeId(node.getId()),
+                            IpAddress.valueOf(node.getIp()),
+                            node.getPort() != null ? node.getPort() : 5679))
+                        .collect(Collectors.toSet()),
+                    metadata.getStorage()
+                        .stream()
+                        .map(node -> new DefaultControllerNode(
+                            NodeId.nodeId(node.getId()),
+                            IpAddress.valueOf(node.getIp()),
+                            node.getPort() != null ? node.getPort() : 5679))
+                        .collect(Collectors.toSet())),
                 version);
         } catch (IOException e) {
             throw new IllegalArgumentException(e);
@@ -278,7 +290,8 @@ public class ConfigFileBasedClusterMetadataProvider implements ClusterMetadataPr
     private static class ClusterMetadataPrototype {
         private String name;
         private NodePrototype node;
-        private Set<NodePrototype> cluster;
+        private Set<NodePrototype> controller = Sets.newHashSet();
+        private Set<NodePrototype> storage = Sets.newHashSet();
 
         public String getName() {
             return name;
@@ -296,12 +309,20 @@ public class ConfigFileBasedClusterMetadataProvider implements ClusterMetadataPr
             this.node = node;
         }
 
-        public Set<NodePrototype> getCluster() {
-            return cluster;
+        public Set<NodePrototype> getController() {
+            return controller;
         }
 
-        public void setCluster(Set<NodePrototype> cluster) {
-            this.cluster = cluster;
+        public void setController(Set<NodePrototype> controller) {
+            this.controller = controller;
+        }
+
+        public Set<NodePrototype> getStorage() {
+            return storage;
+        }
+
+        public void setStorage(Set<NodePrototype> storage) {
+            this.storage = storage;
         }
     }
 

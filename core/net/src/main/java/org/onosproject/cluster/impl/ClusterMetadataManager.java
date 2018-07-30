@@ -98,7 +98,8 @@ public class ClusterMetadataManager
     public ControllerNode getLocalNode() {
         checkPermission(CLUSTER_READ);
         if (localNode == null) {
-            ControllerNode localNode = getProvider().getClusterMetadata().value().getLocalNode();
+            ClusterMetadata metadata = getProvider().getClusterMetadata().value();
+            ControllerNode localNode = metadata.getLocalNode();
             try {
                 if (localNode != null) {
                     this.localNode = new DefaultControllerNode(
@@ -107,7 +108,15 @@ public class ClusterMetadataManager
                         localNode.tcpPort());
                 } else {
                     IpAddress ip = findLocalIp();
-                    this.localNode = new DefaultControllerNode(NodeId.nodeId(ip.toString()), ip);
+                    localNode = metadata.getControllerNodes().stream()
+                        .filter(node -> node.ip().equals(ip))
+                        .findFirst()
+                        .orElse(null);
+                    if (localNode != null) {
+                        this.localNode = localNode;
+                    } else {
+                        this.localNode = new DefaultControllerNode(NodeId.nodeId(ip.toString()), ip);
+                    }
                 }
             } catch (SocketException e) {
                 throw new IllegalStateException(e);

@@ -245,7 +245,7 @@ public class NettyMessagingManagerTest {
             @Override
             public ClusterMetadata getClusterMetadata() {
                 return new ClusterMetadata(new ProviderId(DUMMY_NAME, DUMMY_NAME),
-                                           name, getLocalNode(), Sets.newHashSet());
+                                           name, getLocalNode(), Sets.newHashSet(), Sets.newHashSet());
             }
 
             @Override

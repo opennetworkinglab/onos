@@ -73,7 +73,7 @@ public class DefaultClusterMetadataProvider implements ClusterMetadataProvider {
         ControllerNode localNode =
                 new DefaultControllerNode(new NodeId(localIp), IpAddress.valueOf(localIp), DEFAULT_ONOS_PORT);
         ClusterMetadata metadata = new ClusterMetadata(
-            PROVIDER_ID, "default", localNode, ImmutableSet.of());
+            PROVIDER_ID, "default", localNode, ImmutableSet.of(), ImmutableSet.of());
         long version = System.currentTimeMillis();
         cachedMetadata.set(new Versioned<>(metadata, version));
         providerRegistry.register(this);

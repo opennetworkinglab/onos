@@ -55,7 +55,11 @@ if [ ! -d $ONOS_DIR -o "$oldMD5" != "$newMD5" -o -d $ONOS_DIR -a -n "$clean" ]; 
     cat > $ONOS_DIR/config/cluster.json <<-EOF
     {
       "name": "default",
-      "cluster": [ {"id": "$IP", "ip": "$IP", "port": 9876 } ]
+      "node": {
+        "id": "$IP",
+        "ip": "$IP",
+        "port": 9876
+      }
     }
 EOF
 
