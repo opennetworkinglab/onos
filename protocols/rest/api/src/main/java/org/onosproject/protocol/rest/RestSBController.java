@@ -56,4 +56,22 @@ public interface RestSBController extends HttpSBController {
      * @return the corresponding REST proxied device
      */
     RestSBDevice getProxySBDevice(DeviceId deviceId);
+
+    /**
+     * Call on the Rest SB interface for a device to request ServerSentEvents from events URL.
+     *
+     * These events will be converted to ONOS events and forwarded to any registered listener
+     * through the EventDispatcher system. Drivers can implement listeners in their
+     * own particular way depending on the type of data expected.
+     *
+     * To register and unregister listeners use the addListener and removeListener
+     * methods. These listeners will get messages from all devices.
+     *
+     * To stop a particular device's event stream use the cancelServerSentEvents
+     * for that device.
+     *
+     * @param deviceId the id of the device exposed to ONOS
+     * @param eventsUrl The resource on the device that supplies an SSE_INBOUND stream
+     */
+    void startServerSentEvents(DeviceId deviceId, String eventsUrl);
 }

@@ -45,6 +45,8 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.sse.InboundSseEvent;
+import javax.ws.rs.sse.SseEventSource;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -57,6 +59,7 @@ import java.security.cert.X509Certificate;
 import java.util.Base64;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -80,6 +83,7 @@ public class HttpSBControllerImpl implements HttpSBController {
 
     private final Map<DeviceId, RestSBDevice> deviceMap = new ConcurrentHashMap<>();
     private final Map<DeviceId, Client> clientMap = new ConcurrentHashMap<>();
+    private final Map<DeviceId, SseEventSource> sseEventSourceMap = new ConcurrentHashMap<>();
 
     public Map<DeviceId, RestSBDevice> getDeviceMap() {
         return deviceMap;
@@ -87,6 +91,10 @@ public class HttpSBControllerImpl implements HttpSBController {
 
     public Map<DeviceId, Client> getClientMap() {
         return clientMap;
+    }
+
+    public Map<DeviceId, SseEventSource> getSseEventSourceMap() {
+        return sseEventSourceMap;
     }
 
     @Override
@@ -121,6 +129,7 @@ public class HttpSBControllerImpl implements HttpSBController {
     public void removeDevice(DeviceId deviceId) {
         clientMap.remove(deviceId);
         deviceMap.remove(deviceId);
+        sseEventSourceMap.remove(deviceId);
     }
 
     @Override
@@ -249,6 +258,58 @@ public class HttpSBControllerImpl implements HttpSBController {
         }
 
         return response.getStatus();
+    }
+
+    @Override
+    public int getServerSentEvents(DeviceId deviceId, String request,
+                                   Consumer<InboundSseEvent> onEvent,
+                                   Consumer<Throwable> onError) {
+        if (deviceId == null) {
+            log.warn("Device ID is null", request);
+            return Status.PRECONDITION_FAILED.getStatusCode();
+        }
+
+        if (request == null || request.isEmpty()) {
+            log.warn("Request cannot be empty", request);
+            return Status.PRECONDITION_FAILED.getStatusCode();
+        }
+
+        if (sseEventSourceMap.containsKey(deviceId)) {
+            log.warn("Device", deviceId, "is already listening to an SSE stream");
+            return Status.CONFLICT.getStatusCode();
+        }
+
+        WebTarget wt = getWebTarget(deviceId, request);
+        SseEventSource sseEventSource = SseEventSource.target(wt).build();
+        sseEventSource.register(onEvent, onError);
+        sseEventSource.open();
+        if (sseEventSource.isOpen()) {
+            sseEventSourceMap.put(deviceId, sseEventSource);
+            log.info("Opened Server Sent Events request to ", request, "on", deviceId);
+            while (sseEventSource.isOpen()) {
+                try {
+                    Thread.sleep(1010);
+                    System.out.println("Listening for SSEs");
+                } catch (InterruptedException e) {
+                    log.error("Error", e);
+                }
+            }
+            return Status.NO_CONTENT.getStatusCode();
+        } else {
+            log.error("Unable to open Server Sent Events request to ", request, "to", deviceId);
+            return Status.INTERNAL_SERVER_ERROR.getStatusCode();
+        }
+    }
+
+    @Override
+    public int cancelServerSentEvents(DeviceId deviceId) {
+        if (sseEventSourceMap.containsKey(deviceId)) {
+            sseEventSourceMap.get(deviceId).close();
+            sseEventSourceMap.remove(deviceId);
+            return Status.OK.getStatusCode();
+        } else {
+            return Status.NOT_FOUND.getStatusCode();
+        }
     }
 
     private MediaType typeOfMediaType(String type) {

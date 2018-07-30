@@ -2,6 +2,7 @@ COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//lib:jersey-client',
     '//lib:jersey-common',
+    '//lib:jersey-media-sse',
     '//lib:httpclient-osgi',
     '//lib:httpcore-osgi',
     '//lib:javax.ws.rs-api',
@@ -11,7 +12,13 @@ COMPILE_DEPS = [
     '//protocols/rest/api:onos-protocols-rest-api',
 ]
 
+TEST_DEPS = [
+    '//lib:TEST_REST',
+    '//core/common:onos-core-common-tests'
+]
+
 osgi_jar_with_tests (
     deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS
 )
 

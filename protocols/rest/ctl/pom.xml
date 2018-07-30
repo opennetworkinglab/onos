@@ -39,6 +39,10 @@
             <version>${project.version}</version>
             <type>bundle</type>
         </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.core</groupId>
+            <artifactId>jersey-media-sse</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

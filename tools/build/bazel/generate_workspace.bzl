@@ -511,6 +511,12 @@ def generated_maven_jars():
     )
 
     native.maven_jar(
+        name = "jersey_media_sse",
+        artifact = "org.glassfish.jersey.media:jersey-media-sse:2.26",
+        sha1 = "61cfeb0df911585140f64f3369eb524e0e02f534",
+    )
+
+    native.maven_jar(
         name = "jersey_server",
         artifact = "org.glassfish.jersey.core:jersey-server:2.26",
         sha1 = "aa8eff3d591641dadd7c9880bb73b59bf46d4c82",
@@ -1659,6 +1665,12 @@ def generated_java_libraries():
     )
 
     native.java_library(
+        name = "jersey_media_sse",
+        visibility = ["//visibility:public"],
+        exports = ["@jersey_media_sse//jar"],
+    )
+
+    native.java_library(
         name = "jersey_server",
         visibility = ["//visibility:public"],
         exports = ["@jersey_server//jar"],
@@ -2478,6 +2490,7 @@ artifact_map["@jersey_container_jetty_http//jar"] = "mvn:org.glassfish.jersey.co
 artifact_map["@jersey_container_servlet//jar"] = "mvn:org.glassfish.jersey.containers:jersey-container-servlet:jar:2.26"
 artifact_map["@jersey_container_servlet_core//jar"] = "mvn:org.glassfish.jersey.containers:jersey-container-servlet-core:jar:2.26"
 artifact_map["@jersey_media_multipart//jar"] = "mvn:org.glassfish.jersey.media:jersey-media-multipart:jar:2.26"
+artifact_map["@jersey_media_sse//jar"] = "mvn:org.glassfish.jersey.media:jersey-media-sse:jar:2.26"
 artifact_map["@jersey_server//jar"] = "mvn:org.glassfish.jersey.core:jersey-server:jar:2.26"
 artifact_map["@jersey_hk2//jar"] = "mvn:org.glassfish.jersey.inject:jersey-hk2:jar:2.26"
 artifact_map["@jersey_test_framework_core//jar"] = "mvn:org.glassfish.jersey.test-framework:jersey-test-framework-core:jar:NON-OSGI:2.26"
