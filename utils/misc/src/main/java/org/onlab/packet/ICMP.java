@@ -32,7 +32,13 @@ public class ICMP extends BasePacket {
 
     public static final byte TYPE_ECHO_REQUEST = 0x08;
     public static final byte TYPE_ECHO_REPLY = 0x00;
+
+    //Uses CODE_ECHO_REPLY instead.
+    @Deprecated
     public static final byte SUBTYPE_ECHO_REPLY = 0x00;
+
+    public static final byte CODE_ECHO_REPLY = 0x00;
+    public static final byte CODE_ECHO_REQEUST = 0x00;
 
     public static final short ICMP_HEADER_LENGTH = 4;
 
@@ -194,10 +200,20 @@ public class ICMP extends BasePacket {
             icmp.icmpCode = bb.get();
             icmp.checksum = bb.getShort();
 
-            icmp.payload = Data.deserializer()
-                    .deserialize(data, bb.position(), bb.limit()
-                            - bb.position());
+            switch (icmp.icmpType) {
+                case ICMP.TYPE_ECHO_REQUEST:
+                case ICMP.TYPE_ECHO_REPLY:
+                    Deserializer<ICMPEcho> deserializer = ICMPEcho.deserializer();
+                    icmp.payload = deserializer.deserialize(data, bb.position(), ICMPEcho.ICMP_ECHO_HEADER_LENGTH);
+                    break;
+                default:
+                    icmp.payload = Data.deserializer()
+                            .deserialize(data, bb.position(), bb.limit()
+                                    - bb.position());
+            }
+
             icmp.payload.setParent(icmp);
+
             return icmp;
         };
     }

@@ -40,13 +40,21 @@ public class ICMPTest {
 
     @Before
     public void setUp() throws Exception {
+        ICMPEcho icmpEcho = new ICMPEcho();
+        icmpEcho.setIdentifier((short) 0)
+                .setSequenceNum((short) 0);
+
+        ByteBuffer byteBufferIcmpEcho = ByteBuffer.wrap(icmpEcho.serialize());
+
         deserializer = ICMP.deserializer();
 
-        ByteBuffer bb = ByteBuffer.allocate(ICMP.ICMP_HEADER_LENGTH);
+        ByteBuffer bb = ByteBuffer.allocate(ICMP.ICMP_HEADER_LENGTH + ICMPEcho.ICMP_ECHO_HEADER_LENGTH);
 
         bb.put(icmpType);
         bb.put(icmpCode);
         bb.putShort(checksum);
+        bb.put(byteBufferIcmpEcho);
+
 
         headerBytes = bb.array();
     }
