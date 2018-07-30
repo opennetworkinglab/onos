@@ -25,6 +25,7 @@ import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 
 public final class DefaultKafkaTelemetryConfigTest {
 
@@ -63,6 +64,9 @@ public final class DefaultKafkaTelemetryConfigTest {
     private KafkaTelemetryConfig sameAsConfig1;
     private KafkaTelemetryConfig config2;
 
+    /**
+     * Initial setup for this unit test.
+     */
     @Before
     public void setup() {
 
@@ -113,6 +117,17 @@ public final class DefaultKafkaTelemetryConfigTest {
                 .build();
     }
 
+    /**
+     * Tests class immutability.
+     */
+    @Test
+    public void testImmutability() {
+        assertThatClassIsImmutable(DefaultKafkaTelemetryConfig.class);
+    }
+
+    /**
+     * Tests object equality.
+     */
     @Test
     public void testEquality() {
         new EqualsTester()
@@ -120,6 +135,9 @@ public final class DefaultKafkaTelemetryConfigTest {
                 .addEqualityGroup(config2).testEquals();
     }
 
+    /**
+     * Tests object construction.
+     */
     @Test
     public void testConstruction() {
         KafkaTelemetryConfig config = config1;

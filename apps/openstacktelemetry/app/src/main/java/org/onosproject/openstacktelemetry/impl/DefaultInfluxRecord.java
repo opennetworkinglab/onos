@@ -15,6 +15,7 @@
  */
 package org.onosproject.openstacktelemetry.impl;
 
+import com.google.common.base.Strings;
 import org.onosproject.openstacktelemetry.api.InfluxRecord;
 
 import java.util.Objects;
@@ -22,14 +23,19 @@ import java.util.Objects;
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_INFLUXDB_MEASUREMENT;
 
-
+/**
+ * A default implementation of influx record.
+ *
+ * @param <K> key of influx record
+ * @param <V> value of influx record
+ */
 public final class DefaultInfluxRecord<K, V> implements InfluxRecord<K, V> {
     public static final String MEASUREMENT_NAME = DEFAULT_INFLUXDB_MEASUREMENT;
     private final K measurement;
     private final V flowInfos;
 
     protected DefaultInfluxRecord(K measurement, V flowInfos) {
-        if ((measurement == null) || (measurement.equals(""))) {
+        if (Strings.isNullOrEmpty((String) measurement)) {
             this.measurement = (K) MEASUREMENT_NAME;
         } else {
             this.measurement = measurement;
@@ -66,6 +72,7 @@ public final class DefaultInfluxRecord<K, V> implements InfluxRecord<K, V> {
         return Objects.hash(measurement, flowInfos);
     }
 
+    @Override
     public String toString() {
         return toStringHelper(this)
                 .add("measurement", measurement)

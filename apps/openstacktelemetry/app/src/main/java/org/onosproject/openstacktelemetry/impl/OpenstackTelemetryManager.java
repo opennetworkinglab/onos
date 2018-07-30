@@ -15,6 +15,7 @@
  */
 package org.onosproject.openstacktelemetry.impl;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -92,6 +93,11 @@ public class OpenstackTelemetryManager implements OpenstackTelemetryService {
 
             log.trace("Publishing Flow Infos {}", flowInfos);
         });
+    }
+
+    @Override
+    public Set<TelemetryService> telemetryServices() {
+        return ImmutableSet.copyOf(telemetryServices);
     }
 
     private void invokeGrpcPublisher(GrpcTelemetryService service, Set<FlowInfo> flowInfos) {

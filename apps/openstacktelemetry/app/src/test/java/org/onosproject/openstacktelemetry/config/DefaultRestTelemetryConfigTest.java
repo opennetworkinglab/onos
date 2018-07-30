@@ -25,6 +25,7 @@ import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 
 public final class DefaultRestTelemetryConfigTest {
 
@@ -55,6 +56,9 @@ public final class DefaultRestTelemetryConfigTest {
     private RestTelemetryConfig sameAsConfig1;
     private RestTelemetryConfig config2;
 
+    /**
+     * Initial setup for this unit test.
+     */
     @Before
     public void setup() {
 
@@ -96,6 +100,17 @@ public final class DefaultRestTelemetryConfigTest {
                 .build();
     }
 
+    /**
+     * Tests class immutability.
+     */
+    @Test
+    public void testImmutability() {
+        assertThatClassIsImmutable(DefaultRestTelemetryConfig.class);
+    }
+
+    /**
+     * Tests object equality.
+     */
     @Test
     public void testEquality() {
         new EqualsTester()
@@ -103,6 +118,9 @@ public final class DefaultRestTelemetryConfigTest {
                 .addEqualityGroup(config2).testEquals();
     }
 
+    /**
+     * Tests object construction.
+     */
     @Test
     public void testConstruction() {
         RestTelemetryConfig config = config1;

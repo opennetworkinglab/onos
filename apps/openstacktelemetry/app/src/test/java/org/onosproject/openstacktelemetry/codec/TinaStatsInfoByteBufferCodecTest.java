@@ -42,6 +42,9 @@ public class TinaStatsInfoByteBufferCodecTest {
     private final TinaStatsInfoByteBufferCodec codec =
                                             new TinaStatsInfoByteBufferCodec();
 
+    /**
+     * Initial setup for this unit test.
+     */
     @Before
     public void setup() {
         StatsInfo.Builder builder = new DefaultStatsInfo.DefaultBuilder();
@@ -59,6 +62,9 @@ public class TinaStatsInfoByteBufferCodecTest {
                 .build();
     }
 
+    /**
+     * Tests codec encode and decode.
+     */
     @Test
     public void testEncodeDecode() {
         ByteBuffer buffer = codec.encode(info);

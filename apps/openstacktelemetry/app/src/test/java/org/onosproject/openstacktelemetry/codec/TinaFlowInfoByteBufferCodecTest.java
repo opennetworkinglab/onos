@@ -55,6 +55,9 @@ public final class TinaFlowInfoByteBufferCodecTest {
     private final TinaFlowInfoByteBufferCodec codec =
             new TinaFlowInfoByteBufferCodec();
 
+    /**
+     * Initial setup for this unit test.
+     */
     @Before
     public void setup() {
         StatsInfo statsInfo = new DefaultStatsInfo.DefaultBuilder().build();

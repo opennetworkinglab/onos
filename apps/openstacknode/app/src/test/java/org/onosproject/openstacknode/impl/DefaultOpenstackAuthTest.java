@@ -58,6 +58,9 @@ public class DefaultOpenstackAuthTest {
                 .build();
     }
 
+    /**
+     * Tests object equality.
+     */
     @Test
     public void testEquality() {
         new EqualsTester().addEqualityGroup(OS_AUTH_1, OS_AUTH_3)
@@ -65,6 +68,9 @@ public class DefaultOpenstackAuthTest {
                 .testEquals();
     }
 
+    /**
+     * Test object construction.
+     */
     @Test
     public void testConstruction() {
         OpenstackAuth auth = OS_AUTH_1;

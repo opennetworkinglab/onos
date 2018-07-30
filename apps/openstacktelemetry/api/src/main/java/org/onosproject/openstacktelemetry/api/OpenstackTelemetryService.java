@@ -43,4 +43,11 @@ public interface OpenstackTelemetryService {
      * @param flowInfos virtual flow information
      */
     void publish(Set<FlowInfo> flowInfos);
+
+    /**
+     * Obtains a collection of openstack telemetry services.
+     *
+     * @return telemetry services
+     */
+    Set<TelemetryService> telemetryServices();
 }

@@ -22,6 +22,7 @@ import org.onosproject.openstacktelemetry.api.StatsInfo;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 
 /**
  * Unit tests for DefaultStatsInfo class.
@@ -35,6 +36,9 @@ public final class DefaultStatsInfoTest {
     private StatsInfo sameAsInfo1;
     private StatsInfo info2;
 
+    /**
+     * Initial setup for this unit test.
+     */
     @Before
     public void setup() {
         StatsInfo.Builder builder1 = new DefaultStatsInfo.DefaultBuilder();
@@ -78,6 +82,17 @@ public final class DefaultStatsInfoTest {
                 .build();
     }
 
+    /**
+     * Tests class immutability.
+     */
+    @Test
+    public void testImmutability() {
+        assertThatClassIsImmutable(DefaultStatsInfo.class);
+    }
+
+    /**
+     * Tests object equality.
+     */
     @Test
     public void testEquality() {
         new EqualsTester()
@@ -85,6 +100,9 @@ public final class DefaultStatsInfoTest {
                 .addEqualityGroup(info2).testEquals();
     }
 
+    /**
+     * Tests object construction.
+     */
     @Test
     public void testConstruction() {
         StatsInfo info = info1;

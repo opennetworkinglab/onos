@@ -16,6 +16,7 @@
 package org.onosproject.openstacktelemetry.impl;
 
 import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -24,6 +25,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.openstacktelemetry.api.GrpcTelemetryAdminService;
 import org.onosproject.openstacktelemetry.api.OpenstackTelemetryService;
+import org.onosproject.openstacktelemetry.api.config.GrpcTelemetryConfig;
 import org.onosproject.openstacktelemetry.api.config.TelemetryConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,24 +68,22 @@ public class GrpcTelemetryManager implements GrpcTelemetryAdminService {
             return;
         }
 
-        // FIXME do not activate grpc service for now due to deps conflict
-//        GrpcTelemetryConfig grpcConfig = (GrpcTelemetryConfig) config;
-//        channel = ManagedChannelBuilder
-//                .forAddress(grpcConfig.address(), grpcConfig.port())
-//                .maxInboundMessageSize(grpcConfig.maxInboundMsgSize())
-//                .usePlaintext(grpcConfig.usePlaintext())
-//                .build();
+        GrpcTelemetryConfig grpcConfig = (GrpcTelemetryConfig) config;
+        channel = ManagedChannelBuilder
+                .forAddress(grpcConfig.address(), grpcConfig.port())
+                .maxInboundMessageSize(grpcConfig.maxInboundMsgSize())
+                .usePlaintext(grpcConfig.usePlaintext())
+                .build();
 
         log.info("gRPC producer has Started");
     }
 
     @Override
     public void stop() {
-        // FIXME do not activate grpc service for now due to deps conflict
-//        if (channel != null) {
-//            channel.shutdown();
-//            channel = null;
-//        }
+        if (channel != null) {
+            channel.shutdown();
+            channel = null;
+        }
 
         log.info("gRPC producer has Stopped");
     }

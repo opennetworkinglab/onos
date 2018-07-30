@@ -25,6 +25,7 @@ import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 
 /**
  * Unit tests for DefaultGrpcTelemetryConfig class.
@@ -52,6 +53,9 @@ public final class DefaultGrpcTelemetryConfigTest {
     private GrpcTelemetryConfig sameAsConfig1;
     private GrpcTelemetryConfig config2;
 
+    /**
+     * Initial setup for this unit test.
+     */
     @Before
     public void setup() {
 
@@ -87,6 +91,17 @@ public final class DefaultGrpcTelemetryConfigTest {
                 .build();
     }
 
+    /**
+     * Tests class immutability.
+     */
+    @Test
+    public void testImmutability() {
+        assertThatClassIsImmutable(DefaultGrpcTelemetryConfig.class);
+    }
+
+    /**
+     * Tests object equality.
+     */
     @Test
     public void testEquality() {
         new EqualsTester()
@@ -94,6 +109,9 @@ public final class DefaultGrpcTelemetryConfigTest {
                 .addEqualityGroup(config2).testEquals();
     }
 
+    /**
+     * Tests object construction.
+     */
     @Test
     public void testConstruction() {
         GrpcTelemetryConfig config = config1;

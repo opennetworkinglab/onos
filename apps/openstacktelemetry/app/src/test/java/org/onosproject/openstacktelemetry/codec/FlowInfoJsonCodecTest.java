@@ -76,7 +76,9 @@ public class FlowInfoJsonCodecTest {
     private static final int INTEGER_VALUE = 1;
     private static final short SHORT_VALUE = (short) 1;
 
-
+    /**
+     * Initial setup for this unit test.
+     */
     @Before
     public void setUp() {
         context = new MockCodecContext();

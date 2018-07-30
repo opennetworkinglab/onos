@@ -25,6 +25,7 @@ import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 
 /**
  * Unit tests for DefaultInfluxDbTelemetryConfig class.
@@ -61,6 +62,9 @@ public final class DefaultInfluxDbTelemetryConfigTest {
     private InfluxDbTelemetryConfig sameAsConfig1;
     private InfluxDbTelemetryConfig config2;
 
+    /**
+     * Initial setup for this unit test.
+     */
     @Before
     public void setup() {
 
@@ -105,6 +109,17 @@ public final class DefaultInfluxDbTelemetryConfigTest {
                 .build();
     }
 
+    /**
+     * Tests class immutability.
+     */
+    @Test
+    public void testImmutability() {
+        assertThatClassIsImmutable(DefaultInfluxDbTelemetryConfig.class);
+    }
+
+    /**
+     * Tests object equality.
+     */
     @Test
     public void testEquality() {
         new EqualsTester()
@@ -112,6 +127,9 @@ public final class DefaultInfluxDbTelemetryConfigTest {
                 .addEqualityGroup(config2).testEquals();
     }
 
+    /**
+     * Tests object construction.
+     */
     @Test
     public void testConstruction() {
         InfluxDbTelemetryConfig config = config1;

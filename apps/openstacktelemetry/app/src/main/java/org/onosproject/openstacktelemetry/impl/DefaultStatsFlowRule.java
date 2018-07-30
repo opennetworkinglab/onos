@@ -20,6 +20,8 @@ import org.onlab.packet.IpPrefix;
 import org.onlab.packet.TpPort;
 import org.onosproject.openstacktelemetry.api.StatsFlowRule;
 
+import java.util.Objects;
+
 import static com.google.common.base.Preconditions.checkArgument;
 
 public final class DefaultStatsFlowRule implements StatsFlowRule {
@@ -79,10 +81,43 @@ public final class DefaultStatsFlowRule implements StatsFlowRule {
                 .toString();
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+
+        if (obj instanceof DefaultStatsFlowRule) {
+            final DefaultStatsFlowRule other = (DefaultStatsFlowRule) obj;
+            return Objects.equals(this.srcIpPrefix, other.srcIpPrefix) &&
+                    Objects.equals(this.dstIpPrefix, other.dstIpPrefix) &&
+                    Objects.equals(this.srcTpPort, other.srcTpPort) &&
+                    Objects.equals(this.dstTpPort, other.dstTpPort) &&
+                    Objects.equals(this.ipProtocol, other.ipProtocol);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(srcIpPrefix, dstIpPrefix, srcTpPort, dstTpPort, ipProtocol);
+    }
+
+    /**
+     * Obtains a default stats flow rule builder object.
+     *
+     * @return flow rule builder object
+     */
     public static Builder builder() {
         return new Builder();
     }
 
+    /**
+     * Obtains the builder object existing flow rule.
+     *
+     * @param flowRule flow rule
+     * @return builder object
+     */
     public static Builder from(StatsFlowRule flowRule) {
         return new Builder()
                 .srcIpPrefix(flowRule.srcIpPrefix())

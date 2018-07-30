@@ -17,6 +17,9 @@ package org.onosproject.openstacktelemetry.api;
 
 import org.onosproject.openstacktelemetry.api.config.TelemetryConfig;
 
+/**
+ * Telemetry configuration service interface.
+ */
 public interface TelemetryConfigService {
 
     /**

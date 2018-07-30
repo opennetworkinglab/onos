@@ -205,6 +205,15 @@ public final class DefaultFlowInfo implements FlowInfo {
     }
 
     /**
+     * Obtains a default flow info builder object.
+     *
+     * @return flow info builder object
+     */
+    public static Builder builder() {
+        return new DefaultBuilder();
+    }
+
+    /**
      * Builder class of DefaultFlowInfo.
      */
     public static final class DefaultBuilder implements FlowInfo.Builder {

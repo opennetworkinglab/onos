@@ -75,7 +75,7 @@ public class DefaultInstancePortTest {
     private InstancePort instancePort2;
 
     /**
-     * Checks that the DefaultInstancePort class is immutable.
+     * Tests class immutability.
      */
     @Test
     public void testImmutability() {

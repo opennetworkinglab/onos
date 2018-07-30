@@ -15,6 +15,7 @@
  */
 package org.onosproject.openstacktelemetry.impl;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.testing.EqualsTester;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,16 +26,22 @@ import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.openstacktelemetry.api.FlowInfo;
+import org.onosproject.openstacktelemetry.api.InfluxRecord;
 import org.onosproject.openstacktelemetry.api.StatsInfo;
+
+import java.util.Set;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 
 /**
- * Unit tests for DefaultFlowInfo class.
+ * Unit tests for DefaultInfluxRecord class.
  */
-public final class DefaultFlowInfoTest {
+public final class DefaultInfluxRecordTest {
+
+    private static final String MEASUREMENT_1 = "sonaflow-1";
+    private static final String MEASUREMENT_2 = "sonaflow-2";
 
     private static final String IP_ADDRESS_1 = "10.10.10.1";
     private static final String IP_ADDRESS_2 = "20.20.20.1";
@@ -54,10 +61,12 @@ public final class DefaultFlowInfoTest {
     private static final String STATIC_STRING_1 = "1";
     private static final String STATIC_STRING_2 = "2";
 
+    private InfluxRecord record1;
+    private InfluxRecord sameAsRecord1;
+    private InfluxRecord record2;
 
-    private FlowInfo info1;
-    private FlowInfo sameAsInfo1;
-    private FlowInfo info2;
+    private Set<FlowInfo> flowInfos1;
+    private Set<FlowInfo> flowInfos2;
 
     /**
      * Initial setup for this unit test.
@@ -67,11 +76,10 @@ public final class DefaultFlowInfoTest {
 
         FlowInfo.Builder builder1 = new DefaultFlowInfo.DefaultBuilder();
         FlowInfo.Builder builder2 = new DefaultFlowInfo.DefaultBuilder();
-        FlowInfo.Builder builder3 = new DefaultFlowInfo.DefaultBuilder();
 
         StatsInfo statsInfo = new DefaultStatsInfo.DefaultBuilder().build();
 
-        info1 = builder1
+        FlowInfo info1 = builder1
                 .withFlowType((byte) STATIC_INTEGER_1)
                 .withInputInterfaceId(STATIC_INTEGER_1)
                 .withOutputInterfaceId(STATIC_INTEGER_1)
@@ -89,25 +97,7 @@ public final class DefaultFlowInfoTest {
                 .withStatsInfo(statsInfo)
                 .build();
 
-        sameAsInfo1 = builder2
-                .withFlowType((byte) STATIC_INTEGER_1)
-                .withInputInterfaceId(STATIC_INTEGER_1)
-                .withOutputInterfaceId(STATIC_INTEGER_1)
-                .withDeviceId(DeviceId.deviceId(STATIC_STRING_1))
-                .withSrcIp(IpPrefix.valueOf(
-                        IpAddress.valueOf(IP_ADDRESS_1), IP_PREFIX_LENGTH_1))
-                .withDstIp(IpPrefix.valueOf(
-                        IpAddress.valueOf(IP_ADDRESS_1), IP_PREFIX_LENGTH_1))
-                .withSrcPort(TpPort.tpPort(PORT_1))
-                .withDstPort(TpPort.tpPort(PORT_1))
-                .withProtocol((byte) STATIC_INTEGER_1)
-                .withVlanId(VlanId.vlanId(STATIC_STRING_1))
-                .withSrcMac(MacAddress.valueOf(MAC_ADDRESS_1))
-                .withDstMac(MacAddress.valueOf(MAC_ADDRESS_1))
-                .withStatsInfo(statsInfo)
-                .build();
-
-        info2 = builder3
+        FlowInfo info2 = builder2
                 .withFlowType((byte) STATIC_INTEGER_2)
                 .withInputInterfaceId(STATIC_INTEGER_2)
                 .withOutputInterfaceId(STATIC_INTEGER_2)
@@ -124,6 +114,12 @@ public final class DefaultFlowInfoTest {
                 .withDstMac(MacAddress.valueOf(MAC_ADDRESS_2))
                 .withStatsInfo(statsInfo)
                 .build();
+        flowInfos1 = ImmutableSet.of(info1);
+        flowInfos2 = ImmutableSet.of(info2);
+
+        record1 = new DefaultInfluxRecord(MEASUREMENT_1, flowInfos1);
+        sameAsRecord1 = new DefaultInfluxRecord(MEASUREMENT_1, flowInfos1);
+        record2 = new DefaultInfluxRecord(MEASUREMENT_2, flowInfos2);
     }
 
     /**
@@ -131,7 +127,7 @@ public final class DefaultFlowInfoTest {
      */
     @Test
     public void testImmutability() {
-        assertThatClassIsImmutable(DefaultFlowInfo.class);
+        assertThatClassIsImmutable(DefaultInfluxRecord.class);
     }
 
     /**
@@ -140,8 +136,8 @@ public final class DefaultFlowInfoTest {
     @Test
     public void testEquality() {
         new EqualsTester()
-                .addEqualityGroup(info1, sameAsInfo1)
-                .addEqualityGroup(info2).testEquals();
+                .addEqualityGroup(record1, sameAsRecord1)
+                .addEqualityGroup(record2).testEquals();
     }
 
     /**
@@ -149,21 +145,9 @@ public final class DefaultFlowInfoTest {
      */
     @Test
     public void testConstruction() {
-        FlowInfo info = info1;
+        InfluxRecord record = record1;
 
-        assertThat(info.flowType(), is((byte) STATIC_INTEGER_1));
-        assertThat(info.inputInterfaceId(), is(STATIC_INTEGER_1));
-        assertThat(info.outputInterfaceId(), is(STATIC_INTEGER_1));
-        assertThat(info.deviceId(), is(DeviceId.deviceId(STATIC_STRING_1)));
-        assertThat(info.srcIp(), is(IpPrefix.valueOf(
-                IpAddress.valueOf(IP_ADDRESS_1), IP_PREFIX_LENGTH_1)));
-        assertThat(info.dstIp(), is(IpPrefix.valueOf(
-                IpAddress.valueOf(IP_ADDRESS_1), IP_PREFIX_LENGTH_1)));
-        assertThat(info.srcPort(), is(TpPort.tpPort(PORT_1)));
-        assertThat(info.dstPort(), is(TpPort.tpPort(PORT_1)));
-        assertThat(info.protocol(), is((byte) STATIC_INTEGER_1));
-        assertThat(info.vlanId(), is(VlanId.vlanId(STATIC_STRING_1)));
-        assertThat(info.srcMac(), is(MacAddress.valueOf(MAC_ADDRESS_1)));
-        assertThat(info.dstMac(), is(MacAddress.valueOf(MAC_ADDRESS_1)));
+        assertThat(record.measurement(), is(MEASUREMENT_1));
+        assertThat(record.flowInfos(), is(flowInfos1));
     }
 }
