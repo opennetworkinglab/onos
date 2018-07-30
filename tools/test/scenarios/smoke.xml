@@ -18,7 +18,6 @@
     <import file="${ONOS_SCENARIOS}/net-prerequisites.xml"/>
     <import file="${ONOS_SCENARIOS}/setup.xml"/>
     <import file="${ONOS_SCENARIOS}/app-reactivate.xml"/>
-    <import file="${ONOS_SCENARIOS}/maps-cli.xml"/>
     <import file="${ONOS_SCENARIOS}/dist-test.xml"/>
     <import file="${ONOS_SCENARIOS}/smoke-internal.xml"/>
     <import file="${ONOS_SCENARIOS}/yang-smoke.xml"/>
@@ -27,7 +26,6 @@
     <dependency name="Setup" requires="Prerequisites,Net-Prerequisites"/>
     <dependency name="Net-Smoke" requires="Setup"/>
     <dependency name="App-Reactivation" requires="Setup"/>
-    <dependency name="Maps-Cli" requires="Setup"/>
     <dependency name="Drivers-Test" requires="Setup"/>
     <dependency name="Meta-App" requires="Setup"/>
     <dependency name="Netcfg" requires="Setup"/>
