@@ -30,6 +30,7 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.mastership.MastershipService;
+import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.openstacknetworking.api.InstancePort;
@@ -37,7 +38,10 @@ import org.onosproject.openstacknetworking.api.InstancePortService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkEvent;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkListener;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
+import org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil;
 import org.onosproject.openstacknode.api.OpenstackNode;
+import org.onosproject.openstacknode.api.OpenstackNodeEvent;
+import org.onosproject.openstacknode.api.OpenstackNodeListener;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
 import org.onosproject.ovsdb.controller.OvsdbController;
 import org.openstack4j.model.network.Port;
@@ -47,13 +51,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Dictionary;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
+import static java.lang.Thread.sleep;
 import static org.onosproject.openstacknetworking.api.Constants.DIRECT;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getIntfNameFromPciAddress;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.hasIntfAleadyInDevice;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
+import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.CONTROLLER;
 
 @Component(immediate = true)
 public final class OpenStackSwitchingDirectPortProvider {
@@ -63,6 +72,7 @@ public final class OpenStackSwitchingDirectPortProvider {
     private static final int DEFAULT_OVSDB_PORT = 6640;
     private static final String UNBOUND = "unbound";
     private static final String PORT_NAME = "portName";
+    private static final long SLEEP_MS = 3000;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -99,6 +109,7 @@ public final class OpenStackSwitchingDirectPortProvider {
     private int ovsdbPort = DEFAULT_OVSDB_PORT;
 
     private final OpenstackNetworkListener openstackNetworkListener = new InternalOpenstackNetworkListener();
+    private final InternalOpenstackNodeListener internalNodeListener = new InternalOpenstackNodeListener();
 
     private NodeId localNodeId;
     private ApplicationId appId;
@@ -110,6 +121,7 @@ public final class OpenStackSwitchingDirectPortProvider {
         leadershipService.runForLeadership(appId.name());
         osNetworkService.addListener(openstackNetworkListener);
         componentConfigService.registerProperties(getClass());
+        osNodeService.addListener(internalNodeListener);
 
         log.info("Started");
     }
@@ -119,6 +131,7 @@ public final class OpenStackSwitchingDirectPortProvider {
         leadershipService.withdraw(appId.name());
         osNetworkService.removeListener(openstackNetworkListener);
         componentConfigService.unregisterProperties(getClass(), false);
+        osNodeService.removeListener(internalNodeListener);
 
         log.info("Stopped");
     }
@@ -136,19 +149,12 @@ public final class OpenStackSwitchingDirectPortProvider {
     }
     private void processPortAdded(Port port) {
         if (!port.getvNicType().equals(DIRECT)) {
-            log.trace("processPortAdded skipped because of unsupported vNicType: {}", port.getvNicType());
             return;
         } else if (!port.isAdminStateUp() || port.getVifType().equals(UNBOUND)) {
             log.trace("processPortAdded skipped because of status: {}, adminStateUp: {}, vifType: {}",
                     port.getState(), port.isAdminStateUp(), port.getVifType());
             return;
         } else {
-            InstancePort instancePort = instancePortService.instancePort(port.getId());
-            //Skip this if the instance port for the port id is already created.
-            if (instancePort != null) {
-                return;
-            }
-
             Optional<OpenstackNode> osNode = osNodeService.completeNodes(COMPUTE).stream()
                     .filter(node -> node.hostname().equals(port.getHostId()))
                     .findAny();
@@ -164,8 +170,23 @@ public final class OpenStackSwitchingDirectPortProvider {
                 log.error("Failed to execute processPortAdded because of null interface name");
                 return;
             }
-
             log.trace("Retrieved interface name: {}", intfName);
+
+            try {
+                //If a VF port has been already added to the device for some reason, we remove it first,
+                //and the add VF so that other handlers run their logic.
+                if (hasIntfAleadyInDevice(osNode.get().intgBridge(),
+                        intfName, deviceService)) {
+                    log.trace("Device {} has already has VF interface {}, so remove first.",
+                            osNode.get().intgBridge(),
+                            intfName);
+                    osNodeService.removeVfPort(osNode.get(), intfName);
+                    //we wait 3000ms because the ovsdb client can't deal with removal/add at the same time.
+                    sleep(SLEEP_MS);
+                }
+            } catch (InterruptedException e) {
+                log.error("Exception occurred because of {}", e.toString());
+            }
 
             osNodeService.addVfPort(osNode.get(), intfName);
         }
@@ -173,7 +194,6 @@ public final class OpenStackSwitchingDirectPortProvider {
 
     private void processPortRemoved(Port port) {
         if (!port.getvNicType().equals(DIRECT)) {
-            log.trace("processPortRemoved skipped because of unsupported vNicType: {}", port.getvNicType());
             return;
         } else if (instancePortService.instancePort(port.getId()) == null) {
             log.trace("processPortRemoved skipped because no instance port exist for portId: {}", port.getId());
@@ -240,6 +260,74 @@ public final class OpenStackSwitchingDirectPortProvider {
                 default:
                     break;
 
+            }
+        }
+    }
+
+    private class InternalOpenstackNodeListener implements OpenstackNodeListener {
+
+        @Override
+        public boolean isRelevant(OpenstackNodeEvent event) {
+
+            if (event.subject().type() == CONTROLLER) {
+                return false;
+            }
+            // do not allow to proceed without mastership
+            Device device = deviceService.getDevice(event.subject().intgBridge());
+            if (device == null) {
+                return false;
+            }
+            return mastershipService.isLocalMaster(device.id());
+        }
+
+        @Override
+        public void event(OpenstackNodeEvent event) {
+            OpenstackNode osNode = event.subject();
+
+            switch (event.type()) {
+                case OPENSTACK_NODE_COMPLETE:
+                    log.info("COMPLETE node {} is detected", osNode.hostname());
+                    processComputeState(event.subject());
+
+                    break;
+                case OPENSTACK_NODE_INCOMPLETE:
+                case OPENSTACK_NODE_CREATED:
+                case OPENSTACK_NODE_UPDATED:
+                case OPENSTACK_NODE_REMOVED:
+                    // not reacts to the events other than complete and incomplete states
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private void processComputeState(OpenstackNode node) {
+            List<Port> ports = osNetworkService.ports().stream()
+                    .filter(port -> port.getvNicType().equals(DIRECT))
+                    .filter(port -> !port.getVifType().equals(UNBOUND))
+                    .filter(port -> port.getHostId().equals(node.hostname()))
+                    .collect(Collectors.toList());
+
+            ports.forEach(port -> {
+                addIntfToDevice(node, port);
+            });
+
+
+
+        }
+
+        private void addIntfToDevice(OpenstackNode node, Port port) {
+            String intfName = OpenstackNetworkingUtil.getIntfNameFromPciAddress(port);
+            if (intfName == null) {
+                log.error("Failed to retrieve interface name from a port {}", port.getId());
+            }
+
+            if (!hasIntfAleadyInDevice(node.intgBridge(), intfName, deviceService)) {
+                log.debug("Port {} is bound to the interface {} but not added in the bridge {}. Adding it..",
+                        port.getId(),
+                        intfName,
+                        node.intgBridge());
+                osNodeService.addVfPort(node, intfName);
             }
         }
     }

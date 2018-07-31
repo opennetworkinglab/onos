@@ -89,9 +89,16 @@
                 <ref component-id="instancePortIdCompleter"/>
             </completers>
         </command>
+        <command>
+            <action class="org.onosproject.openstacknetworking.cli.OpenstackDirectPortAddCommand" />
+            <completers>
+                <ref component-id="directPortCompleter"/>
+            </completers>
+        </command>
     </command-bundle>
 
     <bean id="ipAddressCompleter" class="org.onosproject.openstacknetworking.cli.IpAddressCompleter"/>
+    <bean id="directPortCompleter" class="org.onosproject.openstacknetworking.cli.DirectPortListCompleter"/>
     <bean id="macAddressCompleter" class="org.onosproject.openstacknetworking.cli.MacAddressCompleter"/>
     <bean id="vlanIdCompleter" class="org.onosproject.openstacknetworking.cli.VlanIdCompleter"/>
     <bean id="arpModeCompleter" class="org.onosproject.openstacknetworking.cli.ArpModeCompleter"/>

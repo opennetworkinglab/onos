@@ -43,9 +43,7 @@ public class OpenstackDirectPortListCommand extends AbstractShellCommand {
         OpenstackNetworkService service = AbstractShellCommand.get(OpenstackNetworkService.class);
 
         List<Port> ports = service.ports().stream()
-
                 .filter(port -> port.getvNicType().equals(DIRECT))
-                .filter(port -> port.isAdminStateUp() && !port.getVifType().equals(UNBOUND))
                 .collect(Collectors.toList());
 
 
@@ -56,12 +54,21 @@ public class OpenstackDirectPortListCommand extends AbstractShellCommand {
                     .collect(Collectors.toList());
 
             Network osNet = service.network(port.getNetworkId());
-            print(FORMAT, port.getId(),
-                    osNet.getName(),
-                    port.getMacAddress(),
-                    fixedIps.isEmpty() ? "" : fixedIps,
-                    port.getProfile() == null ? "" : port.getProfile().get(PCISLOT).toString(),
-                    getIntfNameFromPciAddress(port));
+            if (port.getVifType().equals(UNBOUND)) {
+                print(FORMAT, port.getId(),
+                        osNet.getName(),
+                        port.getMacAddress(),
+                        fixedIps.isEmpty() ? "" : fixedIps,
+                        UNBOUND, UNBOUND);
+            } else {
+                print(FORMAT, port.getId(),
+                        osNet.getName(),
+                        port.getMacAddress(),
+                        fixedIps.isEmpty() ? "" : fixedIps,
+                        port.getProfile().containsKey(PCISLOT) ? port.getProfile().get(PCISLOT).toString() : "",
+                        getIntfNameFromPciAddress(port));
+            }
+
         }
     }
 }

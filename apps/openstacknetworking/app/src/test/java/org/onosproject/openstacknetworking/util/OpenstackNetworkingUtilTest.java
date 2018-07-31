@@ -17,6 +17,7 @@ package org.onosproject.openstacknetworking.util;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.testing.EqualsTester;
@@ -27,9 +28,13 @@ import org.junit.Test;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
+import org.onosproject.net.DefaultAnnotations;
+import org.onosproject.net.DefaultPort;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.device.DeviceServiceAdapter;
 import org.onosproject.openstacknetworking.api.InstancePort;
 import org.onosproject.openstacknetworking.impl.DefaultInstancePort;
 import org.onosproject.openstacknetworking.web.OpenstackFloatingIpWebResourceTest;
@@ -45,11 +50,15 @@ import org.openstack4j.openstack.networking.domain.NeutronPort;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getGwByComputeDevId;
 
 public final class OpenstackNetworkingUtilTest {
@@ -243,7 +252,7 @@ public final class OpenstackNetworkingUtilTest {
     }
 
     /**
-     * tests swapStaleLocation method.
+     * Tests swapStaleLocation method.
      */
     @Test
     public void testSwapStaleLocation() {
@@ -252,6 +261,22 @@ public final class OpenstackNetworkingUtilTest {
         assertEquals(instancePort3.oldDeviceId(), swappedInstancePort.deviceId());
         assertEquals(instancePort3.oldPortNumber(), swappedInstancePort.portNumber());
 
+    }
+
+    /**
+     * Tests hasIntfAleadyInDevice method.
+     */
+    @Test
+    public void testHasIntfAleadyInDevice() {
+        DeviceService deviceService = new TestDeviceService();
+        assertTrue(OpenstackNetworkingUtil.hasIntfAleadyInDevice(DeviceId.deviceId("deviceId"),
+                "port1", deviceService));
+        assertTrue(OpenstackNetworkingUtil.hasIntfAleadyInDevice(DeviceId.deviceId("deviceId"),
+                "port2", deviceService));
+        assertTrue(OpenstackNetworkingUtil.hasIntfAleadyInDevice(DeviceId.deviceId("deviceId"),
+                "port3", deviceService));
+        assertFalse(OpenstackNetworkingUtil.hasIntfAleadyInDevice(DeviceId.deviceId("deviceId"),
+                "port4", deviceService));
     }
 
     private OpenstackNode genGateway(int index) {
@@ -272,5 +297,34 @@ public final class OpenstackNetworkingUtilTest {
     }
 
     protected class InternalOpenstackNodeTest extends OpenstackNodeTest {
+    }
+
+    /**
+     * Mocks the DeviceService.
+     */
+    private class TestDeviceService extends DeviceServiceAdapter {
+        @Override
+        public List<org.onosproject.net.Port> getPorts(DeviceId deviceId) {
+            List<org.onosproject.net.Port> ports = Lists.newArrayList();
+            DefaultAnnotations.Builder annotations1 = DefaultAnnotations.builder()
+                    .set(PORT_NAME, "port1");
+            DefaultAnnotations.Builder annotations2 = DefaultAnnotations.builder()
+                    .set(PORT_NAME, "port2");
+            DefaultAnnotations.Builder annotations3 = DefaultAnnotations.builder()
+                    .set(PORT_NAME, "port3");
+
+            org.onosproject.net.Port port1 = new DefaultPort(null, PortNumber.portNumber(1),
+                    true, annotations1.build());
+            org.onosproject.net.Port port2 = new DefaultPort(null, PortNumber.portNumber(2),
+                    true, annotations2.build());
+            org.onosproject.net.Port port3 = new DefaultPort(null, PortNumber.portNumber(3),
+                    true, annotations3.build());
+
+            ports.add(port1);
+            ports.add(port2);
+            ports.add(port3);
+
+            return ports;
+        }
     }
 }
