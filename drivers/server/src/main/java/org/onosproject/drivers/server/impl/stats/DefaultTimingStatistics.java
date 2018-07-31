@@ -16,29 +16,39 @@
 
 package org.onosproject.drivers.server.impl.stats;
 
+import org.onosproject.drivers.server.stats.MonitoringUnit;
 import org.onosproject.drivers.server.stats.TimingStatistics;
 
+import com.google.common.base.Strings;
 import com.google.common.base.MoreObjects;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.drivers.server.stats.MonitoringUnit.LatencyUnit;
 
 /**
  * Default implementation for timing statistics.
  */
 public final class DefaultTimingStatistics implements TimingStatistics {
 
+    private static final LatencyUnit DEF_UNIT = LatencyUnit.NANO_SECOND;
+
+    private final MonitoringUnit unit;
     private final long deployCommandParsingTime;
     private final long deployCommandLaunchingTime;
     private long autoscaleTime;
 
     private DefaultTimingStatistics(
+            MonitoringUnit unit,
             long parsingTime,
             long launchingTime,
             long autoscaleTime) {
+        checkNotNull(unit, "Time statistics unit is null");
         checkArgument(parsingTime   >= 0, "Parsing time is negative");
         checkArgument(launchingTime >= 0, "Launching time is negative");
         checkArgument(autoscaleTime >= 0, "Autoscale time is negative");
 
+        this.unit = unit;
         this.deployCommandParsingTime   = parsingTime;
         this.deployCommandLaunchingTime = launchingTime;
         this.autoscaleTime = autoscaleTime;
@@ -46,6 +56,7 @@ public final class DefaultTimingStatistics implements TimingStatistics {
 
     // Constructor for serializer
     private DefaultTimingStatistics() {
+        this.unit = null;
         this.deployCommandParsingTime   = 0;
         this.deployCommandLaunchingTime = 0;
         this.autoscaleTime = 0;
@@ -58,6 +69,11 @@ public final class DefaultTimingStatistics implements TimingStatistics {
      */
     public static DefaultTimingStatistics.Builder builder() {
         return new Builder();
+    }
+
+    @Override
+    public MonitoringUnit unit() {
+        return this.unit;
     }
 
     @Override
@@ -84,21 +100,37 @@ public final class DefaultTimingStatistics implements TimingStatistics {
     public String toString() {
         return MoreObjects.toStringHelper(this)
                 .omitNullValues()
-                .add("parsing",   this.deployCommandParsingTime())
-                .add("launching", this.deployCommandLaunchingTime())
-                .add("total",     this.totalDeploymentTime())
-                .add("autoscale", this.autoscaleTime())
+                .add("unit", this.unit().toString())
+                .add("parsingTime", this.deployCommandParsingTime())
+                .add("launchingTime", this.deployCommandLaunchingTime())
+                .add("deploymentTime", this.totalDeploymentTime())
+                .add("autoScaleTime", this.autoscaleTime())
                 .toString();
     }
 
     public static final class Builder {
 
+        MonitoringUnit unit = DEF_UNIT;
         long deployCommandParsingTime;
         long deployCommandLaunchingTime;
         long autoscaleTime;
 
         private Builder() {
 
+        }
+
+        /**
+         * Sets time statistics unit.
+         *
+         * @param unitStr time statistics unit as a string
+         * @return builder object
+         */
+        public Builder setUnit(String unitStr) {
+            if (!Strings.isNullOrEmpty(unitStr)) {
+                this.unit = LatencyUnit.getByName(unitStr);
+            }
+
+            return this;
         }
 
         /**
@@ -144,6 +176,7 @@ public final class DefaultTimingStatistics implements TimingStatistics {
          */
         public DefaultTimingStatistics build() {
             return new DefaultTimingStatistics(
+                unit,
                 deployCommandParsingTime,
                 deployCommandLaunchingTime,
                 autoscaleTime

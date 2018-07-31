@@ -110,8 +110,8 @@ public class ServerDevicesDiscovery extends BasicServerDriver
     private static final String PARAM_HW_VENDOR        = "hwVersion";
     private static final String PARAM_SW_VENDOR        = "swVersion";
     private static final String PARAM_SERIAL           = "serial";
-    private static final String PARAM_TIMING_STATS     = "timing_stats";
-    private static final String PARAM_TIMING_AUTOSCALE = "autoscale_timing_stats";
+    private static final String PARAM_TIMING_STATS     = "timingStats";
+    private static final String PARAM_TIMING_AUTOSCALE = "autoScaleTimingStats";
 
     private static final String NIC_PARAM_NAME             = "name";
     private static final String NIC_PARAM_PORT_INDEX       = "index";
@@ -137,20 +137,29 @@ public class ServerDevicesDiscovery extends BasicServerDriver
     /**
      * CPU statistics.
      */
-    private static final String CPU_PARAM_ID        = "id";
-    private static final String CPU_PARAM_VENDOR    = "vendor";
-    private static final String CPU_PARAM_FREQUENCY = "frequency";
-    private static final String CPU_PARAM_LOAD      = "load";
-    private static final String CPU_PARAM_STATUS    = "busy";
-    private static final String CPU_STATS_BUSY_CPUS = "busyCpus";
-    private static final String CPU_STATS_FREE_CPUS = "freeCpus";
+    private static final String CPU_PARAM_ID         = "id";
+    private static final String CPU_PARAM_VENDOR     = "vendor";
+    private static final String CPU_PARAM_FREQUENCY  = "frequency";
+    private static final String CPU_PARAM_LOAD       = "load";
+    private static final String CPU_PARAM_QUEUE      = "queue";
+    private static final String CPU_PARAM_STATUS     = "busy";
+    private static final String CPU_PARAM_THROUGHPUT = "throughput";
+    private static final String CPU_PARAM_LATENCY    = "latency";
+    private static final String MON_PARAM_UNIT       = "unit";
+    private static final String MON_PARAM_BUSY_CPUS  = "busyCpus";
+    private static final String MON_PARAM_FREE_CPUS  = "freeCpus";
+    private static final String MON_PARAM_MIN        = "min";
+    private static final String MON_PARAM_AVERAGE    = "average";
+    private static final String MON_PARAM_MEDIAN     = "median";
+    private static final String MON_PARAM_MAX        = "max";
 
     /**
      * Timing statistics.
      */
-    private static final String TIMING_PARAM_PARSE     = "parse";
-    private static final String TIMING_PARAM_LAUNCH    = "launch";
-    private static final String TIMING_PARAM_AUTOSCALE = "autoscale";
+    private static final String TIMING_PARAM_PARSE     = "parseTime";
+    private static final String TIMING_PARAM_LAUNCH    = "launchTime";
+    private static final String TIMING_PARAM_DEPLOY    = "deployTime";
+    private static final String TIMING_PARAM_AUTOSCALE = "autoScaleTime";
 
     /**
      * Auxiliary constants.
@@ -350,6 +359,9 @@ public class ServerDevicesDiscovery extends BasicServerDriver
         );
         checkNotNull(dev, DEVICE_NULL);
 
+        // Set alive
+        raiseDeviceReconnect(dev);
+
         // Updates the controller with the complete device information
         getController().removeDevice(deviceId);
         getController().addDevice((RestSBDevice) dev);
@@ -512,7 +524,7 @@ public class ServerDevicesDiscovery extends BasicServerDriver
      * @param deviceId the device ID to be queried
      * @return global monitoring statistics
      */
-     private MonitoringStatistics getGlobalMonitoringStatistics(DeviceId deviceId) {
+     public MonitoringStatistics getGlobalMonitoringStatistics(DeviceId deviceId) {
         // Monitoring statistics to return
         MonitoringStatistics monStats = null;
 
@@ -562,8 +574,8 @@ public class ServerDevicesDiscovery extends BasicServerDriver
         }
 
         // Get high-level CPU statistics
-        int busyCpus = objNode.path(CPU_STATS_BUSY_CPUS).asInt();
-        int freeCpus = objNode.path(CPU_STATS_FREE_CPUS).asInt();
+        int busyCpus = objNode.path(MON_PARAM_BUSY_CPUS).asInt();
+        int freeCpus = objNode.path(MON_PARAM_FREE_CPUS).asInt();
 
         // Get a list of CPU statistics per core
         Collection<CpuStatistics> cpuStats = parseCpuStatistics(deviceId, objNode);
@@ -581,10 +593,12 @@ public class ServerDevicesDiscovery extends BasicServerDriver
         statsBuilder.setDeviceId(deviceId)
                 .setTimingStatistics(timinsgStats)
                 .setCpuStatistics(cpuStats)
-                .setNicStatistics(nicStats)
-                .build();
+                .setNicStatistics(nicStats);
 
         monStats = statsBuilder.build();
+
+        // When a device reports monitoring data, it means it is alive
+        raiseDeviceReconnect(device);
 
         log.debug("Global monitoring statistics: {}", monStats.toString());
 
@@ -689,10 +703,12 @@ public class ServerDevicesDiscovery extends BasicServerDriver
         statsBuilder.setDeviceId(deviceId)
                 .setTimingStatistics(timinsgStats)
                 .setCpuStatistics(cpuStats)
-                .setNicStatistics(nicStats)
-                .build();
+                .setNicStatistics(nicStats);
 
         monStats = statsBuilder.build();
+
+        // When a device reports monitoring data, it means it is alive
+        raiseDeviceReconnect(device);
 
         log.debug("Monitoring statistics: {}", monStats.toString());
 
@@ -720,22 +736,62 @@ public class ServerDevicesDiscovery extends BasicServerDriver
         for (JsonNode cn : cpuNode) {
             ObjectNode cpuObjNode = (ObjectNode) cn;
 
+            // CPU statistics builder
+            DefaultCpuStatistics.Builder cpuBuilder = DefaultCpuStatistics.builder();
+
+            // Throughput statistics are optional
+            JsonNode throughputNode = cpuObjNode.get(CPU_PARAM_THROUGHPUT);
+            if (throughputNode != null) {
+                String throughputUnit = get(throughputNode, MON_PARAM_UNIT);
+                if (!Strings.isNullOrEmpty(throughputUnit)) {
+                    cpuBuilder.setThroughputUnit(throughputUnit);
+                }
+                float averageThroughput = (float) 0;
+                if (throughputNode.get(MON_PARAM_AVERAGE) != null) {
+                    averageThroughput = throughputNode.path(MON_PARAM_AVERAGE).floatValue();
+                }
+                cpuBuilder.setAverageThroughput(averageThroughput);
+            }
+
+            // Latency statistics are optional
+            JsonNode latencyNode = cpuObjNode.get(CPU_PARAM_LATENCY);
+            if (latencyNode != null) {
+                String latencyUnit = get(latencyNode, MON_PARAM_UNIT);
+                if (!Strings.isNullOrEmpty(latencyUnit)) {
+                    cpuBuilder.setLatencyUnit(latencyUnit);
+                }
+                float minLatency = (float) 0;
+                if (latencyNode.get(MON_PARAM_MIN) != null) {
+                    minLatency = latencyNode.path(MON_PARAM_MIN).floatValue();
+                }
+                float medianLatency = (float) 0;
+                if (latencyNode.get(MON_PARAM_MEDIAN) != null) {
+                    medianLatency = latencyNode.path(MON_PARAM_MEDIAN).floatValue();
+                }
+                float maxLatency = (float) 0;
+                if (latencyNode.get(MON_PARAM_MAX) != null) {
+                    maxLatency = latencyNode.path(MON_PARAM_MAX).floatValue();
+                }
+
+                cpuBuilder.setMinLatency(minLatency)
+                    .setMedianLatency(medianLatency)
+                    .setMaxLatency(maxLatency);
+            }
+
             // CPU ID with its load and status
-            int   cpuId    = cpuObjNode.path(CPU_PARAM_ID).asInt();
-            float cpuLoad  = cpuObjNode.path(CPU_PARAM_LOAD).floatValue();
+            int cpuId = cpuObjNode.path(CPU_PARAM_ID).asInt();
+            float cpuLoad = cpuObjNode.path(CPU_PARAM_LOAD).floatValue();
+            int queueId = cpuObjNode.path(CPU_PARAM_QUEUE).asInt();
             boolean isBusy = cpuObjNode.path(CPU_PARAM_STATUS).booleanValue();
 
-            // Incorporate these statistics into an object
-            DefaultCpuStatistics.Builder cpuBuilder =
-                DefaultCpuStatistics.builder();
-
+            // This is mandatory information
             cpuBuilder.setDeviceId(deviceId)
                     .setId(cpuId)
                     .setLoad(cpuLoad)
-                    .setIsBusy(isBusy)
-                    .build();
+                    .setQueue(queueId)
+                    .setIsBusy(isBusy);
 
-            // We have statistics for this CPU core
+            // We have all the statistics for this CPU core
             cpuStats.add(cpuBuilder.build());
         }
 
@@ -790,8 +846,7 @@ public class ServerDevicesDiscovery extends BasicServerDriver
             long txErrors  = nicObjNode.path(NIC_STATS_TX_ERRORS).asLong();
 
             // Incorporate these statistics into an object
-            DefaultPortStatistics.Builder nicBuilder =
-                DefaultPortStatistics.builder();
+            DefaultPortStatistics.Builder nicBuilder = DefaultPortStatistics.builder();
 
             nicBuilder.setDeviceId(deviceId)
                     .setPort((int) portNumber)
@@ -802,8 +857,7 @@ public class ServerDevicesDiscovery extends BasicServerDriver
                     .setPacketsRxDropped(rxDropped)
                     .setPacketsRxErrors(rxErrors)
                     .setPacketsTxDropped(txDropped)
-                    .setPacketsTxErrors(txErrors)
-                    .build();
+                    .setPacketsTxErrors(txErrors);
 
             // We have statistics for this NIC
             nicStats.add(nicBuilder.build());
@@ -813,9 +867,9 @@ public class ServerDevicesDiscovery extends BasicServerDriver
     }
 
     /**
-     * Parse the input JSON object, looking for timing-related
-     * statistics. Upon success, construct and return a
-     * timing statistics object.
+     * Parse the input JSON object, looking for timing-related statistics.
+     * Upon success, return a timing statistics object with the advertized values.
+     * Upon failure, return a timing statistics object with zero-initialized values.
      *
      * @param objNode input JSON node with timing statistics information
      * @return TimingStatistics object or null
@@ -827,33 +881,56 @@ public class ServerDevicesDiscovery extends BasicServerDriver
             return timinsgStats;
         }
 
+        // If no timing statistics are present, then send zeros
+        if (objNode.get(PARAM_TIMING_STATS) == null) {
+            return getZeroTimingStatistics();
+        }
+
+        DefaultTimingStatistics.Builder timingBuilder = DefaultTimingStatistics.builder();
+
         // Get timing statistics
         JsonNode timingNode = objNode.path(PARAM_TIMING_STATS);
         ObjectNode timingObjNode = (ObjectNode) timingNode;
 
+        // The unit of timing statistics
+        String timingStatsUnit = get(timingNode, MON_PARAM_UNIT);
+        if (!Strings.isNullOrEmpty(timingStatsUnit)) {
+            timingBuilder.setUnit(timingStatsUnit);
+        }
+
         // Time (ns) to parse the controller's deployment instruction
-        long parsingTime = timingObjNode.path(TIMING_PARAM_PARSE).asLong();
+        long parsingTime = 0;
+        if (timingObjNode.get(TIMING_PARAM_PARSE) != null) {
+            parsingTime = timingObjNode.path(TIMING_PARAM_PARSE).asLong();
+        }
         // Time (ns) to do the deployment
-        long launchingTime = timingObjNode.path(TIMING_PARAM_LAUNCH).asLong();
-        // Total time (ns)
-        long totalTime = parsingTime + launchingTime;
+        long launchingTime = 0;
+        if (timingObjNode.get(TIMING_PARAM_LAUNCH) != null) {
+            launchingTime = timingObjNode.path(TIMING_PARAM_LAUNCH).asLong();
+        }
+        // Deployment time (ns) equals to time to parse + time to launch
+        long deployTime = 0;
+        if (timingObjNode.get(TIMING_PARAM_DEPLOY) != null) {
+            deployTime = timingObjNode.path(TIMING_PARAM_DEPLOY).asLong();
+        }
+        checkArgument(deployTime == parsingTime + launchingTime, "Inconsistent timing statistics");
+
+        timingBuilder.setParsingTime(parsingTime)
+                    .setLaunchingTime(launchingTime);
 
         // Get autoscale timing statistics
         JsonNode autoscaleTimingNode = objNode.path(PARAM_TIMING_AUTOSCALE);
+        if (autoscaleTimingNode == null) {
+            return timingBuilder.build();
+        }
+
         ObjectNode autoscaleTimingObjNode = (ObjectNode) autoscaleTimingNode;
-
         // Time (ns) to autoscale a server's load
-        long autoscaleTime = autoscaleTimingObjNode.path(
-            TIMING_PARAM_AUTOSCALE
-        ).asLong();
-
-        DefaultTimingStatistics.Builder timingBuilder =
-            DefaultTimingStatistics.builder();
-
-        timingBuilder.setParsingTime(parsingTime)
-                    .setLaunchingTime(launchingTime)
-                    .setAutoscaleTime(autoscaleTime)
-                    .build();
+        long autoscaleTime = 0;
+        if (autoscaleTimingObjNode.get(TIMING_PARAM_AUTOSCALE) != null) {
+            autoscaleTimingObjNode.path(TIMING_PARAM_AUTOSCALE).asLong();
+        }
+        timingBuilder.setAutoscaleTime(autoscaleTime);
 
         return timingBuilder.build();
     }
@@ -866,13 +943,11 @@ public class ServerDevicesDiscovery extends BasicServerDriver
      * @return TimingStatistics object
      */
     private TimingStatistics getZeroTimingStatistics() {
-        DefaultTimingStatistics.Builder zeroTimingBuilder =
-            DefaultTimingStatistics.builder();
+        DefaultTimingStatistics.Builder zeroTimingBuilder = DefaultTimingStatistics.builder();
 
         zeroTimingBuilder.setParsingTime(0)
                          .setLaunchingTime(0)
-                         .setAutoscaleTime(0)
-                         .build();
+                         .setAutoscaleTime(0);
 
         return zeroTimingBuilder.build();
     }

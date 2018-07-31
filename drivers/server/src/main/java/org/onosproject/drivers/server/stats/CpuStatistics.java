@@ -16,6 +16,8 @@
 
 package org.onosproject.drivers.server.stats;
 
+import java.util.Optional;
+
 /**
  * CPU statistics API.
  */
@@ -38,10 +40,63 @@ public interface CpuStatistics {
     float load();
 
     /**
+     * Returns the hardware queue identifier associated with this CPU core.
+     *
+     * @return hardware queue identifier
+     */
+    int queue();
+
+    /**
      * Returns the status (true=busy, false=free) of a CPU core.
      *
      * @return boolean CPU core status
      */
     boolean busy();
+
+    /**
+     * Returns the unit of throughput values.
+     *
+     * @return throughput monitoring unit
+     */
+    Optional<MonitoringUnit> throughputUnit();
+
+    /**
+     * Returns the average throughput of this CPU core,
+     * expressed in throughputUnit() monitoring units.
+     *
+     * @return average throughput of a CPU core
+     */
+    Optional<Float> averageThroughput();
+
+    /**
+     * Returns the unit of latency values.
+     *
+     * @return latency monitoring unit
+     */
+    Optional<MonitoringUnit> latencyUnit();
+
+    /**
+     * Returns the minimum latency incurred by a CPU core,
+     * expressed in latencyUnit() monitoring units.
+     *
+     * @return minimum latency incurred by a CPU core
+     */
+    Optional<Float> minLatency();
+
+    /**
+     * Returns the median latency incurred by a CPU core,
+     * expressed in latencyUnit() monitoring units.
+     *
+     * @return median latency incurred by a CPU core
+     */
+    Optional<Float> medianLatency();
+
+    /**
+     * Returns the maximum latency incurred by a CPU core,
+     * expressed in latencyUnit() monitoring units.
+     *
+     * @return maximum latency incurred by a CPU core
+     */
+    Optional<Float> maxLatency();
 
 }

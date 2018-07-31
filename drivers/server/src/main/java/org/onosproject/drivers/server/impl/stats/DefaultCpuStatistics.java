@@ -17,10 +17,15 @@
 package org.onosproject.drivers.server.impl.stats;
 
 import org.onosproject.drivers.server.stats.CpuStatistics;
+import org.onosproject.drivers.server.stats.MonitoringUnit;
 
 import org.onosproject.net.DeviceId;
 import com.google.common.base.MoreObjects;
 
+import java.util.Optional;
+
+import static org.onosproject.drivers.server.stats.MonitoringUnit.LatencyUnit;
+import static org.onosproject.drivers.server.stats.MonitoringUnit.ThroughputUnit;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -32,6 +37,9 @@ public final class DefaultCpuStatistics implements CpuStatistics {
     private static final float MIN_CPU_LOAD = (float) 0.0;
     private static final float MAX_CPU_LOAD = (float) 1.0;
 
+    private static final LatencyUnit DEF_LATENCY_UNIT = LatencyUnit.NANO_SECOND;
+    private static final ThroughputUnit DEF_THROUGHPUT_UNIT = ThroughputUnit.MBPS;
+
     // Upper limit of CPU cores in one machine
     public static final int MAX_CPU_NB = 512;
 
@@ -39,27 +47,46 @@ public final class DefaultCpuStatistics implements CpuStatistics {
 
     private final int id;
     private final float load;
+    private final int queue;
     private final boolean isBusy;
+    private final Optional<MonitoringUnit> throughputUnit;
+    private final Optional<Float> averageThroughput;
+    private final Optional<MonitoringUnit> latencyUnit;
+    private final Optional<Float> minLatency;
+    private final Optional<Float> medianLatency;
+    private final Optional<Float> maxLatency;
 
-    private DefaultCpuStatistics(
-            DeviceId deviceId,
-            int      id,
-            float    load,
-            boolean  isBusy) {
+    private DefaultCpuStatistics(DeviceId deviceId, int id, float load, int queue, boolean isBusy) {
+        this(deviceId, id, load, queue, isBusy, null, -1, null, -1, -1, -1);
+    }
+
+    private DefaultCpuStatistics(DeviceId deviceId, int id, float load, int queue, boolean isBusy,
+            MonitoringUnit throughputUnit, float averageThroughput, MonitoringUnit latencyUnit,
+            float minLatency, float medianLatency, float maxLatency) {
         checkNotNull(deviceId, "Device ID is NULL");
-        checkArgument(
-            (id >= 0) && (id < MAX_CPU_NB),
-            "Invalid CPU core ID " + String.valueOf(id) + ", not in [0, " + String.valueOf(MAX_CPU_NB - 1) + "]"
-        );
-        checkArgument(
-            (load >= MIN_CPU_LOAD) && (load <= MAX_CPU_LOAD),
-            "Invalid CPU load " + Float.toString(load) + ", not in [" + MIN_CPU_LOAD + ", " + MAX_CPU_LOAD + "]"
-        );
+        checkArgument((id >= 0) && (id < MAX_CPU_NB),
+            "Invalid CPU core ID " + String.valueOf(id) + ", not in [0, " + String.valueOf(MAX_CPU_NB - 1) + "]");
+        checkArgument((load >= MIN_CPU_LOAD) && (load <= MAX_CPU_LOAD),
+            "Invalid CPU load " + Float.toString(load) + ", not in [" + MIN_CPU_LOAD + ", " + MAX_CPU_LOAD + "]");
 
         this.deviceId = deviceId;
         this.id       = id;
         this.load     = load;
+        this.queue    = queue;
         this.isBusy   = isBusy;
+
+        this.throughputUnit = (throughputUnit == null) ?
+                Optional.empty() : Optional.ofNullable(throughputUnit);
+        this.averageThroughput = (averageThroughput < 0) ?
+                Optional.empty() : Optional.ofNullable(averageThroughput);
+        this.latencyUnit = (latencyUnit == null) ?
+                Optional.empty() : Optional.ofNullable(latencyUnit);
+        this.minLatency = (minLatency < 0) ?
+                Optional.empty() : Optional.ofNullable(minLatency);
+        this.medianLatency = (medianLatency < 0) ?
+                Optional.empty() : Optional.ofNullable(medianLatency);
+        this.maxLatency = (maxLatency < 0) ?
+                Optional.empty() : Optional.ofNullable(maxLatency);
     }
 
     // Constructor for serializer
@@ -67,7 +94,15 @@ public final class DefaultCpuStatistics implements CpuStatistics {
         this.deviceId = null;
         this.id       = 0;
         this.load     = 0;
+        this.queue    = 0;
         this.isBusy   = false;
+
+        this.throughputUnit = null;
+        this.averageThroughput = null;
+        this.latencyUnit = null;
+        this.minLatency = null;
+        this.medianLatency = null;
+        this.maxLatency = null;
     }
 
     /**
@@ -90,8 +125,43 @@ public final class DefaultCpuStatistics implements CpuStatistics {
     }
 
     @Override
+    public int queue() {
+        return this.queue;
+    }
+
+    @Override
     public boolean busy() {
         return this.isBusy;
+    }
+
+    @Override
+    public Optional<MonitoringUnit> throughputUnit() {
+        return this.throughputUnit;
+    }
+
+    @Override
+    public Optional<Float> averageThroughput() {
+        return this.averageThroughput;
+    }
+
+    @Override
+    public Optional<MonitoringUnit> latencyUnit() {
+        return this.latencyUnit;
+    }
+
+    @Override
+    public Optional<Float> minLatency() {
+        return this.minLatency;
+    }
+
+    @Override
+    public Optional<Float> medianLatency() {
+        return this.medianLatency;
+    }
+
+    @Override
+    public Optional<Float> maxLatency() {
+        return this.maxLatency;
     }
 
     @Override
@@ -101,7 +171,14 @@ public final class DefaultCpuStatistics implements CpuStatistics {
                 .add("device", deviceId)
                 .add("id",     id())
                 .add("load",   load())
+                .add("queue",  queue())
                 .add("isBusy", busy())
+                .add("throughputUnit", throughputUnit.orElse(null))
+                .add("averageThroughput", averageThroughput.orElse(null))
+                .add("latencyUnit", latencyUnit.orElse(null))
+                .add("minLatency", minLatency.orElse(null))
+                .add("medianLatency", medianLatency.orElse(null))
+                .add("maxLatency", maxLatency.orElse(null))
                 .toString();
     }
 
@@ -109,8 +186,16 @@ public final class DefaultCpuStatistics implements CpuStatistics {
 
         DeviceId deviceId;
         int      id;
-        float    load;
-        boolean  isBusy;
+        float    load = 0;
+        int      queue = -1;
+        boolean  isBusy = false;
+
+        MonitoringUnit throughputUnit = DEF_THROUGHPUT_UNIT;
+        float averageThroughput = -1;
+        MonitoringUnit latencyUnit = DEF_LATENCY_UNIT;
+        float minLatency = -1;
+        float medianLatency = -1;
+        float maxLatency = -1;
 
         private Builder() {
 
@@ -131,7 +216,7 @@ public final class DefaultCpuStatistics implements CpuStatistics {
         /**
          * Sets the CPU ID.
          *
-         * @param id the CPU ID
+         * @param id CPU ID
          * @return builder object
          */
         public Builder setId(int id) {
@@ -153,6 +238,18 @@ public final class DefaultCpuStatistics implements CpuStatistics {
         }
 
         /**
+         * Sets the hardware queue ID associated with this core.
+         *
+         * @param queue hardware queue ID
+         * @return builder object
+         */
+        public Builder setQueue(int queue) {
+            this.queue = queue;
+
+            return this;
+        }
+
+        /**
          * Sets the CPU status (free or busy).
          *
          * @param isBusy CPU status
@@ -165,17 +262,87 @@ public final class DefaultCpuStatistics implements CpuStatistics {
         }
 
         /**
+         * Sets the throughput unit.
+         *
+         * @param throughputUnitStr throughput unit as a string
+         * @return builder object
+         */
+        public Builder setThroughputUnit(String throughputUnitStr) {
+            this.throughputUnit = ThroughputUnit.getByName(throughputUnitStr);
+
+            return this;
+        }
+
+        /**
+         * Sets the average throughput.
+         *
+         * @param averageThroughput average throughput
+         * @return builder object
+         */
+        public Builder setAverageThroughput(float averageThroughput) {
+            this.averageThroughput = averageThroughput;
+
+            return this;
+        }
+
+        /**
+         * Sets the latency unit.
+         *
+         * @param latencyUnitStr latency unit as a string
+         * @return builder object
+         */
+        public Builder setLatencyUnit(String latencyUnitStr) {
+            this.latencyUnit = LatencyUnit.getByName(latencyUnitStr);
+
+            return this;
+        }
+
+        /**
+         * Sets the minimum latency.
+         *
+         * @param minLatency minimum latency
+         * @return builder object
+         */
+        public Builder setMinLatency(float minLatency) {
+            this.minLatency = minLatency;
+
+            return this;
+        }
+
+        /**
+         * Sets the median latency.
+         *
+         * @param medianLatency median latency
+         * @return builder object
+         */
+        public Builder setMedianLatency(float medianLatency) {
+            this.medianLatency = medianLatency;
+
+            return this;
+        }
+
+        /**
+         * Sets the maximum latency.
+         *
+         * @param maxLatency maximum latency
+         * @return builder object
+         */
+        public Builder setMaxLatency(float maxLatency) {
+            this.maxLatency = maxLatency;
+
+            return this;
+        }
+
+        /**
          * Creates a DefaultCpuStatistics object.
          *
          * @return DefaultCpuStatistics object
          */
         public DefaultCpuStatistics build() {
             return new DefaultCpuStatistics(
-                deviceId,
-                id,
-                load,
-                isBusy
-            );
+                deviceId, id, load, queue, isBusy,
+                throughputUnit, averageThroughput,
+                latencyUnit, minLatency, medianLatency, maxLatency);
         }
     }
 
