@@ -154,7 +154,7 @@ genrule(
           " tar xf $$ROOT/$(location :_onos-gui-npm-install) &&" +
           " $$ROOT/$$NPM run build --no-cache --loglevel=error >npm-build.out &&" +
           " cd ../../web/gui/src/main/webapp &&" +
-          " jar cf $$ROOT/$@ dist vendor data tests README.md _doc _dev app/fw app/*.css app/*.js app/*.txt)",
+          " jar cf $$ROOT/$@ dist vendor data README.md _doc _dev app/fw app/*.css app/*.js app/*.txt)",
 )
 
 """

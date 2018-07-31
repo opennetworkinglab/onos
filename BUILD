@@ -59,7 +59,7 @@ genrule(
         "tools/test/bin/onos",
     ]),
     outs = ["onos-admin.tar.gz"],
-    cmd = "mkdir onos-admin-%s; cp $(SRCS) onos-admin-%s; tar zcf $(location onos-admin.tar.gz) onos-admin-%s" %
+    cmd = "mkdir onos-admin-%s; cp $(SRCS) onos-admin-%s; tar hzcf $(location onos-admin.tar.gz) onos-admin-%s" %
           (ONOS_VERSION, ONOS_VERSION, ONOS_VERSION),
     output_to_bindir = True,
 )
@@ -75,7 +75,7 @@ genrule(
         "tools/package/runtime/bin/*",
     ]),
     outs = ["onos-test.tar.gz"],
-    cmd = "mkdir onos-test-%s; cp -r tools onos-test-%s; tar zcf $(location onos-test.tar.gz) onos-test-%s" %
+    cmd = "mkdir onos-test-%s; cp -r tools onos-test-%s; tar hzcf $(location onos-test.tar.gz) onos-test-%s" %
           (ONOS_VERSION, ONOS_VERSION, ONOS_VERSION),
     output_to_bindir = True,
 )

@@ -10,6 +10,6 @@ genrule(
     name = "tools-gui-gulp",
     srcs = [":_tools-gui-gulp-files"],
     outs = ["tools-gui-gulp.tar"],
-    cmd = "cd tools/gui && tar cf ../../$@ .",
+    cmd = "cd tools/gui && tar hcf ../../$@ .",
     visibility = ["//visibility:public"],
 )

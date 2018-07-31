@@ -1,1 +1,4 @@
 build --nouse_ijars
+build --experimental_strict_action_env
+#build --disk_cache=~/bazel-cache
+#build --remote_http_cache=http://10.1.10.224:80/cache
