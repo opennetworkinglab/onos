@@ -14,7 +14,7 @@
   ~ limitations under the License.
   -->
 <scenario name="shutdown" description="ONOS cluster shutdown">
-    <group name="Shutdown">
+    <group name="Shutdown-ONOS">
         <parallel var="${OC#}">
             <step name="Stop-Service-${#}" exec="onos-service ${OC#} stop"/>
             <step name="Wait-for-Stop-${#}" exec="onos-wait-for-stop ${OC#}"
@@ -22,5 +22,17 @@
             <step name="Check-Logs-${#}" exec="onos-check-logs ${OC#}"
                   requires="~Wait-for-Stop-${#}"/>
         </parallel>
+    </group>
+    <group name="Shutdown-Atomix">
+        <group name="Shutdown-Atomix-OC" unless="${OCC1}">
+            <parallel var="${OC#}">
+                <step name="Atomix-Kill-${#}" env="~" exec="atomix-kill ${OC#}" requires="Shutdown-ONOS"/>
+            </parallel>
+        </group>
+        <group name="Shutdown-Atomix-OCC" if="${OCC1}">
+            <parallel var="${OCC#}">
+                <step name="Atomix-Kill-${#}" env="~" exec="atomix-kill ${OCC#}" requires="Shutdown-ONOS"/>
+            </parallel>
+        </group>
     </group>
 </scenario>

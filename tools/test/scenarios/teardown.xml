@@ -14,12 +14,21 @@
   ~ limitations under the License.
   -->
 <scenario name="teardown" description="ONOS cluster teardown/uninstall">
-    <group name="Teardown">
+    <group name="Teardown-ONOS">
         <parallel var="${OC#}">
             <step name="ONOS-Uninstall-${#}" exec="onos-uninstall ${OC#}"/>
         </parallel>
-        <parallel var="${OCC#}">
-            <step name="Atomix-Uninstall-${#}" exec="atomix-uninstall ${OCC#}"/>
-        </parallel>
+    </group>
+    <group name="Teardown-Atomix">
+        <group name="Teardown-Atomix-OC" unless="${OCC1}">
+            <parallel var="${OC#}">
+                <step name="Atomix-Uninstall-${#}" exec="atomix-uninstall ${OC#}"/>
+            </parallel>
+        </group>
+        <group name="Teardown-Atomix-OCC" if="${OCC1}">
+            <parallel var="${OCC#}">
+                <step name="Atomix-Uninstall-${#}" exec="atomix-uninstall ${OCC#}"/>
+            </parallel>
+        </group>
     </group>
 </scenario>

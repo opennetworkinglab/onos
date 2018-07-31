@@ -33,23 +33,32 @@ import json
 convert = lambda text: int(text) if text.isdigit() else text.lower()
 alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
 
-def get_OCC_vars():
-  vars = []
-  for var in environ:
-    if re.match(r"OCC[0-9]+", var):
-      vars.append(var)
-  return sorted(vars, key=alphanum_key)
+def get_vars_by_type(type):
+    vars = []
+    for var in environ:
+        if re.match(r"{}[0-9]+".format(type), var):
+            vars.append(var)
+    return sorted(vars, key=alphanum_key)
+
+
+def get_vars():
+    vars = get_vars_by_type('OCC')
+    if len(vars) == 0:
+        vars = get_vars_by_type('OC')
+    return vars
+
 
 def get_local_node(node, ips=None):
     if not ips:
-        ips = [ environ[v] for v in get_OCC_vars() ]
+        ips = [environ[v] for v in get_vars()]
     return 'atomix-{}'.format(ips.index(node) + 1)
+
 
 def get_nodes(ips=None, default_port=5679):
     node = lambda id, ip, port: {'id': id, 'address': '{}:{}'.format(ip, port)}
     result = []
     if not ips:
-        ips = [ environ[v] for v in get_OCC_vars() ]
+        ips = [environ[v] for v in get_vars()]
     i = 1
     for ip_string in ips:
         address_tuple = ip_string.split(":")
@@ -65,11 +74,10 @@ def get_nodes(ips=None, default_port=5679):
         result.append(node(id, ip, port))
     return result
 
+
 def get_local_address(node, ips=None, default_port=5679):
-    result = []
     if not ips:
-        ips = [ environ[v] for v in get_OCC_vars() ]
-    i = 1
+        ips = [environ[v] for v in get_vars()]
     for ip_string in ips:
         address_tuple = ip_string.split(":")
         if len(address_tuple) == 3:

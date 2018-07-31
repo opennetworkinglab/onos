@@ -29,7 +29,17 @@
                           requires="Uninstall-${#}"/>
                 </parallel>
             </group>
-            <group name="Cleanup-Atomix" if="${OCC1}">
+            <group name="Cleanup-Atomix-OC" unless="${OCC1}">
+                <parallel var="${OC#}">
+                    <step name="Atomix-Kill-${#}"
+                          env="~"
+                          exec="atomix-kill ${OC#}"/>
+                    <step name="Atomix-Uninstall-${#}"
+                          exec="atomix-uninstall ${OC#}"
+                          requires="Atomix-Kill-${#}"/>
+                </parallel>
+            </group>
+            <group name="Cleanup-Atomix-OCC" if="${OCC1}">
                 <parallel var="${OCC#}">
                     <step name="Atomix-Kill-${#}"
                           env="~"
@@ -43,12 +53,23 @@
 
         <step name="Generate-Cluster-Key" exec="onos-gen-cluster-key -f"/>
 
-        <group name="Install-Atomix" if="${OCC1}">
-            <group name="Parallel-Install-Atomix">
-                <parallel var="${OCC#}">
-                    <step name="Parallel-Install-Atomix-${#}" exec="atomix-install ${OCC#}"
-                          requires="Generate-Cluster-Key,Push-Bits-${#},Push-Bits,Cleanup"/>
-                </parallel>
+        <group name="Install-Atomix">
+            <group name="Install-Atomix-OC" unless="${OCC1}">
+                <group name="Parallel-Install-Atomix">
+                    <parallel var="${OC#}">
+                        <step name="Parallel-Install-Atomix-${#}" exec="atomix-install ${OC#}"
+                              requires="Generate-Cluster-Key,Push-Bits-${#},Push-Bits,Cleanup"/>
+                    </parallel>
+                </group>
+            </group>
+
+            <group name="Install-Atomix-OCC" if="${OCC1}">
+                <group name="Parallel-Install-Atomix">
+                    <parallel var="${OCC#}">
+                        <step name="Parallel-Install-Atomix-${#}" exec="atomix-install ${OCC#}"
+                              requires="Generate-Cluster-Key,Push-Bits-${#},Push-Bits,Cleanup"/>
+                    </parallel>
+                </group>
             </group>
         </group>
 
