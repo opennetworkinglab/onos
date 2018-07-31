@@ -50,7 +50,25 @@
 
         <dependency>
             <groupId>org.onosproject</groupId>
+            <artifactId>onos-apps-openstacknode-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-apps-openstacknetworking-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.onosproject</groupId>
             <artifactId>onos-apps-openstacktroubleshoot-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.onosproject</groupId>
+            <artifactId>onos-core-serializers</artifactId>
             <version>${project.version}</version>
         </dependency>
 
@@ -65,6 +83,7 @@
             <artifactId>onlab-rest</artifactId>
             <version>${project.version}</version>
         </dependency>
+
         <dependency>
             <groupId>javax.ws.rs</groupId>
             <artifactId>javax.ws.rs-api</artifactId>

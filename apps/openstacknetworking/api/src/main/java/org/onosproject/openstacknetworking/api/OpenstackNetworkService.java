@@ -163,5 +163,11 @@ public interface OpenstackNetworkService
      */
     String gatewayIp(String portId);
 
-
+    /**
+     * Returns network segment ID with supplied network ID.
+     *
+     * @param netId openstack network ID
+     * @return network segment ID
+     */
+    String segmentId(String netId);
 }

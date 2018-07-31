@@ -2,10 +2,13 @@ COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//lib:JACKSON',
     '//lib:KRYO',
+    '//core/store/serializers:onos-core-serializers',
     '//lib:org.apache.karaf.shell.console',
     '//cli:onos-cli',
     '//lib:javax.ws.rs-api',
     '//utils/rest:onlab-rest',
+    '//apps/openstacknode/api:onos-apps-openstacknode-api',
+    '//apps/openstacknetworking/api:onos-apps-openstacknetworking-api',
     '//apps/openstacktroubleshoot/api:onos-apps-openstacktroubleshoot-api',
 ]
 

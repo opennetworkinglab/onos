@@ -119,6 +119,11 @@ public class OpenstackNetworkServiceAdapter implements OpenstackNetworkService {
     }
 
     @Override
+    public String segmentId(String netId) {
+        return null;
+    }
+
+    @Override
     public void addListener(OpenstackNetworkListener listener) {
 
     }

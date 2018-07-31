@@ -73,6 +73,7 @@ public final class Constants {
     public static final int PRIORITY_ARP_REPLY_RULE = 40000;
     public static final int PRIORITY_ARP_REQUEST_RULE = 40000;
     public static final int PRIORITY_FORCED_ACL_RULE = 50000;
+    public static final int PRIORITY_ICMP_PROBE_RULE = 50000;
 
     // flow table index
     public static final int STAT_INBOUND_TABLE = 0;

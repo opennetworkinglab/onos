@@ -641,6 +641,15 @@ public class OpenstackNetworkManager
                 .findAny().orElse(null);
     }
 
+    @Override
+    public String segmentId(String netId) {
+        Network network = network(netId);
+
+        checkNotNull(network);
+
+        return network.getProviderSegID();
+    }
+
     private boolean isNetworkInUse(String netId) {
         return !subnets(netId).isEmpty() && !ports(netId).isEmpty();
     }

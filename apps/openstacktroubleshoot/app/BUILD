@@ -1,4 +1,7 @@
 COMPILE_DEPS = CORE_DEPS + JACKSON + KRYO + CLI + REST + [
+    "//core/store/serializers:onos-core-serializers",
+    "//apps/openstacknode/api:onos-apps-openstacknode-api",
+    "//apps/openstacknetworking/api:onos-apps-openstacknetworking-api",
     "//apps/openstacktroubleshoot/api:onos-apps-openstacktroubleshoot-api",
 ]
 
