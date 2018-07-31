@@ -27,7 +27,7 @@ _EOF_
 remote=$ONOS_USER@${1:-$OCI}
 
 ssh -tt $remote "
-    pid=\$(ps -ef | grep atomix-agent.jar | grep -v grep | cut -c10-15 | tr -d ' ')
+    pid=\$(ps -ef | grep atomix | grep -v grep | cut -c10-15 | tr -d ' ')
     if [ -n \"\$pid\" ]; then
         echo \"Killing Atomix process \$pid on \$(hostname)...\"
         kill -9 \$pid

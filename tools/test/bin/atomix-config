@@ -37,5 +37,5 @@ atomix-gen-config $node $CDEF_FILE
 scp -q $CDEF_FILE $remote:$ATOMIX_INSTALL_DIR/atomix.json
 
 ssh -tt $ONOS_USER@$node "
-    echo \"cd $ATOMIX_INSTALL_DIR && java -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode -cp .:$ATOMIX_INSTALL_DIR/atomix.json:$ATOMIX_INSTALL_DIR/atomix-agent.jar -Datomix.logging.level=DEBUG io.atomix.agent.AtomixAgent\" > $ATOMIX_INSTALL_DIR/atomix && sudo chmod u+x $ATOMIX_INSTALL_DIR/atomix
+    sed -i -e $'s/<logger name=\"io.atomix\" level=\"INFO\" \/>/<logger name=\"io.atomix\" level=\"INFO\" \/>\\\n    <logger name=\"io.atomix.protocols.raft\" level=\"DEBUG\" \/>/g' /opt/atomix/conf/logback.xml
 "

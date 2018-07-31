@@ -15,10 +15,13 @@
  */
 package org.onosproject.store.atomix.primitives.impl;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.onosproject.store.primitives.NodeUpdate;
 import org.onosproject.store.primitives.TransactionId;
@@ -26,6 +29,8 @@ import org.onosproject.store.service.AsyncDocumentTree;
 import org.onosproject.store.service.DocumentPath;
 import org.onosproject.store.service.DocumentTreeEvent;
 import org.onosproject.store.service.DocumentTreeListener;
+import org.onosproject.store.service.IllegalDocumentModificationException;
+import org.onosproject.store.service.NoSuchDocumentPathException;
 import org.onosproject.store.service.TransactionLog;
 import org.onosproject.store.service.Version;
 import org.onosproject.store.service.Versioned;
@@ -72,7 +77,7 @@ public class AtomixDocumentTree<V> implements AsyncDocumentTree<V> {
 
     @Override
     public CompletableFuture<Boolean> create(DocumentPath path, V value) {
-        return atomixTree.create(toAtomixPath(path), value);
+        return convertException(atomixTree.create(toAtomixPath(path), value));
     }
 
     @Override
@@ -92,7 +97,7 @@ public class AtomixDocumentTree<V> implements AsyncDocumentTree<V> {
 
     @Override
     public CompletableFuture<Versioned<V>> removeNode(DocumentPath path) {
-        return atomixTree.removeNode(toAtomixPath(path)).thenApply(this::toVersioned);
+        return atomixTree.remove(toAtomixPath(path)).thenApply(this::toVersioned);
     }
 
     @Override
@@ -141,12 +146,35 @@ public class AtomixDocumentTree<V> implements AsyncDocumentTree<V> {
         throw new UnsupportedOperationException();
     }
 
+    private <T> CompletableFuture<T> convertException(CompletableFuture<T> future) {
+        CompletableFuture<T> newFuture = new CompletableFuture<>();
+        future.whenComplete((result, error) -> {
+            if (error == null) {
+                newFuture.complete(result);
+            } else {
+                Throwable cause = Throwables.getRootCause(error);
+                if (cause instanceof io.atomix.core.tree.NoSuchDocumentPathException) {
+                    newFuture.completeExceptionally(new NoSuchDocumentPathException());
+                } else if (cause instanceof io.atomix.core.tree.IllegalDocumentModificationException) {
+                    newFuture.completeExceptionally(new IllegalDocumentModificationException());
+                } else {
+                    newFuture.completeExceptionally(cause);
+                }
+            }
+        });
+        return newFuture;
+    }
+
     private DocumentPath toOnosPath(io.atomix.core.tree.DocumentPath path) {
-        return DocumentPath.from(path.pathElements());
+        List<String> pathElements = Lists.newArrayList(path.pathElements());
+        pathElements.set(0, DocumentPath.ROOT.pathElements().get(0));
+        return DocumentPath.from(pathElements);
     }
 
     private io.atomix.core.tree.DocumentPath toAtomixPath(DocumentPath path) {
-        return io.atomix.core.tree.DocumentPath.from(path.pathElements());
+        List<String> pathElements = Lists.newArrayList(path.pathElements());
+        pathElements.set(0, "");
+        return io.atomix.core.tree.DocumentPath.from(pathElements);
     }
 
     private Versioned<V> toVersioned(io.atomix.utils.time.Versioned<V> versioned) {

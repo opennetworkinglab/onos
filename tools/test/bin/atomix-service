@@ -43,14 +43,14 @@ case $2 in
     start)
         # Execute the remote commands
         for node in $nodes; do
-            ssh $ONOS_USER@${node} "nohup $ATOMIX_INSTALL_DIR/atomix >> $ATOMIX_INSTALL_DIR/log 2>&1 &"
+            ssh $ONOS_USER@${node} "nohup $ATOMIX_INSTALL_DIR/bin/atomix-agent -c $ATOMIX_INSTALL_DIR/atomix.json >/dev/null 2>&1 &"
         done
     ;;
     stop)
         # Execute the remote commands
         for node in $nodes; do
             ssh -tt $ONOS_USER@${node} "
-                pid=\$(ps -ef | grep atomix-agent.jar | grep -v grep | cut -c10-15 | tr -d ' ')
+                pid=\$(ps -ef | grep atomix | grep -v grep | cut -c10-15 | tr -d ' ')
                 if [ -n \"\$pid\" ]; then
                     echo \"Killing Atomix process \$pid on \$(hostname)...\"
                     kill -9 \$pid

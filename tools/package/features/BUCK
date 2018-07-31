@@ -11,6 +11,7 @@ osgi_feature (
     '//lib:atomix-raft',
     '//lib:atomix-storage',
     '//lib:atomix-utils',
+    '//lib:classgraph',
     '//lib:commons-lang',
     '//lib:commons-lang3',
     '//lib:commons-text',
