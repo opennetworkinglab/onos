@@ -118,15 +118,78 @@ describe('NavComponent', () => {
 
     it('should have a platform div.nav-hdr inside a nav#nav', () => {
         const appDe: DebugElement = fixture.debugElement;
-        const divDe = appDe.query(By.css('nav#nav div.nav-hdr'));
+        const divDe = appDe.query(By.css('nav#nav div#platform.nav-hdr'));
         const div: HTMLElement = divDe.nativeElement;
         expect(div.textContent).toEqual('%cat_platform%');
     });
 
-    it('should have an apps link inside a nav#nav', () => {
+    it('should have an app view link inside a nav#nav', () => {
         const appDe: DebugElement = fixture.debugElement;
-        const divDe = appDe.query(By.css('nav#nav a'));
+        const divDe = appDe.query(By.css('nav#nav a#app'));
         const div: HTMLElement = divDe.nativeElement;
-        expect(div.textContent).toEqual(' Apps');
+        expect(div.textContent).toEqual(' Applications');
+    });
+
+    it('should have an processor view link inside a nav#nav', () => {
+        const appDe: DebugElement = fixture.debugElement;
+        const divDe = appDe.query(By.css('nav#nav a#processor'));
+        const div: HTMLElement = divDe.nativeElement;
+        expect(div.textContent).toEqual(' Packet Processors');
+    });
+
+    it('should have a settings view link inside a nav#nav', () => {
+        const appDe: DebugElement = fixture.debugElement;
+        const divDe = appDe.query(By.css('nav#nav a#settings'));
+        const div: HTMLElement = divDe.nativeElement;
+        expect(div.textContent).toEqual(' Settings');
+    });
+
+    it('should have a partition view link inside a nav#nav', () => {
+        const appDe: DebugElement = fixture.debugElement;
+        const divDe = appDe.query(By.css('nav#nav a#partition'));
+        const div: HTMLElement = divDe.nativeElement;
+        expect(div.textContent).toEqual(' Partitions');
+    });
+
+    it('should have a network div.nav-hdr inside a nav#nav', () => {
+        const appDe: DebugElement = fixture.debugElement;
+        const divDe = appDe.query(By.css('nav#nav div#network.nav-hdr'));
+        const div: HTMLElement = divDe.nativeElement;
+        expect(div.textContent).toEqual('%cat_network%');
+    });
+
+    it('should have a device view link inside a nav#nav', () => {
+        const appDe: DebugElement = fixture.debugElement;
+        const divDe = appDe.query(By.css('nav#nav a#device'));
+        const div: HTMLElement = divDe.nativeElement;
+        expect(div.textContent).toEqual(' Devices');
+    });
+
+    it('should have a link view link inside a nav#nav', () => {
+        const appDe: DebugElement = fixture.debugElement;
+        const divDe = appDe.query(By.css('nav#nav a#link'));
+        const div: HTMLElement = divDe.nativeElement;
+        expect(div.textContent).toEqual(' Links');
+    });
+
+    it('should have a host view link inside a nav#nav', () => {
+        const appDe: DebugElement = fixture.debugElement;
+        const divDe = appDe.query(By.css('nav#nav a#host'));
+        const div: HTMLElement = divDe.nativeElement;
+        expect(div.textContent).toEqual(' Hosts');
+    });
+
+    it('should have a intent view link inside a nav#nav', () => {
+        const appDe: DebugElement = fixture.debugElement;
+        const divDe = appDe.query(By.css('nav#nav a#intent'));
+        const div: HTMLElement = divDe.nativeElement;
+        expect(div.textContent).toEqual(' Intents');
+    });
+
+    it('should have a tunnel view link inside a nav#nav', () => {
+        const appDe: DebugElement = fixture.debugElement;
+        const divDe = appDe.query(By.css('nav#nav a#tunnel'));
+        const div: HTMLElement = divDe.nativeElement;
+        expect(div.textContent).toEqual(' Tunnels');
     });
 });

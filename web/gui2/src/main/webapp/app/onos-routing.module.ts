@@ -30,6 +30,14 @@ const onosRoutes: Routes = [
         loadChildren: 'app/view/processor/processor.module#ProcessorModule'
     },
     {
+        path: 'settings',
+        loadChildren: 'app/view/settings/settings.module#SettingsModule'
+    },
+    {
+        path: 'partition',
+        loadChildren: 'app/view/partition/partition.module#PartitionModule'
+    },
+    {
         path: 'device',
         loadChildren: 'app/view/device/device.module#DeviceModule'
     },

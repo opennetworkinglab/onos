@@ -14,18 +14,21 @@
 * limitations under the License.
 */
 import { NgModule } from '@angular/core';
-import { Routes, RouterModule } from '@angular/router';
-import { HostComponent } from './host/host.component';
+import { CommonModule } from '@angular/common';
 
-const hostRoutes: Routes = [
-    {
-        path: '',
-        component: HostComponent
-    }
-];
+import { SettingsRoutingModule } from './settings-routing.module';
+import { SettingsComponent } from './settings/settings.component';
+import { SvgModule } from '../../fw/svg/svg.module';
+import { WidgetModule } from '../../fw/widget/widget.module';
+import { SettingsDetailsComponent } from './settingsdetails/settingsdetails.component';
 
 @NgModule({
-    imports: [RouterModule.forChild(hostRoutes)],
-    exports: [RouterModule]
+    imports: [
+        CommonModule,
+        SettingsRoutingModule,
+        SvgModule,
+        WidgetModule
+    ],
+    declarations: [SettingsComponent, SettingsDetailsComponent]
 })
-export class HostRoutingModule { }
+export class SettingsModule { }

@@ -15,17 +15,17 @@
 */
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
-import { HostComponent } from './host/host.component';
+import { SettingsComponent } from './settings/settings.component';
 
-const hostRoutes: Routes = [
+const routes: Routes = [
     {
         path: '',
-        component: HostComponent
+        component: SettingsComponent
     }
 ];
 
 @NgModule({
-    imports: [RouterModule.forChild(hostRoutes)],
+    imports: [RouterModule.forChild(routes)],
     exports: [RouterModule]
 })
-export class HostRoutingModule { }
+export class SettingsRoutingModule { }

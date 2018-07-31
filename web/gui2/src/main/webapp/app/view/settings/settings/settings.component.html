@@ -1,0 +1,63 @@
+<!--
+~ Copyright 2018-present Open Networking Foundation
+~
+~ Licensed under the Apache License, Version 2.0 (the "License");
+~ you may not use this file except in compliance with the License.
+~ You may obtain a copy of the License at
+~
+~     http://www.apache.org/licenses/LICENSE-2.0
+~
+~ Unless required by applicable law or agreed to in writing, software
+~ distributed under the License is distributed on an "AS IS" BASIS,
+~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+~ See the License for the specific language governing permissions and
+~ limitations under the License.
+-->
+<div id="ov-settings">
+    <div class="tabular-header">
+        <h2>Component Settings ({{tableData.length}} total)</h2>
+        <div class="ctrl-btns">
+            <div class="refresh" (click)="toggleRefresh()">
+                <onos-icon classes="{{ autoRefresh?'active refresh':'refresh' }}" iconId="refresh" iconSize="42" toolTip="{{ autoRefreshTip }}"></onos-icon>
+            </div>
+        </div>
+    </div>
+    <div class="summary-list" onosTableResize>
+        <div class="table-header">
+            <table>
+                <tr>
+                    <td colId="component" [ngStyle]="{width: '260px'}" (click)="onSort('component')">Component
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('component')"></onos-icon>
+                    </td>
+                    <td colId="prop" [ngStyle]="{width: '260px'}" (click)="onSort('prop')">Property
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('prop')"></onos-icon>
+                    </td>
+                    <td colId="type" [ngStyle]="{width: '80px'}" (click)="onSort('type')">Type
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('type')"></onos-icon>
+                    </td>
+                    <td colId="value" [ngStyle]="{width: '260px'}" (click)="onSort('value')">Value
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('value')"></onos-icon>
+                    </td>
+                    <td colId="desc" (click)="onSort('desc')">Description
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('desc')"></onos-icon>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="table-body">
+            <table>
+                <tr *ngIf="tableData.length === 0" class="no-data">
+                    <td colspan="5">{{ annots.noRowMsg }}</td>
+                </tr>
+                <tr *ngFor="let setting of tableData" (click)="selectCallback($event, setting)" [ngClass]="{selected: setting.id === selId, 'data-change': isChanged(setting.id)}">
+                    <td [ngStyle]="{width: '260px'}">{{setting.component}}</td>
+                    <td [ngStyle]="{width: '260px'}">{{setting.prop}}</td>
+                    <td [ngStyle]="{width: '80px'}">{{setting.type}}</td>
+                    <td [ngStyle]="{width: '260px'}" [ngClass]="{notdef: setting.value !== setting.defValue}">{{setting.value}}</td>
+                    <td>{{setting.desc}}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <onos-settingsdetails class="floatpanels" id="{{ selId }}" [settingsDetails]="settingsDetails" (closeEvent)="deselectRow($event)"></onos-settingsdetails>
+</div>

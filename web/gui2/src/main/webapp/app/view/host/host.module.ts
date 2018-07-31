@@ -23,12 +23,12 @@ import { WidgetModule } from '../../fw/widget/widget.module';
 import { HostDetailsComponent } from './hostdetails/hostdetails.component';
 
 @NgModule({
-  imports: [
-    CommonModule,
-    HostRoutingModule,
-    WidgetModule,
-    SvgModule
-  ],
-  declarations: [HostComponent, HostDetailsComponent]
+    imports: [
+        CommonModule,
+        HostRoutingModule,
+        WidgetModule,
+        SvgModule
+    ],
+    declarations: [HostComponent, HostDetailsComponent]
 })
 export class HostModule { }
