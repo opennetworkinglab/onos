@@ -33,8 +33,6 @@ public final class FabricConstants {
     }
 
     // Header field IDs
-    public static final PiMatchFieldId STANDARD_METADATA_EGRESS_PORT =
-            PiMatchFieldId.of("standard_metadata.egress_port");
     public static final PiMatchFieldId FABRIC_METADATA_L4_SRC_PORT =
             PiMatchFieldId.of("fabric_metadata.l4_src_port");
     public static final PiMatchFieldId SPGW_META_S1U_SGW_ADDR =
@@ -51,16 +49,18 @@ public final class FabricConstants {
             PiMatchFieldId.of("hdr.ethernet.src_addr");
     public static final PiMatchFieldId HDR_ICMP_ICMP_TYPE =
             PiMatchFieldId.of("hdr.icmp.icmp_type");
+    public static final PiMatchFieldId STANDARD_METADATA_EGRESS_PORT =
+            PiMatchFieldId.of("standard_metadata.egress_port");
     public static final PiMatchFieldId FABRIC_METADATA_NEXT_ID =
             PiMatchFieldId.of("fabric_metadata.next_id");
-    public static final PiMatchFieldId HDR_IPV4_DST_ADDR =
-            PiMatchFieldId.of("hdr.ipv4.dst_addr");
     public static final PiMatchFieldId FABRIC_METADATA_L4_DST_PORT =
             PiMatchFieldId.of("fabric_metadata.l4_dst_port");
+    public static final PiMatchFieldId HDR_VLAN_TAG_ETHER_TYPE =
+            PiMatchFieldId.of("hdr.vlan_tag.ether_type");
     public static final PiMatchFieldId STANDARD_METADATA_INGRESS_PORT =
             PiMatchFieldId.of("standard_metadata.ingress_port");
-    public static final PiMatchFieldId FABRIC_METADATA_ORIGINAL_ETHER_TYPE =
-            PiMatchFieldId.of("fabric_metadata.original_ether_type");
+    public static final PiMatchFieldId HDR_IPV4_DST_ADDR =
+            PiMatchFieldId.of("hdr.ipv4.dst_addr");
     public static final PiMatchFieldId IPV4_DST_ADDR =
             PiMatchFieldId.of("ipv4.dst_addr");
     public static final PiMatchFieldId HDR_VLAN_TAG_IS_VALID =
