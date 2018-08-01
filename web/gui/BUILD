@@ -97,6 +97,12 @@ filegroup(
     name = "_src_main_webapp_files",
     srcs = glob([
         "src/main/webapp/**",
+    ], exclude = [
+        "src/main/webapp/tests/**",
+        "src/main/webapp/node_modules/**",
+        "src/main/webapp/dist/**",
+        "src/main/webapp/vendor/**",
+        "src/main/webapp/npm-debug.log",
     ]),
 )
 
@@ -165,7 +171,7 @@ genrule(
     name = "_web_app_all",
     srcs = [":_src_main_webapp_files"],
     outs = ["web_app_all.tar"],
-    cmd = "cd web/gui && tar hcf ../../$@ src/main/webapp",
+    cmd = "cd web/gui && du -hHs src/main/webapp && tar hcf ../../$@ src/main/webapp",
 )
 
 """
