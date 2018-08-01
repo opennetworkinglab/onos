@@ -17,7 +17,7 @@
       }
     ],
     "mac_address": "fa:16:3e:c9:cb:f0",
-    "network_id": "a87cc70a-3e15-4acf-8205-9b711a3531b7",
+    "network_id": "a87cc70a-3e15-4acf-8205-9b711a3531b6",
     "status": "ACTIVE",
     "tenant_id": "d6700c0c9ffa4f1cb322cd4a1f3906fa",
     "security_groups": [

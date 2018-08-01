@@ -34,7 +34,7 @@ import org.onosproject.openstacknode.api.OpenstackAuth;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackPhyInterface;
 import org.onosproject.openstacknode.api.OpenstackSshAuth;
-import org.onosproject.openstacknode.impl.DefaultOpenstackAuth;
+import org.onosproject.openstacknode.api.DefaultOpenstackAuth;
 import org.onosproject.openstacknode.api.DefaultOpenstackNode;
 import org.onosproject.openstacknode.impl.DefaultOpenstackPhyInterface;
 import org.onosproject.openstacknode.impl.DefaultOpenstackSshAuth;

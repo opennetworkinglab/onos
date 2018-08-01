@@ -17,6 +17,7 @@ package org.onosproject.openstacknode.impl;
 
 import com.google.common.testing.EqualsTester;
 import org.junit.Test;
+import org.onosproject.openstacknode.api.DefaultOpenstackAuth;
 import org.onosproject.openstacknode.api.OpenstackAuth;
 
 import static org.hamcrest.MatcherAssert.assertThat;

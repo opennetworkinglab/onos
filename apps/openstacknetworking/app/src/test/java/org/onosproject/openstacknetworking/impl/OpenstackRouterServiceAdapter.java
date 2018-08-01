@@ -15,8 +15,8 @@
  */
 package org.onosproject.openstacknetworking.impl;
 
+import org.onosproject.openstacknetworking.api.OpenstackRouterAdminService;
 import org.onosproject.openstacknetworking.api.OpenstackRouterListener;
-import org.onosproject.openstacknetworking.api.OpenstackRouterService;
 import org.openstack4j.model.network.NetFloatingIP;
 import org.openstack4j.model.network.Router;
 import org.openstack4j.model.network.RouterInterface;
@@ -26,7 +26,7 @@ import java.util.Set;
 /**
  * Test adapter for OpenstackRouterService.
  */
-public class OpenstackRouterServiceAdapter implements OpenstackRouterService {
+public class OpenstackRouterServiceAdapter implements OpenstackRouterAdminService {
     @Override
     public Router router(String osRouterId) {
         return null;
@@ -74,6 +74,56 @@ public class OpenstackRouterServiceAdapter implements OpenstackRouterService {
 
     @Override
     public void removeListener(OpenstackRouterListener listener) {
+
+    }
+
+    @Override
+    public void createRouter(Router osRouter) {
+
+    }
+
+    @Override
+    public void updateRouter(Router osRouter) {
+
+    }
+
+    @Override
+    public void removeRouter(String osRouterId) {
+
+    }
+
+    @Override
+    public void addRouterInterface(RouterInterface osRouterIface) {
+
+    }
+
+    @Override
+    public void updateRouterInterface(RouterInterface osRouterIface) {
+
+    }
+
+    @Override
+    public void removeRouterInterface(String osRouterIfaceId) {
+
+    }
+
+    @Override
+    public void createFloatingIp(NetFloatingIP floatingIP) {
+
+    }
+
+    @Override
+    public void updateFloatingIp(NetFloatingIP floatingIP) {
+
+    }
+
+    @Override
+    public void removeFloatingIp(String floatingIpId) {
+
+    }
+
+    @Override
+    public void clear() {
 
     }
 }

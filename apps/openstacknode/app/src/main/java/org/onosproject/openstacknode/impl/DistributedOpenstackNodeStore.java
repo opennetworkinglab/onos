@@ -26,6 +26,7 @@ import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.behaviour.ControllerInfo;
+import org.onosproject.openstacknode.api.DefaultOpenstackAuth;
 import org.onosproject.openstacknode.api.DefaultOpenstackNode;
 import org.onosproject.openstacknode.api.NodeState;
 import org.onosproject.openstacknode.api.OpenstackNode;

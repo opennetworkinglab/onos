@@ -15,6 +15,9 @@
  */
 package org.onosproject.openstacknetworking.util;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -151,22 +154,18 @@ public final class OpenstackNetworkingUtil {
      */
     public static NetFloatingIP associatedFloatingIp(InstancePort port,
                                                      Set<NetFloatingIP> fips) {
-        try {
-            for (NetFloatingIP fip : fips) {
-                if (Strings.isNullOrEmpty(fip.getFixedIpAddress())) {
-                    continue;
-                }
-                if (Strings.isNullOrEmpty(fip.getFloatingIpAddress())) {
-                    continue;
-                }
-                if (fip.getFixedIpAddress().equals(port.ipAddress().toString())) {
-                    return fip;
-                }
+        for (NetFloatingIP fip : fips) {
+            if (Strings.isNullOrEmpty(fip.getFixedIpAddress())) {
+                continue;
             }
-        } catch (NullPointerException e) {
-            log.error("Exception occurred because of {}", e.toString());
-            throw new NullPointerException();
+            if (Strings.isNullOrEmpty(fip.getFloatingIpAddress())) {
+                continue;
+            }
+            if (fip.getFixedIpAddress().equals(port.ipAddress().toString())) {
+                return fip;
+            }
         }
+
         return null;
     }
 
@@ -378,6 +377,7 @@ public final class OpenstackNetworkingUtil {
                     adminService.addRouterInterface(rIface);
                 }
             } catch (IOException ignore) {
+                log.error("Exception occurred because of {}", ignore.toString());
             }
         });
     }
@@ -406,8 +406,14 @@ public final class OpenstackNetworkingUtil {
         try {
             Object jsonObject = mapper.readValue(jsonString, Object.class);
             return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonObject);
+        } catch (JsonParseException e) {
+            log.debug("JsonParseException caused by {}", e);
+        } catch (JsonMappingException e) {
+            log.debug("JsonMappingException caused by {}", e);
+        } catch (JsonProcessingException e) {
+            log.debug("JsonProcessingException caused by {}", e);
         } catch (IOException e) {
-            log.debug("Json string parsing exception caused by {}", e);
+            log.debug("IOException caused by {}", e);
         }
         return null;
     }
@@ -444,6 +450,21 @@ public final class OpenstackNetworkingUtil {
                 .networkId(instPort.networkId())
                 .portId(instPort.portId())
                 .build();
+    }
+
+    /**
+     * Compares two router interfaces are equal.
+     * Will be remove this after Openstack4j implements equals.
+     *
+     * @param routerInterface1 router interface
+     * @param routerInterface2 router interface
+     * @return returns true if two router interfaces are equal, false otherwise
+     */
+    public static boolean routerInterfacesEquals(RouterInterface routerInterface1, RouterInterface routerInterface2) {
+        return Objects.equals(routerInterface1.getId(), routerInterface2.getId()) &&
+                Objects.equals(routerInterface1.getPortId(), routerInterface2.getPortId()) &&
+                Objects.equals(routerInterface1.getSubnetId(), routerInterface2.getSubnetId()) &&
+                Objects.equals(routerInterface1.getTenantId(), routerInterface2.getTenantId());
     }
 
     /**
