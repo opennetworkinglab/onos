@@ -21,6 +21,7 @@ import java.util.UUID;
 import org.apache.commons.lang.NotImplementedException;
 import org.onlab.util.XmlString;
 import org.onosproject.config.DynamicConfigService;
+import org.onosproject.config.FailedException;
 import org.onosproject.config.Filter;
 import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.Uuid;
 import org.onosproject.yang.model.DataNode;
@@ -222,7 +223,11 @@ public abstract class TapiObjectHandler<T extends ModelObject> {
         }
         List<DataNode> dataNodes = input.dataNodes();
         for (DataNode node : dataNodes) {
-            dcs.createNode(rid, node);
+            try {
+                dcs.createNode(rid, node);
+            } catch (FailedException e) {
+                log.warn("Failed to add resource", e);
+            }
         }
     }
 

@@ -89,16 +89,6 @@ public class DynamicConfigManager
      * Ensure built-in tree nodes exists.
      */
     private void initStore() {
-        store.nodeExist(ResourceIds.ROOT_ID)
-            .thenAccept(exists -> {
-                if (!exists) {
-                    log.info("Root node does not exist!, creating...");
-                    store.addNode(null,
-                                  InnerNode.builder(DeviceResourceIds.ROOT_NAME, DCS_NAMESPACE)
-                                  .type(Type.SINGLE_INSTANCE_NODE).build());
-                }
-            }).join();
-
         store.nodeExist(DeviceResourceIds.DEVICES_ID)
             .thenAccept(exists -> {
                 if (!exists) {

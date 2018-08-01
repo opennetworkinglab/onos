@@ -23,13 +23,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.config.DynamicConfigService;
-import org.onosproject.config.FailedException;
-import org.onosproject.config.Filter;
-import org.onosproject.d.config.DeviceResourceIds;
 
-import static org.onosproject.d.config.DeviceResourceIds.DCS_NAMESPACE;
-
-import org.onosproject.d.config.ResourceIds;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -50,8 +44,6 @@ import org.onosproject.odtn.utils.tapi.TapiTopologyHandler;
 import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.DefaultContext;
 import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.Uuid;
 import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.topologycontext.DefaultTopology;
-import org.onosproject.yang.model.DataNode;
-import org.onosproject.yang.model.InnerNode;
 import org.onosproject.yang.model.ModelConverter;
 import org.slf4j.Logger;
 
@@ -80,7 +72,6 @@ public class DcsBasedTapiTopologyManager implements TapiTopologyManager {
 
     @Activate
     public void activate() {
-        initDcsIfRootNotExist();
         initDcsTapiContext();
         initDcsTapiTopology();
         log.info("Started");
@@ -189,37 +180,4 @@ public class DcsBasedTapiTopologyManager implements TapiTopologyManager {
         topology = topologyHandler.getModelObject();
         topologyHandler.add();
     }
-
-    /**
-     * Setup Dcs configuration tree root node.
-     */
-    // FIXME Dcs seems to setup root node by itself when activatation, this might not needed
-    private void initDcsIfRootNotExist() {
-
-        log.info("read root:");
-        try {
-            DataNode all = dcs.readNode(ResourceIds.ROOT_ID, Filter.builder().build());
-            log.info("all: {}", all);
-        } catch (FailedException e) {
-            // FIXME debug this issue
-            log.info("nothing retrievable in DCS?");
-            //e.printStackTrace(System.out);
-        }
-        if (!dcs.nodeExist(ResourceIds.ROOT_ID)) {
-            log.info("Root node does not exist!, creating...");
-            try {
-                log.info("create 'root' node");
-                dcs.createNode(null,
-                        InnerNode.builder(DeviceResourceIds.ROOT_NAME, DCS_NAMESPACE)
-                                .type(DataNode.Type.SINGLE_INSTANCE_NODE).build());
-            } catch (FailedException e) {
-                log.info("Failed to create root???");
-                //e.printStackTrace(System.out);
-            }
-        }
-        if (!dcs.nodeExist(ResourceIds.ROOT_ID)) {
-            log.info("'root' was created without error, but still not there. WTF!");
-        }
-    }
-
 }
