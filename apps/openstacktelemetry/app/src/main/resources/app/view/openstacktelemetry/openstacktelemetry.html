@@ -1,0 +1,43 @@
+<!-- partial HTML -->
+<div id="ov-openstacktelemetry">
+    <div id="chart-loader" ng-show="!flowOpt && showLoader">
+        No Data
+    </div>
+    <div ng-show="!flowOpt && !periodOpt">
+        <canvas id="bar" class="chart chart-bar" chart-data="data"
+                chart-labels="labels" chart-legend="true" chart-click="onClick"
+                chart-series="series" chart-options="options" height="100%">
+        </canvas>
+    </div>
+    <div ng-show="flowOpt || periodOpt">
+        <h3>
+            Chart for Flow {{flowOpt || "(No flow selected)"}} .
+        </h3>
+        <table>
+        <tr>
+            <td>
+            <div class="ctrl-btns">
+                <select ng-options="flowId as flowId for flowId in flowIds"
+                        ng-model="selectedItem" ng-change="onChange(selectedItem)">
+                    <option value="">-- select a flow --</option>
+                </select>
+            </div>
+            </td>
+
+            <td>
+            <div class="ctrl-btns">
+                <select ng-options="period as period for period in periodOptions"
+                        ng-model="selectedPeriod" ng-change="onPeriodChange(selectedPeriod)">
+                    <option value="">-- select a period --</option>
+                </select>
+            </div>
+            </td>
+        </tr>
+        </table>
+
+        <canvas id="line" class="chart chart-line" chart-data="data"
+                chart-labels="labels" chart-legend="true"
+                chart-series="series" chart-options="options" height="100%">
+        </canvas>
+    </div>
+</div>

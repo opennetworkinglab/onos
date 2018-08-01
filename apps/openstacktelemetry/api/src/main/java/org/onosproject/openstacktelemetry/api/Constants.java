@@ -69,4 +69,7 @@ public final class Constants {
     public static final String VXLAN = "VXLAN";
     public static final String VLAN = "VLAN";
     public static final String FLAT = "FLAT";
+
+    // default configuration variables for ONOS GUI
+    public static final int DEFAULT_DATA_POINT_SIZE = 17280;
 }

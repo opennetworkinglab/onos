@@ -32,6 +32,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Implementation class of FlowInfo.
  */
 public final class DefaultFlowInfo implements FlowInfo {
+    private static final String INGRESS_STATS = "Ingress Port :";
+    private static final String EGRESS_STATS = "Egress Port :";
 
     private final byte flowType;
     private final DeviceId deviceId;
@@ -182,6 +184,20 @@ public final class DefaultFlowInfo implements FlowInfo {
         return Objects.hash(flowType, deviceId, inputInterfaceId,
                 outputInterfaceId, vlanId, vxlanId, srcIp, dstIp, srcPort, dstPort,
                 protocol, srcMac, dstMac, statsInfo);
+    }
+
+    @Override
+    public String uniqueFlowInfoKey() {
+        if (srcIp.address().isZero() || dstIp.address().isZero()) {
+            if (!srcIp.address().isZero()) {
+                return INGRESS_STATS + srcIp.toString();
+            }
+            if (!dstIp.address().isZero()) {
+                return EGRESS_STATS + dstIp.toString();
+            }
+        }
+        return srcIp.toString() + ":" + srcPort.toString() + " -> " +
+                dstIp.toString() + ":" + dstPort.toString();
     }
 
     @Override

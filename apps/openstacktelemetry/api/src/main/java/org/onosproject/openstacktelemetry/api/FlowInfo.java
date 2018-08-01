@@ -134,6 +134,13 @@ public interface FlowInfo {
      */
     boolean roughEquals(FlowInfo flowInfo);
 
+    /**
+     * Make a key with IP Address and Transport Port information.
+     *
+     * @return unique flow info key in String
+     */
+    String uniqueFlowInfoKey();
+
     interface Builder {
 
         /**
