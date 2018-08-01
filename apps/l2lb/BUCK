@@ -1,0 +1,23 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:KRYO',
+    '//cli:onos-cli',
+    '//core/store/serializers:onos-core-serializers',
+]
+
+TEST_DEPS = [
+    '//lib:TEST_ADAPTERS',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
+)
+
+onos_app (
+    app_name = 'org.onosproject.l2lb',
+    category = 'Utilities',
+    description = 'L2 Load Balance Service',
+    title = 'L2 Load Balance Service',
+    url = 'http://onosproject.org',
+)
