@@ -81,5 +81,14 @@ public interface ComponentConfigService {
      */
     void unsetProperty(String componentName, String name);
 
+    /**
+     * Returns configuration property of the named components.
+     *
+     * @param componentName component name
+     * @param attribute component attribute
+     * @return configuration property
+     */
+    ConfigProperty getProperty(String componentName, String attribute);
+
 }
 
