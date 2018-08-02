@@ -81,6 +81,7 @@ import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_DomainServer;
 import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_END;
 import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_LeaseTime;
 import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_MessageType;
+import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_RouterAddress;
 import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_SubnetMask;
 import static org.onlab.packet.DHCP.MsgType.DHCPACK;
 import static org.onlab.packet.DHCP.MsgType.DHCPOFFER;
@@ -98,7 +99,6 @@ public class OpenstackSwitchingDhcpHandler {
     protected final Logger log = getLogger(getClass());
 
     private static final String DHCP_SERVER_MAC = "dhcpServerMac";
-    private static final String DHCP_DATA_MTU = "dhcpDataMtu";
     private static final Ip4Address DEFAULT_PRIMARY_DNS = Ip4Address.valueOf("8.8.8.8");
     private static final Ip4Address DEFAULT_SECONDARY_DNS = Ip4Address.valueOf("8.8.4.4");
     private static final byte PACKET_TTL = (byte) 127;
@@ -452,6 +452,16 @@ public class OpenstackSwitchingDhcpHandler {
 
                 option.setData(hostRouteByteBuf.array());
 
+                options.add(option);
+            }
+
+            // Sets the default router address up.
+            // Performs only if the gateway is set in subnet.
+            if (!Strings.isNullOrEmpty(osSubnet.getGateway())) {
+                option = new DhcpOption();
+                option.setCode(OptionCode_RouterAddress.getValue());
+                option.setLength((byte) 4);
+                option.setData(Ip4Address.valueOf(osSubnet.getGateway()).toOctets());
                 options.add(option);
             }
 

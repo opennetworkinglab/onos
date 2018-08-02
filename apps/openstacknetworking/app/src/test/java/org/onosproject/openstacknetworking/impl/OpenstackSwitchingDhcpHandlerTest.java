@@ -77,6 +77,7 @@ import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_DomainServer;
 import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_END;
 import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_MessageType;
 import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_RequestedIP;
+import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_RouterAddress;
 import static org.onosproject.net.NetTestTools.connectPoint;
 
 /**
@@ -286,6 +287,14 @@ public class OpenstackSwitchingDhcpHandlerTest {
 
         option.setData(hostRouteByteBuf.array());
         optionList.add(option);
+
+        // default router address setup
+        option = new DhcpOption();
+        option.setCode(OptionCode_RouterAddress.getValue());
+        option.setLength((byte) 4);
+        option.setData(Ip4Address.valueOf(subnet.getGateway()).toOctets());
+        optionList.add(option);
+
 
         // DHCP options end...
         option = new DhcpOption();
