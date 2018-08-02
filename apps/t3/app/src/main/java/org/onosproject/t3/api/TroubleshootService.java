@@ -75,4 +75,12 @@ public interface TroubleshootService {
      * @return a trace result
      */
     StaticPacketTrace trace(TrafficSelector packet, ConnectPoint in);
+
+    /**
+     * Requests list of static trace to be performed for all mcast routes in the network.
+     *
+     * @param vlanId the vlan id configured for multicast
+     * @return a list of trace result
+     */
+    List<Set<StaticPacketTrace>> getMulitcastTrace(VlanId vlanId);
 }
