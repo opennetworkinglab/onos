@@ -150,16 +150,19 @@ genrule(
 
 genrule(
     name = "_web_app_all",
-    srcs =  glob([
-                   "src/main/webapp/**",
-                   "src/main/webapp/app/**/*.js",
-               ], exclude = [
-                   "src/main/webapp/tests/**",
-                   "src/main/webapp/node_modules/**",
-                   "src/main/webapp/dist/**",
-                   "src/main/webapp/vendor/**",
-                   "src/main/webapp/npm-debug.log",
-               ]),
+    srcs = glob(
+        [
+            "src/main/webapp/**",
+            "src/main/webapp/app/**/*.js",
+        ],
+        exclude = [
+            "src/main/webapp/tests/**",
+            "src/main/webapp/node_modules/**",
+            "src/main/webapp/dist/**",
+            "src/main/webapp/vendor/**",
+            "src/main/webapp/npm-debug.log",
+        ],
+    ),
     outs = ["web_app_all.jar"],
     cmd = "cd web/gui &&" +
           " find src/main/webapp -type f -exec touch -t 201806280000 {} \; &&" +

@@ -13,7 +13,6 @@ wrapped_osgi_jar(
     deps = CORE_DEPS + ["@protobuf_java_3_2_0//jar"],
 )
 
-
 wrapped_osgi_jar(
     name = "grpc-core-repkg-1.3.1",
     jar = "@grpc_src_zip_131//:grpc-core-repkg-1.3.1-native",
