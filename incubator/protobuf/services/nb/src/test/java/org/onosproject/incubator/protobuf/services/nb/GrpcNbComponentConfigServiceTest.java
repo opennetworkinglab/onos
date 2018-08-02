@@ -273,5 +273,10 @@ public class GrpcNbComponentConfigServiceTest {
         public void unsetProperty(String componentName, String name) {
             STRING_MAP2.remove(componentName + "#" + name);
         }
+
+        @Override
+        public ConfigProperty getProperty(String componentName, String attribute) {
+            return null;
+        }
     }
 }
