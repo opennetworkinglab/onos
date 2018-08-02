@@ -156,4 +156,34 @@ public class ComponentConfigWebResource extends AbstractWebResource {
         props.fieldNames().forEachRemaining(k -> service.unsetProperty(component, k));
         return Response.noContent().build();
     }
+
+    /**
+     * Gets specified value of a specified component and variable.
+     *
+     * @param component component name
+     * @param attribute  attribute name
+     * @return 200 OK with a collection of component configurations
+     */
+    @GET
+    @Path("{component}/{attribute}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getComponentConfig(@PathParam("component") String component,
+                                            @PathParam("attribute") String attribute) {
+        ComponentConfigService service = get(ComponentConfigService.class);
+        ObjectNode root = mapper().createObjectNode();
+        encodeConfigs(component, attribute,
+                nullIsNotFound(service.getProperty(component, attribute),
+                        (service.getProperties(component) == null) ?
+                        "No such component" : (service.getProperty(component, attribute) == null) ?
+                        ("No such attribute in " + component) : "No such attribute and component"), root);
+        return ok(root).build();
+    }
+
+    // Encodes the specified property with attribute as an object in the given node.
+    private void encodeConfigs(String component, String attribute, ConfigProperty props,
+                               ObjectNode node) {
+        ObjectNode compNode = mapper().createObjectNode();
+        node.set(component, compNode);
+        compNode.put(attribute, props.value());
+    }
 }

@@ -195,6 +195,19 @@ public class ComponentConfigManager implements ComponentConfigService {
         store.unsetProperty(componentName, name);
     }
 
+    @Override
+    public ConfigProperty getProperty(String componentName, String attribute) {
+        checkPermission(CONFIG_READ);
+
+        Map<String, ConfigProperty> map = properties.get(componentName);
+        if (map != null) {
+            return map.get(attribute);
+        } else {
+            log.error("Attribute {} not present in component {}", attribute, componentName);
+            return null;
+        }
+    }
+
     private class InternalStoreDelegate implements ComponentConfigStoreDelegate {
 
         @Override
