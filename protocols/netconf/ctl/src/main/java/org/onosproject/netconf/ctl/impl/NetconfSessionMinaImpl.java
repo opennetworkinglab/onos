@@ -21,6 +21,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.apache.sshd.client.SshClient;
 import org.apache.sshd.client.channel.ClientChannel;
 import org.apache.sshd.client.future.ConnectFuture;
@@ -29,10 +30,15 @@ import org.apache.sshd.client.session.ClientSession;
 import org.apache.sshd.common.FactoryManager;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.PEMKeyPair;
+import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
+import org.onlab.osgi.DefaultServiceDirectory;
+import org.onlab.osgi.ServiceDirectory;
 import org.onlab.util.SharedExecutors;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.driver.Driver;
+import org.onosproject.net.driver.DriverService;
 import org.onosproject.netconf.AbstractNetconfSession;
 import org.onosproject.netconf.NetconfDeviceInfo;
 import org.onosproject.netconf.NetconfDeviceOutputEvent;
@@ -43,8 +49,6 @@ import org.onosproject.netconf.NetconfSession;
 import org.onosproject.netconf.NetconfSessionFactory;
 import org.onosproject.netconf.NetconfTransportException;
 import org.slf4j.Logger;
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.CharArrayReader;
 import java.io.IOException;
@@ -54,14 +58,15 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.List;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import java.util.ArrayList;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -71,6 +76,9 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Implementation of a NETCONF session to talk to a device.
@@ -110,6 +118,9 @@ public class NetconfSessionMinaImpl extends AbstractNetconfSession {
     private static final String MSGLEN_REGEX_PATTERN = "\n#\\d+\n";
     private static final String NETCONF_10_CAPABILITY = "urn:ietf:params:netconf:base:1.0";
     private static final String NETCONF_11_CAPABILITY = "urn:ietf:params:netconf:base:1.1";
+    private static final String NETCONF_CLIENT_CAPABILITY = "netconfClientCapability";
+
+    private static ServiceDirectory directory = new DefaultServiceDirectory();
 
     private String sessionID;
     private final AtomicInteger messageIdInteger = new AtomicInteger(1);
@@ -137,17 +148,19 @@ public class NetconfSessionMinaImpl extends AbstractNetconfSession {
     private int replyTimeout;
     private int idleTimeout;
 
-
     private ClientChannel channel = null;
     private ClientSession session = null;
     private SshClient client = null;
-
 
     public NetconfSessionMinaImpl(NetconfDeviceInfo deviceInfo) throws NetconfException {
         this.deviceInfo = deviceInfo;
         replies = new ConcurrentHashMap<>();
         errorReplies = new ArrayList<>();
-
+        Set<String> capabilities = getClientCapabilites(deviceInfo.getDeviceId());
+        if (!capabilities.isEmpty()) {
+            capabilities.addAll(Sets.newHashSet(onosCapabilities));
+            setOnosCapabilities(capabilities);
+        }
         // FIXME should not immediately start session on construction
         // setOnosCapabilities() is useless due to this behavior
         startConnection();
@@ -161,6 +174,28 @@ public class NetconfSessionMinaImpl extends AbstractNetconfSession {
         // FIXME should not immediately start session on construction
         // setOnosCapabilities() is useless due to this behavior
         startConnection();
+    }
+
+    /**
+     * Get the list of the netconf client capabilities from device driver property.
+     *
+     * @param deviceId the deviceID for which to recover the capabilities from the driver.
+     * @return the String list of clientCapability property, or null if it is not configured
+     */
+    public Set<String> getClientCapabilites(DeviceId deviceId) {
+        Set<String> capabilities = new LinkedHashSet<>();
+        DriverService driverService = directory.get(DriverService.class);
+        Driver driver = driverService.getDriver(deviceId);
+        if (driver == null) {
+            return capabilities;
+        }
+        String clientCapabilities = driver.getProperty(NETCONF_CLIENT_CAPABILITY);
+        if (clientCapabilities == null) {
+            return capabilities;
+        }
+        String[] textStr = clientCapabilities.split("\\|");
+        capabilities.addAll(Arrays.asList(textStr));
+        return capabilities;
     }
 
     private void startConnection() throws NetconfException {
