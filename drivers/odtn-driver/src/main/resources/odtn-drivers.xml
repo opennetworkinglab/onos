@@ -35,5 +35,41 @@
         <behaviour api="org.onosproject.odtn.behaviour.ConfigurableTransceiver"
                    impl="org.onosproject.odtn.behaviour.PlainTransceiver"/>
     </driver>
+    <driver name="nokia-1830" manufacturer="nokia" hwVersion="1830" swVersion="R10.1.1">
+        <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
+                   impl="org.onosproject.drivers.odtn.NokiaOpenConfigDeviceDiscovery"/>
+        <behaviour api="org.onosproject.odtn.behaviour.OdtnDeviceDescriptionDiscovery"
+                   impl="org.onosproject.drivers.odtn.NokiaOpenConfigDeviceDiscovery"/>
+        <behaviour api="org.onosproject.odtn.behaviour.ConfigurableTransceiver"
+                   impl="org.onosproject.odtn.behaviour.PlainTransceiver"/>
+        <property name="netconfClientCapability">urn:ietf:params:netconf:base:1.0|
+            urn:ietf:params:netconf:capability:writable-running:1.0|
+            urn:ietf:params:netconf:capability:notification:1.0|
+            urn:ietf:params:netconf:capability:interleave:1.0|
+            urn:ietf:params:netconf:capability:rollback-on-error:1.0|
+            http://nokia.com/yang/nokia-security?module=nokia-security&amp;revision=2017-05-10|
+            http://openconfig.net/yang/terminal-device?module=openconfig-terminal-device&amp;revision=2017-07-08|
+            http://openconfig.net/yang/platform?module=openconfig-platform&amp;revision=2016-12-22|
+            http://openconfig.net/yang/telemetry?module=openconfig-telemetry&amp;revision=2017-08-24|
+            http://openconfig.net/yang/rpc-api?module=openconfig-rpc&amp;revision=2016-04-05|
+            http://openconfig.net/yang/alarms?module=openconfig-alarms&amp;revision=2018-01-16|
+            http://openconfig.net/yang/system?module=openconfig-system&amp;revision=2018-01-21|
+            http://openconfig.net/yang/rpc-types?module=openconfig-rpc-types&amp;revision=2016-04-05|
+            http://openconfig.net/yang/transport-types?module=openconfig-transport-types&amp;revision=2017-08-16|
+            http://openconfig.net/yang/platform-types?module=openconfig-platform-types&amp;revision=2017-08-16|
+            http://openconfig.net/yang/platform/linecard?module=openconfig-platform-linecard&amp;revision=2017-08-03|
+            http://openconfig.net/yang/platform/transceiver?module=openconfig-platform-transceiver&amp;revision=2017-07-08|
+            http://openconfig.net/yang/transport-line-common?module=openconfig-transport-line-common&amp;revision=2017-07-08|
+            http://openconfig.net/yang/telemetry-types?module=openconfig-telemetry-types&amp;revision=2017-08-24|
+            http://openconfig.net/yang/openconfig-ext?module=openconfig-extensions&amp;revision=2017-04-11|
+            http://openconfig.net/yang/types/inet?module=openconfig-inet-types&amp;revision=2017-08-24|
+            http://openconfig.net/yang/alarms/types?module=openconfig-alarm-types&amp;revision=2018-01-16|
+            http://nokia.com/yang/nokia-openconfig-userlabel-ext?module=nokia-openconfig-userlabel-ext&amp;revision=2017-12-10|
+            http://nokia.com/yang/nokia-openconfig-exttypes?module=nokia-openconfig-exttypes&amp;revision=2017-10-26|
+            http://nokia.com/yang/nokia-openconfig-telemetry-ext?module=nokia-openconfig-telemetry-ext&amp;revision=2017-11-13|
+            http://openconfig.net/yang/openconfig-types?module=openconfig-types&amp;revision=2017-08-16|
+            http://openconfig.net/yang/types/yang?module=openconfig-yang-types&amp;revision=2017-07-30|
+            urn:ietf:params:xml:ns:yang:ietf-yang-types?module=ietf-yang-types&amp;revision=2013-07-15</property>
+    </driver>
 </drivers>
 

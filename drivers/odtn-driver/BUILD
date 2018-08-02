@@ -12,6 +12,7 @@ TEST_DEPS = TEST_ADAPTERS + [
 
 BUNDLES = [
     ":onos-drivers-odtn-driver",
+    "//drivers/utilities:onos-drivers-utilities",
     #     "//lib:commons-jxpath",
     #     "//lib:commons-beanutils", # jxpath dependency
     #     "//lib:jdom",  # jxpath dependency
@@ -31,6 +32,7 @@ onos_app(
     included_bundles = BUNDLES,
     required_apps = [
         "org.onosproject.netconf",
+        "org.onosproject.config",
         "org.onosproject.odtn-api",
     ],
     title = "ODTN Driver",

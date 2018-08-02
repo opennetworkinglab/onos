@@ -27,11 +27,16 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.onlab.junit.TestTools;
+import org.onlab.junit.TestUtils;
+import org.onlab.osgi.ServiceDirectory;
+import org.onlab.osgi.TestServiceDirectory;
+import org.onlab.packet.Ip4Address;
+import org.onosproject.net.driver.DriverService;
+import org.onosproject.net.driver.DriverServiceAdapter;
+import org.onosproject.netconf.DatastoreId;
 import org.onosproject.netconf.NetconfDeviceInfo;
 import org.onosproject.netconf.NetconfException;
 import org.onosproject.netconf.NetconfSession;
-import org.onosproject.netconf.DatastoreId;
-import org.onlab.packet.Ip4Address;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,11 +54,11 @@ import java.util.concurrent.FutureTask;
 import java.util.regex.Pattern;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.onosproject.netconf.DatastoreId.CANDIDATE;
 import static org.onosproject.netconf.DatastoreId.RUNNING;
 import static org.onosproject.netconf.DatastoreId.STARTUP;
@@ -116,6 +121,9 @@ public class NetconfSessionMinaImplTest {
             .add("urn:ietf:params:netconf:capability:validate:1.1")
             .build();
 
+    private static final ServiceDirectory TEST_DIRECTORY =
+            new TestServiceDirectory()
+                    .add(DriverService.class, new DriverServiceAdapter());
 
     private static NetconfSession session1;
     private static NetconfSession session2;
@@ -138,6 +146,9 @@ public class NetconfSessionMinaImplTest {
                         return TEST_USERNAME.equals(username) && TEST_PASSWORD.equals(password);
                     }
                 });
+
+        TestUtils.setField(NetconfSessionMinaImpl.class, "directory", TEST_DIRECTORY);
+
         sshServerNetconf.setPort(portNumber);
         SimpleGeneratorHostKeyProvider provider = new SimpleGeneratorHostKeyProvider();
         provider.setFile(new File(TEST_SERFILE));
@@ -192,6 +203,7 @@ public class NetconfSessionMinaImplTest {
             session4.close();
         }
 
+        TestUtils.setField(NetconfSessionMinaImpl.class, "directory", null);
         sshServerNetconf.stop();
     }
 
