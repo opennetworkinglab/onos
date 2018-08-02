@@ -86,6 +86,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static org.onlab.packet.EthType.EtherType;
 import static org.onosproject.net.flow.TrafficSelector.Builder;
@@ -388,6 +389,14 @@ public class TroubleshootManager implements TroubleshootService {
         trace = traceInDevice(trace, packet, in, isDualHomed, path);
         trace = getTrace(path, in, trace, isDualHomed);
         return trace;
+    }
+
+    @Override
+    public List<Set<StaticPacketTrace>> getMulitcastTrace(VlanId vlanId) {
+        Generator<Set<StaticPacketTrace>> gen = new McastGenerator(mcastService, this, vlanId);
+        List<Set<StaticPacketTrace>> multicastTraceList =
+                StreamSupport.stream(gen.spliterator(), false).collect(Collectors.toList());
+        return multicastTraceList;
     }
 
     /**

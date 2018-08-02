@@ -21,10 +21,15 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import org.onlab.packet.EthType;
+import org.onlab.packet.IpPrefix;
+import org.onlab.packet.VlanId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.HostId;
 import org.onosproject.net.flow.FlowEntry;
+import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.criteria.Criterion;
+import org.onosproject.net.flow.criteria.EthTypeCriterion;
+import org.onosproject.net.flow.criteria.IPCriterion;
 import org.onosproject.net.group.Group;
 import org.onosproject.rest.AbstractWebResource;
 import org.onosproject.t3.api.GroupsInDevice;
@@ -39,6 +44,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -97,6 +103,151 @@ public class T3WebResource extends AbstractWebResource {
             throw new IllegalArgumentException(e);
         }
         return Response.status(200).entity(node).build();
+    }
+
+    /**
+     * Returns the mcast trace non verbose result.
+     *
+     * @return 200 OK
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("mcast")
+    public Response getT3Mcast() {
+        ObjectNode node = null;
+        try {
+            node = getT3McastJsonOutput(false);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException(e);
+        }
+        return Response.status(200).entity(node).build();
+    }
+
+    /**
+     * Returns the mcast trace verbose result.
+     *
+     * @return 200 OK
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("mcast/verbose")
+    public Response getT3McastVerbose() {
+        ObjectNode node;
+        try {
+            node = getT3McastJsonOutput(true);
+
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException(e);
+        }
+        return Response.status(200).entity(node).build();
+    }
+
+    /**
+     * Returns trace verbose or non verbose json output for the given trace.
+     *
+     * @param verbose based on verbosity level
+     * @return a json representing the trace.
+     */
+    private ObjectNode getT3McastJsonOutput(boolean verbose) {
+        TroubleshootService troubleshootService = get(TroubleshootService.class);
+        final ObjectNode nodeOutput = mapper.createObjectNode();
+        nodeOutput.put("title", "Tracing all Multicast routes in the System");
+
+        //Create the generator for the list of traces.
+        List<Set<StaticPacketTrace>> generator = troubleshootService.getMulitcastTrace(VlanId.vlanId("None"));
+        int totalTraces = 0;
+        List<StaticPacketTrace> failedTraces = new ArrayList<>();
+        StaticPacketTrace previousTrace = null;
+        ArrayNode traceArray = mapper.createArrayNode();
+        for (Set<StaticPacketTrace> traces : generator) {
+            ObjectNode genNode = mapper.createObjectNode();
+            totalTraces++;
+            //Print also Route if possible or packet
+            ArrayNode traceOutput = mapper.createArrayNode();
+            if (verbose) {
+                traces.forEach(trace -> {
+                    ObjectNode traceObj = mapper.createObjectNode();
+                    ArrayNode node = mapper.createArrayNode();
+                    for (Criterion packet : trace.getInitialPacket().criteria()) {
+                        node.add(packet.toString());
+                    }
+                    traceObj.set("input packet", node);
+                    traceObj.set("trace", getTraceJson(trace, verbose));
+                    traceOutput.add(traceObj);
+                });
+            } else {
+                for (StaticPacketTrace trace : traces) {
+                    ObjectNode traceObject = mapper.createObjectNode();
+                    traceObject.set("trace", traceNode(previousTrace, trace));
+                    if (previousTrace == null || !previousTrace.equals(trace)) {
+                        previousTrace = trace;
+                    }
+                    traceObject.put("result", trace.isSuccess());
+                    if (!trace.isSuccess()) {
+                        traceObject.put("reason", trace.resultMessage());
+                        failedTraces.add(trace);
+                    }
+                    traceOutput.add(traceObject);
+                }
+            }
+            genNode.set("traces", traceOutput);
+            traceArray.add(genNode);
+        }
+        nodeOutput.set("tracing packet", traceArray);
+
+        if (!verbose) {
+            if (failedTraces.size() != 0) {
+                nodeOutput.put("failed traces", failedTraces.size());
+            }
+            previousTrace = null;
+            for (StaticPacketTrace trace : failedTraces) {
+                if (previousTrace == null || !previousTrace.equals(trace)) {
+                    previousTrace = trace;
+                }
+                nodeOutput.set("trace", traceNode(previousTrace, trace));
+                if (previousTrace == null || !previousTrace.equals(trace)) {
+                    previousTrace = trace;
+                }
+                nodeOutput.put("failure", trace.resultMessage());
+            }
+            nodeOutput.put("total traces", totalTraces);
+            nodeOutput.put("errors", failedTraces.size());
+        }
+        return nodeOutput;
+    }
+
+    /**
+     * Returns verbose or non verbose json output for the given trace.      *
+     *
+     * @param previousTrace the trace
+     * @param trace         based on verbosity level
+     * @return a json representing the trace.
+     */
+    private ObjectNode traceNode(StaticPacketTrace previousTrace, StaticPacketTrace trace) {
+        ObjectNode obj = mapper.createObjectNode();
+        if (previousTrace == null || !previousTrace.equals(trace)) {
+            previousTrace = trace;
+            ConnectPoint initialConnectPoint = trace.getInitialConnectPoint();
+            TrafficSelector initialPacket = trace.getInitialPacket();
+            boolean isIPv4 = ((EthTypeCriterion) initialPacket.getCriterion(Criterion.Type.ETH_TYPE))
+                    .ethType().equals(EthType.EtherType.IPV4.ethType()
+                    );
+            IpPrefix group = ((IPCriterion) (isIPv4 ? trace.getInitialPacket()
+                    .getCriterion(Criterion.Type.IPV4_DST) : trace.getInitialPacket()
+                    .getCriterion(Criterion.Type.IPV6_DST))).ip();
+            obj.put("source", initialConnectPoint.toString());
+            obj.put("group", group.toString());
+        }
+        ArrayNode nodePath = mapper.createArrayNode();
+        for (List<ConnectPoint> listPaths : trace.getCompletePaths()) {
+            nodePath.add(listPaths.get(listPaths.size() - 1).toString());
+        }
+        if (trace.getCompletePaths().size() > 1) {
+            obj.set("sinks", nodePath);
+        } else {
+            obj.set("sink", nodePath);
+        }
+        return obj;
     }
 
     /**
