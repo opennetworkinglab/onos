@@ -99,7 +99,7 @@ public class GrpcTelemetryManager implements GrpcTelemetryAdminService {
         // TODO: need to find a way to invoke gRPC endpoint using channel
 
         if (channel == null) {
-            log.warn("gRPC telemetry service has not been enabled!");
+            log.debug("gRPC telemetry service has not been enabled!");
         }
 
         return null;

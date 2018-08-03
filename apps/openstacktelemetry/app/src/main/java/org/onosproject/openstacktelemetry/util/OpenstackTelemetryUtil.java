@@ -16,8 +16,11 @@
 package org.onosproject.openstacktelemetry.util;
 
 import com.google.common.base.Strings;
+import org.onosproject.cfg.ConfigProperty;
 
 import java.util.Dictionary;
+import java.util.Optional;
+import java.util.Set;
 
 import static org.onlab.util.Tools.get;
 
@@ -50,5 +53,19 @@ public final class OpenstackTelemetryUtil {
             value = null;
         }
         return value;
+    }
+
+    /**
+     * Obtains the property value with specified property key name.
+     *
+     * @param properties    a collection of properties
+     * @param name          key name
+     * @return mapping value
+     */
+    public static boolean getPropertyValueAsBoolean(Set<ConfigProperty> properties, String name) {
+        Optional<ConfigProperty> property =
+                properties.stream().filter(p -> p.name().equals(name)).findFirst();
+
+        return property.map(ConfigProperty::asBoolean).orElse(false);
     }
 }

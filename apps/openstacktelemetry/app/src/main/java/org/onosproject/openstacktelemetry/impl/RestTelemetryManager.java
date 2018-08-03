@@ -133,7 +133,7 @@ public class RestTelemetryManager implements RestTelemetryAdminService {
     public Response publish(String record) {
 
         if (target == null) {
-            log.warn("REST telemetry service has not been enabled!");
+            log.debug("REST telemetry service has not been enabled!");
             return null;
         }
 

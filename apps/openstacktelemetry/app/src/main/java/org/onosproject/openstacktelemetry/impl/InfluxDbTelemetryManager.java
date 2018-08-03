@@ -142,12 +142,12 @@ public class InfluxDbTelemetryManager implements InfluxDbTelemetryAdminService {
     @Override
     public void publish(InfluxRecord<String, Set<FlowInfo>> record) {
         if (producer == null) {
-            log.warn("InfluxDB telemetry service has not been enabled!");
+            log.debug("InfluxDB telemetry service has not been enabled!");
             return;
         }
 
         if (record.flowInfos().size() == 0) {
-            log.warn("No record to publish");
+            log.debug("No record to publish");
             return;
         }
 

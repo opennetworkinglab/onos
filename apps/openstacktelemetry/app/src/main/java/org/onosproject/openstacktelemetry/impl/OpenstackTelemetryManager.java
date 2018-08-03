@@ -20,8 +20,11 @@ import com.google.common.collect.Lists;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.openstacktelemetry.api.FlowInfo;
 import org.onosproject.openstacktelemetry.api.GrpcTelemetryService;
 import org.onosproject.openstacktelemetry.api.InfluxDbTelemetryService;
@@ -40,6 +43,7 @@ import java.util.Set;
 import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_INFLUXDB_MEASUREMENT;
 import static org.onosproject.openstacktelemetry.codec.TinaMessageByteBufferCodec.KAFKA_KEY;
 import static org.onosproject.openstacktelemetry.codec.TinaMessageByteBufferCodec.KAFKA_TOPIC;
+import static org.onosproject.openstacktelemetry.util.OpenstackTelemetryUtil.getPropertyValueAsBoolean;
 
 /**
  * Openstack telemetry manager.
@@ -49,6 +53,11 @@ import static org.onosproject.openstacktelemetry.codec.TinaMessageByteBufferCode
 public class OpenstackTelemetryManager implements OpenstackTelemetryService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
+
+    private static final String ENABLE_SERVICE = "enableService";
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ComponentConfigService componentConfigService;
 
     private List<TelemetryService> telemetryServices = Lists.newArrayList();
 
@@ -75,19 +84,27 @@ public class OpenstackTelemetryManager implements OpenstackTelemetryService {
     @Override
     public void publish(Set<FlowInfo> flowInfos) {
         telemetryServices.forEach(service -> {
-            if (service instanceof GrpcTelemetryManager) {
+            if (service instanceof GrpcTelemetryManager &&
+                    getPropertyValueAsBoolean(componentConfigService.getProperties(
+                            GrpcTelemetryConfigManager.class.getName()), ENABLE_SERVICE)) {
                 invokeGrpcPublisher((GrpcTelemetryService) service, flowInfos);
             }
 
-            if (service instanceof InfluxDbTelemetryManager) {
+            if (service instanceof InfluxDbTelemetryManager &&
+                    getPropertyValueAsBoolean(componentConfigService.getProperties(
+                            InfluxDbTelemetryConfigManager.class.getName()), ENABLE_SERVICE)) {
                 invokeInfluxDbPublisher((InfluxDbTelemetryService) service, flowInfos);
             }
 
-            if (service instanceof KafkaTelemetryManager) {
+            if (service instanceof KafkaTelemetryManager &&
+                    getPropertyValueAsBoolean(componentConfigService.getProperties(
+                            KafkaTelemetryConfigManager.class.getName()), ENABLE_SERVICE)) {
                 invokeKafkaPublisher((KafkaTelemetryService) service, flowInfos);
             }
 
-            if (service instanceof RestTelemetryManager) {
+            if (service instanceof RestTelemetryManager &&
+                    getPropertyValueAsBoolean(componentConfigService.getProperties(
+                            RestTelemetryConfigManager.class.getName()), ENABLE_SERVICE)) {
                 invokeRestPublisher((RestTelemetryService) service, flowInfos);
             }
 
