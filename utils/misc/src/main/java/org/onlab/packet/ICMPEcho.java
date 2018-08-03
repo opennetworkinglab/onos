@@ -19,6 +19,7 @@ import java.nio.ByteBuffer;
 
 import static org.onlab.packet.PacketUtils.checkInput;
 import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * ICMP packet class for echo purpose.
@@ -76,6 +77,9 @@ public class ICMPEcho extends BasePacket {
      */
     @Override
     public byte[] serialize() {
+        checkNotNull(this.identifier);
+        checkNotNull(this.sequenceNum);
+
         int length = ICMP_ECHO_HEADER_LENGTH;
         byte[] payloadData = null;
         if (this.payload != null) {
