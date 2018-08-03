@@ -90,23 +90,6 @@ filegroup(
 )
 
 """
-    dependency to expose all webapp files in the sandbox
-"""
-
-filegroup(
-    name = "_src_main_webapp_files",
-    srcs = glob([
-        "src/main/webapp/**",
-    ], exclude = [
-        "src/main/webapp/tests/**",
-        "src/main/webapp/node_modules/**",
-        "src/main/webapp/dist/**",
-        "src/main/webapp/vendor/**",
-        "src/main/webapp/npm-debug.log",
-    ]),
-)
-
-"""
     Install node.js and npm, and gather files needed from //tools/gui
 """
 
@@ -115,14 +98,8 @@ genrule(
     srcs = [
         "@nodejs//:bin/npm",
         "//tools/gui:tools-gui-gulp",
-    ] + glob(
-        [
-            "src/main/webapp/*.js",
-            "src/main/webapp/app/**/*.js",
-        ],
-        exclude = ["src/main/webapp/dist/*.js"],
-    ),
-    outs = ["onos-gui-npm-install.tar"],
+    ],
+    outs = ["onos-gui-npm-install.jar"],
     cmd = " ROOT=`pwd` &&" +
           " export XDG_CONFIG_HOME=$(@D)/config &&" +  # npm config cache to the sandbos
           " export BABEL_DISABLE_CACHE=1 &&" +  # turn off babel cache
@@ -131,9 +108,11 @@ genrule(
           " NPM=$$ROOT/$(location @nodejs//:bin/npm) &&" +
           " mkdir -p tools/gui &&" +
           " cd tools/gui &&" +
-          " tar xf ../../$(location //tools/gui:tools-gui-gulp) &&" +
+          " jar xf ../../$(location //tools/gui:tools-gui-gulp) &&" +
           " $$NPM install  --no-cache --loglevel=error >npm-install.out 2>&1 &&" +
-          " tar hcf $$ROOT/$@ package.json gulpfile.babel.js node_modules gulp-tasks",
+          " find . -name package.json | while read pjson; do egrep -v '/execroot/' $$pjson > ptmp; mv ptmp $$pjson; done &&" +
+          " find package.json gulpfile.babel.js node_modules gulp-tasks -type f -exec touch -t 201806280000 {} \; &&" +
+          " jar Mcf $$ROOT/$@ package.json gulpfile.babel.js node_modules gulp-tasks",
 )
 
 """
@@ -148,19 +127,21 @@ genrule(
         ":_onos-gui-npm-install",
         ":_web_app_all",
     ],
-    outs = ["onos-gui-npm-build.tar"],
+    outs = ["onos-gui-npm-build.jar"],
     cmd = "(ROOT=`pwd` &&" +
           " export XDG_CONFIG_HOME=$(@D)/config &&" +
           " export BABEL_DISABLE_CACHE=1" +
           " export bower_storage__packages=.bower &&" +
           " export bower_storage__registry=.bower &&" +
           " NPM=$(location @nodejs//:bin/npm) &&" +
-          " (mkdir -p web/gui && cd web/gui && tar xf ../../$(location :_web_app_all)) &&" +
+          " (mkdir -p web/gui && cd web/gui && jar xf ../../$(location :_web_app_all)) &&" +
           " mkdir -p tools/gui && cd tools/gui &&" +
-          " tar xf $$ROOT/$(location :_onos-gui-npm-install) &&" +
+          " jar xf $$ROOT/$(location :_onos-gui-npm-install) &&" +
+          " chmod a+x ./node_modules/gulp/bin/gulp.js &&" +
           " $$ROOT/$$NPM run build --no-cache --loglevel=error >npm-build.out &&" +
           " cd ../../web/gui/src/main/webapp &&" +
-          " jar cf $$ROOT/$@ dist vendor data README.md _doc _dev app/fw app/*.css app/*.js app/*.txt)",
+          " find dist vendor data README.md _doc _dev app/fw app/*.css app/*.js app/*.txt -type f -exec touch -t 201806280000 {} \; &&" +
+          " jar Mcf $$ROOT/$@ dist vendor data README.md _doc _dev app/fw app/*.css app/*.js app/*.txt)",
 )
 
 """
@@ -169,9 +150,20 @@ genrule(
 
 genrule(
     name = "_web_app_all",
-    srcs = [":_src_main_webapp_files"],
-    outs = ["web_app_all.tar"],
-    cmd = "cd web/gui && du -hHs src/main/webapp && tar hcf ../../$@ src/main/webapp",
+    srcs =  glob([
+                   "src/main/webapp/**",
+                   "src/main/webapp/app/**/*.js",
+               ], exclude = [
+                   "src/main/webapp/tests/**",
+                   "src/main/webapp/node_modules/**",
+                   "src/main/webapp/dist/**",
+                   "src/main/webapp/vendor/**",
+                   "src/main/webapp/npm-debug.log",
+               ]),
+    outs = ["web_app_all.jar"],
+    cmd = "cd web/gui &&" +
+          " find src/main/webapp -type f -exec touch -t 201806280000 {} \; &&" +
+          " jar Mcf ../../$@ src/main/webapp",
 )
 
 """
@@ -181,10 +173,11 @@ genrule(
 genrule(
     name = "_app_view_tar",
     srcs = glob(["src/main/webapp/app/view/**"]),
-    outs = ["app_view_tar.tar"],
+    outs = ["app_view_tar.jar"],
     cmd = " ROOT=`pwd` &&" +
           " cd web/gui/src/main/webapp/app/view &&" +
-          " tar hcf $$ROOT/$@ .",
+          " find . -type f -exec touch -t 201806280000 {} \; &&" +
+          " jar Mcf $$ROOT/$@ .",
 )
 
 """
@@ -220,13 +213,14 @@ genrule(
     cmd = " ROOT=`pwd` &&" +
           " mkdir -p gui/WEB-INF/classes &&" +
           " cd gui &&" +
-          " tar xf $$ROOT/$(location :_onos-gui-npm-build) &&" +
-          " (cd WEB-INF/classes && mkdir -p app/view && cd app/view && tar xf $$ROOT/$(location :_app_view_tar)) &&" +
+          " jar xf $$ROOT/$(location :_onos-gui-npm-build) &&" +
+          " (cd WEB-INF/classes && mkdir -p app/view && cd app/view && jar xf $$ROOT/$(location :_app_view_tar)) &&" +
           " for i in $(locations :_root_level_files); do cp $$ROOT/$$i .; done &&" +
           " for i in $(locations :_web_inf_classes_files); do cp $$ROOT/$$i ./WEB-INF/classes/; done &&" +
           " mkdir ./WEB-INF/classes/raw && " +
           " for i in $(locations :_raw_classes_files); do cp $$ROOT/$$i ./WEB-INF/classes/raw/; done &&" +
           " jar xf $$ROOT/$(location :_onos-gui-base-jar) &&" +
+          " find . -type f -exec touch -t 201806280000 {} \; &&" +
           " jar cmf META-INF/MANIFEST.MF $$ROOT/$@ .",
     output_to_bindir = 1,
     visibility = ["//visibility:public"],

@@ -9,7 +9,7 @@ filegroup(
 genrule(
     name = "tools-gui-gulp",
     srcs = [":_tools-gui-gulp-files"],
-    outs = ["tools-gui-gulp.tar"],
-    cmd = "cd tools/gui && tar hcf ../../$@ .",
+    outs = ["tools-gui-gulp.jar"],
+    cmd = "cd tools/gui && find . -type f -exec touch -t 201806280000 {} \; && jar Mcf ../../$@ .",
     visibility = ["//visibility:public"],
 )
