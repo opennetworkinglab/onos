@@ -23,7 +23,6 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.ICMP;
-import org.onlab.packet.ICMPEcho;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
@@ -422,7 +421,7 @@ public class OpenstackRoutingIcmpHandler {
     }
 
     private short getIcmpId(ICMP icmp) {
-        return ((ICMPEcho) icmp.getPayload()).getIdentifier();
+        return ByteBuffer.wrap(icmp.serialize(), 4, 2).getShort();
     }
 
     private class InternalPacketProcessor implements PacketProcessor {

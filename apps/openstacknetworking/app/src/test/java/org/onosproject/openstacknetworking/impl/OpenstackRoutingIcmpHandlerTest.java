@@ -25,7 +25,6 @@ import org.onlab.junit.TestUtils;
 import org.onlab.packet.DeserializationException;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.ICMP;
-import org.onlab.packet.ICMPEcho;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
@@ -198,9 +197,8 @@ public class OpenstackRoutingIcmpHandlerTest {
 
     private void validateIcmpRespFromExternal(IPv4 ipPacket) {
         ICMP icmpResp = (ICMP) ipPacket.getPayload();
-        ICMPEcho icmpEchoResp = (ICMPEcho) icmpResp.getPayload();
-        short icmpId = icmpEchoResp.getIdentifier();
-        short seqNum = icmpEchoResp.getSequenceNum();
+        short icmpId = ByteBuffer.wrap(icmpResp.serialize(), 4, 2).getShort();
+        short seqNum = ByteBuffer.wrap(icmpResp.serialize(), 6, 2).getShort();
 
         assertEquals(icmpResp.getIcmpType(), TYPE_ECHO_REPLY);
         assertEquals(icmpResp.getIcmpCode(), CODE_ECHO_REPLY);
@@ -212,9 +210,9 @@ public class OpenstackRoutingIcmpHandlerTest {
 
     private void validateIcmpReqToExternal(IPv4 ipPacket) {
         ICMP icmpReq = (ICMP) ipPacket.getPayload();
-        ICMPEcho icmpEchoReq = (ICMPEcho) icmpReq.getPayload();
-        short icmpId = icmpEchoReq.getIdentifier();
-        short seqNum = icmpEchoReq.getSequenceNum();
+        short icmpId = ByteBuffer.wrap(icmpReq.serialize(), 4, 2).getShort();
+        short seqNum = ByteBuffer.wrap(icmpReq.serialize(), 6, 2).getShort();
+
 
         assertEquals(icmpReq.getIcmpType(), TYPE_ECHO_REQUEST);
         assertEquals(icmpReq.getIcmpCode(), CODE_ECHO_REQUEST);
@@ -226,9 +224,8 @@ public class OpenstackRoutingIcmpHandlerTest {
     }
     private void validateIcmpReqToGw(IPv4 ipPacket) {
         ICMP icmpReq = (ICMP) ipPacket.getPayload();
-        ICMPEcho icmpEchoReq = (ICMPEcho) icmpReq.getPayload();
-        short icmpId = icmpEchoReq.getIdentifier();
-        short seqNum = icmpEchoReq.getSequenceNum();
+        short icmpId = ByteBuffer.wrap(icmpReq.serialize(), 4, 2).getShort();
+        short seqNum = ByteBuffer.wrap(icmpReq.serialize(), 6, 2).getShort();
 
         assertEquals(icmpReq.getIcmpType(), TYPE_ECHO_REPLY);
         assertEquals(icmpReq.getIcmpCode(), CODE_ECHO_REPLY);
@@ -243,20 +240,20 @@ public class OpenstackRoutingIcmpHandlerTest {
                                                 IpAddress dstIp,
                                                 MacAddress dstMac, byte icmpType) {
         try {
-            ICMPEcho icmpEcho = new ICMPEcho();
-            icmpEcho.setIdentifier((short) 0)
+            IcmpEcho icmp = new IcmpEcho();
+            if (icmpType == TYPE_ECHO_REQUEST) {
+                icmp.setIcmpType(TYPE_ECHO_REQUEST)
+                        .setIcmpCode(CODE_ECHO_REQUEST);
+            } else {
+                icmp.setIcmpType(TYPE_ECHO_REPLY)
+                        .setIcmpCode(CODE_ECHO_REPLY);
+            }
+
+            icmp.setChecksum((short) 0)
+                    .setIdentifier((short) 0)
                     .setSequenceNum((short) 0);
-            ByteBuffer byteBufferIcmpEcho = ByteBuffer.wrap(icmpEcho.serialize());
 
-            ICMP icmp = new ICMP();
-            icmp.setIcmpType(icmpType)
-                    .setIcmpCode(icmpType == TYPE_ECHO_REQUEST ? CODE_ECHO_REQUEST : CODE_ECHO_REPLY)
-                    .setChecksum((short) 0);
-
-            icmp.setPayload(ICMPEcho.deserializer().deserialize(byteBufferIcmpEcho.array(),
-                    0, ICMPEcho.ICMP_ECHO_HEADER_LENGTH));
-
-            ByteBuffer byteBufferIcmp = ByteBuffer.wrap(icmp.serialize());
+            ByteBuffer bb = ByteBuffer.wrap(icmp.serialize());
 
             IPv4 iPacket = new IPv4();
             iPacket.setDestinationAddress(dstIp.toString());
@@ -266,7 +263,7 @@ public class OpenstackRoutingIcmpHandlerTest {
             iPacket.setDiffServ((byte) 0);
             iPacket.setProtocol(IPv4.PROTOCOL_ICMP);
 
-            iPacket.setPayload(ICMP.deserializer().deserialize(byteBufferIcmp.array(), 0, 8));
+            iPacket.setPayload(ICMP.deserializer().deserialize(bb.array(), 0, 8));
 
             Ethernet ethPacket = new Ethernet();
 
