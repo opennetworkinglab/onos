@@ -77,9 +77,11 @@ public class OSGiWrapper {
     private String webXmlRoot;
     private String destdir;
 
+    private String bundleClasspath;
+
     // FIXME should consider using Commons CLI, etc.
     public static void main(String[] args) {
-        if (args.length < 13) {
+        if (args.length < 14) {
             System.err.println("Not enough args");
             System.exit(1);
         }
@@ -98,18 +100,20 @@ public class OSGiWrapper {
         String webXmlRoot = args[11];
         String dynamicimportPackages = args[12];
         String destdir = args[13];
+        String bundleClasspath = args[14];
         String desc = Joiner.on(' ').join(Arrays.copyOfRange(args, 12, args.length));
 
         OSGiWrapper wrapper = new OSGiWrapper(jar, output, cp,
-                                              name, group,
-                                              version, license,
-                                              importPackages, exportPackages,
-                                              includeResources,
-                                              webContext,
-                                              webXmlRoot,
-                                              dynamicimportPackages,
-                                              desc,
-                                              destdir);
+                name, group,
+                version, license,
+                importPackages, exportPackages,
+                includeResources,
+                webContext,
+                webXmlRoot,
+                dynamicimportPackages,
+                desc,
+                destdir,
+                bundleClasspath);
         wrapper.log(wrapper + "\n");
         if (!wrapper.execute()) {
             System.err.printf("Error generating %s\n", name);
@@ -132,7 +136,8 @@ public class OSGiWrapper {
                        String webXmlRoot,
                        String dynamicimportPackages,
                        String bundleDescription,
-                       String destdir) {
+                       String destdir,
+                       String bundleClasspath) {
         this.inputJar = inputJar;
         this.classpath = Lists.newArrayList(classpath.split(":"));
         if (!this.classpath.contains(inputJar)) {
@@ -161,6 +166,8 @@ public class OSGiWrapper {
         this.webContext = webContext;
         this.webXmlRoot = webXmlRoot;
         this.destdir = destdir;
+
+        this.bundleClasspath = bundleClasspath;
     }
 
     private void setProperties(Analyzer analyzer) {
@@ -175,9 +182,6 @@ public class OSGiWrapper {
         //analyzer.setProperty("-provider-policy", "${range;[===,==+)}");
         //analyzer.setProperty("-consumer-policy", "${range;[===,==+)}");
 
-        // There are no good defaults so make sure you set the Import-Package
-        analyzer.setProperty(Analyzer.IMPORT_PACKAGE, importPackages);
-
         analyzer.setProperty(Analyzer.DYNAMICIMPORT_PACKAGE, dynamicimportPackages);
 
         // TODO include version in export, but not in import
@@ -188,10 +192,14 @@ public class OSGiWrapper {
             analyzer.setProperty(Analyzer.INCLUDE_RESOURCE, includeResources);
         }
 
+        // There are no good defaults so make sure you set the Import-Package
+        analyzer.setProperty(Analyzer.IMPORT_PACKAGE, importPackages);
+
         if (isWab()) {
             analyzer.setProperty(Analyzer.WAB, webXmlRoot);
             analyzer.setProperty("Web-ContextPath", webContext);
-            analyzer.setProperty(Analyzer.IMPORT_PACKAGE, "*,org.glassfish.jersey.servlet,org.jvnet.mimepull\n");
+            analyzer.setProperty(Analyzer.IMPORT_PACKAGE, importPackages +
+                    ",org.glassfish.jersey.servlet,org.jvnet.mimepull\n");
         }
     }
 
@@ -274,7 +282,7 @@ public class OSGiWrapper {
 
         log("wab %s", wab);
 
-        String specifiedClasspath = analyzer.getProperty(analyzer.BUNDLE_CLASSPATH);
+        String specifiedClasspath = this.bundleClasspath;
         String bundleClasspath = "WEB-INF/classes";
         if (specifiedClasspath != null) {
             bundleClasspath += "," + specifiedClasspath;
@@ -349,7 +357,7 @@ public class OSGiWrapper {
             walkFileTree(sourceRootPath, visitor);
         } else {
             warn("Skipping resource in bundle %s: %s (File Not Found)\n",
-                 bundleSymbolicName, sourceRoot);
+                    bundleSymbolicName, sourceRoot);
         }
     }
 
@@ -394,6 +402,7 @@ public class OSGiWrapper {
                 .add("bundleVersion", bundleVersion)
                 .add("bundleDescription", bundleDescription)
                 .add("bundleLicense", bundleLicense)
+                .add("bundleClassPath", bundleClasspath)
                 .toString();
 
     }

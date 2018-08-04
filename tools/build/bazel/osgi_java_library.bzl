@@ -70,6 +70,7 @@ def _bnd_impl(ctx):
     version = ctx.attr.version
     license = ""
     import_packages = ctx.attr.import_packages
+    bundle_classpath = ctx.attr.bundle_classpath
     exportPackages = "*"
     include_resources = ctx.attr.include_resources
     web_context = ctx.attr.web_context
@@ -124,6 +125,7 @@ def _bnd_impl(ctx):
         web_xml_root_path,
         dynamicimportPackages,
         classesPath,
+        bundle_classpath,
     ]
 
     ctx.actions.run(
@@ -152,6 +154,7 @@ _bnd = rule(
         "group": attr.string(),
         "source": attr.label(),
         "import_packages": attr.string(),
+        "bundle_classpath": attr.string(),
         "web_context": attr.string(),
         "web_xml": attr.label_list(allow_files = True),
         "include_resources": attr.string(),
@@ -383,7 +386,8 @@ def osgi_jar_with_tests(
         api_version = "",
         api_description = "",
         api_package = "",
-        import_packages = None):
+        import_packages = None,
+        bundle_classpath = ""):
     if name == None:
         name = "onos-" + native.package_name().replace("/", "-")
     if srcs == None:
@@ -460,6 +464,7 @@ def osgi_jar_with_tests(
         group = group,
         visibility = visibility,
         import_packages = import_packages,
+        bundle_classpath = bundle_classpath,
         web_context = web_context,
         web_xml = web_xml,
         include_resources = _include_resources_to_string(include_resources),
@@ -506,6 +511,7 @@ def osgi_jar_with_tests(
               For example apps/mcast/app becomes onos-apps-mcast-app
         deps: Dependencies of the generated jar file. Expressed as a list of targets
         import_packages: OSGI import list. Optional, comma separated list, defaults to "*"
+        bundle_classpath: intended for including dependencies in our bundle, so that our bundle can be deployed standalone
         group: Maven group ID for the resulting jar file. Optional, defaults to 'org.onosproject'
         srcs: Source file(s) to compile. Optional list of targets, defaults to src/main/java/**/*.java
         resources_root: Relative path to the root of the tree of resources for this jar. Optional, defaults to src/main/resources
@@ -540,7 +546,8 @@ def osgi_jar(
         api_title = "",
         api_version = "",
         api_description = "",
-        api_package = ""):
+        api_package = "",
+        bundle_classpath = ""):
     if srcs == None:
         srcs = _all_java_sources()
     if deps == None:
@@ -569,4 +576,5 @@ def osgi_jar(
         api_description = api_description,
         api_package = api_package,
         web_context = web_context,
+        bundle_classpath = bundle_classpath,
     )
