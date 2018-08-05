@@ -89,7 +89,7 @@ function do_requirements {
         wget \
         unzip
 
-    sudo -H pip install setuptools cffi ipaddr pypcap
+    sudo -H pip install setuptools cffi ipaddr ipaddress pypcap
 }
 
 function do_requirements_1404 {

@@ -44,6 +44,7 @@ apt-get -y --no-install-recommends install \
     vlan \
     ntp \
     vim nano emacs \
+    arping \
 
 
 curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
