@@ -88,7 +88,8 @@
       "fields" : [
         ["version", 4, false],
         ["ihl", 4, false],
-        ["diffserv", 8, false],
+        ["dscp", 6, false],
+        ["ecn", 2, false],
         ["total_len", 16, false],
         ["identification", 16, false],
         ["flags", 3, false],
@@ -842,7 +843,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "include/parser.p4",
-        "line" : 163,
+        "line" : 212,
         "column" : 8,
         "source_fragment" : "FabricDeparser"
       },
@@ -971,7 +972,11 @@
         },
         {
           "type" : "field",
-          "value" : ["ipv4", "diffserv"]
+          "value" : ["ipv4", "dscp"]
+        },
+        {
+          "type" : "field",
+          "value" : ["ipv4", "ecn"]
         },
         {
           "type" : "field",
@@ -1012,7 +1017,7 @@
       "id" : 1,
       "source_info" : {
         "filename" : "include/spgw.p4",
-        "line" : 291,
+        "line" : 292,
         "column" : 8,
         "source_fragment" : "update_checksum(gtpu_ipv4.isValid(), ..."
       },
@@ -1028,7 +1033,11 @@
         },
         {
           "type" : "field",
-          "value" : ["gtpu_ipv4", "diffserv"]
+          "value" : ["gtpu_ipv4", "dscp"]
+        },
+        {
+          "type" : "field",
+          "value" : ["gtpu_ipv4", "ecn"]
         },
         {
           "type" : "field",
@@ -1069,7 +1078,7 @@
       "id" : 2,
       "source_info" : {
         "filename" : "include/checksum.p4",
-        "line" : 56,
+        "line" : 57,
         "column" : 8,
         "source_fragment" : "verify_checksum(hdr.ipv4.isValid(), ..."
       },
@@ -1085,7 +1094,11 @@
         },
         {
           "type" : "field",
-          "value" : ["ipv4", "diffserv"]
+          "value" : ["ipv4", "dscp"]
+        },
+        {
+          "type" : "field",
+          "value" : ["ipv4", "ecn"]
         },
         {
           "type" : "field",
@@ -1508,7 +1521,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 66,
+            "line" : 74,
             "column" : 31,
             "source_fragment" : "0x8100; ..."
           }
@@ -2123,7 +2136,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 67,
+            "line" : 75,
             "column" : 31,
             "source_fragment" : "0x8847; ..."
           }
@@ -2199,7 +2212,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 87,
+            "line" : 95,
             "column" : 32,
             "source_fragment" : "64; ..."
           }
@@ -2314,7 +2327,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 67,
+            "line" : 75,
             "column" : 31,
             "source_fragment" : "0x8847; ..."
           }
@@ -2390,7 +2403,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 87,
+            "line" : 95,
             "column" : 32,
             "source_fragment" : "64; ..."
           }
@@ -2682,7 +2695,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 67,
+            "line" : 75,
             "column" : 31,
             "source_fragment" : "0x8847; ..."
           }
@@ -2758,7 +2771,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 87,
+            "line" : 95,
             "column" : 32,
             "source_fragment" : "64; ..."
           }
@@ -2873,7 +2886,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 67,
+            "line" : 75,
             "column" : 31,
             "source_fragment" : "0x8847; ..."
           }
@@ -2949,7 +2962,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 87,
+            "line" : 95,
             "column" : 32,
             "source_fragment" : "64; ..."
           }
@@ -3248,7 +3261,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 98,
+            "line" : 106,
             "column" : 31,
             "source_fragment" : "1w0; ..."
           }
@@ -3363,7 +3376,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 99,
+            "line" : 107,
             "column" : 33,
             "source_fragment" : "1w1; ..."
           }
@@ -3570,7 +3583,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 69,
+            "line" : 77,
             "column" : 31,
             "source_fragment" : "0x0800; ..."
           }
@@ -4101,7 +4114,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 78,
+            "line" : 86,
             "column" : 28,
             "source_fragment" : "5; ..."
           }
@@ -4111,7 +4124,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["gtpu_ipv4", "diffserv"]
+              "value" : ["gtpu_ipv4", "dscp"]
             },
             {
               "type" : "hexstr",
@@ -4122,7 +4135,26 @@
             "filename" : "include/spgw.p4",
             "line" : 212,
             "column" : 8,
-            "source_fragment" : "gtpu_ipv4.diffserv = 0"
+            "source_fragment" : "gtpu_ipv4.dscp = 0"
+          }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["gtpu_ipv4", "ecn"]
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x00"
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/spgw.p4",
+            "line" : 213,
+            "column" : 8,
+            "source_fragment" : "gtpu_ipv4.ecn = 0"
           }
         },
         {
@@ -4162,7 +4194,7 @@
           ],
           "source_info" : {
             "filename" : "include/spgw.p4",
-            "line" : 213,
+            "line" : 214,
             "column" : 8,
             "source_fragment" : "gtpu_ipv4.total_len = spgw_meta.ipv4_len ..."
           }
@@ -4181,7 +4213,7 @@
           ],
           "source_info" : {
             "filename" : "include/spgw.p4",
-            "line" : 215,
+            "line" : 216,
             "column" : 8,
             "source_fragment" : "gtpu_ipv4.identification = 0x1513"
           }
@@ -4200,7 +4232,7 @@
           ],
           "source_info" : {
             "filename" : "include/spgw.p4",
-            "line" : 216,
+            "line" : 217,
             "column" : 8,
             "source_fragment" : "gtpu_ipv4.flags = 0"
           }
@@ -4219,7 +4251,7 @@
           ],
           "source_info" : {
             "filename" : "include/spgw.p4",
-            "line" : 217,
+            "line" : 218,
             "column" : 8,
             "source_fragment" : "gtpu_ipv4.frag_offset = 0"
           }
@@ -4238,7 +4270,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 88,
+            "line" : 96,
             "column" : 32,
             "source_fragment" : "64; ..."
           }
@@ -4257,7 +4289,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 75,
+            "line" : 83,
             "column" : 25,
             "source_fragment" : "17; ..."
           }
@@ -4276,7 +4308,7 @@
           ],
           "source_info" : {
             "filename" : "include/spgw.p4",
-            "line" : 220,
+            "line" : 221,
             "column" : 8,
             "source_fragment" : "gtpu_ipv4.dst_addr = spgw_meta.s1u_enb_addr"
           }
@@ -4295,7 +4327,7 @@
           ],
           "source_info" : {
             "filename" : "include/spgw.p4",
-            "line" : 221,
+            "line" : 222,
             "column" : 8,
             "source_fragment" : "gtpu_ipv4.src_addr = spgw_meta.s1u_sgw_addr"
           }
@@ -4314,7 +4346,7 @@
           ],
           "source_info" : {
             "filename" : "include/spgw.p4",
-            "line" : 222,
+            "line" : 223,
             "column" : 8,
             "source_fragment" : "gtpu_ipv4.hdr_checksum = 0"
           }
@@ -4329,7 +4361,7 @@
           ],
           "source_info" : {
             "filename" : "include/spgw.p4",
-            "line" : 224,
+            "line" : 225,
             "column" : 8,
             "source_fragment" : "gtpu_udp.setValid()"
           }
@@ -4348,7 +4380,7 @@
           ],
           "source_info" : {
             "filename" : "include/spgw.p4",
-            "line" : 225,
+            "line" : 226,
             "column" : 8,
             "source_fragment" : "gtpu_udp.src_port = 2152"
           }
@@ -4367,7 +4399,7 @@
           ],
           "source_info" : {
             "filename" : "include/spgw.p4",
-            "line" : 226,
+            "line" : 227,
             "column" : 8,
             "source_fragment" : "gtpu_udp.dst_port = 2152"
           }
@@ -4409,7 +4441,7 @@
           ],
           "source_info" : {
             "filename" : "include/spgw.p4",
-            "line" : 227,
+            "line" : 228,
             "column" : 8,
             "source_fragment" : "gtpu_udp.len = spgw_meta.ipv4_len ..."
           }
@@ -4428,7 +4460,7 @@
           ],
           "source_info" : {
             "filename" : "include/spgw.p4",
-            "line" : 229,
+            "line" : 230,
             "column" : 8,
             "source_fragment" : "gtpu_udp.checksum = 0"
           }
@@ -4443,7 +4475,7 @@
           ],
           "source_info" : {
             "filename" : "include/spgw.p4",
-            "line" : 231,
+            "line" : 232,
             "column" : 8,
             "source_fragment" : "gtpu.setValid()"
           }
@@ -4462,7 +4494,7 @@
           ],
           "source_info" : {
             "filename" : "include/spgw.p4",
-            "line" : 232,
+            "line" : 233,
             "column" : 8,
             "source_fragment" : "gtpu.version = 0x01"
           }
@@ -4481,7 +4513,7 @@
           ],
           "source_info" : {
             "filename" : "include/spgw.p4",
-            "line" : 233,
+            "line" : 234,
             "column" : 8,
             "source_fragment" : "gtpu.pt = 0x01"
           }
@@ -4500,7 +4532,7 @@
           ],
           "source_info" : {
             "filename" : "include/spgw.p4",
-            "line" : 234,
+            "line" : 235,
             "column" : 8,
             "source_fragment" : "gtpu.spare = 0"
           }
@@ -4519,7 +4551,7 @@
           ],
           "source_info" : {
             "filename" : "include/spgw.p4",
-            "line" : 235,
+            "line" : 236,
             "column" : 8,
             "source_fragment" : "gtpu.ex_flag = 0"
           }
@@ -4538,7 +4570,7 @@
           ],
           "source_info" : {
             "filename" : "include/spgw.p4",
-            "line" : 236,
+            "line" : 237,
             "column" : 8,
             "source_fragment" : "gtpu.seq_flag = 0"
           }
@@ -4557,7 +4589,7 @@
           ],
           "source_info" : {
             "filename" : "include/spgw.p4",
-            "line" : 237,
+            "line" : 238,
             "column" : 8,
             "source_fragment" : "gtpu.npdu_flag = 0"
           }
@@ -4576,7 +4608,7 @@
           ],
           "source_info" : {
             "filename" : "include/spgw.p4",
-            "line" : 238,
+            "line" : 239,
             "column" : 8,
             "source_fragment" : "gtpu.msgtype = 0xff"
           }
@@ -4595,7 +4627,7 @@
           ],
           "source_info" : {
             "filename" : "include/spgw.p4",
-            "line" : 239,
+            "line" : 240,
             "column" : 8,
             "source_fragment" : "gtpu.msglen = spgw_meta.ipv4_len"
           }
@@ -4614,7 +4646,7 @@
           ],
           "source_info" : {
             "filename" : "include/spgw.p4",
-            "line" : 240,
+            "line" : 241,
             "column" : 8,
             "source_fragment" : "gtpu.teid = spgw_meta.teid"
           }
@@ -4759,7 +4791,7 @@
           ],
           "source_info" : {
             "filename" : "fabric.p4",
-            "line" : 71,
+            "line" : 86,
             "column" : 36,
             "source_fragment" : "hdr.gtpu_ipv4"
           }
@@ -4774,7 +4806,7 @@
           ],
           "source_info" : {
             "filename" : "fabric.p4",
-            "line" : 71,
+            "line" : 86,
             "column" : 51,
             "source_fragment" : "hdr.gtpu_udp"
           }
@@ -4789,7 +4821,7 @@
           ],
           "source_info" : {
             "filename" : "fabric.p4",
-            "line" : 71,
+            "line" : 86,
             "column" : 65,
             "source_fragment" : "hdr.gtpu"
           }
@@ -4803,7 +4835,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "fabric.p4",
-        "line" : 33,
+        "line" : 40,
         "column" : 8,
         "source_fragment" : "FabricIngress"
       },
@@ -6600,7 +6632,7 @@
       "id" : 1,
       "source_info" : {
         "filename" : "fabric.p4",
-        "line" : 61,
+        "line" : 76,
         "column" : 8,
         "source_fragment" : "FabricEgress"
       },
@@ -6984,7 +7016,7 @@
           "id" : 24,
           "source_info" : {
             "filename" : "include/spgw.p4",
-            "line" : 244,
+            "line" : 245,
             "column" : 12,
             "source_fragment" : "spgw_meta.do_spgw == true && spgw_meta.direction == DIR_DOWNLINK"
           },

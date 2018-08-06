@@ -1,4 +1,4 @@
-all: fabric fabric-spgw fabric-full constants
+all: fabric fabric-spgw fabric-int fabric-full constants
 
 fabric:
 	@./bmv2-compile.sh "fabric" ""
@@ -6,8 +6,11 @@ fabric:
 fabric-spgw:
 	@./bmv2-compile.sh "fabric-spgw" "-DWITH_SPGW"
 
+fabric-int:
+	@./bmv2-compile.sh "fabric-int" "-DWITH_INT"
+
 fabric-full:
-	@./bmv2-compile.sh "fabric-full" "-DWITH_MULTICAST -DWITH_IPV6 -DWITH_SPGW"
+	@./bmv2-compile.sh "fabric-full" "-DWITH_MULTICAST -DWITH_IPV6 -DWITH_SPGW -DWITH_INT"
 
 constants:
 	onos-gen-p4-constants \

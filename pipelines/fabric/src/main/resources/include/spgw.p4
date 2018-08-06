@@ -209,7 +209,8 @@ control spgw_egress(
         gtpu_ipv4.setValid();
         gtpu_ipv4.version = IP_VERSION_4;
         gtpu_ipv4.ihl = IPV4_MIN_IHL;
-        gtpu_ipv4.diffserv = 0;
+        gtpu_ipv4.dscp = 0;
+        gtpu_ipv4.ecn = 0;
         gtpu_ipv4.total_len = spgw_meta.ipv4_len
                 + (IPV4_HDR_SIZE + UDP_HDR_SIZE + GTP_HDR_SIZE);
         gtpu_ipv4.identification = 0x1513; /* From NGIC */
@@ -292,7 +293,8 @@ control update_gtpu_checksum(
             {
                 gtpu_ipv4.version,
                 gtpu_ipv4.ihl,
-                gtpu_ipv4.diffserv,
+                gtpu_ipv4.dscp,
+                gtpu_ipv4.ecn,
                 gtpu_ipv4.total_len,
                 gtpu_ipv4.identification,
                 gtpu_ipv4.flags,

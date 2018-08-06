@@ -113,7 +113,14 @@ inout standard_metadata_t standard_metadata) {
         packet.extract(hdr.tcp);
         fabric_metadata.l4_src_port = hdr.tcp.src_port;
         fabric_metadata.l4_dst_port = hdr.tcp.dst_port;
+#ifdef WITH_INT
+        transition select(hdr.ipv4.isValid() && ((hdr.ipv4.dscp & INT_DSCP) == INT_DSCP)) {
+            true: parse_intl4_shim;
+            default: accept;
+        }
+#else
         transition accept;
+#endif // WITH_INT
     }
 
     state parse_udp {
@@ -125,15 +132,50 @@ inout standard_metadata_t standard_metadata) {
             UDP_PORT_GTPU: parse_gtpu;
             default: accept;
         }
+#elif WITH_INT
+        transition select(hdr.ipv4.isValid() && (hdr.ipv4.dscp & INT_DSCP) == INT_DSCP) {
+            true: parse_intl4_shim;
+            default: accept;
+        }
 #else
         transition accept;
-#endif // WITH_SPGW
+#endif // WITH_SPGW, WITH_INT
     }
 
     state parse_icmp {
         packet.extract(hdr.icmp);
         transition accept;
     }
+
+#ifdef WITH_INT
+    state parse_intl4_shim {
+        packet.extract(hdr.intl4_shim);
+        transition parse_int_header;
+    }
+
+    state parse_int_header {
+        packet.extract(hdr.int_header);
+        // If there is no INT metadata but the INT header (and corresponding shim header
+        // and tail header) exists, default value of length field in shim header
+        // should be INT_HEADER_LEN_WORD.
+        fabric_metadata.int_meta.metadata_len = hdr.intl4_shim.len - INT_HEADER_LEN_WORD;
+        transition select (fabric_metadata.int_meta.metadata_len) {
+            0: parse_intl4_tail;
+            default: parse_int_data;
+        }
+    }
+
+    state parse_int_data {
+        // Parse INT metadata, not INT header, INT shim header and INT tail header
+        packet.extract(hdr.int_data, (bit<32>) ((hdr.intl4_shim.len - INT_HEADER_LEN_WORD) << 5));
+        transition parse_intl4_tail;
+    }
+
+    state parse_intl4_tail {
+        packet.extract(hdr.intl4_tail);
+        transition accept;
+    }
+#endif // WITH_INT
 
 #ifdef WITH_SPGW
     state parse_gtpu {
@@ -155,7 +197,14 @@ inout standard_metadata_t standard_metadata) {
         packet.extract(hdr.gtpu_udp);
         fabric_metadata.l4_src_port = hdr.gtpu_udp.src_port;
         fabric_metadata.l4_dst_port = hdr.gtpu_udp.dst_port;
+#ifdef WITH_INT
+        transition select(hdr.ipv4.isValid() && (hdr.ipv4.dscp & INT_DSCP) == INT_DSCP) {
+            true: parse_intl4_shim;
+            default: accept;
+        }
+#else
         transition accept;
+#endif // WITH_INT
     }
 #endif // WITH_SPGW
 }
@@ -163,6 +212,12 @@ inout standard_metadata_t standard_metadata) {
 control FabricDeparser(packet_out packet, in parsed_headers_t hdr) {
     apply {
         packet.emit(hdr.packet_in);
+#ifdef WITH_INT
+        packet.emit(hdr.report_ethernet);
+        packet.emit(hdr.report_ipv4);
+        packet.emit(hdr.report_udp);
+        packet.emit(hdr.report_fixed_header);
+#endif // WITH_INT
         packet.emit(hdr.ethernet);
         packet.emit(hdr.vlan_tag);
         packet.emit(hdr.mpls);
@@ -179,6 +234,20 @@ control FabricDeparser(packet_out packet, in parsed_headers_t hdr) {
         packet.emit(hdr.tcp);
         packet.emit(hdr.udp);
         packet.emit(hdr.icmp);
+#ifdef WITH_INT
+        packet.emit(hdr.intl4_shim);
+        packet.emit(hdr.int_header);
+        packet.emit(hdr.int_switch_id);
+        packet.emit(hdr.int_port_ids);
+        packet.emit(hdr.int_hop_latency);
+        packet.emit(hdr.int_q_occupancy);
+        packet.emit(hdr.int_ingress_tstamp);
+        packet.emit(hdr.int_egress_tstamp);
+        packet.emit(hdr.int_q_congestion);
+        packet.emit(hdr.int_egress_tx_util);
+        packet.emit(hdr.int_data);
+        packet.emit(hdr.intl4_tail);
+#endif // WITH_INT
     }
 }
 

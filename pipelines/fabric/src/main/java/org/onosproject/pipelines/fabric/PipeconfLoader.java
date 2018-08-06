@@ -21,6 +21,8 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.onosproject.core.CoreService;
+import org.onosproject.inbandtelemetry.api.IntProgrammable;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.Pipeliner;
 import org.onosproject.net.device.PortStatisticsDiscovery;
@@ -66,6 +68,8 @@ public class PipeconfLoader {
 
     private static final String P4C_OUT_PATH = "/p4c-out";
 
+    private static final String PIPELINE_APP_NAME = "org.onosproject.pipelines.fabric";
+
     // profile/target/platform
     private static final String P4C_RES_BASE_PATH = P4C_OUT_PATH + "/%s/%s/%s/";
 
@@ -77,6 +81,8 @@ public class PipeconfLoader {
     private static final String P4INFO_TXT = "p4info.txt";
     private static final String TOFINO_BIN = "tofino.bin";
     private static final String TOFINO_CTX_JSON = "context.json";
+    private static final String INT_PROFILE_SUFFIX = "-int";
+    private static final String FULL_PROFILE_SUFFIX = "-full";
 
     private static final int BMV2_CPU_PORT = 255;
 
@@ -85,8 +91,12 @@ public class PipeconfLoader {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private PiPipeconfService piPipeconfService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    private CoreService coreService;
+
     @Activate
     public void activate() {
+        coreService.registerApplication(PIPELINE_APP_NAME);
         // Registers all pipeconf at component activation.
         PIPECONFS.forEach(piPipeconfService::register);
     }
@@ -148,10 +158,15 @@ public class PipeconfLoader {
         if (bmv2JsonUrl == null || p4InfoUrl == null) {
             throw new FileNotFoundException();
         }
-        return basePipeconfBuilder(
+
+        DefaultPiPipeconf.Builder builder = basePipeconfBuilder(
                 profile, platform, p4InfoUrl, Bmv2FabricInterpreter.class)
-                .addExtension(ExtensionType.BMV2_JSON, bmv2JsonUrl)
-                .build();
+                .addExtension(ExtensionType.BMV2_JSON, bmv2JsonUrl);
+        // Add IntProgrammable behaviour for INT-enabled profiles.
+        if (profile.endsWith(INT_PROFILE_SUFFIX) || profile.endsWith(FULL_PROFILE_SUFFIX)) {
+            builder.addBehaviour(IntProgrammable.class, IntProgrammableImpl.class);
+        }
+        return builder.build();
     }
 
     private static PiPipeconf buildTofinoPipeconf(String profile, String platform)
