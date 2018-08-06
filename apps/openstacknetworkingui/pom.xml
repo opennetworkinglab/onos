@@ -134,7 +134,6 @@
                     <instructions>
                         <_wab>src/main/webapp/</_wab>
                         <Include-Resource>
-                            WEB-INF/classes/apidoc/swagger.json=target/swagger.json,
                             {maven-resources}
                         </Include-Resource>
                         <Bundle-SymbolicName>

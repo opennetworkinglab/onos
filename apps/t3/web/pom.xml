@@ -97,14 +97,6 @@
 
         <dependency>
             <groupId>org.onosproject</groupId>
-            <artifactId>onos-api</artifactId>
-            <version>${onos.version}</version>
-            <classifier>tests</classifier>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.onosproject</groupId>
             <artifactId>onos-rest</artifactId>
             <version>${onos.version}</version>
             <scope>provided</scope>
