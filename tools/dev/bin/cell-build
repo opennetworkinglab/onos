@@ -10,7 +10,7 @@
 baseCommit=${1:-$(git log | grep origin/master | head -n1 | cut -d\  -f2)}
 
 # Create a patch file
-git diff --cached --staged --binary $baseCommit > /tmp/$baseCommit.patch
+git diff $baseCommit > /tmp/$baseCommit.patch
 
 # Copy patch file to the remote build machine
 scp /tmp/$baseCommit.patch $ONOS_USER@$OCN:/tmp
@@ -33,8 +33,8 @@ ssh -t -t $ONOS_USER@$OCN "
     fi
 
     # Apply the patch
-    git apply --no-add /tmp/$baseCommit.patch
+    git apply /tmp/$baseCommit.patch
 
-    # Run the build (neutralizing known environment mutations)
+    # Run the build (neutralizing known environment mutations in SSH sessions)
     SHLVL=1 SSH_CLIENT=0 SSH_CONNECTION=0 bazel build onos
 "
