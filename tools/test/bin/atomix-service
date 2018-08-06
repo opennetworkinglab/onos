@@ -50,7 +50,7 @@ case $2 in
         # Execute the remote commands
         for node in $nodes; do
             ssh -tt $ONOS_USER@${node} "
-                pid=\$(ps -ef | grep atomix | grep -v grep | cut -c10-15 | tr -d ' ')
+                pid=\$(ps -ef | grep AtomixAgent | grep -v grep | cut -c10-15 | tr -d ' ')
                 if [ -n \"\$pid\" ]; then
                     echo \"Killing Atomix process \$pid on \$(hostname)...\"
                     kill -9 \$pid
