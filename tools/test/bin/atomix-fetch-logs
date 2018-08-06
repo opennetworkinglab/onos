@@ -1,0 +1,43 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Collect Atomix logs from a single node or the current ONOS cell.
+# -----------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+function print_usage {
+    command_name=`basename $0`
+    echo "Collect Atomix logs from a single node or the current ONOS cell."
+    echo
+    echo "Usage:     $command_name <TARGET> "
+    echo "           $command_name [-h | --help]"
+    echo "Options:"
+    echo "    TARGET          The target of the command"
+    echo "    [-h | --help]   Print this help"
+    echo ""
+    echo "TARGET:  <hostname | --cell>"
+    echo "      hostname        Execute on the specified host name"
+    echo "        --cell        Execute on the current ONOS cell"
+    echo ""
+}
+
+# Print usage
+if [ "${1}" = "-h" -o "${1}" = "--help" ]; then
+    print_usage
+    exit 0
+fi
+
+# Select the target
+if [ "${1}" = "--cell" ]; then
+    nodes=$(env | sort | egrep "^OCC[0-9]+" | cut -d= -f2)
+else
+    nodes=${1:-$OCI}
+fi
+
+# Execute the remote commands
+for node in $nodes; do
+    echo "fetching from ${node}..."
+    mkdir -p ${node}
+    scp -p $ONOS_USER@[${node}]:$ATOMIX_INSTALL_DIR/log/atomix.log* ./${node}/
+done
