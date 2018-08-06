@@ -101,10 +101,9 @@ genrule(
     ],
     outs = ["onos-gui-npm-install.jar"],
     cmd = " ROOT=`pwd` &&" +
+          " export HOME=. &&" +
           " export XDG_CONFIG_HOME=$(@D)/config &&" +  # npm config cache to the sandbos
           " export BABEL_DISABLE_CACHE=1 &&" +  # turn off babel cache
-          " export bower_storage__packages=.bower &&" +
-          " export bower_storage__registry=.bower &&" +
           " NPM=$$ROOT/$(location @nodejs//:bin/npm) &&" +
           " mkdir -p tools/gui &&" +
           " cd tools/gui &&" +
@@ -123,16 +122,14 @@ genrule(
     name = "_onos-gui-npm-build",
     srcs = [
         "@nodejs//:bin/npm",
-        "@nodejs//:bin/node",
         ":_onos-gui-npm-install",
         ":_web_app_all",
     ],
     outs = ["onos-gui-npm-build.jar"],
     cmd = "(ROOT=`pwd` &&" +
+          " export HOME=. &&" +
           " export XDG_CONFIG_HOME=$(@D)/config &&" +
           " export BABEL_DISABLE_CACHE=1" +
-          " export bower_storage__packages=.bower &&" +
-          " export bower_storage__registry=.bower &&" +
           " NPM=$(location @nodejs//:bin/npm) &&" +
           " (mkdir -p web/gui && cd web/gui && jar xf ../../$(location :_web_app_all)) &&" +
           " mkdir -p tools/gui && cd tools/gui &&" +
