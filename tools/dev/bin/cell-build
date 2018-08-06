@@ -1,0 +1,38 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Tool to perform a cell-based remote bazel build using a borrowed test cell.
+# -----------------------------------------------------------------------------
+
+# Check environment
+[ -z "$OCN" ] && echo "Cell environment not established" && exit 1
+
+# Check arguments and environment
+baseCommit=${1:-$(git log | grep origin/master | head -n1 | cut -d\  -f2)}
+
+# Create a patch file
+git diff --cached --staged --binary $baseCommit > /tmp/$baseCommit.patch
+
+# Copy patch file to the remote build machine
+scp /tmp/$baseCommit.patch $ONOS_USER@$OCN:/tmp
+
+ssh -t -t $ONOS_USER@$OCN "
+    source ~/.bash_aliases
+    cd \$ONOS_ROOT
+
+    # Make sure the remote build machine is on the same commit hash as the local one
+    remoteCommit=\$(git log -n 1 | head -n1 | cut -d\  -f2)
+
+    if [ "\$remoteCommit" != "$baseCommit" ]; then
+        git checkout master
+        git pull
+        git checkout $baseCommit
+    fi
+
+    # Apply the patch
+    git clean -f
+    git stash
+    git apply --no-add /tmp/$baseCommit.patch
+
+    # Run the build
+    SHLVL=1 bazel build onos
+"
