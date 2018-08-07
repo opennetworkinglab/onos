@@ -15,6 +15,7 @@
  */
 package org.onosproject.store.atomix.primitives.impl;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -127,22 +128,26 @@ public class AtomixConsistentMultimap<K, V> implements AsyncConsistentMultimap<K
 
     @Override
     public CompletableFuture<Set<K>> keySet() {
-        return CompletableFuture.completedFuture(atomixMultimap.keySet().sync());
+        return CompletableFuture.completedFuture(atomixMultimap.keySet()
+            .sync(Duration.ofMillis(DEFAULT_OPERATION_TIMEOUT_MILLIS)));
     }
 
     @Override
     public CompletableFuture<Multiset<K>> keys() {
-        return CompletableFuture.completedFuture(atomixMultimap.keys().sync());
+        return CompletableFuture.completedFuture(atomixMultimap.keys()
+            .sync(Duration.ofMillis(DEFAULT_OPERATION_TIMEOUT_MILLIS)));
     }
 
     @Override
     public CompletableFuture<Multiset<V>> values() {
-        return CompletableFuture.completedFuture(atomixMultimap.values().sync());
+        return CompletableFuture.completedFuture(atomixMultimap.values()
+            .sync(Duration.ofMillis(DEFAULT_OPERATION_TIMEOUT_MILLIS)));
     }
 
     @Override
     public CompletableFuture<Collection<Map.Entry<K, V>>> entries() {
-        return CompletableFuture.completedFuture(atomixMultimap.entries().sync());
+        return CompletableFuture.completedFuture(atomixMultimap.entries()
+            .sync(Duration.ofMillis(DEFAULT_OPERATION_TIMEOUT_MILLIS)));
     }
 
     @Override
@@ -158,7 +163,8 @@ public class AtomixConsistentMultimap<K, V> implements AsyncConsistentMultimap<K
                 Function.identity(),
                 Function.identity(),
                 v -> new io.atomix.utils.time.Versioned<>(v, 0),
-                v -> v.value()).sync());
+                v -> v.value())
+                .sync(Duration.ofMillis(DEFAULT_OPERATION_TIMEOUT_MILLIS)));
     }
 
     @Override

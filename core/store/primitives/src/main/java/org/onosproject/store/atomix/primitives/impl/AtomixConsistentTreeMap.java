@@ -15,6 +15,7 @@
  */
 package org.onosproject.store.atomix.primitives.impl;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Map;
 import java.util.NavigableMap;
@@ -145,7 +146,8 @@ public class AtomixConsistentTreeMap<V> implements AsyncConsistentTreeMap<V> {
 
     @Override
     public CompletableFuture<NavigableSet<String>> navigableKeySet() {
-        return CompletableFuture.completedFuture(atomixTreeMap.navigableKeySet().sync());
+        return CompletableFuture.completedFuture(atomixTreeMap.navigableKeySet()
+            .sync(Duration.ofMillis(DEFAULT_OPERATION_TIMEOUT_MILLIS)));
     }
 
     @Override
@@ -158,7 +160,8 @@ public class AtomixConsistentTreeMap<V> implements AsyncConsistentTreeMap<V> {
         String upperKey, String lowerKey, boolean inclusiveUpper, boolean inclusiveLower) {
         return CompletableFuture.completedFuture(
             new DelegatingAsyncDistributedNavigableMap<>(
-                atomixTreeMap.subMap(lowerKey, inclusiveLower, upperKey, inclusiveUpper)).sync());
+                atomixTreeMap.subMap(lowerKey, inclusiveLower, upperKey, inclusiveUpper))
+                .sync(Duration.ofMillis(DEFAULT_OPERATION_TIMEOUT_MILLIS)));
     }
 
     @Override
@@ -185,7 +188,8 @@ public class AtomixConsistentTreeMap<V> implements AsyncConsistentTreeMap<V> {
 
     @Override
     public CompletableFuture<Set<String>> keySet() {
-        return CompletableFuture.completedFuture(atomixTreeMap.keySet().sync());
+        return CompletableFuture.completedFuture(atomixTreeMap.keySet()
+            .sync(Duration.ofMillis(DEFAULT_OPERATION_TIMEOUT_MILLIS)));
     }
 
     @Override
@@ -259,7 +263,8 @@ public class AtomixConsistentTreeMap<V> implements AsyncConsistentTreeMap<V> {
             new TranscodingAsyncDistributedCollection<Versioned<V>, io.atomix.utils.time.Versioned<V>>(
                 atomixTreeMap.values(),
                 e -> new io.atomix.utils.time.Versioned<>(e.value(), e.version()),
-                e -> new Versioned<>(e.value(), e.version())).sync());
+                e -> new Versioned<>(e.value(), e.version()))
+                .sync(Duration.ofMillis(DEFAULT_OPERATION_TIMEOUT_MILLIS)));
     }
 
     @Override

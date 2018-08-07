@@ -15,6 +15,7 @@
  */
 package org.onosproject.store.atomix.primitives.impl;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -108,7 +109,8 @@ public class AtomixConsistentMap<K, V> implements AsyncConsistentMap<K, V> {
 
     @Override
     public CompletableFuture<Set<K>> keySet() {
-        return CompletableFuture.completedFuture(atomixMap.keySet().sync());
+        return CompletableFuture.completedFuture(atomixMap.keySet()
+            .sync(Duration.ofMillis(DEFAULT_OPERATION_TIMEOUT_MILLIS)));
     }
 
     @Override
@@ -117,7 +119,8 @@ public class AtomixConsistentMap<K, V> implements AsyncConsistentMap<K, V> {
             new TranscodingAsyncDistributedCollection<Versioned<V>, io.atomix.utils.time.Versioned<V>>(
                 atomixMap.values(),
                 v -> new io.atomix.utils.time.Versioned<>(v.value(), v.version()),
-                v -> new Versioned<>(v.value(), v.version())).sync());
+                v -> new Versioned<>(v.value(), v.version()))
+                .sync(Duration.ofMillis(DEFAULT_OPERATION_TIMEOUT_MILLIS)));
     }
 
     @Override
@@ -129,7 +132,7 @@ public class AtomixConsistentMap<K, V> implements AsyncConsistentMap<K, V> {
                 e -> Maps.immutableEntry(e.getKey(),
                     new io.atomix.utils.time.Versioned<>(e.getValue().value(), e.getValue().version())),
                 e -> Maps.immutableEntry(e.getKey(), new Versioned<>(e.getValue().value(), e.getValue().version())))
-                .sync());
+                .sync(Duration.ofMillis(DEFAULT_OPERATION_TIMEOUT_MILLIS)));
     }
 
     @Override
