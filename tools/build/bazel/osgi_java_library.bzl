@@ -375,6 +375,10 @@ def osgi_jar_with_tests(
         include_resources = {},
         test_srcs = None,
         exclude_tests = None,
+        medium_tests = [],
+        large_tests = [],
+        enormous_tests = [],
+        flaky_tests = [],
         test_resources = None,
         visibility = ["//visibility:public"],
         version = ONOS_VERSION,
@@ -494,6 +498,9 @@ def osgi_jar_with_tests(
             name = name + "-tests-gen",
             test_files = test_srcs,
             exclude_tests = exclude_tests,
+            medium_tests = medium_tests,
+            large_tests = large_tests,
+            enormous_tests = enormous_tests,
             deps = all_test_deps,
         )
 
