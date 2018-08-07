@@ -1,11 +1,6 @@
 #!/bin/bash
 # -----------------------------------------------------------------------------
-# Builds the ONOS Java API docs.
+# Builds the aggregate ONOS Java API docs.
 # -----------------------------------------------------------------------------
 
-set -e
-
-[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
-. $ONOS_ROOT/tools/build/envDefaults
-
-onos-buck build //docs:external //docs:internal --show-output
+SHLVL=1 bazel build //docs:external //docs:internal

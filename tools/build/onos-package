@@ -1,7 +1,6 @@
 #!/bin/bash
 # -----------------------------------------------------------------------------
-# Packages ONOS distributable into onos.tar.gz, onos.zip or a deb file
+# Packages ONOS distributable into onos.tar.gz file
 # -----------------------------------------------------------------------------
 
-[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
-cd $ONOS_ROOT && onos-buck build onos --deep --show-output && onos-check-bits
+SHLVL=1 bazel build //:onos && onos-check-bits

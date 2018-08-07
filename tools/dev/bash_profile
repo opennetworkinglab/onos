@@ -4,6 +4,7 @@
 
 # Root of the ONOS source tree
 export ONOS_ROOT=${ONOS_ROOT:-~/onos}
+
 # This is a hack to remove symlinks from the ONOS_ROOT path. To be removed when
 # the protobuf buck rules can handle symlinks
 ONOS_ROOT=$(pushd $ONOS_ROOT >/dev/null && pwd -P && popd >/dev/null)
@@ -50,7 +51,7 @@ export BMV2_MN_PY=$ONOS_ROOT/tools/dev/mininet/bmv2.py
 # Convenience utility to warp to various ONOS source projects
 # e.g. 'o api', 'o dev', 'o'
 function o {
-    cd $(find $ONOS_ROOT/ -type d -and \( -name 'buck-out' -o -name '.git' -o -name 'target' -o -name 'gen-src' -o -name 'src' \) -prune -o -type d | \
+    cd $(find $ONOS_ROOT/ -type d -and \( -name 'bazel-*' -o -name 'buck-out' -o -name '.git' -o -name 'target' -o -name 'gen-src' -o -name 'src' \) -prune -o -type d | \
         egrep "${1:-$ONOS_ROOT}" | awk '{print length($1)"\t"$1}'  | sort -n | cut -f2 | head -n 1)
 }
 
@@ -58,21 +59,13 @@ function o {
 [ -z "$(which buck)" ] && alias buck="onos-buck"
 
 # Short-hand for ONOS build, package and test.
-alias ob='onos-build'
-alias obf='(cd $ONOS_ROOT && onos-buck build onos)'
-alias obd='onos-build-docs'
-alias op='onos-package'
-alias ot='onos-test'
+alias op="SHLVL=1 bazel build //:onos"
+alias ot="bazel query 'tests(//...)' | SHLVL=1 xargs bazel test"
+alias ob="op && ot"
+alias obd="SHLVL=1 bazel build //docs:external //docs:internal"
 
-alias obr='while ! ob; do echo "retrying"; done'
-alias opr='while ! op; do echo "retrying"; done'
-
-alias deprecatedAlias='echo "This alias has been deprecated."'
-alias obi=deprecatedAlias
-alias obs=deprecatedAlias
-
-alias ok='NO_BUCKD=1 onos-buck run onos-local --'
-alias oh='onos localhost halt'
+alias ok="SHLVL=1 bazel run onos-local --"
+alias oh="onos localhost halt"
 
 alias ol='onos-log'
 alias ow='onos-watch'
@@ -105,8 +98,6 @@ alias gui='onos-gui'
 
 # Short-hand for 'mvn clean install' for us lazy folk
 alias mci='mvn clean install'
-alias mcis='mvn clean install -DskipTests -Dcheckstyle.skip'
-alias mis='mvn install -DskipTests -Dcheckstyle.skip'
 
 # Git annotated one-line log
 alias gil='git log --oneline --decorate=short'
