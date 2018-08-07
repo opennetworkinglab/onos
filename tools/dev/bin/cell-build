@@ -6,8 +6,22 @@
 # Check environment
 [ -z "$OCN" ] && echo "Cell environment not established" && exit 1
 
+runTests=""
+
+while getopts b:t?h o; do
+    case "$o" in
+        b) branch=$OPTARG;;
+        t) runTests=true;;
+        *) echo "usage: cell-build [-b branch] [-t] [commitHash]" >&2; exit 1;;
+    esac
+done
+
+let OPC=$OPTIND-1
+shift $OPC
+
 # Check arguments and environment
-baseCommit=${1:-$(git log | grep origin/master | head -n1 | cut -d\  -f2)}
+branch=${branch:-origin/master}
+baseCommit=${1:-$(git log | grep $branch | head -n1 | cut -d\  -f2)}
 
 # Create a patch file
 git diff $baseCommit > /tmp/$baseCommit.patch
@@ -35,5 +49,9 @@ ssh -t -t $ONOS_USER@$OCN "
     [ -s /tmp/$baseCommit.patch ] && git apply /tmp/$baseCommit.patch
 
     # Run the build (neutralizing known environment mutations in SSH sessions)
+    set -e
     SHLVL=1 SSH_CLIENT=0 SSH_CONNECTION=0 bazel build onos
+    if [ $runTests = true ]; then
+        bazel query 'tests(//...)' | SHLVL=1 SSH_CLIENT=0 SSH_CONNECTION=0 xargs bazel test
+    fi
 "
