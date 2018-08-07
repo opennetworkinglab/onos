@@ -1,13 +1,25 @@
 #!/bin/bash
+# -----------------------------------------------------------------------------
+# Generates catalog of third-party worspace dependencies for Bazel and Buck
+# -----------------------------------------------------------------------------
 
 set -e
 
-# force the correct version of buck to be downloaded
-onos-buck --version
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+cd $ONOS_ROOT
 
+REPO=${M2_REPO:-~/.m2/repository}
+VER=1.2
+ARTIFACT=org/onosproject/onos-libgen/$VER/onos-libgen-$VER.jar
+JAR=$REPO/$ARTIFACT
 
-cd $(onos-buck root 2>/dev/null)
-JAR=$(onos-buck build //tools/build/libgen:libgen --show-output 2>/dev/null | tail -1 | cut -d\  -f2)
+# Download the onos-libgen binary if needed
+if [ ! -f $JAR ]; then
+    printf "Downloading onos-libgen-$VER.jar..."
+    mkdir -p $(dirname $JAR)
+    curl http://repo1.maven.org/maven2/$ARTIFACT > $JAR
+    [ -f $JAR ] && printf "Done.\n"
+fi
 
-java -jar $JAR lib/deps.json lib/BUCK
 java -jar $JAR lib/deps.json tools/build/bazel/generate_workspace.bzl --bazel
+java -jar $JAR lib/deps.json lib/BUCK
