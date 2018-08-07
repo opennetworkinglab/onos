@@ -1,0 +1,13 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Tool to perform a cell-based remote stc test using a borrowed test cell.
+# -----------------------------------------------------------------------------
+
+# Check environment
+[ -z "$OCN" ] && echo "Cell environment not established" && exit 1
+
+ssh -t -t $ONOS_USER@$OCN "
+    source ~/.bash_aliases
+    cd \$ONOS_ROOT
+    stc $@
+"
