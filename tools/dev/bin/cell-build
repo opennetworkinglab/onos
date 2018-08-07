@@ -19,21 +19,20 @@ ssh -t -t $ONOS_USER@$OCN "
     source ~/.bash_aliases
     cd \$ONOS_ROOT
 
-    # Make sure the remote build machine is on the same commit hash as the local one
-    remoteCommit=\$(git log -n 1 | head -n1 | cut -d\  -f2)
-
     # Clean-up the workspace and stash away any changes.
     git clean -f
     git stash
 
+    # Make sure the remote build machine is on the same commit hash as the local one
+    remoteCommit=\$(git log -n 1 | head -n1 | cut -d\  -f2)
     if [ "\$remoteCommit" != "$baseCommit" ]; then
         git checkout master
         git pull
         git checkout $baseCommit
     fi
 
-    # Apply the patch
-    git apply /tmp/$baseCommit.patch
+    # Apply the patch if necessary
+    [ -s /tmp/$baseCommit.patch ] && git apply /tmp/$baseCommit.patch
 
     # Run the build (neutralizing known environment mutations in SSH sessions)
     SHLVL=1 SSH_CLIENT=0 SSH_CONNECTION=0 bazel build onos
