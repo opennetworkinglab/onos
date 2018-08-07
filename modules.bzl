@@ -120,6 +120,7 @@ ONOS_PROVIDERS = [
     "//providers/bgp:onos-providers-bgp-oar",
     "//providers/bgpcep:onos-providers-bgpcep-oar",
     "//providers/host:onos-providers-host-oar",
+    "//providers/hostprobing:onos-providers-hostprobing-oar",
     "//providers/lldp:onos-providers-lldp-oar",
     "//providers/netcfghost:onos-providers-netcfghost-oar",
     "//providers/netcfglinks:onos-providers-netcfglinks-oar",
