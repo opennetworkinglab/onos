@@ -168,22 +168,26 @@ osgi_feature(
 )
 
 #osgi_feature (
-#  name = "onos-gui2",
-#  description = "ONOS GUI2 console components",
-#  required_features = ["onos-api", "onos-thirdparty-web"],
-#  included_bundles = [
-#    "//lib:jetty_websocket",
-#    "//utils/rest:onlab-rest",
-#    "//web/gui2:onos-gui2",
-#  ]
+#    name = "onos-gui2",
+#    description = "ONOS GUI2 console components",
+#    included_bundles = [
+#        "//web/gui:onos-gui2",
+#        "@jetty_websocket//jar",
+#        "//utils/rest:onlab-rest",
+#    ],
+#    required_features = [
+#        "onos-api",
+#        "onos-thirdparty-web",
+#    ],
 #)
 
-#osgi_feature (
-#  name = "onos-security",
-#  description ="Security-Mode ONOS",
-#  required_features = ["onos-api"],
-#  included_bundles = [
-#    "//lib:org.apache.felix.framework.security",
-#    "//core/security:onos-security",
-#  ]
-#)
+osgi_feature (
+    name = "onos-security",
+    description ="Security-Mode ONOS",
+    included_bundles = [
+        "@org_apache_felix_framework_security//jar",
+        "//core/security:onos-security",
+    ],
+    required_features = ["onos-api"],
+    visibility = ["//visibility:public"],
+)
