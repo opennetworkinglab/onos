@@ -31,7 +31,7 @@
         </group>
         <group name="Shutdown-Atomix-OCC" if="${OCC1}">
             <parallel var="${OCC#}">
-                <step name="Atomix-Kill-${#}" env="~" exec="atomix-kill ${OCC#}" requires="Shutdown-ONOS"/>
+                <step name="Atomix-Kill-${#}" env="~" exec="atomix-kill ${OCC#}" requires="~Shutdown-ONOS"/>
             </parallel>
         </group>
     </group>

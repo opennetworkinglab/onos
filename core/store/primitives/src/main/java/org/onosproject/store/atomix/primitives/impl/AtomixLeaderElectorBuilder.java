@@ -48,7 +48,7 @@ public class AtomixLeaderElectorBuilder extends LeaderElectorBuilder {
                 .withMaxRetries(MAX_RETRIES)
                 .build())
             .withReadOnly(readOnly())
-            // TODO: Enable caching for LeaderElector in Atomix
+            .withCacheEnabled(relaxedReadConsistency())
             .withSerializer(new AtomixSerializerAdapter(serializer))
             .build()
             .async(), localNodeId);

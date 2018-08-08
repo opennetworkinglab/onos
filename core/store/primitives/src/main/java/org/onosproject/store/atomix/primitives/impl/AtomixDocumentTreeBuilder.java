@@ -49,7 +49,7 @@ public class AtomixDocumentTreeBuilder<V> extends DocumentTreeBuilder<V> {
                 .withMaxRetries(MAX_RETRIES)
                 .build())
             .withReadOnly(readOnly())
-            // TODO: Enable caching for DocumentTree in Atomix
+            .withCacheEnabled(relaxedReadConsistency())
             .withSerializer(new AtomixSerializerAdapter(serializer()))
             .build()
             .async());
