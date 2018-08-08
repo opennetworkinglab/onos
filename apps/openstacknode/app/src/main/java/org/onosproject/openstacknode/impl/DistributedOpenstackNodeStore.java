@@ -83,6 +83,7 @@ public class DistributedOpenstackNodeStore
             .register(DefaultOpenstackNode.class)
             .register(OpenstackNode.NodeType.class)
             .register(NodeState.class)
+            .register(OpenstackNode.DatapathType.class)
             .register(OpenstackPhyInterface.class)
             .register(DefaultOpenstackPhyInterface.class)
             .register(ControllerInfo.class)

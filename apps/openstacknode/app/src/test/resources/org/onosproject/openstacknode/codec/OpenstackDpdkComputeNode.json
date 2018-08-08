@@ -1,0 +1,33 @@
+{
+  "hostname": "compute-01",
+  "type": "COMPUTE",
+  "managementIp": "172.16.130.4",
+  "dataIp": "172.16.130.4",
+  "vlanPort": "eth2",
+  "integrationBridge": "of:00000000000000a1",
+  "datapathType" : "netdev",
+  "phyIntfs": [
+    {
+      "network": "mgmtnetwork",
+      "intf": "eth3"
+    },
+    {
+      "network": "oamnetwork",
+      "intf": "eth4"
+    }
+  ],
+  "sshAuth": {
+    "id": "sdn",
+    "password": "sdn"
+  },
+  "controllers": [
+    {
+      "ip": "10.10.10.2",
+      "port": 6653
+    },
+    {
+      "ip": "10.10.10.3",
+      "port": 6663
+    }
+  ]
+}

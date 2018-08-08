@@ -149,6 +149,7 @@ public class OpenstackNodeCodecTest {
         assertThat(node.controllers().size(), is(2));
         assertThat(node.sshAuthInfo().id(), is("sdn"));
         assertThat(node.sshAuthInfo().password(), is("sdn"));
+        assertThat(node.datapathType(), is(OpenstackNode.DatapathType.NORMAL));
 
         node.phyIntfs().forEach(intf -> {
             if (intf.network().equals("mgmtnetwork")) {
@@ -167,6 +168,10 @@ public class OpenstackNodeCodecTest {
                 assertThat(ctrl.port(), is(6663));
             }
         });
+
+        OpenstackNode dpdkNode = getOpenstackNode("OpenstackDpdkComputeNode.json");
+
+        assertThat(dpdkNode.datapathType(), is(OpenstackNode.DatapathType.NETDEV));
     }
 
     /**

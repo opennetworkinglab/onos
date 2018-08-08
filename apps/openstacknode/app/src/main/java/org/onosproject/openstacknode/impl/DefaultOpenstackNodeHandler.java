@@ -82,6 +82,7 @@ import static org.onosproject.openstacknode.api.NodeState.COMPLETE;
 import static org.onosproject.openstacknode.api.NodeState.DEVICE_CREATED;
 import static org.onosproject.openstacknode.api.NodeState.INCOMPLETE;
 import static org.onosproject.openstacknode.api.NodeState.INIT;
+import static org.onosproject.openstacknode.api.OpenstackNode.DatapathType.NETDEV;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.CONTROLLER;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
 import static org.onosproject.openstacknode.api.OpenstackNodeService.APP_ID;
@@ -272,16 +273,19 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
 
         String dpid = deviceId.toString().substring(DPID_BEGIN);
 
-        BridgeDescription bridgeDesc = DefaultBridgeDescription.builder()
+        BridgeDescription.Builder builder = DefaultBridgeDescription.builder()
                 .name(bridgeName)
                 .failMode(BridgeDescription.FailMode.SECURE)
                 .datapathId(dpid)
                 .disableInBand()
-                .controllers(controllers)
-                .build();
+                .controllers(controllers);
+
+        if (osNode.datapathType().equals(NETDEV)) {
+            builder.datapathType(osNode.datapathType().name().toLowerCase());
+        }
 
         BridgeConfig bridgeConfig = device.as(BridgeConfig.class);
-        bridgeConfig.addBridge(bridgeDesc);
+        bridgeConfig.addBridge(builder.build());
     }
 
     /**

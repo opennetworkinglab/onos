@@ -105,6 +105,11 @@ public class OpenstackNodeAdapter implements OpenstackNode {
     }
 
     @Override
+    public DatapathType datapathType() {
+        return DatapathType.NORMAL;
+    }
+
+    @Override
     public PortNumber uplinkPortNum() {
         return null;
     }

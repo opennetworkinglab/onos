@@ -20,6 +20,11 @@
                 "intf": "eth4"
               }
             ],
+            "sshAuth" : {
+              "id": "id",
+              "password" : "password"
+            },
+            "datapathType" : "netdev",
             "controllers": [
               {
                 "ip": "10.10.10.2",

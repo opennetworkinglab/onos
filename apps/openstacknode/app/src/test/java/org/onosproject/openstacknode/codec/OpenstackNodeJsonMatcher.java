@@ -42,6 +42,7 @@ public final class OpenstackNodeJsonMatcher extends TypeSafeDiagnosingMatcher<Js
     private static final String AUTHENTICATION = "authentication";
     private static final String END_POINT = "endPoint";
     private static final String SSH_AUTH = "sshAuth";
+    private static final String DATA_PATH_TYPE = "datapathType";
 
     private OpenstackNodeJsonMatcher(OpenstackNode node) {
         this.node = node;
@@ -139,6 +140,16 @@ public final class OpenstackNodeJsonMatcher extends TypeSafeDiagnosingMatcher<Js
             String endPoint = node.endPoint();
             if (!jsonEndPoint.asText().equals(endPoint)) {
                 description.appendText("endpoint URL was " + jsonEndPoint);
+                return false;
+            }
+        }
+
+        // check datapath type
+        JsonNode jsonDatapathType = jsonNode.get(DATA_PATH_TYPE);
+        if (jsonDatapathType != null) {
+            OpenstackNode.DatapathType datapathType = node.datapathType();
+            if (!OpenstackNode.DatapathType.valueOf(jsonDatapathType.asText()).equals(datapathType)) {
+                description.appendText("datapathType was " + jsonDatapathType);
                 return false;
             }
         }
