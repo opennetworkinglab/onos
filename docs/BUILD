@@ -83,13 +83,12 @@ INTERNAL_SOURCES = [
     "//apps/mappingmanagement/api:onos-apps-mappingmanagement-api-sources",
 ]
 
-JAVADOC_DEPS = CORE_DEPS + KRYO + REST + CLI + JACKSON + TEST + NETTY + METRICS + ONOS_YANG + [
+JAVADOC_DEPS = CORE_DEPS + KRYO + ATOMIX + REST + CLI + JACKSON + TEST + NETTY + METRICS + ONOS_YANG + [
     "@netty//jar",
     "@netty_codec//jar",
     "@netty_transport//jar",
     "@netty_handler//jar",
     "@netty_transport_native_epoll//jar",
-    "@atomix//jar",
     "@commons_math3//jar",
     "@joda_time//jar",
     "@mapdb//jar",
