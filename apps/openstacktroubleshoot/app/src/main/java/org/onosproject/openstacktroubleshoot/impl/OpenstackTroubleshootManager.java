@@ -257,21 +257,17 @@ public class OpenstackTroubleshootManager implements OpenstackTroubleshootServic
     }
 
     @Override
-    public Reachability probeEastWest(String srcNetId, IpAddress srcIp,
-                                      String dstNetId, IpAddress dstIp) {
+    public Reachability probeEastWest(InstancePort srcPort, InstancePort dstPort) {
 
         Reachability.Builder rBuilder = DefaultReachability.builder()
-                                                        .srcIp(srcIp)
-                                                        .dstIp(dstIp);
+                                                        .srcIp(srcPort.ipAddress())
+                                                        .dstIp(dstPort.ipAddress());
 
-        if (srcIp.equals(dstIp)) {
+        if (srcPort.equals(dstPort)) {
             // self probing should always return true
             rBuilder.isReachable(true);
             return rBuilder.build();
         }  else {
-            InstancePort srcPort = instancePortService.instancePort(srcIp, srcNetId);
-            InstancePort dstPort = instancePortService.instancePort(dstIp, dstNetId);
-
             if (srcPort.state() == ACTIVE && dstPort.state() == ACTIVE) {
 
                 // install flow rules to enforce ICMP_REQUEST to be tagged and direct to ACL table

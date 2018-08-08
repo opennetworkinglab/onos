@@ -1,4 +1,6 @@
-COMPILE_DEPS = CORE_DEPS + CLI
+COMPILE_DEPS = CORE_DEPS + CLI + [
+    "//apps/openstacknetworking/api:onos-apps-openstacknetworking-api",
+]
 
 TEST_DEPS = TEST_ADAPTERS + [
     "//core/api:onos-api-tests",

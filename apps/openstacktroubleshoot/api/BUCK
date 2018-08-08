@@ -2,6 +2,7 @@ COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//lib:org.apache.karaf.shell.console',
     '//cli:onos-cli',
+    '//apps/openstacknetworking/api:onos-apps-openstacknetworking-api',
 ]
 
 TEST_DEPS = [

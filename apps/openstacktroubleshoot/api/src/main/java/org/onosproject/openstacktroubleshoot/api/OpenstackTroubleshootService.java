@@ -16,6 +16,7 @@
 package org.onosproject.openstacktroubleshoot.api;
 
 import org.onlab.packet.IpAddress;
+import org.onosproject.openstacknetworking.api.InstancePort;
 
 import java.util.Map;
 
@@ -34,14 +35,12 @@ public interface OpenstackTroubleshootService {
     /**
      * Checks a single VM-to-Vm connectivity.
      *
-     * @param srcNetId  source network ID
-     * @param srcIp     source IP address
-     * @param dstNetId  destination network ID
-     * @param dstIp     destination IP address
+     * @param srcInstancePort source instance port
+     * @param dstInstancePort destination instance port
      * @return reachability
      */
-    Reachability probeEastWest(String srcNetId, IpAddress srcIp,
-                               String dstNetId, IpAddress dstIp);
+    Reachability probeEastWest(InstancePort srcInstancePort,
+                               InstancePort dstInstancePort);
 
     /**
      * Checks all north-south router to VMs' connectivity.
