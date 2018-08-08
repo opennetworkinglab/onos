@@ -8,13 +8,15 @@
 
 runTests=false
 useCache=false
+noBuild=false
 
-while getopts b:ct?h o; do
+while getopts b:cnt?h o; do
     case "$o" in
         b) branch=$OPTARG;;
         c) useCache=true;;
+        n) noBuild=true;;
         t) runTests=true;;
-        *) echo "usage: cell-build [-b branch] [-ct] [commitHash]" >&2; exit 1;;
+        *) echo "usage: cell-build [-b branch] [-cnt] [commitHash]" >&2; exit 1;;
     esac
 done
 
@@ -57,7 +59,6 @@ ssh -t -t $ONOS_USER@$OCN "
 
     # Run the build (neutralizing known environment mutations in SSH sessions)
     set -e
-    SHLVL=1 SSH_CLIENT=0 SSH_CONNECTION=0 bazel build onos
-    [ $runTests = true ] && \
-        bazel query 'tests(//...)' | SHLVL=1 SSH_CLIENT=0 SSH_CONNECTION=0 xargs bazel test
+    [ $noBuild = false ] && SHLVL=1 SSH_CLIENT=0 SSH_CONNECTION=0 bazel build onos
+    [ $runTests = true ] && bazel query 'tests(//...)' | SHLVL=1 SSH_CLIENT=0 SSH_CONNECTION=0 xargs bazel test
 "

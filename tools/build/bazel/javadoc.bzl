@@ -28,7 +28,7 @@ def _impl(ctx):
 
   cmd = [
       "mkdir %s" % dir,
-      "javadoc -encoding utf8 -quiet -tag onos.rsModel:a:\"onos model\" %s -d %s -cp %s %s" \
+      "javadoc -encoding UTF-8 -quiet -tag onos.rsModel:a:\"onos model\" %s -d %s -cp %s %s" \
           % (JAVA_DOCS, dir, ":".join(dep_list), " ".join(src_list)),
       "jar cf %s -C %s ." % (jar.path, dir),
   ]

@@ -54,7 +54,7 @@ def _impl(ctx):
         cmd += ["find src -type f | egrep -v 'src/(OSGI|WEB)-INF' | egrep -v '/(impl|internal)/' >> FILES"]
 
     cmd += [
-        "javadoc -overview overview.html -doctitle '%s' -windowtitle '%s' %s -d apidocs -classpath %s -sourcepath src %s @FILES" \
+        "javadoc -encoding UTF-8 -overview overview.html -doctitle '%s' -windowtitle '%s' %s -d apidocs -classpath %s -sourcepath src %s @FILES" \
               % (ctx.attr.title, ctx.attr.title, group_list, classpath.replace(":", "", 1), JAVA_DOCS),
         "cp -r doc-files apidocs/doc-files",
         "jar cf %s apidocs" % jar.path,
