@@ -86,23 +86,11 @@ def _bnd_impl(ctx):
     for dep in ctx.attr.deps:
         if java_common.provider in dep:
             file = dep.files.to_list()[0]
-
             if cp:
                 cp += ":"
             cp += file.path
             inputDependencies = inputDependencies + [file]
 
-    # extract the class files for use by bnd
-    classes = ctx.actions.declare_file("classes" + ctx.label.name.replace("/", "-"))
-    classesPath = classes.path
-    jarCommand = "mkdir -p %s && cp %s %s && cd %s && jar xf *.jar" % (classesPath, jar, classesPath, classesPath)
-    ctx.actions.run_shell(
-        inputs = inputDependencies,
-        outputs = [classes],
-        command = jarCommand,
-        progress_message = "Expanding jar file: %s" % jar,
-    )
-    inputDependencies += [classes]
     web_xml_root_path = ""
     if len(web_xml) != 0:
         web_xml_root = web_xml[0].files.to_list()[0]
@@ -124,7 +112,7 @@ def _bnd_impl(ctx):
         web_context,
         web_xml_root_path,
         dynamicimportPackages,
-        classesPath,
+        "classes",
         bundle_classpath,
     ]
 

@@ -28,9 +28,11 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.common.io.ByteStreams;
 import org.apache.felix.scrplugin.bnd.SCRDescriptorBndPlugin;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
@@ -44,8 +46,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.jar.JarEntry;
+import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
 
+import static com.google.common.io.Files.createParentDirs;
+import static com.google.common.io.Files.write;
 import static java.nio.file.Files.walkFileTree;
 
 /**
@@ -206,6 +212,8 @@ public class OSGiWrapper {
     public boolean execute() {
         Analyzer analyzer = new Builder();
         try {
+            // Extract the input jar contents into the specified output directory
+            expandJar(inputJar, new File(destdir));
 
             Jar jar = new Jar(new File(inputJar));  // where our data is
             analyzer.setJar(jar);                   // give bnd the contents
@@ -216,9 +224,6 @@ public class OSGiWrapper {
             analyzer.addClasspath(classpath);
 
             setProperties(analyzer);
-
-//            analyzer.setProperty("DESTDIR");
-//            analyzer.setBase();
 
             // ------------- let's begin... -------------------------
 
@@ -243,9 +248,6 @@ public class OSGiWrapper {
 
             // Calculate the manifest
             Manifest manifest = analyzer.calcManifest();
-            //OutputStream s = new FileOutputStream("/tmp/foo2.txt");
-            //manifest.write(s);
-            //s.close();
 
             if (analyzer.isOk()) {
                 analyzer.getJar().setManifest(manifest);
@@ -266,6 +268,26 @@ public class OSGiWrapper {
         } catch (Exception e) {
             e.printStackTrace();
             return false;
+        }
+    }
+
+    // Expands the specified jar file into the given directory
+    private void expandJar(String inputJar, File intoDir) throws IOException {
+        try (JarInputStream jis = new JarInputStream(new FileInputStream(inputJar))) {
+            JarEntry entry;
+            while ((entry = jis.getNextJarEntry()) != null) {
+                if (!entry.isDirectory()) {
+                    byte[] data = ByteStreams.toByteArray(jis);
+                    jis.closeEntry();
+                    if (!entry.getName().contains("..")) {
+                        File file = new File(intoDir, entry.getName());
+                        createParentDirs(file);
+                        write(data, file);
+                    } else {
+                        throw new IOException("Corrupt jar file");
+                    }
+                }
+            }
         }
     }
 
