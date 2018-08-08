@@ -167,7 +167,7 @@ function topos {
 function setPrimaryInstance {
     export ONOS_INSTANCES=$(env | grep 'OC[0-9]*=' | sort | cut -d= -f2)
 
-    if [ -z "$OCC1" ]; then
+    if [ -z "${OCC1-}" ]; then
         aux=/tmp/cell-$$.aux
         let i=1
         for n in $ONOS_INSTANCES; do
