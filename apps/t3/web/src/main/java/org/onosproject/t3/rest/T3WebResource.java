@@ -205,10 +205,9 @@ public class T3WebResource extends AbstractWebResource {
                     previousTrace = trace;
                 }
                 nodeOutput.set("trace", traceNode(previousTrace, trace));
-                if (previousTrace == null || !previousTrace.equals(trace)) {
-                    previousTrace = trace;
+                if (trace != null) {
+                    nodeOutput.put("failure", trace.resultMessage());
                 }
-                nodeOutput.put("failure", trace.resultMessage());
             }
             nodeOutput.put("total traces", totalTraces);
             nodeOutput.put("errors", failedTraces.size());
