@@ -16,12 +16,15 @@
 package org.onosproject.driver.pipeline;
 
 import org.onlab.osgi.ServiceDirectory;
+import org.onlab.packet.EthType;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.PipelinerContext;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.criteria.Criterion;
+import org.onosproject.net.flow.criteria.EthTypeCriterion;
 import org.onosproject.net.flowobjective.DefaultForwardingObjective;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.slf4j.Logger;
@@ -58,6 +61,15 @@ public class CiscoN9kPipeliner extends DefaultSingleTablePipeline {
                             + " removing the clear deferred from the forwarding objective",
                     device.id(), device.manufacturer(), device.hwVersion());
             newFwd = forwardingObjectiveWithoutCleardDef(forwardObjective).orElse(forwardObjective);
+        }
+
+        EthTypeCriterion ethType =
+                (EthTypeCriterion) newFwd.selector().getCriterion(Criterion.Type.ETH_TYPE);
+        if (ethType != null && ethType.ethType() == EthType.EtherType.IPV6.ethType()) {
+            log.error("IPv6 type not supported for {} {} {} Switch, " +
+                            "The FlowRule associated with IPv6 is dropped.",
+                    device.id(), device.manufacturer(), device.hwVersion());
+            return;
         }
 
         super.forward(newFwd);
