@@ -955,21 +955,15 @@ public class OpenstackRoutingFloatingIpHandler {
 
         @Override
         public void event(OpenstackNetworkEvent event) {
-            String portId;
-
             switch (event.type()) {
                 case OPENSTACK_PORT_PRE_REMOVE:
-                    portId = event.port().getId();
-
-                    InstancePort instPort = instancePortService.instancePort(portId);
-                    updateFipStore(instPort);
-
+                    eventExecutor.execute(() ->
+                            updateFipStore(instancePortService.instancePort(event.port().getId()))
+                    );
                     break;
                 case OPENSTACK_PORT_REMOVED:
-                    portId = event.port().getId();
-
-                    instancePortService.removeInstancePort(portId);
-
+                    eventExecutor.execute(() ->
+                            instancePortService.removeInstancePort(event.port().getId()));
                     break;
                 default:
                     break;
