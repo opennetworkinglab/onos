@@ -42,8 +42,8 @@ INTERNAL_SOURCES = [
     "//protocols/ovsdb/rfc:onos-protocols-ovsdb-rfc-sources",
     "//protocols/ovsdb/api:onos-protocols-ovsdb-api-sources",
     "//protocols/ovsdb/ctl:onos-protocols-ovsdb-ctl-sources",
-    #    "//protocols/p4runtime/api:onos-protocols-p4runtime-api-sources",
-    #    "//protocols/p4runtime/model:onos-protocols-p4runtime-model-sources",
+    # "//protocols/p4runtime/api:onos-protocols-p4runtime-api-sources",
+    # "//protocols/p4runtime/model:onos-protocols-p4runtime-model-sources",
     "//protocols/pcep/pcepio:onos-protocols-pcep-pcepio-sources",
     "//protocols/pcep/server/api:onos-protocols-pcep-server-api-sources",
     "//protocols/pcep/server/ctl:onos-protocols-pcep-server-ctl-sources",
@@ -84,11 +84,11 @@ INTERNAL_SOURCES = [
 ]
 
 JAVADOC_DEPS = CORE_DEPS + KRYO + ATOMIX + REST + CLI + JACKSON + TEST + NETTY + METRICS + ONOS_YANG + [
-    "@netty//jar",
-    "@netty_codec//jar",
-    "@netty_transport//jar",
-    "@netty_handler//jar",
-    "@netty_transport_native_epoll//jar",
+    "@io_netty_netty//jar",
+    "@io_netty_netty_codec//jar",
+    "@io_netty_netty_transport//jar",
+    "@io_netty_netty_handler//jar",
+    "@io_netty_netty_transport_native_epoll//jar",
     "@commons_math3//jar",
     "@joda_time//jar",
     "@mapdb//jar",
