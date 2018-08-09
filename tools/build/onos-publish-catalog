@@ -14,7 +14,7 @@ export SHLVL=1
 
 function writeCatalog {
     bazel build $* --aspects tools/build/bazel/publish_catalog.bzl%publish_catalog 2>&1 \
-        | egrep "^DEBUG: " | cut -d\  -f3- >> $CATALOG
+        | egrep "^DEBUG: .*/publish_catalog.bzl:" | cut -d\  -f3- >> $CATALOG
 }
 
 function jars {
