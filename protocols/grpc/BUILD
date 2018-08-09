@@ -5,13 +5,13 @@ BUNDLES = [
     "//protocols/grpc/api:onos-protocols-grpc-api",
     "//protocols/grpc/ctl:onos-protocols-grpc-ctl",
     # gRPC dependencies
-    "@io_grpc_grpc_java//core",
-    "@io_grpc_grpc_java//stub",
-    "@io_grpc_grpc_java//netty",
-    "@io_grpc_grpc_java//auth",
-    "@io_grpc_grpc_java//protobuf",
-    "@io_grpc_grpc_java//protobuf-lite",
-    "@com_google_protobuf//:protobuf_java",
+    "@runtime_grpc_core//jar",
+    "@runtime_grpc_stub//jar",
+    "@runtime_grpc_netty//jar",
+    "@runtime_grpc_auth//jar",
+    "@runtime_grpc_protobuf//jar",
+    "@runtime_grpc_protobuf_lite//jar",
+    "@runtime_protobuf//jar",
     # Lazily adding all netty-related packages.
     # Some of them might not be necessary.
     "@io_netty_netty//jar",
