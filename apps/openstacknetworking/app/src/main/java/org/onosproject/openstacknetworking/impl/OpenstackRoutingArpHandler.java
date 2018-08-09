@@ -216,29 +216,32 @@ public class OpenstackRoutingArpHandler {
 
             //In case target ip is for associated floating ip, sets target mac to vm's.
             if (floatingIP != null && floatingIP.getPortId() != null) {
-                targetMac = MacAddress.valueOf(osNetworkAdminService.port(
-                                        floatingIP.getPortId()).getMacAddress());
+                InstancePort instPort = instancePortService.instancePort(floatingIP.getPortId());
+                if (instPort == null) {
+                    log.trace("Unknown target ARP request for {}, ignore it", targetIp);
+                    return;
+                } else {
+                    targetMac = instPort.macAddress();
+                }
+
+                OpenstackNode gw = getGwByInstancePort(osNodeService.completeNodes(GATEWAY), instPort);
+
+                if (gw == null) {
+                    return;
+                }
+
+                // if the ARP packet_in received from non-relevant GWs, we simply ignore it
+                if (!Objects.equals(gw.intgBridge(), context.inPacket().receivedFrom().deviceId())) {
+                    return;
+                }
             }
 
-            if (isExternalGatewaySourceIp(targetIp.getIp4Address())) {
+            if (isExternalGatewaySourceIp(targetIp)) {
                 targetMac = Constants.DEFAULT_GATEWAY_MAC;
             }
 
             if (targetMac == null) {
                 log.trace("Unknown target ARP request for {}, ignore it", targetIp);
-                return;
-            }
-
-            InstancePort instPort = instancePortService.instancePort(targetMac);
-
-            OpenstackNode gw = getGwByInstancePort(osNodeService.completeNodes(GATEWAY), instPort);
-
-            if (gw == null) {
-                return;
-            }
-
-            // if the ARP packet_in received from non-relevant GWs, we simply ignore it
-            if (!Objects.equals(gw.intgBridge(), context.inPacket().receivedFrom().deviceId())) {
                 return;
             }
 
@@ -484,6 +487,64 @@ public class OpenstackRoutingArpHandler {
         }
     }
 
+    private void setFakeGatewayArpRule(Router router, boolean install) {
+        setFakeGatewayArpRule(router.getExternalGatewayInfo(), install);
+    }
+
+    private Set<IP> getExternalGatewaySnatIps(ExternalGateway extGw) {
+        return osNetworkAdminService.ports().stream()
+                .filter(port ->
+                        Objects.equals(port.getNetworkId(), extGw.getNetworkId()))
+                .filter(port ->
+                        Objects.equals(port.getDeviceOwner(), DEVICE_OWNER_ROUTER_GW))
+                .flatMap(port -> port.getFixedIps().stream())
+                .collect(Collectors.toSet());
+    }
+
+    private void setFakeGatewayArpRule(ExternalGateway extGw, boolean install) {
+        if (ARP_BROADCAST_MODE.equals(getArpMode())) {
+
+            if (extGw == null) {
+                return;
+            }
+
+            Set<IP> ips = getExternalGatewaySnatIps(extGw);
+
+            ips.forEach(ip -> {
+                TrafficSelector selector = DefaultTrafficSelector.builder()
+                        .matchEthType(EthType.EtherType.ARP.ethType().toShort())
+                        .matchArpOp(ARP.OP_REQUEST)
+                        .matchArpTpa(Ip4Address.valueOf(ip.getIpAddress()))
+                        .build();
+
+                TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                        .setArpOp(ARP.OP_REPLY)
+                        .setArpSha(MacAddress.valueOf(gatewayMac))
+                        .setArpSpa(Ip4Address.valueOf(ip.getIpAddress()))
+                        .setOutput(PortNumber.IN_PORT)
+                        .build();
+
+                osNodeService.completeNodes(GATEWAY).forEach(n ->
+                        osFlowRuleService.setRule(
+                                appId,
+                                n.intgBridge(),
+                                selector,
+                                treatment,
+                                PRIORITY_ARP_GATEWAY_RULE,
+                                GW_COMMON_TABLE,
+                                install
+                        )
+                );
+
+                if (install) {
+                    log.info("Install ARP Rule for Gateway Snat {}", ip.getIpAddress());
+                } else {
+                    log.info("Uninstall ARP Rule for Gateway Snat {}", ip.getIpAddress());
+                }
+            });
+        }
+    }
+
     /**
      * An internal router event listener, intended to install/uninstall
      * ARP rules for forwarding packets created from floating IPs.
@@ -588,64 +649,6 @@ public class OpenstackRoutingArpHandler {
             }
 
             return null;
-        }
-
-        private Set<IP> getExternalGatewaySnatIps(ExternalGateway extGw) {
-            return osNetworkAdminService.ports().stream()
-                    .filter(port ->
-                            Objects.equals(port.getNetworkId(), extGw.getNetworkId()))
-                    .filter(port ->
-                            Objects.equals(port.getDeviceOwner(), DEVICE_OWNER_ROUTER_GW))
-                    .flatMap(port -> port.getFixedIps().stream())
-                    .collect(Collectors.toSet());
-        }
-
-        private void setFakeGatewayArpRule(ExternalGateway extGw, boolean install) {
-            if (ARP_BROADCAST_MODE.equals(getArpMode())) {
-
-                if (extGw == null) {
-                    return;
-                }
-
-                Set<IP> ips = getExternalGatewaySnatIps(extGw);
-
-                ips.forEach(ip -> {
-                    TrafficSelector selector = DefaultTrafficSelector.builder()
-                            .matchEthType(EthType.EtherType.ARP.ethType().toShort())
-                            .matchArpOp(ARP.OP_REQUEST)
-                            .matchArpTpa(Ip4Address.valueOf(ip.getIpAddress()))
-                            .build();
-
-                    TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                            .setArpOp(ARP.OP_REPLY)
-                            .setArpSha(MacAddress.valueOf(gatewayMac))
-                            .setArpSpa(Ip4Address.valueOf(ip.getIpAddress()))
-                            .setOutput(PortNumber.IN_PORT)
-                            .build();
-
-                    osNodeService.completeNodes(GATEWAY).forEach(n ->
-                            osFlowRuleService.setRule(
-                                    appId,
-                                    n.intgBridge(),
-                                    selector,
-                                    treatment,
-                                    PRIORITY_ARP_GATEWAY_RULE,
-                                    GW_COMMON_TABLE,
-                                    install
-                            )
-                    );
-
-                    if (install) {
-                        log.info("Install ARP Rule for Gateway Snat {}", ip.getIpAddress());
-                    } else {
-                        log.info("Uninstall ARP Rule for Gateway Snat {}", ip.getIpAddress());
-                    }
-                });
-            }
-        }
-
-        private void setFakeGatewayArpRule(Router router, boolean install) {
-            setFakeGatewayArpRule(router.getExternalGatewayInfo(), install);
         }
     }
 
@@ -802,6 +805,10 @@ public class OpenstackRoutingArpHandler {
                     GW_COMMON_TABLE,
                     install
             );
+
+            osRouterService.routers().stream()
+                    .filter(router -> router.getExternalGatewayInfo() != null)
+                    .forEach(router -> setFakeGatewayArpRule(router, install));
         }
     }
 }
