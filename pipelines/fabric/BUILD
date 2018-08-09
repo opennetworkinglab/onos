@@ -10,7 +10,6 @@ BUNDLES = [
 ]
 
 osgi_jar_with_tests(
-    exclude_tests = ["org/onosproject/pipelines/fabric/pipeliner/FabricPipelinerTest"],
     test_deps = TEST_ADAPTERS,
     deps = COMPILE_DEPS,
 )

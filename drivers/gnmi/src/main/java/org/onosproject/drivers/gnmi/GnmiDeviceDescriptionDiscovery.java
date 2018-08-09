@@ -22,7 +22,6 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
-import io.grpc.internal.DnsNameResolverProvider;
 import io.grpc.netty.NettyChannelBuilder;
 import io.grpc.stub.StreamObserver;
 import org.onosproject.grpc.api.GrpcChannelId;
@@ -162,8 +161,7 @@ public class GnmiDeviceDescriptionDiscovery
 
             ManagedChannelBuilder channelBuilder = NettyChannelBuilder
                     .forAddress(serverAddr, Integer.valueOf(serverPortString))
-                    .usePlaintext(true)
-                    .nameResolverFactory(new DnsNameResolverProvider());
+                    .usePlaintext(true);
 
             try {
                 channel = controller.connectChannel(newChannelId, channelBuilder);

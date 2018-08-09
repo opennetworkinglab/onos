@@ -13,9 +13,9 @@ TEST_DEPS = TEST + [
 osgi_jar_with_tests(
     test_deps = TEST_DEPS,
     deps = COMPILE_DEPS,
-    #web_context = '/onos/routeservice',
-    #api_title = 'Route Service App',
-    #api_version = '1.0',
-    #api_description = 'REST API for Route Service App',
-    #api_package = 'org.onosproject.routeservice.rest',
+    #web_context = "/onos/routeservice",
+    #api_title = "Route Service App",
+    #api_version = "1.0",
+    #api_description = "REST API for Route Service App",
+    #api_package = "org.onosproject.routeservice.rest",
 )

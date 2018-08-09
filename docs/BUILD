@@ -77,7 +77,7 @@ INTERNAL_SOURCES = [
     "//providers/lisp/device:onos-providers-lisp-device-sources",
     "//providers/tl1/device:onos-providers-tl1-device-sources",
     "//providers/general/device:onos-providers-general-device-sources",
-    #    "//providers/p4runtime/packet:onos-providers-p4runtime-packet-sources",
+    # "//providers/p4runtime/packet:onos-providers-p4runtime-packet-sources",
     "//apps/pcep-api:onos-apps-pcep-api-sources",
     "//apps/optical-model:onos-apps-optical-model-sources",
     "//apps/mappingmanagement/api:onos-apps-mappingmanagement-api-sources",

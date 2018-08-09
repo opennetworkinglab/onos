@@ -17,6 +17,7 @@
 package org.onosproject.pipelines.fabric.pipeliner;
 
 import org.junit.Before;
+import org.junit.Test;
 import org.onlab.junit.TestUtils;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.IpPrefix;
@@ -41,7 +42,7 @@ import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 
-public abstract class FabricPipelinerTest {
+public class FabricPipelinerTest {
     static final ApplicationId APP_ID = TestApplicationId.create("FabricPipelinerTest");
     static final DeviceId DEVICE_ID = DeviceId.deviceId("device:bmv2:11");
     static final int PRIORITY = 100;
@@ -97,5 +98,11 @@ public abstract class FabricPipelinerTest {
 
         pipeliner.init(DEVICE_ID, pipelinerContext);
         interpreter = new FabricInterpreter();
+    }
+
+    @Test
+    public void fakeTest() {
+        // Needed otherwise Bazel complains about a test class without test cases.
+        assert true;
     }
 }
