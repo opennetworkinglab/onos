@@ -1,5 +1,5 @@
 COMPILE_DEPS = CORE_DEPS + NETTY + KRYO + CLI + [
-    "@netty//jar",
+    "@io_netty_netty//jar",
     "//incubator/api:onos-incubator-api",
     "//apps/routing-api:onos-apps-routing-api",
     "//apps/route-service/api:onos-apps-route-service-api",

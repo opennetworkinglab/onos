@@ -1,8 +1,8 @@
 COMPILE_DEPS = COMPILE + JACKSON + [
     "@kryo//jar",
     "@metrics_core//jar",
-    "@netty//jar",
-    "@netty_common//jar",
+    "@io_netty_netty//jar",
+    "@io_netty_netty_common//jar",
     "@objenesis//jar",
 ]
 

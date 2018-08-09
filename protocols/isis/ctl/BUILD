@@ -1,5 +1,5 @@
 COMPILE_DEPS = CORE_DEPS + NETTY + JACKSON + [
-    "@netty//jar",
+    "@io_netty_netty//jar",
     "//protocols/isis/api:onos-protocols-isis-api",
     "//protocols/isis/isisio:onos-protocols-isis-isisio",
 ]

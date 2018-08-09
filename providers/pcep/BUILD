@@ -1,5 +1,5 @@
 BUNDLES = [
-    "@netty//jar",
+    "@io_netty_netty//jar",
     "//providers/pcep/topology:onos-providers-pcep-topology",
     "//providers/pcep/tunnel:onos-providers-pcep-tunnel",
     "//providers/pcep/cli:onos-providers-pcep-cli",

@@ -2,8 +2,8 @@ COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//lib:NETTY',
     '//lib:JACKSON',
-    '//lib:netty-buffer',
-    '//lib:netty-codec',
+    '//lib:io_netty_netty_buffer',
+    '//lib:io_netty_netty_codec',
 ]
 
 osgi_jar_with_tests (

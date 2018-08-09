@@ -3,12 +3,12 @@ COMPILE_DEPS = [
     '//lib:NETTY',
     '//protocols/lisp/api:onos-protocols-lisp-api',
     '//protocols/lisp/msg:onos-protocols-lisp-msg',
-    '//lib:netty-buffer',
-    '//lib:netty-codec',
-    '//lib:netty-transport',
-    '//lib:netty-transport-native-epoll',
-    '//lib:netty-handler',
-    '//lib:netty-resolver',
+    '//lib:io_netty_netty_buffer',
+    '//lib:io_netty_netty_codec',
+    '//lib:io_netty_netty_transport',
+    '//lib:io_netty_netty_transport-native-epoll',
+    '//lib:io_netty_netty_handler',
+    '//lib:io_netty_netty_resolver',
     '//lib:concurrent-trees',
 ]
 

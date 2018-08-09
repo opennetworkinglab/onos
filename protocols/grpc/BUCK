@@ -16,16 +16,16 @@ BUNDLES = [
     '//lib:protobuf-java-3.2.0',
     # Lazily adding all netty-related packages.
     # Some of them might not be necessary.
-    '//lib:netty',
-    '//lib:netty-buffer',
-    '//lib:netty-codec',
-    '//lib:netty-codec-http',
-    '//lib:netty-codec-http2',
-    '//lib:netty-common',
-    '//lib:netty-handler',
-    '//lib:netty-transport',
-    '//lib:netty-transport-native-epoll',
-    '//lib:netty-resolver',
+    '//lib:io_netty_netty',
+    '//lib:io_netty_netty_buffer',
+    '//lib:io_netty_netty_codec',
+    '//lib:io_netty_netty_codec-http',
+    '//lib:io_netty_netty_codec-http2',
+    '//lib:io_netty_netty_common',
+    '//lib:io_netty_netty_handler',
+    '//lib:io_netty_netty_transport',
+    '//lib:io_netty_netty_transport-native-epoll',
+    '//lib:io_netty_netty_resolver',
 ]
 
 onos_app (

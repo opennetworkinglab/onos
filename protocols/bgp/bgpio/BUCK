@@ -3,7 +3,7 @@ COMPILE_DEPS = [
     '//lib:COMPILE',
     '//lib:NETTY',
     '//core/api:onos-api',
-    '//lib:netty',
+    '//lib:io_netty_netty',
 ]
 
 osgi_jar_with_tests (

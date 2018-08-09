@@ -9,8 +9,8 @@ COMPILE_DEPS = CORE_DEPS + NETTY + [
 ]
 
 TEST_DEPS = TEST_ADAPTERS + [
-    "@netty//jar",
-    "@netty_transport//jar",
+    "@io_netty_netty//jar",
+    "@io_netty_netty_transport//jar",
     "//protocols/pcep/server/api:onos-protocols-pcep-server-api-tests",
     "//apps/pcep-api:onos-apps-pcep-api-tests",
     "//incubator/api:onos-incubator-api-tests",

@@ -59,7 +59,7 @@ _execute_checkstyle_test = rule(
                     Label("@commons_cli//jar"),
                     Label("@commons_collections//jar"),
                     Label("@antlr//jar"),
-                    Label("@guava//jar"),
+                    Label("@com_google_guava_guava//jar"),
                     Label("@commons_logging//jar"),
                 ]),
         "srcs": attr.label_list(allow_files = FileType([".java"])),

@@ -1,7 +1,7 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//lib:NETTY',
-    '//lib:netty-buffer'
+    '//lib:io_netty_netty_buffer'
 ]
 
 TEST_DEPS = [

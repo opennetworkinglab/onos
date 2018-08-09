@@ -1,5 +1,5 @@
 COMPILE_DEPS = CORE_DEPS + NETTY + [
-    "@netty_transport//jar",
+    "@io_netty_netty_transport//jar",
     "//protocols/lisp/msg:onos-protocols-lisp-msg",
     "//apps/mappingmanagement/api:onos-apps-mappingmanagement-api",
 ]

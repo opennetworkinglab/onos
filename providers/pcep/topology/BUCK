@@ -10,7 +10,7 @@ COMPILE_DEPS = [
     '//protocols/pcep/pcepio:onos-protocols-pcep-pcepio',
     '//core/api:onos-api-tests',
     '//apps/optical-model:onos-apps-optical-model',
-    '//lib:netty',
+    '//lib:io_netty_netty',
 ]
 
 TEST_DEPS = [

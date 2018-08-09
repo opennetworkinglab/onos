@@ -1,9 +1,10 @@
 COMPILE_DEPS = CORE_DEPS + NETTY + JACKSON + [
     "@openflowj//jar",
-    "@netty_codec//jar",
-    "@netty_handler//jar",
-    "@netty_transport//jar",
-    "@netty_transport_native_epoll//jar",
+    "@io_netty_netty_codec//jar",
+    "@io_netty_netty_handler//jar",
+    "@io_netty_netty_transport//jar",
+    "@io_netty_netty_transport_native_epoll//jar",
+    "@io_netty_netty_transport_native_unix_common//jar",
     "//protocols/openflow/api:onos-protocols-openflow-api",
 ]
 

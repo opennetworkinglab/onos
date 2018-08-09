@@ -9,7 +9,7 @@ COMPILE_DEPS = [
     '//apps/route-service/api:onos-apps-route-service-api',
     '//core/store/serializers:onos-core-serializers',
     '//apps/routing/fpm/api:onos-apps-routing-fpm-api',
-    '//lib:netty',
+    '//lib:io_netty_netty',
 ]
 
 TEST_DEPS = [

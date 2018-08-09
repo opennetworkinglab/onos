@@ -1,6 +1,6 @@
 COMPILE_DEPS = CORE_DEPS + NETTY + [
-    "@netty_transport//jar",
-    "@netty_codec//jar",
+    "@io_netty_netty_transport//jar",
+    "@io_netty_netty_codec//jar",
     "//protocols/tl1/api:onos-protocols-tl1-api",
 ]
 

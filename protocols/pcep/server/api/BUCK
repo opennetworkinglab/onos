@@ -3,7 +3,7 @@ COMPILE_DEPS = [
     '//protocols/pcep/pcepio:onos-protocols-pcep-pcepio',
     '//apps/pcep-api:onos-apps-pcep-api',
     '//incubator/api:onos-incubator-api',
-    '//lib:netty',
+    '//lib:io_netty_netty',
 ]
 
 osgi_jar_with_tests (

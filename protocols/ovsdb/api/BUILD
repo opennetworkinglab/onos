@@ -1,5 +1,5 @@
 COMPILE_DEPS = CORE_DEPS + NETTY + JACKSON + [
-    "@netty_transport//jar",
+    "@io_netty_netty_transport//jar",
     "//protocols/ovsdb/rfc:onos-protocols-ovsdb-rfc",
 ]
 

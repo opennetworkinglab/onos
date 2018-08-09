@@ -20,8 +20,6 @@ import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Striped;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
-import io.grpc.NameResolverProvider;
-import io.grpc.internal.DnsNameResolverProvider;
 import io.grpc.netty.NettyChannelBuilder;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -65,7 +63,6 @@ public class P4RuntimeControllerImpl
         implements P4RuntimeController {
 
     private final Logger log = getLogger(getClass());
-    private final NameResolverProvider nameResolverProvider = new DnsNameResolverProvider();
 
     private final Map<DeviceId, ClientKey> clientKeys = Maps.newHashMap();
     private final Map<ClientKey, P4RuntimeClient> clients = Maps.newHashMap();
@@ -141,8 +138,7 @@ public class P4RuntimeControllerImpl
 
         ManagedChannelBuilder channelBuilder = NettyChannelBuilder
                 .forAddress(serverAddr, serverPort)
-                .usePlaintext(true)
-                .nameResolverFactory(nameResolverProvider);
+                .usePlaintext(true);
 
         ManagedChannel channel;
         try {

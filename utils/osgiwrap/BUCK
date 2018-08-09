@@ -4,7 +4,7 @@ CURRENT_NAME = 'onlab-osgiwrap'
 CURRENT_TARGET = ':' + CURRENT_NAME
 
 COMPILE_DEPS = [
-    '//lib:guava',
+    '//lib:com_google_guava_guava',
     '//lib:bndlib',
     '//lib:org.apache.felix.scr.bnd'
 ]

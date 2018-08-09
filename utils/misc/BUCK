@@ -3,7 +3,7 @@ COMPILE_DEPS = [
     '//lib:NETTY',
     '//lib:METRICS',
     '//lib:KRYO',
-    '//lib:netty',
+    '//lib:io_netty_netty',
     '//lib:JACKSON',
 ]
 

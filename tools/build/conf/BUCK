@@ -26,7 +26,7 @@ export_file (
 )
 
 COMPILE = [
-  '//lib:guava',
+  '//lib:com_google_guava_guava',
   '//lib:checkstyle',
 ]
 

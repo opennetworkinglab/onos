@@ -1,5 +1,5 @@
 COMPILE_DEPS = CORE_DEPS + NETTY + [
-    "@netty//jar",
+    "@io_netty_netty//jar",
 ]
 
 osgi_jar_with_tests(

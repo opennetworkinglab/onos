@@ -2,7 +2,7 @@ COMPILE_DEPS = [
     '//utils/osgi:onlab-osgi',
     '//utils/misc:onlab-misc',
     '//lib:commons-io',
-    '//lib:guava',
+    '//lib:com_google_guava_guava',
     '//lib:kryo',
     '//lib:slf4j-api',
 ]

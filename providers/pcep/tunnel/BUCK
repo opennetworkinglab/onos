@@ -12,8 +12,8 @@ COMPILE_DEPS = [
 
 TEST_DEPS = [
     '//lib:TEST_ADAPTERS',
-    '//lib:netty',
-    '//lib:netty-transport',
+    '//lib:io_netty_netty',
+    '//lib:io_netty_netty_transport',
     '//protocols/pcep/server/api:onos-protocols-pcep-server-api-tests',
     '//apps/pcep-api:onos-apps-pcep-api-tests',
     '//incubator/api:onos-incubator-api-tests',

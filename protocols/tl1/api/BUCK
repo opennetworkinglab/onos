@@ -1,6 +1,6 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
-    '//lib:netty-transport',
+    '//lib:io_netty_netty_transport',
 ]
 
 osgi_jar_with_tests (

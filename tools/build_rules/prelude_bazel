@@ -2,7 +2,7 @@ load(
     "//tools/build/bazel:generate_workspace.bzl",
     "COMPILE",
     "CORE_DEPS",
-    "GRPC_1_3",
+    # "GRPC_1_3",
     "JACKSON",
     "KRYO",
     "CLI",

@@ -7,7 +7,7 @@ BUNDLES = [
     '//lib:retrofit',
     '//lib:okhttp',
     '//lib:logging-interceptor',
-    '//lib:gson',
+    '//lib:com_google_code_gson_gson',
     '//lib:okio',
     '//lib:moshi',
     '//lib:converter-moshi',

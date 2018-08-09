@@ -11,7 +11,7 @@ COMPILE_DEPS = [
 GRPC_DEPS = [
     '//lib:GRPC_1.3',
     '//lib:protobuf-java-3.2.0',
-    '//lib:guava',
+    '//lib:com_google_guava_guava',
     '//incubator/grpc-dependencies:grpc-core-repkg-' + GRPC_VER
 ]
 

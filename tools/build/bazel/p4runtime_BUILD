@@ -1,0 +1,56 @@
+package(default_visibility = ["//visibility:public"])
+
+load("@com_google_protobuf//:protobuf.bzl", "internal_copied_filegroup")
+load("@io_grpc_grpc_java//:java_grpc_library.bzl", "java_grpc_library")
+
+proto_library(
+    name = "p4data_proto",
+    srcs = ["p4/v1/p4data.proto"],
+)
+
+proto_library(
+    name = "p4types_proto",
+    srcs = ["p4/config/v1/p4types.proto"],
+)
+
+proto_library(
+    name = "p4info_proto",
+    srcs = ["p4/config/v1/p4info.proto"],
+    deps = [
+        ":p4types_proto",
+        "@com_google_protobuf//:any_proto"
+    ],
+)
+
+proto_library(
+    name = "p4runtime_proto",
+    srcs = ["p4/v1/p4runtime.proto"],
+    deps = [
+        ":p4info_proto",
+        ":p4data_proto",
+        "@com_github_googleapis//:status_proto",
+        "@com_google_protobuf//:any_proto",
+    ],
+)
+
+java_proto_library(
+    name = "p4data_java_proto_native",
+    deps = [":p4data_proto"],
+)
+
+java_proto_library(
+    name = "p4info_java_proto_native",
+    deps = [":p4info_proto"],
+)
+
+java_proto_library(
+    name = "p4runtime_java_proto_native",
+    deps = [":p4runtime_proto"],
+)
+
+java_grpc_library(
+    name = "p4runtime_java_grpc_native",
+    srcs = [":p4runtime_proto"],
+    deps = [":p4runtime_java_proto_native"],
+)
+

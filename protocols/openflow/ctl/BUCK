@@ -1,15 +1,15 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
-    '//lib:openflowj',
-    '//protocols/openflow/api:onos-protocols-openflow-api',
-    '//lib:NETTY',
-    '//lib:netty-buffer',
-    '//lib:netty-codec',
-    '//lib:netty-common',
-    '//lib:netty-handler',
-    '//lib:netty-transport',
-    '//lib:netty-transport-native-epoll',
     '//lib:JACKSON',
+    '//lib:openflowj',
+    '//lib:io_netty_netty_buffer',
+    '//lib:io_netty_netty_common',
+    '//lib:io_netty_netty_codec',
+    '//lib:io_netty_netty_handler',
+    '//lib:io_netty_netty_transport',
+    '//lib:io_netty_netty_transport_native_unix_common',
+    '//lib:io_netty_netty_transport-native-epoll',
+    '//protocols/openflow/api:onos-protocols-openflow-api',
 ]
 
 TEST_DEPS = [

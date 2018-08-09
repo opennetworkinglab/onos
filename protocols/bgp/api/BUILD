@@ -1,5 +1,5 @@
 COMPILE_DEPS = CORE_DEPS + [
-    "@netty//jar",
+    "@io_netty_netty//jar",
     "//protocols/bgp/bgpio:onos-protocols-bgp-bgpio",
 ]
 

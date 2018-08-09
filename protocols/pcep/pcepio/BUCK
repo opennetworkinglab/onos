@@ -6,7 +6,7 @@ COMPILE_DEPS = [
     '//lib:osgi-core',
     '//lib:org.apache.karaf.shell.console',
     '//lib:org.apache.felix.scr.annotations',
-    '//lib:netty',
+    '//lib:io_netty_netty',
 ]
 
 osgi_jar_with_tests (

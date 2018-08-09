@@ -1,5 +1,5 @@
 COMPILE_DEPS = CORE_DEPS + [
-    "@netty//jar",
+    "@io_netty_netty//jar",
     "//protocols/pcep/pcepio:onos-protocols-pcep-pcepio",
     "//apps/pcep-api:onos-apps-pcep-api",
     "//incubator/api:onos-incubator-api",

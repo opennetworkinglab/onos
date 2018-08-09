@@ -1,8 +1,8 @@
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//incubator/api:onos-incubator-api',
-    '//lib:guava',
-    '//lib:gson',
+    '//lib:com_google_guava_guava',
+    '//lib:com_google_code_gson_gson',
     '//lib:amqp-client',
 ]
 
@@ -11,7 +11,7 @@ TEST_DEPS = [
 ]
 
 BUNDLES = [
-    '//lib:gson',
+    '//lib:com_google_code_gson_gson',
     '//lib:amqp-client',
     '//apps/rabbitmq:onos-apps-rabbitmq',
 ]

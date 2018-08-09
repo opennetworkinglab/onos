@@ -2,7 +2,7 @@ COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//lib:NETTY',
     '//lib:openflowj',
-    '//lib:netty-transport',
+    '//lib:io_netty_netty_transport',
 ]
 
 TEST_DEPS = [

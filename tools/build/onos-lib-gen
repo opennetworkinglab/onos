@@ -21,5 +21,5 @@ if [ ! -f $JAR ]; then
     [ -f $JAR ] && printf "Done.\n"
 fi
 
-java -jar $JAR lib/deps.json tools/build/bazel/generate_workspace.bzl --bazel
-java -jar $JAR lib/deps.json lib/BUCK
+[ -z "$1" -o "$1" = "bazel" ] && java -jar $JAR lib/deps.json tools/build/bazel/generate_workspace.bzl --bazel
+[ -z "$1" -o "$1" = "buck" ] && java -jar $JAR lib/deps.json lib/BUCK

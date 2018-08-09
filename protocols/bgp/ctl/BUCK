@@ -6,8 +6,8 @@ COMPILE_DEPS = [
     '//lib:javax.ws.rs-api',
     '//protocols/bgp/api:onos-protocols-bgp-api',
     '//protocols/bgp/bgpio:onos-protocols-bgp-bgpio',
-    '//lib:netty-common',
-    '//lib:netty',
+    '//lib:io_netty_netty_common',
+    '//lib:io_netty_netty',
     '//lib:org.osgi.compendium',
     '//lib:org.apache.felix.scr.annotations',
 ]

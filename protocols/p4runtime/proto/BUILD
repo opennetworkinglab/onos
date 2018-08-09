@@ -1,32 +1,58 @@
 load("//tools/build/bazel:osgi_java_library.bzl", "wrapped_osgi_jar")
-
-java_proto_library(
-    name = "p4_runtime_java_proto_proto",
-    visibility = ["//visibility:public"],
-    deps = ["@p4lang_pi//:p4_runtime_proto"],
-)
+load("@io_grpc_grpc_java//:java_grpc_library.bzl", "java_grpc_library")
 
 wrapped_osgi_jar(
-    name = "rpc_java_proto-osgi",
-    jar = "@google_rpc//:rpc_java_proto",
-    visibility = ["//visibility:public"],
-    deps = CORE_DEPS + ["@protobuf_java_3_2_0//jar"],
-)
-
-wrapped_osgi_jar(
-    name = "grpc-core-repkg-1.3.1",
-    jar = "@grpc_src_zip_131//:grpc-core-repkg-1.3.1-native",
-    visibility = ["//visibility:public"],
-    deps = COMPILE,
-)
-
-wrapped_osgi_jar(
-    name = "p4_runtime_java_proto",
-    jar = ":p4_runtime_java_proto_proto",
-    visibility = ["//visibility:public"],
-    deps = CORE_DEPS + [
-        "@protobuf_java_3_2_0//jar",
-        "@google_rpc//:rpc_java_proto",
-        ":grpc-core-repkg-1.3.1",
+    name = "p4config_java_proto",
+    jar = "@com_github_p4lang_pi//:p4config_java_proto_native",
+    deps = [
+        "@com_google_protobuf//:protobuf_java",
     ],
+    visibility = ["//visibility:public"],
+)
+
+wrapped_osgi_jar(
+    name = "p4data_java_proto",
+    jar = "@com_github_p4lang_p4runtime//:p4data_java_proto_native",
+    deps = [
+        "@com_google_protobuf//:protobuf_java",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+wrapped_osgi_jar(
+    name = "p4info_java_proto",
+    jar = "@com_github_p4lang_p4runtime//:p4info_java_proto_native",
+    deps = [
+        "@com_google_protobuf//:protobuf_java",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+wrapped_osgi_jar(
+    name = "p4runtime_java_proto",
+    jar = "@com_github_p4lang_p4runtime//:p4runtime_java_proto_native",
+    deps = [
+        "@com_google_protobuf//:protobuf_java",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+wrapped_osgi_jar(
+    name = "p4runtime_java_grpc",
+    jar = "@com_github_p4lang_p4runtime//:p4runtime_java_grpc_native",
+    deps = [
+        "@io_grpc_grpc_java//stub",
+        "@io_grpc_grpc_java//core",
+        "@io_grpc_grpc_java//protobuf",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+wrapped_osgi_jar(
+    name = "status_java_proto",
+    jar = "@com_github_googleapis//:status_java_proto_native",
+    deps = [
+        "@com_google_protobuf//:protobuf_java",
+    ],
+    visibility = ["//visibility:public"],
 )

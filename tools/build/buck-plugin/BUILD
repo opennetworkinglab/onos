@@ -1,7 +1,7 @@
 SWAGGER_EXECUTABLE = "swagger_generator"
 
 COMPILE_DEPS = JACKSON + [
-    "@guava//jar",
+    "@com_google_guava_guava//jar",
     "@qdox//jar",
     "@org_apache_felix_scr_bnd//jar",
 ]

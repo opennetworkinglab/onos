@@ -1,7 +1,7 @@
 OSGIWRAP_EXECUTABLE = "osgi-jar"
 
 COMPILE_DEPS = [
-    "@guava//jar",
+    "@com_google_guava_guava//jar",
     "@bndlib//jar",
     "@org_apache_felix_scr_bnd//jar",
 ]

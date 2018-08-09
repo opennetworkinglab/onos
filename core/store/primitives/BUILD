@@ -6,10 +6,10 @@ COMPILE_DEPS = CORE_DEPS + KRYO + ATOMIX + [
 
 TEST_DEPS = TEST + [
     "@commons_math3//jar",
-    "@netty_handler//jar",
-    "@netty_buffer//jar",
-    "@netty_codec//jar",
-    "@netty_resolver//jar",
+    "@io_netty_netty_handler//jar",
+    "@io_netty_netty_buffer//jar",
+    "@io_netty_netty_codec//jar",
+    "@io_netty_netty_resolver//jar",
     "//core/api:onos-api-tests",
 ]
 

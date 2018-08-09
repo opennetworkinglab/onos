@@ -12,10 +12,10 @@ COMPILE_DEPS = [
 TEST_DEPS = [
     '//lib:TEST',
     '//core/api:onos-api-tests',
-    '//lib:netty-handler',
-    '//lib:netty-buffer',
-    '//lib:netty-codec',
-    '//lib:netty-resolver',
+    '//lib:io_netty_netty_handler',
+    '//lib:io_netty_netty_buffer',
+    '//lib:io_netty_netty_codec',
+    '//lib:io_netty_netty_resolver',
     '//lib:commons-math3',
 ]
 

@@ -9,7 +9,7 @@ def grpc_core_repkg_131():
     repkg_deps = [
         '//lib:COMPILE',
         '//lib:google-instrumentation-0.3.0',
-        "//lib:google-errorprone-2.0.19"
+        '//lib:google-errorprone-2.0.19'
     ]
     remote_file(
         name = "grpc-src-zip-131",

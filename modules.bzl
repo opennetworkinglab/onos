@@ -253,8 +253,8 @@ ONOS_APPS = [
 ]
 
 PROTOCOL_APPS = [
-    # "//protocols/grpc:onos-protocols-grpc-oar",
-    # "//protocols/p4runtime:onos-protocols-p4runtime-oar",
+    "//protocols/grpc:onos-protocols-grpc-oar",
+    "//protocols/p4runtime:onos-protocols-p4runtime-oar",
     # "//protocols/gnmi:onos-protocols-gnmi-oar",
     "//protocols/xmpp/core:onos-protocols-xmpp-core-oar",
     "//protocols/xmpp/pubsub:onos-protocols-xmpp-pubsub-oar",

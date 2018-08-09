@@ -22,7 +22,7 @@ GRPC_DEPS = [
     '//incubator/grpc-dependencies:grpc-core-repkg-' + GRPC_VER,
     '//incubator/protobuf/models:onos-incubator-protobuf-models-proto',
     '//lib:protobuf-java-3.2.0',
-    '//lib:guava',
+    '//lib:com_google_guava_guava',
 ]
 
 BUNDLES = [
@@ -31,7 +31,7 @@ BUNDLES = [
     ':onos-incubator-protobuf-services-nb',
     ':onos-incubator-protobuf-services-nb-proto',
     '//lib:protobuf-java-3.2.0',
-    '//lib:guava',
+    '//lib:com_google_guava_guava',
     '//lib:grpc-core-' + GRPC_VER,
     '//incubator/grpc-dependencies:grpc-core-repkg-' + GRPC_VER,
     '//lib:grpc-protobuf-' + GRPC_VER,
@@ -41,14 +41,14 @@ BUNDLES = [
     '//lib:grpc-context-' + GRPC_VER,
     '//lib:google-truth-0.28',
     '//core/api:onos-api',
-    '//lib:netty-transport',
-    '//lib:netty-buffer',
-    '//lib:netty-resolver',
-    '//lib:netty-common',
-    '//lib:netty-codec',
-    '//lib:netty-handler',
-    '//lib:netty-codec-http2',
-    '//lib:netty-codec-http',
+    '//lib:io_netty_netty_transport',
+    '//lib:io_netty_netty_buffer',
+    '//lib:io_netty_netty_resolver',
+    '//lib:io_netty_netty_common',
+    '//lib:io_netty_netty_codec',
+    '//lib:io_netty_netty_handler',
+    '//lib:io_netty_netty_codec-http2',
+    '//lib:io_netty_netty_codec-http',
     "//lib:google-instrumentation-0.3.0",
 ]
 

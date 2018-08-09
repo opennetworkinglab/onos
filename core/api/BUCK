@@ -8,7 +8,7 @@ COMPILE_DEPS = [
     '//utils/osgi:onlab-osgi',
     '//utils/rest:onlab-rest',
     '//lib:joda-time',
-    '//lib:netty',
+    '//lib:io_netty_netty',
 ]
 
 osgi_jar_with_tests (

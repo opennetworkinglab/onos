@@ -1,11 +1,11 @@
 COMPILE_DEPS = CORE_DEPS + [
-    "@gson//jar",
+    "@com_google_code_gson_gson//jar",
     "@amqp_client//jar",
     "//incubator/api:onos-incubator-api",
 ]
 
 BUNDLES = [
-    "@gson//jar",
+    "@com_google_code_gson_gson//jar",
     "@amqp_client//jar",
     "//apps/rabbitmq:onos-apps-rabbitmq",
 ]

@@ -8,7 +8,7 @@ COMPILE_DEPS = CORE_DEPS + METRICS + CLI + [
     "@okio//jar",
     "@moshi//jar",
     "@converter_moshi//jar",
-    "@gson//jar",
+    "@com_google_code_gson_gson//jar",
 ]
 
 EXCLUDED_BUNDLES = [
@@ -18,7 +18,7 @@ EXCLUDED_BUNDLES = [
     "@retrofit//jar",
     "@okhttp//jar",
     "@logging_interceptor//jar",
-    "@gson//jar",
+    "@com_google_code_gson_gson//jar",
     "@okio//jar",
     "@moshi//jar",
     "@converter_moshi//jar",

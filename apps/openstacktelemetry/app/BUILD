@@ -1,13 +1,13 @@
-COMPILE_DEPS = CORE_DEPS + JACKSON + KRYO + REST + CLI + GRPC_1_3 + [
+COMPILE_DEPS = CORE_DEPS + JACKSON + KRYO + REST + CLI + [
     "@kafka_clients//jar",
     "@jersey_client//jar",
     "@influxdb_java//jar",
-    "@grpc_core_1_3_1//jar",
+    "@io_grpc_grpc_java//core",
+    "@io_grpc_grpc_java//protobuf-lite",
     "//core/store/serializers:onos-core-serializers",
     "//apps/openstacknode/api:onos-apps-openstacknode-api",
     "//apps/openstacknetworking/api:onos-apps-openstacknetworking-api",
     "//apps/openstacktelemetry/api:onos-apps-openstacktelemetry-api",
-    "@grpc_protobuf_lite_1_3_1//jar",
 ]
 
 TEST_DEPS = TEST_ADAPTERS + TEST_REST + [

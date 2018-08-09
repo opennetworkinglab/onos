@@ -1,5 +1,5 @@
 COMPILE_DEPS = CORE_DEPS + NETTY + JACKSON + KRYO + [
-    "@netty//jar",
+    "@io_netty_netty//jar",
     "//incubator/api:onos-incubator-api",
     "//protocols/pcep/pcepio:onos-protocols-pcep-pcepio",
     "//protocols/pcep/server/api:onos-protocols-pcep-server-api",
