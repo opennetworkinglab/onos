@@ -250,7 +250,7 @@ public class OpenstackRoutingIcmpHandler {
         return osRouter.getExternalGatewayInfo();
     }
 
-    private void handleEchoReply(IPv4 ipPacket, ICMP icmp) {
+    private boolean handleEchoReply(IPv4 ipPacket, ICMP icmp) {
         String icmpInfoKey = icmpInfoKey(icmp,
                 IPv4.fromIPv4Address(ipPacket.getDestinationAddress()),
                 IPv4.fromIPv4Address(ipPacket.getSourceAddress()));
@@ -259,8 +259,10 @@ public class OpenstackRoutingIcmpHandler {
         if (icmpInfoMap.get(icmpInfoKey) != null) {
             processReplyFromExternal(ipPacket, icmpInfoMap.get(icmpInfoKey).value());
             icmpInfoMap.remove(icmpInfoKey);
+            return true;
         } else {
-            log.warn("No ICMP Info for ICMP packet");
+            log.debug("No ICMP Info for ICMP packet");
+            return false;
         }
     }
 
@@ -472,8 +474,9 @@ public class OpenstackRoutingIcmpHandler {
                     context.block();
                     break;
                 case TYPE_ECHO_REPLY:
-                    handleEchoReply(ipPacket, icmp);
-                    context.block();
+                    if (handleEchoReply(ipPacket, icmp)) {
+                        context.block();
+                    }
                     break;
                 default:
                     break;

@@ -54,6 +54,11 @@ public class InstancePortServiceAdapter implements InstancePortService {
     }
 
     @Override
+    public IpAddress floatingIp(String osPortId) {
+        return null;
+    }
+
+    @Override
     public void addListener(InstancePortListener listener) {
 
     }

@@ -156,7 +156,7 @@ public interface OpenstackNetworkService
     String networkType(String netId);
 
     /**
-     * Returns gateway ip address upplied port ID.
+     * Returns gateway ip address with supplied port ID.
      *
      * @param portId openstack port id
      * @return gateway ip address

@@ -21,7 +21,14 @@
                 <ref component-id="activeVmIpCompleter"/>
             </completers>
         </command>
+        <command>
+            <action class="org.onosproject.openstacktroubleshoot.cli.OpenstackNorthSouthProbeCommand"/>
+            <completers>
+                <ref component-id="activeFloatingIpCompleter"/>
+            </completers>
+        </command>
     </command-bundle>
 
     <bean id="activeVmIpCompleter" class="org.onosproject.openstacktroubleshoot.cli.ActiveVmIpCompleter"/>
+    <bean id="activeFloatingIpCompleter" class="org.onosproject.openstacktroubleshoot.cli.ActiveFloatingIpCompleter"/>
 </blueprint>

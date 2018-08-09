@@ -66,4 +66,12 @@ public interface InstancePortService
      * @return set of instance ports; empty list if no port exists
      */
     Set<InstancePort> instancePorts(String osNetId);
+
+    /**
+     * Returns the floating IP with the supplied instance port.
+     *
+     * @param osPortId openstack port id
+     * @return openstack floating IP
+     */
+    IpAddress floatingIp(String osPortId);
 }

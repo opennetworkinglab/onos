@@ -26,10 +26,11 @@ import org.onosproject.openstacknetworking.api.InstancePortService;
 import org.onosproject.openstacktroubleshoot.api.OpenstackTroubleshootService;
 import org.onosproject.openstacktroubleshoot.api.Reachability;
 
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static org.onosproject.openstacknetworking.api.InstancePort.State.ACTIVE;
 
 /**
  * Checks the east-west VMs connectivity.
@@ -57,8 +58,7 @@ public class OpenstackEastWestProbeCommand extends AbstractShellCommand {
         OpenstackTroubleshootService tsService =
                 get(OpenstackTroubleshootService.class);
 
-        InstancePortService instPortService =
-                get(InstancePortService.class);
+        InstancePortService instPortService = get(InstancePortService.class);
 
         if (tsService == null) {
             error("Failed to troubleshoot openstack networking.");
@@ -72,15 +72,28 @@ public class OpenstackEastWestProbeCommand extends AbstractShellCommand {
 
         if (isAll) {
             printHeader();
-            Map<String, Reachability> map = tsService.probeEastWestBulk();
-            map.values().forEach(this::printReachability);
+            // send ICMP PACKET_OUT to all connect VMs whose instance port state is ACTIVE
+            Set<InstancePort> activePorts = instPortService.instancePorts().stream()
+                    .filter(p -> p.state() == ACTIVE)
+                    .collect(Collectors.toSet());
+
+            activePorts.forEach(srcPort ->
+                    activePorts.forEach(dstPort ->
+                            printReachability(tsService.probeEastWest(srcPort, dstPort))
+                    )
+            );
         } else {
             if (vmIps.length > 2) {
                 print("Too many VM IPs. The number of IP should be limited to 2.");
                 return;
             }
 
-            IpAddress srcIp = IpAddress.valueOf(vmIps[0]);
+            IpAddress srcIp = getIpAddress(vmIps[0]);
+
+            if (srcIp == null) {
+                return;
+            }
+
             InstancePort srcPort = instPort(instPortService, srcIp);
 
             if (srcPort == null) {
@@ -91,7 +104,13 @@ public class OpenstackEastWestProbeCommand extends AbstractShellCommand {
             final Set<IpAddress> dstIps = Sets.newConcurrentHashSet();
 
             if (vmIps.length == 2) {
-                dstIps.add(IpAddress.valueOf(vmIps[1]));
+                IpAddress dstIp = getIpAddress(vmIps[1]);
+
+                if (dstIp == null) {
+                    return;
+                }
+
+                dstIps.add(dstIp);
             }
 
             if (vmIps.length == 1) {
@@ -129,5 +148,14 @@ public class OpenstackEastWestProbeCommand extends AbstractShellCommand {
     private void printReachability(Reachability r) {
         String result = r.isReachable() ? REACHABLE : UNREACHABLE;
         print(FORMAT, r.srcIp().toString(), ARROW, r.dstIp().toString(), result);
+    }
+
+    private IpAddress getIpAddress(String ipString) {
+        try {
+            return IpAddress.valueOf(vmIps[0]);
+        } catch (IllegalArgumentException e) {
+            error("Invalid IP address string.");
+            return null;
+        }
     }
 }

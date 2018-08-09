@@ -68,6 +68,7 @@ public interface OpenstackRouterService
 
     /**
      * Returns the floating IP with the supplied floating IP ID.
+     *
      * @param floatingIpId floating ip id
      * @return openstack floating ip
      */

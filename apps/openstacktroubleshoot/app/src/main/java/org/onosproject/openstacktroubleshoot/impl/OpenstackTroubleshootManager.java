@@ -29,6 +29,7 @@ import org.onlab.packet.ICMPEcho;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
+import org.onlab.packet.MacAddress;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.LeadershipService;
@@ -36,6 +37,7 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.mastership.MastershipService;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowEntry;
@@ -53,6 +55,7 @@ import org.onosproject.openstacknetworking.api.InstancePort;
 import org.onosproject.openstacknetworking.api.InstancePortService;
 import org.onosproject.openstacknetworking.api.OpenstackFlowRuleService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
+import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
 import org.onosproject.openstacktroubleshoot.api.OpenstackTroubleshootService;
 import org.onosproject.openstacktroubleshoot.api.Reachability;
@@ -65,12 +68,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
-import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.function.BooleanSupplier;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
@@ -83,13 +85,15 @@ import static org.onosproject.net.flow.FlowEntry.FlowEntryState.ADDED;
 import static org.onosproject.net.flow.criteria.Criterion.Type.IPV4_DST;
 import static org.onosproject.net.flow.criteria.Criterion.Type.IPV4_SRC;
 import static org.onosproject.openstacknetworking.api.Constants.ACL_TABLE;
+import static org.onosproject.openstacknetworking.api.Constants.DEFAULT_EXTERNAL_ROUTER_MAC;
 import static org.onosproject.openstacknetworking.api.Constants.DEFAULT_GATEWAY_MAC;
 import static org.onosproject.openstacknetworking.api.Constants.FORWARDING_TABLE;
+import static org.onosproject.openstacknetworking.api.Constants.GW_COMMON_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ICMP_PROBE_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.VTAG_TABLE;
 import static org.onosproject.openstacknetworking.api.InstancePort.State.ACTIVE;
-import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
+import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
 import static org.onosproject.openstacktroubleshoot.util.OpenstackTroubleshootUtil.getSegId;
 
 /**
@@ -110,6 +114,8 @@ public class OpenstackTroubleshootManager implements OpenstackTroubleshootServic
     private static final short MAX_ICMP_GEN = 3;
     private static final int PREFIX_LENGTH = 32;
     private static final int ICMP_PROCESSOR_PRIORITY = 99;
+
+    private static final MacAddress LOCAL_MAC = MacAddress.valueOf("11:22:33:44:55:66");
 
     private static final String ICMP_COUNTER_NAME = "icmp-id-counter";
 
@@ -195,68 +201,6 @@ public class OpenstackTroubleshootManager implements OpenstackTroubleshootServic
     }
 
     @Override
-    public Map<String, Reachability> probeEastWestBulk() {
-
-        // install flow rules to enforce ICMP_REQUEST to be tagged and direct to ACL table
-        eventExecutor.execute(() -> setAllVidTagRule(true));
-
-        // install flow rules to enforce forwarding ICMP_REPLY to controller
-        eventExecutor.execute(() -> setAllIcmpReplyRule(true));
-
-        icmpReachabilityMap.clear();
-
-        // send ICMP PACKET_OUT to all connect VMs whose instance port state is ACTIVE
-        Set<InstancePort> activePorts = instancePortService.instancePorts().stream()
-                                                .filter(p -> p.state() == ACTIVE)
-                                                .collect(Collectors.toSet());
-
-        timeoutSupplier(activePorts.size(), VID_TAG_RULE_INSTALL_TIMEOUT_MS, this::checkAllVidTagRules);
-        timeoutSupplier(activePorts.size(), ICMP_RULE_INSTALL_TIMEOUT_MS, this::checkAllIcmpReplyRules);
-
-        for (InstancePort srcPort : activePorts) {
-
-            // we only let the master of the switch where the source host
-            // is attached to send out ICMP request packet
-            if (!mastershipService.isLocalMaster(srcPort.deviceId())) {
-                continue;
-            }
-
-            for (InstancePort dstPort : activePorts) {
-                // if the source and destination ports are identical, we do
-                // not probe the reachability
-                if (srcPort.equals(dstPort)) {
-                    continue;
-                }
-
-                // if the two ports are located in different types of networks,
-                // we do not probe the reachability
-                if (!osNetworkService.networkType(srcPort.networkId())
-                        .equals(osNetworkService.networkType(dstPort.networkId()))) {
-                    continue;
-                }
-
-                sendIcmpEchoRequest(srcPort, dstPort);
-            }
-        }
-
-        long count = icmpReachabilityMap.asJavaMap().values().stream()
-                                        .filter(r -> !r.isReachable()).count();
-
-        BooleanSupplier checkReachability = () -> icmpReachabilityMap.asJavaMap()
-                .values().stream().allMatch(Reachability::isReachable);
-
-        timeoutSupplier(count, ICMP_REPLY_TIMEOUT_MS, checkReachability);
-
-        // uninstall ICMP_REQUEST VID tagging rules
-        eventExecutor.execute(() -> setAllVidTagRule(false));
-
-        // uninstall ICMP_REPLY enforcing rules
-        eventExecutor.execute(() -> setAllIcmpReplyRule(false));
-
-        return icmpReachabilityMap.asJavaMap();
-    }
-
-    @Override
     public Reachability probeEastWest(InstancePort srcPort, InstancePort dstPort) {
 
         Reachability.Builder rBuilder = DefaultReachability.builder()
@@ -270,20 +214,28 @@ public class OpenstackTroubleshootManager implements OpenstackTroubleshootServic
         }  else {
             if (srcPort.state() == ACTIVE && dstPort.state() == ACTIVE) {
 
+                // if the two ports are located in different types of networks,
+                // we immediately return unreachable state
+                if (!osNetworkService.networkType(srcPort.networkId())
+                        .equals(osNetworkService.networkType(dstPort.networkId()))) {
+                    rBuilder.isReachable(false);
+                    return rBuilder.build();
+                }
+
                 // install flow rules to enforce ICMP_REQUEST to be tagged and direct to ACL table
                 eventExecutor.execute(() -> setVidTagRule(srcPort, true));
 
                 // install flow rules to enforce forwarding ICMP_REPLY to controller
-                eventExecutor.execute(() -> setIcmpReplyRule(srcPort, true));
+                eventExecutor.execute(() -> setEastWestIcmpReplyRule(srcPort, true));
 
                 timeoutPredicate(1, VID_TAG_RULE_INSTALL_TIMEOUT_MS,
                         this::checkVidTagRule, srcPort.ipAddress().toString());
 
                 timeoutPredicate(1, ICMP_RULE_INSTALL_TIMEOUT_MS,
-                        this::checkIcmpReplyRule, srcPort.ipAddress().toString());
+                        this::checkEastWestIcmpReplyRule, srcPort.ipAddress().toString());
 
                 // send out ICMP ECHO request
-                sendIcmpEchoRequest(srcPort, dstPort);
+                sendIcmpEchoRequest(srcPort, dstPort, null, Direction.EAST_WEST);
 
                 BooleanSupplier checkReachability = () -> icmpReachabilityMap.asJavaMap()
                         .values().stream().allMatch(Reachability::isReachable);
@@ -294,7 +246,7 @@ public class OpenstackTroubleshootManager implements OpenstackTroubleshootServic
                 eventExecutor.execute(() -> setVidTagRule(srcPort, false));
 
                 // uninstall ICMP_REPLY enforcing rules
-                eventExecutor.execute(() -> setIcmpReplyRule(srcPort, false));
+                eventExecutor.execute(() -> setEastWestIcmpReplyRule(srcPort, false));
 
                 return icmpReachabilityMap.asJavaMap()
                                           .get(String.valueOf(icmpIdCounter.get()));
@@ -307,50 +259,48 @@ public class OpenstackTroubleshootManager implements OpenstackTroubleshootServic
     }
 
     @Override
-    public Map<String, Reachability> probeNorthSouth() {
-        // TODO: require implementation
-        return null;
-    }
+    public Reachability probeNorthSouth(InstancePort port) {
+        Optional<OpenstackNode> gw = osNodeService.completeNodes(GATEWAY).stream().findFirst();
 
-    @Override
-    public Reachability probeNorthSouth(String netId, IpAddress ip) {
-        // TODO: require implementation
-        return null;
-    }
-
-    /**
-     * Checks whether all of ICMP reply rules are added or not.
-     *
-     * @return true if all of ICMP reply rules are added, false otherwise
-     */
-    private boolean checkAllIcmpReplyRules() {
-
-        Set<InstancePort> activePorts = instancePortService.instancePorts().stream()
-                .filter(p -> p.state() == ACTIVE).collect(Collectors.toSet());
-
-        for (InstancePort port : activePorts) {
-            if (!checkIcmpReplyRule(port.ipAddress().toString())) {
-                return false;
-            }
+        if (!gw.isPresent()) {
+            log.warn("Gateway is not available to troubleshoot north-south traffic.");
+            return null;
         }
 
-        return true;
+        // install flow rules to enforce forwarding ICMP_REPLY to controller
+        eventExecutor.execute(() -> setNorthSouthIcmpReplyRule(port, gw.get(), true));
+
+        timeoutPredicate(1, ICMP_RULE_INSTALL_TIMEOUT_MS,
+                this::checkNorthSouthIcmpReplyRule, port.ipAddress().toString());
+
+        // send out ICMP ECHO request
+        sendIcmpEchoRequest(null, port, gw.get(), Direction.NORTH_SOUTH);
+
+        BooleanSupplier checkReachability = () -> icmpReachabilityMap.asJavaMap()
+                .values().stream().allMatch(Reachability::isReachable);
+
+        timeoutSupplier(1, ICMP_REPLY_TIMEOUT_MS, checkReachability);
+
+        // uninstall ICMP_REPLY enforcing rules
+        eventExecutor.execute(() -> setNorthSouthIcmpReplyRule(port, gw.get(), false));
+
+        return icmpReachabilityMap.asJavaMap().get(String.valueOf(icmpIdCounter.get()));
     }
 
     /**
-     * Checks whether ICMP reply rule is added or not.
+     * Checks whether east-west ICMP reply rule is added or not.
      *
-     * @param dstIp destination IP address
+     * @param ip    IP address
      * @return true if ICMP reply rule is added, false otherwise
      */
-    private boolean checkIcmpReplyRule(String dstIp) {
+    private boolean checkEastWestIcmpReplyRule(String ip) {
         for (FlowEntry entry : flowRuleService.getFlowEntriesById(appId)) {
             TrafficSelector selector = entry.selector();
 
-            IPCriterion dstIpCriterion = (IPCriterion) selector.getCriterion(IPV4_DST);
+            IPCriterion ipCriterion = (IPCriterion) selector.getCriterion(IPV4_DST);
 
-            if (dstIpCriterion != null &&
-                    dstIp.equals(dstIpCriterion.ip().address().toString()) &&
+            if (ipCriterion != null &&
+                    ip.equals(ipCriterion.ip().address().toString()) &&
                     entry.state() == ADDED) {
                 return true;
             }
@@ -360,21 +310,25 @@ public class OpenstackTroubleshootManager implements OpenstackTroubleshootServic
     }
 
     /**
-     * Checks whether all of ICMP request VID tagging rules are added or not.
+     * Checks whether north-south ICMP reply rule is added or not.
      *
-     * @return true if the rule is added, false otherwise
+     * @param ip    IP address
+     * @return true if ICMP reply rule is added, false otherwise
      */
-    private boolean checkAllVidTagRules() {
-        Set<InstancePort> activePorts = instancePortService.instancePorts().stream()
-                .filter(p -> p.state() == ACTIVE).collect(Collectors.toSet());
+    private boolean checkNorthSouthIcmpReplyRule(String ip) {
+        for (FlowEntry entry : flowRuleService.getFlowEntriesById(appId)) {
+            TrafficSelector selector = entry.selector();
 
-        for (InstancePort port : activePorts) {
-            if (!checkVidTagRule(port.ipAddress().toString())) {
-                return false;
+            IPCriterion ipCriterion = (IPCriterion) selector.getCriterion(IPV4_SRC);
+
+            if (ipCriterion != null &&
+                    ip.equals(ipCriterion.ip().address().toString()) &&
+                    entry.state() == ADDED) {
+                return true;
             }
         }
 
-        return true;
+        return false;
     }
 
     /**
@@ -397,19 +351,6 @@ public class OpenstackTroubleshootManager implements OpenstackTroubleshootServic
         }
 
         return false;
-    }
-
-    /**
-     * Installs/uninstalls all of the flow rules to match ingress fake ICMP requests.
-     *
-     * @param install   installation flag
-     */
-    private void setAllVidTagRule(boolean install) {
-        osNodeService.nodes(COMPUTE).forEach(n ->
-                instancePortService.instancePorts().stream()
-                        .filter(p -> p.deviceId().equals(n.intgBridge()))
-                        .forEach(p -> setVidTagRule(p, install))
-        );
     }
 
     /**
@@ -440,25 +381,48 @@ public class OpenstackTroubleshootManager implements OpenstackTroubleshootServic
     }
 
     /**
-     * Installs/uninstalls all of the flow rules to match ICMP reply packets.
+     * Installs/uninstalls a flow rule to match north-south ICMP reply packets,
+     * direct all ICMP reply packets to the controller.
      *
+     * @param port      instance port
+     * @param gw        gateway node
      * @param install   installation flag
      */
-    private void setAllIcmpReplyRule(boolean install) {
-        osNodeService.nodes(COMPUTE).forEach(n ->
-            instancePortService.instancePorts().stream()
-                    .filter(p -> p.deviceId().equals(n.intgBridge()))
-                    .forEach(p -> setIcmpReplyRule(p, install))
-        );
+    private void setNorthSouthIcmpReplyRule(InstancePort port, OpenstackNode gw,
+                                            boolean install) {
+        TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_IPV4)
+                .matchIPSrc(IpPrefix.valueOf(port.ipAddress(), PREFIX_LENGTH))
+                .matchIPProtocol(IPv4.PROTOCOL_ICMP)
+                .matchIcmpType(ICMP.TYPE_ECHO_REPLY)
+                .matchTunnelId(getSegId(osNetworkService, port))
+                .build();
+
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .setIpSrc(instancePortService.floatingIp(port.portId()))
+                .setEthSrc(port.macAddress())
+                .setEthDst(DEFAULT_EXTERNAL_ROUTER_MAC)
+                .punt()
+                .build();
+
+        osFlowRuleService.setRule(
+                appId,
+                gw.intgBridge(),
+                selector,
+                treatment,
+                PRIORITY_ICMP_PROBE_RULE,
+                GW_COMMON_TABLE,
+                install);
     }
 
     /**
-     * Installs/uninstalls a flow rule to match ICMP reply packets, direct all
-     * ICMP reply packets to the controller.
+     * Installs/uninstalls a flow rule to match east-west ICMP reply packets,
+     * direct all ICMP reply packets to the controller.
      *
+     * @param port      instance port
      * @param install   installation flag
      */
-    private void setIcmpReplyRule(InstancePort port, boolean install) {
+    private void setEastWestIcmpReplyRule(InstancePort port, boolean install) {
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPDst(IpPrefix.valueOf(port.ipAddress(), PREFIX_LENGTH))
@@ -486,14 +450,16 @@ public class OpenstackTroubleshootManager implements OpenstackTroubleshootServic
      * @param srcPort   source instance port
      * @param dstPort   destination instance port
      */
-    private void sendIcmpEchoRequest(InstancePort srcPort, InstancePort dstPort) {
+    private void sendIcmpEchoRequest(InstancePort srcPort, InstancePort dstPort,
+                                     OpenstackNode gateway, Direction direction) {
 
         short icmpSeq = INITIAL_SEQ;
 
         short icmpId = (short) icmpIdCounter.incrementAndGet();
 
         for (int i = 0; i < MAX_ICMP_GEN; i++) {
-            packetService.emit(buildIcmpOutputPacket(srcPort, dstPort, icmpId, icmpSeq));
+            packetService.emit(buildIcmpOutputPacket(srcPort, dstPort, gateway,
+                    icmpId, icmpSeq, direction));
             icmpSeq++;
         }
     }
@@ -508,12 +474,30 @@ public class OpenstackTroubleshootManager implements OpenstackTroubleshootServic
      */
     private OutboundPacket buildIcmpOutputPacket(InstancePort srcPort,
                                                  InstancePort dstPort,
+                                                 OpenstackNode gateway,
                                                  short icmpId,
-                                                 short icmpSeq) {
+                                                 short icmpSeq,
+                                                 Direction direction) {
 
-        // TODO: need to encapsulate the frame into VXLAN/VLAN and transit the
-        // packet to TABLE 0 in order to force the packet to go through all pipelines
-        Ethernet ethFrame = constructIcmpPacket(srcPort, dstPort, icmpId, icmpSeq);
+        Ethernet ethFrame;
+        IpAddress srcIp;
+        IpAddress dstIp;
+        DeviceId deviceId;
+
+        if (direction == Direction.EAST_WEST) {
+            ethFrame = constructEastWestIcmpPacket(srcPort, dstPort, icmpId, icmpSeq);
+            srcIp = srcPort.ipAddress();
+            dstIp = dstPort.ipAddress();
+            deviceId = srcPort.deviceId();
+        } else if (direction == Direction.NORTH_SOUTH) {
+            ethFrame = constructNorthSouthIcmpPacket(dstPort, icmpId, icmpSeq);
+            srcIp = clusterService.getLocalNode().ip();
+            dstIp = instancePortService.floatingIp(dstPort.portId());
+            deviceId = gateway.intgBridge();
+        } else {
+            log.warn("Invalid traffic direction {}", direction);
+            return null;
+        }
 
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
 
@@ -523,8 +507,8 @@ public class OpenstackTroubleshootManager implements OpenstackTroubleshootServic
         tBuilder.setOutput(TABLE);
 
         Reachability reachability = DefaultReachability.builder()
-                                            .srcIp(srcPort.ipAddress())
-                                            .dstIp(dstPort.ipAddress())
+                                            .srcIp(srcIp)
+                                            .dstIp(dstIp)
                                             .isReachable(false)
                                             .build();
 
@@ -532,7 +516,7 @@ public class OpenstackTroubleshootManager implements OpenstackTroubleshootServic
         icmpIds.add(String.valueOf(icmpId));
 
         return new DefaultOutboundPacket(
-                        srcPort.deviceId(),
+                        deviceId,
                         tBuilder.build(),
                         ByteBuffer.wrap(ethFrame.serialize()));
     }
@@ -540,35 +524,29 @@ public class OpenstackTroubleshootManager implements OpenstackTroubleshootServic
     /**
      * Constructs an ICMP packet with given source and destination IP/MAC.
      *
-     * @param srcPort   source instance port
-     * @param dstPort   destination instance port
+     * @param srcIp     source IP address
+     * @param dstIp     destination IP address
+     * @param srcMac    source MAC address
+     * @param dstMac    destination MAC address
      * @param icmpId    ICMP identifier
      * @param icmpSeq   ICMP sequence number
      * @return an ethernet frame which contains ICMP payload
      */
-    private Ethernet constructIcmpPacket(InstancePort srcPort,
-                                         InstancePort dstPort,
+    private Ethernet constructIcmpPacket(IpAddress srcIp, IpAddress dstIp,
+                                         MacAddress srcMac, MacAddress dstMac,
                                          short icmpId, short icmpSeq) {
+
         // Ethernet frame
         Ethernet ethFrame = new Ethernet();
 
         ethFrame.setEtherType(TYPE_IPV4);
-        ethFrame.setSourceMACAddress(srcPort.macAddress());
-
-        boolean isRemote = !srcPort.deviceId().equals(dstPort.deviceId());
-
-        if (isRemote) {
-            // if the source and destination VMs are located in different OVS,
-            // we will assign fake gateway MAC as the destination MAC
-            ethFrame.setDestinationMACAddress(DEFAULT_GATEWAY_MAC);
-        } else {
-            ethFrame.setDestinationMACAddress(dstPort.macAddress());
-        }
+        ethFrame.setSourceMACAddress(srcMac);
+        ethFrame.setDestinationMACAddress(dstMac);
 
         // IP packet
         IPv4 iPacket = new IPv4();
-        iPacket.setDestinationAddress(dstPort.ipAddress().toString());
-        iPacket.setSourceAddress(srcPort.ipAddress().toString());
+        iPacket.setDestinationAddress(dstIp.toString());
+        iPacket.setSourceAddress(srcIp.toString());
         iPacket.setTtl(TTL);
         iPacket.setProtocol(IPv4.PROTOCOL_ICMP);
 
@@ -605,6 +583,56 @@ public class OpenstackTroubleshootManager implements OpenstackTroubleshootServic
         ethFrame.setPayload(iPacket);
 
         return ethFrame;
+    }
+
+    /**
+     * Constructs an east-west ICMP packet with given source and destination IP/MAC.
+     *
+     * @param srcPort   source instance port
+     * @param dstPort   destination instance port
+     * @param icmpId    ICMP identifier
+     * @param icmpSeq   ICMP sequence number
+     * @return an ethernet frame which contains ICMP payload
+     */
+    private Ethernet constructEastWestIcmpPacket(InstancePort srcPort,
+                                                 InstancePort dstPort,
+                                                 short icmpId, short icmpSeq) {
+        boolean isRemote = true;
+
+        if (srcPort.deviceId().equals(dstPort.deviceId()) &&
+                osNetworkService.gatewayIp(srcPort.portId())
+                        .equals(osNetworkService.gatewayIp(dstPort.portId()))) {
+            isRemote = false;
+        }
+
+        // if the source and destination VMs are located in different OVS,
+        // we will assign fake gateway MAC as the destination MAC
+        MacAddress dstMac = isRemote ? DEFAULT_GATEWAY_MAC : dstPort.macAddress();
+
+        return constructIcmpPacket(srcPort.ipAddress(), dstPort.ipAddress(),
+                                    srcPort.macAddress(), dstMac, icmpId, icmpSeq);
+    }
+
+    /**
+     * Constructs a north-south ICMP packet with the given destination IP/MAC.
+     *
+     * @param dstPort   destination instance port
+     * @param icmpId    ICMP identifier
+     * @param icmpSeq   ICMP sequence number
+     * @return an ethernet frame which contains ICMP payload
+     */
+    private Ethernet constructNorthSouthIcmpPacket(InstancePort dstPort,
+                                                   short icmpId, short icmpSeq) {
+
+        IpAddress localIp = clusterService.getLocalNode().ip();
+        IpAddress fip = instancePortService.floatingIp(dstPort.portId());
+
+        if (fip != null) {
+            return constructIcmpPacket(localIp, fip, LOCAL_MAC, dstPort.macAddress(),
+                    icmpId, icmpSeq);
+        } else {
+            return null;
+        }
     }
 
     /**

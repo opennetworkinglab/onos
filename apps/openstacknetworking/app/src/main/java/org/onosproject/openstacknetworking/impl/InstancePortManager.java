@@ -45,6 +45,7 @@ import org.onosproject.openstacknetworking.api.InstancePortListener;
 import org.onosproject.openstacknetworking.api.InstancePortService;
 import org.onosproject.openstacknetworking.api.InstancePortStore;
 import org.onosproject.openstacknetworking.api.InstancePortStoreDelegate;
+import org.onosproject.openstacknetworking.api.OpenstackRouterService;
 import org.slf4j.Logger;
 
 import java.util.Objects;
@@ -100,6 +101,9 @@ public class InstancePortManager
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected HostService hostService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected OpenstackRouterService routerService;
 
     private final InstancePortStoreDelegate
                             delegate = new InternalInstancePortStoreDelegate();
@@ -222,6 +226,17 @@ public class InstancePortManager
                                     .collect(Collectors.toSet());
 
         return ImmutableSet.copyOf(ports);
+    }
+
+    @Override
+    public IpAddress floatingIp(String osPortId) {
+        checkNotNull(osPortId, ERR_NULL_INSTANCE_PORT_ID);
+
+        return routerService.floatingIps().stream()
+                .filter(fip -> osPortId.equals(fip.getPortId()))
+                .filter(fip -> fip.getFloatingIpAddress() != null)
+                .map(fip -> IpAddress.valueOf(fip.getFloatingIpAddress()))
+                .findFirst().orElse(null);
     }
 
     private boolean isInstancePortInUse(String portId) {
