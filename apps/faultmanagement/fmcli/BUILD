@@ -5,4 +5,5 @@ COMPILE_DEPS = CORE_DEPS + CLI + [
 
 osgi_jar_with_tests(
     deps = COMPILE_DEPS,
+    import_packages = '*,org.onosproject.cli.net',
 )
