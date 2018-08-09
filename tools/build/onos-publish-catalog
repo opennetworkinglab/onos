@@ -9,7 +9,8 @@ CATALOG=${1:-/tmp/onos.catalog}
 
 rm -f $CATALOG
 
-SHLVL=1     # Required not to have Bazel rebuild everything!
+# Required to avoid having Bazel re-build stuff unnecessarily
+export SHLVL=1
 
 function writeCatalog {
     bazel build $* --aspects tools/build/bazel/publish_catalog.bzl%publish_catalog 2>&1 \
@@ -24,12 +25,17 @@ function testJars {
     egrep -v '(# |grpc/api|build/conf)' tools/build/publish-test-target-list
 }
 
-# Required to avoid having Bazel re-build stuff unnecessarily
-export SHLVL=1
-
-# Inject the onos-dependencies pom from lib/pom.xml
+# Extract the version from the Bazel variables file
 VERSION=$(egrep ONOS_VERSION tools/build/bazel/variables.bzl | cut -d\" -f2)
-echo "lib/pom.xml	org/onosproject/onos-dependencies/$VERSION/onos-dependencies-$VERSION.pom" >> $CATALOG
+
+# Inject the onos-dependencies pom, ONOS tar, admin tar and test tar.
+echo "Cataloging tar files..."
+cat >> $CATALOG <<EOF
+lib/pom.xml	org/onosproject/onos-dependencies/$VERSION/onos-dependencies-$VERSION.pom
+bazel-bin/onos.tar.gz	org/onosproject/onos-releases/$VERSION/onos-$VERSION.tar.gz
+bazel-bin/onos-admin.tar.gz	org/onosproject/onos-releases/$VERSION/onos-admin-$VERSION.tar.gz
+bazel-bin/onos-test.tar.gz	org/onosproject/onos-releases/$VERSION/onos-test-$VERSION.tar.gz
+EOF
 
 echo "Cataloging jar files..."
 writeCatalog $(jars)
