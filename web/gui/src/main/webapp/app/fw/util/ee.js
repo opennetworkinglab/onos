@@ -41,7 +41,8 @@
         'acxefcsdgt',
         'pmmn',
         'ugaryc',
-        'xcedrcxekzg'
+        'xcedrcxekzg',
+        'qit'
         // Add more beans...
     ];
 

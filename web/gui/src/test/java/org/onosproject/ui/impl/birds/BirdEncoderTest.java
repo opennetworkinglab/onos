@@ -119,8 +119,7 @@ public class BirdEncoderTest {
     private static final Comparator<File> FILE_COMPARATOR =
             (o1, o2) -> o1.getName().compareTo(o2.getName());
 
-    private static final File DIR =
-            new File("src/test/java/org/onosproject/ui/impl/birds");
+    private static final File DIR = new File("tmp");
 
     private static final File FOO_DIR = new File(DIR, "foo");
     private static final File ORIG_DIR = new File(DIR, "orig");
