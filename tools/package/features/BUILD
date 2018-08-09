@@ -182,9 +182,9 @@ osgi_feature(
 #    ],
 #)
 
-osgi_feature (
+osgi_feature(
     name = "onos-security",
-    description ="Security-Mode ONOS",
+    description = "Security-Mode ONOS",
     included_bundles = [
         "@org_apache_felix_framework_security//jar",
         "//core/security:onos-security",

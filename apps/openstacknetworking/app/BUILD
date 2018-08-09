@@ -37,8 +37,8 @@ osgi_jar_with_tests(
     api_version = "1.0",
     bundle_classpath = get_openstack4j_deps_path() + get_jackson_deps_path(),
     import_packages = INCLUDE_PACKAGES + "," + EXCLUDE_PACKAGES + "," + ALL_PACKAGES,
-    test_deps = TEST_DEPS,
     medium_tests = ["src/test/java/org/onosproject/openstacknetworking/util/OpenstackNetworkingUtilTest"],
+    test_deps = TEST_DEPS,
     web_context = "/onos/openstacknetworking",
     deps = COMPILE_DEPS,
 )
