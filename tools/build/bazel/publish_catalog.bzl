@@ -18,7 +18,7 @@ def _impl(target, ctx):
     group_id = mvn[1]
     artifact_id = mvn[2]
     version = mvn[len(mvn) - 1]
-    packaging = "jar"
+    packaging = "oar" if target.label.name.endswith("-oar") else "jar"
     classifier = None
 
     if len(mvn) > 4:
