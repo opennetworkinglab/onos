@@ -20,6 +20,7 @@ import tempfile
 import hashlib
 import requests, os
 import xml.etree.ElementTree, shutil
+import time
 
 SONATYPE_USER=os.environ.get("SONATYPE_USER")
 SONATYPE_PASSWORD=os.environ.get("SONATYPE_PASSWORD")
@@ -41,6 +42,8 @@ CLOSE_REPO_REQUEST_TEMPLATE = '''\
     </data>
 </promoteRequest>
 '''
+
+CLOSE_RETRY_ATTEMPTS = 12 * 2
 
 def hashlib_compute(hash, input_file, output_file):
     with open(input_file, 'rb') as f:
@@ -104,6 +107,31 @@ def close_staging_repo(description, repo_id):
     url = "https://" + destination_repo_url + "/service/local/staging/profiles" + "/" + SONATYPE_PROFILE + "/finish"
     headers = {'Content-Type': 'application/xml'}
     r = requests.post(url, close_request, headers=headers, auth=(SONATYPE_USER, SONATYPE_PASSWORD))
+
+
+def wait_for_staging_repo(description, repo_id):
+    base_url = "https://" + destination_repo_url + "/service/local/staging/profiles" + "/" + SONATYPE_PROFILE
+    if repo_id is None:
+        return
+    close_request = CLOSE_REPO_REQUEST_TEMPLATE.replace("%(description)", description).replace("%(repo_id)", repo_id)
+    url = base_url + "/finish"
+    headers = {'Content-Type': 'application/xml'}
+    repo_query_url = "https://oss.sonatype.org/service/local/staging/repository/" + repo_id
+
+    attempt = 1
+    print ("waiting for repo to close...")
+    while True:
+        r = requests.get(repo_query_url, close_request, headers=headers, auth=(SONATYPE_USER, SONATYPE_PASSWORD))
+        root = xml.etree.ElementTree.fromstring(r.text)
+        transitioning = root.find("transitioning").text
+        if transitioning != "true":
+            break
+        if attempt == CLOSE_RETRY_ATTEMPTS:
+            print ("Unable to close repo")
+            sys.exit(1)
+        attempt = attempt + 1
+        time.sleep(5)
+    print ("Repo closed successfully")
 
 
 def stage_file(file, repo_id, dest):
@@ -188,4 +216,5 @@ if __name__ == '__main__':
         dest = s[1]
         upload_file(src, dest)
     close_staging_repo(repo_id=repo_id, description=description)
+    wait_for_staging_repo(repo_id=repo_id, description=description)
     shutil.rmtree(tempdir)

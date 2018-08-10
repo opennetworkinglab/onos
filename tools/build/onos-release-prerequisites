@@ -100,19 +100,6 @@ function testWikiAccess {
     echo "OK"
 }
 
-# Test access to EC2
-function testEC2Access {
-    aux=$(mktemp)
-    trap "cat $aux; rm -f $aux; echo 'FAILED'" ERR
-    printf "Checking EC2 access... "
-    : "${AWS_ACCESS_KEY_ID:?AWS_ACCESS_KEY_ID must be set}"
-    : "${AWS_SECRET_ACCESS_KEY:?AWS_SECRET_ACCESS_KEY must be set}"
-
-    uploadToS3.py -v 1>$aux 2>&1
-    rm -f $aux
-    echo "OK"
-}
-
 # Sonatype account must be created & ~/.m2/settings.xml must be configured
 # Test by "releasing" a fake project setup for that purpose to validate access.
 function testSonatypeAccessMvn {
@@ -155,40 +142,12 @@ function testSonatypeAccessRest {
     echo "OK"
 }
 
-# .buckconfig.local must exist and the sonatype credentials must be set up
-function testBuckconfigLocal() {
-    printf "Checking local buck config..."
-    if [ ! -f $ONOS_ROOT/.buckconfig.local ]; then
-        echo ".buckconfig.local not found"
-        return 1
-    fi
-
-    trap "echo [publish] must be specified" ERR
-    grep -q "^\[publish\]" $ONOS_ROOT/.buckconfig.local
-
-    trap "echo maven_url must be specified" ERR
-    grep -q "maven_url" $ONOS_ROOT/.buckconfig.local
-
-    trap "echo maven_user must be specified" ERR
-    grep -q "maven_user" $ONOS_ROOT/.buckconfig.local
-
-    trap "echo maven_password must be specified" ERR
-    grep -q "maven_password" $ONOS_ROOT/.buckconfig.local
-
-    trap "echo pgp_keyring must be specified" ERR
-    grep -q "pgp_keyring" $ONOS_ROOT/.buckconfig.local
-
-    echo "OK"
-}
-
-testBuckconfigLocal
 testToolchain
 testSnapshotDependencies
 testGerritAccess
 
 if [ ${dryRun} -eq 0 ]; then
     testWikiAccess
-    testEC2Access
     testSonatypeAccessMvn
     testSonatypeAccessRest
 fi
