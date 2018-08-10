@@ -22,6 +22,8 @@ export NEW_VERSION_SHORT=${NEW_VERSION%-SNAPSHOT}
 
 cd $ONOS_ROOT
 
+# TODO: Create a new branch for this activity?
+
 # Change the version
 onos-change-version $NEW_VERSION
 export ONOS_VERSION=$NEW_VERSION
@@ -30,29 +32,31 @@ export ONOS_VERSION=$NEW_VERSION
 onos-validate-change-version
 
 # Build ONOS & deploy to staging repo using the release profile.
-bazel build onos
-
-# Build ONOS docs
-bazel build //docs:internal //docs:external
+onos-buck build onos
 
 if [ $dryRun -eq 0 ]; then
-    publish_url="oss.sonatype.org"
+    time onos-buck-publish
 else
-    publish_url=""
+    time onos-buck-publish-local
 fi
 
-# Create artifact catalog
-onos-publish-catalog publishing-catalog
+# Build ONOS docs
+onos-buck build //docs:internal //docs:external
 
-# publish artifacts
-onos-upload-artifacts.py publishing-catalog ${publish_url}
+# Package test tar.gz
+onos-buck build //:onos-test
+
+# Package admin tar.gz
+onos-buck build //:onos-admin
 
 # Build ONOS archetypes & deploy to staging repo using the release profile.
 # Note that release of the staging repository is a separate manual step.
 if [ $dryRun -eq 0 ]; then
+    export MVN_CLI_OPTS=-Pstaging
     pushd tools/package/archetypes/
-    mvn -B -Pstaging clean install && onos-archetypes-test -Pstaging && mvn -Pstaging -Prelease clean deploy
+    mvn -B -Pstaging clean install && onos-archetypes-test && mvn -Pstaging -Prelease clean deploy
     popd
+    unset MVN_CLI_OPTS
 else
     pushd tools/package/archetypes/
     mvn -B clean install && onos-archetypes-test
@@ -64,3 +68,5 @@ if [ $dryRun -eq 0 ]; then
     git commit -a -m"Tagging $NEW_VERSION"
     git tag -sm"Tagging $NEW_VERSION" $NEW_VERSION #signed tag
 fi
+
+# TODO: push?

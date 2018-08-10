@@ -28,7 +28,7 @@ if [ "${DRY_RUN}" == "--dry-run" ]; then
 fi
 
 # Check that environment setup is correct
-# onos-release-prerequisites ${DRY_RUN}
+onos-release-prerequisites ${DRY_RUN}
 
 if [ ${IS_DRY_RUN} -eq 0 ]; then
     # Block commits to Gerrit

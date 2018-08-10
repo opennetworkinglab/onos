@@ -16,7 +16,7 @@ export NEW_VERSION_SHORT=${NEW_VERSION%-SNAPSHOT}
 cd $ONOS_ROOT
 
 # Augment the version of the main pom and the modules nested underneath.
-#mvn -B versions:set -DnewVersion=$NEW_VERSION versions:commit
+mvn -B versions:set -DnewVersion=$NEW_VERSION versions:commit
 mvn -B -f lib/pom.xml versions:set -DnewVersion=$NEW_VERSION versions:commit
 sed -i".VERBACK" -E "1,/<version>/s/<version>[^<]*</<version>$NEW_VERSION</g" pom.xml
 
@@ -51,9 +51,5 @@ mvn -B -f tools/build/conf/pom.xml versions:set -DnewVersion=$NEW_VERSION versio
 # Version the BUCK artifacts
 sed -i".VERBACK" -E "s/ONOS_VERSION.*/ONOS_VERSION = '$NEW_VERSION'/" onos.defs
 sed -i".VERBACK" -E "s/ONOS_VERSION=.*/ONOS_VERSION='$NEW_VERSION'/" tools/build/onos-prepare-sonar
-
-# Version the bazel artifacts
-sed -i".VERBACK" -E "s/ONOS_VERSION.*/ONOS_VERSION = \"$NEW_VERSION\"/" tools/build/bazel/variables.bzl
-sed -i".VERBACK" -E "s/ONOS_VERSION.*/ONOS_VERSION = \"$NEW_VERSION\"/" WORKSPACE
 
 find . -name "*.VERBACK" | xargs rm -f
