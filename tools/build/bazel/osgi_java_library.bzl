@@ -20,7 +20,12 @@ load("//tools/build/bazel:generate_test_rules.bzl", "generate_test_rules")
 load("//tools/build/bazel:checkstyle.bzl", "checkstyle_test")
 load("//tools/build/bazel:pom_file.bzl", "pom_file")
 load("//tools/build/bazel:java_sources.bzl", "java_sources")
+load("//tools/build/bazel:java_sources.bzl", "java_sources_alt")
 load("//tools/build/bazel:javadoc.bzl", "javadoc")
+load("@io_grpc_grpc_java//:java_grpc_library.bzl", "java_grpc_library")
+
+def _auto_name():
+    return "onos-" + native.package_name().replace("/", "-")
 
 def _all_java_sources():
     return native.glob(["src/main/java/**/*.java"])
@@ -381,7 +386,7 @@ def osgi_jar_with_tests(
         import_packages = None,
         bundle_classpath = ""):
     if name == None:
-        name = "onos-" + native.package_name().replace("/", "-")
+        name = _auto_name()
     if srcs == None:
         srcs = _all_java_sources()
     if resources == None:
@@ -572,4 +577,92 @@ def osgi_jar(
         api_package = api_package,
         web_context = web_context,
         bundle_classpath = bundle_classpath,
+    )
+
+
+"""
+    Creates an OSGI jar file from a set of protobuf and gRPC libraries.
+
+    Args:
+        name: Name of the rule to generate. Optional, defaults to a name based on the location in the source tree.
+              For example apps/mcast/app becomes onos-apps-mcast-app
+        proto_libs: (required) list of proto_library targets which generated Java classes will be included to this OSGi
+            jar. It is important that all the given targets reference to a single proto source files, for example
+            only the first 2 rules are good:
+
+            proto_library(
+                name = "foo_proto",
+                srcs = ["foo.proto"],
+            )
+
+            proto_library(
+                name = "bar_proto",
+                srcs = ["bar.proto"],
+            )
+
+            # THIS WILL NOT WORK
+            proto_library(
+                name = "foo_and_bar_proto",
+                srcs = ["foo.proto", "bar.proto"],
+            )
+
+        grpc_proto_lib: (optional) proto_library target that contains the schema of a gRPC service. If not passed,
+            the produced jar will NOT have any gRPC stub classes.
+        deps: Dependencies of the generated jar file. Expressed as a list of targets
+        group: Maven group ID for the resulting jar file. Optional, defaults to 'org.onosproject'
+        visibility: Visibility of the produced jar file to other BUILDs. Optional, defaults to public
+        version: Version of the generated jar file. Optional, defaults to the current ONOS version
+"""
+
+def osgi_proto_jar(
+        proto_libs,
+        grpc_proto_lib = None,
+        name = None,
+        deps = [],
+        group = "org.onosproject",
+        visibility = ["//visibility:public"],
+        version = ONOS_VERSION
+    ):
+    if name == None:
+        name = _auto_name()
+    native.java_proto_library(
+        name = name + "-java-proto",
+        deps = proto_libs,
+    )
+    java_sources_alt(
+        name = name + "-proto-srcjar",
+        srcs = [":%s-java-proto" % name],
+    )
+    osgi_srcs = [
+        ":%s-proto-srcjar" % name,
+    ]
+    base_deps = [
+        "@com_google_protobuf//:protobuf_java",
+    ]
+    if grpc_proto_lib != None:
+        grpc_java_lib = name + "-java-grpc"
+        java_grpc_library(
+            name = name + "-java-grpc",
+            srcs = [grpc_proto_lib],
+            deps = [":%s-java-proto" % name],
+        )
+        osgi_srcs.append(
+            ":%s-java-grpc__do_not_reference__srcjar" % name
+        )
+        base_deps.extend([
+            "@com_google_guava_guava//jar",
+            "@io_grpc_grpc_java//core",
+            "@io_grpc_grpc_java//stub",
+            "@io_grpc_grpc_java//protobuf",
+        ])
+    osgi_jar(
+        name = name,
+        srcs = osgi_srcs,
+        deps = base_deps + deps,
+        group = group,
+        visibility = visibility,
+        version = version,
+        suppress_errorprone = True,
+        suppress_checkstyle = True,
+        suppress_javadocs = True,
     )

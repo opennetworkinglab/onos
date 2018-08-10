@@ -7,7 +7,7 @@ COMPILE_DEPS = CORE_DEPS + KRYO + [
     "//protocols/gnmi/stub:gnmi_java_grpc",
     "//protocols/gnmi/stub:gnmi_java_proto",
     "//protocols/grpc/api:onos-protocols-grpc-api",
-    "//protocols/grpc/proto:dummy_java_grpc",
+    "//protocols/grpc/proto:onos-protocols-grpc-proto",
 ]
 
 BUNDLES = [

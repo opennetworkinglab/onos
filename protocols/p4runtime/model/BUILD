@@ -1,5 +1,5 @@
 COMPILE_DEPS = CORE_DEPS + [
-    "//protocols/p4runtime/proto:p4info_java_proto",
+    "//protocols/p4runtime/proto:onos-protocols-p4runtime-proto",
     "@com_google_protobuf//:protobuf_java",
 ]
 

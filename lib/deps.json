@@ -283,6 +283,13 @@
     "json": "mvn:org.json:json:jar:20090211",
     "engine.io-client": "mvn:io.socket:engine.io-client:jar:0.8.3",
 
+    // grpc related jars
+    "com_google_api_grpc_proto_google_common_protos": "mvn:com.google.api.grpc:proto-google-common-protos:1.0.0",
+    "com_google_errorprone_error_prone_annotations": "mvn:com.google.errorprone:error_prone_annotations:2.1.2",
+    "com_google_auth_google_auth_library_credentials": "mvn:com.google.auth:google-auth-library-credentials:0.9.0",
+    "io_opencensus_opencensus_api": "mvn:io.opencensus:opencensus-api:0.12.3",
+    "io_opencensus_opencensus_contrib_grpc_metrics": "mvn:io.opencensus:opencensus-contrib-grpc-metrics:0.12.3",
+
     // Openstack4j related jars
     "openstack4j-core": "mvn:org.pacesys:openstack4j-core:3.1.0",
     "openstack4j-http-connector": "mvn:org.pacesys.openstack4j.connectors:openstack4j-http-connector:3.1.0",
@@ -318,6 +325,7 @@
 
     // Included merely for packaging purposes into run-time.
     "runtime-grpc-core":"mvn:io.grpc:grpc-core:1.14.0",
+    "runtime-grpc-context":"mvn:io.grpc:grpc-context:1.14.0",
     "runtime-grpc-stub":"mvn:io.grpc:grpc-stub:1.14.0",
     "runtime-grpc-netty":"mvn:io.grpc:grpc-netty:1.14.0",
     "runtime-grpc-auth":"mvn:io.grpc:grpc-auth:1.14.0",

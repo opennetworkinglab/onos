@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option java_package = "org.onosproject.grpc.ctl.dummy";
+option java_package = "org.onosproject.grpc.proto.dummy";
 
 package dummy;
 

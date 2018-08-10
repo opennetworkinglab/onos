@@ -33,10 +33,58 @@ def _impl(ctx):
       command = ";\n".join(cmd)
   )
 
+def _impl_alt(ctx):
+    ending = "-src.jar"
+    src_files = []
+    out_files = []
+    if len(ctx.files.srcs) == 0:
+        fail("Cannot generate source jars from and empty input")
+    for src in ctx.files.srcs:
+        if src.path.endswith(ending):
+            prefix = src.path[:-len(ending)]
+            src_files.append(src)
+            out_file = ctx.actions.declare_file(prefix + ".srcjar")
+            out_files.append(out_file)
+    if len(src_files) == 0:
+            fail("None of the given input files is a valid source jar (%s)"
+                % ", ".join([s.path for s in ctx.files.srcs]))
+    for i in range(len(src_files)):
+        cmd = "cp %s %s" % (src_files[i].path, out_files[i].path)
+        ctx.actions.run_shell(
+            inputs = [src_files[i]],
+            outputs = [out_files[i]],
+            progress_message = "Generating source jar %s" %  out_files[i].basename,
+            command = cmd
+        )
+    return DefaultInfo(files = depset(out_files))
+
+"""
+Creates a single source jar file from a set of .srcjar files.
+
+Args:
+    srcs: List of source files. Only files ending with .srcjar will be considered.
+"""
+
 java_sources = rule(
     attrs = {
         "srcs": attr.label_list(allow_files = True),
     },
     implementation = _impl,
     outputs = {"jar" : "%{name}.jar"},
+)
+
+"""
+Returns a collection of source jar files ending with .srcjar from the given list of java_library or file labels.
+Input files are expected to end with "-src.jar".
+
+Args:
+    srcs: List of java_library labels.
+
+"""
+
+java_sources_alt = rule(
+    attrs = {
+        "srcs": attr.label_list(allow_files = True),
+    },
+    implementation = _impl_alt,
 )

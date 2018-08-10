@@ -2,18 +2,12 @@ COMPILE_DEPS = CORE_DEPS + KRYO + [
     "//core/store/serializers:onos-core-serializers",
     "//protocols/grpc/api:onos-protocols-grpc-api",
     "//protocols/p4runtime/api:onos-protocols-p4runtime-api",
-    "//protocols/p4runtime/proto:p4config_java_proto",
-    "//protocols/p4runtime/proto:p4data_java_proto",
-    "//protocols/p4runtime/proto:p4info_java_proto",
-    "//protocols/p4runtime/proto:p4runtime_java_grpc",
-    "//protocols/p4runtime/proto:p4runtime_java_proto",
-    "//protocols/p4runtime/proto:status_java_proto",
+    "//protocols/p4runtime/proto:onos-protocols-p4runtime-proto",
     "@com_google_protobuf//:protobuf_java",
-    "@io_grpc_grpc_java//context",
-    "@io_grpc_grpc_java//core",
+    "//protocols/grpc:grpc-core-repkg",
     "@io_grpc_grpc_java//netty",
     "@io_grpc_grpc_java//stub",
-    "@io_grpc_grpc_java_core_repkg//:internal",
+    "@com_google_api_grpc_proto_google_common_protos//jar",
 ]
 
 TEST_DEPS = TEST + [
