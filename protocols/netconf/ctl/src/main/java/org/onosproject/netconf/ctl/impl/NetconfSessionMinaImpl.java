@@ -410,7 +410,10 @@ public class NetconfSessionMinaImpl extends AbstractNetconfSession {
     @Override
     public String requestSync(String request) throws NetconfException {
         String reply = sendRequest(request);
-        checkReply(reply);
+        if (!checkReply(reply)) {
+            throw new NetconfException("Request not successful with device "
+                    + deviceInfo + " with reply " + reply);
+        }
         return reply;
     }
 
@@ -494,7 +497,10 @@ public class NetconfSessionMinaImpl extends AbstractNetconfSession {
                             throw new NetconfTransportException(t);
                         } else {
                             // FIXME avoid using checkReply, error handling is weird
-                            checkReply(reply);
+                            if (!checkReply(reply)) {
+                                throw new NetconfTransportException("rpc-request not successful with device "
+                                        + deviceInfo + " with reply " + reply);
+                            }
                             return reply;
                         }
                     }, SharedExecutors.getPoolThreadExecutor());
