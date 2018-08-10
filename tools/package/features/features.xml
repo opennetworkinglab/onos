@@ -59,17 +59,17 @@
         <bundle>mvn:com.typesafe/config/1.3.2</bundle>
         <bundle>mvn:com.googlecode.concurrent-trees/concurrent-trees/2.6.0</bundle>
         <bundle>mvn:commons-io/commons-io/2.4</bundle>
-        <bundle>mvn:io.atomix/atomix/3.0.0-rc10</bundle>
-        <bundle>mvn:io.atomix/atomix-cluster/3.0.0-rc10</bundle>
-        <bundle>mvn:io.atomix/atomix-gossip/3.0.0-rc10</bundle>
-        <bundle>mvn:io.atomix/atomix-primary-backup/3.0.0-rc10</bundle>
-        <bundle>mvn:io.atomix/atomix-primitive/3.0.0-rc10</bundle>
-        <bundle>mvn:io.atomix/atomix-raft/3.0.0-rc10</bundle>
-        <bundle>mvn:io.atomix/atomix-storage/3.0.0-rc10</bundle>
-        <bundle>mvn:io.atomix/atomix-utils/3.0.0-rc10</bundle>
+        <bundle>mvn:io.atomix/atomix/3.0.0-rc11</bundle>
+        <bundle>mvn:io.atomix/atomix-cluster/3.0.0-rc11</bundle>
+        <bundle>mvn:io.atomix/atomix-gossip/3.0.0-rc11</bundle>
+        <bundle>mvn:io.atomix/atomix-primary-backup/3.0.0-rc11</bundle>
+        <bundle>mvn:io.atomix/atomix-primitive/3.0.0-rc11</bundle>
+        <bundle>mvn:io.atomix/atomix-raft/3.0.0-rc11</bundle>
+        <bundle>mvn:io.atomix/atomix-storage/3.0.0-rc11</bundle>
+        <bundle>mvn:io.atomix/atomix-utils/3.0.0-rc11</bundle>
 
         <bundle>mvn:com.typesafe/config/1.3.2</bundle>
-        <bundle>mvn:io.github.classgraph/classgraph/4.0.3</bundle>
+        <bundle>mvn:io.github.classgraph/classgraph/4.0.6</bundle>
         <bundle>mvn:io.github.lukehutch/fast-classpath-scanner/2.21</bundle>
 
         <bundle>mvn:org.glassfish.jersey.core/jersey-client/2.26</bundle>

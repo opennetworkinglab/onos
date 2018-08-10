@@ -47,7 +47,7 @@ ssh -tt $remote "
     [ -f $ATOMIX_INSTALL_DIR/bin/atomix-agent ] && echo \"Atomix is already installed\" && exit 1
 
     sudo mkdir -p $ATOMIX_INSTALL_DIR && sudo chown ${ONOS_USER}:${ONOS_GROUP} $ATOMIX_INSTALL_DIR
-    sudo wget -O $ATOMIX_INSTALL_DIR/atomix-dist.tar.gz https://oss.sonatype.org/content/repositories/releases/io/atomix/atomix-dist/3.0.0-rc10/atomix-dist-3.0.0-rc10.tar.gz
+    sudo wget -O $ATOMIX_INSTALL_DIR/atomix-dist.tar.gz https://oss.sonatype.org/content/repositories/releases/io/atomix/atomix-dist/3.0.0-rc11/atomix-dist-3.0.0-rc11.tar.gz
     tar -xvf $ATOMIX_INSTALL_DIR/atomix-dist.tar.gz -C $ATOMIX_INSTALL_DIR
 "
 
