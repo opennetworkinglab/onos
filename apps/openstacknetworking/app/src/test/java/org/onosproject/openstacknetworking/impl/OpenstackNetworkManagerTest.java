@@ -31,6 +31,7 @@ import org.onosproject.event.Event;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceServiceAdapter;
 import org.onosproject.net.packet.PacketServiceAdapter;
+import org.onosproject.openstacknetworking.api.InstancePortAdminService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkEvent;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkListener;
@@ -677,7 +678,8 @@ public class OpenstackNetworkManagerTest {
         }
 
         @Override
-        public void unsubscribePreCommit(String subject, Type eventType, String className) {
+        public void unsubscribePreCommit(String subject, Type eventType,
+                                         InstancePortAdminService service, String className) {
 
         }
 

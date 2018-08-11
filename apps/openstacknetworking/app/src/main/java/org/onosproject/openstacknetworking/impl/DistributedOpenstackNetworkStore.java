@@ -262,38 +262,6 @@ public class DistributedOpenstackNetworkStore
 
     @Override
     public Port removePort(String portId) {
-
-        Port port = osPortStore.asJavaMap().get(portId);
-
-        if (port == null) {
-            return null;
-        }
-
-        eventExecutor.execute(() ->
-                notifyDelegate(new OpenstackNetworkEvent(
-                        OPENSTACK_PORT_PRE_REMOVE,
-                        network(port.getNetworkId()), port))
-        );
-
-        log.debug("Prepare OpenStack port remove");
-
-        long timeoutExpiredMs = System.currentTimeMillis() + TIMEOUT_MS;
-
-        while (true) {
-
-            long waitMs = timeoutExpiredMs - System.currentTimeMillis();
-
-            if (preCommitPortService.subscriberCountByEventType(
-                    portId, OPENSTACK_PORT_PRE_REMOVE) == 0) {
-                break;
-            }
-
-            if (waitMs <= 0) {
-                log.debug("Timeout waiting for port removal.");
-                break;
-            }
-        }
-
         Versioned<Port> osPort = osPortStore.remove(portId);
         return osPort == null ? null : osPort.value();
     }
@@ -417,6 +385,14 @@ public class DistributedOpenstackNetworkStore
                     break;
                 case REMOVE:
                     log.debug("OpenStack port removed");
+
+                    eventExecutor.execute(() ->
+                            notifyDelegate(new OpenstackNetworkEvent(
+                                    OPENSTACK_PORT_PRE_REMOVE,
+                                    network(event.oldValue().value().getNetworkId()),
+                                    event.oldValue().value()))
+                    );
+
                     eventExecutor.execute(() ->
                         notifyDelegate(new OpenstackNetworkEvent(
                                 OPENSTACK_PORT_REMOVED,

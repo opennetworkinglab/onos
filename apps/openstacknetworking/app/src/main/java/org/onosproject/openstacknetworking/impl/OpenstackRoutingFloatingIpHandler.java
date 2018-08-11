@@ -171,26 +171,21 @@ public class OpenstackRoutingFloatingIpHandler {
         log.info("Stopped");
     }
 
-    private void setFloatingIpRules(NetFloatingIP floatingIp, Port osPort,
+    private void setFloatingIpRules(NetFloatingIP floatingIp, InstancePort instPort,
                                     OpenstackNode gateway, boolean install) {
-        Network osNet = osNetworkService.network(osPort.getNetworkId());
+
+        if (instPort == null) {
+            log.debug("No instance port found");
+            return;
+        }
+
+        Network osNet = osNetworkService.network(instPort.networkId());
 
         if (osNet == null) {
             final String errorFormat = ERR_FLOW + "no network(%s) exists";
             final String error = String.format(errorFormat,
                     floatingIp.getFloatingIpAddress(),
-                    osPort.getNetworkId());
-            throw new IllegalStateException(error);
-        }
-
-        MacAddress srcMac = MacAddress.valueOf(osPort.getMacAddress());
-        log.trace("Mac address of openstack port: {}", srcMac);
-        InstancePort instPort = instancePortService.instancePort(srcMac);
-
-        if (instPort == null) {
-            final String errorFormat = ERR_FLOW + "no host(MAC:%s) found";
-            final String error = String.format(errorFormat,
-                    floatingIp.getFloatingIpAddress(), srcMac);
+                    instPort.networkId());
             throw new IllegalStateException(error);
         }
 
@@ -201,13 +196,13 @@ public class OpenstackRoutingFloatingIpHandler {
         }
 
         if (install) {
-            preCommitPortService.subscribePreCommit(osPort.getId(),
+            preCommitPortService.subscribePreCommit(instPort.portId(),
                     OPENSTACK_PORT_PRE_REMOVE, this.getClass().getName());
-            log.info("Subscribed the port {} on listening pre-remove event", osPort.getId());
+            log.info("Subscribed the port {} on listening pre-remove event", instPort.portId());
         } else {
-            preCommitPortService.unsubscribePreCommit(osPort.getId(),
-                    OPENSTACK_PORT_PRE_REMOVE, this.getClass().getName());
-            log.info("Unsubscribed the port {} on listening pre-remove event", osPort.getId());
+            preCommitPortService.unsubscribePreCommit(instPort.portId(),
+                    OPENSTACK_PORT_PRE_REMOVE, instancePortService, this.getClass().getName());
+            log.info("Unsubscribed the port {} on listening pre-remove event", instPort.portId());
         }
 
         updateComputeNodeRules(instPort, osNet, gateway, install);
@@ -601,42 +596,32 @@ public class OpenstackRoutingFloatingIpHandler {
     }
 
     private void associateFloatingIp(NetFloatingIP osFip) {
-        Port osPort = osNetworkService.port(osFip.getPortId());
-        if (osPort == null) {
-            final String errorFormat = ERR_FLOW + "port(%s) not found";
-            final String error = String.format(errorFormat,
-                    osFip.getFloatingIpAddress(), osFip.getPortId());
-            throw new IllegalStateException(error);
+        InstancePort instPort = instancePortService.instancePort(osFip.getPortId());
+
+        if (instPort == null) {
+            log.warn("Failed to insert floating IP rule for {} due to missing of port info.",
+                    osFip.getFloatingIpAddress());
+            return;
         }
+
         // set floating IP rules only if the port is associated to a VM
-        if (!Strings.isNullOrEmpty(osPort.getDeviceId())) {
-
-            if (instancePortService.instancePort(osPort.getId()) == null) {
-                return;
-            }
-
-            setFloatingIpRules(osFip, osPort, null, true);
+        if (!Strings.isNullOrEmpty(instPort.deviceId().toString())) {
+            setFloatingIpRules(osFip, instPort, null, true);
         }
     }
 
     private void disassociateFloatingIp(NetFloatingIP osFip, String portId) {
-        Port osPort = osNetworkService.port(portId);
+        InstancePort instPort = instancePortService.instancePort(portId);
 
-        if (osPort == null) {
-            final String errorFormat = ERR_FLOW + "port(%s) not found";
-            final String error = String.format(errorFormat,
-                    osFip.getFloatingIpAddress(), osFip.getPortId());
-            throw new IllegalStateException(error);
+        if (instPort == null) {
+            log.warn("Failed to remove floating IP rule for {} due to missing of port info.",
+                    osFip.getFloatingIpAddress());
+            return;
         }
 
         // set floating IP rules only if the port is associated to a VM
-        if (!Strings.isNullOrEmpty(osPort.getDeviceId())) {
-
-            if (instancePortService.instancePort(osPort.getId()) == null) {
-                return;
-            }
-
-            setFloatingIpRules(osFip, osPort, null, false);
+        if (!Strings.isNullOrEmpty(instPort.deviceId().toString())) {
+            setFloatingIpRules(osFip, instPort, null, false);
         }
     }
 
@@ -693,7 +678,8 @@ public class OpenstackRoutingFloatingIpHandler {
                             // since we skip floating IP disassociation, we need to
                             // manually unsubscribe the port pre-remove event
                             preCommitPortService.unsubscribePreCommit(osFip.getPortId(),
-                                    OPENSTACK_PORT_PRE_REMOVE, this.getClass().getName());
+                                    OPENSTACK_PORT_PRE_REMOVE, instancePortService,
+                                    this.getClass().getName());
                             log.info("Unsubscribed the port {} on listening pre-remove event", osFip.getPortId());
                         }
                         log.info("Removed floating IP {}", osFip.getFloatingIpAddress());
@@ -738,16 +724,14 @@ public class OpenstackRoutingFloatingIpHandler {
                             }
 
                             Port osPort = osNetworkService.port(fip.getPortId());
-                            if (osPort == null) {
-                                log.warn("Failed to set floating IP {}", fip.getId());
+                            InstancePort instPort = instancePortService.instancePort(fip.getPortId());
+
+                            // we check both Openstack Port and Instance Port
+                            if (osPort == null || instPort == null) {
                                 continue;
                             }
 
-                            if (instancePortService.instancePort(fip.getPortId()) == null) {
-                                continue;
-                            }
-
-                            setFloatingIpRules(fip, osPort, event.subject(), true);
+                            setFloatingIpRules(fip, instPort, event.subject(), true);
                         }
                     });
                     break;
@@ -838,14 +822,10 @@ public class OpenstackRoutingFloatingIpHandler {
             switch (event.type()) {
                 case OPENSTACK_INSTANCE_PORT_DETECTED:
                     if (instPort != null && instPort.portId() != null) {
-                        String portId = instPort.portId();
-
-                        Port port = osNetworkService.port(portId);
-
                         osRouterAdminService.floatingIps().stream()
                                 .filter(f -> f.getPortId() != null)
                                 .filter(f -> f.getPortId().equals(instPort.portId()))
-                                .forEach(f -> setFloatingIpRules(f, port, null, true));
+                                .forEach(f -> setFloatingIpRules(f, instPort, null, true));
                     }
 
                     break;
@@ -960,10 +940,6 @@ public class OpenstackRoutingFloatingIpHandler {
                     eventExecutor.execute(() ->
                             updateFipStore(instancePortService.instancePort(event.port().getId()))
                     );
-                    break;
-                case OPENSTACK_PORT_REMOVED:
-                    eventExecutor.execute(() ->
-                            instancePortService.removeInstancePort(event.port().getId()));
                     break;
                 default:
                     break;

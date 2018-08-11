@@ -18,7 +18,7 @@ package org.onosproject.openstacknetworking.api;
 /**
  * Handles precommit request.
  */
-public interface PreCommitService<T, E> {
+public interface PreCommitService<T, E, S> {
 
     /**
      * Subscribes pre-update event for the given subject inside the given class.
@@ -34,9 +34,10 @@ public interface PreCommitService<T, E> {
      *
      * @param subject       subject to unsubscribe
      * @param eventType     event type (update or remove)
+     * @param service       service instance
      * @param className     target class name
      */
-    void unsubscribePreCommit(T subject, E eventType, String className);
+    void unsubscribePreCommit(T subject, E eventType, S service, String className);
 
     /**
      * Obtains the count value of subscribers for the given subject and event type.

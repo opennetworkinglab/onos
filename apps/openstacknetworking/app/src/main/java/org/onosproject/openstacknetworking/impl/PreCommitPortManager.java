@@ -24,6 +24,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.openstacknetworking.api.InstancePortAdminService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkEvent;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type;
 import org.onosproject.openstacknetworking.api.PreCommitPortService;
@@ -106,7 +107,8 @@ public class PreCommitPortManager implements PreCommitPortService {
     }
 
     @Override
-    public void unsubscribePreCommit(String portId, Type eventType, String className) {
+    public void unsubscribePreCommit(String portId, Type eventType,
+                                     InstancePortAdminService service, String className) {
 
         store.computeIfPresent(portId, (k, v) -> {
 
@@ -121,6 +123,10 @@ public class PreCommitPortManager implements PreCommitPortService {
 
             return v;
         });
+
+        if (subscriberCountByEventType(portId, eventType) == 0) {
+            service.removeInstancePort(portId);
+        }
     }
 
     @Override
