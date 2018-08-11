@@ -3,8 +3,7 @@
 # Creates a tempdir for release and checks out the code
 # --------------------------------------------------------
 
-set -e
-set -x
+set -eu -o pipefail
 
 GERRIT_USER=${GERRIT_USER:-$USER}
 BRANCH=${2:-master}
@@ -31,14 +30,15 @@ git checkout $BRANCH
 git tag -l | grep -q "$ONOS_VERSION\$" &&
   { echo "ERROR: Version already exists"; exit -1; }
 
-# Copy local buck configuration to new tree
-cp $ONOS_ROOT/.buckconfig.local $DIR/
-
 export ONOS_ROOT=$DIR
 # This is a hack to remove symlinks from the ONOS_ROOT path. To be removed when
 # the protobuf buck rules can handle symlinks
 ONOS_ROOT=$(pushd $ONOS_ROOT >/dev/null && pwd -P && popd >/dev/null)
 . $ONOS_ROOT/tools/build/envDefaults
+
+# cause any accidental invocation of buck to fail
+ln -s /tmp/no/such/directory $DIR/buck-out
+
 exec bash $COMMAND
 
 # TODO on exit, print "leaving directory"

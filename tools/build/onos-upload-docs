@@ -11,10 +11,10 @@ set -e
 user=${1:-${WIKI_USER:-$USER}}
 remote=$user@api.onosproject.org
 
-docs=$(onos-buck build //docs:external --show-output 2>/dev/null | tail -1 | cut -d\  -f2)
+docs="bazel-bin/docs/external.jar"
 
 ONOS_VERSION_STRING=$ONOS_VERSION
-if echo $ONOS_VERSION_STRING | grep '-b'; then
+if echo $ONOS_VERSION_STRING | grep -- '-b'; then
     echo "ONOS version $ONOS_VERSION_STRING is a beta. Skipping"
     exit 0
 fi
@@ -32,7 +32,7 @@ else
     replace="0"
 fi
 
-if echo $ONOS_VERSION_STRING | grep '-'; then
+if echo $ONOS_VERSION_STRING | grep -- '-'; then
     echo "ONOS version $ONOS_VERSION_STRING is a beta or RC. Not replacing default document set."
     replace="0"
 fi

@@ -25,10 +25,10 @@ mkdir -p $AROOT
 for an in api bundle cli rest ui uitab uitopo; do
     cd $AROOT
     rm -fr $AROOT/foo-$an
-    mvn archetype:generate $MVN_CLI_OPTS $ARCHETYPE_OPTS \
+    mvn archetype:generate "$@" $ARCHETYPE_OPTS \
         -DarchetypeArtifactId=onos-$an-archetype \
         -DgroupId=org.foo -DartifactId=foo-$an -Dversion=1.0 \
         -Dpackage=org.foo.$an -DinteractiveMode=false
     cd $AROOT/foo-$an
-    mvn $MVN_CLI_OPTS clean install
+    mvn "$@" clean install
 done

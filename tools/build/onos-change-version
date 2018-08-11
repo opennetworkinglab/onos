@@ -52,4 +52,8 @@ mvn -B -f tools/build/conf/pom.xml versions:set -DnewVersion=$NEW_VERSION versio
 sed -i".VERBACK" -E "s/ONOS_VERSION.*/ONOS_VERSION = '$NEW_VERSION'/" onos.defs
 sed -i".VERBACK" -E "s/ONOS_VERSION=.*/ONOS_VERSION='$NEW_VERSION'/" tools/build/onos-prepare-sonar
 
+# Version the bazel artifacts
+sed -i".VERBACK" -E "s/ONOS_VERSION.*/ONOS_VERSION = \"$NEW_VERSION\"/" tools/build/bazel/variables.bzl
+sed -i".VERBACK" -E "s/ONOS_VERSION.*/ONOS_VERSION = \"$NEW_VERSION\"/" WORKSPACE
+
 find . -name "*.VERBACK" | xargs rm -f
