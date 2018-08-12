@@ -984,10 +984,15 @@ public class DefaultGroupHandler {
                                     .setMpls(MplsLabel.mplsLabel(edgeLabel));
                         }
                     }
+
+                    // Set VLAN ID for PW transport. Otherwise pop vlan
                     if ((ds.getTypeOfDstSet() == DestinationSet.DestinationSetType.SWAP_NOT_BOS) ||
                          (ds.getTypeOfDstSet() == DestinationSet.DestinationSetType.POP_NOT_BOS)) {
                         tBuilder.setVlanId(srManager.PSEUDOWIRE_VLAN);
+                    } else {
+                        tBuilder.popVlan();
                     }
+
                     tBuilder.setOutput(sp);
                     nextObjBuilder.addTreatment(tBuilder.build());
                     treatmentAdded = true;
