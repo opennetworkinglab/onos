@@ -49,7 +49,7 @@ public final class PseudowireCodec extends JsonCodec<DefaultL2TunnelDescription>
     private static final String CP1_INNER_TAG = "cP1InnerTag";
     private static final String CP1_OUTER_TAG = "cP1OuterTag";
     private static final String CP2_INNER_TAG = "cP2InnerTag";
-    private static final String CP2_OUTER_TAG = "cP2OouterTag";
+    private static final String CP2_OUTER_TAG = "cP2OuterTag";
     private static final String MODE = "mode";
     private static final String SERVICE_DELIM_TAG = "serviceTag";
     private static final String PW_LABEL = "pwLabel";
