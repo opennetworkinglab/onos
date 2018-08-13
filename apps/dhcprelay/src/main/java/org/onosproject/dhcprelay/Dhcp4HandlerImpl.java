@@ -1593,6 +1593,7 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
             switch (event.type()) {
                 case HOST_ADDED:
                 case HOST_UPDATED:
+                case HOST_MOVED:
                     log.trace("Scheduled host event {}", event);
                     hostEventExecutor.execute(() -> hostUpdated(event.subject()));
                     break;

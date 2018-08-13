@@ -22,6 +22,7 @@ import org.onlab.packet.DHCP6.MsgType;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.VlanId;
+import org.onlab.packet.dhcp.Dhcp6ClientIdOption;
 import org.onlab.packet.dhcp.Dhcp6RelayOption;
 import org.onlab.packet.dhcp.Dhcp6Option;
 
@@ -610,5 +611,35 @@ public final class Dhcp6HandlerUtil {
             return false;
         }
         return true;
+    }
+
+    /**
+     * extract from dhcp6 packet ClientIdOption.
+     *
+     * @param directConnFlag directly connected host
+     * @param dhcp6Payload the dhcp6 payload
+     * @return Dhcp6ClientIdOption clientIdOption, or null if not exists.
+     */
+    static Dhcp6ClientIdOption extractClientId(Boolean directConnFlag, DHCP6 dhcp6Payload) {
+        Dhcp6ClientIdOption clientIdOption;
+
+        if (directConnFlag) {
+            clientIdOption = dhcp6Payload.getOptions()
+                    .stream()
+                    .filter(opt -> opt instanceof Dhcp6ClientIdOption)
+                    .map(opt -> (Dhcp6ClientIdOption) opt)
+                    .findFirst()
+                    .orElse(null);
+        } else {
+            DHCP6 leafDhcp = Dhcp6HandlerUtil.getDhcp6Leaf(dhcp6Payload);
+            clientIdOption = leafDhcp.getOptions()
+                    .stream()
+                    .filter(opt -> opt instanceof Dhcp6ClientIdOption)
+                    .map(opt -> (Dhcp6ClientIdOption) opt)
+                    .findFirst()
+                    .orElse(null);
+        }
+
+        return clientIdOption;
     }
 }

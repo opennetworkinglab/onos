@@ -126,7 +126,6 @@ import static org.onosproject.net.flowobjective.Objective.Operation.ADD;
 import static org.onosproject.net.flowobjective.Objective.Operation.REMOVE;
 import java.util.concurrent.Semaphore;
 
-
 @Component
 @Service
 @Property(name = "version", value = "6")
@@ -696,36 +695,6 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
     }
 
     /**
-     * extract from dhcp6 packet ClientIdOption.
-     *
-     * @param directConnFlag directly connected host
-     * @param dhcp6Payload the dhcp6 payload
-     * @return Dhcp6ClientIdOption clientIdOption, or null if not exists.
-     */
-    private Dhcp6ClientIdOption extractClinedId(Boolean directConnFlag, DHCP6 dhcp6Payload) {
-        Dhcp6ClientIdOption clientIdOption;
-
-        if (directConnFlag) {
-            clientIdOption = dhcp6Payload.getOptions()
-                    .stream()
-                    .filter(opt -> opt instanceof Dhcp6ClientIdOption)
-                    .map(opt -> (Dhcp6ClientIdOption) opt)
-                    .findFirst()
-                    .orElse(null);
-        } else {
-            DHCP6 leafDhcp = Dhcp6HandlerUtil.getDhcp6Leaf(dhcp6Payload);
-            clientIdOption = leafDhcp.getOptions()
-                    .stream()
-                    .filter(opt -> opt instanceof Dhcp6ClientIdOption)
-                    .map(opt -> (Dhcp6ClientIdOption) opt)
-                    .findFirst()
-                    .orElse(null);
-        }
-
-        return clientIdOption;
-    }
-
-    /**
      * remove host or route and update dhcp relay record attributes.
      *
      * @param directConnFlag  flag to show that packet is from directly connected client
@@ -746,7 +715,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
         byte leafMsgType;
         log.debug("client mac {} client vlan {}", HexString.toHexString(srcMac.toBytes(), ":"), vlanId);
 
-        Dhcp6ClientIdOption clientIdOption = extractClinedId(directConnFlag, dhcp6Packet);
+        Dhcp6ClientIdOption clientIdOption = Dhcp6HandlerUtil.extractClientId(directConnFlag, dhcp6Packet);
         if (clientIdOption != null) {
             if ((clientIdOption.getDuid().getDuidType() == Dhcp6Duid.DuidType.DUID_LLT) ||
                     (clientIdOption.getDuid().getDuidType() == Dhcp6Duid.DuidType.DUID_LL)) {
@@ -895,7 +864,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
         MacAddress leafClientMac;
         Byte leafMsgType;
 
-        Dhcp6ClientIdOption clientIdOption = extractClinedId(directConnFlag, embeddedDhcp6);
+        Dhcp6ClientIdOption clientIdOption = Dhcp6HandlerUtil.extractClientId(directConnFlag, embeddedDhcp6);
         if (clientIdOption != null) {
             log.debug("CLIENTID option found {}", clientIdOption);
             if ((clientIdOption.getDuid().getDuidType() == Dhcp6Duid.DuidType.DUID_LLT) ||
@@ -1048,8 +1017,14 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
         List<DhcpServerInfo> serverInfoList = findValidServerInfo(directConnFlag);
 
         for (DhcpServerInfo dhcpServer : serverInfoList) {
+            Interface serverInterface = getServerInterface(dhcpServer);
+            if (serverInterface == null) {
+                log.warn("Can't get server interface, ignore");
+                continue;
+            }
+
             Ethernet newPacket = Dhcp6HandlerUtil.buildDhcp6PacketFromClient(context,
-                    clientPacket, clientInterfaces, dhcpServer, getServerInterface(dhcpServer));
+                    clientPacket, clientInterfaces, dhcpServer, serverInterface);
             log.trace("Built packet for server {} : {}", dhcpServer, newPacket);
             internalPackets.add(InternalPacket.internalPacket(newPacket,
                     dhcpServer.getDhcpServerConnectPoint().get()));
@@ -1430,6 +1405,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
             switch (event.type()) {
                 case HOST_ADDED:
                 case HOST_UPDATED:
+                case HOST_MOVED:
                     log.trace("Scheduled host event {}", event);
                     hostEventExecutor.execute(() -> hostUpdated(event.subject()));
                     break;
