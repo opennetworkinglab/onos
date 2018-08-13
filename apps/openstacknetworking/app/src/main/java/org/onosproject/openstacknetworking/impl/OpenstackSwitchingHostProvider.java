@@ -46,6 +46,7 @@ import org.onosproject.net.host.HostProviderService;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
+import org.onosproject.openstacknetworking.api.Constants;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeEvent;
@@ -69,7 +70,10 @@ import static org.onosproject.openstacknetworking.api.Constants.ANNOTATION_NETWO
 import static org.onosproject.openstacknetworking.api.Constants.ANNOTATION_PORT_ID;
 import static org.onosproject.openstacknetworking.api.Constants.ANNOTATION_SEGMENT_ID;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
+import static org.onosproject.openstacknetworking.api.Constants.PORT_NAME_PREFIX_VM;
+import static org.onosproject.openstacknetworking.api.Constants.PORT_NAME_VHOST_USER_PREFIX_VM;
 import static org.onosproject.openstacknetworking.api.Constants.portNamePrefixMap;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.vnicType;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.CONTROLLER;
 
 @Service
@@ -79,7 +83,6 @@ public final class OpenstackSwitchingHostProvider
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private static final String PORT_NAME_PREFIX_VM = "tap";
     private static final String ERR_ADD_HOST = "Failed to add host: ";
     private static final String SONA_HOST_SCHEME = "sona";
 
@@ -315,7 +318,9 @@ public final class OpenstackSwitchingHostProvider
             String portName = port.annotations().value(PORT_NAME);
 
             return !Strings.isNullOrEmpty(portName) &&
-                    (portName.startsWith(PORT_NAME_PREFIX_VM) || isDirectPort(portName));
+                    (portName.startsWith(PORT_NAME_PREFIX_VM) ||
+                            isDirectPort(portName) ||
+                            portName.startsWith(PORT_NAME_VHOST_USER_PREFIX_VM));
         }
 
         private boolean isDirectPort(String portName) {
@@ -385,27 +390,15 @@ public final class OpenstackSwitchingHostProvider
 
         private void processCompleteNode(OpenstackNode osNode) {
             deviceService.getPorts(osNode.intgBridge()).stream()
-                    .filter(port -> port.annotations().value(PORT_NAME)
-                            .startsWith(PORT_NAME_PREFIX_VM) &&
-                            port.isEnabled())
+                    .filter(port -> vnicType(port.annotations().value(PORT_NAME)).equals(Constants.VnicType.NORMAL) ||
+                            vnicType(port.annotations().value(PORT_NAME)).equals(Constants.VnicType.DIRECT))
+                    .filter(Port::isEnabled)
                     .forEach(port -> {
                         log.debug("Instance port {} is detected from {}",
                                 port.annotations().value(PORT_NAME),
                                 osNode.hostname());
                         processPortAdded(port);
                     });
-
-            portNamePrefixMap().values().forEach(portNamePrefix ->
-                    deviceService.getPorts(osNode.intgBridge()).stream()
-                    .filter(port -> port.annotations().value(PORT_NAME)
-                            .startsWith(portNamePrefix) &&
-                            port.isEnabled())
-                    .forEach(port -> {
-                        log.debug("Instance port {} is detected from {}",
-                                port.annotations().value(portNamePrefix),
-                                osNode.hostname());
-                        processPortAdded(port);
-                    }));
 
             Tools.stream(hostService.getHosts())
                     .filter(host -> deviceService.getPort(

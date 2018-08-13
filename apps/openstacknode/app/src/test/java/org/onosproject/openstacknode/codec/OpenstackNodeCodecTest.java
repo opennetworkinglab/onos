@@ -124,6 +124,7 @@ public class OpenstackNodeCodecTest {
                                 .phyIntfs(ImmutableList.of(phyIntf1, phyIntf2))
                                 .controllers(ImmutableList.of(controller1, controller2))
                                 .sshAuthInfo(sshAuth)
+                                .socketDir("/var/lib/libvirt/qemu")
                                 .build();
 
         ObjectNode nodeJson = openstackNodeCodec.encode(node, context);
@@ -150,6 +151,8 @@ public class OpenstackNodeCodecTest {
         assertThat(node.sshAuthInfo().id(), is("sdn"));
         assertThat(node.sshAuthInfo().password(), is("sdn"));
         assertThat(node.datapathType(), is(OpenstackNode.DatapathType.NORMAL));
+        assertThat(node.socketDir(), is("/var/lib/libvirt/qemu"));
+
 
         node.phyIntfs().forEach(intf -> {
             if (intf.network().equals("mgmtnetwork")) {

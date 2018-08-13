@@ -36,6 +36,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.device.DeviceServiceAdapter;
+import org.onosproject.openstacknetworking.api.Constants;
 import org.onosproject.openstacknetworking.api.InstancePort;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.onosproject.openstacknetworking.api.OpenstackRouterAdminService;
@@ -84,6 +85,7 @@ import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.m
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.prettyJson;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.routerInterfacesEquals;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.swapStaleLocation;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.vnicType;
 
 public final class OpenstackNetworkingUtilTest {
 
@@ -436,6 +438,22 @@ public final class OpenstackNetworkingUtilTest {
         getConnectedClient(openstackControlNodeV2);
         getConnectedClient(openstackControlNodeV3);
 
+    }
+
+    /**
+     * Tests the vnicType method.
+     */
+    @Test
+    public void testVnicType() {
+        String portNameNormalTap = "tap123456789ab";
+        String portNameNormalVhu = "tap123456789ab";
+        String portNameNormalCavium = "enp1f2s3";
+        String portNameUnsupported = "123456789ab";
+
+        assertEquals(vnicType(portNameNormalTap), Constants.VnicType.NORMAL);
+        assertEquals(vnicType(portNameNormalVhu), Constants.VnicType.NORMAL);
+        assertEquals(vnicType(portNameNormalCavium), Constants.VnicType.DIRECT);
+        assertEquals(vnicType(portNameUnsupported), Constants.VnicType.UNSUPPORTED);
     }
 
     private DeviceId genDeviceId(int index) {

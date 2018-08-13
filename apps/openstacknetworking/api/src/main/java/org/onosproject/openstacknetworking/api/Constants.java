@@ -28,6 +28,17 @@ public final class Constants {
     private Constants() {
     }
 
+    /**
+     * List of valid openstack port types.
+     */
+    public enum VnicType {
+        NORMAL,
+        DIRECT,
+        UNSUPPORTED
+    }
+    public static final String PORT_NAME_PREFIX_VM = "tap";
+    public static final String PORT_NAME_VHOST_USER_PREFIX_VM = "vhu";
+
     public static final String OPENSTACK_NETWORKING_APP_ID = "org.onosproject.openstacknetworking";
 
     public static final String ARP_BROADCAST_MODE = "broadcast";

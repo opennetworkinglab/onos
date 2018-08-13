@@ -172,6 +172,13 @@ public interface OpenstackNode {
     DatapathType datapathType();
 
     /**
+     * Returns socket directory which dpdk port bound to.
+     *
+     * @return socket directory
+     */
+    String socketDir();
+
+    /**
      * Returns the uplink port number.
      *
      * @return uplink port number
@@ -360,6 +367,14 @@ public interface OpenstackNode {
          * @return openstack node builder
          */
         Builder datapathType(DatapathType datapathType);
+
+        /**
+         * Returns openstack node builder with supplied socket directory.
+         *
+         * @param socketDir socket directory
+         * @return openstack node builder
+         */
+        Builder socketDir(String socketDir);
     }
 }
 

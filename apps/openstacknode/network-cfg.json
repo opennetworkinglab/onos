@@ -25,6 +25,7 @@
               "password" : "password"
             },
             "datapathType" : "netdev",
+            "socketDir" : "/var/lib/libvirt/qemu",
             "controllers": [
               {
                 "ip": "10.10.10.2",

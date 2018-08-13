@@ -62,6 +62,7 @@ public final class OpenstackNodeCodec extends JsonCodec<OpenstackNode> {
     private static final String END_POINT = "endpoint";
     private static final String SSH_AUTH = "sshAuth";
     private static final String DATA_PATH_TYPE = "datapathType";
+    private static final String SOCKET_DIR = "socketDir";
 
     private static final String MISSING_MESSAGE = " is required in OpenstackNode";
     private static final String UNSUPPORTED_DATAPATH_TYPE = "Unsupported datapath type";
@@ -127,6 +128,10 @@ public final class OpenstackNodeCodec extends JsonCodec<OpenstackNode> {
             result.set(SSH_AUTH, sshAuthJson);
         }
 
+        if (node.socketDir() != null) {
+            result.put(SOCKET_DIR, node.socketDir());
+        }
+
         return result;
     }
 
@@ -179,6 +184,12 @@ public final class OpenstackNodeCodec extends JsonCodec<OpenstackNode> {
             nodeBuilder.datapathType(OpenstackNode.DatapathType.NETDEV);
         } else {
             throw new IllegalArgumentException(UNSUPPORTED_DATAPATH_TYPE + datapathTypeJson.asText());
+        }
+
+        JsonNode socketDir = json.get(SOCKET_DIR);
+
+        if (socketDir != null) {
+            nodeBuilder.socketDir(socketDir.asText());
         }
 
         // parse physical interfaces

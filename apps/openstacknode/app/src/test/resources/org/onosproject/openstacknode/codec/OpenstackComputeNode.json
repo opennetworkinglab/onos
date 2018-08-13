@@ -28,5 +28,6 @@
       "ip": "10.10.10.3",
       "port": 6663
     }
-  ]
+  ],
+  "socketDir": "/var/lib/libvirt/qemu"
 }

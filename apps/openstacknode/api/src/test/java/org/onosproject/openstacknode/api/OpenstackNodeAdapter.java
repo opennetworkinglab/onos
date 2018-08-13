@@ -110,6 +110,11 @@ public class OpenstackNodeAdapter implements OpenstackNode {
     }
 
     @Override
+    public String socketDir() {
+        return null;
+    }
+
+    @Override
     public PortNumber uplinkPortNum() {
         return null;
     }

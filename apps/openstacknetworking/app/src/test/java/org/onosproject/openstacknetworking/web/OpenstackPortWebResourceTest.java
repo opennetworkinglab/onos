@@ -21,6 +21,7 @@ import org.junit.Test;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkAdminService;
+import org.onosproject.openstacknode.api.OpenstackNodeService;
 import org.onosproject.rest.resources.ResourceTest;
 
 import javax.ws.rs.client.Entity;
@@ -45,6 +46,8 @@ public class OpenstackPortWebResourceTest extends ResourceTest {
 
     final OpenstackNetworkAdminService mockOpenstackNetworkAdminService =
             createMock(OpenstackNetworkAdminService.class);
+    final OpenstackNodeService mockOpenstackNodeService =
+            createMock(OpenstackNodeService.class);
     private static final String PATH = "ports";
 
     /**
@@ -59,10 +62,9 @@ public class OpenstackPortWebResourceTest extends ResourceTest {
      */
     @Before
     public void setUpTest() {
-        ServiceDirectory testDirectory =
-                new TestServiceDirectory()
-                        .add(OpenstackNetworkAdminService.class,
-                                mockOpenstackNetworkAdminService);
+        ServiceDirectory testDirectory = new TestServiceDirectory()
+                .add(OpenstackNetworkAdminService.class, mockOpenstackNetworkAdminService)
+                .add(OpenstackNodeService.class, mockOpenstackNodeService);
         setServiceDirectory(testDirectory);
 
     }
