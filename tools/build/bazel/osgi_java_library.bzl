@@ -640,7 +640,6 @@ def osgi_proto_jar(
         "@com_google_protobuf//:protobuf_java",
     ]
     if grpc_proto_lib != None:
-        grpc_java_lib = name + "-java-grpc"
         java_grpc_library(
             name = name + "-java-grpc",
             srcs = [grpc_proto_lib],
