@@ -44,12 +44,14 @@ import org.onosproject.openstacknode.api.OpenstackNodeService;
 import org.onosproject.openstacknode.api.OpenstackNodeStore;
 import org.onosproject.openstacknode.api.OpenstackNodeStoreDelegate;
 import org.onosproject.ovsdb.controller.OvsdbController;
+import org.onosproject.store.service.AtomicCounter;
 import org.onosproject.store.service.StorageService;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
 import java.util.Dictionary;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
@@ -61,6 +63,8 @@ import static org.onlab.packet.TpPort.tpPort;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.openstacknode.api.Constants.INTEGRATION_BRIDGE;
 import static org.onosproject.openstacknode.api.NodeState.COMPLETE;
+import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.CONTROLLER;
+import static org.onosproject.openstacknode.util.OpenstackNodeUtil.genDpid;
 import static org.onosproject.openstacknode.util.OpenstackNodeUtil.isOvsdbConnected;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -81,8 +85,13 @@ public class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEvent, O
     private static final String OVSDB_PORT = "ovsdbPortNum";
     private static final int DEFAULT_OVSDB_PORT = 6640;
 
+    private static final String DEVICE_ID_COUNTER_NAME = "device-id-counter";
+
     private static final String ERR_NULL_NODE = "OpenStack node cannot be null";
     private static final String ERR_NULL_HOSTNAME = "OpenStack node hostname cannot be null";
+    private static final String ERR_NULL_DEVICE_ID = "OpenStack node device ID cannot be null";
+
+    private static final String NOT_DUPLICATED_MSG = "% cannot be duplicated";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OpenstackNodeStore osNodeStore;
@@ -114,6 +123,8 @@ public class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEvent, O
 
     private final OpenstackNodeStoreDelegate delegate = new InternalNodeStoreDelegate();
 
+    private AtomicCounter deviceIdCounter;
+
     private ApplicationId appId;
 
     @Activate
@@ -122,6 +133,8 @@ public class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEvent, O
         osNodeStore.setDelegate(delegate);
 
         leadershipService.runForLeadership(appId.name());
+
+        deviceIdCounter = storageService.getAtomicCounter(DEVICE_ID_COUNTER_NAME);
 
         log.info("Started");
     }
@@ -150,14 +163,49 @@ public class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEvent, O
     @Override
     public void createNode(OpenstackNode osNode) {
         checkNotNull(osNode, ERR_NULL_NODE);
-        osNodeStore.createNode(osNode);
+
+        OpenstackNode updatedNode;
+
+        if (osNode.intgBridge() == null && osNode.type() != CONTROLLER) {
+            String deviceIdStr = genDpid(deviceIdCounter.incrementAndGet());
+            checkNotNull(deviceIdStr, ERR_NULL_DEVICE_ID);
+            updatedNode = osNode.updateIntbridge(DeviceId.deviceId(deviceIdStr));
+            checkArgument(!hasIntgBridge(updatedNode.intgBridge(), updatedNode.hostname()),
+                                NOT_DUPLICATED_MSG, updatedNode.intgBridge());
+        } else {
+            updatedNode = osNode;
+            checkArgument(!hasIntgBridge(updatedNode.intgBridge(), updatedNode.hostname()),
+                                NOT_DUPLICATED_MSG, updatedNode.intgBridge());
+        }
+
+        osNodeStore.createNode(updatedNode);
+
         log.info(String.format(MSG_NODE, osNode.hostname(), MSG_CREATED));
     }
 
     @Override
     public void updateNode(OpenstackNode osNode) {
         checkNotNull(osNode, ERR_NULL_NODE);
-        osNodeStore.updateNode(osNode);
+
+        OpenstackNode updatedNode;
+
+        OpenstackNode existNode = osNodeStore.node(osNode.hostname());
+        checkNotNull(existNode, ERR_NULL_NODE);
+
+        DeviceId existDeviceId = osNodeStore.node(osNode.hostname()).intgBridge();
+
+        if (osNode.intgBridge() == null && osNode.type() != CONTROLLER) {
+            updatedNode = osNode.updateIntbridge(existDeviceId);
+            checkArgument(!hasIntgBridge(updatedNode.intgBridge(), updatedNode.hostname()),
+                    NOT_DUPLICATED_MSG, updatedNode.intgBridge());
+        } else {
+            updatedNode = osNode;
+            checkArgument(!hasIntgBridge(updatedNode.intgBridge(), updatedNode.hostname()),
+                    NOT_DUPLICATED_MSG, updatedNode.intgBridge());
+        }
+
+        osNodeStore.updateNode(updatedNode);
+
         log.info(String.format(MSG_NODE, osNode.hostname(), MSG_UPDATED));
     }
 
@@ -261,6 +309,16 @@ public class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEvent, O
         } else {
             bridgeConfig.deletePort(BridgeName.bridgeName(bridgeName), intfName);
         }
+    }
+
+    private boolean hasIntgBridge(DeviceId deviceId, String hostname) {
+        Optional<OpenstackNode> existNode = osNodeStore.nodes().stream()
+                .filter(n -> n.type() != CONTROLLER)
+                .filter(n -> !n.hostname().equals(hostname))
+                .filter(n -> n.intgBridge().equals(deviceId))
+                .findFirst();
+
+        return existNode.isPresent();
     }
 
     private class InternalNodeStoreDelegate implements OpenstackNodeStoreDelegate {

@@ -120,6 +120,11 @@ public class OpenstackNodeAdapter implements OpenstackNode {
     }
 
     @Override
+    public OpenstackNode updateIntbridge(DeviceId newIntgBridge) {
+        return null;
+    }
+
+    @Override
     public Collection<OpenstackPhyInterface> phyIntfs() {
         return null;
     }

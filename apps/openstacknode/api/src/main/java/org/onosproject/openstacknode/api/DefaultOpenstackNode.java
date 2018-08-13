@@ -320,6 +320,26 @@ public class DefaultOpenstackNode implements OpenstackNode {
     }
 
     @Override
+    public OpenstackNode updateIntbridge(DeviceId newIntgBridge) {
+        return new Builder()
+                .type(type)
+                .hostname(hostname)
+                .intgBridge(newIntgBridge)
+                .managementIp(managementIp)
+                .dataIp(dataIp)
+                .vlanIntf(vlanIntf)
+                .uplinkPort(uplinkPort)
+                .state(state)
+                .phyIntfs(phyIntfs)
+                .controllers(controllers)
+                .authentication(auth)
+                .endPoint(endPoint)
+                .sshAuthInfo(sshAuth)
+                .datapathType(datapathType)
+                .build();
+    }
+
+    @Override
     public Collection<OpenstackPhyInterface> phyIntfs() {
 
         if (phyIntfs == null) {
@@ -438,8 +458,6 @@ public class DefaultOpenstackNode implements OpenstackNode {
             checkArgument(managementIp != null, NOT_NULL_MSG, "management IP");
 
             if (type != NodeType.CONTROLLER) {
-                checkArgument(intgBridge != null, NOT_NULL_MSG, "integration bridge");
-
                 if (dataIp == null && Strings.isNullOrEmpty(vlanIntf)) {
                     throw new IllegalArgumentException("Either data IP or VLAN interface is required");
                 }

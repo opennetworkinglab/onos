@@ -187,6 +187,14 @@ public interface OpenstackNode {
     OpenstackNode updateState(NodeState newState);
 
     /**
+     * Returns new openstack node instance with given integration bridge.
+     *
+     * @param newIntgBridge updated integration bridge
+     * @return updated openstack node
+     */
+    OpenstackNode updateIntbridge(DeviceId newIntgBridge);
+
+    /**
      * Returns a collection of physical interfaces.
      *
      * @return physical interfaces

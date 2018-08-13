@@ -83,10 +83,12 @@ public final class OpenstackNodeCodec extends JsonCodec<OpenstackNode> {
             result.put(UPLINK_PORT, node.uplinkPort());
         }
 
-        if (type != OpenstackNode.NodeType.CONTROLLER) {
-            result.put(INTEGRATION_BRIDGE, node.intgBridge().toString());
-        } else {
+        if (type == OpenstackNode.NodeType.CONTROLLER) {
             result.put(END_POINT, node.endPoint());
+        }
+
+        if (node.intgBridge() != null) {
+            result.put(INTEGRATION_BRIDGE, node.intgBridge().toString());
         }
 
         if (node.vlanIntf() != null) {
@@ -151,11 +153,7 @@ public final class OpenstackNodeCodec extends JsonCodec<OpenstackNode> {
             nodeBuilder.uplinkPort(nullIsIllegal(json.get(UPLINK_PORT).asText(),
                     UPLINK_PORT + MISSING_MESSAGE));
         }
-        if (!type.equals(CONTROLLER)) {
-            String iBridge = nullIsIllegal(json.get(INTEGRATION_BRIDGE).asText(),
-                    INTEGRATION_BRIDGE + MISSING_MESSAGE);
-            nodeBuilder.intgBridge(DeviceId.deviceId(iBridge));
-        } else {
+        if (type.equals(CONTROLLER)) {
             String endPoint = nullIsIllegal(json.get(END_POINT).asText(),
                     END_POINT + MISSING_MESSAGE);
             nodeBuilder.endPoint(endPoint);
@@ -165,6 +163,11 @@ public final class OpenstackNodeCodec extends JsonCodec<OpenstackNode> {
         }
         if (json.get(DATA_IP) != null) {
             nodeBuilder.dataIp(IpAddress.valueOf(json.get(DATA_IP).asText()));
+        }
+
+        JsonNode intBridgeJson = json.get(INTEGRATION_BRIDGE);
+        if (intBridgeJson != null) {
+            nodeBuilder.intgBridge(DeviceId.deviceId(intBridgeJson.asText()));
         }
 
         JsonNode datapathTypeJson = json.get(DATA_PATH_TYPE);

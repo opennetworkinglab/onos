@@ -65,6 +65,7 @@ public class OpenstackNodeManagerTest extends OpenstackNodeTest {
     private static final String COMPUTE_2_HOSTNAME = "compute_2";
     private static final String COMPUTE_3_HOSTNAME = "compute_3";
     private static final String GATEWAY_1_HOSTNAME = "gateway_1";
+    private static final String COMPUTE_1_DUP_INT_HOSTNAME = "compute_1_dup_int";
 
     private static final String GATEWAY_1_UPLINKPORT = "eth0";
 
@@ -101,6 +102,20 @@ public class OpenstackNodeManagerTest extends OpenstackNodeTest {
             IpAddress.valueOf("10.100.0.4"),
             GATEWAY_1_UPLINKPORT,
             NodeState.COMPLETE
+    );
+    private static final OpenstackNode COMPUTE_1_DUP_INT = createNode(
+            COMPUTE_1_DUP_INT_HOSTNAME,
+            COMPUTE,
+            COMPUTE_1_INTG_DEVICE,
+            IpAddress.valueOf("10.100.0.1"),
+            NodeState.INIT
+    );
+    private static final OpenstackNode COMPUTE_2_DUP_INT = createNode(
+            COMPUTE_2_HOSTNAME,
+            COMPUTE,
+            COMPUTE_3_INTG_DEVICE,
+            IpAddress.valueOf("10.100.0.2"),
+            NodeState.INIT
     );
 
     private final TestOpenstackNodeListener testListener = new TestOpenstackNodeListener();
@@ -174,6 +189,15 @@ public class OpenstackNodeManagerTest extends OpenstackNodeTest {
     }
 
     /**
+     * Checks if creating a node with duplicated integration bridge.
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void testCreateNodeWithDuplicateIntgBridge() {
+        target.createNode(COMPUTE_1);
+        target.createNode(COMPUTE_1_DUP_INT);
+    }
+
+    /**
      * Checks if removing null node fails with proper exception.
      */
     @Test(expected = IllegalArgumentException.class)
@@ -192,6 +216,14 @@ public class OpenstackNodeManagerTest extends OpenstackNodeTest {
         target.updateNode(updated);
         assertEquals(ERR_NOT_MATCH, updated, target.node(COMPUTE_2_INTG_DEVICE.id()));
         validateEvents(OPENSTACK_NODE_UPDATED);
+    }
+
+    /**
+     * Checks if updating a node with duplicated integration bridge.
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void testUpdateNodeWithDuplicateIntgBridge() {
+        target.updateNode(COMPUTE_2_DUP_INT);
     }
 
     /**
@@ -231,7 +263,7 @@ public class OpenstackNodeManagerTest extends OpenstackNodeTest {
     /**
      * Checks if updating not existing node fails with proper exception.
      */
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = NullPointerException.class)
     public void testUpdateNotExistingNode() {
         target.updateNode(COMPUTE_1);
     }
