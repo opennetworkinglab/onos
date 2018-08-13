@@ -251,6 +251,16 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             label = "Program flows and groups to pop and route double tagged hosts")
     boolean routeDoubleTaggedHosts = false;
 
+    private static final int DEFAULT_INTERNAL_VLAN = 4094;
+    @Property(name = "defaultInternalVlan", intValue = DEFAULT_INTERNAL_VLAN,
+            label = "internal vlan assigned by default to unconfigured ports")
+    private int defaultInternalVlan = DEFAULT_INTERNAL_VLAN;
+
+    private static final int PW_TRANSPORT_VLAN = 4090;
+    @Property(name = "pwTransportVlan", intValue = PW_TRANSPORT_VLAN,
+            label = "vlan used for transport of pseudowires between switches")
+    private int pwTransportVlan = PW_TRANSPORT_VLAN;
+
     ArpHandler arpHandler = null;
     IcmpHandler icmpHandler = null;
     IpHandler ipHandler = null;
@@ -369,14 +379,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
      * Segment Routing App ID.
      */
     public static final String APP_NAME = "org.onosproject.segmentrouting";
-    /**
-     * The default VLAN ID assigned to the interfaces without subnet config.
-     */
-    public static final VlanId INTERNAL_VLAN = VlanId.vlanId((short) 4094);
-    /**
-     * The Vlan id used to transport pseudowire traffic across the network.
-     */
-    public static final VlanId PSEUDOWIRE_VLAN = VlanId.vlanId((short) 4093);
 
     /**
      * Minumum and maximum value of dummy VLAN ID to be allocated.
@@ -646,6 +648,94 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 hostHandler.revokeAllDoubleTaggedHost();
             }
         }
+
+        String strDefaultInternalVlan = Tools.get(properties, "defaultInternalVlan");
+        int defIntVlan = Integer.parseInt(strDefaultInternalVlan);
+        if (defIntVlan != defaultInternalVlan) {
+            if (canUseVlanId(defIntVlan)) {
+                log.warn("Default internal vlan value changed from {} to {}.. "
+                        + "re-programming filtering rules, but NOT any groups already "
+                        + "created with the former value", defaultInternalVlan, defIntVlan);
+                VlanId oldDefIntVlan = VlanId.vlanId((short) defaultInternalVlan);
+                defaultInternalVlan = defIntVlan;
+                routingRulePopulator
+                .updateSpecialVlanFilteringRules(true, oldDefIntVlan,
+                                                 VlanId.vlanId((short) defIntVlan));
+            } else {
+                log.warn("Cannot change default internal vlan to unusable "
+                        + "value {}", defIntVlan);
+            }
+        }
+
+        String strPwTxpVlan = Tools.get(properties, "pwTransportVlan");
+        int pwTxpVlan = Integer.parseInt(strPwTxpVlan);
+        if (pwTxpVlan != pwTransportVlan) {
+            if (canUseVlanId(pwTxpVlan)) {
+                log.warn("Pseudowire transport vlan value changed from {} to {}.. "
+                        + "re-programming filtering rules, but NOT any groups already "
+                        + "created with the former value", pwTransportVlan,
+                        pwTxpVlan);
+                VlanId oldPwTxpVlan = VlanId.vlanId((short) pwTransportVlan);
+                pwTransportVlan = pwTxpVlan;
+                routingRulePopulator
+                .updateSpecialVlanFilteringRules(false, oldPwTxpVlan,
+                                                 VlanId.vlanId((short) pwTxpVlan));
+            } else {
+                log.warn("Cannot change pseudowire transport vlan to unusable "
+                        + "value {}", pwTxpVlan);
+            }
+        }
+
+    }
+
+    /**
+     * Returns true if given vlan id is not being used in the system currently,
+     * either as one of the default system wide vlans or as one of the
+     * configured interface vlans.
+     *
+     * @param vlanId given vlan id
+     * @return true if vlan is not currently in use
+     */
+    public boolean canUseVlanId(int vlanId) {
+        if (vlanId >= 4095 || vlanId <= 1) {
+            log.error("Vlan id {} value is not in valid range 2 <--> 4094",
+                      vlanId);
+            return false;
+        }
+
+       VlanId vid = VlanId.vlanId((short) vlanId);
+        if (getDefaultInternalVlan().equals(vid) || getPwTransportVlan().equals(vid)) {
+            log.warn("Vlan id {} value is already in use system-wide. "
+                    + "DefaultInternalVlan:{} PwTransportVlan:{} ", vlanId,
+                     getDefaultInternalVlan(), getPwTransportVlan());
+            return false;
+        }
+
+        if (interfaceService.inUse(vid)) {
+            log.warn("Vlan id {} value is already in use on a configured "
+                    + "interface in the system", vlanId);
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Returns the VlanId assigned internally by default to unconfigured ports.
+     *
+     * @return the default internal vlan id
+     */
+    public VlanId getDefaultInternalVlan() {
+        return VlanId.vlanId((short) defaultInternalVlan);
+    }
+
+    /**
+     * Returns the Vlan id used to transport pseudowire traffic across the
+     * network.
+     *
+     * @return the pseudowire transport vlan id
+     */
+    public VlanId getPwTransportVlan() {
+        return VlanId.vlanId((short) pwTransportVlan);
     }
 
     @Override
