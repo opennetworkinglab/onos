@@ -19,7 +19,6 @@ package org.onosproject.pipelines.fabric.pipeliner;
 import com.google.common.collect.ImmutableSet;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
-import org.onlab.util.ImmutableByteSequence;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
@@ -255,8 +254,7 @@ public class FabricForwardingPipeliner {
 
         treatment = fwd.treatment();
         if (fwd.nextId() != null) {
-            PiActionParam nextIdParam = new PiActionParam(FabricConstants.NEXT_ID,
-                                                          ImmutableByteSequence.copyFrom(fwd.nextId().byteValue()));
+            PiActionParam nextIdParam = new PiActionParam(FabricConstants.NEXT_ID, fwd.nextId());
             PiAction nextIdAction = PiAction.builder()
                     .withId(FabricConstants.FABRIC_INGRESS_FORWARDING_POP_MPLS_AND_NEXT)
                     .withParameter(nextIdParam)
@@ -291,8 +289,7 @@ public class FabricForwardingPipeliner {
      * @return treatment with set_next_id action; empty treatment if next id is null
      */
     private static TrafficTreatment buildSetNextIdTreatment(Integer nextId, PiActionId actionId) {
-        PiActionParam nextIdParam = new PiActionParam(FabricConstants.NEXT_ID,
-                                                      ImmutableByteSequence.copyFrom(nextId.byteValue()));
+        PiActionParam nextIdParam = new PiActionParam(FabricConstants.NEXT_ID, nextId);
         PiAction nextIdAction = PiAction.builder()
                 .withId(actionId)
                 .withParameter(nextIdParam)

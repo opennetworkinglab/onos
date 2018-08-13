@@ -22,7 +22,6 @@ import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.UDP;
-import org.onlab.util.ImmutableByteSequence;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -240,8 +239,7 @@ public class FabricForwardingPipelineTest extends FabricPipelinerTest {
                 .matchMplsLabel(MPLS_10)
                 .build();
 
-        PiActionParam nextIdParam = new PiActionParam(FabricConstants.NEXT_ID,
-                                                      ImmutableByteSequence.copyFrom(NEXT_ID_1.byteValue()));
+        PiActionParam nextIdParam = new PiActionParam(FabricConstants.NEXT_ID, NEXT_ID_1);
         PiAction setNextIdAction = PiAction.builder()
                 .withId(FabricConstants.FABRIC_INGRESS_FORWARDING_POP_MPLS_AND_NEXT)
                 .withParameter(nextIdParam)
@@ -260,8 +258,7 @@ public class FabricForwardingPipelineTest extends FabricPipelinerTest {
             // Ref: RoutingRulePopulator.java->revokeIpRuleForRouter
             setNextIdTreatment = DefaultTrafficTreatment.builder().build();
         } else {
-            PiActionParam nextIdParam = new PiActionParam(FabricConstants.NEXT_ID,
-                                                          ImmutableByteSequence.copyFrom(nextId.byteValue()));
+            PiActionParam nextIdParam = new PiActionParam(FabricConstants.NEXT_ID, nextId);
             PiAction.Builder setNextIdAction = PiAction.builder()
                     .withParameter(nextIdParam);
 
