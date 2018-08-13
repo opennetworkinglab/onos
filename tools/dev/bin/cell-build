@@ -45,7 +45,7 @@ ssh -t -t $ONOS_USER@$OCN "
 
     # Make sure the remote build machine is on the same commit hash as the local one
     remoteCommit=\$(git log -n 1 | head -n1 | cut -d\  -f2)
-    if [ "\$remoteCommit" != "$baseCommit" ]; then
+    if [ \"\$remoteCommit\" != \"$baseCommit\" ]; then
         git checkout master
         git pull --no-stat
         git checkout $baseCommit
