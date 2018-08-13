@@ -21,7 +21,7 @@
     <parent>
         <artifactId>onos-protocols-snmp</artifactId>
         <groupId>org.onosproject</groupId>
-        <version>1.14.0-rc1</version>
+        <version>1.14.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
