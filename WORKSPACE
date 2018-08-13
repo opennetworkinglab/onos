@@ -1,5 +1,8 @@
 workspace(name = "org_onosproject_onos")
 
+load("//tools/build/bazel:bazel_version.bzl", "check_bazel_version")
+check_bazel_version()
+
 load("//tools/build/bazel:generate_workspace.bzl", "generated_maven_jars")
 generated_maven_jars()
 
