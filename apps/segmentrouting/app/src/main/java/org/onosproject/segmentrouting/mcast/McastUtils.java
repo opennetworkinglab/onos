@@ -60,7 +60,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.onosproject.net.flow.criteria.Criterion.Type.VLAN_VID;
-import static org.onosproject.segmentrouting.SegmentRoutingManager.INTERNAL_VLAN;
 
 /**
  * Utility class for Multicast Handler.
@@ -229,10 +228,11 @@ class McastUtils {
         // Reuse unicast VLAN if the port has subnet configured
         if (cp != null) {
             VlanId untaggedVlan = srManager.getInternalVlanId(cp);
-            return (untaggedVlan != null) ? untaggedVlan : INTERNAL_VLAN;
+            return (untaggedVlan != null) ? untaggedVlan
+                                          : srManager.getDefaultInternalVlan();
         }
         // Use DEFAULT_VLAN if none of the above matches
-        return SegmentRoutingManager.INTERNAL_VLAN;
+        return srManager.getDefaultInternalVlan();
     }
 
     /**

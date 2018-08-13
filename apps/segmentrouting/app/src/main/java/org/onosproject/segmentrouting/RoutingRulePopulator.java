@@ -28,6 +28,7 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.Device;
 import org.onosproject.net.flowobjective.DefaultObjectiveContext;
 import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.flowobjective.ObjectiveContext;
@@ -76,10 +77,7 @@ import static org.onlab.packet.ICMP6.NEIGHBOR_SOLICITATION;
 import static org.onlab.packet.ICMP6.ROUTER_ADVERTISEMENT;
 import static org.onlab.packet.ICMP6.ROUTER_SOLICITATION;
 import static org.onlab.packet.IPv6.PROTOCOL_ICMP6;
-import static org.onosproject.segmentrouting.SegmentRoutingManager.INTERNAL_VLAN;
 import static org.onosproject.segmentrouting.SegmentRoutingService.DEFAULT_PRIORITY;
-
-import static org.onosproject.segmentrouting.SegmentRoutingManager.PSEUDOWIRE_VLAN;
 
 /**
  * Populator of segment routing flow rules.
@@ -567,7 +565,7 @@ public class RoutingRulePopulator {
         // if needed by the switch pipeline. Since neighbor sets are always to
         // other neighboring routers, there is no subnet assigned on those ports.
         TrafficSelector.Builder metabuilder = DefaultTrafficSelector.builder(selector);
-        metabuilder.matchVlanId(SegmentRoutingManager.INTERNAL_VLAN);
+        metabuilder.matchVlanId(srManager.getDefaultInternalVlan());
         DefaultGroupHandler grpHandler = srManager.getGroupHandler(targetSw);
         if (grpHandler == null) {
             log.warn("populateIPRuleForRouter: groupHandler for device {} "
@@ -729,7 +727,7 @@ public class RoutingRulePopulator {
         // if needed by the switch pipeline. Since mpls next-hops are always to
         // other neighboring routers, there is no subnet assigned on those ports.
         TrafficSelector.Builder metabuilder = DefaultTrafficSelector.builder(selector);
-        metabuilder.matchVlanId(SegmentRoutingManager.INTERNAL_VLAN);
+        metabuilder.matchVlanId(srManager.getDefaultInternalVlan());
 
         if (nextHops.size() == 1 && destSwId.equals(nextHops.toArray()[0])) {
             // If the next hop is the destination router for the segment, do pop
@@ -970,11 +968,15 @@ public class RoutingRulePopulator {
             }
         } else if (!hasIPConfiguration(connectPoint)) {
             // Filter for unconfigured upstream port, using INTERNAL_VLAN
-            if (!processSinglePortFiltersInternal(deviceId, portnum, true, INTERNAL_VLAN, install)) {
+            if (!processSinglePortFiltersInternal(deviceId, portnum, true,
+                                                  srManager.getDefaultInternalVlan(),
+                                                  install)) {
                 return false;
             }
             // Filter for receiveing pseudowire traffic
-            if (!processSinglePortFiltersInternal(deviceId, portnum, false, PSEUDOWIRE_VLAN, install)) {
+            if (!processSinglePortFiltersInternal(deviceId, portnum, false,
+                                                  srManager.getPwTransportVlan(),
+                                                  install)) {
                 return false;
             }
         }
@@ -1612,7 +1614,7 @@ public class RoutingRulePopulator {
             srManager.interfaceService.getTaggedVlanId(cp).contains(vlanId) ||
             // Given vlanId is INTERNAL_VLAN and the interface is not configured
             (srManager.interfaceService.getTaggedVlanId(cp).isEmpty() && srManager.getInternalVlanId(cp) == null &&
-                    vlanId.equals(INTERNAL_VLAN)) ||
+                    vlanId.equals(srManager.getDefaultInternalVlan())) ||
             // interface is configured and either vlan-untagged or vlan-native matches given vlanId
             (srManager.getInternalVlanId(cp) != null && srManager.getInternalVlanId(cp).equals(vlanId))
         );
@@ -1753,4 +1755,30 @@ public class RoutingRulePopulator {
         Set<Interface> interfaces = srManager.interfaceService.getInterfacesByPort(cp);
         return interfaces.stream().anyMatch(intf -> intf.ipAddressesList().size() > 0);
     }
+
+    /**
+     * Updates filtering rules for unconfigured ports on all devices for which
+     * this controller instance is master.
+     *
+     * @param pushVlan true if the filtering rule requires a push vlan action
+     * @param oldVlanId the vlanId to be removed
+     * @param newVlanId the vlanId to be added
+     */
+    void updateSpecialVlanFilteringRules(boolean pushVlan, VlanId oldVlanId,
+                                         VlanId newVlanId) {
+        for (Device dev : srManager.deviceService.getAvailableDevices()) {
+            if (srManager.mastershipService.isLocalMaster(dev.id())) {
+                for (Port p : srManager.deviceService.getPorts(dev.id())) {
+                    if (!hasIPConfiguration(new ConnectPoint(dev.id(), p.number()))
+                            && p.isEnabled()) {
+                        updateSinglePortFilters(dev.id(), p.number(), pushVlan,
+                                                oldVlanId, false);
+                        updateSinglePortFilters(dev.id(), p.number(), pushVlan,
+                                                newVlanId, true);
+                    }
+                }
+            }
+        }
+    }
+
 }

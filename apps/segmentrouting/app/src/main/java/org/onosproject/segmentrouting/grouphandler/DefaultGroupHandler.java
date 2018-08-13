@@ -66,7 +66,6 @@ import java.util.stream.Collectors;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.segmentrouting.SegmentRoutingManager.INTERNAL_VLAN;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -358,7 +357,7 @@ public class DefaultGroupHandler {
         // if needed by the switch pipeline. Since hashed next-hops are always to
         // other neighboring routers, there is no subnet assigned on those ports.
         TrafficSelector.Builder metabuilder = DefaultTrafficSelector.builder();
-        metabuilder.matchVlanId(INTERNAL_VLAN);
+        metabuilder.matchVlanId(srManager.getDefaultInternalVlan());
         NextObjective.Builder nextObjBuilder = DefaultNextObjective.builder()
                 .withId(nextId)
                 .withType(NextObjective.Type.HASHED)
@@ -988,7 +987,7 @@ public class DefaultGroupHandler {
                     // Set VLAN ID for PW transport. Otherwise pop vlan
                     if ((ds.getTypeOfDstSet() == DestinationSet.DestinationSetType.SWAP_NOT_BOS) ||
                          (ds.getTypeOfDstSet() == DestinationSet.DestinationSetType.POP_NOT_BOS)) {
-                        tBuilder.setVlanId(srManager.PSEUDOWIRE_VLAN);
+                        tBuilder.setVlanId(srManager.getPwTransportVlan());
                     } else {
                         tBuilder.popVlan();
                     }
@@ -1475,7 +1474,7 @@ public class DefaultGroupHandler {
                     log.trace("bkt-corr: dsNextObjStore for device {}: {}",
                               deviceId, dsKey, next);
                     TrafficSelector.Builder metabuilder = DefaultTrafficSelector.builder();
-                    metabuilder.matchVlanId(INTERNAL_VLAN);
+                    metabuilder.matchVlanId(srManager.getDefaultInternalVlan());
                     NextObjective.Builder nextObjBuilder = DefaultNextObjective.builder()
                             .withId(nid)
                             .withType(NextObjective.Type.HASHED)

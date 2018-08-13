@@ -62,7 +62,7 @@ public class RoutingRulePopulatorTest {
 
     private final VlanId v10 = VlanId.vlanId((short) 10);
     private final VlanId v20 = VlanId.vlanId((short) 20);
-    private final VlanId vInt = SegmentRoutingManager.INTERNAL_VLAN;
+    private VlanId vInt;
 
     private final Interface u10 = new Interface(null, new ConnectPoint(devId1, p1),
             null, null, null, v10, null, null);
@@ -80,6 +80,7 @@ public class RoutingRulePopulatorTest {
         srManager.deviceConfiguration =  EasyMock.createMock(DeviceConfiguration.class);
         srManager.interfaceService = interfaceService;
         srManager.deviceService = deviceService;
+        vInt = srManager.getDefaultInternalVlan();
         rrp = new RoutingRulePopulator(srManager);
     }
 

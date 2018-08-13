@@ -483,7 +483,7 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
             revNextHop = reverseLink(path.get(path.size() - 1));
 
             pw.l2Tunnel().setPath(path);
-            pw.l2Tunnel().setTransportVlan(srManager.PSEUDOWIRE_VLAN);
+            pw.l2Tunnel().setTransportVlan(srManager.getPwTransportVlan());
 
             // next hops for next objectives
             log.info("Deploying process : Establishing forward direction for pseudowire {}", l2TunnelId);

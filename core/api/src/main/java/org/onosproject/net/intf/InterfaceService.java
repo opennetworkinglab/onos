@@ -139,4 +139,15 @@ public interface InterfaceService
     default boolean isConfigured(ConnectPoint connectPoint) {
         throw new NotImplementedException("isConfigured is not implemented");
     }
+
+    /**
+     * Returns true if given vlanId is in use due to configuration on any of the
+     * interfaces in the system.
+     *
+     * @param vlanId the vlan id being queried
+     * @return true if vlan is configured on any interface
+     */
+    default boolean inUse(VlanId vlanId) {
+        throw new NotImplementedException("isConfigured is not implemented");
+    }
 }

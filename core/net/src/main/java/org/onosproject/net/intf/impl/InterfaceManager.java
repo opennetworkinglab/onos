@@ -240,6 +240,21 @@ public class InterfaceManager extends ListenerRegistry<InterfaceEvent, Interface
         return false;
     }
 
+    @Override
+    public boolean inUse(VlanId vlanId) {
+        for (Set<Interface> intfs : interfaces.values()) {
+            for (Interface intf : intfs) {
+                if (intf.vlan().equals(vlanId)
+                        || intf.vlanNative().equals(vlanId)
+                        || intf.vlanUntagged().equals(vlanId)
+                        || intf.vlanTagged().contains(vlanId)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     private void updateInterfaces(InterfaceConfig intfConfig) {
         try {
             Set<Interface> old = interfaces.put(intfConfig.subject(),
