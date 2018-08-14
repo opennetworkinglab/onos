@@ -75,7 +75,7 @@ public class ProviderId {
      * @param ancillary ancillary provider indicator
      */
     public ProviderId(String scheme, String id, boolean ancillary) {
-        this.scheme = checkNotNull(scheme, "Scheme cannot be null");
+        this.scheme = checkNotNull(scheme, "Scheme cannot be null").toLowerCase();
         this.id = checkNotNull(id, "ID cannot be null");
         this.ancillary = ancillary;
     }
