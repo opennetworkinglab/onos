@@ -251,18 +251,17 @@ public class UiWebSocket
             ObjectNode message = (ObjectNode) mapper.reader().readTree(data);
             String type = message.path(EVENT).asText(UNKNOWN);
 
-//            if (sessionToken == null) {
-//                authenticate(type, message);
-//
-//            } else {
-            UiMessageHandler handler = handlers.get(type);
-            if (handler != null) {
-                log.debug("RX message: {}", message);
-                handler.process(message);
+            if (sessionToken == null) {
+                authenticate(type, message);
             } else {
-                log.warn("No GUI message handler for type {}", type);
+                UiMessageHandler handler = handlers.get(type);
+                if (handler != null) {
+                    log.debug("RX message: {}", message);
+                    handler.process(message);
+                } else {
+                    log.warn("No GUI message handler for type {}", type);
+                }
             }
-//            }
 
         } catch (Exception e) {
             log.warn("Unable to parse GUI message {} due to {}", data, e);
@@ -350,6 +349,7 @@ public class UiWebSocket
     private void authenticate(String type, ObjectNode message) {
         if (!AUTHENTICATION.equals(type)) {
             log.warn("WebSocket not authenticated: {}", message);
+            sendMessage(ERROR, notAuthorized(null));
             close();
             return;
         }
@@ -370,7 +370,7 @@ public class UiWebSocket
     private ObjectNode notAuthorized(UiSessionToken token) {
         return objectNode()
                 .put("message", "invalid authentication token")
-                .put("badToken", token.toString());
+                .put("badToken", token != null ? token.toString() : "null");
     }
 
     private void registerOverlays(UiExtension ext) {
