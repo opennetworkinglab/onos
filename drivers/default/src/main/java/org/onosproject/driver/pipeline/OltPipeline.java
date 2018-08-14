@@ -179,7 +179,10 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
         }
 
         if (ethType.ethType().equals(EthType.EtherType.EAPOL.ethType())) {
-            provisionEapol(filter, ethType, output);
+            provisionEthTypeBasedFilter(filter, ethType, output);
+        } else if (ethType.ethType().equals(EthType.EtherType.LLDP.ethType())) {
+            provisionEthTypeBasedFilter(filter, ethType, output);
+
         } else if (ethType.ethType().equals(EthType.EtherType.IPV4.ethType())) {
             IPProtocolCriterion ipProto = (IPProtocolCriterion)
                     filterForCriterion(filter.conditions(), Criterion.Type.IP_PROTO);
@@ -208,7 +211,7 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
             }
         } else {
             log.warn("\nOnly the following are Supported in OLT for filter ->\n"
-                    + "ETH TYPE : EAPOL and IPV4\n"
+                    + "ETH TYPE : EAPOL, LLDP and IPV4\n"
                     + "IPV4 TYPE: IGMP and UDP (for DHCP)");
             fail(filter, ObjectiveError.UNSUPPORTED);
         }
@@ -237,21 +240,20 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
                 .findAny();
 
         if (!vlanIntruction.isPresent()) {
-            fail(fwd, ObjectiveError.BADPARAMS);
-            return;
-        }
-
-        L2ModificationInstruction vlanIns =
-                (L2ModificationInstruction) vlanIntruction.get();
-
-        if (vlanIns.subtype() == L2ModificationInstruction.L2SubType.VLAN_PUSH) {
-            installUpstreamRules(fwd);
-        } else if (vlanIns.subtype() == L2ModificationInstruction.L2SubType.VLAN_POP) {
-            installDownstreamRules(fwd);
+            installNoModificationRules(fwd);
         } else {
-            log.error("Unknown OLT operation: {}", fwd);
-            fail(fwd, ObjectiveError.UNSUPPORTED);
-            return;
+            L2ModificationInstruction vlanIns =
+                    (L2ModificationInstruction) vlanIntruction.get();
+
+            if (vlanIns.subtype() == L2ModificationInstruction.L2SubType.VLAN_PUSH) {
+                installUpstreamRules(fwd);
+            } else if (vlanIns.subtype() == L2ModificationInstruction.L2SubType.VLAN_POP) {
+                installDownstreamRules(fwd);
+            } else {
+                log.error("Unknown OLT operation: {}", fwd);
+                fail(fwd, ObjectiveError.UNSUPPORTED);
+                return;
+            }
         }
 
         pass(fwd);
@@ -375,6 +377,35 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
         NextGroup next = flowObjectiveStore.getNextGroup(nextId);
         return appKryo.deserialize(next.data());
 
+    }
+
+    private void installNoModificationRules(ForwardingObjective fwd) {
+        Instructions.OutputInstruction output = (Instructions.OutputInstruction) fetchOutput(fwd, "downstream");
+
+        TrafficSelector selector = fwd.selector();
+
+        Criterion inport = selector.getCriterion(Criterion.Type.IN_PORT);
+        Criterion outerVlan = selector.getCriterion(Criterion.Type.VLAN_VID);
+        Criterion innerVlan = selector.getCriterion(Criterion.Type.INNER_VLAN_VID);
+        Criterion metadata;
+
+        if (inport == null || output == null || innerVlan == null || outerVlan == null) {
+            log.error("Forwarding objective is underspecified: {}", fwd);
+            fail(fwd, ObjectiveError.BADPARAMS);
+            return;
+        }
+
+        metadata = Criteria.matchMetadata(((VlanIdCriterion) innerVlan).vlanId().toShort());
+
+        FlowRule.Builder outer = DefaultFlowRule.builder()
+                .fromApp(fwd.appId())
+                .forDevice(deviceId)
+                .makePermanent()
+                .withPriority(fwd.priority())
+                .withSelector(buildSelector(inport, outerVlan, metadata))
+                .withTreatment(buildTreatment(output));
+
+        applyRules(fwd, outer);
     }
 
     private void installDownstreamRules(ForwardingObjective fwd) {
@@ -556,9 +587,9 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
                 .collect(Collectors.toList());
     }
 
-    private void provisionEapol(FilteringObjective filter,
-                                EthTypeCriterion ethType,
-                                Instructions.OutputInstruction output) {
+    private void provisionEthTypeBasedFilter(FilteringObjective filter,
+                                             EthTypeCriterion ethType,
+                                             Instructions.OutputInstruction output) {
 
         TrafficSelector selector = buildSelector(filter.key(), ethType);
         TrafficTreatment treatment = buildTreatment(output);
@@ -610,6 +641,27 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
         }
 
         applyFlowRules(opsBuilder, filter);
+    }
+
+    private void applyRules(ForwardingObjective fwd,
+                            FlowRule.Builder outer) {
+        FlowRuleOperations.Builder builder = FlowRuleOperations.builder();
+        switch (fwd.op()) {
+            case ADD:
+                builder.add(outer.build());
+                break;
+            case REMOVE:
+                builder.remove(outer.build());
+                break;
+            case ADD_TO_EXISTING:
+                break;
+            case REMOVE_FROM_EXISTING:
+                break;
+            default:
+                log.warn("Unknown forwarding operation: {}", fwd.op());
+        }
+
+        applyFlowRules(builder, fwd);
     }
 
     private void applyRules(ForwardingObjective fwd,
