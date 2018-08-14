@@ -23,7 +23,7 @@ RUN apt-get update && apt-get install -y zip python git bzip2 build-essential &&
         export ONOS_ROOT=/src/onos && \
         ln -s /usr/lib/jvm/java-8-oracle/bin/jar /etc/alternatives/jar && \
         ln -s /etc/alternatives/jar /usr/bin/jar && \
-        ~/bin/bazel build onos --verbose_failures --jobs 4 && \
+        ~/bin/bazel build onos --verbose_failures --jobs 2 && \
         mkdir -p /src/tar && \
         cd /src/tar && \
         tar -xf /src/onos/bazel-bin/onos.tar.gz --strip-components=1 && \
