@@ -59,4 +59,4 @@ git_repository(
 load("@build_bazel_rules_nodejs//:defs.bzl", "node_repositories")
 node_repositories(package_json = ["//tools/gui:package.json"])
 
-ONOS_VERSION = "1.14.0-SNAPSHOT"
+ONOS_VERSION = "1.14.0-rc2"
