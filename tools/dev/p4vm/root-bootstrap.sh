@@ -3,6 +3,8 @@ set -xe
 
 VM_TYPE=${1:-dev}
 
+BAZEL_VER="0.15.2"
+BAZEL_DEB="bazel_${BAZEL_VER}-linux-x86_64.deb"
 # Create user sdn
 useradd -m -d /home/sdn -s /bin/bash sdn
 echo "sdn:rocks" | chpasswd
@@ -20,6 +22,9 @@ bash /vagrant/tutorial-bootstrap.sh
 EOF
 fi
 
+# Bazel
+wget https://github.com/bazelbuild/bazel/releases/download/${BAZEL_VER}/${BAZEL_DEB}
+
 # Java 8
 apt-get install software-properties-common -y
 add-apt-repository ppa:webupd8team/java -y
@@ -29,6 +34,7 @@ DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -
 
 echo "oracle-java8-installer shared/accepted-oracle-license-v1-1 select true" | debconf-set-selections
 apt-get -y --no-install-recommends install \
+    ./${BAZEL_DEB} \
     avahi-daemon \
     bridge-utils \
     git \
@@ -44,8 +50,9 @@ apt-get -y --no-install-recommends install \
     vlan \
     ntp \
     vim nano emacs \
-    arping \
+    arping
 
+rm -f ${BAZEL_DEB}
 
 curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 python2.7 get-pip.py --force-reinstall
