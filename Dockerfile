@@ -16,14 +16,18 @@ COPY . /src/onos/
 # FIXME - dependence on ONOS_ROOT and git at build time is a hack to work around
 # build problems
 WORKDIR /src/onos
-RUN apt-get update && apt-get install -y zip python git bzip2 && \
+RUN apt-get update && apt-get install -y zip python git bzip2 build-essential && \
+        curl -L -o bazel.sh https://github.com/bazelbuild/bazel/releases/download/0.15.2/bazel-0.15.2-installer-linux-x86_64.sh && \
+        chmod +x bazel.sh && \
+        ./bazel.sh --user && \
         export ONOS_ROOT=/src/onos && \
-        tools/build/onos-buck build onos && \
+        ln -s /usr/lib/jvm/java-8-oracle/bin/jar /etc/alternatives/jar && \
+        ln -s /etc/alternatives/jar /usr/bin/jar && \
+        ~/bin/bazel build onos --verbose_failures --jobs 4 && \
         mkdir -p /src/tar && \
         cd /src/tar && \
-        tar -xf /src/onos/buck-out/gen/tools/package/onos-package/onos.tar.gz --strip-components=1 && \
-        rm -rf /src/onos/buck-out .git
-
+        tar -xf /src/onos/bazel-bin/onos.tar.gz --strip-components=1 && \
+        rm -rf /src/onos/bazel-* .git
 
 # Second stage is the runtime environment
 FROM anapsix/alpine-java:8_server-jre
