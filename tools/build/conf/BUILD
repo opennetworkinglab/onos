@@ -21,3 +21,9 @@ filegroup(
     srcs = [header_source],
     visibility = ["//visibility:public"],
 )
+
+java_library(
+    name = "onos-build-conf",
+    resources = glob(["src/main/resources/onos/**"]),
+    visibility = ["//visibility:public"],
+)

@@ -4,6 +4,7 @@ load(":modules.bzl", "APPS", "CORE", "FEATURES")
 filegroup(
     name = "onos",
     srcs = CORE + APPS + [
+        "//tools/build/conf:onos-build-conf",
         ":onos-package-admin",
         ":onos-package-test",
         ":onos-package",

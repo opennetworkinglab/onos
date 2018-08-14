@@ -35,6 +35,7 @@ lib/pom.xml	org/onosproject/onos-dependencies/$VERSION/onos-dependencies-$VERSIO
 bazel-bin/onos.tar.gz	org/onosproject/onos-releases/$VERSION/onos-$VERSION.tar.gz
 bazel-bin/onos-admin.tar.gz	org/onosproject/onos-releases/$VERSION/onos-admin-$VERSION.tar.gz
 bazel-bin/onos-test.tar.gz	org/onosproject/onos-releases/$VERSION/onos-test-$VERSION.tar.gz
+bazel-bin/tools/build/conf/libonos-build-conf.jar	org/onosproject/onos-build-conf/$VERSION/onos-build-conf-$VERSION.tar.gz
 EOF
 
 echo "Cataloging jar files..."
