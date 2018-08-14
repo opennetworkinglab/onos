@@ -1340,7 +1340,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "include/parser.p4",
-        "line" : 212,
+        "line" : 222,
         "column" : 8,
         "source_fragment" : "FabricDeparser"
       },
@@ -1865,7 +1865,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 74,
+            "line" : 89,
             "column" : 31,
             "source_fragment" : "0x8100; ..."
           }
@@ -2480,7 +2480,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 75,
+            "line" : 90,
             "column" : 31,
             "source_fragment" : "0x8847; ..."
           }
@@ -2556,7 +2556,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 95,
+            "line" : 110,
             "column" : 32,
             "source_fragment" : "64; ..."
           }
@@ -2671,7 +2671,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 75,
+            "line" : 90,
             "column" : 31,
             "source_fragment" : "0x8847; ..."
           }
@@ -2747,7 +2747,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 95,
+            "line" : 110,
             "column" : 32,
             "source_fragment" : "64; ..."
           }
@@ -3039,7 +3039,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 75,
+            "line" : 90,
             "column" : 31,
             "source_fragment" : "0x8847; ..."
           }
@@ -3115,7 +3115,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 95,
+            "line" : 110,
             "column" : 32,
             "source_fragment" : "64; ..."
           }
@@ -3230,7 +3230,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 75,
+            "line" : 90,
             "column" : 31,
             "source_fragment" : "0x8847; ..."
           }
@@ -3306,7 +3306,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 95,
+            "line" : 110,
             "column" : 32,
             "source_fragment" : "64; ..."
           }
@@ -3433,7 +3433,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 77,
+            "line" : 92,
             "column" : 31,
             "source_fragment" : "0x0800; ..."
           }
@@ -4031,7 +4031,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 120,
+            "line" : 124,
             "column" : 35,
             "source_fragment" : "4; ..."
           }
@@ -4462,7 +4462,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 113,
+            "line" : 122,
             "column" : 24,
             "source_fragment" : "0x1; ..."
           }
@@ -8201,7 +8201,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 77,
+            "line" : 92,
             "column" : 31,
             "source_fragment" : "0x0800; ..."
           }
@@ -8429,7 +8429,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 83,
+            "line" : 98,
             "column" : 25,
             "source_fragment" : "17; ..."
           }
@@ -8644,7 +8644,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 125,
+            "line" : 129,
             "column" : 31,
             "source_fragment" : "0; ..."
           }
@@ -8739,7 +8739,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 129,
+            "line" : 133,
             "column" : 21,
             "source_fragment" : "1; ..."
           }
@@ -10529,7 +10529,7 @@
           "id" : 12,
           "source_info" : {
             "filename" : "fabric.p4",
-            "line" : 66,
+            "line" : 70,
             "column" : 11,
             "source_fragment" : "fabric_metadata.int_meta.sink == 1"
           },
@@ -10557,7 +10557,7 @@
       "id" : 1,
       "source_info" : {
         "filename" : "fabric.p4",
-        "line" : 76,
+        "line" : 80,
         "column" : 8,
         "source_fragment" : "FabricEgress"
       },
@@ -11252,7 +11252,7 @@
           "id" : 17,
           "source_info" : {
             "filename" : "fabric.p4",
-            "line" : 90,
+            "line" : 100,
             "column" : 12,
             "source_fragment" : "standard_metadata.ingress_port != 255 && ..."
           },
@@ -11332,7 +11332,7 @@
           "id" : 18,
           "source_info" : {
             "filename" : "fabric.p4",
-            "line" : 93,
+            "line" : 103,
             "column" : 16,
             "source_fragment" : "fabric_metadata.int_meta.source == 1"
           },
@@ -11358,7 +11358,7 @@
           "id" : 19,
           "source_info" : {
             "filename" : "fabric.p4",
-            "line" : 96,
+            "line" : 106,
             "column" : 15,
             "source_fragment" : "hdr.int_header.isValid()"
           },
@@ -11450,7 +11450,7 @@
           "id" : 23,
           "source_info" : {
             "filename" : "fabric.p4",
-            "line" : 100,
+            "line" : 110,
             "column" : 20,
             "source_fragment" : "standard_metadata.instance_type == 1"
           },
@@ -11476,7 +11476,7 @@
           "id" : 24,
           "source_info" : {
             "filename" : "fabric.p4",
-            "line" : 104,
+            "line" : 114,
             "column" : 20,
             "source_fragment" : "fabric_metadata.int_meta.sink == 1"
           },

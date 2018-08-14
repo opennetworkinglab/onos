@@ -1,41 +1,5 @@
 tables {
   preamble {
-    id: 33618733
-    name: "FabricIngress.spgw_ingress.ue_filter_table"
-    alias: "ue_filter_table"
-  }
-  match_fields {
-    id: 1
-    name: "ipv4.dst_addr"
-    bitwidth: 32
-    match_type: LPM
-  }
-  action_refs {
-    id: 16800567
-  }
-  size: 1024
-  idle_timeout_behavior: NO_TIMEOUT
-}
-tables {
-  preamble {
-    id: 33615906
-    name: "FabricIngress.spgw_ingress.s1u_filter_table"
-    alias: "s1u_filter_table"
-  }
-  match_fields {
-    id: 1
-    name: "spgw_meta.s1u_sgw_addr"
-    bitwidth: 32
-    match_type: EXACT
-  }
-  action_refs {
-    id: 16800567
-  }
-  size: 1024
-  idle_timeout_behavior: NO_TIMEOUT
-}
-tables {
-  preamble {
     id: 33582731
     name: "FabricIngress.spgw_ingress.dl_sess_lookup"
     alias: "dl_sess_lookup"
@@ -53,29 +17,25 @@ tables {
     id: 16800567
     annotations: "@defaultonly()"
   }
+  direct_resource_ids: 318781522
   size: 1024
   idle_timeout_behavior: NO_TIMEOUT
 }
 tables {
   preamble {
-    id: 33611263
-    name: "FabricIngress.spgw_ingress.ue_cdr_table"
-    alias: "ue_cdr_table"
+    id: 33615906
+    name: "FabricIngress.spgw_ingress.s1u_filter_table"
+    alias: "s1u_filter_table"
   }
   match_fields {
     id: 1
-    name: "ipv4.dst_addr"
+    name: "gtpu_ipv4.dst_addr"
     bitwidth: 32
     match_type: EXACT
   }
   action_refs {
-    id: 16818129
-  }
-  action_refs {
     id: 16800567
-    annotations: "@defaultonly()"
   }
-  direct_resource_ids: 318781522
   size: 1024
   idle_timeout_behavior: NO_TIMEOUT
 }
@@ -522,13 +482,6 @@ actions {
 }
 actions {
   preamble {
-    id: 16818129
-    name: "FabricIngress.spgw_ingress.update_ue_cdr"
-    alias: "update_ue_cdr"
-  }
-}
-actions {
-  preamble {
     id: 16798734
     name: "FabricIngress.filtering.drop"
     alias: "filtering.drop"
@@ -933,7 +886,7 @@ direct_counters {
   spec {
     unit: BOTH
   }
-  direct_table_id: 33611263
+  direct_table_id: 33582731
 }
 direct_counters {
   preamble {

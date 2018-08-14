@@ -132,7 +132,6 @@ header gtpu_t {
 }
 
 struct spgw_meta_t {
-    _BOOL             do_spgw;
     direction_t       direction;
     bit<16>           ipv4_len;
     bit<32>           teid;
@@ -291,6 +290,8 @@ struct parsed_headers_t {
     ipv4_t gtpu_ipv4;
     udp_t gtpu_udp;
     gtpu_t gtpu;
+    ipv4_t inner_ipv4;
+    udp_t inner_udp;
 #endif // WITH_SPGW
     ipv4_t ipv4;
 #ifdef WITH_IPV6

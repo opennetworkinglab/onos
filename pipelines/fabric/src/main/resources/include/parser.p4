@@ -179,24 +179,35 @@ inout standard_metadata_t standard_metadata) {
 
 #ifdef WITH_SPGW
     state parse_gtpu {
-        packet.extract(hdr.gtpu);
-        transition parse_ipv4_inner;
+        transition select(hdr.ipv4.dst_addr[31:32-S1U_SGW_PREFIX_LEN]) {
+            // Avoid parsing GTP and inner headers if we know this GTP packet
+            // is not to be processed by this switch.
+            // FIXME: use parser value sets when support is ready in ONOS.
+            // To set the S1U_SGW_PREFIX value at runtime.
+            S1U_SGW_PREFIX[31:32-S1U_SGW_PREFIX_LEN]: do_parse_gtpu;
+            default: accept;
+        }
     }
 
-    state parse_ipv4_inner {
-        packet.extract(hdr.gtpu_ipv4);
-        transition select(hdr.gtpu_ipv4.protocol) {
+    state do_parse_gtpu {
+        packet.extract(hdr.gtpu);
+        transition parse_inner_ipv4;
+    }
+
+    state parse_inner_ipv4 {
+        packet.extract(hdr.inner_ipv4);
+        transition select(hdr.inner_ipv4.protocol) {
             PROTO_TCP: parse_tcp;
-            PROTO_UDP: parse_udp_inner;
+            PROTO_UDP: parse_inner_udp;
             PROTO_ICMP: parse_icmp;
             default: accept;
         }
     }
 
-    state parse_udp_inner {
-        packet.extract(hdr.gtpu_udp);
-        fabric_metadata.l4_src_port = hdr.gtpu_udp.src_port;
-        fabric_metadata.l4_dst_port = hdr.gtpu_udp.dst_port;
+    state parse_inner_udp {
+        packet.extract(hdr.inner_udp);
+        fabric_metadata.l4_src_port = hdr.inner_udp.src_port;
+        fabric_metadata.l4_dst_port = hdr.inner_udp.dst_port;
 #ifdef WITH_INT
         transition select(hdr.ipv4.isValid() && (hdr.ipv4.dscp & INT_DSCP) == INT_DSCP) {
             true: parse_intl4_shim;

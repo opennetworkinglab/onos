@@ -668,7 +668,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "include/parser.p4",
-        "line" : 212,
+        "line" : 222,
         "column" : 8,
         "source_fragment" : "FabricDeparser"
       },
@@ -1093,7 +1093,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 74,
+            "line" : 89,
             "column" : 31,
             "source_fragment" : "0x8100; ..."
           }
@@ -1708,7 +1708,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 75,
+            "line" : 90,
             "column" : 31,
             "source_fragment" : "0x8847; ..."
           }
@@ -1784,7 +1784,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 95,
+            "line" : 110,
             "column" : 32,
             "source_fragment" : "64; ..."
           }
@@ -1899,7 +1899,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 75,
+            "line" : 90,
             "column" : 31,
             "source_fragment" : "0x8847; ..."
           }
@@ -1975,7 +1975,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 95,
+            "line" : 110,
             "column" : 32,
             "source_fragment" : "64; ..."
           }
@@ -2267,7 +2267,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 75,
+            "line" : 90,
             "column" : 31,
             "source_fragment" : "0x8847; ..."
           }
@@ -2343,7 +2343,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 95,
+            "line" : 110,
             "column" : 32,
             "source_fragment" : "64; ..."
           }
@@ -2458,7 +2458,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 75,
+            "line" : 90,
             "column" : 31,
             "source_fragment" : "0x8847; ..."
           }
@@ -2534,7 +2534,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 95,
+            "line" : 110,
             "column" : 32,
             "source_fragment" : "64; ..."
           }
@@ -2661,7 +2661,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 77,
+            "line" : 92,
             "column" : 31,
             "source_fragment" : "0x0800; ..."
           }
@@ -4400,7 +4400,7 @@
       "id" : 1,
       "source_info" : {
         "filename" : "fabric.p4",
-        "line" : 76,
+        "line" : 80,
         "column" : 8,
         "source_fragment" : "FabricEgress"
       },

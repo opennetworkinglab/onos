@@ -44,8 +44,8 @@ control process_int_report (
         (bit<32>) standard_metadata.enq_timestamp;
     }
 
-    action do_report_encapsulation(mac_addr_t src_mac, mac_addr_t mon_mac, ip_address_t src_ip,
-                        ip_address_t mon_ip, l4_port_t mon_port) {
+    action do_report_encapsulation(mac_addr_t src_mac, mac_addr_t mon_mac, ipv4_addr_t src_ip,
+                        ipv4_addr_t mon_ip, l4_port_t mon_port) {
         //Report Ethernet Header
         hdr.report_ethernet.setValid();
         hdr.report_ethernet.dst_addr = mon_mac;

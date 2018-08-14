@@ -17,6 +17,27 @@
 #ifndef __SPGW__
 #define __SPGW__
 
+control spgw_normalizer(
+        in    bool   is_gtpu_encapped,
+        out   ipv4_t gtpu_ipv4,
+        out   udp_t  gtpu_udp,
+        inout ipv4_t ipv4,
+        inout udp_t  udp,
+        in    ipv4_t inner_ipv4,
+        in    udp_t  inner_udp
+    ) {
+    apply {
+        if (! is_gtpu_encapped) return;
+        gtpu_ipv4 = ipv4;
+        ipv4 = inner_ipv4;
+        gtpu_udp = udp;
+        if (inner_udp.isValid()) {
+            udp = inner_udp;
+        } else {
+            udp.setInvalid();
+        }
+    }
+}
 
 control spgw_ingress(
         inout ipv4_t      gtpu_ipv4,
@@ -41,26 +62,24 @@ control spgw_ingress(
         spgw_meta.teid = teid;
         spgw_meta.s1u_enb_addr = s1u_enb_addr;
         spgw_meta.s1u_sgw_addr = s1u_sgw_addr;
-    }
-
-    action update_ue_cdr() {
         ue_counter.count();
     }
 
-    table ue_filter_table {
+    table dl_sess_lookup {
         key = {
-            // IP prefixes of the UEs managed by this switch (when downlink)
-            ipv4.dst_addr : lpm;
+            // UE addr for downlink
+            ipv4.dst_addr : exact;
         }
         actions = {
-            NoAction();
+            set_dl_sess_info();
         }
+        counters = ue_counter;
     }
 
     table s1u_filter_table {
         key = {
-            // IP addresses of the S1U interfaces embodied by this switch.
-            spgw_meta.s1u_sgw_addr : exact;
+            // IP addresses of the S1U interfaces of this SPGW-U instance (when uplink)
+            gtpu_ipv4.dst_addr : exact;
         }
         actions = {
             NoAction();
@@ -116,56 +135,22 @@ control spgw_ingress(
     }
 #endif // WITH_SPGW_PCC_GATING
 
-    table dl_sess_lookup {
-        key = {
-            // UE addr for downlink
-            ipv4.dst_addr : exact;
-        }
-        actions = {
-            set_dl_sess_info();
-        }
-    }
-
-    table ue_cdr_table {
-        key = {
-            // UE addr for downlink
-            ipv4.dst_addr : exact;
-        }
-        actions = {
-            update_ue_cdr();
-        }
-        counters = ue_counter;
-    }
-
     apply {
-        spgw_meta.do_spgw = _FALSE;
         if (gtpu.isValid()) {
-            // If here, the parsed ipv4 header is the outer GTP one, but
-            // fabric needs to forward on the inner one, i.e. this.
-            // We store the outer values we need in the metadata, then replace
-            // the ipv4 header extracted before with this one.
-            spgw_meta.s1u_enb_addr = ipv4.src_addr;
-            spgw_meta.s1u_sgw_addr = ipv4.dst_addr;
-            ipv4 = gtpu_ipv4;
-            udp = gtpu_udp;
-
-            if (s1u_filter_table.apply().hit) {
-                // TODO: check also that gtpu.msgtype == GTP_GPDU
-                spgw_meta.do_spgw = _TRUE;
-                spgw_meta.direction = DIR_UPLINK;
+            // If here, pkt has outer IP dst on
+            // S1U_SGW_PREFIX/S1U_SGW_PREFIX_LEN subnet.
+            // TODO: check also that gtpu.msgtype == GTP_GPDU
+            if (!s1u_filter_table.apply().hit) {
+                drop_now();
             }
-        } else if (ue_filter_table.apply().hit) {
-            spgw_meta.do_spgw = _TRUE;
-            spgw_meta.direction = DIR_DOWNLINK;
-        }
-
-        if (spgw_meta.do_spgw == _FALSE) {
-            // Exit this control block.
-            return;
-        }
-
-        if (spgw_meta.direction == DIR_UPLINK) {
+            spgw_meta.direction = SPGW_DIR_UPLINK;
             gtpu_decap();
+        } else if (dl_sess_lookup.apply().hit) {
+            spgw_meta.direction = SPGW_DIR_DOWNLINK;
+        } else {
+            spgw_meta.direction = SPGW_DIR_UNKNOWN;
+            // No SPGW processing needed.
+            return;
         }
 
 #ifdef WITH_SPGW_PCC_GATING
@@ -181,15 +166,6 @@ control spgw_ingress(
         }
 #endif // WITH_SPGW_PCC_GATING
 
-        if (spgw_meta.direction == DIR_DOWNLINK) {
-            if (!dl_sess_lookup.apply().hit) {
-                // We have no other choice than drop, as we miss the session
-                // info necessary to properly GTPU encap the packet.
-                drop_now();
-            }
-            ue_cdr_table.apply();
-        }
-
         // Don't ask why... we'll need this later.
         spgw_meta.ipv4_len = ipv4.total_len;
     }
@@ -197,12 +173,12 @@ control spgw_ingress(
 
 
 control spgw_egress(
-        in ipv4_t               ipv4,
-        out ipv4_t              gtpu_ipv4,
-        out udp_t               gtpu_udp,
-        out gtpu_t              gtpu,
-        in  spgw_meta_t         spgw_meta,
-        in  standard_metadata_t std_meta
+        in    ipv4_t              ipv4,
+        inout ipv4_t              gtpu_ipv4,
+        inout udp_t               gtpu_udp,
+        inout gtpu_t              gtpu,
+        in    spgw_meta_t         spgw_meta,
+        in    standard_metadata_t std_meta
     ) {
 
     action gtpu_encap() {
@@ -211,7 +187,7 @@ control spgw_egress(
         gtpu_ipv4.ihl = IPV4_MIN_IHL;
         gtpu_ipv4.dscp = 0;
         gtpu_ipv4.ecn = 0;
-        gtpu_ipv4.total_len = spgw_meta.ipv4_len
+        gtpu_ipv4.total_len = ipv4.total_len
                 + (IPV4_HDR_SIZE + UDP_HDR_SIZE + GTP_HDR_SIZE);
         gtpu_ipv4.identification = 0x1513; /* From NGIC */
         gtpu_ipv4.flags = 0;
@@ -242,40 +218,9 @@ control spgw_egress(
     }
 
     apply {
-        if (spgw_meta.do_spgw == _TRUE && spgw_meta.direction == DIR_DOWNLINK) {
+        if (spgw_meta.direction == SPGW_DIR_DOWNLINK) {
             gtpu_encap();
         }
-    }
-}
-
-
-control verify_gtpu_checksum(
-        inout ipv4_t gtpu_ipv4
-    ) {
-    apply {
-        // TODO: re-enable gtpu_ipv4 verification
-        // with the current parser logic, gtpu_ip4 contains values of
-        // the inner header, which is already verified by include/checksum.p4.
-        // We need to modify the parser to copy the outer header somewhere
-        // else, and verify that here.
-
-        // verify_checksum(gtpu_ipv4.isValid(),
-        //     {
-        //         gtpu_ipv4.version,
-        //         gtpu_ipv4.ihl,
-        //         gtpu_ipv4.diffserv,
-        //         gtpu_ipv4.total_len,
-        //         gtpu_ipv4.identification,
-        //         gtpu_ipv4.flags,
-        //         gtpu_ipv4.frag_offset,
-        //         gtpu_ipv4.ttl,
-        //         gtpu_ipv4.protocol,
-        //         gtpu_ipv4.src_addr,
-        //         gtpu_ipv4.dst_addr
-        //     },
-        //     gtpu_ipv4.hdr_checksum,
-        //     HashAlgorithm.csum16
-        // );
     }
 }
 

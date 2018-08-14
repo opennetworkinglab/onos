@@ -48,6 +48,10 @@ inout standard_metadata_t standard_metadata) {
     PortCountersControl() port_counters_control;
 
     apply {
+#ifdef WITH_SPGW
+        spgw_normalizer.apply(hdr.gtpu.isValid(), hdr.gtpu_ipv4, hdr.gtpu_udp,
+                              hdr.ipv4, hdr.udp, hdr.inner_ipv4, hdr.inner_udp);
+#endif // WITH_SPGW
         packet_io_ingress.apply(hdr, fabric_metadata, standard_metadata);
 #ifdef WITH_SPGW
 #ifdef WITH_SPGW_PCC_GATING
