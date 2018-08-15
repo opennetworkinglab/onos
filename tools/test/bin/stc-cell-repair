@@ -13,7 +13,7 @@ slave=$1
 # Destroy all cell-related containers on the specified slave; do not touch
 # the base-* template images though.
 ssh sdn@$slave "
-    containers=\$(sudo lxc-ls --fancy | grep -E '[a-z]*-[0-9n]' | cut -d\  -f1)
+    containers=\$(sudo lxc-ls --fancy | grep -E '[a-z]*-[0-9cn]' | cut -d\  -f1)
     for c in \$containers; do
         sudo lxc-stop -n \$c
         sudo lxc-destroy -n \$c
