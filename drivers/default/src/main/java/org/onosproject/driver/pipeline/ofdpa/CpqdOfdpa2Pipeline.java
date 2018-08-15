@@ -128,7 +128,7 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
      * The purpose of using a group instead of immediate action is that this
      * won't affect another copy on the data plane when write action exists.
      */
-    private static final int POP_VLAN_PUNT_GROUP_ID = 0xc0000000;
+    private static final int POP_VLAN_PUNT_GROUP_ID = 0xd0000000;
 
     /**
      * Executor for group checker thread that checks pop vlan punt group.
