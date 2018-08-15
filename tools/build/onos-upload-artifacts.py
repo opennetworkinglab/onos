@@ -110,9 +110,9 @@ def close_staging_repo(description, repo_id):
 
 
 def wait_for_staging_repo(description, repo_id):
-    base_url = "https://" + destination_repo_url + "/service/local/staging/profiles" + "/" + SONATYPE_PROFILE
-    if repo_id is None:
+    if destination_repo_url is None:
         return
+    base_url = "https://" + destination_repo_url + "/service/local/staging/profiles" + "/" + SONATYPE_PROFILE
     close_request = CLOSE_REPO_REQUEST_TEMPLATE.replace("%(description)", description).replace("%(repo_id)", repo_id)
     url = base_url + "/finish"
     headers = {'Content-Type': 'application/xml'}
