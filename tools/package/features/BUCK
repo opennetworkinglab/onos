@@ -24,6 +24,7 @@ osgi_feature (
     '//lib:io_netty_netty_transport',
     '//lib:io_netty_netty_handler',
     '//lib:io_netty_netty_codec',
+    '//lib:io_netty_netty_transport_native_unix_common',
     '//lib:io_netty_netty_transport-native-epoll',
     '//lib:io_netty_netty_resolver',
     '//lib:commons-pool',
