@@ -2709,4 +2709,3 @@ def maven_coordinates(label):
     if type(label) == "string":
         return "mvn:%s:%s:%s" % (ONOS_GROUP_ID, label_string, ONOS_VERSION)
     return "mvn:%s:%s:%s" % (ONOS_GROUP_ID, label.name, ONOS_VERSION)
-

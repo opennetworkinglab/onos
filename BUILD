@@ -94,3 +94,15 @@ genrule(
     output_to_bindir = True,
     visibility = ["//visibility:public"],
 )
+
+load("@com_github_bazelbuild_buildtools//buildifier:def.bzl", "buildifier")
+
+buildifier(
+    name = "buildifier_check",
+    mode = "check",
+)
+
+buildifier(
+    name = "buildifier_fix",
+    mode = "fix",
+)

@@ -13,25 +13,25 @@
 # limitations under the License.
 
 def _impl(ctx):
-  jar = ctx.outputs.jar
+    jar = ctx.outputs.jar
 
-  src_list = ""
-  for src in ctx.files.srcs:
-    if src.path.endswith(".srcjar"):
-      src_list += " " + src.path
+    src_list = ""
+    for src in ctx.files.srcs:
+        if src.path.endswith(".srcjar"):
+            src_list += " " + src.path
 
-  cmd = [
-      "for sj in %s; do jar xf $sj; done" % src_list,
-      "dir=$(find . -type d -name java)",
-      "[ -n \"$dir\" -a -d \"$dir\" ] && jar cf %s -C $dir ." % jar.path,
-  ]
+    cmd = [
+        "for sj in %s; do jar xf $sj; done" % src_list,
+        "dir=$(find . -type d -name java)",
+        "[ -n \"$dir\" -a -d \"$dir\" ] && jar cf %s -C $dir ." % jar.path,
+    ]
 
-  ctx.action(
-      inputs = ctx.files.srcs,
-      outputs = [jar],
-      progress_message = "Generating source jar for %s" %  ctx.attr.name,
-      command = ";\n".join(cmd)
-  )
+    ctx.action(
+        inputs = ctx.files.srcs,
+        outputs = [jar],
+        progress_message = "Generating source jar for %s" % ctx.attr.name,
+        command = ";\n".join(cmd),
+    )
 
 def _impl_alt(ctx):
     ending = "-src.jar"
@@ -46,15 +46,15 @@ def _impl_alt(ctx):
             out_file = ctx.actions.declare_file(prefix + ".srcjar")
             out_files.append(out_file)
     if len(src_files) == 0:
-            fail("None of the given input files is a valid source jar (%s)"
-                % ", ".join([s.path for s in ctx.files.srcs]))
+        fail("None of the given input files is a valid source jar (%s)" %
+             ", ".join([s.path for s in ctx.files.srcs]))
     for i in range(len(src_files)):
         cmd = "cp %s %s" % (src_files[i].path, out_files[i].path)
         ctx.actions.run_shell(
             inputs = [src_files[i]],
             outputs = [out_files[i]],
-            progress_message = "Generating source jar %s" %  out_files[i].basename,
-            command = cmd
+            progress_message = "Generating source jar %s" % out_files[i].basename,
+            command = cmd,
         )
     return DefaultInfo(files = depset(out_files))
 
@@ -70,7 +70,7 @@ java_sources = rule(
         "srcs": attr.label_list(allow_files = True),
     },
     implementation = _impl,
-    outputs = {"jar" : "%{name}.jar"},
+    outputs = {"jar": "%{name}.jar"},
 )
 
 """

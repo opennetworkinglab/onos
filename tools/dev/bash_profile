@@ -60,7 +60,7 @@ function o {
 
 # Short-hand for ONOS build, package and test.
 alias op="SHLVL=1 bazel build //:onos"
-alias ot="bazel query 'tests(//...)' | SHLVL=1 xargs bazel test"
+alias ot="bazel run //:buildifier_check && bazel query 'tests(//...)' | SHLVL=1 xargs bazel test"
 alias ob="op && ot"
 alias obd="SHLVL=1 bazel build //docs:external //docs:internal"
 

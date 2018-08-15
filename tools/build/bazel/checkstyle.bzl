@@ -14,10 +14,10 @@
  limitations under the License.
 """
 
-
 """
     Implementation of the rule to call checkstyle
 """
+
 def _checkstyle_impl(ctx):
     classpath = ""
     need_colon = False
@@ -28,9 +28,10 @@ def _checkstyle_impl(ctx):
         classpath += file.path
 
     cmd = " ".join(
-            ["java -cp %s com.puppycrawl.tools.checkstyle.Main" % classpath] +
-            ["-c %s" % ctx.attr._config.files.to_list()[0].path] +
-            [src_file.path for src_file in ctx.files.srcs])
+        ["java -cp %s com.puppycrawl.tools.checkstyle.Main" % classpath] +
+        ["-c %s" % ctx.attr._config.files.to_list()[0].path] +
+        [src_file.path for src_file in ctx.files.srcs],
+    )
 
     ctx.actions.write(
         output = ctx.outputs.executable,
@@ -46,28 +47,26 @@ def _checkstyle_impl(ctx):
     runfiles = ctx.runfiles(files = inputs)
     return [DefaultInfo(runfiles = runfiles)]
 
-
 """
     Rule definition for calling checkstyle
 """
 _execute_checkstyle_test = rule(
     test = True,
     attrs = {
-        "_classpath": attr.label_list(default=[
-                    Label("@checkstyle//jar"),
-                    Label("@commons_beanutils//jar"),
-                    Label("@commons_cli//jar"),
-                    Label("@commons_collections//jar"),
-                    Label("@antlr//jar"),
-                    Label("@com_google_guava_guava//jar"),
-                    Label("@commons_logging//jar"),
-                ]),
+        "_classpath": attr.label_list(default = [
+            Label("@checkstyle//jar"),
+            Label("@commons_beanutils//jar"),
+            Label("@commons_cli//jar"),
+            Label("@commons_collections//jar"),
+            Label("@antlr//jar"),
+            Label("@com_google_guava_guava//jar"),
+            Label("@commons_logging//jar"),
+        ]),
         "srcs": attr.label_list(allow_files = FileType([".java"])),
-        "_config": attr.label(default=Label("//tools/build/conf:checkstyle_xml")),
-        "_suppressions": attr.label(default=Label("//tools/build/conf:suppressions_xml")),
-        "_java_header": attr.label(default=Label("//tools/build/conf:onos_java_header")),
+        "_config": attr.label(default = Label("//tools/build/conf:checkstyle_xml")),
+        "_suppressions": attr.label(default = Label("//tools/build/conf:suppressions_xml")),
+        "_java_header": attr.label(default = Label("//tools/build/conf:onos_java_header")),
     },
-
     implementation = _checkstyle_impl,
 )
 
@@ -79,7 +78,6 @@ _execute_checkstyle_test = rule(
         srcs: list of source file targets to run checkstyle on. Required.
         size: test size constraint. Optional, defaults to "small"
 """
+
 def checkstyle_test(name, srcs):
     _execute_checkstyle_test(name = name, srcs = srcs, size = "small")
-
-

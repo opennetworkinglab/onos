@@ -15,21 +15,21 @@
 load("//tools/build/bazel:generate_workspace.bzl", "maven_coordinates")
 
 def _impl(ctx):
-  arguments = [
-      ctx.outputs.pom.path,
-      maven_coordinates(ctx.attr.artifact)
-  ]
+    arguments = [
+        ctx.outputs.pom.path,
+        maven_coordinates(ctx.attr.artifact),
+    ]
 
-  for dep in ctx.attr.deps:
-    arguments += [ maven_coordinates(dep.label) ]
+    for dep in ctx.attr.deps:
+        arguments += [maven_coordinates(dep.label)]
 
-  ctx.actions.run(
-      inputs = ctx.files.deps,
-      outputs = [ctx.outputs.pom],
-      progress_message = "Generating pom file for %s" %  ctx.attr.name,
-      arguments = arguments,
-      executable = ctx.executable._pom_generator,
-  )
+    ctx.actions.run(
+        inputs = ctx.files.deps,
+        outputs = [ctx.outputs.pom],
+        progress_message = "Generating pom file for %s" % ctx.attr.name,
+        arguments = arguments,
+        executable = ctx.executable._pom_generator,
+    )
 
 pom_file = rule(
     attrs = {
@@ -40,9 +40,8 @@ pom_file = rule(
             cfg = "host",
             allow_files = True,
             default = Label("//tools/build/bazel:pom_generator"),
-        )
+        ),
     },
     implementation = _impl,
-    outputs = {"pom" : "%{name}.pom"},
+    outputs = {"pom": "%{name}.pom"},
 )
-

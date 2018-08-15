@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-JAVA_DOCS="-link https://docs.oracle.com/javase/8/docs/api/"
+JAVA_DOCS = "-link https://docs.oracle.com/javase/8/docs/api/"
 
 def dump(obj):
-    print (dir(obj))
+    print(dir(obj))
     for attr in dir(obj):
         print("obj.%s = %r" % (attr, getattr(obj, attr)))
 
@@ -54,8 +54,8 @@ def _impl(ctx):
         cmd += ["find src -type f | egrep -v 'src/(OSGI|WEB)-INF' | egrep -v '/(impl|internal)/' >> FILES"]
 
     cmd += [
-        "javadoc -encoding UTF-8 -overview overview.html -doctitle '%s' -windowtitle '%s' %s -d apidocs -classpath %s -sourcepath src %s @FILES" \
-              % (ctx.attr.title, ctx.attr.title, group_list, classpath.replace(":", "", 1), JAVA_DOCS),
+        "javadoc -encoding UTF-8 -overview overview.html -doctitle '%s' -windowtitle '%s' %s -d apidocs -classpath %s -sourcepath src %s @FILES" %
+        (ctx.attr.title, ctx.attr.title, group_list, classpath.replace(":", "", 1), JAVA_DOCS),
         "cp -r doc-files apidocs/doc-files",
         "jar cf %s apidocs" % jar.path,
     ]
@@ -63,8 +63,8 @@ def _impl(ctx):
     ctx.action(
         inputs = ctx.files.srcs + ctx.files.deps,
         outputs = [jar],
-        progress_message = "Generating javadocs jar for %s" %  ctx.attr.name,
-        command = ";\n".join(cmd)
+        progress_message = "Generating javadocs jar for %s" % ctx.attr.name,
+        command = ";\n".join(cmd),
     )
 
 project_javadoc = rule(
@@ -77,6 +77,5 @@ project_javadoc = rule(
         "internal": attr.bool(default = False),
     },
     implementation = _impl,
-    outputs = {"jar" : "%{name}.jar"},
+    outputs = {"jar": "%{name}.jar"},
 )
-

@@ -85,12 +85,11 @@ def _yang_library_impl(ctx):
         outputs = [ctx.outputs.schema],
         arguments = [
             ctx.outputs.schema.path,
-            generated_sources.path
+            generated_sources.path,
         ],
         command = "jar cf $1 -C $2 schema",
         progress_message = "Assembling YANG compiled schema: %s" % ctx.attr.name,
     )
-
 
 # Rule to generate YANG library from the specified set of YANG models.
 _yang_library = rule(
@@ -114,13 +113,12 @@ _yang_library = rule(
 )
 
 def yang_library(
-    name = None,
-    deps = None,
-    yang_srcs = None,
-    java_srcs = None,
-    custom_registrator = False,
-    visibility = ["//visibility:public"]):
-
+        name = None,
+        deps = None,
+        yang_srcs = None,
+        java_srcs = None,
+        custom_registrator = False,
+        visibility = ["//visibility:public"]):
     if name == None:
         name = "onos-" + native.package_name().replace("/", "-")
     if yang_srcs == None:
@@ -132,7 +130,7 @@ def yang_library(
 
     deps += CORE_DEPS + ONOS_YANG + [
         "@onos_yang_runtime//jar",
-        "//apps/yang:onos-apps-yang"
+        "//apps/yang:onos-apps-yang",
     ]
 
     # Generate the Java sources from YANG model
@@ -146,7 +144,7 @@ def yang_library(
             name = name + "-srcjar",
             srcs = java_srcs,
             outs = [name + ".srcjar"],
-            cmd = "jar cf $(location %s.srcjar) $(SRCS)" % name
+            cmd = "jar cf $(location %s.srcjar) $(SRCS)" % name,
         )
 
     if not custom_registrator:
@@ -154,38 +152,44 @@ def yang_library(
         native.genrule(
             name = name + "-registrator",
             outs = [REGISTRATOR_FILE],
-            cmd = "echo '%s' > $(location %s)" % (REGISTRATOR, REGISTRATOR_FILE)
+            cmd = "echo '%s' > $(location %s)" % (REGISTRATOR, REGISTRATOR_FILE),
         )
 
     # Produce a Java library from the generated Java sources
-    osgi_jar(name = name, srcs = srcs,
-             resource_jars = [name + "-generate"], deps = deps,
-             visibility = ["//visibility:public"],
-             suppress_errorprone = True,
-             suppress_checkstyle = True,
-             suppress_javadocs = True,
+    osgi_jar(
+        name = name,
+        srcs = srcs,
+        resource_jars = [name + "-generate"],
+        deps = deps,
+        visibility = ["//visibility:public"],
+        suppress_errorprone = True,
+        suppress_checkstyle = True,
+        suppress_javadocs = True,
     )
 
 def yang_model(
-    name = None,
-    app_name = None,
-    title = None,
-    description = None,
-    url = "http://onosproject.org/",
-    custom_registrator = False,
-    deps = None,
-    yang_srcs = None,
-    java_srcs = None,
-    required_apps = [],
-    visibility = ["//visibility:public"]):
-
+        name = None,
+        app_name = None,
+        title = None,
+        description = None,
+        url = "http://onosproject.org/",
+        custom_registrator = False,
+        deps = None,
+        yang_srcs = None,
+        java_srcs = None,
+        required_apps = [],
+        visibility = ["//visibility:public"]):
     if name == None:
         name = "onos-" + native.package_name().replace("/", "-")
 
-    yang_library(name = name, deps = deps,
-                 yang_srcs = yang_srcs, java_srcs = java_srcs,
-                 custom_registrator = custom_registrator,
-                 visibility = ["//visibility:public"])
+    yang_library(
+        name = name,
+        deps = deps,
+        yang_srcs = yang_srcs,
+        java_srcs = java_srcs,
+        custom_registrator = custom_registrator,
+        visibility = ["//visibility:public"],
+    )
 
     onos_app(
         app_name = app_name,
@@ -195,7 +199,7 @@ def yang_model(
         version = ONOS_VERSION,
         url = url,
         category = "Models",
-        included_bundles = [ name ],
+        included_bundles = [name],
         required_apps = required_apps + ["org.onosproject.yang"],
         visibility = ["//visibility:public"],
     )

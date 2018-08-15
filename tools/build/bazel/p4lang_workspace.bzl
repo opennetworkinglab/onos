@@ -12,13 +12,14 @@ def generate_p4lang():
         urls = ["https://github.com/p4lang/p4runtime/archive/%s.zip" % P4RUNTIME_COMMIT],
         sha256 = P4RUNTIME_SHA,
         strip_prefix = "p4runtime-%s/proto" % P4RUNTIME_COMMIT,
-        build_file = "//tools/build/bazel:p4runtime_BUILD"
+        build_file = "//tools/build/bazel:p4runtime_BUILD",
     )
+
     # Needed for PI/proto/p4/tmp/p4config.proto
     http_archive(
         name = "com_github_p4lang_pi",
         urls = ["https://github.com/p4lang/PI/archive/%s.zip" % PI_COMMIT],
         sha256 = PI_SHA,
         strip_prefix = "PI-%s/proto" % PI_COMMIT,
-        build_file = "//tools/build/bazel:pi_BUILD"
+        build_file = "//tools/build/bazel:pi_BUILD",
     )

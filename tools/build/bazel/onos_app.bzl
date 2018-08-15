@@ -60,14 +60,22 @@ def _onos_oar_impl(ctx):
 def _onos_app_xml_impl(ctx):
     # Build-up arguments for the app.xml and feature.xml generator
     arguments = [
-        "-n", ctx.attr.feature_coords,
-        "-a", ctx.attr.app_name,
-        "-o", ctx.attr.origin,
-        "-c", ctx.attr.category,
-        "-u", ctx.attr.url,
-        "-v", ctx.attr.version,
-        "-t", ctx.attr.title,
-        "-D", ctx.attr.description,
+        "-n",
+        ctx.attr.feature_coords,
+        "-a",
+        ctx.attr.app_name,
+        "-o",
+        ctx.attr.origin,
+        "-c",
+        ctx.attr.category,
+        "-u",
+        ctx.attr.url,
+        "-v",
+        ctx.attr.version,
+        "-t",
+        ctx.attr.title,
+        "-D",
+        ctx.attr.description,
     ]
 
     for bundle in ctx.attr.included_bundles:
@@ -83,7 +91,7 @@ def _onos_app_xml_impl(ctx):
     ctx.actions.run(
         inputs = [],
         outputs = [ctx.outputs.app_xml],
-        arguments = arguments + [ "-A", "-O", ctx.outputs.app_xml.path ],
+        arguments = arguments + ["-A", "-O", ctx.outputs.app_xml.path],
         progress_message = "Generating app.xml descriptor for app: %s" % ctx.attr.name,
         executable = ctx.executable._onos_app_tools,
     )
@@ -92,12 +100,18 @@ def _onos_app_xml_impl(ctx):
 def _onos_feature_xml_impl(ctx):
     # Build-up arguments
     arguments = [
-        "-n", ctx.attr.feature_coords,
-        "-a", ctx.attr.app_name,
-        "-u", ctx.attr.url,
-        "-v", ctx.attr.version,
-        "-t", ctx.attr.title,
-        "-D", ctx.attr.description,
+        "-n",
+        ctx.attr.feature_coords,
+        "-a",
+        ctx.attr.app_name,
+        "-u",
+        ctx.attr.url,
+        "-v",
+        ctx.attr.version,
+        "-t",
+        ctx.attr.title,
+        "-D",
+        ctx.attr.description,
     ]
 
     for bundle in ctx.attr.included_bundles:
@@ -108,11 +122,10 @@ def _onos_feature_xml_impl(ctx):
     ctx.actions.run(
         inputs = [],
         outputs = [ctx.outputs.feature_xml],
-        arguments = arguments + [ "-F", "-O", ctx.outputs.feature_xml.path ],
+        arguments = arguments + ["-F", "-O", ctx.outputs.feature_xml.path],
         progress_message = "Generating feature.xml for app: %s" % ctx.attr.name,
         executable = ctx.executable._onos_app_tools,
     )
-
 
 # Rule to generate the ONOS app OAR file.
 _onos_oar = rule(
@@ -269,7 +282,7 @@ def onos_app(
         required_apps = required_apps,
     )
 
-   # Generate feature.xml file
+    # Generate feature.xml file
     _onos_feature_xml(
         name = name + "-feature-xml",
         app_name = app_name,

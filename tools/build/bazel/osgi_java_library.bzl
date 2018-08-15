@@ -443,15 +443,27 @@ def osgi_jar_with_tests(
         native_srcs = srcs + [name + "_swagger_java"]
         native_resources.append(name + "_swagger_json")
 
-    javacopts = [ "-XepDisableAllChecks" ] if suppress_errorprone else []
+    javacopts = ["-XepDisableAllChecks"] if suppress_errorprone else []
 
     # compile the Java code
     if len(resource_jars) > 0:
-        native.java_library(name = name + "-native", srcs = native_srcs, resource_jars = resource_jars,
-                            deps = deps, visibility = visibility, javacopts = javacopts)
+        native.java_library(
+            name = name + "-native",
+            srcs = native_srcs,
+            resource_jars = resource_jars,
+            deps = deps,
+            visibility = visibility,
+            javacopts = javacopts,
+        )
     else:
-        native.java_library(name = name + "-native", srcs = native_srcs, resources = native_resources,
-                            deps = deps, visibility = visibility, javacopts = javacopts)
+        native.java_library(
+            name = name + "-native",
+            srcs = native_srcs,
+            resources = native_resources,
+            deps = deps,
+            visibility = visibility,
+            javacopts = javacopts,
+        )
 
     _bnd(
         name = name,
@@ -472,11 +484,11 @@ def osgi_jar_with_tests(
 
     # rule for building source jar
     if not suppress_javadocs:
-      java_sources(name = name + "-sources", srcs = srcs, visibility = visibility)
+        java_sources(name = name + "-sources", srcs = srcs, visibility = visibility)
 
     # rule for building javadocs
     if not suppress_javadocs:
-      javadoc(name = name + "-javadoc", deps = deps, srcs = srcs, visibility = visibility)
+        javadoc(name = name + "-javadoc", deps = deps, srcs = srcs, visibility = visibility)
 
     if test_srcs != []:
         native.java_library(
@@ -579,7 +591,6 @@ def osgi_jar(
         bundle_classpath = bundle_classpath,
     )
 
-
 """
     Creates an OSGI jar file from a set of protobuf and gRPC libraries.
 
@@ -621,8 +632,7 @@ def osgi_proto_jar(
         deps = [],
         group = "org.onosproject",
         visibility = ["//visibility:public"],
-        version = ONOS_VERSION
-    ):
+        version = ONOS_VERSION):
     if name == None:
         name = _auto_name()
     native.java_proto_library(
@@ -646,7 +656,7 @@ def osgi_proto_jar(
             deps = [":%s-java-proto" % name],
         )
         osgi_srcs.append(
-            ":%s-java-grpc__do_not_reference__srcjar" % name
+            ":%s-java-grpc__do_not_reference__srcjar" % name,
         )
         base_deps.extend([
             "@com_google_guava_guava//jar",

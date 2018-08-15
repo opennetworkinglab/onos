@@ -14,11 +14,12 @@ def generate_grpc():
         sha256 = GRPC_SHA,
         strip_prefix = "grpc-java-%s-patched" % GRPC_VER,
     )
+
     # Google APIs protos (status.proto, etc.)
     http_archive(
         name = "com_github_googleapis",
         urls = ["https://github.com/googleapis/googleapis/archive/%s.zip" % GAPIS_COMMIT],
         sha256 = GAPIS_SHA,
         strip_prefix = "googleapis-" + GAPIS_COMMIT,
-        build_file = "//tools/build/bazel:googleapis_BUILD"
+        build_file = "//tools/build/bazel:googleapis_BUILD",
     )

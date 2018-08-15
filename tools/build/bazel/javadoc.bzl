@@ -12,33 +12,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-JAVA_DOCS="-link https://docs.oracle.com/javase/8/docs/api/"
+JAVA_DOCS = "-link https://docs.oracle.com/javase/8/docs/api/"
 
 def _impl(ctx):
-  dir = ctx.label.name
-  jar = ctx.outputs.jar
+    dir = ctx.label.name
+    jar = ctx.outputs.jar
 
-  dep_list = []
-  for dep in ctx.files.deps:
-    dep_list += [dep.path]
+    dep_list = []
+    for dep in ctx.files.deps:
+        dep_list += [dep.path]
 
-  src_list = []
-  for src in ctx.files.srcs:
-    src_list += [src.path]
+    src_list = []
+    for src in ctx.files.srcs:
+        src_list += [src.path]
 
-  cmd = [
-      "mkdir %s" % dir,
-      "javadoc -encoding UTF-8 -quiet -tag onos.rsModel:a:\"onos model\" %s -d %s -cp %s %s" \
-          % (JAVA_DOCS, dir, ":".join(dep_list), " ".join(src_list)),
-      "jar cf %s -C %s ." % (jar.path, dir),
-  ]
+    cmd = [
+        "mkdir %s" % dir,
+        "javadoc -encoding UTF-8 -quiet -tag onos.rsModel:a:\"onos model\" %s -d %s -cp %s %s" %
+        (JAVA_DOCS, dir, ":".join(dep_list), " ".join(src_list)),
+        "jar cf %s -C %s ." % (jar.path, dir),
+    ]
 
-  ctx.action(
-      inputs = ctx.files.srcs + ctx.files.deps,
-      outputs = [jar],
-      progress_message = "Generating javadocs jar for %s" %  ctx.attr.name,
-      command = ";\n".join(cmd)
-  )
+    ctx.action(
+        inputs = ctx.files.srcs + ctx.files.deps,
+        outputs = [jar],
+        progress_message = "Generating javadocs jar for %s" % ctx.attr.name,
+        command = ";\n".join(cmd),
+    )
 
 javadoc = rule(
     attrs = {
@@ -46,6 +46,5 @@ javadoc = rule(
         "srcs": attr.label_list(allow_files = True),
     },
     implementation = _impl,
-    outputs = {"jar" : "%{name}.jar"},
+    outputs = {"jar": "%{name}.jar"},
 )
-
