@@ -8,17 +8,15 @@ BUNDLES = [
     ":onos-drivers-p4runtime",
 ]
 
-osgi_jar (
-    deps = COMPILE_DEPS,
+osgi_jar(
     resources = glob(["src/main/resources/**"]),
     resources_root = "src/main/resources",
+    deps = COMPILE_DEPS,
 )
 
-onos_app (
+onos_app(
     app_name = "org.onosproject.drivers.p4runtime",
-    title = "P4Runtime Drivers",
     category = "Drivers",
-    url = "http://onosproject.org",
     description = "Adds support for devices using P4 Runtime protocol.",
     included_bundles = BUNDLES,
     required_apps = [
@@ -27,4 +25,6 @@ onos_app (
         "org.onosproject.p4runtime",
         "org.onosproject.drivers",
     ],
+    title = "P4Runtime Drivers",
+    url = "http://onosproject.org",
 )

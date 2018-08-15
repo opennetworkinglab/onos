@@ -4,6 +4,6 @@ COMPILE_DEPS = CORE_DEPS + [
     "@io_grpc_grpc_java//core",
 ]
 
-osgi_jar (
+osgi_jar(
     deps = COMPILE_DEPS,
 )

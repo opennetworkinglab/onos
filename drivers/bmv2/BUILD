@@ -18,22 +18,20 @@ BUNDLES = [
 ]
 
 osgi_jar(
-    deps = COMPILE_DEPS,
     # FIXME: enable building other classes as soon as we implement BUILD for
     # protocols/bmv2 (based on Thrift)
     srcs = [
         "src/main/java/org/onosproject/drivers/bmv2/Bmv2DriversLoader.java",
         "src/main/java/org/onosproject/drivers/bmv2/Bmv2PipelineProgrammable.java",
     ],
-    resources_root = "src/main/resources",
     resources = glob(["src/main/resources/**"]),
+    resources_root = "src/main/resources",
+    deps = COMPILE_DEPS,
 )
 
-onos_app (
+onos_app(
     app_name = "org.onosproject.drivers.bmv2",
-    title = "BMv2 Drivers",
     category = "Drivers",
-    url = "http://onosproject.org",
     description = "Adds support for BMv2 devices.",
     included_bundles = BUNDLES,
     required_apps = [
@@ -41,4 +39,6 @@ onos_app (
         "org.onosproject.drivers.gnmi",
         "org.onosproject.pipelines.basic",
     ],
+    title = "BMv2 Drivers",
+    url = "http://onosproject.org",
 )

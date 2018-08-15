@@ -5,12 +5,12 @@ BUNDLES = [
 
 onos_app(
     app_name = "org.onosproject.protocols.gnmi",
-    title = "gNMI Protocol Subsystem",
     category = "Protocol",
-    url = "http://onosproject.org",
     description = "ONOS gNMI protocol subsystem",
     included_bundles = BUNDLES,
     required_apps = [
-        "org.onosproject.protocols.grpc"
+        "org.onosproject.protocols.grpc",
     ],
+    title = "gNMI Protocol Subsystem",
+    url = "http://onosproject.org",
 )

@@ -32,18 +32,18 @@ BUNDLES = [
     "@io_netty_netty_resolver//jar",
 ]
 
-onos_app (
+onos_app(
     app_name = "org.onosproject.protocols.grpc",
-    title = "gRPC Protocol Subsystem",
     category = "rotocol",
-    url = "ttp://onosproject.org",
     description = "Exposes APIs to operate with gRPC channels",
     included_bundles = BUNDLES,
+    title = "gRPC Protocol Subsystem",
+    url = "ttp://onosproject.org",
 )
 
 wrapped_osgi_jar(
     name = "grpc-core-repkg",
-    jar = "@io_grpc_grpc_java//core:core",
-    deps = ["@io_opencensus_opencensus_api//jar"],
+    jar = "@io_grpc_grpc_java//core",
     visibility = ["//visibility:public"],
+    deps = ["@io_opencensus_opencensus_api//jar"],
 )

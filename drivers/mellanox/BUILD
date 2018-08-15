@@ -7,20 +7,20 @@ BUNDLES = [
 ]
 
 osgi_jar(
-    deps = COMPILE_DEPS,
-    resources_root = "src/main/resources",
     resources = glob(["src/main/resources/**"]),
+    resources_root = "src/main/resources",
+    deps = COMPILE_DEPS,
 )
 
-onos_app (
+onos_app(
     app_name = "org.onosproject.drivers.mellanox",
-    title = "Mellanox Drivers",
     category = "Drivers",
-    url = "http://onosproject.org",
     description = "Adds support for Mellanox Spectrum-based devices using P4Runtime",
     included_bundles = BUNDLES,
     required_apps = [
         "org.onosproject.drivers.p4runtime",
         "org.onosproject.pipelines.fabric",
     ],
+    title = "Mellanox Drivers",
+    url = "http://onosproject.org",
 )

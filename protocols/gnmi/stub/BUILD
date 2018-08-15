@@ -4,27 +4,27 @@ load("@io_grpc_grpc_java//:java_grpc_library.bzl", "java_grpc_library")
 wrapped_osgi_jar(
     name = "gnmi_java_grpc",
     jar = ":gnmi_java_grpc_native",
-    deps = [
-        "@io_grpc_grpc_java//stub",
-        "@io_grpc_grpc_java//core",
-        "@io_grpc_grpc_java//protobuf"
-    ],
     visibility = ["//visibility:public"],
+    deps = [
+        "@io_grpc_grpc_java//core",
+        "@io_grpc_grpc_java//protobuf",
+        "@io_grpc_grpc_java//stub",
+    ],
 )
 
 wrapped_osgi_jar(
     name = "gnmi_java_proto",
     jar = ":gnmi_java_proto_native",
+    visibility = ["//visibility:public"],
     deps = [
         "@com_google_protobuf//:protobuf_java",
     ],
-    visibility = ["//visibility:public"],
 )
 
 java_proto_library(
     name = "gnmi_java_proto_native",
-    deps = [":gnmi_proto"],
     visibility = ["//visibility:public"],
+    deps = [":gnmi_proto"],
 )
 
 java_grpc_library(
@@ -39,5 +39,5 @@ proto_library(
     deps = [
         "@com_google_protobuf//:any_proto",
         "@com_google_protobuf//:descriptor_proto",
-    ]
+    ],
 )

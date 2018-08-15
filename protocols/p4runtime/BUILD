@@ -7,12 +7,12 @@ BUNDLES = [
 
 onos_app(
     app_name = "org.onosproject.protocols.p4runtime",
-    title = "P4Runtime Protocol Subsystem",
     category = "Protocol",
-    url = "http://onosproject.org",
     description = "ONOS P4Runtime protocol subsystem",
     included_bundles = BUNDLES,
     required_apps = [
-        "org.onosproject.protocols.grpc"
+        "org.onosproject.protocols.grpc",
     ],
+    title = "P4Runtime Protocol Subsystem",
+    url = "http://onosproject.org",
 )

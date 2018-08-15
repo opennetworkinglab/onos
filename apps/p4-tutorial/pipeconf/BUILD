@@ -5,7 +5,7 @@ COMPILE_DEPS = CORE_DEPS + [
     "//drivers/default:onos-drivers-default",
 ]
 
-osgi_jar (
+osgi_jar(
     deps = COMPILE_DEPS,
 )
 
@@ -13,14 +13,14 @@ BUNDLES = [
     "//apps/p4-tutorial/pipeconf:onos-apps-p4-tutorial-pipeconf",
 ]
 
-onos_app (
+onos_app(
     app_name = "org.onosproject.p4tutorial.pipeconf",
-    title = "P4 Tutorial Pipeconf",
     category = "Pipeconf",
-    url = "http://onosproject.org",
     description = "Provides pipeconf for the ONOS-P4 Tutorial",
     included_bundles = BUNDLES,
     required_apps = [
         "org.onosproject.drivers.p4runtime",
-    ]
+    ],
+    title = "P4 Tutorial Pipeconf",
+    url = "http://onosproject.org",
 )

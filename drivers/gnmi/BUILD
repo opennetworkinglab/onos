@@ -14,23 +14,23 @@ BUNDLES = [
     ":onos-drivers-gnmi",
 ]
 
-osgi_jar (
-    deps = COMPILE_DEPS,
+osgi_jar(
     resources = glob(["src/main/resources/**"]),
     resources_root = "src/main/resources",
+    deps = COMPILE_DEPS,
 )
 
-onos_app (
+onos_app(
     app_name = "org.onosproject.drivers.gnmi",
-    title = "gNMI Drivers",
     category = "Drivers",
-    url = "http://onosproject.org",
     description = "Adds support for devices using gNMI protocol based on " +
-    " openconfig models: http://openconfig.net/ .",
+                  " openconfig models: http://openconfig.net/ .",
     included_bundles = BUNDLES,
     required_apps = [
         "org.onosproject.generaldeviceprovider",
         "org.onosproject.protocols.grpc",
-        "org.onosproject.protocols.gnmi"
+        "org.onosproject.protocols.gnmi",
     ],
+    title = "gNMI Drivers",
+    url = "http://onosproject.org",
 )

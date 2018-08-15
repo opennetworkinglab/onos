@@ -14,10 +14,10 @@ COMPILE_DEPS = CORE_DEPS + [
 ]
 
 TEST_DEPS = TEST_REST + [
-    "//core/common:onos-core-common-tests"
+    "//core/common:onos-core-common-tests",
 ]
 
 osgi_jar_with_tests(
-    deps = COMPILE_DEPS,
     test_deps = TEST_DEPS,
+    deps = COMPILE_DEPS,
 )
