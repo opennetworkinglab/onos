@@ -23,6 +23,8 @@ import org.onosproject.store.service.AsyncAtomicValue;
 import org.onosproject.store.service.AtomicValueEvent;
 import org.onosproject.store.service.AtomicValueEventListener;
 
+import static org.onosproject.store.atomix.primitives.impl.AtomixFutures.adaptFuture;
+
 /**
  * Atomix atomic value.
  */
@@ -42,22 +44,22 @@ public class AtomixAtomicValue<V> implements AsyncAtomicValue<V> {
 
     @Override
     public CompletableFuture<Boolean> compareAndSet(V expect, V update) {
-        return atomixValue.compareAndSet(expect, update);
+        return adaptFuture(atomixValue.compareAndSet(expect, update));
     }
 
     @Override
     public CompletableFuture<V> get() {
-        return atomixValue.get();
+        return adaptFuture(atomixValue.get());
     }
 
     @Override
     public CompletableFuture<V> getAndSet(V value) {
-        return atomixValue.getAndSet(value);
+        return adaptFuture(atomixValue.getAndSet(value));
     }
 
     @Override
     public CompletableFuture<Void> set(V value) {
-        return atomixValue.set(value);
+        return adaptFuture(atomixValue.set(value));
     }
 
     @Override
@@ -68,14 +70,14 @@ public class AtomixAtomicValue<V> implements AsyncAtomicValue<V> {
                 event.newValue(),
                 event.oldValue()));
         listenerMap.put(listener, atomixListener);
-        return atomixValue.addListener(atomixListener);
+        return adaptFuture(atomixValue.addListener(atomixListener));
     }
 
     @Override
     public synchronized CompletableFuture<Void> removeListener(AtomicValueEventListener<V> listener) {
         io.atomix.core.value.AtomicValueEventListener<V> atomixListener = listenerMap.remove(listener);
         if (atomixListener != null) {
-            return atomixValue.removeListener(atomixListener);
+            return adaptFuture(atomixValue.removeListener(atomixListener));
         }
         return CompletableFuture.completedFuture(null);
     }

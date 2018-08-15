@@ -26,6 +26,8 @@ import org.onosproject.store.service.AsyncDistributedSet;
 import org.onosproject.store.service.SetEvent;
 import org.onosproject.store.service.SetEventListener;
 
+import static org.onosproject.store.atomix.primitives.impl.AtomixFutures.adaptFuture;
+
 /**
  * Atomix distributed set.
  */
@@ -45,52 +47,52 @@ public class AtomixDistributedSet<E> implements AsyncDistributedSet<E> {
 
     @Override
     public CompletableFuture<Integer> size() {
-        return atomixSet.size();
+        return adaptFuture(atomixSet.size());
     }
 
     @Override
     public CompletableFuture<Boolean> add(E element) {
-        return atomixSet.add(element);
+        return adaptFuture(atomixSet.add(element));
     }
 
     @Override
     public CompletableFuture<Boolean> remove(E element) {
-        return atomixSet.remove(element);
+        return adaptFuture(atomixSet.remove(element));
     }
 
     @Override
     public CompletableFuture<Boolean> isEmpty() {
-        return atomixSet.isEmpty();
+        return adaptFuture(atomixSet.isEmpty());
     }
 
     @Override
     public CompletableFuture<Void> clear() {
-        return atomixSet.clear();
+        return adaptFuture(atomixSet.clear());
     }
 
     @Override
     public CompletableFuture<Boolean> contains(E element) {
-        return atomixSet.contains(element);
+        return adaptFuture(atomixSet.contains(element));
     }
 
     @Override
     public CompletableFuture<Boolean> addAll(Collection<? extends E> c) {
-        return atomixSet.addAll(c);
+        return adaptFuture(atomixSet.addAll(c));
     }
 
     @Override
     public CompletableFuture<Boolean> containsAll(Collection<? extends E> c) {
-        return atomixSet.containsAll(c);
+        return adaptFuture(atomixSet.containsAll(c));
     }
 
     @Override
     public CompletableFuture<Boolean> retainAll(Collection<? extends E> c) {
-        return atomixSet.retainAll(c);
+        return adaptFuture(atomixSet.retainAll(c));
     }
 
     @Override
     public CompletableFuture<Boolean> removeAll(Collection<? extends E> c) {
-        return atomixSet.removeAll(c);
+        return adaptFuture(atomixSet.removeAll(c));
     }
 
     @Override
@@ -106,14 +108,14 @@ public class AtomixDistributedSet<E> implements AsyncDistributedSet<E> {
                 SetEvent.Type.valueOf(event.type().name()),
                 event.element()));
         listenerMap.put(listener, atomixListener);
-        return atomixSet.addListener(atomixListener);
+        return adaptFuture(atomixSet.addListener(atomixListener));
     }
 
     @Override
     public CompletableFuture<Void> removeListener(SetEventListener<E> listener) {
         io.atomix.core.collection.CollectionEventListener<E> atomixListener = listenerMap.remove(listener);
         if (atomixListener != null) {
-            return atomixSet.removeListener(atomixListener);
+            return adaptFuture(atomixSet.removeListener(atomixListener));
         }
         return CompletableFuture.completedFuture(null);
     }

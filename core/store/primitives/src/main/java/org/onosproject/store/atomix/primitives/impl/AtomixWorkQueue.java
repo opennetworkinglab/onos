@@ -25,6 +25,8 @@ import org.onosproject.store.service.Task;
 import org.onosproject.store.service.WorkQueue;
 import org.onosproject.store.service.WorkQueueStats;
 
+import static org.onosproject.store.atomix.primitives.impl.AtomixFutures.adaptFuture;
+
 /**
  * Atomix work queue.
  */
@@ -42,12 +44,12 @@ public class AtomixWorkQueue<E> implements WorkQueue<E> {
 
     @Override
     public CompletableFuture<Void> addMultiple(Collection<E> items) {
-        return atomixWorkQueue.addMultiple(items);
+        return adaptFuture(atomixWorkQueue.addMultiple(items));
     }
 
     @Override
     public CompletableFuture<Collection<Task<E>>> take(int maxItems) {
-        return atomixWorkQueue.take(maxItems)
+        return adaptFuture(atomixWorkQueue.take(maxItems))
             .thenApply(tasks -> tasks.stream()
                 .map(task -> new Task<>(task.taskId(), task.payload()))
                 .collect(Collectors.toList()));
@@ -55,23 +57,23 @@ public class AtomixWorkQueue<E> implements WorkQueue<E> {
 
     @Override
     public CompletableFuture<Void> complete(Collection<String> taskIds) {
-        return atomixWorkQueue.complete(taskIds);
+        return adaptFuture(atomixWorkQueue.complete(taskIds));
     }
 
     @Override
     public CompletableFuture<Void> registerTaskProcessor(
         Consumer<E> taskProcessor, int parallelism, Executor executor) {
-        return atomixWorkQueue.registerTaskProcessor(taskProcessor, parallelism, executor);
+        return adaptFuture(atomixWorkQueue.registerTaskProcessor(taskProcessor, parallelism, executor));
     }
 
     @Override
     public CompletableFuture<Void> stopProcessing() {
-        return atomixWorkQueue.stopProcessing();
+        return adaptFuture(atomixWorkQueue.stopProcessing());
     }
 
     @Override
     public CompletableFuture<WorkQueueStats> stats() {
-        return atomixWorkQueue.stats()
+        return adaptFuture(atomixWorkQueue.stats())
             .thenApply(stats -> WorkQueueStats.builder()
                 .withTotalCompleted(stats.totalCompleted())
                 .withTotalInProgress(stats.totalInProgress())

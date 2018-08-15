@@ -20,7 +20,6 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.onosproject.store.primitives.NodeUpdate;
@@ -29,11 +28,11 @@ import org.onosproject.store.service.AsyncDocumentTree;
 import org.onosproject.store.service.DocumentPath;
 import org.onosproject.store.service.DocumentTreeEvent;
 import org.onosproject.store.service.DocumentTreeListener;
-import org.onosproject.store.service.IllegalDocumentModificationException;
-import org.onosproject.store.service.NoSuchDocumentPathException;
 import org.onosproject.store.service.TransactionLog;
 import org.onosproject.store.service.Version;
 import org.onosproject.store.service.Versioned;
+
+import static org.onosproject.store.atomix.primitives.impl.AtomixFutures.adaptTreeFuture;
 
 /**
  * Atomix document tree.
@@ -59,7 +58,7 @@ public class AtomixDocumentTree<V> implements AsyncDocumentTree<V> {
 
     @Override
     public CompletableFuture<Map<String, Versioned<V>>> getChildren(DocumentPath path) {
-        return atomixTree.getChildren(toAtomixPath(path))
+        return adaptTreeFuture(atomixTree.getChildren(toAtomixPath(path)))
             .thenApply(map -> map.entrySet().stream()
                 .collect(Collectors.toMap(e -> e.getKey(),
                     e -> toVersioned(e.getValue()))));
@@ -67,37 +66,37 @@ public class AtomixDocumentTree<V> implements AsyncDocumentTree<V> {
 
     @Override
     public CompletableFuture<Versioned<V>> get(DocumentPath path) {
-        return atomixTree.get(toAtomixPath(path)).thenApply(this::toVersioned);
+        return adaptTreeFuture(atomixTree.get(toAtomixPath(path))).thenApply(this::toVersioned);
     }
 
     @Override
     public CompletableFuture<Versioned<V>> set(DocumentPath path, V value) {
-        return atomixTree.set(toAtomixPath(path), value).thenApply(this::toVersioned);
+        return adaptTreeFuture(atomixTree.set(toAtomixPath(path), value)).thenApply(this::toVersioned);
     }
 
     @Override
     public CompletableFuture<Boolean> create(DocumentPath path, V value) {
-        return convertException(atomixTree.create(toAtomixPath(path), value));
+        return adaptTreeFuture(atomixTree.create(toAtomixPath(path), value));
     }
 
     @Override
     public CompletableFuture<Boolean> createRecursive(DocumentPath path, V value) {
-        return atomixTree.createRecursive(toAtomixPath(path), value);
+        return adaptTreeFuture(atomixTree.createRecursive(toAtomixPath(path), value));
     }
 
     @Override
     public CompletableFuture<Boolean> replace(DocumentPath path, V newValue, long version) {
-        return atomixTree.replace(toAtomixPath(path), newValue, version);
+        return adaptTreeFuture(atomixTree.replace(toAtomixPath(path), newValue, version));
     }
 
     @Override
     public CompletableFuture<Boolean> replace(DocumentPath path, V newValue, V currentValue) {
-        return atomixTree.replace(toAtomixPath(path), newValue, currentValue);
+        return adaptTreeFuture(atomixTree.replace(toAtomixPath(path), newValue, currentValue));
     }
 
     @Override
     public CompletableFuture<Versioned<V>> removeNode(DocumentPath path) {
-        return atomixTree.remove(toAtomixPath(path)).thenApply(this::toVersioned);
+        return adaptTreeFuture(atomixTree.remove(toAtomixPath(path))).thenApply(this::toVersioned);
     }
 
     @Override
@@ -109,14 +108,14 @@ public class AtomixDocumentTree<V> implements AsyncDocumentTree<V> {
                 event.newValue().map(this::toVersioned),
                 event.oldValue().map(this::toVersioned)));
         listenerMap.put(listener, atomixListener);
-        return atomixTree.addListener(toAtomixPath(path), atomixListener);
+        return adaptTreeFuture(atomixTree.addListener(toAtomixPath(path), atomixListener));
     }
 
     @Override
     public CompletableFuture<Void> removeListener(DocumentTreeListener<V> listener) {
         io.atomix.core.tree.DocumentTreeEventListener<V> atomixListener = listenerMap.remove(listener);
         if (atomixListener != null) {
-            return atomixTree.removeListener(atomixListener);
+            return adaptTreeFuture(atomixTree.removeListener(atomixListener));
         }
         return CompletableFuture.completedFuture(null);
     }
@@ -144,25 +143,6 @@ public class AtomixDocumentTree<V> implements AsyncDocumentTree<V> {
     @Override
     public CompletableFuture<Void> rollback(TransactionId transactionId) {
         throw new UnsupportedOperationException();
-    }
-
-    private <T> CompletableFuture<T> convertException(CompletableFuture<T> future) {
-        CompletableFuture<T> newFuture = new CompletableFuture<>();
-        future.whenComplete((result, error) -> {
-            if (error == null) {
-                newFuture.complete(result);
-            } else {
-                Throwable cause = Throwables.getRootCause(error);
-                if (cause instanceof io.atomix.core.tree.NoSuchDocumentPathException) {
-                    newFuture.completeExceptionally(new NoSuchDocumentPathException());
-                } else if (cause instanceof io.atomix.core.tree.IllegalDocumentModificationException) {
-                    newFuture.completeExceptionally(new IllegalDocumentModificationException());
-                } else {
-                    newFuture.completeExceptionally(cause);
-                }
-            }
-        });
-        return newFuture;
     }
 
     private DocumentPath toOnosPath(io.atomix.core.tree.DocumentPath path) {

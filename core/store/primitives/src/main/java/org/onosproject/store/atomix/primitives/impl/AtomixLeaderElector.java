@@ -28,6 +28,8 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.event.Change;
 import org.onosproject.store.service.AsyncLeaderElector;
 
+import static org.onosproject.store.atomix.primitives.impl.AtomixFutures.adaptFuture;
+
 /**
  * Atomix leader elector.
  */
@@ -49,37 +51,37 @@ public class AtomixLeaderElector implements AsyncLeaderElector {
 
     @Override
     public CompletableFuture<Leadership> run(String topic, NodeId nodeId) {
-        return atomixElector.run(topic, nodeId).thenApply(leadership -> toLeadership(topic, leadership));
+        return adaptFuture(atomixElector.run(topic, nodeId)).thenApply(leadership -> toLeadership(topic, leadership));
     }
 
     @Override
     public CompletableFuture<Void> withdraw(String topic) {
-        return atomixElector.withdraw(topic, localNodeId);
+        return adaptFuture(atomixElector.withdraw(topic, localNodeId));
     }
 
     @Override
     public CompletableFuture<Boolean> anoint(String topic, NodeId nodeId) {
-        return atomixElector.anoint(topic, nodeId);
+        return adaptFuture(atomixElector.anoint(topic, nodeId));
     }
 
     @Override
     public CompletableFuture<Void> evict(NodeId nodeId) {
-        return atomixElector.evict(nodeId);
+        return adaptFuture(atomixElector.evict(nodeId));
     }
 
     @Override
     public CompletableFuture<Boolean> promote(String topic, NodeId nodeId) {
-        return atomixElector.promote(topic, nodeId);
+        return adaptFuture(atomixElector.promote(topic, nodeId));
     }
 
     @Override
     public CompletableFuture<Leadership> getLeadership(String topic) {
-        return atomixElector.getLeadership(topic).thenApply(leadership -> toLeadership(topic, leadership));
+        return adaptFuture(atomixElector.getLeadership(topic)).thenApply(leadership -> toLeadership(topic, leadership));
     }
 
     @Override
     public CompletableFuture<Map<String, Leadership>> getLeaderships() {
-        return atomixElector.getLeaderships()
+        return adaptFuture(atomixElector.getLeaderships())
             .thenApply(leaderships -> leaderships.entrySet().stream()
                 .collect(Collectors.toMap(e -> e.getKey(), e -> toLeadership(e.getKey(), e.getValue()))));
     }
@@ -91,14 +93,14 @@ public class AtomixLeaderElector implements AsyncLeaderElector {
                 toLeadership(event.topic(), event.oldLeadership()),
                 toLeadership(event.topic(), event.newLeadership())));
         listenerMap.put(consumer, atomixListener);
-        return atomixElector.addListener(atomixListener);
+        return adaptFuture(atomixElector.addListener(atomixListener));
     }
 
     @Override
     public CompletableFuture<Void> removeChangeListener(Consumer<Change<Leadership>> consumer) {
         LeadershipEventListener<NodeId> atomixListener = listenerMap.remove(consumer);
         if (atomixListener != null) {
-            return atomixElector.removeListener(atomixListener);
+            return adaptFuture(atomixElector.removeListener(atomixListener));
         }
         return CompletableFuture.completedFuture(null);
     }

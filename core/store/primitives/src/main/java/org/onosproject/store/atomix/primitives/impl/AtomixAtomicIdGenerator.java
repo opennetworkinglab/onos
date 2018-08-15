@@ -19,6 +19,8 @@ import java.util.concurrent.CompletableFuture;
 
 import org.onosproject.store.service.AsyncAtomicIdGenerator;
 
+import static org.onosproject.store.atomix.primitives.impl.AtomixFutures.adaptFuture;
+
 /**
  * Atomix atomic ID generator.
  */
@@ -36,6 +38,6 @@ public class AtomixAtomicIdGenerator implements AsyncAtomicIdGenerator {
 
     @Override
     public CompletableFuture<Long> nextId() {
-        return atomixIdGenerator.nextId();
+        return adaptFuture(atomixIdGenerator.nextId());
     }
 }

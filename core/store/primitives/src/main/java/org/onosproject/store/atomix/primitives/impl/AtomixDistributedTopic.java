@@ -26,6 +26,8 @@ import io.atomix.core.value.AtomicValueEventListener;
 import org.onosproject.store.service.DistributedPrimitive;
 import org.onosproject.store.service.Topic;
 
+import static org.onosproject.store.atomix.primitives.impl.AtomixFutures.adaptFuture;
+
 /**
  * Default implementation of {@link Topic}.
  *
@@ -52,7 +54,7 @@ public class AtomixDistributedTopic<T> implements Topic<T> {
 
     @Override
     public CompletableFuture<Void> publish(T message) {
-        return atomixValue.set(message);
+        return adaptFuture(atomixValue.set(message));
     }
 
     @Override
@@ -60,7 +62,7 @@ public class AtomixDistributedTopic<T> implements Topic<T> {
         AtomicValueEventListener<T> valueListener =
                 event -> executor.execute(() -> callback.accept(event.newValue()));
         if (callbacks.putIfAbsent(callback, valueListener) == null) {
-            return atomixValue.addListener(valueListener);
+            return adaptFuture(atomixValue.addListener(valueListener));
         }
         return CompletableFuture.completedFuture(null);
     }
@@ -69,7 +71,7 @@ public class AtomixDistributedTopic<T> implements Topic<T> {
     public CompletableFuture<Void> unsubscribe(Consumer<T> callback) {
         AtomicValueEventListener<T> valueListener = callbacks.remove(callback);
         if (valueListener != null) {
-            return atomixValue.removeListener(valueListener);
+            return adaptFuture(atomixValue.removeListener(valueListener));
         }
         return CompletableFuture.completedFuture(null);
     }

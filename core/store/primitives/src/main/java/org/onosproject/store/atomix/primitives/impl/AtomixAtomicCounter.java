@@ -19,6 +19,8 @@ import java.util.concurrent.CompletableFuture;
 
 import org.onosproject.store.service.AsyncAtomicCounter;
 
+import static org.onosproject.store.atomix.primitives.impl.AtomixFutures.adaptFuture;
+
 /**
  * Atomix atomic counter.
  */
@@ -36,36 +38,36 @@ public class AtomixAtomicCounter implements AsyncAtomicCounter {
 
     @Override
     public CompletableFuture<Long> incrementAndGet() {
-        return atomixCounter.incrementAndGet();
+        return adaptFuture(atomixCounter.incrementAndGet());
     }
 
     @Override
     public CompletableFuture<Long> getAndIncrement() {
-        return atomixCounter.getAndIncrement();
+        return adaptFuture(atomixCounter.getAndIncrement());
     }
 
     @Override
     public CompletableFuture<Long> getAndAdd(long delta) {
-        return atomixCounter.getAndAdd(delta);
+        return adaptFuture(atomixCounter.getAndAdd(delta));
     }
 
     @Override
     public CompletableFuture<Long> addAndGet(long delta) {
-        return atomixCounter.addAndGet(delta);
+        return adaptFuture(atomixCounter.addAndGet(delta));
     }
 
     @Override
     public CompletableFuture<Long> get() {
-        return atomixCounter.get();
+        return adaptFuture(atomixCounter.get());
     }
 
     @Override
     public CompletableFuture<Void> set(long value) {
-        return atomixCounter.set(value);
+        return adaptFuture(atomixCounter.set(value));
     }
 
     @Override
     public CompletableFuture<Boolean> compareAndSet(long expectedValue, long updateValue) {
-        return atomixCounter.compareAndSet(expectedValue, updateValue);
+        return adaptFuture(atomixCounter.compareAndSet(expectedValue, updateValue));
     }
 }

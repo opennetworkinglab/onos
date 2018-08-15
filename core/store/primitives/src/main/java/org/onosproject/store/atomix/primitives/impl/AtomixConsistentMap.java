@@ -24,7 +24,6 @@ import java.util.concurrent.Executor;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
-import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
 import io.atomix.core.collection.impl.TranscodingAsyncDistributedCollection;
 import io.atomix.core.set.impl.TranscodingAsyncDistributedSet;
@@ -32,12 +31,13 @@ import org.onosproject.store.primitives.MapUpdate;
 import org.onosproject.store.primitives.TransactionId;
 import org.onosproject.store.service.AsyncConsistentMap;
 import org.onosproject.store.service.AsyncIterator;
-import org.onosproject.store.service.ConsistentMapException;
 import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.TransactionLog;
 import org.onosproject.store.service.Version;
 import org.onosproject.store.service.Versioned;
+
+import static org.onosproject.store.atomix.primitives.impl.AtomixFutures.adaptMapFuture;
 
 /**
  * Atomix consistent map.
@@ -84,22 +84,22 @@ public class AtomixConsistentMap<K, V> implements AsyncConsistentMap<K, V> {
     @Override
     public CompletableFuture<Versioned<V>> computeIf(
         K key, Predicate<? super V> condition, BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
-        return adapt(atomixMap.computeIf(key, condition, remappingFunction).thenApply(this::toVersioned));
+        return adaptMapFuture(atomixMap.computeIf(key, condition, remappingFunction).thenApply(this::toVersioned));
     }
 
     @Override
     public CompletableFuture<Versioned<V>> put(K key, V value) {
-        return adapt(atomixMap.put(key, value).thenApply(this::toVersioned));
+        return adaptMapFuture(atomixMap.put(key, value).thenApply(this::toVersioned));
     }
 
     @Override
     public CompletableFuture<Versioned<V>> putAndGet(K key, V value) {
-        return adapt(atomixMap.putAndGet(key, value).thenApply(this::toVersioned));
+        return adaptMapFuture(atomixMap.putAndGet(key, value).thenApply(this::toVersioned));
     }
 
     @Override
     public CompletableFuture<Versioned<V>> remove(K key) {
-        return adapt(atomixMap.remove(key).thenApply(this::toVersioned));
+        return adaptMapFuture(atomixMap.remove(key).thenApply(this::toVersioned));
     }
 
     @Override
@@ -137,32 +137,32 @@ public class AtomixConsistentMap<K, V> implements AsyncConsistentMap<K, V> {
 
     @Override
     public CompletableFuture<Versioned<V>> putIfAbsent(K key, V value) {
-        return adapt(atomixMap.putIfAbsent(key, value).thenApply(this::toVersioned));
+        return adaptMapFuture(atomixMap.putIfAbsent(key, value).thenApply(this::toVersioned));
     }
 
     @Override
     public CompletableFuture<Boolean> remove(K key, V value) {
-        return adapt(atomixMap.remove(key, value));
+        return adaptMapFuture(atomixMap.remove(key, value));
     }
 
     @Override
     public CompletableFuture<Boolean> remove(K key, long version) {
-        return adapt(atomixMap.remove(key, version));
+        return adaptMapFuture(atomixMap.remove(key, version));
     }
 
     @Override
     public CompletableFuture<Versioned<V>> replace(K key, V value) {
-        return adapt(atomixMap.replace(key, value).thenApply(this::toVersioned));
+        return adaptMapFuture(atomixMap.replace(key, value).thenApply(this::toVersioned));
     }
 
     @Override
     public CompletableFuture<Boolean> replace(K key, V oldValue, V newValue) {
-        return adapt(atomixMap.replace(key, oldValue, newValue));
+        return adaptMapFuture(atomixMap.replace(key, oldValue, newValue));
     }
 
     @Override
     public CompletableFuture<Boolean> replace(K key, long oldVersion, V newValue) {
-        return adapt(atomixMap.replace(key, oldVersion, newValue));
+        return adaptMapFuture(atomixMap.replace(key, oldVersion, newValue));
     }
 
     @Override
@@ -228,30 +228,6 @@ public class AtomixConsistentMap<K, V> implements AsyncConsistentMap<K, V> {
     @Override
     public CompletableFuture<Void> rollback(TransactionId transactionId) {
         throw new UnsupportedOperationException();
-    }
-
-    private <T> CompletableFuture<T> adapt(CompletableFuture<T> future) {
-        CompletableFuture<T> newFuture = new CompletableFuture<>();
-        future.whenComplete((result, error) -> {
-            if (error == null) {
-                newFuture.complete(result);
-            } else {
-                Throwable cause = Throwables.getRootCause(error);
-                if (cause instanceof io.atomix.primitive.PrimitiveException.ConcurrentModification) {
-                    newFuture.completeExceptionally(
-                        new ConsistentMapException.ConcurrentModification(cause.getMessage()));
-                } else if (cause instanceof io.atomix.primitive.PrimitiveException.Timeout) {
-                    newFuture.completeExceptionally(new ConsistentMapException.Timeout(cause.getMessage()));
-                } else if (cause instanceof io.atomix.primitive.PrimitiveException.Interrupted) {
-                    newFuture.completeExceptionally(new ConsistentMapException.Interrupted());
-                } else if (cause instanceof io.atomix.primitive.PrimitiveException.Unavailable) {
-                    newFuture.completeExceptionally(new ConsistentMapException.Unavailable());
-                } else if (cause instanceof io.atomix.primitive.PrimitiveException) {
-                    newFuture.completeExceptionally(new ConsistentMapException(cause.getMessage()));
-                }
-            }
-        });
-        return newFuture;
     }
 
     private Versioned<V> toVersioned(io.atomix.utils.time.Versioned<V> versioned) {

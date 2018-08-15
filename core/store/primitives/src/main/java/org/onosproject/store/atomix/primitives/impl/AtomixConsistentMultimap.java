@@ -32,6 +32,8 @@ import org.onosproject.store.service.MultimapEvent;
 import org.onosproject.store.service.MultimapEventListener;
 import org.onosproject.store.service.Versioned;
 
+import static org.onosproject.store.atomix.primitives.impl.AtomixFutures.adaptMapFuture;
+
 /**
  * Atomix consistent map.
  */
@@ -51,79 +53,81 @@ public class AtomixConsistentMultimap<K, V> implements AsyncConsistentMultimap<K
 
     @Override
     public CompletableFuture<Integer> size() {
-        return atomixMultimap.size();
+        return adaptMapFuture(atomixMultimap.size());
     }
 
     @Override
     public CompletableFuture<Boolean> containsKey(K key) {
-        return atomixMultimap.containsKey(key);
+        return adaptMapFuture(atomixMultimap.containsKey(key));
     }
 
     @Override
     public CompletableFuture<Boolean> containsValue(V value) {
-        return atomixMultimap.containsValue(value);
+        return adaptMapFuture(atomixMultimap.containsValue(value));
     }
 
     @Override
     public CompletableFuture<Boolean> isEmpty() {
-        return atomixMultimap.isEmpty();
+        return adaptMapFuture(atomixMultimap.isEmpty());
     }
 
     @Override
     public CompletableFuture<Boolean> containsEntry(K key, V value) {
-        return atomixMultimap.containsEntry(key, value);
+        return adaptMapFuture(atomixMultimap.containsEntry(key, value));
     }
 
     @Override
     public CompletableFuture<Boolean> put(K key, V value) {
-        return atomixMultimap.put(key, value);
+        return adaptMapFuture(atomixMultimap.put(key, value));
     }
 
     @Override
     public CompletableFuture<Versioned<Collection<? extends V>>> putAndGet(K key, V value) {
-        return atomixMultimap.put(key, value).thenCompose(v -> atomixMultimap.get(key)).thenApply(this::toVersioned);
+        return adaptMapFuture(atomixMultimap.put(key, value).thenCompose(v -> atomixMultimap.get(key))
+            .thenApply(this::toVersioned));
     }
 
     @Override
     public CompletableFuture<Boolean> remove(K key, V value) {
-        return atomixMultimap.remove(key, value);
+        return adaptMapFuture(atomixMultimap.remove(key, value));
     }
 
     @Override
     public CompletableFuture<Versioned<Collection<? extends V>>> removeAndGet(K key, V value) {
-        return atomixMultimap.remove(key, value).thenCompose(v -> atomixMultimap.get(key)).thenApply(this::toVersioned);
+        return adaptMapFuture(atomixMultimap.remove(key, value).thenCompose(v -> atomixMultimap.get(key))
+            .thenApply(this::toVersioned));
     }
 
     @Override
     public CompletableFuture<Boolean> removeAll(K key, Collection<? extends V> values) {
-        return atomixMultimap.removeAll(key, values);
+        return adaptMapFuture(atomixMultimap.removeAll(key, values));
     }
 
     @Override
     public CompletableFuture<Versioned<Collection<? extends V>>> removeAll(K key) {
-        return atomixMultimap.removeAll(key).thenApply(this::toVersioned);
+        return adaptMapFuture(atomixMultimap.removeAll(key).thenApply(this::toVersioned));
     }
 
     @Override
     public CompletableFuture<Boolean> putAll(K key, Collection<? extends V> values) {
-        return atomixMultimap.putAll(key, values);
+        return adaptMapFuture(atomixMultimap.putAll(key, values));
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public CompletableFuture<Versioned<Collection<? extends V>>> replaceValues(K key, Collection<V> values) {
-        return atomixMultimap.replaceValues(key, values).thenApply(this::toVersioned);
+        return adaptMapFuture(atomixMultimap.replaceValues(key, values).thenApply(this::toVersioned));
     }
 
     @Override
     public CompletableFuture<Void> clear() {
-        return atomixMultimap.clear();
+        return adaptMapFuture(atomixMultimap.clear());
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public CompletableFuture<Versioned<Collection<? extends V>>> get(K key) {
-        return atomixMultimap.get(key).thenApply(this::toVersioned);
+        return adaptMapFuture(atomixMultimap.get(key).thenApply(this::toVersioned));
     }
 
     @Override
@@ -176,14 +180,14 @@ public class AtomixConsistentMultimap<K, V> implements AsyncConsistentMultimap<K
                 event.newValue(),
                 event.oldValue()));
         listenerMap.put(listener, atomixListener);
-        return atomixMultimap.addListener(atomixListener, executor);
+        return adaptMapFuture(atomixMultimap.addListener(atomixListener, executor));
     }
 
     @Override
     public CompletableFuture<Void> removeListener(MultimapEventListener<K, V> listener) {
         io.atomix.core.multimap.AtomicMultimapEventListener<K, V> atomixListener = listenerMap.remove(listener);
         if (atomixListener != null) {
-            return atomixMultimap.removeListener(atomixListener);
+            return adaptMapFuture(atomixMultimap.removeListener(atomixListener));
         }
         return CompletableFuture.completedFuture(null);
     }

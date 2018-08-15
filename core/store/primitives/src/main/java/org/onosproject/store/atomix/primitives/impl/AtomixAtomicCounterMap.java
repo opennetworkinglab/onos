@@ -19,6 +19,8 @@ import java.util.concurrent.CompletableFuture;
 
 import org.onosproject.store.service.AsyncAtomicCounterMap;
 
+import static org.onosproject.store.atomix.primitives.impl.AtomixFutures.adaptMapFuture;
+
 /**
  * Atomix atomic counter map.
  */
@@ -36,76 +38,76 @@ public class AtomixAtomicCounterMap<K> implements AsyncAtomicCounterMap<K> {
 
     @Override
     public CompletableFuture<Long> incrementAndGet(K key) {
-        return atomixMap.incrementAndGet(key);
+        return adaptMapFuture(atomixMap.incrementAndGet(key));
     }
 
     @Override
     public CompletableFuture<Long> decrementAndGet(K key) {
-        return atomixMap.decrementAndGet(key);
+        return adaptMapFuture(atomixMap.decrementAndGet(key));
     }
 
     @Override
     public CompletableFuture<Long> getAndIncrement(K key) {
-        return atomixMap.getAndIncrement(key);
+        return adaptMapFuture(atomixMap.getAndIncrement(key));
     }
 
     @Override
     public CompletableFuture<Long> getAndDecrement(K key) {
-        return atomixMap.getAndDecrement(key);
+        return adaptMapFuture(atomixMap.getAndDecrement(key));
     }
 
     @Override
     public CompletableFuture<Long> addAndGet(K key, long delta) {
-        return atomixMap.addAndGet(key, delta);
+        return adaptMapFuture(atomixMap.addAndGet(key, delta));
     }
 
     @Override
     public CompletableFuture<Long> getAndAdd(K key, long delta) {
-        return atomixMap.getAndAdd(key, delta);
+        return adaptMapFuture(atomixMap.getAndAdd(key, delta));
     }
 
     @Override
     public CompletableFuture<Long> get(K key) {
-        return atomixMap.get(key);
+        return adaptMapFuture(atomixMap.get(key));
     }
 
     @Override
     public CompletableFuture<Long> put(K key, long newValue) {
-        return atomixMap.put(key, newValue);
+        return adaptMapFuture(atomixMap.put(key, newValue));
     }
 
     @Override
     public CompletableFuture<Long> putIfAbsent(K key, long newValue) {
-        return atomixMap.putIfAbsent(key, newValue);
+        return adaptMapFuture(atomixMap.putIfAbsent(key, newValue));
     }
 
     @Override
     public CompletableFuture<Boolean> replace(K key, long expectedOldValue, long newValue) {
-        return atomixMap.replace(key, expectedOldValue, newValue);
+        return adaptMapFuture(atomixMap.replace(key, expectedOldValue, newValue));
     }
 
     @Override
     public CompletableFuture<Long> remove(K key) {
-        return atomixMap.remove(key);
+        return adaptMapFuture(atomixMap.remove(key));
     }
 
     @Override
     public CompletableFuture<Boolean> remove(K key, long value) {
-        return atomixMap.remove(key, value);
+        return adaptMapFuture(atomixMap.remove(key, value));
     }
 
     @Override
     public CompletableFuture<Integer> size() {
-        return atomixMap.size();
+        return adaptMapFuture(atomixMap.size());
     }
 
     @Override
     public CompletableFuture<Boolean> isEmpty() {
-        return atomixMap.isEmpty();
+        return adaptMapFuture(atomixMap.isEmpty());
     }
 
     @Override
     public CompletableFuture<Void> clear() {
-        return atomixMap.clear();
+        return adaptMapFuture(atomixMap.clear());
     }
 }

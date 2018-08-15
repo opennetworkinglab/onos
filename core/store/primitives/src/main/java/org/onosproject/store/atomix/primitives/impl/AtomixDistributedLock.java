@@ -22,6 +22,8 @@ import java.util.concurrent.CompletableFuture;
 import org.onosproject.store.service.AsyncDistributedLock;
 import org.onosproject.store.service.Version;
 
+import static org.onosproject.store.atomix.primitives.impl.AtomixFutures.adaptFuture;
+
 /**
  * Atomix distributed lock.
  */
@@ -39,22 +41,22 @@ public class AtomixDistributedLock implements AsyncDistributedLock {
 
     @Override
     public CompletableFuture<Version> lock() {
-        return atomixLock.lock().thenApply(this::toVersion);
+        return adaptFuture(atomixLock.lock()).thenApply(this::toVersion);
     }
 
     @Override
     public CompletableFuture<Optional<Version>> tryLock() {
-        return atomixLock.tryLock().thenApply(optional -> optional.map(this::toVersion));
+        return adaptFuture(atomixLock.tryLock()).thenApply(optional -> optional.map(this::toVersion));
     }
 
     @Override
     public CompletableFuture<Optional<Version>> tryLock(Duration timeout) {
-        return atomixLock.tryLock(timeout).thenApply(optional -> optional.map(this::toVersion));
+        return adaptFuture(atomixLock.tryLock(timeout)).thenApply(optional -> optional.map(this::toVersion));
     }
 
     @Override
     public CompletableFuture<Void> unlock() {
-        return atomixLock.unlock();
+        return adaptFuture(atomixLock.unlock());
     }
 
     private Version toVersion(io.atomix.utils.time.Version version) {

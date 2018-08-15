@@ -27,7 +27,6 @@ import java.util.function.BiFunction;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
 import io.atomix.core.collection.impl.TranscodingAsyncDistributedCollection;
 import io.atomix.core.map.impl.DelegatingAsyncDistributedNavigableMap;
@@ -35,12 +34,13 @@ import org.onosproject.store.primitives.MapUpdate;
 import org.onosproject.store.primitives.TransactionId;
 import org.onosproject.store.service.AsyncConsistentTreeMap;
 import org.onosproject.store.service.AsyncIterator;
-import org.onosproject.store.service.ConsistentMapException;
 import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.TransactionLog;
 import org.onosproject.store.service.Version;
 import org.onosproject.store.service.Versioned;
+
+import static org.onosproject.store.atomix.primitives.impl.AtomixFutures.adaptMapFuture;
 
 /**
  * Atomix consistent tree map.
@@ -168,22 +168,22 @@ public class AtomixConsistentTreeMap<V> implements AsyncConsistentTreeMap<V> {
     public CompletableFuture<Versioned<V>> computeIf(
         String key,
         Predicate<? super V> condition, BiFunction<? super String, ? super V, ? extends V> remappingFunction) {
-        return adapt(atomixTreeMap.computeIf(key, condition, remappingFunction)).thenApply(this::toVersioned);
+        return adaptMapFuture(atomixTreeMap.computeIf(key, condition, remappingFunction)).thenApply(this::toVersioned);
     }
 
     @Override
     public CompletableFuture<Versioned<V>> put(String key, V value) {
-        return adapt(atomixTreeMap.put(key, value)).thenApply(this::toVersioned);
+        return adaptMapFuture(atomixTreeMap.put(key, value)).thenApply(this::toVersioned);
     }
 
     @Override
     public CompletableFuture<Versioned<V>> putAndGet(String key, V value) {
-        return adapt(atomixTreeMap.putAndGet(key, value)).thenApply(this::toVersioned);
+        return adaptMapFuture(atomixTreeMap.putAndGet(key, value)).thenApply(this::toVersioned);
     }
 
     @Override
     public CompletableFuture<Versioned<V>> remove(String key) {
-        return adapt(atomixTreeMap.remove(key)).thenApply(this::toVersioned);
+        return adaptMapFuture(atomixTreeMap.remove(key)).thenApply(this::toVersioned);
     }
 
     @Override
@@ -201,32 +201,32 @@ public class AtomixConsistentTreeMap<V> implements AsyncConsistentTreeMap<V> {
 
     @Override
     public CompletableFuture<Versioned<V>> putIfAbsent(String key, V value) {
-        return adapt(atomixTreeMap.putIfAbsent(key, value)).thenApply(this::toVersioned);
+        return adaptMapFuture(atomixTreeMap.putIfAbsent(key, value)).thenApply(this::toVersioned);
     }
 
     @Override
     public CompletableFuture<Boolean> remove(String key, V value) {
-        return adapt(atomixTreeMap.remove(key, value));
+        return adaptMapFuture(atomixTreeMap.remove(key, value));
     }
 
     @Override
     public CompletableFuture<Boolean> remove(String key, long version) {
-        return adapt(atomixTreeMap.remove(key, version));
+        return adaptMapFuture(atomixTreeMap.remove(key, version));
     }
 
     @Override
     public CompletableFuture<Versioned<V>> replace(String key, V value) {
-        return adapt(atomixTreeMap.replace(key, value)).thenApply(this::toVersioned);
+        return adaptMapFuture(atomixTreeMap.replace(key, value)).thenApply(this::toVersioned);
     }
 
     @Override
     public CompletableFuture<Boolean> replace(String key, V oldValue, V newValue) {
-        return adapt(atomixTreeMap.replace(key, oldValue, newValue));
+        return adaptMapFuture(atomixTreeMap.replace(key, oldValue, newValue));
     }
 
     @Override
     public CompletableFuture<Boolean> replace(String key, long oldVersion, V newValue) {
-        return adapt(atomixTreeMap.replace(key, oldVersion, newValue));
+        return adaptMapFuture(atomixTreeMap.replace(key, oldVersion, newValue));
     }
 
     @Override
@@ -312,30 +312,6 @@ public class AtomixConsistentTreeMap<V> implements AsyncConsistentTreeMap<V> {
     @Override
     public CompletableFuture<Void> rollback(TransactionId transactionId) {
         throw new UnsupportedOperationException();
-    }
-
-    private <T> CompletableFuture<T> adapt(CompletableFuture<T> future) {
-        CompletableFuture<T> newFuture = new CompletableFuture<>();
-        future.whenComplete((result, error) -> {
-            if (error == null) {
-                newFuture.complete(result);
-            } else {
-                Throwable cause = Throwables.getRootCause(error);
-                if (cause instanceof io.atomix.primitive.PrimitiveException.ConcurrentModification) {
-                    newFuture.completeExceptionally(
-                        new ConsistentMapException.ConcurrentModification(error.getMessage()));
-                } else if (cause instanceof io.atomix.primitive.PrimitiveException.Timeout) {
-                    newFuture.completeExceptionally(new ConsistentMapException.Timeout(error.getMessage()));
-                } else if (cause instanceof io.atomix.primitive.PrimitiveException.Interrupted) {
-                    newFuture.completeExceptionally(new ConsistentMapException.Interrupted());
-                } else if (cause instanceof io.atomix.primitive.PrimitiveException.Unavailable) {
-                    newFuture.completeExceptionally(new ConsistentMapException.Unavailable());
-                } else if (cause instanceof io.atomix.primitive.PrimitiveException) {
-                    newFuture.completeExceptionally(new ConsistentMapException(cause.getMessage()));
-                }
-            }
-        });
-        return newFuture;
     }
 
     private Versioned<V> toVersioned(io.atomix.utils.time.Versioned<V> versioned) {
