@@ -101,7 +101,7 @@ def create_staging_repo(description):
 
 
 def close_staging_repo(description, repo_id):
-    if repo_id is None:
+    if destination_repo_url is None:
         return
     close_request = CLOSE_REPO_REQUEST_TEMPLATE.replace("%(description)", description).replace("%(repo_id)", repo_id)
     url = "https://" + destination_repo_url + "/service/local/staging/profiles" + "/" + SONATYPE_PROFILE + "/finish"
