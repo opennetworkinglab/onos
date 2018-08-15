@@ -207,7 +207,7 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
 
     @Override
     public CompletableFuture<Boolean> start() {
-        return supplyInContext(this::doInitStreamChannel,
+        return supplyInContext(this::doBecomeMaster,
                                "start-initStreamChannel");
     }
 
@@ -354,20 +354,6 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
             log.error("Unable to perform arbitration update on {}: {}", deviceId, e.getMessage());
         }
         return false;
-    }
-
-    private boolean doInitStreamChannel() {
-        // To listen for packets and other events, we need to start the RPC.
-        // Here we send an empty StreamMessageRequest.
-        try {
-            log.info("Starting stream channel with {}...", deviceId);
-            streamRequestObserver.onNext(StreamMessageRequest.newBuilder().build());
-            return true;
-        } catch (StatusRuntimeException e) {
-            log.error("Unable to start stream channel with {}: {}",
-                      deviceId, e.getMessage());
-            return false;
-        }
     }
 
     private boolean doSetPipelineConfig(PiPipeconf pipeconf, ByteBuffer deviceData) {

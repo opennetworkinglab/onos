@@ -54,7 +54,8 @@ public interface P4RuntimeClient {
     }
 
     /**
-     * Starts the client by starting the Stream RPC with the device.
+     * Starts the client by starting the Stream RPC with the device. The
+     * implementation of this method is equivalent to {@link #becomeMaster()}.
      *
      * @return completable future containing true if the operation was
      * successful, false otherwise.
