@@ -63,6 +63,7 @@ KarafPort = 8101	# ssh port indicating karaf is running
 GUIPort = 8181		# GUI/REST port
 OpenFlowPort = 6653 	# OpenFlow port
 CopycatPort = 9876      # Copycat port
+DebugPort = 5005      # JVM debug port
 
 def defaultUser():
     "Return a reasonable default user"
@@ -454,7 +455,7 @@ class ONOSCluster( Controller ):
             topo = RenamedTopo( topo, *args, hnew='onos', **kwargs )
         self.ipBase = kwargs.pop( 'ipBase', '192.168.123.0/24' )
         self.forward = kwargs.pop( 'forward',
-                                   [ KarafPort, GUIPort, OpenFlowPort ] )
+                                   [ KarafPort, GUIPort, OpenFlowPort, DebugPort ] )
         self.debug = kwargs.pop('debug', 'False') == 'True'
 
         super( ONOSCluster, self ).__init__( name, inNamespace=False )
