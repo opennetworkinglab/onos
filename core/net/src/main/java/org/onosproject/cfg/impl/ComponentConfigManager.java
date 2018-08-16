@@ -379,6 +379,11 @@ public class ComponentConfigManager implements ComponentConfigService {
         try {
             Configuration cfg = cfgAdmin.getConfiguration(componentName, null);
             Map<String, ConfigProperty> map = properties.get(componentName);
+            if (map == null) {
+                //  Prevent NPE if the component isn't there
+                log.warn("Component not found for " + componentName);
+                return;
+            }
             Dictionary<String, Object> props = new Hashtable<>();
             map.values().stream().filter(p -> p.value() != null)
                     .forEach(p -> props.put(p.name(), p.value()));
