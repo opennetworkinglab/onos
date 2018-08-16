@@ -324,8 +324,9 @@ export class WebSocketService {
             this.ws.onopen = (() => this.handleOpen());
             this.ws.onmessage = ((msgEvent) => this.handleMessage(msgEvent));
             this.ws.onclose = (() => this.handleClose());
-
-            this.sendEvent('authentication token', { token: 'testAuth' });
+            const authToken = this.window['onosAuth'];
+            this.log.debug('Auth Token for opening WebSocket', authToken);
+            this.sendEvent('authentication', { token: authToken });
         }
         // Note: Wsock logs an error if the new WebSocket call fails
         return this.url;
