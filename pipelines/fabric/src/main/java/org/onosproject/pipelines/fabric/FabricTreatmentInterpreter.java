@@ -214,6 +214,9 @@ final class FabricTreatmentInterpreter {
                         case MPLS_LABEL:
                             modMplsInst = (ModMplsLabelInstruction) l2Inst;
                             break;
+                        case VLAN_POP:
+                            // VLAN_POP will be handled by mapEgressNextTreatment()
+                            break;
                         default:
                             log.warn("Unsupported l2 instruction sub type {} [table={}, {}]",
                                      l2Inst.subtype(), tableId, treatment);
