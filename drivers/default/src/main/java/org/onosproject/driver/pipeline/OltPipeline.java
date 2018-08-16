@@ -451,14 +451,28 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
 
         Pair<Instruction, Instruction> outerPair = vlanOps.remove(0);
 
+        // Add the VLAN_PUSH treatment if we're matching on VlanId.NONE
+        Criterion vlanMatchCriterion = filterForCriterion(fwd.selector().criteria(), Criterion.Type.VLAN_VID);
+        boolean push = false;
+        if (vlanMatchCriterion != null) {
+            push = ((VlanIdCriterion) vlanMatchCriterion).vlanId().equals(VlanId.NONE);
+        }
+
+        TrafficTreatment treatment;
+        if (push) {
+            treatment = buildTreatment(innerPair.getLeft(), innerPair.getRight(),
+                    Instructions.transition(QQ_TABLE));
+        } else {
+            treatment = buildTreatment(innerPair.getRight(), Instructions.transition(QQ_TABLE));
+        }
+
         FlowRule.Builder inner = DefaultFlowRule.builder()
                 .fromApp(fwd.appId())
                 .forDevice(deviceId)
                 .makePermanent()
                 .withPriority(fwd.priority())
                 .withSelector(fwd.selector())
-                .withTreatment(buildTreatment(innerPair.getRight(),
-                                              Instructions.transition(QQ_TABLE)));
+                .withTreatment(treatment);
 
         PortCriterion inPort = (PortCriterion)
                 fwd.selector().getCriterion(Criterion.Type.IN_PORT);
