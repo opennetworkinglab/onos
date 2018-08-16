@@ -22,22 +22,25 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
 
-import org.slf4j.Logger;
-
 import org.onosproject.drivers.server.devices.nic.NicFlowRule;
 import org.onosproject.drivers.server.devices.nic.NicRxFilter.RxFilter;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.driver.Driver;
+import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flow.DefaultFlowEntry;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleProgrammable;
 import org.onosproject.net.flow.FlowRuleService;
 
+import org.slf4j.Logger;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -72,6 +75,12 @@ public class FlowRuleProgrammableServerImpl extends BasicServerDriver
     private static final String PARAM_CPU_RULES    = "cpuRules";
     private static final String PARAM_RULE_ID      = "ruleId";
     private static final String PARAM_RULE_CONTENT = "ruleContent";
+    private static final String PARAM_RX_FILTER_FD = "flow";
+
+    /**
+     * Driver's property to specify how many rules the controller can remove at once.
+     */
+    private static final String RULE_DELETE_BATCH_SIZE_PROPERTY = "ruleDeleteBatchSize";
 
     @Override
     public Collection<FlowEntry> getFlowEntries() {
@@ -87,7 +96,7 @@ public class FlowRuleProgrammableServerImpl extends BasicServerDriver
         try {
             response = getController().get(deviceId, RULE_MANAGEMENT_URL, JSON);
         } catch (ProcessingException pEx) {
-            log.error("Failed to get flow entries from device: {}", deviceId);
+            log.error("Failed to get NIC flow entries from device: {}", deviceId);
             return Collections.EMPTY_LIST;
         }
 
@@ -99,12 +108,12 @@ public class FlowRuleProgrammableServerImpl extends BasicServerDriver
             JsonNode jsonNode = mapper.convertValue(jsonMap, JsonNode.class);
             objNode = (ObjectNode) jsonNode;
         } catch (IOException ioEx) {
-            log.error("Failed to get flow entries from device: {}", deviceId);
+            log.error("Failed to get NIC flow entries from device: {}", deviceId);
             return Collections.EMPTY_LIST;
         }
 
         if (objNode == null) {
-            log.error("Failed to get flow entries from device: {}", deviceId);
+            log.error("Failed to get NIC flow entries from device: {}", deviceId);
             return Collections.EMPTY_LIST;
         }
 
@@ -148,8 +157,7 @@ public class FlowRuleProgrammableServerImpl extends BasicServerDriver
                             continue;
                         // Rule trully present in the data plane => Add
                         } else {
-                            actualFlowEntries.add(
-                                new DefaultFlowEntry(
+                            actualFlowEntries.add(new DefaultFlowEntry(
                                     r, FlowEntry.FlowEntryState.ADDED, 0, 0, 0));
                         }
                     }
@@ -189,15 +197,44 @@ public class FlowRuleProgrammableServerImpl extends BasicServerDriver
         DeviceId deviceId = getHandler().data().deviceId();
         checkNotNull(deviceId, DEVICE_ID_NULL);
 
+        int ruleDeleteBatchSize = getRuleDeleteBatchSizeProperty(deviceId);
+
         // Set of truly-removed rules to be reported
         Set<FlowRule> removedRules = Sets.<FlowRule>newConcurrentHashSet();
 
-        // for (FlowRule rule : rules) {
-        rules.forEach(rule -> {
-            if (removeNicFlowRule(deviceId, rule.id().value())) {
-                removedRules.add(rule);
+        List<FlowRule> ruleList = (List) rules;
+        int ruleCount = rules.size();
+        int ruleStart = 0;
+        int processed = 0;
+        int batchNb   = 1;
+        while (processed < ruleCount) {
+            String ruleIds = "";
+
+            for (int i = ruleStart; i < ruleCount; i++) {
+                // Batch completed
+                if (i >= (batchNb * ruleDeleteBatchSize)) {
+                    break;
+                }
+
+                // TODO: Turn this string into a list and modify removeNicFlowRuleBatch()
+                // Create a comma-separated sequence of rule IDs
+                ruleIds += Long.toString(ruleList.get(i).id().value()) + ",";
+
+                processed++;
             }
-        });
+
+            // Remove last comma
+            ruleIds = ruleIds.substring(0, ruleIds.length() - 1);
+
+            // Remove the entire batch of rules at once
+            if (removeNicFlowRuleBatch(deviceId, ruleIds)) {
+                removedRules.addAll(ruleList.subList(ruleStart, processed));
+            }
+
+            // Prepare for the next batch (if any)
+            batchNb++;
+            ruleStart += ruleDeleteBatchSize;
+        }
 
         return removedRules;
     }
@@ -274,7 +311,7 @@ public class FlowRuleProgrammableServerImpl extends BasicServerDriver
 
         // Create the object node to host the Rx filter method
         ObjectNode methodObjNode = mapper.createObjectNode();
-        methodObjNode.put(BasicServerDriver.NIC_PARAM_RX_METHOD, "flow");
+        methodObjNode.put(BasicServerDriver.NIC_PARAM_RX_METHOD, PARAM_RX_FILTER_FD);
         scsObjNode.put(BasicServerDriver.NIC_PARAM_RX_FILTER, methodObjNode);
 
         // Map each core to an array of rule IDs and rules
@@ -290,9 +327,8 @@ public class FlowRuleProgrammableServerImpl extends BasicServerDriver
             // Keep the ID of the target NIC
             if (nic == null) {
                 nic = findNicInterfaceWithPort(deviceId, nicRule.interfaceNumber());
-                checkArgument(
-                    !Strings.isNullOrEmpty(nic),
-                    "Attempted to install rules on an invalid NIC");
+                checkArgument(!Strings.isNullOrEmpty(nic),
+                    "Attempted to install rules in an invalid NIC");
             }
 
             // Create a JSON array for this CPU core
@@ -341,11 +377,11 @@ public class FlowRuleProgrammableServerImpl extends BasicServerDriver
 
         // Upon an error, return an empty set of rules
         if (!checkStatusCode(response)) {
-            log.error("Failed to install flow rules on device {}", deviceId);
+            log.error("Failed to install NIC flow rules in device {}", deviceId);
             return Collections.EMPTY_LIST;
         }
 
-        log.info("Successfully installed {} flow rules on device {}",
+        log.info("Successfully installed {} NIC flow rules in device {}",
             rules.size(), deviceId);
 
         // .. or all of them
@@ -353,31 +389,44 @@ public class FlowRuleProgrammableServerImpl extends BasicServerDriver
     }
 
     /**
-     * Removes a FlowRule from a server device.
+     * Removes a batch of FlowRules from a server device
+     * using a single REST command.
      *
      * @param deviceId target server device ID
-     * @param ruleId NIC rule ID to be removed
+     * @param ruleIds a batch of comma-separated NIC rule IDs to be removed
      * @return boolean removal status
      */
-    private boolean removeNicFlowRule(DeviceId deviceId, long ruleId) {
+    private boolean removeNicFlowRuleBatch(DeviceId deviceId, String ruleIds) {
         int response = -1;
+        long ruleCount = ruleIds.chars().filter(ch -> ch == ',').count() + 1;
 
-        // Try to remove the rule, although server might be unreachable
+        // Try to remove the rules, although server might be unreachable
         try {
             response = getController().delete(deviceId,
-                RULE_MANAGEMENT_URL + SLASH + Long.toString(ruleId), null, JSON);
+                RULE_MANAGEMENT_URL + SLASH + ruleIds, null, JSON);
         } catch (Exception ex) {
-            log.error("Failed to remove flow rule {} from device {}", ruleId, deviceId);
+            log.error("Failed to remove NIC flow rule batch with {} rules from device {}", ruleCount, deviceId);
             return false;
         }
 
         if (!checkStatusCode(response)) {
-            log.error("Failed to remove flow rule {} from device {}", ruleId, deviceId);
+            log.error("Failed to remove NIC flow rule batch with {} rules from device {}", ruleCount, deviceId);
             return false;
         }
 
-        log.info("Successfully removed flow rule {} from device {}", ruleId, deviceId);
+        log.info("Successfully removed NIC flow rule batch with {} rules from device {}", ruleCount, deviceId);
         return true;
+    }
+
+    /**
+     * Returns how many rules this driver can delete at once.
+     *
+     * @param deviceId the device's ID to delete rules from
+     * @return rule deletion batch size
+     */
+    private int getRuleDeleteBatchSizeProperty(DeviceId deviceId) {
+        Driver driver = getHandler().get(DriverService.class).getDriver(deviceId);
+        return Integer.parseInt(driver.getProperty(RULE_DELETE_BATCH_SIZE_PROPERTY));
     }
 
 }
