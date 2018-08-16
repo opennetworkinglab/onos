@@ -124,6 +124,10 @@ control Forwarding (
         acl_counter.count();
     }
 
+    action nop_acl() {
+        acl_counter.count();
+    }
+
     table acl {
         key = {
             standard_metadata.ingress_port: ternary; // 9
@@ -146,10 +150,10 @@ control Forwarding (
             punt_to_cpu;
             clone_to_cpu;
             drop;
-            @defaultonly nop;
+            nop_acl;
         }
 
-        const default_action = nop();
+        const default_action = nop_acl();
         size = 128;
         counters = acl_counter;
     }

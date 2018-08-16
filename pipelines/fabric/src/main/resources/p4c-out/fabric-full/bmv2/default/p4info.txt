@@ -325,10 +325,9 @@ tables {
     id: 16833260
   }
   action_refs {
-    id: 16819938
-    annotations: "@defaultonly()"
+    id: 16842570
   }
-  const_default_action_id: 16819938
+  const_default_action_id: 16842570
   direct_resource_ids: 318772272
   size: 128
   idle_timeout_behavior: NO_TIMEOUT
@@ -941,6 +940,13 @@ actions {
     id: 16833260
     name: "FabricIngress.forwarding.drop"
     alias: "forwarding.drop"
+  }
+}
+actions {
+  preamble {
+    id: 16842570
+    name: "FabricIngress.forwarding.nop_acl"
+    alias: "nop_acl"
   }
 }
 actions {

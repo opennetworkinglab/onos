@@ -52,9 +52,9 @@ final class FabricTreatmentInterpreter {
     private static final Logger log = getLogger(FabricTreatmentInterpreter.class);
     private static final String INVALID_TREATMENT = "Invalid treatment for %s block [%s]";
     private static final String INVALID_TREATMENT_WITH_EXP = "Invalid treatment for %s block: %s [%s]";
-    private static final PiAction NOP = PiAction.builder()
-            .withId(FabricConstants.NOP)
-            .build();
+    private static final PiAction NOP = PiAction.builder().withId(FabricConstants.NOP).build();
+    private static final PiAction NOP_ACL = PiAction.builder()
+            .withId(FabricConstants.FABRIC_INGRESS_FORWARDING_NOP_ACL).build();
 
     private static final PiAction POP_VLAN = PiAction.builder()
             .withId(FabricConstants.FABRIC_EGRESS_EGRESS_NEXT_POP_VLAN)
@@ -141,7 +141,11 @@ final class FabricTreatmentInterpreter {
             throws PiInterpreterException {
         // Empty treatment, generate table entry with no action
         if (treatment.equals(DefaultTrafficTreatment.emptyTreatment())) {
-            return null;
+            if (tableId.equals(FabricConstants.FABRIC_INGRESS_FORWARDING_ACL)) {
+                return NOP_ACL;
+            } else {
+                return NOP;
+            }
         }
         PortNumber outPort = getOutputPort(treatment);
         if (outPort == null

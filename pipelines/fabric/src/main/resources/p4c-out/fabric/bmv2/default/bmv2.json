@@ -668,7 +668,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "include/parser.p4",
-        "line" : 222,
+        "line" : 223,
         "column" : 8,
         "source_fragment" : "FabricDeparser"
       },
@@ -908,7 +908,7 @@
       "primitives" : []
     },
     {
-      "name" : "nop",
+      "name" : "NoAction",
       "id" : 2,
       "runtime_data" : [],
       "primitives" : []
@@ -944,14 +944,8 @@
       "primitives" : []
     },
     {
-      "name" : "NoAction",
-      "id" : 8,
-      "runtime_data" : [],
-      "primitives" : []
-    },
-    {
       "name" : "FabricIngress.filtering.drop",
-      "id" : 9,
+      "id" : 8,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -968,7 +962,7 @@
     },
     {
       "name" : "FabricIngress.filtering.set_vlan",
-      "id" : 10,
+      "id" : 9,
       "runtime_data" : [
         {
           "name" : "new_vlan_id",
@@ -999,7 +993,7 @@
     },
     {
       "name" : "FabricIngress.filtering.push_internal_vlan",
-      "id" : 11,
+      "id" : 10,
       "runtime_data" : [
         {
           "name" : "new_vlan_id",
@@ -1150,7 +1144,7 @@
     },
     {
       "name" : "FabricIngress.filtering.set_forwarding_type",
-      "id" : 12,
+      "id" : 11,
       "runtime_data" : [
         {
           "name" : "fwd_type",
@@ -1181,7 +1175,7 @@
     },
     {
       "name" : "FabricIngress.forwarding.set_next_id_bridging",
-      "id" : 13,
+      "id" : 12,
       "runtime_data" : [
         {
           "name" : "next_id",
@@ -1212,7 +1206,7 @@
     },
     {
       "name" : "FabricIngress.forwarding.pop_mpls_and_next",
-      "id" : 14,
+      "id" : 13,
       "runtime_data" : [
         {
           "name" : "next_id",
@@ -1258,7 +1252,7 @@
     },
     {
       "name" : "FabricIngress.forwarding.set_next_id_unicast_v4",
-      "id" : 15,
+      "id" : 14,
       "runtime_data" : [
         {
           "name" : "next_id",
@@ -1289,7 +1283,7 @@
     },
     {
       "name" : "FabricIngress.forwarding.set_next_id_acl",
-      "id" : 16,
+      "id" : 15,
       "runtime_data" : [
         {
           "name" : "next_id",
@@ -1320,7 +1314,7 @@
     },
     {
       "name" : "FabricIngress.forwarding.punt_to_cpu",
-      "id" : 17,
+      "id" : 16,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -1356,7 +1350,7 @@
     },
     {
       "name" : "FabricIngress.forwarding.clone_to_cpu",
-      "id" : 18,
+      "id" : 17,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -1392,7 +1386,7 @@
     },
     {
       "name" : "FabricIngress.forwarding.drop",
-      "id" : 19,
+      "id" : 18,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -1406,6 +1400,12 @@
           }
         }
       ]
+    },
+    {
+      "name" : "FabricIngress.forwarding.nop_acl",
+      "id" : 19,
+      "runtime_data" : [],
+      "primitives" : []
     },
     {
       "name" : "FabricIngress.next.set_vlan",
@@ -3333,7 +3333,7 @@
           "with_counters" : true,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [11, 10, 0, 9],
+          "action_ids" : [10, 9, 0, 8],
           "actions" : ["FabricIngress.filtering.push_internal_vlan", "FabricIngress.filtering.set_vlan", "nop", "FabricIngress.filtering.drop"],
           "base_default_next" : "FabricIngress.filtering.fwd_classifier",
           "next_tables" : {
@@ -3384,14 +3384,14 @@
           "with_counters" : true,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [12],
+          "action_ids" : [11],
           "actions" : ["FabricIngress.filtering.set_forwarding_type"],
           "base_default_next" : "node_6",
           "next_tables" : {
             "FabricIngress.filtering.set_forwarding_type" : "node_6"
           },
           "default_entry" : {
-            "action_id" : 12,
+            "action_id" : 11,
             "action_const" : true,
             "action_data" : ["0x0"],
             "action_entry_const" : true
@@ -3426,7 +3426,7 @@
           "with_counters" : true,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [13, 3],
+          "action_ids" : [12, 2],
           "actions" : ["FabricIngress.forwarding.set_next_id_bridging", "NoAction"],
           "base_default_next" : "FabricIngress.forwarding.acl",
           "next_tables" : {
@@ -3434,7 +3434,7 @@
             "NoAction" : "FabricIngress.forwarding.acl"
           },
           "default_entry" : {
-            "action_id" : 3,
+            "action_id" : 2,
             "action_const" : false,
             "action_data" : [],
             "action_entry_const" : false
@@ -3463,7 +3463,7 @@
           "with_counters" : true,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [14, 4],
+          "action_ids" : [13, 3],
           "actions" : ["FabricIngress.forwarding.pop_mpls_and_next", "NoAction"],
           "base_default_next" : "tbl_act_0",
           "next_tables" : {
@@ -3471,7 +3471,7 @@
             "NoAction" : "tbl_act_0"
           },
           "default_entry" : {
-            "action_id" : 4,
+            "action_id" : 3,
             "action_const" : false,
             "action_data" : [],
             "action_entry_const" : false
@@ -3523,7 +3523,7 @@
           "with_counters" : true,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [15, 5],
+          "action_ids" : [14, 4],
           "actions" : ["FabricIngress.forwarding.set_next_id_unicast_v4", "NoAction"],
           "base_default_next" : "FabricIngress.forwarding.acl",
           "next_tables" : {
@@ -3531,7 +3531,7 @@
             "NoAction" : "FabricIngress.forwarding.acl"
           },
           "default_entry" : {
-            "action_id" : 5,
+            "action_id" : 4,
             "action_const" : false,
             "action_data" : [],
             "action_entry_const" : false
@@ -3542,7 +3542,7 @@
           "id" : 7,
           "source_info" : {
             "filename" : "include/control/forwarding.p4",
-            "line" : 127,
+            "line" : 131,
             "column" : 10,
             "source_fragment" : "acl"
           },
@@ -3626,18 +3626,18 @@
           "with_counters" : true,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [16, 17, 18, 19, 1],
-          "actions" : ["FabricIngress.forwarding.set_next_id_acl", "FabricIngress.forwarding.punt_to_cpu", "FabricIngress.forwarding.clone_to_cpu", "FabricIngress.forwarding.drop", "nop"],
+          "action_ids" : [15, 16, 17, 18, 19],
+          "actions" : ["FabricIngress.forwarding.set_next_id_acl", "FabricIngress.forwarding.punt_to_cpu", "FabricIngress.forwarding.clone_to_cpu", "FabricIngress.forwarding.drop", "FabricIngress.forwarding.nop_acl"],
           "base_default_next" : "tbl_act_1",
           "next_tables" : {
             "FabricIngress.forwarding.set_next_id_acl" : "tbl_act_1",
             "FabricIngress.forwarding.punt_to_cpu" : "tbl_act_1",
             "FabricIngress.forwarding.clone_to_cpu" : "tbl_act_1",
             "FabricIngress.forwarding.drop" : "tbl_act_1",
-            "nop" : "tbl_act_1"
+            "FabricIngress.forwarding.nop_acl" : "tbl_act_1"
           },
           "default_entry" : {
-            "action_id" : 1,
+            "action_id" : 19,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
@@ -3689,7 +3689,7 @@
           "with_counters" : true,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [20, 2],
+          "action_ids" : [20, 1],
           "actions" : ["FabricIngress.next.set_vlan", "nop"],
           "base_default_next" : "FabricIngress.next.simple",
           "next_tables" : {
@@ -3697,7 +3697,7 @@
             "nop" : "FabricIngress.next.simple"
           },
           "default_entry" : {
-            "action_id" : 2,
+            "action_id" : 1,
             "action_const" : false,
             "action_data" : [],
             "action_entry_const" : false
@@ -3726,7 +3726,7 @@
           "with_counters" : true,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [21, 22, 23, 24, 25, 26, 6],
+          "action_ids" : [21, 22, 23, 24, 25, 26, 5],
           "actions" : ["FabricIngress.next.output_simple", "FabricIngress.next.set_vlan_output", "FabricIngress.next.l3_routing_simple", "FabricIngress.next.mpls_routing_v4_simple", "FabricIngress.next.mpls_routing_v6_simple", "FabricIngress.next.l3_routing_vlan", "NoAction"],
           "base_default_next" : null,
           "next_tables" : {
@@ -3734,7 +3734,7 @@
             "__MISS__" : "tbl_act_3"
           },
           "default_entry" : {
-            "action_id" : 6,
+            "action_id" : 5,
             "action_const" : false,
             "action_data" : [],
             "action_entry_const" : false
@@ -3810,7 +3810,7 @@
           "with_counters" : true,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [27, 28, 29, 7],
+          "action_ids" : [27, 28, 29, 6],
           "actions" : ["FabricIngress.next.l3_routing_hashed", "FabricIngress.next.mpls_routing_v4_hashed", "FabricIngress.next.mpls_routing_v6_hashed", "NoAction"],
           "base_default_next" : null,
           "next_tables" : {
@@ -3887,7 +3887,7 @@
           "with_counters" : true,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [30, 8],
+          "action_ids" : [30, 7],
           "actions" : ["FabricIngress.next.set_mcast_group", "NoAction"],
           "base_default_next" : null,
           "next_tables" : {
@@ -3895,7 +3895,7 @@
             "__MISS__" : "tbl_act_7"
           },
           "default_entry" : {
-            "action_id" : 8,
+            "action_id" : 7,
             "action_const" : false,
             "action_data" : [],
             "action_entry_const" : false
@@ -4101,7 +4101,7 @@
           "id" : 1,
           "source_info" : {
             "filename" : "include/control/forwarding.p4",
-            "line" : 231,
+            "line" : 235,
             "column" : 11,
             "source_fragment" : "fabric_metadata.fwd_type == FWD_BRIDGING"
           },
@@ -4127,7 +4127,7 @@
           "id" : 2,
           "source_info" : {
             "filename" : "include/control/forwarding.p4",
-            "line" : 232,
+            "line" : 236,
             "column" : 17,
             "source_fragment" : "fabric_metadata.fwd_type == FWD_MPLS"
           },
@@ -4153,7 +4153,7 @@
           "id" : 3,
           "source_info" : {
             "filename" : "include/control/forwarding.p4",
-            "line" : 246,
+            "line" : 250,
             "column" : 17,
             "source_fragment" : "fabric_metadata.fwd_type == FWD_IPV4_UNICAST"
           },
