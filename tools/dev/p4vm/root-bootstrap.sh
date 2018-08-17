@@ -50,13 +50,25 @@ apt-get -y --no-install-recommends install \
     vlan \
     ntp \
     vim nano emacs \
-    arping
+    arping \
+    gawk \
+    texinfo \
+    build-essential \
+    iptables \
+    automake \
+    autoconf \
+    libtool \
+    isc-dhcp-server
+
+DEBIAN_FRONTEND=noninteractive apt-get -yq install wireshark
 
 rm -f ${BAZEL_DEB}
 
 curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 python2.7 get-pip.py --force-reinstall
 rm -f get-pip.py
+
+pip install ipaddress
 
 tee -a /etc/ssh/sshd_config <<EOF
 

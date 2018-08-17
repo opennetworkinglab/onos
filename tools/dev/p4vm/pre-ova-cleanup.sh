@@ -15,6 +15,7 @@ sudo rm -rf ~/p4tools/libyang
 sudo rm -rf ~/p4tools/sysrepo
 sudo rm -rf ~/p4tools/scapy-vxlan
 sudo rm -rf ~/p4tools/ptf
+sudo rm -rf ~/quagga
 
 sudo apt-get clean
 sudo apt-get -y autoremove
