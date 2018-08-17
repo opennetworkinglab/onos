@@ -20,17 +20,18 @@
 
 control process_int_sink (
     inout parsed_headers_t hdr,
-    inout fabric_metadata_t fabric_metadata,
-    inout standard_metadata_t standard_metadata) {
+    inout fabric_metadata_t fabric_metadata) {
+
     action restore_header () {
         hdr.udp.dst_port = hdr.intl4_tail.dest_port;
-        hdr.ipv4.dscp = (bit<6>)hdr.intl4_tail.dscp;
+        hdr.ipv4.dscp = hdr.intl4_tail.dscp;
     }
 
     action int_sink() {
         // restore length fields of IPv4 header and UDP header
-        hdr.ipv4.total_len = hdr.ipv4.total_len - (bit<16>)(hdr.intl4_shim.len << 2);
-        hdr.udp.len = hdr.udp.len - (bit<16>)(hdr.intl4_shim.len << 2);
+        bit<16> len_bytes = (bit<16>) (hdr.intl4_shim.len_words << 5w2);
+        hdr.ipv4.total_len = hdr.ipv4.total_len - len_bytes;
+        hdr.udp.len = hdr.udp.len - len_bytes;
         // remove all the INT information from the packet
         hdr.int_header.setInvalid();
         hdr.int_data.setInvalid();

@@ -26,6 +26,7 @@ inout standard_metadata_t standard_metadata) {
             standard_metadata.egress_spec = hdr.packet_out.egress_port;
             hdr.packet_out.setInvalid();
             fabric_metadata.is_controller_packet_out = _TRUE;
+            // No need for ingress processing, straight to egress.
             exit;
         }
     }
@@ -41,7 +42,7 @@ control PacketIoEgress(
     }
     apply {
         if (fabric_metadata.is_controller_packet_out == _TRUE) {
-            // No need to process through the rest of the pipeline.
+            // Transmit right away.
             exit;
         }
         if (standard_metadata.egress_port == CPU_PORT) {

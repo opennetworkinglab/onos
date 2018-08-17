@@ -19,221 +19,264 @@
 #define __INT_TRANSIT__
 control process_int_transit (
     inout parsed_headers_t hdr,
-    inout fabric_metadata_t fabric_metadata,
-    inout standard_metadata_t standard_metadata) {
+    inout fabric_metadata_t fmeta,
+    inout standard_metadata_t smeta) {
 
-    direct_counter(CounterType.packets_and_bytes) counter_int_insert;
-    direct_counter(CounterType.packets_and_bytes) counter_int_inst_0003;
-    direct_counter(CounterType.packets_and_bytes) counter_int_inst_0407;
-
-    action int_update_total_hop_cnt() {
-        hdr.int_header.total_hop_cnt = hdr.int_header.total_hop_cnt + 1;
+    action init_metadata(bit<32> switch_id) {
+        fmeta.int_meta.transit = _TRUE;
+#ifdef _INT_INIT_METADATA
+        // Allow other targets to initialize INT metadata in their own way.
+        _INT_INIT_METADATA
+#else
+        fmeta.int_meta.switch_id = switch_id;
+#endif // _INT_INIT_METADATA
     }
 
-    action int_transit(switch_id_t switch_id) {
-        fabric_metadata.int_meta.switch_id = switch_id;
-        fabric_metadata.int_meta.insert_byte_cnt = (bit<16>) hdr.int_header.ins_cnt << 2;
-    }
-
-    /* Instr Bit 0 */
-    action int_set_header_0() { //switch_id
+#ifdef _INT_METADATA_ACTIONS
+    _INT_METADATA_ACTIONS
+#else
+    // Switch ID.
+    action int_set_header_0() {
         hdr.int_switch_id.setValid();
-        hdr.int_switch_id.switch_id = fabric_metadata.int_meta.switch_id;
+        hdr.int_switch_id.switch_id = fmeta.int_meta.switch_id;
     }
-    action int_set_header_1() { //port_ids
+    // Port IDs.
+    action int_set_header_1() {
         hdr.int_port_ids.setValid();
-        hdr.int_port_ids.ingress_port_id =
-        (bit<16>) standard_metadata.ingress_port;
-        hdr.int_port_ids.egress_port_id =
-        (bit<16>) standard_metadata.egress_port;
+        hdr.int_port_ids.ingress_port_id = (bit<16>) smeta.ingress_port;
+        hdr.int_port_ids.egress_port_id = (bit<16>) smeta.egress_port;
     }
-    action int_set_header_2() { //hop_latency
+    // Hop latency.
+    action int_set_header_2() {
         hdr.int_hop_latency.setValid();
-        hdr.int_hop_latency.hop_latency =
-        (bit<32>) standard_metadata.deq_timedelta;
+        hdr.int_hop_latency.hop_latency = (bit<32>) smeta.deq_timedelta;
     }
-    action int_set_header_3() { //q_occupancy
-        // TODO: Support egress queue ID
+    // Queue occupancy.
+    action int_set_header_3() {
         hdr.int_q_occupancy.setValid();
-        hdr.int_q_occupancy.q_id =
-        0;
-        // (bit<8>) standard_metadata.egress_qid;
-        hdr.int_q_occupancy.q_occupancy =
-        (bit<24>) standard_metadata.deq_qdepth;
+        // TODO: support queues in BMv2. ATM we assume only one.
+        hdr.int_q_occupancy.q_id = 8w0;
+        hdr.int_q_occupancy.q_occupancy = (bit<24>) smeta.deq_qdepth;
     }
-    action int_set_header_4() { //ingress_tstamp
+    // Ingress timestamp.
+    action int_set_header_4() {
         hdr.int_ingress_tstamp.setValid();
-        hdr.int_ingress_tstamp.ingress_tstamp =
-        (bit<32>) standard_metadata.enq_timestamp;
+        hdr.int_ingress_tstamp.ingress_tstamp = (bit<32>) smeta.enq_timestamp;
     }
-    action int_set_header_5() { //egress_timestamp
+    // Egress timestamp.
+    action int_set_header_5() {
         hdr.int_egress_tstamp.setValid();
-        hdr.int_egress_tstamp.egress_tstamp =
-        (bit<32>) standard_metadata.enq_timestamp +
-        (bit<32>) standard_metadata.deq_timedelta;
+        hdr.int_egress_tstamp.egress_tstamp = (bit<32>) smeta.enq_timestamp + (bit<32>) smeta.deq_timedelta;
     }
-    action int_set_header_6() { //q_congestion
-        // TODO: implement queue congestion support in BMv2
-        // TODO: update egress queue ID
+    // Queue congestion.
+    action int_set_header_6() {
         hdr.int_q_congestion.setValid();
-        hdr.int_q_congestion.q_id =
-        0;
-        // (bit<8>) standard_metadata.egress_qid;
-        hdr.int_q_congestion.q_congestion =
-        // (bit<24>) queueing_metadata.deq_congestion;
-        0;
+        // TODO: support queue congestion.
+        hdr.int_q_congestion.q_id = 8w0;
+        hdr.int_q_congestion.q_congestion = 24w0;
     }
-    action int_set_header_7() { //egress_port_tx_utilization
-        // TODO: implement tx utilization support in BMv2
+    // Egress port utilization.
+    action int_set_header_7() {
         hdr.int_egress_tx_util.setValid();
-        hdr.int_egress_tx_util.egress_port_tx_util =
-        // (bit<32>) queueing_metadata.tx_utilization;
-        0;
+        // TODO: implement tx utilization support in BMv2.
+        hdr.int_egress_tx_util.egress_port_tx_util = 32w0;
+    }
+#endif // _INT_METADATA_ACTIONS
+
+    // Actions to keep track of the new metadata added.
+    action add_1() {
+        fmeta.int_meta.new_words = fmeta.int_meta.new_words + 1;
+        fmeta.int_meta.new_bytes = fmeta.int_meta.new_bytes + 4;
     }
 
-    /* action function for bits 0-3 combinations, 0 is msb, 3 is lsb */
-    /* Each bit set indicates that corresponding INT header should be added */
+    action add_2() {
+        fmeta.int_meta.new_words = fmeta.int_meta.new_words + 2;
+        fmeta.int_meta.new_bytes = fmeta.int_meta.new_bytes + 8;
+    }
+
+    action add_3() {
+        fmeta.int_meta.new_words = fmeta.int_meta.new_words + 3;
+        fmeta.int_meta.new_bytes = fmeta.int_meta.new_bytes + 12;
+    }
+
+    action add_4() {
+        fmeta.int_meta.new_words = fmeta.int_meta.new_words + 4;
+        fmeta.int_meta.new_bytes = fmeta.int_meta.new_bytes + 16;
+    }
+
+    // Action function for bits 0-3 combinations, 0 is msb, 3 is lsb.
+    // Each bit set indicates that corresponding INT header should be added.
     action int_set_header_0003_i0() {
     }
     action int_set_header_0003_i1() {
         int_set_header_3();
+        add_1();
     }
     action int_set_header_0003_i2() {
         int_set_header_2();
+        add_1();
     }
     action int_set_header_0003_i3() {
         int_set_header_3();
         int_set_header_2();
+        add_2();
     }
     action int_set_header_0003_i4() {
         int_set_header_1();
+        add_1();
     }
     action int_set_header_0003_i5() {
         int_set_header_3();
         int_set_header_1();
+        add_2();
     }
     action int_set_header_0003_i6() {
         int_set_header_2();
         int_set_header_1();
+        add_2();
     }
     action int_set_header_0003_i7() {
         int_set_header_3();
         int_set_header_2();
         int_set_header_1();
+        add_3();
     }
     action int_set_header_0003_i8() {
         int_set_header_0();
+        add_1();
     }
     action int_set_header_0003_i9() {
         int_set_header_3();
         int_set_header_0();
+        add_2();
     }
     action int_set_header_0003_i10() {
         int_set_header_2();
         int_set_header_0();
+        add_2();
     }
     action int_set_header_0003_i11() {
         int_set_header_3();
         int_set_header_2();
         int_set_header_0();
+        add_3();
     }
     action int_set_header_0003_i12() {
         int_set_header_1();
         int_set_header_0();
+        add_2();
     }
     action int_set_header_0003_i13() {
         int_set_header_3();
         int_set_header_1();
         int_set_header_0();
+        add_3();
     }
     action int_set_header_0003_i14() {
         int_set_header_2();
         int_set_header_1();
         int_set_header_0();
+        add_3();
     }
     action int_set_header_0003_i15() {
         int_set_header_3();
         int_set_header_2();
         int_set_header_1();
         int_set_header_0();
+        add_4();
     }
 
-    /* action function for bits 4-7 combinations, 4 is msb, 7 is lsb */
+    // Action function for bits 4-7 combinations, 4 is msb, 7 is lsb.
     action int_set_header_0407_i0() {
     }
     action int_set_header_0407_i1() {
         int_set_header_7();
+        add_1();
     }
     action int_set_header_0407_i2() {
         int_set_header_6();
+        add_1();
     }
     action int_set_header_0407_i3() {
         int_set_header_7();
         int_set_header_6();
+        add_2();
     }
     action int_set_header_0407_i4() {
         int_set_header_5();
+        add_1();
     }
     action int_set_header_0407_i5() {
         int_set_header_7();
         int_set_header_5();
+        add_2();
     }
     action int_set_header_0407_i6() {
         int_set_header_6();
         int_set_header_5();
+        add_2();
     }
     action int_set_header_0407_i7() {
         int_set_header_7();
         int_set_header_6();
         int_set_header_5();
+        add_3();
     }
     action int_set_header_0407_i8() {
         int_set_header_4();
+        add_1();
     }
     action int_set_header_0407_i9() {
         int_set_header_7();
         int_set_header_4();
+        add_2();
     }
     action int_set_header_0407_i10() {
         int_set_header_6();
         int_set_header_4();
+        add_2();
     }
     action int_set_header_0407_i11() {
         int_set_header_7();
         int_set_header_6();
         int_set_header_4();
+        add_3();
     }
     action int_set_header_0407_i12() {
         int_set_header_5();
         int_set_header_4();
+        add_2();
     }
     action int_set_header_0407_i13() {
         int_set_header_7();
         int_set_header_5();
         int_set_header_4();
+        add_3();
     }
     action int_set_header_0407_i14() {
         int_set_header_6();
         int_set_header_5();
         int_set_header_4();
+        add_3();
     }
     action int_set_header_0407_i15() {
         int_set_header_7();
         int_set_header_6();
         int_set_header_5();
         int_set_header_4();
+        add_4();
     }
 
+    // Default action used to set switch ID.
     table tb_int_insert {
         key = {}
         actions = {
-            int_transit;
+            init_metadata;
         }
-        counters = counter_int_insert;
-        size = 2;
+        size = 0;
     }
 
-    /* Table to process instruction bits 0-3 */
+    // Table to process instruction bits 0-3.
     table tb_int_inst_0003 {
         key = {
             hdr.int_header.instruction_mask_0003 : exact;
@@ -256,11 +299,28 @@ control process_int_transit (
             int_set_header_0003_i14;
             int_set_header_0003_i15;
         }
-        counters = counter_int_inst_0003;
         size = 16;
+        const entries = {
+            (0x0) : int_set_header_0003_i0();
+            (0x1) : int_set_header_0003_i1();
+            (0x2) : int_set_header_0003_i2();
+            (0x3) : int_set_header_0003_i3();
+            (0x4) : int_set_header_0003_i4();
+            (0x5) : int_set_header_0003_i5();
+            (0x6) : int_set_header_0003_i6();
+            (0x7) : int_set_header_0003_i7();
+            (0x8) : int_set_header_0003_i8();
+            (0x9) : int_set_header_0003_i9();
+            (0xA) : int_set_header_0003_i10();
+            (0xB) : int_set_header_0003_i11();
+            (0xC) : int_set_header_0003_i12();
+            (0xD) : int_set_header_0003_i13();
+            (0xE) : int_set_header_0003_i14();
+            (0xF) : int_set_header_0003_i15();
+        }
     }
 
-    /* Table to process instruction bits 4-7 */
+    // Table to process instruction bits 4-7.
     table tb_int_inst_0407 {
         key = {
             hdr.int_header.instruction_mask_0407 : exact;
@@ -283,42 +343,45 @@ control process_int_transit (
             int_set_header_0407_i14;
             int_set_header_0407_i15;
         }
-        counters = counter_int_inst_0407;
         size = 16;
+        const entries = {
+            (0x0) : int_set_header_0407_i0();
+            (0x1) : int_set_header_0407_i1();
+            (0x2) : int_set_header_0407_i2();
+            (0x3) : int_set_header_0407_i3();
+            (0x4) : int_set_header_0407_i4();
+            (0x5) : int_set_header_0407_i5();
+            (0x6) : int_set_header_0407_i6();
+            (0x7) : int_set_header_0407_i7();
+            (0x8) : int_set_header_0407_i8();
+            (0x9) : int_set_header_0407_i9();
+            (0xA) : int_set_header_0407_i10();
+            (0xB) : int_set_header_0407_i11();
+            (0xC) : int_set_header_0407_i12();
+            (0xD) : int_set_header_0407_i13();
+            (0xE) : int_set_header_0407_i14();
+            (0xF) : int_set_header_0407_i15();
+        }
     }
 
     apply {
         tb_int_insert.apply();
+        if (fmeta.int_meta.transit == _FALSE) {
+            return;
+        }
         tb_int_inst_0003.apply();
         tb_int_inst_0407.apply();
-        int_update_total_hop_cnt();
-    }
-}
-
-control process_int_outer_encap (
-    inout parsed_headers_t hdr,
-    inout fabric_metadata_t fabric_metadata,
-    inout standard_metadata_t standard_metadata) {
-
-    action int_update_ipv4() {
-        hdr.ipv4.total_len = hdr.ipv4.total_len + fabric_metadata.int_meta.insert_byte_cnt;
-    }
-    action int_update_udp() {
-        hdr.udp.len = hdr.udp.len + fabric_metadata.int_meta.insert_byte_cnt;
-    }
-    action int_update_shim() {
-        hdr.intl4_shim.len = hdr.intl4_shim.len + (bit<8>)hdr.int_header.ins_cnt;
-    }
-
-    apply {
+        // Increment hop cnt
+        hdr.int_header.total_hop_cnt = hdr.int_header.total_hop_cnt + 1;
+        // Update headers lengths.
         if (hdr.ipv4.isValid()) {
-            int_update_ipv4();
+            hdr.ipv4.total_len = hdr.ipv4.total_len + fmeta.int_meta.new_bytes;
         }
         if (hdr.udp.isValid()) {
-            int_update_udp();
+            hdr.udp.len = hdr.udp.len + fmeta.int_meta.new_bytes;
         }
         if (hdr.intl4_shim.isValid()) {
-            int_update_shim();
+            hdr.intl4_shim.len_words = hdr.intl4_shim.len_words + fmeta.int_meta.new_words;
         }
     }
 }

@@ -930,7 +930,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "include/parser.p4",
-        "line" : 223,
+        "line" : 228,
         "column" : 8,
         "source_fragment" : "FabricDeparser"
       },
@@ -1578,7 +1578,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 89,
+            "line" : 91,
             "column" : 31,
             "source_fragment" : "0x8100; ..."
           }
@@ -2211,7 +2211,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 90,
+            "line" : 92,
             "column" : 31,
             "source_fragment" : "0x8847; ..."
           }
@@ -2287,7 +2287,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 113,
+            "line" : 115,
             "column" : 32,
             "source_fragment" : "64; ..."
           }
@@ -2402,7 +2402,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 90,
+            "line" : 92,
             "column" : 31,
             "source_fragment" : "0x8847; ..."
           }
@@ -2478,7 +2478,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 113,
+            "line" : 115,
             "column" : 32,
             "source_fragment" : "64; ..."
           }
@@ -2770,7 +2770,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 90,
+            "line" : 92,
             "column" : 31,
             "source_fragment" : "0x8847; ..."
           }
@@ -2846,7 +2846,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 113,
+            "line" : 115,
             "column" : 32,
             "source_fragment" : "64; ..."
           }
@@ -2961,7 +2961,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 90,
+            "line" : 92,
             "column" : 31,
             "source_fragment" : "0x8847; ..."
           }
@@ -3037,7 +3037,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 113,
+            "line" : 115,
             "column" : 32,
             "source_fragment" : "64; ..."
           }
@@ -3155,7 +3155,7 @@
           ],
           "source_info" : {
             "filename" : "fabric.p4",
-            "line" : 57,
+            "line" : 54,
             "column" : 50,
             "source_fragment" : "hdr.gtpu_ipv4"
           }
@@ -3170,7 +3170,7 @@
           ],
           "source_info" : {
             "filename" : "fabric.p4",
-            "line" : 57,
+            "line" : 54,
             "column" : 65,
             "source_fragment" : "hdr.gtpu_udp"
           }
@@ -3461,7 +3461,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 119,
+            "line" : 121,
             "column" : 36,
             "source_fragment" : "2w1; ..."
           }
@@ -3547,7 +3547,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 120,
+            "line" : 122,
             "column" : 38,
             "source_fragment" : "2w2; ..."
           }
@@ -3573,7 +3573,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 118,
+            "line" : 120,
             "column" : 37,
             "source_fragment" : "2w0; ..."
           }
@@ -3744,7 +3744,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 109,
+            "line" : 111,
             "column" : 31,
             "source_fragment" : "7; ..."
           }
@@ -3770,7 +3770,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 92,
+            "line" : 94,
             "column" : 31,
             "source_fragment" : "0x0800; ..."
           }
@@ -4301,7 +4301,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 101,
+            "line" : 103,
             "column" : 28,
             "source_fragment" : "5; ..."
           }
@@ -4457,7 +4457,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 114,
+            "line" : 116,
             "column" : 32,
             "source_fragment" : "64; ..."
           }
@@ -4476,7 +4476,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 98,
+            "line" : 100,
             "column" : 25,
             "source_fragment" : "17; ..."
           }
@@ -4859,7 +4859,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/packetio.p4",
-            "line" : 39,
+            "line" : 40,
             "column" : 8,
             "source_fragment" : "hdr.ethernet.ether_type = hdr.vlan_tag.ether_type"
           }
@@ -4874,7 +4874,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/packetio.p4",
-            "line" : 40,
+            "line" : 41,
             "column" : 8,
             "source_fragment" : "hdr.vlan_tag.setInvalid()"
           }
@@ -4937,7 +4937,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/packetio.p4",
-            "line" : 56,
+            "line" : 57,
             "column" : 12,
             "source_fragment" : "hdr.packet_in.setValid()"
           }
@@ -4956,7 +4956,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/packetio.p4",
-            "line" : 57,
+            "line" : 58,
             "column" : 12,
             "source_fragment" : "hdr.packet_in.ingress_port = standard_metadata.ingress_port"
           }
@@ -4970,7 +4970,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "fabric.p4",
-        "line" : 43,
+        "line" : 40,
         "column" : 8,
         "source_fragment" : "FabricIngress"
       },
@@ -6799,7 +6799,7 @@
       "id" : 1,
       "source_info" : {
         "filename" : "fabric.p4",
-        "line" : 87,
+        "line" : 79,
         "column" : 8,
         "source_fragment" : "FabricEgress"
       },
@@ -6971,7 +6971,7 @@
           "id" : 20,
           "source_info" : {
             "filename" : "include/control/packetio.p4",
-            "line" : 43,
+            "line" : 44,
             "column" : 12,
             "source_fragment" : "fabric_metadata.is_controller_packet_out == true"
           },
@@ -7004,7 +7004,7 @@
           "id" : 21,
           "source_info" : {
             "filename" : "include/control/packetio.p4",
-            "line" : 47,
+            "line" : 48,
             "column" : 12,
             "source_fragment" : "standard_metadata.egress_port == 255"
           },
@@ -7030,7 +7030,7 @@
           "id" : 22,
           "source_info" : {
             "filename" : "include/control/packetio.p4",
-            "line" : 48,
+            "line" : 49,
             "column" : 16,
             "source_fragment" : "hdr.vlan_tag.isValid() && fabric_metadata.pop_vlan_when_packet_in == true"
           },
@@ -7080,7 +7080,7 @@
           "id" : 23,
           "source_info" : {
             "filename" : "include/control/packetio.p4",
-            "line" : 51,
+            "line" : 52,
             "column" : 16,
             "source_fragment" : "fabric_metadata.is_multicast == true && ..."
           },
