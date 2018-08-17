@@ -40,8 +40,7 @@ control process_int_report (
         // TODO how save a variable and increment
         hdr.report_fixed_header.seq_no = 0;
         //TODO how to get timestamp from ingress ns
-        hdr.report_fixed_header.ingress_tstamp =
-        (bit<32>) standard_metadata.enq_timestamp;
+        hdr.report_fixed_header.ingress_tstamp = (bit<32>) standard_metadata.enq_timestamp;
     }
 
     action do_report_encapsulation(mac_addr_t src_mac, mac_addr_t mon_mac, ipv4_addr_t src_ip,
@@ -77,7 +76,6 @@ control process_int_report (
         hdr.report_udp.len =  (bit<16>) UDP_HEADER_LEN + (bit<16>) REPORT_FIXED_HEADER_LEN +
                                     (bit<16>) ETH_HEADER_LEN + hdr.ipv4.total_len;
 
-        fabric_metadata.compute_checksum = true;
         add_report_fixed_header();
     }
 

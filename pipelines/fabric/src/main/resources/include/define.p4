@@ -19,6 +19,10 @@
 
 #define MAX_PORTS 511
 
+#if defined(WITH_INT_SOURCE) || defined(WITH_INT_TRANSIT) || defined(WITH_INT_SINK)
+#define WITH_INT
+#endif
+
 #ifndef _BOOL
 #define _BOOL bool
 #endif
@@ -68,8 +72,6 @@ typedef bit<9>  port_num_t;
 typedef bit<48> mac_addr_t;
 typedef bit<16> group_id_t;
 typedef bit<12> vlan_id_t;
-typedef bit<48> timestamp_t;
-typedef bit<32> switch_id_t;
 typedef bit<32> ipv4_addr_t;
 typedef bit<16> l4_port_t;
 
@@ -124,7 +126,10 @@ const pcc_gate_status_t PCC_GATE_CLOSED = 1w1;
 /* indicate INT at LSB of DSCP */
 const bit<6> INT_DSCP = 0x1;
 
-const bit<8> INT_HEADER_LEN_WORD = 4;
+// Length of the whole INT header,
+// including shim and tail, excluding metadata stack.
+const bit<8> INT_HEADER_LEN_WORDS = 4;
+const bit<16> INT_HEADER_LEN_BYTES = 16;
 
 const bit<8> CPU_MIRROR_SESSION_ID = 250;
 const bit<32> REPORT_MIRROR_SESSION_ID = 500;

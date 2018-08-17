@@ -17,8 +17,6 @@ package org.onosproject.pipelines.fabric;
 
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.Sets;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.util.ImmutableByteSequence;
 import org.onlab.util.SharedExecutors;
 import org.onosproject.core.ApplicationId;
@@ -78,65 +76,57 @@ public class IntProgrammableImpl extends AbstractHandlerBehaviour implements Int
             Criterion.Type.TCP_SRC, Criterion.Type.TCP_DST,
             Criterion.Type.IP_PROTO);
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private FlowRuleService flowRuleService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    private DeviceService deviceService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private HostService hostService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private CoreService coreService;
 
     private DeviceId deviceId;
     private static final int DEFAULT_PRIORITY = 10000;
     private static final ImmutableBiMap<Integer, PiActionId> INST_0003_ACTION_MAP =
             ImmutableBiMap.<Integer, PiActionId>builder()
-                    .put(0, FabricConstants.FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I0)
-                    .put(1, FabricConstants.FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I1)
-                    .put(2, FabricConstants.FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I2)
-                    .put(3, FabricConstants.FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I3)
-                    .put(4, FabricConstants.FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I4)
-                    .put(5, FabricConstants.FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I5)
-                    .put(6, FabricConstants.FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I6)
-                    .put(7, FabricConstants.FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I7)
-                    .put(8, FabricConstants.FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I8)
-                    .put(9, FabricConstants.FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I9)
-                    .put(10, FabricConstants.FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I10)
-                    .put(11, FabricConstants.FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I11)
-                    .put(12, FabricConstants.FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I12)
-                    .put(13, FabricConstants.FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I13)
-                    .put(14, FabricConstants.FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I14)
-                    .put(15, FabricConstants.FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I15)
+                    .put(0, FabricConstants.FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I0)
+                    .put(1, FabricConstants.FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I1)
+                    .put(2, FabricConstants.FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I2)
+                    .put(3, FabricConstants.FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I3)
+                    .put(4, FabricConstants.FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I4)
+                    .put(5, FabricConstants.FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I5)
+                    .put(6, FabricConstants.FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I6)
+                    .put(7, FabricConstants.FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I7)
+                    .put(8, FabricConstants.FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I8)
+                    .put(9, FabricConstants.FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I9)
+                    .put(10, FabricConstants.FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I10)
+                    .put(11, FabricConstants.FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I11)
+                    .put(12, FabricConstants.FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I12)
+                    .put(13, FabricConstants.FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I13)
+                    .put(14, FabricConstants.FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I14)
+                    .put(15, FabricConstants.FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I15)
                     .build();
 
     private static final ImmutableBiMap<Integer, PiActionId> INST_0407_ACTION_MAP =
             ImmutableBiMap.<Integer, PiActionId>builder()
-                    .put(0, FabricConstants.FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I0)
-                    .put(1, FabricConstants.FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I1)
-                    .put(2, FabricConstants.FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I2)
-                    .put(3, FabricConstants.FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I3)
-                    .put(4, FabricConstants.FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I4)
-                    .put(5, FabricConstants.FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I5)
-                    .put(6, FabricConstants.FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I6)
-                    .put(7, FabricConstants.FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I7)
-                    .put(8, FabricConstants.FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I8)
-                    .put(9, FabricConstants.FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I9)
-                    .put(10, FabricConstants.FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I10)
-                    .put(11, FabricConstants.FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I11)
-                    .put(12, FabricConstants.FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I12)
-                    .put(13, FabricConstants.FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I13)
-                    .put(14, FabricConstants.FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I14)
-                    .put(15, FabricConstants.FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I15)
+                    .put(0, FabricConstants.FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I0)
+                    .put(1, FabricConstants.FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I1)
+                    .put(2, FabricConstants.FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I2)
+                    .put(3, FabricConstants.FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I3)
+                    .put(4, FabricConstants.FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I4)
+                    .put(5, FabricConstants.FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I5)
+                    .put(6, FabricConstants.FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I6)
+                    .put(7, FabricConstants.FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I7)
+                    .put(8, FabricConstants.FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I8)
+                    .put(9, FabricConstants.FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I9)
+                    .put(10, FabricConstants.FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I10)
+                    .put(11, FabricConstants.FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I11)
+                    .put(12, FabricConstants.FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I12)
+                    .put(13, FabricConstants.FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I13)
+                    .put(14, FabricConstants.FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I14)
+                    .put(15, FabricConstants.FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I15)
                     .build();
 
     @Override
     public void init() {
         deviceId = this.data().deviceId();
         flowRuleService = handler().get(FlowRuleService.class);
-        deviceService = handler().get(DeviceService.class);
+        DeviceService deviceService = handler().get(DeviceService.class);
         hostService = handler().get(HostService.class);
         coreService = handler().get(CoreService.class);
         appId = coreService.getAppId(PIPELINE_APP_NAME);
@@ -145,9 +135,9 @@ public class IntProgrammableImpl extends AbstractHandlerBehaviour implements Int
             return;
         }
 
-        Set<PortNumber> hostPorts = deviceService.getPorts(deviceId).stream().filter(port ->
-                                         hostService.getConnectedHosts(
-                                                 new ConnectPoint(deviceId, port.number())).size() > 0
+        Set<PortNumber> hostPorts = deviceService.getPorts(deviceId).stream()
+                .filter(port -> hostService.getConnectedHosts(
+                        new ConnectPoint(deviceId, port.number())).size() > 0
         ).map(Port::number).collect(Collectors.toSet());
         List<FlowRule> flowRules = new ArrayList<>();
 
@@ -158,7 +148,7 @@ public class IntProgrammableImpl extends AbstractHandlerBehaviour implements Int
                         Integer.parseInt(deviceId.toString().substring(
                                 deviceId.toString().length() - 2))));
         PiAction transitAction = PiAction.builder()
-                .withId(FabricConstants.FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_TRANSIT)
+                .withId(FabricConstants.FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INIT_METADATA)
                 .withParameter(transitIdParam)
                 .build();
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
@@ -171,11 +161,11 @@ public class IntProgrammableImpl extends AbstractHandlerBehaviour implements Int
                 .withPriority(DEFAULT_PRIORITY)
                 .makePermanent()
                 .forDevice(deviceId)
-                .forTable(FabricConstants.FABRIC_EGRESS_PROCESS_INT_TRANSIT_TB_INT_INSERT)
+                .forTable(FabricConstants.FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_TB_INT_INSERT)
                 .build();
         flowRules.add(transitFlowRule);
 
-        for (PortNumber portNumber: hostPorts) {
+        for (PortNumber portNumber : hostPorts) {
             // process_set_source_sink.tb_set_source for each host-facing port
             PiCriterion ingressCriterion = PiCriterion.builder()
                     .matchExact(FabricConstants.STANDARD_METADATA_INGRESS_PORT, portNumber.toLong())
@@ -227,19 +217,19 @@ public class IntProgrammableImpl extends AbstractHandlerBehaviour implements Int
         flowRules.forEach(flowRule -> flowRuleService.applyFlowRules(flowRule));
 
         // Populate tb_int_inst_0003 table
-        INST_0003_ACTION_MAP.forEach((matchValue, actionId) ->
-                 populateInstTableEntry(FabricConstants.FABRIC_EGRESS_PROCESS_INT_TRANSIT_TB_INT_INST_0003,
-                                        FabricConstants.HDR_INT_HEADER_INSTRUCTION_MASK_0003,
-                                        matchValue,
-                                        actionId,
-                                        appId));
+        INST_0003_ACTION_MAP.forEach((matchValue, actionId) -> populateInstTableEntry(
+                FabricConstants.FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_TB_INT_INST_0003,
+                FabricConstants.HDR_INT_HEADER_INSTRUCTION_MASK_0003,
+                matchValue,
+                actionId,
+                appId));
         // Populate tb_int_inst_0407 table
-        INST_0407_ACTION_MAP.forEach((matchValue, actionId) ->
-                 populateInstTableEntry(FabricConstants.FABRIC_EGRESS_PROCESS_INT_TRANSIT_TB_INT_INST_0407,
-                                        FabricConstants.HDR_INT_HEADER_INSTRUCTION_MASK_0407,
-                                        matchValue,
-                                        actionId,
-                                        appId));
+        INST_0407_ACTION_MAP.forEach((matchValue, actionId) -> populateInstTableEntry(
+                FabricConstants.FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_TB_INT_INST_0407,
+                FabricConstants.HDR_INT_HEADER_INSTRUCTION_MASK_0407,
+                matchValue,
+                actionId,
+                appId));
     }
 
     @Override
@@ -318,7 +308,7 @@ public class IntProgrammableImpl extends AbstractHandlerBehaviour implements Int
                 ImmutableByteSequence.copyFrom((instructionBitmap >> 8) & 0xF));
 
         PiAction intSourceAction = PiAction.builder()
-                .withId(FabricConstants.FABRIC_EGRESS_PROCESS_INT_SOURCE_INT_SOURCE_DSCP)
+                .withId(FabricConstants.FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_SOURCE_INT_SOURCE_DSCP)
                 .withParameter(maxHopParam)
                 .withParameter(instCntParam)
                 .withParameter(inst0003Param)
@@ -376,7 +366,7 @@ public class IntProgrammableImpl extends AbstractHandlerBehaviour implements Int
                 .withSelector(sBuilder.build())
                 .withTreatment(instTreatment)
                 .withPriority(DEFAULT_PRIORITY)
-                .forTable(FabricConstants.FABRIC_EGRESS_PROCESS_INT_SOURCE_TB_INT_SOURCE)
+                .forTable(FabricConstants.FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_SOURCE_TB_INT_SOURCE)
                 .fromApp(appId)
                 .withIdleTimeout(IDLE_TIMEOUT)
                 .build();
@@ -419,12 +409,12 @@ public class IntProgrammableImpl extends AbstractHandlerBehaviour implements Int
     }
 
     /**
-     * Returns a subset of Criterion from given selector,
-     * which is unsupported by this INT pipeline.
+     * Returns a subset of Criterion from given selector, which is unsupported
+     * by this INT pipeline.
      *
      * @param selector a traffic selector
-     * @return a subset of Criterion from given selector, unsupported by this INT pipeline,
-     *  empty if all criteria are supported.
+     * @return a subset of Criterion from given selector, unsupported by this
+     * INT pipeline, empty if all criteria are supported.
      */
     private Set<Criterion> unsupportedSelectors(TrafficSelector selector) {
         return selector.criteria().stream()
@@ -496,7 +486,7 @@ public class IntProgrammableImpl extends AbstractHandlerBehaviour implements Int
                 FabricConstants.MON_PORT,
                 ImmutableByteSequence.copyFrom(cfg.collectorPort().toInt()));
         PiAction reportAction = PiAction.builder()
-                .withId(FabricConstants.FABRIC_EGRESS_PROCESS_INT_REPORT_DO_REPORT_ENCAPSULATION)
+                .withId(FabricConstants.FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_REPORT_DO_REPORT_ENCAPSULATION)
                 .withParameter(srcMacParam)
                 .withParameter(nextHopMacParam)
                 .withParameter(srcIpParam)
@@ -513,7 +503,7 @@ public class IntProgrammableImpl extends AbstractHandlerBehaviour implements Int
                 .withPriority(DEFAULT_PRIORITY)
                 .makePermanent()
                 .forDevice(this.data().deviceId())
-                .forTable(FabricConstants.FABRIC_EGRESS_PROCESS_INT_REPORT_TB_GENERATE_REPORT)
+                .forTable(FabricConstants.FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_REPORT_TB_GENERATE_REPORT)
                 .build();
     }
 

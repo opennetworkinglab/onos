@@ -59,7 +59,7 @@ tables {
     annotations: "@defaultonly()"
   }
   direct_resource_ids: 318787614
-  size: 256
+  size: 511
   idle_timeout_behavior: NO_TIMEOUT
 }
 tables {
@@ -82,7 +82,7 @@ tables {
     annotations: "@defaultonly()"
   }
   direct_resource_ids: 318770551
-  size: 256
+  size: 511
   idle_timeout_behavior: NO_TIMEOUT
 }
 tables {
@@ -473,8 +473,8 @@ tables {
 }
 tables {
   preamble {
-    id: 33566961
-    name: "FabricEgress.process_int_source.tb_int_source"
+    id: 33612258
+    name: "FabricEgress.process_int_main.process_int_source.tb_int_source"
     alias: "tb_int_source"
   }
   match_fields {
@@ -502,37 +502,36 @@ tables {
     match_type: TERNARY
   }
   action_refs {
-    id: 16807851
+    id: 16785857
   }
   action_refs {
     id: 16800567
     annotations: "@defaultonly()"
   }
-  direct_resource_ids: 318776637
+  direct_resource_ids: 318800047
   size: 1024
   idle_timeout_behavior: NO_TIMEOUT
 }
 tables {
   preamble {
-    id: 33602084
-    name: "FabricEgress.process_int_transit.tb_int_insert"
+    id: 33599867
+    name: "FabricEgress.process_int_main.process_int_transit.tb_int_insert"
     alias: "tb_int_insert"
   }
   action_refs {
-    id: 16806530
+    id: 16780783
   }
   action_refs {
     id: 16800567
     annotations: "@defaultonly()"
   }
-  direct_resource_ids: 318794595
-  size: 2
+  size: 1024
   idle_timeout_behavior: NO_TIMEOUT
 }
 tables {
   preamble {
-    id: 33561642
-    name: "FabricEgress.process_int_transit.tb_int_inst_0003"
+    id: 33569467
+    name: "FabricEgress.process_int_main.process_int_transit.tb_int_inst_0003"
     alias: "tb_int_inst_0003"
   }
   match_fields {
@@ -542,65 +541,65 @@ tables {
     match_type: EXACT
   }
   action_refs {
-    id: 16788439
+    id: 16809886
   }
   action_refs {
-    id: 16792702
+    id: 16783130
   }
   action_refs {
-    id: 16834796
+    id: 16809096
   }
   action_refs {
-    id: 16815381
+    id: 16834117
   }
   action_refs {
-    id: 16824457
+    id: 16825314
   }
   action_refs {
-    id: 16796364
+    id: 16811436
   }
   action_refs {
-    id: 16806322
+    id: 16802199
   }
   action_refs {
-    id: 16819063
+    id: 16796779
   }
   action_refs {
-    id: 16828306
+    id: 16787676
   }
   action_refs {
-    id: 16799786
+    id: 16825351
   }
   action_refs {
-    id: 16796975
+    id: 16793999
   }
   action_refs {
-    id: 16801652
+    id: 16786714
   }
   action_refs {
-    id: 16778440
+    id: 16814203
   }
   action_refs {
-    id: 16790887
+    id: 16807054
   }
   action_refs {
-    id: 16783849
+    id: 16800064
   }
   action_refs {
-    id: 16837726
+    id: 16792997
   }
   action_refs {
     id: 16800567
     annotations: "@defaultonly()"
   }
-  direct_resource_ids: 318777781
   size: 16
   idle_timeout_behavior: NO_TIMEOUT
+  is_const_table: true
 }
 tables {
   preamble {
-    id: 33571998
-    name: "FabricEgress.process_int_transit.tb_int_inst_0407"
+    id: 33595914
+    name: "FabricEgress.process_int_main.process_int_transit.tb_int_inst_0407"
     alias: "tb_int_inst_0407"
   }
   match_fields {
@@ -610,69 +609,69 @@ tables {
     match_type: EXACT
   }
   action_refs {
-    id: 16839298
+    id: 16819022
   }
   action_refs {
-    id: 16837018
+    id: 16804144
   }
   action_refs {
-    id: 16827414
+    id: 16829117
   }
   action_refs {
-    id: 16786021
+    id: 16797781
   }
   action_refs {
-    id: 16785131
+    id: 16813543
   }
   action_refs {
-    id: 16808652
+    id: 16824974
   }
   action_refs {
-    id: 16799296
+    id: 16815362
   }
   action_refs {
-    id: 16780668
+    id: 16835399
   }
   action_refs {
-    id: 16805625
+    id: 16834505
   }
   action_refs {
-    id: 16778495
+    id: 16811493
   }
   action_refs {
-    id: 16784981
+    id: 16825476
   }
   action_refs {
-    id: 16806353
+    id: 16799777
   }
   action_refs {
-    id: 16802140
+    id: 16829592
   }
   action_refs {
-    id: 16827601
+    id: 16805877
   }
   action_refs {
-    id: 16820295
+    id: 16780182
   }
   action_refs {
-    id: 16810955
+    id: 16799476
   }
   action_refs {
     id: 16800567
     annotations: "@defaultonly()"
   }
-  direct_resource_ids: 318818305
   size: 16
   idle_timeout_behavior: NO_TIMEOUT
+  is_const_table: true
 }
 tables {
   preamble {
-    id: 33607792
-    name: "FabricEgress.process_int_report.tb_generate_report"
+    id: 33618104
+    name: "FabricEgress.process_int_main.process_int_report.tb_generate_report"
     alias: "tb_generate_report"
   }
   action_refs {
-    id: 16814383
+    id: 16788620
   }
   action_refs {
     id: 16800567
@@ -1160,8 +1159,8 @@ actions {
 }
 actions {
   preamble {
-    id: 16807851
-    name: "FabricEgress.process_int_source.int_source_dscp"
+    id: 16785857
+    name: "FabricEgress.process_int_main.process_int_source.int_source_dscp"
     alias: "int_source_dscp"
   }
   params {
@@ -1187,16 +1186,9 @@ actions {
 }
 actions {
   preamble {
-    id: 16806280
-    name: "FabricEgress.process_int_transit.int_update_total_hop_cnt"
-    alias: "int_update_total_hop_cnt"
-  }
-}
-actions {
-  preamble {
-    id: 16806530
-    name: "FabricEgress.process_int_transit.int_transit"
-    alias: "int_transit"
+    id: 16780783
+    name: "FabricEgress.process_int_main.process_int_transit.init_metadata"
+    alias: "init_metadata"
   }
   params {
     id: 1
@@ -1206,253 +1198,232 @@ actions {
 }
 actions {
   preamble {
-    id: 16788439
-    name: "FabricEgress.process_int_transit.int_set_header_0003_i0"
+    id: 16809886
+    name: "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i0"
     alias: "int_set_header_0003_i0"
   }
 }
 actions {
   preamble {
-    id: 16792702
-    name: "FabricEgress.process_int_transit.int_set_header_0003_i1"
+    id: 16783130
+    name: "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i1"
     alias: "int_set_header_0003_i1"
   }
 }
 actions {
   preamble {
-    id: 16834796
-    name: "FabricEgress.process_int_transit.int_set_header_0003_i2"
+    id: 16809096
+    name: "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i2"
     alias: "int_set_header_0003_i2"
   }
 }
 actions {
   preamble {
-    id: 16815381
-    name: "FabricEgress.process_int_transit.int_set_header_0003_i3"
+    id: 16834117
+    name: "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i3"
     alias: "int_set_header_0003_i3"
   }
 }
 actions {
   preamble {
-    id: 16824457
-    name: "FabricEgress.process_int_transit.int_set_header_0003_i4"
+    id: 16825314
+    name: "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i4"
     alias: "int_set_header_0003_i4"
   }
 }
 actions {
   preamble {
-    id: 16796364
-    name: "FabricEgress.process_int_transit.int_set_header_0003_i5"
+    id: 16811436
+    name: "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i5"
     alias: "int_set_header_0003_i5"
   }
 }
 actions {
   preamble {
-    id: 16806322
-    name: "FabricEgress.process_int_transit.int_set_header_0003_i6"
+    id: 16802199
+    name: "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i6"
     alias: "int_set_header_0003_i6"
   }
 }
 actions {
   preamble {
-    id: 16819063
-    name: "FabricEgress.process_int_transit.int_set_header_0003_i7"
+    id: 16796779
+    name: "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i7"
     alias: "int_set_header_0003_i7"
   }
 }
 actions {
   preamble {
-    id: 16828306
-    name: "FabricEgress.process_int_transit.int_set_header_0003_i8"
+    id: 16787676
+    name: "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i8"
     alias: "int_set_header_0003_i8"
   }
 }
 actions {
   preamble {
-    id: 16799786
-    name: "FabricEgress.process_int_transit.int_set_header_0003_i9"
+    id: 16825351
+    name: "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i9"
     alias: "int_set_header_0003_i9"
   }
 }
 actions {
   preamble {
-    id: 16796975
-    name: "FabricEgress.process_int_transit.int_set_header_0003_i10"
+    id: 16793999
+    name: "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i10"
     alias: "int_set_header_0003_i10"
   }
 }
 actions {
   preamble {
-    id: 16801652
-    name: "FabricEgress.process_int_transit.int_set_header_0003_i11"
+    id: 16786714
+    name: "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i11"
     alias: "int_set_header_0003_i11"
   }
 }
 actions {
   preamble {
-    id: 16778440
-    name: "FabricEgress.process_int_transit.int_set_header_0003_i12"
+    id: 16814203
+    name: "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i12"
     alias: "int_set_header_0003_i12"
   }
 }
 actions {
   preamble {
-    id: 16790887
-    name: "FabricEgress.process_int_transit.int_set_header_0003_i13"
+    id: 16807054
+    name: "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i13"
     alias: "int_set_header_0003_i13"
   }
 }
 actions {
   preamble {
-    id: 16783849
-    name: "FabricEgress.process_int_transit.int_set_header_0003_i14"
+    id: 16800064
+    name: "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i14"
     alias: "int_set_header_0003_i14"
   }
 }
 actions {
   preamble {
-    id: 16837726
-    name: "FabricEgress.process_int_transit.int_set_header_0003_i15"
+    id: 16792997
+    name: "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i15"
     alias: "int_set_header_0003_i15"
   }
 }
 actions {
   preamble {
-    id: 16839298
-    name: "FabricEgress.process_int_transit.int_set_header_0407_i0"
+    id: 16819022
+    name: "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i0"
     alias: "int_set_header_0407_i0"
   }
 }
 actions {
   preamble {
-    id: 16837018
-    name: "FabricEgress.process_int_transit.int_set_header_0407_i1"
+    id: 16804144
+    name: "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i1"
     alias: "int_set_header_0407_i1"
   }
 }
 actions {
   preamble {
-    id: 16827414
-    name: "FabricEgress.process_int_transit.int_set_header_0407_i2"
+    id: 16829117
+    name: "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i2"
     alias: "int_set_header_0407_i2"
   }
 }
 actions {
   preamble {
-    id: 16786021
-    name: "FabricEgress.process_int_transit.int_set_header_0407_i3"
+    id: 16797781
+    name: "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i3"
     alias: "int_set_header_0407_i3"
   }
 }
 actions {
   preamble {
-    id: 16785131
-    name: "FabricEgress.process_int_transit.int_set_header_0407_i4"
+    id: 16813543
+    name: "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i4"
     alias: "int_set_header_0407_i4"
   }
 }
 actions {
   preamble {
-    id: 16808652
-    name: "FabricEgress.process_int_transit.int_set_header_0407_i5"
+    id: 16824974
+    name: "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i5"
     alias: "int_set_header_0407_i5"
   }
 }
 actions {
   preamble {
-    id: 16799296
-    name: "FabricEgress.process_int_transit.int_set_header_0407_i6"
+    id: 16815362
+    name: "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i6"
     alias: "int_set_header_0407_i6"
   }
 }
 actions {
   preamble {
-    id: 16780668
-    name: "FabricEgress.process_int_transit.int_set_header_0407_i7"
+    id: 16835399
+    name: "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i7"
     alias: "int_set_header_0407_i7"
   }
 }
 actions {
   preamble {
-    id: 16805625
-    name: "FabricEgress.process_int_transit.int_set_header_0407_i8"
+    id: 16834505
+    name: "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i8"
     alias: "int_set_header_0407_i8"
   }
 }
 actions {
   preamble {
-    id: 16778495
-    name: "FabricEgress.process_int_transit.int_set_header_0407_i9"
+    id: 16811493
+    name: "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i9"
     alias: "int_set_header_0407_i9"
   }
 }
 actions {
   preamble {
-    id: 16784981
-    name: "FabricEgress.process_int_transit.int_set_header_0407_i10"
+    id: 16825476
+    name: "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i10"
     alias: "int_set_header_0407_i10"
   }
 }
 actions {
   preamble {
-    id: 16806353
-    name: "FabricEgress.process_int_transit.int_set_header_0407_i11"
+    id: 16799777
+    name: "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i11"
     alias: "int_set_header_0407_i11"
   }
 }
 actions {
   preamble {
-    id: 16802140
-    name: "FabricEgress.process_int_transit.int_set_header_0407_i12"
+    id: 16829592
+    name: "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i12"
     alias: "int_set_header_0407_i12"
   }
 }
 actions {
   preamble {
-    id: 16827601
-    name: "FabricEgress.process_int_transit.int_set_header_0407_i13"
+    id: 16805877
+    name: "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i13"
     alias: "int_set_header_0407_i13"
   }
 }
 actions {
   preamble {
-    id: 16820295
-    name: "FabricEgress.process_int_transit.int_set_header_0407_i14"
+    id: 16780182
+    name: "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i14"
     alias: "int_set_header_0407_i14"
   }
 }
 actions {
   preamble {
-    id: 16810955
-    name: "FabricEgress.process_int_transit.int_set_header_0407_i15"
+    id: 16799476
+    name: "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i15"
     alias: "int_set_header_0407_i15"
   }
 }
 actions {
   preamble {
-    id: 16816602
-    name: "FabricEgress.process_int_outer_encap.int_update_ipv4"
-    alias: "int_update_ipv4"
-  }
-}
-actions {
-  preamble {
-    id: 16829666
-    name: "FabricEgress.process_int_outer_encap.int_update_udp"
-    alias: "int_update_udp"
-  }
-}
-actions {
-  preamble {
-    id: 16826978
-    name: "FabricEgress.process_int_outer_encap.int_update_shim"
-    alias: "int_update_shim"
-  }
-}
-actions {
-  preamble {
-    id: 16814383
-    name: "FabricEgress.process_int_report.do_report_encapsulation"
+    id: 16788620
+    name: "FabricEgress.process_int_main.process_int_report.do_report_encapsulation"
     alias: "do_report_encapsulation"
   }
   params {
@@ -1483,15 +1454,15 @@ actions {
 }
 actions {
   preamble {
-    id: 16810741
-    name: "FabricEgress.process_int_sink.restore_header"
+    id: 16816369
+    name: "FabricEgress.process_int_main.process_int_sink.restore_header"
     alias: "restore_header"
   }
 }
 actions {
   preamble {
-    id: 16787662
-    name: "FabricEgress.process_int_sink.int_sink"
+    id: 16834566
+    name: "FabricEgress.process_int_main.process_int_sink.int_sink"
     alias: "int_sink"
   }
 }
@@ -1697,47 +1668,14 @@ direct_counters {
 }
 direct_counters {
   preamble {
-    id: 318776637
-    name: "FabricEgress.process_int_source.counter_int_source"
+    id: 318800047
+    name: "FabricEgress.process_int_main.process_int_source.counter_int_source"
     alias: "counter_int_source"
   }
   spec {
     unit: BOTH
   }
-  direct_table_id: 33566961
-}
-direct_counters {
-  preamble {
-    id: 318794595
-    name: "FabricEgress.process_int_transit.counter_int_insert"
-    alias: "counter_int_insert"
-  }
-  spec {
-    unit: BOTH
-  }
-  direct_table_id: 33602084
-}
-direct_counters {
-  preamble {
-    id: 318777781
-    name: "FabricEgress.process_int_transit.counter_int_inst_0003"
-    alias: "counter_int_inst_0003"
-  }
-  spec {
-    unit: BOTH
-  }
-  direct_table_id: 33561642
-}
-direct_counters {
-  preamble {
-    id: 318818305
-    name: "FabricEgress.process_int_transit.counter_int_inst_0407"
-    alias: "counter_int_inst_0407"
-  }
-  spec {
-    unit: BOTH
-  }
-  direct_table_id: 33571998
+  direct_table_id: 33612258
 }
 direct_counters {
   preamble {
