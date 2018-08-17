@@ -221,7 +221,7 @@ public interface OpenstackNode {
      *
      * @return keystone authentication info
      */
-    String endPoint();
+    String endpoint();
 
     /**
      * Returns a collection of customized controllers.
@@ -340,10 +340,10 @@ public interface OpenstackNode {
         /**
          * Returns openstack node builder with supplied endpoint info.
          *
-         * @param endPoint endpoint info
+         * @param endpoint endpoint info
          * @return openstack node builder
          */
-        Builder endPoint(String endPoint);
+        Builder endpoint(String endpoint);
 
         /**
          * Returns openstack node builder with supplied ssh authentication info.

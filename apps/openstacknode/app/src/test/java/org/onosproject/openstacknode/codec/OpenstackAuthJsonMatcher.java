@@ -50,14 +50,6 @@ public final class OpenstackAuthJsonMatcher extends TypeSafeDiagnosingMatcher<Js
             return false;
         }
 
-        // check port
-        Integer jsonPort = jsonNode.get(PORT).asInt();
-        Integer port = auth.port();
-        if (!jsonPort.equals(port)) {
-            description.appendText("port was " + jsonPort);
-            return false;
-        }
-
         // check protocol
         String jsonProtocol = jsonNode.get(PROTOCOL).asText();
         String protocol = auth.protocol().name();

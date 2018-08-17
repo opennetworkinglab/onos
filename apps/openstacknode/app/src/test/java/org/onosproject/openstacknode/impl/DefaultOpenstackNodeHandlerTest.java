@@ -501,7 +501,7 @@ public class DefaultOpenstackNodeHandlerTest {
                                   Set<OpenstackPhyInterface> phyIntfs,
                                   Set<ControllerInfo> controllers,
                                   OpenstackAuth auth,
-                                  String endPoint,
+                                  String endpoint,
                                   OpenstackSshAuth sshAuth,
                                   DatapathType datapathType) {
             super(hostname,
@@ -515,7 +515,7 @@ public class DefaultOpenstackNodeHandlerTest {
                     phyIntfs,
                     controllers,
                     auth,
-                    endPoint,
+                    endpoint,
                     sshAuth,
                     datapathType);
         }

@@ -40,7 +40,7 @@ public final class OpenstackNodeJsonMatcher extends TypeSafeDiagnosingMatcher<Js
     private static final String PHYSICAL_INTERFACES = "phyIntfs";
     private static final String CONTROLLERS = "controllers";
     private static final String AUTHENTICATION = "authentication";
-    private static final String END_POINT = "endPoint";
+    private static final String END_POINT = "endpoint";
     private static final String SSH_AUTH = "sshAuth";
     private static final String DATA_PATH_TYPE = "datapathType";
 
@@ -135,11 +135,11 @@ public final class OpenstackNodeJsonMatcher extends TypeSafeDiagnosingMatcher<Js
         }
 
         // check endpoint URL
-        JsonNode jsonEndPoint = jsonNode.get(END_POINT);
-        if (jsonEndPoint != null) {
-            String endPoint = node.endPoint();
-            if (!jsonEndPoint.asText().equals(endPoint)) {
-                description.appendText("endpoint URL was " + jsonEndPoint);
+        JsonNode jsonEndpoint = jsonNode.get(END_POINT);
+        if (jsonEndpoint != null) {
+            String endpoint = node.endpoint();
+            if (!jsonEndpoint.asText().equals(endpoint)) {
+                description.appendText("endpoint URL was " + jsonEndpoint);
                 return false;
             }
         }

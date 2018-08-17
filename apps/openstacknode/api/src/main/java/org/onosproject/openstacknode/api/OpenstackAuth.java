@@ -45,13 +45,6 @@ public interface OpenstackAuth {
     String version();
 
     /**
-     * Returns the keystone authentication port number.
-     *
-     * @return keystone authentication port number
-     */
-    Integer port();
-
-    /**
      * Returns the keystone authentication protocol type.
      *
      * @return keystone authentication protocol type
@@ -105,14 +98,6 @@ public interface OpenstackAuth {
          * @return keystone authentication builder
          */
         Builder version(String version);
-
-        /**
-         * Returns keystone authentication builder with supplied port number.
-         *
-         * @param port port number
-         * @return keystone authentication builder
-         */
-        Builder port(Integer port);
 
         /**
          * Returns keystone authentication builder with supplied protocol.

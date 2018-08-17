@@ -33,24 +33,20 @@ public class DefaultOpenstackAuthTest {
     private static final String PROJECT = "admin";
     private static final String VERSION_1 = "v2.0";
     private static final String VERSION_2 = "v3";
-    private static final Integer PORT_1 = 35357;
-    private static final Integer PORT_2 = 5000;
     private static final OpenstackAuth.Protocol PROTOCOL_1 = OpenstackAuth.Protocol.HTTP;
     private static final OpenstackAuth.Protocol PROTOCOL_2 = OpenstackAuth.Protocol.HTTPS;
 
     private static final OpenstackAuth OS_AUTH_1 =
-                         createOpenstackAuth(VERSION_1, PORT_1, PROTOCOL_1);
+                         createOpenstackAuth(VERSION_1, PROTOCOL_1);
     private static final OpenstackAuth OS_AUTH_2 =
-                         createOpenstackAuth(VERSION_2, PORT_2, PROTOCOL_2);
+                         createOpenstackAuth(VERSION_2, PROTOCOL_2);
     private static final OpenstackAuth OS_AUTH_3 =
-                         createOpenstackAuth(VERSION_1, PORT_1, PROTOCOL_1);
+                         createOpenstackAuth(VERSION_1, PROTOCOL_1);
 
     private static OpenstackAuth createOpenstackAuth(String version,
-                                              Integer port,
                                               OpenstackAuth.Protocol protocol) {
         return DefaultOpenstackAuth.builder()
                 .version(version)
-                .port(port)
                 .protocol(protocol)
                 .username(USERNAME)
                 .password(PASSWORD)
@@ -77,7 +73,6 @@ public class DefaultOpenstackAuthTest {
         OpenstackAuth auth = OS_AUTH_1;
 
         assertThat(auth.version(), is("v2.0"));
-        assertThat(auth.port(), is(35357));
         assertThat(auth.protocol(), is(OpenstackAuth.Protocol.HTTP));
         assertThat(auth.username(), is("admin"));
         assertThat(auth.password(), is("nova"));

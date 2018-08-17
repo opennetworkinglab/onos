@@ -59,7 +59,7 @@ public final class OpenstackNodeCodec extends JsonCodec<OpenstackNode> {
     private static final String PHYSICAL_INTERFACES = "phyIntfs";
     private static final String CONTROLLERS = "controllers";
     private static final String AUTHENTICATION = "authentication";
-    private static final String END_POINT = "endPoint";
+    private static final String END_POINT = "endpoint";
     private static final String SSH_AUTH = "sshAuth";
     private static final String DATA_PATH_TYPE = "datapathType";
 
@@ -84,7 +84,7 @@ public final class OpenstackNodeCodec extends JsonCodec<OpenstackNode> {
         }
 
         if (type == OpenstackNode.NodeType.CONTROLLER) {
-            result.put(END_POINT, node.endPoint());
+            result.put(END_POINT, node.endpoint());
         }
 
         if (node.intgBridge() != null) {
@@ -156,7 +156,7 @@ public final class OpenstackNodeCodec extends JsonCodec<OpenstackNode> {
         if (type.equals(CONTROLLER)) {
             String endPoint = nullIsIllegal(json.get(END_POINT).asText(),
                     END_POINT + MISSING_MESSAGE);
-            nodeBuilder.endPoint(endPoint);
+            nodeBuilder.endpoint(endPoint);
         }
         if (json.get(VLAN_INTF_NAME) != null) {
             nodeBuilder.vlanIntf(json.get(VLAN_INTF_NAME).asText());

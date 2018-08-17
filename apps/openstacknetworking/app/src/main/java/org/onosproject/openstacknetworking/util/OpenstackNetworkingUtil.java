@@ -480,17 +480,7 @@ public final class OpenstackNetworkingUtil {
         StringBuilder endpointSb = new StringBuilder();
         endpointSb.append(auth.protocol().name().toLowerCase());
         endpointSb.append("://");
-        endpointSb.append(node.endPoint());
-        endpointSb.append(":");
-        endpointSb.append(auth.port());
-        endpointSb.append("/");
-
-        // in case the version is v3, we need to append identity path into endpoint
-        if (auth.version().equals(KEYSTONE_V3)) {
-            endpointSb.append(IDENTITY_PATH);
-        }
-
-        endpointSb.append(auth.version());
+        endpointSb.append(node.endpoint());
         return endpointSb.toString();
     }
 

@@ -181,7 +181,6 @@ public class OpenstackNodeCodecTest {
     public void testOpenstackControllerNodeEncode() {
         OpenstackAuth auth = DefaultOpenstackAuth.builder()
                 .version("v2.0")
-                .port(35357)
                 .protocol(OpenstackAuth.Protocol.HTTP)
                 .project("admin")
                 .username("admin")
@@ -194,7 +193,7 @@ public class OpenstackNodeCodecTest {
                 .type(OpenstackNode.NodeType.CONTROLLER)
                 .state(NodeState.INIT)
                 .managementIp(IpAddress.valueOf("172.16.130.10"))
-                .endPoint("keystone-end-point-url")
+                .endpoint("keystone-end-point-url")
                 .authentication(auth)
                 .build();
 
@@ -212,12 +211,11 @@ public class OpenstackNodeCodecTest {
         assertThat(node.hostname(), is("controller"));
         assertThat(node.type().name(), is("CONTROLLER"));
         assertThat(node.managementIp().toString(), is("172.16.130.10"));
-        assertThat(node.endPoint(), is("keystone-end-point-url"));
+        assertThat(node.endpoint(), is("keystone-end-point-url"));
 
         OpenstackAuth auth = node.authentication();
 
         assertThat(auth.version(), is("v2.0"));
-        assertThat(auth.port(), is(35357));
         assertThat(auth.protocol(), is(OpenstackAuth.Protocol.HTTP));
         assertThat(auth.username(), is("admin"));
         assertThat(auth.password(), is("nova"));

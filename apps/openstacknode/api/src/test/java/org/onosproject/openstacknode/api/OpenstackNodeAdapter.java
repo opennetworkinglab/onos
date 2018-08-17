@@ -140,7 +140,7 @@ public class OpenstackNodeAdapter implements OpenstackNode {
     }
 
     @Override
-    public String endPoint() {
+    public String endpoint() {
         return null;
     }
 

@@ -27,7 +27,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 public final class DefaultOpenstackAuth implements OpenstackAuth {
 
     private final String version;
-    private final Integer port;
     private final Protocol protocol;
     private final String username;
     private final String password;
@@ -40,19 +39,17 @@ public final class DefaultOpenstackAuth implements OpenstackAuth {
      * A default constructor of keystone authentication instance.
      *
      * @param version       version number
-     * @param port          endpoint port number
      * @param protocol      endpoint protocol type
      * @param username      keystone username
      * @param password      keystone password
      * @param project       project name
      * @param perspective   user perspective
      */
-    private DefaultOpenstackAuth(String version, Integer port, Protocol protocol,
+    private DefaultOpenstackAuth(String version, Protocol protocol,
                                    String username, String password, String project,
                                    Perspective perspective) {
 
         this.version = version;
-        this.port = port;
         this.protocol = protocol;
         this.username = username;
         this.password = password;
@@ -63,11 +60,6 @@ public final class DefaultOpenstackAuth implements OpenstackAuth {
     @Override
     public String version() {
         return version;
-    }
-
-    @Override
-    public Integer port() {
-        return port;
     }
 
     @Override
@@ -104,7 +96,6 @@ public final class DefaultOpenstackAuth implements OpenstackAuth {
         if (obj instanceof DefaultOpenstackAuth) {
             DefaultOpenstackAuth that = (DefaultOpenstackAuth) obj;
             return Objects.equals(version, that.version) &&
-                    Objects.equals(port, that.port) &&
                     Objects.equals(protocol, that.protocol) &&
                     Objects.equals(username, that.username) &&
                     Objects.equals(password, that.password) &&
@@ -117,7 +108,6 @@ public final class DefaultOpenstackAuth implements OpenstackAuth {
     @Override
     public int hashCode() {
         return Objects.hash(version,
-                port,
                 protocol,
                 username,
                 password,
@@ -129,7 +119,6 @@ public final class DefaultOpenstackAuth implements OpenstackAuth {
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                 .add("version", version)
-                .add("port", port)
                 .add("protocol", protocol)
                 .add("username", username)
                 .add("password", password)
@@ -153,7 +142,6 @@ public final class DefaultOpenstackAuth implements OpenstackAuth {
     public static final class Builder implements OpenstackAuth.Builder {
 
         private String version;
-        private Integer port;
         private Protocol protocol;
         private String username;
         private String password;
@@ -167,14 +155,12 @@ public final class DefaultOpenstackAuth implements OpenstackAuth {
         @Override
         public OpenstackAuth build() {
             checkArgument(version != null, NOT_NULL_MSG, "version");
-            checkArgument(port != null, NOT_NULL_MSG, "port");
             checkArgument(protocol != null, NOT_NULL_MSG, "protocol");
             checkArgument(username != null, NOT_NULL_MSG, "username");
             checkArgument(password != null, NOT_NULL_MSG, "password");
             checkArgument(project != null, NOT_NULL_MSG, "project");
 
             return new DefaultOpenstackAuth(version,
-                    port,
                     protocol,
                     username,
                     password,
@@ -185,12 +171,6 @@ public final class DefaultOpenstackAuth implements OpenstackAuth {
         @Override
         public Builder version(String version) {
             this.version = version;
-            return this;
-        }
-
-        @Override
-        public Builder port(Integer port) {
-            this.port = port;
             return this;
         }
 
