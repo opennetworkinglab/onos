@@ -15,11 +15,11 @@
  */
 package org.onosproject.pim.impl;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
 import org.onosproject.core.ApplicationId;
@@ -46,25 +46,25 @@ public class PimApplication {
     private final Logger log = getLogger(getClass());
 
     // Used to get the appId
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
     // Our application ID
     private static ApplicationId appId;
 
     // Register to receive PIM packets, used to send packets as well
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected PacketService packetService;
 
     // Use the MulticastRouteService to manage incoming PIM Join/Prune state as well as
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected MulticastRouteService ms;
 
     // Create an instance of the PIM packet handler
     protected PimPacketHandler pimPacketHandler;
 
     // Provide interfaces to the pimInterface manager as a result of Netconfig updates.
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected PimInterfaceService pimInterfaceManager;
 
     private final PimPacketProcessor processor = new PimPacketProcessor();

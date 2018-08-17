@@ -15,18 +15,8 @@
  */
 package org.onosproject.vtnrsc.portchainsfmap.impl;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.List;
-import java.util.ListIterator;
-
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import org.onosproject.vtnrsc.PortChain;
 import org.onosproject.vtnrsc.PortChainId;
 import org.onosproject.vtnrsc.PortPairGroup;
@@ -36,31 +26,38 @@ import org.onosproject.vtnrsc.portchain.PortChainService;
 import org.onosproject.vtnrsc.portchainsfmap.PortChainSfMapService;
 import org.onosproject.vtnrsc.portpair.PortPairService;
 import org.onosproject.vtnrsc.portpairgroup.PortPairGroupService;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
+import java.util.List;
+import java.util.ListIterator;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provides implementation of the PortChainSfMapService.
  * A port pair group is nothing but group of similar service functions.
  * A port pair is nothing but a service function.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = PortChainSfMapService.class)
 public class PortChainSfMapManager implements PortChainSfMapService {
 
     private static final String PORT_CHAIN_ID_NULL = "PortChain ID cannot be null";
 
     private final Logger log = getLogger(getClass());
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected PortChainService portChainService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected PortPairGroupService portPairGroupService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected PortPairService portPairService;
 
     @Activate

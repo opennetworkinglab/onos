@@ -23,8 +23,9 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.apache.karaf.shell.api.action.Option;
 import org.onlab.util.StringFilter;
 import org.onlab.util.Tools;
 import org.onosproject.cli.AbstractShellCommand;
@@ -63,6 +64,7 @@ import java.util.stream.Collectors;
 /**
  * Lists the inventory of intents and their states.
  */
+@Service
 @Command(scope = "onos", name = "intents",
          description = "Lists the inventory of intents and their states")
 public class IntentsListCommand extends AbstractShellCommand {
@@ -181,7 +183,7 @@ public class IntentsListCommand extends AbstractShellCommand {
     private WorkPartitionService workPartitionService;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         service = get(IntentService.class);
         workPartitionService = get(WorkPartitionService.class);
 

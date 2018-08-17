@@ -16,13 +16,6 @@
 
 package org.onosproject.routeservice.store;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.util.Tools;
@@ -37,6 +30,11 @@ import org.onosproject.store.AbstractStore;
 import org.onosproject.store.service.StorageService;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,19 +46,18 @@ import java.util.Set;
  * An implementation of RouteStore that is backed by either LocalRouteStore or
  * DistributedRouteStore according to configuration.
  */
-@Service
-@Component
+@Component(service = RouteStore.class)
 public class RouteStoreImpl extends AbstractStore<InternalRouteEvent, RouteStoreDelegate>
         implements RouteStore {
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService componentConfigService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     public StorageService storageService;
 
-    @Property(name = "distributed", boolValue = false,
-            label = "Enable distributed route store")
+    //@Property(name = "distributed", boolValue = false,
+    //        label = "Enable distributed route store")
     private boolean distributed;
 
     private final Logger log = LoggerFactory.getLogger(getClass());

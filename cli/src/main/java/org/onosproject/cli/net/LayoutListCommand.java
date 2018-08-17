@@ -16,8 +16,9 @@
 
 package org.onosproject.cli.net;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.ui.UiTopoLayoutService;
 import org.onosproject.ui.model.topo.UiTopoLayout;
@@ -32,6 +33,7 @@ import static com.google.common.collect.Lists.newArrayList;
 /**
  * List layout details.
  */
+@Service
 @Command(scope = "onos", name = "layouts",
         description = "List layout details")
 public class LayoutListCommand extends AbstractShellCommand {
@@ -45,7 +47,7 @@ public class LayoutListCommand extends AbstractShellCommand {
     private UiTopoLayoutService layoutService;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         layoutService = get(UiTopoLayoutService.class);
         if (id == null) {
             for (UiTopoLayout layout : getSortedLayouts(layoutService)) {

@@ -45,10 +45,11 @@ osgi_feature(
         "@mapdb//jar",
         "@bcpkix_jdk15on//jar",
         "@bcprov_jdk15on//jar",
-        "@commons_jxpath//jar",
         "@commons_beanutils//jar",
         "@jdom//jar",
         "@sigar//jar",
+        "@org_osgi_util_function//jar",
+        "@org_osgi_util_promise//jar",
     ],
     required_features = [],
     visibility = ["//visibility:public"],
@@ -148,6 +149,16 @@ osgi_feature(
     description = "ONOS admin command console components",
     included_bundles = [
         "//cli:onos-cli",
+    ],
+    required_features = ["onos-api"],
+    visibility = ["//visibility:public"],
+)
+
+osgi_feature(
+    name = "onos-cli2",
+    description = "stripped down ONOS admin command console components",
+    included_bundles = [
+        "//cli2:onos-cli2",
     ],
     required_features = ["onos-api"],
     visibility = ["//visibility:public"],

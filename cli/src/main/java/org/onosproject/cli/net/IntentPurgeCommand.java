@@ -15,7 +15,8 @@
  */
 package org.onosproject.cli.net;
 
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentService;
@@ -25,11 +26,12 @@ import static org.onosproject.net.intent.IntentState.WITHDRAWN;
 /**
  * Purges all WITHDRAWN intents.
  */
+@Service
 @Command(scope = "onos", name = "purge-intents",
          description = "Purges all WITHDRAWN intents")
 public class IntentPurgeCommand extends AbstractShellCommand {
     @Override
-    protected void execute() {
+    protected void doExecute() {
         IntentService intentService = get(IntentService.class);
         for (Intent intent: intentService.getIntents()) {
             if (intentService.getIntentState(intent.key()) == WITHDRAWN) {

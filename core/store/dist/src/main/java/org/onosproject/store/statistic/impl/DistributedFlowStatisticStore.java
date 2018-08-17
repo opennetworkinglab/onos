@@ -17,15 +17,6 @@
 package org.onosproject.store.statistic.impl;
 
 import com.google.common.base.Objects;
-
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.ClusterService;
@@ -44,6 +35,12 @@ import org.onosproject.store.cluster.messaging.MessageSubject;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.Serializer;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Collections;
@@ -69,23 +66,22 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Maintains flow statistics using RPC calls to collect stats from remote instances
  * on demand.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = FlowStatisticStore.class)
 public class DistributedFlowStatisticStore implements FlowStatisticStore {
     private final Logger log = getLogger(getClass());
 
     private static final String FORMAT = "Setting: messageHandlerThreadPoolSize={}";
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected MastershipService mastershipService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ClusterCommunicationService clusterCommunicator;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ClusterService clusterService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService cfgService;
 
     private Map<ConnectPoint, Set<FlowEntry>> previous =
@@ -103,8 +99,8 @@ public class DistributedFlowStatisticStore implements FlowStatisticStore {
     private ExecutorService messageHandlingExecutor;
 
     private static final int DEFAULT_MESSAGE_HANDLER_THREAD_POOL_SIZE = 4;
-    @Property(name = "messageHandlerThreadPoolSize", intValue = DEFAULT_MESSAGE_HANDLER_THREAD_POOL_SIZE,
-            label = "Size of thread pool to assign message handler")
+    //@Property(name = "messageHandlerThreadPoolSize", intValue = DEFAULT_MESSAGE_HANDLER_THREAD_POOL_SIZE,
+    //        label = "Size of thread pool to assign message handler")
     private static int messageHandlerThreadPoolSize = DEFAULT_MESSAGE_HANDLER_THREAD_POOL_SIZE;
 
 

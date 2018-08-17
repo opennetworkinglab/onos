@@ -15,18 +15,16 @@
  */
 package org.onosproject.core.impl;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Service;
-
 import org.onlab.metrics.MetricsManager;
+import org.onlab.metrics.MetricsService;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
 
 /**
  * Metrics service implementation.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = MetricsService.class)
 public class MetricsManagerComponent extends MetricsManager {
 
     @Activate

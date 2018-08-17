@@ -17,14 +17,13 @@
 package org.onosproject.incubator.store.virtual.impl;
 
 import com.google.common.collect.Maps;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.VirtualNetworkFlowObjectiveStore;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.Serializer;
+import org.osgi.service.component.annotations.Component;
 import org.slf4j.Logger;
 
 import java.util.concurrent.ConcurrentMap;
@@ -34,8 +33,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Distributed flow objective store for virtual network.
  */
-@Component(immediate = true, enabled = false)
-@Service
+@Component(immediate = true, enabled = false, service = VirtualNetworkFlowObjectiveStore.class)
 public class DistributedVirtualFlowObjectiveStore
         extends SimpleVirtualFlowObjectiveStore
         implements VirtualNetworkFlowObjectiveStore {

@@ -18,12 +18,6 @@ package org.onosproject.evpnopenflow.rsc.vpninstance.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -34,13 +28,18 @@ import org.onosproject.evpnopenflow.rsc.VpnInstanceId;
 import org.onosproject.evpnopenflow.rsc.vpnafconfig.VpnAfConfigService;
 import org.onosproject.evpnopenflow.rsc.vpninstance.VpnInstanceService;
 import org.onosproject.evpnrouteservice.EvpnInstanceName;
-import org.onosproject.routeservice.RouteAdminService;
 import org.onosproject.evpnrouteservice.RouteDistinguisher;
 import org.onosproject.evpnrouteservice.VpnRouteTarget;
+import org.onosproject.routeservice.RouteAdminService;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.WallClockTimestamp;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,8 +79,7 @@ import static org.onosproject.evpnopenflow.rsc.EvpnConstants.VPN_INSTANCE_UPDATE
 /**
  * Provides implementation of the VpnInstance APIs.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = VpnInstanceService.class)
 public class VpnInstanceManager implements VpnInstanceService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -89,16 +87,16 @@ public class VpnInstanceManager implements VpnInstanceService {
     protected EventuallyConsistentMap<VpnInstanceId, VpnInstance> vpnInstanceStore;
     protected ApplicationId appId;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected StorageService storageService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected RouteAdminService routeService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected VpnAfConfigService vpnAfConfigService;
 
     @Activate

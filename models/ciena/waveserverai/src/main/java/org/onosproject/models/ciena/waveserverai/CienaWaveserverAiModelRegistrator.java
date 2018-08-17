@@ -20,7 +20,7 @@ import org.onosproject.yang.AbstractYangModelRegistrator;
 import org.onosproject.yang.gen.v1.cienawaveserversystem.rev20180104.CienaWaveserverSystem;
 import org.onosproject.yang.gen.v1.cienawaveserverport.rev20170731.CienaWaveserverPort;
 
-import org.apache.felix.scr.annotations.Component;
+import org.osgi.service.component.annotations.Component;
 import org.onosproject.yang.model.DefaultYangModuleId;
 import org.onosproject.yang.model.YangModuleId;
 import org.onosproject.yang.runtime.AppModuleInfo;

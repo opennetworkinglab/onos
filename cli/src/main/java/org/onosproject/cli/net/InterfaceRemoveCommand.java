@@ -16,8 +16,9 @@
 
 package org.onosproject.cli.net;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.intf.InterfaceAdminService;
 import org.onosproject.net.ConnectPoint;
@@ -25,6 +26,7 @@ import org.onosproject.net.ConnectPoint;
 /**
  * Removes an interface configuration.
  */
+@Service
 @Command(scope = "onos", name = "interface-remove",
         description = "Removes a configured interface")
 public class InterfaceRemoveCommand extends AbstractShellCommand {
@@ -40,7 +42,7 @@ public class InterfaceRemoveCommand extends AbstractShellCommand {
     private String name = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         InterfaceAdminService interfaceService = get(InterfaceAdminService.class);
 
         boolean success = interfaceService.remove(

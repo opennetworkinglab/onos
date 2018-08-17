@@ -15,14 +15,6 @@
  */
 package org.onosproject.openstacktelemetry.impl;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.openstacktelemetry.api.GrpcTelemetryAdminService;
@@ -30,6 +22,12 @@ import org.onosproject.openstacktelemetry.api.GrpcTelemetryConfigService;
 import org.onosproject.openstacktelemetry.api.config.TelemetryConfig;
 import org.onosproject.openstacktelemetry.config.DefaultGrpcTelemetryConfig;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,8 +46,7 @@ import static org.onosproject.openstacktelemetry.util.OpenstackTelemetryUtil.ini
 /**
  * gRPC server configuration manager for publishing openstack telemetry.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = GrpcTelemetryConfigService.class)
 public class GrpcTelemetryConfigManager implements GrpcTelemetryConfigService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -60,30 +57,30 @@ public class GrpcTelemetryConfigManager implements GrpcTelemetryConfigService {
     private static final String USE_PLAINTEXT = "usePlaintext";
     private static final String MAX_INBOUND_MSG_SIZE = "maxInboundMsgSize";
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService componentConfigService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected GrpcTelemetryAdminService grpcTelemetryAdminService;
 
-    @Property(name = ADDRESS, value = DEFAULT_GRPC_SERVER_IP,
-            label = "Default IP address to establish initial connection to gRPC server")
+    //@Property(name = ADDRESS, value = DEFAULT_GRPC_SERVER_IP,
+    //        label = "Default IP address to establish initial connection to gRPC server")
     protected String address = DEFAULT_GRPC_SERVER_IP;
 
-    @Property(name = PORT, intValue = DEFAULT_GRPC_SERVER_PORT,
-            label = "Default port number to establish initial connection to gRPC server")
+    //@Property(name = PORT, intValue = DEFAULT_GRPC_SERVER_PORT,
+    //        label = "Default port number to establish initial connection to gRPC server")
     protected Integer port = DEFAULT_GRPC_SERVER_PORT;
 
-    @Property(name = USE_PLAINTEXT, boolValue = DEFAULT_GRPC_USE_PLAINTEXT,
-            label = "UsePlaintext flag value used for connecting to gRPC server")
+    //@Property(name = USE_PLAINTEXT, boolValue = DEFAULT_GRPC_USE_PLAINTEXT,
+    //        label = "UsePlaintext flag value used for connecting to gRPC server")
     protected Boolean usePlaintext = DEFAULT_GRPC_USE_PLAINTEXT;
 
-    @Property(name = MAX_INBOUND_MSG_SIZE, intValue = DEFAULT_GRPC_MAX_INBOUND_MSG_SIZE,
-            label = "Maximum inbound message size used for communicating with gRPC server")
+    //@Property(name = MAX_INBOUND_MSG_SIZE, intValue = DEFAULT_GRPC_MAX_INBOUND_MSG_SIZE,
+    //        label = "Maximum inbound message size used for communicating with gRPC server")
     protected Integer maxInboundMsgSize = DEFAULT_GRPC_MAX_INBOUND_MSG_SIZE;
 
-    @Property(name = ENABLE_SERVICE, boolValue = DEFAULT_DISABLE,
-            label = "Specify the default behavior of telemetry service")
+    //@Property(name = ENABLE_SERVICE, boolValue = DEFAULT_DISABLE,
+    //        label = "Specify the default behavior of telemetry service")
     protected Boolean enableService = DEFAULT_DISABLE;
 
     @Activate

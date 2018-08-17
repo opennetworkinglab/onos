@@ -16,14 +16,13 @@
 package org.onosproject.virtualbng;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onosproject.net.ConnectPoint;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,8 +39,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Implementation of ConfigurationService which reads virtual BNG
  * configuration from a file.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = VbngConfigurationService.class)
 public class VbngConfigurationManager implements VbngConfigurationService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());

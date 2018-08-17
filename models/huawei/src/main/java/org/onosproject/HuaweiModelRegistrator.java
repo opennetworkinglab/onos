@@ -17,7 +17,7 @@
 package org.onosproject.models.huawei;
 
 import com.google.common.collect.ImmutableMap;
-import org.apache.felix.scr.annotations.Component;
+import org.osgi.service.component.annotations.Component;
 import org.onosproject.yang.AbstractYangModelRegistrator;
 import org.onosproject.yang.gen.v1.nebgpcomm.rev20141225.NeBgpcomm;
 import org.onosproject.yang.gen.v1.nebgpcommtype.rev20141225.NeBgpcommType;

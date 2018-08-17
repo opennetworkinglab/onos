@@ -18,7 +18,6 @@ package org.onosproject.cli.net.vnet;
 
 import static org.onlab.osgi.DefaultServiceDirectory.getService;
 
-import org.apache.karaf.shell.console.completer.ArgumentCompleter.ArgumentList;
 import org.onosproject.cli.AbstractChoicesCompleter;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.VirtualNetworkService;
@@ -39,9 +38,8 @@ import java.util.stream.Collectors;
 public class VirtualPortCompleter extends AbstractChoicesCompleter {
     @Override
     protected List<String> choices() {
-        ArgumentList args = getArgumentList();
         //parse argument list for network id
-        String[] argsArray = args.getArguments();
+        String[] argsArray = commandLine.getArguments();
         for (String str : argsArray) {
             if (str.matches("[0-9]+")) {
                 long networkId = Long.valueOf(str);

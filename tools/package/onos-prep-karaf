@@ -3,17 +3,17 @@
 # Packages ONOS distributable into onos.tar.gz, onos.zip or a deb file
 # -----------------------------------------------------------------------------
 
-set -e
+set -eu -o pipefail
 
 OUT=$1
-KARAF_TAR=$2
+#export HOME=/Users/tom
+KARAF_TAR="$HOME/Downloads/apache-karaf-4.2.1.tar.gz"
 ONOS_VERSION=$3
 BRANDING=$4
 KARAF_PATCHES=$5
 SANDBOX=${6:-.}
 
-#FIXME karaf version
-KARAF_VERSION="3.0.8"
+KARAF_VERSION="4.2.1"
 ONOS_SECURITY_MODE="false"
 
 PREFIX="onos-$ONOS_VERSION"
@@ -22,9 +22,9 @@ PREFIX="onos-$ONOS_VERSION"
 tar xf $KARAF_TAR
 
 # rename path name to match what was distributed with vicci
-mv "$(ls -d apache*)" "apache-karaf-$KARAF_VERSION" || true
+# mv "$(ls -d apache*)" "apache-karaf-$KARAF_VERSION" || true
 
-tar xf $KARAF_PATCHES
+#tar xf $KARAF_PATCHES
 
 # Unroll the Apache Karaf bits, prune them and make ONOS top-level directories.
 KARAF_DIR=$(ls -d apache*)
@@ -43,17 +43,6 @@ sed -i.bk "s/apache-karaf-\$KARAF_VERSION/$KARAF_DIR/g" $SANDBOX/bin/onos
 rm -f bin/*.bk
 chmod a+x $SANDBOX/bin/onos-service $SANDBOX/bin/onos
 
-export BOOT_FEATURES="standard,ssh,scr,war,webconsole,onos-api,onos-core,onos-incubator,onos-cli,onos-rest,onos-gui"
-
-# Patch the Apache Karaf distribution file to add ONOS features repository
-perl -pi.old -e "s|^(featuresRepositories=).*|\1mvn:org.apache.karaf.features/standard/$KARAF_VERSION/xml/features,mvn:org.onosproject/onos-features/$ONOS_VERSION/xml/features|" \
-    $KARAF_DIR/etc/org.apache.karaf.features.cfg
-
-# Patch the Apache Karaf distribution file to load default ONOS boot features
-perl -pi.old -e "s|^(featuresBoot ?= ?).*|\1$BOOT_FEATURES|" \
-    $KARAF_DIR/etc/org.apache.karaf.features.cfg
-
-
 # Patch the Apache Karaf distribution with ONOS branding bundle
 cp $BRANDING $KARAF_DIR/lib/onos-tools-package-branding.jar
 
@@ -66,6 +55,9 @@ cp -r $SANDBOX/bin $PREFIX
 cp -r $SANDBOX/runtime/bin/* $PREFIX/bin/
 cp -r $SANDBOX/init $PREFIX
 cp -r $SANDBOX/etc/* $PREFIX/$KARAF_DIR/etc/
+
+# Fix the onos version string in the features config
+sed -i".VERBACK" -E "s/.ONOS_VERSION/${ONOS_VERSION}/" $PREFIX/$KARAF_DIR/etc/org.apache.karaf.features.cfg
 
 if [ "$ONOS_SECURITY_MODE" = true ]
 then

@@ -15,34 +15,31 @@
  */
 package org.onosproject.vtnrsc.classifier.impl;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
+import com.google.common.collect.ImmutableList;
 import org.onosproject.net.DeviceId;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.DistributedSet;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.vtnrsc.classifier.ClassifierService;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
-import com.google.common.collect.ImmutableList;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provides implementation of the Classifier Service.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = ClassifierService.class)
 public class ClassifierManager implements ClassifierService {
 
     private final Logger log = getLogger(ClassifierManager.class);
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected StorageService storageService;
 
     private DistributedSet<DeviceId> classifierList;

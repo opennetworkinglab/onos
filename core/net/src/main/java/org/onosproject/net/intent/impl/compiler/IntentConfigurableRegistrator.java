@@ -17,14 +17,6 @@
 package org.onosproject.net.intent.impl.compiler;
 
 import com.google.common.collect.Maps;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.net.intent.Intent;
@@ -32,6 +24,12 @@ import org.onosproject.net.intent.IntentCompiler;
 import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.resource.impl.LabelAllocator;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Map;
@@ -43,46 +41,45 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Auxiliary utility to register either flow-rule compilers or flow-objective
  * compilers.
  */
-@Component
-@Service(value = IntentConfigurableRegistrator.class)
+@Component(service = IntentConfigurableRegistrator.class)
 public class IntentConfigurableRegistrator {
 
     private final Logger log = getLogger(getClass());
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected IntentExtensionService extensionService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService cfgService;
 
     private static final boolean DEFAULT_FLOW_OBJECTIVES = false;
-    @Property(name = "useFlowObjectives",
-            boolValue = DEFAULT_FLOW_OBJECTIVES,
-            label = "Indicates whether or not to use flow objective-based compilers")
+    //@Property(name = "useFlowObjectives",
+    //        boolValue = DEFAULT_FLOW_OBJECTIVES,
+    //        label = "Indicates whether or not to use flow objective-based compilers")
     private boolean useFlowObjectives = DEFAULT_FLOW_OBJECTIVES;
 
     private static final String DEFAULT_LABEL_SELECTION = "RANDOM";
-    @Property(name = "labelSelection",
-            value = DEFAULT_LABEL_SELECTION,
-            label = "Defines the label selection algorithm - RANDOM or FIRST_FIT")
+    //@Property(name = "labelSelection",
+    //        value = DEFAULT_LABEL_SELECTION,
+    //        label = "Defines the label selection algorithm - RANDOM or FIRST_FIT")
     private String labelSelection = DEFAULT_LABEL_SELECTION;
 
     private static final String DEFAULT_OPT_LABEL_SELECTION = "NONE";
-    @Property(name = "optLabelSelection",
-            value = DEFAULT_OPT_LABEL_SELECTION,
-            label = "Defines the optimization for label selection algorithm - NONE, NO_SWAP, MIN_SWAP")
+    //@Property(name = "optLabelSelection",
+    //        value = DEFAULT_OPT_LABEL_SELECTION,
+    //        label = "Defines the optimization for label selection algorithm - NONE, NO_SWAP, MIN_SWAP")
     private String optLabelSelection = DEFAULT_OPT_LABEL_SELECTION;
 
     private static final boolean DEFAULT_FLOW_OPTIMIZATION = false;
-    @Property(name = "optimizeInstructions",
-            boolValue = DEFAULT_FLOW_OPTIMIZATION,
-            label = "Indicates whether or not to optimize the flows in the link collection compiler")
+    //@Property(name = "optimizeInstructions",
+    //        boolValue = DEFAULT_FLOW_OPTIMIZATION,
+    //        label = "Indicates whether or not to optimize the flows in the link collection compiler")
     private boolean optimizeInstructions = DEFAULT_FLOW_OPTIMIZATION;
 
     private static final boolean DEFAULT_COPY_TTL = false;
-    @Property(name = "useCopyTtl",
-            boolValue = DEFAULT_COPY_TTL,
-            label = "Indicates whether or not to use copy ttl in the link collection compiler")
+    //@Property(name = "useCopyTtl",
+    //        boolValue = DEFAULT_COPY_TTL,
+    //        label = "Indicates whether or not to use copy ttl in the link collection compiler")
     private boolean useCopyTtl = DEFAULT_COPY_TTL;
 
     private final Map<Class<Intent>, IntentCompiler<Intent>> flowRuleBased = Maps.newConcurrentMap();

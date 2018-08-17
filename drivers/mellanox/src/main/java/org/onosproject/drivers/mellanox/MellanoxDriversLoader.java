@@ -16,7 +16,7 @@
 
 package org.onosproject.drivers.mellanox;
 
-import org.apache.felix.scr.annotations.Component;
+import org.osgi.service.component.annotations.Component;
 import org.onosproject.net.driver.AbstractDriverLoader;
 
 /**

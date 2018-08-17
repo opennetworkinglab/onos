@@ -20,7 +20,7 @@ import org.onosproject.yang.AbstractYangModelRegistrator;
 import org.onosproject.yang.gen.v1.ietfinettypes.rev20130715.IetfInetTypes;
 import org.onosproject.yang.gen.v1.ietfsystem.rev20140806.IetfSystem;
 import org.onosproject.yang.gen.v1.ietfyangtypes.rev20130715.IetfYangTypes;
-import org.apache.felix.scr.annotations.Component;
+import org.osgi.service.component.annotations.Component;
 import org.onosproject.yang.model.DefaultYangModuleId;
 import org.onosproject.yang.model.YangModuleId;
 import org.onosproject.yang.runtime.AppModuleInfo;

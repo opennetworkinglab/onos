@@ -17,7 +17,8 @@ package org.onosproject.cli.net;
 
 import java.util.Collection;
 
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.store.primitives.TransactionId;
 import org.onosproject.store.service.StorageAdminService;
@@ -29,6 +30,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 /**
  * CLI to view in-progress database transactions in the system.
  */
+@Service
 @Command(scope = "onos", name = "transactions",
         description = "Utility for listing pending/inprogress transactions")
 public class TransactionsCommand extends AbstractShellCommand {
@@ -46,7 +48,7 @@ public class TransactionsCommand extends AbstractShellCommand {
     }
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         StorageAdminService storageAdminService = get(StorageAdminService.class);
         Collection<TransactionId> transactionIds = storageAdminService.getPendingTransactions();
         if (outputJson()) {

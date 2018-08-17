@@ -17,12 +17,6 @@ package org.onosproject.incubator.net.virtual.impl;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.IpAddress;
@@ -73,6 +67,11 @@ import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.onosproject.net.topology.PathService;
 import org.onosproject.net.topology.TopologyService;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,13 +85,16 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Implementation of the virtual network service.
  */
-@Component(immediate = true)
-@Service
+@Component(service = {
+                   VirtualNetworkService.class,
+                   VirtualNetworkAdminService.class,
+                   VirtualNetworkService.class,
+                   VirtualNetworkProviderRegistry.class
+            })
 public class VirtualNetworkManager
         extends AbstractListenerProviderRegistry<VirtualNetworkEvent,
         VirtualNetworkListener, VirtualNetworkProvider, VirtualNetworkProviderService>
-        implements VirtualNetworkService, VirtualNetworkAdminService,
-        VirtualNetworkProviderRegistry {
+        implements VirtualNetworkService, VirtualNetworkAdminService, VirtualNetworkProviderRegistry {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -104,10 +106,10 @@ public class VirtualNetworkManager
     private static final String VIRTUAL_NETWORK_APP_ID_STRING =
             "org.onosproject.virtual-network";
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected VirtualNetworkStore store;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
     private VirtualNetworkStoreDelegate delegate = this::post;

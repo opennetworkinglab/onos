@@ -16,9 +16,10 @@
 
 package org.onosproject.cli.net.vnet;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.apache.karaf.shell.api.action.Option;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
@@ -37,6 +38,7 @@ import java.util.Set;
 /**
  * Creates a new virtual host.
  */
+@Service
 @Command(scope = "onos", name = "vnet-create-host",
         description = "Creates a new virtual host in a network.")
 public class VirtualHostCreateCommand extends AbstractShellCommand {
@@ -67,7 +69,7 @@ public class VirtualHostCreateCommand extends AbstractShellCommand {
     protected String[] hostIpStrings;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         VirtualNetworkAdminService service = get(VirtualNetworkAdminService.class);
 
         Set<IpAddress> hostIps = new HashSet<>();

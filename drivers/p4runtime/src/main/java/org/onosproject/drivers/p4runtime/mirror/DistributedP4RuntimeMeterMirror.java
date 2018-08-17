@@ -16,18 +16,16 @@
 
 package org.onosproject.drivers.p4runtime.mirror;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoNamespace;
-import org.onosproject.net.pi.runtime.PiMeterHandle;
 import org.onosproject.net.pi.runtime.PiMeterCellConfig;
+import org.onosproject.net.pi.runtime.PiMeterHandle;
 import org.onosproject.store.serializers.KryoNamespaces;
+import org.osgi.service.component.annotations.Component;
 
 /**
  * Distributed implementation of a P4Runtime meter mirror.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = P4RuntimeMeterMirror.class)
 public final class DistributedP4RuntimeMeterMirror
         extends AbstractDistributedP4RuntimeMirror
         <PiMeterHandle, PiMeterCellConfig>

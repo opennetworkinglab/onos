@@ -15,12 +15,6 @@
  */
 package org.onosproject.vtnrsc.subnet.impl;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.IpAddress;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -38,6 +32,11 @@ import org.onosproject.vtnrsc.TenantId;
 import org.onosproject.vtnrsc.TenantNetworkId;
 import org.onosproject.vtnrsc.subnet.SubnetService;
 import org.onosproject.vtnrsc.tenantnetwork.TenantNetworkService;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Arrays;
@@ -50,8 +49,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Provides implementation of the Subnet service.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = SubnetService.class)
 public class SubnetManager implements SubnetService {
 
     private static final String SUBNET_ID_NULL = "Subnet ID cannot be null";
@@ -65,13 +63,13 @@ public class SubnetManager implements SubnetService {
     protected Map<SubnetId, Subnet> subnetStore;
     protected ApplicationId appId;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected StorageService storageService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected TenantNetworkService tenantNetworkService;
 
     @Activate

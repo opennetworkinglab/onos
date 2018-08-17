@@ -32,12 +32,6 @@ import io.netty.handler.codec.DelimiterBasedFrameDecoder;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.util.CharsetUtil;
 import org.apache.commons.lang.StringUtils;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.Tools;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.DeviceId;
@@ -45,6 +39,11 @@ import org.onosproject.tl1.Tl1Command;
 import org.onosproject.tl1.Tl1Controller;
 import org.onosproject.tl1.Tl1Device;
 import org.onosproject.tl1.Tl1Listener;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,8 +69,7 @@ import java.util.stream.Collectors;
  *
  * Per device, we track commands using a simple ctag-keyed map. This assumes the client is sending out unique ctag's.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = Tl1Controller.class)
 public class DefaultTl1Controller implements Tl1Controller {
     private final Logger log = LoggerFactory.getLogger(DefaultTl1Controller.class);
 
@@ -80,7 +78,7 @@ public class DefaultTl1Controller implements Tl1Controller {
     private static final String COMPLD = "COMPLD";
     private static final String DENY = "DENY";
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected MastershipService mastershipService;
 
     private ConcurrentMap<DeviceId, Tl1Device> deviceMap = new ConcurrentHashMap<>();

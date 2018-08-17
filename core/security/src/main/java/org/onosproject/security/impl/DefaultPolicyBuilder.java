@@ -183,7 +183,7 @@ public final class DefaultPolicyBuilder {
         permSet.add(new PackagePermission("*", PackagePermission.EXPORTONLY));
         permSet.add(new PackagePermission("*", PackagePermission.IMPORT));
         permSet.add(new AdaptPermission("*", AdaptPermission.ADAPT));
-        permSet.add(new ConfigurationPermission("*", ConfigurationPermission.CONFIGURE));
+        //permSet.add(new ConfigurationPermission("*", ConfigurationPermission.CONFIGURE));
         permSet.add(new AdminPermission("*", AdminPermission.METADATA));
         return permSet;
     }
@@ -444,9 +444,9 @@ public final class DefaultPolicyBuilder {
         } else if (permission instanceof AdminPermission) {
             return new org.onosproject.security.Permission(
                     AdminPermission.class.getName(), permission.getName(), permission.getActions());
-        } else if (permission instanceof ConfigurationPermission) {
-            return new org.onosproject.security.Permission(
-                    ConfigurationPermission.class.getName(), permission.getName(), permission.getActions());
+        //} else if (permission instanceof ConfigurationPermission) {
+        //    return new org.onosproject.security.Permission(
+        //            ConfigurationPermission.class.getName(), permission.getName(), permission.getActions());
         }
         return null;
     }
@@ -506,8 +506,8 @@ public final class DefaultPolicyBuilder {
             return new ServicePermission(name, actions);
         } else if (AdminPermission.class.getName().equals(classname)) {
             return new AdminPermission(name, actions);
-        } else if (ConfigurationPermission.class.getName().equals(classname)) {
-            return new ConfigurationPermission(name, actions);
+        //} else if (ConfigurationPermission.class.getName().equals(classname)) {
+        //    return new ConfigurationPermission(name, actions);
         } else if (ReflectPermission.class.getName().equals(classname)) {
             return new ReflectPermission(name, actions);
         }

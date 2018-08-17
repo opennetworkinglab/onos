@@ -16,9 +16,10 @@
 
 package org.onosproject.cli.net.vnet;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.apache.karaf.shell.api.action.Option;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.VirtualNetworkAdminService;
@@ -29,6 +30,7 @@ import org.onosproject.net.PortNumber;
 /**
  * Creates a new virtual link.
  */
+@Service
 @Command(scope = "onos", name = "vnet-create-link",
         description = "Creates a new virtual link in a network.")
 public class VirtualLinkCreateCommand extends AbstractShellCommand {
@@ -60,7 +62,7 @@ public class VirtualLinkCreateCommand extends AbstractShellCommand {
     boolean bidirectional = false;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         VirtualNetworkAdminService service = get(VirtualNetworkAdminService.class);
         ConnectPoint src = new ConnectPoint(DeviceId.deviceId(srcDeviceId), PortNumber.portNumber(srcPortNum));
         ConnectPoint dst = new ConnectPoint(DeviceId.deviceId(dstDeviceId), PortNumber.portNumber(dstPortNum));

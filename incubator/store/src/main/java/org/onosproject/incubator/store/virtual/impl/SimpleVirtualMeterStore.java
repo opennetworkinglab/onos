@@ -18,12 +18,6 @@ package org.onosproject.incubator.store.virtual.impl;
 
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Maps;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.incubator.net.virtual.NetworkId;
@@ -41,6 +35,11 @@ import org.onosproject.net.meter.MeterOperation;
 import org.onosproject.net.meter.MeterStoreDelegate;
 import org.onosproject.net.meter.MeterStoreResult;
 import org.onosproject.store.service.StorageException;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Collection;
@@ -55,15 +54,14 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Implementation of the virtual meter store for a single instance.
  */
 //TODO: support distributed meter store for virtual networks
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = VirtualNetworkMeterStore.class)
 public class SimpleVirtualMeterStore
         extends AbstractVirtualStore<MeterEvent, MeterStoreDelegate>
         implements VirtualNetworkMeterStore {
 
         private Logger log = getLogger(getClass());
 
-        @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+        @Reference(cardinality = ReferenceCardinality.MANDATORY)
         protected ClusterService clusterService;
 
         private ConcurrentMap<NetworkId, ConcurrentMap<MeterKey, MeterData>> meterMap =

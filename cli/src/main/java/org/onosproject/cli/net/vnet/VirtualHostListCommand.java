@@ -16,8 +16,9 @@
 
 package org.onosproject.cli.net.vnet;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.VirtualHost;
@@ -29,6 +30,7 @@ import java.util.List;
 /**
  * Lists all virtual hosts for the network ID.
  */
+@Service
 @Command(scope = "onos", name = "vnet-hosts",
         description = "Lists all virtual hosts in a virtual network.")
 public class VirtualHostListCommand extends AbstractShellCommand {
@@ -41,7 +43,7 @@ public class VirtualHostListCommand extends AbstractShellCommand {
     Long networkId = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         getSortedVirtualHosts().forEach(this::printVirtualHost);
     }
 

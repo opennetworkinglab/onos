@@ -15,8 +15,9 @@
  */
 package org.onosproject.cli.net;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.util.Tools;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.Link;
@@ -34,6 +35,7 @@ import java.util.Comparator;
 /**
  * Lists all infrastructure links.
  */
+@Service
 @Command(scope = "onos", name = "links",
          description = "Lists all infrastructure links")
 public class LinksListCommand extends AbstractShellCommand {
@@ -46,7 +48,7 @@ public class LinksListCommand extends AbstractShellCommand {
     String uri = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         LinkService service = get(LinkService.class);
         Iterable<Link> links = uri != null ?
                 service.getDeviceLinks(deviceId(uri)) : service.getLinks();

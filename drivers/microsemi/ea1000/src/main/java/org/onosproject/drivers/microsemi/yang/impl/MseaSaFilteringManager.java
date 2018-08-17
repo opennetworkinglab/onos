@@ -15,10 +15,9 @@
  */
 package org.onosproject.drivers.microsemi.yang.impl;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Service;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
 import org.onosproject.drivers.microsemi.yang.MseaSaFilteringNetconfService;
 import org.onosproject.netconf.DatastoreId;
 import org.onosproject.netconf.NetconfException;
@@ -45,8 +44,7 @@ import java.util.List;
 /**
  * Implementation of the MseaSaFiltering YANG model service.
  */
-@Component(immediate = true, inherit = true)
-@Service
+@Component(immediate = true, service = AbstractYangServiceImpl.class)
 public class MseaSaFilteringManager extends AbstractYangServiceImpl
     implements MseaSaFilteringNetconfService {
     public static final String MSEA_SA_FILTERING =

@@ -7,8 +7,14 @@ ONOS_TAR=
 
 [ -f $ONOS_TAR ] || (echo "$ONOS_TAR not found" && exit 1)
 
+
+function killServer() {
+    echo "Killing ONOS server..."
+    ps -e | grep apache.karaf.main.Main | grep -v grep | cut -d\  -f1 | xargs kill -9 &>/dev/null
+}
+
 # Kill any running instances
-[ -f /tmp/onos.pid ] && kill -9 $(cat /tmp/onos.pid) &>/dev/null
+killServer
 
 ONOS_DIR=/tmp/$(tar tf $ONOS_TAR | head -n 1 | cut -d/ -f1)
 ONOS_MD5=$ONOS_DIR/CHECKSUM
@@ -75,14 +81,14 @@ fi
 cd $ONOS_DIR
 export ONOS_HOME=$PWD
 
+# FIXME
+#export HOME=/Users/tom
+cp $HOME/Downloads/reflectasm-1.11.7.jar \
+    $ONOS_DIR/apache-karaf-4.2.1/system/com/esotericsoftware/reflectasm/1.11.7/reflectasm-1.11.7.jar
+
 # Start ONOS as a server, but include any specified options
 ./bin/onos-service server "$@" &>onos.log &
 echo "$!" > /tmp/onos.pid
-
-function killServer() {
-    echo "Killing ONOS server..."
-    cat /tmp/onos.pid | xargs kill -9
-}
 
 # Hang-on a bit and then start tailing the ONOS log output
 MAX_RETRY=30

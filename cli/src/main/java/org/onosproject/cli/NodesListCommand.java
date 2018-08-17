@@ -19,7 +19,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cluster.ClusterAdminService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.core.Version;
@@ -33,6 +34,7 @@ import static com.google.common.collect.Lists.newArrayList;
 /**
  * Lists all controller cluster nodes.
  */
+@Service
 @Command(scope = "onos", name = "nodes",
         description = "Lists all controller cluster nodes")
 public class NodesListCommand extends AbstractShellCommand {
@@ -40,7 +42,7 @@ public class NodesListCommand extends AbstractShellCommand {
     private static final String FMT = "id=%s, address=%s:%s, state=%s, version=%s, updated=%s %s";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         ClusterAdminService service = get(ClusterAdminService.class);
         List<ControllerNode> nodes = newArrayList(service.getNodes());
         Collections.sort(nodes, Comparators.NODE_COMPARATOR);

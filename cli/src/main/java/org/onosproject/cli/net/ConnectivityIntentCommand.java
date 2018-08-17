@@ -15,7 +15,7 @@
  */
 package org.onosproject.cli.net;
 
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Option;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;

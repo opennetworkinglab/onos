@@ -15,8 +15,9 @@
  */
 package org.onosproject.cli.net.vnet;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.VirtualNetworkService;
@@ -25,6 +26,7 @@ import org.onosproject.mastership.MastershipAdminService;
 /**
  * Forces virtual network device mastership rebalancing.
  */
+@Service
 @Command(scope = "onos", name = "vnet-balance-masters",
         description = "Forces virtual network device mastership rebalancing")
 public class VirtualNetworkBalanceMastersCommand extends AbstractShellCommand {
@@ -32,7 +34,7 @@ public class VirtualNetworkBalanceMastersCommand extends AbstractShellCommand {
             required = true, multiValued = false)
     Long networkId = null;
     @Override
-    protected void execute() {
+    protected void doExecute() {
         VirtualNetworkService vnetService = get(VirtualNetworkService.class);
         MastershipAdminService mastershipAdminService = vnetService
                 .get(NetworkId.networkId(networkId), MastershipAdminService.class);

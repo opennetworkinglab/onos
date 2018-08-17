@@ -15,12 +15,6 @@
  */
 package org.onosproject.openstacktelemetry.impl;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.influxdb.InfluxDB;
 import org.influxdb.InfluxDBFactory;
 import org.influxdb.dto.BatchPoints;
@@ -32,6 +26,11 @@ import org.onosproject.openstacktelemetry.api.InfluxRecord;
 import org.onosproject.openstacktelemetry.api.OpenstackTelemetryService;
 import org.onosproject.openstacktelemetry.api.config.InfluxDbTelemetryConfig;
 import org.onosproject.openstacktelemetry.api.config.TelemetryConfig;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,8 +39,7 @@ import java.util.Set;
 /**
  * InfluxDB telemetry manager.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = InfluxDbTelemetryAdminService.class)
 public class InfluxDbTelemetryManager implements InfluxDbTelemetryAdminService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -71,7 +69,7 @@ public class InfluxDbTelemetryManager implements InfluxDbTelemetryAdminService {
     private static final String ERROR_PKTS = "errorPkts";
     private static final String DROP_PKTS = "dropPkts";
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected OpenstackTelemetryService openstackTelemetryService;
 
     private static final String INFLUX_PROTOCOL = "http";

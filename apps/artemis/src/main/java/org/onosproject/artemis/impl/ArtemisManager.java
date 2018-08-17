@@ -16,12 +16,6 @@
 
 package org.onosproject.artemis.impl;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.artemis.ArtemisEventListener;
 import org.onosproject.artemis.ArtemisService;
 import org.onosproject.core.ApplicationId;
@@ -33,13 +27,17 @@ import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.config.basics.SubjectFactories;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = ArtemisService.class)
 public class ArtemisManager
         extends AbstractListenerManager<ArtemisEvent, ArtemisEventListener>
         implements ArtemisService {
@@ -51,13 +49,13 @@ public class ArtemisManager
     private final InternalNetworkConfigListener configListener =
             new InternalNetworkConfigListener();
     /* Services */
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private NetworkConfigRegistry registry;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private NetworkConfigService configService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private CoreService coreService;
 
     /* Variables */

@@ -15,30 +15,7 @@
  */
 package org.onosproject.net.topology.impl;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static java.util.concurrent.Executors.newFixedThreadPool;
-import static org.onlab.util.Tools.get;
-import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.core.CoreService.CORE_PROVIDER_ID;
-import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_ADDED;
-import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED;
-import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_REMOVED;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.Collections;
-import java.util.Dictionary;
-import java.util.List;
-import java.util.Timer;
-import java.util.concurrent.ExecutorService;
-
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
+import com.google.common.collect.ImmutableList;
 import org.onlab.util.AbstractAccumulator;
 import org.onlab.util.Accumulator;
 import org.onosproject.cfg.ComponentConfigService;
@@ -56,17 +33,36 @@ import org.onosproject.net.topology.TopologyProvider;
 import org.onosproject.net.topology.TopologyProviderRegistry;
 import org.onosproject.net.topology.TopologyProviderService;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
-import com.google.common.collect.ImmutableList;
+import java.util.Collections;
+import java.util.Dictionary;
+import java.util.List;
+import java.util.Timer;
+import java.util.concurrent.ExecutorService;
+
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static java.util.concurrent.Executors.newFixedThreadPool;
+import static org.onlab.util.Tools.get;
+import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.core.CoreService.CORE_PROVIDER_ID;
+import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_ADDED;
+import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED;
+import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_REMOVED;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Default implementation of a network topology provider that feeds off
  * device and link subsystem events to trigger assembly and computation of
  * new topology snapshots.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = TopologyProvider.class)
 public class DefaultTopologyProvider extends AbstractProvider
         implements TopologyProvider {
 
@@ -79,30 +75,30 @@ public class DefaultTopologyProvider extends AbstractProvider
     // TODO: Convert to use HashedWheelTimer or produce a variant of that; then decide which we want to adopt
     private static final Timer TIMER = new Timer("onos-topo-event-batching");
 
-    @Property(name = "maxEvents", intValue = DEFAULT_MAX_EVENTS,
-            label = "Maximum number of events to accumulate")
+    //@Property(name = "maxEvents", intValue = DEFAULT_MAX_EVENTS,
+    //        label = "Maximum number of events to accumulate")
     private int maxEvents = DEFAULT_MAX_EVENTS;
 
-    @Property(name = "maxIdleMs", intValue = DEFAULT_MAX_IDLE_MS,
-            label = "Maximum number of millis between events")
+    //@Property(name = "maxIdleMs", intValue = DEFAULT_MAX_IDLE_MS,
+    //        label = "Maximum number of millis between events")
     private int maxIdleMs = DEFAULT_MAX_IDLE_MS;
 
-    @Property(name = "maxBatchMs", intValue = DEFAULT_MAX_BATCH_MS,
-            label = "Maximum number of millis for whole batch")
+    //@Property(name = "maxBatchMs", intValue = DEFAULT_MAX_BATCH_MS,
+    //        label = "Maximum number of millis for whole batch")
     private int maxBatchMs = DEFAULT_MAX_BATCH_MS;
 
     private final Logger log = getLogger(getClass());
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected TopologyProviderRegistry providerRegistry;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DeviceService deviceService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected LinkService linkService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService cfgService;
 
     private volatile boolean isStarted = false;

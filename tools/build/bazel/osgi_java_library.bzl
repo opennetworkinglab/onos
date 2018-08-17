@@ -83,6 +83,7 @@ def _bnd_impl(ctx):
         web_context = "NONE"
     web_xml = ctx.attr.web_xml
     dynamicimportPackages = ""
+    karaf_commands = ctx.attr.karaf_commands
     cp = ""
 
     inputDependencies = [input_file]
@@ -119,6 +120,7 @@ def _bnd_impl(ctx):
         dynamicimportPackages,
         "classes",
         bundle_classpath,
+        karaf_commands,
     ]
 
     ctx.actions.run(
@@ -151,6 +153,7 @@ _bnd = rule(
         "web_context": attr.string(),
         "web_xml": attr.label_list(allow_files = True),
         "include_resources": attr.string(),
+        "karaf_commands": attr.string(),
         "_bnd_exe": attr.label(
             executable = True,
             cfg = "host",
@@ -384,7 +387,8 @@ def osgi_jar_with_tests(
         api_description = "",
         api_package = "",
         import_packages = None,
-        bundle_classpath = ""):
+        bundle_classpath = "",
+        karaf_command_packages = []):
     if name == None:
         name = _auto_name()
     if srcs == None:
@@ -410,7 +414,7 @@ def osgi_jar_with_tests(
 
     native_srcs = srcs
     native_resources = resources
-    if web_context != None and api_title != "" and len(resources) != 0:
+    if web_context != None and api_title != "" and len(resources) != 0 and 1 == 0:
         # generate Swagger files if needed
         _swagger_java(
             name = name + "_swagger_java",
@@ -465,6 +469,7 @@ def osgi_jar_with_tests(
             javacopts = javacopts,
         )
 
+    karaf_command_packages_string = ",".join(karaf_command_packages)
     _bnd(
         name = name,
         source = name + "-native",
@@ -477,6 +482,7 @@ def osgi_jar_with_tests(
         web_context = web_context,
         web_xml = web_xml,
         include_resources = _include_resources_to_string(include_resources),
+        karaf_commands = karaf_command_packages_string,
     )
 
     # rule for generating pom file for publishing
@@ -564,7 +570,8 @@ def osgi_jar(
         api_version = "",
         api_description = "",
         api_package = "",
-        bundle_classpath = ""):
+        bundle_classpath = "",
+        karaf_command_packages = []):
     if srcs == None:
         srcs = _all_java_sources()
     if deps == None:
@@ -594,6 +601,7 @@ def osgi_jar(
         api_package = api_package,
         web_context = web_context,
         bundle_classpath = bundle_classpath,
+        karaf_command_packages = karaf_command_packages,
     )
 
 """
@@ -637,7 +645,8 @@ def osgi_proto_jar(
         deps = [],
         group = "org.onosproject",
         visibility = ["//visibility:public"],
-        version = ONOS_VERSION):
+        version = ONOS_VERSION,
+        karaf_command_packages = []):
     if name == None:
         name = _auto_name()
     native.java_proto_library(
@@ -679,4 +688,5 @@ def osgi_proto_jar(
         suppress_errorprone = True,
         suppress_checkstyle = True,
         suppress_javadocs = True,
+        karaf_command_packages = karaf_command_packages,
     )

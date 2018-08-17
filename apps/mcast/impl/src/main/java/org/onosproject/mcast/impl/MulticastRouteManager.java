@@ -18,12 +18,6 @@ package org.onosproject.mcast.impl;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.IpAddress;
 import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.mcast.api.McastEvent;
@@ -40,6 +34,11 @@ import org.onosproject.net.HostLocation;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostListener;
 import org.onosproject.net.host.HostService;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.HashSet;
@@ -56,8 +55,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * An implementation of a multicast route table.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = MulticastRouteService.class)
 public class MulticastRouteManager
         extends AbstractListenerManager<McastEvent, McastListener>
         implements MulticastRouteService {
@@ -67,10 +65,10 @@ public class MulticastRouteManager
 
     private final McastStoreDelegate delegate = new InternalMcastStoreDelegate();
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected McastStore store;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected HostService hostService;
 
     private HostListener hostListener = new InternalHostListener();

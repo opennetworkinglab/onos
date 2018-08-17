@@ -17,25 +17,16 @@ package org.onosproject.net.link.impl;
 
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Sets;
-
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
-import org.onosproject.net.provider.AbstractListenerProviderRegistry;
-import org.onosproject.net.provider.ProviderId;
-import org.onosproject.net.config.NetworkConfigEvent;
-import org.onosproject.net.config.NetworkConfigListener;
-import org.onosproject.net.config.NetworkConfigService;
-import org.onosproject.net.config.basics.BasicLinkConfig;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.Link.State;
 import org.onosproject.net.LinkKey;
 import org.onosproject.net.MastershipRole;
+import org.onosproject.net.config.NetworkConfigEvent;
+import org.onosproject.net.config.NetworkConfigListener;
+import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.net.config.basics.BasicLinkConfig;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
@@ -49,7 +40,14 @@ import org.onosproject.net.link.LinkProviderService;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.net.link.LinkStore;
 import org.onosproject.net.link.LinkStoreDelegate;
+import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
+import org.onosproject.net.provider.ProviderId;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Optional;
@@ -58,15 +56,14 @@ import java.util.Set;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.net.LinkKey.linkKey;
 import static org.onosproject.security.AppGuard.checkPermission;
+import static org.onosproject.security.AppPermission.Type.LINK_READ;
 import static org.slf4j.LoggerFactory.getLogger;
-import static org.onosproject.security.AppPermission.Type.*;
 
 
 /**
  * Provides basic implementation of the link SB &amp; NB APIs.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = { LinkService.class, LinkAdminService.class, LinkProviderRegistry.class })
 public class LinkManager
         extends AbstractListenerProviderRegistry<LinkEvent, LinkListener, LinkProvider, LinkProviderService>
         implements LinkService, LinkAdminService, LinkProviderRegistry {
@@ -83,13 +80,13 @@ public class LinkManager
 
     private final NetworkConfigListener networkConfigListener = new InternalNetworkConfigListener();
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected LinkStore store;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DeviceService deviceService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected NetworkConfigService networkConfigService;
 
     @Activate

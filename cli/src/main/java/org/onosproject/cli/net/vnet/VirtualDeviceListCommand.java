@@ -16,8 +16,9 @@
 
 package org.onosproject.cli.net.vnet;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.VirtualDevice;
@@ -31,6 +32,7 @@ import java.util.List;
 /**
  * Lists all virtual devices for the network ID.
  */
+@Service
 @Command(scope = "onos", name = "vnet-devices",
         description = "Lists all virtual devices in a virtual network.")
 public class VirtualDeviceListCommand extends AbstractShellCommand {
@@ -43,7 +45,7 @@ public class VirtualDeviceListCommand extends AbstractShellCommand {
     Long networkId = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
 
         getSortedVirtualDevices().forEach(this::printVirtualDevice);
     }

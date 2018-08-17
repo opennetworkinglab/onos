@@ -18,7 +18,11 @@ package org.onosproject.ui.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.eclipse.jetty.websocket.WebSocket;
+import org.eclipse.jetty.websocket.api.Session;
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose;
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect;
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
+import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.ServiceNotFoundException;
 import org.onosproject.cluster.ClusterService;
@@ -54,8 +58,10 @@ import java.util.Map;
 /**
  * Web socket capable of interacting with the Web UI.
  */
+
+@WebSocket
 public class UiWebSocket
-        implements UiConnection, WebSocket.OnTextMessage, WebSocket.OnControl {
+        implements UiConnection {
 
     private static final Logger log = LoggerFactory.getLogger(UiWebSocket.class);
 
@@ -90,8 +96,8 @@ public class UiWebSocket
     private final ServiceDirectory directory;
     private final UiTopoSession topoSession;
 
-    private Connection connection;
-    private FrameConnection control;
+    private Session session;
+    //private FrameConnection control;
     private String userName;
     private String currentView;
 
@@ -173,8 +179,8 @@ public class UiWebSocket
      */
     synchronized void close() {
         destroyHandlersAndOverlays();
-        if (connection.isOpen()) {
-            connection.close();
+        if (session.isOpen()) {
+            session.close();
         }
     }
 
@@ -186,23 +192,23 @@ public class UiWebSocket
     synchronized boolean isIdle() {
         long quietFor = System.currentTimeMillis() - lastActive;
         boolean idle = quietFor > MAX_AGE_MS;
-        if (idle || (connection != null && !connection.isOpen())) {
+        if (idle || (session != null && !session.isOpen())) {
             log.debug("IDLE (or closed) websocket [{} ms]", quietFor);
             return true;
-        } else if (connection != null) {
-            try {
-                control.sendControl(PING, PING_DATA, 0, PING_DATA.length);
-            } catch (IOException e) {
-                log.warn("Unable to send ping message due to: ", e);
-            }
+        //} else if (session != null) {
+        //    try {
+        //        control.sendControl(PING, PING_DATA, 0, PING_DATA.length);
+        //    } catch (IOException e) {
+        //        log.warn("Unable to send ping message due to: ", e);
+        //    }
         }
         return false;
     }
 
-    @Override
-    public synchronized void onOpen(Connection connection) {
-        this.connection = connection;
-        this.control = (FrameConnection) connection;
+    @OnWebSocketConnect
+    public synchronized void onOpen(Session session) {
+        this.session = session;
+        //this.control = (FrameConnection) connection;
         try {
             topoSession.init();
             createHandlersAndOverlays();
@@ -212,13 +218,13 @@ public class UiWebSocket
 
         } catch (ServiceNotFoundException e) {
             log.warn("Unable to open GUI connection; services have been shut-down", e);
-            this.connection.close();
-            this.connection = null;
-            this.control = null;
+            this.session.close();
+            this.session = null;
+            //this.control = null;
         }
     }
 
-    @Override
+    @OnWebSocketClose
     public synchronized void onClose(int closeCode, String message) {
         try {
             try {
@@ -238,13 +244,7 @@ public class UiWebSocket
                  closeCode, message);
     }
 
-    @Override
-    public boolean onControl(byte controlCode, byte[] data, int offset, int length) {
-        lastActive = System.currentTimeMillis();
-        return true;
-    }
-
-    @Override
+    @OnWebSocketMessage
     public void onMessage(String data) {
         lastActive = System.currentTimeMillis();
         try {
@@ -272,8 +272,8 @@ public class UiWebSocket
     @Override
     public synchronized void sendMessage(ObjectNode message) {
         try {
-            if (connection.isOpen()) {
-                connection.sendMessage(message.toString());
+            if (session.isOpen()) {
+                session.getRemote().sendString(message.toString());
                 log.debug("TX message: {}", message);
             }
         } catch (IOException e) {

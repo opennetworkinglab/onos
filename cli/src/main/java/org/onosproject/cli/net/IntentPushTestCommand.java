@@ -16,9 +16,10 @@
 package org.onosproject.cli.net;
 
 import com.google.common.collect.Lists;
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.apache.karaf.shell.api.action.Option;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.MacAddress;
 import org.onosproject.cli.AbstractShellCommand;
@@ -50,6 +51,7 @@ import static org.onosproject.net.PortNumber.portNumber;
 /**
  * Installs bulk point-to-point connectivity intents between given ingress/egress devices.
  */
+@Service
 @Command(scope = "onos", name = "push-test-intents",
          description = "Installs random intents to test throughput")
 public class IntentPushTestCommand extends AbstractShellCommand
@@ -95,7 +97,7 @@ public class IntentPushTestCommand extends AbstractShellCommand
     List<Key> keysForWithdraw = new ArrayList<>();
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         service = get(IntentService.class);
 
 

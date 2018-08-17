@@ -18,14 +18,6 @@ package org.onosproject.ovsdb.controller.impl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.TpPort;
@@ -63,6 +55,12 @@ import org.onosproject.ovsdb.rfc.table.OvsdbTable;
 import org.onosproject.ovsdb.rfc.table.TableGenerator;
 import org.onosproject.ovsdb.rfc.utils.FromJsonUtil;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,17 +81,16 @@ import java.util.function.Consumer;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.util.Tools.get;
-import static org.onosproject.ovsdb.controller.OvsdbConstant.SERVER_MODE;
-import static org.onosproject.ovsdb.controller.OvsdbConstant.DEFAULT_KS_PASSWORD;
 import static org.onosproject.ovsdb.controller.OvsdbConstant.DEFAULT_KS_FILE;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.DEFAULT_KS_PASSWORD;
 import static org.onosproject.ovsdb.controller.OvsdbConstant.OVSDB_TLS_FLAG;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.SERVER_MODE;
 import static org.onosproject.ovsdb.controller.impl.Controller.MIN_KS_LENGTH;
 
 /**
  * The implementation of OvsdbController.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = OvsdbController.class)
 public class OvsdbControllerImpl implements OvsdbController {
 
     public static final Logger log = LoggerFactory
@@ -110,31 +107,31 @@ public class OvsdbControllerImpl implements OvsdbController {
             new ConcurrentHashMap<>();
     protected ConcurrentHashMap<String, String> requestDbName = new ConcurrentHashMap<>();
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService configService;
 
-    @Property(name = "serverMode", boolValue = SERVER_MODE,
-            label = "Run as server mode, listen on 6640 port")
+    //@Property(name = "serverMode", boolValue = SERVER_MODE,
+    //        label = "Run as server mode, listen on 6640 port")
     private boolean serverMode = SERVER_MODE;
 
-    @Property(name = "enableOvsdbTls", boolValue = OVSDB_TLS_FLAG,
-            label = "TLS mode for OVSDB channel; options are: true false")
+    //@Property(name = "enableOvsdbTls", boolValue = OVSDB_TLS_FLAG,
+    //        label = "TLS mode for OVSDB channel; options are: true false")
     private boolean enableOvsdbTls = OVSDB_TLS_FLAG;
 
-    @Property(name = "keyStoreLocation", value = DEFAULT_KS_FILE,
-            label = "File path to KeyStore for Ovsdb TLS Connections")
+    //@Property(name = "keyStoreLocation", value = DEFAULT_KS_FILE,
+    //        label = "File path to KeyStore for Ovsdb TLS Connections")
     protected String keyStoreLocation = DEFAULT_KS_FILE;
 
-    @Property(name = "trustStoreLocation", value = DEFAULT_KS_FILE,
-            label = "File path to TrustStore for Ovsdb TLS Connections")
+    //@Property(name = "trustStoreLocation", value = DEFAULT_KS_FILE,
+    //        label = "File path to TrustStore for Ovsdb TLS Connections")
     protected String trustStoreLocation = DEFAULT_KS_FILE;
 
-    @Property(name = "keyStorePassword", value = DEFAULT_KS_PASSWORD,
-            label = "KeyStore Password")
+    //@Property(name = "keyStorePassword", value = DEFAULT_KS_PASSWORD,
+    //        label = "KeyStore Password")
     protected String keyStorePassword = DEFAULT_KS_PASSWORD;
 
-    @Property(name = "trustStorePassword", value = DEFAULT_KS_PASSWORD,
-            label = "TrustStore Password")
+    //@Property(name = "trustStorePassword", value = DEFAULT_KS_PASSWORD,
+    //        label = "TrustStore Password")
     protected String trustStorePassword = DEFAULT_KS_PASSWORD;
 
     @Activate

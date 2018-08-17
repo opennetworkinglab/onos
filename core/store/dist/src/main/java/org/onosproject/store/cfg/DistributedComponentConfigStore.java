@@ -16,12 +16,6 @@
 package org.onosproject.store.cfg;
 
 import com.google.common.collect.ImmutableSet;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cfg.ComponentConfigEvent;
 import org.onosproject.cfg.ComponentConfigStore;
 import org.onosproject.cfg.ComponentConfigStoreDelegate;
@@ -33,6 +27,11 @@ import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.Versioned;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Objects;
@@ -49,8 +48,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Manages inventory of component configurations in a distributed data store
  * that provides strong sequential consistency guarantees.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = ComponentConfigStore.class)
 public class DistributedComponentConfigStore
         extends AbstractStore<ComponentConfigEvent, ComponentConfigStoreDelegate>
         implements ComponentConfigStore {
@@ -61,7 +59,7 @@ public class DistributedComponentConfigStore
 
     private ConsistentMap<String, String> properties;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected StorageService storageService;
 
     private InternalPropertiesListener propertiesListener = new InternalPropertiesListener();

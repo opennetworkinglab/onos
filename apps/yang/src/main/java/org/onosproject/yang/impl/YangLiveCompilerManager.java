@@ -18,14 +18,13 @@ package org.onosproject.yang.impl;
 
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.FilePathValidator;
 import org.onosproject.yang.YangLiveCompilerService;
 import org.onosproject.yang.compiler.tool.DefaultYangCompilationParam;
 import org.onosproject.yang.compiler.tool.YangCompilerManager;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,8 +51,7 @@ import static java.nio.file.Files.walkFileTree;
 /**
  * Represents implementation of YANG live compiler manager.
  */
-@Service
-@Component(immediate = true)
+@Component(immediate = true, service = YangLiveCompilerService.class)
 public class YangLiveCompilerManager implements YangLiveCompilerService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());

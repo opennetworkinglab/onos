@@ -16,10 +16,9 @@
 
 package org.onosproject.kafkaintegration.impl;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Service;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
 import org.onosproject.event.Event;
 import org.onosproject.kafkaintegration.api.EventConversionService;
 import org.onosproject.kafkaintegration.api.dto.OnosEvent;
@@ -38,8 +37,7 @@ import static org.onosproject.kafkaintegration.api.dto.OnosEvent.Type.LINK;
  * Implementation of Event Conversion Service.
  *
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = EventConversionService.class)
 public class EventConversionManager implements EventConversionService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());

@@ -18,12 +18,6 @@ package org.onosproject.restconf.restconfmanager;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.glassfish.jersey.server.ChunkedOutput;
 import org.onosproject.config.DynamicConfigService;
 import org.onosproject.config.FailedException;
@@ -45,6 +39,11 @@ import org.onosproject.yang.model.ResourceId;
 import org.onosproject.yang.model.RpcInput;
 import org.onosproject.yang.model.RpcOutput;
 import org.onosproject.yang.model.SchemaId;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,8 +78,7 @@ import static org.onosproject.yang.model.DataNode.Type.SINGLE_INSTANCE_NODE;
  *    on the YANG data objects (i.e., resource id, yang data node).
  */
 
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = RestconfService.class)
 public class RestconfManager implements RestconfService {
 
     private static final String RESTCONF_ROOT = "/onos/restconf";
@@ -89,7 +87,7 @@ public class RestconfManager implements RestconfService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DynamicConfigService dynamicConfigService;
 
     private ExecutorService workerThreadPool;

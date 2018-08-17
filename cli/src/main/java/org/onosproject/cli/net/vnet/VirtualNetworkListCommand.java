@@ -16,7 +16,8 @@
 
 package org.onosproject.cli.net.vnet;
 
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.virtual.TenantId;
 import org.onosproject.incubator.net.virtual.VirtualNetwork;
@@ -32,6 +33,7 @@ import java.util.Set;
 /**
  * Lists all virtual networks for the tenant ID.
  */
+@Service
 @Command(scope = "onos", name = "vnets",
         description = "Lists all virtual networks.")
 public class VirtualNetworkListCommand extends AbstractShellCommand {
@@ -40,7 +42,7 @@ public class VirtualNetworkListCommand extends AbstractShellCommand {
             "tenantId=%s, networkId=%s";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
 
         getSortedVirtualNetworks().forEach(this::printVirtualNetwork);
     }

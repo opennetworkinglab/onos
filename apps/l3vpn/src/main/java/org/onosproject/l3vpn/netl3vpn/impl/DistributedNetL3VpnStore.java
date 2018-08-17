@@ -16,12 +16,6 @@
 package org.onosproject.l3vpn.netl3vpn.impl;
 
 import com.google.common.collect.ImmutableSet;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.l3vpn.netl3vpn.AccessInfo;
 import org.onosproject.l3vpn.netl3vpn.BgpInfo;
@@ -47,6 +41,11 @@ import org.onosproject.yang.model.ListKey;
 import org.onosproject.yang.model.NodeKey;
 import org.onosproject.yang.model.ResourceId;
 import org.onosproject.yang.model.SchemaId;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Map;
@@ -59,8 +58,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Manages the pool of available VPN instances and its associated devices
  * and interface information.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = NetL3VpnStore.class)
 public class DistributedNetL3VpnStore implements NetL3VpnStore {
 
     private static final Serializer L3VPN_SERIALIZER = Serializer
@@ -95,7 +93,7 @@ public class DistributedNetL3VpnStore implements NetL3VpnStore {
 
     private final Logger log = getLogger(getClass());
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected StorageService storageService;
 
     /**

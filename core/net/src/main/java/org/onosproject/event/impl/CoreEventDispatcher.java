@@ -15,19 +15,9 @@
  */
 package org.onosproject.event.impl;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.TimerTask;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
-
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Service;
+import com.google.common.base.Stopwatch;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import org.onlab.util.SharedExecutors;
 import org.onosproject.event.AbstractEvent;
 import org.onosproject.event.DefaultEventSinkRegistry;
@@ -40,11 +30,19 @@ import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.intent.IntentEvent;
 import org.onosproject.net.link.LinkEvent;
 import org.onosproject.net.topology.TopologyEvent;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
 import org.slf4j.Logger;
 
-import com.google.common.base.Stopwatch;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.TimerTask;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
@@ -56,8 +54,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Simple implementation of an event dispatching service.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = EventDeliveryService.class)
 public class CoreEventDispatcher extends DefaultEventSinkRegistry
         implements EventDeliveryService {
 

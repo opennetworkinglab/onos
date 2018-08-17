@@ -15,20 +15,8 @@
  */
 package org.onosproject.cluster.impl;
 
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.net.MalformedURLException;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.net.URL;
-import java.net.UnknownHostException;
-import java.util.Enumeration;
-
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.IpAddress;
+import org.onlab.util.Tools;
 import org.onosproject.cluster.ClusterMetadata;
 import org.onosproject.cluster.ClusterMetadataAdminService;
 import org.onosproject.cluster.ClusterMetadataEvent;
@@ -41,10 +29,25 @@ import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.DefaultControllerNode;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.PartitionId;
+import org.onosproject.event.EventDeliveryService;
 import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.onosproject.store.service.Versioned;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
+
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.MalformedURLException;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.net.URL;
+import java.net.UnknownHostException;
+import java.util.Enumeration;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.security.AppGuard.checkPermission;
@@ -54,14 +57,16 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Implementation of ClusterMetadataService.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = {ClusterMetadataService.class, ClusterMetadataAdminService.class, ClusterMetadataProviderRegistry.class})
 public class ClusterMetadataManager
     extends AbstractListenerProviderRegistry<ClusterMetadataEvent,
                                              ClusterMetadataEventListener,
                                              ClusterMetadataProvider,
                                              ClusterMetadataProviderService>
     implements ClusterMetadataService, ClusterMetadataAdminService, ClusterMetadataProviderRegistry {
+
+    private static final int MAX_WAIT_TRIES = 600;
+    private static final int MAX_WAIT_MS = 100;
 
     private final Logger log = getLogger(getClass());
     private ControllerNode localNode;
@@ -82,10 +87,21 @@ public class ClusterMetadataManager
     @Override
     public ClusterMetadata getClusterMetadata() {
         checkPermission(CLUSTER_READ);
+        waitForAvailableProvider();
         Versioned<ClusterMetadata> metadata = getProvider().getClusterMetadata();
         return metadata.value();
     }
 
+    // FIXME: Temporary hack to navigate around bootstrap timing issue
+    private void waitForAvailableProvider() {
+        for (int i = 0; i < MAX_WAIT_TRIES && getProvider() == null; i++) {
+            Tools.delay(MAX_WAIT_MS);
+        }
+        if (getProvider() == null) {
+            log.error("Unable to find cluster metadata provider");
+            throw new IllegalStateException("Unable to find cluster metadata provider");
+        }
+    }
 
     @Override
     protected ClusterMetadataProviderService createProviderService(

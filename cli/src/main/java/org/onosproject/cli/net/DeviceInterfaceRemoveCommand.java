@@ -15,9 +15,10 @@
  */
 package org.onosproject.cli.net;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.apache.karaf.shell.api.action.Option;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.InterfaceConfig;
@@ -27,6 +28,7 @@ import org.onosproject.net.driver.DriverService;
 /**
  * Removes an interface configurion from a device.
  */
+@Service
 @Command(scope = "onos", name = "device-remove-interface",
          description = "Removes an interface configuration from a device")
 public class DeviceInterfaceRemoveCommand extends AbstractShellCommand {
@@ -71,7 +73,7 @@ public class DeviceInterfaceRemoveCommand extends AbstractShellCommand {
     private boolean accessMode = false;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         DriverService service = get(DriverService.class);
         DeviceId deviceId = DeviceId.deviceId(uri);
         DriverHandler h = service.createHandler(deviceId);

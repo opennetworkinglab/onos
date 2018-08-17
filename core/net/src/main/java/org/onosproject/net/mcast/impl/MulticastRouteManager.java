@@ -15,14 +15,6 @@
  */
 package org.onosproject.net.mcast.impl;
 
-import java.util.Set;
-
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.mcast.McastEvent;
@@ -31,7 +23,14 @@ import org.onosproject.net.mcast.McastRoute;
 import org.onosproject.net.mcast.McastStore;
 import org.onosproject.net.mcast.McastStoreDelegate;
 import org.onosproject.net.mcast.MulticastRouteService;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
+
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -39,8 +38,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * An implementation of a multicast route table.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = MulticastRouteService.class)
 public class MulticastRouteManager
         extends AbstractListenerManager<McastEvent, McastListener>
         implements MulticastRouteService {
@@ -50,7 +48,7 @@ public class MulticastRouteManager
 
     private final McastStoreDelegate delegate = new InternalMcastStoreDelegate();
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected McastStore store;
 
     @Activate

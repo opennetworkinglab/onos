@@ -15,6 +15,29 @@
  */
 package org.onosproject.messagingperf;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.MoreExecutors;
+import org.onlab.util.BoundedThreadPool;
+import org.onlab.util.KryoNamespace;
+import org.onosproject.cfg.ComponentConfigService;
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.NodeId;
+import org.onosproject.core.CoreService;
+import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
+import org.onosproject.store.cluster.messaging.MessageSubject;
+import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.service.Serializer;
+import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.slf4j.Logger;
+
 import java.util.Dictionary;
 import java.util.List;
 import java.util.Objects;
@@ -29,57 +52,29 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
-import org.onlab.util.BoundedThreadPool;
-import org.onlab.util.KryoNamespace;
-import org.onosproject.cfg.ComponentConfigService;
-import org.onosproject.cluster.ClusterService;
-import org.onosproject.cluster.NodeId;
-import org.onosproject.core.CoreService;
-import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
-import org.onosproject.store.cluster.messaging.MessageSubject;
-import org.onosproject.store.serializers.KryoNamespaces;
-import org.onosproject.store.service.Serializer;
-import org.osgi.service.component.ComponentContext;
-import org.slf4j.Logger;
-
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import com.google.common.util.concurrent.MoreExecutors;
-
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static org.apache.felix.scr.annotations.ReferenceCardinality.MANDATORY_UNARY;
 import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.osgi.service.component.annotations.ReferenceCardinality.MANDATORY;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Application for measuring cluster messaging performance.
  */
-@Component(immediate = true, enabled = true)
-@Service(value = MessagingPerfApp.class)
+@Component(immediate = true, service = MessagingPerfApp.class)
 public class MessagingPerfApp {
     private final Logger log = getLogger(getClass());
 
-    @Reference(cardinality = MANDATORY_UNARY)
+    @Reference(cardinality = MANDATORY)
     protected ClusterService clusterService;
 
-    @Reference(cardinality = MANDATORY_UNARY)
+    @Reference(cardinality = MANDATORY)
     protected ClusterCommunicationService communicationService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = MANDATORY)
     protected CoreService coreService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = MANDATORY)
     protected ComponentConfigService configService;
 
     private static final MessageSubject TEST_UNICAST_MESSAGE_TOPIC =
@@ -91,20 +86,20 @@ public class MessagingPerfApp {
     private static final int DEFAULT_SENDER_THREAD_POOL_SIZE = 2;
     private static final int DEFAULT_RECEIVER_THREAD_POOL_SIZE = 2;
 
-    @Property(name = "totalSenderThreads", intValue = DEFAULT_SENDER_THREAD_POOL_SIZE,
-            label = "Number of sender threads")
+    //@Property(name = "totalSenderThreads", intValue = DEFAULT_SENDER_THREAD_POOL_SIZE,
+    //        label = "Number of sender threads")
     protected int totalSenderThreads = DEFAULT_SENDER_THREAD_POOL_SIZE;
 
-    @Property(name = "totalReceiverThreads", intValue = DEFAULT_RECEIVER_THREAD_POOL_SIZE,
-            label = "Number of receiver threads")
+    //@Property(name = "totalReceiverThreads", intValue = DEFAULT_RECEIVER_THREAD_POOL_SIZE,
+    //        label = "Number of receiver threads")
     protected int totalReceiverThreads = DEFAULT_RECEIVER_THREAD_POOL_SIZE;
 
-    @Property(name = "serializationOn", boolValue = true,
-            label = "Turn serialization on/off")
+    //@Property(name = "serializationOn", boolValue = true,
+    //        label = "Turn serialization on/off")
     private boolean serializationOn = true;
 
-    @Property(name = "receiveOnIOLoopThread", boolValue = false,
-            label = "Set this to true to handle message on IO thread")
+    //@Property(name = "receiveOnIOLoopThread", boolValue = false,
+    //        label = "Set this to true to handle message on IO thread")
     private boolean receiveOnIOLoopThread = false;
 
     protected int reportIntervalSeconds = 1;

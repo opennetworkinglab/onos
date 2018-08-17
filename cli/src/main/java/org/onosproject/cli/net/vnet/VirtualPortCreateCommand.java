@@ -16,8 +16,9 @@
 
 package org.onosproject.cli.net.vnet;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.VirtualDevice;
@@ -35,6 +36,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Creates a new virtual port.
  */
+@Service
 @Command(scope = "onos", name = "vnet-create-port",
         description = "Creates a new virtual port in a network.")
 public class VirtualPortCreateCommand extends AbstractShellCommand {
@@ -60,7 +62,7 @@ public class VirtualPortCreateCommand extends AbstractShellCommand {
     Integer physPortNum = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         VirtualNetworkAdminService service = get(VirtualNetworkAdminService.class);
         DeviceService deviceService = get(DeviceService.class);
 

@@ -24,16 +24,10 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
-
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.app.ApplicationDescription;
 import org.onosproject.app.ApplicationEvent;
 import org.onosproject.app.ApplicationException;
+import org.onosproject.app.ApplicationIdStore;
 import org.onosproject.app.ApplicationState;
 import org.onosproject.app.ApplicationStore;
 import org.onosproject.app.ApplicationStoreDelegate;
@@ -42,7 +36,6 @@ import org.onosproject.cluster.ControllerNode;
 import org.onosproject.common.app.ApplicationArchive;
 import org.onosproject.core.Application;
 import org.onosproject.core.ApplicationId;
-import org.onosproject.app.ApplicationIdStore;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.DefaultApplication;
 import org.onosproject.core.Version;
@@ -52,6 +45,7 @@ import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.cluster.messaging.MessageSubject;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
+import org.onosproject.store.service.DistributedPrimitive.Status;
 import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.RevisionType;
@@ -60,7 +54,11 @@ import org.onosproject.store.service.StorageException;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.Topic;
 import org.onosproject.store.service.Versioned;
-import org.onosproject.store.service.DistributedPrimitive.Status;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.io.ByteArrayInputStream;
@@ -86,16 +84,21 @@ import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onlab.util.Tools.randomDelay;
-import static org.onosproject.app.ApplicationEvent.Type.*;
-import static org.onosproject.store.app.DistributedApplicationStore.InternalState.*;
+import static org.onosproject.app.ApplicationEvent.Type.APP_ACTIVATED;
+import static org.onosproject.app.ApplicationEvent.Type.APP_DEACTIVATED;
+import static org.onosproject.app.ApplicationEvent.Type.APP_INSTALLED;
+import static org.onosproject.app.ApplicationEvent.Type.APP_PERMISSIONS_CHANGED;
+import static org.onosproject.app.ApplicationEvent.Type.APP_UNINSTALLED;
+import static org.onosproject.store.app.DistributedApplicationStore.InternalState.ACTIVATED;
+import static org.onosproject.store.app.DistributedApplicationStore.InternalState.DEACTIVATED;
+import static org.onosproject.store.app.DistributedApplicationStore.InternalState.INSTALLED;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Manages inventory of applications in a distributed data store providing
  * stronger consistency guarantees.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = ApplicationStore.class)
 public class DistributedApplicationStore extends ApplicationArchive
         implements ApplicationStore {
 
@@ -122,19 +125,19 @@ public class DistributedApplicationStore extends ApplicationArchive
     private ConsistentMap<ApplicationId, InternalApplicationHolder> apps;
     private Topic<Application> appActivationTopic;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ClusterCommunicationService clusterCommunicator;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ClusterService clusterService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected StorageService storageService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ApplicationIdStore idStore;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected VersionService versionService;
 
     private final InternalAppsListener appsListener = new InternalAppsListener();

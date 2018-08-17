@@ -15,21 +15,19 @@
  */
 package org.onosproject.roadm;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 import java.util.HashMap;
 import java.util.Map;
@@ -37,15 +35,14 @@ import java.util.Map;
 /**
  * Manages the port target powers for ROADM devices.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = RoadmStore.class)
 public class DistributedRoadmStore implements RoadmStore {
     private static Logger log = LoggerFactory.getLogger(DistributedRoadmStore.class);
 
     private ConsistentMap<DeviceId, Map<PortNumber, Long>> distPowerMap;
     private Map<DeviceId, Map<PortNumber, Long>> powerMap;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected StorageService storageService;
 
     @Activate

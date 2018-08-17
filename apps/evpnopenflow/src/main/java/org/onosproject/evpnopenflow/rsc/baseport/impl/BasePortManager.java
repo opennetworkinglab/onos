@@ -18,12 +18,6 @@ package org.onosproject.evpnopenflow.rsc.baseport.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.util.KryoNamespace;
@@ -55,6 +49,11 @@ import org.onosproject.vtnrsc.TenantId;
 import org.onosproject.vtnrsc.TenantNetwork;
 import org.onosproject.vtnrsc.TenantNetworkId;
 import org.onosproject.vtnrsc.TenantRouter;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,8 +76,7 @@ import static org.onosproject.evpnopenflow.rsc.EvpnConstants.RESPONSE_NOT_NULL;
 /**
  * Provides implementation of the BasePort APIs.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = BasePortService.class)
 public class BasePortManager implements BasePortService {
 
     private final Set<BasePortListener> listeners = Sets
@@ -105,10 +103,10 @@ public class BasePortManager implements BasePortService {
     protected EventuallyConsistentMap<BasePortId, BasePort> vPortStore;
     protected ApplicationId appId;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected StorageService storageService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
     @Activate

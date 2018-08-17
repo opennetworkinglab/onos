@@ -15,8 +15,9 @@
  */
 package org.onosproject.cli;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cluster.ClusterAdminService;
 import org.onosproject.cluster.DefaultControllerNode;
 import org.onosproject.cluster.NodeId;
@@ -25,6 +26,7 @@ import org.onlab.packet.IpAddress;
 /**
  * Adds a new controller cluster node.
  */
+@Service
 @Command(scope = "onos", name = "add-node",
          description = "Adds a new controller cluster node")
 public class NodeAddCommand extends AbstractShellCommand {
@@ -42,7 +44,7 @@ public class NodeAddCommand extends AbstractShellCommand {
     int tcpPort = DefaultControllerNode.DEFAULT_PORT;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         ClusterAdminService service = get(ClusterAdminService.class);
         service.addNode(new NodeId(nodeId), IpAddress.valueOf(ip), tcpPort);
     }

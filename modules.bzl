@@ -17,12 +17,13 @@ CORE = UTILS + API + [
     "//core/store/primitives:onos-core-primitives",
     "//core/store/serializers:onos-core-serializers",
     "//core/store/dist:onos-core-dist",
-    "//core/security:onos-security",
+    #"//core/security:onos-security",
     "//core/store/persistence:onos-core-persistence",
     "//incubator/net:onos-incubator-net",
     "//incubator/store:onos-incubator-store",
     "//incubator/rpc:onos-incubator-rpc",
     "//cli:onos-cli",
+    "//cli2:onos-cli2",
     "//protocols/rest/api:onos-protocols-rest-api",
     "//protocols/rest/ctl:onos-protocols-rest-ctl",
     "//protocols/bgp/bgpio:onos-protocols-bgp-bgpio",
@@ -75,7 +76,7 @@ CORE = UTILS + API + [
     "//providers/general/device:onos-providers-general-device",
     "//providers/p4runtime/packet:onos-providers-p4runtime-packet",
     "//web/api:onos-rest",
-    "//web/gui2:onos-gui2",
+    # "//web/gui2:onos-gui2",
     "//web/gui:onos-gui",
     # "//incubator/protobuf/models:onos-incubator-protobuf-models",
     # "//incubator/protobuf/services/nb:onos-incubator-protobuf-services-nb",
@@ -112,7 +113,7 @@ ONOS_DRIVERS = [
     "//drivers/gnmi:onos-drivers-gnmi-oar",
     "//drivers/polatis/netconf:onos-drivers-polatis-netconf-oar",
     "//drivers/polatis/openflow:onos-drivers-polatis-openflow-oar",
-    "//drivers/odtn-driver:onos-drivers-odtn-driver-oar",
+    #"//drivers/odtn-driver:onos-drivers-odtn-driver-oar",
 ]
 
 ONOS_PROVIDERS = [
@@ -195,7 +196,7 @@ ONOS_APPS = [
     "//apps/routing/fibinstaller:onos-apps-routing-fibinstaller-oar",
     "//apps/routing/cpr:onos-apps-routing-cpr-oar",
     "//apps/routing/fpm:onos-apps-routing-fpm-oar",
-    "//apps/vtn:onos-apps-vtn-oar",
+    #"//apps/vtn:onos-apps-vtn-oar",
     "//apps/faultmanagement:onos-apps-faultmanagement-oar",
     "//apps/openstacknode:onos-apps-openstacknode-oar",
     "//apps/openstacknetworking:onos-apps-openstacknetworking-oar",
@@ -290,10 +291,10 @@ APP_JARS = [
     "//apps/fwd:onos-apps-fwd",
     "//apps/iptopology-api:onos-apps-iptopology-api",
     "//apps/routing/common:onos-apps-routing-common",
-    "//apps/vtn/vtnrsc:onos-apps-vtn-vtnrsc",
-    "//apps/vtn/sfcmgr:onos-apps-vtn-sfcmgr",
-    "//apps/vtn/vtnmgr:onos-apps-vtn-vtnmgr",
-    "//apps/vtn/vtnweb:onos-apps-vtn-vtnweb",
+    #"//apps/vtn/vtnrsc:onos-apps-vtn-vtnrsc",
+    #"//apps/vtn/sfcmgr:onos-apps-vtn-sfcmgr",
+    #"//apps/vtn/vtnmgr:onos-apps-vtn-vtnmgr",
+    #"//apps/vtn/vtnweb:onos-apps-vtn-vtnweb",
     "//apps/kafka-integration/api:onos-apps-kafka-integration-api",
     # "//apps/kafka-integration/app:onos-apps-kafka-integration-app",
 ]
@@ -305,11 +306,13 @@ FEATURES = [
     "//tools/package/features:onos-core",
     "//tools/package/features:onos-incubator",
     "//tools/package/features:onos-cli",
+    "//tools/package/features:onos-cli2",
     "//tools/package/features:onos-rest",
     "//tools/package/features:onos-gui",
-    "//tools/package/features:onos-gui2",
-    "//tools/package/features:onos-security",
+    # "//tools/package/features:onos-gui2",
+    # "//tools/package/features:onos-security",
 ]
 
-APPS = ONOS_DRIVERS + ONOS_PROVIDERS + ONOS_APPS + MODELS + PIPELINES + \
-       PROTOCOL_APPS + APP_JARS
+APPS = ["//drivers/default:onos-drivers-default-oar"]
+#APPS = ONOS_DRIVERS + ONOS_PROVIDERS + ONOS_APPS + MODELS + PIPELINES + \
+#       PROTOCOL_APPS + APP_JARS

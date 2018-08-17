@@ -20,13 +20,6 @@ import com.google.common.annotations.Beta;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Striped;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.ChassisId;
 import org.onlab.util.ItemNotFoundException;
 import org.onlab.util.Tools;
@@ -79,6 +72,12 @@ import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.provider.general.device.api.GeneralProviderDeviceConfig;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.security.SecureRandom;
@@ -132,53 +131,53 @@ public class GeneralDeviceProvider extends AbstractProvider
     private static final Set<String> PIPELINE_CONFIGURABLE_PROTOCOLS =
             ImmutableSet.of("p4runtime");
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private DeviceProviderRegistry providerRegistry;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private ComponentConfigService componentConfigService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private NetworkConfigRegistry cfgService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private CoreService coreService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private DeviceService deviceService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private DriverService driverService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private MastershipService mastershipService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private PiPipeconfService pipeconfService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private PiPipeconfWatchdogService pipeconfWatchdogService;
 
     private static final String STATS_POLL_FREQUENCY = "deviceStatsPollFrequency";
     private static final int DEFAULT_STATS_POLL_FREQUENCY = 10;
-    @Property(name = STATS_POLL_FREQUENCY, intValue = DEFAULT_STATS_POLL_FREQUENCY,
-            label = "Configure poll frequency for port status and statistics; " +
-                    "default is 10 sec")
+    //@Property(name = STATS_POLL_FREQUENCY, intValue = DEFAULT_STATS_POLL_FREQUENCY,
+    //        label = "Configure poll frequency for port status and statistics; " +
+    //                "default is 10 sec")
     private int statsPollFrequency = DEFAULT_STATS_POLL_FREQUENCY;
 
     private static final String PROBE_FREQUENCY = "deviceProbeFrequency";
     private static final int DEFAULT_PROBE_FREQUENCY = 10;
-    @Property(name = PROBE_FREQUENCY, intValue = DEFAULT_PROBE_FREQUENCY,
-            label = "Configure probe frequency for checking device availability; " +
-                    "default is 10 sec")
+    //@Property(name = PROBE_FREQUENCY, intValue = DEFAULT_PROBE_FREQUENCY,
+    //        label = "Configure probe frequency for checking device availability; " +
+    //                "default is 10 sec")
     private int probeFrequency = DEFAULT_PROBE_FREQUENCY;
 
     private static final String OP_TIMEOUT_SHORT = "deviceOperationTimeoutShort";
     private static final int DEFAULT_OP_TIMEOUT_SHORT = 10;
-    @Property(name = OP_TIMEOUT_SHORT, intValue = DEFAULT_OP_TIMEOUT_SHORT,
-            label = "Configure timeout in seconds for device operations " +
-                    "that are supposed to take a short time " +
-                    "(e.g. checking device reachability); default is 10 seconds")
+    //@Property(name = OP_TIMEOUT_SHORT, intValue = DEFAULT_OP_TIMEOUT_SHORT,
+    //        label = "Configure timeout in seconds for device operations " +
+    //                "that are supposed to take a short time " +
+    //                "(e.g. checking device reachability); default is 10 seconds")
     private int opTimeoutShort = DEFAULT_OP_TIMEOUT_SHORT;
 
     //FIXME to be removed when netcfg will issue device events in a bundle or

@@ -15,15 +15,7 @@
  */
 package org.onosproject.distributedprimitives;
 
-import java.util.Map;
-
 import com.google.common.collect.Maps;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.store.serializers.KryoNamespaces;
@@ -32,15 +24,21 @@ import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.LeaderElector;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.WallClockTimestamp;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
+
+import java.util.Map;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Simple application to test distributed primitives.
  */
-@Component(immediate = true)
-@Service(value = DistributedPrimitivesTest.class)
+@Component(immediate = true, service = DistributedPrimitivesTest.class)
 public class DistributedPrimitivesTest {
 
     private final Logger log = getLogger(getClass());
@@ -48,10 +46,10 @@ public class DistributedPrimitivesTest {
     private static final String APP_NAME = "org.onosproject.distributedprimitives";
     private ApplicationId appId;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected StorageService storageService;
 
     private final Map<String, EventuallyConsistentMap<String, String>> maps = Maps.newConcurrentMap();

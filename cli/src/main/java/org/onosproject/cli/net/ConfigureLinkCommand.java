@@ -19,9 +19,10 @@ import static org.onosproject.net.LinkKey.linkKey;
 
 import java.util.Optional;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.apache.karaf.shell.api.action.Option;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Link;
@@ -33,6 +34,7 @@ import org.onosproject.net.device.DeviceService;
 /**
  * Add Link configuration.
  */
+@Service
 @Command(scope = "onos", name = "config-link",
          description = "Configure link.")
 public class ConfigureLinkCommand extends AbstractShellCommand {
@@ -71,7 +73,7 @@ public class ConfigureLinkCommand extends AbstractShellCommand {
 
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         DeviceService deviceService = get(DeviceService.class);
         NetworkConfigService netCfgService = get(NetworkConfigService.class);
 

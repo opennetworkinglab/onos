@@ -17,9 +17,10 @@ package org.onosproject.cli.net;
 
 import java.util.Optional;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.apache.karaf.shell.api.action.Option;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.core.GroupId;
@@ -44,6 +45,7 @@ import org.onosproject.net.provider.ProviderId;
  * Supports for creating a tunnel by using IP address and optical as tunnel end
  * point.
  */
+@Service
 @Command(scope = "onos", name = "tunnel-create",
 description = "Supports for creating a tunnel by using IP address and optical as tunnel end point now.")
 public class TunnelCreateCommand extends AbstractShellCommand {
@@ -77,7 +79,7 @@ public class TunnelCreateCommand extends AbstractShellCommand {
     private static final String FMT = "The tunnel identity is %s";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         TunnelProvider service = get(TunnelProvider.class);
         ProviderId producerName = new ProviderId("default",
                                                  "org.onosproject.provider.tunnel.default");

@@ -20,12 +20,6 @@ import com.google.common.annotations.Beta;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Striped;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.ItemNotFoundException;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.config.ConfigFactory;
@@ -44,6 +38,11 @@ import org.onosproject.net.pi.model.PiPipeconfId;
 import org.onosproject.net.pi.service.PiPipeconfConfig;
 import org.onosproject.net.pi.service.PiPipeconfMappingStore;
 import org.onosproject.net.pi.service.PiPipeconfService;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.HashMap;
@@ -65,8 +64,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Implementation of the PiPipeconfService.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = PiPipeconfService.class)
 @Beta
 public class PiPipeconfManager implements PiPipeconfService {
 
@@ -75,13 +73,13 @@ public class PiPipeconfManager implements PiPipeconfService {
     private static final String MERGED_DRIVER_SEPARATOR = ":";
     private static final String CFG_SCHEME = "piPipeconf";
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected NetworkConfigRegistry cfgService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DriverAdminService driverAdminService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private PiPipeconfMappingStore pipeconfMappingStore;
 
     // Registered pipeconf are replicated through the app subsystem and

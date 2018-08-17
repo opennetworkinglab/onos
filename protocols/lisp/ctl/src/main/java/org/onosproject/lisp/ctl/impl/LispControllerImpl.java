@@ -16,14 +16,6 @@
 package org.onosproject.lisp.ctl.impl;
 
 import com.google.common.collect.Maps;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.CoreService;
@@ -39,6 +31,12 @@ import org.onosproject.lisp.msg.protocols.LispInfoReply;
 import org.onosproject.lisp.msg.protocols.LispInfoRequest;
 import org.onosproject.lisp.msg.protocols.LispMessage;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Dictionary;
@@ -58,8 +56,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * LISP controller initiation class.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = LispController.class)
 public class LispControllerImpl implements LispController {
 
     private static final String APP_ID = "org.onosproject.lisp-base";
@@ -69,27 +66,27 @@ public class LispControllerImpl implements LispController {
     private static final String DEFAULT_LISP_AUTH_KEY = "onos";
     private static final short DEFAULT_LISP_AUTH_KEY_ID = 1;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService cfgService;
 
-    @Property(name = "lispAuthKey", value = DEFAULT_LISP_AUTH_KEY,
-            label = "Authentication key which is used to calculate authentication " +
-                    "data for LISP control message; default value is onos")
+    //@Property(name = "lispAuthKey", value = DEFAULT_LISP_AUTH_KEY,
+    //        label = "Authentication key which is used to calculate authentication " +
+    //                "data for LISP control message; default value is onos")
     private String lispAuthKey = DEFAULT_LISP_AUTH_KEY;
 
-    @Property(name = "lispAuthKeyId", intValue = DEFAULT_LISP_AUTH_KEY_ID,
-            label = "Authentication key id which denotes the authentication method " +
-                    "that ONOS uses to calculate the authentication data; " +
-                    "1 denotes HMAC SHA1 encryption, 2 denotes HMAC SHA256 encryption; " +
-                    "default value is 1")
+    //@Property(name = "lispAuthKeyId", intValue = DEFAULT_LISP_AUTH_KEY_ID,
+    //        label = "Authentication key id which denotes the authentication method " +
+    //                "that ONOS uses to calculate the authentication data; " +
+    //                "1 denotes HMAC SHA1 encryption, 2 denotes HMAC SHA256 encryption; " +
+    //                "default value is 1")
     private int lispAuthKeyId = DEFAULT_LISP_AUTH_KEY_ID;
 
-    @Property(name = "enableSmr", boolValue = false,
-            label = "Enable to send SMR(Solicit Map Request) by map server; " +
-                    "By default SMR is not activated")
+    //@Property(name = "enableSmr", boolValue = false,
+    //        label = "Enable to send SMR(Solicit Map Request) by map server; " +
+    //                "By default SMR is not activated")
     private boolean enableSmr = false;
 
     ExecutorService executorMessages =

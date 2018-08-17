@@ -17,20 +17,10 @@ package org.onosproject.store.cluster.impl;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.ReferencePolicy;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.IpAddress;
 import org.onlab.util.KryoNamespace;
-import org.onosproject.cfg.ConfigProperty;
 import org.onosproject.cfg.ComponentConfigService;
+import org.onosproject.cfg.ConfigProperty;
 import org.onosproject.cluster.ClusterEvent;
 import org.onosproject.cluster.ClusterMetadataService;
 import org.onosproject.cluster.ClusterStore;
@@ -48,6 +38,13 @@ import org.onosproject.store.cluster.messaging.MessagingService;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.Serializer;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.slf4j.Logger;
 
 import java.time.Instant;
@@ -70,9 +67,7 @@ import static org.onosproject.cluster.ClusterEvent.Type.INSTANCE_ACTIVATED;
 import static org.onosproject.cluster.ClusterEvent.Type.INSTANCE_DEACTIVATED;
 import static org.onosproject.cluster.ClusterEvent.Type.INSTANCE_READY;
 import static org.slf4j.LoggerFactory.getLogger;
-
-@Component(enabled = false)
-@Service
+@Component(enabled = false, service = ClusterStore.class)
 /**
  * Distributed cluster nodes store that employs an accrual failure
  * detector to identify cluster member up/down status.
@@ -86,18 +81,18 @@ public class DistributedClusterStore
     public static final String HEARTBEAT_MESSAGE = "onos-cluster-heartbeat";
 
     private static final int DEFAULT_HEARTBEAT_INTERVAL = 100;
-    @Property(name = "heartbeatInterval", intValue = DEFAULT_HEARTBEAT_INTERVAL,
-            label = "Interval time to send heartbeat to other controller nodes (millisecond)")
+    //@Property(name = "heartbeatInterval", intValue = DEFAULT_HEARTBEAT_INTERVAL,
+    //        label = "Interval time to send heartbeat to other controller nodes (millisecond)")
     private int heartbeatInterval = DEFAULT_HEARTBEAT_INTERVAL;
 
     private static final int DEFAULT_PHI_FAILURE_THRESHOLD = 10;
-    @Property(name = "phiFailureThreshold", intValue = DEFAULT_PHI_FAILURE_THRESHOLD,
-            label = "the value of Phi threshold to detect accrual failure")
+    //@Property(name = "phiFailureThreshold", intValue = DEFAULT_PHI_FAILURE_THRESHOLD,
+    //        label = "the value of Phi threshold to detect accrual failure")
     private int phiFailureThreshold = DEFAULT_PHI_FAILURE_THRESHOLD;
 
     private static final long DEFAULT_MIN_STANDARD_DEVIATION_MILLIS = 50;
-    @Property(name = "minStandardDeviationMillis", longValue = DEFAULT_MIN_STANDARD_DEVIATION_MILLIS,
-        label = "The minimum standard deviation to take into account when computing the Phi value")
+    //@Property(name = "minStandardDeviationMillis", longValue = DEFAULT_MIN_STANDARD_DEVIATION_MILLIS,
+    //    label = "The minimum standard deviation to take into account when computing the Phi value")
     private long minStandardDeviationMillis = DEFAULT_MIN_STANDARD_DEVIATION_MILLIS;
 
     private static final Serializer SERIALIZER = Serializer.using(
@@ -124,17 +119,17 @@ public class DistributedClusterStore
     private ControllerNode localNode;
     private Version localVersion;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected VersionService versionService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ClusterMetadataService clusterMetadataService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected MessagingService messagingService;
 
     // This must be optional to avoid a cyclic dependency
-    @Reference(cardinality = ReferenceCardinality.OPTIONAL_UNARY,
+    @Reference(cardinality = ReferenceCardinality.OPTIONAL,
             bind = "bindComponentConfigService",
             unbind = "unbindComponentConfigService",
             policy = ReferencePolicy.DYNAMIC)

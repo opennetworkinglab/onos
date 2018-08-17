@@ -18,7 +18,8 @@ package org.onosproject.cli.net;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.packet.PacketProcessorEntry;
 import org.onosproject.net.packet.PacketService;
@@ -31,6 +32,7 @@ import static org.onosproject.net.packet.PacketProcessor.DIRECTOR_MAX;
 /**
  * Lists packet processors.
  */
+@Service
 @Command(scope = "onos", name = "packet-processors",
         description = "Lists packet processors")
 public class PacketProcessorsListCommand extends AbstractShellCommand {
@@ -38,7 +40,7 @@ public class PacketProcessorsListCommand extends AbstractShellCommand {
     private static final String FMT = "priority=%s, class=%s, packets=%d, avgNanos=%d";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         PacketService service = get(PacketService.class);
         if (outputJson()) {
             print("%s", json(service.getProcessors()));

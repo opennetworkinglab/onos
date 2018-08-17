@@ -19,9 +19,10 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Streams;
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.apache.karaf.shell.api.action.Option;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.ConnectPoint;
@@ -56,6 +57,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
 
+@Service
 @Command(scope = "onos", name = "intents-diagnosis",
         description = "Diagnosis intents")
 public class IntentsDiagnosisCommand extends AbstractShellCommand {
@@ -77,7 +79,7 @@ public class IntentsDiagnosisCommand extends AbstractShellCommand {
     private static final String FIELD_INTENTS_BY_LINK = "intentsByLink";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
 
         print("intents-diagnosis");
         ServiceRefs svcRefs = buildServiceRefs();

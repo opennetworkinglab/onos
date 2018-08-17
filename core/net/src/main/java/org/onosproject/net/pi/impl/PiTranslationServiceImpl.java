@@ -16,12 +16,6 @@
 
 package org.onosproject.net.pi.impl;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
@@ -43,33 +37,37 @@ import org.onosproject.net.pi.service.PiMulticastGroupTranslationStore;
 import org.onosproject.net.pi.service.PiMulticastGroupTranslator;
 import org.onosproject.net.pi.service.PiTranslationException;
 import org.onosproject.net.pi.service.PiTranslationService;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Implementation of the PI translation service.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = PiTranslationService.class)
 public class PiTranslationServiceImpl implements PiTranslationService {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     // TODO: implement cache to speed up translation.
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DeviceService deviceService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private PiFlowRuleTranslationStore flowRuleTranslationStore;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private PiGroupTranslationStore groupTranslationStore;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private PiMulticastGroupTranslationStore mcGroupTranslationStore;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private PiMeterTranslationStore meterTranslationStore;
 
     private PiFlowRuleTranslator flowRuleTranslator;

@@ -18,7 +18,7 @@ package org.onosproject.models.microsemi;
 import com.google.common.collect.ImmutableMap;
 import org.onosproject.yang.AbstractYangModelRegistrator;
 import org.onosproject.yang.gen.v1.ietfsystemmicrosemi.rev20160505.IetfSystemMicrosemi;
-import org.apache.felix.scr.annotations.Component;
+import org.osgi.service.component.annotations.Component;
 import org.onosproject.yang.gen.v1.mseacfm.rev20160229.MseaCfm;
 import org.onosproject.yang.gen.v1.mseasoampm.rev20160229.MseaSoamPm;
 import org.onosproject.yang.gen.v1.mseasoamfm.rev20160229.MseaSoamFm;

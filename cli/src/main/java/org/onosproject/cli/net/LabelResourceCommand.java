@@ -15,13 +15,15 @@
  */
 package org.onosproject.cli.net;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
 import org.onosproject.incubator.net.resource.label.LabelResourcePool;
 import org.onosproject.incubator.net.resource.label.LabelResourceService;
 
+@Service
 @Command(scope = "onos", name = "label-pool",
       description = "Gets label resource pool information by a specific device id")
 public class LabelResourceCommand extends AbstractShellCommand {
@@ -33,7 +35,7 @@ public class LabelResourceCommand extends AbstractShellCommand {
             + "releaseLabelIds=%s";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         LabelResourceService lrs = get(LabelResourceService.class);
         LabelResourcePool pool = lrs.getDeviceLabelResourcePool(DeviceId
                 .deviceId(deviceId));

@@ -18,12 +18,6 @@ package org.onosproject.evpnopenflow.manager.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.packet.EthType;
 import org.onlab.packet.IpAddress;
@@ -45,11 +39,6 @@ import org.onosproject.evpnopenflow.rsc.vpninstance.VpnInstanceService;
 import org.onosproject.evpnopenflow.rsc.vpnport.VpnPortEvent;
 import org.onosproject.evpnopenflow.rsc.vpnport.VpnPortListener;
 import org.onosproject.evpnopenflow.rsc.vpnport.VpnPortService;
-import org.onosproject.gluon.rsc.GluonConfig;
-import org.onosproject.incubator.net.resource.label.LabelResource;
-import org.onosproject.incubator.net.resource.label.LabelResourceAdminService;
-import org.onosproject.incubator.net.resource.label.LabelResourceId;
-import org.onosproject.incubator.net.resource.label.LabelResourceService;
 import org.onosproject.evpnrouteservice.EvpnInstanceName;
 import org.onosproject.evpnrouteservice.EvpnInstanceNextHop;
 import org.onosproject.evpnrouteservice.EvpnInstancePrefix;
@@ -66,6 +55,11 @@ import org.onosproject.evpnrouteservice.EvpnRouteStore;
 import org.onosproject.evpnrouteservice.Label;
 import org.onosproject.evpnrouteservice.RouteDistinguisher;
 import org.onosproject.evpnrouteservice.VpnRouteTarget;
+import org.onosproject.gluon.rsc.GluonConfig;
+import org.onosproject.incubator.net.resource.label.LabelResource;
+import org.onosproject.incubator.net.resource.label.LabelResourceAdminService;
+import org.onosproject.incubator.net.resource.label.LabelResourceId;
+import org.onosproject.incubator.net.resource.label.LabelResourceService;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.Device;
@@ -94,6 +88,11 @@ import org.onosproject.net.flowobjective.Objective.Operation;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostListener;
 import org.onosproject.net.host.HostService;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -151,56 +150,55 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Implementation of the EVPN service.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = EvpnService.class)
 public class EvpnManager implements EvpnService {
     private final Logger log = getLogger(getClass());
     private static final EthType.EtherType ARP_TYPE = EthType.EtherType.ARP;
 
     protected ApplicationId appId;
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected HostService hostService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected EvpnRouteService evpnRouteService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected EvpnRouteStore evpnRouteStore;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DeviceService deviceService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected EvpnRouteAdminService evpnRouteAdminService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected MastershipService mastershipService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected LabelResourceAdminService labelAdminService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected LabelResourceService labelService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected VpnInstanceService vpnInstanceService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected FlowObjectiveService flowObjectiveService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DriverService driverService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected VpnPortService vpnPortService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected VpnAfConfigService vpnAfConfigService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected NetworkConfigService configService;
 
     public Set<EvpnInstanceRoute> evpnInstanceRoutes = new HashSet<>();

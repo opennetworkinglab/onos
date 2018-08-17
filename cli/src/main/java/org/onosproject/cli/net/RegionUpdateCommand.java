@@ -19,8 +19,9 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.net.region.Region;
@@ -34,6 +35,7 @@ import java.util.Set;
 /**
  * Update an existing region.
  */
+@Service
 @Command(scope = "onos", name = "region-update",
         description = "Updates an existing region.")
 public class RegionUpdateCommand extends AbstractShellCommand {
@@ -65,7 +67,7 @@ public class RegionUpdateCommand extends AbstractShellCommand {
     List<String> masterArgs = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         RegionService regionService = get(RegionService.class);
         RegionAdminService regionAdminService = get(RegionAdminService.class);
         RegionId regionId = RegionId.regionId(id);

@@ -16,7 +16,6 @@
 package org.onosproject.segmentrouting.xconnect.api;
 
 import com.google.common.collect.ImmutableMap;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.VlanId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
@@ -27,7 +26,6 @@ import java.util.Set;
 /**
  * VLAN cross connect between exactly two ports.
  */
-@Service
 public interface XconnectService {
 
     /**

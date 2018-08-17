@@ -19,18 +19,17 @@ import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.ganglia.GangliaReporter;
 import info.ganglia.gmetric4j.gmetric.GMetric;
 import org.apache.commons.lang.StringUtils;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.metrics.MetricsService;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.CoreService;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.io.IOException;
@@ -57,33 +56,33 @@ public class DefaultGangliaMetricsReporter implements GangliaMetricsReporter {
     private static final int DEFAULT_TTL = 1;
     private static final String DEFAULT_METRIC_NAMES = "default";
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected MetricsService metricsService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService cfgService;
 
-    @Property(name = "monitorAll", boolValue = true,
-              label = "Enable to monitor all of metrics stored in metric registry default is true")
+    //@Property(name = "monitorAll", boolValue = true,
+    //          label = "Enable to monitor all of metrics stored in metric registry default is true")
     protected boolean monitorAll = true;
 
-    @Property(name = "metricNames", value = DEFAULT_METRIC_NAMES,
-              label = "Names of metric to be monitored; default metric names are 'default'")
+    //@Property(name = "metricNames", value = DEFAULT_METRIC_NAMES,
+    //          label = "Names of metric to be monitored; default metric names are 'default'")
     protected String metricNames = DEFAULT_METRIC_NAMES;
 
-    @Property(name = "address", value = DEFAULT_ADDRESS,
-              label = "IP address of ganglia monitoring server; default is localhost")
+    //@Property(name = "address", value = DEFAULT_ADDRESS,
+    //          label = "IP address of ganglia monitoring server; default is localhost")
     protected String address = DEFAULT_ADDRESS;
 
-    @Property(name = "port", intValue = DEFAULT_PORT,
-              label = "Port number of ganglia monitoring server; default is 8649")
+    //@Property(name = "port", intValue = DEFAULT_PORT,
+    //          label = "Port number of ganglia monitoring server; default is 8649")
     protected int port = DEFAULT_PORT;
 
-    @Property(name = "ttl", intValue = DEFAULT_TTL,
-              label = "TTL value of ganglia monitoring server; default is 1")
+    //@Property(name = "ttl", intValue = DEFAULT_TTL,
+    //          label = "TTL value of ganglia monitoring server; default is 1")
     protected int ttl = DEFAULT_TTL;
 
     private GMetric ganglia;

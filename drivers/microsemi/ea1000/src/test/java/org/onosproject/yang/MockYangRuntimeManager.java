@@ -15,10 +15,10 @@
  */
 package org.onosproject.yang;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.onosproject.core.CoreService;
 import org.onosproject.drivers.netconf.MockCoreService;
 import org.onosproject.yang.model.ModelConverter;
@@ -62,7 +62,7 @@ public class MockYangRuntimeManager implements YangModelRegistry,
         private static final String APP_ID = "org.onosproject.yang";
         private final Logger log = LoggerFactory.getLogger(getClass());
 
-        @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+        @Reference(cardinality = ReferenceCardinality.MANDATORY)
         protected CoreService coreService;
 
         private DefaultYangModelRegistry modelRegistry;

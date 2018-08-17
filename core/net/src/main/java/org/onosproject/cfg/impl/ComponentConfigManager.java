@@ -17,12 +17,6 @@ package org.onosproject.cfg.impl;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.AbstractAccumulator;
 import org.onlab.util.Accumulator;
 import org.onlab.util.SharedExecutors;
@@ -33,6 +27,11 @@ import org.onosproject.cfg.ComponentConfigStoreDelegate;
 import org.onosproject.cfg.ConfigProperty;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.io.IOException;
@@ -48,15 +47,15 @@ import java.util.Set;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.security.AppGuard.checkPermission;
+import static org.onosproject.security.AppPermission.Type.CONFIG_READ;
+import static org.onosproject.security.AppPermission.Type.CONFIG_WRITE;
 import static org.slf4j.LoggerFactory.getLogger;
-import static org.onosproject.security.AppPermission.Type.*;
 
 
 /**
  * Implementation of the centralized component configuration service.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = ComponentConfigService.class)
 public class ComponentConfigManager implements ComponentConfigService {
 
     private static final String COMPONENT_NULL = "Component name cannot be null";
@@ -77,10 +76,10 @@ public class ComponentConfigManager implements ComponentConfigService {
     private final ComponentConfigStoreDelegate delegate = new InternalStoreDelegate();
     private final InternalAccumulator accumulator = new InternalAccumulator();
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigStore store;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ConfigurationAdmin cfgAdmin;
 
     // Locally maintained catalog of definitions.
@@ -108,6 +107,8 @@ public class ComponentConfigManager implements ComponentConfigService {
 
     @Override
     public void registerProperties(Class<?> componentClass) {
+        if (true) return;
+
         checkPermission(CONFIG_WRITE);
 
         String componentName = componentClass.getName();
@@ -132,6 +133,8 @@ public class ComponentConfigManager implements ComponentConfigService {
 
     @Override
     public void unregisterProperties(Class<?> componentClass, boolean clear) {
+        if (true) return;
+
         checkPermission(CONFIG_WRITE);
 
         String componentName = componentClass.getName();

@@ -17,13 +17,6 @@
 package org.onosproject.net.intent.impl.installer;
 
 import com.google.common.collect.Lists;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.DefaultApplicationId;
@@ -46,6 +39,12 @@ import org.onosproject.net.intent.IntentStore;
 import org.onosproject.net.intent.ObjectiveTrackerService;
 import org.onosproject.net.intent.impl.IntentManager;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Collection;
@@ -74,30 +73,30 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 @Component(immediate = true)
 public class FlowRuleIntentInstaller implements IntentInstaller<FlowRuleIntent> {
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected IntentExtensionService intentExtensionService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ObjectiveTrackerService trackerService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected IntentInstallCoordinator intentInstallCoordinator;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected FlowRuleService flowRuleService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService configService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected IntentStore store;
 
     private ScheduledExecutorService nonDisruptiveIntentInstaller;
 
     private static final int DEFAULT_NON_DISRUPTIVE_INSTALLATION_WAITING_TIME = 1;
-    @Property(name = "nonDisruptiveInstallationWaitingTime",
-            intValue = DEFAULT_NON_DISRUPTIVE_INSTALLATION_WAITING_TIME,
-            label = "Number of seconds to wait during the non-disruptive installation phases")
+    //@Property(name = "nonDisruptiveInstallationWaitingTime",
+    //        intValue = DEFAULT_NON_DISRUPTIVE_INSTALLATION_WAITING_TIME,
+    //        label = "Number of seconds to wait during the non-disruptive installation phases")
     private int nonDisruptiveInstallationWaitingTime = DEFAULT_NON_DISRUPTIVE_INSTALLATION_WAITING_TIME;
 
     protected final Logger log = getLogger(IntentManager.class);

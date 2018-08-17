@@ -16,12 +16,6 @@
 package org.onosproject.incubator.net.impl;
 
 import com.google.common.collect.Maps;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.incubator.net.PortStatisticsService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
@@ -31,20 +25,26 @@ import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.device.PortStatistics;
 import org.onosproject.net.statistic.DefaultLoad;
 import org.onosproject.net.statistic.Load;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.onosproject.net.PortNumber.portNumber;
-import static org.onosproject.net.device.DeviceEvent.Type.*;
+import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED;
+import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_REMOVED;
+import static org.onosproject.net.device.DeviceEvent.Type.PORT_STATS_UPDATED;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Implementation of the port statistics service.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = PortStatisticsService.class)
 public class PortStatisticsManager implements PortStatisticsService {
 
     private final Logger log = getLogger(getClass());
@@ -53,7 +53,7 @@ public class PortStatisticsManager implements PortStatisticsService {
     private static final long STALE_LIMIT = (long) (1.5 * POLL_FREQUENCY);
     private static final int SECOND = 1_000; // milliseconds
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DeviceService deviceService;
 
     private final DeviceListener deviceListener = new InternalDeviceListener();

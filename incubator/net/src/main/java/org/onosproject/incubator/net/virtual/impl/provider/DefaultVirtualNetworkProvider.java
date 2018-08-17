@@ -16,12 +16,6 @@
 
 package org.onosproject.incubator.net.virtual.impl.provider;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.incubator.net.virtual.DefaultVirtualLink;
 import org.onosproject.incubator.net.virtual.provider.VirtualNetworkProvider;
 import org.onosproject.incubator.net.virtual.provider.VirtualNetworkProviderRegistry;
@@ -36,6 +30,11 @@ import org.onosproject.net.topology.TopologyCluster;
 import org.onosproject.net.topology.TopologyEvent;
 import org.onosproject.net.topology.TopologyListener;
 import org.onosproject.net.topology.TopologyService;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.HashSet;
@@ -49,19 +48,18 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Virtual network topology provider.
  */
-@Component(immediate = true)
-@Service
+@Component(service = VirtualNetworkProvider.class)
 public class DefaultVirtualNetworkProvider
         extends AbstractProvider implements VirtualNetworkProvider {
 
     private final Logger log = getLogger(DefaultVirtualNetworkProvider.class);
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected VirtualNetworkProviderRegistry providerRegistry;
 
     private VirtualNetworkProviderService providerService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected TopologyService topologyService;
 
     protected TopologyListener topologyListener = new InternalTopologyListener();

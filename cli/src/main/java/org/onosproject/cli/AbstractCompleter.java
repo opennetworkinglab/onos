@@ -15,25 +15,23 @@
  */
 package org.onosproject.cli;
 
-import org.apache.felix.service.command.CommandSession;
-import org.apache.karaf.shell.console.CommandSessionHolder;
-import org.apache.karaf.shell.console.Completer;
-import org.apache.karaf.shell.console.completer.ArgumentCompleter;
+import org.apache.karaf.shell.api.console.CommandLine;
+import org.apache.karaf.shell.api.console.Completer;
+import org.apache.karaf.shell.api.console.Session;
+import org.apache.karaf.shell.support.completers.StringsCompleter;
+
+import java.util.List;
 
 /**
  * Abstract argument completer.
  */
 public abstract class AbstractCompleter implements Completer {
 
-    /**
-     * Returns the argument list.
-     *
-     * @return argument list
-     */
-    protected ArgumentCompleter.ArgumentList getArgumentList() {
-        CommandSession session = CommandSessionHolder.getSession();
-        return (ArgumentCompleter.ArgumentList)
-                session.get(ArgumentCompleter.ARGUMENTS_LIST);
+    @Override
+    public int complete(Session session, CommandLine commandLine, List<String> candidates) {
+        StringsCompleter delegate = new StringsCompleter();
+
+        return delegate.complete(session, commandLine, candidates);
     }
 
 }

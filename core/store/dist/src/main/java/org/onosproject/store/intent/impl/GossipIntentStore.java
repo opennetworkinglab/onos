@@ -17,14 +17,6 @@ package org.onosproject.store.intent.impl;
 
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang.math.RandomUtils;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.Backtrace;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.cfg.ComponentConfigService;
@@ -52,6 +44,12 @@ import org.onosproject.store.service.MultiValuedTimestamp;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.WallClockTimestamp;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Collection;
@@ -75,8 +73,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 //FIXME we should listen for leadership changes. if the local instance has just
 // ...  become a leader, scan the pending map and process those
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = IntentStore.class)
 public class GossipIntentStore
         extends AbstractStore<IntentEvent, IntentStoreDelegate>
         implements IntentStore {
@@ -91,16 +88,16 @@ public class GossipIntentStore
     // Map of intent key => pending intent operation
     private EventuallyConsistentMap<Key, IntentData> pendingMap;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService configService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ClusterService clusterService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected StorageService storageService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected WorkPartitionService partitionService;
 
     private final AtomicLong sequenceNumber = new AtomicLong(0);
@@ -118,8 +115,8 @@ public class GossipIntentStore
     // evalutaion, enabling persistence with persist the intents but they will
     // not be reinstalled and network state will not be consistent with the
     // intents on cluster restart
-    @Property(name = "persistenceEnabled", boolValue = PERSIST,
-            label = "EXPERIMENTAL: Enable intent persistence")
+    //@Property(name = "persistenceEnabled", boolValue = PERSIST,
+    //        label = "EXPERIMENTAL: Enable intent persistence")
     private boolean persistenceEnabled;
 
 

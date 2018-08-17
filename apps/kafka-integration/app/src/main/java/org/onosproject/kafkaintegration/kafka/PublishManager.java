@@ -16,27 +16,25 @@
 
 package org.onosproject.kafkaintegration.kafka;
 
-import java.util.Properties;
-import java.util.concurrent.Future;
-
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Service;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
-import org.onosproject.kafkaintegration.api.KafkaPublisherService;
 import org.onosproject.kafkaintegration.api.KafkaPublisherAdminService;
+import org.onosproject.kafkaintegration.api.KafkaPublisherService;
 import org.onosproject.kafkaintegration.api.dto.KafkaServerConfig;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Properties;
+import java.util.concurrent.Future;
 
 /**
  * Implementation of a Kafka Producer.
  */
-@Component
-@Service
+@Component(service = { KafkaPublisherService.class, KafkaPublisherAdminService.class })
 public class PublishManager implements KafkaPublisherService, KafkaPublisherAdminService {
     private KafkaProducer<String, byte[]> kafkaProducer = null;
 

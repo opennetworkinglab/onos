@@ -15,18 +15,8 @@
  */
 package org.onosproject.cluster.impl;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.Map;
-import java.util.Set;
-
 import com.google.common.base.Objects;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
+import com.google.common.collect.Maps;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.Leadership;
 import org.onosproject.cluster.LeadershipAdminService;
@@ -37,15 +27,22 @@ import org.onosproject.cluster.LeadershipStore;
 import org.onosproject.cluster.LeadershipStoreDelegate;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.event.AbstractListenerManager;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
-import com.google.common.collect.Maps;
+import java.util.Map;
+import java.util.Set;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Implementation of {@link LeadershipService} and {@link LeadershipAdminService}.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = {LeadershipService.class, LeadershipAdminService.class})
 public class LeadershipManager
     extends AbstractListenerManager<LeadershipEvent, LeadershipEventListener>
     implements LeadershipService, LeadershipAdminService {
@@ -54,10 +51,10 @@ public class LeadershipManager
 
     private LeadershipStoreDelegate delegate = this::post;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ClusterService clusterService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected LeadershipStore store;
 
     private NodeId localNodeId;

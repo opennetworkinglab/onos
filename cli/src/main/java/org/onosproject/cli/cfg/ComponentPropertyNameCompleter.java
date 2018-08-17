@@ -15,8 +15,9 @@
  */
 package org.onosproject.cli.cfg;
 
-import org.apache.karaf.shell.console.completer.ArgumentCompleter;
-import org.apache.karaf.shell.console.completer.StringsCompleter;
+import org.apache.karaf.shell.api.console.CommandLine;
+import org.apache.karaf.shell.api.console.Session;
+import org.apache.karaf.shell.support.completers.StringsCompleter;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cfg.ConfigProperty;
 import org.onosproject.cli.AbstractCompleter;
@@ -32,13 +33,12 @@ import static org.onosproject.cli.AbstractShellCommand.get;
  */
 public class ComponentPropertyNameCompleter extends AbstractCompleter {
     @Override
-    public int complete(String buffer, int cursor, List<String> candidates) {
+    public int complete(Session session, CommandLine commandLine, List<String> candidates) {
         // Delegate string completer
         StringsCompleter delegate = new StringsCompleter();
 
         // Component name is the previous argument.
-        ArgumentCompleter.ArgumentList list = getArgumentList();
-        String componentName = list.getArguments()[list.getCursorArgumentIndex() - 1];
+        String componentName = commandLine.getArguments()[commandLine.getCursorArgumentIndex() - 1];
         ComponentConfigService service = get(ComponentConfigService.class);
 
         SortedSet<String> strings = delegate.getStrings();
@@ -49,7 +49,7 @@ public class ComponentPropertyNameCompleter extends AbstractCompleter {
         }
 
         // Now let the completer do the work for figuring out what to offer.
-        return delegate.complete(buffer, cursor, candidates);
+        return delegate.complete(session, commandLine, candidates);
     }
 
 }

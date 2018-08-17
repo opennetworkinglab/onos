@@ -15,21 +15,20 @@
  */
 package org.onosproject.net.driver;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 
 /**
  * Abstract bootstrapper for loading and registering driver definitions that
  * are dependent on the default driver definitions.
  */
-@Component
 public abstract class AbstractDriverLoader extends AbstractIndependentDriverLoader {
 
     // FIXME: This requirement should be removed and the driver extensions that
     // depend on the default drivers being loaded should be modified to instead
     // express the dependency using the application dependency mechanism.
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DefaultDriverProviderService defaultDriverProviderService;
 
     /**

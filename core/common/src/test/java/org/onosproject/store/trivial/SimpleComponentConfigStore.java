@@ -15,14 +15,13 @@
  */
 package org.onosproject.store.trivial;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cfg.ComponentConfigEvent;
 import org.onosproject.cfg.ComponentConfigStore;
 import org.onosproject.cfg.ComponentConfigStoreDelegate;
 import org.onosproject.store.AbstractStore;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
 import org.slf4j.Logger;
 
 import static org.onosproject.cfg.ComponentConfigEvent.Type.PROPERTY_SET;
@@ -32,8 +31,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Manages inventory of component configuration properties.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = ComponentConfigStore.class)
 public class SimpleComponentConfigStore
         extends AbstractStore<ComponentConfigEvent, ComponentConfigStoreDelegate>
         implements ComponentConfigStore {

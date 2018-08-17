@@ -18,7 +18,7 @@ package org.onosproject.ui.impl.cli;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.ui.UiExtension;
 import org.onosproject.ui.UiExtensionService;
@@ -35,7 +35,7 @@ public class UiViewListCommand extends AbstractShellCommand {
     private static final String FMT = "id=%s, category=%s, label=%s, icon=%s";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         UiExtensionService service = get(UiExtensionService.class);
         if (outputJson()) {
             print("%s", json(service.getExtensions()));

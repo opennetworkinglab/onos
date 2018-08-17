@@ -17,12 +17,6 @@ package org.onosproject.openstacktelemetry.impl;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.openstacktelemetry.api.FlowInfo;
@@ -33,6 +27,11 @@ import org.onosproject.openstacktelemetry.api.OpenstackTelemetryService;
 import org.onosproject.openstacktelemetry.api.RestTelemetryService;
 import org.onosproject.openstacktelemetry.api.TelemetryService;
 import org.onosproject.openstacktelemetry.codec.TinaMessageByteBufferCodec;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,15 +47,14 @@ import static org.onosproject.openstacktelemetry.util.OpenstackTelemetryUtil.get
 /**
  * Openstack telemetry manager.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = OpenstackTelemetryService.class)
 public class OpenstackTelemetryManager implements OpenstackTelemetryService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private static final String ENABLE_SERVICE = "enableService";
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService componentConfigService;
 
     private List<TelemetryService> telemetryServices = Lists.newArrayList();

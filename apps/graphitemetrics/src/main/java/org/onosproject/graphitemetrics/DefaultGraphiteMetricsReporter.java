@@ -20,18 +20,17 @@ import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.graphite.Graphite;
 import com.codahale.metrics.graphite.GraphiteReporter;
 import org.apache.commons.lang.StringUtils;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.metrics.MetricsService;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.CoreService;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.net.InetSocketAddress;
@@ -57,37 +56,37 @@ public class DefaultGraphiteMetricsReporter implements GraphiteMetricsReporter {
     private static final String DEFAULT_METRIC_NAME_PREFIX = "onos";
 
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected MetricsService metricsService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService cfgService;
 
-    @Property(name = "monitorAll", boolValue = true,
-            label = "Enable to monitor all of metrics stored in metric registry default is true")
+    //@Property(name = "monitorAll", boolValue = true,
+    //        label = "Enable to monitor all of metrics stored in metric registry default is true")
     protected boolean monitorAll = true;
 
-    @Property(name = "metricNames", value = DEFAULT_METRIC_NAMES,
-            label = "Names of metric to be monitored; default metric names are 'default'")
+    //@Property(name = "metricNames", value = DEFAULT_METRIC_NAMES,
+    //        label = "Names of metric to be monitored; default metric names are 'default'")
     protected String metricNames = DEFAULT_METRIC_NAMES;
 
-    @Property(name = "address", value = DEFAULT_ADDRESS,
-            label = "IP address of graphite monitoring server; default is localhost")
+    //@Property(name = "address", value = DEFAULT_ADDRESS,
+    //        label = "IP address of graphite monitoring server; default is localhost")
     protected String address = DEFAULT_ADDRESS;
 
-    @Property(name = "port", intValue = DEFAULT_PORT,
-            label = "Port number of graphite monitoring server; default is 2003")
+    //@Property(name = "port", intValue = DEFAULT_PORT,
+    //        label = "Port number of graphite monitoring server; default is 2003")
     protected int port = DEFAULT_PORT;
 
-    @Property(name = "reportPeriod", intValue = DEFAULT_REPORT_PERIOD,
-            label = "Reporting period of graphite monitoring server; default is 1")
+    //@Property(name = "reportPeriod", intValue = DEFAULT_REPORT_PERIOD,
+    //        label = "Reporting period of graphite monitoring server; default is 1")
     protected int reportPeriod = DEFAULT_REPORT_PERIOD;
 
-    @Property(name = "metricNamePrefix", value = DEFAULT_METRIC_NAME_PREFIX,
-            label = "Prefix of metric name for graphite back-end server; default is 'onos'")
+    //@Property(name = "metricNamePrefix", value = DEFAULT_METRIC_NAME_PREFIX,
+    //        label = "Prefix of metric name for graphite back-end server; default is 'onos'")
     protected String metricNamePrefix = DEFAULT_METRIC_NAME_PREFIX;
 
     private Graphite graphite;

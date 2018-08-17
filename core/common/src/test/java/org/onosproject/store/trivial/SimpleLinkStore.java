@@ -20,11 +20,6 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
-
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.AnnotationsUtil;
 import org.onosproject.net.ConnectPoint;
@@ -42,6 +37,9 @@ import org.onosproject.net.link.LinkStore;
 import org.onosproject.net.link.LinkStoreDelegate;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.AbstractStore;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
 import org.slf4j.Logger;
 
 import java.util.Collections;
@@ -64,15 +62,16 @@ import static org.onosproject.net.Link.State.INACTIVE;
 import static org.onosproject.net.Link.Type.DIRECT;
 import static org.onosproject.net.Link.Type.INDIRECT;
 import static org.onosproject.net.LinkKey.linkKey;
-import static org.onosproject.net.link.LinkEvent.Type.*;
+import static org.onosproject.net.link.LinkEvent.Type.LINK_ADDED;
+import static org.onosproject.net.link.LinkEvent.Type.LINK_REMOVED;
+import static org.onosproject.net.link.LinkEvent.Type.LINK_UPDATED;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Manages inventory of infrastructure links using trivial in-memory structures
  * implementation.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = LinkStore.class)
 public class SimpleLinkStore
         extends AbstractStore<LinkEvent, LinkStoreDelegate>
         implements LinkStore {

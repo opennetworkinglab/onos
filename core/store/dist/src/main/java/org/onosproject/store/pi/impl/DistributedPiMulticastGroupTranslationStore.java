@@ -16,8 +16,7 @@
 
 package org.onosproject.store.pi.impl;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Service;
+import org.osgi.service.component.annotations.Component;
 import org.onosproject.net.group.Group;
 import org.onosproject.net.pi.runtime.PiMulticastGroupEntry;
 import org.onosproject.net.pi.service.PiMulticastGroupTranslationStore;
@@ -25,8 +24,7 @@ import org.onosproject.net.pi.service.PiMulticastGroupTranslationStore;
 /**
  * Distributed implementation of a PI translation store for multicast groups.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = PiMulticastGroupTranslationStore.class)
 public class DistributedPiMulticastGroupTranslationStore
         extends AbstractDistributedPiTranslationStore<Group, PiMulticastGroupEntry>
         implements PiMulticastGroupTranslationStore {

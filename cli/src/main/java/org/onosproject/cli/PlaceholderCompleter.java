@@ -16,7 +16,9 @@
 
 package org.onosproject.cli;
 
-import org.apache.karaf.shell.console.completer.StringsCompleter;
+import org.apache.karaf.shell.api.console.CommandLine;
+import org.apache.karaf.shell.api.console.Session;
+import org.apache.karaf.shell.support.completers.StringsCompleter;
 
 import java.util.List;
 import java.util.SortedSet;
@@ -28,13 +30,13 @@ import java.util.SortedSet;
 public class PlaceholderCompleter extends AbstractCompleter {
 
     @Override
-    public int complete(String s, int i, List<String> list) {
+    public int complete(Session session, CommandLine commandLine, List<String> candidates) {
         // Populate a string completer with what the user has typed so far
         StringsCompleter delegate = new StringsCompleter();
         SortedSet<String> strings = delegate.getStrings();
-        if (s != null) {
-            strings.add(s);
+        if (commandLine.getCursorArgument() != null) {
+            strings.add(commandLine.getCursorArgument());
         }
-        return delegate.complete(s, i, list);
+        return delegate.complete(session, commandLine, candidates);
     }
 }

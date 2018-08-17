@@ -15,34 +15,23 @@
  */
 package org.onosproject.net.host.impl;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
-import org.onosproject.net.intf.Interface;
-import org.onosproject.net.intf.InterfaceService;
-import org.onosproject.net.HostLocation;
-import org.onosproject.net.edge.EdgePortService;
-import org.onosproject.net.provider.AbstractListenerProviderRegistry;
-import org.onosproject.net.config.NetworkConfigEvent;
-import org.onosproject.net.config.NetworkConfigListener;
-import org.onosproject.net.config.NetworkConfigService;
-import org.onosproject.net.config.basics.BasicHostConfig;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
+import org.onosproject.net.HostLocation;
+import org.onosproject.net.config.NetworkConfigEvent;
+import org.onosproject.net.config.NetworkConfigListener;
+import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.net.config.basics.BasicHostConfig;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.edge.EdgePortService;
 import org.onosproject.net.host.HostAdminService;
 import org.onosproject.net.host.HostDescription;
 import org.onosproject.net.host.HostEvent;
@@ -53,9 +42,18 @@ import org.onosproject.net.host.HostProviderService;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.host.HostStore;
 import org.onosproject.net.host.HostStoreDelegate;
+import org.onosproject.net.intf.Interface;
+import org.onosproject.net.intf.InterfaceService;
 import org.onosproject.net.packet.PacketService;
+import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Dictionary;
@@ -72,8 +70,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Provides basic implementation of the host SB &amp; NB APIs.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = {HostService.class, HostAdminService.class, HostProviderRegistry.class })
 public class HostManager
         extends AbstractListenerProviderRegistry<HostEvent, HostListener, HostProvider, HostProviderService>
         implements HostService, HostAdminService, HostProviderRegistry {
@@ -86,41 +83,41 @@ public class HostManager
 
     private HostStoreDelegate delegate = new InternalStoreDelegate();
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected HostStore store;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DeviceService deviceService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected PacketService packetService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected NetworkConfigService networkConfigService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected InterfaceService interfaceService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected EdgePortService edgePortService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService cfgService;
 
-    @Property(name = "allowDuplicateIps", boolValue = true,
-            label = "Enable removal of duplicate ip address")
+    //@Property(name = "allowDuplicateIps", boolValue = true,
+    //        label = "Enable removal of duplicate ip address")
     private boolean allowDuplicateIps = true;
 
-    @Property(name = "monitorHosts", boolValue = false,
-            label = "Enable/Disable monitoring of hosts")
+    //@Property(name = "monitorHosts", boolValue = false,
+    //        label = "Enable/Disable monitoring of hosts")
     private boolean monitorHosts = false;
 
-    @Property(name = "probeRate", longValue = 30000,
-            label = "Set the probe Rate in milli seconds")
+    //@Property(name = "probeRate", longValue = 30000,
+    //        label = "Set the probe Rate in milli seconds")
     private long probeRate = 30000;
 
-    @Property(name = "greedyLearningIpv6", boolValue = false,
-            label = "Enable/Disable greedy learning of IPv6 link local address")
+    //@Property(name = "greedyLearningIpv6", boolValue = false,
+    //        label = "Enable/Disable greedy learning of IPv6 link local address")
     private boolean greedyLearningIpv6 = false;
 
     private HostMonitor monitor;

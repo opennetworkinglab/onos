@@ -18,12 +18,6 @@ package org.onosproject.ospf.controller.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.ospf.controller.OspfAgent;
 import org.onosproject.ospf.controller.OspfController;
@@ -32,6 +26,11 @@ import org.onosproject.ospf.controller.OspfLinkTed;
 import org.onosproject.ospf.controller.OspfProcess;
 import org.onosproject.ospf.controller.OspfRouter;
 import org.onosproject.ospf.controller.OspfRouterListener;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,13 +42,12 @@ import java.util.Set;
  * Representation of an OSPF controller implementation.
  * Serves as a one stop shop for obtaining OSPF devices and (un)register listeners on OSPF events
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = OspfController.class)
 public class OspfControllerImpl implements OspfController {
 
     private static final Logger log = LoggerFactory.getLogger(OspfControllerImpl.class);
     private final Controller ctrl = new Controller();
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DriverService driverService;
     protected Set<OspfRouterListener> ospfRouterListener = new HashSet<>();
     protected Set<OspfLinkListener> ospfLinkListener = Sets.newHashSet();

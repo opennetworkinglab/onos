@@ -15,13 +15,6 @@
  */
 package org.onosproject.net.intent.impl;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.IntentEvent;
@@ -31,6 +24,12 @@ import org.onosproject.net.intent.IntentStore;
 import org.onosproject.net.intent.Key;
 import org.onosproject.store.service.WallClockTimestamp;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Dictionary;
@@ -65,27 +64,27 @@ public class IntentCleanup implements Runnable, IntentListener {
     private static final int DEFAULT_PERIOD = 5; //seconds
     private static final int DEFAULT_THRESHOLD = 5; //tries
 
-    @Property(name = "enabled", boolValue = true,
-              label = "Enables/disables the intent cleanup component")
+    //@Property(name = "enabled", boolValue = true,
+    //          label = "Enables/disables the intent cleanup component")
     private boolean enabled = true;
 
-    @Property(name = "period", intValue = DEFAULT_PERIOD,
-              label = "Frequency in ms between cleanup runs")
+    //@Property(name = "period", intValue = DEFAULT_PERIOD,
+    //          label = "Frequency in ms between cleanup runs")
     protected int period = DEFAULT_PERIOD;
     private long periodMs;
     private long periodMsForStuck;
 
-    @Property(name = "retryThreshold", intValue = DEFAULT_THRESHOLD,
-            label = "Number of times to retry CORRUPT intent without delay")
+    //@Property(name = "retryThreshold", intValue = DEFAULT_THRESHOLD,
+    //        label = "Number of times to retry CORRUPT intent without delay")
     protected int retryThreshold = DEFAULT_THRESHOLD;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected IntentService service;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected IntentStore store;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService cfgService;
 
     private ExecutorService executor;

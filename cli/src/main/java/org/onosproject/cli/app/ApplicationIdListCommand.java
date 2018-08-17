@@ -18,7 +18,8 @@ package org.onosproject.cli.app;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.utils.Comparators;
 import org.onosproject.core.ApplicationId;
@@ -32,12 +33,13 @@ import static com.google.common.collect.Lists.newArrayList;
 /**
  * Lists application ID information.
  */
+@Service
 @Command(scope = "onos", name = "app-ids",
          description = "Lists application ID information")
 public class ApplicationIdListCommand extends AbstractShellCommand {
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         CoreService service = get(CoreService.class);
         List<ApplicationId> ids = newArrayList(service.getAppIds());
         Collections.sort(ids, Comparators.APP_ID_COMPARATOR);

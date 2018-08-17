@@ -20,8 +20,9 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.apache.karaf.shell.api.action.Option;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyProvider;
@@ -30,6 +31,7 @@ import org.onosproject.net.topology.TopologyService;
 /**
  * Lists summary of the current topology.
  */
+@Service
 @Command(scope = "onos", name = "topology",
 description = "Lists summary of the current topology")
 public class TopologyCommand extends AbstractShellCommand {
@@ -53,7 +55,7 @@ public class TopologyCommand extends AbstractShellCommand {
     }
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         init();
         long topologyUptime =
                 Math.max(0, (System.currentTimeMillis() - topology.creationTime()));

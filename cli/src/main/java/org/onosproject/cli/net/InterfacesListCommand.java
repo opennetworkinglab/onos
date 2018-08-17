@@ -16,7 +16,8 @@
 package org.onosproject.cli.net;
 
 import com.google.common.collect.Lists;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.cli.AbstractShellCommand;
@@ -30,6 +31,7 @@ import java.util.List;
 /**
  * Lists all configured interfaces.
  */
+@Service
 @Command(scope = "onos", name = "interfaces",
         description = "Lists all configured interfaces.")
 public class InterfacesListCommand extends AbstractShellCommand {
@@ -45,7 +47,7 @@ public class InterfacesListCommand extends AbstractShellCommand {
     private static final String NO_NAME = "(unamed)";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         InterfaceService interfaceService = get(InterfaceService.class);
 
         List<Interface> interfaces = Lists.newArrayList(interfaceService.getInterfaces());

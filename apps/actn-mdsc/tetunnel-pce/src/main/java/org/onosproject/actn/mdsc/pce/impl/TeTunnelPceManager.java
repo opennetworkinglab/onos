@@ -18,10 +18,9 @@ package org.onosproject.actn.mdsc.pce.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Service;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
 import org.onosproject.actn.mdsc.pce.TeTunnelPce;
 import org.onosproject.actn.mdsc.pce.TeTunnelPceService;
 import org.onosproject.tetunnel.api.tunnel.TeTunnel;
@@ -35,8 +34,7 @@ import java.util.List;
 /**
  * Implementation of Te Tunnel PCE service.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = TeTunnelPceService.class)
 public class TeTunnelPceManager implements TeTunnelPceService {
 
     private static final Logger log = getLogger(TeTunnelPceManager.class);

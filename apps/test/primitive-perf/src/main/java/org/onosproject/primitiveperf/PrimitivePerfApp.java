@@ -15,6 +15,25 @@
  */
 package org.onosproject.primitiveperf;
 
+import com.google.common.collect.Lists;
+import org.onosproject.cfg.ComponentConfigService;
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.ControllerNode;
+import org.onosproject.cluster.NodeId;
+import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.service.AtomicValue;
+import org.onosproject.store.service.AtomicValueEventListener;
+import org.onosproject.store.service.ConsistentMap;
+import org.onosproject.store.service.Serializer;
+import org.onosproject.store.service.StorageService;
+import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.slf4j.Logger;
+
 import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.List;
@@ -28,39 +47,17 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
-import com.google.common.collect.Lists;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.Service;
-import org.onosproject.cfg.ComponentConfigService;
-import org.onosproject.cluster.ClusterService;
-import org.onosproject.cluster.ControllerNode;
-import org.onosproject.cluster.NodeId;
-import org.onosproject.store.serializers.KryoNamespaces;
-import org.onosproject.store.service.AtomicValue;
-import org.onosproject.store.service.AtomicValueEventListener;
-import org.onosproject.store.service.ConsistentMap;
-import org.onosproject.store.service.Serializer;
-import org.onosproject.store.service.StorageService;
-import org.osgi.service.component.ComponentContext;
-import org.slf4j.Logger;
-
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.lang.System.currentTimeMillis;
-import static org.apache.felix.scr.annotations.ReferenceCardinality.MANDATORY_UNARY;
 import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.osgi.service.component.annotations.ReferenceCardinality.MANDATORY;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Application to test sustained primitive throughput.
  */
-@Component(immediate = true)
-@Service(value = PrimitivePerfApp.class)
+@Component(immediate = true, service = PrimitivePerfApp.class)
 public class PrimitivePerfApp {
 
     private final Logger log = getLogger(getClass());
@@ -79,64 +76,64 @@ public class PrimitivePerfApp {
 
     private static final char[] CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".toCharArray();
 
-    @Property(
-        name = "numClients",
-        intValue = DEFAULT_NUM_CLIENTS,
-        label = "Number of clients to use to submit writes")
+    //@Property(
+    //    name = "numClients",
+    //    intValue = DEFAULT_NUM_CLIENTS,
+    //    label = "Number of clients to use to submit writes")
     private int numClients = DEFAULT_NUM_CLIENTS;
 
-    @Property(
-        name = "writePercentage",
-        intValue = DEFAULT_WRITE_PERCENTAGE,
-        label = "Percentage of operations to perform as writes")
+    //@Property(
+    //    name = "writePercentage",
+    //    intValue = DEFAULT_WRITE_PERCENTAGE,
+    //    label = "Percentage of operations to perform as writes")
     private int writePercentage = DEFAULT_WRITE_PERCENTAGE;
 
-    @Property(
-        name = "numKeys",
-        intValue = DEFAULT_NUM_KEYS,
-        label = "Number of unique keys to write")
+    //@Property(
+    //    name = "numKeys",
+    //    intValue = DEFAULT_NUM_KEYS,
+    //    label = "Number of unique keys to write")
     private int numKeys = DEFAULT_NUM_KEYS;
 
-    @Property(
-        name = "keyLength",
-        intValue = DEFAULT_KEY_LENGTH,
-        label = "Key length")
+    //@Property(
+    //    name = "keyLength",
+    //    intValue = DEFAULT_KEY_LENGTH,
+    //    label = "Key length")
     private int keyLength = DEFAULT_KEY_LENGTH;
 
-    @Property(
-        name = "numValues",
-        intValue = DEFAULT_NUM_UNIQUE_VALUES,
-        label = "Number of unique values to write")
+    //@Property(
+    //    name = "numValues",
+    //    intValue = DEFAULT_NUM_UNIQUE_VALUES,
+    //    label = "Number of unique values to write")
     private int numValues = DEFAULT_NUM_UNIQUE_VALUES;
 
-    @Property(
-        name = "valueLength",
-        intValue = DEFAULT_VALUE_LENGTH,
-        label = "Value length")
+    //@Property(
+    //    name = "valueLength",
+    //    intValue = DEFAULT_VALUE_LENGTH,
+    //    label = "Value length")
     private int valueLength = DEFAULT_VALUE_LENGTH;
 
-    @Property(
-        name = "includeEvents",
-        boolValue = DEFAULT_INCLUDE_EVENTS,
-        label = "Whether to include events in test")
+    //@Property(
+    //    name = "includeEvents",
+    //    boolValue = DEFAULT_INCLUDE_EVENTS,
+    //    label = "Whether to include events in test")
     private boolean includeEvents = DEFAULT_INCLUDE_EVENTS;
 
-    @Property(
-        name = "deterministic",
-        boolValue = DEFAULT_DETERMINISTIC,
-        label = "Whether to deterministically populate entries")
+    //@Property(
+    //    name = "deterministic",
+    //    boolValue = DEFAULT_DETERMINISTIC,
+    //    label = "Whether to deterministically populate entries")
     private boolean deterministic = DEFAULT_DETERMINISTIC;
 
-    @Reference(cardinality = MANDATORY_UNARY)
+    @Reference(cardinality = MANDATORY)
     protected ClusterService clusterService;
 
-    @Reference(cardinality = MANDATORY_UNARY)
+    @Reference(cardinality = MANDATORY)
     protected StorageService storageService;
 
-    @Reference(cardinality = MANDATORY_UNARY)
+    @Reference(cardinality = MANDATORY)
     protected ComponentConfigService configService;
 
-    @Reference(cardinality = MANDATORY_UNARY)
+    @Reference(cardinality = MANDATORY)
     protected PrimitivePerfCollector sampleCollector;
 
     private ExecutorService messageHandlingExecutor;

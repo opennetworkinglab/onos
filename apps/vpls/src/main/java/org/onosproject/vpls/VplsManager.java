@@ -16,55 +16,53 @@
 package org.onosproject.vpls;
 
 import com.google.common.collect.ImmutableSet;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
-import org.onosproject.net.intf.Interface;
-import org.onosproject.net.intf.InterfaceService;
 import org.onosproject.net.EncapsulationType;
 import org.onosproject.net.Host;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostListener;
 import org.onosproject.net.host.HostService;
+import org.onosproject.net.intf.Interface;
+import org.onosproject.net.intf.InterfaceService;
 import org.onosproject.store.StoreDelegate;
-import org.onosproject.vpls.api.VplsData;
-import org.onosproject.vpls.api.VplsOperationService;
-import org.onosproject.vpls.api.VplsOperation;
 import org.onosproject.vpls.api.Vpls;
+import org.onosproject.vpls.api.VplsData;
+import org.onosproject.vpls.api.VplsOperation;
+import org.onosproject.vpls.api.VplsOperationService;
 import org.onosproject.vpls.api.VplsStore;
 import org.onosproject.vpls.store.VplsStoreEvent;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Collection;
 import java.util.Set;
 
-import static java.util.Objects.*;
+import static java.util.Objects.requireNonNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Application to create L2 broadcast overlay networks using VLANs.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = Vpls.class)
 public class VplsManager implements Vpls {
     public static final String VPLS_APP = "org.onosproject.vpls";
     private static final String UNSUPPORTED_STORE_EVENT_TYPE =
             "Unsupported store event type {}.";
     private final Logger log = getLogger(getClass());
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected HostService hostService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected InterfaceService interfaceService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected VplsStore vplsStore;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected VplsOperationService operationService;
 
     private StoreDelegate<VplsStoreEvent> vplsStoreDelegate;

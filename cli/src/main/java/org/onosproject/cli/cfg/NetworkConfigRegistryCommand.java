@@ -15,8 +15,9 @@
  */
 package org.onosproject.cli.cfg;
 
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.apache.karaf.shell.api.action.Option;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigRegistry;
@@ -24,6 +25,7 @@ import org.onosproject.net.config.NetworkConfigRegistry;
 /**
  * Displays network configuration registry contents.
  */
+@Service
 @Command(scope = "onos", name = "netcfg-registry",
         description = "Displays network configuration registry contents")
 public class NetworkConfigRegistryCommand extends AbstractShellCommand {
@@ -36,7 +38,7 @@ public class NetworkConfigRegistryCommand extends AbstractShellCommand {
     private boolean shortOnly = false;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         get(NetworkConfigRegistry.class).getConfigFactories().forEach(this::print);
     }
 

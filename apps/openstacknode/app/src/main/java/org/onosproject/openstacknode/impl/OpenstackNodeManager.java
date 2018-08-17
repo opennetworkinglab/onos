@@ -17,14 +17,6 @@ package org.onosproject.openstacknode.impl;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.Tools;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.LeadershipService;
@@ -44,6 +36,12 @@ import org.onosproject.ovsdb.controller.OvsdbController;
 import org.onosproject.store.service.AtomicCounter;
 import org.onosproject.store.service.StorageService;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Dictionary;
@@ -71,8 +69,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Service administering the inventory of openstack nodes.
  */
-@Service
-@Component(immediate = true)
+@Component(immediate = true, service = { OpenstackNodeService.class, OpenstackNodeAdminService.class })
 public class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEvent, OpenstackNodeListener>
         implements OpenstackNodeService, OpenstackNodeAdminService {
 
@@ -93,29 +90,29 @@ public class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEvent, O
 
     private static final String NOT_DUPLICATED_MSG = "% cannot be duplicated";
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected OpenstackNodeStore osNodeStore;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ClusterService clusterService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected LeadershipService leadershipService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected StorageService storageService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected OvsdbController ovsdbController;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DeviceService deviceService;
 
-    @Property(name = OVSDB_PORT, intValue = DEFAULT_OVSDB_PORT,
-            label = "OVSDB server listen port")
+    //@Property(name = OVSDB_PORT, intValue = DEFAULT_OVSDB_PORT,
+    //        label = "OVSDB server listen port")
     private int ovsdbPort = DEFAULT_OVSDB_PORT;
 
     private final ExecutorService eventExecutor = newSingleThreadExecutor(

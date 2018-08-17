@@ -17,12 +17,6 @@ package org.onosproject.roadm;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Range;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.ChannelSpacing;
@@ -36,8 +30,8 @@ import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.LambdaQuery;
 import org.onosproject.net.behaviour.PowerConfig;
-import org.onosproject.net.behaviour.protection.ProtectionConfigBehaviour;
 import org.onosproject.net.behaviour.protection.ProtectedTransportEndpointState;
+import org.onosproject.net.behaviour.protection.ProtectionConfigBehaviour;
 import org.onosproject.net.behaviour.protection.TransportEndpointState;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
@@ -53,7 +47,11 @@ import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.instructions.Instructions;
-
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,8 +72,7 @@ import static org.onosproject.roadm.RoadmUtil.OPS_OPT_MANUAL;
 /**
  * Application for monitoring and configuring ROADM devices.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = RoadmService.class)
 public class RoadmManager implements RoadmService {
 
     private static final String APP_NAME = "org.onosproject.roadm";
@@ -85,16 +82,16 @@ public class RoadmManager implements RoadmService {
 
     private DeviceListener deviceListener = new InternalDeviceListener();
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected RoadmStore roadmStore;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DeviceService deviceService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected FlowRuleService flowRuleService;
 
     @Activate

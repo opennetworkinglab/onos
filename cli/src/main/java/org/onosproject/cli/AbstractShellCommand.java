@@ -15,8 +15,8 @@
  */
 package org.onosproject.cli;
 
-import org.apache.karaf.shell.commands.Option;
-import org.apache.karaf.shell.console.AbstractAction;
+import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.Action;
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.osgi.ServiceNotFoundException;
 import org.onosproject.codec.CodecContext;
@@ -29,6 +29,8 @@ import org.onosproject.net.Annotations;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.net.DefaultAnnotations;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Set;
 import java.util.TreeSet;
@@ -36,7 +38,8 @@ import java.util.TreeSet;
 /**
  * Base abstraction of Karaf shell commands.
  */
-public abstract class AbstractShellCommand extends AbstractAction implements CodecContext {
+public abstract class AbstractShellCommand implements Action, CodecContext {
+    protected final Logger log = LoggerFactory.getLogger(this.getClass());
 
     @Option(name = "-j", aliases = "--json", description = "Output JSON",
             required = false, multiValued = false)
@@ -136,11 +139,6 @@ public abstract class AbstractShellCommand extends AbstractAction implements Cod
     }
 
     /**
-     * Executes this command.
-     */
-    protected abstract void execute();
-
-    /**
      * Indicates whether JSON format should be output.
      *
      * @return true if JSON is requested
@@ -150,16 +148,22 @@ public abstract class AbstractShellCommand extends AbstractAction implements Cod
     }
 
     @Override
-    protected Object doExecute() throws Exception {
+    public Object execute() throws Exception {
         try {
-            execute();
+            doExecute();
         } catch (ServiceNotFoundException e) {
             error(e.getMessage());
         }
         return null;
     }
 
-
+    protected void doExecute() throws Exception {
+        try {
+            execute();
+        } catch (ServiceNotFoundException e) {
+            error(e.getMessage());
+        }
+    }
 
     private final ObjectMapper mapper = new ObjectMapper();
 

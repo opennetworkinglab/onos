@@ -22,14 +22,6 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TMultiplexedProtocol;
 import org.apache.thrift.protocol.TProtocol;
@@ -42,6 +34,12 @@ import org.onosproject.drivers.bmv2.api.Bmv2DeviceAgent;
 import org.onosproject.drivers.bmv2.api.Bmv2PreController;
 import org.onosproject.net.DeviceId;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Dictionary;
@@ -57,8 +55,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * BMv2 PRE controller implementation.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = Bmv2PreController.class)
 public class Bmv2PreControllerImpl implements Bmv2PreController {
 
     private static final int DEVICE_LOCK_CACHE_EXPIRE_TIME_IN_MIN = 10;
@@ -77,16 +74,16 @@ public class Bmv2PreControllerImpl implements Bmv2PreController {
                     return new ReentrantReadWriteLock();
                 }
             });
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService cfgService;
-    @Property(name = "numConnectionRetries", intValue = DEFAULT_NUM_CONNECTION_RETRIES,
-            label = "Number of connection retries after a network error")
+    //@Property(name = "numConnectionRetries", intValue = DEFAULT_NUM_CONNECTION_RETRIES,
+    //        label = "Number of connection retries after a network error")
     private int numConnectionRetries = DEFAULT_NUM_CONNECTION_RETRIES;
-    @Property(name = "timeBetweenRetries", intValue = DEFAULT_TIME_BETWEEN_RETRIES,
-            label = "Time between retries in milliseconds")
+    //@Property(name = "timeBetweenRetries", intValue = DEFAULT_TIME_BETWEEN_RETRIES,
+    //        label = "Time between retries in milliseconds")
     private int timeBetweenRetries = DEFAULT_TIME_BETWEEN_RETRIES;
-    @Property(name = "deviceLockWaitingTime", intValue = DEVICE_LOCK_WAITING_TIME_IN_SEC,
-            label = "Waiting time for a read/write lock in seconds")
+    //@Property(name = "deviceLockWaitingTime", intValue = DEVICE_LOCK_WAITING_TIME_IN_SEC,
+    //        label = "Waiting time for a read/write lock in seconds")
     private int deviceLockWaitingTime = DEVICE_LOCK_WAITING_TIME_IN_SEC;
 
     @Activate

@@ -16,12 +16,6 @@
 
 package org.onosproject.tetunnel.impl;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.GroupId;
@@ -37,15 +31,20 @@ import org.onosproject.net.provider.ProviderId;
 import org.onosproject.tetopology.management.api.TeTopology;
 import org.onosproject.tetopology.management.api.TeTopologyKey;
 import org.onosproject.tetopology.management.api.TeTopologyService;
-import org.onosproject.tetunnel.api.lsp.TeLsp;
-import org.onosproject.tetunnel.api.lsp.TeLspKey;
-import org.onosproject.tetunnel.api.tunnel.TeTunnel;
 import org.onosproject.tetunnel.api.TeTunnelAdminService;
 import org.onosproject.tetunnel.api.TeTunnelProviderService;
 import org.onosproject.tetunnel.api.TeTunnelService;
 import org.onosproject.tetunnel.api.TeTunnelStore;
+import org.onosproject.tetunnel.api.lsp.TeLsp;
+import org.onosproject.tetunnel.api.lsp.TeLspKey;
+import org.onosproject.tetunnel.api.tunnel.TeTunnel;
 import org.onosproject.tetunnel.api.tunnel.TeTunnelEndpoint;
 import org.onosproject.tetunnel.api.tunnel.TeTunnelKey;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Collection;
@@ -56,8 +55,8 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Implementation of TE tunnel attributes management service.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = { TeTunnelService.class, TeTunnelAdminService.class,
+        TeTunnelProviderService.class })
 public class TeTunnelManager implements TeTunnelService, TeTunnelAdminService,
         TeTunnelProviderService {
 
@@ -65,19 +64,19 @@ public class TeTunnelManager implements TeTunnelService, TeTunnelAdminService,
 
     private final Logger log = getLogger(getClass());
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected TeTunnelStore store;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected TunnelService tunnelService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected TunnelAdminService tunnelAdminService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected TeTopologyService teTopologyService;
 
     private ApplicationId appId;

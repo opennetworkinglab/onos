@@ -23,10 +23,11 @@ nodes=${1:-$(env | sort | egrep "^OC[0-9]+" | cut -d= -f2)}
 
 # ensure known_hosts file exist
 (umask 077; touch "$HOME/.ssh/known_hosts")
-
+set -x
 for node in $nodes; do
     # Setup passwordless login for the local user on the remote node
     ssh $ONOS_USER@$node "
+        set -x
         [ ! -f ~/.ssh/id_rsa.pub ] && ssh-keygen -t rsa -f ~/.ssh/id_rsa -P '' -q
         $ONOS_INSTALL_DIR/bin/onos-user-key \$(id -un) \$(cut -d\\  -f2 ~/.ssh/id_rsa.pub)
         $ONOS_INSTALL_DIR/bin/onos-user-password $user $password

@@ -15,12 +15,6 @@
  */
 package org.onosproject.ofagent.impl;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.LeadershipEvent;
 import org.onosproject.cluster.LeadershipEventListener;
@@ -40,6 +34,11 @@ import org.onosproject.ofagent.api.OFAgentListener;
 import org.onosproject.ofagent.api.OFAgentService;
 import org.onosproject.ofagent.api.OFAgentStore;
 import org.onosproject.ofagent.api.OFAgentStoreDelegate;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,8 +55,7 @@ import static org.onosproject.ofagent.api.OFAgent.State.STOPPED;
 /**
  * Implementation of OpenFlow agent service.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = { OFAgentService.class, OFAgentAdminService.class })
 public class OFAgentManager extends ListenerRegistry<OFAgentEvent, OFAgentListener>
         implements OFAgentService, OFAgentAdminService {
 
@@ -77,19 +75,19 @@ public class OFAgentManager extends ListenerRegistry<OFAgentEvent, OFAgentListen
     private static final String ERR_NOT_EXIST = "does not exist";
     private static final String ERR_IN_USE = "is in start state, stop the agent first";
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected LeadershipService leadershipService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ClusterService clusterService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected VirtualNetworkService virtualNetService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected OFAgentStore ofAgentStore;
 
     private final ExecutorService eventExecutor = newSingleThreadExecutor(

@@ -20,9 +20,10 @@ import static org.slf4j.LoggerFactory.getLogger;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.apache.karaf.shell.api.action.Option;
 import org.slf4j.Logger;
 
 import com.google.common.collect.ImmutableList;
@@ -30,6 +31,7 @@ import com.google.common.collect.ImmutableList;
 /**
  * CLI command which just log message to ONOS log for ease of debugging, etc.
  */
+@Service
 @Command(scope = "onos", name = "mark",
          description = "Mark message in the log")
 public class MarkCommand extends AbstractShellCommand {
@@ -49,7 +51,7 @@ public class MarkCommand extends AbstractShellCommand {
     List<String> message = ImmutableList.of(MARK);
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
 
         Logger log = getLogger(loggerName);
 

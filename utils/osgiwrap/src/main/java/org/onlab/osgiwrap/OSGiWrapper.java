@@ -84,6 +84,7 @@ public class OSGiWrapper {
     private String destdir;
 
     private String bundleClasspath;
+    private String karafCommands;
 
     // FIXME should consider using Commons CLI, etc.
     public static void main(String[] args) {
@@ -107,6 +108,7 @@ public class OSGiWrapper {
         String dynamicimportPackages = args[12];
         String destdir = args[13];
         String bundleClasspath = args[14];
+        String karafCommands = args[15];
         String desc = Joiner.on(' ').join(Arrays.copyOfRange(args, 12, args.length));
 
         OSGiWrapper wrapper = new OSGiWrapper(jar, output, cp,
@@ -119,7 +121,8 @@ public class OSGiWrapper {
                 dynamicimportPackages,
                 desc,
                 destdir,
-                bundleClasspath);
+                bundleClasspath,
+                karafCommands);
         wrapper.log(wrapper + "\n");
         if (!wrapper.execute()) {
             System.err.printf("Error generating %s\n", name);
@@ -143,7 +146,8 @@ public class OSGiWrapper {
                        String dynamicimportPackages,
                        String bundleDescription,
                        String destdir,
-                       String bundleClasspath) {
+                       String bundleClasspath,
+                       String karafCommands) {
         this.inputJar = inputJar;
         this.classpath = Lists.newArrayList(classpath.split(":"));
         if (!this.classpath.contains(inputJar)) {
@@ -174,6 +178,7 @@ public class OSGiWrapper {
         this.destdir = destdir;
 
         this.bundleClasspath = bundleClasspath;
+        this.karafCommands = karafCommands;
     }
 
     private void setProperties(Analyzer analyzer) {
@@ -189,6 +194,7 @@ public class OSGiWrapper {
         //analyzer.setProperty("-consumer-policy", "${range;[===,==+)}");
 
         analyzer.setProperty(Analyzer.DYNAMICIMPORT_PACKAGE, dynamicimportPackages);
+        analyzer.setProperty(Analyzer.DSANNOTATIONS_OPTIONS, "inherit");
 
         // TODO include version in export, but not in import
         analyzer.setProperty(Analyzer.EXPORT_PACKAGE, exportPackages);
@@ -207,6 +213,7 @@ public class OSGiWrapper {
             analyzer.setProperty(Analyzer.IMPORT_PACKAGE, importPackages +
                     ",org.glassfish.jersey.servlet,org.jvnet.mimepull\n");
         }
+        analyzer.setProperty("Karaf-Commands", karafCommands);
     }
 
     public boolean execute() {
@@ -230,14 +237,14 @@ public class OSGiWrapper {
             // Analyze the target JAR first
             analyzer.analyze();
 
-            // Scan the JAR for Felix SCR annotations and generate XML files
-            Map<String, String> properties = Maps.newHashMap();
-            // destdir hack
-            properties.put("destdir", destdir);
-            SCRDescriptorBndPlugin scrDescriptorBndPlugin = new SCRDescriptorBndPlugin();
-            scrDescriptorBndPlugin.setProperties(properties);
-            scrDescriptorBndPlugin.setReporter(analyzer);
-            scrDescriptorBndPlugin.analyzeJar(analyzer);
+            //// Scan the JAR for Felix SCR annotations and generate XML files
+            //Map<String, String> properties = Maps.newHashMap();
+            //// destdir hack
+            //properties.put("destdir", destdir);
+            //SCRDescriptorBndPlugin scrDescriptorBndPlugin = new SCRDescriptorBndPlugin();
+            //scrDescriptorBndPlugin.setProperties(properties);
+            //scrDescriptorBndPlugin.setReporter(analyzer);
+            //scrDescriptorBndPlugin.analyzeJar(analyzer);
 
             if (includeResources != null) {
                 doIncludeResources(analyzer);

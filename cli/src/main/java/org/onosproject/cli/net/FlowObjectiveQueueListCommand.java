@@ -16,8 +16,9 @@
 package org.onosproject.cli.net;
 
 import com.google.common.collect.ListMultimap;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.apache.karaf.shell.api.action.Option;
 import org.onlab.osgi.ServiceNotFoundException;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.flowobjective.FilteringObjQueueKey;
@@ -31,6 +32,7 @@ import java.util.Map;
 /**
  * Displays flow objective that are waiting for the completion of previous objective with the same key.
  */
+@Service
 @Command(scope = "onos", name = "obj-queues",
         description = "Display flow objective queues")
 public class FlowObjectiveQueueListCommand extends AbstractShellCommand {
@@ -46,7 +48,7 @@ public class FlowObjectiveQueueListCommand extends AbstractShellCommand {
     private boolean cache = false;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         try {
             FlowObjectiveService service = get(FlowObjectiveService.class);
             ListMultimap<FilteringObjQueueKey, Objective> filtObjQueue = service.getFilteringObjQueue();

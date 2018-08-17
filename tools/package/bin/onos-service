@@ -19,7 +19,7 @@ set -u  # exit on undefined variable
 # If ONOS_HOME is not set (e.g. in the init or service environment),
 # set it based on this script's path.
 ONOS_HOME=${ONOS_HOME:-$(cd $(dirname $0)/.. >/dev/null 2>&1 && pwd)}
-KARAF_ARGS=
+KARAF_ARGS=server
 SYS_APPS=drivers
 ONOS_APPS=${ONOS_APPS:-}  # Empty means don't activate any new apps
 
@@ -51,5 +51,7 @@ for app in ${SYS_APPS//,/ } ${ONOS_APPS//,/ }; do
         echo "[WARN] Don't know how to activate $app"
     fi
 done
+
+KARAF_ARGS+=" server"
 
 exec ${ONOS_HOME}/apache-karaf-$KARAF_VERSION/bin/karaf $KARAF_ARGS

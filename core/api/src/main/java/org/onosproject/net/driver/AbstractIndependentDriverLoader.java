@@ -15,11 +15,10 @@
  */
 package org.onosproject.net.driver;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +26,6 @@ import org.slf4j.LoggerFactory;
  * Abstract bootstrapper for loading and registering driver definitions that
  * are independent from the default driver definitions.
  */
-@Component
 public abstract class AbstractIndependentDriverLoader {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -35,7 +33,7 @@ public abstract class AbstractIndependentDriverLoader {
     private DriverProvider provider;
     private final String path;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DriverAdminService driverAdminService;
 
     /**

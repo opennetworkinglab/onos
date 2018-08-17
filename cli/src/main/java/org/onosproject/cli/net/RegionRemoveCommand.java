@@ -15,8 +15,9 @@
  */
 package org.onosproject.cli.net;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.region.RegionAdminService;
 import org.onosproject.net.region.RegionId;
@@ -24,6 +25,7 @@ import org.onosproject.net.region.RegionId;
 /**
  * Removes a region from the existing region list.
  */
+@Service
 @Command(scope = "onos", name = "region-remove",
         description = "Removes an existing region.")
 public class RegionRemoveCommand extends AbstractShellCommand {
@@ -33,7 +35,7 @@ public class RegionRemoveCommand extends AbstractShellCommand {
     String id = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         RegionAdminService service = get(RegionAdminService.class);
         RegionId regionId = RegionId.regionId(id);
 

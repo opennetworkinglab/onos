@@ -16,14 +16,6 @@
 package org.onosproject.fwd;
 
 import com.google.common.collect.ImmutableSet;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.ICMP;
 import org.onlab.packet.ICMP6;
@@ -79,6 +71,12 @@ import org.onosproject.store.service.MultiValuedTimestamp;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.WallClockTimestamp;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Dictionary;
@@ -96,8 +94,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Sample reactive forwarding application.
  */
-@Component(immediate = true)
-@Service(value = ReactiveForwarding.class)
+@Component(immediate = true, service = ReactiveForwarding.class)
 public class ReactiveForwarding {
 
     private static final int DEFAULT_TIMEOUT = 10;
@@ -105,28 +102,28 @@ public class ReactiveForwarding {
 
     private final Logger log = getLogger(getClass());
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected TopologyService topologyService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected PacketService packetService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected HostService hostService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected FlowRuleService flowRuleService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected FlowObjectiveService flowObjectiveService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService cfgService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected StorageService storageService;
 
     private ReactivePacketProcessor processor = new ReactivePacketProcessor();
@@ -135,69 +132,69 @@ public class ReactiveForwarding {
 
     private ApplicationId appId;
 
-    @Property(name = "packetOutOnly", boolValue = false,
-            label = "Enable packet-out only forwarding; default is false")
+    //@Property(name = "packetOutOnly", boolValue = false,
+    //        label = "Enable packet-out only forwarding; default is false")
     private boolean packetOutOnly = false;
 
-    @Property(name = "packetOutOfppTable", boolValue = false,
-            label = "Enable first packet forwarding using OFPP_TABLE port " +
-                    "instead of PacketOut with actual port; default is false")
+    //@Property(name = "packetOutOfppTable", boolValue = false,
+    //        label = "Enable first packet forwarding using OFPP_TABLE port " +
+    //                "instead of PacketOut with actual port; default is false")
     private boolean packetOutOfppTable = false;
 
-    @Property(name = "flowTimeout", intValue = DEFAULT_TIMEOUT,
-            label = "Configure Flow Timeout for installed flow rules; " +
-                    "default is 10 sec")
+    //@Property(name = "flowTimeout", intValue = DEFAULT_TIMEOUT,
+    //        label = "Configure Flow Timeout for installed flow rules; " +
+    //                "default is 10 sec")
     private int flowTimeout = DEFAULT_TIMEOUT;
 
-    @Property(name = "flowPriority", intValue = DEFAULT_PRIORITY,
-            label = "Configure Flow Priority for installed flow rules; " +
-                    "default is 10")
+    //@Property(name = "flowPriority", intValue = DEFAULT_PRIORITY,
+    //        label = "Configure Flow Priority for installed flow rules; " +
+    //                "default is 10")
     private int flowPriority = DEFAULT_PRIORITY;
 
-    @Property(name = "ipv6Forwarding", boolValue = false,
-            label = "Enable IPv6 forwarding; default is false")
+    //@Property(name = "ipv6Forwarding", boolValue = false,
+    //        label = "Enable IPv6 forwarding; default is false")
     private boolean ipv6Forwarding = false;
 
-    @Property(name = "matchDstMacOnly", boolValue = false,
-            label = "Enable matching Dst Mac Only; default is false")
+    //@Property(name = "matchDstMacOnly", boolValue = false,
+    //        label = "Enable matching Dst Mac Only; default is false")
     private boolean matchDstMacOnly = false;
 
-    @Property(name = "matchVlanId", boolValue = false,
-            label = "Enable matching Vlan ID; default is false")
+    //@Property(name = "matchVlanId", boolValue = false,
+    //        label = "Enable matching Vlan ID; default is false")
     private boolean matchVlanId = false;
 
-    @Property(name = "matchIpv4Address", boolValue = false,
-            label = "Enable matching IPv4 Addresses; default is false")
+    //@Property(name = "matchIpv4Address", boolValue = false,
+    //        label = "Enable matching IPv4 Addresses; default is false")
     private boolean matchIpv4Address = false;
 
-    @Property(name = "matchIpv4Dscp", boolValue = false,
-            label = "Enable matching IPv4 DSCP and ECN; default is false")
+    //@Property(name = "matchIpv4Dscp", boolValue = false,
+    //        label = "Enable matching IPv4 DSCP and ECN; default is false")
     private boolean matchIpv4Dscp = false;
 
-    @Property(name = "matchIpv6Address", boolValue = false,
-            label = "Enable matching IPv6 Addresses; default is false")
+    //@Property(name = "matchIpv6Address", boolValue = false,
+    //        label = "Enable matching IPv6 Addresses; default is false")
     private boolean matchIpv6Address = false;
 
-    @Property(name = "matchIpv6FlowLabel", boolValue = false,
-            label = "Enable matching IPv6 FlowLabel; default is false")
+    //@Property(name = "matchIpv6FlowLabel", boolValue = false,
+    //        label = "Enable matching IPv6 FlowLabel; default is false")
     private boolean matchIpv6FlowLabel = false;
 
-    @Property(name = "matchTcpUdpPorts", boolValue = false,
-            label = "Enable matching TCP/UDP ports; default is false")
+    //@Property(name = "matchTcpUdpPorts", boolValue = false,
+    //        label = "Enable matching TCP/UDP ports; default is false")
     private boolean matchTcpUdpPorts = false;
 
-    @Property(name = "matchIcmpFields", boolValue = false,
-            label = "Enable matching ICMPv4 and ICMPv6 fields; " +
-                    "default is false")
+    //@Property(name = "matchIcmpFields", boolValue = false,
+    //        label = "Enable matching ICMPv4 and ICMPv6 fields; " +
+    //                "default is false")
     private boolean matchIcmpFields = false;
 
 
-    @Property(name = "ignoreIPv4Multicast", boolValue = false,
-            label = "Ignore (do not forward) IPv4 multicast packets; default is false")
+    //@Property(name = "ignoreIPv4Multicast", boolValue = false,
+    //        label = "Ignore (do not forward) IPv4 multicast packets; default is false")
     private boolean ignoreIpv4McastPackets = false;
 
-    @Property(name = "recordMetrics", boolValue = false,
-            label = "Enable record metrics for reactive forwarding")
+    //@Property(name = "recordMetrics", boolValue = false,
+    //        label = "Enable record metrics for reactive forwarding")
     private boolean recordMetrics = false;
 
     private final TopologyListener topologyListener = new InternalTopologyListener();

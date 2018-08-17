@@ -16,13 +16,6 @@
 
 package org.onosproject.provider.linkdiscovery.impl;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -45,6 +38,12 @@ import org.onosproject.net.link.LinkService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Dictionary;
@@ -74,29 +73,29 @@ public class LinkDiscoveryProvider extends AbstractProvider
     private static final String LINK_PROVIDER_PACKAGE = "org.onosproject.provider.linkdiscovery";
     private final Logger log = getLogger(getClass());
     private static final int DEFAULT_POLL_DELAY_SECONDS = 20;
-    @Property(name = "linkPollDelaySeconds", intValue = DEFAULT_POLL_DELAY_SECONDS,
-            label = "Initial delay (in seconds) for polling link discovery")
+    //@Property(name = "linkPollDelaySeconds", intValue = DEFAULT_POLL_DELAY_SECONDS,
+    //        label = "Initial delay (in seconds) for polling link discovery")
     protected static int linkPollDelaySeconds = DEFAULT_POLL_DELAY_SECONDS;
     private static final int DEFAULT_POLL_FREQUENCY_SECONDS = 10;
-    @Property(name = "linkPollFrequencySeconds", intValue = DEFAULT_POLL_FREQUENCY_SECONDS,
-            label = "Frequency (in seconds) for polling link discovery")
+    //@Property(name = "linkPollFrequencySeconds", intValue = DEFAULT_POLL_FREQUENCY_SECONDS,
+    //        label = "Frequency (in seconds) for polling link discovery")
     protected static int linkPollFrequencySeconds = DEFAULT_POLL_FREQUENCY_SECONDS;
 
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected LinkProviderRegistry providerRegistry;
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected LinkService linkService;
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected MastershipService mastershipService;
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DeviceService deviceService;
     protected ScheduledExecutorService executor =
             newScheduledThreadPool(2, groupedThreads("onos/netconf-link",
                                                      "discovery-%d"));
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService cfgService;
 
     protected LinkProviderService providerService;

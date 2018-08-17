@@ -16,8 +16,8 @@
 package org.onosproject.provider.bgp.cfg.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.packet.IpAddress;
 import org.onosproject.bgp.controller.BgpCfg;
@@ -38,7 +38,7 @@ import static org.onosproject.net.config.Config.FieldPresence.OPTIONAL;
  * Configuration object for BGP.
  */
 public class BgpAppConfig extends Config<ApplicationId> {
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     BgpController bgpController;
 
     BgpCfg bgpConfig = null;

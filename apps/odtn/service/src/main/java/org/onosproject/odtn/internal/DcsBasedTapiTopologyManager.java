@@ -16,35 +16,32 @@
 
 package org.onosproject.odtn.internal;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.config.DynamicConfigService;
-
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.Port;
-
 import org.onosproject.odtn.TapiResolver;
 import org.onosproject.odtn.TapiTopologyManager;
-import org.onosproject.odtn.utils.tapi.TapiLinkHandler;
 import org.onosproject.odtn.utils.tapi.TapiCepHandler;
-import org.onosproject.odtn.utils.tapi.TapiNepRef;
-import org.onosproject.odtn.utils.tapi.TapiNodeRef;
 import org.onosproject.odtn.utils.tapi.TapiContextHandler;
+import org.onosproject.odtn.utils.tapi.TapiLinkHandler;
 import org.onosproject.odtn.utils.tapi.TapiNepHandler;
+import org.onosproject.odtn.utils.tapi.TapiNepRef;
 import org.onosproject.odtn.utils.tapi.TapiNodeHandler;
+import org.onosproject.odtn.utils.tapi.TapiNodeRef;
 import org.onosproject.odtn.utils.tapi.TapiSipHandler;
 import org.onosproject.odtn.utils.tapi.TapiTopologyHandler;
 import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.DefaultContext;
 import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.Uuid;
 import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.topologycontext.DefaultTopology;
 import org.onosproject.yang.model.ModelConverter;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -52,19 +49,18 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * OSGi Component for ODTN TAPI topology manager application.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = TapiTopologyManager.class)
 public class DcsBasedTapiTopologyManager implements TapiTopologyManager {
 
     private final Logger log = getLogger(getClass());
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DynamicConfigService dcs;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ModelConverter modelConverter;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected TapiResolver tapiResolver;
 
     private DefaultContext context;

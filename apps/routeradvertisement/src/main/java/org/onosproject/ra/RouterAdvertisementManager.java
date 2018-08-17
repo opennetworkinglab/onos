@@ -16,14 +16,7 @@
 
 package org.onosproject.ra;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Service;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
+import com.google.common.collect.ImmutableMap;
 import org.onlab.packet.EthType;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.ICMP6;
@@ -66,6 +59,12 @@ import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.ra.config.RouterAdvertisementDeviceConfig;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,13 +89,11 @@ import java.util.stream.IntStream;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
-import com.google.common.collect.ImmutableMap;
 
 /**
  * Manages IPv6 Router Advertisements.
  */
-@Service
-@Component(immediate = true)
+@Component(immediate = true, service = RoutingAdvertisementService.class)
 public class RouterAdvertisementManager implements RoutingAdvertisementService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -113,49 +110,49 @@ public class RouterAdvertisementManager implements RoutingAdvertisementService {
     private static final String PROP_RA_GLOBAL_PREFIX_CONF_STATUS = "raGlobalPrefixConfStatus";
     private static final boolean DEFAULT_RA_GLOBAL_PREFIX_CONF_STATUS = true;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     PacketService packetService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService componentConfigService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     public InterfaceService interfaceService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     public MastershipService mastershipService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected NetworkConfigRegistry networkConfigRegistry;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DeviceService deviceService;
 
-    @Property(name = PROP_RA_THREADS_POOL, intValue = DEFAULT_RA_THREADS_POOL_SIZE,
-            label = "Thread pool capacity")
+    //@Property(name = PROP_RA_THREADS_POOL, intValue = DEFAULT_RA_THREADS_POOL_SIZE,
+    //        label = "Thread pool capacity")
     protected int raPoolSize = DEFAULT_RA_THREADS_POOL_SIZE;
 
-    @Property(name = PROP_RA_THREADS_DELAY, intValue = DEFAULT_RA_THREADS_DELAY,
-            label = "Thread delay in seconds")
+    //@Property(name = PROP_RA_THREADS_DELAY, intValue = DEFAULT_RA_THREADS_DELAY,
+    //        label = "Thread delay in seconds")
     protected int raThreadDelay = DEFAULT_RA_THREADS_DELAY;
 
-    @Property(name = PROP_RA_FLAG_MBIT_STATUS, boolValue = DEFAULT_RA_FLAG_MBIT_STATUS,
-            label = "Turn M-bit flag on/off")
+    //@Property(name = PROP_RA_FLAG_MBIT_STATUS, boolValue = DEFAULT_RA_FLAG_MBIT_STATUS,
+    //        label = "Turn M-bit flag on/off")
     protected boolean raFlagMbitStatus = DEFAULT_RA_FLAG_MBIT_STATUS;
 
-    @Property(name = PROP_RA_FLAG_OBIT_STATUS, boolValue = DEFAULT_RA_FLAG_OBIT_STATUS,
-            label = "Turn O-bit flag on/off")
+    //@Property(name = PROP_RA_FLAG_OBIT_STATUS, boolValue = DEFAULT_RA_FLAG_OBIT_STATUS,
+    //        label = "Turn O-bit flag on/off")
     protected boolean raFlagObitStatus = DEFAULT_RA_FLAG_OBIT_STATUS;
 
-    @Property(name = PROP_RA_OPTION_PREFIX_STATUS, boolValue = DEFAULT_RA_OPTION_PREFIX_STATUS,
-            label = "Prefix option support needed or not")
+    //@Property(name = PROP_RA_OPTION_PREFIX_STATUS, boolValue = DEFAULT_RA_OPTION_PREFIX_STATUS,
+    //        label = "Prefix option support needed or not")
     protected boolean raOptionPrefixStatus = DEFAULT_RA_OPTION_PREFIX_STATUS;
 
-    @Property(name = PROP_RA_GLOBAL_PREFIX_CONF_STATUS, boolValue = DEFAULT_RA_GLOBAL_PREFIX_CONF_STATUS,
-            label = "Global prefix configuration support on/off")
+    //@Property(name = PROP_RA_GLOBAL_PREFIX_CONF_STATUS, boolValue = DEFAULT_RA_GLOBAL_PREFIX_CONF_STATUS,
+    //        label = "Global prefix configuration support on/off")
     protected boolean raGlobalConfigStatus = DEFAULT_RA_GLOBAL_PREFIX_CONF_STATUS;
 
     @GuardedBy(value = "this")

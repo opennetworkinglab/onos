@@ -16,14 +16,6 @@
 package org.onosproject.provider.pcep.tunnel.impl;
 
 import com.google.common.collect.Maps;
-
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.graph.ScalarWeight;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
@@ -88,8 +80,8 @@ import org.onosproject.pcep.server.PcepClientListener;
 import org.onosproject.pcep.server.PcepEventListener;
 import org.onosproject.pcep.server.PcepLspStatus;
 import org.onosproject.pcep.server.PcepLspSyncAction;
-import org.onosproject.pcep.server.SrpIdGenerators;
 import org.onosproject.pcep.server.PcepSyncStatus;
+import org.onosproject.pcep.server.SrpIdGenerators;
 import org.onosproject.pcepio.exceptions.PcepParseException;
 import org.onosproject.pcepio.protocol.PcInitiatedLspRequest;
 import org.onosproject.pcepio.protocol.PcepAttribute;
@@ -114,7 +106,12 @@ import org.onosproject.pcepio.types.SrEroSubObject;
 import org.onosproject.pcepio.types.StatefulIPv4LspIdentifiersTlv;
 import org.onosproject.pcepio.types.SymbolicPathNameTlv;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -136,39 +133,38 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onlab.util.Tools.get;
 import static org.onosproject.incubator.net.tunnel.Tunnel.State.INIT;
+import static org.onosproject.incubator.net.tunnel.Tunnel.State.UNSTABLE;
 import static org.onosproject.incubator.net.tunnel.Tunnel.Type.MPLS;
 import static org.onosproject.net.DefaultAnnotations.EMPTY;
 import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.PortNumber.portNumber;
 import static org.onosproject.pcep.api.PcepDpid.uri;
-import static org.onosproject.pcep.server.LspType.WITH_SIGNALLING;
 import static org.onosproject.pcep.server.LspType.SR_WITHOUT_SIGNALLING;
 import static org.onosproject.pcep.server.LspType.WITHOUT_SIGNALLING_AND_WITHOUT_SR;
+import static org.onosproject.pcep.server.LspType.WITH_SIGNALLING;
 import static org.onosproject.pcep.server.PcepAnnotationKeys.BANDWIDTH;
+import static org.onosproject.pcep.server.PcepAnnotationKeys.COST_TYPE;
+import static org.onosproject.pcep.server.PcepAnnotationKeys.DELEGATE;
 import static org.onosproject.pcep.server.PcepAnnotationKeys.LOCAL_LSP_ID;
 import static org.onosproject.pcep.server.PcepAnnotationKeys.LSP_SIG_TYPE;
 import static org.onosproject.pcep.server.PcepAnnotationKeys.PCC_TUNNEL_ID;
 import static org.onosproject.pcep.server.PcepAnnotationKeys.PCE_INIT;
 import static org.onosproject.pcep.server.PcepAnnotationKeys.PLSP_ID;
-import static org.onosproject.pcep.server.PcepAnnotationKeys.DELEGATE;
-import static org.onosproject.pcep.server.PcepAnnotationKeys.COST_TYPE;
-import static org.onosproject.provider.pcep.tunnel.impl.RequestType.CREATE;
-import static org.onosproject.provider.pcep.tunnel.impl.RequestType.DELETE;
-import static org.onosproject.provider.pcep.tunnel.impl.RequestType.LSP_STATE_RPT;
-import static org.onosproject.provider.pcep.tunnel.impl.RequestType.UPDATE;
-import static org.onosproject.incubator.net.tunnel.Tunnel.State.UNSTABLE;
 import static org.onosproject.pcep.server.PcepLspSyncAction.REMOVE;
 import static org.onosproject.pcep.server.PcepLspSyncAction.SEND_UPDATE;
 import static org.onosproject.pcepio.protocol.ver1.PcepMetricObjectVer1.IGP_METRIC;
 import static org.onosproject.pcepio.protocol.ver1.PcepMetricObjectVer1.TE_METRIC;
+import static org.onosproject.provider.pcep.tunnel.impl.RequestType.CREATE;
+import static org.onosproject.provider.pcep.tunnel.impl.RequestType.DELETE;
+import static org.onosproject.provider.pcep.tunnel.impl.RequestType.LSP_STATE_RPT;
+import static org.onosproject.provider.pcep.tunnel.impl.RequestType.UPDATE;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provider which uses an PCEP controller to detect, update, create network
  * tunnels.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = TunnelProvider.class)
 public class PcepTunnelProvider extends AbstractProvider implements TunnelProvider {
 
     private static final Logger log = getLogger(PcepTunnelProvider.class);
@@ -183,37 +179,37 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
     public static final String LSRID = "lsrId";
 
     static final int POLL_INTERVAL = 10;
-    @Property(name = "tunnelStatsPollFrequency", intValue = POLL_INTERVAL,
-            label = "Frequency (in seconds) for polling tunnel statistics")
+    //@Property(name = "tunnelStatsPollFrequency", intValue = POLL_INTERVAL,
+    //        label = "Frequency (in seconds) for polling tunnel statistics")
     private int tunnelStatsPollFrequency = POLL_INTERVAL;
 
     private static final String TUNNLE_NOT_NULL = "Create failed,The given port may be wrong or has been occupied.";
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected TunnelProviderRegistry tunnelProviderRegistry;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected PcepController controller;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected PcepClientController pcepClientController;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected TunnelService tunnelService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService cfgService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected TunnelAdminService tunnelAdminService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected MastershipService mastershipService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DeviceService deviceService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected LinkService linkService;
 
     TunnelProviderService service;

@@ -17,7 +17,8 @@ package org.onosproject.cli.net;
 
 import java.util.List;
 
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.store.service.MapInfo;
 import org.onosproject.store.service.StorageAdminService;
@@ -30,6 +31,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 /**
  * Command to list the various maps in the system.
  */
+@Service
 @Command(scope = "onos", name = "maps",
         description = "Lists information about consistent maps in the system")
 public class MapsListCommand extends AbstractShellCommand {
@@ -71,7 +73,7 @@ public class MapsListCommand extends AbstractShellCommand {
     }
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         StorageAdminService storageAdminService = get(StorageAdminService.class);
         List<MapInfo> mapInfo = storageAdminService.getMapInfo();
         if (outputJson()) {

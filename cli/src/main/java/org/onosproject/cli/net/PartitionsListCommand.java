@@ -17,8 +17,9 @@ package org.onosproject.cli.net;
 
 import java.util.List;
 
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.apache.karaf.shell.api.action.Option;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
@@ -37,6 +38,7 @@ import com.google.common.collect.Ordering;
 /**
  * Command to list the database partitions in the system.
  */
+@Service
 @Command(scope = "onos", name = "partitions",
         description = "Lists information about partitions in the system")
 public class PartitionsListCommand extends AbstractShellCommand {
@@ -172,7 +174,7 @@ public class PartitionsListCommand extends AbstractShellCommand {
     }
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         StorageAdminService storageAdminService = get(StorageAdminService.class);
         if (reportClientInfo) {
             PartitionAdminService partitionAdminService = get(PartitionAdminService.class);

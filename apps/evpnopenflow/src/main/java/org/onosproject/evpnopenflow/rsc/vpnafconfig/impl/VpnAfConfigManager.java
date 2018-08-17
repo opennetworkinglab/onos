@@ -18,12 +18,6 @@ package org.onosproject.evpnopenflow.rsc.vpnafconfig.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.CoreService;
 import org.onosproject.evpnopenflow.rsc.DefaultVpnAfConfig;
@@ -36,6 +30,11 @@ import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.WallClockTimestamp;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,8 +74,7 @@ import static org.onosproject.evpnopenflow.rsc.EvpnConstants.VRF_RT_VALUE;
 /**
  * Provides implementation of the VPN af config APIs.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = VpnAfConfigService.class)
 public class VpnAfConfigManager implements VpnAfConfigService {
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final Set<VpnAfConfigListener> listeners = Sets
@@ -84,10 +82,10 @@ public class VpnAfConfigManager implements VpnAfConfigService {
 
     protected EventuallyConsistentMap<VpnRouteTarget, VpnAfConfig>
             vpnAfConfigStore;
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected StorageService storageService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
     @Activate

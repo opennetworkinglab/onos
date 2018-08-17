@@ -16,8 +16,9 @@
 
 package org.onosproject.cli.net;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.key.DeviceKeyAdminService;
 import org.onosproject.net.key.DeviceKeyId;
@@ -25,6 +26,7 @@ import org.onosproject.net.key.DeviceKeyId;
 /**
  * Removes a device key.
  */
+@Service
 @Command(scope = "onos", name = "device-key-remove",
         description = "Removes a device key")
 
@@ -35,7 +37,7 @@ public class DeviceKeyRemoveCommand extends AbstractShellCommand {
     String id = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         DeviceKeyAdminService service = get(DeviceKeyAdminService.class);
         service.removeKey(DeviceKeyId.deviceKeyId(id));
     }

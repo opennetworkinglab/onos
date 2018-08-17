@@ -18,13 +18,15 @@ package org.onosproject.ui.impl;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import org.eclipse.jetty.websocket.WebSocket;
-import org.eclipse.jetty.websocket.WebSocketServlet;
+import org.eclipse.jetty.websocket.servlet.WebSocketServlet;
+import org.eclipse.jetty.websocket.servlet.WebSocketServletFactory;
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.osgi.ServiceDirectory;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.security.Principal;
 import java.util.Set;
 import java.util.Timer;
@@ -46,6 +48,11 @@ public class UiWebSocketServlet extends WebSocketServlet {
     private final Timer timer = new Timer();
     private final TimerTask pruner = new Pruner();
     private static boolean isStopped = false;
+
+    @Override
+    public void configure(WebSocketServletFactory webSocketServletFactory) {
+
+    }
 
     /**
      * Closes all currently open UI web-sockets.
@@ -72,9 +79,11 @@ public class UiWebSocketServlet extends WebSocketServlet {
     }
 
     @Override
-    public WebSocket doWebSocketConnect(HttpServletRequest request, String protocol) {
+    public void service(HttpServletRequest request, HttpServletResponse response)
+           throws ServletException, IOException {
+        super.service(request, response);
         if (isStopped) {
-            return null;
+            return;
         }
 
         // FIXME: Replace this with globally shared opaque token to allow secure failover
@@ -83,7 +92,6 @@ public class UiWebSocketServlet extends WebSocketServlet {
 
         UiWebSocket socket = new UiWebSocket(directory, userName);
         sockets.add(socket);
-        return socket;
     }
 
     // FIXME: This should not be necessary

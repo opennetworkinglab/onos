@@ -20,14 +20,13 @@ import com.google.common.collect.Maps;
 import io.grpc.BindableService;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.protobuf.api.GrpcServiceRegistry;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Property;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,8 +46,7 @@ import static org.onlab.util.Tools.get;
  * service forces a restart of the server, this is sufficient for testing but
  * inappropriate for deployment.
  */
-@Service
-@Component(immediate = false)
+@Component(service = GrpcServiceRegistry.class)
 public class GrpcServiceRegistryImpl implements GrpcServiceRegistry {
 
     private static final int DEFAULT_SERVER_PORT = 64000;

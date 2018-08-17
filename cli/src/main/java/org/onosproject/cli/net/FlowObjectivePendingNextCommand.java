@@ -17,7 +17,8 @@ package org.onosproject.cli.net;
 
 import java.util.List;
 
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.osgi.ServiceNotFoundException;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
@@ -27,6 +28,7 @@ import org.onosproject.net.flowobjective.FlowObjectiveService;
  * Also returns the forwarding objectives and next objectives waiting on the pending
  * next-objectives. These lists are controller instance specific.
  */
+@Service
 @Command(scope = "onos", name = "obj-pending-nexts",
         description = "flow-objectives pending next-objectives")
 public class FlowObjectivePendingNextCommand extends AbstractShellCommand {
@@ -34,7 +36,7 @@ public class FlowObjectivePendingNextCommand extends AbstractShellCommand {
     private static final String FORMAT_MAPPING = "  %s";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         try {
             FlowObjectiveService service = get(FlowObjectiveService.class);
             printNexts(service.getPendingFlowObjectives());

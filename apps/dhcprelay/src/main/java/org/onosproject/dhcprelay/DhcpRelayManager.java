@@ -15,37 +15,19 @@
  */
 package org.onosproject.dhcprelay;
 
-import java.nio.ByteBuffer;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Dictionary;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Streams;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.ARP;
 import org.onlab.packet.DHCP;
 import org.onlab.packet.DHCP6;
-import org.onlab.packet.IPacket;
-import org.onlab.packet.IPv6;
 import org.onlab.packet.Ethernet;
+import org.onlab.packet.IPacket;
 import org.onlab.packet.IPv4;
+import org.onlab.packet.IPv6;
 import org.onlab.packet.Ip4Address;
-import org.onlab.packet.MacAddress;
 import org.onlab.packet.IpPrefix;
+import org.onlab.packet.MacAddress;
 import org.onlab.packet.UDP;
 import org.onlab.packet.VlanId;
 import org.onlab.util.Tools;
@@ -58,56 +40,68 @@ import org.onosproject.dhcprelay.api.DhcpServerInfo;
 import org.onosproject.dhcprelay.config.DefaultDhcpRelayConfig;
 import org.onosproject.dhcprelay.config.DhcpServerConfig;
 import org.onosproject.dhcprelay.config.EnableDhcpFpmConfig;
-import org.onosproject.dhcprelay.config.IndirectDhcpRelayConfig;
 import org.onosproject.dhcprelay.config.IgnoreDhcpConfig;
+import org.onosproject.dhcprelay.config.IndirectDhcpRelayConfig;
+import org.onosproject.dhcprelay.store.DhcpFpmPrefixStore;
 import org.onosproject.dhcprelay.store.DhcpRecord;
 import org.onosproject.dhcprelay.store.DhcpRelayStore;
-import org.onosproject.dhcprelay.store.DhcpFpmPrefixStore;
-import org.onosproject.routing.fpm.api.FpmRecord;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.Host;
-import org.onosproject.net.config.Config;
-import org.onosproject.net.device.DeviceEvent;
-import org.onosproject.net.device.DeviceListener;
-import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.intf.Interface;
-import org.onosproject.net.intf.InterfaceService;
-import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.HostId;
+import org.onosproject.net.config.Config;
 import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigRegistry;
+import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceListener;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.host.HostService;
+import org.onosproject.net.intf.Interface;
+import org.onosproject.net.intf.InterfaceService;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
-
+import org.onosproject.routing.fpm.api.FpmRecord;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.nio.ByteBuffer;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Dictionary;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import static org.onlab.util.Tools.groupedThreads;
-
-
-import com.google.common.collect.ImmutableSet;
-
 import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FACTORY;
 
 /**
  * DHCP Relay Agent Application Component.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = DhcpRelayService.class)
 public class DhcpRelayManager implements DhcpRelayService {
     public static final String DHCP_RELAY_APP = "org.onosproject.dhcprelay";
     public static final String ROUTE_STORE_IMPL =
@@ -159,51 +153,51 @@ public class DhcpRelayManager implements DhcpRelayService {
     );
 
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected NetworkConfigRegistry cfgService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected PacketService packetService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected HostService hostService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected InterfaceService interfaceService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DhcpRelayStore dhcpRelayStore;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService compCfgService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DeviceService deviceService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DhcpFpmPrefixStore dhcpFpmPrefixStore;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY,
+    @Reference(cardinality = ReferenceCardinality.MANDATORY,
             target = "(version=4)")
     protected DhcpHandler v4Handler;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY,
+    @Reference(cardinality = ReferenceCardinality.MANDATORY,
             target = "(version=6)")
     protected DhcpHandler v6Handler;
 
-    @Property(name = "arpEnabled", boolValue = true,
-            label = "Enable Address resolution protocol")
+    //@Property(name = "arpEnabled", boolValue = true,
+    //        label = "Enable Address resolution protocol")
     protected boolean arpEnabled = true;
 
-    @Property(name = "dhcpPollInterval", intValue = 24 * 3600,
-            label = "dhcp relay poll interval")
+    //@Property(name = "dhcpPollInterval", intValue = 24 * 3600,
+    //        label = "dhcp relay poll interval")
     protected int dhcpPollInterval = 24 * 3600;
 
-    @Property(name = "dhcpFpmEnabled", boolValue = false,
-            label = "Enable DhcpRelay Fpm")
+    //@Property(name = "dhcpFpmEnabled", boolValue = false,
+    //        label = "Enable DhcpRelay Fpm")
     protected boolean dhcpFpmEnabled = false;
 
     private ScheduledExecutorService timerExecutor;

@@ -15,12 +15,6 @@
  */
 package org.onosproject.net.driver.impl;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.ItemNotFoundException;
 import org.onosproject.net.AbstractProjectableModel;
 import org.onosproject.net.Device;
@@ -38,6 +32,11 @@ import org.onosproject.net.driver.DriverRegistry;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.pi.model.PiPipeconfId;
 import org.onosproject.net.pi.service.PiPipeconfService;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,10 +52,10 @@ import static org.onosproject.security.AppPermission.Type.DRIVER_WRITE;
 /**
  * Manages inventory of device drivers.
  */
-@Service
+
 // Not enabled by default to allow the DriverRegistryManager to enable it only
 // when all the required drivers are available.
-@Component(immediate = true, enabled = false)
+@Component(immediate = true, enabled = false, service = DriverService.class)
 public class DriverManager implements DriverService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -64,16 +63,16 @@ public class DriverManager implements DriverService {
     private static final String NO_DRIVER = "Driver not found";
     private static final String NO_DEVICE = "Device not found";
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DriverRegistry registry;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DeviceService deviceService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected NetworkConfigService networkConfigService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected PiPipeconfService pipeconfService;
 
     @Activate

@@ -15,12 +15,6 @@
  */
 package org.onosproject.openstacktelemetry.impl;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -29,6 +23,11 @@ import org.onosproject.openstacktelemetry.api.KafkaTelemetryAdminService;
 import org.onosproject.openstacktelemetry.api.OpenstackTelemetryService;
 import org.onosproject.openstacktelemetry.api.config.KafkaTelemetryConfig;
 import org.onosproject.openstacktelemetry.api.config.TelemetryConfig;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,8 +37,7 @@ import java.util.concurrent.Future;
 /**
  * Kafka telemetry manager.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = KafkaTelemetryAdminService.class)
 public class KafkaTelemetryManager implements KafkaTelemetryAdminService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -53,7 +51,7 @@ public class KafkaTelemetryManager implements KafkaTelemetryAdminService {
     private static final String KEY_SERIALIZER = "key.serializer";
     private static final String VALUE_SERIALIZER = "value.serializer";
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected OpenstackTelemetryService openstackTelemetryService;
 
     private Producer<String, byte[]> producer = null;

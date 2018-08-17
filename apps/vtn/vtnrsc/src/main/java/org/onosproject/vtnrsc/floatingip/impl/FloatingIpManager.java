@@ -15,20 +15,7 @@
  */
 package org.onosproject.vtnrsc.floatingip.impl;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Set;
-import java.util.UUID;
-
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
+import com.google.common.collect.Sets;
 import org.onlab.packet.IpAddress;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
@@ -42,25 +29,35 @@ import org.onosproject.store.service.WallClockTimestamp;
 import org.onosproject.vtnrsc.DefaultFloatingIp;
 import org.onosproject.vtnrsc.FloatingIp;
 import org.onosproject.vtnrsc.FloatingIpId;
+import org.onosproject.vtnrsc.RouterId;
 import org.onosproject.vtnrsc.TenantId;
 import org.onosproject.vtnrsc.TenantNetworkId;
 import org.onosproject.vtnrsc.VirtualPortId;
-import org.onosproject.vtnrsc.RouterId;
 import org.onosproject.vtnrsc.floatingip.FloatingIpEvent;
 import org.onosproject.vtnrsc.floatingip.FloatingIpListener;
 import org.onosproject.vtnrsc.floatingip.FloatingIpService;
 import org.onosproject.vtnrsc.router.RouterService;
 import org.onosproject.vtnrsc.tenantnetwork.TenantNetworkService;
 import org.onosproject.vtnrsc.virtualport.VirtualPortService;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
-import com.google.common.collect.Sets;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
+import java.util.UUID;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provides implementation of the FloatingIp service.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = FloatingIpService.class)
 public class FloatingIpManager implements FloatingIpService {
     private static final String FLOATINGIP_ID_NOT_NULL = "Floatingip ID cannot be null";
     private static final String FLOATINGIP_NOT_NULL = "Floatingip cannot be null";
@@ -79,19 +76,19 @@ public class FloatingIpManager implements FloatingIpService {
     protected EventuallyConsistentMap<FloatingIpId, FloatingIp> floatingIpBindStore;
     protected ApplicationId appId;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected StorageService storageService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected TenantNetworkService tenantNetworkService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected VirtualPortService virtualPortService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected RouterService routerService;
 
     @Activate

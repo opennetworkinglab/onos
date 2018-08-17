@@ -15,14 +15,6 @@
  */
 package org.onosproject.openstacktelemetry.impl;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.openstacktelemetry.api.RestTelemetryAdminService;
@@ -30,6 +22,12 @@ import org.onosproject.openstacktelemetry.api.RestTelemetryConfigService;
 import org.onosproject.openstacktelemetry.api.config.TelemetryConfig;
 import org.onosproject.openstacktelemetry.config.DefaultRestTelemetryConfig;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,8 +46,7 @@ import static org.onosproject.openstacktelemetry.util.OpenstackTelemetryUtil.ini
 /**
  * REST server configuration manager for publishing openstack telemetry.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = RestTelemetryConfigService.class)
 public class RestTelemetryConfigManager implements RestTelemetryConfigService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -62,38 +59,38 @@ public class RestTelemetryConfigManager implements RestTelemetryConfigService {
     private static final String REQUEST_MEDIA_TYPE = "requestMediaType";
     private static final String RESPONSE_MEDIA_TYPE = "responseMediaType";
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService componentConfigService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected RestTelemetryAdminService restTelemetryAdminService;
 
-    @Property(name = ADDRESS, value = DEFAULT_REST_SERVER_IP,
-            label = "Default IP address to establish initial connection to REST server")
+    //@Property(name = ADDRESS, value = DEFAULT_REST_SERVER_IP,
+    //        label = "Default IP address to establish initial connection to REST server")
     protected String address = DEFAULT_REST_SERVER_IP;
 
-    @Property(name = PORT, intValue = DEFAULT_REST_SERVER_PORT,
-            label = "Default port number to establish initial connection to REST server")
+    //@Property(name = PORT, intValue = DEFAULT_REST_SERVER_PORT,
+    //        label = "Default port number to establish initial connection to REST server")
     protected Integer port = DEFAULT_REST_SERVER_PORT;
 
-    @Property(name = ENDPOINT, value = DEFAULT_REST_ENDPOINT,
-            label = "Endpoint of REST server")
+    //@Property(name = ENDPOINT, value = DEFAULT_REST_ENDPOINT,
+    //        label = "Endpoint of REST server")
     protected String endpoint = DEFAULT_REST_ENDPOINT;
 
-    @Property(name = METHOD, value = DEFAULT_REST_METHOD,
-            label = "HTTP method of REST server")
+    //@Property(name = METHOD, value = DEFAULT_REST_METHOD,
+    //        label = "HTTP method of REST server")
     protected String method = DEFAULT_REST_METHOD;
 
-    @Property(name = REQUEST_MEDIA_TYPE, value = DEFAULT_REST_REQUEST_MEDIA_TYPE,
-            label = "Request media type of REST server")
+    //@Property(name = REQUEST_MEDIA_TYPE, value = DEFAULT_REST_REQUEST_MEDIA_TYPE,
+    //        label = "Request media type of REST server")
     protected String requestMediaType = DEFAULT_REST_REQUEST_MEDIA_TYPE;
 
-    @Property(name = RESPONSE_MEDIA_TYPE, value = DEFAULT_REST_RESPONSE_MEDIA_TYPE,
-            label = "Response media type of REST server")
+    //@Property(name = RESPONSE_MEDIA_TYPE, value = DEFAULT_REST_RESPONSE_MEDIA_TYPE,
+    //        label = "Response media type of REST server")
     protected String responseMediaType = DEFAULT_REST_RESPONSE_MEDIA_TYPE;
 
-    @Property(name = ENABLE_SERVICE, boolValue = DEFAULT_DISABLE,
-            label = "Specify the default behavior of telemetry service")
+    //@Property(name = ENABLE_SERVICE, boolValue = DEFAULT_DISABLE,
+    //        label = "Specify the default behavior of telemetry service")
     protected Boolean enableService = DEFAULT_DISABLE;
 
     @Activate

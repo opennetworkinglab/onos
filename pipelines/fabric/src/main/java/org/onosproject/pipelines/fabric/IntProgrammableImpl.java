@@ -17,8 +17,8 @@ package org.onosproject.pipelines.fabric;
 
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.Sets;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.onlab.util.ImmutableByteSequence;
 import org.onlab.util.SharedExecutors;
 import org.onosproject.core.ApplicationId;
@@ -78,16 +78,16 @@ public class IntProgrammableImpl extends AbstractHandlerBehaviour implements Int
             Criterion.Type.TCP_SRC, Criterion.Type.TCP_DST,
             Criterion.Type.IP_PROTO);
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private FlowRuleService flowRuleService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private DeviceService deviceService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private HostService hostService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private CoreService coreService;
 
     private DeviceId deviceId;

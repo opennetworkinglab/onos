@@ -20,14 +20,6 @@ import com.codahale.metrics.Timer.Context;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Futures;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.metrics.MetricsService;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cfg.ConfigProperty;
@@ -53,6 +45,12 @@ import org.onosproject.net.region.RegionService;
 import org.onosproject.upgrade.UpgradeEvent;
 import org.onosproject.upgrade.UpgradeEventListener;
 import org.onosproject.upgrade.UpgradeService;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -82,8 +80,8 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Component providing the node-device mastership service.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = {MastershipService.class, MastershipAdminService.class, MastershipTermService.class,
+        MetricsHelper.class})
 public class MastershipManager
         extends AbstractListenerManager<MastershipEvent, MastershipListener>
         implements MastershipService, MastershipAdminService, MastershipTermService,
@@ -98,36 +96,36 @@ public class MastershipManager
     private final MastershipStoreDelegate delegate = new InternalDelegate();
     private final UpgradeEventListener upgradeEventListener = new InternalUpgradeEventListener();
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected MastershipStore store;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ClusterService clusterService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected MetricsService metricsService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected RegionService regionService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService cfgService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected UpgradeService upgradeService;
 
     private NodeId localNodeId;
     private Timer requestRoleTimer;
 
     static final boolean DEFAULT_USE_REGION_FOR_BALANCE_ROLES = false;
-    @Property(name = "useRegionForBalanceRoles", boolValue = DEFAULT_USE_REGION_FOR_BALANCE_ROLES,
-            label = "Use Regions for balancing roles")
+    //@Property(name = "useRegionForBalanceRoles", boolValue = DEFAULT_USE_REGION_FOR_BALANCE_ROLES,
+    //        label = "Use Regions for balancing roles")
     protected boolean useRegionForBalanceRoles;
 
     private static final boolean DEFAULT_REBALANCE_ROLES_ON_UPGRADE = true;
-    @Property(name = "rebalanceRolesOnUpgrade",
-            boolValue = DEFAULT_REBALANCE_ROLES_ON_UPGRADE,
-            label = "Automatically rebalance roles following an upgrade")
+    //@Property(name = "rebalanceRolesOnUpgrade",
+    //        boolValue = DEFAULT_REBALANCE_ROLES_ON_UPGRADE,
+    //        label = "Automatically rebalance roles following an upgrade")
     protected boolean rebalanceRolesOnUpgrade = DEFAULT_REBALANCE_ROLES_ON_UPGRADE;
 
     @Activate
@@ -146,9 +144,11 @@ public class MastershipManager
     @Modified
     public void modified() {
         Set<ConfigProperty> configProperties = cfgService.getProperties(getClass().getCanonicalName());
-        for (ConfigProperty property : configProperties) {
-            if ("useRegionForBalanceRoles".equals(property.name())) {
-                useRegionForBalanceRoles = property.asBoolean();
+        if (configProperties != null) {
+            for (ConfigProperty property : configProperties) {
+                if ("useRegionForBalanceRoles".equals(property.name())) {
+                    useRegionForBalanceRoles = property.asBoolean();
+                }
             }
         }
     }

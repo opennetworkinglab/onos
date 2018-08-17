@@ -15,19 +15,6 @@
  */
 package org.onosproject.ovsdb.provider.host;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onlab.util.Tools.toHex;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.net.URI;
-import java.net.URISyntaxException;
-
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.DefaultAnnotations;
@@ -49,22 +36,33 @@ import org.onosproject.ovsdb.controller.OvsdbController;
 import org.onosproject.ovsdb.controller.OvsdbEvent;
 import org.onosproject.ovsdb.controller.OvsdbEventListener;
 import org.onosproject.ovsdb.controller.OvsdbEventSubject;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onlab.util.Tools.toHex;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provider which uses an ovsdb controller to detect host.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = HostProvider.class)
 public class OvsdbHostProvider extends AbstractProvider implements HostProvider {
     private final Logger log = getLogger(getClass());
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected HostProviderRegistry providerRegistry;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected OvsdbController controller;
 
     private HostProviderService providerService;

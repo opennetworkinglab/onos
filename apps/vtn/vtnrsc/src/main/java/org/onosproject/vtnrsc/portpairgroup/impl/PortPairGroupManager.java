@@ -15,18 +15,6 @@
  */
 package org.onosproject.vtnrsc.portpairgroup.impl;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.Collections;
-import java.util.UUID;
-
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.store.serializers.KryoNamespaces;
@@ -44,13 +32,23 @@ import org.onosproject.vtnrsc.TenantId;
 import org.onosproject.vtnrsc.portpairgroup.PortPairGroupEvent;
 import org.onosproject.vtnrsc.portpairgroup.PortPairGroupListener;
 import org.onosproject.vtnrsc.portpairgroup.PortPairGroupService;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
+
+import java.util.Collections;
+import java.util.UUID;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provides implementation of the portPairGroupService.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = PortPairGroupService.class)
 public class PortPairGroupManager extends AbstractListenerManager<PortPairGroupEvent, PortPairGroupListener> implements
         PortPairGroupService {
 
@@ -66,7 +64,7 @@ public class PortPairGroupManager extends AbstractListenerManager<PortPairGroupE
     private EventuallyConsistentMapListener<PortPairGroupId, PortPairGroup> portPairGroupListener =
             new InnerPortPairGroupStoreListener();
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected StorageService storageService;
 
     @Activate

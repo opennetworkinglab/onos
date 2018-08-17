@@ -15,16 +15,6 @@
  */
 package org.onosproject.nodemetrics.impl;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
-import org.osgi.service.component.ComponentContext;
-import org.onosproject.cfg.ComponentConfigService;
 import org.hyperic.sigar.CpuPerc;
 import org.hyperic.sigar.FileSystemUsage;
 import org.hyperic.sigar.Mem;
@@ -32,6 +22,7 @@ import org.hyperic.sigar.Sigar;
 import org.hyperic.sigar.SigarException;
 import org.onlab.util.KryoNamespace;
 import org.onlab.util.Tools;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
@@ -45,9 +36,17 @@ import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.LogicalClockService;
 import org.onosproject.store.service.StorageService;
+import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Dictionary;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Executors;
@@ -55,12 +54,11 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import java.util.Dictionary;
+
 import static org.onlab.util.Tools.getIntegerProperty;
 
 
-@Service
-@Component(immediate = true)
+@Component(immediate = true, service = NodeMetricsService.class)
 public class NodeMetricsManager implements NodeMetricsService {
     private static final int DEFAULT_POLL_FREQUENCY_SECONDS = 15;
     private static final String SLASH = "/";
@@ -68,19 +66,19 @@ public class NodeMetricsManager implements NodeMetricsService {
     private final Logger log = LoggerFactory
             .getLogger(this.getClass());
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected StorageService storageService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ClusterService clusterService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected LogicalClockService clockService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService cfgService;
 
     private ScheduledExecutorService metricsExecutor;
@@ -95,8 +93,8 @@ public class NodeMetricsManager implements NodeMetricsService {
 
     private Sigar sigar;
 
-    @Property(name = "metricPollFrequencySeconds", intValue = DEFAULT_POLL_FREQUENCY_SECONDS,
-            label = "Frequency (in seconds) for polling controller metrics")
+    //@Property(name = "metricPollFrequencySeconds", intValue = DEFAULT_POLL_FREQUENCY_SECONDS,
+    //        label = "Frequency (in seconds) for polling controller metrics")
     protected int metricPollFrequencySeconds = DEFAULT_POLL_FREQUENCY_SECONDS;
 
     @Activate

@@ -20,14 +20,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.ICMP6;
 import org.onlab.packet.IPv4;
@@ -110,19 +102,17 @@ import org.onosproject.segmentrouting.grouphandler.NextNeighbors;
 import org.onosproject.segmentrouting.mcast.McastHandler;
 import org.onosproject.segmentrouting.mcast.McastRole;
 import org.onosproject.segmentrouting.mcast.McastRoleStoreKey;
+import org.onosproject.segmentrouting.mcast.McastStoreKey;
 import org.onosproject.segmentrouting.pwaas.DefaultL2Tunnel;
 import org.onosproject.segmentrouting.pwaas.DefaultL2TunnelDescription;
 import org.onosproject.segmentrouting.pwaas.DefaultL2TunnelHandler;
 import org.onosproject.segmentrouting.pwaas.DefaultL2TunnelPolicy;
-
 import org.onosproject.segmentrouting.pwaas.L2Tunnel;
+import org.onosproject.segmentrouting.pwaas.L2TunnelDescription;
 import org.onosproject.segmentrouting.pwaas.L2TunnelHandler;
 import org.onosproject.segmentrouting.pwaas.L2TunnelPolicy;
-import org.onosproject.segmentrouting.pwaas.L2TunnelDescription;
-
 import org.onosproject.segmentrouting.storekey.DestinationSetNextObjectiveStoreKey;
 import org.onosproject.segmentrouting.storekey.DummyVlanIdStoreKey;
-import org.onosproject.segmentrouting.mcast.McastStoreKey;
 import org.onosproject.segmentrouting.storekey.PortNextObjectiveStoreKey;
 import org.onosproject.segmentrouting.storekey.VlanNextObjectiveStoreKey;
 import org.onosproject.segmentrouting.storekey.XConnectStoreKey;
@@ -133,6 +123,12 @@ import org.onosproject.store.service.EventuallyConsistentMapBuilder;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.WallClockTimestamp;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -165,101 +161,100 @@ import static org.onosproject.net.config.NetworkConfigEvent.Type.CONFIG_UNREGIST
 /**
  * Segment routing manager.
  */
-@Service
-@Component(immediate = true)
+@Component(immediate = true, service = SegmentRoutingService.class)
 public class SegmentRoutingManager implements SegmentRoutingService {
 
     private static Logger log = LoggerFactory.getLogger(SegmentRoutingManager.class);
     private static final String NOT_MASTER = "Current instance is not the master of {}. Ignore.";
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private ComponentConfigService compCfgService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private NeighbourResolutionService neighbourResolutionService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     public CoreService coreService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     PacketService packetService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     HostService hostService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     HostProbingService probingService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     public DeviceService deviceService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     DeviceAdminService deviceAdminService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     public FlowObjectiveService flowObjectiveService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     public LinkService linkService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     public MastershipService mastershipService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     public StorageService storageService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     public MulticastRouteService multicastRouteService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     public TopologyService topologyService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     RouteService routeService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     public NetworkConfigRegistry cfgService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     public InterfaceService interfaceService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     public ClusterService clusterService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     public WorkPartitionService workPartitionService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     public LeadershipService leadershipService;
 
-    @Reference(cardinality = ReferenceCardinality.OPTIONAL_UNARY)
+    @Reference(cardinality = ReferenceCardinality.OPTIONAL)
     public XconnectService xconnectService;
 
-    @Property(name = "activeProbing", boolValue = true,
-            label = "Enable active probing to discover dual-homed hosts.")
+    //@Property(name = "activeProbing", boolValue = true,
+    //        label = "Enable active probing to discover dual-homed hosts.")
     boolean activeProbing = true;
 
-    @Property(name = "singleHomedDown", boolValue = false,
-            label = "Enable administratively taking down single-homed hosts "
-                    + "when all uplinks are gone")
+    //@Property(name = "singleHomedDown", boolValue = false,
+    //        label = "Enable administratively taking down single-homed hosts "
+    //                + "when all uplinks are gone")
     boolean singleHomedDown = false;
 
-    @Property(name = "respondToUnknownHosts", boolValue = true,
-            label = "Enable this to respond to ARP/NDP requests from unknown hosts.")
+    //@Property(name = "respondToUnknownHosts", boolValue = true,
+    //        label = "Enable this to respond to ARP/NDP requests from unknown hosts.")
     boolean respondToUnknownHosts = true;
 
-    @Property(name = "routeDoubleTaggedHosts", boolValue = false,
-            label = "Program flows and groups to pop and route double tagged hosts")
+    //@Property(name = "routeDoubleTaggedHosts", boolValue = false,
+    //        label = "Program flows and groups to pop and route double tagged hosts")
     boolean routeDoubleTaggedHosts = false;
 
     private static final int DEFAULT_INTERNAL_VLAN = 4094;
-    @Property(name = "defaultInternalVlan", intValue = DEFAULT_INTERNAL_VLAN,
-            label = "internal vlan assigned by default to unconfigured ports")
+    //@Property(name = "defaultInternalVlan", intValue = DEFAULT_INTERNAL_VLAN,
+    //        label = "internal vlan assigned by default to unconfigured ports")
     private int defaultInternalVlan = DEFAULT_INTERNAL_VLAN;
 
     private static final int PW_TRANSPORT_VLAN = 4090;
-    @Property(name = "pwTransportVlan", intValue = PW_TRANSPORT_VLAN,
-            label = "vlan used for transport of pseudowires between switches")
+    //@Property(name = "pwTransportVlan", intValue = PW_TRANSPORT_VLAN,
+    //        label = "vlan used for transport of pseudowires between switches")
     private int pwTransportVlan = PW_TRANSPORT_VLAN;
 
     ArpHandler arpHandler = null;

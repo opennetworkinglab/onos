@@ -17,12 +17,6 @@ package org.onosproject.incubator.net.l2monitoring.cfm.impl;
 
 import com.google.common.net.InternetDomainName;
 import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.MacAddress;
 import org.onlab.util.Identifier;
 import org.onlab.util.KryoNamespace;
@@ -47,13 +41,18 @@ import org.onosproject.incubator.net.l2monitoring.cfm.service.CfmConfigException
 import org.onosproject.incubator.net.l2monitoring.cfm.service.MdEvent;
 import org.onosproject.incubator.net.l2monitoring.cfm.service.MdStore;
 import org.onosproject.incubator.net.l2monitoring.cfm.service.MdStoreDelegate;
-import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.AbstractStore;
+import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,14 +65,13 @@ import java.util.stream.Collectors;
 /**
  * Maintenance Domain Store implementation backed by consistent map.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = MdStore.class)
 public class DistributedMdStore extends AbstractStore<MdEvent, MdStoreDelegate>
     implements MdStore {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected StorageService storageService;
 
     private ConsistentMap<MdId, MaintenanceDomain> maintenanceDomainConsistentMap;

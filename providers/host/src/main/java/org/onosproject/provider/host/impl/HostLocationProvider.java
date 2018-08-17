@@ -16,14 +16,6 @@
 package org.onosproject.provider.host.impl;
 
 import com.google.common.collect.Sets;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.ARP;
 import org.onlab.packet.BasePacket;
 import org.onlab.packet.DHCP;
@@ -54,6 +46,12 @@ import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.Host;
+import org.onosproject.net.HostId;
+import org.onosproject.net.HostLocation;
 import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
@@ -62,13 +60,6 @@ import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.config.basics.BasicHostConfig;
 import org.onosproject.net.config.basics.HostLearningConfig;
 import org.onosproject.net.config.basics.SubjectFactories;
-import org.onosproject.net.intf.InterfaceService;
-import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.Device;
-import org.onosproject.net.DeviceId;
-import org.onosproject.net.Host;
-import org.onosproject.net.HostId;
-import org.onosproject.net.HostLocation;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
@@ -82,6 +73,7 @@ import org.onosproject.net.host.HostProvider;
 import org.onosproject.net.host.HostProviderRegistry;
 import org.onosproject.net.host.HostProviderService;
 import org.onosproject.net.host.HostService;
+import org.onosproject.net.intf.InterfaceService;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketContext;
@@ -93,15 +85,21 @@ import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyService;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.nio.ByteBuffer;
 import java.util.Dictionary;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Stream;
-import java.util.Set;
 
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onlab.util.Tools.groupedThreads;
@@ -111,36 +109,35 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Provider which uses an OpenFlow controller to detect network end-station
  * hosts.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = HostProvider.class)
 public class HostLocationProvider extends AbstractProvider implements HostProvider {
     private final Logger log = getLogger(getClass());
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected HostProviderRegistry providerRegistry;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected PacketService packetService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected TopologyService topologyService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected HostService hostService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DeviceService deviceService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService cfgService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected NetworkConfigRegistry registry;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected InterfaceService interfaceService;
 
     private final InternalHostProvider processor = new InternalHostProvider();
@@ -149,34 +146,34 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
 
     private ApplicationId appId;
 
-    @Property(name = "hostRemovalEnabled", boolValue = true,
-            label = "Enable host removal on port/device down events")
+    //@Property(name = "hostRemovalEnabled", boolValue = true,
+    //        label = "Enable host removal on port/device down events")
     private boolean hostRemovalEnabled = true;
 
-    @Property(name = "requestArp", boolValue = true,
-            label = "Request ARP packets for neighbor discovery by the " +
-                    "Host Location Provider; default is true")
+    //@Property(name = "requestArp", boolValue = true,
+    //        label = "Request ARP packets for neighbor discovery by the " +
+    //                "Host Location Provider; default is true")
     private boolean requestArp = true;
 
-    @Property(name = "requestIpv6ND", boolValue = false,
-            label = "Requests IPv6 Neighbor Discovery by the " +
-                    "Host Location Provider; default is false")
+    //@Property(name = "requestIpv6ND", boolValue = false,
+    //        label = "Requests IPv6 Neighbor Discovery by the " +
+    //                "Host Location Provider; default is false")
     private boolean requestIpv6ND = false;
 
-    @Property(name = "useDhcp", boolValue = false,
-            label = "Use DHCP to update IP address of the host; default is false")
+    //@Property(name = "useDhcp", boolValue = false,
+    //        label = "Use DHCP to update IP address of the host; default is false")
     private boolean useDhcp = false;
 
-    @Property(name = "useDhcp6", boolValue = false,
-            label = "Use DHCPv6 to update IP address of the host; default is false")
+    //@Property(name = "useDhcp6", boolValue = false,
+    //        label = "Use DHCPv6 to update IP address of the host; default is false")
     private boolean useDhcp6 = false;
 
-    @Property(name = "requestInterceptsEnabled", boolValue = true,
-            label = "Enable requesting packet intercepts")
+    //@Property(name = "requestInterceptsEnabled", boolValue = true,
+    //        label = "Enable requesting packet intercepts")
     private boolean requestInterceptsEnabled = true;
 
-    @Property(name = "multihomingEnabled", boolValue = false,
-            label = "Allow hosts to be multihomed")
+    //@Property(name = "multihomingEnabled", boolValue = false,
+    //        label = "Allow hosts to be multihomed")
     private boolean multihomingEnabled = false;
 
     private HostProviderService providerService;
@@ -185,7 +182,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
     private ExecutorService probeEventHandler;
     private ExecutorService packetHandler;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected NetworkConfigService netcfgService;
 
     private ConfigFactory<ConnectPoint, HostLearningConfig> hostLearningConfig =

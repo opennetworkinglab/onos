@@ -18,13 +18,6 @@ package org.onosproject.net.intent.impl;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.SetMultimap;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.ReferencePolicy;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.event.Event;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.ElementId;
@@ -55,6 +48,12 @@ import org.onosproject.net.resource.ResourceService;
 import org.onosproject.net.topology.TopologyEvent;
 import org.onosproject.net.topology.TopologyListener;
 import org.onosproject.net.topology.TopologyService;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.slf4j.Logger;
 
 import java.util.Collection;
@@ -85,8 +84,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Entity responsible for tracking installed flows and for monitoring topology
  * events to determine what flows are affected by topology changes.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = ObjectiveTrackerService.class)
 public class ObjectiveTracker implements ObjectiveTrackerService {
 
     private final Logger log = getLogger(getClass());
@@ -98,25 +96,25 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
     private final SetMultimap<ElementId, Key> intentsByDevice =
             synchronizedSetMultimap(HashMultimap.<ElementId, Key>create());
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected TopologyService topologyService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ResourceService resourceService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DeviceService deviceService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected HostService hostService;
 
-    @Reference(cardinality = ReferenceCardinality.OPTIONAL_UNARY,
+    @Reference(cardinality = ReferenceCardinality.OPTIONAL,
                 bind = "bindComponentConfigService",
                 unbind = "unbindComponentConfigService",
                 policy = ReferencePolicy.DYNAMIC)
     protected IntentService intentService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected WorkPartitionService partitionService;
 
     private ExecutorService executorService =

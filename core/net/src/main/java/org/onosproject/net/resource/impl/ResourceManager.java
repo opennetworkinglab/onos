@@ -17,15 +17,10 @@ package org.onosproject.net.resource.impl;
 
 import com.google.common.annotations.Beta;
 import com.google.common.collect.ImmutableList;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.Tools;
 import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.net.resource.DiscreteResourceId;
+import org.onosproject.net.resource.Resource;
 import org.onosproject.net.resource.ResourceAdminService;
 import org.onosproject.net.resource.ResourceAllocation;
 import org.onosproject.net.resource.ResourceConsumer;
@@ -33,9 +28,13 @@ import org.onosproject.net.resource.ResourceEvent;
 import org.onosproject.net.resource.ResourceId;
 import org.onosproject.net.resource.ResourceListener;
 import org.onosproject.net.resource.ResourceService;
-import org.onosproject.net.resource.Resource;
 import org.onosproject.net.resource.ResourceStore;
 import org.onosproject.net.resource.ResourceStoreDelegate;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Collection;
@@ -45,20 +44,19 @@ import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.security.AppGuard.checkPermission;
-import static org.onosproject.security.AppPermission.Type.RESOURCE_WRITE;
 import static org.onosproject.security.AppPermission.Type.RESOURCE_READ;
+import static org.onosproject.security.AppPermission.Type.RESOURCE_WRITE;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * An implementation of ResourceService.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = {ResourceService.class, ResourceAdminService.class})
 @Beta
 public final class ResourceManager extends AbstractListenerManager<ResourceEvent, ResourceListener>
         implements ResourceService, ResourceAdminService {
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ResourceStore store;
 
     private final Logger log = getLogger(getClass());

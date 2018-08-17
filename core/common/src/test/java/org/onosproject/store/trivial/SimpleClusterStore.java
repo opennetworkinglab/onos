@@ -16,13 +16,6 @@
 package org.onosproject.store.trivial;
 
 import com.google.common.collect.ImmutableSet;
-
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.ClusterEvent;
 import org.onosproject.cluster.ClusterStore;
@@ -39,6 +32,11 @@ import org.onosproject.net.intent.WorkPartitionEvent;
 import org.onosproject.net.intent.WorkPartitionEventListener;
 import org.onosproject.net.intent.WorkPartitionService;
 import org.onosproject.store.AbstractStore;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.time.Instant;
@@ -46,15 +44,15 @@ import java.util.Set;
 import java.util.function.Function;
 
 import static org.onosproject.security.AppGuard.checkPermission;
-import static org.onosproject.security.AppPermission.Type.*;
+import static org.onosproject.security.AppPermission.Type.INTENT_EVENT;
+import static org.onosproject.security.AppPermission.Type.INTENT_READ;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Manages inventory of infrastructure devices using trivial in-memory
  * structures implementation.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = { ClusterStore.class, WorkPartitionService.class })
 public class SimpleClusterStore
         extends AbstractStore<ClusterEvent, ClusterStoreDelegate>
         implements ClusterStore, WorkPartitionService {
@@ -67,10 +65,10 @@ public class SimpleClusterStore
 
     private final Instant creationTime = Instant.now();
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected EventDeliveryService eventDispatcher;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected VersionService versionService;
 
     private ListenerRegistry<WorkPartitionEvent, WorkPartitionEventListener> listenerRegistry;

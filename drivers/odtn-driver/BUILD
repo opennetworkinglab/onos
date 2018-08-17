@@ -1,5 +1,4 @@
 COMPILE_DEPS = CORE_DEPS + [
-    "@commons_jxpath//jar",
     "//drivers/utilities:onos-drivers-utilities",
     "//protocols/netconf/api:onos-protocols-netconf-api",
     "//apps/odtn/api:onos-apps-odtn-api",
@@ -13,9 +12,6 @@ TEST_DEPS = TEST_ADAPTERS + [
 BUNDLES = [
     ":onos-drivers-odtn-driver",
     "//drivers/utilities:onos-drivers-utilities",
-    #     "//lib:commons-jxpath",
-    #     "//lib:commons-beanutils", # jxpath dependency
-    #     "//lib:jdom",  # jxpath dependency
 ]
 
 osgi_jar_with_tests(

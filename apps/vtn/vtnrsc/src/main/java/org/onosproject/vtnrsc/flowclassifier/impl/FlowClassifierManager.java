@@ -15,17 +15,7 @@
  */
 package org.onosproject.vtnrsc.flowclassifier.impl;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.UUID;
-
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
+import com.google.common.collect.ImmutableList;
 import org.onlab.packet.IpPrefix;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.event.AbstractListenerManager;
@@ -44,15 +34,22 @@ import org.onosproject.vtnrsc.VirtualPortId;
 import org.onosproject.vtnrsc.flowclassifier.FlowClassifierEvent;
 import org.onosproject.vtnrsc.flowclassifier.FlowClassifierListener;
 import org.onosproject.vtnrsc.flowclassifier.FlowClassifierService;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
-import com.google.common.collect.ImmutableList;
+import java.util.UUID;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provides implementation of the Flow Classifier Service.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = FlowClassifierService.class)
 public class FlowClassifierManager extends AbstractListenerManager<FlowClassifierEvent, FlowClassifierListener>
         implements FlowClassifierService {
 
@@ -68,7 +65,7 @@ public class FlowClassifierManager extends AbstractListenerManager<FlowClassifie
     private EventuallyConsistentMapListener<FlowClassifierId, FlowClassifier> flowClassifierListener =
             new InnerFlowClassifierStoreListener();
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected StorageService storageService;
 
     @Activate

@@ -19,12 +19,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.osgi.ServiceDirectory;
 import org.onosproject.intentperf.IntentPerfCollector.Sample;
 import org.onosproject.ui.RequestHandler;
@@ -33,6 +27,11 @@ import org.onosproject.ui.UiExtension;
 import org.onosproject.ui.UiExtensionService;
 import org.onosproject.ui.UiMessageHandler;
 import org.onosproject.ui.UiView;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -45,14 +44,13 @@ import static org.onosproject.ui.UiView.Category.OTHER;
 /**
  * Mechanism to stream data to the GUI.
  */
-@Component(immediate = true, enabled = true)
-@Service(value = IntentPerfUi.class)
+@Component(immediate = true, service = IntentPerfUi.class)
 public class IntentPerfUi {
 
     private static final String INTENT_PERF_START = "intentPerfStart";
     private static final String INTENT_PERF_STOP = "intentPerfStop";
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected UiExtensionService uiExtensionService;
 
     private final Set<StreamingControl> handlers = synchronizedSet(new HashSet<>());

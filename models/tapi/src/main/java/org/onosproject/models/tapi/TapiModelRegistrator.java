@@ -20,7 +20,7 @@
 package org.onosproject.models.tapi;
 
 import com.google.common.collect.ImmutableMap;
-import org.apache.felix.scr.annotations.Component;
+import org.osgi.service.component.annotations.Component;
 import org.onosproject.yang.AbstractYangModelRegistrator;
 import org.onosproject.yang.gen.v1.tapicommon.rev20180307.TapiCommon;
 import org.onosproject.yang.gen.v1.tapiconnectivity.rev20180307.TapiConnectivity;

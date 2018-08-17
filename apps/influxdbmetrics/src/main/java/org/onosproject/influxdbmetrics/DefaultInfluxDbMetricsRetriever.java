@@ -21,18 +21,17 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.influxdb.InfluxDB;
 import org.influxdb.InfluxDBFactory;
 import org.influxdb.dto.Query;
 import org.influxdb.dto.QueryResult;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.core.CoreService;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.List;
@@ -45,8 +44,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * A Metric retriever implementation for querying metrics from influxDB server.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = InfluxDbMetricsRetriever.class)
 public class DefaultInfluxDbMetricsRetriever implements InfluxDbMetricsRetriever {
 
     private final Logger log = getLogger(getClass());
@@ -72,7 +70,7 @@ public class DefaultInfluxDbMetricsRetriever implements InfluxDbMetricsRetriever
         TIME_UNIT_MAP.put(TimeUnit.SECONDS, "s");
     }
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
     protected String database;

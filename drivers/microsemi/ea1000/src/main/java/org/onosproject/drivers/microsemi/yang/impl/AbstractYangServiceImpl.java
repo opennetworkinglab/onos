@@ -15,21 +15,8 @@
  */
 package org.onosproject.drivers.microsemi.yang.impl;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
-import java.util.Set;
-import java.util.regex.Pattern;
-
 import com.google.common.base.Charsets;
 import com.google.common.io.ByteSource;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.netconf.DatastoreId;
@@ -54,15 +41,26 @@ import org.onosproject.yang.runtime.YangSerializer;
 import org.onosproject.yang.runtime.YangSerializerContext;
 import org.onosproject.yang.runtime.YangSerializerRegistry;
 import org.onosproject.yang.serializers.xml.XmlSerializer;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+import java.util.Set;
+import java.util.regex.Pattern;
 
 /**
  * Abstract class that implements some of the core functions of a YANG model service.
  *
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = AbstractYangServiceImpl.class)
 public abstract class AbstractYangServiceImpl {
     public static final String NC_OPERATION = "nc:operation";
     public static final String OP_DELETE = "delete";
@@ -70,10 +68,10 @@ public abstract class AbstractYangServiceImpl {
     protected final Logger log = LoggerFactory.getLogger(getClass());
     protected boolean alreadyLoaded = false;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected YangModelRegistry yangModelRegistry;
 
     protected ApplicationId appId;

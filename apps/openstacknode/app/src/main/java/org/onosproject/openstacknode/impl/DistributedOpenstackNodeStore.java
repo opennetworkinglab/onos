@@ -16,12 +16,6 @@
 package org.onosproject.openstacknode.impl;
 
 import com.google.common.collect.ImmutableSet;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -46,6 +40,11 @@ import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.Versioned;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Collection;
@@ -70,8 +69,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Implementation of openstack node store using consistent map.
  */
-@Service
-@Component(immediate = true)
+@Component(immediate = true, service = OpenstackNodeStore.class)
 public class DistributedOpenstackNodeStore
         extends AbstractStore<OpenstackNodeEvent, OpenstackNodeStoreDelegate>
         implements OpenstackNodeStore {
@@ -105,10 +103,10 @@ public class DistributedOpenstackNodeStore
             .register(Collection.class)
             .build();
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected StorageService storageService;
 
     private final ExecutorService eventExecutor = newSingleThreadExecutor(

@@ -27,9 +27,10 @@ import java.util.stream.StreamSupport;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.apache.karaf.shell.api.action.Option;
 import org.onlab.packet.MplsLabel;
 import org.onlab.packet.VlanId;
 import org.onlab.util.Bandwidth;
@@ -51,6 +52,7 @@ import org.onosproject.net.resource.ResourceService;
 /**
  * Lists allocated resources.
  */
+@Service
 @Command(scope = "onos", name = "allocations",
          description = "Lists allocated resources")
 public class AllocationsCommand extends AbstractShellCommand {
@@ -83,7 +85,7 @@ public class AllocationsCommand extends AbstractShellCommand {
     private ResourceService resourceService;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         deviceService = get(DeviceService.class);
         resourceService = get(ResourceService.class);
 

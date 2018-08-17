@@ -16,18 +16,16 @@
 
 package org.onosproject.drivers.p4runtime.mirror;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.net.pi.runtime.PiTableEntry;
 import org.onosproject.net.pi.runtime.PiTableEntryHandle;
 import org.onosproject.store.serializers.KryoNamespaces;
+import org.osgi.service.component.annotations.Component;
 
 /**
  * Distributed implementation of a P4Runtime table mirror.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = P4RuntimeTableMirror.class)
 public final class DistributedP4RuntimeTableMirror
         extends AbstractDistributedP4RuntimeMirror
                         <PiTableEntryHandle, PiTableEntry>

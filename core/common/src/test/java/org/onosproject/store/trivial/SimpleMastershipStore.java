@@ -15,30 +15,9 @@
  */
 package org.onosproject.store.trivial;
 
-import static org.onosproject.mastership.MastershipEvent.Type.BACKUPS_CHANGED;
-import static org.onosproject.mastership.MastershipEvent.Type.MASTER_CHANGED;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicInteger;
-
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
+import com.google.common.collect.ImmutableSet;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.ClusterEventListener;
 import org.onosproject.cluster.ClusterService;
@@ -58,17 +37,35 @@ import org.onosproject.mastership.MastershipTerm;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.store.AbstractStore;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.onosproject.mastership.MastershipEvent.Type.BACKUPS_CHANGED;
+import static org.onosproject.mastership.MastershipEvent.Type.MASTER_CHANGED;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Manages inventory of controller mastership over devices using
  * trivial, non-distributed in-memory structures implementation.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = MastershipStore.class)
 public class SimpleMastershipStore
         extends AbstractStore<MastershipEvent, MastershipStoreDelegate>
         implements MastershipStore {
@@ -78,10 +75,10 @@ public class SimpleMastershipStore
     private static final int NOTHING = 0;
     private static final int INIT = 1;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ClusterService clusterService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected VersionService versionService;
 
     //devices mapped to their masters, to emulate multiple nodes

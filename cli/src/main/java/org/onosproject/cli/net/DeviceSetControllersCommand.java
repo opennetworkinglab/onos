@@ -16,9 +16,10 @@
 
 package org.onosproject.cli.net;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.apache.karaf.shell.api.action.Option;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.Annotations;
@@ -36,6 +37,7 @@ import java.util.List;
 /**
  * Sets role of the controller node for the given infrastructure device.
  */
+@Service
 @Command(scope = "onos", name = "device-setcontrollers",
         description = "sets the list of controllers for the given infrastructure device")
 public class DeviceSetControllersCommand extends AbstractShellCommand {
@@ -62,7 +64,7 @@ public class DeviceSetControllersCommand extends AbstractShellCommand {
     private List<ControllerInfo> controllers = new ArrayList<>();
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
 
         if (controllersListStrings == null && !removeCont && !removeAll) {
             print("No controller are given, skipping.");

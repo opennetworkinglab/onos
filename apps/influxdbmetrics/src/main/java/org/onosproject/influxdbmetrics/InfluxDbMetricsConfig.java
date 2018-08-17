@@ -15,17 +15,16 @@
  */
 package org.onosproject.influxdbmetrics;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.CoreService;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Dictionary;
@@ -47,36 +46,36 @@ public class InfluxDbMetricsConfig {
     private static final String DEFAULT_USERNAME = "onos";
     private static final String DEFAULT_PASSWORD = "onos.password";
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected InfluxDbMetricsReporter influxDbMetricsReporter;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected InfluxDbMetricsRetriever influxDbMetricsRetriever;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService cfgService;
 
-    @Property(name = "address", value = DEFAULT_ADDRESS,
-            label = "IP address of influxDB server; default is localhost")
+    //@Property(name = "address", value = DEFAULT_ADDRESS,
+    //        label = "IP address of influxDB server; default is localhost")
     protected String address = DEFAULT_ADDRESS;
 
-    @Property(name = "port", intValue = DEFAULT_PORT,
-            label = "Port number of influxDB server; default is 8086")
+    //@Property(name = "port", intValue = DEFAULT_PORT,
+    //        label = "Port number of influxDB server; default is 8086")
     protected int port = DEFAULT_PORT;
 
-    @Property(name = "database", value = DEFAULT_DATABASE,
-            label = "Database name of influxDB server; default is onos")
+    //@Property(name = "database", value = DEFAULT_DATABASE,
+    //        label = "Database name of influxDB server; default is onos")
     protected String database = DEFAULT_DATABASE;
 
-    @Property(name = "username", value = DEFAULT_USERNAME,
-            label = "Username of influxDB server; default is onos")
+    //@Property(name = "username", value = DEFAULT_USERNAME,
+    //        label = "Username of influxDB server; default is onos")
     protected String username = DEFAULT_USERNAME;
 
-    @Property(name = "password", value = DEFAULT_PASSWORD,
-            label = "Password of influxDB server; default is onos.password")
+    //@Property(name = "password", value = DEFAULT_PASSWORD,
+    //        label = "Password of influxDB server; default is onos.password")
     protected String password = DEFAULT_PASSWORD;
 
     @Activate

@@ -16,8 +16,9 @@
 
 package org.onosproject.cli.net.vnet;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.net.ConnectivityIntentCommand;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.VirtualNetworkIntent;
@@ -34,6 +35,7 @@ import java.util.List;
 /**
  * Installs virtual network intents.
  */
+@Service
 @Command(scope = "onos", name = "add-vnet-intent",
         description = "Installs virtual network connectivity intent")
 public class VirtualNetworkIntentCreateCommand extends ConnectivityIntentCommand {
@@ -53,7 +55,7 @@ public class VirtualNetworkIntentCreateCommand extends ConnectivityIntentCommand
     String egressDeviceString = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         VirtualNetworkService service = get(VirtualNetworkService.class);
         IntentService virtualNetworkIntentService = service.get(NetworkId.networkId(networkId), IntentService.class);
 

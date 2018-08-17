@@ -16,7 +16,7 @@
 
 package org.onosproject.drivers.ciena.waveserverai;
 
-import org.apache.felix.scr.annotations.Component;
+import org.osgi.service.component.annotations.Component;
 import org.onosproject.net.driver.AbstractDriverLoader;
 import org.onosproject.net.optical.OpticalDevice;
 

@@ -17,10 +17,9 @@ package org.onosproject.codec.impl;
 
 import com.codahale.metrics.Metric;
 import com.google.common.collect.ImmutableSet;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Service;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
 import org.onlab.packet.Ethernet;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.RoleInfo;
@@ -109,8 +108,7 @@ import static org.onosproject.security.AppPermission.Type.CODEC_WRITE;
 /**
  * Implementation of the JSON codec brokering service.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = CodecService.class)
 public class CodecManager implements CodecService {
 
     private static Logger log = LoggerFactory.getLogger(CodecManager.class);

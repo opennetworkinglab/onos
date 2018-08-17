@@ -16,26 +16,7 @@
 
 package org.onosproject.provider.of.group.impl;
 
-import static org.onlab.util.Tools.getIntegerProperty;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Dictionary;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Properties;
-import java.util.concurrent.atomic.AtomicLong;
-
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
+import com.google.common.collect.Maps;
 import org.onlab.util.ItemNotFoundException;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.GroupId;
@@ -66,6 +47,12 @@ import org.onosproject.openflow.controller.OpenFlowSwitch;
 import org.onosproject.openflow.controller.OpenFlowSwitchListener;
 import org.onosproject.openflow.controller.RoleState;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.projectfloodlight.openflow.protocol.OFBucketCounter;
 import org.projectfloodlight.openflow.protocol.OFCapabilities;
 import org.projectfloodlight.openflow.protocol.OFErrorMsg;
@@ -86,7 +73,18 @@ import org.projectfloodlight.openflow.protocol.OFVersion;
 import org.projectfloodlight.openflow.protocol.errormsg.OFGroupModFailedErrorMsg;
 import org.slf4j.Logger;
 
-import com.google.common.collect.Maps;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Dictionary;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.concurrent.atomic.AtomicLong;
+
+import static org.onlab.util.Tools.getIntegerProperty;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provider which uses an OpenFlow controller to handle Group.
@@ -96,22 +94,22 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
 
     private final Logger log = getLogger(getClass());
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected OpenFlowController controller;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected GroupProviderRegistry providerRegistry;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DriverService driverService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DeviceService deviceService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected GroupService groupService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService cfgService;
 
     private GroupProviderService providerService;
@@ -120,8 +118,8 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
     private static final String COMPONENT = "org.onosproject.provider.of.group.impl.OpenFlowGroupProvider";
     private static final String GROUP_POLL_INTERVAL_CONST = "groupPollInterval";
 
-    @Property(name = "groupPollInterval", intValue = DEFAULT_POLL_INTERVAL,
-            label = "Frequency (in seconds) for polling group statistics")
+    //@Property(name = "groupPollInterval", intValue = DEFAULT_POLL_INTERVAL,
+    //        label = "Frequency (in seconds) for polling group statistics")
     private int groupPollInterval = DEFAULT_POLL_INTERVAL;
 
     private final InternalGroupProvider listener = new InternalGroupProvider();

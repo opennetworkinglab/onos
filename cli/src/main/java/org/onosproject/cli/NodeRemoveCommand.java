@@ -15,14 +15,16 @@
  */
 package org.onosproject.cli;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cluster.ClusterAdminService;
 import org.onosproject.cluster.NodeId;
 
 /**
  * Removes a controller cluster node.
  */
+@Service
 @Command(scope = "onos", name = "remove-node",
          description = "Removes a new controller cluster node")
 public class NodeRemoveCommand extends AbstractShellCommand {
@@ -32,7 +34,7 @@ public class NodeRemoveCommand extends AbstractShellCommand {
     String nodeId = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         ClusterAdminService service = get(ClusterAdminService.class);
         service.removeNode(new NodeId(nodeId));
     }

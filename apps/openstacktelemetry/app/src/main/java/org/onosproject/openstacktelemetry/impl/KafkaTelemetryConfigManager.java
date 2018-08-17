@@ -15,14 +15,6 @@
  */
 package org.onosproject.openstacktelemetry.impl;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.openstacktelemetry.api.KafkaTelemetryAdminService;
@@ -30,6 +22,12 @@ import org.onosproject.openstacktelemetry.api.KafkaTelemetryConfigService;
 import org.onosproject.openstacktelemetry.api.config.TelemetryConfig;
 import org.onosproject.openstacktelemetry.config.DefaultKafkaTelemetryConfig;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,8 +49,7 @@ import static org.onosproject.openstacktelemetry.util.OpenstackTelemetryUtil.ini
 /**
  * Kafka server configuration manager for publishing openstack telemetry.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = KafkaTelemetryConfigService.class)
 public class KafkaTelemetryConfigManager implements KafkaTelemetryConfigService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -68,51 +65,51 @@ public class KafkaTelemetryConfigManager implements KafkaTelemetryConfigService 
     private static final String KEY_SERIALIZER = "keySerializer";
     private static final String VALUE_SERIALIZER = "valueSerializer";
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService componentConfigService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected KafkaTelemetryAdminService kafkaTelemetryAdminService;
 
-    @Property(name = ADDRESS, value = DEFAULT_KAFKA_SERVER_IP,
-            label = "Default IP address to establish initial connection to Kafka server")
+    //@Property(name = ADDRESS, value = DEFAULT_KAFKA_SERVER_IP,
+    //        label = "Default IP address to establish initial connection to Kafka server")
     protected String address = DEFAULT_KAFKA_SERVER_IP;
 
-    @Property(name = PORT, intValue = DEFAULT_KAFKA_SERVER_PORT,
-            label = "Default port number to establish initial connection to Kafka server")
+    //@Property(name = PORT, intValue = DEFAULT_KAFKA_SERVER_PORT,
+    //        label = "Default port number to establish initial connection to Kafka server")
     protected Integer port = DEFAULT_KAFKA_SERVER_PORT;
 
-    @Property(name = RETRIES, intValue = DEFAULT_KAFKA_RETRIES,
-            label = "Number of times the producer can retry to send after first failure")
+    //@Property(name = RETRIES, intValue = DEFAULT_KAFKA_RETRIES,
+    //        label = "Number of times the producer can retry to send after first failure")
     protected int retries = DEFAULT_KAFKA_RETRIES;
 
-    @Property(name = REQUIRED_ACKS, value = DEFAULT_KAFKA_REQUIRED_ACKS,
-            label = "Producer will get an acknowledgement after the leader has replicated the data")
+    //@Property(name = REQUIRED_ACKS, value = DEFAULT_KAFKA_REQUIRED_ACKS,
+    //        label = "Producer will get an acknowledgement after the leader has replicated the data")
     protected String requiredAcks = DEFAULT_KAFKA_REQUIRED_ACKS;
 
-    @Property(name = BATCH_SIZE, intValue = DEFAULT_KAFKA_BATCH_SIZE,
-            label = "The largest record batch size allowed by Kafka")
+    //@Property(name = BATCH_SIZE, intValue = DEFAULT_KAFKA_BATCH_SIZE,
+    //        label = "The largest record batch size allowed by Kafka")
     protected Integer batchSize = DEFAULT_KAFKA_BATCH_SIZE;
 
-    @Property(name = LINGER_MS, intValue = DEFAULT_KAFKA_LINGER_MS,
-            label = "The producer groups together any records that arrive in " +
-                    "between request transmissions into a single batched request")
+    //@Property(name = LINGER_MS, intValue = DEFAULT_KAFKA_LINGER_MS,
+    //        label = "The producer groups together any records that arrive in " +
+    //                "between request transmissions into a single batched request")
     protected Integer lingerMs = DEFAULT_KAFKA_LINGER_MS;
 
-    @Property(name = MEMORY_BUFFER, intValue = DEFAULT_KAFKA_MEMORY_BUFFER,
-            label = "The total memory used for log cleaner I/O buffers across all cleaner threads")
+    //@Property(name = MEMORY_BUFFER, intValue = DEFAULT_KAFKA_MEMORY_BUFFER,
+    //        label = "The total memory used for log cleaner I/O buffers across all cleaner threads")
     protected Integer memoryBuffer = DEFAULT_KAFKA_MEMORY_BUFFER;
 
-    @Property(name = KEY_SERIALIZER, value = DEFAULT_KAFKA_KEY_SERIALIZER,
-            label = "Serializer class for key that implements the Serializer interface")
+    //@Property(name = KEY_SERIALIZER, value = DEFAULT_KAFKA_KEY_SERIALIZER,
+    //        label = "Serializer class for key that implements the Serializer interface")
     protected String keySerializer = DEFAULT_KAFKA_KEY_SERIALIZER;
 
-    @Property(name = VALUE_SERIALIZER, value = DEFAULT_KAFKA_VALUE_SERIALIZER,
-            label = "Serializer class for value that implements the Serializer interface")
+    //@Property(name = VALUE_SERIALIZER, value = DEFAULT_KAFKA_VALUE_SERIALIZER,
+    //        label = "Serializer class for value that implements the Serializer interface")
     protected String valueSerializer = DEFAULT_KAFKA_VALUE_SERIALIZER;
 
-    @Property(name = ENABLE_SERVICE, boolValue = DEFAULT_DISABLE,
-            label = "Specify the default behavior of telemetry service")
+    //@Property(name = ENABLE_SERVICE, boolValue = DEFAULT_DISABLE,
+    //        label = "Specify the default behavior of telemetry service")
     protected Boolean enableService = DEFAULT_DISABLE;
 
     @Activate

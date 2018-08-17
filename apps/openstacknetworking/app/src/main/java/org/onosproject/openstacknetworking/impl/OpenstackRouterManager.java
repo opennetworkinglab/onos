@@ -17,12 +17,6 @@ package org.onosproject.openstacknetworking.impl;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.CoreService;
 import org.onosproject.event.ListenerRegistry;
 import org.onosproject.openstacknetworking.api.Constants;
@@ -35,6 +29,11 @@ import org.onosproject.openstacknetworking.api.OpenstackRouterStoreDelegate;
 import org.openstack4j.model.network.NetFloatingIP;
 import org.openstack4j.model.network.Router;
 import org.openstack4j.model.network.RouterInterface;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Objects;
@@ -49,8 +48,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Provides implementation of administering and interfacing OpenStack router and
  * floating IP address.
  */
-@Service
-@Component(immediate = true)
+@Component(immediate = true, service = { OpenstackRouterAdminService.class, OpenstackRouterService.class })
 public class OpenstackRouterManager
         extends ListenerRegistry<OpenstackRouterEvent, OpenstackRouterListener>
         implements OpenstackRouterAdminService, OpenstackRouterService {
@@ -75,10 +73,10 @@ public class OpenstackRouterManager
 
     private static final String ERR_IN_USE = " still in use";
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected OpenstackRouterStore osRouterStore;
 
     private final OpenstackRouterStoreDelegate delegate = new InternalRouterStoreDelegate();

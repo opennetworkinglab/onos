@@ -15,16 +15,15 @@
  */
 package org.onosproject.bandwidthmgr;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
-import org.onosproject.net.Link;
-import org.onosproject.net.LinkKey;
 import org.onosproject.bandwidthmgr.api.BandwidthMgmtService;
 import org.onosproject.bandwidthmgr.api.BandwidthMgmtStore;
+import org.onosproject.net.Link;
+import org.onosproject.net.LinkKey;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,12 +34,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Implementation of PCE service.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = BandwidthMgmtService.class)
 public class BandwidthManager implements BandwidthMgmtService {
     private static final Logger log = LoggerFactory.getLogger(BandwidthManager.class);
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected BandwidthMgmtStore store;
 
     @Activate

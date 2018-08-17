@@ -15,8 +15,9 @@
  */
 package org.onosproject.cli.net;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.edge.EdgePortService;
@@ -31,6 +32,7 @@ import static org.onosproject.net.DeviceId.deviceId;
 /**
  * Lists all edge ports.
  */
+@Service
 @Command(scope = "onos", name = "edge-ports",
         description = "Lists all edge ports.")
 public class EdgePortsListCommand extends AbstractShellCommand {
@@ -42,7 +44,7 @@ public class EdgePortsListCommand extends AbstractShellCommand {
     String uri = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         EdgePortService service = get(EdgePortService.class);
         if (uri == null) {
             printEdgePoints(service.getEdgePoints());

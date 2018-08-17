@@ -15,7 +15,18 @@
  */
 package org.onosproject.store.trivial;
 
-import static com.google.common.base.Preconditions.checkArgument;
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.Leader;
+import org.onosproject.cluster.Leadership;
+import org.onosproject.cluster.LeadershipEvent;
+import org.onosproject.cluster.LeadershipEvent.Type;
+import org.onosproject.cluster.LeadershipEventListener;
+import org.onosproject.cluster.LeadershipService;
+import org.onosproject.cluster.NodeId;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 
 import java.util.Arrays;
 import java.util.List;
@@ -26,19 +37,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.stream.Collectors;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
-import org.onosproject.cluster.ClusterService;
-import org.onosproject.cluster.Leader;
-import org.onosproject.cluster.Leadership;
-import org.onosproject.cluster.LeadershipEvent;
-import org.onosproject.cluster.LeadershipEvent.Type;
-import org.onosproject.cluster.LeadershipEventListener;
-import org.onosproject.cluster.LeadershipService;
-import org.onosproject.cluster.NodeId;
+import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * A trivial implementation of the leadership service.
@@ -46,13 +45,12 @@ import org.onosproject.cluster.NodeId;
  * The service is not distributed, so it can assume there's a single leadership
  * contender. This contender is always granted leadership whenever it asks.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = LeadershipService.class)
 public class SimpleLeadershipManager implements LeadershipService {
 
     private Set<LeadershipEventListener> listeners = new CopyOnWriteArraySet<>();
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private ClusterService clusterService;
 
     private NodeId localNodeId;

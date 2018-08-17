@@ -16,8 +16,8 @@
 
 package org.onosproject.incubator.protobuf.services.nb;
 
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.onosproject.incubator.protobuf.models.net.meter.MeterRequestProtoTranslator;
 import org.onosproject.net.meter.MeterService;
 import org.onosproject.incubator.protobuf.models.net.meter.MeterProtoTranslator;
@@ -35,10 +35,10 @@ import org.onosproject.grpc.nb.net.meter.MeterServiceNbProto.getMetersRequest;
 import org.onosproject.grpc.nb.net.meter.MeterServiceNbProto.getMetersReply;
 
 import io.grpc.stub.StreamObserver;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Deactivate;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Deactivate;
 import com.google.common.annotations.Beta;
-import org.apache.felix.scr.annotations.Component;
+import org.osgi.service.component.annotations.Component;
 
 import org.onosproject.net.meter.Meter;
 import org.onosproject.net.meter.MeterId;
@@ -54,10 +54,10 @@ import org.onosproject.protobuf.api.GrpcServiceRegistry;
 @Component(immediate = true)
 public class GrpcNbMeterService extends MeterServiceImplBase {
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected MeterService meterService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected GrpcServiceRegistry grpcServiceRegistry;
 
     @Activate

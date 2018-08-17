@@ -16,8 +16,9 @@
 
 package org.onosproject.cli.net.vnet;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.VirtualNetworkAdminService;
@@ -26,6 +27,7 @@ import org.onosproject.net.DeviceId;
 /**
  * Removes a virtual device.
  */
+@Service
 @Command(scope = "onos", name = "vnet-remove-device",
         description = "Removes a virtual device.")
 public class VirtualDeviceRemoveCommand extends AbstractShellCommand {
@@ -39,7 +41,7 @@ public class VirtualDeviceRemoveCommand extends AbstractShellCommand {
     String deviceId = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         VirtualNetworkAdminService service = get(VirtualNetworkAdminService.class);
         service.removeVirtualDevice(NetworkId.networkId(networkId), DeviceId.deviceId(deviceId));
         print("Virtual device successfully removed.");

@@ -15,9 +15,10 @@
  */
 package org.onosproject.cli.net;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.apache.karaf.shell.api.action.Option;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.tunnel.DefaultTunnelDescription;
 import org.onosproject.incubator.net.tunnel.TunnelDescription;
@@ -30,6 +31,7 @@ import org.onosproject.net.SparseAnnotations;
  * Supports for updating a tunnel by tunnel identity.
  * It's used by producers.
  */
+@Service
 @Command(scope = "onos", name = "tunnel-update",
 description = "Supports for updating a tunnel by tunnel identity."
         + " It's used by producers.")
@@ -43,7 +45,7 @@ public class TunnelUpdateCommand extends AbstractShellCommand {
     String bandwidth = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         TunnelProvider service = get(TunnelProvider.class);
         TunnelId id = TunnelId.valueOf(tunnelId);
         SparseAnnotations annotations = DefaultAnnotations

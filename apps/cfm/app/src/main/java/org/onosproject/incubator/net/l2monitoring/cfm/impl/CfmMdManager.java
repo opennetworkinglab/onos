@@ -15,15 +15,6 @@
  */
 package org.onosproject.incubator.net.l2monitoring.cfm.impl;
 
-import java.util.Collection;
-import java.util.Optional;
-
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.event.AbstractListenerManager;
@@ -38,14 +29,21 @@ import org.onosproject.incubator.net.l2monitoring.cfm.service.MdEvent;
 import org.onosproject.incubator.net.l2monitoring.cfm.service.MdListener;
 import org.onosproject.incubator.net.l2monitoring.cfm.service.MdStore;
 import org.onosproject.incubator.net.l2monitoring.cfm.service.MdStoreDelegate;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Collection;
+import java.util.Optional;
 
 /**
  * Manager of Cfm Md Service - persists Maintenance Domain in distributed store.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = CfmMdService.class)
 public class CfmMdManager extends AbstractListenerManager<MdEvent, MdListener>
         implements CfmMdService {
 
@@ -54,10 +52,10 @@ public class CfmMdManager extends AbstractListenerManager<MdEvent, MdListener>
 
     protected ApplicationId appId;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected MdStore store;
 
     protected final MdStoreDelegate delegate = new InternalStoreDelegate();

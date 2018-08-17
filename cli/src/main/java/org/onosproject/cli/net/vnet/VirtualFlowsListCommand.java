@@ -19,9 +19,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.apache.karaf.shell.api.action.Option;
 import org.onlab.util.StringFilter;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.core.ApplicationId;
@@ -53,6 +54,7 @@ import static com.google.common.collect.Lists.newArrayList;
 /**
  * Lists all currently-known flows.
  */
+@Service
 @Command(scope = "onos", name = "vnet-flows",
          description = "Lists all currently-known flows for a virtual network.")
 public class VirtualFlowsListCommand extends AbstractShellCommand {
@@ -104,7 +106,7 @@ public class VirtualFlowsListCommand extends AbstractShellCommand {
     private StringFilter contentFilter;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         CoreService coreService = get(CoreService.class);
 
         VirtualNetworkService vnetservice = get(VirtualNetworkService.class);

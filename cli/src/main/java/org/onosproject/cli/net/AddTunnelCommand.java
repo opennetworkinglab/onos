@@ -15,8 +15,9 @@
  */
 package org.onosproject.cli.net;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.domain.IntentDomainId;
 import org.onosproject.incubator.net.domain.IntentDomainService;
@@ -28,6 +29,7 @@ import java.util.NoSuchElementException;
 /**
  * Installs intent domain tunnel primitive.
  */
+@Service
 @Command(scope = "onos", name = "add-domain-tunnel",
          description = "Installs intent domain tunnel primitive")
 public class AddTunnelCommand extends AbstractShellCommand {
@@ -43,7 +45,7 @@ public class AddTunnelCommand extends AbstractShellCommand {
     String twoString = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         IntentDomainService service = get(IntentDomainService.class);
 
         ConnectPoint one = ConnectPoint.deviceConnectPoint(oneString);

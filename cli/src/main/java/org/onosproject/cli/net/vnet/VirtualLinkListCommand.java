@@ -16,8 +16,9 @@
 
 package org.onosproject.cli.net.vnet;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.VirtualLink;
@@ -29,6 +30,7 @@ import java.util.List;
 /**
  * Lists all virtual links for the network ID.
  */
+@Service
 @Command(scope = "onos", name = "vnet-links",
         description = "Lists all virtual links in a virtual network.")
 public class VirtualLinkListCommand extends AbstractShellCommand {
@@ -41,7 +43,7 @@ public class VirtualLinkListCommand extends AbstractShellCommand {
     Long networkId = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
 
         getSortedVirtualLinks().forEach(this::printVirtualLink);
     }

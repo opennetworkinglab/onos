@@ -15,8 +15,9 @@
  */
 package org.onosproject.cli.net;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.store.service.AtomicCounter;
 import org.onosproject.store.service.StorageService;
@@ -27,6 +28,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 /**
  * Command to display the current value of a atomic counter.
  */
+@Service
 @Command(scope = "onos", name = "counter",
         description = "Displays the current value of a atomic counter")
 public class CounterCommand extends AbstractShellCommand {
@@ -36,7 +38,7 @@ public class CounterCommand extends AbstractShellCommand {
     String name = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         StorageService storageService = get(StorageService.class);
         AtomicCounter counter = storageService.getAtomicCounter(name);
 

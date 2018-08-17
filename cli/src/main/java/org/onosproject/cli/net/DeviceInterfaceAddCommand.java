@@ -15,9 +15,10 @@
  */
 package org.onosproject.cli.net;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.apache.karaf.shell.api.action.Option;
 import org.onlab.packet.VlanId;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
@@ -31,6 +32,7 @@ import java.util.List;
 /**
  * Configures a device interface.
  */
+@Service
 @Command(scope = "onos", name = "device-add-interface",
          description = "Configures a device interface")
 public class DeviceInterfaceAddCommand extends AbstractShellCommand {
@@ -75,7 +77,7 @@ public class DeviceInterfaceAddCommand extends AbstractShellCommand {
     private String accessVlanString = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         DriverService service = get(DriverService.class);
         DeviceId deviceId = DeviceId.deviceId(uri);
         DriverHandler h = service.createHandler(deviceId);

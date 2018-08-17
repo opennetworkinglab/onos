@@ -17,12 +17,6 @@
 package org.onosproject.artemis.impl;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -32,22 +26,26 @@ import org.onosproject.artemis.ArtemisEventListener;
 import org.onosproject.artemis.ArtemisService;
 import org.onosproject.core.CoreService;
 import org.onosproject.event.EventDeliveryService;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = ArtemisDetector.class)
 public class ArtemisDetectorImpl implements ArtemisDetector {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     /* Services */
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private CoreService coreService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private ArtemisService artemisService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected EventDeliveryService eventDispatcher;
 
     private final ArtemisEventListener artemisEventListener = this::handleArtemisEvent;

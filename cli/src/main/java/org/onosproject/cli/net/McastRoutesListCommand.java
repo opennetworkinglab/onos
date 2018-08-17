@@ -15,7 +15,8 @@
  */
 package org.onosproject.cli.net;
 
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.mcast.McastRoute;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
 /**
  * Displays the source, multicast group flows entries.
  */
+@Service
 @Command(scope = "onos", name = "mcast-routes",
         description = "Lists routes in the mcast route store")
 public class McastRoutesListCommand extends AbstractShellCommand {
@@ -48,7 +50,7 @@ public class McastRoutesListCommand extends AbstractShellCommand {
     private static final String SINKS = "Sinks";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         // Get the service
         MulticastRouteService mcastService = get(MulticastRouteService.class);
         // Get the routes

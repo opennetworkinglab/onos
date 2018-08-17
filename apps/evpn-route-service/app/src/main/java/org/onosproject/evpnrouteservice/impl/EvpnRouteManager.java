@@ -16,23 +16,6 @@
 
 package org.onosproject.evpnrouteservice.impl;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadFactory;
-
-import javax.annotation.concurrent.GuardedBy;
-
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
-
 import org.onosproject.evpnrouteservice.EvpnInternalRouteEvent;
 import org.onosproject.evpnrouteservice.EvpnRoute;
 import org.onosproject.evpnrouteservice.EvpnRouteAdminService;
@@ -43,8 +26,22 @@ import org.onosproject.evpnrouteservice.EvpnRouteSet;
 import org.onosproject.evpnrouteservice.EvpnRouteStore;
 import org.onosproject.evpnrouteservice.EvpnRouteStoreDelegate;
 import org.onosproject.evpnrouteservice.EvpnRouteTableId;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.annotation.concurrent.GuardedBy;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
@@ -52,14 +49,13 @@ import static org.onlab.util.Tools.groupedThreads;
 /**
  * Implementation of the EVPN route service.
  */
-@Service
-@Component
+@Component(service = { EvpnRouteService.class, EvpnRouteAdminService.class })
 public class EvpnRouteManager implements EvpnRouteService,
         EvpnRouteAdminService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected EvpnRouteStore evpnRouteStore;
 
     @GuardedBy(value = "this")

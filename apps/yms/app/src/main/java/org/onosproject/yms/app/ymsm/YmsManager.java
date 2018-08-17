@@ -16,12 +16,6 @@
 
 package org.onosproject.yms.app.ymsm;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.IdGenerator;
@@ -47,6 +41,11 @@ import org.onosproject.yms.ymsm.YmsService;
 import org.onosproject.yms.ynh.YangNotificationService;
 import org.onosproject.yms.ysr.YangModuleIdentifier;
 import org.onosproject.yms.ysr.YangModuleLibrary;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,8 +60,7 @@ import static org.onosproject.yms.app.ych.defaultcodecs.YangCodecRegistry.initia
 /**
  * Represents implementation of YANG management system manager.
  */
-@Service
-@Component(immediate = true)
+@Component(immediate = true, service = YmsService.class)
 public class YmsManager
         implements YmsService {
 
@@ -79,7 +77,7 @@ public class YmsManager
     private YangNotificationExtendedService ynhExtendedService;
     private YangModuleLibrary library;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
     @Activate

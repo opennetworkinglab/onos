@@ -18,12 +18,14 @@ package org.onosproject.cli.net;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.resource.label.LabelResourceId;
 import org.onosproject.incubator.net.resource.label.LabelResourceService;
 
+@Service
 @Command(scope = "onos", name = "global-label-release",
 description = "Releases labels to global label resource pool.")
 public class GlobalLabelReleaseCommand extends AbstractShellCommand {
@@ -33,7 +35,7 @@ public class GlobalLabelReleaseCommand extends AbstractShellCommand {
     String releaseLabelIds = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         LabelResourceService lrs = get(LabelResourceService.class);
         Set<LabelResourceId> release = new HashSet<LabelResourceId>();
         String[] labelIds = releaseLabelIds.split(",");

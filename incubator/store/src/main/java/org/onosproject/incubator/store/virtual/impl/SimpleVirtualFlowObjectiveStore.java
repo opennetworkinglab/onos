@@ -17,11 +17,6 @@
 package org.onosproject.incubator.store.virtual.impl;
 
 import com.google.common.collect.Maps;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.VirtualNetworkFlowObjectiveStore;
 import org.onosproject.net.behaviour.DefaultNextGroup;
@@ -30,6 +25,10 @@ import org.onosproject.net.flowobjective.FlowObjectiveStoreDelegate;
 import org.onosproject.net.flowobjective.ObjectiveEvent;
 import org.onosproject.store.service.AtomicCounter;
 import org.onosproject.store.service.StorageService;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.HashMap;
@@ -47,8 +46,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Single instance implementation of store to manage
  * the inventory of created next groups for virtual network.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = VirtualNetworkFlowObjectiveStore.class)
 public class SimpleVirtualFlowObjectiveStore
         extends AbstractVirtualStore<ObjectiveEvent, FlowObjectiveStoreDelegate>
         implements VirtualNetworkFlowObjectiveStore {
@@ -63,7 +61,7 @@ public class SimpleVirtualFlowObjectiveStore
     private BlockingQueue<VirtualObjectiveEvent> eventQ;
     private ExecutorService tpool;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected StorageService storageService;
 
     @Activate

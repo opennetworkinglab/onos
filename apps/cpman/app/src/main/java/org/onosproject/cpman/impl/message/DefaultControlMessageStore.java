@@ -15,10 +15,6 @@
  */
 package org.onosproject.cpman.impl.message;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cpman.ControlMessage;
 import org.onosproject.cpman.message.ControlMessageEvent;
 import org.onosproject.cpman.message.ControlMessageStore;
@@ -26,6 +22,9 @@ import org.onosproject.cpman.message.ControlMessageStoreDelegate;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.AbstractStore;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
 import org.slf4j.Logger;
 
 import java.util.Set;
@@ -36,8 +35,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Manages inventory of control message using trivial in-memory structures
  * implementation.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = ControlMessageStore.class)
 public class DefaultControlMessageStore
         extends AbstractStore<ControlMessageEvent, ControlMessageStoreDelegate>
         implements ControlMessageStore {

@@ -16,7 +16,8 @@
 
 package org.onosproject.cli.net;
 
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.intf.Interface;
 import org.onosproject.net.neighbour.NeighbourResolutionService;
@@ -24,6 +25,7 @@ import org.onosproject.net.neighbour.NeighbourResolutionService;
 /**
  * Lists neighbour message handlers.
  */
+@Service
 @Command(scope = "onos", name = "neighbour-handlers",
         description = "Lists neighbour message handlers")
 public class NeighbourHandlersListCommand extends AbstractShellCommand {
@@ -31,7 +33,7 @@ public class NeighbourHandlersListCommand extends AbstractShellCommand {
     private static final String FORMAT = "%20s: interface=%s, class=%s";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         NeighbourResolutionService service = get(NeighbourResolutionService.class);
 
         service.getHandlerRegistrations().forEach((cp, list) -> {

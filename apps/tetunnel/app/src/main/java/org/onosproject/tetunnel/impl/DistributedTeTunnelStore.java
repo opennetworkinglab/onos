@@ -17,12 +17,6 @@
 package org.onosproject.tetunnel.impl;
 
 import com.google.common.collect.ImmutableList;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.store.serializers.KryoNamespaces;
@@ -30,11 +24,16 @@ import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.LogicalClockService;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.tetopology.management.api.TeTopologyKey;
+import org.onosproject.tetunnel.api.TeTunnelStore;
 import org.onosproject.tetunnel.api.lsp.TeLsp;
 import org.onosproject.tetunnel.api.lsp.TeLspKey;
 import org.onosproject.tetunnel.api.tunnel.TeTunnel;
-import org.onosproject.tetunnel.api.TeTunnelStore;
 import org.onosproject.tetunnel.api.tunnel.TeTunnelKey;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Collection;
@@ -45,16 +44,15 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Manages the TE tunnel attributes using an eventually consistent map.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = TeTunnelStore.class)
 public class DistributedTeTunnelStore implements TeTunnelStore {
 
     private final Logger log = getLogger(getClass());
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected StorageService storageService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected LogicalClockService clockService;
 
     private EventuallyConsistentMap<TeTunnelKey, TeTunnel> teTunnels;

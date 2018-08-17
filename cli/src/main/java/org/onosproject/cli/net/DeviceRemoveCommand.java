@@ -15,8 +15,9 @@
  */
 package org.onosproject.cli.net;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceAdminService;
@@ -24,6 +25,7 @@ import org.onosproject.net.device.DeviceAdminService;
 /**
  * Removes an infrastructure device.
  */
+@Service
 @Command(scope = "onos", name = "device-remove",
          description = "Removes an infrastructure device")
 public class DeviceRemoveCommand extends AbstractShellCommand {
@@ -33,7 +35,7 @@ public class DeviceRemoveCommand extends AbstractShellCommand {
     String uri = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         try {
             get(DeviceAdminService.class).removeDevice(DeviceId.deviceId(uri));
         } catch (IllegalStateException e) {

@@ -19,8 +19,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.ImmutableSet;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.apache.karaf.shell.api.action.Option;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.Device;
@@ -36,6 +37,7 @@ import static com.google.common.collect.Lists.newArrayList;
 /**
  * Lists all infrastructure devices.
  */
+@Service
 @Command(scope = "onos", name = "devices",
         description = "Lists all infrastructure devices")
 public class DevicesListCommand extends AbstractShellCommand {
@@ -52,7 +54,7 @@ public class DevicesListCommand extends AbstractShellCommand {
     private boolean shortOnly = false;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         DeviceService deviceService = get(DeviceService.class);
         if (outputJson()) {
             print("%s", json(getSortedDevices(deviceService)));

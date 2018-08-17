@@ -23,9 +23,10 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.apache.karaf.shell.api.action.Option;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.utils.Comparators;
 import org.onosproject.net.Device;
@@ -42,6 +43,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 /**
  * Lists port statistic of all ports in the system.
  */
+@Service
 @Command(scope = "onos", name = "tablestats",
         description = "Lists statistics of all tables in the device")
 public class TableStatisticsCommand extends AbstractShellCommand {
@@ -58,7 +60,7 @@ public class TableStatisticsCommand extends AbstractShellCommand {
             "   table=%s, active=%s, lookedup=%s, matched=%s";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         FlowRuleService flowService = get(FlowRuleService.class);
         DeviceService deviceService = get(DeviceService.class);
 

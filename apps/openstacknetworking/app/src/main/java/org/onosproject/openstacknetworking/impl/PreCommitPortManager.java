@@ -15,12 +15,6 @@
  */
 package org.onosproject.openstacknetworking.impl;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -33,6 +27,11 @@ import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.HashMap;
@@ -48,8 +47,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Implementation of pre-commit service.
  */
-@Service
-@Component(immediate = true)
+@Component(immediate = true, service = PreCommitPortService.class)
 public class PreCommitPortManager implements PreCommitPortService {
 
     protected final Logger log = getLogger(getClass());
@@ -59,10 +57,10 @@ public class PreCommitPortManager implements PreCommitPortService {
             .register(OpenstackNetworkEvent.Type.class)
             .build();
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected StorageService storageService;
 
     private ConsistentMap<String, Map<Type, Set<String>>> store;

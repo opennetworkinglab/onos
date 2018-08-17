@@ -16,9 +16,10 @@
 
 package org.onosproject.cli.net;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.apache.karaf.shell.api.action.Option;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.dpi.DpiStatInfo;
 import org.onosproject.incubator.net.dpi.DpiStatistics;
@@ -34,6 +35,7 @@ import static java.lang.Thread.sleep;
 /**
  * Fetches DPI statistics list.
  */
+@Service
 @Command(scope = "onos", name = "dpis",
         description = "Fetches the DPI result entries that is received from DPI engine server")
 public class DpisListCommand extends AbstractShellCommand {
@@ -96,7 +98,7 @@ public class DpisListCommand extends AbstractShellCommand {
                     + " or correct receivedTime format: 'yyyy-MM-dd HH:mm:ss', ex:'2016-08-30 10:31:20'";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         DpiStatisticsManagerService dsms = get(DpiStatisticsManagerService.class);
 
         DpiStatistics ds;

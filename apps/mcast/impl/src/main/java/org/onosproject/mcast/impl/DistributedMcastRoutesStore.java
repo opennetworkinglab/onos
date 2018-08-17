@@ -17,12 +17,6 @@ package org.onosproject.mcast.impl;
 
 
 import com.google.common.collect.ImmutableSet;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.mcast.api.McastEvent;
 import org.onosproject.mcast.api.McastRoute;
@@ -39,6 +33,11 @@ import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.Versioned;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Collection;
@@ -56,8 +55,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * New distributed mcast route store implementation. Routes are stored consistently
  * across the cluster.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = McastStore.class)
 public class DistributedMcastRoutesStore
         extends AbstractStore<McastEvent, McastStoreDelegate>
         implements McastStore {
@@ -65,7 +63,7 @@ public class DistributedMcastRoutesStore
     private static final String MCASTRIB = "onos-mcast-route-table";
     private Logger log = getLogger(getClass());
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected StorageService storageService;
 
     private Map<McastRoute, McastRouteData> mcastRoutes;

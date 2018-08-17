@@ -20,25 +20,23 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.CoreService;
 import org.onosproject.xmpp.core.XmppController;
 import org.onosproject.xmpp.core.XmppDevice;
+import org.onosproject.xmpp.core.XmppDeviceAgent;
 import org.onosproject.xmpp.core.XmppDeviceId;
 import org.onosproject.xmpp.core.XmppDeviceListener;
 import org.onosproject.xmpp.core.XmppIqListener;
 import org.onosproject.xmpp.core.XmppMessageListener;
 import org.onosproject.xmpp.core.XmppPresenceListener;
-import org.onosproject.xmpp.core.XmppDeviceAgent;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xmpp.packet.IQ;
@@ -60,8 +58,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * 3. Configuration parameters initialization.
  * 4. Notifing listeners about XMPP events/packets.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = XmppController.class)
 public class XmppControllerImpl implements XmppController {
 
     private static final String APP_ID = "org.onosproject.xmpp";
@@ -71,15 +68,15 @@ public class XmppControllerImpl implements XmppController {
             LoggerFactory.getLogger(XmppControllerImpl.class);
 
     // core services declaration
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService cfgService;
 
     // configuration properties definition
-    @Property(name = "xmppPort", value = XMPP_PORT,
-            label = "Port number used by XMPP protocol; default is 5269")
+    //@Property(name = "xmppPort", value = XMPP_PORT,
+    //        label = "Port number used by XMPP protocol; default is 5269")
     private String xmppPort = XMPP_PORT;
 
 

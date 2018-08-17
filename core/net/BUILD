@@ -5,6 +5,7 @@ COMPILE_DEPS = CORE_DEPS + JACKSON + METRICS + KRYO + [
     "//incubator/net:onos-incubator-net",
     "//incubator/store:onos-incubator-store",
     "//core/store/serializers:onos-core-serializers",
+    "@org_osgi_service_cm//jar",
 ]
 
 TEST_DEPS = TEST + TEST_REST + TEST_ADAPTERS + [

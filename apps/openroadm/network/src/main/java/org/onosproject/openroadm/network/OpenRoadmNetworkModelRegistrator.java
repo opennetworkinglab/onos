@@ -16,7 +16,7 @@
 package org.onosproject.openroadm.network;
 
 import com.google.common.collect.ImmutableMap;
-import org.apache.felix.scr.annotations.Component;
+import org.osgi.service.component.annotations.Component;
 import org.onosproject.yang.AbstractYangModelRegistrator;
 import org.onosproject.yang.gen.v1.ietfinettypes.rev20130715.IetfInetTypes;
 import org.onosproject.yang.gen.v1.orgopenroadmcommontypes.rev20161014.OrgOpenroadmCommonTypes;

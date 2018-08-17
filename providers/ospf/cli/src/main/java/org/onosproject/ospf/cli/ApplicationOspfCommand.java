@@ -15,11 +15,11 @@
 */
 package org.onosproject.ospf.cli;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
@@ -57,7 +57,7 @@ public class ApplicationOspfCommand extends AbstractShellCommand {
     protected static final String DROTHER = "DROther";
     static final String DATABASE = "database";
     static final String NEIGHBORLIST = "neighbors";
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected OspfController ospfController;
     @Argument(index = 0, name = "name",
             description = "database|neighborlist",

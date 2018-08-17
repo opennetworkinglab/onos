@@ -15,59 +15,17 @@
  */
 package org.onosproject.tetopology.management.impl;
 
-import static java.util.concurrent.Executors.newFixedThreadPool;
-import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.net.config.NetworkConfigEvent.Type.CONFIG_ADDED;
-import static org.onosproject.net.config.NetworkConfigEvent.Type.CONFIG_UPDATED;
-import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FACTORY;
-import static org.onosproject.tetopology.management.api.OptimizationType.NOT_OPTIMIZED;
-import static org.onosproject.tetopology.management.api.TeTopology.BIT_CUSTOMIZED;
-import static org.onosproject.tetopology.management.api.TeTopology.BIT_LEARNT;
-import static org.onosproject.tetopology.management.api.TeTopology.BIT_MERGED;
-import static org.onosproject.tetopology.management.api.TeTopologyEvent.Type.LINK_ADDED;
-import static org.onosproject.tetopology.management.api.TeTopologyEvent.Type.LINK_REMOVED;
-import static org.onosproject.tetopology.management.api.TeTopologyEvent.Type.LINK_UPDATED;
-import static org.onosproject.tetopology.management.api.TeTopologyEvent.Type.NETWORK_ADDED;
-import static org.onosproject.tetopology.management.api.TeTopologyEvent.Type.NETWORK_REMOVED;
-import static org.onosproject.tetopology.management.api.TeTopologyEvent.Type.NODE_ADDED;
-import static org.onosproject.tetopology.management.api.TeTopologyEvent.Type.NODE_REMOVED;
-import static org.onosproject.tetopology.management.api.TeTopologyEvent.Type.NODE_UPDATED;
-import static org.onosproject.tetopology.management.api.TeTopologyEvent.Type.TE_LINK_ADDED;
-import static org.onosproject.tetopology.management.api.TeTopologyEvent.Type.TE_LINK_REMOVED;
-import static org.onosproject.tetopology.management.api.TeTopologyEvent.Type.TE_LINK_UPDATED;
-import static org.onosproject.tetopology.management.api.TeTopologyEvent.Type.TE_NODE_ADDED;
-import static org.onosproject.tetopology.management.api.TeTopologyEvent.Type.TE_NODE_REMOVED;
-import static org.onosproject.tetopology.management.api.TeTopologyEvent.Type.TE_NODE_UPDATED;
-import static org.onosproject.tetopology.management.api.TeTopologyEvent.Type.TE_TOPOLOGY_ADDED;
-import static org.onosproject.tetopology.management.api.TeTopologyEvent.Type.TE_TOPOLOGY_REMOVED;
-import static org.onosproject.tetopology.management.api.link.TeLink.BIT_ACCESS_INTERDOMAIN;
-import static org.onosproject.tetopology.management.impl.TeMgrUtil.linkBuilder;
-import static org.onosproject.tetopology.management.impl.TeMgrUtil.networkBuilder;
-import static org.onosproject.tetopology.management.impl.TeMgrUtil.networkLinkKey;
-import static org.onosproject.tetopology.management.impl.TeMgrUtil.networkNodeKey;
-import static org.onosproject.tetopology.management.impl.TeMgrUtil.nodeBuilder;
-import static org.onosproject.tetopology.management.impl.TeMgrUtil.toNetworkId;
-import static org.onosproject.tetopology.management.impl.TeMgrUtil.toNetworkLinkId;
-
-import java.util.BitSet;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutorService;
-
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.Ip4Address;
 import org.onosproject.app.ApplicationException;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.net.config.ConfigException;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.config.ConfigException;
 import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
@@ -123,18 +81,57 @@ import org.onosproject.tetopology.management.api.node.TerminationPoint;
 import org.onosproject.tetopology.management.api.node.TerminationPointKey;
 import org.onosproject.tetopology.management.api.node.TtpKey;
 import org.onosproject.tetopology.management.api.node.TunnelTerminationPoint;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import java.util.BitSet;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+
+import static java.util.concurrent.Executors.newFixedThreadPool;
+import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.net.config.NetworkConfigEvent.Type.CONFIG_ADDED;
+import static org.onosproject.net.config.NetworkConfigEvent.Type.CONFIG_UPDATED;
+import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FACTORY;
+import static org.onosproject.tetopology.management.api.OptimizationType.NOT_OPTIMIZED;
+import static org.onosproject.tetopology.management.api.TeTopology.BIT_CUSTOMIZED;
+import static org.onosproject.tetopology.management.api.TeTopology.BIT_LEARNT;
+import static org.onosproject.tetopology.management.api.TeTopology.BIT_MERGED;
+import static org.onosproject.tetopology.management.api.TeTopologyEvent.Type.LINK_ADDED;
+import static org.onosproject.tetopology.management.api.TeTopologyEvent.Type.LINK_REMOVED;
+import static org.onosproject.tetopology.management.api.TeTopologyEvent.Type.LINK_UPDATED;
+import static org.onosproject.tetopology.management.api.TeTopologyEvent.Type.NETWORK_ADDED;
+import static org.onosproject.tetopology.management.api.TeTopologyEvent.Type.NETWORK_REMOVED;
+import static org.onosproject.tetopology.management.api.TeTopologyEvent.Type.NODE_ADDED;
+import static org.onosproject.tetopology.management.api.TeTopologyEvent.Type.NODE_REMOVED;
+import static org.onosproject.tetopology.management.api.TeTopologyEvent.Type.NODE_UPDATED;
+import static org.onosproject.tetopology.management.api.TeTopologyEvent.Type.TE_LINK_ADDED;
+import static org.onosproject.tetopology.management.api.TeTopologyEvent.Type.TE_LINK_REMOVED;
+import static org.onosproject.tetopology.management.api.TeTopologyEvent.Type.TE_LINK_UPDATED;
+import static org.onosproject.tetopology.management.api.TeTopologyEvent.Type.TE_NODE_ADDED;
+import static org.onosproject.tetopology.management.api.TeTopologyEvent.Type.TE_NODE_REMOVED;
+import static org.onosproject.tetopology.management.api.TeTopologyEvent.Type.TE_NODE_UPDATED;
+import static org.onosproject.tetopology.management.api.TeTopologyEvent.Type.TE_TOPOLOGY_ADDED;
+import static org.onosproject.tetopology.management.api.TeTopologyEvent.Type.TE_TOPOLOGY_REMOVED;
+import static org.onosproject.tetopology.management.api.link.TeLink.BIT_ACCESS_INTERDOMAIN;
+import static org.onosproject.tetopology.management.impl.TeMgrUtil.linkBuilder;
+import static org.onosproject.tetopology.management.impl.TeMgrUtil.networkBuilder;
+import static org.onosproject.tetopology.management.impl.TeMgrUtil.networkLinkKey;
+import static org.onosproject.tetopology.management.impl.TeMgrUtil.networkNodeKey;
+import static org.onosproject.tetopology.management.impl.TeMgrUtil.nodeBuilder;
+import static org.onosproject.tetopology.management.impl.TeMgrUtil.toNetworkId;
+import static org.onosproject.tetopology.management.impl.TeMgrUtil.toNetworkLinkId;
 
 /**
  * Implementation of the topology management service.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = { TeTopologyService.class, TeTopologyProviderRegistry.class })
 public class TeTopologyManager
     extends AbstractListenerProviderRegistry<TeTopologyEvent, TeTopologyListener,
                                              TeTopologyProvider, TeTopologyProviderService>
@@ -154,25 +151,25 @@ public class TeTopologyManager
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected NetworkConfigRegistry cfgService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DeviceService deviceService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected LinkService linkService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DeviceProviderRegistry deviceProviderRegistry;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected LinkProviderRegistry linkProviderRegistry;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     public TeTopologyStore store;
 
     private TeTopologyStoreDelegate delegate = this::post;

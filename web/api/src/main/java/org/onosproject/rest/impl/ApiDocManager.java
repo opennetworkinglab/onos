@@ -17,12 +17,11 @@ package org.onosproject.rest.impl;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.rest.ApiDocProvider;
 import org.onosproject.rest.ApiDocService;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,8 +31,7 @@ import java.util.Set;
 /**
  * Implementation of the REST API documentation tracker.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = ApiDocService.class)
 public class ApiDocManager implements ApiDocService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());

@@ -15,8 +15,9 @@
  */
 package org.onosproject.cli.net;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.region.Region;
 import org.onosproject.net.region.RegionService;
@@ -41,6 +42,7 @@ import static org.onosproject.ui.model.topo.UiTopoLayoutId.layoutId;
  * layout-add root @bayareaGEO . . 1.2 0.0 -4.0
  * </pre>
  */
+@Service
 @Command(scope = "onos", name = "layout-add",
         description = "Adds a new UI layout.")
 public class LayoutAddCommand extends AbstractShellCommand {
@@ -86,7 +88,7 @@ public class LayoutAddCommand extends AbstractShellCommand {
     private RegionService regionService;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         UiTopoLayoutService service = get(UiTopoLayoutService.class);
         RegionService regionService = get(RegionService.class);
 

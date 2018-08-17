@@ -15,28 +15,8 @@
  */
 package org.onosproject.flowperf;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static org.apache.felix.scr.annotations.ReferenceCardinality.MANDATORY_UNARY;
-import static org.onlab.util.Tools.get;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.Dictionary;
-import java.util.Iterator;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
-
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import org.onlab.packet.MacAddress;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
@@ -56,10 +36,26 @@ import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
+import java.util.Dictionary;
+import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.onlab.util.Tools.get;
+import static org.osgi.service.component.annotations.ReferenceCardinality.MANDATORY;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Application for measuring flow installation performance.
@@ -67,21 +63,20 @@ import com.google.common.collect.Lists;
  * This application installs a bunch of flows, validates that all those flows have
  * been successfully added and immediately proceeds to remove all the added flows.
  */
-@Component(immediate = true, enabled = true)
-@Service(value = FlowPerfApp.class)
+@Component(immediate = true, service = FlowPerfApp.class)
 public class FlowPerfApp {
     private final Logger log = getLogger(getClass());
 
-    @Reference(cardinality = MANDATORY_UNARY)
+    @Reference(cardinality = MANDATORY)
     protected DeviceService deviceService;
 
-    @Reference(cardinality = MANDATORY_UNARY)
+    @Reference(cardinality = MANDATORY)
     protected FlowRuleService flowRuleService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = MANDATORY)
     protected CoreService coreService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = MANDATORY)
     protected ComponentConfigService configService;
 
     protected ApplicationId appId;
@@ -97,16 +92,16 @@ public class FlowPerfApp {
 
     List<FlowRule> addedRules = Lists.newArrayList();
 
-    @Property(name = "totalFlows", intValue = DEFAULT_TOTAL_FLOWS,
-            label = "Total number of flows")
+    //@Property(name = "totalFlows", intValue = DEFAULT_TOTAL_FLOWS,
+    //        label = "Total number of flows")
     protected int totalFlows = DEFAULT_TOTAL_FLOWS;
 
-    @Property(name = "batchSize", intValue = DEFAULT_BATCH_SIZE,
-            label = "Number of flows per batch")
+    //@Property(name = "batchSize", intValue = DEFAULT_BATCH_SIZE,
+    //        label = "Number of flows per batch")
     protected int batchSize = DEFAULT_BATCH_SIZE;
 
-    @Property(name = "totalThreads", intValue = DEFAULT_TOTAL_THREADS,
-            label = "Number of installer threads")
+    //@Property(name = "totalThreads", intValue = DEFAULT_TOTAL_THREADS,
+    //        label = "Number of installer threads")
     protected int totalThreads = DEFAULT_TOTAL_THREADS;
 
     private ExecutorService installer;

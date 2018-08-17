@@ -16,8 +16,9 @@
 
 package org.onosproject.cli.net.vnet;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.VirtualNetworkAdminService;
@@ -26,6 +27,7 @@ import org.onosproject.net.DeviceId;
 /**
  * Creates a new virtual device.
  */
+@Service
 @Command(scope = "onos", name = "vnet-create-device",
         description = "Creates a new virtual device in a network.")
 public class VirtualDeviceCreateCommand extends AbstractShellCommand {
@@ -39,7 +41,7 @@ public class VirtualDeviceCreateCommand extends AbstractShellCommand {
     String deviceId = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         VirtualNetworkAdminService service = get(VirtualNetworkAdminService.class);
         service.createVirtualDevice(NetworkId.networkId(networkId), DeviceId.deviceId(deviceId));
         print("Virtual device successfully created.");

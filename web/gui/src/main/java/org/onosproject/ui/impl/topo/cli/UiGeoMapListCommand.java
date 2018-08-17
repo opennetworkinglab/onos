@@ -17,7 +17,7 @@
 
 package org.onosproject.ui.impl.topo.cli;
 
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.ui.UiExtensionService;
 import org.onosproject.ui.UiTopoMapFactory;
@@ -31,7 +31,7 @@ import org.onosproject.ui.UiTopoMapFactory;
 public class UiGeoMapListCommand extends AbstractShellCommand {
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         UiExtensionService uxs = get(UiExtensionService.class);
         uxs.getExtensions().forEach(ext -> {
             UiTopoMapFactory mapFactory = ext.topoMapFactory();

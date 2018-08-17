@@ -15,19 +15,17 @@
  */
 package org.onosproject.net.provider;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.event.Event;
 import org.onosproject.event.EventDeliveryService;
 import org.onosproject.event.EventListener;
 import org.onosproject.event.ListenerRegistry;
 import org.onosproject.event.ListenerService;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 
 /**
  * Basis for components which need to export listener mechanism.
  */
-@Component
 public abstract class AbstractListenerProviderRegistry<E extends Event, L extends EventListener<E>,
                                                        P extends Provider, S extends ProviderService<P>>
         extends AbstractProviderRegistry<P, S> implements ListenerService<E, L> {
@@ -36,7 +34,7 @@ public abstract class AbstractListenerProviderRegistry<E extends Event, L extend
 
     protected final ListenerRegistry<E, L> listenerRegistry = new ListenerRegistry<>();
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected EventDeliveryService eventDispatcher;
 
     @Override

@@ -15,17 +15,6 @@
  */
 package org.onosproject.upgrade.impl;
 
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
-
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cluster.ClusterEvent;
 import org.onosproject.cluster.ClusterEventListener;
 import org.onosproject.cluster.ClusterService;
@@ -46,7 +35,17 @@ import org.onosproject.upgrade.UpgradeAdminService;
 import org.onosproject.upgrade.UpgradeEvent;
 import org.onosproject.upgrade.UpgradeEventListener;
 import org.onosproject.upgrade.UpgradeService;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
+
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import static org.onosproject.security.AppGuard.checkPermission;
 import static org.onosproject.security.AppPermission.Type.CLUSTER_EVENT;
@@ -61,24 +60,23 @@ import static org.slf4j.LoggerFactory.getLogger;
  * This implementation uses the {@link CoordinationService} to store upgrade state in a version-agnostic primitive.
  * Upgrade state can be seen by current and future version nodes.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = { UpgradeService.class, UpgradeAdminService.class })
 public class UpgradeManager
         extends AbstractListenerManager<UpgradeEvent, UpgradeEventListener>
         implements UpgradeService, UpgradeAdminService {
 
     private final Logger log = getLogger(getClass());
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected VersionService versionService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoordinationService coordinationService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ClusterService clusterService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected MembershipService membershipService;
 
     private Version localVersion;

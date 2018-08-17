@@ -18,7 +18,8 @@ package org.onosproject.cli.net;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.packet.PacketRequest;
 import org.onosproject.net.packet.PacketService;
@@ -28,6 +29,7 @@ import java.util.List;
 /**
  * Lists packet requests.
  */
+@Service
 @Command(scope = "onos", name = "packet-requests",
         description = "Lists packet requests")
 public class PacketRequestsListCommand extends AbstractShellCommand {
@@ -35,7 +37,7 @@ public class PacketRequestsListCommand extends AbstractShellCommand {
     private static final String FMT = "nodeId=%s appId=%s, priority=%s, criteria=%s, deviceId=%s";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         PacketService service = get(PacketService.class);
         if (outputJson()) {
             print("%s", json(service.getRequests()));

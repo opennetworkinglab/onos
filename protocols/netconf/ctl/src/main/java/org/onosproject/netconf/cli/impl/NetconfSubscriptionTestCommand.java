@@ -46,7 +46,7 @@ public class NetconfSubscriptionTestCommand extends AbstractShellCommand {
 
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         NetconfController controller = get(NetconfController.class);
         DeviceId did = DeviceId.deviceId(uri);
 

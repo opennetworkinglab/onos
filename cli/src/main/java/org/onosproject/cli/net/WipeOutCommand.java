@@ -16,8 +16,9 @@
 package org.onosproject.cli.net;
 
 import com.google.common.collect.Sets;
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.util.Tools;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.Device;
@@ -50,6 +51,7 @@ import static org.onosproject.net.intent.IntentState.WITHDRAWN;
 /**
  * Wipes-out the entire network information base, i.e. devices, links, hosts, intents.
  */
+@Service
 @Command(scope = "onos", name = "wipe-out",
         description = "Wipes-out the entire network information base, i.e. devices, links, hosts")
 public class WipeOutCommand extends AbstractShellCommand {
@@ -59,7 +61,7 @@ public class WipeOutCommand extends AbstractShellCommand {
     String please = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         if (please == null || !please.equals(PLEASE)) {
             print("I'm afraid I can't do that!\nSay: %s", PLEASE);
             return;

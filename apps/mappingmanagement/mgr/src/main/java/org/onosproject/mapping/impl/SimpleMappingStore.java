@@ -18,11 +18,6 @@ package org.onosproject.mapping.impl;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.mapping.DefaultMappingEntry;
 import org.onosproject.mapping.Mapping;
 import org.onosproject.mapping.MappingEntry;
@@ -35,6 +30,10 @@ import org.onosproject.mapping.StoredMappingEntry;
 import org.onosproject.net.DeviceId;
 import org.onosproject.store.AbstractStore;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
 import org.slf4j.Logger;
 
 import java.util.Collections;
@@ -52,8 +51,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Manages inventory of mappings using trivial in-memory implementation.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = MappingStore.class)
 public class SimpleMappingStore
         extends AbstractStore<MappingEvent, MappingStoreDelegate>
         implements MappingStore {

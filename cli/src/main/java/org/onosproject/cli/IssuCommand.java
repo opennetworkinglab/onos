@@ -15,14 +15,16 @@
  */
 package org.onosproject.cli;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.upgrade.UpgradeAdminService;
 import org.onosproject.upgrade.UpgradeService;
 
 /**
  * Commands for managing upgrades.
  */
+@Service
 @Command(scope = "onos", name = "issu",
         description = "Manages upgrades")
 public class IssuCommand extends AbstractShellCommand {
@@ -41,7 +43,7 @@ public class IssuCommand extends AbstractShellCommand {
     String command = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         UpgradeService upgradeService = get(UpgradeService.class);
         UpgradeAdminService upgradeAdminService = get(UpgradeAdminService.class);
         if (command == null) {

@@ -16,18 +16,16 @@
 
 package org.onosproject.drivers.p4runtime.mirror;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.net.pi.runtime.PiActionGroup;
 import org.onosproject.net.pi.runtime.PiActionGroupHandle;
 import org.onosproject.store.serializers.KryoNamespaces;
+import org.osgi.service.component.annotations.Component;
 
 /**
  * Distributed implementation of a P4Runtime group mirror.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = P4RuntimeGroupMirror.class)
 public final class DistributedP4RuntimeGroupMirror
         extends AbstractDistributedP4RuntimeMirror
                         <PiActionGroupHandle, PiActionGroup>

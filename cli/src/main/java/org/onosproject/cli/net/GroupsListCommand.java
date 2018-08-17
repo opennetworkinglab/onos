@@ -18,9 +18,10 @@ package org.onosproject.cli.net;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Lists;
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.apache.karaf.shell.api.action.Option;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -44,6 +45,7 @@ import java.util.stream.Stream;
 /**
  * Lists all groups in the system.
  */
+@Service
 @Command(scope = "onos", name = "groups",
         description = "Lists all groups in the system")
 public class GroupsListCommand extends AbstractShellCommand {
@@ -90,7 +92,7 @@ public class GroupsListCommand extends AbstractShellCommand {
     }
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         DeviceService deviceService = get(DeviceService.class);
         GroupService groupService = get(GroupService.class);
         SortedMap<Device, List<Group>> sortedGroups =

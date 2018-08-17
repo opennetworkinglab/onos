@@ -16,13 +16,6 @@
 package org.onosproject.faultmanagement.impl;
 
 import com.google.common.collect.ImmutableSet;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.ItemNotFoundException;
 import org.onosproject.faultmanagement.api.AlarmStore;
 import org.onosproject.faultmanagement.api.AlarmStoreDelegate;
@@ -44,6 +37,12 @@ import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Collection;
@@ -59,21 +58,20 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Implementation of the Alarm service.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = { AlarmService.class, AlarmProviderRegistry.class })
 public class AlarmManager
         extends AbstractListenerProviderRegistry<AlarmEvent, AlarmListener, AlarmProvider, AlarmProviderService>
         implements AlarmService, AlarmProviderRegistry {
 
     private final Logger log = getLogger(getClass());
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DeviceService deviceService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected MastershipService mastershipService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected AlarmStore store;
 
     protected AlarmStoreDelegate delegate = this::post;

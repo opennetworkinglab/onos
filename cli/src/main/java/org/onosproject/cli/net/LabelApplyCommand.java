@@ -18,14 +18,16 @@ package org.onosproject.cli.net;
 import java.util.Collection;
 import java.util.Iterator;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
 import org.onosproject.incubator.net.resource.label.DefaultLabelResource;
 import org.onosproject.incubator.net.resource.label.LabelResource;
 import org.onosproject.incubator.net.resource.label.LabelResourceService;
 
+@Service
 @Command(scope = "onos", name = "label-apply",
       description = "Apply label resource from device pool by specific device id")
 public class LabelApplyCommand extends AbstractShellCommand {
@@ -41,7 +43,7 @@ public class LabelApplyCommand extends AbstractShellCommand {
     private static final String FMT = "deviceid=%s, labelresourceid=%s";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         LabelResourceService lrs = get(LabelResourceService.class);
         Collection<LabelResource> result = lrs.applyFromDevicePool(DeviceId
                 .deviceId(deviceId), Long.parseLong(applyNum));

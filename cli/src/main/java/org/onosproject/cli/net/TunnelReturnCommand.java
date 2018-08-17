@@ -17,9 +17,10 @@ package org.onosproject.cli.net;
 
 import java.util.Optional;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.apache.karaf.shell.api.action.Option;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.core.ApplicationId;
@@ -40,6 +41,7 @@ import org.onosproject.net.provider.ProviderId;
 /**
  * Returns tunnels. It's used by consumers.
  */
+@Service
 @Command(scope = "onos", name = "tunnel-return",
 description = "Returns tunnels. It's used by consumers.")
 public class TunnelReturnCommand extends AbstractShellCommand {
@@ -72,7 +74,7 @@ public class TunnelReturnCommand extends AbstractShellCommand {
     String tunnelName = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         Tunnel.Type trueType = null;
         TunnelService service = get(TunnelService.class);
         ApplicationId appId = new DefaultApplicationId(1, consumerId);

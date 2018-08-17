@@ -18,7 +18,8 @@ package org.onosproject.cli;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.util.XmlString;
 
 import com.google.common.io.CharStreams;
@@ -26,12 +27,13 @@ import com.google.common.io.CharStreams;
 /**
  * Pretty print previous command output XML.
  */
+@Service
 @Command(scope = "onos", name = "ppxml",
          description = "Pretty print XML output from previous command")
 public class PrettyXml extends AbstractShellCommand {
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         try {
             String xmlS = CharStreams.toString(new InputStreamReader(System.in));
 

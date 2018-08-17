@@ -16,8 +16,9 @@
 
 package org.onosproject.cli.net.vnet;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.VirtualNetworkAdminService;
@@ -33,6 +34,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Administratively enables or disables state of an existing virtual port.
  */
+@Service
 @Command(scope = "onos", name = "vnet-port-state",
         description = "Administratively enables or disables state of an existing virtual port.")
 public class VirtualPortStateCommand extends AbstractShellCommand {
@@ -54,7 +56,7 @@ public class VirtualPortStateCommand extends AbstractShellCommand {
     String portState = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         VirtualNetworkAdminService service = get(VirtualNetworkAdminService.class);
 
         VirtualPort vPort = getVirtualPort(PortNumber.portNumber(portNum));

@@ -15,12 +15,6 @@
  */
 package org.onosproject.net.topology.impl;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.event.Event;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
@@ -43,6 +37,11 @@ import org.onosproject.net.topology.TopologyProviderService;
 import org.onosproject.net.topology.TopologyService;
 import org.onosproject.net.topology.TopologyStore;
 import org.onosproject.net.topology.TopologyStoreDelegate;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.List;
@@ -59,8 +58,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Provides basic implementation of the topology SB &amp; NB APIs.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = {TopologyService.class, TopologyProviderRegistry.class})
 public class TopologyManager
         extends AbstractListenerProviderRegistry<TopologyEvent, TopologyListener,
         TopologyProvider, TopologyProviderService>
@@ -77,7 +75,7 @@ public class TopologyManager
 
     private TopologyStoreDelegate delegate = new InternalStoreDelegate();
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected TopologyStore store;
 
     @Activate

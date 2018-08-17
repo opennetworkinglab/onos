@@ -15,12 +15,6 @@
  */
 package org.onosproject.drivers.microsemi.yang.impl;
 
-import java.util.ArrayList;
-
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.drivers.microsemi.yang.MseaCfmNetconfService;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdShort;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdId;
@@ -54,16 +48,19 @@ import org.onosproject.yang.runtime.CompositeData;
 import org.onosproject.yang.runtime.DefaultAnnotatedNodeInfo;
 import org.onosproject.yang.runtime.DefaultAnnotation;
 import org.onosproject.yang.runtime.DefaultCompositeStream;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
 
 import java.io.ByteArrayInputStream;
+import java.util.ArrayList;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
 /**
  * Implementation of the MseaCfmServiceNetconf YANG model service.
  */
-@Component(immediate = true, inherit = true)
-@Service
+@Component(immediate = true, service = MseaCfmNetconfService.class)
 public class MseaCfmManager extends AbstractYangServiceImpl
     implements MseaCfmNetconfService {
 

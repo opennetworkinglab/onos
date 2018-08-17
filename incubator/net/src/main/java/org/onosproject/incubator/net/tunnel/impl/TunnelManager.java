@@ -15,13 +15,6 @@
  */
 package org.onosproject.incubator.net.tunnel.impl;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
-import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.incubator.net.tunnel.DefaultTunnel;
 import org.onosproject.incubator.net.tunnel.Tunnel;
@@ -45,8 +38,14 @@ import org.onosproject.net.Annotations;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.ElementId;
 import org.onosproject.net.Path;
+import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.onosproject.net.provider.ProviderId;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Collection;
@@ -59,8 +58,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Provides implementation of the tunnel NB/SB APIs.
  */
-@Component(immediate = true, enabled = true)
-@Service
+@Component(immediate = true, service = {TunnelService.class, TunnelAdminService.class, TunnelProviderRegistry.class})
 public class TunnelManager
         extends AbstractListenerProviderRegistry<TunnelEvent, TunnelListener,
                                                  TunnelProvider, TunnelProviderService>
@@ -73,7 +71,7 @@ public class TunnelManager
 
     private final TunnelStoreDelegate delegate = new InternalStoreDelegate();
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected TunnelStore store;
 
 

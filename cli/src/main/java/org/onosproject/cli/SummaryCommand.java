@@ -16,7 +16,8 @@
 package org.onosproject.cli;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.ClusterMetadataService;
 import org.onosproject.cluster.ClusterService;
@@ -35,6 +36,7 @@ import java.util.Set;
 /**
  * Provides summary of ONOS model.
  */
+@Service
 @Command(scope = "onos", name = "summary",
          description = "Provides summary of ONOS model")
 public class SummaryCommand extends AbstractShellCommand {
@@ -55,7 +57,7 @@ public class SummaryCommand extends AbstractShellCommand {
     }
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         IpAddress nodeIp = get(ClusterService.class).getLocalNode().ip();
         Version version = get(CoreService.class).version();
         long numNodes = activeNodes(get(ClusterService.class).getNodes());

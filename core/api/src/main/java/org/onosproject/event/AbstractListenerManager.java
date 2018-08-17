@@ -15,20 +15,19 @@
  */
 package org.onosproject.event;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 
 /**
  * Basis for components which need to export listener mechanism.
  */
-@Component
 public abstract class AbstractListenerManager<E extends Event, L extends EventListener<E>>
     implements ListenerService<E, L> {
 
     protected final ListenerRegistry<E, L> listenerRegistry = new ListenerRegistry<>();
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected EventDeliveryService eventDispatcher;
 
     @Override

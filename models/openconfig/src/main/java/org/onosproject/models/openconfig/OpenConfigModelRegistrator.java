@@ -18,7 +18,7 @@ package org.onosproject.models.openconfig;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Map;
-import org.apache.felix.scr.annotations.Component;
+import org.osgi.service.component.annotations.Component;
 import org.onosproject.yang.AbstractYangModelRegistrator;
 import org.onosproject.yang.gen.v1.ianaiftype.rev20170330.IanaIfType;
 import org.onosproject.yang.gen.v1.ietfinettypes.rev20130715.IetfInetTypes;

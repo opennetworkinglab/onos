@@ -16,7 +16,7 @@
 package org.onosproject.net.optical.cli;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
 import org.onlab.util.Frequency;
 import org.onosproject.cli.net.DevicePortsListCommand;
 import org.onosproject.net.Device;
@@ -50,7 +50,7 @@ public class OpticalPortsListCommand extends DevicePortsListCommand {
     private static final EnumSet<Port.Type> OPTICAL = EnumSet.of(Type.OCH, Type.ODUCLT, Type.OMS, Type.OTU);
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         DeviceService service = opticalView(get(DeviceService.class));
         if (uri == null) {
             if (outputJson()) {

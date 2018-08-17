@@ -19,8 +19,9 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Optional;
 
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.apache.karaf.shell.api.action.Option;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.tunnel.DefaultOpticalTunnelEndPoint;
@@ -40,6 +41,7 @@ import org.onosproject.net.provider.ProviderId;
 /**
  * Supports for querying tunnels. It's used by consumers.
  */
+@Service
 @Command(scope = "onos", name = "tunnels", description = "Supports for querying tunnels."
         + " It's used by consumers.")
 public class TunnelQueryCommand extends AbstractShellCommand {
@@ -67,7 +69,7 @@ public class TunnelQueryCommand extends AbstractShellCommand {
             + "groupId=%s, path=%s%s";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         Tunnel.Type trueType = null;
         TunnelService service = get(TunnelService.class);
         ProviderId producerName = new ProviderId("default",

@@ -15,29 +15,26 @@
  */
 package org.onosproject.incubator.rpc.impl;
 
-import java.net.URI;
-
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Service;
+import com.google.common.annotations.Beta;
 import org.onosproject.incubator.rpc.RemoteServiceContext;
-import org.onosproject.incubator.rpc.RemoteServiceDirectory;
 import org.onosproject.incubator.rpc.RemoteServiceContextProvider;
 import org.onosproject.incubator.rpc.RemoteServiceContextProviderService;
+import org.onosproject.incubator.rpc.RemoteServiceDirectory;
 import org.onosproject.incubator.rpc.RemoteServiceProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.annotations.Beta;
+import java.net.URI;
 
 /**
  * Provides RemoteService related APIs.
  */
 @Beta
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = { RemoteServiceDirectory.class, RemoteServiceProviderRegistry.class })
 public class RemoteServiceManager extends AbstractProviderRegistry
     implements RemoteServiceDirectory, RemoteServiceProviderRegistry {
 

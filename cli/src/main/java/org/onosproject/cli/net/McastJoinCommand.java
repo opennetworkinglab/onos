@@ -15,8 +15,9 @@
  */
 package org.onosproject.cli.net;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.ConnectPoint;
@@ -26,6 +27,7 @@ import org.onosproject.net.mcast.MulticastRouteService;
 /**
  * Installs a source, multicast group flow.
  */
+@Service
 @Command(scope = "onos", name = "mcast-join",
          description = "Installs a source, multicast group flow")
 public class McastJoinCommand extends AbstractShellCommand {
@@ -55,7 +57,7 @@ public class McastJoinCommand extends AbstractShellCommand {
     String[] ports = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         MulticastRouteService mcastRouteManager = get(MulticastRouteService.class);
 
         McastRoute mRoute = new McastRoute(IpAddress.valueOf(sAddr),

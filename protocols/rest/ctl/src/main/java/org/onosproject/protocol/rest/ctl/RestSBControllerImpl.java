@@ -17,12 +17,6 @@
 package org.onosproject.protocol.rest.ctl;
 
 import com.google.common.collect.ImmutableSet;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.event.EventDeliveryService;
 import org.onosproject.event.ListenerRegistry;
 import org.onosproject.event.ListenerService;
@@ -32,6 +26,11 @@ import org.onosproject.protocol.rest.RestSBController;
 import org.onosproject.protocol.rest.RestSBDevice;
 import org.onosproject.protocol.rest.RestSBEventListener;
 import org.onosproject.protocol.rest.RestSBServerSentEvent;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,15 +44,14 @@ import java.util.stream.Collectors;
 /**
  * The implementation of RestSBController.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = { RestSBController.class, ListenerService.class })
 public class RestSBControllerImpl extends HttpSBControllerImpl
         implements RestSBController, ListenerService<RestSBServerSentEvent, RestSBEventListener> {
 
     private static final Logger log =
             LoggerFactory.getLogger(RestSBControllerImpl.class);
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected EventDeliveryService eventDispatcher;
 
     protected final ListenerRegistry<RestSBServerSentEvent, RestSBEventListener> listenerRegistry =

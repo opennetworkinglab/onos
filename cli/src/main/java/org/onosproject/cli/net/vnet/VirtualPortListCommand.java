@@ -16,8 +16,9 @@
 
 package org.onosproject.cli.net.vnet;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.VirtualNetworkService;
@@ -32,6 +33,7 @@ import java.util.List;
 /**
  * Lists all virtual ports for the network ID.
  */
+@Service
 @Command(scope = "onos", name = "vnet-ports",
         description = "Lists all virtual ports in a virtual network.")
 public class VirtualPortListCommand extends AbstractShellCommand {
@@ -48,7 +50,7 @@ public class VirtualPortListCommand extends AbstractShellCommand {
     String deviceId = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
 
         getSortedVirtualPorts().forEach(this::printVirtualPort);
     }

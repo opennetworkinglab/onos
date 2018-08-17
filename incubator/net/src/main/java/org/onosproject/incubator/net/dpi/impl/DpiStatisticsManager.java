@@ -17,14 +17,6 @@
 package org.onosproject.incubator.net.dpi.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
-
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.incubator.net.dpi.DpiStatInfo;
@@ -34,6 +26,11 @@ import org.onosproject.incubator.net.dpi.FlowStatInfo;
 import org.onosproject.incubator.net.dpi.ProtocolStatInfo;
 import org.onosproject.incubator.net.dpi.TrafficStatInfo;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.io.BufferedReader;
@@ -63,8 +60,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * DPI Statistics Manager.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = DpiStatisticsManagerService.class)
 public class DpiStatisticsManager implements DpiStatisticsManagerService {
 
     private ServerSocket serverSocket;
@@ -72,7 +68,7 @@ public class DpiStatisticsManager implements DpiStatisticsManagerService {
 
     private final Logger log = getLogger(getClass());
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
     private ApplicationId appId;

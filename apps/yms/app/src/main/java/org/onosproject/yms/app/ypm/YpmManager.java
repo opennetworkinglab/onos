@@ -16,22 +16,20 @@
 
 package org.onosproject.yms.app.ypm;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.yms.ydt.YdtContext;
+import org.onosproject.yms.ypm.DefaultYpmNode;
 import org.onosproject.yms.ypm.YpmContext;
 import org.onosproject.yms.ypm.YpmService;
-import org.onosproject.yms.ypm.DefaultYpmNode;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Represents implementation of YANG protocol metadata manager.
  */
-@Service
-@Component(immediate = true)
+@Component(immediate = true, service = YpmService.class)
 public class YpmManager implements YpmService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());

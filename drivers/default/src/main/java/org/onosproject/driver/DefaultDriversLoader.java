@@ -16,16 +16,14 @@
 
 package org.onosproject.driver;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.net.driver.AbstractIndependentDriverLoader;
 import org.onosproject.net.driver.DefaultDriverProviderService;
+import org.osgi.service.component.annotations.Component;
 
 /**
  * Loader for default device drivers.
  */
-@Service
-@Component(immediate = true)
+@Component(immediate = true, service = DefaultDriversLoader.class)
 public class DefaultDriversLoader extends AbstractIndependentDriverLoader
         implements DefaultDriverProviderService {
     public DefaultDriversLoader() {

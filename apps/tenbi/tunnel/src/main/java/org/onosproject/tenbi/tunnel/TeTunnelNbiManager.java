@@ -16,12 +16,11 @@
 
 package org.onosproject.tenbi.tunnel;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.tetopology.management.api.TeTopology;
 import org.onosproject.tetopology.management.api.TeTopologyKey;
@@ -55,23 +54,22 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * The IETF TE Tunnel NBI Manager implementation.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = IetfTeService.class)
 public class TeTunnelNbiManager
         extends AbstractListenerManager<IetfTeEvent, IetfTeEventListener>
         implements IetfTeService {
     private final Logger log = getLogger(getClass());
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected YmsService ymsService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected TeTunnelService tunnelService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected TeTopologyService toplogyService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected TeTunnelAdminService tunnelAdminService;
 
     @Activate

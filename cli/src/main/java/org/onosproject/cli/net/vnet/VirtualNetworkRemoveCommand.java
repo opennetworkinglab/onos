@@ -16,8 +16,9 @@
 
 package org.onosproject.cli.net.vnet;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.VirtualNetworkAdminService;
@@ -25,6 +26,7 @@ import org.onosproject.incubator.net.virtual.VirtualNetworkAdminService;
 /**
  * Removes a virtual network.
  */
+@Service
 @Command(scope = "onos", name = "vnet-remove",
         description = "Removes a virtual network.")
 public class VirtualNetworkRemoveCommand extends AbstractShellCommand {
@@ -34,7 +36,7 @@ public class VirtualNetworkRemoveCommand extends AbstractShellCommand {
     Long id;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         VirtualNetworkAdminService service = get(VirtualNetworkAdminService.class);
         service.removeVirtualNetwork(NetworkId.networkId(id));
         print("Virtual network successfully removed.");

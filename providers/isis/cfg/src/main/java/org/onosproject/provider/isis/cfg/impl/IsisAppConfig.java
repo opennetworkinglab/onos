@@ -17,8 +17,8 @@
 package org.onosproject.provider.isis.cfg.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.isis.controller.IsisController;
@@ -31,7 +31,7 @@ public class IsisAppConfig extends Config<ApplicationId> {
     public static final String METHOD = "method";
     public static final String PROCESSES = "processes";
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     IsisController isisController;
 
     /**

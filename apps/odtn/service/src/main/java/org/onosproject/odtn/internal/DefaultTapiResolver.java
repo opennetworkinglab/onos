@@ -16,6 +16,16 @@
 
 package org.onosproject.odtn.internal;
 
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.ElementId;
+import org.onosproject.odtn.TapiResolver;
+import org.onosproject.odtn.utils.tapi.TapiNepRef;
+import org.onosproject.odtn.utils.tapi.TapiNodeRef;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.slf4j.Logger;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -23,24 +33,13 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Service;
-import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.ElementId;
-import org.onosproject.odtn.TapiResolver;
-import org.onosproject.odtn.utils.tapi.TapiNepRef;
-import org.onosproject.odtn.utils.tapi.TapiNodeRef;
-import org.slf4j.Logger;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * OSGi Component for ODTN TAPI resolver application.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = TapiResolver.class)
 public class DefaultTapiResolver implements TapiResolver {
 
     private final Logger log = getLogger(getClass());

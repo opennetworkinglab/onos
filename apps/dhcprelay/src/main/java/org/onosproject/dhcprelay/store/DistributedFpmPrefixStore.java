@@ -16,35 +16,26 @@
 
 package org.onosproject.dhcprelay.store;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
-import org.apache.felix.scr.annotations.Property;
-import org.onlab.util.KryoNamespace;
-import org.onosproject.store.StoreDelegate;
 import org.onlab.packet.IpPrefix;
+import org.onlab.util.KryoNamespace;
+import org.onosproject.routing.fpm.api.FpmPrefixStoreEvent;
+import org.onosproject.routing.fpm.api.FpmRecord;
+import org.onosproject.store.StoreDelegate;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.EventuallyConsistentMapEvent;
 import org.onosproject.store.service.EventuallyConsistentMapListener;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.WallClockTimestamp;
-import org.onosproject.routing.fpm.api.FpmRecord;
-import org.onosproject.routing.fpm.api.FpmPrefixStoreEvent;
-
-
-
-
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Collection;
 import java.util.Optional;
-
-
-
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -52,9 +43,8 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Persistent Fpm Prefix Store with Listener.
  */
-@Component(immediate = true)
-@Property(name = "fpm_type", value = "DHCP")
-@Service
+@Component(immediate = true, service = DhcpFpmPrefixStore.class)
+//@Property(name = "fpm_type", value = "DHCP")
 public class DistributedFpmPrefixStore implements DhcpFpmPrefixStore {
 
     private static final KryoNamespace APP_KRYO = KryoNamespace.newBuilder()
@@ -68,7 +58,7 @@ public class DistributedFpmPrefixStore implements DhcpFpmPrefixStore {
     private EventuallyConsistentMap<IpPrefix, FpmRecord> dhcpFpmRecords;
     private EventuallyConsistentMapListener<IpPrefix, FpmRecord> listener;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected StorageService storageService;
 
     @Activate

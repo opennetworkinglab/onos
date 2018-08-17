@@ -17,9 +17,10 @@ package org.onosproject.cli.net;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.ImmutableList;
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.apache.karaf.shell.api.action.Option;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.driver.Behaviour;
 import org.onosproject.net.driver.Driver;
@@ -34,6 +35,7 @@ import java.util.stream.Collectors;
 /**
  * Lists device drivers.
  */
+@Service
 @Command(scope = "onos", name = "drivers",
         description = "Lists device drivers")
 public class DriversListCommand extends AbstractShellCommand {
@@ -55,7 +57,7 @@ public class DriversListCommand extends AbstractShellCommand {
     private boolean nameOnly = false;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         DriverService service = get(DriverService.class);
 
         if (driverName != null) {

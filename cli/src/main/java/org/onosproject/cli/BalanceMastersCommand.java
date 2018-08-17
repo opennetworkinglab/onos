@@ -15,18 +15,20 @@
  */
 package org.onosproject.cli;
 
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.mastership.MastershipAdminService;
 
 /**
  * Forces device mastership rebalancing.
  */
+@Service
 @Command(scope = "onos", name = "balance-masters",
         description = "Forces device mastership rebalancing")
 public class BalanceMastersCommand extends AbstractShellCommand {
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         get(MastershipAdminService.class).balanceRoles();
     }
 

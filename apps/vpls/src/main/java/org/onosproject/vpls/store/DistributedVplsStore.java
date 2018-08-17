@@ -15,17 +15,11 @@
  */
 package org.onosproject.vpls.store;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.net.intf.Interface;
 import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.net.intf.Interface;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.StoreDelegate;
 import org.onosproject.store.serializers.KryoNamespaces;
@@ -37,9 +31,14 @@ import org.onosproject.store.service.WallClockTimestamp;
 import org.onosproject.vpls.VplsManager;
 import org.onosproject.vpls.api.VplsData;
 import org.onosproject.vpls.api.VplsOperation;
-import org.onosproject.vpls.config.VplsAppConfig;
 import org.onosproject.vpls.api.VplsStore;
+import org.onosproject.vpls.config.VplsAppConfig;
 import org.onosproject.vpls.config.VplsConfig;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,14 +47,13 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-import static java.util.Objects.*;
+import static java.util.Objects.requireNonNull;
 
 /**
  * Implementation of VPLSConfigurationService which reads VPLS configuration
  * from the network configuration service.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = VplsStore.class)
 public class DistributedVplsStore
         extends AbstractStore<VplsStoreEvent, StoreDelegate<VplsStoreEvent>>
         implements VplsStore {
@@ -70,13 +68,13 @@ public class DistributedVplsStore
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected StorageService storageService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected NetworkConfigService networkConfigService;
 
     private EventuallyConsistentMap<String, VplsData> vplsDataStore;

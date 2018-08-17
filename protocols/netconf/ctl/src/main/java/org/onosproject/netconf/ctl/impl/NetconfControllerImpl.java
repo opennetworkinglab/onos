@@ -16,14 +16,6 @@
 
 package org.onosproject.netconf.ctl.impl;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cfg.ComponentConfigService;
@@ -47,6 +39,12 @@ import org.onosproject.netconf.NetconfException;
 import org.onosproject.netconf.config.NetconfDeviceConfig;
 import org.onosproject.netconf.config.NetconfSshClientLib;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,47 +65,46 @@ import static org.onlab.util.Tools.groupedThreads;
 /**
  * The implementation of NetconfController.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = NetconfController.class)
 public class NetconfControllerImpl implements NetconfController {
 
     protected static final int DEFAULT_CONNECT_TIMEOUT_SECONDS = 5;
     private static final String PROP_NETCONF_CONNECT_TIMEOUT = "netconfConnectTimeout";
     // FIXME @Property should not be static
-    @Property(name = PROP_NETCONF_CONNECT_TIMEOUT, intValue = DEFAULT_CONNECT_TIMEOUT_SECONDS,
-            label = "Time (in seconds) to wait for a NETCONF connect.")
+    //@Property(name = PROP_NETCONF_CONNECT_TIMEOUT, intValue = DEFAULT_CONNECT_TIMEOUT_SECONDS,
+    //        label = "Time (in seconds) to wait for a NETCONF connect.")
     protected static int netconfConnectTimeout = DEFAULT_CONNECT_TIMEOUT_SECONDS;
 
     private static final String PROP_NETCONF_REPLY_TIMEOUT = "netconfReplyTimeout";
     protected static final int DEFAULT_REPLY_TIMEOUT_SECONDS = 5;
     // FIXME @Property should not be static
-    @Property(name = PROP_NETCONF_REPLY_TIMEOUT, intValue = DEFAULT_REPLY_TIMEOUT_SECONDS,
-            label = "Time (in seconds) waiting for a NetConf reply")
+    //@Property(name = PROP_NETCONF_REPLY_TIMEOUT, intValue = DEFAULT_REPLY_TIMEOUT_SECONDS,
+    //        label = "Time (in seconds) waiting for a NetConf reply")
     protected static int netconfReplyTimeout = DEFAULT_REPLY_TIMEOUT_SECONDS;
 
     private static final String PROP_NETCONF_IDLE_TIMEOUT = "netconfIdleTimeout";
     protected static final int DEFAULT_IDLE_TIMEOUT_SECONDS = 300;
     // FIXME @Property should not be static
-    @Property(name = PROP_NETCONF_IDLE_TIMEOUT, intValue = DEFAULT_IDLE_TIMEOUT_SECONDS,
-            label = "Time (in seconds) SSH session will close if no traffic seen")
+    //@Property(name = PROP_NETCONF_IDLE_TIMEOUT, intValue = DEFAULT_IDLE_TIMEOUT_SECONDS,
+    //        label = "Time (in seconds) SSH session will close if no traffic seen")
     protected static int netconfIdleTimeout = DEFAULT_IDLE_TIMEOUT_SECONDS;
 
     private static final String SSH_LIBRARY = "sshLibrary";
     private static final String APACHE_MINA_STR = "apache-mina";
-    @Property(name = SSH_LIBRARY, value = APACHE_MINA_STR,
-            label = "Ssh client library to use")
+    //@Property(name = SSH_LIBRARY, value = APACHE_MINA_STR,
+    //        label = "Ssh client library to use")
     protected NetconfSshClientLib sshLibrary = NetconfSshClientLib.APACHE_MINA;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService cfgService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DeviceService deviceService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DeviceKeyService deviceKeyService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected NetworkConfigRegistry netCfgService;
 
     public static final Logger log = LoggerFactory

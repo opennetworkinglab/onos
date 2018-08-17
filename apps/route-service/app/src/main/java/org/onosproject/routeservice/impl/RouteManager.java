@@ -17,15 +17,13 @@
 package org.onosproject.routeservice.impl;
 
 import com.google.common.collect.ImmutableList;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onosproject.cluster.ClusterService;
+import org.onosproject.net.Host;
+import org.onosproject.net.host.HostEvent;
+import org.onosproject.net.host.HostListener;
+import org.onosproject.net.host.HostService;
 import org.onosproject.routeservice.InternalRouteEvent;
 import org.onosproject.routeservice.ResolvedRoute;
 import org.onosproject.routeservice.Route;
@@ -38,11 +36,12 @@ import org.onosproject.routeservice.RouteSet;
 import org.onosproject.routeservice.RouteStore;
 import org.onosproject.routeservice.RouteStoreDelegate;
 import org.onosproject.routeservice.RouteTableId;
-import org.onosproject.net.Host;
-import org.onosproject.net.host.HostEvent;
-import org.onosproject.net.host.HostListener;
-import org.onosproject.net.host.HostService;
 import org.onosproject.store.service.StorageService;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,8 +66,7 @@ import static org.onlab.util.Tools.groupedThreads;
 /**
  * Implementation of the unicast route service.
  */
-@Service
-@Component
+@Component(service = { RouteService.class, RouteAdminService.class })
 public class RouteManager implements RouteService, RouteAdminService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -76,16 +74,16 @@ public class RouteManager implements RouteService, RouteAdminService {
     private RouteStoreDelegate delegate = new InternalRouteStoreDelegate();
     private InternalHostListener hostListener = new InternalHostListener();
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected RouteStore routeStore;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected HostService hostService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ClusterService clusterService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected StorageService storageService;
 
     private ResolvedRouteStore resolvedRouteStore;

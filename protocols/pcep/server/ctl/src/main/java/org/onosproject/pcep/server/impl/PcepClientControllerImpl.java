@@ -15,27 +15,7 @@
  */
 package org.onosproject.pcep.server.impl;
 
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.List;
-import java.util.LinkedList;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.HashMap;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.ListIterator;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
-
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
+import com.google.common.collect.Sets;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
 import org.onosproject.incubator.net.resource.label.LabelResourceAdminService;
@@ -46,8 +26,8 @@ import org.onosproject.incubator.net.tunnel.DefaultTunnel;
 import org.onosproject.incubator.net.tunnel.IpTunnelEndPoint;
 import org.onosproject.incubator.net.tunnel.LabelStack;
 import org.onosproject.incubator.net.tunnel.Tunnel;
-import org.onosproject.incubator.net.tunnel.TunnelService;
 import org.onosproject.incubator.net.tunnel.Tunnel.State;
+import org.onosproject.incubator.net.tunnel.TunnelService;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DefaultAnnotations.Builder;
@@ -100,64 +80,81 @@ import org.onosproject.pcepio.types.PcepValueType;
 import org.onosproject.pcepio.types.SrEroSubObject;
 import org.onosproject.pcepio.types.StatefulIPv4LspIdentifiersTlv;
 import org.onosproject.pcepio.types.SymbolicPathNameTlv;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.Sets;
-import static com.google.common.base.Preconditions.checkNotNull;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 
-import static org.onosproject.pcep.server.PcepSyncStatus.IN_SYNC;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.pcep.server.LspType.WITHOUT_SIGNALLING_AND_WITHOUT_SR;
 import static org.onosproject.pcep.server.LspType.WITH_SIGNALLING;
-import static org.onosproject.pcep.server.PcepLspSyncAction.REMOVE;
-import static org.onosproject.pcep.server.PcepLspSyncAction.SEND_UPDATE;
-import static org.onosproject.pcep.server.PcepLspSyncAction.UNSTABLE;
-import static org.onosproject.pcepio.types.PcepErrorDetailInfo.ERROR_TYPE_19;
-import static org.onosproject.pcepio.types.PcepErrorDetailInfo.ERROR_VALUE_5;
 import static org.onosproject.pcep.server.PcepAnnotationKeys.BANDWIDTH;
+import static org.onosproject.pcep.server.PcepAnnotationKeys.COST_TYPE;
+import static org.onosproject.pcep.server.PcepAnnotationKeys.DELEGATE;
 import static org.onosproject.pcep.server.PcepAnnotationKeys.LOCAL_LSP_ID;
 import static org.onosproject.pcep.server.PcepAnnotationKeys.LSP_SIG_TYPE;
 import static org.onosproject.pcep.server.PcepAnnotationKeys.PCC_TUNNEL_ID;
 import static org.onosproject.pcep.server.PcepAnnotationKeys.PCE_INIT;
 import static org.onosproject.pcep.server.PcepAnnotationKeys.PLSP_ID;
-import static org.onosproject.pcep.server.PcepAnnotationKeys.DELEGATE;
-import static org.onosproject.pcep.server.PcepAnnotationKeys.COST_TYPE;
-import static org.onosproject.pcep.server.PcepSyncStatus.SYNCED;
+import static org.onosproject.pcep.server.PcepLspSyncAction.REMOVE;
+import static org.onosproject.pcep.server.PcepLspSyncAction.SEND_UPDATE;
+import static org.onosproject.pcep.server.PcepLspSyncAction.UNSTABLE;
+import static org.onosproject.pcep.server.PcepSyncStatus.IN_SYNC;
 import static org.onosproject.pcep.server.PcepSyncStatus.NOT_SYNCED;
+import static org.onosproject.pcep.server.PcepSyncStatus.SYNCED;
+import static org.onosproject.pcepio.types.PcepErrorDetailInfo.ERROR_TYPE_19;
+import static org.onosproject.pcepio.types.PcepErrorDetailInfo.ERROR_VALUE_5;
 
 /**
  * Implementation of PCEP client controller.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = PcepClientController.class)
 public class PcepClientControllerImpl implements PcepClientController {
 
     private static final Logger log = LoggerFactory.getLogger(PcepClientControllerImpl.class);
     private static final long IDENTIFIER_SET = 0x100000000L;
     private static final long SET = 0xFFFFFFFFL;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DeviceService deviceService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected LinkService linkService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected TunnelService tunnelService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected NetworkConfigService netCfgService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected MastershipService mastershipService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected LabelResourceAdminService labelRsrcAdminService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected LabelResourceService labelRsrcService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected PceLabelStore pceStore;
 
     protected ConcurrentHashMap<PccId, PcepClient> connectedClients =

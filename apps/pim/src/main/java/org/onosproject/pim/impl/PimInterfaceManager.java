@@ -17,19 +17,7 @@ package org.onosproject.pim.impl;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.SafeRecurringTask;
-import org.onosproject.net.intf.Interface;
-import org.onosproject.net.intf.InterfaceEvent;
-import org.onosproject.net.intf.InterfaceListener;
-import org.onosproject.net.intf.InterfaceService;
-import org.onosproject.routeservice.Route;
-import org.onosproject.routeservice.RouteService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Host;
 import org.onosproject.net.config.ConfigFactory;
@@ -38,11 +26,22 @@ import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.config.basics.SubjectFactories;
 import org.onosproject.net.host.HostService;
+import org.onosproject.net.intf.Interface;
+import org.onosproject.net.intf.InterfaceEvent;
+import org.onosproject.net.intf.InterfaceListener;
+import org.onosproject.net.intf.InterfaceService;
 import org.onosproject.net.mcast.McastEvent;
 import org.onosproject.net.mcast.McastListener;
 import org.onosproject.net.mcast.McastRoute;
 import org.onosproject.net.mcast.MulticastRouteService;
 import org.onosproject.net.packet.PacketService;
+import org.onosproject.routeservice.Route;
+import org.onosproject.routeservice.RouteService;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Map;
@@ -58,8 +57,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  *
  * TODO: Do we need to add a ServiceListener?
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = PimInterfaceService.class)
 public class PimInterfaceManager implements PimInterfaceService {
 
     private final Logger log = getLogger(getClass());
@@ -83,22 +81,22 @@ public class PimInterfaceManager implements PimInterfaceService {
 
     private final int joinTaskPeriod = 10000;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected PacketService packetService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected NetworkConfigRegistry networkConfig;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected InterfaceService interfaceService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected HostService hostService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected MulticastRouteService multicastRouteService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected RouteService unicastRouteService;
 
     // Store PIM Interfaces in a map key'd by ConnectPoint

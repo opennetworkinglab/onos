@@ -17,8 +17,9 @@ package org.onosproject.cli.net;
 
 import java.util.Collection;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.DefaultApplicationId;
@@ -29,6 +30,7 @@ import org.onosproject.incubator.net.tunnel.TunnelSubscription;
  * Query all tunnel subscriptions of consumer by consumer id.
  * It's used by consumers.
  */
+@Service
 @Command(scope = "onos", name = "tunnel-subscriptions",
       description = "Query all request orders of consumer by consumer id. It's used by consumers.")
 public class TunnelQuerySubscriptionCommand extends AbstractShellCommand {
@@ -40,7 +42,7 @@ public class TunnelQuerySubscriptionCommand extends AbstractShellCommand {
             + "type=%s, tunnelId=%s";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         TunnelService service = get(TunnelService.class);
         ApplicationId applicationId = new DefaultApplicationId(1, consumerId);
         Collection<TunnelSubscription> tunnelSet = service.queryTunnelSubscription(applicationId);

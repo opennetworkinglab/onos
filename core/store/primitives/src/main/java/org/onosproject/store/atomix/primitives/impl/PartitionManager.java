@@ -16,19 +16,9 @@
 
 package org.onosproject.store.atomix.primitives.impl;
 
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import io.atomix.cluster.MemberId;
 import io.atomix.primitive.partition.PartitionGroup;
 import io.atomix.protocols.raft.MultiRaftProtocol;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.PartitionId;
 import org.onosproject.event.AbstractListenerManager;
@@ -40,7 +30,16 @@ import org.onosproject.store.primitives.PartitionEventListener;
 import org.onosproject.store.primitives.PartitionService;
 import org.onosproject.store.service.PartitionClientInfo;
 import org.onosproject.store.service.PartitionInfo;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
+
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.onosproject.security.AppGuard.checkPermission;
 import static org.onosproject.security.AppPermission.Type.PARTITION_READ;
@@ -49,14 +48,13 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Implementation of {@code PartitionService} and {@code PartitionAdminService}.
  */
-@Component
-@Service
+@Component(service = { PartitionService.class, PartitionAdminService.class })
 public class PartitionManager extends AbstractListenerManager<PartitionEvent, PartitionEventListener>
     implements PartitionService, PartitionAdminService {
 
     private final Logger log = getLogger(getClass());
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected AtomixManager atomixManager;
 
     private PartitionGroup partitionGroup;

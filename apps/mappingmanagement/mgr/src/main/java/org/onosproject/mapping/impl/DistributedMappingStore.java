@@ -18,12 +18,6 @@ package org.onosproject.mapping.impl;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.mapping.DefaultMapping;
 import org.onosproject.mapping.DefaultMappingEntry;
 import org.onosproject.mapping.Mapping;
@@ -47,6 +41,11 @@ import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Map;
@@ -58,8 +57,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Implementation of a distributed store for managing mapping information.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = MappingStore.class)
 public class DistributedMappingStore
         extends AbstractStore<MappingEvent, MappingStoreDelegate>
         implements MappingStore {
@@ -72,10 +70,10 @@ public class DistributedMappingStore
     private Map<MappingId, Mapping> databaseMap;
     private Map<MappingId, Mapping> cacheMap;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected StorageService storageService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DeviceService deviceService;
 
     private final MapEventListener<MappingId, Mapping> listener = new InternalListener();

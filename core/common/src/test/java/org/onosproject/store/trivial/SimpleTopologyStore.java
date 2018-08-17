@@ -15,10 +15,6 @@
  */
 package org.onosproject.store.trivial;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.common.DefaultTopology;
 import org.onosproject.event.Event;
 import org.onosproject.net.ConnectPoint;
@@ -37,6 +33,9 @@ import org.onosproject.net.topology.TopologyGraph;
 import org.onosproject.net.topology.TopologyStore;
 import org.onosproject.net.topology.TopologyStoreDelegate;
 import org.onosproject.store.AbstractStore;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
 import org.slf4j.Logger;
 
 import java.util.List;
@@ -49,8 +48,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Manages inventory of topology snapshots using trivial in-memory
  * structures implementation.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = TopologyStore.class)
 public class SimpleTopologyStore
         extends AbstractStore<TopologyEvent, TopologyStoreDelegate>
         implements TopologyStore {

@@ -20,12 +20,6 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalCause;
 import com.google.common.cache.RemovalNotification;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.IdGenerator;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.provider.AbstractVirtualProvider;
@@ -41,6 +35,11 @@ import org.onosproject.net.meter.MeterOperation;
 import org.onosproject.net.meter.MeterOperations;
 import org.onosproject.net.meter.MeterService;
 import org.onosproject.net.provider.ProviderId;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.concurrent.TimeUnit;
@@ -51,8 +50,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Provider to handle meters for virtual networks.
  */
-@Component(immediate = true)
-@Service
+@Component(service = VirtualMeterProvider.class)
 public class DefaultVirtualMeterProvider extends AbstractVirtualProvider
         implements VirtualMeterProvider {
 
@@ -60,10 +58,10 @@ public class DefaultVirtualMeterProvider extends AbstractVirtualProvider
 
     static final long TIMEOUT = 30;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected VirtualProviderRegistryService providerRegistryService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected MeterService meterService;
 
     private MeterListener internalMeterListener;

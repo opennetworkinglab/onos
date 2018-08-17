@@ -19,7 +19,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.RoleInfo;
 import org.onosproject.mastership.MastershipService;
@@ -34,6 +35,7 @@ import static org.onosproject.cli.net.DevicesListCommand.getSortedDevices;
 /**
  * Lists mastership roles of nodes for each device.
  */
+@Service
 @Command(scope = "onos", name = "roles",
          description = "Lists mastership roles of nodes for each device.")
 public class RolesCommand extends AbstractShellCommand {
@@ -41,7 +43,7 @@ public class RolesCommand extends AbstractShellCommand {
     private static final String FMT_HDR = "%s: master=%s, standbys=[ %s]";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         DeviceService deviceService = get(DeviceService.class);
         MastershipService roleService = get(MastershipService.class);
 

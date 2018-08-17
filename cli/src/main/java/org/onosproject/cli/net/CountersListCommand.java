@@ -17,7 +17,8 @@ package org.onosproject.cli.net;
 
 import java.util.Map;
 
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.store.service.StorageAdminService;
 
@@ -27,6 +28,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 /**
  * Command to list the various counters in the system.
  */
+@Service
 @Command(scope = "onos", name = "counters",
         description = "Lists information about atomic counters in the system")
 public class CountersListCommand extends AbstractShellCommand {
@@ -34,7 +36,7 @@ public class CountersListCommand extends AbstractShellCommand {
     private static final String FMT = "name=%s value=%d";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         StorageAdminService storageAdminService = get(StorageAdminService.class);
         Map<String, Long> counters = storageAdminService.getCounters();
         if (outputJson()) {

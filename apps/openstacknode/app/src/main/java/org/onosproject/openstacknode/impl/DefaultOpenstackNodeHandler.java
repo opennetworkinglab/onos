@@ -15,14 +15,7 @@
  */
 package org.onosproject.openstacknode.impl;
 
-import com.google.common.collect.Lists;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
+import com.google.common.collect.Maps;
 import org.onlab.packet.IpAddress;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
@@ -65,6 +58,12 @@ import org.onosproject.ovsdb.rfc.notation.OvsdbSet;
 import org.onosproject.ovsdb.rfc.table.Interface;
 import org.openstack4j.api.OSClient;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Collection;
@@ -115,40 +114,40 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
     private static final boolean DEFAULT_AUTO_RECOVERY = true;
     private static final int DPID_BEGIN = 3;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected LeadershipService leadershipService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ClusterService clusterService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DeviceService deviceService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DeviceAdminService deviceAdminService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected OvsdbController ovsdbController;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected OpenstackNodeService osNodeService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected OpenstackNodeAdminService osNodeAdminService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService componentConfigService;
 
-    @Property(name = OVSDB_PORT, intValue = DEFAULT_OVSDB_PORT,
-            label = "OVSDB server listen port")
+    //@Property(name = OVSDB_PORT, intValue = DEFAULT_OVSDB_PORT,
+    //        label = "OVSDB server listen port")
     private int ovsdbPort = DEFAULT_OVSDB_PORT;
 
-    @Property(name = AUTO_RECOVERY, boolValue = DEFAULT_AUTO_RECOVERY,
-            label = "A flag which indicates whether auto-recover openstack " +
-                    "node status at the receiving of switch reconnecting event.")
+    //@Property(name = AUTO_RECOVERY, boolValue = DEFAULT_AUTO_RECOVERY,
+    //        label = "A flag which indicates whether auto-recover openstack " +
+    //                "node status at the receiving of switch reconnecting event.")
     private boolean autoRecovery = DEFAULT_AUTO_RECOVERY;
 
     private final ExecutorService eventExecutor = newSingleThreadExecutor(

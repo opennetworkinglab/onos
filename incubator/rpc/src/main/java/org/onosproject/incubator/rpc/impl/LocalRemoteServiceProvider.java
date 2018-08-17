@@ -22,11 +22,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.osgi.ServiceDirectory;
 import org.onosproject.incubator.rpc.RemoteServiceContext;
@@ -58,7 +58,7 @@ public class LocalRemoteServiceProvider implements RemoteServiceContextProvider 
 
     private static final ProviderId PID = new ProviderId("local", "org.onosproject.rpc.provider.local");
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected RemoteServiceProviderRegistry rpcRegistry;
 
     private final Map<Class<? extends Object>, Object> services = new ConcurrentHashMap<>();

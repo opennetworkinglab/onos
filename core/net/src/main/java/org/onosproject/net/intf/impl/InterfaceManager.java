@@ -20,27 +20,26 @@ package org.onosproject.net.intf.impl;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.event.ListenerRegistry;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.config.BasicNetworkConfigService;
 import org.onosproject.net.config.ConfigException;
+import org.onosproject.net.config.NetworkConfigEvent;
+import org.onosproject.net.config.NetworkConfigListener;
+import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.config.basics.InterfaceConfig;
 import org.onosproject.net.intf.Interface;
 import org.onosproject.net.intf.InterfaceAdminService;
 import org.onosproject.net.intf.InterfaceEvent;
 import org.onosproject.net.intf.InterfaceListener;
 import org.onosproject.net.intf.InterfaceService;
-import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.config.BasicNetworkConfigService;
-import org.onosproject.net.config.NetworkConfigEvent;
-import org.onosproject.net.config.NetworkConfigListener;
-import org.onosproject.net.config.NetworkConfigService;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,8 +57,7 @@ import static java.util.stream.Collectors.toSet;
 /**
  * Manages the inventory of interfaces in the system.
  */
-@Service
-@Component(immediate = true)
+@Component(immediate = true, service = { InterfaceService.class, InterfaceAdminService.class })
 public class InterfaceManager extends ListenerRegistry<InterfaceEvent, InterfaceListener>
         implements InterfaceService, InterfaceAdminService {
 
@@ -68,11 +66,11 @@ public class InterfaceManager extends ListenerRegistry<InterfaceEvent, Interface
     private static final Class<ConnectPoint> SUBJECT_CLASS = ConnectPoint.class;
     private static final Class<InterfaceConfig> CONFIG_CLASS = InterfaceConfig.class;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected NetworkConfigService configService;
 
     //Dependency to ensure subject factories are properly initialized
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected BasicNetworkConfigService basicNetworkConfigService;
 
     private final InternalConfigListener listener = new InternalConfigListener();

@@ -16,9 +16,10 @@
 package org.onosproject.cli.net;
 
 import com.google.common.collect.ImmutableList;
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.apache.karaf.shell.api.action.Option;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -45,6 +46,7 @@ import static org.onosproject.net.intent.IntentState.WITHDRAWN;
 /**
  * Removes an intent.
  */
+@Service
 @Command(scope = "onos", name = "remove-intent",
         description = "Removes the specified intent")
 public class IntentRemoveCommand extends AbstractShellCommand {
@@ -72,7 +74,7 @@ public class IntentRemoveCommand extends AbstractShellCommand {
     private static final EnumSet<IntentState> CAN_PURGE = EnumSet.of(WITHDRAWN, FAILED);
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         IntentService intentService = get(IntentService.class);
         removeIntent(intentService.getIntents(),
              applicationIdString, keyString,

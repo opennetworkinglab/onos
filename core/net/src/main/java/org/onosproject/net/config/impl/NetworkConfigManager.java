@@ -18,12 +18,6 @@ package org.onosproject.net.config.impl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.net.config.Config;
@@ -35,6 +29,11 @@ import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.config.NetworkConfigStore;
 import org.onosproject.net.config.NetworkConfigStoreDelegate;
 import org.onosproject.net.config.SubjectFactory;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,13 +43,13 @@ import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.security.AppGuard.checkPermission;
-import static org.onosproject.security.AppPermission.Type.*;
+import static org.onosproject.security.AppPermission.Type.CONFIG_READ;
+import static org.onosproject.security.AppPermission.Type.CONFIG_WRITE;
 
 /**
  * Implementation of the network configuration subsystem.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = { NetworkConfigRegistry.class, NetworkConfigService.class })
 public class NetworkConfigManager
         extends AbstractListenerManager<NetworkConfigEvent, NetworkConfigListener>
         implements NetworkConfigRegistry, NetworkConfigService {
@@ -76,10 +75,10 @@ public class NetworkConfigManager
 
     private final NetworkConfigStoreDelegate storeDelegate = new InternalStoreDelegate();
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected NetworkConfigStore store;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ClusterService clusterService;
 
 

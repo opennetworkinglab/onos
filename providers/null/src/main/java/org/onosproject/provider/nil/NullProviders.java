@@ -15,14 +15,6 @@
  */
 package org.onosproject.provider.nil;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.ClusterService;
@@ -54,6 +46,12 @@ import org.onosproject.net.packet.PacketProviderService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Dictionary;
@@ -72,8 +70,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Provider of a fake network environment, i.e. devices, links, hosts, etc.
  * To be used for benchmarking only.
  */
-@Component(immediate = true)
-@Service(value = NullProviders.class)
+@Component(immediate = true, service = NullProviders.class)
 public class NullProviders {
 
     private static final Logger log = getLogger(NullProviders.class);
@@ -86,41 +83,41 @@ public class NullProviders {
                     "hostCount={}, packetRate={}, mutationRate={}";
 
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ClusterService clusterService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected MastershipAdminService mastershipService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService cfgService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DeviceAdminService deviceService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected HostService hostService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected LinkService linkService;
 
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DeviceProviderRegistry deviceProviderRegistry;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected HostProviderRegistry hostProviderRegistry;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected LinkProviderRegistry linkProviderRegistry;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected FlowRuleProviderRegistry flowRuleProviderRegistry;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected GroupProviderRegistry groupProviderRegistry;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected PacketProviderRegistry packetProviderRegistry;
 
     private final NullDeviceProvider deviceProvider = new NullDeviceProvider();
@@ -140,38 +137,38 @@ public class NullProviders {
 
     private TopologySimulator simulator;
 
-    @Property(name = "enabled", boolValue = false,
-            label = "Enables or disables the provider")
+    //@Property(name = "enabled", boolValue = false,
+    //        label = "Enables or disables the provider")
     private boolean enabled = false;
 
     private static final String DEFAULT_TOPO_SHAPE = "configured";
-    @Property(name = "topoShape", value = DEFAULT_TOPO_SHAPE,
-            label = "Topology shape: configured, linear, reroute, tree, spineleaf, mesh, grid")
+    //@Property(name = "topoShape", value = DEFAULT_TOPO_SHAPE,
+    //        label = "Topology shape: configured, linear, reroute, tree, spineleaf, mesh, grid")
     private String topoShape = DEFAULT_TOPO_SHAPE;
 
     private static final int DEFAULT_DEVICE_COUNT = 10;
-    @Property(name = "deviceCount", intValue = DEFAULT_DEVICE_COUNT,
-            label = "Number of devices to generate")
+    //@Property(name = "deviceCount", intValue = DEFAULT_DEVICE_COUNT,
+    //        label = "Number of devices to generate")
     private int deviceCount = DEFAULT_DEVICE_COUNT;
 
     private static final int DEFAULT_HOST_COUNT = 5;
-    @Property(name = "hostCount", intValue = DEFAULT_HOST_COUNT,
-            label = "Number of host to generate per device")
+    //@Property(name = "hostCount", intValue = DEFAULT_HOST_COUNT,
+    //        label = "Number of host to generate per device")
     private int hostCount = DEFAULT_HOST_COUNT;
 
     private static final int DEFAULT_PACKET_RATE = 0;
-    @Property(name = "packetRate", intValue = DEFAULT_PACKET_RATE,
-            label = "Packet-in/s rate; 0 for no packets")
+    //@Property(name = "packetRate", intValue = DEFAULT_PACKET_RATE,
+    //        label = "Packet-in/s rate; 0 for no packets")
     private int packetRate = DEFAULT_PACKET_RATE;
 
     private static final double DEFAULT_MUTATION_RATE = 0;
-    @Property(name = "mutationRate", doubleValue = DEFAULT_MUTATION_RATE,
-            label = "Link event/s topology mutation rate; 0 for no mutations")
+    //@Property(name = "mutationRate", doubleValue = DEFAULT_MUTATION_RATE,
+    //        label = "Link event/s topology mutation rate; 0 for no mutations")
     private double mutationRate = DEFAULT_MUTATION_RATE;
 
     private static final String DEFAULT_MASTERSHIP = "random";
-    @Property(name = "mastership", value = DEFAULT_MASTERSHIP,
-            label = "Mastership given as 'random' or 'node1=dpid,dpid/node2=dpid,...'")
+    //@Property(name = "mastership", value = DEFAULT_MASTERSHIP,
+    //        label = "Mastership given as 'random' or 'node1=dpid,dpid/node2=dpid,...'")
     private String mastership = DEFAULT_MASTERSHIP;
 
 

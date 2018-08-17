@@ -20,8 +20,9 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.math.RandomUtils;
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.packet.MacAddress;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.core.ApplicationId;
@@ -51,6 +52,7 @@ import com.google.common.collect.Streams;
 /**
  * Installs bulk flows.
  */
+@Service
 @Command(scope = "onos", name = "add-test-flows",
          description = "Installs a number of test flow rules - for testing only")
 public class AddTestFlowsCommand extends AbstractShellCommand {
@@ -68,7 +70,7 @@ public class AddTestFlowsCommand extends AbstractShellCommand {
     String numOfRuns = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         FlowRuleService flowService = get(FlowRuleService.class);
         DeviceService deviceService = get(DeviceService.class);
         CoreService coreService = get(CoreService.class);

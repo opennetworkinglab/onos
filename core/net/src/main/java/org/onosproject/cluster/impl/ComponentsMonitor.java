@@ -16,12 +16,12 @@
 
 package org.onosproject.cluster.impl;
 
-import org.apache.felix.scr.Component;
-import org.apache.felix.scr.ScrService;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.osgi.service.component.runtime.ServiceComponentRuntime;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.apache.karaf.features.Feature;
 import org.apache.karaf.features.FeaturesService;
 import org.onlab.util.SharedScheduledExecutors;
@@ -29,6 +29,7 @@ import org.onosproject.cluster.ClusterAdminService;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.runtime.dto.ComponentDescriptionDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,20 +41,20 @@ import java.util.concurrent.TimeUnit;
  * are properly activated and keeps the cluster node service appropriately
  * updated.
  */
-@org.apache.felix.scr.annotations.Component(immediate = true)
+@Component(immediate = true)
 public class ComponentsMonitor {
 
     private Logger log = LoggerFactory.getLogger(getClass());
 
     private static final long PERIOD = 2500;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected FeaturesService featuresService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ScrService scrService;
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected ServiceComponentRuntime scrService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ClusterAdminService clusterAdminService;
 
     private BundleContext bundleContext;
@@ -85,18 +86,22 @@ public class ComponentsMonitor {
      * @return true if all bundles and their components are active
      */
     private boolean isFullyStarted() {
-        for (Feature feature : featuresService.listInstalledFeatures()) {
-            if (!isFullyStarted(feature)) {
-                return false;
+        try {
+            for (Feature feature : featuresService.listInstalledFeatures()) {
+                if (!isFullyStarted(feature)) {
+                    return false;
+                }
             }
+            return true;
+        } catch (Exception ex) {
+            return false;
         }
-        return true;
     }
 
     private boolean isFullyStarted(Feature feature) {
         try {
             return feature.getBundles().stream()
-                    .map(info -> bundleContext.getBundle(info.getLocation()))
+                    .map(info -> bundleContext.getBundle())
                     .allMatch(this::isFullyStarted);
         } catch (NullPointerException npe) {
             // FIXME: Remove this catch block when Felix fixes the bug
@@ -107,21 +112,12 @@ public class ComponentsMonitor {
     }
 
     private boolean isFullyStarted(Bundle bundle) {
-        Component[] components = scrService.getComponents(bundle);
-        if (components != null) {
-            for (Component component : components) {
-                if (!isFullyStarted(component)) {
-                    return false;
-                }
+        for (ComponentDescriptionDTO component : scrService.getComponentDescriptionDTOs(bundle)) {
+            if (!scrService.isComponentEnabled(component)) {
+                return false;
             }
         }
         return true;
-    }
-
-    private boolean isFullyStarted(Component component) {
-        int state = component.getState();
-        return state == Component.STATE_ACTIVE || state == Component.STATE_DISABLED ||
-                (state == Component.STATE_REGISTERED && !component.isImmediate());
     }
 
 }

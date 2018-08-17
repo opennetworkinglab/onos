@@ -15,11 +15,11 @@
  */
 package org.onosproject.inbandtelemetry.app;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.onosproject.core.CoreService;
 import org.onosproject.inbandtelemetry.api.IntService;
 import org.onosproject.net.host.HostService;
@@ -33,13 +33,13 @@ public class IntControl {
 //    private static final int collectorPort = 1234;
 //    private static final IpAddress collectorIp = IpAddress.valueOf("10.0.0.3");
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected IntService intService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected HostService hostService;
 
     @Activate

@@ -15,7 +15,7 @@
  */
 package org.onosproject.drivers.ciena.c5162;
 
-import org.apache.felix.scr.annotations.Component;
+import org.osgi.service.component.annotations.Component;
 import org.onosproject.net.driver.AbstractDriverLoader;
 
 /**

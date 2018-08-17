@@ -21,15 +21,9 @@
 package org.onosproject.acl.impl;
 
 import com.google.common.collect.Collections2;
+import org.onlab.util.KryoNamespace;
 import org.onosproject.acl.AclRule;
 import org.onosproject.acl.AclStore;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
-import org.onlab.util.KryoNamespace;
 import org.onosproject.acl.RuleId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -41,6 +35,11 @@ import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.Versioned;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -53,8 +52,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Implementation of the ACL store service.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = AclStore.class)
 public class DistributedAclStore extends AbstractStore implements AclStore {
 
     private final Logger log = getLogger(getClass());
@@ -66,9 +64,9 @@ public class DistributedAclStore extends AbstractStore implements AclStore {
     private ConsistentMap<RuleId, Set<FlowRule>> ruleToFlow;
     private ConsistentMap<RuleId, List<RuleId>> denyRuleToAllowRule;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected StorageService storageService;
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
     @Activate

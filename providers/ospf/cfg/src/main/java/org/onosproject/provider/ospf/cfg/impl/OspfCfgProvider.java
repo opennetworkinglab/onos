@@ -16,12 +16,11 @@
 package org.onosproject.provider.ospf.cfg.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Service;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.config.ConfigFactory;
@@ -40,8 +39,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Provider which advertises device descriptions to the core.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = OspfCfgProvider.class)
 public class OspfCfgProvider extends AbstractProvider {
 
     static final String PROVIDER_ID = "org.onosproject.provider.ospf.cfg";
@@ -54,15 +52,15 @@ public class OspfCfgProvider extends AbstractProvider {
                 }
             };
     private final NetworkConfigListener configListener = new InternalConfigListener();
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected OspfController ospfController;
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected NetworkConfigRegistry configRegistry;
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected NetworkConfigService configService;
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected OspfController controller;
     private ApplicationId appId;
 

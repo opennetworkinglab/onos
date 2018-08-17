@@ -19,8 +19,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -35,6 +36,7 @@ import com.google.common.collect.Lists;
 /**
  * Installs bulk host-to-host intents between hosts of the network.
  */
+@Service
 @Command(scope = "onos", name = "push-random-intents",
          description = "It installs random intents to test throughput. The " +
                  "maximum number of intents is determined by the number of " +
@@ -57,7 +59,7 @@ public class RandomIntentCommand extends AbstractShellCommand {
     private int count;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         service = get(IntentService.class);
         hostService = get(HostService.class);
 

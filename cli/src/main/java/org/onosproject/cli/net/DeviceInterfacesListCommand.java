@@ -16,8 +16,9 @@
 
 package org.onosproject.cli.net;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.net.Device;
 import org.onosproject.net.behaviour.InterfaceConfig;
 import org.onosproject.net.device.DeviceInterfaceDescription;
@@ -32,6 +33,7 @@ import static org.onosproject.net.DeviceId.deviceId;
 /**
  * Lists all interfaces or interfaces of a device.
  */
+@Service
 @Command(scope = "onos", name = "device-interfaces",
         description = "Lists all interfaces or interfaces of a device.")
 public class DeviceInterfacesListCommand extends DevicesListCommand {
@@ -50,7 +52,7 @@ public class DeviceInterfacesListCommand extends DevicesListCommand {
     private String uri = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         DeviceService deviceService = get(DeviceService.class);
         DriverService driverService = get(DriverService.class);
 

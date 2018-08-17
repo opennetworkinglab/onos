@@ -17,9 +17,10 @@
 package org.onosproject.cli.net;
 
 import com.google.common.collect.Lists;
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.apache.karaf.shell.api.action.Option;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.cli.AbstractShellCommand;
@@ -33,6 +34,7 @@ import java.util.List;
 /**
  * Adds a new interface configuration.
  */
+@Service
 @Command(scope = "onos", name = "interface-add",
         description = "Adds a new configured interface")
 public class InterfaceAddCommand extends AbstractShellCommand {
@@ -63,7 +65,7 @@ public class InterfaceAddCommand extends AbstractShellCommand {
     private String vlan = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         InterfaceAdminService interfaceService = get(InterfaceAdminService.class);
 
         List<InterfaceIpAddress> ipAddresses = Lists.newArrayList();

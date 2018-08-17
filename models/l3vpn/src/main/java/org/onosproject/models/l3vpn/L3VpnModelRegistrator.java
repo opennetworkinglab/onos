@@ -17,7 +17,7 @@
 package org.onosproject.models.l3vpn;
 
 import com.google.common.collect.ImmutableMap;
-import org.apache.felix.scr.annotations.Component;
+import org.osgi.service.component.annotations.Component;
 import org.onosproject.yang.AbstractYangModelRegistrator;
 import org.onosproject.yang.gen.v1.ietfbgpl3vpn.rev20160909.IetfBgpL3Vpn;
 import org.onosproject.yang.gen.v1.ietfinterfaces.rev20140508.IetfInterfaces;

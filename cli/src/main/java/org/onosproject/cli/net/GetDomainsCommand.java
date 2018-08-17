@@ -15,7 +15,8 @@
  */
 package org.onosproject.cli.net;
 
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.domain.DomainId;
 import org.onosproject.net.domain.DomainService;
@@ -25,11 +26,12 @@ import java.util.Set;
 /**
  * Gets the complete list of domain IDs.
  */
+@Service
 @Command(scope = "onos", name = "domains", description = "Gets the list of domain IDs")
 public class GetDomainsCommand extends AbstractShellCommand {
 
     @Override
-    public void execute() {
+    public void doExecute() {
         DomainService domainService = AbstractShellCommand.get(DomainService.class);
 
         Set<DomainId> domainIds = domainService.getDomainIds();

@@ -17,8 +17,8 @@
 package org.onosproject.provider.pcep.tunnel.impl;
 
 
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.onlab.util.Timer;
 import org.onosproject.pcep.api.PcepController;
 import org.slf4j.Logger;
@@ -35,7 +35,7 @@ import java.util.concurrent.TimeUnit;
 public class TunnelStatsCollector implements TimerTask {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected PcepController controller;
 
     private int refreshInterval;

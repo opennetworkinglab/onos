@@ -16,25 +16,23 @@
 
 package org.onosproject.core.impl;
 
-import static org.slf4j.LoggerFactory.getLogger;
+import org.onosproject.core.HybridLogicalClockService;
+import org.onosproject.core.HybridLogicalTime;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.slf4j.Logger;
 
 import java.util.function.Supplier;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Service;
-import org.onosproject.core.HybridLogicalClockService;
-import org.onosproject.core.HybridLogicalTime;
-import org.slf4j.Logger;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Implementation of {@link HybridLogicalClockService}.
  * <p>
  * Implementation is based on HLT <a href="http://www.cse.buffalo.edu/tech-reports/2014-04.pdf">paper</a>.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = HybridLogicalClockService.class)
 public class HybridLogicalClockManager implements HybridLogicalClockService {
 
     private final Logger log = getLogger(getClass());

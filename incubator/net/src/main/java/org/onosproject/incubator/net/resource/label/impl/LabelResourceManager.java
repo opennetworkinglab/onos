@@ -16,13 +16,6 @@
 package org.onosproject.incubator.net.resource.label.impl;
 
 import com.google.common.collect.Multimap;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
-import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.incubator.net.resource.label.LabelResource;
 import org.onosproject.incubator.net.resource.label.LabelResourceAdminService;
 import org.onosproject.incubator.net.resource.label.LabelResourceDelegate;
@@ -41,7 +34,13 @@ import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceEvent.Type;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Collection;
@@ -55,8 +54,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * provides implementation of the label resource NB &amp; SB APIs.
  *
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = {LabelResourceService.class, LabelResourceAdminService.class, LabelResourceProviderRegistry.class})
 public class LabelResourceManager
         extends AbstractListenerProviderRegistry<LabelResourceEvent, LabelResourceListener,
                                                  LabelResourceProvider, LabelResourceProviderService>
@@ -64,10 +62,10 @@ public class LabelResourceManager
     private final Logger log = getLogger(getClass());
     private final LabelResourceDelegate delegate = new InternalLabelResourceDelegate();
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected LabelResourceStore store;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DeviceService deviceService;
 
     private DeviceListener deviceListener = new InternalDeviceListener();

@@ -16,7 +16,7 @@
 
 package org.onosproject.drivers.fujitsu;
 
-import org.apache.felix.scr.annotations.Component;
+import org.osgi.service.component.annotations.Component;
 import org.onosproject.cli.net.DeviceIdCompleter;
 import org.onosproject.net.driver.AbstractDriverLoader;
 import org.onosproject.net.optical.OpticalDevice;

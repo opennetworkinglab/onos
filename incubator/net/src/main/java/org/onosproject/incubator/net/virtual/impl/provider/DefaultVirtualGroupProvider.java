@@ -16,13 +16,6 @@
 
 package org.onosproject.incubator.net.virtual.impl.provider;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.provider.AbstractVirtualProvider;
 import org.onosproject.incubator.net.virtual.provider.VirtualGroupProvider;
@@ -35,6 +28,12 @@ import org.onosproject.net.group.GroupOperations;
 import org.onosproject.net.group.GroupService;
 import org.onosproject.net.provider.ProviderId;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -42,17 +41,16 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Provider to handle Group for virtual network.
  */
-@Component(immediate = true)
-@Service
+@Component(service = VirtualGroupProvider.class)
 public class DefaultVirtualGroupProvider extends AbstractVirtualProvider
         implements VirtualGroupProvider {
 
     private final Logger log = getLogger(getClass());
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected VirtualProviderRegistryService providerRegistryService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected GroupService groupService;
 
     private InternalGroupEventListener internalGroupEventListener;

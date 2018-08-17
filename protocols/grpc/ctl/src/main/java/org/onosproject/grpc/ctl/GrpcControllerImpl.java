@@ -31,14 +31,6 @@ import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.grpc.api.GrpcChannelId;
@@ -47,6 +39,12 @@ import org.onosproject.grpc.proto.dummy.Dummy;
 import org.onosproject.grpc.proto.dummy.DummyServiceGrpc;
 import org.onosproject.net.DeviceId;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,20 +64,19 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Default implementation of the GrpcController.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = GrpcController.class)
 public class GrpcControllerImpl implements GrpcController {
 
     private  static final String SET_FORWARDING_PIPELINE_CONFIG_METHOD = "p4.P4Runtime/SetForwardingPipelineConfig";
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService componentConfigService;
 
     // Hint: set to true to log all gRPC messages received/sent on all channels
     // Does not enable log on existing channels
     private static final boolean DEFAULT_LOG_LEVEL = false;
-    @Property(name = "enableMessageLog", boolValue =  DEFAULT_LOG_LEVEL,
-            label = "Indicates whether to log all gRPC messages sent and received on all channels")
+    //@Property(name = "enableMessageLog", boolValue =  DEFAULT_LOG_LEVEL,
+    //        label = "Indicates whether to log all gRPC messages sent and received on all channels")
     public static boolean enableMessageLog = DEFAULT_LOG_LEVEL;
 
     private final Logger log = LoggerFactory.getLogger(getClass());

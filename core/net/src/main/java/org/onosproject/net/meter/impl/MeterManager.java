@@ -15,14 +15,6 @@
  */
 package org.onosproject.net.meter.impl;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.TriConsumer;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.mastership.MastershipService;
@@ -30,8 +22,8 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.meter.DefaultMeter;
-import org.onosproject.net.meter.MeterCellId.MeterCellType;
 import org.onosproject.net.meter.Meter;
+import org.onosproject.net.meter.MeterCellId.MeterCellType;
 import org.onosproject.net.meter.MeterEvent;
 import org.onosproject.net.meter.MeterFailReason;
 import org.onosproject.net.meter.MeterFeatures;
@@ -51,6 +43,12 @@ import org.onosproject.net.meter.MeterStoreResult;
 import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Collection;
@@ -69,8 +67,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Provides implementation of the meter service APIs.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = { MeterService.class, MeterProviderRegistry.class })
 public class MeterManager
         extends AbstractListenerProviderRegistry<MeterEvent, MeterListener, MeterProvider, MeterProviderService>
         implements MeterService, MeterProviderRegistry {
@@ -80,32 +77,32 @@ public class MeterManager
     private static final String GROUP_THREAD_NAME = "onos/meter";
 
     private static final int DEFAULT_NUM_THREADS = 4;
-    @Property(name = NUM_THREAD,
-            intValue = DEFAULT_NUM_THREADS,
-            label = "Number of worker threads")
+    //@Property(name = NUM_THREAD,
+    //        intValue = DEFAULT_NUM_THREADS,
+    //        label = "Number of worker threads")
     private int numThreads = DEFAULT_NUM_THREADS;
 
     private final Logger log = getLogger(getClass());
     private final MeterStoreDelegate delegate = new InternalMeterStoreDelegate();
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private MeterStore store;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DriverService driverService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DeviceService deviceService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService cfgService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected MastershipService mastershipService;
 
     private static final int DEFAULT_POLL_FREQUENCY = 30;
-    @Property(name = "fallbackMeterPollFrequency", intValue = DEFAULT_POLL_FREQUENCY,
-            label = "Frequency (in seconds) for polling meters via fallback provider")
+    //@Property(name = "fallbackMeterPollFrequency", intValue = DEFAULT_POLL_FREQUENCY,
+    //        label = "Frequency (in seconds) for polling meters via fallback provider")
     private int fallbackMeterPollFrequency = DEFAULT_POLL_FREQUENCY;
 
     private TriConsumer<MeterRequest, MeterStoreResult, Throwable> onComplete;

@@ -15,11 +15,11 @@
  */
 package org.onosproject.routeservice.rest;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.onosproject.codec.CodecService;
 import org.onosproject.routeservice.Route;
 import org.slf4j.Logger;
@@ -34,7 +34,7 @@ public class RouteServiceCodecRegistrator {
 
     private static Logger log = LoggerFactory.getLogger(RouteServiceCodecRegistrator.class);
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CodecService codecService;
 
     @Activate

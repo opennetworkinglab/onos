@@ -18,10 +18,6 @@ package org.onosproject.incubator.store.virtual.impl;
 
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Sets;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.GroupId;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.VirtualNetworkGroupStore;
@@ -38,6 +34,9 @@ import org.onosproject.net.group.GroupOperation;
 import org.onosproject.net.group.GroupStoreDelegate;
 import org.onosproject.net.group.StoredGroupBucketEntry;
 import org.onosproject.net.group.StoredGroupEntry;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -57,8 +56,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Manages inventory of virtual group entries using trivial in-memory implementation.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = VirtualNetworkGroupStore.class)
 public class SimpleVirtualGroupStore
         extends AbstractVirtualStore<GroupEvent, GroupStoreDelegate>
         implements VirtualNetworkGroupStore {

@@ -15,11 +15,11 @@
  */
 package org.onosproject.d.config.sync.impl.netconf;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.onosproject.d.config.sync.DeviceConfigSynchronizationProviderRegistry;
 import org.onosproject.d.config.sync.DeviceConfigSynchronizationProviderService;
 import org.onosproject.net.device.DeviceService;
@@ -51,19 +51,19 @@ public class NetconfDeviceConfigSynchronizerComponent {
     public static final ProviderId PID =
             new ProviderId("netconf", "org.onosproject.d.config.sync.netconf");
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DeviceConfigSynchronizationProviderRegistry registry;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected NetconfController netconfController;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected YangRuntimeService yangRuntimeService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected SchemaContextProvider schemaContextProvider;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DeviceService deviceService;
 
     private NetconfDeviceConfigSynchronizerProvider provider;

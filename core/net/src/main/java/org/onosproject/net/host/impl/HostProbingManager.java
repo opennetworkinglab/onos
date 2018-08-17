@@ -16,39 +16,37 @@
 
 package org.onosproject.net.host.impl;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.MacAddress;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Host;
+import org.onosproject.net.host.HostProbeStore;
 import org.onosproject.net.host.HostProbingEvent;
-import org.onosproject.net.host.ProbeMode;
 import org.onosproject.net.host.HostProbingListener;
 import org.onosproject.net.host.HostProbingProvider;
+import org.onosproject.net.host.HostProbingProviderRegistry;
 import org.onosproject.net.host.HostProbingProviderService;
 import org.onosproject.net.host.HostProbingService;
-import org.onosproject.net.host.HostProbeStore;
-import org.onosproject.net.host.HostProbingProviderRegistry;
 import org.onosproject.net.host.HostProbingStoreDelegate;
+import org.onosproject.net.host.ProbeMode;
 import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = { HostProbingService.class, HostProbingProviderRegistry.class })
 public class HostProbingManager extends
         AbstractListenerProviderRegistry<HostProbingEvent, HostProbingListener, HostProbingProvider,
                 HostProbingProviderService>
         implements HostProbingService, HostProbingProviderRegistry {
     private final Logger log = getLogger(getClass());
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private HostProbeStore hostProbeStore;
 
     private static final String SCHEME = "hostprobing";

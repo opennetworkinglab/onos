@@ -15,8 +15,9 @@
  */
 package org.onosproject.cli.net;
 
-import org.apache.karaf.shell.console.completer.ArgumentCompleter;
-import org.apache.karaf.shell.console.completer.StringsCompleter;
+import org.apache.karaf.shell.api.console.CommandLine;
+import org.apache.karaf.shell.api.console.Session;
+import org.apache.karaf.shell.support.completers.StringsCompleter;
 import org.onosproject.cli.AbstractCompleter;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.ConnectPoint;
@@ -30,7 +31,7 @@ import java.util.SortedSet;
  */
 public class LinkDstCompleter extends AbstractCompleter {
     @Override
-    public int complete(String buffer, int cursor, List<String> candidates) {
+    public int complete(Session session, CommandLine commandLine, List<String> candidates) {
         // Delegate string completer
         StringsCompleter delegate = new StringsCompleter();
 
@@ -38,8 +39,7 @@ public class LinkDstCompleter extends AbstractCompleter {
         LinkService service = AbstractShellCommand.get(LinkService.class);
 
         // Link source the previous argument.
-        ArgumentCompleter.ArgumentList list = getArgumentList();
-        String srcArg = list.getArguments()[list.getCursorArgumentIndex() - 1];
+        String srcArg = commandLine.getArguments()[commandLine.getCursorArgumentIndex() - 1];
 
         // Generate the device ID/port number identifiers
         SortedSet<String> strings = delegate.getStrings();
@@ -53,7 +53,7 @@ public class LinkDstCompleter extends AbstractCompleter {
         }
 
         // Now let the completer do the work for figuring out what to offer.
-        return delegate.complete(buffer, cursor, candidates);
+        return delegate.complete(session, commandLine, candidates);
     }
 
 }

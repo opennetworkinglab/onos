@@ -16,8 +16,9 @@
 
 package org.onosproject.cli.net.vnet;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.VirtualNetworkAdminService;
@@ -35,6 +36,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Binds an existing virtual port with a physical port.
  */
+@Service
 @Command(scope = "onos", name = "vnet-bind-port",
         description = "Binds an existing virtual port with a physical port.")
 public class VirtualPortBindCommand extends AbstractShellCommand {
@@ -59,7 +61,7 @@ public class VirtualPortBindCommand extends AbstractShellCommand {
     Integer physPortNum = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         VirtualNetworkAdminService service = get(VirtualNetworkAdminService.class);
         DeviceService deviceService = get(DeviceService.class);
 

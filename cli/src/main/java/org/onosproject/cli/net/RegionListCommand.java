@@ -15,8 +15,9 @@
  */
 package org.onosproject.cli.net;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.utils.Comparators;
 import org.onosproject.net.region.Region;
@@ -31,6 +32,7 @@ import static com.google.common.collect.Lists.newArrayList;
 /**
  * List Region details including membership.
  */
+@Service
 @Command(scope = "onos", name = "regions",
         description = "List Region details including membership")
 public class RegionListCommand extends AbstractShellCommand {
@@ -45,7 +47,7 @@ public class RegionListCommand extends AbstractShellCommand {
     private RegionService regionService;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         regionService = get(RegionService.class);
         if (id == null) {
             for (Region region : getSortedRegions(regionService)) {

@@ -19,7 +19,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Lists;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.utils.Comparators;
 import org.onosproject.net.topology.TopologyCluster;
 
@@ -29,6 +30,7 @@ import java.util.List;
 /**
  * Lists all clusters in the current topology.
  */
+@Service
 @Command(scope = "onos", name = "topo-clusters",
          description = "Lists all clusters in the current topology")
 public class ClustersListCommand extends TopologyCommand {
@@ -37,7 +39,7 @@ public class ClustersListCommand extends TopologyCommand {
             "id=%d, devices=%d, links=%d";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         init();
         List<TopologyCluster> clusters = Lists.newArrayList(service.getClusters(topology));
         Collections.sort(clusters, Comparators.CLUSTER_COMPARATOR);

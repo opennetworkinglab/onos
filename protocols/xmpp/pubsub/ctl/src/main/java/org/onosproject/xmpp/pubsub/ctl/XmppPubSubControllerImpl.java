@@ -16,12 +16,6 @@
 
 package org.onosproject.xmpp.pubsub.ctl;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.dom4j.Element;
 import org.onosproject.net.DeviceId;
 import org.onosproject.xmpp.core.XmppController;
@@ -37,6 +31,11 @@ import org.onosproject.xmpp.pubsub.model.XmppPublish;
 import org.onosproject.xmpp.pubsub.model.XmppRetract;
 import org.onosproject.xmpp.pubsub.model.XmppSubscribe;
 import org.onosproject.xmpp.pubsub.model.XmppUnsubscribe;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xmpp.packet.IQ;
@@ -53,14 +52,13 @@ import static org.onosproject.xmpp.pubsub.XmppPubSubConstants.PUBSUB_NAMESPACE;
  * The main class implementing XMPP Publish/Subscribe extension.
  * It listens to IQ stanzas and generates PubSub events based on the payload.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = XmppPubSubController.class)
 public class XmppPubSubControllerImpl implements XmppPubSubController {
 
     private static final Logger log =
             LoggerFactory.getLogger(XmppPubSubControllerImpl.class);
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected XmppController xmppController;
 
     protected Set<XmppPublishEventsListener> xmppPublishEventsListeners =

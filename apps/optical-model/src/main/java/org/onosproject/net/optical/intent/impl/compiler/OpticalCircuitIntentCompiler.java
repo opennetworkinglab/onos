@@ -16,15 +16,9 @@
 package org.onosproject.net.optical.intent.impl.compiler;
 
 import com.google.common.base.Strings;
-
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
@@ -55,22 +49,25 @@ import org.onosproject.net.intent.IntentCompiler;
 import org.onosproject.net.intent.IntentExtensionService;
 import org.onosproject.net.intent.IntentId;
 import org.onosproject.net.intent.IntentService;
+import org.onosproject.net.intent.IntentSetMultimap;
 import org.onosproject.net.intent.OpticalCircuitIntent;
 import org.onosproject.net.intent.OpticalConnectivityIntent;
 import org.onosproject.net.intent.PathIntent;
 import org.onosproject.net.optical.OchPort;
 import org.onosproject.net.optical.OduCltPort;
-import org.onosproject.net.intent.IntentSetMultimap;
-import org.onosproject.net.resource.ResourceAllocation;
 import org.onosproject.net.resource.Resource;
+import org.onosproject.net.resource.ResourceAllocation;
 import org.onosproject.net.resource.ResourceService;
 import org.onosproject.net.resource.Resources;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Sets;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -96,33 +93,33 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
 
     private static final int DEFAULT_MAX_CAPACITY = 10;
 
-    @Property(name = "maxCapacity", intValue = DEFAULT_MAX_CAPACITY,
-            label = "Maximum utilization of an optical connection.")
+    //@Property(name = "maxCapacity", intValue = DEFAULT_MAX_CAPACITY,
+    //        label = "Maximum utilization of an optical connection.")
 
     private int maxCapacity = DEFAULT_MAX_CAPACITY;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService cfgService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected IntentExtensionService intentManager;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DeviceService deviceService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ResourceService resourceService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected IntentSetMultimap intentSetMultimap;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected IntentService intentService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DriverService driverService;
 
     private ApplicationId appId;

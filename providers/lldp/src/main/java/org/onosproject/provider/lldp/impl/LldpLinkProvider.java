@@ -15,25 +15,9 @@
  */
 package org.onosproject.provider.lldp.impl;
 
-import java.util.Dictionary;
-import java.util.EnumSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Properties;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ScheduledExecutorService;
-
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import org.onlab.packet.Ethernet;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.ClusterMetadataService;
@@ -72,11 +56,25 @@ import org.onosproject.net.provider.ProviderId;
 import org.onosproject.provider.lldpcommon.LinkDiscovery;
 import org.onosproject.provider.lldpcommon.LinkDiscoveryContext;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
+import java.util.Dictionary;
+import java.util.EnumSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
@@ -111,34 +109,34 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
 
     private final Logger log = getLogger(getClass());
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected LinkProviderRegistry providerRegistry;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DeviceService deviceService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected LinkService linkService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected PacketService packetService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected MastershipService masterService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService cfgService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ClusterService clusterService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected NetworkConfigRegistry cfgRegistry;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ClusterMetadataService clusterMetadataService;
 
     private LinkProviderService providerService;
@@ -153,25 +151,25 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
     private static final long LINK_PRUNER_DELAY = 3;
 
     private static final String PROP_ENABLED = "enabled";
-    @Property(name = PROP_ENABLED, boolValue = true,
-            label = "If false, link discovery is disabled")
+    //@Property(name = PROP_ENABLED, boolValue = true,
+    //        label = "If false, link discovery is disabled")
     private boolean enabled = false;
 
     private static final String PROP_USE_BDDP = "useBDDP";
-    @Property(name = PROP_USE_BDDP, boolValue = true,
-            label = "Use BDDP for link discovery")
+    //@Property(name = PROP_USE_BDDP, boolValue = true,
+    //        label = "Use BDDP for link discovery")
     private boolean useBddp = true;
 
     private static final String PROP_PROBE_RATE = "probeRate";
     private static final int DEFAULT_PROBE_RATE = 3000;
-    @Property(name = PROP_PROBE_RATE, intValue = DEFAULT_PROBE_RATE,
-            label = "LLDP and BDDP probe rate specified in millis")
+    //@Property(name = PROP_PROBE_RATE, intValue = DEFAULT_PROBE_RATE,
+    //        label = "LLDP and BDDP probe rate specified in millis")
     private int probeRate = DEFAULT_PROBE_RATE;
 
     private static final String PROP_STALE_LINK_AGE = "staleLinkAge";
     private static final int DEFAULT_STALE_LINK_AGE = 10000;
-    @Property(name = PROP_STALE_LINK_AGE, intValue = DEFAULT_STALE_LINK_AGE,
-            label = "Number of millis beyond which links will be considered stale")
+    //@Property(name = PROP_STALE_LINK_AGE, intValue = DEFAULT_STALE_LINK_AGE,
+    //        label = "Number of millis beyond which links will be considered stale")
     private int staleLinkAge = DEFAULT_STALE_LINK_AGE;
 
     private final LinkDiscoveryContext context = new InternalDiscoveryContext();

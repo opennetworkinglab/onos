@@ -19,9 +19,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.apache.karaf.shell.api.action.Option;
 import org.onosproject.utils.Comparators;
 import org.onosproject.net.Device;
 import org.onosproject.net.Port;
@@ -35,6 +36,7 @@ import static org.onosproject.net.DeviceId.deviceId;
 /**
  * Lists all ports or all ports of a device.
  */
+@Service
 @Command(scope = "onos", name = "ports",
          description = "Lists all ports or all ports of a device")
 public class DevicePortsListCommand extends DevicesListCommand {
@@ -54,7 +56,7 @@ public class DevicePortsListCommand extends DevicesListCommand {
     protected String uri = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         DeviceService service = get(DeviceService.class);
         if (uri == null) {
             if (outputJson()) {

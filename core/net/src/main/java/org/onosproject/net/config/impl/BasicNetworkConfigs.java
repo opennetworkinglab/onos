@@ -16,15 +16,7 @@
 package org.onosproject.net.config.impl;
 
 import com.google.common.collect.ImmutableSet;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.CoreService;
-import org.onosproject.net.config.basics.DeviceAnnotationConfig;
-import org.onosproject.net.config.basics.InterfaceConfig;
 import org.onosproject.incubator.net.config.basics.PortDescriptionsConfig;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
@@ -38,10 +30,17 @@ import org.onosproject.net.config.basics.BasicHostConfig;
 import org.onosproject.net.config.basics.BasicLinkConfig;
 import org.onosproject.net.config.basics.BasicRegionConfig;
 import org.onosproject.net.config.basics.BasicUiTopoLayoutConfig;
+import org.onosproject.net.config.basics.DeviceAnnotationConfig;
+import org.onosproject.net.config.basics.InterfaceConfig;
 import org.onosproject.net.config.basics.PortAnnotationConfig;
 import org.onosproject.net.config.basics.SubjectFactories;
 import org.onosproject.net.region.RegionId;
 import org.onosproject.ui.model.topo.UiTopoLayoutId;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,8 +56,7 @@ import static org.onosproject.net.config.basics.SubjectFactories.REGION_SUBJECT_
 /**
  * Component for registration of builtin basic network configurations.
  */
-@Service
-@Component(immediate = true)
+@Component(immediate = true, service = BasicNetworkConfigService.class)
 public class BasicNetworkConfigs implements BasicNetworkConfigService {
 
     private static final String BASIC = "basic";
@@ -144,10 +142,10 @@ public class BasicNetworkConfigs implements BasicNetworkConfigService {
 
     );
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected NetworkConfigRegistry registry;
 
     @Activate

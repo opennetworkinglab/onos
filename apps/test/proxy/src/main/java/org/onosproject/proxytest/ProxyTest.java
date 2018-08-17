@@ -15,12 +15,6 @@
  */
 package org.onosproject.proxytest;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.ProxyFactory;
 import org.onosproject.cluster.ProxyService;
@@ -30,6 +24,11 @@ import org.onosproject.mastership.MastershipProxyService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.Serializer;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -37,8 +36,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Proxy test application.
  */
-@Component(immediate = true)
-@Service(value = ProxyTest.class)
+@Component(immediate = true, service = ProxyTest.class)
 public class ProxyTest {
 
     private static final Serializer SERIALIZER = Serializer.using(KryoNamespaces.API);
@@ -47,13 +45,13 @@ public class ProxyTest {
 
     private static final String APP_NAME = "org.onosproject.proxytest";
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ProxyService proxyService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected MastershipProxyService mastershipProxyService;
 
     private ProxyFactory<TestProxy> proxyFactory;

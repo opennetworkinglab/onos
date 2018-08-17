@@ -16,11 +16,11 @@
 
 package org.onosproject.p4tutorial.pipeconf;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.onosproject.driver.pipeline.DefaultSingleTablePipeline;
 import org.onosproject.net.behaviour.Pipeliner;
 import org.onosproject.net.device.PortStatisticsDiscovery;
@@ -52,7 +52,7 @@ public final class PipeconfFactory {
     private static final URL P4INFO_URL = PipeconfFactory.class.getResource("/mytunnel.p4info");
     private static final URL BMV2_JSON_URL = PipeconfFactory.class.getResource("/mytunnel.json");
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private PiPipeconfService piPipeconfService;
 
     @Activate

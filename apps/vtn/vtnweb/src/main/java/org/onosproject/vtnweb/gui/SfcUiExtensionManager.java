@@ -15,31 +15,28 @@
  */
 package org.onosproject.vtnweb.gui;
 
-import static com.google.common.collect.ImmutableList.of;
-import static org.onosproject.ui.UiView.Category.NETWORK;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.List;
-
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
+import com.google.common.collect.ImmutableList;
 import org.onosproject.ui.UiExtension;
 import org.onosproject.ui.UiExtensionService;
 import org.onosproject.ui.UiMessageHandlerFactory;
 import org.onosproject.ui.UiView;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
-import com.google.common.collect.ImmutableList;
+import java.util.List;
+
+import static com.google.common.collect.ImmutableList.of;
+import static org.onosproject.ui.UiView.Category.NETWORK;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * service function chain gui.
  */
-@Component(immediate = true, enabled = true)
-@Service(value = SfcUiExtensionManager.class)
+@Component(immediate = true, service = SfcUiExtensionManager.class)
 public class SfcUiExtensionManager {
     private final Logger log = getLogger(getClass());
 
@@ -47,7 +44,7 @@ public class SfcUiExtensionManager {
             SfcUiExtensionManager.class.getClassLoader();
     private static final String GUI = "gui";
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected UiExtensionService uiExtensionService;
 
     // service function chain extension

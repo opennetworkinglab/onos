@@ -20,8 +20,9 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.apache.karaf.shell.api.action.Option;
 import org.onosproject.app.ApplicationService;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.utils.Comparators;
@@ -37,6 +38,7 @@ import static org.onosproject.app.ApplicationState.ACTIVE;
 /**
  * Lists application information.
  */
+@Service
 @Command(scope = "onos", name = "apps",
         description = "Lists application information")
 public class ApplicationsListCommand extends AbstractShellCommand {
@@ -61,7 +63,7 @@ public class ApplicationsListCommand extends AbstractShellCommand {
 
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         ApplicationService service = get(ApplicationService.class);
         List<Application> apps = newArrayList(service.getApplications());
         if (sortByName) {

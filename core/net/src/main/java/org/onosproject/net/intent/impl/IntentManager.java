@@ -15,14 +15,6 @@
  */
 package org.onosproject.net.intent.impl;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.CoreService;
@@ -38,13 +30,13 @@ import org.onosproject.net.group.GroupService;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentBatchDelegate;
 import org.onosproject.net.intent.IntentCompiler;
-import org.onosproject.net.intent.IntentInstallCoordinator;
 import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.IntentEvent;
 import org.onosproject.net.intent.IntentExtensionService;
-import org.onosproject.net.intent.IntentOperationContext;
+import org.onosproject.net.intent.IntentInstallCoordinator;
 import org.onosproject.net.intent.IntentInstaller;
 import org.onosproject.net.intent.IntentListener;
+import org.onosproject.net.intent.IntentOperationContext;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.IntentStore;
@@ -60,6 +52,12 @@ import org.onosproject.net.intent.impl.phase.Skipped;
 import org.onosproject.net.resource.ResourceConsumer;
 import org.onosproject.net.resource.ResourceService;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Collection;
@@ -77,7 +75,11 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.net.intent.IntentState.*;
+import static org.onosproject.net.intent.IntentState.FAILED;
+import static org.onosproject.net.intent.IntentState.INSTALL_REQ;
+import static org.onosproject.net.intent.IntentState.WITHDRAWING;
+import static org.onosproject.net.intent.IntentState.WITHDRAWN;
+import static org.onosproject.net.intent.IntentState.WITHDRAW_REQ;
 import static org.onosproject.net.intent.constraint.PartialFailureConstraint.intentAllowsPartialFailure;
 import static org.onosproject.net.intent.impl.phase.IntentProcessPhase.newInitialPhase;
 import static org.onosproject.security.AppGuard.checkPermission;
@@ -88,8 +90,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * An implementation of intent service.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = { IntentService.class, IntentExtensionService.class, IntentInstallCoordinator.class })
 public class IntentManager
         extends AbstractListenerManager<IntentEvent, IntentListener>
         implements IntentService, IntentExtensionService, IntentInstallCoordinator {
@@ -105,45 +106,45 @@ public class IntentManager
             = EnumSet.of(WITHDRAW_REQ, WITHDRAWING, WITHDRAWN);
 
     private static final boolean DEFAULT_SKIP_RELEASE_RESOURCES_ON_WITHDRAWAL = false;
-    @Property(name = "skipReleaseResourcesOnWithdrawal",
-            boolValue = DEFAULT_SKIP_RELEASE_RESOURCES_ON_WITHDRAWAL,
-            label = "Indicates whether skipping resource releases on withdrawal is enabled or not")
+    //@Property(name = "skipReleaseResourcesOnWithdrawal",
+    //        boolValue = DEFAULT_SKIP_RELEASE_RESOURCES_ON_WITHDRAWAL,
+    //        label = "Indicates whether skipping resource releases on withdrawal is enabled or not")
     private boolean skipReleaseResourcesOnWithdrawal = DEFAULT_SKIP_RELEASE_RESOURCES_ON_WITHDRAWAL;
 
     private static final int DEFAULT_NUM_THREADS = 12;
-    @Property(name = "numThreads",
-            intValue = DEFAULT_NUM_THREADS,
-            label = "Number of worker threads")
+    //@Property(name = "numThreads",
+    //        intValue = DEFAULT_NUM_THREADS,
+    //        label = "Number of worker threads")
     private int numThreads = DEFAULT_NUM_THREADS;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected IntentStore store;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ObjectiveTrackerService trackerService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected FlowRuleService flowRuleService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected FlowObjectiveService flowObjectiveService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DomainIntentService domainIntentService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ResourceService resourceService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService configService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected GroupService groupService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private NetworkConfigService networkConfigService;
 
     private ExecutorService batchExecutor;

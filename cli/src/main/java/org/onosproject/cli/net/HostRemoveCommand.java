@@ -15,8 +15,9 @@
  */
 package org.onosproject.cli.net;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.HostId;
 import org.onosproject.net.host.HostAdminService;
@@ -24,6 +25,7 @@ import org.onosproject.net.host.HostAdminService;
 /**
  * Removes an end-station host.
  */
+@Service
 @Command(scope = "onos", name = "host-remove",
          description = "Removes an end-station host")
 public class HostRemoveCommand extends AbstractShellCommand {
@@ -33,7 +35,7 @@ public class HostRemoveCommand extends AbstractShellCommand {
     String id = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         get(HostAdminService.class).removeHost(HostId.hostId(id));
     }
 

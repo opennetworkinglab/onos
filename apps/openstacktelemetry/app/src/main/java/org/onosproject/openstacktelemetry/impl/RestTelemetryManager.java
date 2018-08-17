@@ -15,16 +15,15 @@
  */
 package org.onosproject.openstacktelemetry.impl;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.openstacktelemetry.api.OpenstackTelemetryService;
 import org.onosproject.openstacktelemetry.api.RestTelemetryAdminService;
 import org.onosproject.openstacktelemetry.api.config.RestTelemetryConfig;
 import org.onosproject.openstacktelemetry.api.config.TelemetryConfig;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,8 +36,7 @@ import javax.ws.rs.core.Response;
 /**
  * REST telemetry manager.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = RestTelemetryAdminService.class)
 public class RestTelemetryManager implements RestTelemetryAdminService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -47,7 +45,7 @@ public class RestTelemetryManager implements RestTelemetryAdminService {
     private static final String POST_METHOD = "POST";
     private static final String GET_METHOD  = "GET";
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected OpenstackTelemetryService openstackTelemetryService;
 
     private WebTarget target = null;

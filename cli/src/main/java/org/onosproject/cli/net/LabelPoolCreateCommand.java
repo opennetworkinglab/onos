@@ -15,8 +15,9 @@
  */
 package org.onosproject.cli.net;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
 import org.onosproject.incubator.net.resource.label.LabelResourceAdminService;
@@ -25,6 +26,7 @@ import org.onosproject.incubator.net.resource.label.LabelResourceId;
 /**
  * create label resource pool by specific device id.
  */
+@Service
 @Command(scope = "onos", name = "label-pool-create",
      description = "Creates label resource pool by a specific device id")
 public class LabelPoolCreateCommand extends AbstractShellCommand {
@@ -38,7 +40,7 @@ public class LabelPoolCreateCommand extends AbstractShellCommand {
     String endLabel = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         LabelResourceAdminService lrs = get(LabelResourceAdminService.class);
         lrs.createDevicePool(DeviceId.deviceId(deviceId), LabelResourceId
                 .labelResourceId(Long.parseLong(beginLabel)), LabelResourceId

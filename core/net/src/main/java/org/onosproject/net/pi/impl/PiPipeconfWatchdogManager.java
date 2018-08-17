@@ -18,14 +18,6 @@ package org.onosproject.net.pi.impl;
 
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Striped;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoNamespace;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
@@ -54,6 +46,12 @@ import org.onosproject.store.service.EventuallyConsistentMapListener;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.WallClockTimestamp;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Collections;
@@ -76,8 +74,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * pipeline probe task and listens for device events to update the status of the
  * pipeline.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = PiPipeconfWatchdogService.class)
 public class PiPipeconfWatchdogManager
         extends AbstractListenerManager<PiPipeconfWatchdogEvent, PiPipeconfWatchdogListener>
         implements PiPipeconfWatchdogService {
@@ -89,28 +86,28 @@ public class PiPipeconfWatchdogManager
     // binaries over slow network).
     private static final long PIPECONF_SET_TIMEOUT = 60; // Seconds.
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private PiPipeconfMappingStore pipeconfMappingStore;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private DeviceService deviceService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private MastershipService mastershipService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected PiPipeconfService pipeconfService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected StorageService storageService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private ComponentConfigService componentConfigService;
 
     private static final String PROBE_INTERVAL = "probeInterval";
     private static final int DEFAULT_PROBE_INTERVAL = 15;
-    @Property(name = PROBE_INTERVAL, intValue = DEFAULT_PROBE_INTERVAL,
-            label = "Configure interval in seconds for device pipeconf probing")
+    //@Property(name = PROBE_INTERVAL, intValue = DEFAULT_PROBE_INTERVAL,
+    //        label = "Configure interval in seconds for device pipeconf probing")
     private int probeInterval = DEFAULT_PROBE_INTERVAL;
 
     protected ExecutorService executor = Executors.newFixedThreadPool(

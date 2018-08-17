@@ -21,14 +21,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.math.RandomUtils;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.MacAddress;
 import org.onlab.util.Counter;
 import org.onosproject.cfg.ComponentConfigService;
@@ -52,11 +44,16 @@ import org.onosproject.net.intent.IntentEvent;
 import org.onosproject.net.intent.IntentListener;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.Key;
-import org.onosproject.net.intent.WorkPartitionService;
 import org.onosproject.net.intent.PointToPointIntent;
+import org.onosproject.net.intent.WorkPartitionService;
 import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
 import org.onosproject.store.cluster.messaging.MessageSubject;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -77,16 +74,20 @@ import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.lang.String.format;
 import static java.lang.System.currentTimeMillis;
-import static org.apache.felix.scr.annotations.ReferenceCardinality.MANDATORY_UNARY;
-import static org.onlab.util.Tools.*;
-import static org.onosproject.net.intent.IntentEvent.Type.*;
+import static org.onlab.util.Tools.delay;
+import static org.onlab.util.Tools.get;
+import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.net.intent.IntentEvent.Type.INSTALLED;
+import static org.onosproject.net.intent.IntentEvent.Type.INSTALL_REQ;
+import static org.onosproject.net.intent.IntentEvent.Type.WITHDRAWN;
+import static org.onosproject.net.intent.IntentEvent.Type.WITHDRAW_REQ;
+import static org.osgi.service.component.annotations.ReferenceCardinality.MANDATORY;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Application to test sustained intent throughput.
  */
-@Component(immediate = true)
-@Service(value = IntentPerfInstaller.class)
+@Component(immediate = true, service = IntentPerfInstaller.class)
 public class IntentPerfInstaller {
 
     private final Logger log = getLogger(getClass());
@@ -107,8 +108,8 @@ public class IntentPerfInstaller {
 
     //FIXME add path length
 
-    @Property(name = "numKeys", intValue = DEFAULT_NUM_KEYS,
-            label = "Number of keys (i.e. unique intents) to generate per instance")
+    //@Property(name = "numKeys", intValue = DEFAULT_NUM_KEYS,
+    //        label = "Number of keys (i.e. unique intents) to generate per instance")
     private int numKeys = DEFAULT_NUM_KEYS;
 
     //TODO implement numWorkers property
@@ -116,39 +117,39 @@ public class IntentPerfInstaller {
 //              label = "Number of installer threads per instance")
 //    private int numWokers = DEFAULT_NUM_WORKERS;
 
-    @Property(name = "cyclePeriod", intValue = DEFAULT_GOAL_CYCLE_PERIOD,
-            label = "Goal for cycle period (in ms)")
+    //@Property(name = "cyclePeriod", intValue = DEFAULT_GOAL_CYCLE_PERIOD,
+    //        label = "Goal for cycle period (in ms)")
     private int cyclePeriod = DEFAULT_GOAL_CYCLE_PERIOD;
 
-    @Property(name = "numNeighbors", intValue = DEFAULT_NUM_NEIGHBORS,
-            label = "Number of neighbors to generate intents for")
+    //@Property(name = "numNeighbors", intValue = DEFAULT_NUM_NEIGHBORS,
+    //        label = "Number of neighbors to generate intents for")
     private int numNeighbors = DEFAULT_NUM_NEIGHBORS;
 
-    @Reference(cardinality = MANDATORY_UNARY)
+    @Reference(cardinality = MANDATORY)
     protected CoreService coreService;
 
-    @Reference(cardinality = MANDATORY_UNARY)
+    @Reference(cardinality = MANDATORY)
     protected IntentService intentService;
 
-    @Reference(cardinality = MANDATORY_UNARY)
+    @Reference(cardinality = MANDATORY)
     protected ClusterService clusterService;
 
-    @Reference(cardinality = MANDATORY_UNARY)
+    @Reference(cardinality = MANDATORY)
     protected DeviceService deviceService;
 
-    @Reference(cardinality = MANDATORY_UNARY)
+    @Reference(cardinality = MANDATORY)
     protected MastershipService mastershipService;
 
-    @Reference(cardinality = MANDATORY_UNARY)
+    @Reference(cardinality = MANDATORY)
     protected WorkPartitionService partitionService;
 
-    @Reference(cardinality = MANDATORY_UNARY)
+    @Reference(cardinality = MANDATORY)
     protected ComponentConfigService configService;
 
-    @Reference(cardinality = MANDATORY_UNARY)
+    @Reference(cardinality = MANDATORY)
     protected IntentPerfCollector sampleCollector;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = MANDATORY)
     protected ClusterCommunicationService communicationService;
 
     private ExecutorService messageHandlingExecutor;

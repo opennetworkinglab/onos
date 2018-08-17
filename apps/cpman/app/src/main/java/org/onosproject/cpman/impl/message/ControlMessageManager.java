@@ -15,12 +15,6 @@
  */
 package org.onosproject.cpman.impl.message;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cpman.ControlMessage;
 import org.onosproject.cpman.message.ControlMessageAdminService;
 import org.onosproject.cpman.message.ControlMessageEvent;
@@ -34,6 +28,11 @@ import org.onosproject.cpman.message.ControlMessageStoreDelegate;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Set;
@@ -44,8 +43,8 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Provides implementation of the control message SB &amp; NB APIs.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = { ControlMessageService.class, ControlMessageAdminService.class,
+        ControlMessageProviderRegistry.class })
 public class ControlMessageManager
         extends AbstractListenerProviderRegistry<ControlMessageEvent, ControlMessageListener,
         ControlMessageProvider, ControlMessageProviderService>
@@ -58,7 +57,7 @@ public class ControlMessageManager
 
     private final ControlMessageStoreDelegate delegate = new InternalStoreDelegate();
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ControlMessageStore store;
 
     @Activate

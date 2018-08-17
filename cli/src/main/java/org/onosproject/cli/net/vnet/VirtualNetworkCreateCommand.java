@@ -16,8 +16,9 @@
 
 package org.onosproject.cli.net.vnet;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.virtual.TenantId;
 import org.onosproject.incubator.net.virtual.VirtualNetworkAdminService;
@@ -25,6 +26,7 @@ import org.onosproject.incubator.net.virtual.VirtualNetworkAdminService;
 /**
  * Creates a new virtual network.
  */
+@Service
 @Command(scope = "onos", name = "vnet-create",
         description = "Creates a new virtual network.")
 public class VirtualNetworkCreateCommand extends AbstractShellCommand {
@@ -34,7 +36,7 @@ public class VirtualNetworkCreateCommand extends AbstractShellCommand {
     String id = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         VirtualNetworkAdminService service = get(VirtualNetworkAdminService.class);
         service.createVirtualNetwork(TenantId.tenantId(id));
         print("Virtual network successfully created.");

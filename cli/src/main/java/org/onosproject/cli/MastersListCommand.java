@@ -19,7 +19,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Lists;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.mastership.MastershipService;
@@ -34,12 +35,13 @@ import static com.google.common.collect.Lists.newArrayList;
 /**
  * Lists device mastership information.
  */
+@Service
 @Command(scope = "onos", name = "masters",
          description = "Lists device mastership information")
 public class MastersListCommand extends AbstractShellCommand {
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         ClusterService service = get(ClusterService.class);
         MastershipService mastershipService = get(MastershipService.class);
         DeviceService deviceService = get(DeviceService.class);

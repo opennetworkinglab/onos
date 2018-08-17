@@ -15,17 +15,6 @@
  */
 package org.onosproject.config.impl;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
-import org.onosproject.config.RpcExecutor;
-import org.onosproject.config.RpcMessageId;
-import org.onosproject.d.config.DeviceResourceIds;
-import org.onosproject.d.config.ResourceIds;
-import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.config.DynamicConfigEvent;
 import org.onosproject.config.DynamicConfigListener;
 import org.onosproject.config.DynamicConfigService;
@@ -33,23 +22,33 @@ import org.onosproject.config.DynamicConfigStore;
 import org.onosproject.config.DynamicConfigStoreDelegate;
 import org.onosproject.config.FailedException;
 import org.onosproject.config.Filter;
-import org.onosproject.yang.model.RpcInput;
-import org.onosproject.yang.model.RpcOutput;
+import org.onosproject.config.RpcExecutor;
+import org.onosproject.config.RpcMessageId;
+import org.onosproject.d.config.DeviceResourceIds;
+import org.onosproject.d.config.ResourceIds;
+import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.yang.model.DataNode;
 import org.onosproject.yang.model.DataNode.Type;
 import org.onosproject.yang.model.InnerNode;
 import org.onosproject.yang.model.ResourceId;
 import org.onosproject.yang.model.RpcContext;
+import org.onosproject.yang.model.RpcInput;
+import org.onosproject.yang.model.RpcOutput;
 import org.onosproject.yang.model.RpcRegistry;
 import org.onosproject.yang.model.RpcService;
 import org.onosproject.yang.model.SchemaContextProvider;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.slf4j.Logger;
 
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import org.slf4j.Logger;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.d.config.DeviceResourceIds.DCS_NAMESPACE;
@@ -59,8 +58,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Implementation of the Dynamic Config Service.
  *
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = { DynamicConfigService.class, RpcRegistry.class })
 public class DynamicConfigManager
         extends AbstractListenerManager<DynamicConfigEvent, DynamicConfigListener>
         implements DynamicConfigService, RpcRegistry {
@@ -68,10 +66,10 @@ public class DynamicConfigManager
     private final Logger log = getLogger(getClass());
     private final DynamicConfigStoreDelegate storeDelegate = new InternalStoreDelegate();
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DynamicConfigStore store;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected SchemaContextProvider contextProvider;
 
     // FIXME is it OK this is not using the Store?

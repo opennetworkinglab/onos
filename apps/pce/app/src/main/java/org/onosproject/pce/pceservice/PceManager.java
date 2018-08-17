@@ -15,29 +15,14 @@
  */
 package org.onosproject.pce.pceservice;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.onlab.graph.ScalarWeight;
 import org.onlab.graph.Weight;
-import org.onosproject.net.DisjointPath;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.IpAddress;
 import org.onlab.util.Bandwidth;
+import org.onosproject.bandwidthmgr.api.BandwidthMgmtService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.IdGenerator;
@@ -51,38 +36,38 @@ import org.onosproject.incubator.net.tunnel.TunnelListener;
 import org.onosproject.incubator.net.tunnel.TunnelName;
 import org.onosproject.incubator.net.tunnel.TunnelService;
 import org.onosproject.mastership.MastershipService;
-import org.onosproject.net.LinkKey;
-import org.onosproject.net.config.ConfigFactory;
-import org.onosproject.net.config.NetworkConfigRegistry;
-import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DefaultAnnotations.Builder;
 import org.onosproject.net.DefaultPath;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.DisjointPath;
 import org.onosproject.net.Link;
+import org.onosproject.net.LinkKey;
+import org.onosproject.net.MastershipRole;
 import org.onosproject.net.NetworkResource;
 import org.onosproject.net.Path;
+import org.onosproject.net.config.ConfigFactory;
+import org.onosproject.net.config.NetworkConfigRegistry;
+import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.config.basics.SubjectFactories;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.intent.Constraint;
 import org.onosproject.net.link.LinkEvent;
-import org.onosproject.net.MastershipRole;
-import org.onosproject.bandwidthmgr.api.BandwidthMgmtService;
-import org.onosproject.net.topology.LinkWeigher;
-import org.onosproject.pce.pceservice.constraint.CapabilityConstraint;
-import org.onosproject.pce.pceservice.constraint.CapabilityConstraint.CapabilityType;
-import org.onosproject.pce.pceservice.constraint.CostConstraint;
-import org.onosproject.pce.pceservice.constraint.PceBandwidthConstraint;
-import org.onosproject.pce.pceservice.constraint.SharedBandwidthConstraint;
 import org.onosproject.net.resource.Resource;
 import org.onosproject.net.resource.ResourceAllocation;
+import org.onosproject.net.topology.LinkWeigher;
 import org.onosproject.net.topology.PathService;
 import org.onosproject.net.topology.TopologyEdge;
 import org.onosproject.net.topology.TopologyEvent;
 import org.onosproject.net.topology.TopologyListener;
 import org.onosproject.net.topology.TopologyService;
 import org.onosproject.pce.pceservice.api.PceService;
+import org.onosproject.pce.pceservice.constraint.CapabilityConstraint;
+import org.onosproject.pce.pceservice.constraint.CapabilityConstraint.CapabilityType;
+import org.onosproject.pce.pceservice.constraint.CostConstraint;
+import org.onosproject.pce.pceservice.constraint.PceBandwidthConstraint;
+import org.onosproject.pce.pceservice.constraint.SharedBandwidthConstraint;
 import org.onosproject.pce.pcestore.PcePathInfo;
 import org.onosproject.pce.pcestore.api.PceStore;
 import org.onosproject.pcep.api.DeviceCapability;
@@ -91,31 +76,43 @@ import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.DistributedSet;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.incubator.net.tunnel.Tunnel.State.INIT;
 import static org.onosproject.incubator.net.tunnel.Tunnel.State.UNSTABLE;
 import static org.onosproject.incubator.net.tunnel.Tunnel.Type.MPLS;
 import static org.onosproject.pce.pceservice.LspType.WITH_SIGNALLING;
 import static org.onosproject.pce.pceservice.PcepAnnotationKeys.BANDWIDTH;
+import static org.onosproject.pce.pceservice.PcepAnnotationKeys.COST_TYPE;
+import static org.onosproject.pce.pceservice.PcepAnnotationKeys.DELEGATE;
 import static org.onosproject.pce.pceservice.PcepAnnotationKeys.LOCAL_LSP_ID;
 import static org.onosproject.pce.pceservice.PcepAnnotationKeys.LSP_SIG_TYPE;
+import static org.onosproject.pce.pceservice.PcepAnnotationKeys.PCC_TUNNEL_ID;
 import static org.onosproject.pce.pceservice.PcepAnnotationKeys.PCE_INIT;
 import static org.onosproject.pce.pceservice.PcepAnnotationKeys.PLSP_ID;
-import static org.onosproject.pce.pceservice.PcepAnnotationKeys.PCC_TUNNEL_ID;
-import static org.onosproject.pce.pceservice.PcepAnnotationKeys.DELEGATE;
-import static org.onosproject.pce.pceservice.PcepAnnotationKeys.COST_TYPE;
 
 /**
  * Implementation of PCE service.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = PceManager.class)
 public class PceManager implements PceService {
     private static final Logger log = LoggerFactory.getLogger(PceManager.class);
 
@@ -134,37 +131,37 @@ public class PceManager implements PceService {
     private IdGenerator localLspIdIdGen;
     protected DistributedSet<Short> localLspIdFreeList;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected PathService pathService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected PceStore pceStore;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected TunnelService tunnelService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DeviceService deviceService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected StorageService storageService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected NetworkConfigService netCfgService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected MastershipService mastershipService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected TopologyService topologyService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected BandwidthMgmtService bandwidthMgmtService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected NetworkConfigRegistry netConfigRegistry;
 
     private TunnelListener listener = new InnerTunnelListener();

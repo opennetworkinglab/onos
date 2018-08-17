@@ -16,12 +16,6 @@
 
 package org.onosproject.dhcprelay.store;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.DHCP;
 import org.onlab.packet.DHCP6;
 import org.onlab.util.KryoNamespace;
@@ -33,6 +27,11 @@ import org.onosproject.store.service.EventuallyConsistentMapEvent;
 import org.onosproject.store.service.EventuallyConsistentMapListener;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.WallClockTimestamp;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Collection;
@@ -44,8 +43,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Distributed DHCP relay store.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = DhcpRelayStore.class)
 public class DistributedDhcpRelayStore implements DhcpRelayStore {
     private static final KryoNamespace APP_KRYO = KryoNamespace.newBuilder()
             .register(KryoNamespaces.API)
@@ -60,7 +58,7 @@ public class DistributedDhcpRelayStore implements DhcpRelayStore {
     private EventuallyConsistentMap<HostId, DhcpRecord> dhcpRecords;
     private EventuallyConsistentMapListener<HostId, DhcpRecord> listener;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected StorageService storageService;
 
     @Activate

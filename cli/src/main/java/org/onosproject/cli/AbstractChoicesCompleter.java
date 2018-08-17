@@ -15,7 +15,9 @@
  */
 package org.onosproject.cli;
 
-import org.apache.karaf.shell.console.completer.StringsCompleter;
+import org.apache.karaf.shell.api.console.CommandLine;
+import org.apache.karaf.shell.api.console.Session;
+import org.apache.karaf.shell.support.completers.StringsCompleter;
 
 import java.util.List;
 import java.util.SortedSet;
@@ -26,13 +28,17 @@ import java.util.SortedSet;
 public abstract class AbstractChoicesCompleter extends AbstractCompleter {
 
     protected abstract List<String> choices();
+    protected CommandLine commandLine;
+    protected Session session;
 
     @Override
-    public int complete(String buffer, int cursor, List<String> candidates) {
+    public int complete(Session session, CommandLine commandLine, List<String> candidates) {
+        this.session = session;
+        this.commandLine = commandLine;
         StringsCompleter delegate = new StringsCompleter();
         SortedSet<String> strings = delegate.getStrings();
         choices().forEach(strings::add);
-        return delegate.complete(buffer, cursor, candidates);
+        return delegate.complete(session, commandLine, candidates);
     }
 
 }

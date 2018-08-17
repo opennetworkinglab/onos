@@ -16,17 +16,15 @@
 
 package org.onosproject.store.pi.impl;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.net.group.Group;
 import org.onosproject.net.pi.runtime.PiActionGroup;
 import org.onosproject.net.pi.service.PiGroupTranslationStore;
+import org.osgi.service.component.annotations.Component;
 
 /**
  * Distributed implementation of a PI translation store for groups.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = PiGroupTranslationStore.class)
 public class DistributedPiGroupTranslationStore
         extends AbstractDistributedPiTranslationStore<Group, PiActionGroup>
         implements PiGroupTranslationStore {

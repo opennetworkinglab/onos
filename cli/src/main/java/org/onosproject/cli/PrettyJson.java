@@ -16,7 +16,8 @@
 package org.onosproject.cli;
 
 import java.io.IOException;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -24,12 +25,13 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 /**
  * Pretty print previous command output JSON.
  */
+@Service
 @Command(scope = "onos", name = "pp",
          description = "Pretty print JSON output from previous command")
 public class PrettyJson extends AbstractShellCommand {
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         try {
             ObjectMapper mapper = new ObjectMapper();
             mapper.enable(SerializationFeature.INDENT_OUTPUT);

@@ -17,9 +17,10 @@ package org.onosproject.cli.net;
 
 import java.util.Optional;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.apache.karaf.shell.api.action.Option;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.DeviceId;
@@ -36,6 +37,7 @@ import org.onosproject.net.resource.Resources;
 /**
  * Test tool to allocate resources.
  */
+@Service
 @Command(scope = "onos", name = "test-allocate-resources",
          description = "Test tool to allocate resources")
 public class TestAllocateResource extends AbstractShellCommand {
@@ -65,7 +67,7 @@ public class TestAllocateResource extends AbstractShellCommand {
     private ResourceService resourceService;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         resourceService = get(ResourceService.class);
         DeviceId did = DeviceId.deviceId(deviceIdStr);
         PortNumber portNum = PortNumber.fromString(portNumberStr);

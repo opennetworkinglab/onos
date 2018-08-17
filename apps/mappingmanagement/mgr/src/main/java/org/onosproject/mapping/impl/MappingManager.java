@@ -19,12 +19,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.mapping.MappingAdminService;
 import org.onosproject.mapping.MappingEntry;
@@ -44,6 +38,11 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.List;
@@ -54,8 +53,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Implementation of mapping management service.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = { MappingService.class, MappingAdminService.class, MappingProviderRegistry.class })
 public class MappingManager
         extends AbstractListenerProviderRegistry<MappingEvent, MappingListener,
                                                  MappingProvider, MappingProviderService>
@@ -66,10 +64,10 @@ public class MappingManager
     private static final String MAPPING_OP_TOPIC = "mapping-ops-ids";
     private final MappingStoreDelegate delegate = new InternalStoreDelegate();
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected MappingStore store;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DeviceService deviceService;
 
     @Activate

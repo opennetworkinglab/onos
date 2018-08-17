@@ -17,12 +17,6 @@ package org.onosproject.artemis.impl;
 
 import com.google.common.collect.Sets;
 import io.netty.channel.ChannelHandlerContext;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.json.JSONObject;
 import org.onlab.packet.IpPrefix;
 import org.onosproject.artemis.ArtemisMonitor;
@@ -32,6 +26,11 @@ import org.onosproject.event.EventDeliveryService;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigService;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,16 +38,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = ArtemisMonitor.class)
 public class ArtemisMonitorImpl implements ArtemisMonitor {
     private final Logger log = LoggerFactory.getLogger(getClass());
     private static final Class<ArtemisConfig> CONFIG_CLASS = ArtemisConfig.class;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected EventDeliveryService eventDispatcher;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private NetworkConfigService configService;
 
     /* Variables */

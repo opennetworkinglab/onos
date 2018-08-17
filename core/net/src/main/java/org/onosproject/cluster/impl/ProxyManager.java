@@ -15,6 +15,21 @@
  */
 package org.onosproject.cluster.impl;
 
+import com.google.common.collect.Maps;
+import org.onlab.util.OrderedExecutor;
+import org.onosproject.cluster.NodeId;
+import org.onosproject.cluster.ProxyFactory;
+import org.onosproject.cluster.ProxyService;
+import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
+import org.onosproject.store.service.Serializer;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Map;
@@ -25,37 +40,20 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
 
-import com.google.common.collect.Maps;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
-import org.onlab.util.OrderedExecutor;
-import org.onosproject.cluster.NodeId;
-import org.onosproject.cluster.ProxyFactory;
-import org.onosproject.cluster.ProxyService;
-import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
-import org.onosproject.store.service.Serializer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.onlab.util.Tools.groupedThreads;
 
 /**
  * Implementation of the proxy service.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = ProxyService.class)
 public class ProxyManager extends AbstractProxyManager implements ProxyService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private static final String MESSAGE_PREFIX = "proxy";
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ClusterCommunicationService clusterCommunicator;
 
     private final ExecutorService proxyServiceExecutor =

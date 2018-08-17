@@ -17,11 +17,11 @@
 
 package org.onosproject.drivers.bmv2.mirror;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.drivers.bmv2.api.runtime.Bmv2Entity;
 import org.onosproject.drivers.bmv2.api.runtime.Bmv2Handle;
@@ -53,7 +53,7 @@ public abstract class AbstractDistributedBmv2Mirror
 
     private final Logger log = getLogger(getClass());
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private StorageService storageService;
 
     private EventuallyConsistentMap<H, E> mirrorMap;

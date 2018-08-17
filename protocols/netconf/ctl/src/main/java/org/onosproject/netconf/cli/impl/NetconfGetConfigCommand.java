@@ -58,7 +58,7 @@ public class NetconfGetConfigCommand extends AbstractShellCommand {
     private DeviceId deviceId;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         deviceId = DeviceId.deviceId(uri);
 
         NetconfController controller = get(NetconfController.class);

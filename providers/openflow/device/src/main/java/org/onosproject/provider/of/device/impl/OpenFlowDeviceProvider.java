@@ -20,13 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.ChassisId;
 import org.onlab.util.Frequency;
 import org.onlab.util.Spectrum;
@@ -73,6 +66,12 @@ import org.onosproject.openflow.controller.OpenFlowSwitchListener;
 import org.onosproject.openflow.controller.PortDescPropertyType;
 import org.onosproject.openflow.controller.RoleState;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.projectfloodlight.openflow.protocol.OFCalientPortDescProp;
 import org.projectfloodlight.openflow.protocol.OFCalientPortDescPropOptical;
 import org.projectfloodlight.openflow.protocol.OFCalientPortDescStatsEntry;
@@ -430,19 +429,19 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
     private static final long C = 299792458; // speed of light in m/s
     public static final String SCHEME = "of";
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DeviceProviderRegistry providerRegistry;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DeviceService deviceService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected OpenFlowController controller;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService cfgService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DriverService driverService;
 
     private DeviceProviderService providerService;
@@ -451,14 +450,14 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
     private static final String POLL_PROP_NAME = "portStatsPollFrequency";
     private static final int POLL_INTERVAL = 5;
-    @Property(name = POLL_PROP_NAME, intValue = POLL_INTERVAL,
-    label = "Frequency (in seconds) for polling switch Port statistics")
+    //@Property(name = POLL_PROP_NAME, intValue = POLL_INTERVAL,
+    //label = "Frequency (in seconds) for polling switch Port statistics")
     private int portStatsPollFrequency = POLL_INTERVAL;
 
     private static final String PROP_FREQ = "propertyFrequency";
     private static final boolean DEFAULT_PROP_FREQ = true;
-    @Property(name = PROP_FREQ, boolValue = DEFAULT_PROP_FREQ,
-    label = "It indicates frequency must be used instead of wavelength for port tuning.")
+    //@Property(name = PROP_FREQ, boolValue = DEFAULT_PROP_FREQ,
+    //label = "It indicates frequency must be used instead of wavelength for port tuning.")
     private static boolean propFreq = DEFAULT_PROP_FREQ;
 
     private final Timer timer = new Timer("onos-openflow-portstats-collector");

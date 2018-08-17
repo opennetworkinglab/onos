@@ -18,10 +18,6 @@ package org.onosproject.store.trivial;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
@@ -39,6 +35,9 @@ import org.onosproject.net.host.HostStore;
 import org.onosproject.net.host.HostStoreDelegate;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.AbstractStore;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
 import org.slf4j.Logger;
 
 import java.util.HashSet;
@@ -58,8 +57,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Manages inventory of end-station hosts using trivial in-memory
  * implementation.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = HostStore.class)
 public class SimpleHostStore
         extends AbstractStore<HostEvent, HostStoreDelegate>
         implements HostStore {

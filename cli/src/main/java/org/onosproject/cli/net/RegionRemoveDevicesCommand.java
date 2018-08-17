@@ -15,8 +15,9 @@
  */
 package org.onosproject.cli.net;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.region.RegionAdminService;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
 /**
  * Remove a set of devices from existing region.
  */
+@Service
 @Command(scope = "onos", name = "region-remove-devices",
         description = "Removes a set of devices from the region.")
 public class RegionRemoveDevicesCommand extends AbstractShellCommand {
@@ -41,7 +43,7 @@ public class RegionRemoveDevicesCommand extends AbstractShellCommand {
     List<String> devIds = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         RegionAdminService service = get(RegionAdminService.class);
         RegionId regionId = RegionId.regionId(id);
 

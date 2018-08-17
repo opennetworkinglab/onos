@@ -17,12 +17,6 @@
 package org.onosproject.ui.impl.topo;
 
 import com.google.common.collect.ImmutableSet;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigRegistry;
@@ -32,6 +26,11 @@ import org.onosproject.ui.UiTopoLayoutService;
 import org.onosproject.ui.model.topo.UiRegion;
 import org.onosproject.ui.model.topo.UiTopoLayout;
 import org.onosproject.ui.model.topo.UiTopoLayoutId;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,8 +49,7 @@ import static org.onosproject.ui.model.topo.UiTopoLayoutId.DEFAULT_ID;
  * Manages the user interface topology layouts.
  * Note that these layouts are persisted and distributed across the cluster.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = UiTopoLayoutService.class)
 public class UiTopoLayoutManager implements UiTopoLayoutService {
 
     private static final String ID_NULL = "Layout ID cannot be null";
@@ -62,7 +60,7 @@ public class UiTopoLayoutManager implements UiTopoLayoutService {
     private final InternalConfigListener cfgListener = new InternalConfigListener();
     private final Map<UiTopoLayoutId, UiTopoLayout> layoutMap = new HashMap<>();
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected NetworkConfigRegistry cfgService;
 
 

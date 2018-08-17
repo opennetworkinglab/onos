@@ -16,11 +16,10 @@
 package org.onosproject.store.trivial;
 
 import com.google.common.collect.ImmutableSet;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Service;
-import org.onosproject.core.ApplicationId;
 import org.onosproject.app.ApplicationIdStore;
+import org.onosproject.core.ApplicationId;
 import org.onosproject.core.DefaultApplicationId;
+import org.osgi.service.component.annotations.Component;
 
 import java.util.Map;
 import java.util.Set;
@@ -31,8 +30,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Simple implementation of the application ID registry using in-memory
  * structures.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = ApplicationIdStore.class)
 public class SimpleApplicationIdStore implements ApplicationIdStore {
 
     private static final AtomicInteger ID_DISPENSER = new AtomicInteger(1);

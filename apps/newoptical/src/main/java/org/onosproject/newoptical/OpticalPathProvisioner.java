@@ -18,14 +18,12 @@ package org.onosproject.newoptical;
 import com.google.common.annotations.Beta;
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.onlab.graph.DefaultEdgeWeigher;
 import org.onlab.graph.ScalarWeight;
 import org.onlab.graph.Weight;
@@ -114,8 +112,7 @@ import static org.onosproject.net.optical.device.OpticalDeviceServiceView.optica
  * Main component to configure optical connectivity.
  */
 @Beta
-@Service
-@Component(immediate = true)
+@Component(immediate = true, service = OpticalPathService.class)
 public class OpticalPathProvisioner
         extends AbstractListenerManager<OpticalPathEvent, OpticalPathListener>
         implements OpticalPathService {
@@ -132,40 +129,40 @@ public class OpticalPathProvisioner
     private static final String CONNECTIVITY_MAP_NAME = "newoptical-connectivity";
     private static final String CROSSCONNECTLINK_SET_NAME = "newoptical-crossconnectlink";
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected IntentService intentService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected TopologyService topologyService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected LinkService linkService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected MastershipService mastershipService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ClusterService clusterService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DeviceService deviceService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected StorageService storageService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected NetworkConfigService networkConfigService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ResourceService resourceService;
 
     private static final String MAX_PATHS = "maxPaths";
     private static final int DEFAULT_MAX_PATHS = 10;
-    @Property(name = MAX_PATHS, intValue = DEFAULT_MAX_PATHS,
-            label = "Maximum number of paths to consider for path provisioning")
+    //@Property(name = MAX_PATHS, intValue = DEFAULT_MAX_PATHS,
+    //        label = "Maximum number of paths to consider for path provisioning")
     private int maxPaths = DEFAULT_MAX_PATHS;
 
     private ApplicationId appId;

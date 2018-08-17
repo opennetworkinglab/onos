@@ -20,13 +20,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.util.concurrent.Uninterruptibles;
-
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.apache.karaf.features.Feature;
 import org.apache.karaf.features.FeaturesService;
 import org.onosproject.app.ApplicationAdminService;
@@ -41,6 +34,11 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.security.Permission;
 import org.onosproject.security.SecurityUtil;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.io.InputStream;
@@ -61,8 +59,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Implementation of the application management service.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = {ApplicationService.class, ApplicationAdminService.class})
 public class ApplicationManager
         extends AbstractListenerManager<ApplicationEvent, ApplicationListener>
         implements ApplicationService, ApplicationAdminService {
@@ -74,10 +71,10 @@ public class ApplicationManager
 
     private final ApplicationStoreDelegate delegate = new InternalStoreDelegate();
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ApplicationStore store;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected FeaturesService featuresService;
 
     // Application supplied hooks for pre-activation processing.

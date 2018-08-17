@@ -16,18 +16,16 @@
 
 package org.onosproject.drivers.p4runtime.mirror;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.net.pi.runtime.PiMulticastGroupEntry;
 import org.onosproject.net.pi.runtime.PiMulticastGroupEntryHandle;
 import org.onosproject.store.serializers.KryoNamespaces;
+import org.osgi.service.component.annotations.Component;
 
 /**
  * Distributed implementation of a P4Runtime multicast group mirror.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = P4RuntimeMulticastGroupMirror.class)
 public final class DistributedP4RuntimeMulticastGroupMirror
         extends AbstractDistributedP4RuntimeMirror
                         <PiMulticastGroupEntryHandle, PiMulticastGroupEntry>

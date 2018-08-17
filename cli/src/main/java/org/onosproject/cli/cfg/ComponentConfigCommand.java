@@ -18,9 +18,10 @@ package org.onosproject.cli.cfg;
 import java.util.Optional;
 import java.util.Set;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.apache.karaf.shell.api.action.Option;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cfg.ConfigProperty;
 import org.onosproject.cli.AbstractShellCommand;
@@ -35,6 +36,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 /**
  * Manages component configuration.
  */
+@Service
 @Command(scope = "onos", name = "cfg",
         description = "Manages component configuration")
 public class ComponentConfigCommand extends AbstractShellCommand {
@@ -71,7 +73,7 @@ public class ComponentConfigCommand extends AbstractShellCommand {
     ComponentConfigService service;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         service = get(ComponentConfigService.class);
         try {
             if (isNullOrEmpty(command)) {

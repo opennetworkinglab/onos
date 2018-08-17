@@ -15,35 +15,33 @@
  */
 package org.onosproject.store.atomix.cluster.messaging.impl;
 
+import io.atomix.utils.net.Address;
+import org.onlab.packet.IpAddress;
+import org.onosproject.store.atomix.impl.AtomixManager;
+import org.onosproject.store.cluster.messaging.Endpoint;
+import org.onosproject.store.cluster.messaging.MessagingService;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
-import io.atomix.utils.net.Address;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
-import org.onlab.packet.IpAddress;
-import org.onosproject.store.cluster.messaging.Endpoint;
-import org.onosproject.store.cluster.messaging.MessagingService;
-import org.onosproject.store.atomix.impl.AtomixManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * Atomix messaging manager.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = MessagingService.class)
 public class AtomixMessagingManager implements MessagingService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected AtomixManager atomixManager;
 
     private io.atomix.cluster.messaging.MessagingService messagingService;

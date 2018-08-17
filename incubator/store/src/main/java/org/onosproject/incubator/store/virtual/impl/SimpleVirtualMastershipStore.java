@@ -19,12 +19,6 @@ package org.onosproject.incubator.store.virtual.impl;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.ClusterEventListener;
 import org.onosproject.cluster.ClusterService;
@@ -43,6 +37,11 @@ import org.onosproject.mastership.MastershipStoreDelegate;
 import org.onosproject.mastership.MastershipTerm;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.time.Instant;
@@ -66,8 +65,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Implementation of the virtual network mastership store to manage inventory of
  * mastership using trivial in-memory implementation.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = VirtualNetworkMastershipStore.class)
 public class SimpleVirtualMastershipStore
         extends AbstractVirtualStore<MastershipEvent, MastershipStoreDelegate>
         implements VirtualNetworkMastershipStore {
@@ -77,10 +75,10 @@ public class SimpleVirtualMastershipStore
     private static final int NOTHING = 0;
     private static final int INIT = 1;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ClusterService clusterService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected VersionService versionService;
 
     //devices mapped to their masters, to emulate multiple nodes

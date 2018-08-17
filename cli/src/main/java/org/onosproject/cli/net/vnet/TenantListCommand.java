@@ -16,7 +16,8 @@
 
 package org.onosproject.cli.net.vnet;
 
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.virtual.TenantId;
 import org.onosproject.incubator.net.virtual.VirtualNetworkAdminService;
@@ -29,6 +30,7 @@ import java.util.List;
 /**
  * Lists all tenants.
  */
+@Service
 @Command(scope = "onos", name = "vnet-tenants",
         description = "Lists all virtual network tenants.")
 public class TenantListCommand extends AbstractShellCommand {
@@ -36,7 +38,7 @@ public class TenantListCommand extends AbstractShellCommand {
     private static final String FMT_TENANT = "tenantId=%s";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         VirtualNetworkAdminService service = get(VirtualNetworkAdminService.class);
         List<TenantId> tenants = new ArrayList<>();
         tenants.addAll(service.getTenantIds());

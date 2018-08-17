@@ -16,7 +16,8 @@
 
 package org.onosproject.cli.net;
 
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.utils.Comparators;
 import org.onosproject.net.key.DeviceKey;
@@ -30,6 +31,7 @@ import static com.google.common.collect.Lists.newArrayList;
 /**
  * Lists all device keys.
  */
+@Service
 @Command(scope = "onos", name = "device-keys",
         description = "Lists all device keys")
 
@@ -40,7 +42,7 @@ public class DeviceKeyListCommand extends AbstractShellCommand {
             "identifier=%s, type=%s, username=%s, password=%s";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         DeviceKeyService service = get(DeviceKeyService.class);
         for (DeviceKey deviceKey : getSortedDeviceKeys(service)) {
             printDeviceKey(deviceKey);

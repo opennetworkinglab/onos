@@ -17,14 +17,6 @@ package org.onosproject.openstacktelemetry.impl;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
@@ -71,6 +63,12 @@ import org.onosproject.openstacktelemetry.api.StatsFlowRule;
 import org.onosproject.openstacktelemetry.api.StatsFlowRuleAdminService;
 import org.onosproject.openstacktelemetry.api.StatsInfo;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -115,8 +113,7 @@ import static org.onosproject.openstacktelemetry.util.OpenstackTelemetryUtil.get
 /**
  * Flow rule manager for network statistics of a VM.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = StatsFlowRuleAdminService.class)
 public class StatsFlowRuleManager implements StatsFlowRuleAdminService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -155,59 +152,59 @@ public class StatsFlowRuleManager implements StatsFlowRuleAdminService {
 
     private static final boolean RECOVER_FROM_FAILURE = true;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected FlowRuleService flowRuleService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected HostService hostService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DeviceService deviceService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DriverService driverService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService componentConfigService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected MastershipService mastershipService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected OpenstackNetworkService osNetworkService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected InstancePortService instPortService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected OpenstackNodeService osNodeService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected OpenstackTelemetryService telemetryService;
 
-    @Property(name = REVERSE_PATH_STATS, boolValue = DEFAULT_REVERSE_PATH_STATS,
-            label = "A flag which indicates whether to install the rules for " +
-                    "collecting the flow-based stats for reversed path.")
+    //@Property(name = REVERSE_PATH_STATS, boolValue = DEFAULT_REVERSE_PATH_STATS,
+    //        label = "A flag which indicates whether to install the rules for " +
+    //                "collecting the flow-based stats for reversed path.")
     private boolean reversePathStats = DEFAULT_REVERSE_PATH_STATS;
 
-    @Property(name = EGRESS_STATS, boolValue = DEFAULT_EGRESS_STATS,
-            label = "A flag which indicates whether to install the rules for " +
-                    "collecting the flow-based stats for egress port.")
+    //@Property(name = EGRESS_STATS, boolValue = DEFAULT_EGRESS_STATS,
+    //        label = "A flag which indicates whether to install the rules for " +
+    //                "collecting the flow-based stats for egress port.")
     private boolean egressStats = DEFAULT_EGRESS_STATS;
 
-    @Property(name = PORT_STATS, boolValue = DEFAULT_PORT_STATS,
-            label = "A flag which indicates whether to collect port TX & RX stats.")
+    //@Property(name = PORT_STATS, boolValue = DEFAULT_PORT_STATS,
+    //        label = "A flag which indicates whether to collect port TX & RX stats.")
     private boolean portStats = DEFAULT_PORT_STATS;
 
-    @Property(name = MONITOR_OVERLAY, boolValue = DEFAULT_MONITOR_OVERLAY,
-            label = "A flag which indicates whether to monitor overlay network port stats.")
+    //@Property(name = MONITOR_OVERLAY, boolValue = DEFAULT_MONITOR_OVERLAY,
+    //        label = "A flag which indicates whether to monitor overlay network port stats.")
     private boolean monitorOverlay = DEFAULT_MONITOR_OVERLAY;
 
-    @Property(name = MONITOR_UNDERLAY, boolValue = DEFAULT_MONITOR_UNDERLAY,
-            label = "A flag which indicates whether to monitor underlay network port stats.")
+    //@Property(name = MONITOR_UNDERLAY, boolValue = DEFAULT_MONITOR_UNDERLAY,
+    //        label = "A flag which indicates whether to monitor underlay network port stats.")
     private boolean monitorUnderlay = DEFAULT_MONITOR_UNDERLAY;
 
     private ApplicationId telemetryAppId;

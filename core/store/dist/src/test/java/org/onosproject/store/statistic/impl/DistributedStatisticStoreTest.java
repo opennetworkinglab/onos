@@ -16,8 +16,8 @@
 
 package org.onosproject.store.statistic.impl;
 
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 
 import static org.hamcrest.Matchers.empty;
 
@@ -67,7 +67,7 @@ import static org.onosproject.net.NetTestTools.did;
 
 
 public class DistributedStatisticStoreTest {
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected MastershipService mastershipService;
 
     DistributedStatisticStore statStore;

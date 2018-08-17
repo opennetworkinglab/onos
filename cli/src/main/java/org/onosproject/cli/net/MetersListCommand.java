@@ -16,8 +16,9 @@
 package org.onosproject.cli.net;
 
 import com.google.common.collect.Collections2;
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.meter.Meter;
@@ -31,6 +32,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 /**
  * Lists all meters.
  */
+@Service
 @Command(scope = "onos", name = "meters",
         description = "Shows meters")
 public class MetersListCommand extends AbstractShellCommand {
@@ -46,7 +48,7 @@ public class MetersListCommand extends AbstractShellCommand {
     MeterId meterId = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
 
         if (!isNullOrEmpty(meterstr)) {
             meterId = MeterId.meterId(Long.parseLong(meterstr));

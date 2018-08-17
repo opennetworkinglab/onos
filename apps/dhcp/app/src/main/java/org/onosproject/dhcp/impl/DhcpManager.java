@@ -17,15 +17,6 @@ package org.onosproject.dhcp.impl;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
-
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.ARP;
 import org.onlab.packet.DHCP;
 import org.onlab.packet.Ethernet;
@@ -69,6 +60,12 @@ import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,7 +74,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Dictionary;
 import java.util.HashSet;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -97,8 +93,7 @@ import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FAC
 /**
  * Skeletal ONOS DHCP Server application.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = DhcpService.class)
 public class DhcpManager implements DhcpService {
 
     private static final ProviderId PID = new ProviderId("of", "org.onosproject.dhcp", true);
@@ -119,28 +114,28 @@ public class DhcpManager implements DhcpService {
                 }
             }
     );
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected NetworkConfigRegistry cfgService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected PacketService packetService;
 
     private DhcpPacketProcessor processor = new DhcpPacketProcessor();
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DhcpStore dhcpStore;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected HostProviderRegistry hostProviderRegistry;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService componentConfigService;
 
-    @Property(name = ALLOW_HOST_DISCOVERY, boolValue = DEFAULT_ALLOW_HOST_DISCOVERY,
-            label = "Allow host discovery from DHCP request")
+    //@Property(name = ALLOW_HOST_DISCOVERY, boolValue = DEFAULT_ALLOW_HOST_DISCOVERY,
+    //        label = "Allow host discovery from DHCP request")
     private boolean allowHostDiscovery = DEFAULT_ALLOW_HOST_DISCOVERY;
 
     protected HostProviderService hostProviderService;

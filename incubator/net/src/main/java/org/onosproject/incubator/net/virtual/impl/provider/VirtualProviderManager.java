@@ -17,14 +17,13 @@
 package org.onosproject.incubator.net.virtual.impl.provider;
 
 import com.google.common.collect.ImmutableSet;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.provider.VirtualProvider;
 import org.onosproject.incubator.net.virtual.provider.VirtualProviderRegistryService;
 import org.onosproject.incubator.net.virtual.provider.VirtualProviderService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.provider.ProviderId;
+import org.osgi.service.component.annotations.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,10 +39,8 @@ import static com.google.common.base.Preconditions.checkState;
 /**
  * Implementation of the virtual provider registry and providerService registry service.
  */
-@Component(immediate = true)
-@Service
-public class VirtualProviderManager
-        implements VirtualProviderRegistryService {
+@Component(service = VirtualProviderRegistryService.class)
+public class VirtualProviderManager implements VirtualProviderRegistryService {
 
     private final Map<ProviderId, VirtualProvider> providers = new HashMap<>();
     private final Map<ProviderId, VirtualProviderService> servicesWithProvider = new HashMap<>();

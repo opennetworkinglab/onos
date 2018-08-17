@@ -18,14 +18,14 @@ package org.onosproject.net.driver.impl;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
+import org.onosproject.net.driver.DriverRegistry;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.ComponentPropertyType;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.component.ComponentService;
 import org.onosproject.event.EventDeliveryService;
@@ -39,6 +39,7 @@ import org.onosproject.net.driver.DriverEvent;
 import org.onosproject.net.driver.DriverListener;
 import org.onosproject.net.driver.DriverProvider;
 import org.osgi.service.component.ComponentContext;
+//import org.osgi.service.metatype.annotations.AttributeDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,8 +61,7 @@ import static org.onosproject.security.AppPermission.Type.DRIVER_READ;
 /**
  * Manages inventory of device drivers.
  */
-@Service
-@Component(immediate = true, enabled = true)
+@Component(immediate = true, enabled = true, service = {DriverAdminService.class, DriverRegistry.class})
 public class DriverRegistryManager extends DefaultDriverProvider implements DriverAdminService {
 
     private static final String DRIVER_COMPONENT = "org.onosproject.net.driver.impl.DriverManager";
@@ -73,22 +73,26 @@ public class DriverRegistryManager extends DefaultDriverProvider implements Driv
     private static final String NO_DRIVER = "Driver not found";
     private static final String DEFAULT = "default";
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DeviceService deviceService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService componentConfigService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentService componenService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected EventDeliveryService eventDispatcher;
 
     private static final String DEFAULT_REQUIRED_DRIVERS = "default";
-    @Property(name = "requiredDrivers", value = DEFAULT_REQUIRED_DRIVERS,
-            label = "Comma-separated list of drivers that must be registered before starting driver subsystem")
-    private String requiredDrivers = DEFAULT_REQUIRED_DRIVERS;
+    private static String requiredDrivers = DEFAULT_REQUIRED_DRIVERS;
+    //@AttributeDefinition(name = "requiredDrivers",
+    //        defaultValue = DEFAULT_REQUIRED_DRIVERS + "AAA",
+    //        description = "Comma-separated list of drivers that must be registered before starting driver subsystem")
+    private String requiredDrivers() {
+        return requiredDrivers;
+    }
     private Set<String> requiredDriverSet;
 
     private Set<DriverProvider> providers = Sets.newConcurrentHashSet();

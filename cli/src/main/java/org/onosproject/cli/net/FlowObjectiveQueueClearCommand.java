@@ -15,8 +15,9 @@
  */
 package org.onosproject.cli.net;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.osgi.ServiceNotFoundException;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
@@ -24,6 +25,7 @@ import org.onosproject.net.flowobjective.FlowObjectiveService;
 /**
  * Clear flow objective that are waiting for the completion of previous objective with the same key.
  */
+@Service
 @Command(scope = "onos", name = "obj-clear-queues",
         description = "Force empty flow objective queues and invalidate flow objective caches")
 public class FlowObjectiveQueueClearCommand extends AbstractShellCommand {
@@ -33,7 +35,7 @@ public class FlowObjectiveQueueClearCommand extends AbstractShellCommand {
     private String please = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         if (please == null || !please.equals(CONFIRM_PHRASE)) {
             print("WARNING: System may enter an unpredictable state if the flow obj queues are force emptied." +
                     "Enter confirmation phrase to continue.");

@@ -16,12 +16,6 @@
 package org.onosproject.openstacknetworking.impl;
 
 import com.google.common.base.Strings;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.CoreService;
 import org.onosproject.event.ListenerRegistry;
 import org.onosproject.openstacknetworking.api.Constants;
@@ -34,6 +28,11 @@ import org.onosproject.openstacknetworking.api.OpenstackSecurityGroupStoreDelega
 import org.openstack4j.model.network.SecurityGroup;
 import org.openstack4j.model.network.SecurityGroupRule;
 import org.openstack4j.openstack.networking.domain.NeutronSecurityGroup;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.List;
@@ -48,8 +47,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Provides implementation of administering and interfacing OpenStack security
  * groups.
  */
-@Service
-@Component(immediate = true)
+@Component(immediate = true, service = { OpenstackSecurityGroupAdminService.class, OpenstackSecurityGroupService.class })
 public class OpenstackSecurityGroupManager
         extends ListenerRegistry<OpenstackSecurityGroupEvent, OpenstackSecurityGroupListener>
         implements OpenstackSecurityGroupAdminService, OpenstackSecurityGroupService {
@@ -71,10 +69,10 @@ public class OpenstackSecurityGroupManager
 
     private boolean useSecurityGroup = false;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected OpenstackSecurityGroupStore osSecurityGroupStore;
 
     private final OpenstackSecurityGroupStoreDelegate delegate = new InternalSecurityGroupStoreDelegate();

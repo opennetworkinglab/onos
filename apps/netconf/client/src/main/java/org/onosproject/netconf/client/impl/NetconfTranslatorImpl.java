@@ -17,12 +17,6 @@
 package org.onosproject.netconf.client.impl;
 
 import com.google.common.annotations.Beta;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.netconf.NetconfController;
@@ -31,6 +25,7 @@ import org.onosproject.netconf.NetconfException;
 import org.onosproject.netconf.NetconfSession;
 import org.onosproject.netconf.client.NetconfTranslator;
 import org.onosproject.yang.model.DataNode;
+import org.onosproject.yang.model.DefaultResourceData;
 import org.onosproject.yang.model.InnerNode;
 import org.onosproject.yang.model.KeyLeaf;
 import org.onosproject.yang.model.LeafListKey;
@@ -47,13 +42,17 @@ import org.onosproject.yang.runtime.DefaultAnnotatedNodeInfo;
 import org.onosproject.yang.runtime.DefaultAnnotation;
 import org.onosproject.yang.runtime.DefaultCompositeData;
 import org.onosproject.yang.runtime.DefaultCompositeStream;
-import org.onosproject.yang.model.DefaultResourceData;
 import org.onosproject.yang.runtime.DefaultRuntimeContext;
 import org.onosproject.yang.runtime.DefaultYangSerializerContext;
+import org.onosproject.yang.runtime.SerializerHelper;
 import org.onosproject.yang.runtime.YangRuntimeService;
 import org.onosproject.yang.runtime.YangSerializerContext;
-import org.onosproject.yang.runtime.SerializerHelper;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -89,8 +88,7 @@ import static org.onosproject.yang.runtime.SerializerHelper.addDataNode;
  * will be no session available.
  */
 @Beta
-@Service
-@Component(immediate = true)
+@Component(immediate = true, service = NetconfTranslator.class)
 public class NetconfTranslatorImpl implements NetconfTranslator {
 
     private static final Logger log = LoggerFactory
@@ -120,13 +118,13 @@ public class NetconfTranslatorImpl implements NetconfTranslator {
     private static final String XMLNS_XC_SPECIFIER = "xmlns:xc";
     private static final String XMLNS_SPECIFIER = "xmlns";
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected NetconfController netconfController;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected YangRuntimeService yangRuntimeService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected SchemaContextProvider schemaContextProvider;
 
     @Activate

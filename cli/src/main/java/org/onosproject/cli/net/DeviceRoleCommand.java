@@ -15,8 +15,9 @@
  */
 package org.onosproject.cli.net;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.mastership.MastershipAdminService;
@@ -29,6 +30,7 @@ import static org.onosproject.net.DeviceId.deviceId;
 /**
  * Sets role of the controller node for the given infrastructure device.
  */
+@Service
 @Command(scope = "onos", name = "device-role",
          description = "Sets role of the controller node for the given infrastructure device")
 public class DeviceRoleCommand extends AbstractShellCommand {
@@ -46,7 +48,7 @@ public class DeviceRoleCommand extends AbstractShellCommand {
     String role = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         MastershipAdminService service = get(MastershipAdminService.class);
         MastershipRole mastershipRole = MastershipRole.valueOf(role.toUpperCase());
         Futures.getUnchecked(service.setRole(new NodeId(node), deviceId(uri), mastershipRole));

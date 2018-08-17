@@ -16,9 +16,10 @@
 
 package org.onosproject.cli.net.vnet;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.apache.karaf.shell.api.action.Option;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -44,6 +45,7 @@ import static org.onosproject.net.intent.IntentState.WITHDRAWN;
 /**
  * Removes a virtual network intent.
  */
+@Service
 @Command(scope = "onos", name = "remove-vnet-intent",
         description = "Removes the virtual network intent")
 public class VirtualNetworkIntentRemoveCommand extends AbstractShellCommand {
@@ -75,7 +77,7 @@ public class VirtualNetworkIntentRemoveCommand extends AbstractShellCommand {
     private static final EnumSet<IntentState> CAN_PURGE = EnumSet.of(WITHDRAWN, FAILED);
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         VirtualNetworkService service = get(VirtualNetworkService.class);
         IntentService intentService = service.get(NetworkId.networkId(networkId), IntentService.class);
         CoreService coreService = get(CoreService.class);

@@ -19,11 +19,11 @@ package org.onosproject.incubator.protobuf.services.nb;
 import com.google.common.annotations.Beta;
 import io.grpc.BindableService;
 import io.grpc.stub.StreamObserver;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.onosproject.grpc.nb.net.region.RegionServiceGrpc.RegionServiceImplBase;
 import org.onosproject.grpc.nb.net.region.RegionServiceNb.getRegionDevicesReply;
 import org.onosproject.grpc.nb.net.region.RegionServiceNb.getRegionDevicesRequest;
@@ -54,10 +54,10 @@ public class GrpcNbRegionService {
 
     private final Logger log = getLogger(getClass());
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected GrpcServiceRegistry registry;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected RegionService regionService;
 
     private RegionServiceNbServerInternal innerClassInstance = null;

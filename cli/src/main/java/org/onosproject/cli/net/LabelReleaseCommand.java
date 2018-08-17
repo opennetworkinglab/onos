@@ -15,8 +15,9 @@
  */
 package org.onosproject.cli.net;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
 import org.onosproject.incubator.net.resource.label.DefaultLabelResource;
@@ -27,6 +28,7 @@ import org.onosproject.incubator.net.resource.label.LabelResourceService;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 
+@Service
 @Command(scope = "onos", name = "label-release",
 description = "Releases label ids to label resource pool by a specific device id")
 public class LabelReleaseCommand extends AbstractShellCommand {
@@ -40,7 +42,7 @@ public class LabelReleaseCommand extends AbstractShellCommand {
     String releaseLabelIds = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         LabelResourceService lrs = get(LabelResourceService.class);
         Multimap<DeviceId, LabelResource> map = ArrayListMultimap
                 .create();

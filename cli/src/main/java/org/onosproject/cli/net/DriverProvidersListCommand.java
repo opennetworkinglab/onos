@@ -15,7 +15,8 @@
  */
 package org.onosproject.cli.net;
 
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.driver.Driver;
 import org.onosproject.net.driver.DriverAdminService;
@@ -26,6 +27,7 @@ import java.util.stream.Collectors;
 /**
  * Lists device drivers.
  */
+@Service
 @Command(scope = "onos", name = "driver-providers",
         description = "Lists device driver providers")
 public class DriverProvidersListCommand extends AbstractShellCommand {
@@ -33,7 +35,7 @@ public class DriverProvidersListCommand extends AbstractShellCommand {
     private static final String FMT = "provider=%s, drivers=%s";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         DriverAdminService service = get(DriverAdminService.class);
         service.getProviders().forEach(this::printDriverProvider);
     }

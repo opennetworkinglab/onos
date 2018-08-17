@@ -32,12 +32,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.Tools;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.store.serializers.KryoNamespaces;
@@ -66,6 +60,11 @@ import org.onosproject.ui.impl.topo.Traffic2Overlay;
 import org.onosproject.ui.impl.topo.model.UiSharedTopologyModel;
 import org.onosproject.ui.lion.LionBundle;
 import org.onosproject.ui.lion.LionUtils;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,10 +81,10 @@ import java.util.concurrent.Executors;
 import static com.google.common.collect.ImmutableList.of;
 import static java.util.stream.Collectors.toSet;
 import static org.onosproject.security.AppGuard.checkPermission;
-import static org.onosproject.security.AppPermission.Type.UI_READ;
-import static org.onosproject.security.AppPermission.Type.UI_WRITE;
 import static org.onosproject.security.AppPermission.Type.GLYPH_READ;
 import static org.onosproject.security.AppPermission.Type.GLYPH_WRITE;
+import static org.onosproject.security.AppPermission.Type.UI_READ;
+import static org.onosproject.security.AppPermission.Type.UI_WRITE;
 import static org.onosproject.ui.UiView.Category.NETWORK;
 import static org.onosproject.ui.UiView.Category.PLATFORM;
 import static org.onosproject.ui.impl.lion.BundleStitcher.generateBundles;
@@ -93,8 +92,8 @@ import static org.onosproject.ui.impl.lion.BundleStitcher.generateBundles;
 /**
  * Manages the user interface extensions.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = { UiExtensionService.class, UiPreferencesService.class, SpriteService.class,
+        UiTokenService.class })
 public class UiExtensionManager
         implements UiExtensionService, UiPreferencesService, SpriteService,
         UiTokenService {
@@ -148,13 +147,13 @@ public class UiExtensionManager
     // Core views & core extension
     private final UiExtension core = createCoreExtension();
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected MastershipService mastershipService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected StorageService storageService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private UiSharedTopologyModel sharedModel;
 
     // User preferences

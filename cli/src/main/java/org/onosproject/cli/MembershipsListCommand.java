@@ -20,7 +20,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cluster.ClusterAdminService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.Member;
@@ -35,12 +36,13 @@ import static org.onosproject.utils.Comparators.MEMBERSHIP_COMPARATOR;
 /**
  * Command to list the memberships in the system.
  */
+@Service
 @Command(scope = "onos", name = "memberships",
         description = "Lists information about memberships in the system")
 public class MembershipsListCommand extends AbstractShellCommand {
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         MembershipService service = get(MembershipService.class);
         ClusterAdminService clusterService = get(ClusterAdminService.class);
 

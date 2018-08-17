@@ -19,10 +19,9 @@ import java.io.ByteArrayInputStream;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Service;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
 import org.onosproject.drivers.microsemi.yang.IetfSystemNetconfService;
 import org.onosproject.netconf.DatastoreId;
 import org.onosproject.netconf.NetconfException;
@@ -41,8 +40,7 @@ import org.onosproject.yang.runtime.DefaultCompositeStream;
 /**
  * Implementation of the IetfService YANG model service.
  */
-@Component(immediate = true, inherit = true)
-@Service
+@Component(immediate = true, service = AbstractYangServiceImpl.class)
 public class IetfSystemManager extends AbstractYangServiceImpl
     implements IetfSystemNetconfService {
 

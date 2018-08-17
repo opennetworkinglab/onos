@@ -15,11 +15,13 @@
  */
 package org.onosproject.cli.net;
 
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.resource.label.LabelResourcePool;
 import org.onosproject.incubator.net.resource.label.LabelResourceService;
 
+@Service
 @Command(scope = "onos", name = "global-label-pool",
       description = "Gets global label resource pool information.")
 public class GlobalLabelCommand extends AbstractShellCommand {
@@ -28,7 +30,7 @@ public class GlobalLabelCommand extends AbstractShellCommand {
             + "releaseLabelIds=%s";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         LabelResourceService lrs = get(LabelResourceService.class);
         LabelResourcePool pool = lrs.getGlobalLabelResourcePool();
         if (pool != null) {

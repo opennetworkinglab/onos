@@ -15,14 +15,6 @@
  */
 package org.onosproject.openstacktelemetry.impl;
 
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.openstacktelemetry.api.InfluxDbTelemetryAdminService;
@@ -30,6 +22,12 @@ import org.onosproject.openstacktelemetry.api.InfluxDbTelemetryConfigService;
 import org.onosproject.openstacktelemetry.api.config.TelemetryConfig;
 import org.onosproject.openstacktelemetry.config.DefaultInfluxDbTelemetryConfig;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,8 +47,7 @@ import static org.onosproject.openstacktelemetry.util.OpenstackTelemetryUtil.ini
 /**
  * InfluxDB server configuration manager for publishing openstack telemetry.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = InfluxDbTelemetryConfigService.class)
 public class InfluxDbTelemetryConfigManager implements InfluxDbTelemetryConfigService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -64,42 +61,42 @@ public class InfluxDbTelemetryConfigManager implements InfluxDbTelemetryConfigSe
     private static final String MEASUREMENT = "measurement";
     private static final String ENABLE_BATCH = "enableBatch";
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService componentConfigService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected InfluxDbTelemetryAdminService influxDbTelemetryAdminService;
 
-    @Property(name = ADDRESS, value = DEFAULT_INFLUXDB_SERVER_IP,
-            label = "Default IP address to establish initial connection to InfluxDB server")
+    //@Property(name = ADDRESS, value = DEFAULT_INFLUXDB_SERVER_IP,
+    //        label = "Default IP address to establish initial connection to InfluxDB server")
     protected String address = DEFAULT_INFLUXDB_SERVER_IP;
 
-    @Property(name = PORT, intValue = DEFAULT_INFLUXDB_SERVER_PORT,
-            label = "Default port number to establish initial connection to InfluxDB server")
+    //@Property(name = PORT, intValue = DEFAULT_INFLUXDB_SERVER_PORT,
+    //        label = "Default port number to establish initial connection to InfluxDB server")
     protected Integer port = DEFAULT_INFLUXDB_SERVER_PORT;
 
-    @Property(name = USERNAME, value = DEFAULT_INFLUXDB_USERNAME,
-            label = "Username used for authenticating against InfluxDB server")
+    //@Property(name = USERNAME, value = DEFAULT_INFLUXDB_USERNAME,
+    //        label = "Username used for authenticating against InfluxDB server")
     protected String username = DEFAULT_INFLUXDB_USERNAME;
 
-    @Property(name = PASSWORD, value = DEFAULT_INFLUXDB_PASSWORD,
-            label = "Password used for authenticating against InfluxDB server")
+    //@Property(name = PASSWORD, value = DEFAULT_INFLUXDB_PASSWORD,
+    //        label = "Password used for authenticating against InfluxDB server")
     protected String password = DEFAULT_INFLUXDB_PASSWORD;
 
-    @Property(name = DATABASE, value = DEFAULT_INFLUXDB_DATABASE,
-            label = "Database of InfluxDB server")
+    //@Property(name = DATABASE, value = DEFAULT_INFLUXDB_DATABASE,
+    //        label = "Database of InfluxDB server")
     protected String database = DEFAULT_INFLUXDB_DATABASE;
 
-    @Property(name = MEASUREMENT, value = DEFAULT_INFLUXDB_MEASUREMENT,
-            label = "Measurement of InfluxDB server")
+    //@Property(name = MEASUREMENT, value = DEFAULT_INFLUXDB_MEASUREMENT,
+    //        label = "Measurement of InfluxDB server")
     protected String measurement = DEFAULT_INFLUXDB_MEASUREMENT;
 
-    @Property(name = ENABLE_BATCH, boolValue = DEFAULT_INFLUXDB_ENABLE_BATCH,
-            label = "Flag value of enabling batch mode of InfluxDB server")
+    //@Property(name = ENABLE_BATCH, boolValue = DEFAULT_INFLUXDB_ENABLE_BATCH,
+    //        label = "Flag value of enabling batch mode of InfluxDB server")
     protected Boolean enableBatch = DEFAULT_INFLUXDB_ENABLE_BATCH;
 
-    @Property(name = ENABLE_SERVICE, boolValue = DEFAULT_DISABLE,
-            label = "Specify the default behavior of telemetry service")
+    //@Property(name = ENABLE_SERVICE, boolValue = DEFAULT_DISABLE,
+    //        label = "Specify the default behavior of telemetry service")
     protected Boolean enableService = DEFAULT_DISABLE;
 
     @Activate

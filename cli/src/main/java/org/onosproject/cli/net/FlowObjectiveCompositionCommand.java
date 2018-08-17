@@ -15,14 +15,16 @@
  */
 package org.onosproject.cli.net;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 
 /**
  * Manages FlowObjectiveComposition policy.
  */
+@Service
 @Command(scope = "onos", name = "policy",
         description = "Manages FlowObjectiveComposition policy")
 public class FlowObjectiveCompositionCommand extends AbstractShellCommand {
@@ -37,7 +39,7 @@ public class FlowObjectiveCompositionCommand extends AbstractShellCommand {
     String[] policies = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         FlowObjectiveService service = get(FlowObjectiveService.class);
         service.initPolicy(policies[0]);
         print("Policy %s installed", policies[0]);

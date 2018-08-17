@@ -16,9 +16,8 @@
 package org.onosproject.driver.optical.flowrule;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.net.flow.FlowId;
+import org.osgi.service.component.annotations.Component;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -32,8 +31,7 @@ import java.util.Map;
  * for the cache, so do not rely on it to support fail-over in multi-instance deployments.
  * If the instance which holds the cache goes down, you *will* be in trouble.
  */
-@Component(immediate = true, enabled = true)
-@Service
+@Component(immediate = true, service = CrossConnectCache.class)
 public class DefaultCrossConnectCache implements CrossConnectCache {
     private final Map<Integer, Pair<FlowId, Integer>> cache = new HashMap<>();
 

@@ -18,8 +18,9 @@ package org.onosproject.cli.net;
 import java.util.Collection;
 import java.util.Optional;
 
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.apache.karaf.shell.api.action.Option;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.tunnel.DefaultOpticalTunnelEndPoint;
@@ -40,6 +41,7 @@ import org.onosproject.net.provider.ProviderId;
 /**
  * Supports for removing tunnels. It's used by producers.
  */
+@Service
 @Command(scope = "onos", name = "tunnel-remove", description = "Supports for removing tunnels. It's used by producers.")
 public class TunnelRemoveCommand extends AbstractShellCommand {
     @Option(name = "-s", aliases = "--src", description = "Source tunnel point."
@@ -62,7 +64,7 @@ public class TunnelRemoveCommand extends AbstractShellCommand {
     String tunnelId = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         TunnelDescription tunnel = null;
         TunnelProvider service = get(TunnelProvider.class);
         ProviderId producerName = new ProviderId("default",

@@ -49,7 +49,7 @@ public class NetconfGetCommand extends AbstractShellCommand {
     long timeoutSec = 30;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         DeviceId deviceId = DeviceId.deviceId(uri);
 
         NetconfController controller = get(NetconfController.class);

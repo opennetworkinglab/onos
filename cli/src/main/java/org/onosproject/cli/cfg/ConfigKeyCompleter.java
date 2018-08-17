@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.karaf.shell.console.completer.ArgumentCompleter.ArgumentList;
 import org.onosproject.cli.AbstractChoicesCompleter;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.config.Config;
@@ -42,17 +41,16 @@ public class ConfigKeyCompleter extends AbstractChoicesCompleter {
     @Override
     protected List<String> choices() {
         NetworkConfigRegistry service = AbstractShellCommand.get(NetworkConfigRegistry.class);
-        ArgumentList args = getArgumentList();
 
-        checkArgument(args.getCursorArgumentIndex() >= 2);
-        String subjectClassKey = args.getArguments()[args.getCursorArgumentIndex() - 2];
+        checkArgument(commandLine.getCursorArgumentIndex() >= 2);
+        String subjectClassKey = commandLine.getArguments()[commandLine.getCursorArgumentIndex() - 2];
 
         SubjectFactory<?> subjectFactory = service.getSubjectFactory(subjectClassKey);
         if (subjectFactory == null) {
             return ImmutableList.of();
         }
 
-        String subjectKey = args.getArguments()[args.getCursorArgumentIndex() - 1];
+        String subjectKey = commandLine.getArguments()[commandLine.getCursorArgumentIndex() - 1];
 
         Object subject = subjectFactory.createSubject(subjectKey);
         Set<? extends Config<Object>> configs = service.getConfigs(subject);

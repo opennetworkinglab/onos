@@ -16,10 +16,6 @@
 package org.onosproject.store.trivial;
 
 import com.google.common.collect.Sets;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Service;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.FlowEntry;
@@ -27,6 +23,9 @@ import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.statistic.StatisticStore;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
 import org.slf4j.Logger;
 
 import java.util.Collections;
@@ -43,8 +42,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Maintains statistics using RPC calls to collect stats from remote instances
  * on demand.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = StatisticStore.class)
 public class SimpleStatisticStore implements StatisticStore {
 
     private final Logger log = getLogger(getClass());

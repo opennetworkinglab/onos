@@ -15,16 +15,6 @@
  */
 package org.onosproject.cluster.impl;
 
-import java.time.Instant;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
-
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 import org.apache.karaf.system.SystemService;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.ClusterAdminService;
@@ -42,7 +32,16 @@ import org.onosproject.cluster.Node;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.core.Version;
 import org.onosproject.event.AbstractListenerManager;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
+
+import java.time.Instant;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -53,8 +52,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Implementation of the cluster service.
  */
-@Component(immediate = true)
-@Service
+@Component(immediate = true, service = {ClusterService.class, ClusterAdminService.class})
 public class ClusterManager
         extends AbstractListenerManager<ClusterEvent, ClusterEventListener>
         implements ClusterService, ClusterAdminService {
@@ -65,10 +63,10 @@ public class ClusterManager
 
     private ClusterStoreDelegate delegate = new InternalStoreDelegate();
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ClusterStore store;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected SystemService systemService;
 
     private final AtomicReference<ClusterMetadata> currentMetadata = new AtomicReference<>();

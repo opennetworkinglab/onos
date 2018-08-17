@@ -18,7 +18,8 @@ package org.onosproject.cli.net;
 import java.util.List;
 import org.onlab.osgi.ServiceNotFoundException;
 
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 
@@ -26,6 +27,7 @@ import org.onosproject.net.flowobjective.FlowObjectiveService;
  * Returns a mapping of FlowObjective next-ids to the groups that get created
  * by a device driver. These mappings are controller instance specific.
  */
+@Service
 @Command(scope = "onos", name = "obj-next-ids",
         description = "flow-objectives next-ids to group-ids mapping")
 public class FlowObjectiveNextListCommand extends AbstractShellCommand {
@@ -33,7 +35,7 @@ public class FlowObjectiveNextListCommand extends AbstractShellCommand {
     private static final String FORMAT_MAPPING = "  %s";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         try {
             FlowObjectiveService service = get(FlowObjectiveService.class);
             printNexts(service.getNextMappings());

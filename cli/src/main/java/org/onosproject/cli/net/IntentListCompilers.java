@@ -15,7 +15,8 @@
  */
 package org.onosproject.cli.net;
 
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.intent.IntentExtensionService;
 
@@ -24,12 +25,13 @@ import java.util.OptionalInt;
 /**
  * Lists the inventory of intents and their states.
  */
+@Service
 @Command(scope = "onos", name = "intent-compilers",
         description = "Lists the mapping from intent type to compiler component")
 public class IntentListCompilers extends AbstractShellCommand {
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         IntentExtensionService service = get(IntentExtensionService.class);
         OptionalInt length = service.getCompilers().keySet().stream()
                 .mapToInt(s -> s.getName().length())

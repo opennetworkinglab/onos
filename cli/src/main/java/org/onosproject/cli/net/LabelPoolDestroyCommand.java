@@ -15,12 +15,14 @@
  */
 package org.onosproject.cli.net;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
 import org.onosproject.incubator.net.resource.label.LabelResourceAdminService;
 
+@Service
 @Command(scope = "onos", name = "label-pool-destroy",
     description = "Destroys label resource pool by a specific device id")
 public class LabelPoolDestroyCommand extends AbstractShellCommand {
@@ -28,7 +30,7 @@ public class LabelPoolDestroyCommand extends AbstractShellCommand {
     String deviceId = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         LabelResourceAdminService lrs = get(LabelResourceAdminService.class);
         lrs.destroyDevicePool(DeviceId.deviceId(deviceId));
     }
