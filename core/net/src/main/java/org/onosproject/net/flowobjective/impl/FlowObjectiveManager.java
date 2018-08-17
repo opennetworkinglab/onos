@@ -265,6 +265,7 @@ public class FlowObjectiveManager implements FlowObjectiveService {
     public void next(DeviceId deviceId, NextObjective nextObjective) {
         checkPermission(FLOWRULE_WRITE);
         if (nextObjective.op() == Operation.ADD ||
+                nextObjective.op() == Operation.VERIFY ||
                 flowObjectiveStore.getNextGroup(nextObjective.id()) != null ||
                 !queueNextObjective(deviceId, nextObjective)) {
             // either group exists or we are trying to create it - let it through
