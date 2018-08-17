@@ -54,6 +54,5 @@ sed -i".VERBACK" -E "s/ONOS_VERSION=.*/ONOS_VERSION='$NEW_VERSION'/" tools/build
 
 # Version the bazel artifacts
 sed -i".VERBACK" -E "s/ONOS_VERSION.*/ONOS_VERSION = \"$NEW_VERSION\"/" tools/build/bazel/variables.bzl
-sed -i".VERBACK" -E "s/ONOS_VERSION.*/ONOS_VERSION = \"$NEW_VERSION\"/" WORKSPACE
 
 find . -name "*.VERBACK" | xargs rm -f

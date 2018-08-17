@@ -87,5 +87,3 @@ go_rules_dependencies()
 go_register_toolchains()
 
 buildifier_dependencies()
-
-ONOS_VERSION = "1.14.0-SNAPSHOT"
