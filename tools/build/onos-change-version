@@ -16,9 +16,7 @@ export NEW_VERSION_SHORT=${NEW_VERSION%-SNAPSHOT}
 cd $ONOS_ROOT
 
 # Augment the version of the main pom and the modules nested underneath.
-mvn -B versions:set -DnewVersion=$NEW_VERSION versions:commit
 mvn -B -f lib/pom.xml versions:set -DnewVersion=$NEW_VERSION versions:commit
-sed -i".VERBACK" -E "1,/<version>/s/<version>[^<]*</<version>$NEW_VERSION</g" pom.xml
 
 # Augment the version of the Java API pom files and the overview.html file.
 for pom in docs/internal.xml docs/external.xml; do
@@ -46,7 +44,6 @@ sed -i".VERBACK" -E "s/-DarchetypeVersion=[^\"]*/-DarchetypeVersion=$NEW_VERSION
 
 # Fix the onos-build-conf version
 sed -i".VERBACK" -E "s/<onos-build-conf.version>.*<\/onos-build-conf.version>/<onos-build-conf.version>$NEW_VERSION<\/onos-build-conf.version>/g" $ONOS_ROOT/lib/pom.xml
-mvn -B -f tools/build/conf/pom.xml versions:set -DnewVersion=$NEW_VERSION versions:commit
 
 # Version the BUCK artifacts
 sed -i".VERBACK" -E "s/ONOS_VERSION.*/ONOS_VERSION = '$NEW_VERSION'/" onos.defs

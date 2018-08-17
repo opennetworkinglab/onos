@@ -183,7 +183,6 @@ function testBuckconfigLocal() {
 
 testBuckconfigLocal
 testToolchain
-testSnapshotDependencies
 testGerritAccess
 
 if [ ${dryRun} -eq 0 ]; then

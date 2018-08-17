@@ -69,11 +69,6 @@ tar_file(
     flat = True,
 )
 
-only_lib_dep_pom(
-    name = 'top-level-pom',
-    src = 'pom.xml',
-    out = 'onos.pom',
-)
 
 
 
