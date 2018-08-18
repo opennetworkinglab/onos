@@ -19,12 +19,12 @@ package org.onosproject.drivers.p4runtime;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Striped;
-import org.apache.commons.lang3.tuple.Pair;
 import org.onosproject.drivers.p4runtime.mirror.P4RuntimeGroupMirror;
 import org.onosproject.drivers.p4runtime.mirror.P4RuntimeMulticastGroupMirror;
 import org.onosproject.drivers.p4runtime.mirror.TimedEntry;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.group.DefaultGroup;
+import org.onosproject.net.group.DefaultGroupDescription;
 import org.onosproject.net.group.Group;
 import org.onosproject.net.group.GroupDescription;
 import org.onosproject.net.group.GroupOperation;
@@ -116,17 +116,23 @@ public class P4RuntimeGroupProgrammable
         if (!setupBehaviour()) {
             return;
         }
-        groupOps.operations().stream()
-                // Get group type and operation type
-                .map(op -> Pair.of(groupStore.getGroup(deviceId, op.groupId()),
-                                   op.opType()))
-                .forEach(pair -> {
-                    if (pair.getLeft().type().equals(GroupDescription.Type.ALL)) {
-                        processMcGroupOp(deviceId, pair.getLeft(), pair.getRight());
-                    } else {
-                        processGroupOp(deviceId, pair.getLeft(), pair.getRight());
-                    }
-                });
+        groupOps.operations().forEach(op -> {
+            // ONOS-7785 We need app cookie (action profile id) from the group
+            Group groupOnStore = groupStore.getGroup(deviceId, op.groupId());
+            GroupDescription groupDesc = new DefaultGroupDescription(deviceId,
+                                                                     op.groupType(),
+                                                                     op.buckets(),
+                                                                     groupOnStore.appCookie(),
+                                                                     op.groupId().id(),
+                                                                     groupOnStore.appId());
+            DefaultGroup groupToApply = new DefaultGroup(op.groupId(), groupDesc);
+            if (op.groupType().equals(GroupDescription.Type.ALL)) {
+                processMcGroupOp(deviceId, groupToApply, op.opType());
+            } else {
+
+                processGroupOp(deviceId, groupToApply, op.opType());
+            }
+        });
     }
 
     @Override
