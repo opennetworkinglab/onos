@@ -472,6 +472,11 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                                       "staleLinkAge", "15000");
         compCfgService.preSetProperty("org.onosproject.net.host.impl.HostManager",
                                       "allowDuplicateIps", "false");
+        // For P4 switches
+        compCfgService.preSetProperty("org.onosproject.net.flow.impl.FlowRuleManager",
+                                      "fallbackFlowPollFrequency", "5");
+        compCfgService.preSetProperty("org.onosproject.net.group.impl.GroupManager",
+                                      "fallbackGroupPollFrequency", "5");
         compCfgService.registerProperties(getClass());
         modified(context);
 
