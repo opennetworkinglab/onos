@@ -23,12 +23,8 @@
             <step name="Node-Death-${#}"
                   exec="onos-power ${OC#} off"/>
 
-            <step name="Validate-Death-${#}"
-                  requires="Node-Death-${#}"
-                  exec="onos-check-node-status ${OC#} INACTIVE"/>
-
             <step name="Breathe-${#}"
-                  requires="Validate-Death-${#}"
+                  requires="Node-Death-${#}"
                   exec="sleep 5"/>
 
             <step name="Node-Start-${#}"
@@ -61,7 +57,7 @@
 
             <step name="Check-All-Logs-${#}"
                   requires="~Check-Nodes-${#},~Check-Masters-${#},~Check-Components-${#},~Check-Apps-${#},~Check-Flows-${#}"
-                  exec="onos-check-all-logs --ignore-store-exceptions"/>
+                  exec="onos-check-all-logs"/>
         </sequential>
     </group>
 

@@ -135,7 +135,6 @@ if __name__ == '__main__':
           'type': 'raft',
           'partitions': 1,
           'partitionSize': len(nodes),
-          'flushOnCommit': False,
           'members': [node['id'] for node in nodes]
       },
       'partitionGroups': {
@@ -143,7 +142,6 @@ if __name__ == '__main__':
               'type': 'raft',
               'partitions': num_partitions,
               'partitionSize': partition_size,
-              'flushOnCommit': False,
               'members': [node['id'] for node in nodes]
           }
       }
