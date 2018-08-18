@@ -168,7 +168,7 @@ public class OpenstackNetworkingUiMessageHandler extends UiMessageHandler {
             switch (mode) {
                 case MOUSE:
                     currentMode = Mode.MOUSE;
-                    eventExecutor.execute(() -> sendMouseData());
+                    eventExecutor.execute(OpenstackNetworkingUiMessageHandler.this::sendMouseData);
 
                     break;
 
@@ -195,7 +195,7 @@ public class OpenstackNetworkingUiMessageHandler extends UiMessageHandler {
                     dstIp,
                     srcDeviceId,
                     dstDeviceId);
-            eventExecutor.execute(() -> processFlowTraceRequest(srcIp, dstIp, srcDeviceId, dstDeviceId));
+            eventExecutor.execute(() -> processFlowTraceRequest(srcIp, dstIp, srcDeviceId));
         }
     }
 
@@ -211,7 +211,7 @@ public class OpenstackNetworkingUiMessageHandler extends UiMessageHandler {
             if (!Strings.isNullOrEmpty(id)) {
                 eventExecutor.execute(() -> updateForMode(id));
             } else {
-                eventExecutor.execute(() -> clearForMode());
+                eventExecutor.execute(OpenstackNetworkingUiMessageHandler.this::clearForMode);
             }
         }
     }
@@ -228,8 +228,6 @@ public class OpenstackNetworkingUiMessageHandler extends UiMessageHandler {
             clearForMode();
         }
     }
-
-    // === ------------
 
     private void clearState() {
         currentMode = Mode.IDLE;
@@ -290,14 +288,13 @@ public class OpenstackNetworkingUiMessageHandler extends UiMessageHandler {
     private void sendMouseData() {
         Highlights highlights = new Highlights();
 
-        if (elementOfNote != null && elementOfNote instanceof Device) {
+        if (elementOfNote instanceof Device) {
             DeviceId deviceId = (DeviceId) elementOfNote.id();
 
             List<OpenstackLink> edgeLinks = edgeLinks(deviceId);
 
-            edgeLinks.forEach(edgeLink -> {
-                highlights.add(edgeLink.highlight(OpenstackLink.RequestType.DEVICE_SELECTED));
-            });
+            edgeLinks.forEach(edgeLink ->
+                    highlights.add(edgeLink.highlight(OpenstackLink.RequestType.DEVICE_SELECTED)));
 
             hostService.getConnectedHosts(deviceId).forEach(host -> {
                 HostHighlight hostHighlight = new HostHighlight(host.id().toString());
@@ -307,7 +304,7 @@ public class OpenstackNetworkingUiMessageHandler extends UiMessageHandler {
 
             sendHighlights(highlights);
 
-        } else if (elementOfNote != null && elementOfNote instanceof Host) {
+        } else if (elementOfNote instanceof Host) {
 
             HostId hostId = HostId.hostId(elementOfNote.id().toString());
             if (!hostMadeFromOpenstack(hostId)) {
@@ -316,9 +313,8 @@ public class OpenstackNetworkingUiMessageHandler extends UiMessageHandler {
 
             List<OpenstackLink> openstackLinks = linksInSameNetwork(hostId);
 
-            openstackLinks.forEach(openstackLink -> {
-                highlights.add(openstackLink.highlight(OpenstackLink.RequestType.HOST_SELECTED));
-            });
+            openstackLinks.forEach(openstackLink ->
+                    highlights.add(openstackLink.highlight(OpenstackLink.RequestType.HOST_SELECTED)));
 
             hostHighlightsInSameNetwork(hostId).forEach(highlights::add);
 
@@ -328,8 +324,7 @@ public class OpenstackNetworkingUiMessageHandler extends UiMessageHandler {
     }
 
     private boolean hostMadeFromOpenstack(HostId hostId) {
-        return hostService.getHost(hostId).annotations()
-                .value(ANNOTATION_NETWORK_ID) == null ? false : true;
+        return hostService.getHost(hostId).annotations().value(ANNOTATION_NETWORK_ID) != null;
     }
 
     private String networkId(HostId hostId) {
@@ -360,7 +355,7 @@ public class OpenstackNetworkingUiMessageHandler extends UiMessageHandler {
 
         List<OpenstackLink> edgeLinks = Lists.newArrayList();
 
-        openstackLinkMap.biLinks().forEach(edgeLinks::add);
+        edgeLinks.addAll(openstackLinkMap.biLinks());
 
         return edgeLinks;
     }
@@ -384,7 +379,7 @@ public class OpenstackNetworkingUiMessageHandler extends UiMessageHandler {
 
         List<OpenstackLink> openstackLinks = Lists.newArrayList();
 
-        linkMap.biLinks().forEach(openstackLinks::add);
+        openstackLinks.addAll(linkMap.biLinks());
 
         return openstackLinks;
     }
@@ -398,7 +393,7 @@ public class OpenstackNetworkingUiMessageHandler extends UiMessageHandler {
         return NodeBadge.number(Status.INFO, n, "Openstack Node");
     }
 
-    private void processFlowTraceRequest(String srcIp, String dstIp, String srcDeviceId, String dstDeviceId) {
+    private void processFlowTraceRequest(String srcIp, String dstIp, String srcDeviceId) {
         boolean traceSuccess = true;
 
         ObjectMapper mapper = new ObjectMapper();

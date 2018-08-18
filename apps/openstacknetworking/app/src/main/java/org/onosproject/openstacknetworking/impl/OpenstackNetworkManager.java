@@ -339,7 +339,7 @@ public class OpenstackNetworkManager
                     osPort = osNetworkStore.ports()
                             .stream()
                             .filter(p -> p.getvNicType().equals(DIRECT) && p.getProfile().get(PCISLOT) != null)
-                            .filter(p -> getIntfNameFromPciAddress(p).equals(portName))
+                            .filter(p -> Objects.requireNonNull(getIntfNameFromPciAddress(p)).equals(portName))
                             .findFirst();
                     return osPort.orElse(null);
 
@@ -484,11 +484,11 @@ public class OpenstackNetworkManager
                 ByteBuffer.wrap(ethRequest.serialize())));
 
         externalPeerRouterMap.put(targetIp.toString(),
-                                    DefaultExternalPeerRouter.builder()
-                                                    .ipAddress(targetIp)
-                                                    .macAddress(MacAddress.NONE)
-                                                    .vlanId(vlanId)
-                                                    .build());
+                DefaultExternalPeerRouter.builder()
+                        .ipAddress(targetIp)
+                        .macAddress(MacAddress.NONE)
+                        .vlanId(vlanId)
+                        .build());
 
         log.info("Initializes external peer router map with peer router IP {}", targetIp.toString());
     }
@@ -641,7 +641,7 @@ public class OpenstackNetworkManager
 
         return subnets(network.getId()).stream()
                 .filter(s -> IpPrefix.valueOf(s.getCidr()).contains(ipAddress))
-                .map(s -> s.getGateway())
+                .map(Subnet::getGateway)
                 .findAny().orElse(null);
     }
 

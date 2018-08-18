@@ -311,9 +311,6 @@ public final class OpenStackSwitchingDirectPortProvider {
             ports.forEach(port -> {
                 addIntfToDevice(node, port);
             });
-
-
-
         }
 
         private void addIntfToDevice(OpenstackNode node, Port port) {

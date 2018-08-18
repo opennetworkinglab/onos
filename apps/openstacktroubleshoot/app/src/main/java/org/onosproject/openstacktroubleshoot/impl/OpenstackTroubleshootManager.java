@@ -44,6 +44,7 @@ import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.IPCriterion;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.InboundPacket;
@@ -290,45 +291,21 @@ public class OpenstackTroubleshootManager implements OpenstackTroubleshootServic
     /**
      * Checks whether east-west ICMP reply rule is added or not.
      *
-     * @param ip    IP address
+     * @param dstIp    IP address
      * @return true if ICMP reply rule is added, false otherwise
      */
-    private boolean checkEastWestIcmpReplyRule(String ip) {
-        for (FlowEntry entry : flowRuleService.getFlowEntriesById(appId)) {
-            TrafficSelector selector = entry.selector();
-
-            IPCriterion ipCriterion = (IPCriterion) selector.getCriterion(IPV4_DST);
-
-            if (ipCriterion != null &&
-                    ip.equals(ipCriterion.ip().address().toString()) &&
-                    entry.state() == ADDED) {
-                return true;
-            }
-        }
-
-        return false;
+    private boolean checkEastWestIcmpReplyRule(String dstIp) {
+        return checkFlowRule(dstIp, IPV4_DST);
     }
 
     /**
      * Checks whether north-south ICMP reply rule is added or not.
      *
-     * @param ip    IP address
+     * @param srcIp    IP address
      * @return true if ICMP reply rule is added, false otherwise
      */
-    private boolean checkNorthSouthIcmpReplyRule(String ip) {
-        for (FlowEntry entry : flowRuleService.getFlowEntriesById(appId)) {
-            TrafficSelector selector = entry.selector();
-
-            IPCriterion ipCriterion = (IPCriterion) selector.getCriterion(IPV4_SRC);
-
-            if (ipCriterion != null &&
-                    ip.equals(ipCriterion.ip().address().toString()) &&
-                    entry.state() == ADDED) {
-                return true;
-            }
-        }
-
-        return false;
+    private boolean checkNorthSouthIcmpReplyRule(String srcIp) {
+        return checkFlowRule(srcIp, IPV4_SRC);
     }
 
     /**
@@ -338,18 +315,28 @@ public class OpenstackTroubleshootManager implements OpenstackTroubleshootServic
      * @return true if the rule is added, false otherwise
      */
     private boolean checkVidTagRule(String srcIp) {
+        return checkFlowRule(srcIp, IPV4_SRC);
+    }
+
+    /**
+     * Checks whether flow rules with the given IP and criterion are added or not.
+     *
+     * @param ip        IP address
+     * @param ipType    IP criterion type (IPV4_DST or IPV4_SRC)
+     * @return true if the flow rule is added, false otherwise
+     */
+    private boolean checkFlowRule(String ip, Criterion.Type ipType) {
         for (FlowEntry entry : flowRuleService.getFlowEntriesById(appId)) {
             TrafficSelector selector = entry.selector();
 
-            IPCriterion srcIpCriterion = (IPCriterion) selector.getCriterion(IPV4_SRC);
+            IPCriterion ipCriterion = (IPCriterion) selector.getCriterion(ipType);
 
-            if (srcIpCriterion != null &&
-                    srcIp.equals(srcIpCriterion.ip().address().toString()) &&
+            if (ipCriterion != null &&
+                    ip.equals(ipCriterion.ip().address().toString()) &&
                     entry.state() == ADDED) {
                 return true;
             }
         }
-
         return false;
     }
 

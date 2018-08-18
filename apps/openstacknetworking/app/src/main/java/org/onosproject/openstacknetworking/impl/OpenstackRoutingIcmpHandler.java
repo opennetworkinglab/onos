@@ -221,7 +221,6 @@ public class OpenstackRoutingIcmpHandler {
                 });
             } catch (IllegalArgumentException e) {
                 log.warn("IllegalArgumentException occurred because of {}", e.toString());
-                return;
             }
         }
     }

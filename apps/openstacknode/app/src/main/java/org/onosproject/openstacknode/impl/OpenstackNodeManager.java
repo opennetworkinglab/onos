@@ -264,16 +264,7 @@ public class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEvent, O
     public void addVfPort(OpenstackNode osNode, String portName) {
         log.trace("addVfPort called");
 
-        if (!isOvsdbConnected(osNode, ovsdbPort, ovsdbController, deviceService)) {
-            log.warn("There's no ovsdb connection with the device {}. Try to connect the device...",
-                    osNode.ovsdb().toString());
-            try {
-                ovsdbController.connect(osNode.managementIp(), tpPort(ovsdbPort));
-            } catch (Exception e) {
-                log.error("Failed to connect to the openstackNode via ovsdb protocol because of exception {}",
-                        e.toString());
-            }
-        }
+        connectSwitch(osNode);
 
         addOrRemoveSystemInterface(osNode, INTEGRATION_BRIDGE, portName, true);
     }
@@ -282,6 +273,12 @@ public class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEvent, O
     public void removeVfPort(OpenstackNode osNode, String portName) {
         log.trace("removeVfPort called");
 
+        connectSwitch(osNode);
+
+        addOrRemoveSystemInterface(osNode, INTEGRATION_BRIDGE, portName, false);
+    }
+
+    private void connectSwitch(OpenstackNode osNode) {
         if (!isOvsdbConnected(osNode, ovsdbPort, ovsdbController, deviceService)) {
             log.warn("There's no ovsdb connection with the device {}. Try to connect the device...",
                     osNode.ovsdb().toString());
@@ -292,8 +289,6 @@ public class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEvent, O
                         e.toString());
             }
         }
-
-        addOrRemoveSystemInterface(osNode, INTEGRATION_BRIDGE, portName, false);
     }
 
     private void addOrRemoveSystemInterface(OpenstackNode osNode, String bridgeName, String intfName,
