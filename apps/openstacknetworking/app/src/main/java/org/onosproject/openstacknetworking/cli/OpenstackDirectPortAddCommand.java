@@ -27,6 +27,8 @@ import org.openstack4j.model.network.Port;
 
 import java.util.Optional;
 
+import static org.onosproject.openstacknetworking.api.Constants.UNSUPPORTED_VENDOR;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getIntfNameFromPciAddress;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
 
 /**
@@ -61,9 +63,12 @@ public class OpenstackDirectPortAddCommand extends AbstractShellCommand {
             return;
         }
 
-        String intfName = OpenstackNetworkingUtil.getIntfNameFromPciAddress(port);
+        String intfName = getIntfNameFromPciAddress(port);
         if (intfName == null) {
             log.error("Failed to retrieve interface name from a port {}", portId);
+            return;
+        } else if (intfName.equals(UNSUPPORTED_VENDOR)) {
+            log.warn("Failed to retrieve interface name from a port {} because of unsupported ovs-based sr-iov");
             return;
         }
 

@@ -18,11 +18,8 @@ package org.onosproject.openstacknetworking.impl;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.LeadershipService;
@@ -46,11 +43,9 @@ import org.onosproject.openstacknode.api.OpenstackNodeService;
 import org.onosproject.ovsdb.controller.OvsdbController;
 import org.openstack4j.model.network.Port;
 import org.openstack4j.model.network.State;
-import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Dictionary;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -59,6 +54,7 @@ import java.util.stream.Collectors;
 import static java.lang.Thread.sleep;
 import static org.onosproject.openstacknetworking.api.Constants.DIRECT;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
+import static org.onosproject.openstacknetworking.api.Constants.UNSUPPORTED_VENDOR;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getIntfNameFromPciAddress;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.hasIntfAleadyInDevice;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
@@ -68,8 +64,6 @@ import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.CONTROLLE
 public final class OpenStackSwitchingDirectPortProvider {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private static final String OVSDB_PORT = "ovsdbPortNum";
-    private static final int DEFAULT_OVSDB_PORT = 6640;
     private static final String UNBOUND = "unbound";
     private static final String PORT_NAME = "portName";
     private static final long SLEEP_MS = 3000;
@@ -104,10 +98,6 @@ public final class OpenStackSwitchingDirectPortProvider {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MastershipService mastershipService;
 
-    @Property(name = OVSDB_PORT, intValue = DEFAULT_OVSDB_PORT,
-            label = "OVSDB server listen port")
-    private int ovsdbPort = DEFAULT_OVSDB_PORT;
-
     private final OpenstackNetworkListener openstackNetworkListener = new InternalOpenstackNetworkListener();
     private final InternalOpenstackNodeListener internalNodeListener = new InternalOpenstackNodeListener();
 
@@ -136,17 +126,6 @@ public final class OpenStackSwitchingDirectPortProvider {
         log.info("Stopped");
     }
 
-
-    @Modified
-    protected void modified(ComponentContext context) {
-        Dictionary<?, ?> properties = context.getProperties();
-        int updatedOvsdbPort = Tools.getIntegerProperty(properties, OVSDB_PORT);
-        if (!Objects.equals(updatedOvsdbPort, ovsdbPort)) {
-            ovsdbPort = updatedOvsdbPort;
-        }
-
-        log.info("Modified");
-    }
     private void processPortAdded(Port port) {
         if (!port.getvNicType().equals(DIRECT)) {
             return;
@@ -168,6 +147,9 @@ public final class OpenStackSwitchingDirectPortProvider {
             String intfName = getIntfNameFromPciAddress(port);
             if (intfName == null) {
                 log.error("Failed to execute processPortAdded because of null interface name");
+                return;
+            } else if (intfName.equals(UNSUPPORTED_VENDOR)) {
+                log.warn("Failed to execute processPortAdded because of unsupported vendor for ovs-based sr-iov");
                 return;
             }
             log.trace("Retrieved interface name: {}", intfName);

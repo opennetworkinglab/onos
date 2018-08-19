@@ -57,6 +57,7 @@ public final class Constants {
     public static final String ANNOTATION_PORT_ID = "portId";
     public static final String ANNOTATION_CREATE_TIME = "createTime";
     public static final String ANNOTATION_SEGMENT_ID = "segId";
+    public static final String UNSUPPORTED_VENDOR = "unsupported_vendor";
 
     public static final int PRIORITY_TUNNEL_TAG_RULE = 30000;
     public static final int PRIORITY_FLOATING_INTERNAL = 42000;
