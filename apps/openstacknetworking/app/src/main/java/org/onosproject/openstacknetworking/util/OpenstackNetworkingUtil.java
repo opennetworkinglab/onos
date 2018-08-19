@@ -74,6 +74,7 @@ import static org.onosproject.openstacknetworking.api.Constants.PCISLOT;
 import static org.onosproject.openstacknetworking.api.Constants.PCI_VENDOR_INFO;
 import static org.onosproject.openstacknetworking.api.Constants.PORT_NAME_PREFIX_VM;
 import static org.onosproject.openstacknetworking.api.Constants.PORT_NAME_VHOST_USER_PREFIX_VM;
+import static org.onosproject.openstacknetworking.api.Constants.UNSUPPORTED_VENDOR;
 import static org.onosproject.openstacknetworking.api.Constants.portNamePrefixMap;
 import static org.openstack4j.core.transport.ObjectMapperSingleton.getContext;
 
@@ -93,7 +94,6 @@ public final class OpenstackNetworkingUtil {
     private static final String DOMAIN_DEFAULT = "default";
     private static final String KEYSTONE_V2 = "v2.0";
     private static final String KEYSTONE_V3 = "v3";
-    private static final String IDENTITY_PATH = "identity/";
     private static final String SSL_TYPE = "SSL";
 
     private static final String PROXY_MODE = "proxy";
@@ -324,9 +324,9 @@ public final class OpenstackNetworkingUtil {
         String vendorInfoForPort = String.valueOf(port.getProfile().get(PCI_VENDOR_INFO));
 
         if (!portNamePrefixMap().containsKey(vendorInfoForPort)) {
-            log.error("Failed to retrieve the interface name because of no port name prefix for vendor ID {}",
+            log.warn("Failed to retrieve the interface name because of unsupported prefix for vendor ID {}",
                     vendorInfoForPort);
-            return null;
+            return UNSUPPORTED_VENDOR;
         }
         String portNamePrefix = portNamePrefixMap().get(vendorInfoForPort);
 
@@ -482,7 +482,7 @@ public final class OpenstackNetworkingUtil {
     }
 
     private static boolean isDirectPort(String portName) {
-        return portNamePrefixMap().values().stream().filter(p -> portName.startsWith(p)).findAny().isPresent();
+        return portNamePrefixMap().values().stream().anyMatch(p -> portName.startsWith(p));
     }
 
     /**

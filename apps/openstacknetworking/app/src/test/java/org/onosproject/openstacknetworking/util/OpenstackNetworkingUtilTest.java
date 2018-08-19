@@ -72,6 +72,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
+import static org.onosproject.openstacknetworking.api.Constants.UNSUPPORTED_VENDOR;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.addRouterIface;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.associatedFloatingIp;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.checkArpMode;
@@ -300,7 +301,7 @@ public final class OpenstackNetworkingUtilTest {
         assertNull(getIntfNameFromPciAddress(openstackPort));
         assertEquals(expectedIntfName1, getIntfNameFromPciAddress(openstackSriovPort1));
         assertEquals(expectedIntfName2, getIntfNameFromPciAddress(openstackSriovPort2));
-        assertNull(getIntfNameFromPciAddress(openstackSriovPort3));
+        assertEquals(UNSUPPORTED_VENDOR, getIntfNameFromPciAddress(openstackSriovPort3));
     }
 
     /**
