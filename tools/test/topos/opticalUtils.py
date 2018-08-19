@@ -256,7 +256,7 @@ class LINCSwitch(OpticalSwitch):
     # from latest pipe files. For now we are removing all the pipes before
     # starting LINC.
     ### User Name ###
-    user = os.getlogin()
+    user = os.getenv('SUDO_USER')
     ### pipes ###
     readPipe = "/tmp/home/{}/linc-oe/rel/linc/erlang.pipe.1.r".format(user)
     writePipe = "/tmp/home/{}/linc-oe/rel/linc/erlang.pipe.1.w".format(user)
