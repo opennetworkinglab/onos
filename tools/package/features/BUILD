@@ -168,19 +168,20 @@ osgi_feature(
     visibility = ["//visibility:public"],
 )
 
-#osgi_feature (
-#    name = "onos-gui2",
-#    description = "ONOS GUI2 console components",
-#    included_bundles = [
-#        "//web/gui:onos-gui2",
-#        "@jetty_websocket//jar",
-#        "//utils/rest:onlab-rest",
-#    ],
-#    required_features = [
-#        "onos-api",
-#        "onos-thirdparty-web",
-#    ],
-#)
+osgi_feature(
+    name = "onos-gui2",
+    description = "ONOS GUI2 components",
+    included_bundles = [
+        "//web/gui2:onos-gui2",
+        "@jetty_websocket//jar",
+        "//utils/rest:onlab-rest",
+    ],
+    required_features = [
+        "onos-api",
+        "onos-thirdparty-web",
+    ],
+    visibility = ["//visibility:public"],
+)
 
 osgi_feature(
     name = "onos-security",

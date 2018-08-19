@@ -22,7 +22,7 @@
     <display-name>ONOS GUI 2</display-name>
 
     <welcome-file-list>
-        <welcome-file>dist/index.html</welcome-file>
+        <welcome-file>index.html</welcome-file>
     </welcome-file-list>
 
     <!--
@@ -30,7 +30,7 @@
     <security-constraint>
         <web-resource-collection>
             <web-resource-name>Secured</web-resource-name>
-            <url-pattern>/dist/index.html</url-pattern>
+            <url-pattern>/index.html</url-pattern>
         </web-resource-collection>
         <web-resource-collection>
             <web-resource-name>Secured API</web-resource-name>
@@ -71,7 +71,7 @@
 
     <servlet-mapping>
         <servlet-name>Index Page</servlet-name>
-        <url-pattern>/dist/index.html</url-pattern>
+        <url-pattern>/index.html</url-pattern>
     </servlet-mapping>
 
     <!--<servlet>-->

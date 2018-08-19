@@ -97,6 +97,10 @@ genrule(
     name = "_onos-gui-npm-install",
     srcs = [
         "@nodejs//:bin/npm",
+        "@nodejs//:bin/node",
+        "@nodejs//:bin/node.js",
+        "@nodejs//:bin/nodejs/bin/node",
+        "@nodejs//:bin/nodejs/bin/npm",
         "//tools/gui:tools-gui-gulp",
     ],
     outs = ["onos-gui-npm-install.jar"],
@@ -122,6 +126,10 @@ genrule(
     name = "_onos-gui-npm-build",
     srcs = [
         "@nodejs//:bin/npm",
+        "@nodejs//:bin/node",
+        "@nodejs//:bin/node.js",
+        "@nodejs//:bin/nodejs/bin/node",
+        "@nodejs//:bin/nodejs/bin/npm",
         ":_onos-gui-npm-install",
         ":_web_app_all",
     ],

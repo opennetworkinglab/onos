@@ -75,7 +75,7 @@ CORE = UTILS + API + [
     "//providers/general/device:onos-providers-general-device",
     "//providers/p4runtime/packet:onos-providers-p4runtime-packet",
     "//web/api:onos-rest",
-    # "//web/gui2:onos-gui2",
+    "//web/gui2:onos-gui2",
     "//web/gui:onos-gui",
     # "//incubator/protobuf/models:onos-incubator-protobuf-models",
     # "//incubator/protobuf/services/nb:onos-incubator-protobuf-services-nb",
@@ -307,7 +307,7 @@ FEATURES = [
     "//tools/package/features:onos-cli",
     "//tools/package/features:onos-rest",
     "//tools/package/features:onos-gui",
-    # "//tools/package/features:onos-gui2",
+    "//tools/package/features:onos-gui2",
     "//tools/package/features:onos-security",
 ]
 

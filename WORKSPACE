@@ -71,8 +71,12 @@ generate_p4lang()
 git_repository(
     name = "build_bazel_rules_nodejs",
     remote = "https://github.com/bazelbuild/rules_nodejs.git",
-    tag = "0.10.0",  # check for the latest tag when you install
+    tag = "0.11.5",  # check for the latest tag when you install
 )
+
+load("@build_bazel_rules_nodejs//:package.bzl", "rules_nodejs_dependencies")
+
+rules_nodejs_dependencies()
 
 load("@build_bazel_rules_nodejs//:defs.bzl", "node_repositories")
 

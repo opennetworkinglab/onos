@@ -13,19 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.onosproject.ui.impl;
 
-import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
-
 /**
- * This is just a dummy file to get BUCK going.
+ * A dummy class to satisfy Bazel build.
+ * Since all classes implementing the REST interface to the GUI framework for GUI2
+ * are in the /web/gui project, no classes are needed here.
  */
-public class DummyTest {
+public final class DummyClass {
+    private static final String DUMMY_ATTRIBUTE = "test";
 
-    @Test
-    public void dummyTest() {
-        assertEquals("test", DummyClass.getDummyAttribute());
+    private DummyClass() {
+        //Hidden
+    }
+
+    static String getDummyAttribute() {
+        return DUMMY_ATTRIBUTE;
     }
 }
