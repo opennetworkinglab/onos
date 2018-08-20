@@ -29,7 +29,7 @@
     <groupId>org.onosproject</groupId>
     <artifactId>onos-libgen</artifactId>
     <packaging>jar</packaging>
-    <version>1.3</version>
+    <version>1.4-SNAPSHOT</version>
 
     <description>Third-party library generator for Buck and Bazel workspaces</description>
     <url>http://onosproject.org/</url>
