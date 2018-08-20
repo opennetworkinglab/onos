@@ -3,7 +3,17 @@
 # Publishes ONOS artifacts to a Maven repository (local or remote)
 # -----------------------------------------------------------------------------
 
+options=""
+while getopts lh? o; do
+    case "$o" in
+        l) options="$options -l";;
+        *) echo "usage: $(basename $0) [-l] [repoURL]" >&2; exit 1;;
+    esac
+done
+let OPC=$OPTIND-1
+shift $OPC
+
 REPO_URL=$1
 CATALOG=/tmp/onos.$$.catalog
 
-onos-publish-catalog $CATALOG && onos-upload-artifacts.py $CATALOG $REPO_URL
+onos-publish-catalog $options $CATALOG && onos-upload-artifacts.py $CATALOG $REPO_URL

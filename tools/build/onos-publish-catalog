@@ -3,6 +3,18 @@
 # Generates a catalog for publishing ONOS artifacts to a Maven repository.
 # -----------------------------------------------------------------------------
 
+libsOnly=false
+
+# Process any usage options
+while getopts lh? o; do
+    case "$o" in
+        l) libsOnly=true;;
+        *) echo "usage: $(basename $0) [-l]" >&2; exit 1;;
+    esac
+done
+let OPC=$OPTIND-1
+shift $OPC
+
 set -e -o pipefail
 
 CATALOG=${1:-/tmp/onos.catalog}
@@ -25,6 +37,24 @@ function testJars {
     egrep -v '(# |grpc/api|build/conf)' tools/build/publish-test-target-list
 }
 
+echo "Cataloging jar files..."
+writeCatalog $(jars)
+
+echo "Cataloging test jars..."
+writeCatalog $(testJars)
+
+[ $libsOnly = true ] && exit 0
+
+echo "Cataloging source jars..."
+writeCatalog $(jars | sed 's/$/-sources/')
+echo "Cataloging javadoc jars..."
+writeCatalog $(jars | sed 's/$/-javadoc/')
+echo "Cataloging pom files..."
+writeCatalog $(jars | sed 's/$/-pom/')
+
+echo "Cataloging oar files..."
+writeCatalog $(bazel query 'kind("_onos_oar rule", //...)')
+
 # Extract the version from the Bazel variables file
 VERSION=$(egrep ONOS_VERSION tools/build/bazel/variables.bzl | cut -d\" -f2)
 
@@ -37,19 +67,3 @@ bazel-bin/onos-admin.tar.gz	org/onosproject/onos-releases/$VERSION/onos-admin-$V
 bazel-bin/onos-test.tar.gz	org/onosproject/onos-releases/$VERSION/onos-test-$VERSION.tar.gz
 bazel-bin/tools/build/conf/libonos-build-conf.jar	org/onosproject/onos-build-conf/$VERSION/onos-build-conf-$VERSION.jar
 EOF
-
-echo "Cataloging jar files..."
-writeCatalog $(jars)
-
-echo "Cataloging test jars..."
-writeCatalog $(testJars)
-
-echo "Cataloging source jars..."
-writeCatalog $(jars | sed 's/$/-sources/')
-echo "Cataloging javadoc jars..."
-writeCatalog $(jars | sed 's/$/-javadoc/')
-echo "Cataloging pom files..."
-writeCatalog $(jars | sed 's/$/-pom/')
-
-echo "Cataloging oar files..."
-writeCatalog $(bazel query 'kind("_onos_oar rule", //...)')
