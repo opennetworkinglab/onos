@@ -29,12 +29,11 @@ import org.onosproject.segmentrouting.storekey.DestinationSetNextObjectiveStoreK
 
 /**
  * Command to read the current state of the DestinationSetNextObjectiveStore.
- *
  */
-@Command(scope = "onos", name = "sr-next-hops",
+@Command(scope = "onos", name = "sr-next-dst",
         description = "Displays the current next-hops seen by each switch "
                 + "towards a set of destinations and the next-id it maps to")
-public class NextHopCommand extends AbstractShellCommand {
+public class NextDstCommand extends AbstractShellCommand {
 
     private static final String FORMAT_MAPPING = "  %s";
 
@@ -42,7 +41,7 @@ public class NextHopCommand extends AbstractShellCommand {
     protected void execute() {
         SegmentRoutingService srService =
                 AbstractShellCommand.get(SegmentRoutingService.class);
-        printDestinationSet(srService.getDestinationSet());
+        printDestinationSet(srService.getDstNextObjStore());
     }
 
     private void printDestinationSet(Map<DestinationSetNextObjectiveStoreKey,

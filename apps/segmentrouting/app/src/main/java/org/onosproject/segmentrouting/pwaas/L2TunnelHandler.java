@@ -16,6 +16,9 @@
 
 package org.onosproject.segmentrouting.pwaas;
 
+import com.google.common.collect.ImmutableMap;
+import org.onosproject.net.flowobjective.NextObjective;
+
 import java.util.List;
 import java.util.Set;
 
@@ -89,6 +92,27 @@ public interface L2TunnelHandler {
      * @return The result of the operation.
      */
     Result checkIfPwExists(long tunnelId, boolean pending);
+
+    /**
+     * Returns the PW init next objective store.
+     *
+     * @return current contents of the l2InitiationNextObjStore
+     */
+    ImmutableMap<String, NextObjective> getInitNext();
+
+    /**
+     * Returns the PW termination next objective store.
+     *
+     * @return current contents of the l2TerminationNextObjStore
+     */
+    ImmutableMap<String, NextObjective> getTermNext();
+
+    /**
+     * Removes given next ID from both PW init/term next obj store.
+     *
+     * @param nextId next ID
+     */
+    void removeNextId(int nextId);
 
     /**
      * Pwaas pipelines.

@@ -16,6 +16,7 @@
 
 package org.onosproject.segmentrouting.pwaas;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.RandomUtils;
@@ -261,6 +262,39 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
         newPseudowires.add(pwToAdd);
 
         return configurationValidity(newPseudowires);
+    }
+
+    @Override
+    public ImmutableMap<String, NextObjective> getInitNext() {
+        if (l2InitiationNextObjStore != null) {
+            return ImmutableMap.copyOf(l2InitiationNextObjStore.asJavaMap());
+        } else {
+            return ImmutableMap.of();
+        }
+    }
+
+    @Override
+    public ImmutableMap<String, NextObjective> getTermNext() {
+        if (l2TerminationNextObjStore != null) {
+            return ImmutableMap.copyOf(l2TerminationNextObjStore.asJavaMap());
+        } else {
+            return ImmutableMap.of();
+        }
+    }
+
+    @Override
+    public void removeNextId(int nextId) {
+        l2InitiationNextObjStore.entrySet().forEach(e -> {
+            if (e.getValue().value().id() == nextId) {
+                l2InitiationNextObjStore.remove(e.getKey());
+            }
+        });
+
+        l2TerminationNextObjStore.entrySet().forEach(e -> {
+            if (e.getValue().value().id() == nextId) {
+                l2TerminationNextObjStore.remove(e.getKey());
+            }
+        });
     }
 
     /**

@@ -15,6 +15,7 @@
  */
 package org.onosproject.segmentrouting.xconnect.impl;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
@@ -190,6 +191,24 @@ public class XconnectManager implements XconnectService {
         return getXconnects().stream().anyMatch(desc ->
                 desc.key().deviceId().equals(cp.deviceId()) && desc.ports().contains(cp.port())
         );
+    }
+
+    @Override
+    public ImmutableMap<XconnectKey, NextObjective> getNext() {
+        if (xconnectNextObjStore != null) {
+            return ImmutableMap.copyOf(xconnectNextObjStore.asJavaMap());
+        } else {
+            return ImmutableMap.of();
+        }
+    }
+
+    @Override
+    public void removeNextId(int nextId) {
+        xconnectNextObjStore.entrySet().forEach(e -> {
+            if (e.getValue().value().id() == nextId) {
+                xconnectNextObjStore.remove(e.getKey());
+            }
+        });
     }
 
     private class XconnectMapListener implements MapEventListener<XconnectKey, Set<PortNumber>> {
