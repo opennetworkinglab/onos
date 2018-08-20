@@ -46,7 +46,22 @@
             <action class="org.onosproject.segmentrouting.cli.EcmpGraphCommand"/>
         </command>
         <command>
-            <action class="org.onosproject.segmentrouting.cli.NextHopCommand"/>
+            <action class="org.onosproject.segmentrouting.cli.NextDstCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.segmentrouting.cli.NextVlanCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.segmentrouting.cli.NextPortCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.segmentrouting.cli.PseudowireNextListCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.segmentrouting.cli.XconnectNextListCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.segmentrouting.cli.InvalidateNextCommand"/>
         </command>
         <command>
             <action class="org.onosproject.segmentrouting.cli.ShouldProgramCommand"/>

@@ -27,6 +27,7 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.flowobjective.NextObjective;
 import org.onosproject.segmentrouting.grouphandler.NextNeighbors;
 import org.onosproject.segmentrouting.mcast.McastRole;
 import org.onosproject.segmentrouting.mcast.McastRoleStoreKey;
@@ -39,6 +40,8 @@ import org.onosproject.segmentrouting.storekey.DestinationSetNextObjectiveStoreK
 
 import com.google.common.collect.ImmutableMap;
 import org.onosproject.segmentrouting.mcast.McastStoreKey;
+import org.onosproject.segmentrouting.storekey.PortNextObjectiveStoreKey;
+import org.onosproject.segmentrouting.storekey.VlanNextObjectiveStoreKey;
 
 import java.util.List;
 import java.util.Map;
@@ -211,9 +214,53 @@ public interface SegmentRoutingService {
     /**
      * Returns the destinatiomSet-NextObjective store contents.
      *
-     * @return current contents of the destinationSetNextObjectiveStore
+     * @return current contents of the dstNextObjStore
      */
-    ImmutableMap<DestinationSetNextObjectiveStoreKey, NextNeighbors> getDestinationSet();
+    ImmutableMap<DestinationSetNextObjectiveStoreKey, NextNeighbors> getDstNextObjStore();
+
+    /**
+     * Returns the VLAN next objective store.
+     *
+     * @return current contents of the vlanNextObjStore
+     */
+    ImmutableMap<VlanNextObjectiveStoreKey, Integer> getVlanNextObjStore();
+
+    /**
+     * Returns the port next objective store.
+     *
+     * @return current contents of the portNextObjStore
+     */
+    ImmutableMap<PortNextObjectiveStoreKey, Integer> getPortNextObjStore();
+
+    /**
+     * Returns the associated next ids to the mcast groups or to the single
+     * group if mcastIp is present.
+     *
+     * @param mcastIp the group ip
+     * @return the mapping mcastIp-device to next id
+     */
+    Map<McastStoreKey, Integer> getMcastNextIds(IpAddress mcastIp);
+
+    /**
+     * Returns the PW init next objective store.
+     *
+     * @return current contents of the l2InitiationNextObjStore
+     */
+    ImmutableMap<String, NextObjective> getPwInitNext();
+
+    /**
+     * Returns the PW termination next objective store.
+     *
+     * @return current contents of the l2TerminationNextObjStore
+     */
+    ImmutableMap<String, NextObjective> getPwTermNext();
+
+    /**
+     * Removes all entries in dst/vlan/port/mcast NextObjectiveStore that are associated with the given nextId.
+     *
+     * @param nextId nextId
+     */
+    void invalidateNextObj(int nextId);
 
     /**
      * Triggers the verification of all ECMP groups in the specified device.
@@ -239,15 +286,6 @@ public interface SegmentRoutingService {
      *         ports. Does not include ports manually disabled by the operator.
      */
     ImmutableMap<DeviceId, Set<PortNumber>> getDownedPortState();
-
-    /**
-     * Returns the associated next ids to the mcast groups or to the single
-     * group if mcastIp is present.
-     *
-     * @param mcastIp the group ip
-     * @return the mapping mcastIp-device to next id
-     */
-    Map<McastStoreKey, Integer> getMcastNextIds(IpAddress mcastIp);
 
     /**
      * Returns the associated roles to the mcast groups or to the single

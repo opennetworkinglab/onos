@@ -111,7 +111,7 @@ public class PortNextObjectiveStoreKey {
 
     @Override
     public String toString() {
-        return "Device: " + deviceId + " Port: " + portNum +
+        return "ConnectPoint: " + deviceId + "/" + portNum +
                 " Treatment: " + treatment +
                 " Meta: " + meta;
     }
