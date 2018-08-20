@@ -286,7 +286,7 @@ public class McastHandler {
                     Map<ConnectPoint, List<ConnectPoint>> mcastPaths = Maps.newHashMap();
                     Set<DeviceId> visited = Sets.newHashSet();
                     List<ConnectPoint> currentPath = Lists.newArrayList(source);
-                    buildMcastPaths(source.deviceId(), visited, mcastPaths,
+                    mcastUtils.buildMcastPaths(mcastNextObjStore.asJavaMap(), source.deviceId(), visited, mcastPaths,
                                     currentPath, mcastRoute.group(), source);
                     // Get all the sinks and process them
                     Set<ConnectPoint> sinks = processSinksToBeAdded(source, mcastRoute.group(),
@@ -1816,7 +1816,7 @@ public class McastHandler {
      * @param mcastIp the group ip
      * @return the mapping mcastIp-device to next id
      */
-    public Map<McastStoreKey, Integer> getMcastNextIds(IpAddress mcastIp) {
+    public Map<McastStoreKey, Integer> getNextIds(IpAddress mcastIp) {
         if (mcastIp != null) {
             return mcastNextObjStore.entrySet().stream()
                     .filter(mcastEntry -> mcastIp.equals(mcastEntry.getKey().mcastIp()))
@@ -1824,6 +1824,19 @@ public class McastHandler {
         }
         return mcastNextObjStore.entrySet().stream()
                 .collect(Collectors.toMap(Entry::getKey, entry -> entry.getValue().value().id()));
+    }
+
+    /**
+     * Removes given next ID from mcast next id store.
+     *
+     * @param nextId next id
+     */
+    public void removeNextId(int nextId) {
+        mcastNextObjStore.entrySet().forEach(e -> {
+            if (e.getValue().value().id() == nextId) {
+                mcastNextObjStore.remove(e.getKey());
+            }
+        });
     }
 
     /**
@@ -1891,7 +1904,8 @@ public class McastHandler {
         if (source != null) {
             Set<DeviceId> visited = Sets.newHashSet();
             List<ConnectPoint> currentPath = Lists.newArrayList(source);
-            buildMcastPaths(source.deviceId(), visited, mcastPaths, currentPath, mcastIp, source);
+            mcastUtils.buildMcastPaths(mcastNextObjStore.asJavaMap(), source.deviceId(), visited, mcastPaths,
+                    currentPath, mcastIp, source);
         }
         return mcastPaths;
     }
@@ -1916,68 +1930,12 @@ public class McastHandler {
                 Map<ConnectPoint, List<ConnectPoint>> mcastPaths = Maps.newHashMap();
                 Set<DeviceId> visited = Sets.newHashSet();
                 List<ConnectPoint> currentPath = Lists.newArrayList(source);
-                buildMcastPaths(source.deviceId(), visited, mcastPaths, currentPath, mcastIp, source);
+                mcastUtils.buildMcastPaths(mcastNextObjStore.asJavaMap(), source.deviceId(), visited, mcastPaths,
+                        currentPath, mcastIp, source);
                 mcastPaths.forEach(mcastTrees::put);
             });
         }
         return mcastTrees;
-    }
-
-    /**
-     * Build recursively the mcast paths.
-     *
-     * @param toVisit the node to visit
-     * @param visited the visited nodes
-     * @param mcastPaths the current mcast paths
-     * @param currentPath the current path
-     * @param mcastIp the group ip
-     * @param source the source
-     */
-    private void buildMcastPaths(DeviceId toVisit, Set<DeviceId> visited,
-                                 Map<ConnectPoint, List<ConnectPoint>> mcastPaths,
-                                 List<ConnectPoint> currentPath, IpAddress mcastIp,
-                                 ConnectPoint source) {
-        // If we have visited the node to visit there is a loop
-        if (visited.contains(toVisit)) {
-            return;
-        }
-        // Visit next-hop
-        visited.add(toVisit);
-        VlanId assignedVlan = mcastUtils.assignedVlan(toVisit.equals(source.deviceId()) ? source : null);
-        McastStoreKey mcastStoreKey = new McastStoreKey(mcastIp, toVisit, assignedVlan);
-        // Looking for next-hops
-        if (mcastNextObjStore.containsKey(mcastStoreKey)) {
-            // Build egress connect points, get ports and build relative cps
-            NextObjective nextObjective = mcastNextObjStore.get(mcastStoreKey).value();
-            Set<PortNumber> outputPorts = mcastUtils.getPorts(nextObjective.next());
-            ImmutableSet.Builder<ConnectPoint> cpBuilder = ImmutableSet.builder();
-            outputPorts.forEach(portNumber -> cpBuilder.add(new ConnectPoint(toVisit, portNumber)));
-            Set<ConnectPoint> egressPoints = cpBuilder.build();
-            Set<Link> egressLinks;
-            List<ConnectPoint> newCurrentPath;
-            Set<DeviceId> newVisited;
-            DeviceId newToVisit;
-            for (ConnectPoint egressPoint : egressPoints) {
-                egressLinks = srManager.linkService.getEgressLinks(egressPoint);
-                // If it does not have egress links, stop
-                if (egressLinks.isEmpty()) {
-                    // Add the connect points to the path
-                    newCurrentPath = Lists.newArrayList(currentPath);
-                    newCurrentPath.add(0, egressPoint);
-                    mcastPaths.put(egressPoint, newCurrentPath);
-                } else {
-                    newVisited = Sets.newHashSet(visited);
-                    // Iterate over the egress links for the next hops
-                    for (Link egressLink : egressLinks) {
-                        newToVisit = egressLink.dst().deviceId();
-                        newCurrentPath = Lists.newArrayList(currentPath);
-                        newCurrentPath.add(0, egressPoint);
-                        newCurrentPath.add(0, egressLink.dst());
-                        buildMcastPaths(newToVisit, newVisited, mcastPaths, newCurrentPath, mcastIp, source);
-                    }
-                }
-            }
-        }
     }
 
     /**

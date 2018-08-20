@@ -15,11 +15,13 @@
  */
 package org.onosproject.segmentrouting.xconnect.api;
 
+import com.google.common.collect.ImmutableMap;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.VlanId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.flowobjective.NextObjective;
 
 import java.util.Set;
 
@@ -70,5 +72,19 @@ public interface XconnectService {
      * @return true if there is Xconnect configured on the connect point
      */
     boolean hasXconnect(ConnectPoint cp);
+
+    /**
+     * Returns the Xconnect next objective store.
+     *
+     * @return current contents of the xconnectNextObjStore
+     */
+    ImmutableMap<XconnectKey, NextObjective> getNext();
+
+    /**
+     * Removes given next ID from Xconnect next objective store.
+     *
+     * @param nextId next ID
+     */
+    void removeNextId(int nextId);
 
 }
