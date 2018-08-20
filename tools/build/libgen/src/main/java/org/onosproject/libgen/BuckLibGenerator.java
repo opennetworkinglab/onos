@@ -182,17 +182,11 @@ public class BuckLibGenerator {
             artifacts.forEach(artifact -> sb.append(artifact.getBuckFragment()));
         } else {
             StringBuilder mavenJars = new StringBuilder();
-            StringBuilder javaLibraries = new StringBuilder();
-
             mavenJars.append("\ndef generated_maven_jars():");
-            javaLibraries.append("\ndef generated_java_libraries():");
-
             artifacts.forEach(artifact -> {
                 mavenJars.append(artifact.getBazelMavenJarFragment());
-                javaLibraries.append(artifact.getBazelJavaLibraryFragment());
             });
-
-            sb.append(mavenJars).append(javaLibraries);
+            sb.append(mavenJars);
         }
         return sb.toString();
     }
@@ -218,7 +212,7 @@ public class BuckLibGenerator {
                 "            return artifact_map[label_string]\n" +
                 "    if type(label) == \"string\":\n" +
                 "        return \"mvn:%s:%s:%s\" % (ONOS_GROUP_ID, label_string, ONOS_VERSION)\n" +
-                "    return \"mvn:%s:%s:%s\" % (ONOS_GROUP_ID, label.name, ONOS_VERSION)\n\n"
+                "    return \"mvn:%s:%s:%s\" % (ONOS_GROUP_ID, label.name, ONOS_VERSION)\n"
         );
 
         return artifactMap.toString();

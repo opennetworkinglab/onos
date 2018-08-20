@@ -89,23 +89,6 @@ public abstract class BuckArtifact {
         return fileName().endsWith(".jar");
     }
 
-    private boolean isHttp() {
-        return url().startsWith("http");
-    }
-
-    String getBazelJavaLibraryFragment() {
-        if (isJar()) {
-            String format =
-                    "\n    native.java_library(\n" +
-                            "        name = \"%s\",\n" +
-                            "        visibility = [\"//visibility:public\"],\n" +
-                            "        exports = [\"@%s//jar\"],\n" +
-                            "    )\n";
-            return String.format(format, jarTarget(), jarTarget());
-        }
-        return "";
-    }
-
     private String extractRepo() {
         // This is a hack because the code above us already got rid of the maven repo
         // info for artifacts
@@ -122,24 +105,25 @@ public abstract class BuckArtifact {
             String repo = extractRepo();
             String repoAttribute = "";
             if (!"".equals(repo)) {
-                repoAttribute = "        repository = \"" + repo + "\",\n";
+                repoAttribute = "            repository = \"" + repo + "\",\n";
             }
-            String format =
-                    "\n    native.maven_jar(\n" +
-                            "        name = \"%s\",\n" +
-                            "        artifact = \"%s\",\n" +
-                            "        sha1 = \"%s\",\n" +
-                            "%s" +
-                            "    )\n";
-            return String.format(format, jarTarget(), mavenCoords(), sha, repoAttribute);
+            String format = "\n" +
+                    "    if \"%s\" not in native.existing_rules():\n" +
+                    "        native.maven_jar(\n" +
+                    "            name = \"%s\",\n" +
+                    "            artifact = \"%s\",\n" +
+                    "            sha1 = \"%s\",\n%s" +
+                    "        )\n";
+            return String.format(format, jarTarget(), jarTarget(), mavenCoords(), sha, repoAttribute);
         } else {
-            String format =
-                    "\n    native.http_file(\n" +
-                            "        name = \"%s\",\n" +
-                            "        url = \"%s\",\n" +
-                            "        sha256 = \"%s\",\n" +
-                            "    )\n";
-            return String.format(format, jarTarget(), url(), sha);
+            String format = "\n" +
+                    "    if \"%s\" not in native.existing_rules():\n" +
+                    "        native.http_file(\n" +
+                    "            name = \"%s\",\n" +
+                    "            url = \"%s\",\n" +
+                    "            sha256 = \"%s\",\n" +
+                    "        )\n";
+            return String.format(format, jarTarget(), jarTarget(), url(), sha);
         }
     }
 
