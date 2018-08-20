@@ -18,7 +18,9 @@ package org.onosproject.segmentrouting.mcast;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import org.onlab.packet.Ethernet;
@@ -31,6 +33,7 @@ import org.onosproject.mcast.api.McastRoute;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.HostId;
+import org.onosproject.net.Link;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.config.basics.McastConfig;
 import org.onosproject.net.flow.DefaultTrafficSelector;
@@ -55,6 +58,7 @@ import org.onosproject.segmentrouting.config.SegmentRoutingAppConfig;
 import org.slf4j.Logger;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -485,5 +489,65 @@ class McastUtils {
         }
         // Otherwise take all the groups
         return ImmutableMap.copyOf(mcastLeaderCache);
+    }
+
+    /**
+     * Build recursively the mcast paths.
+     *
+     * @param mcastNextObjStore mcast next obj store
+     * @param toVisit the node to visit
+     * @param visited the visited nodes
+     * @param mcastPaths the current mcast paths
+     * @param currentPath the current path
+     * @param mcastIp the group ip
+     * @param source the source
+     */
+    void buildMcastPaths(Map<McastStoreKey, NextObjective> mcastNextObjStore,
+                                 DeviceId toVisit, Set<DeviceId> visited,
+                                 Map<ConnectPoint, List<ConnectPoint>> mcastPaths,
+                                 List<ConnectPoint> currentPath, IpAddress mcastIp,
+                                 ConnectPoint source) {
+        // If we have visited the node to visit there is a loop
+        if (visited.contains(toVisit)) {
+            return;
+        }
+        // Visit next-hop
+        visited.add(toVisit);
+        VlanId assignedVlan = assignedVlan(toVisit.equals(source.deviceId()) ? source : null);
+        McastStoreKey mcastStoreKey = new McastStoreKey(mcastIp, toVisit, assignedVlan);
+        // Looking for next-hops
+        if (mcastNextObjStore.containsKey(mcastStoreKey)) {
+            // Build egress connect points, get ports and build relative cps
+            NextObjective nextObjective = mcastNextObjStore.get(mcastStoreKey);
+            Set<PortNumber> outputPorts = getPorts(nextObjective.next());
+            ImmutableSet.Builder<ConnectPoint> cpBuilder = ImmutableSet.builder();
+            outputPorts.forEach(portNumber -> cpBuilder.add(new ConnectPoint(toVisit, portNumber)));
+            Set<ConnectPoint> egressPoints = cpBuilder.build();
+            Set<Link> egressLinks;
+            List<ConnectPoint> newCurrentPath;
+            Set<DeviceId> newVisited;
+            DeviceId newToVisit;
+            for (ConnectPoint egressPoint : egressPoints) {
+                egressLinks = srManager.linkService.getEgressLinks(egressPoint);
+                // If it does not have egress links, stop
+                if (egressLinks.isEmpty()) {
+                    // Add the connect points to the path
+                    newCurrentPath = Lists.newArrayList(currentPath);
+                    newCurrentPath.add(0, egressPoint);
+                    mcastPaths.put(egressPoint, newCurrentPath);
+                } else {
+                    newVisited = Sets.newHashSet(visited);
+                    // Iterate over the egress links for the next hops
+                    for (Link egressLink : egressLinks) {
+                        newToVisit = egressLink.dst().deviceId();
+                        newCurrentPath = Lists.newArrayList(currentPath);
+                        newCurrentPath.add(0, egressPoint);
+                        newCurrentPath.add(0, egressLink.dst());
+                        buildMcastPaths(mcastNextObjStore, newToVisit, newVisited, mcastPaths, newCurrentPath, mcastIp,
+                                source);
+                    }
+                }
+            }
+        }
     }
 }

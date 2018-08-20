@@ -74,6 +74,7 @@ import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
+import org.onosproject.net.flowobjective.NextObjective;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostListener;
 import org.onosproject.net.host.HostProbingService;
@@ -704,11 +705,81 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     }
 
     @Override
-    public ImmutableMap<DestinationSetNextObjectiveStoreKey, NextNeighbors> getDestinationSet() {
+    public ImmutableMap<DestinationSetNextObjectiveStoreKey, NextNeighbors> getDstNextObjStore() {
         if (dsNextObjStore != null) {
             return ImmutableMap.copyOf(dsNextObjStore.entrySet());
         } else {
             return ImmutableMap.of();
+        }
+    }
+
+    @Override
+    public ImmutableMap<VlanNextObjectiveStoreKey, Integer> getVlanNextObjStore() {
+        if (vlanNextObjStore != null) {
+            return ImmutableMap.copyOf(vlanNextObjStore.entrySet());
+        } else {
+            return ImmutableMap.of();
+        }
+    }
+
+    @Override
+    public ImmutableMap<PortNextObjectiveStoreKey, Integer> getPortNextObjStore() {
+        if (portNextObjStore != null) {
+            return ImmutableMap.copyOf(portNextObjStore.entrySet());
+        } else {
+            return ImmutableMap.of();
+        }
+    }
+
+    @Override
+    public ImmutableMap<String, NextObjective> getPwInitNext() {
+        if (l2TunnelHandler != null) {
+            return l2TunnelHandler.getInitNext();
+        } else {
+            return ImmutableMap.of();
+        }
+    }
+
+    @Override
+    public ImmutableMap<String, NextObjective> getPwTermNext() {
+        if (l2TunnelHandler != null) {
+            return l2TunnelHandler.getTermNext();
+        } else {
+            return ImmutableMap.of();
+        }
+    }
+
+    @Override
+    public void invalidateNextObj(int nextId) {
+        if (dsNextObjStore != null) {
+            dsNextObjStore.entrySet().forEach(e -> {
+                if (e.getValue().nextId() == nextId) {
+                    dsNextObjStore.remove(e.getKey());
+                }
+            });
+        }
+        if (vlanNextObjStore != null) {
+            vlanNextObjStore.entrySet().forEach(e -> {
+                if (e.getValue() == nextId) {
+                    vlanNextObjStore.remove(e.getKey());
+                }
+            });
+        }
+        if (portNextObjStore != null) {
+            portNextObjStore.entrySet().forEach(e -> {
+                if (e.getValue() == nextId) {
+                    portNextObjStore.remove(e.getKey());
+                }
+            });
+        }
+        if (mcastHandler != null) {
+            mcastHandler.removeNextId(nextId);
+        }
+        if (l2TunnelHandler != null) {
+            l2TunnelHandler.removeNextId(nextId);
+        }
+        if (xconnectService != null) {
+            xconnectService.removeNextId(nextId);
         }
     }
 
@@ -732,7 +803,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
     @Override
     public Map<McastStoreKey, Integer> getMcastNextIds(IpAddress mcastIp) {
-        return mcastHandler.getMcastNextIds(mcastIp);
+        return mcastHandler.getNextIds(mcastIp);
     }
 
     @Override

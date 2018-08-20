@@ -37,7 +37,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 /**
  * Command to show the list of mcast nextids.
  */
-@Command(scope = "onos", name = "sr-mcast-next",
+@Command(scope = "onos", name = "sr-next-mcast",
         description = "Lists all mcast nextids")
 public class McastNextListCommand extends AbstractShellCommand {
 
