@@ -17,6 +17,8 @@ password=${password:-$user} # password defaults to the user if not specified
 let OPC=$OPTIND-1
 shift $OPC
 
+user=${user:-$ONOS_WEB_USER}
+password=${password:-$ONOS_WEB_PASS}
 nodes=${1:-$(env | sort | egrep "^OC[0-9]+" | cut -d= -f2)}
 
 # ensure known_hosts file exist
