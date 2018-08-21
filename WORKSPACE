@@ -4,6 +4,20 @@ load("//tools/build/bazel:bazel_version.bzl", "check_bazel_version")
 
 check_bazel_version()
 
+load("//tools/build/bazel:local_jar.bzl", "local_atomix", "local_jar")
+
+# Use this to build against locally built arbitrary 3rd party artifacts
+#local_jar(
+#    name = "atomix",
+#    path = "/users/tom/atomix/core/target/atomix-3.0.1-SNAPSHOT.jar",
+#)
+
+# Use this to build against locally built Atomix
+#local_atomix(
+#    path = "/users/tom/atomix",
+#    version = "3.0.1-SNAPSHOT",
+#)
+
 load("//tools/build/bazel:generate_workspace.bzl", "generated_maven_jars")
 
 generated_maven_jars()
