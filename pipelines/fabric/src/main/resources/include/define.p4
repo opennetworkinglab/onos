@@ -106,6 +106,9 @@ const fwd_type_t FWD_IPV4_UNICAST = 2;
 const fwd_type_t FWD_IPV4_MULTICAST = 3;
 const fwd_type_t FWD_IPV6_UNICAST = 4;
 const fwd_type_t FWD_IPV6_MULTICAST = 5;
+const fwd_type_t FWD_UNKNOWN = 7;
+
+const vlan_id_t DEFAULT_VLAN_ID = 12w4094;
 
 const bit<8> DEFAULT_MPLS_TTL = 64;
 const bit<8> DEFAULT_IPV4_TTL = 64;

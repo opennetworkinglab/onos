@@ -53,6 +53,8 @@ final class FabricTreatmentInterpreter {
     private static final String INVALID_TREATMENT = "Invalid treatment for %s block [%s]";
     private static final String INVALID_TREATMENT_WITH_EXP = "Invalid treatment for %s block: %s [%s]";
     private static final PiAction NOP = PiAction.builder().withId(FabricConstants.NOP).build();
+    private static final PiAction NOP_INGRESS_PORT_VLAN = PiAction.builder()
+            .withId(FabricConstants.FABRIC_INGRESS_FILTERING_NOP_INGRESS_PORT_VLAN).build();
     private static final PiAction NOP_ACL = PiAction.builder()
             .withId(FabricConstants.FABRIC_INGRESS_FORWARDING_NOP_ACL).build();
 
@@ -81,7 +83,7 @@ final class FabricTreatmentInterpreter {
         Instruction noActInst = Instructions.createNoAction();
         if (instructions.isEmpty() || instructions.contains(noActInst)) {
             // nop
-            return NOP;
+            return NOP_INGRESS_PORT_VLAN;
         }
 
         L2ModificationInstruction.ModVlanHeaderInstruction pushVlanInst = null;

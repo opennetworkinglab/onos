@@ -100,7 +100,7 @@ public class FabricInterpreterTest {
         PiAction mappedAction = interpreter.mapTreatment(treatment,
                                                          FabricConstants.FABRIC_INGRESS_FILTERING_INGRESS_PORT_VLAN);
         PiAction expectedAction = PiAction.builder()
-                .withId(FabricConstants.NOP)
+                .withId(FabricConstants.FABRIC_INGRESS_FILTERING_NOP_INGRESS_PORT_VLAN)
                 .build();
 
         assertEquals(expectedAction, mappedAction);
