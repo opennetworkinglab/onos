@@ -58,6 +58,11 @@ control Filtering (
         ingress_port_vlan_counter.count();
     }
 
+    action nop_ingress_port_vlan() {
+        nop();
+        ingress_port_vlan_counter.count();
+    }
+
     table ingress_port_vlan {
         key = {
             standard_metadata.ingress_port: exact;
@@ -68,11 +73,11 @@ control Filtering (
         actions = {
             push_internal_vlan;
             set_vlan;
-            @defaultonly nop;
             drop;
+            nop_ingress_port_vlan();
         }
 
-        const default_action = nop();
+        const default_action = push_internal_vlan(DEFAULT_VLAN_ID);
         counters = ingress_port_vlan_counter;
     }
 
@@ -111,7 +116,12 @@ control Filtering (
     }
 
     apply {
-        ingress_port_vlan.apply();
-        fwd_classifier.apply();
+        if (ingress_port_vlan.apply().hit) {
+            fwd_classifier.apply();
+        } else {
+            // Packet from unconfigured port. Skip forwarding processing,
+            // except for ACL table in case we want to punt to cpu.
+            fabric_metadata.fwd_type = FWD_UNKNOWN;
+        }
     }
 }

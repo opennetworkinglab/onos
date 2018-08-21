@@ -187,8 +187,8 @@ public final class FabricConstants {
             PiActionId.of("FabricIngress.next.mpls_routing_v6_simple");
     public static final PiActionId FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_UPDATE_TOTAL_HOP_CNT =
             PiActionId.of("FabricEgress.process_int_transit.int_update_total_hop_cnt");
-    public static final PiActionId FABRIC_INGRESS_NEXT_MPLS_ROUTING_V6_HASHED =
-            PiActionId.of("FabricIngress.next.mpls_routing_v6_hashed");
+    public static final PiActionId FABRIC_INGRESS_FILTERING_NOP_INGRESS_PORT_VLAN =
+            PiActionId.of("FabricIngress.filtering.nop_ingress_port_vlan");
     public static final PiActionId FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I14 =
             PiActionId.of("FabricEgress.process_int_transit.int_set_header_0407_i14");
     public static final PiActionId FABRIC_INGRESS_FORWARDING_SET_NEXT_ID_BRIDGING =
@@ -318,6 +318,8 @@ public final class FabricConstants {
             PiActionId.of("FabricIngress.next.mpls_routing_v4_simple");
     public static final PiActionId FABRIC_INGRESS_FORWARDING_NOP_ACL =
             PiActionId.of("FabricIngress.forwarding.nop_acl");
+    public static final PiActionId FABRIC_INGRESS_NEXT_MPLS_ROUTING_V6_HASHED =
+            PiActionId.of("FabricIngress.next.mpls_routing_v6_hashed");
     public static final PiActionId FABRIC_INGRESS_NEXT_L3_ROUTING_VLAN =
             PiActionId.of("FabricIngress.next.l3_routing_vlan");
     public static final PiActionId FABRIC_INGRESS_FORWARDING_SET_NEXT_ID_ACL =
