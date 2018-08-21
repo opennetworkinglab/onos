@@ -1431,12 +1431,9 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
     }
 
     private void hostUpdated(Host host, List<DhcpServerInfo> serverInfoList) {
-        DhcpServerInfo serverInfo;
-        Ip6Address targetIp;
-        if (!serverInfoList.isEmpty()) {
-            serverInfo = serverInfoList.get(0);
+        serverInfoList.stream().forEach(serverInfo -> {
             Ip6Address serverIp = serverInfo.getDhcpServerIp6().orElse(null);
-            targetIp = serverInfo.getDhcpGatewayIp6().orElse(null);
+            Ip6Address targetIp = serverInfo.getDhcpGatewayIp6().orElse(null);
 
             if (targetIp == null) {
                 targetIp = serverIp;
@@ -1448,7 +1445,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
                     requestDhcpPacket(serverIp);
                 }
             }
-        }
+        });
     }
     /**
      * Handle host removed.
@@ -1462,13 +1459,9 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
     }
 
     private void hostRemoved(Host host, List<DhcpServerInfo> serverInfoList) {
-        DhcpServerInfo serverInfo;
-        Ip6Address targetIp;
-
-        if (!serverInfoList.isEmpty()) {
-            serverInfo = serverInfoList.get(0);
+        serverInfoList.stream().forEach(serverInfo -> {
             Ip6Address serverIp = serverInfo.getDhcpServerIp6().orElse(null);
-            targetIp = serverInfo.getDhcpGatewayIp6().orElse(null);
+            Ip6Address targetIp = serverInfo.getDhcpGatewayIp6().orElse(null);
 
             if (targetIp == null) {
                 targetIp = serverIp;
@@ -1480,7 +1473,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
                     cancelDhcpPacket(serverIp);
                 }
             }
-        }
+        });
     }
 
    /**
