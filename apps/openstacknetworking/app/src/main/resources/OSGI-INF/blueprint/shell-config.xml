@@ -90,6 +90,12 @@
             </completers>
         </command>
         <command>
+            <action class="org.onosproject.openstacknetworking.cli.OpenstackResetPortsCommand" />
+            <completers>
+                <ref component-id="instancePortIdCompleter"/>
+            </completers>
+        </command>
+        <command>
             <action class="org.onosproject.openstacknetworking.cli.OpenstackDirectPortAddCommand" />
             <completers>
                 <ref component-id="directPortCompleter"/>
