@@ -145,7 +145,7 @@ public class DistributedDynamicConfigStore
         if (spath == null) {
             throw new FailedException("Invalid ResourceId, cannot create Node");
         }
-        if (spath.equals(ResourceIdParser.ROOT) && node == null) {
+        if (spath.equals(ResourceIdParser.ROOT)) {
             return CompletableFuture.completedFuture(true);
         } else if (complete(keystore.get(DocumentPath.from(spath))) == null) {
             throw new FailedException("Node or parent does not exist for " + spath);
