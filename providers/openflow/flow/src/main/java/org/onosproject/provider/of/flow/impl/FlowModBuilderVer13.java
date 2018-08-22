@@ -75,6 +75,7 @@ import org.projectfloodlight.openflow.types.EthType;
 import org.projectfloodlight.openflow.types.IPv4Address;
 import org.projectfloodlight.openflow.types.IPv6Address;
 import org.projectfloodlight.openflow.types.IPv6FlowLabel;
+import org.projectfloodlight.openflow.types.IpDscp;
 import org.projectfloodlight.openflow.types.MacAddress;
 import org.projectfloodlight.openflow.types.OFBooleanValue;
 import org.projectfloodlight.openflow.types.OFBufferId;
@@ -446,6 +447,11 @@ public class FlowModBuilderVer13 extends FlowModBuilder {
                 ip = (ModIPInstruction) i;
                 ip4 = ip.ip().getIp4Address();
                 oxm = factory().oxms().ipv4Dst(IPv4Address.of(ip4.toInt()));
+                break;
+            case IP_DSCP:
+                L3ModificationInstruction.ModDscpInstruction dscp = (L3ModificationInstruction.ModDscpInstruction) i;
+                IpDscp ipDscp = IpDscp.of(dscp.dscp());
+                oxm = factory().oxms().ipDscp(ipDscp);
                 break;
             case IPV6_SRC:
                 ip = (ModIPInstruction) i;

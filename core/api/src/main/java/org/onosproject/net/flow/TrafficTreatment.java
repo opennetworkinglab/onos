@@ -428,6 +428,14 @@ public interface TrafficTreatment {
         Builder piTableAction(PiTableAction piTableAction);
 
         /**
+         * Sets the IP DSCP field.
+         *
+         * @param dscpValue the DSCP value
+         * @return a treatment builder.
+         */
+        Builder setIpDscp(byte dscpValue);
+
+        /**
          * Uses an extension treatment.
          *
          * @param extension extension treatment

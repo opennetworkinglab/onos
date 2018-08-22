@@ -84,7 +84,12 @@ public abstract class L3ModificationInstruction implements Instruction {
         /**
          * Arp operation modification.
          */
-        ARP_OP
+        ARP_OP,
+
+        /**
+         * IP DSCP operation modification.
+         */
+        IP_DSCP
     }
 
     /**
@@ -376,6 +381,52 @@ public abstract class L3ModificationInstruction implements Instruction {
             if (obj instanceof ModTtlInstruction) {
                 ModTtlInstruction that = (ModTtlInstruction) obj;
                 return  Objects.equals(this.subtype(), that.subtype());
+            }
+            return false;
+        }
+    }
+
+    /**
+     * Represents a L3 DSCP modification instruction.
+     */
+    public static final class ModDscpInstruction extends L3ModificationInstruction {
+
+        private final L3SubType subtype;
+        private final byte dscp;
+
+        ModDscpInstruction(L3SubType subtype, byte dscp) {
+            this.subtype = subtype;
+            this.dscp = dscp;
+        }
+
+        @Override
+        public L3SubType subtype() {
+            return this.subtype;
+        }
+
+        @Override
+        public String toString() {
+            return subtype().toString() + SEPARATOR + dscp();
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(type(), subtype(), dscp());
+        }
+
+        public byte dscp() {
+            return this.dscp;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof ModDscpInstruction) {
+                ModDscpInstruction that = (ModDscpInstruction) obj;
+                return  Objects.equals(this.subtype(), that.subtype()) &&
+                        Objects.equals(this.dscp(), that.dscp());
             }
             return false;
         }

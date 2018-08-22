@@ -94,6 +94,7 @@ import org.projectfloodlight.openflow.protocol.ver13.OFFactoryVer13;
 import org.projectfloodlight.openflow.types.CircuitSignalID;
 import org.projectfloodlight.openflow.types.IPv4Address;
 import org.projectfloodlight.openflow.types.IPv6Address;
+import org.projectfloodlight.openflow.types.IpDscp;
 import org.projectfloodlight.openflow.types.Masked;
 import org.projectfloodlight.openflow.types.OFBooleanValue;
 import org.projectfloodlight.openflow.types.OFVlanVidMatch;
@@ -809,6 +810,11 @@ public class FlowEntryBuilder {
                 }
             }
             break;
+        case IP_DSCP:
+            @SuppressWarnings("unchecked")
+            OFOxm<IpDscp> ipDscp = (OFOxm<IpDscp>) oxm;
+            builder.setIpDscp(ipDscp.getValue().getDscpValue());
+            break;
         case ARP_THA:
         case ARP_TPA:
         case BSN_EGR_PORT_GROUP_ID:
@@ -842,7 +848,6 @@ public class FlowEntryBuilder {
         case IPV6_ND_TARGET:
         case IPV6_ND_TLL:
         case IPV6_SRC:
-        case IP_DSCP:
         case IP_ECN:
         case IP_PROTO:
         case METADATA:

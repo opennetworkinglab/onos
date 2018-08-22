@@ -485,6 +485,16 @@ public final class Instructions {
     }
 
     /**
+     * Creates an IP DSCP modification.
+     *
+     * @param dscpValue the DSCP value to modify to
+     * @return a L3 modification
+     */
+    public static Instruction modIpDscp(byte dscpValue) {
+        return new L3ModificationInstruction.ModDscpInstruction(L3SubType.IP_DSCP, dscpValue);
+    }
+
+    /**
      * Creates an extension instruction.
      *
      * @param extension extension instruction
