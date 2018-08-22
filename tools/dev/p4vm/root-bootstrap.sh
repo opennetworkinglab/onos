@@ -13,7 +13,6 @@ chmod 440 /etc/sudoers.d/99_sdn
 usermod -aG vboxsf sdn
 update-locale LC_ALL="en_US.UTF-8"
 
-
 if [ ${VM_TYPE} = "tutorial" ]
 then
     su sdn <<'EOF'
@@ -22,9 +21,6 @@ bash /vagrant/tutorial-bootstrap.sh
 EOF
 fi
 
-# Bazel
-wget https://github.com/bazelbuild/bazel/releases/download/${BAZEL_VER}/${BAZEL_DEB}
-
 # Java 8
 apt-get install software-properties-common -y
 add-apt-repository ppa:webupd8team/java -y
@@ -32,6 +28,7 @@ apt-get update
 
 DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade
 
+wget https://github.com/bazelbuild/bazel/releases/download/${BAZEL_VER}/${BAZEL_DEB}
 echo "oracle-java8-installer shared/accepted-oracle-license-v1-1 select true" | debconf-set-selections
 apt-get -y --no-install-recommends install \
     ./${BAZEL_DEB} \

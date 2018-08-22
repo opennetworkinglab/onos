@@ -6,6 +6,41 @@
 
 set -xe
 
+# Remove unneeded software
+sudo apt-get remove -y --purge \
+    libreoffice* \
+    account-plugin-aim \
+    account-plugin-facebook \
+    account-plugin-flickr \
+    account-plugin-jabber \
+    account-plugin-salut \
+    account-plugin-yahoo \
+    aisleriot \
+    gnome-mahjongg \
+    gnome-mines \
+    gnome-sudoku \
+    landscape-client-ui-install \
+    unity-lens-music \
+    unity-lens-photos \
+    unity-lens-video \
+    unity-scope-audacious \
+    unity-scope-chromiumbookmarks \
+    unity-scope-clementine \
+    unity-scope-colourlovers \
+    unity-scope-devhelp \
+    unity-scope-firefoxbookmarks \
+    unity-scope-gmusicbrowser \
+    unity-scope-gourmet \
+    unity-scope-musicstores \
+    unity-scope-musique \
+    unity-scope-openclipart \
+    unity-scope-texdoc \
+    unity-scope-tomboy \
+    unity-scope-video-remote \
+    unity-scope-virtualbox \
+    unity-scope-zotero \
+    unity-webapps-common
+
 sudo add-apt-repository ppa:webupd8team/sublime-text-3 -y
 sudo add-apt-repository ppa:webupd8team/atom -y
 sudo apt-get update
@@ -15,21 +50,19 @@ echo "wireshark-common wireshark-common/install-setuid boolean true" | sudo debc
 sudo DEBIAN_FRONTEND=noninteractive dpkg-reconfigure wireshark-common
 
 sudo apt-get -y --no-install-recommends install \
-    lubuntu-desktop \
     atom \
     sublime-text-installer \
-    vim \
-    wget
+    vim
 
 # Disable screensaver
-sudo apt-get -y remove light-locker
+gsettings set org.gnome.desktop.screensaver lock-delay 3600
+gsettings set org.gnome.desktop.screensaver lock-enabled false
+gsettings set org.gnome.desktop.screensaver idle-activation-enabled false
 
 # Automatically log into the SDN user
-cat << EOF | sudo tee -a /etc/lightdm/lightdm.conf.d/10-lightdm.conf
+cat << EOF | sudo tee /etc/lightdm/lightdm.conf
 [SeatDefaults]
 autologin-user=sdn
-autologin-user-timeout=0
-user-session=Lubuntu
 EOF
 
 # Vim
@@ -55,18 +88,7 @@ apm install language-p4
 DESKTOP=/home/sdn/Desktop
 mkdir -p ${DESKTOP}
 
-cat > ${DESKTOP}/Terminal << EOF
-[Desktop Entry]
-Encoding=UTF-8
-Type=Application
-Name=Terminal
-Name[en_US]=Terminal
-Icon=konsole
-Exec=/usr/bin/x-terminal-emulator
-Comment[en_US]=
-EOF
-
-cat > ${DESKTOP}/Wireshark << EOF
+cat > ${DESKTOP}/Wireshark.desktop << EOF
 [Desktop Entry]
 Encoding=UTF-8
 Type=Application
@@ -77,7 +99,7 @@ Exec=/usr/bin/wireshark
 Comment[en_US]=
 EOF
 
-cat > ${DESKTOP}/Sublime\ Text << EOF
+cat > ${DESKTOP}/Sublime\ Text.desktop << EOF
 [Desktop Entry]
 Encoding=UTF-8
 Type=Application
@@ -88,7 +110,7 @@ Exec=/opt/sublime_text/sublime_text
 Comment[en_US]=
 EOF
 
-cat > ${DESKTOP}/Atom << EOF
+cat > ${DESKTOP}/Atom.desktop << EOF
 [Desktop Entry]
 Encoding=UTF-8
 Type=Application
@@ -98,3 +120,5 @@ Icon=atom
 Exec=/usr/bin/atom
 Comment[en_US]=
 EOF
+
+chmod +x ${DESKTOP}/*.desktop
