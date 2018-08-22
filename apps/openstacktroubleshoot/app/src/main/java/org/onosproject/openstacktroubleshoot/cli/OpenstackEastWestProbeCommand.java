@@ -21,8 +21,13 @@ import org.apache.karaf.shell.commands.Command;
 import org.apache.karaf.shell.commands.Option;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.NodeId;
+import org.onosproject.mastership.MastershipService;
 import org.onosproject.openstacknetworking.api.InstancePort;
 import org.onosproject.openstacknetworking.api.InstancePortService;
+import org.onosproject.openstacknode.api.OpenstackNode;
+import org.onosproject.openstacknode.api.OpenstackNodeService;
 import org.onosproject.openstacktroubleshoot.api.OpenstackTroubleshootService;
 import org.onosproject.openstacktroubleshoot.api.Reachability;
 
@@ -31,6 +36,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.onosproject.openstacknetworking.api.InstancePort.State.ACTIVE;
+import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
 
 /**
  * Checks the east-west VMs connectivity.
@@ -55,10 +61,11 @@ public class OpenstackEastWestProbeCommand extends AbstractShellCommand {
 
     @Override
     protected void execute() {
-        OpenstackTroubleshootService tsService =
-                get(OpenstackTroubleshootService.class);
-
+        OpenstackTroubleshootService tsService = get(OpenstackTroubleshootService.class);
         InstancePortService instPortService = get(InstancePortService.class);
+        MastershipService mastershipService = get(MastershipService.class);
+        ClusterService clusterService = get(ClusterService.class);
+        OpenstackNodeService osNodeService = get(OpenstackNodeService.class);
 
         if (tsService == null) {
             error("Failed to troubleshoot openstack networking.");
@@ -68,6 +75,16 @@ public class OpenstackEastWestProbeCommand extends AbstractShellCommand {
         if ((!isAll && vmIps == null) || (isAll && vmIps != null)) {
             print("Please specify one of VM IP address or -a option.");
             return;
+        }
+
+        NodeId localNodeId = clusterService.getLocalNode().id();
+
+        for (OpenstackNode node : osNodeService.completeNodes(COMPUTE)) {
+            if (!localNodeId.equals(mastershipService.getMasterFor(node.intgBridge()))) {
+                error("Current node is not the master for all compute nodes. " +
+                        "Please enforce mastership first using openstack-reset-mastership -c !");
+                return;
+            }
         }
 
         if (isAll) {
