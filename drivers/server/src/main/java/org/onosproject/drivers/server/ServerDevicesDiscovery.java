@@ -928,7 +928,7 @@ public class ServerDevicesDiscovery extends BasicServerDriver
         // Time (ns) to autoscale a server's load
         long autoscaleTime = 0;
         if (autoscaleTimingObjNode.get(TIMING_PARAM_AUTOSCALE) != null) {
-            autoscaleTimingObjNode.path(TIMING_PARAM_AUTOSCALE).asLong();
+            autoscaleTime = autoscaleTimingObjNode.path(TIMING_PARAM_AUTOSCALE).asLong();
         }
         timingBuilder.setAutoscaleTime(autoscaleTime);
 
