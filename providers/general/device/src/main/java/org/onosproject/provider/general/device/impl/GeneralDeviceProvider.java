@@ -959,6 +959,7 @@ public class GeneralDeviceProvider extends AbstractProvider
                     // TODO evaluate other reaction to channel error.
                     log.warn("Received CHANNEL_ERROR from {}. Is the channel still open?",
                              deviceId);
+                    handleChannelClosed(deviceId);
                     break;
                 case ROLE_MASTER:
                     handleMastershipResponse(deviceId, MastershipRole.MASTER);
