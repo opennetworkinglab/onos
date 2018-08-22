@@ -80,4 +80,9 @@ public class AtomixWorkQueue<E> implements WorkQueue<E> {
                 .withTotalPending(stats.totalPending())
                 .build());
     }
+
+    @Override
+    public CompletableFuture<Void> destroy() {
+        return adaptFuture(atomixWorkQueue.delete());
+    }
 }

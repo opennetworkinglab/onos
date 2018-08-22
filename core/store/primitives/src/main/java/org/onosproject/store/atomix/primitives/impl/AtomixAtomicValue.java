@@ -81,4 +81,9 @@ public class AtomixAtomicValue<V> implements AsyncAtomicValue<V> {
         }
         return CompletableFuture.completedFuture(null);
     }
+
+    @Override
+    public CompletableFuture<Void> destroy() {
+        return adaptFuture(atomixValue.delete());
+    }
 }

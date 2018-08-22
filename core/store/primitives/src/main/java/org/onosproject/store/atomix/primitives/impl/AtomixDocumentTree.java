@@ -145,6 +145,11 @@ public class AtomixDocumentTree<V> implements AsyncDocumentTree<V> {
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    public CompletableFuture<Void> destroy() {
+        return adaptTreeFuture(atomixTree.delete());
+    }
+
     private DocumentPath toOnosPath(io.atomix.core.tree.DocumentPath path) {
         List<String> pathElements = Lists.newArrayList(path.pathElements());
         pathElements.set(0, DocumentPath.ROOT.pathElements().get(0));
