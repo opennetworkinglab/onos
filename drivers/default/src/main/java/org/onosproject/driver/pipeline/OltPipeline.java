@@ -178,8 +178,9 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
             return;
         }
 
-        if (ethType.ethType().equals(EthType.EtherType.EAPOL.ethType())) {
-            provisionEapol(filter, ethType, output);
+        if (ethType.ethType().equals(EthType.EtherType.EAPOL.ethType()) ||
+                ethType.ethType().equals(EthType.EtherType.LLDP.ethType())) {
+            provisionEthtypeTrap(filter, ethType, output);
         } else if (ethType.ethType().equals(EthType.EtherType.IPV4.ethType())) {
             IPProtocolCriterion ipProto = (IPProtocolCriterion)
                     filterForCriterion(filter.conditions(), Criterion.Type.IP_PROTO);
@@ -208,7 +209,7 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
             }
         } else {
             log.warn("\nOnly the following are Supported in OLT for filter ->\n"
-                    + "ETH TYPE : EAPOL and IPV4\n"
+                    + "ETH TYPE : EAPOL, LLDP and IPV4\n"
                     + "IPV4 TYPE: IGMP and UDP (for DHCP)");
             fail(filter, ObjectiveError.UNSUPPORTED);
         }
@@ -556,9 +557,9 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
                 .collect(Collectors.toList());
     }
 
-    private void provisionEapol(FilteringObjective filter,
-                                EthTypeCriterion ethType,
-                                Instructions.OutputInstruction output) {
+    private void provisionEthtypeTrap(FilteringObjective filter,
+                                      EthTypeCriterion ethType,
+                                      Instructions.OutputInstruction output) {
 
         TrafficSelector selector = buildSelector(filter.key(), ethType);
         TrafficTreatment treatment = buildTreatment(output);
