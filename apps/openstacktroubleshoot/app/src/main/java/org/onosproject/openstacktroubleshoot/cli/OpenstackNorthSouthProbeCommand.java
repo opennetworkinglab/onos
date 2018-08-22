@@ -79,7 +79,8 @@ public class OpenstackNorthSouthProbeCommand extends AbstractShellCommand {
 
         for (OpenstackNode gw : osNodeService.completeNodes(GATEWAY)) {
             if (!localNodeId.equals(mastershipService.getMasterFor(gw.intgBridge()))) {
-                error("Current node is not the master for all gateway nodes. Please enforce mastership first!");
+                error("Current node is not the master for all gateway nodes. " +
+                        "Please enforce mastership first using openstack-reset-mastership -c !");
                 return;
             }
         }

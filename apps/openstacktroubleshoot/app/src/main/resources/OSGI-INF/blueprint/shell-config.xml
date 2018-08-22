@@ -27,6 +27,9 @@
                 <ref component-id="activeFloatingIpCompleter"/>
             </completers>
         </command>
+        <command>
+            <action class="org.onosproject.openstacktroubleshoot.cli.ResetMastershipCommand"/>
+        </command>
     </command-bundle>
 
     <bean id="activeVmIpCompleter" class="org.onosproject.openstacktroubleshoot.cli.ActiveVmIpCompleter"/>
