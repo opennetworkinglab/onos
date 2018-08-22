@@ -18,7 +18,9 @@ package org.onosproject.pipelines.basic;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import org.apache.commons.lang3.tuple.Pair;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DefaultPortStatistics;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.device.PortStatistics;
@@ -49,6 +51,9 @@ import static org.onosproject.pipelines.basic.BasicConstants.CNT_INGRESS_PORT_CO
  * Implementation of the PortStatisticsBehaviour for basic.p4.
  */
 public class PortStatisticsDiscoveryImpl extends AbstractHandlerBehaviour implements PortStatisticsDiscovery {
+
+    private static final Map<Pair<DeviceId, PortNumber>, Long> PORT_START_TIMES =
+            Maps.newConcurrentMap();
 
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -93,10 +98,12 @@ public class PortStatisticsDiscoveryImpl extends AbstractHandlerBehaviour implem
 
         Map<Long, DefaultPortStatistics.Builder> portStatBuilders = Maps.newHashMap();
         deviceService.getPorts(deviceId)
-                .forEach(p -> portStatBuilders.put(p.number().toLong(),
-                                                   DefaultPortStatistics.builder()
-                                                           .setPort(p.number())
-                                                           .setDeviceId(deviceId)));
+                .forEach(p -> portStatBuilders.put(
+                        p.number().toLong(),
+                        DefaultPortStatistics.builder()
+                                .setPort(p.number())
+                                .setDeviceId(deviceId)
+                                .setDurationSec(getDuration(p.number()))));
 
         Set<PiCounterCellId> counterCellIds = Sets.newHashSet();
         portStatBuilders.keySet().forEach(p -> {
@@ -134,6 +141,7 @@ public class PortStatisticsDiscoveryImpl extends AbstractHandlerBehaviour implem
             } else {
                 log.warn("Unrecognized counter ID {}, skipping", counterData);
             }
+
         });
 
         return portStatBuilders
@@ -141,5 +149,14 @@ public class PortStatisticsDiscoveryImpl extends AbstractHandlerBehaviour implem
                 .stream()
                 .map(DefaultPortStatistics.Builder::build)
                 .collect(Collectors.toList());
+    }
+
+    private long getDuration(PortNumber port) {
+        // FIXME: This is a workaround since we cannot determine the port
+        // duration from a P4 counter. We'll be fixed by gNMI.
+        final long now = System.currentTimeMillis() / 1000;
+        final Long startTime = PORT_START_TIMES.putIfAbsent(
+                Pair.of(data().deviceId(), port), now);
+        return startTime == null ? now : now - startTime;
     }
 }
