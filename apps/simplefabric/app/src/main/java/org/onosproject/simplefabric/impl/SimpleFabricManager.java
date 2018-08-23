@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-present Open Networking Foundation
+ * Copyright 2018-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.simplefabric;
+package org.onosproject.simplefabric.impl;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
@@ -29,42 +29,42 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.ARP;
 import org.onlab.packet.Ethernet;
+import org.onlab.packet.IPv6;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
-import org.onlab.packet.IPv6;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onlab.packet.ndp.NeighborSolicitation;
 import org.onosproject.app.ApplicationService;
+import org.onosproject.component.ComponentService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.component.ComponentService;
 import org.onosproject.event.ListenerRegistry;
-import org.onosproject.net.intf.Interface;
-import org.onosproject.net.intf.InterfaceService;
-import org.onosproject.net.intf.InterfaceListener;
-import org.onosproject.net.intf.InterfaceEvent;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.Host;
 import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.config.basics.SubjectFactories;
-import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.net.Host;
-import org.onosproject.net.host.HostService;
-import org.onosproject.net.host.HostListener;
 import org.onosproject.net.host.HostEvent;
-import org.onosproject.net.packet.PacketService;
+import org.onosproject.net.host.HostListener;
+import org.onosproject.net.host.HostService;
+import org.onosproject.net.intf.Interface;
+import org.onosproject.net.intf.InterfaceEvent;
+import org.onosproject.net.intf.InterfaceListener;
+import org.onosproject.net.intf.InterfaceService;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
+import org.onosproject.net.packet.PacketService;
 import org.onosproject.simplefabric.api.IpSubnet;
 import org.onosproject.simplefabric.api.L2Network;
 import org.onosproject.simplefabric.api.Route;
@@ -77,12 +77,20 @@ import org.slf4j.LoggerFactory;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.nio.ByteBuffer;
-import java.util.HashSet;
 import java.util.Collection;
-import java.util.Set;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
-import static org.onosproject.simplefabric.RouteTools.createBinaryString;
+import static org.onosproject.simplefabric.util.RouteTools.createBinaryString;
+import static org.onosproject.simplefabric.api.Constants.ALLOW_ETH_ADDRESS_SELECTOR;
+import static org.onosproject.simplefabric.api.Constants.ALLOW_IPV6;
+import static org.onosproject.simplefabric.api.Constants.APP_ID;
+import static org.onosproject.simplefabric.api.Constants.IDLE_INTERVAL_MSEC;
+import static org.onosproject.simplefabric.api.Constants.REACTIVE_ALLOW_LINK_CP;
+import static org.onosproject.simplefabric.api.Constants.REACTIVE_HASHED_PATH_SELECTION;
+import static org.onosproject.simplefabric.api.Constants.REACTIVE_MATCH_IP_PROTO;
+import static org.onosproject.simplefabric.api.Constants.REACTIVE_SINGLE_TO_SINGLE;
 
 
 /**
@@ -187,7 +195,7 @@ public class SimpleFabricManager extends ListenerRegistry<SimpleFabricEvent, Sim
 
         componentService.activate(appId, SimpleFabricNeighbour.class.getName());
         componentService.activate(appId, SimpleFabricReactiveRouting.class.getName());
-        if (SimpleFabricService.ALLOW_ETH_ADDRESS_SELECTOR) {
+        if (ALLOW_ETH_ADDRESS_SELECTOR) {
             componentService.activate(appId, SimpleFabricL2Forward.class.getName());
         }
 
@@ -203,7 +211,7 @@ public class SimpleFabricManager extends ListenerRegistry<SimpleFabricEvent, Sim
 
         componentService.deactivate(appId, SimpleFabricNeighbour.class.getName());
         componentService.deactivate(appId, SimpleFabricReactiveRouting.class.getName());
-        if (SimpleFabricService.ALLOW_ETH_ADDRESS_SELECTOR) {
+        if (ALLOW_ETH_ADDRESS_SELECTOR) {
             componentService.deactivate(appId, SimpleFabricL2Forward.class.getName());
         }
 
@@ -490,18 +498,12 @@ public class SimpleFabricManager extends ListenerRegistry<SimpleFabricEvent, Sim
     protected void dump(String subject, PrintStream out) {
         if ("show".equals(subject)) {
             out.println("Static Configuration Flag:");
-            out.println("    ALLOW_IPV6="
-                        + SimpleFabricService.ALLOW_IPV6);
-            out.println("    ALLOW_ETH_ADDRESS_SELECTOR="
-                        + SimpleFabricService.ALLOW_ETH_ADDRESS_SELECTOR);
-            out.println("    REACTIVE_SINGLE_TO_SINGLE="
-                        + SimpleFabricService.REACTIVE_SINGLE_TO_SINGLE);
-            out.println("    REACTIVE_ALLOW_LINK_CP="
-                        + SimpleFabricService.REACTIVE_ALLOW_LINK_CP);
-            out.println("    REACTIVE_HASHED_PATH_SELECTION="
-                        + SimpleFabricService.REACTIVE_HASHED_PATH_SELECTION);
-            out.println("    REACTIVE_MATCH_IP_PROTO="
-                        + SimpleFabricService.REACTIVE_MATCH_IP_PROTO);
+            out.println("    ALLOW_IPV6=" + ALLOW_IPV6);
+            out.println("    ALLOW_ETH_ADDRESS_SELECTOR=" + ALLOW_ETH_ADDRESS_SELECTOR);
+            out.println("    REACTIVE_SINGLE_TO_SINGLE=" + REACTIVE_SINGLE_TO_SINGLE);
+            out.println("    REACTIVE_ALLOW_LINK_CP=" + REACTIVE_ALLOW_LINK_CP);
+            out.println("    REACTIVE_HASHED_PATH_SELECTION=" + REACTIVE_HASHED_PATH_SELECTION);
+            out.println("    REACTIVE_MATCH_IP_PROTO=" + REACTIVE_MATCH_IP_PROTO);
             out.println("");
             out.println("SimpleFabricAppId:");
             out.println("    " + getAppId());

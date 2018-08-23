@@ -20,16 +20,18 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.onlab.packet.VlanId;
-import org.onosproject.net.intf.Interface;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.EncapsulationType;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
-import org.onosproject.net.EncapsulationType;
+import org.onosproject.net.intf.Interface;
 
 import java.util.Collection;
 import java.util.Objects;
 import java.util.Set;
+
+import static org.onosproject.simplefabric.api.Constants.ALLOW_ETH_ADDRESS_SELECTOR;
 
 
 /**
@@ -63,8 +65,8 @@ public final class L2Network {
         this.interfaceNames = Sets.newHashSet();
         this.interfaceNames.addAll(ifaceNames);
         this.encapsulation = encapsulation;
-        this.l2Forward = (SimpleFabricService.ALLOW_ETH_ADDRESS_SELECTOR) ? l2Forward : false;
-        this.l2Broadcast = (SimpleFabricService.ALLOW_ETH_ADDRESS_SELECTOR) ? l2Broadcast : false;
+        this.l2Forward = (ALLOW_ETH_ADDRESS_SELECTOR) ? l2Forward : false;
+        this.l2Broadcast = (ALLOW_ETH_ADDRESS_SELECTOR) ? l2Broadcast : false;
         this.interfaces = Sets.newHashSet();
         this.hostIds = Sets.newHashSet();
         this.dirty = false;
@@ -80,8 +82,8 @@ public final class L2Network {
         this.name = name;
         this.interfaceNames = Sets.newHashSet();
         this.encapsulation = encapsulation;
-        this.l2Forward = (SimpleFabricService.ALLOW_ETH_ADDRESS_SELECTOR) ? true : false;
-        this.l2Broadcast = (SimpleFabricService.ALLOW_ETH_ADDRESS_SELECTOR) ? true : false;
+        this.l2Forward = (ALLOW_ETH_ADDRESS_SELECTOR) ? true : false;
+        this.l2Broadcast = (ALLOW_ETH_ADDRESS_SELECTOR) ? true : false;
         this.interfaces = Sets.newHashSet();
         this.hostIds = Sets.newHashSet();
         this.dirty = false;
@@ -109,8 +111,8 @@ public final class L2Network {
         Objects.requireNonNull(l2Network);
         L2Network l2NetworkCopy = new L2Network(l2Network.name(), l2Network.encapsulation());
         l2NetworkCopy.interfaceNames.addAll(l2Network.interfaceNames());
-        l2NetworkCopy.l2Forward = (SimpleFabricService.ALLOW_ETH_ADDRESS_SELECTOR) ? l2Network.l2Forward() : false;
-        l2NetworkCopy.l2Broadcast = (SimpleFabricService.ALLOW_ETH_ADDRESS_SELECTOR) ? l2Network.l2Broadcast() : false;
+        l2NetworkCopy.l2Forward = (ALLOW_ETH_ADDRESS_SELECTOR) ? l2Network.l2Forward() : false;
+        l2NetworkCopy.l2Broadcast = (ALLOW_ETH_ADDRESS_SELECTOR) ? l2Network.l2Broadcast() : false;
         l2NetworkCopy.interfaces.addAll(l2Network.interfaces());
         l2NetworkCopy.hostIds.addAll(l2Network.hostIds());
         l2NetworkCopy.setDirty(l2Network.dirty());

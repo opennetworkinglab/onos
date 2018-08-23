@@ -34,38 +34,6 @@ import java.util.Collection;
 public interface SimpleFabricService
         extends ListenerService<SimpleFabricEvent, SimpleFabricListener> {
 
-    // App symbols
-    static final String APP_ID = "org.onosproject.simplefabric";
-    static final String L2FORWARD_APP_ID = "org.onosproject.simplefabric.l2forward";
-    static final String REACTIVE_APP_ID = "org.onosproject.simplefabric.reactive";
-
-    // Priority for l2NetworkRouting: L2NETWORK_UNICAST or L2NETWORK_BROADCAST
-    static final int PRI_L2NETWORK_UNICAST = 601;
-    static final int PRI_L2NETWORK_BROADCAST = 600;
-
-    // Reactive Routing within Local Subnets
-    // ASSUME: local subnets NEVER overlaps each other
-    static final int PRI_REACTIVE_LOCAL_FORWARD = 501;
-    static final int PRI_REACTIVE_LOCAL_INTERCEPT = 500;
-    // Reactive Routing for Border Routes with local subnet
-    // Priority: REACTIVE_BROUTE_BASE + routeIpPrefix * REACTIVE_BROUTE_STEP
-    //           + REACTIVE_BROUTE_FORWARD or REACTIVE_BROUTE_INTERCEPT
-    static final int PRI_REACTIVE_BORDER_BASE = 100;
-    static final int PRI_REACTIVE_BORDER_STEP = 2;
-    static final int PRI_REACTIVE_BORDER_FORWARD = 1;
-    static final int PRI_REACTIVE_BORDER_INTERCEPT = 0;
-
-    // Simple fabric event related timers
-    static final long IDLE_INTERVAL_MSEC = 5000;
-
-    // Feature control parameters
-    static final boolean ALLOW_IPV6 = false;
-    static final boolean ALLOW_ETH_ADDRESS_SELECTOR = true;
-    static final boolean REACTIVE_SINGLE_TO_SINGLE = false;
-    static final boolean REACTIVE_ALLOW_LINK_CP = false;  // MUST BE false (yjlee, 2017-10-18)
-    static final boolean REACTIVE_HASHED_PATH_SELECTION = false;
-    static final boolean REACTIVE_MATCH_IP_PROTO = false;
-
     /**
      * Gets appId.
      *

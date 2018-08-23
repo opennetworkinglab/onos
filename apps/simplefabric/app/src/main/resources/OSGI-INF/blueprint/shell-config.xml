@@ -17,12 +17,12 @@
 
     <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.1.0">
         <command>
-            <action class="org.onosproject.simplefabric.SimpleFabricCommand"/>
+            <action class="org.onosproject.simplefabric.cli.SimpleFabricCommand"/>
             <completers>
                 <ref component-id="SimpleFabricCommandCompleter"/>
             </completers>
         </command>
     </command-bundle>
  
-    <bean id="SimpleFabricCommandCompleter" class="org.onosproject.simplefabric.SimpleFabricCommandCompleter"/>
+    <bean id="SimpleFabricCommandCompleter" class="org.onosproject.simplefabric.cli.SimpleFabricCommandCompleter"/>
 </blueprint>

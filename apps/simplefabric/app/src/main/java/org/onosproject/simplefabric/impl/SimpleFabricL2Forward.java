@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-present Open Networking Foundation
+ * Copyright 2018-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.simplefabric;
+package org.onosproject.simplefabric.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -63,6 +63,10 @@ import java.util.Objects;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static org.onosproject.simplefabric.api.Constants.L2FORWARD_APP_ID;
+import static org.onosproject.simplefabric.api.Constants.PRI_L2NETWORK_BROADCAST;
+import static org.onosproject.simplefabric.api.Constants.PRI_L2NETWORK_UNICAST;
+
 
 /**
  * An implementation of L2NetworkOperationService.
@@ -101,7 +105,7 @@ public class SimpleFabricL2Forward {
 
     @Activate
     public void activate() {
-        l2ForwardAppId = coreService.registerApplication(simpleFabric.L2FORWARD_APP_ID);
+        l2ForwardAppId = coreService.registerApplication(L2FORWARD_APP_ID);
         log.info("simple fabric l2 forwaring starting with l2net app id {}", l2ForwardAppId.toString());
 
         simpleFabric.addListener(simpleFabricListener);
@@ -294,7 +298,7 @@ public class SimpleFabricL2Forward {
                     .filteredIngressPoint(srcFcp)
                     .filteredEgressPoints(dstFcps)
                     .constraints(buildConstraints(L2NETWORK_CONSTRAINTS, l2Network.encapsulation()))
-                    .priority(SimpleFabricService.PRI_L2NETWORK_BROADCAST)
+                    .priority(PRI_L2NETWORK_BROADCAST)
                     .resourceGroup(resourceGroup);
             brcIntents.add(intentBuilder.build());
         });
@@ -325,7 +329,7 @@ public class SimpleFabricL2Forward {
                     .filteredIngressPoints(srcFcps)
                     .filteredEgressPoint(hostFcp)
                     .constraints(buildConstraints(L2NETWORK_CONSTRAINTS, l2Network.encapsulation()))
-                    .priority(SimpleFabricService.PRI_L2NETWORK_UNICAST)
+                    .priority(PRI_L2NETWORK_UNICAST)
                     .resourceGroup(resourceGroup);
             uniIntents.add(intentBuilder.build());
         });

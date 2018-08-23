@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-present Open Networking Foundation
+ * Copyright 2018-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.simplefabric;
+package org.onosproject.simplefabric.impl;
 
 import com.google.common.collect.ImmutableList;
 import org.apache.felix.scr.annotations.Activate;
@@ -27,41 +27,41 @@ import org.onlab.packet.ICMP;
 import org.onlab.packet.ICMP6;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.IPv6;
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.IpPrefix;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.Ip6Prefix;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.net.FilteredConnectPoint;
-import org.onosproject.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.EncapsulationType;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.EncapsulationType;
+import org.onosproject.net.FilteredConnectPoint;
+import org.onosproject.net.Host;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
-import org.onosproject.net.flow.TrafficSelector;
-import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleService;
-import org.onosproject.net.Host;
+import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.intent.Constraint;
-import org.onosproject.net.intent.constraint.EncapsulationConstraint;
-import org.onosproject.net.intent.constraint.PartialFailureConstraint;
-import org.onosproject.net.intent.constraint.HashedPathSelectionConstraint;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.MultiPointToSinglePointIntent;
+import org.onosproject.net.intent.constraint.EncapsulationConstraint;
+import org.onosproject.net.intent.constraint.HashedPathSelectionConstraint;
+import org.onosproject.net.intent.constraint.PartialFailureConstraint;
 import org.onosproject.net.intf.Interface;
+import org.onosproject.net.intf.InterfaceService;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.InboundPacket;
@@ -87,6 +87,20 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import static org.onosproject.simplefabric.api.Constants.ALLOW_ETH_ADDRESS_SELECTOR;
+import static org.onosproject.simplefabric.api.Constants.ALLOW_IPV6;
+import static org.onosproject.simplefabric.api.Constants.PRI_REACTIVE_BORDER_BASE;
+import static org.onosproject.simplefabric.api.Constants.PRI_REACTIVE_BORDER_FORWARD;
+import static org.onosproject.simplefabric.api.Constants.PRI_REACTIVE_BORDER_INTERCEPT;
+import static org.onosproject.simplefabric.api.Constants.PRI_REACTIVE_BORDER_STEP;
+import static org.onosproject.simplefabric.api.Constants.PRI_REACTIVE_LOCAL_FORWARD;
+import static org.onosproject.simplefabric.api.Constants.PRI_REACTIVE_LOCAL_INTERCEPT;
+import static org.onosproject.simplefabric.api.Constants.REACTIVE_ALLOW_LINK_CP;
+import static org.onosproject.simplefabric.api.Constants.REACTIVE_APP_ID;
+import static org.onosproject.simplefabric.api.Constants.REACTIVE_HASHED_PATH_SELECTION;
+import static org.onosproject.simplefabric.api.Constants.REACTIVE_MATCH_IP_PROTO;
+import static org.onosproject.simplefabric.api.Constants.REACTIVE_SINGLE_TO_SINGLE;
 
 
 /**
@@ -140,13 +154,13 @@ public class SimpleFabricReactiveRouting {
 
     @Activate
     public void activate() {
-        reactiveAppId = coreService.registerApplication(simpleFabric.REACTIVE_APP_ID);
+        reactiveAppId = coreService.registerApplication(REACTIVE_APP_ID);
         log.info("simple fabric reactive routing starting with app id {}", reactiveAppId.toString());
 
         // NOTE: may not clear at init for MIGHT generate pending_remove garbages
         //       use flush event from simple fabric cli command
 
-        if (simpleFabric.REACTIVE_HASHED_PATH_SELECTION) {
+        if (REACTIVE_HASHED_PATH_SELECTION) {
             reactiveConstraints = ImmutableList.of(new PartialFailureConstraint(),
                                                    new HashedPathSelectionConstraint());
         } else {
@@ -194,7 +208,7 @@ public class SimpleFabricReactiveRouting {
             DefaultTrafficSelector.builder().matchEthType(Ethernet.TYPE_IPV4).build(),
             PacketPriority.REACTIVE, reactiveAppId);
 
-        if (simpleFabric.ALLOW_IPV6) {
+        if (ALLOW_IPV6) {
             packetService.requestPackets(
                 DefaultTrafficSelector.builder().matchEthType(Ethernet.TYPE_IPV6).build(),
                 PacketPriority.REACTIVE, reactiveAppId);
@@ -213,7 +227,7 @@ public class SimpleFabricReactiveRouting {
             DefaultTrafficSelector.builder().matchEthType(Ethernet.TYPE_IPV4).build(),
             PacketPriority.REACTIVE, reactiveAppId);
 
-        if (simpleFabric.ALLOW_IPV6) {
+        if (ALLOW_IPV6) {
             packetService.cancelPackets(
                 DefaultTrafficSelector.builder().matchEthType(Ethernet.TYPE_IPV6).build(),
                 PacketPriority.REACTIVE, reactiveAppId);
@@ -369,7 +383,7 @@ public class SimpleFabricReactiveRouting {
                 continue;
             }
             if (!(simpleFabric.findL2Network(intent.egressPoint(), VlanId.NONE) != null ||
-                  (simpleFabric.REACTIVE_ALLOW_LINK_CP &&
+                  (REACTIVE_ALLOW_LINK_CP &&
                    !linkService.getEgressLinks(intent.egressPoint()).isEmpty()))) {
                 log.info("refresh route intents; remove intent for egress point not available: key={}", intent.key());
                 intentService.withdraw(intentService.getIntent(intent.key()));
@@ -378,7 +392,7 @@ public class SimpleFabricReactiveRouting {
             }
 
             // MAY NEED TO CHECK: intent.egressPoint and intent.treatment's dstMac is valid against hosts
-            if (simpleFabric.REACTIVE_SINGLE_TO_SINGLE && !simpleFabric.REACTIVE_ALLOW_LINK_CP) {
+            if (REACTIVE_SINGLE_TO_SINGLE && !REACTIVE_ALLOW_LINK_CP) {
                 // single path intent only; no need to check ingress points
                 continue;
             }
@@ -388,7 +402,7 @@ public class SimpleFabricReactiveRouting {
             for (FilteredConnectPoint cp : intent.filteredIngressPoints()) {
                 if (deviceService.isAvailable(cp.connectPoint().deviceId()) &&
                     (simpleFabric.findL2Network(cp.connectPoint(), VlanId.NONE) != null ||
-                     (simpleFabric.REACTIVE_ALLOW_LINK_CP &&
+                     (REACTIVE_ALLOW_LINK_CP &&
                       !linkService.getIngressLinks(cp.connectPoint()).isEmpty()))) {
                     newIngressPoints.add(cp);
                 } else {
@@ -657,7 +671,7 @@ public class SimpleFabricReactiveRouting {
 
         if (dstSubnet != null) {
             // destination is local subnet ip
-            if (SimpleFabricService.ALLOW_ETH_ADDRESS_SELECTOR && dstSubnet.equals(srcSubnet)) {
+            if (ALLOW_ETH_ADDRESS_SELECTOR && dstSubnet.equals(srcSubnet)) {
                 // NOTE: if ALLOW_ETH_ADDRESS_SELECTOR=false; l2Forward is always false
                 L2Network l2Network = simpleFabric.findL2Network(dstSubnet.l2NetworkName());
                 treatmentSrcMac = ethPkt.getSourceMAC();
@@ -749,7 +763,7 @@ public class SimpleFabricReactiveRouting {
                                       EncapsulationType encap, boolean updateMac,
                                       boolean isDstLocalSubnet, int borderRoutePrefixLength) {
         if (!(simpleFabric.findL2Network(srcCp, VlanId.NONE) != null ||
-             (simpleFabric.REACTIVE_ALLOW_LINK_CP && !linkService.getIngressLinks(srcCp).isEmpty()))) {
+             (REACTIVE_ALLOW_LINK_CP && !linkService.getIngressLinks(srcCp).isEmpty()))) {
             log.warn("NO REGI for srcCp not in L2Network; srcCp={} srcPrefix={} dstPrefix={} nextHopIp={}",
                       srcCp, srcPrefix, dstPrefix, nextHopIp);
             return false;
@@ -772,7 +786,7 @@ public class SimpleFabricReactiveRouting {
             return false;
         }
         TrafficTreatment treatment;
-        if (updateMac && simpleFabric.ALLOW_ETH_ADDRESS_SELECTOR) {
+        if (updateMac && ALLOW_ETH_ADDRESS_SELECTOR) {
             treatment = generateSetMacTreatment(nextHopMac, treatmentSrcMac);
         } else {
             treatment = DefaultTrafficTreatment.builder().build();
@@ -781,34 +795,34 @@ public class SimpleFabricReactiveRouting {
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         if (dstPrefix.isIp4()) {
             selector.matchEthType(Ethernet.TYPE_IPV4);
-            if (simpleFabric.REACTIVE_SINGLE_TO_SINGLE && srcPrefix.prefixLength() > 0) {
+            if (REACTIVE_SINGLE_TO_SINGLE && srcPrefix.prefixLength() > 0) {
                 selector.matchIPSrc(srcPrefix);
             }
             if (dstPrefix.prefixLength() > 0) {
                 selector.matchIPDst(dstPrefix);
             }
-            if (ipProto != 0 && simpleFabric.REACTIVE_MATCH_IP_PROTO) {
+            if (ipProto != 0 && REACTIVE_MATCH_IP_PROTO) {
                 selector.matchIPProtocol(ipProto);
             }
         } else {
             selector.matchEthType(Ethernet.TYPE_IPV6);
-            if (simpleFabric.REACTIVE_SINGLE_TO_SINGLE && srcPrefix.prefixLength() > 0) {
+            if (REACTIVE_SINGLE_TO_SINGLE && srcPrefix.prefixLength() > 0) {
                 selector.matchIPv6Src(srcPrefix);
             }
             if (dstPrefix.prefixLength() > 0) {
                 selector.matchIPv6Dst(dstPrefix);
             }
-            if (ipProto != 0 && simpleFabric.REACTIVE_MATCH_IP_PROTO) {
+            if (ipProto != 0 && REACTIVE_MATCH_IP_PROTO) {
                 selector.matchIPProtocol(ipProto);
             }
         }
 
         Key key;
         String keyProtoTag = "";
-        if (simpleFabric.REACTIVE_MATCH_IP_PROTO) {
+        if (REACTIVE_MATCH_IP_PROTO) {
             keyProtoTag = "-p" + ipProto;
         }
-        if (simpleFabric.REACTIVE_SINGLE_TO_SINGLE) {
+        if (REACTIVE_SINGLE_TO_SINGLE) {
             // allocate intent per (srcPrefix, dstPrefix)
             key = Key.of(srcPrefix.toString() + "-to-" + dstPrefix.toString() + keyProtoTag, reactiveAppId);
         } else {
@@ -878,19 +892,19 @@ public class SimpleFabricReactiveRouting {
     private int reactivePriority(boolean isForward, boolean isDstLocalSubnet, int borderRoutePrefixLength) {
         if (isDstLocalSubnet) {  // -> dst:localSubnet
             if (isForward) {
-                return simpleFabric.PRI_REACTIVE_LOCAL_FORWARD;
+                return PRI_REACTIVE_LOCAL_FORWARD;
             } else {  // isInterncept
-                return simpleFabric.PRI_REACTIVE_LOCAL_INTERCEPT;
+                return PRI_REACTIVE_LOCAL_INTERCEPT;
             }
         } else {  // -> dst:boarderRouteNextHop
             int offset;
             if (isForward) {
-                offset = simpleFabric.PRI_REACTIVE_BORDER_FORWARD;
+                offset = PRI_REACTIVE_BORDER_FORWARD;
             } else {  // isIntercept
-                offset = simpleFabric.PRI_REACTIVE_BORDER_INTERCEPT;
+                offset = PRI_REACTIVE_BORDER_INTERCEPT;
             }
-           return simpleFabric.PRI_REACTIVE_BORDER_BASE
-                  + borderRoutePrefixLength * simpleFabric.PRI_REACTIVE_BORDER_STEP + offset;
+           return PRI_REACTIVE_BORDER_BASE
+                  + borderRoutePrefixLength * PRI_REACTIVE_BORDER_STEP + offset;
         }
     }
 
