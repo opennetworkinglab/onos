@@ -931,14 +931,12 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
         nextObjectiveBuilder.withId(nextId);
         String key = generateKey(l2Tunnel.tunnelId(), direction);
         l2InitiationNextObjStore.put(key, nextObjectiveBuilder.add());
-        ObjectiveContext context = new DefaultObjectiveContext((objective) ->
-                                                                 log.debug("Initiation l2 tunnel rule " +
-                                                                                   "for {} populated",
-                                                                           l2Tunnel.tunnelId()),
-                                                               (objective, error) ->
-                                                                       log.warn("Failed to populate Initiation " +
-                                                                                        "l2 tunnel rule for {}: {}",
-                                                                                l2Tunnel.tunnelId(), error));
+        ObjectiveContext context = new DefaultObjectiveContext(
+                (objective) -> log.debug("Initiation l2 tunnel rule for {} populated", l2Tunnel.tunnelId()),
+                (objective, error) -> {
+                    log.warn("Failed to populate Initiation l2 tunnel rule for {}: {}", l2Tunnel.tunnelId(), error);
+                    srManager.invalidateNextObj(objective.id());
+                });
         NextObjective nextObjective = nextObjectiveBuilder.add(context);
         srManager.flowObjectiveService.next(ingress.deviceId(), nextObjective);
         log.debug("Initiation next objective for {} not found. Creating new NextObj with id={}",
@@ -985,14 +983,12 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
         nextObjectiveBuilder.withId(nextId);
         String key = generateKey(l2Tunnel.tunnelId(), direction);
         l2TerminationNextObjStore.put(key, nextObjectiveBuilder.add());
-        ObjectiveContext context = new DefaultObjectiveContext((objective) -> log.debug("Termination l2 tunnel rule " +
-                                                                                        "for {} populated",
-                                                                                        l2Tunnel.tunnelId()),
-                                                               (objective, error) -> log.warn("Failed to populate " +
-                                                                                              "termination l2 tunnel " +
-                                                                                              "rule for {}: {}",
-                                                                                              l2Tunnel.tunnelId(),
-                                                                                              error));
+        ObjectiveContext context = new DefaultObjectiveContext(
+                (objective) -> log.debug("Termination l2 tunnel rule for {} populated", l2Tunnel.tunnelId()),
+                (objective, error) -> {
+                    log.warn("Failed to populate termination l2 tunnel rule for {}: {}", l2Tunnel.tunnelId(), error);
+                    srManager.invalidateNextObj(objective.id());
+                });
         NextObjective nextObjective = nextObjectiveBuilder.add(context);
         srManager.flowObjectiveService.next(egress.deviceId(), nextObjective);
         log.debug("Termination next objective for {} not found. Creating new NextObj with id={}",
