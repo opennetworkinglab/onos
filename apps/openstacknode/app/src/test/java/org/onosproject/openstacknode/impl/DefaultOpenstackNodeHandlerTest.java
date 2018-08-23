@@ -70,6 +70,7 @@ import org.onosproject.net.flow.instructions.ExtensionTreatment;
 import org.onosproject.net.flow.instructions.ExtensionTreatmentType;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.openstacknode.api.DefaultOpenstackNode;
+import org.onosproject.openstacknode.api.DpdkConfig;
 import org.onosproject.openstacknode.api.NodeState;
 import org.onosproject.openstacknode.api.OpenstackAuth;
 import org.onosproject.openstacknode.api.OpenstackNode;
@@ -424,7 +425,7 @@ public class DefaultOpenstackNodeHandlerTest {
                 ipAddr,
                 ipAddr,
                 null, null, state, phyIntfs, controllers,
-                null, null, null, OpenstackNode.DatapathType.NORMAL, null);
+                null, null, null, null);
     }
 
     private static OpenstackNode createGatewayNode(String hostname,
@@ -440,7 +441,7 @@ public class DefaultOpenstackNodeHandlerTest {
                 ipAddr,
                 ipAddr,
                 null, uplinkPort, state, null, null, null, null, null,
-                OpenstackNode.DatapathType.NORMAL, null);
+                null);
     }
 
     private static final class TestDevice extends DefaultDevice {
@@ -503,8 +504,7 @@ public class DefaultOpenstackNodeHandlerTest {
                                   OpenstackAuth auth,
                                   String endpoint,
                                   OpenstackSshAuth sshAuth,
-                                  DatapathType datapathType,
-                                  String socketDir) {
+                                  DpdkConfig dpdkConfig) {
             super(hostname,
                     type,
                     intgBridge,
@@ -518,8 +518,7 @@ public class DefaultOpenstackNodeHandlerTest {
                     auth,
                     endpoint,
                     sshAuth,
-                    datapathType,
-                    socketDir);
+                    dpdkConfig);
         }
 
         @Override

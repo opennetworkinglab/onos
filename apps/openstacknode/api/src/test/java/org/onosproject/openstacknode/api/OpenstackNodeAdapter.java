@@ -20,6 +20,7 @@ import org.onlab.packet.MacAddress;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.ControllerInfo;
+import org.onosproject.openstacknode.api.DpdkConfig.DatapathType;
 
 import java.util.Collection;
 
@@ -144,6 +145,11 @@ public class OpenstackNodeAdapter implements OpenstackNode {
 
     @Override
     public OpenstackSshAuth sshAuthInfo() {
+        return null;
+    }
+
+    @Override
+    public DpdkConfig dpdkConfig() {
         return null;
     }
 }

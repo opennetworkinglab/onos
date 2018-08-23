@@ -28,6 +28,8 @@ import org.onosproject.core.CoreService;
 import org.onosproject.net.behaviour.ControllerInfo;
 import org.onosproject.openstacknode.api.DefaultOpenstackAuth;
 import org.onosproject.openstacknode.api.DefaultOpenstackNode;
+import org.onosproject.openstacknode.api.DpdkConfig;
+import org.onosproject.openstacknode.api.DpdkInterface;
 import org.onosproject.openstacknode.api.NodeState;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeEvent;
@@ -83,9 +85,13 @@ public class DistributedOpenstackNodeStore
             .register(DefaultOpenstackNode.class)
             .register(OpenstackNode.NodeType.class)
             .register(NodeState.class)
-            .register(OpenstackNode.DatapathType.class)
+            .register(DpdkConfig.class)
+            .register(DefaultDpdkConfig.class)
+            .register(DpdkConfig.DatapathType.class)
             .register(OpenstackPhyInterface.class)
             .register(DefaultOpenstackPhyInterface.class)
+            .register(DpdkInterface.class)
+            .register(DefaultDpdkInterface.class)
             .register(ControllerInfo.class)
             .register(DefaultOpenstackAuth.class)
             .register(DefaultOpenstackAuth.Perspective.class)

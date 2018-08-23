@@ -18,6 +18,7 @@ package org.onosproject.openstacknetworking.web;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkAdminService;
+import org.onosproject.openstacknode.api.DpdkConfig;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
 import org.onosproject.rest.AbstractWebResource;
@@ -114,7 +115,7 @@ public class OpenstackPortWebResource extends AbstractWebResource {
         OpenstackNode node = nodeService.node(port.getHostId());
         if (node == null) {
             return status(Response.Status.OK).build();
-        } else if (node.datapathType().equals(OpenstackNode.DatapathType.NETDEV)) {
+        } else if (node.datapathType().equals(DpdkConfig.DatapathType.NETDEV)) {
             log.debug("UpdatePort for port {} called in netdev device {} " +
                             "so sends vif type as a payload of the response",
                     port.getId(), node.hostname());

@@ -22,10 +22,14 @@ import org.onlab.junit.TestUtils;
 import org.onosproject.codec.CodecService;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.net.behaviour.ControllerInfo;
+import org.onosproject.openstacknode.api.DpdkConfig;
+import org.onosproject.openstacknode.api.DpdkInterface;
 import org.onosproject.openstacknode.api.OpenstackAuth;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackPhyInterface;
 import org.onosproject.openstacknode.api.OpenstackSshAuth;
+import org.onosproject.openstacknode.codec.DpdkConfigCodec;
+import org.onosproject.openstacknode.codec.DpdkInterfaceCodec;
 import org.onosproject.openstacknode.codec.OpenstackAuthCodec;
 import org.onosproject.openstacknode.codec.OpenstackControllerCodec;
 import org.onosproject.openstacknode.codec.OpenstackNodeCodec;
@@ -66,6 +70,10 @@ public final class OpenstackNodeCodecRegisterTest {
                 codecService.getCodec(ControllerInfo.class).getClass().getName());
         assertEquals(OpenstackSshAuthCodec.class.getName(),
                 codecService.getCodec(OpenstackSshAuth.class).getClass().getName());
+        assertEquals(DpdkConfigCodec.class.getName(),
+                codecService.getCodec(DpdkConfig.class).getClass().getName());
+        assertEquals(DpdkInterfaceCodec.class.getName(),
+                codecService.getCodec(DpdkInterface.class).getClass().getName());
 
         register.deactivate();
 
@@ -74,6 +82,8 @@ public final class OpenstackNodeCodecRegisterTest {
         assertNull(codecService.getCodec(OpenstackPhyInterface.class));
         assertNull(codecService.getCodec(ControllerInfo.class));
         assertNull(codecService.getCodec(OpenstackSshAuth.class));
+        assertNull(codecService.getCodec(DpdkConfig.class));
+        assertNull(codecService.getCodec(DpdkInterface.class));
     }
 
     private static class TestCodecService implements CodecService {

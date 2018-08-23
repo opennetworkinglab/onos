@@ -24,6 +24,7 @@ public final class Constants {
     }
 
     public static final String INTEGRATION_BRIDGE = "br-int";
+    public static final String TUNNEL_BRIDGE = "br-tun";
     public static final String ROUTER_BRIDGE = "br-router";
     public static final String DEFAULT_TUNNEL = "vxlan";
     public static final String PATCH_INTG_BRIDGE = "patch-intg";
