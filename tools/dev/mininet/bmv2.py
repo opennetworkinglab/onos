@@ -131,7 +131,7 @@ class ONOSBmv2Switch(Switch):
     def getDeviceConfig(self, srcIP):
 
         basicCfg = {
-            "driver": "bmv2"
+            "driver": ("bmv2:" + self.pipeconfId) if self.pipeconfId != None else "bmv2"
         }
 
         if self.longitude and self.latitude:
