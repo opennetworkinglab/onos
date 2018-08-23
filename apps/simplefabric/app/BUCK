@@ -1,0 +1,23 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:JACKSON',
+    '//lib:concurrent-trees',
+    '//lib:javax.ws.rs-api',
+    '//lib:org.apache.karaf.shell.console',
+    '//cli:onos-cli',
+    '//utils/rest:onlab-rest',
+    '//apps/simplefabric/api:onos-apps-simplefabric-api',
+]
+
+TEST_DEPS = [
+    '//lib:TEST_ADAPTERS',
+]
+
+osgi_jar_with_tests (
+    api_description = 'REST API for Simple Fabric',
+    api_package = 'org.onosproject.simplefabric.web',
+    api_title = 'Simple Fabric API',
+    deps = COMPILE_DEPS,
+    test_deps = TEST_DEPS,
+    web_context = '/onos/v1/simplefabric',
+)

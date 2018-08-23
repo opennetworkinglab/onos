@@ -17,6 +17,7 @@
 package org.onosproject.simplefabric;
 
 import org.onosproject.rest.AbstractWebResource;
+import org.onosproject.simplefabric.api.SimpleFabricService;
 
 import java.io.ByteArrayOutputStream;
 import javax.ws.rs.GET;

@@ -18,6 +18,7 @@ package org.onosproject.simplefabric;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.simplefabric.api.SimpleFabricService;
 
 /**
  * CLI to interact with the SIMPLE_FABRIC application.

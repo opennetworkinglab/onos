@@ -70,6 +70,12 @@ import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
+import org.onosproject.simplefabric.api.IpSubnet;
+import org.onosproject.simplefabric.api.L2Network;
+import org.onosproject.simplefabric.api.Route;
+import org.onosproject.simplefabric.api.SimpleFabricEvent;
+import org.onosproject.simplefabric.api.SimpleFabricListener;
+import org.onosproject.simplefabric.api.SimpleFabricService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -46,6 +46,10 @@ import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.net.intent.SinglePointToMultiPointIntent;
 import org.onosproject.net.intent.constraint.EncapsulationConstraint;
 import org.onosproject.net.intent.constraint.PartialFailureConstraint;
+import org.onosproject.simplefabric.api.L2Network;
+import org.onosproject.simplefabric.api.SimpleFabricEvent;
+import org.onosproject.simplefabric.api.SimpleFabricListener;
+import org.onosproject.simplefabric.api.SimpleFabricService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

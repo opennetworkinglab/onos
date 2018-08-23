@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-present Open Networking Foundation
+ * Copyright 2018-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.simplefabric;
+package org.onosproject.simplefabric.api;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
@@ -57,7 +57,7 @@ public final class L2Network {
      * @param l2Forward flag for l2Forward intents to be installed or not
      * @param l2Broadcast flag for l2Broadcast intents to be installed or not
      */
-    L2Network(String name, Collection<String> ifaceNames, EncapsulationType encapsulation,
+    public L2Network(String name, Collection<String> ifaceNames, EncapsulationType encapsulation,
               boolean l2Forward, boolean l2Broadcast) {
         this.name = name;
         this.interfaceNames = Sets.newHashSet();
