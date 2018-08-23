@@ -20,6 +20,7 @@ import org.hamcrest.Description;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
 import org.onosproject.net.behaviour.ControllerInfo;
 import org.onosproject.openstacknode.api.Constants;
+import org.onosproject.openstacknode.api.DpdkConfig;
 import org.onosproject.openstacknode.api.OpenstackAuth;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackPhyInterface;
@@ -38,12 +39,11 @@ public final class OpenstackNodeJsonMatcher extends TypeSafeDiagnosingMatcher<Js
     private static final String INTEGRATION_BRIDGE = "integrationBridge";
     private static final String STATE = "state";
     private static final String PHYSICAL_INTERFACES = "phyIntfs";
+    private static final String DPDK_CONFIG = "dpdkConfig";
     private static final String CONTROLLERS = "controllers";
     private static final String AUTHENTICATION = "authentication";
     private static final String END_POINT = "endpoint";
     private static final String SSH_AUTH = "sshAuth";
-    private static final String DATA_PATH_TYPE = "datapathType";
-    private static final String SOCKET_DIR = "socketDir";
 
     private OpenstackNodeJsonMatcher(OpenstackNode node) {
         this.node = node;
@@ -135,32 +135,19 @@ public final class OpenstackNodeJsonMatcher extends TypeSafeDiagnosingMatcher<Js
             }
         }
 
+        // check dpdk config
+        JsonNode jsonDpdkConfig = jsonNode.get(DPDK_CONFIG);
+        if (jsonDpdkConfig != null) {
+            DpdkConfig dpdkConfig = node.dpdkConfig();
+
+        }
+
         // check endpoint URL
         JsonNode jsonEndpoint = jsonNode.get(END_POINT);
         if (jsonEndpoint != null) {
             String endpoint = node.endpoint();
             if (!jsonEndpoint.asText().equals(endpoint)) {
                 description.appendText("endpoint URL was " + jsonEndpoint);
-                return false;
-            }
-        }
-
-        // check datapath type
-        JsonNode jsonDatapathType = jsonNode.get(DATA_PATH_TYPE);
-        if (jsonDatapathType != null) {
-            OpenstackNode.DatapathType datapathType = node.datapathType();
-            if (!OpenstackNode.DatapathType.valueOf(jsonDatapathType.asText()).equals(datapathType)) {
-                description.appendText("datapathType was " + jsonDatapathType);
-                return false;
-            }
-        }
-
-        // check socket directory
-        JsonNode jsonSocketDir = jsonNode.get(SOCKET_DIR);
-        if (jsonSocketDir != null) {
-            String socketDir = node.socketDir();
-            if (!jsonSocketDir.asText().equals(socketDir)) {
-                description.appendText("socketDir was " + jsonSocketDir);
                 return false;
             }
         }

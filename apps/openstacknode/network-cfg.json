@@ -18,14 +18,36 @@
               {
                 "network": "oamnetwork",
                 "intf": "eth4"
+              },
+              {
+                "network": "datanetwork",
+                "intf": "dpdk0"
               }
             ],
             "sshAuth" : {
               "id": "id",
               "password" : "password"
             },
-            "datapathType" : "netdev",
-            "socketDir" : "/var/lib/libvirt/qemu",
+            "dpdkConfig" : {
+              "datapathType" : "netdev",
+              "socketDir" : "/var/lib/libvirt/qemu",
+              "dpdkIntfs" : [
+                {
+                  "intf" : "dpdk0",
+                  "mtu" : 1500,
+                  "deviceName" : "br-int",
+                  "pciAddress" : "0000:85:00.0",
+                  "type" : "dpdk"
+                },
+                {
+                  "intf" : "dpdk1",
+                  "mtu" : 1500,
+                  "deviceName" : "br-tun",
+                  "pciAddress" : "0000:85:00.1",
+                  "type" : "dpdk"
+                }
+              ]
+            },
             "controllers": [
               {
                 "ip": "10.10.10.2",

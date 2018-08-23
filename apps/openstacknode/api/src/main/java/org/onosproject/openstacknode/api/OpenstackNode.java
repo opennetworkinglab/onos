@@ -20,6 +20,7 @@ import org.onlab.packet.MacAddress;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.ControllerInfo;
+import org.onosproject.openstacknode.api.DpdkConfig.DatapathType;
 
 import java.util.Collection;
 
@@ -45,14 +46,6 @@ public interface OpenstackNode {
         COMPUTE,
         GATEWAY,
         CONTROLLER
-    }
-
-    /**
-     * List of valid data path types.
-     */
-    enum DatapathType {
-        NORMAL,
-        NETDEV
     }
 
     /**
@@ -227,6 +220,13 @@ public interface OpenstackNode {
     OpenstackSshAuth sshAuthInfo();
 
     /**
+     * Returns the dpdk config info.
+     *
+     * @return dpdk config
+     */
+    DpdkConfig dpdkConfig();
+
+    /**
      * Builder of new node entities.
      */
     interface Builder {
@@ -343,20 +343,12 @@ public interface OpenstackNode {
         Builder sshAuthInfo(OpenstackSshAuth sshAuth);
 
         /**
-         * Returns openstack node builder with supplied data path type.
+         * Returns openstack node builder with supplied dpdk config info.
          *
-         * @param datapathType data path type
+         * @param dpdkConfig dpdk config
          * @return openstack node builder
          */
-        Builder datapathType(DatapathType datapathType);
-
-        /**
-         * Returns openstack node builder with supplied socket directory.
-         *
-         * @param socketDir socket directory
-         * @return openstack node builder
-         */
-        Builder socketDir(String socketDir);
+        Builder dpdkConfig(DpdkConfig dpdkConfig);
     }
 }
 

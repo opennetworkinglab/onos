@@ -24,6 +24,7 @@ import org.onosproject.codec.JsonCodec;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.ControllerInfo;
 import org.onosproject.openstacknode.api.DefaultOpenstackNode;
+import org.onosproject.openstacknode.api.DpdkConfig;
 import org.onosproject.openstacknode.api.NodeState;
 import org.onosproject.openstacknode.api.OpenstackAuth;
 import org.onosproject.openstacknode.api.OpenstackNode;
@@ -61,11 +62,9 @@ public final class OpenstackNodeCodec extends JsonCodec<OpenstackNode> {
     private static final String AUTHENTICATION = "authentication";
     private static final String END_POINT = "endpoint";
     private static final String SSH_AUTH = "sshAuth";
-    private static final String DATA_PATH_TYPE = "datapathType";
-    private static final String SOCKET_DIR = "socketDir";
+    private static final String DPDK_CONFIG = "dpdkConfig";
 
     private static final String MISSING_MESSAGE = " is required in OpenstackNode";
-    private static final String UNSUPPORTED_DATAPATH_TYPE = "Unsupported datapath type";
 
     @Override
     public ObjectNode encode(OpenstackNode node, CodecContext context) {
@@ -75,8 +74,7 @@ public final class OpenstackNodeCodec extends JsonCodec<OpenstackNode> {
                 .put(HOST_NAME, node.hostname())
                 .put(TYPE, node.type().name())
                 .put(STATE, node.state().name())
-                .put(MANAGEMENT_IP, node.managementIp().toString())
-                .put(DATA_PATH_TYPE, node.datapathType().name());
+                .put(MANAGEMENT_IP, node.managementIp().toString());
 
         OpenstackNode.NodeType type = node.type();
 
@@ -128,8 +126,10 @@ public final class OpenstackNodeCodec extends JsonCodec<OpenstackNode> {
             result.set(SSH_AUTH, sshAuthJson);
         }
 
-        if (node.socketDir() != null) {
-            result.put(SOCKET_DIR, node.socketDir());
+        if (node.dpdkConfig() != null) {
+            ObjectNode dpdkConfigJson = context.codec(DpdkConfig.class)
+                    .encode(node.dpdkConfig(), context);
+            result.set(DPDK_CONFIG, dpdkConfigJson);
         }
 
         return result;
@@ -175,23 +175,6 @@ public final class OpenstackNodeCodec extends JsonCodec<OpenstackNode> {
             nodeBuilder.intgBridge(DeviceId.deviceId(intBridgeJson.asText()));
         }
 
-        JsonNode datapathTypeJson = json.get(DATA_PATH_TYPE);
-
-        if (datapathTypeJson == null ||
-                datapathTypeJson.asText().equals(OpenstackNode.DatapathType.NORMAL.name().toLowerCase())) {
-            nodeBuilder.datapathType(OpenstackNode.DatapathType.NORMAL);
-        } else if (datapathTypeJson.asText().equals(OpenstackNode.DatapathType.NETDEV.name().toLowerCase())) {
-            nodeBuilder.datapathType(OpenstackNode.DatapathType.NETDEV);
-        } else {
-            throw new IllegalArgumentException(UNSUPPORTED_DATAPATH_TYPE + datapathTypeJson.asText());
-        }
-
-        JsonNode socketDir = json.get(SOCKET_DIR);
-
-        if (socketDir != null) {
-            nodeBuilder.socketDir(socketDir.asText());
-        }
-
         // parse physical interfaces
         List<OpenstackPhyInterface> phyIntfs = new ArrayList<>();
         JsonNode phyIntfsJson = json.get(PHYSICAL_INTERFACES);
@@ -224,7 +207,7 @@ public final class OpenstackNodeCodec extends JsonCodec<OpenstackNode> {
 
         // parse authentication
         JsonNode authJson = json.get(AUTHENTICATION);
-        if (json.get(AUTHENTICATION) != null) {
+        if (authJson != null) {
 
             final JsonCodec<OpenstackAuth> authCodec = context.codec(OpenstackAuth.class);
 
@@ -234,11 +217,19 @@ public final class OpenstackNodeCodec extends JsonCodec<OpenstackNode> {
 
         // parse ssh authentication
         JsonNode sshAuthJson = json.get(SSH_AUTH);
-        if (json.get(SSH_AUTH) != null) {
+        if (sshAuthJson != null) {
             final JsonCodec<OpenstackSshAuth> sshAuthJsonCodec = context.codec(OpenstackSshAuth.class);
 
             OpenstackSshAuth sshAuth = sshAuthJsonCodec.decode((ObjectNode) sshAuthJson.deepCopy(), context);
             nodeBuilder.sshAuthInfo(sshAuth);
+        }
+
+        JsonNode dpdkConfigJson = json.get(DPDK_CONFIG);
+        if (dpdkConfigJson != null) {
+            final JsonCodec<DpdkConfig> dpdkConfigJsonCodec = context.codec(DpdkConfig.class);
+
+            DpdkConfig dpdkConfig = dpdkConfigJsonCodec.decode((ObjectNode) dpdkConfigJson.deepCopy(), context);
+            nodeBuilder.dpdkConfig(dpdkConfig);
         }
 
         log.trace("node is {}", nodeBuilder.build().toString());

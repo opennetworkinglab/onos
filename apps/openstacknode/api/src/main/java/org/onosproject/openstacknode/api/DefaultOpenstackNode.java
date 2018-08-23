@@ -25,6 +25,7 @@ import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.ControllerInfo;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.openstacknode.api.DpdkConfig.DatapathType;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -55,8 +56,7 @@ public class DefaultOpenstackNode implements OpenstackNode {
     private final OpenstackAuth auth;
     private final String endpoint;
     private final OpenstackSshAuth sshAuth;
-    private final DatapathType datapathType;
-    private final String socketDir;
+    private final DpdkConfig dpdkConfig;
 
     private static final String NOT_NULL_MSG = "Node % cannot be null";
 
@@ -78,8 +78,7 @@ public class DefaultOpenstackNode implements OpenstackNode {
      * @param auth          keystone authentication info
      * @param endpoint      openstack endpoint URL
      * @param sshAuth       ssh authentication info
-     * @param datapathType  data path type
-     * @param socketDir     socket directory
+     * @param dpdkConfig    dpdk config
      */
     protected DefaultOpenstackNode(String hostname, NodeType type,
                                    DeviceId intgBridge,
@@ -93,8 +92,7 @@ public class DefaultOpenstackNode implements OpenstackNode {
                                    OpenstackAuth auth,
                                    String endpoint,
                                    OpenstackSshAuth sshAuth,
-                                   DatapathType datapathType,
-                                   String socketDir) {
+                                   DpdkConfig dpdkConfig) {
         this.hostname = hostname;
         this.type = type;
         this.intgBridge = intgBridge;
@@ -108,8 +106,7 @@ public class DefaultOpenstackNode implements OpenstackNode {
         this.auth = auth;
         this.endpoint = endpoint;
         this.sshAuth = sshAuth;
-        this.datapathType = datapathType;
-        this.socketDir = socketDir;
+        this.dpdkConfig = dpdkConfig;
     }
 
     @Override
@@ -154,12 +151,18 @@ public class DefaultOpenstackNode implements OpenstackNode {
 
     @Override
     public DatapathType datapathType() {
-        return datapathType;
+        if (dpdkConfig == null) {
+            return DatapathType.NORMAL;
+        }
+        return dpdkConfig.datapathType();
     }
 
     @Override
     public String socketDir() {
-        return socketDir;
+        if (dpdkConfig == null) {
+            return null;
+        }
+        return dpdkConfig.socketDir();
     }
 
     @Override
@@ -253,8 +256,7 @@ public class DefaultOpenstackNode implements OpenstackNode {
                     Objects.equals(auth, that.auth) &&
                     Objects.equals(endpoint, that.endpoint) &&
                     Objects.equals(sshAuth, that.sshAuth) &&
-                    Objects.equals(datapathType, that.datapathType) &&
-                    Objects.equals(socketDir, that.socketDir);
+                    Objects.equals(dpdkConfig, that.dpdkConfig);
         }
         return false;
     }
@@ -273,8 +275,7 @@ public class DefaultOpenstackNode implements OpenstackNode {
                 auth,
                 endpoint,
                 sshAuth,
-                datapathType,
-                socketDir);
+                dpdkConfig);
     }
 
     @Override
@@ -293,8 +294,7 @@ public class DefaultOpenstackNode implements OpenstackNode {
                 .add("auth", auth)
                 .add("endpoint", endpoint)
                 .add("sshAuth", sshAuth)
-                .add("datapathType", datapathType)
-                .add("socketDir", socketDir)
+                .add("datapathType", dpdkConfig)
                 .toString();
     }
 
@@ -314,7 +314,7 @@ public class DefaultOpenstackNode implements OpenstackNode {
                 .authentication(auth)
                 .endpoint(endpoint)
                 .sshAuthInfo(sshAuth)
-                .datapathType(datapathType)
+                .dpdkConfig(dpdkConfig)
                 .build();
     }
 
@@ -334,8 +334,7 @@ public class DefaultOpenstackNode implements OpenstackNode {
                 .authentication(auth)
                 .endpoint(endpoint)
                 .sshAuthInfo(sshAuth)
-                .datapathType(datapathType)
-                .socketDir(socketDir)
+                .dpdkConfig(dpdkConfig)
                 .build();
     }
 
@@ -361,6 +360,11 @@ public class DefaultOpenstackNode implements OpenstackNode {
     @Override
     public OpenstackSshAuth sshAuthInfo() {
         return sshAuth;
+    }
+
+    @Override
+    public DpdkConfig dpdkConfig() {
+        return dpdkConfig;
     }
 
     @Override
@@ -422,8 +426,7 @@ public class DefaultOpenstackNode implements OpenstackNode {
                 .authentication(osNode.authentication())
                 .endpoint(osNode.endpoint())
                 .sshAuthInfo(osNode.sshAuthInfo())
-                .datapathType(osNode.datapathType())
-                .socketDir(osNode.socketDir());
+                .dpdkConfig(osNode.dpdkConfig());
     }
 
     /**
@@ -444,8 +447,7 @@ public class DefaultOpenstackNode implements OpenstackNode {
         private OpenstackAuth auth;
         private String endpoint;
         private OpenstackSshAuth sshAuth;
-        private DatapathType datapathType = DatapathType.NORMAL;
-        private String socketDir;
+        private DpdkConfig dpdkConfig;
 
         // private constructor not intended to use from external
         private Builder() {
@@ -483,8 +485,7 @@ public class DefaultOpenstackNode implements OpenstackNode {
                     auth,
                     endpoint,
                     sshAuth,
-                    datapathType,
-                    socketDir);
+                    dpdkConfig);
         }
 
         @Override
@@ -568,14 +569,8 @@ public class DefaultOpenstackNode implements OpenstackNode {
         }
 
         @Override
-        public Builder datapathType(DatapathType datapathType) {
-            this.datapathType = datapathType;
-            return this;
-        }
-
-        @Override
-        public Builder socketDir(String socketDir) {
-            this.socketDir = socketDir;
+        public Builder dpdkConfig(DpdkConfig dpdkConfig) {
+            this.dpdkConfig = dpdkConfig;
             return this;
         }
     }

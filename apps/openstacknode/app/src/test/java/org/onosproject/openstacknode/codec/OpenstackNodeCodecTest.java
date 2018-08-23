@@ -29,18 +29,24 @@ import org.onosproject.codec.impl.CodecManager;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.ControllerInfo;
+import org.onosproject.openstacknode.api.DefaultOpenstackAuth;
+import org.onosproject.openstacknode.api.DefaultOpenstackNode;
+import org.onosproject.openstacknode.api.DpdkConfig;
+import org.onosproject.openstacknode.api.DpdkInterface;
 import org.onosproject.openstacknode.api.NodeState;
 import org.onosproject.openstacknode.api.OpenstackAuth;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackPhyInterface;
 import org.onosproject.openstacknode.api.OpenstackSshAuth;
-import org.onosproject.openstacknode.api.DefaultOpenstackAuth;
-import org.onosproject.openstacknode.api.DefaultOpenstackNode;
+import org.onosproject.openstacknode.impl.DefaultDpdkConfig;
+import org.onosproject.openstacknode.impl.DefaultDpdkInterface;
 import org.onosproject.openstacknode.impl.DefaultOpenstackPhyInterface;
 import org.onosproject.openstacknode.impl.DefaultOpenstackSshAuth;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -50,6 +56,7 @@ import static org.easymock.EasyMock.replay;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertEquals;
 import static org.onosproject.net.NetTestTools.APP_ID;
 import static org.onosproject.openstacknode.codec.OpenstackNodeJsonMatcher.matchesOpenstackNode;
 
@@ -63,6 +70,8 @@ public class OpenstackNodeCodecTest {
     JsonCodec<ControllerInfo> openstackControllerJsonCodec;
     JsonCodec<OpenstackAuth> openstackAuthJsonCodec;
     JsonCodec<OpenstackSshAuth> openstackSshAuthJsonCodec;
+    JsonCodec<DpdkConfig> dpdkConfigJsonCodec;
+    JsonCodec<DpdkInterface> dpdkInterfaceJsonCodec;
 
     final CoreService mockCoreService = createMock(CoreService.class);
     private static final String REST_APP_ID = "org.onosproject.rest";
@@ -75,12 +84,16 @@ public class OpenstackNodeCodecTest {
         openstackControllerJsonCodec = new OpenstackControllerCodec();
         openstackAuthJsonCodec = new OpenstackAuthCodec();
         openstackSshAuthJsonCodec = new OpenstackSshAuthCodec();
+        dpdkConfigJsonCodec = new DpdkConfigCodec();
+        dpdkInterfaceJsonCodec = new DpdkInterfaceCodec();
 
         assertThat(openstackNodeCodec, notNullValue());
         assertThat(openstackPhyIntfJsonCodec, notNullValue());
         assertThat(openstackControllerJsonCodec, notNullValue());
         assertThat(openstackAuthJsonCodec, notNullValue());
         assertThat(openstackSshAuthJsonCodec, notNullValue());
+        assertThat(dpdkConfigJsonCodec, notNullValue());
+        assertThat(dpdkInterfaceJsonCodec, notNullValue());
 
         expect(mockCoreService.registerApplication(REST_APP_ID))
                 .andReturn(APP_ID).anyTimes();
@@ -119,12 +132,11 @@ public class OpenstackNodeCodecTest {
                                 .state(NodeState.INIT)
                                 .managementIp(IpAddress.valueOf("10.10.10.1"))
                                 .intgBridge(DeviceId.deviceId("br-int"))
-                                .vlanIntf("vxlan")
+                                .vlanIntf("vlan")
                                 .dataIp(IpAddress.valueOf("20.20.20.2"))
                                 .phyIntfs(ImmutableList.of(phyIntf1, phyIntf2))
                                 .controllers(ImmutableList.of(controller1, controller2))
                                 .sshAuthInfo(sshAuth)
-                                .socketDir("/var/lib/libvirt/qemu")
                                 .build();
 
         ObjectNode nodeJson = openstackNodeCodec.encode(node, context);
@@ -134,7 +146,7 @@ public class OpenstackNodeCodecTest {
     /**
      * Tests the openstack compute node decoding.
      *
-     * @throws IOException
+     * @throws IOException io exception
      */
     @Test
     public void testOpenstackComputeNodeDecode() throws IOException {
@@ -150,8 +162,7 @@ public class OpenstackNodeCodecTest {
         assertThat(node.controllers().size(), is(2));
         assertThat(node.sshAuthInfo().id(), is("sdn"));
         assertThat(node.sshAuthInfo().password(), is("sdn"));
-        assertThat(node.datapathType(), is(OpenstackNode.DatapathType.NORMAL));
-        assertThat(node.socketDir(), is("/var/lib/libvirt/qemu"));
+        assertThat(node.datapathType(), is(DpdkConfig.DatapathType.NORMAL));
 
 
         node.phyIntfs().forEach(intf -> {
@@ -171,10 +182,65 @@ public class OpenstackNodeCodecTest {
                 assertThat(ctrl.port(), is(6663));
             }
         });
+    }
 
-        OpenstackNode dpdkNode = getOpenstackNode("OpenstackDpdkComputeNode.json");
+    /**
+     * Tests the openstack compute node encoding with dpdk config.
+     */
+    @Test
+    public void testOpenstackDpdkComputeNodeEncode() {
+        DpdkInterface dpdkInterface1 = DefaultDpdkInterface.builder()
+                .deviceName("br-int")
+                .intf("dpdk0")
+                .mtu(Long.valueOf(1600))
+                .pciAddress("0000:85:00.0")
+                .type(DpdkInterface.Type.DPDK)
+                .build();
 
-        assertThat(dpdkNode.datapathType(), is(OpenstackNode.DatapathType.NETDEV));
+        DpdkInterface dpdkInterface2 = DefaultDpdkInterface.builder()
+                .deviceName("br-tun")
+                .intf("dpdk1")
+                .pciAddress("0000:85:00.1")
+                .type(DpdkInterface.Type.DPDK)
+                .build();
+
+        Collection<DpdkInterface> dpdkInterfaceCollection = new ArrayList<>();
+        dpdkInterfaceCollection.add(dpdkInterface1);
+        dpdkInterfaceCollection.add(dpdkInterface2);
+
+
+        DpdkConfig dpdkConfig = DefaultDpdkConfig.builder()
+                .datapathType(DpdkConfig.DatapathType.NETDEV)
+                .dpdkIntfs(dpdkInterfaceCollection)
+                .build();
+
+        OpenstackNode node = DefaultOpenstackNode.builder()
+                .hostname("compute")
+                .type(OpenstackNode.NodeType.COMPUTE)
+                .state(NodeState.INIT)
+                .managementIp(IpAddress.valueOf("10.10.10.1"))
+                .intgBridge(DeviceId.deviceId("br-int"))
+                .vlanIntf("vlan")
+                .dataIp(IpAddress.valueOf("20.20.20.2"))
+                .dpdkConfig(dpdkConfig)
+                .build();
+
+        ObjectNode nodeJson = openstackNodeCodec.encode(node, context);
+        assertThat(nodeJson, matchesOpenstackNode(node));
+    }
+
+    /**
+     * Tests the openstack compute node decoding with dpdk config.
+     *
+     * @throws IOException io exception
+     */
+    @Test
+    public void testOpenstackDpdkComputeNodeDecode() throws IOException {
+        OpenstackNode node = getOpenstackNode("OpenstackDpdkComputeNode.json");
+
+        assertEquals(node.datapathType(), DpdkConfig.DatapathType.NETDEV);
+        assertEquals(node.socketDir(), "/var/lib/libvirt/qemu");
+        assertEquals(node.dpdkConfig().dpdkIntfs().size(), 2);
     }
 
     /**
@@ -276,6 +342,12 @@ public class OpenstackNodeCodecTest {
             }
             if (entityClass == OpenstackSshAuth.class) {
                 return (JsonCodec<T>) openstackSshAuthJsonCodec;
+            }
+            if (entityClass == DpdkConfig.class) {
+                return (JsonCodec<T>) dpdkConfigJsonCodec;
+            }
+            if (entityClass == DpdkInterface.class) {
+                return (JsonCodec<T>) dpdkInterfaceJsonCodec;
             }
             return manager.getCodec(entityClass);
         }
