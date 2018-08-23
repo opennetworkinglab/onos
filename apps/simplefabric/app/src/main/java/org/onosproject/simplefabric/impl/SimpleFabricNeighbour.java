@@ -30,7 +30,7 @@ import org.onosproject.net.neighbour.NeighbourMessageHandler;
 import org.onosproject.net.neighbour.NeighbourResolutionService;
 import org.onosproject.net.Host;
 import org.onosproject.net.host.HostService;
-import org.onosproject.simplefabric.api.L2Network;
+import org.onosproject.simplefabric.api.FabricNetwork;
 import org.onosproject.simplefabric.api.SimpleFabricEvent;
 import org.onosproject.simplefabric.api.SimpleFabricListener;
 import org.onosproject.simplefabric.api.SimpleFabricService;
@@ -77,7 +77,7 @@ public class SimpleFabricNeighbour {
 
     @Activate
     public void activate() {
-        appId = simpleFabric.getAppId();
+        appId = simpleFabric.appId();
         simpleFabric.addListener(simpleFabricListener);
         refresh();
         log.info("simple fabric neighbour started");
@@ -98,7 +98,7 @@ public class SimpleFabricNeighbour {
         Set<Interface> interfaces = interfaceService.getInterfaces();
         // check for new interfaces
         for (Interface intf : interfaces) {
-            if (!monitoredInterfaces.contains(intf) && simpleFabric.isL2NetworkInterface(intf)) {
+            if (!monitoredInterfaces.contains(intf) && simpleFabric.isFabricNetworkInterface(intf)) {
                log.info("simple fabric neighbour register handler: {}", intf);
                neighbourService.registerNeighbourHandler(intf, neighbourHandler, appId);
                monitoredInterfaces.add(intf);
@@ -134,7 +134,7 @@ public class SimpleFabricNeighbour {
      * @param context the message context
      */
     protected void handleRequest(NeighbourMessageContext context) {
-        MacAddress mac = simpleFabric.findVMacForIp(context.target());
+        MacAddress mac = simpleFabric.vMacForIp(context.target());
         if (mac != null) {
             log.trace("simple fabric neightbour request on virtualGatewayAddress {}; response to {} {} mac={}",
                       context.target(), context.inPort(), context.vlan(), mac);
@@ -143,8 +143,8 @@ public class SimpleFabricNeighbour {
         }
         // else forward to corresponding host
 
-        L2Network l2Network = simpleFabric.findL2Network(context.inPort(), context.vlan());
-        if (l2Network != null) {
+        FabricNetwork fabricNetwork = simpleFabric.fabricNetwork(context.inPort(), context.vlan());
+        if (fabricNetwork != null) {
             int numForwards = 0;
             if (!context.dstMac().isBroadcast() && !context.dstMac().isMulticast()) {
                 for (Host host : hostService.getHostsByMac(context.dstMac())) {
@@ -160,7 +160,7 @@ public class SimpleFabricNeighbour {
             // else do broadcast to all host in the same l2 network
             log.trace("simple fabric neightbour request forward broadcast: {} {}",
                      context.inPort(), context.vlan());
-            for (Interface iface : l2Network.interfaces()) {
+            for (Interface iface : fabricNetwork.interfaces()) {
                 if (!context.inPort().equals(iface.connectPoint())) {
                     log.trace("simple fabric forward neighbour request broadcast to {}", iface);
                     context.forward(iface);
@@ -182,10 +182,10 @@ public class SimpleFabricNeighbour {
     protected void handleReply(NeighbourMessageContext context,
                                HostService hostService) {
         // Find target L2 Network, then reply to the host
-        L2Network l2Network = simpleFabric.findL2Network(context.inPort(), context.vlan());
-        if (l2Network != null) {
-            // TODO: need to check and update simpleFabric.L2Network
-            MacAddress mac = simpleFabric.findVMacForIp(context.target());
+        FabricNetwork fabricNetwork = simpleFabric.fabricNetwork(context.inPort(), context.vlan());
+        if (fabricNetwork != null) {
+            // TODO: need to check and update simpleFabric.DefaultFabricNetwork
+            MacAddress mac = simpleFabric.vMacForIp(context.target());
             if (mac != null) {
                 log.trace("simple fabric neightbour response message to virtual gateway; drop: {} {} target={}",
                           context.inPort(), context.vlan(), context.target());
@@ -196,14 +196,14 @@ public class SimpleFabricNeighbour {
                 log.trace("simple fabric neightbour response message forward: {} {} target={} -> {}",
                           context.inPort(), context.vlan(), context.target(), hosts);
                 hosts.stream()
-                        .map(host -> simpleFabric.findHostInterface(host))
+                        .map(host -> simpleFabric.hostInterface(host))
                         .filter(Objects::nonNull)
                         .forEach(context::forward);
             }
         } else {
             // this might be happened when we remove an interface from L2 Network
             // just ignore this message
-            log.warn("simple fabric neightbour response message drop for unknown l2Network: {} {}",
+            log.warn("simple fabric neightbour response message drop for unknown fabricNetwork: {} {}",
                      context.inPort(), context.vlan());
             context.drop();
         }

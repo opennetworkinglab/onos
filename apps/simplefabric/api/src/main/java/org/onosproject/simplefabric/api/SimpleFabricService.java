@@ -39,105 +39,104 @@ public interface SimpleFabricService
      *
      * @return appId of simple fabric app
      */
-    ApplicationId getAppId();
+    ApplicationId appId();
 
     /**
-     * Gets all the l2Networks.
+     * Gets all the fabric networks.
      *
-     * @return all the l2Networks
+     * @return all the fabric networks
      */
-    Collection<L2Network> getL2Networks();
+    Collection<FabricNetwork> fabricNetworks();
 
     /**
-     * Retrieves the entire set of ipSubnets configuration.
+     * Retrieves the entire set of fabricSubnets configuration.
      *
-     * @return all the ipSubnets
+     * @return all the fabricSubnets
      */
-    Set<IpSubnet> getIpSubnets();
+    Set<FabricSubnet> defaultFabricSubnets();
 
     /**
      * Retrieves the entire set of static routes to outer networks.
      *
      * @return the set of static routes to outer networks.
      */
-    Set<Route> getBorderRoutes();
+    Set<FabricRoute> fabricRoutes();
 
     /**
-     * Evaluates whether a mac is of Virtual Gateway Mac Addresses.
+     * Evaluates whether a MAC is of virtual gateway MAC addresses.
      *
-     * @param mac the MacAddress to evaluate
-     * @return true if the mac is of any Vitrual Gateway Mac Address of ipSubnets
+     * @param mac the MAC address to evaluate
+     * @return true if the mac is of any virtual gateway MAC address of fabricSubnets
      */
-    boolean isVMac(MacAddress mac);
+    boolean isVirtualGatewayMac(MacAddress mac);
 
     /**
-     * Evaluates whether an Interface belongs to l2Networks.
+     * Evaluates whether an interface belongs to fabric network or not.
      *
      * @param intf the interface to evaluate
-     * @return true if the inteface belongs to l2Networks configed, otherwise false
+     * @return true if the interface belongs to fabric network, otherwise false
      */
-    boolean isL2NetworkInterface(Interface intf);
+    boolean isFabricNetworkInterface(Interface intf);
 
     /**
-     * Find Virtual Gateway Mac Address for Local Subnet Virtual Gateway Ip.
+     * Finds virtual gateway MAC address for local subnet virtual gateway IP.
      *
-     * @param ip the ip to check for Virtual Gateway Ip
-     * @return mac address of virtual gateway
+     * @param ip the IP to check for virtual gateway IP
+     * @return MAC address of virtual gateway
      */
-    MacAddress findVMacForIp(IpAddress ip);
+    MacAddress vMacForIp(IpAddress ip);
 
     /**
-     * Finds the L2 Network with given port and vlanId.
+     * Finds the L2 fabric network with given port and vlanId.
      *
      * @param port the port to be matched
      * @param vlanId the vlanId to be matched
      * @return the L2 Network for specific port and vlanId or null
      */
-    L2Network findL2Network(ConnectPoint port, VlanId vlanId);
+    FabricNetwork fabricNetwork(ConnectPoint port, VlanId vlanId);
 
     /**
-     * Finds the L2 Network of the name.
+     * Finds the fabric network by its name.
      *
      * @param name the name to be matched
-     * @return the L2 Network for specific name
+     * @return the fabric network
      */
-    L2Network findL2Network(String name);
+    FabricNetwork fabricNetwork(String name);
 
     /**
-     * Finds the IpSubnet containing the ipAddress.
+     * Finds the FabricSubnet which contains the given IP address.
      *
-     * @param ipAddress the ipAddress to be matched
-     * @return the IpSubnet for specific ipAddress
+     * @param ipAddress the IP address to be matched
+     * @return the FabricSubnet
      */
-    IpSubnet findIpSubnet(IpAddress ipAddress);
+    FabricSubnet fabricSubnet(IpAddress ipAddress);
 
     /**
-     * Finds the Border Route containing the ipAddress.
-     * ASSUME: ipAddress is out of ipSubnets
+     * Finds the FabricRoute which contains the given IP address.
      *
-     * @param ipAddress the ipAddress to be matched
-     * @return the IpSubnet for specific ipAddress
+     * @param ipAddress the IP address to be matched
+     * @return the FabricRoute
      */
-    Route findBorderRoute(IpAddress ipAddress);
+    FabricRoute fabricRoute(IpAddress ipAddress);
 
     /**
-     * Finds the network interface related to the host.
+     * Finds the network interface which associated with the host.
      *
      * @param host the host
-     * @return the interface related to the host
+     * @return the interface associated with the host
      */
-    Interface findHostInterface(Host host);
+    Interface hostInterface(Host host);
 
     /**
-     * Sends Neighbour Query (ARP or NDP) to Find Host Location.
+     * Sends neighbour query (ARP or NDP) to find host location.
      *
-     * @param ip the ip address to resolve
-     * @return true if request mac packets are emitted. otherwise false
+     * @param ip the IP address to resolve
+     * @return true if request MAC packets are emitted, false otherwise
      */
     boolean requestMac(IpAddress ip);
 
     /**
-     * Sends Dump Event to all SimpleFabricListeners to Dump Info on the Subject.
+     * Sends dump event to all SimpleFabricListeners to dump info on the subject.
      *
      * @param subject the subject to dump
      * @param out the output stream to dump
@@ -145,13 +144,12 @@ public interface SimpleFabricService
     void dumpToStream(String subject, OutputStream out);
 
     /**
-     * Triggers to send Refresh Notification to all sub modules.
+     * Triggers to send refresh notification to all sub modules.
      */
     void triggerRefresh();
 
     /**
-     * Triggers to send Flush Notification to all sub modules.
+     * Triggers to send flush notification to all sub modules.
      */
     void triggerFlush();
-
 }

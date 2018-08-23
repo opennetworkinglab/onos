@@ -26,8 +26,8 @@ public final class Constants {
 
     // App symbols
     public static final String APP_ID = "org.onosproject.simplefabric";
-    public static final String L2FORWARD_APP_ID = "org.onosproject.simplefabric.l2forward";
-    public static final String REACTIVE_APP_ID = "org.onosproject.simplefabric.reactive";
+    public static final String FORWARDING_APP_ID = "org.onosproject.simplefabric.forwarding";
+    public static final String ROUTING_APP_ID = "org.onosproject.simplefabric.routing";
 
     // Priority for l2NetworkRouting: L2NETWORK_UNICAST or L2NETWORK_BROADCAST
     public static final int PRI_L2NETWORK_UNICAST = 601;

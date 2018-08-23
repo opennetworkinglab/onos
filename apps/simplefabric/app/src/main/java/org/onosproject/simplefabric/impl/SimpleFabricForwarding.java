@@ -29,7 +29,6 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.net.intf.Interface;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.EncapsulationType;
 import org.onosproject.net.FilteredConnectPoint;
@@ -46,7 +45,8 @@ import org.onosproject.net.intent.MultiPointToSinglePointIntent;
 import org.onosproject.net.intent.SinglePointToMultiPointIntent;
 import org.onosproject.net.intent.constraint.EncapsulationConstraint;
 import org.onosproject.net.intent.constraint.PartialFailureConstraint;
-import org.onosproject.simplefabric.api.L2Network;
+import org.onosproject.net.intf.Interface;
+import org.onosproject.simplefabric.api.FabricNetwork;
 import org.onosproject.simplefabric.api.SimpleFabricEvent;
 import org.onosproject.simplefabric.api.SimpleFabricListener;
 import org.onosproject.simplefabric.api.SimpleFabricService;
@@ -56,14 +56,14 @@ import org.slf4j.LoggerFactory;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Set;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.onosproject.simplefabric.api.Constants.L2FORWARD_APP_ID;
+import static org.onosproject.simplefabric.api.Constants.FORWARDING_APP_ID;
 import static org.onosproject.simplefabric.api.Constants.PRI_L2NETWORK_BROADCAST;
 import static org.onosproject.simplefabric.api.Constants.PRI_L2NETWORK_UNICAST;
 
@@ -74,13 +74,13 @@ import static org.onosproject.simplefabric.api.Constants.PRI_L2NETWORK_UNICAST;
  * application.
  */
 @Component(immediate = true, enabled = false)
-public class SimpleFabricL2Forward {
+public class SimpleFabricForwarding {
 
     public static final String BROADCAST = "BCAST";
     public static final String UNICAST = "UNI";
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-    protected ApplicationId l2ForwardAppId;
+    protected ApplicationId appId;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -105,20 +105,20 @@ public class SimpleFabricL2Forward {
 
     @Activate
     public void activate() {
-        l2ForwardAppId = coreService.registerApplication(L2FORWARD_APP_ID);
-        log.info("simple fabric l2 forwaring starting with l2net app id {}", l2ForwardAppId.toString());
+        appId = coreService.registerApplication(FORWARDING_APP_ID);
+        log.info("simple fabric forwarding starting with l2net app id {}", appId.toString());
 
         simpleFabric.addListener(simpleFabricListener);
 
         refresh();
         checkIntentsPurge();
 
-        log.info("simple fabric l2forward started");
+        log.info("simple fabric forwarding started");
     }
 
     @Deactivate
     public void deactivate() {
-        log.info("simple fabric l2forward stopping");
+        log.info("simple fabric forwarding stopping");
 
         simpleFabric.removeListener(simpleFabricListener);
 
@@ -141,26 +141,27 @@ public class SimpleFabricL2Forward {
         //bctIntentsMap.clear();
         //uniIntentsMap.clear();
 
-        log.info("simple fabric l2forward stopped");
+        log.info("simple fabric forwarding stopped");
     }
 
     private void refresh() {
-        log.debug("simple fabric l2forward refresh");
+        log.debug("simple fabric forwarding refresh");
 
         Map<Key, SinglePointToMultiPointIntent> newBctIntentsMap = Maps.newConcurrentMap();
         Map<Key, MultiPointToSinglePointIntent> newUniIntentsMap = Maps.newConcurrentMap();
 
-        for (L2Network l2Network : simpleFabric.getL2Networks()) {
-            // scans all l2network regardless of dirty flag
-            // if l2Network.l2Forward == false or number of interfaces() < 2, no Intents generated
-            for (SinglePointToMultiPointIntent intent : buildBrcIntents(l2Network)) {
+        for (FabricNetwork fabricNetwork : simpleFabric.fabricNetworks()) {
+            // scans all l2network regardless of isDirty flag
+            // if fabricNetwork.isForward == false or number of interfaces() < 2, no Intents generated
+            for (SinglePointToMultiPointIntent intent : buildBrcIntents(fabricNetwork)) {
                 newBctIntentsMap.put(intent.key(), intent);
             }
-            for (MultiPointToSinglePointIntent intent : buildUniIntents(l2Network, hostsFromL2Network(l2Network))) {
+            for (MultiPointToSinglePointIntent intent :
+                    buildUniIntents(fabricNetwork, hostsFromL2Network(fabricNetwork))) {
                 newUniIntentsMap.put(intent.key(), intent);
             }
-            if (l2Network.dirty()) {
-                l2Network.setDirty(false);
+            if (fabricNetwork.isDirty()) {
+                fabricNetwork.setDirty(false);
             }
         }
 
@@ -168,7 +169,8 @@ public class SimpleFabricL2Forward {
         for (SinglePointToMultiPointIntent intent : bctIntentsMap.values()) {
             SinglePointToMultiPointIntent newIntent = newBctIntentsMap.get(intent.key());
             if (newIntent == null) {
-                log.info("simple fabric l2forward withdraw broadcast intent: {}", intent.key().toString());
+                log.info("simple fabric forwarding withdraw broadcast intent: {}",
+                        intent.key().toString());
                 toBePurgedIntentKeys.add(intent.key());
                 intentService.withdraw(intent);
                 bctUpdated = true;
@@ -182,7 +184,8 @@ public class SimpleFabricL2Forward {
                     !oldIntent.selector().equals(intent.selector()) ||
                     !oldIntent.treatment().equals(intent.treatment()) ||
                     !oldIntent.constraints().equals(intent.constraints())) {
-                log.info("simple fabric l2forward submit broadcast intent: {}", intent.key().toString());
+                log.info("simple fabric forwarding submit broadcast intent: {}",
+                        intent.key().toString());
                 toBePurgedIntentKeys.remove(intent.key());
                 intentService.submit(intent);
                 bctUpdated = true;
@@ -193,7 +196,8 @@ public class SimpleFabricL2Forward {
         for (MultiPointToSinglePointIntent intent : uniIntentsMap.values()) {
             MultiPointToSinglePointIntent newIntent = newUniIntentsMap.get(intent.key());
             if (newIntent == null) {
-                log.info("simple fabric l2forward withdraw unicast intent: {}", intent.key().toString());
+                log.info("simple fabric forwarding withdraw unicast intent: {}",
+                        intent.key().toString());
                 toBePurgedIntentKeys.add(intent.key());
                 intentService.withdraw(intent);
                 uniUpdated = true;
@@ -207,7 +211,8 @@ public class SimpleFabricL2Forward {
                     !oldIntent.selector().equals(intent.selector()) ||
                     !oldIntent.treatment().equals(intent.treatment()) ||
                     !oldIntent.constraints().equals(intent.constraints())) {
-                log.info("simple fabric l2forward submit unicast intent: {}", intent.key().toString());
+                log.info("simple fabric forwarding submit unicast intent: {}",
+                        intent.key().toString());
                 toBePurgedIntentKeys.remove(intent.key());
                 intentService.submit(intent);
                 uniUpdated = true;
@@ -229,13 +234,14 @@ public class SimpleFabricL2Forward {
             for (Key key : toBePurgedIntentKeys) {
                 Intent intentToPurge = intentService.getIntent(key);
                 if (intentToPurge == null) {
-                    log.info("simple fabric l2forward purged intent: key={}", key.toString());
+                    log.info("simple fabric forwarding purged intent: key={}", key.toString());
                     purgedKeys.add(key);
                 } else {
                     switch (intentService.getIntentState(key)) {
                     case FAILED:
                     case WITHDRAWN:
-                        log.info("simple fabric l2forward try to purge intent: key={}", key.toString());
+                        log.info("simple fabric forwarding try to purge intent: key={}",
+                                key.toString());
                         intentService.purge(intentToPurge);
                         break;
                     case INSTALL_REQ:
@@ -243,7 +249,7 @@ public class SimpleFabricL2Forward {
                     case INSTALLING:
                     case RECOMPILING:
                     case COMPILING:
-                        log.warn("simple fabric l2forward withdraw intent to purge: key={}", key);
+                        log.warn("simple fabric forwarding withdraw intent to purge: key={}", key);
                         intentService.withdraw(intentToPurge);
                         break;
                     case WITHDRAW_REQ:
@@ -262,21 +268,21 @@ public class SimpleFabricL2Forward {
 
     // Generates Unicast Intents and broadcast Intents for the L2 Network.
 
-    private Set<Intent> generateL2NetworkIntents(L2Network l2Network) {
+    private Set<Intent> generateL2NetworkIntents(FabricNetwork fabricNetwork) {
         return new ImmutableSet.Builder<Intent>()
-                .addAll(buildBrcIntents(l2Network))
-                .addAll(buildUniIntents(l2Network, hostsFromL2Network(l2Network)))
+                .addAll(buildBrcIntents(fabricNetwork))
+                .addAll(buildUniIntents(fabricNetwork, hostsFromL2Network(fabricNetwork)))
                 .build();
     }
 
     // Build Boadcast Intents for a L2 Network.
-    private Set<SinglePointToMultiPointIntent> buildBrcIntents(L2Network l2Network) {
-        Set<Interface> interfaces = l2Network.interfaces();
-        if (interfaces.size() < 2 || !l2Network.l2Forward() || !l2Network.l2Broadcast()) {
+    private Set<SinglePointToMultiPointIntent> buildBrcIntents(FabricNetwork fabricNetwork) {
+        Set<Interface> interfaces = fabricNetwork.interfaces();
+        if (interfaces.size() < 2 || !fabricNetwork.isForward() || !fabricNetwork.isBroadcast()) {
             return ImmutableSet.of();
         }
         Set<SinglePointToMultiPointIntent> brcIntents = Sets.newHashSet();
-        ResourceGroup resourceGroup = ResourceGroup.of(l2Network.name());
+        ResourceGroup resourceGroup = ResourceGroup.of(fabricNetwork.name());
 
         // Generates broadcast Intents from any network interface to other
         // network interface from the L2 Network.
@@ -287,17 +293,20 @@ public class SimpleFabricL2Forward {
                     .filter(iface -> !iface.equals(src))
                     .map(this::buildFilteredConnectedPoint)
                     .collect(Collectors.toSet());
-            Key key = buildKey(l2Network.name(), "BCAST", srcFcp.connectPoint(), MacAddress.BROADCAST);
+            Key key = buildKey(fabricNetwork.name(), "BCAST",
+                    srcFcp.connectPoint(), MacAddress.BROADCAST);
             TrafficSelector selector = DefaultTrafficSelector.builder()
                     .matchEthDst(MacAddress.BROADCAST)
                     .build();
-            SinglePointToMultiPointIntent.Builder intentBuilder = SinglePointToMultiPointIntent.builder()
-                    .appId(l2ForwardAppId)
+            SinglePointToMultiPointIntent.Builder
+                    intentBuilder = SinglePointToMultiPointIntent.builder()
+                    .appId(appId)
                     .key(key)
                     .selector(selector)
                     .filteredIngressPoint(srcFcp)
                     .filteredEgressPoints(dstFcps)
-                    .constraints(buildConstraints(L2NETWORK_CONSTRAINTS, l2Network.encapsulation()))
+                    .constraints(buildConstraints(L2NETWORK_CONSTRAINTS,
+                            fabricNetwork.encapsulation()))
                     .priority(PRI_L2NETWORK_BROADCAST)
                     .resourceGroup(resourceGroup);
             brcIntents.add(intentBuilder.build());
@@ -306,29 +315,32 @@ public class SimpleFabricL2Forward {
     }
 
     // Builds unicast Intents for a L2 Network.
-    private Set<MultiPointToSinglePointIntent> buildUniIntents(L2Network l2Network, Set<Host> hosts) {
-        Set<Interface> interfaces = l2Network.interfaces();
-        if (!l2Network.l2Forward() || interfaces.size() < 2) {
+    private Set<MultiPointToSinglePointIntent> buildUniIntents(FabricNetwork fabricNetwork,
+                                                               Set<Host> hosts) {
+        Set<Interface> interfaces = fabricNetwork.interfaces();
+        if (!fabricNetwork.isForward() || interfaces.size() < 2) {
             return ImmutableSet.of();
         }
         Set<MultiPointToSinglePointIntent> uniIntents = Sets.newHashSet();
-        ResourceGroup resourceGroup = ResourceGroup.of(l2Network.name());
+        ResourceGroup resourceGroup = ResourceGroup.of(fabricNetwork.name());
         hosts.forEach(host -> {
             FilteredConnectPoint hostFcp = buildFilteredConnectedPoint(host);
             Set<FilteredConnectPoint> srcFcps = interfaces.stream()
                     .map(this::buildFilteredConnectedPoint)
                     .filter(fcp -> !fcp.equals(hostFcp))
                     .collect(Collectors.toSet());
-            Key key = buildKey(l2Network.name(), "UNI", hostFcp.connectPoint(), host.mac());
+            Key key = buildKey(fabricNetwork.name(), "UNI", hostFcp.connectPoint(), host.mac());
             TrafficSelector selector = DefaultTrafficSelector.builder()
                     .matchEthDst(host.mac()).build();
-            MultiPointToSinglePointIntent.Builder intentBuilder = MultiPointToSinglePointIntent.builder()
-                    .appId(l2ForwardAppId)
+            MultiPointToSinglePointIntent.Builder
+                    intentBuilder = MultiPointToSinglePointIntent.builder()
+                    .appId(appId)
                     .key(key)
                     .selector(selector)
                     .filteredIngressPoints(srcFcps)
                     .filteredEgressPoint(hostFcp)
-                    .constraints(buildConstraints(L2NETWORK_CONSTRAINTS, l2Network.encapsulation()))
+                    .constraints(buildConstraints(L2NETWORK_CONSTRAINTS,
+                            fabricNetwork.encapsulation()))
                     .priority(PRI_L2NETWORK_UNICAST)
                     .resourceGroup(resourceGroup);
             uniIntents.add(intentBuilder.build());
@@ -339,8 +351,8 @@ public class SimpleFabricL2Forward {
 
     // Intent generate utilities
 
-    private Set<Host> hostsFromL2Network(L2Network l2Network) {
-        Set<Interface> interfaces = l2Network.interfaces();
+    private Set<Host> hostsFromL2Network(FabricNetwork fabricNetwork) {
+        Set<Interface> interfaces = fabricNetwork.interfaces();
         return interfaces.stream()
                 .map(this::hostsFromInterface)
                 .flatMap(Collection::stream)
@@ -354,11 +366,14 @@ public class SimpleFabricL2Forward {
                 .collect(Collectors.toSet());
     }
 
-    private Key buildKey(String l2NetworkName, String type, ConnectPoint cPoint, MacAddress dstMac) {
-        return Key.of(l2NetworkName + "-" + type + "-" + cPoint.toString() + "-" + dstMac, l2ForwardAppId);
+    private Key buildKey(String l2NetworkName, String type,
+                         ConnectPoint cPoint, MacAddress dstMac) {
+        return Key.of(l2NetworkName + "-" + type + "-" +
+                cPoint.toString() + "-" + dstMac, appId);
     }
 
-    private List<Constraint> buildConstraints(List<Constraint> constraints, EncapsulationType encapsulation) {
+    private List<Constraint> buildConstraints(List<Constraint> constraints,
+                                              EncapsulationType encapsulation) {
         if (!encapsulation.equals(EncapsulationType.NONE)) {
             List<Constraint> newConstraints = new ArrayList<>(constraints);
             constraints.stream()
@@ -393,25 +408,27 @@ public class SimpleFabricL2Forward {
     // Dump command handler
     private void dump(String subject, PrintStream out) {
         if ("intents".equals(subject)) {
-            out.println("L2Forward Broadcast Intents:\n");
+            out.println("Forwarding Broadcast Intents:\n");
             for (SinglePointToMultiPointIntent intent: bctIntentsMap.values()) {
                 out.println("    " + intent.key().toString()
                           + ": " + intent.selector().criteria()
                           + ", [" + intent.filteredIngressPoint().connectPoint()
                           + "] -> " + intent.filteredEgressPoints().stream()
-                                      .map(FilteredConnectPoint::connectPoint).collect(Collectors.toSet()));
+                                      .map(FilteredConnectPoint::connectPoint)
+                                        .collect(Collectors.toSet()));
             }
             out.println("");
-            out.println("L2Forward Unicast Intents:\n");
+            out.println("Forwarding Unicast Intents:\n");
             for (MultiPointToSinglePointIntent intent: uniIntentsMap.values()) {
                 out.println("    " + intent.key().toString()
                           + ": " + intent.selector().criteria()
                           + ", [" + intent.filteredIngressPoints().stream()
-                                    .map(FilteredConnectPoint::connectPoint).collect(Collectors.toSet())
+                                    .map(FilteredConnectPoint::connectPoint)
+                                    .collect(Collectors.toSet())
                           + "] -> " + intent.filteredEgressPoint().connectPoint());
             }
             out.println("");
-            out.println("L2Forward Intents to Be Purged:\n");
+            out.println("Forwarding Intents to Be Purged:\n");
             for (Key key: toBePurgedIntentKeys) {
                 out.println("    " + key.toString());
             }

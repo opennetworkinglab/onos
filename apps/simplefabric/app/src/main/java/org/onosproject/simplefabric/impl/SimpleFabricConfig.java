@@ -22,11 +22,14 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onosproject.core.ApplicationId;
-import org.onosproject.net.config.Config;
 import org.onosproject.net.EncapsulationType;
-import org.onosproject.simplefabric.api.IpSubnet;
-import org.onosproject.simplefabric.api.L2Network;
-import org.onosproject.simplefabric.api.Route;
+import org.onosproject.net.config.Config;
+import org.onosproject.simplefabric.api.DefaultFabricRoute;
+import org.onosproject.simplefabric.api.DefaultFabricSubnet;
+import org.onosproject.simplefabric.api.DefaultFabricNetwork;
+import org.onosproject.simplefabric.api.FabricRoute;
+import org.onosproject.simplefabric.api.FabricSubnet;
+import org.onosproject.simplefabric.api.FabricNetwork;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,92 +41,101 @@ import java.util.Set;
 public class SimpleFabricConfig extends Config<ApplicationId> {
     public static final String KEY = "simpleFabric";
 
-    private static final String L2NETWORKS = "l2Networks";
+    private static final String FABRIC_NETWORKS = "fabricNetworks";
     private static final String NAME = "name";
     private static final String INTERFACES = "interfaces";
     private static final String ENCAPSULATION = "encapsulation";
-    private static final String L2FORWARD = "l2Forward";
-    private static final String L2BROADCAST = "l2Broadcast";
-    private static final String IPSUBNETS = "ipSubnets";
-    private static final String BORDERROUTES = "borderRoutes";
-    private static final String IPPREFIX = "ipPrefix";
-    private static final String GATEWAYIP = "gatewayIp";
-    private static final String GATEWAYMAC = "gatewayMac";
-    private static final String L2NETWORKNAME = "l2NetworkName";
-    private static final String NEXTHOP = "nextHop";
+    private static final String IS_FORWARD = "isForward";
+    private static final String IS_BROADCAST = "isBroadcast";
+
+    private static final String FABRIC_SUBNETS = "fabricSubnets";
+    private static final String PREFIX = "prefix";
+    private static final String GATEWAY_IP = "gatewayIp";
+    private static final String GATEWAY_MAC = "gatewayMac";
+    private static final String NETWORK_NAME = "networkName";
+
+    private static final String FABRIC_ROUTES = "fabricRoutes";
+    private static final String NEXT_HOP = "nextHop";
+
+    private static final String NONE_ENCAPSULATION = "NONE";
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     /**
-     * Returns all l2Networks in this configuration.
+     * Returns all fabric networks in this configuration.
      *
-     * @return A set of L2Network.
+     * @return a set of fabric networks
      */
-    public Set<L2Network> getL2Networks() {
-        Set<L2Network> l2Networks = Sets.newHashSet();
-        JsonNode l2NetworkNode = object.get(L2NETWORKS);
-        if (l2NetworkNode == null) {
-            return l2Networks;
+    public Set<FabricNetwork> fabricNetworks() {
+        Set<FabricNetwork> fabricNetworks = Sets.newHashSet();
+        JsonNode fabricNetworkNodes = object.get(FABRIC_NETWORKS);
+        if (fabricNetworkNodes == null) {
+            return fabricNetworks;
         }
 
-        l2NetworkNode.forEach(jsonNode -> {
+        fabricNetworkNodes.forEach(jsonNode -> {
             Set<String> ifaces = Sets.newHashSet();
-            JsonNode l2NetworkIfaces = jsonNode.path(INTERFACES);
-            if (l2NetworkIfaces == null) {
-                log.warn("simple fabric network config cannot find {}; skip: jsonNode={}", INTERFACES, jsonNode);
-            } else if (!l2NetworkIfaces.toString().isEmpty()) {
-                l2NetworkIfaces.forEach(ifacesNode -> ifaces.add(new String(ifacesNode.asText())));
+            JsonNode fabricNetworkIfaces = jsonNode.path(INTERFACES);
+            if (fabricNetworkIfaces == null) {
+                log.warn("Fabric network interfaces cannot find {}; skip: jsonNode={}", INTERFACES, jsonNode);
+            } else if (!fabricNetworkIfaces.toString().isEmpty()) {
+                fabricNetworkIfaces.forEach(ifacesNode -> ifaces.add(ifacesNode.asText()));
             }
-            String encapsulation = "NONE";   // NONE or VLAN
+            String encapsulation = NONE_ENCAPSULATION;   // NONE or VLAN
             if (jsonNode.hasNonNull(ENCAPSULATION)) {
                 encapsulation = jsonNode.get(ENCAPSULATION).asText();
             }
-            boolean l2Forward = true;
-            if (jsonNode.hasNonNull(L2FORWARD)) {
-                l2Forward = jsonNode.get(L2FORWARD).asBoolean();
+            boolean isForward = true;
+            if (jsonNode.hasNonNull(IS_FORWARD)) {
+                isForward = jsonNode.get(IS_FORWARD).asBoolean();
             }
-            boolean l2Broadcast = true;
-            if (jsonNode.hasNonNull(L2BROADCAST)) {
-                l2Broadcast = jsonNode.get(L2BROADCAST).asBoolean();
+            boolean isBroadcast = true;
+            if (jsonNode.hasNonNull(IS_BROADCAST)) {
+                isBroadcast = jsonNode.get(IS_BROADCAST).asBoolean();
             }
             try {
-                l2Networks.add(new L2Network(
-                        jsonNode.get(NAME).asText(), ifaces, EncapsulationType.enumFromString(encapsulation),
-                        l2Forward, l2Broadcast));
+                fabricNetworks.add(DefaultFabricNetwork.builder()
+                                    .name(jsonNode.get(NAME).asText())
+                                    .interfaceNames(ifaces)
+                                    .encapsulation(EncapsulationType.enumFromString(encapsulation))
+                                    .forward(isForward)
+                                    .broadcast(isBroadcast)
+                                    .build());
             } catch (Exception e) {
-                log.warn("simple fabric network config l2Network parse failed; skip: error={} jsonNode={}", jsonNode);
+                log.warn("Fabric network parse failed; skip: jsonNode={}", jsonNode);
             }
         });
-        return l2Networks;
+        return fabricNetworks;
     }
 
     /**
-     * Gets the set of configured local IP subnets.
+     * Gets the set of configured local subnets.
      *
-     * @return IP Subnets
+     * @return a set of subnets
      */
-    public Set<IpSubnet> ipSubnets() {
-        Set<IpSubnet> subnets = Sets.newHashSet();
-        JsonNode subnetsNode = object.get(IPSUBNETS);
+    public Set<FabricSubnet> fabricSubnets() {
+        Set<FabricSubnet> subnets = Sets.newHashSet();
+        JsonNode subnetsNode = object.get(FABRIC_SUBNETS);
         if (subnetsNode == null) {
-            log.warn("simple fabric network config ipSubnets is null!");
+            log.warn("FabricSubnets is null!");
             return subnets;
         }
 
         subnetsNode.forEach(jsonNode -> {
-            String encapsulation = "NONE";   // NONE or VLAN
+            String encapsulation = NONE_ENCAPSULATION;   // NONE or VLAN
             if (jsonNode.hasNonNull(ENCAPSULATION)) {
                 encapsulation = jsonNode.get(ENCAPSULATION).asText();
             }
             try {
-                subnets.add(new IpSubnet(
-                        IpPrefix.valueOf(jsonNode.get(IPPREFIX).asText()),
-                        IpAddress.valueOf(jsonNode.get(GATEWAYIP).asText()),
-                        MacAddress.valueOf(jsonNode.get(GATEWAYMAC).asText()),
-                        EncapsulationType.enumFromString(encapsulation),
-                        jsonNode.get(L2NETWORKNAME).asText()));
+                subnets.add(DefaultFabricSubnet.builder()
+                            .ipPrefix(IpPrefix.valueOf(jsonNode.get(PREFIX).asText()))
+                            .gatewayIp(IpAddress.valueOf(jsonNode.get(GATEWAY_IP).asText()))
+                            .gatewayMac(MacAddress.valueOf(jsonNode.get(GATEWAY_MAC).asText()))
+                            .encapsulation(EncapsulationType.enumFromString(encapsulation))
+                            .name(jsonNode.get(NETWORK_NAME).asText())
+                            .build());
             } catch (Exception e) {
-                log.warn("simple fabric network config ipSubnet parse failed; skip: error={} jsonNode={}", jsonNode);
+                log.warn("Fabric subnet parse failed; skip: jsonNode={}", jsonNode);
             }
         });
 
@@ -133,29 +145,28 @@ public class SimpleFabricConfig extends Config<ApplicationId> {
     /**
      * Returns all routes in this configuration.
      *
-     * @return A set of route.
+     * @return a set of routes.
      */
-    public Set<Route> borderRoutes() {
-        Set<Route> routes = Sets.newHashSet();
+    public Set<FabricRoute> fabricRoutes() {
+        Set<FabricRoute> routes = Sets.newHashSet();
 
-        JsonNode routesNode = object.get(BORDERROUTES);
+        JsonNode routesNode = object.get(FABRIC_ROUTES);
         if (routesNode == null) {
-            //log.warn("simple fabric network config borderRoutes is null!");
             return routes;
         }
 
         routesNode.forEach(jsonNode -> {
             try {
-                routes.add(new Route(
-                      Route.Source.STATIC,
-                      IpPrefix.valueOf(jsonNode.path(IPPREFIX).asText()),
-                      IpAddress.valueOf(jsonNode.path(NEXTHOP).asText())));
+                routes.add(DefaultFabricRoute.builder()
+                        .source(FabricRoute.Source.STATIC)
+                        .prefix(IpPrefix.valueOf(jsonNode.path(PREFIX).asText()))
+                        .nextHop(IpAddress.valueOf(jsonNode.path(NEXT_HOP).asText()))
+                        .build());
             } catch (IllegalArgumentException e) {
-                log.warn("simple fabric network config parse error; skip: {}", jsonNode);
+                log.warn("Fabric router parse error; skip: jsonNode={}", jsonNode);
             }
         });
 
         return routes;
     }
-
 }

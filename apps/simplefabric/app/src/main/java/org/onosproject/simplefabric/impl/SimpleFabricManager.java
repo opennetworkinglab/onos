@@ -37,7 +37,6 @@ import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onlab.packet.ndp.NeighborSolicitation;
-import org.onosproject.app.ApplicationService;
 import org.onosproject.component.ComponentService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -65,9 +64,10 @@ import org.onosproject.net.intf.InterfaceService;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketService;
-import org.onosproject.simplefabric.api.IpSubnet;
-import org.onosproject.simplefabric.api.L2Network;
-import org.onosproject.simplefabric.api.Route;
+import org.onosproject.simplefabric.api.DefaultFabricNetwork;
+import org.onosproject.simplefabric.api.FabricNetwork;
+import org.onosproject.simplefabric.api.FabricRoute;
+import org.onosproject.simplefabric.api.FabricSubnet;
 import org.onosproject.simplefabric.api.SimpleFabricEvent;
 import org.onosproject.simplefabric.api.SimpleFabricListener;
 import org.onosproject.simplefabric.api.SimpleFabricService;
@@ -82,7 +82,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static org.onosproject.simplefabric.util.RouteTools.createBinaryString;
 import static org.onosproject.simplefabric.api.Constants.ALLOW_ETH_ADDRESS_SELECTOR;
 import static org.onosproject.simplefabric.api.Constants.ALLOW_IPV6;
 import static org.onosproject.simplefabric.api.Constants.APP_ID;
@@ -91,6 +90,7 @@ import static org.onosproject.simplefabric.api.Constants.REACTIVE_ALLOW_LINK_CP;
 import static org.onosproject.simplefabric.api.Constants.REACTIVE_HASHED_PATH_SELECTION;
 import static org.onosproject.simplefabric.api.Constants.REACTIVE_MATCH_IP_PROTO;
 import static org.onosproject.simplefabric.api.Constants.REACTIVE_SINGLE_TO_SINGLE;
+import static org.onosproject.simplefabric.util.RouteTools.createBinaryString;
 
 
 /**
@@ -105,9 +105,6 @@ public class SimpleFabricManager extends ListenerRegistry<SimpleFabricEvent, Sim
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ApplicationService applicationService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetworkConfigService configService;
@@ -127,32 +124,32 @@ public class SimpleFabricManager extends ListenerRegistry<SimpleFabricEvent, Sim
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected PacketService packetService;
 
-    // compoents to be activated within SimpleFabric
+    // components to be activated within SimpleFabric
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentService componentService;
 
     // SimpleFabric variables
     private ApplicationId appId = null;
 
-    // l2 broadcast networks
-    private Set<L2Network> l2Networks = new HashSet<>();
-    private Set<Interface> l2NetworkInterfaces = new HashSet<>();
+    // fabric networks
+    private Set<FabricNetwork> fabricNetworks = new HashSet<>();
+    private Set<Interface> networkInterfaces = new HashSet<>();
 
     // Subnet table
-    private Set<IpSubnet> ipSubnets = new HashSet<>();
-    private InvertedRadixTree<IpSubnet> ip4SubnetTable =
+    private Set<FabricSubnet> fabricSubnets = new HashSet<>();
+    private InvertedRadixTree<FabricSubnet> ip4SubnetTable =
                  new ConcurrentInvertedRadixTree<>(new DefaultByteArrayNodeFactory());
-    private InvertedRadixTree<IpSubnet> ip6SubnetTable =
-                 new ConcurrentInvertedRadixTree<>(new DefaultByteArrayNodeFactory());
-
-    // Border Route table
-    private Set<Route> borderRoutes = new HashSet<>();
-    private InvertedRadixTree<Route> ip4BorderRouteTable =
-                 new ConcurrentInvertedRadixTree<>(new DefaultByteArrayNodeFactory());
-    private InvertedRadixTree<Route> ip6BorderRouteTable =
+    private InvertedRadixTree<FabricSubnet> ip6SubnetTable =
                  new ConcurrentInvertedRadixTree<>(new DefaultByteArrayNodeFactory());
 
-    // VirtialGateway
+    // Fabric Route table
+    private Set<FabricRoute> fabricRoutes = new HashSet<>();
+    private InvertedRadixTree<FabricRoute> ip4BorderRouteTable =
+                 new ConcurrentInvertedRadixTree<>(new DefaultByteArrayNodeFactory());
+    private InvertedRadixTree<FabricRoute> ip6BorderRouteTable =
+                 new ConcurrentInvertedRadixTree<>(new DefaultByteArrayNodeFactory());
+
+    // Virtual gateway
     private Map<IpAddress, MacAddress> virtualGatewayIpMacMap = Maps.newConcurrentMap();
 
     // Refresh monitor thread
@@ -165,7 +162,6 @@ public class SimpleFabricManager extends ListenerRegistry<SimpleFabricEvent, Sim
     private final InternalNetworkConfigListener configListener = new InternalNetworkConfigListener();
     private final InternalDeviceListener deviceListener = new InternalDeviceListener();
     private final InternalHostListener hostListener = new InternalHostListener();
-    private final InternalInterfaceListener interfaceListener = new InternalInterfaceListener();
 
     private ConfigFactory<ApplicationId, SimpleFabricConfig> simpleFabricConfigFactory =
         new ConfigFactory<ApplicationId, SimpleFabricConfig>(
@@ -194,9 +190,9 @@ public class SimpleFabricManager extends ListenerRegistry<SimpleFabricEvent, Sim
         hostService.addListener(hostListener);
 
         componentService.activate(appId, SimpleFabricNeighbour.class.getName());
-        componentService.activate(appId, SimpleFabricReactiveRouting.class.getName());
+        componentService.activate(appId, SimpleFabricRouting.class.getName());
         if (ALLOW_ETH_ADDRESS_SELECTOR) {
-            componentService.activate(appId, SimpleFabricL2Forward.class.getName());
+            componentService.activate(appId, SimpleFabricForwarding.class.getName());
         }
 
         refreshThread = new InternalRefreshThread();
@@ -210,9 +206,9 @@ public class SimpleFabricManager extends ListenerRegistry<SimpleFabricEvent, Sim
         log.info("simple fabric stopping");
 
         componentService.deactivate(appId, SimpleFabricNeighbour.class.getName());
-        componentService.deactivate(appId, SimpleFabricReactiveRouting.class.getName());
+        componentService.deactivate(appId, SimpleFabricRouting.class.getName());
         if (ALLOW_ETH_ADDRESS_SELECTOR) {
-            componentService.deactivate(appId, SimpleFabricL2Forward.class.getName());
+            componentService.deactivate(appId, SimpleFabricForwarding.class.getName());
         }
 
         deviceService.removeListener(deviceListener);
@@ -227,7 +223,7 @@ public class SimpleFabricManager extends ListenerRegistry<SimpleFabricEvent, Sim
     }
 
     // Set up from configuration
-    // returns found dirty and refresh listners are called (true) or not (false)
+    // returns found isDirty and refresh listeners are called (true) or not (false)
     private boolean refresh() {
         log.debug("simple fabric refresh");
         boolean dirty = false;
@@ -239,66 +235,66 @@ public class SimpleFabricManager extends ListenerRegistry<SimpleFabricEvent, Sim
             return false;
         }
 
-        // l2Networks
-        Set<L2Network> newL2Networks = new HashSet<>();
-        Set<Interface> newL2NetworkInterfaces = new HashSet<>();
-        for (L2Network newL2NetworkConfig : config.getL2Networks()) {
-            L2Network newL2Network = L2Network.of(newL2NetworkConfig);
+        // fabricNetworks
+        Set<FabricNetwork> newFabricNetworks = new HashSet<>();
+        Set<Interface> newInterfaces = new HashSet<>();
+        for (FabricNetwork newFabricNetworkConfig : config.fabricNetworks()) {
+            FabricNetwork newFabricNetwork = DefaultFabricNetwork.of(newFabricNetworkConfig);
 
             // fill up interfaces and Hosts with active port only
-            for (String ifaceName : newL2NetworkConfig.interfaceNames()) {
+            for (String ifaceName : newFabricNetworkConfig.interfaceNames()) {
                 Interface iface = getInterfaceByName(ifaceName);
                 if (iface != null && deviceService.isAvailable(iface.connectPoint().deviceId())) {
-                     newL2Network.addInterface(iface);
-                     newL2NetworkInterfaces.add(iface);
+                     newFabricNetwork.addInterface(iface);
+                     newInterfaces.add(iface);
                 }
             }
             for (Host host : hostService.getHosts()) {
                 // consider host with ip only
                 if (!host.ipAddresses().isEmpty()) {
                     Interface iface = findAvailableDeviceHostInterface(host);
-                    if (iface != null && newL2Network.contains(iface)) {
-                        newL2Network.addHost(host);
+                    if (iface != null && newFabricNetwork.contains(iface)) {
+                        newFabricNetwork.addHost(host);
                     }
                 }
             }
-            newL2Network.setDirty(true);
+            newFabricNetwork.setDirty(true);
 
-            // update newL2Network's dirty flags if same entry already exists
-            for (L2Network prevL2Network : l2Networks) {
-                if (prevL2Network.equals(newL2Network)) {
-                    newL2Network.setDirty(prevL2Network.dirty());
+            // update newFabricNetwork's isDirty flags if same entry already exists
+            for (FabricNetwork prevFabricNetwork : fabricNetworks) {
+                if (prevFabricNetwork.equals(newFabricNetwork)) {
+                    newFabricNetwork.setDirty(prevFabricNetwork.isDirty());
                     break;
                 }
             }
-            newL2Networks.add(newL2Network);
+            newFabricNetworks.add(newFabricNetwork);
         }
-        if (!l2Networks.equals(newL2Networks)) {
-            l2Networks = newL2Networks;
+        if (!fabricNetworks.equals(newFabricNetworks)) {
+            fabricNetworks = newFabricNetworks;
             dirty = true;
         }
-        if (!l2NetworkInterfaces.equals(newL2NetworkInterfaces)) {
-            l2NetworkInterfaces = newL2NetworkInterfaces;
+        if (!networkInterfaces.equals(newInterfaces)) {
+            networkInterfaces = newInterfaces;
             dirty = true;
         }
 
-        // ipSubnets
-        Set<IpSubnet> newIpSubnets = config.ipSubnets();
-        InvertedRadixTree<IpSubnet> newIp4SubnetTable =
+        // default Fabric Subnets
+        Set<FabricSubnet> newFabricSubnets = config.fabricSubnets();
+        InvertedRadixTree<FabricSubnet> newIp4SubnetTable =
                  new ConcurrentInvertedRadixTree<>(new DefaultByteArrayNodeFactory());
-        InvertedRadixTree<IpSubnet> newIp6SubnetTable =
+        InvertedRadixTree<FabricSubnet> newIp6SubnetTable =
                  new ConcurrentInvertedRadixTree<>(new DefaultByteArrayNodeFactory());
         Map<IpAddress, MacAddress> newVirtualGatewayIpMacMap = Maps.newConcurrentMap();
-        for (IpSubnet subnet : newIpSubnets) {
-            if (subnet.ipPrefix().isIp4()) {
-                newIp4SubnetTable.put(createBinaryString(subnet.ipPrefix()), subnet);
+        for (FabricSubnet subnet : newFabricSubnets) {
+            if (subnet.prefix().isIp4()) {
+                newIp4SubnetTable.put(createBinaryString(subnet.prefix()), subnet);
             } else {
-                newIp6SubnetTable.put(createBinaryString(subnet.ipPrefix()), subnet);
+                newIp6SubnetTable.put(createBinaryString(subnet.prefix()), subnet);
             }
             newVirtualGatewayIpMacMap.put(subnet.gatewayIp(), subnet.gatewayMac());
         }
-        if (!ipSubnets.equals(newIpSubnets)) {
-            ipSubnets = newIpSubnets;
+        if (!fabricSubnets.equals(newFabricSubnets)) {
+            fabricSubnets = newFabricSubnets;
             ip4SubnetTable = newIp4SubnetTable;
             ip6SubnetTable = newIp6SubnetTable;
             dirty = true;
@@ -308,21 +304,21 @@ public class SimpleFabricManager extends ListenerRegistry<SimpleFabricEvent, Sim
             dirty = true;
         }
 
-        // borderRoutes config handling
-        Set<Route> newBorderRoutes = config.borderRoutes();
-        if (!borderRoutes.equals(newBorderRoutes)) {
-            InvertedRadixTree<Route> newIp4BorderRouteTable =
+        // fabricRoutes config handling
+        Set<FabricRoute> newFabricRoutes = config.fabricRoutes();
+        if (!fabricRoutes.equals(newFabricRoutes)) {
+            InvertedRadixTree<FabricRoute> newIp4BorderRouteTable =
                     new ConcurrentInvertedRadixTree<>(new DefaultByteArrayNodeFactory());
-            InvertedRadixTree<Route> newIp6BorderRouteTable =
+            InvertedRadixTree<FabricRoute> newIp6BorderRouteTable =
                     new ConcurrentInvertedRadixTree<>(new DefaultByteArrayNodeFactory());
-            for (Route route : newBorderRoutes) {
+            for (FabricRoute route : newFabricRoutes) {
                 if (route.prefix().isIp4()) {
                     newIp4BorderRouteTable.put(createBinaryString(route.prefix()), route);
                 } else {
                     newIp6BorderRouteTable.put(createBinaryString(route.prefix()), route);
                 }
             }
-            borderRoutes = newBorderRoutes;
+            fabricRoutes = newFabricRoutes;
             ip4BorderRouteTable = newIp4BorderRouteTable;
             ip6BorderRouteTable = newIp6BorderRouteTable;
             dirty = true;
@@ -348,7 +344,7 @@ public class SimpleFabricManager extends ListenerRegistry<SimpleFabricEvent, Sim
     }
 
     @Override
-    public ApplicationId getAppId() {
+    public ApplicationId appId() {
         if (appId == null) {
             appId = coreService.registerApplication(APP_ID);
         }
@@ -356,57 +352,57 @@ public class SimpleFabricManager extends ListenerRegistry<SimpleFabricEvent, Sim
     }
 
     @Override
-    public Collection<L2Network> getL2Networks() {
-        return ImmutableSet.copyOf(l2Networks);
+    public Collection<FabricNetwork> fabricNetworks() {
+        return ImmutableSet.copyOf(fabricNetworks);
     }
 
     @Override
-    public Set<IpSubnet> getIpSubnets() {
-        return ImmutableSet.copyOf(ipSubnets);
+    public Set<FabricSubnet> defaultFabricSubnets() {
+        return ImmutableSet.copyOf(fabricSubnets);
     }
 
     @Override
-    public Set<Route> getBorderRoutes() {
-        return ImmutableSet.copyOf(borderRoutes);
+    public Set<FabricRoute> fabricRoutes() {
+        return ImmutableSet.copyOf(fabricRoutes);
     }
 
     @Override
-    public boolean isVMac(MacAddress mac) {
+    public boolean isVirtualGatewayMac(MacAddress mac) {
         return virtualGatewayIpMacMap.containsValue(mac);
     }
 
     @Override
-    public boolean isL2NetworkInterface(Interface intf) {
-        return l2NetworkInterfaces.contains(intf);
+    public boolean isFabricNetworkInterface(Interface intf) {
+        return networkInterfaces.contains(intf);
     }
 
     @Override
-    public MacAddress findVMacForIp(IpAddress ip) {
+    public MacAddress vMacForIp(IpAddress ip) {
         return virtualGatewayIpMacMap.get(ip);
     }
 
     @Override
-    public L2Network findL2Network(ConnectPoint port, VlanId vlanId) {
-        for (L2Network l2Network : l2Networks) {
-            if (l2Network.contains(port, vlanId)) {
-                return l2Network;
+    public FabricNetwork fabricNetwork(ConnectPoint port, VlanId vlanId) {
+        for (FabricNetwork fabricNetwork : fabricNetworks) {
+            if (fabricNetwork.contains(port, vlanId)) {
+                return fabricNetwork;
             }
         }
         return null;
     }
 
     @Override
-    public L2Network findL2Network(String name) {
-        for (L2Network l2Network : l2Networks) {
-            if (l2Network.name().equals(name)) {
-                return l2Network;
+    public FabricNetwork fabricNetwork(String name) {
+        for (FabricNetwork fabricNetwork : fabricNetworks) {
+            if (fabricNetwork.name().equals(name)) {
+                return fabricNetwork;
             }
         }
         return null;
     }
 
     @Override
-    public IpSubnet findIpSubnet(IpAddress ip) {
+    public FabricSubnet fabricSubnet(IpAddress ip) {
         if (ip.isIp4()) {
             return ip4SubnetTable.getValueForLongestKeyPrefixing(
                      createBinaryString(IpPrefix.valueOf(ip, Ip4Address.BIT_LENGTH)));
@@ -417,8 +413,8 @@ public class SimpleFabricManager extends ListenerRegistry<SimpleFabricEvent, Sim
     }
 
     @Override
-    public Route findBorderRoute(IpAddress ip) {
-        // ASSUME: ipAddress is out of ipSubnet
+    public FabricRoute fabricRoute(IpAddress ip) {
+        // ASSUME: ipAddress is out of fabricSubnet
         if (ip.isIp4()) {
             return ip4BorderRouteTable.getValueForLongestKeyPrefixing(
                      createBinaryString(IpPrefix.valueOf(ip, Ip4Address.BIT_LENGTH)));
@@ -430,7 +426,7 @@ public class SimpleFabricManager extends ListenerRegistry<SimpleFabricEvent, Sim
 
 
     @Override
-    public Interface findHostInterface(Host host) {
+    public Interface hostInterface(Host host) {
         return interfaceService.getInterfaces().stream()
                 .filter(iface -> iface.connectPoint().equals(host.location()) &&
                                  iface.vlan().equals(host.vlan()))
@@ -449,32 +445,32 @@ public class SimpleFabricManager extends ListenerRegistry<SimpleFabricEvent, Sim
 
     @Override
     public boolean requestMac(IpAddress ip) {
-        IpSubnet ipSubnet = findIpSubnet(ip);
-        if (ipSubnet == null) {
-            log.warn("simple fabric request mac failed for unknown IpSubnet: {}", ip);
+        FabricSubnet fabricSubnet = fabricSubnet(ip);
+        if (fabricSubnet == null) {
+            log.warn("simple fabric request mac failed for unknown fabricSubnet: {}", ip);
             return false;
         }
-        L2Network l2Network = findL2Network(ipSubnet.l2NetworkName());
-        if (l2Network == null) {
-            log.warn("simple fabric request mac failed for unknown l2Network name {}: {}",
-                     ipSubnet.l2NetworkName(), ip);
+        FabricNetwork fabricNetwork = fabricNetwork(fabricSubnet.name());
+        if (fabricNetwork == null) {
+            log.warn("simple fabric request mac failed for unknown fabricNetwork name {}: {}",
+                     fabricSubnet.name(), ip);
             return false;
         }
-        log.debug("simple fabric send request mac L2Network {}: {}", l2Network.name(), ip);
-        for (Interface iface : l2Network.interfaces()) {
+        log.debug("simple fabric send request mac fabricNetwork {}: {}", fabricNetwork.name(), ip);
+        for (Interface iface : fabricNetwork.interfaces()) {
             Ethernet neighbourReq;
             if (ip.isIp4()) {
-                neighbourReq = ARP.buildArpRequest(ipSubnet.gatewayMac().toBytes(),
-                                                   ipSubnet.gatewayIp().toOctets(),
+                neighbourReq = ARP.buildArpRequest(fabricSubnet.gatewayMac().toBytes(),
+                                                   fabricSubnet.gatewayIp().toOctets(),
                                                    ip.toOctets(),
                                                    iface.vlan().toShort());
             } else {
                 byte[] soliciteIp = IPv6.getSolicitNodeAddress(ip.toOctets());
                 neighbourReq = NeighborSolicitation.buildNdpSolicit(
                                                    ip.toOctets(),
-                                                   ipSubnet.gatewayIp().toOctets(),
+                                                   fabricSubnet.gatewayIp().toOctets(),
                                                    soliciteIp,
-                                                   ipSubnet.gatewayMac().toBytes(),
+                                                   fabricSubnet.gatewayMac().toBytes(),
                                                    IPv6.getMCastMacAddress(soliciteIp),
                                                    iface.vlan());
             }
@@ -506,20 +502,20 @@ public class SimpleFabricManager extends ListenerRegistry<SimpleFabricEvent, Sim
             out.println("    REACTIVE_MATCH_IP_PROTO=" + REACTIVE_MATCH_IP_PROTO);
             out.println("");
             out.println("SimpleFabricAppId:");
-            out.println("    " + getAppId());
+            out.println("    " + appId());
             out.println("");
-            out.println("l2Networks:");
-            for (L2Network l2Network : getL2Networks()) {
-                out.println("    " + l2Network);
+            out.println("fabricNetworks:");
+            for (FabricNetwork fabricNetwork : fabricNetworks()) {
+                out.println("    " + fabricNetwork);
             }
             out.println("");
-            out.println("ipSubnets:");
-            for (IpSubnet ipSubnet : getIpSubnets()) {
-                out.println("    " + ipSubnet);
+            out.println("fabricSubnets:");
+            for (FabricSubnet fabricIpSubnet : defaultFabricSubnets()) {
+                out.println("    " + fabricIpSubnet);
             }
             out.println("");
-            out.println("borderRoutes:");
-            for (Route route : getBorderRoutes()) {
+            out.println("fabricRoutes:");
+            for (FabricRoute route : fabricRoutes()) {
                 out.println("    " + route);
             }
         }

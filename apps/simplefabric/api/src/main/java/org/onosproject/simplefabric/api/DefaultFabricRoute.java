@@ -13,10 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- * local copy of onos/incubator/api/src/main/java/org/onosproject/incubator/net/routing/Route.java
- * to remove dependency on onos.incubator.routing services, since 2017-08-09.
- */
 
 package org.onosproject.simplefabric.api;
 
@@ -33,37 +29,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Represents a route.
  */
-public class Route {
+public final class DefaultFabricRoute implements FabricRoute {
 
     private static final String VERSION_MISMATCH =
             "Prefix and next hop must be in the same address family";
 
     private static final NodeId UNDEFINED = new NodeId("-");
-
-    /**
-     * Source of the route.
-     */
-    public enum Source {
-        /**
-         * Route came from the iBGP route source.
-         */
-        BGP,
-
-        /**
-         * Route came from the FPM route source.
-         */
-        FPM,
-
-        /**
-         * Route can from the static route source.
-         */
-        STATIC,
-
-        /**
-         * Route source was not defined.
-         */
-        UNDEFINED
-    }
 
     private final Source source;
     private final IpPrefix prefix;
@@ -77,7 +48,7 @@ public class Route {
      * @param prefix IP prefix
      * @param nextHop next hop IP address
      */
-    public Route(Source source, IpPrefix prefix, IpAddress nextHop) {
+    private DefaultFabricRoute(Source source, IpPrefix prefix, IpAddress nextHop) {
         this(source, prefix, nextHop, UNDEFINED);
     }
 
@@ -89,49 +60,30 @@ public class Route {
      * @param nextHop next hop IP address
      * @param sourceNode ONOS node the route was sourced from
      */
-    public Route(Source source, IpPrefix prefix, IpAddress nextHop, NodeId sourceNode) {
-        checkNotNull(prefix);
-        checkNotNull(nextHop);
-        checkArgument(prefix.version().equals(nextHop.version()), VERSION_MISMATCH);
-
+    private DefaultFabricRoute(Source source, IpPrefix prefix,
+                              IpAddress nextHop, NodeId sourceNode) {
         this.source = checkNotNull(source);
         this.prefix = prefix;
         this.nextHop = nextHop;
         this.sourceNode = checkNotNull(sourceNode);
     }
 
-    /**
-     * Returns the route source.
-     *
-     * @return route source
-     */
+    @Override
     public Source source() {
         return source;
     }
 
-    /**
-     * Returns the IP prefix of the route.
-     *
-     * @return IP prefix
-     */
+    @Override
     public IpPrefix prefix() {
         return prefix;
     }
 
-    /**
-     * Returns the next hop IP address.
-     *
-     * @return next hop
-     */
+    @Override
     public IpAddress nextHop() {
         return nextHop;
     }
 
-    /**
-     * Returns the ONOS node the route was sourced from.
-     *
-     * @return ONOS node ID
-     */
+    @Override
     public NodeId sourceNode() {
         return sourceNode;
     }
@@ -147,11 +99,11 @@ public class Route {
             return true;
         }
 
-        if (!(other instanceof Route)) {
+        if (!(other instanceof DefaultFabricRoute)) {
             return false;
         }
 
-        Route that = (Route) other;
+        DefaultFabricRoute that = (DefaultFabricRoute) other;
 
         return Objects.equals(this.prefix, that.prefix) &&
                 Objects.equals(this.nextHop, that.nextHop);
@@ -163,5 +115,65 @@ public class Route {
                 .add("prefix", prefix)
                 .add("nextHop", nextHop)
                 .toString();
+    }
+
+    /**
+     * Returns new builder instance.
+     *
+     * @return fabric route builder
+     */
+    public static DefaultFabricRouteBuilder builder() {
+        return new DefaultFabricRouteBuilder();
+    }
+
+    /**
+     * A builder class for fabric route.
+     */
+    public static final class DefaultFabricRouteBuilder implements Builder {
+        private Source source;
+        private IpPrefix prefix;
+        private IpAddress nextHop;
+        private NodeId sourceNode;
+
+        private DefaultFabricRouteBuilder() {
+        }
+
+        @Override
+        public Builder source(Source source) {
+            this.source = source;
+            return this;
+        }
+
+        @Override
+        public Builder prefix(IpPrefix prefix) {
+            this.prefix = prefix;
+            return this;
+        }
+
+        @Override
+        public Builder nextHop(IpAddress nextHop) {
+            this.nextHop = nextHop;
+            return this;
+        }
+
+        @Override
+        public Builder sourceNode(NodeId sourceNode) {
+            this.sourceNode = sourceNode;
+            return this;
+        }
+
+        @Override
+        public FabricRoute build() {
+
+            checkNotNull(prefix);
+            checkNotNull(nextHop);
+            checkArgument(prefix.version().equals(nextHop.version()), VERSION_MISMATCH);
+
+            if (sourceNode != null) {
+                return new DefaultFabricRoute(source, prefix, nextHop, sourceNode);
+            } else {
+                return new DefaultFabricRoute(source, prefix, nextHop);
+            }
+        }
     }
 }
