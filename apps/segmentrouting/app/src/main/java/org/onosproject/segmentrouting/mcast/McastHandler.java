@@ -1175,8 +1175,11 @@ public class McastHandler {
         ObjectiveContext context = new DefaultObjectiveContext(
                 (objective) -> log.debug("Successfully add {} on {}/{}, vlan {}",
                         mcastIp, deviceId, port.toLong(), assignedVlan),
-                (objective, error) -> log.warn("Failed to add {} on {}/{}, vlan {}: {}",
-                                mcastIp, deviceId, port.toLong(), assignedVlan, error));
+                (objective, error) -> {
+                    log.warn("Failed to add {} on {}/{}, vlan {}: {}",
+                            mcastIp, deviceId, port.toLong(), assignedVlan, error);
+                    srManager.invalidateNextObj(objective.id());
+                });
         ForwardingObjective fwdObj = mcastUtils.fwdObjBuilder(mcastIp, assignedVlan,
                                                               newNextObj.id()).add(context);
         srManager.flowObjectiveService.next(deviceId, newNextObj);
@@ -1231,8 +1234,11 @@ public class McastHandler {
             context = new DefaultObjectiveContext(
                     (objective) -> log.debug("Successfully update {} on {}/{}, vlan {}",
                             mcastIp, deviceId, port.toLong(), assignedVlan),
-                    (objective, error) -> log.warn("Failed to update {} on {}/{}, vlan {}: {}",
-                                    mcastIp, deviceId, port.toLong(), assignedVlan, error));
+                    (objective, error) -> {
+                        log.warn("Failed to update {} on {}/{}, vlan {}: {}",
+                                mcastIp, deviceId, port.toLong(), assignedVlan, error);
+                        srManager.invalidateNextObj(objective.id());
+                    });
             // Here we store the next objective with the remaining port
             newNextObj = mcastUtils.nextObjBuilder(mcastIp, assignedVlan,
                                         existingPorts, nextObj.id()).removeFromExisting();
