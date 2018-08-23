@@ -293,7 +293,7 @@ public class DefaultGroupHandler {
                     for (PortNumber p : devicePortMap.get(link.dst().deviceId())) {
                         dstSet.forEach(dst -> {
                             int edgeLabel = dsKey.destinationSet().getEdgeLabel(dst);
-                            pl.add(new PortLabel(p, edgeLabel));
+                            pl.add(new PortLabel(p, edgeLabel, popVlanInHashGroup(dsKey.destinationSet())));
                         });
                     }
                     addToHashedNextObjective(pl, neighborMac, nextId);
@@ -301,7 +301,7 @@ public class DefaultGroupHandler {
                     // handle only the port that came up
                     dstSet.forEach(dst -> {
                         int edgeLabel = dsKey.destinationSet().getEdgeLabel(dst);
-                        pl.add(new PortLabel(link.src().port(), edgeLabel));
+                        pl.add(new PortLabel(link.src().port(), edgeLabel, popVlanInHashGroup(dsKey.destinationSet())));
                     });
                     addToHashedNextObjective(pl, neighborMac, nextId);
                 }
@@ -310,7 +310,7 @@ public class DefaultGroupHandler {
                 List<PortLabel> pl = Lists.newArrayList();
                 dstSet.forEach(dst -> {
                     int edgeLabel = dsKey.destinationSet().getEdgeLabel(dst);
-                    pl.add(new PortLabel(link.src().port(), edgeLabel));
+                    pl.add(new PortLabel(link.src().port(), edgeLabel, popVlanInHashGroup(dsKey.destinationSet())));
                 });
                 removeFromHashedNextObjective(pl, neighborMac, nextId);
             }
@@ -328,15 +328,17 @@ public class DefaultGroupHandler {
     private class PortLabel {
         PortNumber port;
         int edgeLabel;
+        boolean popVlan;
 
-        PortLabel(PortNumber port, int edgeLabel) {
+        PortLabel(PortNumber port, int edgeLabel, boolean popVlan) {
             this.port = port;
             this.edgeLabel = edgeLabel;
+            this.popVlan = popVlan;
         }
 
         @Override
         public String toString() {
-            return port.toString() + "/" + String.valueOf(edgeLabel);
+            return port.toString() + "/" + String.valueOf(edgeLabel) + (popVlan ? "/popVlan" : "");
         }
     }
 
@@ -369,6 +371,9 @@ public class DefaultGroupHandler {
             tBuilder.setOutput(pl.port)
                 .setEthDst(dstMac)
                 .setEthSrc(nodeMacAddr);
+            if (pl.popVlan) {
+                tBuilder.popVlan();
+            }
             if (pl.edgeLabel != DestinationSet.NO_EDGE_LABEL) {
                 tBuilder.pushMpls()
                     .copyTtlOut()
@@ -414,6 +419,9 @@ public class DefaultGroupHandler {
             tBuilder.setOutput(pl.port)
                 .setEthDst(dstMac)
                 .setEthSrc(nodeMacAddr);
+            if (pl.popVlan) {
+                tBuilder.popVlan();
+            }
             if (pl.edgeLabel != DestinationSet.NO_EDGE_LABEL) {
                 tBuilder.pushMpls()
                     .copyTtlOut()
@@ -503,7 +511,7 @@ public class DefaultGroupHandler {
                         + "hops:{} ..adding {}", targetSw, destSw, nextId,
                         currNeighbors, diff);
             }
-            boolean suc = updateAllPortsToNextHop(diff, edgeLabel, nextId,
+            boolean suc = updateAllPortsToNextHop(diff, edgeLabel, nextId, popVlanInHashGroup(dskey.destinationSet()),
                                                   revoke);
             if (suc) {
                 // to update neighbor set with changes made
@@ -580,7 +588,7 @@ public class DefaultGroupHandler {
 
             // new next hops should be added
             boolean suc = updateAllPortsToNextHop(Sets.difference(newNhops, currNhops),
-                                                  edgeLabel, nextId, false);
+                                                  edgeLabel, nextId, popVlanInHashGroup(key.destinationSet()), false);
             if (suc) {
                 currNhops.addAll(newNhops);
                 currDstNextHops.put(dstSw, currNhops); // this is only a local change
@@ -606,13 +614,14 @@ public class DefaultGroupHandler {
      * @param neighbors set of neighbor device ids
      * @param edgeLabel MPLS label to use in buckets
      * @param nextId the nextObjective to change
+     * @param popVlan this hash group bucket shuold includes a popVlan action
      * @param revoke true if buckets need to be removed, false if they need to
      *          be added
      * @return true if successful in adding or removing buckets for all ports
      *                  to the neighbors
      */
     private boolean updateAllPortsToNextHop(Set<DeviceId> neighbors, int edgeLabel,
-                                         int nextId, boolean revoke) {
+                                         int nextId, boolean popVlan, boolean revoke) {
         for (DeviceId neighbor : neighbors) {
             MacAddress neighborMac;
             try {
@@ -630,7 +639,7 @@ public class DefaultGroupHandler {
                 return false;
             }
             List<PortLabel> pl = Lists.newArrayList();
-            portsToNeighbor.forEach(p -> pl.add(new PortLabel(p, edgeLabel)));
+            portsToNeighbor.forEach(p -> pl.add(new PortLabel(p, edgeLabel, popVlan)));
             if (revoke) {
                 log.debug("updateAllPortsToNextHops in device {}: Removing Bucket(s) "
                         + "with Port/Label:{} to next object id {}",
@@ -985,8 +994,7 @@ public class DefaultGroupHandler {
                     }
 
                     // Set VLAN ID for PW transport. Otherwise pop vlan
-                    if ((ds.getTypeOfDstSet() == DestinationSet.DestinationSetType.SWAP_NOT_BOS) ||
-                         (ds.getTypeOfDstSet() == DestinationSet.DestinationSetType.POP_NOT_BOS)) {
+                    if (!popVlanInHashGroup(ds)) {
                         tBuilder.setVlanId(srManager.getPwTransportVlan());
                     } else {
                         tBuilder.popVlan();
@@ -1537,4 +1545,15 @@ public class DefaultGroupHandler {
         }
     }
 
+    /**
+     * Determines whether the hash group bucket should include a popVlan action.
+     * We don't popVlan for PW.
+     *
+     * @param ds destination set
+     * @return true if VLAN needs to be popped
+     */
+    private boolean popVlanInHashGroup(DestinationSet ds) {
+        return (ds.getTypeOfDstSet() != DestinationSet.DestinationSetType.SWAP_NOT_BOS) &&
+                (ds.getTypeOfDstSet() != DestinationSet.DestinationSetType.POP_NOT_BOS);
+    }
 }
