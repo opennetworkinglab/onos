@@ -39,6 +39,7 @@ import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.WallClockTimestamp;
 import org.slf4j.Logger;
 
+import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -95,7 +96,7 @@ public class DistributedDevicePipeconfMappingStore
 
     @Override
     public Set<DeviceId> getDevices(PiPipeconfId pipeconfId) {
-        return pipeconfToDevices.get(pipeconfId);
+        return pipeconfToDevices.getOrDefault(pipeconfId, Collections.emptySet());
     }
 
     @Override
