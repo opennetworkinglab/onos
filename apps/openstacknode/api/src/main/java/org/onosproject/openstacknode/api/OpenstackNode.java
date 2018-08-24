@@ -17,11 +17,9 @@ package org.onosproject.openstacknode.api;
 
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
-import org.onosproject.core.GroupId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.ControllerInfo;
-import org.onosproject.net.group.GroupKey;
 
 import java.util.Collection;
 
@@ -112,22 +110,6 @@ public interface OpenstackNode {
      * @return node state
      */
     NodeState state();
-
-    /**
-     * Returns the gateway group ID of this node.
-     *
-     * @param mode network mode of the group
-     * @return gateway group identifier
-     */
-    GroupId gatewayGroupId(NetworkMode mode);
-
-    /**
-     * Returns the group key of this node.
-     *
-     * @param mode network mode of the group
-     * @return gateway group key
-     */
-    GroupKey gatewayGroupKey(NetworkMode mode);
 
     /**
      * Returns the tunnel port number.

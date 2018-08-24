@@ -17,11 +17,9 @@ package org.onosproject.openstacknode.api;
 
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
-import org.onosproject.core.GroupId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.ControllerInfo;
-import org.onosproject.net.group.GroupKey;
 
 import java.util.Collection;
 
@@ -66,16 +64,6 @@ public class OpenstackNodeAdapter implements OpenstackNode {
 
     @Override
     public NodeState state() {
-        return null;
-    }
-
-    @Override
-    public GroupId gatewayGroupId(OpenstackNode.NetworkMode mode) {
-        return null;
-    }
-
-    @Override
-    public GroupKey gatewayGroupKey(OpenstackNode.NetworkMode mode) {
         return null;
     }
 
