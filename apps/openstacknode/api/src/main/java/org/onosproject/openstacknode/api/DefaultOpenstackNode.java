@@ -20,14 +20,11 @@ import com.google.common.base.Strings;
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
-import org.onosproject.core.GroupId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.ControllerInfo;
 import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.group.DefaultGroupKey;
-import org.onosproject.net.group.GroupKey;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -171,11 +168,6 @@ public class DefaultOpenstackNode implements OpenstackNode {
     }
 
     @Override
-    public GroupKey gatewayGroupKey(NetworkMode mode) {
-        return new DefaultGroupKey(intgBridge.toString().concat(mode.name()).getBytes());
-    }
-
-    @Override
     public PortNumber uplinkPortNum() {
         if (uplinkPort == null) {
             return null;
@@ -239,11 +231,6 @@ public class DefaultOpenstackNode implements OpenstackNode {
                 .filter(p -> p.annotations().value(PORT_NAME).equals(vlanIntf))
                 .findAny().orElse(null);
         return port != null ? MacAddress.valueOf(port.annotations().value(PORT_MAC)) : null;
-    }
-
-    @Override
-    public GroupId gatewayGroupId(NetworkMode mode) {
-        return new GroupId(intgBridge.toString().concat(mode.name()).hashCode());
     }
 
     @Override

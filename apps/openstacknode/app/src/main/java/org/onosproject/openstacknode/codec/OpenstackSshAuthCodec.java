@@ -45,11 +45,9 @@ public class OpenstackSshAuthCodec extends JsonCodec<OpenstackSshAuth> {
     public ObjectNode encode(OpenstackSshAuth sshAuth, CodecContext context) {
         checkNotNull(sshAuth, ERROR_MSG_NOT_NULL);
 
-        ObjectNode result = context.mapper().createObjectNode()
+        return context.mapper().createObjectNode()
                 .put(ID, sshAuth.id())
                 .put(PASSWORD, sshAuth.password());
-
-        return result;
     }
 
     @Override
