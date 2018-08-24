@@ -145,15 +145,13 @@ public class FabricForwardingPipeliner {
             case L2_BROADCAST:
                 processL2BroadcastRule(vlanIdCriterion, fwd, resultBuilder);
                 break;
-            case IPV4_UNICAST:
-                processIpv4UnicastRule(ipDstCriterion, fwd, resultBuilder);
+            case IPV4_ROUTING:
+                processIpv4RoutingRule(ipDstCriterion, fwd, resultBuilder);
                 break;
             case MPLS:
                 processMplsRule(mplsCriterion, fwd, resultBuilder);
                 break;
-            case IPV4_MULTICAST:
-            case IPV6_UNICAST:
-            case IPV6_MULTICAST:
+            case IPV6_ROUTING:
             default:
                 log.warn("Unsupported forwarding function type {}", criteria);
                 resultBuilder.setError(ObjectiveError.UNSUPPORTED);
@@ -174,7 +172,7 @@ public class FabricForwardingPipeliner {
 
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchVlanId(vlanId)
-                .matchEthDst(ethDst)
+                .matchEthDstMasked(ethDst, MacAddress.EXACT_MASK)
                 .build();
         TrafficTreatment treatment = fwd.treatment();
         if (fwd.nextId() != null) {
@@ -223,7 +221,7 @@ public class FabricForwardingPipeliner {
         resultBuilder.addFlowRule(flowRule);
     }
 
-    private void processIpv4UnicastRule(IPCriterion ipDstCriterion, ForwardingObjective fwd,
+    private void processIpv4RoutingRule(IPCriterion ipDstCriterion, ForwardingObjective fwd,
                                         PipelinerTranslationResult.Builder resultBuilder) {
         checkNotNull(ipDstCriterion, "IP dst criterion should not be null");
         TrafficSelector selector = DefaultTrafficSelector.builder()
@@ -232,7 +230,7 @@ public class FabricForwardingPipeliner {
         TrafficTreatment treatment = fwd.treatment();
         if (fwd.nextId() != null) {
             treatment = buildSetNextIdTreatment(fwd.nextId(),
-                                                FabricConstants.FABRIC_INGRESS_FORWARDING_SET_NEXT_ID_UNICAST_V4);
+                                                FabricConstants.FABRIC_INGRESS_FORWARDING_SET_NEXT_ID_ROUTING_V4);
         }
         FlowRule flowRule = DefaultFlowRule.builder()
                 .withSelector(selector)
@@ -241,7 +239,7 @@ public class FabricForwardingPipeliner {
                 .withPriority(fwd.priority())
                 .makePermanent()
                 .forDevice(deviceId)
-                .forTable(FabricConstants.FABRIC_INGRESS_FORWARDING_UNICAST_V4)
+                .forTable(FabricConstants.FABRIC_INGRESS_FORWARDING_ROUTING_V4)
                 .build();
 
         resultBuilder.addFlowRule(flowRule);

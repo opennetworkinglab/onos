@@ -101,7 +101,7 @@ tables {
     id: 2
     name: "hdr.ethernet.dst_addr"
     bitwidth: 48
-    match_type: EXACT
+    match_type: TERNARY
   }
   match_fields {
     id: 3
@@ -171,9 +171,9 @@ tables {
 }
 tables {
   preamble {
-    id: 33586372
-    name: "FabricIngress.forwarding.unicast_v4"
-    alias: "unicast_v4"
+    id: 33562650
+    name: "FabricIngress.forwarding.routing_v4"
+    alias: "routing_v4"
   }
   match_fields {
     id: 1
@@ -182,13 +182,13 @@ tables {
     match_type: LPM
   }
   action_refs {
-    id: 16828976
+    id: 16777434
   }
   action_refs {
     id: 16800567
     annotations: "@defaultonly()"
   }
-  direct_resource_ids: 318768492
+  direct_resource_ids: 318811107
   size: 1024
   idle_timeout_behavior: NO_TIMEOUT
 }
@@ -747,9 +747,9 @@ actions {
 }
 actions {
   preamble {
-    id: 16828976
-    name: "FabricIngress.forwarding.set_next_id_unicast_v4"
-    alias: "set_next_id_unicast_v4"
+    id: 16777434
+    name: "FabricIngress.forwarding.set_next_id_routing_v4"
+    alias: "set_next_id_routing_v4"
   }
   params {
     id: 1
@@ -1487,14 +1487,14 @@ direct_counters {
 }
 direct_counters {
   preamble {
-    id: 318768492
-    name: "FabricIngress.forwarding.unicast_v4_counter"
-    alias: "unicast_v4_counter"
+    id: 318811107
+    name: "FabricIngress.forwarding.routing_v4_counter"
+    alias: "routing_v4_counter"
   }
   spec {
     unit: BOTH
   }
-  direct_table_id: 33586372
+  direct_table_id: 33562650
 }
 direct_counters {
   preamble {

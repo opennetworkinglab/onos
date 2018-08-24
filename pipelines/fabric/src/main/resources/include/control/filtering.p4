@@ -103,7 +103,7 @@ control Filtering (
     table fwd_classifier {
         key = {
             standard_metadata.ingress_port: exact;
-            hdr.ethernet.dst_addr: exact;
+            hdr.ethernet.dst_addr: ternary;
             hdr.vlan_tag.ether_type: exact;
         }
 

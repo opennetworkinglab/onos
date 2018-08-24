@@ -74,25 +74,25 @@ control Forwarding (
     }
 
     /*
-     * IPv4 Unicast Table.
+     * IPv4 Routing Table.
      * Matches IPv4 prefix and make egress decision.
      */
-    direct_counter(CounterType.packets_and_bytes) unicast_v4_counter;
+    direct_counter(CounterType.packets_and_bytes) routing_v4_counter;
 
-    action set_next_id_unicast_v4(next_id_t next_id) {
+    action set_next_id_routing_v4(next_id_t next_id) {
         fabric_metadata.next_id = next_id;
-        unicast_v4_counter.count();
+        routing_v4_counter.count();
     }
 
-    table unicast_v4 {
+    table routing_v4 {
         key = {
             hdr.ipv4.dst_addr: lpm;
         }
 
         actions = {
-            set_next_id_unicast_v4;
+            set_next_id_routing_v4;
         }
-        counters = unicast_v4_counter;
+        counters = routing_v4_counter;
     }
 
     /*
@@ -158,77 +158,28 @@ control Forwarding (
         counters = acl_counter;
     }
 
-#ifdef WITH_MULTICAST
-    /*
-     * IPv4 Multicast Table.
-     * Maches multcast IPv4 address and make egress decision.
-     */
-    direct_counter(CounterType.packets_and_bytes) multicast_v4_counter;
-    action set_next_id_multicast_v4(next_id_t next_id) {
-        fabric_metadata.next_id = next_id;
-        multicast_v4_counter.count();
-    }
-
-    table multicast_v4 {
-        key = {
-            hdr.vlan_tag.vlan_id: exact;
-            hdr.ipv4.dst_addr: lpm;
-        }
-
-        actions = {
-            set_next_id_multicast_v4;
-        }
-        counters = multicast_v4_counter;
-    }
-#endif // WITH_MULTICAST
-
 #ifdef WITH_IPV6
     /*
-     * IPv6 Unicast Table.
+     * IPv6 Routing Table.
      * Matches IPv6 prefix and make egress decision.
      */
-    direct_counter(CounterType.packets_and_bytes) unicast_v6_counter;
+    direct_counter(CounterType.packets_and_bytes) routing_v6_counter;
 
-    action set_next_id_unicast_v6(next_id_t next_id) {
+    action set_next_id_routing_v6(next_id_t next_id) {
         fabric_metadata.next_id = next_id;
-        unicast_v6_counter.count();
+        routing_v6_counter.count();
     }
 
-    table unicast_v6 {
+    table routing_v6 {
         key = {
             hdr.ipv6.dst_addr: lpm;
         }
 
         actions = {
-            set_next_id_unicast_v6;
+            set_next_id_routing_v6;
         }
-        counters = unicast_v6_counter;
+        counters = routing_v6_counter;
     }
-
-#ifdef WITH_MULTICAST
-    /*
-     * IPv6 Multicast Table.
-     * Maches multcast IPv6 address and make egress decision.
-     */
-    direct_counter(CounterType.packets_and_bytes) multicast_v6_counter;
-
-    action set_next_id_multicast_v6(next_id_t next_id) {
-        fabric_metadata.next_id = next_id;
-        multicast_v6_counter.count();
-    }
-
-    table multicast_v6 {
-        key = {
-            hdr.vlan_tag.vlan_id: exact;
-            hdr.ipv6.dst_addr: lpm;
-        }
-
-        actions = {
-            set_next_id_multicast_v6;
-        }
-        counters = multicast_v6_counter;
-    }
-#endif // WITH_MULTICAST
 #endif // WITH_IPV6
 
     apply {
@@ -239,15 +190,9 @@ control Forwarding (
             // TODO: IPv6
             hdr.vlan_tag.ether_type = ETHERTYPE_IPV4;
         }
-        else if (fabric_metadata.fwd_type == FWD_IPV4_UNICAST) unicast_v4.apply();
-#ifdef WITH_MULTICAST
-        else if (fabric_metadata.fwd_type == FWD_IPV4_MULTICAST) multicast_v4.apply();
-#endif // WITH_MULTICAST
+        else if (fabric_metadata.fwd_type == FWD_IPV4_UNICAST) routing_v4.apply();
 #ifdef WITH_IPV6
-        else if (fabric_metadata.fwd_type == FWD_IPV6_UNICAST) unicast_v6.apply();
-#ifdef WITH_MULTICAST
-        else if (fabric_metadata.fwd_type == FWD_IPV6_MULTICAST) multicast_v6.apply();
-#endif // WITH_MULTICAST
+        else if (fabric_metadata.fwd_type == FWD_IPV6_UNICAST) routing_v6.apply();
 #endif // WITH_IPV6
         acl.apply();
     }

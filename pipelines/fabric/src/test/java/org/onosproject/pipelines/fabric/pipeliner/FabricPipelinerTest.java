@@ -61,14 +61,6 @@ public class FabricPipelinerTest {
             .matchVlanId(VLAN_100)
             .build();
 
-    // Forwarding types
-    static final byte FWD_BRIDGING = 0;
-    static final byte FWD_MPLS = 1;
-    static final byte FWD_IPV4_UNICAST = 2;
-    static final byte FWD_IPV4_MULTICAST = 3;
-    static final byte FWD_IPV6_UNICAST = 4;
-    static final byte FWD_IPV6_MULTICAST = 5;
-
     static final PiCriterion VLAN_VALID = PiCriterion.builder()
             .matchExact(FabricConstants.HDR_VLAN_TAG_IS_VALID, new byte[]{1})
             .build();
