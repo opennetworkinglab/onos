@@ -1387,10 +1387,10 @@
       "binding" : "FabricIngress.forwarding.mpls"
     },
     {
-      "name" : "FabricIngress.forwarding.unicast_v4_counter",
+      "name" : "FabricIngress.forwarding.routing_v4_counter",
       "id" : 6,
       "is_direct" : true,
-      "binding" : "FabricIngress.forwarding.unicast_v4"
+      "binding" : "FabricIngress.forwarding.routing_v4"
     },
     {
       "name" : "FabricIngress.forwarding.acl_counter",
@@ -2024,7 +2024,7 @@
       ]
     },
     {
-      "name" : "FabricIngress.forwarding.set_next_id_unicast_v4",
+      "name" : "FabricIngress.forwarding.set_next_id_routing_v4",
       "id" : 18,
       "runtime_data" : [
         {
@@ -9531,7 +9531,7 @@
               "mask" : null
             },
             {
-              "match_type" : "exact",
+              "match_type" : "ternary",
               "name" : "hdr.ethernet.dst_addr",
               "target" : ["ethernet", "dst_addr"],
               "mask" : null
@@ -9543,7 +9543,7 @@
               "mask" : null
             }
           ],
-          "match_type" : "exact",
+          "match_type" : "ternary",
           "type" : "simple",
           "max_size" : 1024,
           "with_counters" : true,
@@ -9689,13 +9689,13 @@
           }
         },
         {
-          "name" : "FabricIngress.forwarding.unicast_v4",
+          "name" : "FabricIngress.forwarding.routing_v4",
           "id" : 9,
           "source_info" : {
             "filename" : "include/control/forwarding.p4",
             "line" : 87,
             "column" : 10,
-            "source_fragment" : "unicast_v4"
+            "source_fragment" : "routing_v4"
           },
           "key" : [
             {
@@ -9712,10 +9712,10 @@
           "support_timeout" : false,
           "direct_meters" : null,
           "action_ids" : [18, 4],
-          "actions" : ["FabricIngress.forwarding.set_next_id_unicast_v4", "NoAction"],
+          "actions" : ["FabricIngress.forwarding.set_next_id_routing_v4", "NoAction"],
           "base_default_next" : "FabricIngress.forwarding.acl",
           "next_tables" : {
-            "FabricIngress.forwarding.set_next_id_unicast_v4" : "FabricIngress.forwarding.acl",
+            "FabricIngress.forwarding.set_next_id_routing_v4" : "FabricIngress.forwarding.acl",
             "NoAction" : "FabricIngress.forwarding.acl"
           },
           "default_entry" : {
@@ -10403,7 +10403,7 @@
           "id" : 2,
           "source_info" : {
             "filename" : "include/control/forwarding.p4",
-            "line" : 235,
+            "line" : 186,
             "column" : 11,
             "source_fragment" : "fabric_metadata.fwd_type == FWD_BRIDGING"
           },
@@ -10429,7 +10429,7 @@
           "id" : 3,
           "source_info" : {
             "filename" : "include/control/forwarding.p4",
-            "line" : 236,
+            "line" : 187,
             "column" : 17,
             "source_fragment" : "fabric_metadata.fwd_type == FWD_MPLS"
           },
@@ -10455,7 +10455,7 @@
           "id" : 4,
           "source_info" : {
             "filename" : "include/control/forwarding.p4",
-            "line" : 250,
+            "line" : 193,
             "column" : 17,
             "source_fragment" : "fabric_metadata.fwd_type == FWD_IPV4_UNICAST"
           },
@@ -10473,7 +10473,7 @@
               }
             }
           },
-          "true_next" : "FabricIngress.forwarding.unicast_v4",
+          "true_next" : "FabricIngress.forwarding.routing_v4",
           "false_next" : "FabricIngress.forwarding.acl"
         },
         {

@@ -48,6 +48,10 @@ public class MacAddress {
      */
     public static final MacAddress BROADCAST = valueOf("ff:ff:ff:ff:ff:ff");
     /**
+     * Mask that indicates exact match on the MacAddress.
+     */
+    public static final MacAddress EXACT_MASK = valueOf("ff:ff:ff:ff:ff:ff");
+    /**
      * IPv4 multicast MAC address.
      */
     public static final MacAddress IPV4_MULTICAST = valueOf("01:00:5e:00:00:00");

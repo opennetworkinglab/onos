@@ -49,22 +49,12 @@ public enum ForwardingFunctionType {
     /**
      * IPv4 unicast, with EtherType and IPv4 unicast destination address.
      */
-    IPV4_UNICAST,
-
-    /**
-     * IPv4 multicast, with EtherType and IPv4 multicast destination address.
-     */
-    IPV4_MULTICAST,
+    IPV4_ROUTING,
 
     /**
      * IPv6 unicast, with EtherType and IPv6 unicast destination address.
      */
-    IPV6_UNICAST,
-
-    /**
-     * IPv6 multicast, with EtherType and IPv6 multicast destination address.
-     */
-    IPV6_MULTICAST,
+    IPV6_ROUTING,
 
     /**
      * MPLS, with EtherType, MPLS label and MPLS BOS(true) criterion.
@@ -101,10 +91,10 @@ public enum ForwardingFunctionType {
             ImmutableMap.<Set<Criterion.Type>, ForwardingFunctionType>builder()
                     .put(L2_UNI_CRITERIA_TYPE, L2_UNICAST)
                     .put(L2_BRC_CRITERIA_TYPE, L2_BROADCAST)
-                    .put(IPV4_UNI_CRITERIA_TYPE, IPV4_UNICAST)
-                    .put(IPV4_MCAST_CRITERIA_TYPE, IPV4_MULTICAST)
-                    .put(IPV6_UNI_CRITERIA_TYPE, IPV6_UNICAST)
-                    .put(IPV6_MCAST_CRITERIA_TYPE, IPV6_MULTICAST)
+                    .put(IPV4_UNI_CRITERIA_TYPE, IPV4_ROUTING)
+                    .put(IPV4_MCAST_CRITERIA_TYPE, IPV4_ROUTING)
+                    .put(IPV6_UNI_CRITERIA_TYPE, IPV6_ROUTING)
+                    .put(IPV6_MCAST_CRITERIA_TYPE, IPV6_ROUTING)
                     .put(MPLS_UNI_CRITERIA_TYPE, MPLS)
                     .build();
 

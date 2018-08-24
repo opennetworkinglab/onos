@@ -133,7 +133,7 @@ public class FabricInterpreterTest {
         TrafficTreatment treatment = DefaultTrafficTreatment.emptyTreatment();
 
         PiAction mappedAction = interpreter.mapTreatment(treatment,
-                                                         FabricConstants.FABRIC_INGRESS_FORWARDING_UNICAST_V4);
+                                                         FabricConstants.FABRIC_INGRESS_FORWARDING_ROUTING_V4);
         PiAction expectedAction = PiAction.builder()
                 .withId(FabricConstants.NOP)
                 .build();

@@ -72,7 +72,7 @@ public class ForwardingFunctionTypeTest {
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPDst(IPV4_UNICAST_ADDR)
                 .build();
-        testFft(selector, ForwardingFunctionType.IPV4_UNICAST);
+        testFft(selector, ForwardingFunctionType.IPV4_ROUTING);
     }
 
     @Test
@@ -82,7 +82,7 @@ public class ForwardingFunctionTypeTest {
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPDst(IPV4_MCAST_ADDR)
                 .build();
-        testFft(selector, ForwardingFunctionType.IPV4_MULTICAST);
+        testFft(selector, ForwardingFunctionType.IPV4_ROUTING);
     }
 
     @Test
@@ -92,7 +92,7 @@ public class ForwardingFunctionTypeTest {
                 .matchEthType(Ethernet.TYPE_IPV6)
                 .matchIPDst(IPV6_UNICAST_ADDR)
                 .build();
-        testFft(selector, ForwardingFunctionType.IPV6_UNICAST);
+        testFft(selector, ForwardingFunctionType.IPV6_ROUTING);
     }
 
     @Test
@@ -102,7 +102,7 @@ public class ForwardingFunctionTypeTest {
                 .matchEthType(Ethernet.TYPE_IPV6)
                 .matchIPDst(IPV6_MCAST_ADDR)
                 .build();
-        testFft(selector, ForwardingFunctionType.IPV4_MULTICAST);
+        testFft(selector, ForwardingFunctionType.IPV4_ROUTING);
     }
 
     @Test
