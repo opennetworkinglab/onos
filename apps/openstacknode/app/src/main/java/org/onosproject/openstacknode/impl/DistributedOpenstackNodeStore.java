@@ -92,6 +92,7 @@ public class DistributedOpenstackNodeStore
             .register(DefaultOpenstackPhyInterface.class)
             .register(DpdkInterface.class)
             .register(DefaultDpdkInterface.class)
+            .register(DpdkInterface.Type.class)
             .register(ControllerInfo.class)
             .register(DefaultOpenstackAuth.class)
             .register(DefaultOpenstackAuth.Perspective.class)

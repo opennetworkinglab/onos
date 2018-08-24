@@ -15,6 +15,7 @@
  */
 package org.onosproject.openstacknode.impl;
 
+import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -40,7 +41,6 @@ import org.onosproject.net.behaviour.BridgeName;
 import org.onosproject.net.behaviour.ControllerInfo;
 import org.onosproject.net.behaviour.DefaultBridgeDescription;
 import org.onosproject.net.behaviour.DefaultTunnelDescription;
-import org.onosproject.net.behaviour.ExtensionTreatmentResolver;
 import org.onosproject.net.behaviour.InterfaceConfig;
 import org.onosproject.net.behaviour.TunnelDescription;
 import org.onosproject.net.behaviour.TunnelEndPoints;
@@ -49,8 +49,7 @@ import org.onosproject.net.device.DeviceAdminService;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.flow.instructions.ExtensionPropertyException;
-import org.onosproject.net.flow.instructions.ExtensionTreatment;
+import org.onosproject.openstacknode.api.DpdkInterface;
 import org.onosproject.openstacknode.api.NodeState;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeAdminService;
@@ -59,14 +58,23 @@ import org.onosproject.openstacknode.api.OpenstackNodeHandler;
 import org.onosproject.openstacknode.api.OpenstackNodeListener;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
 import org.onosproject.openstacknode.api.OpenstackPhyInterface;
+import org.onosproject.ovsdb.controller.OvsdbClientService;
 import org.onosproject.ovsdb.controller.OvsdbController;
+import org.onosproject.ovsdb.controller.OvsdbInterface;
+import org.onosproject.ovsdb.controller.OvsdbPort;
+import org.onosproject.ovsdb.rfc.notation.OvsdbMap;
+import org.onosproject.ovsdb.rfc.notation.OvsdbSet;
+import org.onosproject.ovsdb.rfc.table.Interface;
 import org.openstack4j.api.OSClient;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
+import java.util.Collection;
 import java.util.Dictionary;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
@@ -75,20 +83,20 @@ import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.packet.TpPort.tpPort;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
-import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_TUNNEL_DST;
 import static org.onosproject.openstacknode.api.Constants.DEFAULT_TUNNEL;
 import static org.onosproject.openstacknode.api.Constants.INTEGRATION_BRIDGE;
+import static org.onosproject.openstacknode.api.Constants.TUNNEL_BRIDGE;
 import static org.onosproject.openstacknode.api.DpdkConfig.DatapathType.NETDEV;
 import static org.onosproject.openstacknode.api.NodeState.COMPLETE;
 import static org.onosproject.openstacknode.api.NodeState.DEVICE_CREATED;
 import static org.onosproject.openstacknode.api.NodeState.INCOMPLETE;
 import static org.onosproject.openstacknode.api.NodeState.INIT;
-
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.CONTROLLER;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
 import static org.onosproject.openstacknode.api.OpenstackNodeService.APP_ID;
 import static org.onosproject.openstacknode.util.OpenstackNodeUtil.getBooleanProperty;
 import static org.onosproject.openstacknode.util.OpenstackNodeUtil.getConnectedClient;
+import static org.onosproject.openstacknode.util.OpenstackNodeUtil.getOvsdbClient;
 import static org.onosproject.openstacknode.util.OpenstackNodeUtil.isOvsdbConnected;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -103,6 +111,7 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
     private static final String OVSDB_PORT = "ovsdbPortNum";
     private static final String AUTO_RECOVERY = "autoRecovery";
     private static final String DEFAULT_OF_PROTO = "tcp";
+    private static final String DPDK_DEVARGS = "dpdk-devargs";
     private static final int DEFAULT_OVSDB_PORT = 6640;
     private static final int DEFAULT_OFPORT = 6653;
     private static final boolean DEFAULT_AUTO_RECOVERY = true;
@@ -196,6 +205,9 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
         if (!deviceService.isAvailable(osNode.intgBridge())) {
             createBridge(osNode, INTEGRATION_BRIDGE, osNode.intgBridge());
         }
+        if (hasDpdkTunnelBridge(osNode)) {
+            createDpdkTunnelBridge(osNode);
+        }
     }
 
     @Override
@@ -222,6 +234,11 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                                         osNode.vlanIntf(), true);
             }
 
+            if (osNode.dpdkConfig() != null && osNode.dpdkConfig().dpdkIntfs() != null) {
+                osNode.dpdkConfig().dpdkIntfs().forEach(dpdkInterface ->
+                        addOrRemoveDpdkInterface(osNode, dpdkInterface, true));
+            }
+
             osNode.phyIntfs().forEach(i -> {
                 if (!isIntfEnabled(osNode, i.intf())) {
                     addOrRemoveSystemInterface(osNode, INTEGRATION_BRIDGE,
@@ -244,6 +261,26 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
         //TODO
     }
 
+    private boolean hasDpdkTunnelBridge(OpenstackNode osNode) {
+        if (osNode.dpdkConfig() != null && osNode.dpdkConfig().dpdkIntfs() != null) {
+            return osNode.dpdkConfig().dpdkIntfs().stream()
+                    .anyMatch(intf -> intf.deviceName().equals(TUNNEL_BRIDGE));
+        }
+        return false;
+    }
+
+    private boolean dpdkTunnelBridgeCreated(OpenstackNode osNode) {
+
+        OvsdbClientService client = getOvsdbClient(osNode, ovsdbPort, ovsdbController);
+        if (client == null) {
+            log.info("Failed to get ovsdb client");
+            return false;
+        }
+
+        return client.getBridges().stream()
+                .anyMatch(bridge -> bridge.name().equals(TUNNEL_BRIDGE));
+    }
+
     /**
      * Creates a bridge with a given name on a given openstack node.
      *
@@ -253,10 +290,6 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
      */
     private void createBridge(OpenstackNode osNode, String bridgeName, DeviceId deviceId) {
         Device device = deviceService.getDevice(osNode.ovsdb());
-        if (device == null || !device.is(BridgeConfig.class)) {
-            log.error("Failed to create integration bridge on {}", osNode.ovsdb());
-            return;
-        }
 
         List<ControllerInfo> controllers;
 
@@ -282,8 +315,19 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                 .controllers(controllers);
 
         if (osNode.datapathType().equals(NETDEV)) {
-            builder.datapathType(osNode.datapathType().name().toLowerCase());
+            builder.datapathType(NETDEV.name().toLowerCase());
         }
+
+        BridgeConfig bridgeConfig = device.as(BridgeConfig.class);
+        bridgeConfig.addBridge(builder.build());
+    }
+
+    private void createDpdkTunnelBridge(OpenstackNode osNode) {
+        Device device = deviceService.getDevice(osNode.ovsdb());
+
+        BridgeDescription.Builder builder = DefaultBridgeDescription.builder()
+                .name(TUNNEL_BRIDGE)
+                .datapathType(NETDEV.name().toLowerCase());
 
         BridgeConfig bridgeConfig = device.as(BridgeConfig.class);
         bridgeConfig.addBridge(builder.build());
@@ -315,6 +359,33 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
         }
     }
 
+    private void addOrRemoveDpdkInterface(OpenstackNode osNode,
+                                          DpdkInterface dpdkInterface,
+                                          boolean addOrRemove) {
+
+        OvsdbClientService client = getOvsdbClient(osNode, ovsdbPort, ovsdbController);
+        if (client == null) {
+            log.info("Failed to get ovsdb client");
+            return;
+        }
+
+        if (addOrRemove) {
+            Map<String, String> options = Maps.newHashMap();
+            options.put(DPDK_DEVARGS, dpdkInterface.pciAddress());
+
+            OvsdbInterface.Builder builder = OvsdbInterface.builder()
+                    .name(dpdkInterface.intf())
+                    .type(OvsdbInterface.Type.DPDK)
+                    .mtu(dpdkInterface.mtu())
+                    .options(options);
+
+
+            client.createInterface(dpdkInterface.deviceName(), builder.build());
+        } else {
+            client.dropInterface(dpdkInterface.intf());
+        }
+    }
+
     /**
      * Creates a tunnel interface in a given openstack node.
      *
@@ -341,30 +412,6 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
 
         InterfaceConfig ifaceConfig = device.as(InterfaceConfig.class);
         ifaceConfig.addTunnelMode(DEFAULT_TUNNEL, tunnelDesc);
-    }
-
-    private ExtensionTreatment tunnelDstTreatment(DeviceId deviceId, IpAddress remoteIp) {
-        Device device = deviceService.getDevice(deviceId);
-        if (device != null && !device.is(ExtensionTreatmentResolver.class)) {
-            log.error("The extension treatment is not supported");
-            return null;
-        }
-
-        if (device == null) {
-            return null;
-        }
-
-        ExtensionTreatmentResolver resolver =
-                                   device.as(ExtensionTreatmentResolver.class);
-        ExtensionTreatment treatment =
-                resolver.getExtensionInstruction(NICIRA_SET_TUNNEL_DST.type());
-        try {
-            treatment.setPropertyValue("tunnelDst", remoteIp.getIp4Address());
-            return treatment;
-        } catch (ExtensionPropertyException e) {
-            log.warn("Failed to get tunnelDst extension treatment for {}", deviceId);
-            return null;
-        }
     }
 
     /**
@@ -395,7 +442,11 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                     return false;
                 }
 
-                return deviceService.isAvailable(osNode.intgBridge());
+                boolean initStateDone = deviceService.isAvailable(osNode.intgBridge());
+                if (hasDpdkTunnelBridge(osNode)) {
+                    initStateDone = initStateDone && dpdkTunnelBridgeCreated(osNode);
+                }
+                return initStateDone;
             case DEVICE_CREATED:
                 if (osNode.dataIp() != null &&
                         !isIntfEnabled(osNode, DEFAULT_TUNNEL)) {
@@ -408,6 +459,9 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                 if (osNode.type() == GATEWAY &&
                         !isIntfEnabled(osNode, osNode.uplinkPort())) {
                     return false;
+                }
+                if (osNode.dpdkConfig() != null && osNode.dpdkConfig().dpdkIntfs() != null) {
+                    return isDpdkIntfsCreated(osNode, osNode.dpdkConfig().dpdkIntfs());
                 }
 
                 for (OpenstackPhyInterface intf : osNode.phyIntfs()) {
@@ -425,6 +479,47 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
             default:
                 return true;
         }
+    }
+
+    private boolean isDpdkIntfsCreated(OpenstackNode osNode, Collection<DpdkInterface> dpdkInterfaces) {
+        OvsdbClientService client = getOvsdbClient(osNode, ovsdbPort, ovsdbController);
+        if (client == null) {
+            log.info("Failed to get ovsdb client");
+            return false;
+        }
+
+        Set<OvsdbPort> ports = client.getPorts();
+
+        for (DpdkInterface dpdkInterface : dpdkInterfaces) {
+            Optional<OvsdbPort> port = ports.stream()
+                    .filter(ovsdbPort -> ovsdbPort.portName().value().equals(dpdkInterface.intf()))
+                    .findAny();
+
+            if (!port.isPresent()) {
+                return false;
+            }
+            Interface intf = client.getInterface(dpdkInterface.intf());
+            if (intf == null) {
+                return false;
+            }
+
+            OvsdbSet mtu = (OvsdbSet) intf.getMtuColumn().data();
+            if (mtu == null) {
+                return false;
+            }
+
+            OvsdbMap option = (OvsdbMap) intf.getOptionsColumn().data();
+            if (option == null) {
+                return false;
+            }
+
+            if (!mtu.set().contains(dpdkInterface.mtu().intValue()) ||
+                    !option.toString().contains(dpdkInterface.pciAddress())) {
+                log.trace("The dpdk interface {} was created but mtu or pci address is different from the config.");
+                return false;
+            }
+        }
+        return true;
     }
 
     /**

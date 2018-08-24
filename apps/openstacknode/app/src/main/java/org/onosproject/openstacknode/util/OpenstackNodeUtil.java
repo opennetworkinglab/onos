@@ -82,11 +82,25 @@ public final class OpenstackNodeUtil {
                                            int ovsdbPort,
                                            OvsdbController ovsdbController,
                                            DeviceService deviceService) {
-        OvsdbNodeId ovsdb = new OvsdbNodeId(osNode.managementIp(), ovsdbPort);
-        OvsdbClientService client = ovsdbController.getOvsdbClient(ovsdb);
+        OvsdbClientService client = getOvsdbClient(osNode, ovsdbPort, ovsdbController);
         return deviceService.isAvailable(osNode.ovsdb()) &&
                 client != null &&
                 client.isConnected();
+    }
+
+    /**
+     * Gets the ovsdb client with supplied openstack node.
+     *
+     * @param osNode openstack node
+     * @param ovsdbPort ovsdb port
+     * @param ovsdbController ovsdb controller
+     * @return ovsdb client
+     */
+    public static OvsdbClientService getOvsdbClient(OpenstackNode osNode,
+                                                    int ovsdbPort,
+                                                    OvsdbController ovsdbController) {
+        OvsdbNodeId ovsdb = new OvsdbNodeId(osNode.managementIp(), ovsdbPort);
+        return ovsdbController.getOvsdbClient(ovsdb);
     }
 
     /**
