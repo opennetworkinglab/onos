@@ -207,7 +207,7 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
 
     @Override
     public CompletableFuture<Boolean> start() {
-        return supplyInContext(this::doBecomeMaster,
+        return supplyInContext(() -> sendMasterArbitrationUpdate(false),
                                "start-initStreamChannel");
     }
 
@@ -219,7 +219,7 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
 
     @Override
     public CompletableFuture<Boolean> becomeMaster() {
-        return supplyInContext(this::doBecomeMaster,
+        return supplyInContext(() -> sendMasterArbitrationUpdate(true),
                                "becomeMaster");
     }
 
@@ -326,19 +326,20 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
 
     /* Blocking method implementations below */
 
-    private boolean doBecomeMaster() {
-        final Uint128 newId = bigIntegerToUint128(
-                controller.newMasterElectionId(deviceId));
-        if (sendMasterArbitrationUpdate(newId)) {
-            clientElectionId = newId;
-            return true;
+    private boolean sendMasterArbitrationUpdate(boolean asMaster) {
+        BigInteger newId = controller.newMasterElectionId(deviceId);
+        if (asMaster) {
+            // Becoming master is a race. Here we increase our chances of win
+            // against other ONOS nodes in the cluster that are calling start()
+            // (which is used to start the stream RPC session, not to become
+            // master).
+            newId = newId.add(BigInteger.valueOf(1000));
         }
-        return false;
-    }
+        final Uint128 idMsg = bigIntegerToUint128(
+                controller.newMasterElectionId(deviceId));
 
-    private boolean sendMasterArbitrationUpdate(Uint128 electionId) {
         log.info("Sending arbitration update to {}... electionId={}",
-                 deviceId, uint128ToBigInteger(electionId));
+                 deviceId, newId);
         try {
             streamRequestObserver.onNext(
                     StreamMessageRequest.newBuilder()
@@ -346,9 +347,10 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
                                     MasterArbitrationUpdate
                                             .newBuilder()
                                             .setDeviceId(p4DeviceId)
-                                            .setElectionId(electionId)
+                                            .setElectionId(idMsg)
                                             .build())
                             .build());
+            clientElectionId = idMsg;
             return true;
         } catch (StatusRuntimeException e) {
             log.error("Unable to perform arbitration update on {}: {}", deviceId, e.getMessage());
