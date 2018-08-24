@@ -20,7 +20,6 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.LeadershipService;
 import org.onosproject.cluster.NodeId;
@@ -40,7 +39,6 @@ import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeEvent;
 import org.onosproject.openstacknode.api.OpenstackNodeListener;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
-import org.onosproject.ovsdb.controller.OvsdbController;
 import org.openstack4j.model.network.Port;
 import org.openstack4j.model.network.State;
 import org.slf4j.Logger;
@@ -84,16 +82,10 @@ public final class OpenStackSwitchingDirectPortProvider {
     protected ClusterService clusterService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected OvsdbController ovsdbController;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected InstancePortService instancePortService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ComponentConfigService componentConfigService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MastershipService mastershipService;
@@ -110,7 +102,6 @@ public final class OpenStackSwitchingDirectPortProvider {
         localNodeId = clusterService.getLocalNode().id();
         leadershipService.runForLeadership(appId.name());
         osNetworkService.addListener(openstackNetworkListener);
-        componentConfigService.registerProperties(getClass());
         osNodeService.addListener(internalNodeListener);
 
         log.info("Started");
@@ -120,7 +111,6 @@ public final class OpenStackSwitchingDirectPortProvider {
     void deactivate() {
         leadershipService.withdraw(appId.name());
         osNetworkService.removeListener(openstackNetworkListener);
-        componentConfigService.unregisterProperties(getClass(), false);
         osNodeService.removeListener(internalNodeListener);
 
         log.info("Stopped");
