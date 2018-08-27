@@ -43,6 +43,7 @@ import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_GRPC_SERV
 import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_GRPC_SERVER_PORT;
 import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_GRPC_USE_PLAINTEXT;
 import static org.onosproject.openstacktelemetry.util.OpenstackTelemetryUtil.getBooleanProperty;
+import static org.onosproject.openstacktelemetry.util.OpenstackTelemetryUtil.initTelemetryService;
 
 /**
  * gRPC server configuration manager for publishing openstack telemetry.
@@ -108,18 +109,7 @@ public class GrpcTelemetryConfigManager implements GrpcTelemetryConfigService {
     @Modified
     private void modified(ComponentContext context) {
         readComponentConfiguration(context);
-
-        if (enableService) {
-            if (grpcTelemetryAdminService.isRunning()) {
-                grpcTelemetryAdminService.restart(getConfig());
-            } else {
-                grpcTelemetryAdminService.start(getConfig());
-            }
-        } else {
-            if (grpcTelemetryAdminService.isRunning()) {
-                grpcTelemetryAdminService.stop();
-            }
-        }
+        initTelemetryService(grpcTelemetryAdminService, getConfig(), enableService);
         log.info("Modified");
     }
 

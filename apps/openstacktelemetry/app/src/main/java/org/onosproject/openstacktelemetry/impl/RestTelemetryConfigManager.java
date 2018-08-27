@@ -43,6 +43,7 @@ import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_REST_RESP
 import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_REST_SERVER_IP;
 import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_REST_SERVER_PORT;
 import static org.onosproject.openstacktelemetry.util.OpenstackTelemetryUtil.getBooleanProperty;
+import static org.onosproject.openstacktelemetry.util.OpenstackTelemetryUtil.initTelemetryService;
 
 /**
  * REST server configuration manager for publishing openstack telemetry.
@@ -118,18 +119,7 @@ public class RestTelemetryConfigManager implements RestTelemetryConfigService {
     @Modified
     private void modified(ComponentContext context) {
         readComponentConfiguration(context);
-
-        if (enableService) {
-            if (restTelemetryAdminService.isRunning()) {
-                restTelemetryAdminService.restart(getConfig());
-            } else {
-                restTelemetryAdminService.start(getConfig());
-            }
-        } else {
-            if (restTelemetryAdminService.isRunning()) {
-                restTelemetryAdminService.stop();
-            }
-        }
+        initTelemetryService(restTelemetryAdminService, getConfig(), enableService);
         log.info("Modified");
     }
 
