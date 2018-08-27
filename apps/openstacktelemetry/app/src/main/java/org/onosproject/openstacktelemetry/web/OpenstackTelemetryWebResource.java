@@ -136,7 +136,7 @@ public class OpenstackTelemetryWebResource extends AbstractWebResource {
         log.info("GET BULK FLOW RULE");
 
         Set<FlowInfo> flowInfoSet;
-        flowInfoSet = statsFlowRuleService.getFlowInfos();
+        flowInfoSet = statsFlowRuleService.getOverlayFlowInfos();
 
         log.info("\n\n======================================================\n" +
                  "FlowInfo Set: \n{}" +

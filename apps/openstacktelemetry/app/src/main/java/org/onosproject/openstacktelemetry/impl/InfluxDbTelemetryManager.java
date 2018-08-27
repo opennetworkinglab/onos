@@ -156,21 +156,17 @@ public class InfluxDbTelemetryManager implements InfluxDbTelemetryAdminService {
         BatchPoints batchPoints = BatchPoints.database(database).build();
 
         for (FlowInfo flowInfo: record.flowInfos()) {
-            Point point = Point
+            Point.Builder pointBuilder = Point
                     .measurement((measurement == null) ? record.measurement() : measurement)
                     .tag(FLOW_TYPE, String.valueOf(flowInfo.flowType()))
                     .tag(DEVICE_ID, flowInfo.deviceId().toString())
                     .tag(INPUT_INTERFACE_ID, String.valueOf(flowInfo.inputInterfaceId()))
                     .tag(OUTPUT_INTERFACE_ID, String.valueOf(flowInfo.outputInterfaceId()))
-                    .tag(VLAN_ID, flowInfo.vlanId().toString())
                     .tag(VXLAN_ID, String.valueOf(flowInfo.vxlanId()))
                     .tag(SRC_IP, flowInfo.srcIp().toString())
                     .tag(DST_IP, flowInfo.dstIp().toString())
-                    .tag(SRC_PORT, getTpPort(flowInfo.srcPort()))
                     .tag(DST_PORT, getTpPort(flowInfo.dstPort()))
                     .tag(PROTOCOL, String.valueOf(flowInfo.protocol()))
-                    .tag(SRC_MAC, flowInfo.srcMac().toString())
-                    .tag(DST_MAC, flowInfo.dstMac().toString())
                     .addField(STARTUP_TIME, flowInfo.statsInfo().startupTime())
                     .addField(FST_PKT_ARR_TIME, flowInfo.statsInfo().fstPktArrTime())
                     .addField(LST_PKT_OFFSET, flowInfo.statsInfo().lstPktOffset())
@@ -179,9 +175,21 @@ public class InfluxDbTelemetryManager implements InfluxDbTelemetryAdminService {
                     .addField(CURR_ACC_BYTES, flowInfo.statsInfo().currAccBytes())
                     .addField(CURR_ACC_PKTS, flowInfo.statsInfo().currAccPkts())
                     .addField(ERROR_PKTS, flowInfo.statsInfo().errorPkts())
-                    .addField(DROP_PKTS, flowInfo.statsInfo().dropPkts())
-                    .build();
-            batchPoints.point(point);
+                    .addField(DROP_PKTS, flowInfo.statsInfo().dropPkts());
+
+            if (flowInfo.vlanId() != null) {
+                pointBuilder.tag(VLAN_ID, flowInfo.vlanId().toString());
+            }
+
+            if (flowInfo.srcPort() != null) {
+                pointBuilder.tag(SRC_PORT, getTpPort(flowInfo.srcPort()));
+            }
+
+            if (flowInfo.dstPort() != null) {
+                pointBuilder.tag(DST_PORT, getTpPort(flowInfo.dstPort()));
+            }
+
+            batchPoints.point(pointBuilder.build());
         }
         producer.write(batchPoints);
     }
