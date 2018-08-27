@@ -42,11 +42,18 @@ public interface StatsFlowRuleAdminService {
     void createStatFlowRule(StatsFlowRule statFlowRule);
 
     /**
-     * Gets a set of flow infos.
+     * Gets a set of flow infos collected from overlay network.
      *
      * @return a set of flow infos
      */
-    Set<FlowInfo> getFlowInfos();
+    Set<FlowInfo> getOverlayFlowInfos();
+
+    /**
+     * Gets a set of flow infos collected from underlay network.
+     *
+     * @return a set of flow infos
+     */
+    Set<FlowInfo> getUnderlayFlowInfos();
 
     /**
      * Deletes stat flow rule.
