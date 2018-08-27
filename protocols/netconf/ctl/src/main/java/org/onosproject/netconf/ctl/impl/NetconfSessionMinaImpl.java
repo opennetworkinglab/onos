@@ -882,7 +882,19 @@ public class NetconfSessionMinaImpl implements NetconfSession {
 
     @Override
     public boolean close() throws NetconfException {
-        return close(false);
+        try {
+            return close(false);
+        } catch (IOException ioe) {
+            throw new NetconfException(ioe.getMessage());
+        } finally {
+            try {
+                session.close();
+                channel.close();
+                client.close();
+            } catch (IOException ioe) {
+                log.warn("Error closing session {} on {}", sessionID, deviceInfo, ioe);
+            }
+        }
     }
 
     private boolean close(boolean force) throws NetconfException {
