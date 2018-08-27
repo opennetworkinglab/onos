@@ -46,6 +46,7 @@ import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_KAFKA_SER
 import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_KAFKA_SERVER_PORT;
 import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_KAFKA_VALUE_SERIALIZER;
 import static org.onosproject.openstacktelemetry.util.OpenstackTelemetryUtil.getBooleanProperty;
+import static org.onosproject.openstacktelemetry.util.OpenstackTelemetryUtil.initTelemetryService;
 
 /**
  * Kafka server configuration manager for publishing openstack telemetry.
@@ -137,18 +138,7 @@ public class KafkaTelemetryConfigManager implements KafkaTelemetryConfigService 
     @Modified
     private void modified(ComponentContext context) {
         readComponentConfiguration(context);
-
-        if (enableService) {
-            if (kafkaTelemetryAdminService.isRunning()) {
-                kafkaTelemetryAdminService.restart(getConfig());
-            } else {
-                kafkaTelemetryAdminService.start(getConfig());
-            }
-        } else {
-            if (kafkaTelemetryAdminService.isRunning()) {
-                kafkaTelemetryAdminService.stop();
-            }
-        }
+        initTelemetryService(kafkaTelemetryAdminService, getConfig(), enableService);
         log.info("Modified");
     }
 

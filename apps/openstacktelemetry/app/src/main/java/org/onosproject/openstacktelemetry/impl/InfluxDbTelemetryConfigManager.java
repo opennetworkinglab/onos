@@ -44,6 +44,7 @@ import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_INFLUXDB_
 import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_INFLUXDB_SERVER_PORT;
 import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_INFLUXDB_USERNAME;
 import static org.onosproject.openstacktelemetry.util.OpenstackTelemetryUtil.getBooleanProperty;
+import static org.onosproject.openstacktelemetry.util.OpenstackTelemetryUtil.initTelemetryService;
 
 /**
  * InfluxDB server configuration manager for publishing openstack telemetry.
@@ -124,18 +125,7 @@ public class InfluxDbTelemetryConfigManager implements InfluxDbTelemetryConfigSe
     @Modified
     private void modified(ComponentContext context) {
         readComponentConfiguration(context);
-
-        if (enableService) {
-            if (influxDbTelemetryAdminService.isRunning()) {
-                influxDbTelemetryAdminService.restart(getConfig());
-            } else {
-                influxDbTelemetryAdminService.start(getConfig());
-            }
-        } else {
-            if (influxDbTelemetryAdminService.isRunning()) {
-                influxDbTelemetryAdminService.stop();
-            }
-        }
+        initTelemetryService(influxDbTelemetryAdminService, getConfig(), enableService);
         log.info("Modified");
     }
 
