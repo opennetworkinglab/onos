@@ -29,6 +29,7 @@ import org.onosproject.config.DynamicConfigStoreDelegate;
 import org.onosproject.config.FailedException;
 import org.onosproject.config.Filter;
 import org.onosproject.config.ResourceIdParser;
+import org.onosproject.d.config.DeviceResourceIds;
 import org.onosproject.d.config.ResourceIds;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.serializers.KryoNamespaces;
@@ -69,6 +70,7 @@ import static org.onosproject.config.DynamicConfigEvent.Type.NODE_ADDED;
 import static org.onosproject.config.DynamicConfigEvent.Type.NODE_DELETED;
 import static org.onosproject.config.DynamicConfigEvent.Type.NODE_UPDATED;
 import static org.onosproject.config.DynamicConfigEvent.Type.UNKNOWN_OPRN;
+import static org.onosproject.d.config.DeviceResourceIds.DCS_NAMESPACE;
 
 /**
  * Implementation of the dynamic config store.
@@ -146,6 +148,13 @@ public class DistributedDynamicConfigStore
             throw new FailedException("Invalid ResourceId, cannot create Node");
         }
         if (spath.equals(ResourceIdParser.ROOT)) {
+            //If not present, adding static ROOT node after immutable documentTree root.
+            if (complete(keystore.get(DocumentPath.from(spath))) == null) {
+                addLeaf(spath, LeafNode.builder(DeviceResourceIds.ROOT_NAME, DCS_NAMESPACE)
+                        .type(DataNode.Type.SINGLE_INSTANCE_NODE).build());
+            }
+            ResourceId abs = ResourceIds.resourceId(parent, node);
+            parseNode(ResourceIdParser.parseResId(abs), node);
             return CompletableFuture.completedFuture(true);
         } else if (complete(keystore.get(DocumentPath.from(spath))) == null) {
             throw new FailedException("Node or parent does not exist for " + spath);
