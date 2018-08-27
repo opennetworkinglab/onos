@@ -2,6 +2,7 @@
 *.class
 .classpath
 .project
+.ijwb
 .pydevproject
 .settings
 .javacp*
