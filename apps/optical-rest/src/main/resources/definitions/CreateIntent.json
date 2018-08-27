@@ -62,22 +62,23 @@
       "properties": {
         "channelSpacing": {
           "type": "string",
-          "example": "6.25"
+          "enum": ["CHL_100GHZ", "CHL_50GHZ", "CHL_25GHZ", "CHL_12P5GHZ", "CHL_6P25GHZ"],
+          "example": "CHL_50GHZ"
         },
         "gridType": {
           "type": "string",
-          "enum": ["dwdm", "cwdm", "flex"],
-          "example": "flex"
+          "enum": ["DWDM", "CWDM", "FLEX"],
+          "example": "DWDM"
         },
         "spacingMultiplier": {
           "type": "integer",
           "format": "int32",
-          "example": 1
+          "example": 12
         },
         "slotGranularity": {
           "type": "integer",
           "format": "int32",
-          "example": 1
+          "example": 4
         }
       }
     }
