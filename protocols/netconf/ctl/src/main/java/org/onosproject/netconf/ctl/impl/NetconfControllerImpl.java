@@ -315,10 +315,7 @@ public class NetconfControllerImpl implements NetconfController {
                 l.deviceRemoved(deviceId);
             }
         } else {
-            netconfDeviceMap.remove(deviceId);
-            for (NetconfDeviceListener l : netconfDeviceListeners) {
-                l.deviceRemoved(deviceId);
-            }
+            stopDevice(deviceId, true);
         }
     }
 

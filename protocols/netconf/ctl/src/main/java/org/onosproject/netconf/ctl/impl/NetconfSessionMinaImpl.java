@@ -705,6 +705,23 @@ public class NetconfSessionMinaImpl extends AbstractNetconfSession {
         return false;
     }
 
+    @Override
+    public boolean close() throws NetconfException {
+        try {
+            return super.close();
+        } catch (IOException ioe) {
+            throw new NetconfException(ioe.getMessage());
+        } finally {
+            try {
+                session.close();
+                channel.close();
+                client.close();
+            } catch (IOException ioe) {
+                log.warn("Error closing session {} on {}", sessionID, deviceInfo, ioe);
+            }
+        }
+    }
+
     protected void publishEvent(NetconfDeviceOutputEvent event) {
         primaryListeners.forEach(lsnr -> {
             if (lsnr.isRelevant(event)) {
