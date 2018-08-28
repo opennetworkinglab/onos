@@ -99,10 +99,12 @@ load("@com_github_bazelbuild_buildtools//buildifier:def.bzl", "buildifier")
 
 buildifier(
     name = "buildifier_check",
+    exclude_patterns = ["./tools/build/bazel/generate_workspace.bzl"],
     mode = "check",
 )
 
 buildifier(
     name = "buildifier_fix",
+    exclude_patterns = ["./tools/build/bazel/generate_workspace.bzl"],
     mode = "fix",
 )
