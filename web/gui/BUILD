@@ -104,11 +104,12 @@ genrule(
           " export HOME=. &&" +
           " export XDG_CONFIG_HOME=$(@D)/config &&" +  # npm config cache to the sandbos
           " export BABEL_DISABLE_CACHE=1 &&" +  # turn off babel cache
+          ' if [[ ! -z $${HTTP_PROXY-} ]]; then NPM_ARGS="--proxy $$HTTP_PROXY --without-ssl --insecure"; else NPM_ARGS=""; fi &&' +
           " NPM=$$ROOT/$(location @nodejs//:bin/npm) &&" +
           " mkdir -p tools/gui &&" +
           " cd tools/gui &&" +
           " jar xf ../../$(location //tools/gui:tools-gui-gulp) &&" +
-          " $$NPM install  --no-cache --loglevel=error >npm-install.out 2>&1 &&" +
+          " $$NPM $$NPM_ARGS install  --no-cache --loglevel=error >npm-install.out 2>&1 &&" +
           " find . -name package.json | while read pjson; do egrep -v '/execroot/' $$pjson > ptmp; mv ptmp $$pjson; done &&" +
           " find package.json gulpfile.babel.js node_modules gulp-tasks -type f -exec touch -t 201806280000 {} \; &&" +
           " jar Mcf $$ROOT/$@ package.json gulpfile.babel.js node_modules gulp-tasks",
@@ -129,13 +130,14 @@ genrule(
     cmd = "(ROOT=`pwd` &&" +
           " export HOME=. &&" +
           " export XDG_CONFIG_HOME=$(@D)/config &&" +
-          " export BABEL_DISABLE_CACHE=1" +
+          " export BABEL_DISABLE_CACHE=1 &&" +
+          ' if [[ ! -z $${HTTP_PROXY-} ]]; then NPM_ARGS="--proxy $$HTTP_PROXY --without-ssl --insecure"; else NPM_ARGS=""; fi &&' +
           " NPM=$(location @nodejs//:bin/npm) &&" +
           " (mkdir -p web/gui && cd web/gui && jar xf ../../$(location :_web_app_all)) &&" +
           " mkdir -p tools/gui && cd tools/gui &&" +
           " jar xf $$ROOT/$(location :_onos-gui-npm-install) &&" +
           " chmod a+x ./node_modules/gulp/bin/gulp.js &&" +
-          " $$ROOT/$$NPM run build --no-cache --loglevel=error >npm-build.out &&" +
+          " $$ROOT/$$NPM $$NPM_ARGS run build --no-cache --loglevel=error >npm-build.out &&" +
           " cd ../../web/gui/src/main/webapp &&" +
           " find dist vendor data README.md _doc _dev app/fw app/*.css app/*.js app/*.txt -type f -exec touch -t 201806280000 {} \; &&" +
           " jar Mcf $$ROOT/$@ dist vendor data README.md _doc _dev app/fw app/*.css app/*.js app/*.txt)",
