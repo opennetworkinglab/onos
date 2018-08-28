@@ -25,6 +25,7 @@ inout standard_metadata_t standard_metadata) {
         if (hdr.packet_out.isValid()) {
             standard_metadata.egress_spec = hdr.packet_out.egress_port;
             hdr.packet_out.setInvalid();
+            fabric_metadata.is_controller_packet_out = _TRUE;
             exit;
         }
     }
@@ -39,6 +40,10 @@ control PacketIoEgress(
         hdr.vlan_tag.setInvalid();
     }
     apply {
+        if (fabric_metadata.is_controller_packet_out == _TRUE) {
+            // No need to process through the rest of the pipeline.
+            exit;
+        }
         if (standard_metadata.egress_port == CPU_PORT) {
             if (hdr.vlan_tag.isValid() && fabric_metadata.pop_vlan_when_packet_in == _TRUE) {
                 pop_vlan();
@@ -50,6 +55,8 @@ control PacketIoEgress(
             }
             hdr.packet_in.setValid();
             hdr.packet_in.ingress_port = standard_metadata.ingress_port;
+            // No need to process through the rest of the pipeline.
+            exit;
         }
     }
 }

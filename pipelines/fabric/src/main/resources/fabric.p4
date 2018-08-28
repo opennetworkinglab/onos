@@ -41,7 +41,7 @@ control FabricIngress (
 inout parsed_headers_t hdr,
 inout fabric_metadata_t fabric_metadata,
 inout standard_metadata_t standard_metadata) {
-    PacketIoIngress() packet_io_ingress;
+    PacketIoIngress() pkt_io_ingress;
     Filtering() filtering;
     Forwarding() forwarding;
     Next() next;
@@ -52,7 +52,7 @@ inout standard_metadata_t standard_metadata) {
         spgw_normalizer.apply(hdr.gtpu.isValid(), hdr.gtpu_ipv4, hdr.gtpu_udp,
                               hdr.ipv4, hdr.udp, hdr.inner_ipv4, hdr.inner_udp);
 #endif // WITH_SPGW
-        packet_io_ingress.apply(hdr, fabric_metadata, standard_metadata);
+        pkt_io_ingress.apply(hdr, fabric_metadata, standard_metadata);
 #ifdef WITH_SPGW
 #ifdef WITH_SPGW_PCC_GATING
         fabric_metadata.spgw.l4_src_port = fabric_metadata.l4_src_port;
@@ -84,8 +84,8 @@ control FabricEgress (inout parsed_headers_t hdr,
     EgressNextControl() egress_next;
 
     apply {
-        egress_next.apply(hdr, fabric_metadata, standard_metadata);
         pkt_io_egress.apply(hdr, fabric_metadata, standard_metadata);
+        egress_next.apply(hdr, fabric_metadata, standard_metadata);
 #ifdef WITH_SPGW
         spgw_egress.apply(hdr.ipv4, hdr.gtpu_ipv4, hdr.gtpu_udp, hdr.gtpu,
                           fabric_metadata.spgw, standard_metadata);

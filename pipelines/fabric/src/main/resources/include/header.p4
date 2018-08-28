@@ -269,6 +269,7 @@ struct fabric_metadata_t {
     next_id_t next_id;
     _BOOL pop_vlan_when_packet_in;
     _BOOL is_multicast;
+    _BOOL is_controller_packet_out;
     _BOOL clone_to_cpu;
     bit<8> ip_proto;
     bit<16> l4_src_port;
