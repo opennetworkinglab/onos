@@ -106,7 +106,29 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import static org.onosproject.ovsdb.controller.OvsdbConstant.*;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.BRIDGE;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.BRIDGES;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.BRIDGE_CONTROLLER;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.CONTROLLER;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.DATABASENAME;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.EXTERNAL_ID;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.EXTERNAL_ID_INTERFACE_ID;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.INTERFACE;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.INTERFACES;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.MIRROR;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.MIRRORS;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.OFPORT;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.OFPORT_ERROR;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.PORT;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.PORTS;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.PORT_QOS;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.QOS;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.QOS_EXTERNAL_ID_KEY;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.QUEUE;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.QUEUES;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.QUEUE_EXTERNAL_ID_KEY;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.TYPEVXLAN;
+import static org.onosproject.ovsdb.controller.OvsdbConstant.UUID;
 
 /**
  * An representation of an ovsdb client.
@@ -1600,7 +1622,15 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
 
     @Override
     public Set<OvsdbPort> getPorts() {
-        Set<OvsdbPort> ovsdbPorts;
+        return (Set<OvsdbPort>) getElements(this::getOvsdbPort);
+    }
+
+    @Override
+    public Set<Interface> getInterfaces() {
+        return (Set<Interface>) getElements(this::getInterface);
+    }
+
+    private Set<?> getElements(Function<Row, ?> method) {
         OvsdbTableStore tableStore = getTableStore(DATABASENAME);
         if (tableStore == null) {
             return null;
@@ -1610,15 +1640,31 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
             return null;
         }
         ConcurrentMap<String, Row> rows = rowStore.getRowStore();
-        ovsdbPorts = rows.keySet()
+
+        return rows.keySet()
                 .stream()
                 .map(uuid -> getRow(DATABASENAME, INTERFACE, uuid))
-                .map(this::getOvsdbPort)
+                .map(method)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
-        return ovsdbPorts;
     }
 
+    @Override
+    public Interface getInterface(String intf) {
+        return getInterfaces().stream()
+                .filter(ovsdbIntf -> ovsdbIntf.getName().equals(intf))
+                .findAny().orElse(null);
+    }
+
+    private Interface getInterface(Row row) {
+        DatabaseSchema dbSchema = getDatabaseSchema(DATABASENAME);
+        Interface intf = (Interface) TableGenerator
+                .getTable(dbSchema, row, OvsdbTable.INTERFACE);
+        if (intf == null) {
+            return null;
+        }
+        return intf;
+    }
     @Override
     public DatabaseSchema getDatabaseSchema(String dbName) {
         return schema.get(dbName);

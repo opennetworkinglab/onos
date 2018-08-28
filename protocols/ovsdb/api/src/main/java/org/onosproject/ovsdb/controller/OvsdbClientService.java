@@ -15,11 +15,7 @@
  */
 package org.onosproject.ovsdb.controller;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-
+import com.google.common.util.concurrent.ListenableFuture;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.ControllerInfo;
@@ -34,9 +30,13 @@ import org.onosproject.ovsdb.rfc.jsonrpc.OvsdbRpc;
 import org.onosproject.ovsdb.rfc.message.TableUpdates;
 import org.onosproject.ovsdb.rfc.notation.Row;
 import org.onosproject.ovsdb.rfc.schema.DatabaseSchema;
-
-import com.google.common.util.concurrent.ListenableFuture;
+import org.onosproject.ovsdb.rfc.table.Interface;
 import org.onosproject.ovsdb.rfc.table.OvsdbTable;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * Represents to provider facing side of a node.
@@ -265,6 +265,21 @@ public interface OvsdbClientService extends OvsdbRpc {
      * @return set of ports; empty if no ports is find
      */
     Set<OvsdbPort> getPorts();
+
+    /**
+     * Gets interfaces of bridge.
+     *
+     * @return set of interfaces; empty if no interface is find
+     */
+    Set<Interface> getInterfaces();
+
+    /**
+     * Gets the interface with given portName.
+     *
+     * @param intf interface name
+     * @return interface
+     */
+    Interface getInterface(String intf);
 
     /**
      * Checks if the node is still connected.
