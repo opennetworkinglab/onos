@@ -280,7 +280,12 @@ public class OpenstackSwitchingDhcpHandler {
 
         private Ethernet buildReply(Ethernet ethRequest, byte packetType,
                                     InstancePort reqInstPort) {
+            log.trace("Build for DHCP reply msg for instance port {}", reqInstPort.toString());
             Port osPort = osNetworkService.port(reqInstPort.portId());
+            if (osPort == null) {
+                log.error("Failed to retrieve openstack port information for instance port {}",
+                        reqInstPort.toString());
+            }
             // pick one IP address to make a reply
             IP fixedIp = osPort.getFixedIps().stream().findFirst().get();
             Subnet osSubnet = osNetworkService.subnet(fixedIp.getSubnetId());
