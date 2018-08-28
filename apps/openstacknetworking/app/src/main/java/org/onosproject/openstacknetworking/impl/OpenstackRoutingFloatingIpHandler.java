@@ -937,9 +937,17 @@ public class OpenstackRoutingFloatingIpHandler {
         public void event(OpenstackNetworkEvent event) {
             switch (event.type()) {
                 case OPENSTACK_PORT_PRE_REMOVE:
-                    eventExecutor.execute(() ->
-                            updateFipStore(instancePortService.instancePort(event.port().getId()))
-                    );
+                    InstancePort instPort =
+                            instancePortService.instancePort(event.port().getId());
+                    NetFloatingIP fip =
+                            associatedFloatingIp(instPort, osRouterAdminService.floatingIps());
+
+                    if (fip != null) {
+                        eventExecutor.execute(() ->
+                                updateFipStore(instancePortService.instancePort(event.port().getId())));
+                    } else {
+                        instancePortService.removeInstancePort(instPort.portId());
+                    }
                     break;
                 default:
                     break;
