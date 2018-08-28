@@ -39,7 +39,7 @@ const DRAGDROPMSG1 = 'Drag and drop one file at a time';
 const DRAGDROPMSGEXT = 'Only files ending in .oar can be dropped';
 
 /** Prefix to access the REST service for applications */
-export const APPURLPREFIX = '../../ui/rs/applications/'; // TODO: This is a hack to work off GUIv1 URL
+export const APPURLPREFIX = 'rs/applications/';
 /** Suffix to access the icon of the application - gives back an image */
 export const ICONURLSUFFIX = '/icon';
 
