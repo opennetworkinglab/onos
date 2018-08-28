@@ -48,6 +48,7 @@ import org.onosproject.ovsdb.rfc.schema.DatabaseSchema;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.util.concurrent.ListenableFuture;
+import org.onosproject.ovsdb.rfc.table.Interface;
 import org.onosproject.ovsdb.rfc.table.OvsdbTable;
 
 /**
@@ -214,6 +215,16 @@ public class OvsdbClientServiceAdapter implements OvsdbClientService {
 
     @Override
     public Set<OvsdbPort> getPorts() {
+        return null;
+    }
+
+    @Override
+    public Set<Interface> getInterfaces() {
+        return null;
+    }
+
+    @Override
+    public Interface getInterface(String intf) {
         return null;
     }
 
