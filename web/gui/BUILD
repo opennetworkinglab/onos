@@ -205,6 +205,17 @@ osgi_jar_with_tests(
     deps = COMPILE_DEPS,
 )
 
+genrule(
+    name = "onos-gui-java-for-gui2",
+    srcs = glob([
+        "src/main/java/org/onosproject/ui/impl/Main*Resource.java",
+        "src/main/java/org/onosproject/ui/impl/ApplicationResource.java",
+    ]),
+    outs = ["onos-gui-java-for-gui2.srcjar"],
+    cmd = "jar cf $@ $(SRCS)",
+    visibility = ["//visibility:public"],
+)
+
 """
     Builds the tar ball for the ONOS GUI
 """

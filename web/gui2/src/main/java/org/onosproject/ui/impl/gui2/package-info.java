@@ -15,6 +15,6 @@
  */
 
 /**
- * Set of resources providing data for the ONOS GUI.
+ * Set of resources providing data for the ONOS GUI2.
  */
-package org.onosproject.ui.impl;
+package org.onosproject.ui.impl.gui2;
