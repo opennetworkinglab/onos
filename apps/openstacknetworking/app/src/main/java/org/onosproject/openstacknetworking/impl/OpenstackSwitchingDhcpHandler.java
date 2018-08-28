@@ -285,6 +285,7 @@ public class OpenstackSwitchingDhcpHandler {
             if (osPort == null) {
                 log.error("Failed to retrieve openstack port information for instance port {}",
                         reqInstPort.toString());
+                return null;
             }
             // pick one IP address to make a reply
             IP fixedIp = osPort.getFixedIps().stream().findFirst().get();
