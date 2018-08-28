@@ -411,15 +411,15 @@ public class NetconfSessionMinaImpl extends AbstractNetconfSession {
     @Override
     public void checkAndReestablish() throws NetconfException {
         try {
-            if (client.isClosed()) {
+            if (client.isClosed() || client.isClosing()) {
                 log.debug("Trying to restart the whole SSH connection with {}", deviceInfo.getDeviceId());
                 cleanUp();
                 startConnection();
-            } else if (session.isClosed()) {
+            } else if (session.isClosed() || session.isClosing()) {
                 log.debug("Trying to restart the session with {}", session, deviceInfo.getDeviceId());
                 cleanUp();
                 startSession();
-            } else if (channel.isClosed()) {
+            } else if (channel.isClosed() || channel.isClosing()) {
                 log.debug("Trying to reopen the channel with {}", deviceInfo.getDeviceId());
                 cleanUp();
                 openChannel();
