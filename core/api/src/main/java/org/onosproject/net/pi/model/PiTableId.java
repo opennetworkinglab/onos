@@ -49,4 +49,16 @@ public final class PiTableId extends Identifier<String> implements TableId {
     public Type type() {
         return Type.PIPELINE_INDEPENDENT;
     }
+
+    @Override
+    public int compareTo(TableId other) {
+        if (this.type() != other.type()) {
+            return this.type().compareTo(other.type());
+        } else {
+            PiTableId piTableId = (PiTableId) other;
+            checkNotNull(this.identifier, "PiTableId identifier should not be null");
+            checkNotNull(piTableId.identifier, "PiTableId identifier should not be null");
+            return this.identifier.compareTo(piTableId.identifier);
+        }
+    }
 }

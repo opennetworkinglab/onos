@@ -32,6 +32,16 @@ public final class IndexTableId extends Identifier<Integer> implements TableId {
         return Type.INDEX;
     }
 
+    @Override
+    public int compareTo(TableId other) {
+        if (this.type() != other.type()) {
+            return this.type().compareTo(other.type());
+        } else {
+            IndexTableId indexTableId = (IndexTableId) other;
+            return this.id() - indexTableId.id();
+        }
+    }
+
     /**
      * Returns a table identifier for the given index.
      *

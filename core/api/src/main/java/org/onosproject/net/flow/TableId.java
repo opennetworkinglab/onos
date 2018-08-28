@@ -36,5 +36,18 @@ public interface TableId {
         PIPELINE_INDEPENDENT
     }
 
+    /**
+     * Gets type of this table ID.
+     *
+     * @return type
+     */
     Type type();
+
+    /**
+     * Compares table ID.
+     *
+     * @param other table ID to be compared
+     * @return zero if the table IDs are the same. Otherwise, return a non-zero integer
+     */
+    int compareTo(TableId other);
 }
