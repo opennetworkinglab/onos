@@ -62,14 +62,14 @@ public final class Comparators {
     public static final Comparator<FlowRule> FLOW_RULE_COMPARATOR =
             (f1, f2) -> {
                 // Compare table IDs in ascending order
-                int tableCompare = f1.tableId() - f2.tableId();
+                int tableCompare = f1.table().compareTo(f2.table());
                 if (tableCompare != 0) {
                     return tableCompare;
                 }
                 // Compare priorities in descending order
                 int priorityCompare = f2.priority() - f1.priority();
                 return (priorityCompare == 0)
-                        ? Long.valueOf(f1.id().value()).compareTo(f2.id().value())
+                        ? Long.compare(f1.id().value(), f2.id().value())
                         : priorityCompare;
             };
 
