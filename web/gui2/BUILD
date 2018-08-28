@@ -158,7 +158,7 @@ genrule(
           " jar xf ../../$(location :_web_app_all) &&" +
           " jar xf $$ROOT/$${INSTALL_FILES[0]} &&" +
           " chmod +x $$ROOT/web/gui2/node_modules/@angular/cli/bin/ng &&" +
-          " export PATH=$$ROOT/$${NODE::-5}:$$ROOT/web/gui2/node_modules/@angular/cli/bin:$$PATH &&" +
+          " export PATH=$$ROOT/$$(dirname $${NODE}):$$ROOT/web/gui2/node_modules/@angular/cli/bin:$$PATH &&" +
           " node -v > ../../$(location onos-gui2-ng-build-prod.log) &&" +
           " npm -v >> ../../$(location onos-gui2-ng-build-prod.log) &&" +
           " ng -v >> ../../$(location onos-gui2-ng-build-prod.log) &&" +
@@ -204,7 +204,7 @@ genrule(
           " jar xf ../../$(location :_web_app_tests) &&" +
           " jar xf $$ROOT/$${INSTALL_FILES[0]} &&" +
           " chmod +x $$ROOT/web/gui2/node_modules/@angular/cli/bin/ng &&" +
-          " export PATH=$$ROOT/$${NODE::-5}:$$ROOT/web/gui2/node_modules/@angular/cli/bin:$$PATH &&" +
+          " export PATH=$$ROOT/$$(dirname $${NODE}):$$ROOT/web/gui2/node_modules/@angular/cli/bin:$$PATH &&" +
           " node -v > ../../$(location onos-gui2-ng-ver.log) &&" +
           " npm -v >> ../../$(location onos-gui2-ng-ver.log) &&" +
           " ng -v >> ../../$(location onos-gui2-ng-ver.log) &&" +
