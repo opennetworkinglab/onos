@@ -52,11 +52,14 @@ public class RouteCodec extends JsonCodec<Route> {
 
         IpPrefix prefix = IpPrefix.valueOf(json.path(PREFIX).asText());
         IpAddress nextHop = IpAddress.valueOf(json.path(NEXT_HOP).asText());
+        String source = json.path(SOURCE).asText();
 
-        // Routes through the REST API are created as STATIC, so we ignore
-        // the source parameter if it is specified in the JSON.
-        Route route = new Route(Route.Source.STATIC, prefix, nextHop);
+        // Routes through the REST API without mentioning source in the json are created as STATIC,
+        // otherwise routes are created with corresponding source.
 
+        Route route = source.isEmpty() ?
+                new Route(Route.Source.STATIC, prefix, nextHop) :
+                new Route(Route.Source.valueOf(source), prefix, nextHop);
         return route;
     }
 }
