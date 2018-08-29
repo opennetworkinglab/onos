@@ -151,12 +151,12 @@ public class OpenstackRoutingIcmpHandler {
         log.info("Stopped");
     }
 
-    private void handleEchoRequest(DeviceId srcDevice, MacAddress srcMac, IPv4 ipPacket,
+    private boolean handleEchoRequest(DeviceId srcDevice, MacAddress srcMac, IPv4 ipPacket,
                                    ICMP icmp) {
         InstancePort instPort = instancePortService.instancePort(srcMac);
         if (instPort == null) {
             log.warn(ERR_REQ + "unknown source host(MAC:{})", srcMac);
-            return;
+            return false;
         }
 
         IpAddress srcIp = IpAddress.valueOf(ipPacket.getSourceAddress());
@@ -165,13 +165,13 @@ public class OpenstackRoutingIcmpHandler {
         Subnet srcSubnet = getSourceSubnet(instPort, srcIp);
         if (srcSubnet == null) {
             log.warn(ERR_REQ + "unknown source subnet(IP:{})", srcIp);
-            return;
+            return false;
         }
 
         if (Strings.isNullOrEmpty(srcSubnet.getGateway())) {
             log.warn(ERR_REQ + "source subnet(ID:{}, CIDR:{}) has no gateway",
                     srcSubnet.getId(), srcSubnet.getCidr());
-            return;
+            return false;
         }
 
         if (isForSubnetGateway(IpAddress.valueOf(ipPacket.getDestinationAddress()),
@@ -186,25 +186,25 @@ public class OpenstackRoutingIcmpHandler {
             RouterInterface routerInterface = routerInterface(srcSubnet);
             if (routerInterface == null) {
                 log.warn(ERR_REQ + "failed to get router interface");
-                return;
+                return false;
             }
 
             ExternalGateway externalGateway = externalGateway(routerInterface);
             if (externalGateway == null) {
                 log.warn(ERR_REQ + "failed to get external gateway");
-                return;
+                return false;
             }
 
             ExternalPeerRouter externalPeerRouter = osNetworkService.externalPeerRouter(externalGateway);
             if (externalPeerRouter == null) {
                 log.warn(ERR_REQ + "failed to get external peer router");
-                return;
+                return false;
             }
 
             IpAddress externalIp = getExternalIp(externalGateway, routerInterface);
             if (externalIp == null) {
                 log.warn(ERR_REQ + "failed to get external ip");
-                return;
+                return false;
             }
 
             sendRequestForExternal(ipPacket, srcDevice, externalIp, externalPeerRouter);
@@ -221,8 +221,10 @@ public class OpenstackRoutingIcmpHandler {
                 });
             } catch (IllegalArgumentException e) {
                 log.warn("IllegalArgumentException occurred because of {}", e.toString());
+                return false;
             }
         }
+        return true;
     }
 
     private String icmpInfoKey(ICMP icmp, String srcIp, String dstIp) {
@@ -444,7 +446,7 @@ public class OpenstackRoutingIcmpHandler {
 
             InboundPacket pkt = context.inPacket();
             Ethernet ethernet = pkt.parsed();
-            if (ethernet == null || ethernet.getEtherType() == Ethernet.TYPE_ARP) {
+            if (ethernet == null || ethernet.getEtherType() != Ethernet.TYPE_IPV4) {
                 return;
             }
 
@@ -466,11 +468,12 @@ public class OpenstackRoutingIcmpHandler {
 
             switch (icmp.getIcmpType()) {
                 case TYPE_ECHO_REQUEST:
-                    handleEchoRequest(context.inPacket().receivedFrom().deviceId(),
+                    if (handleEchoRequest(context.inPacket().receivedFrom().deviceId(),
                             ethernet.getSourceMAC(),
                             ipPacket,
-                            icmp);
-                    context.block();
+                            icmp)) {
+                        context.block();
+                    }
                     break;
                 case TYPE_ECHO_REPLY:
                     if (handleEchoReply(ipPacket, icmp)) {
