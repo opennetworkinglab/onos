@@ -74,14 +74,13 @@ public class RouteServiceWebResource extends AbstractWebResource {
 
     /**
      * Create new unicast route.
-     * Creates a new route in the unicast RIB. Routes created through the REST
-     * API are always created as STATIC routes, so there is no need to specify
-     * the type.
+     * Creates a new route in the unicast RIB. Source field is kept optional.
+     * Without Source field routes are created as STATIC routes. Otherwise as per the mentioned Source
      *
      * @param route unicast route JSON
      * @return status of the request - CREATED if the JSON is correct,
      * BAD_REQUEST if the JSON is invalid, NO_CONTENT otherwise
-     * @onos.rsModel RoutePost
+     * @onos.rsModel RouteTypePost
      */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
@@ -103,14 +102,13 @@ public class RouteServiceWebResource extends AbstractWebResource {
 
     /**
      * Creates new unicast routes.
-     * Creates new routes in the unicast RIB. Routes created through the REST
-     * API are always created as STATIC routes, so there is no need to specify
-     * the type.
+     * Creates a new route in the unicast RIB. Source field is kept optional.
+     * Without Source field routes are created as STATIC routes. Otherwise as per the mentioned Source
      *
      * @param routesStream unicast routes JSON array
      * @return status of the request - CREATED if the JSON is correct,
      * BAD_REQUEST if the JSON is invalid, NO_CONTENT otherwise
-     * @onos.rsModel RoutesPost
+     * @onos.rsModel RoutesTypePost
      */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
