@@ -1177,9 +1177,9 @@ public class RoutingRulePopulator {
         }
         Set<IpAddress> allIps = new HashSet<>(config.getPortIPs(deviceId));
         allIps.add(routerIpv4);
-        allIps.add(routerLinkLocalIpv6);
         if (routerIpv6 != null) {
             allIps.add(routerIpv6);
+            allIps.add(routerLinkLocalIpv6);
         }
         if (pairRouterIpv4 != null) {
             allIps.add(pairRouterIpv4);
@@ -1284,17 +1284,19 @@ public class RoutingRulePopulator {
                 });
         srManager.flowObjectiveService.forward(deviceId, fwdObj);
 
-        // We punt all NDP packets towards the controller.
-        ndpFwdObjective(null, true, ARP_NDP_PRIORITY).forEach(builder -> {
-             ForwardingObjective obj = builder.add(new ObjectiveContext() {
-                @Override
-                public void onError(Objective objective, ObjectiveError error) {
-                    log.warn("Failed to install forwarding objective to punt NDP to {}: {}",
-                            deviceId, error);
-                }
+        if (isIpv6Configured(deviceId)) {
+            // We punt all NDP packets towards the controller.
+            ndpFwdObjective(null, true, ARP_NDP_PRIORITY).forEach(builder -> {
+                 ForwardingObjective obj = builder.add(new ObjectiveContext() {
+                    @Override
+                    public void onError(Objective objective, ObjectiveError error) {
+                        log.warn("Failed to install forwarding objective to punt NDP to {}: {}",
+                                deviceId, error);
+                    }
+                });
+                srManager.flowObjectiveService.forward(deviceId, obj);
             });
-            srManager.flowObjectiveService.forward(deviceId, obj);
-        });
+        }
 
         srManager.getPairLocalPort(deviceId).ifPresent(port -> {
             ForwardingObjective pairFwdObj;
@@ -1309,28 +1311,30 @@ public class RoutingRulePopulator {
                     });
             srManager.flowObjectiveService.forward(deviceId, pairFwdObj);
 
-            // Do not punt NDP packets from pair port
-            ndpFwdObjective(port, false, PacketPriority.CONTROL.priorityValue() + 1).forEach(builder -> {
-                ForwardingObjective obj = builder.add(new ObjectiveContext() {
-                    @Override
-                    public void onError(Objective objective, ObjectiveError error) {
-                        log.warn("Failed to install forwarding objective to ignore ARP to {}: {}",
-                                deviceId, error);
-                    }
-                });
-                srManager.flowObjectiveService.forward(deviceId, obj);
-            });
-
-            // Do not forward DAD packets from pair port
-            pairFwdObj = dad6FwdObjective(port, PacketPriority.CONTROL.priorityValue() + 2)
-                    .add(new ObjectiveContext() {
+            if (isIpv6Configured(deviceId)) {
+                // Do not punt NDP packets from pair port
+                ndpFwdObjective(port, false, PacketPriority.CONTROL.priorityValue() + 1).forEach(builder -> {
+                    ForwardingObjective obj = builder.add(new ObjectiveContext() {
                         @Override
                         public void onError(Objective objective, ObjectiveError error) {
-                            log.warn("Failed to install forwarding objective to drop DAD to {}: {}",
+                            log.warn("Failed to install forwarding objective to ignore ARP to {}: {}",
                                     deviceId, error);
                         }
                     });
-            srManager.flowObjectiveService.forward(deviceId, pairFwdObj);
+                    srManager.flowObjectiveService.forward(deviceId, obj);
+                });
+
+                // Do not forward DAD packets from pair port
+                pairFwdObj = dad6FwdObjective(port, PacketPriority.CONTROL.priorityValue() + 2)
+                        .add(new ObjectiveContext() {
+                            @Override
+                            public void onError(Objective objective, ObjectiveError error) {
+                                log.warn("Failed to install forwarding objective to drop DAD to {}: {}",
+                                        deviceId, error);
+                            }
+                        });
+                srManager.flowObjectiveService.forward(deviceId, pairFwdObj);
+            }
         });
     }
 
@@ -1781,4 +1785,13 @@ public class RoutingRulePopulator {
         }
     }
 
+    private boolean isIpv6Configured(DeviceId deviceId) {
+        boolean isIpv6Configured;
+        try {
+            isIpv6Configured = (config.getRouterIpv6(deviceId) != null);
+        } catch (DeviceConfigNotFoundException e) {
+            isIpv6Configured = false;
+        }
+        return isIpv6Configured;
+    }
 }
