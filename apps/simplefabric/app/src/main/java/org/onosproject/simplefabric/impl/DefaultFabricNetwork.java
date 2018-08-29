@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.simplefabric.api;
+package org.onosproject.simplefabric.impl;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
@@ -26,6 +26,7 @@ import org.onosproject.net.EncapsulationType;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.net.intf.Interface;
+import org.onosproject.simplefabric.api.FabricNetwork;
 
 import java.util.Collection;
 import java.util.Objects;
@@ -240,12 +241,12 @@ public final class DefaultFabricNetwork implements FabricNetwork {
         }
         DefaultFabricNetwork other = (DefaultFabricNetwork) obj;
         return Objects.equals(other.name, this.name)
-               && Objects.equals(other.interfaceNames, this.interfaceNames)
-               && Objects.equals(other.encapsulation, this.encapsulation)
-               && Objects.equals(other.forward, this.forward)
-               && Objects.equals(other.broadcast, this.broadcast)
-               && Objects.equals(other.interfaces, this.interfaces)
-               && Objects.equals(other.hostIds, this.hostIds);
+                && Objects.equals(other.interfaceNames, this.interfaceNames)
+                && Objects.equals(other.encapsulation, this.encapsulation)
+                && Objects.equals(other.forward, this.forward)
+                && Objects.equals(other.broadcast, this.broadcast)
+                && Objects.equals(other.interfaces, this.interfaces)
+                && Objects.equals(other.hostIds, this.hostIds);
     }
 
     @Override
@@ -309,7 +310,7 @@ public final class DefaultFabricNetwork implements FabricNetwork {
         public FabricNetwork build() {
             checkArgument(name != null, NOT_NULL_MSG, "name");
             return new DefaultFabricNetwork(name, interfaceNames,
-                                            encapsulation, forward, broadcast);
+                    encapsulation, forward, broadcast);
         }
     }
 }

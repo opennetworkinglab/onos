@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.simplefabric.api;
+package org.onosproject.simplefabric.impl;
 
 import com.google.common.base.MoreObjects;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onosproject.net.EncapsulationType;
+import org.onosproject.simplefabric.api.FabricSubnet;
 
 import java.util.Objects;
 
@@ -36,7 +37,7 @@ public final class DefaultFabricSubnet implements FabricSubnet {
     private final IpAddress gatewayIp;
     private final MacAddress gatewayMac;
     private EncapsulationType encapsulation;
-    private final String name;
+    private final String networkName;
 
     /**
      * Creates a new subnet entry.
@@ -45,16 +46,16 @@ public final class DefaultFabricSubnet implements FabricSubnet {
      * @param gatewayIp IP of the virtual gateway
      * @param gatewayMac MacAddress of the virtual gateway
      * @param encapsulation encapsulation type
-     * @param name subnet name
+     * @param networkName network name
      */
     private DefaultFabricSubnet(IpPrefix prefix, IpAddress gatewayIp,
                                 MacAddress gatewayMac, EncapsulationType encapsulation,
-                                String name) {
+                                String networkName) {
         this.prefix = prefix;
         this.gatewayIp = gatewayIp;
         this.gatewayMac = gatewayMac;
         this.encapsulation = encapsulation;
-        this.name = name;
+        this.networkName = networkName;
     }
 
     @Override
@@ -78,8 +79,8 @@ public final class DefaultFabricSubnet implements FabricSubnet {
     }
 
     @Override
-    public String name() {
-        return name;
+    public String networkName() {
+        return networkName;
     }
 
     @Override
@@ -94,7 +95,7 @@ public final class DefaultFabricSubnet implements FabricSubnet {
 
     @Override
     public int hashCode() {
-        return Objects.hash(prefix, gatewayIp, gatewayMac, encapsulation, name);
+        return Objects.hash(prefix, gatewayIp, gatewayMac, encapsulation, networkName);
     }
 
     @Override
@@ -107,10 +108,10 @@ public final class DefaultFabricSubnet implements FabricSubnet {
         }
         DefaultFabricSubnet that = (DefaultFabricSubnet) obj;
         return Objects.equals(this.prefix, that.prefix)
-               && Objects.equals(this.gatewayIp, that.gatewayIp)
-               && Objects.equals(this.gatewayMac, that.gatewayMac)
-               && Objects.equals(this.encapsulation, that.encapsulation)
-               && Objects.equals(this.name, that.name);
+                && Objects.equals(this.gatewayIp, that.gatewayIp)
+                && Objects.equals(this.gatewayMac, that.gatewayMac)
+                && Objects.equals(this.encapsulation, that.encapsulation)
+                && Objects.equals(this.networkName, that.networkName);
     }
 
     @Override
@@ -120,7 +121,7 @@ public final class DefaultFabricSubnet implements FabricSubnet {
                 .add("gatewayIp", gatewayIp)
                 .add("gatewayMac", gatewayMac)
                 .add("encapsulation", encapsulation)
-                .add("name", name)
+                .add("networkName", networkName)
                 .toString();
     }
 
@@ -137,18 +138,18 @@ public final class DefaultFabricSubnet implements FabricSubnet {
      * A builder class for Ip Subnet.
      */
     public static final class DefaultSubnetBuilder implements Builder {
-        private IpPrefix ipPrefix;
+        private IpPrefix prefix;
         private IpAddress gatewayIp;
         private MacAddress gatewayMac;
         private EncapsulationType encapsulation;
-        private String name;
+        private String networkName;
 
         private DefaultSubnetBuilder() {
         }
 
         @Override
-        public Builder ipPrefix(IpPrefix ipPrefix) {
-            this.ipPrefix = ipPrefix;
+        public Builder prefix(IpPrefix prefix) {
+            this.prefix = prefix;
             return this;
         }
 
@@ -171,24 +172,24 @@ public final class DefaultFabricSubnet implements FabricSubnet {
         }
 
         @Override
-        public Builder name(String networkName) {
-            this.name = networkName;
+        public Builder networkName(String networkName) {
+            this.networkName = networkName;
             return this;
         }
 
         @Override
         public FabricSubnet build() {
-            checkArgument(ipPrefix != null, NOT_NULL_MSG, "prefix");
+            checkArgument(prefix != null, NOT_NULL_MSG, "prefix");
             checkArgument(gatewayIp != null, NOT_NULL_MSG, "gatewayIp");
             checkArgument(gatewayMac != null, NOT_NULL_MSG, "gatewayMac");
-            checkArgument(name != null, NOT_NULL_MSG, "name");
+            checkArgument(networkName != null, NOT_NULL_MSG, "name");
 
             if (this.encapsulation == null) {
                 encapsulation = EncapsulationType.NONE;
             }
 
-            return new DefaultFabricSubnet(ipPrefix, gatewayIp, gatewayMac,
-                                                            encapsulation, name);
+            return new DefaultFabricSubnet(prefix, gatewayIp, gatewayMac,
+                    encapsulation, networkName);
         }
     }
 }

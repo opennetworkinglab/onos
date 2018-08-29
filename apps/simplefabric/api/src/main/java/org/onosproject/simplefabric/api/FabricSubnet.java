@@ -55,11 +55,11 @@ public interface FabricSubnet {
     EncapsulationType encapsulation();
 
     /**
-     * Gets the subnet name.
+     * Gets the network name.
      *
-     * @return the subnet name
+     * @return the network name
      */
-    String name();
+    String networkName();
 
     /**
      * Tests whether the IP version of this entry is IPv4.
@@ -86,7 +86,7 @@ public interface FabricSubnet {
          * @param ipPrefix IP prefix
          * @return FabricSubnet instance builder
          */
-        Builder ipPrefix(IpPrefix ipPrefix);
+        Builder prefix(IpPrefix ipPrefix);
 
         /**
          * Returns FabricSubnet builder with supplied gatewayIp.
@@ -113,12 +113,12 @@ public interface FabricSubnet {
         Builder encapsulation(EncapsulationType encapsulation);
 
         /**
-         * Returns FabricSubnet builder with supplied subnet name.
+         * Returns FabricSubnet builder with supplied network name.
          *
-         * @param name subnet name
+         * @param networkName network name
          * @return FabricSubnet instance builder
          */
-        Builder name(String name);
+        Builder networkName(String networkName);
 
         /**
          * Builds an immutable FabricSubnet instance.

@@ -24,12 +24,9 @@ import org.onlab.packet.MacAddress;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.EncapsulationType;
 import org.onosproject.net.config.Config;
-import org.onosproject.simplefabric.api.DefaultFabricRoute;
-import org.onosproject.simplefabric.api.DefaultFabricSubnet;
-import org.onosproject.simplefabric.api.DefaultFabricNetwork;
+import org.onosproject.simplefabric.api.FabricNetwork;
 import org.onosproject.simplefabric.api.FabricRoute;
 import org.onosproject.simplefabric.api.FabricSubnet;
-import org.onosproject.simplefabric.api.FabricNetwork;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -128,11 +125,11 @@ public class SimpleFabricConfig extends Config<ApplicationId> {
             }
             try {
                 subnets.add(DefaultFabricSubnet.builder()
-                            .ipPrefix(IpPrefix.valueOf(jsonNode.get(PREFIX).asText()))
+                            .prefix(IpPrefix.valueOf(jsonNode.get(PREFIX).asText()))
                             .gatewayIp(IpAddress.valueOf(jsonNode.get(GATEWAY_IP).asText()))
                             .gatewayMac(MacAddress.valueOf(jsonNode.get(GATEWAY_MAC).asText()))
                             .encapsulation(EncapsulationType.enumFromString(encapsulation))
-                            .name(jsonNode.get(NETWORK_NAME).asText())
+                            .networkName(jsonNode.get(NETWORK_NAME).asText())
                             .build());
             } catch (Exception e) {
                 log.warn("Fabric subnet parse failed; skip: jsonNode={}", jsonNode);

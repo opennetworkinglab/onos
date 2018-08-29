@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.onosproject.simplefabric.api;
+package org.onosproject.simplefabric.impl;
 
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onosproject.cluster.NodeId;
+import org.onosproject.simplefabric.api.FabricRoute;
 
 import java.util.Objects;
 

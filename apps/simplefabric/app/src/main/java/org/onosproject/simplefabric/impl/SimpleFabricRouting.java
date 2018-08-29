@@ -245,7 +245,7 @@ public class SimpleFabricRouting {
             for (FabricSubnet subnet : simpleFabric.defaultFabricSubnets()) {
                 newInterceptFlowRules.add(generateInterceptFlowRule(true, device.id(), subnet.prefix()));
                 // check if this devices has the fabricSubnet, then add ip broadcast flue rule
-                FabricNetwork fabricNetwork = simpleFabric.fabricNetwork(subnet.name());
+                FabricNetwork fabricNetwork = simpleFabric.fabricNetwork(subnet.networkName());
                 if (fabricNetwork != null && fabricNetwork.contains(device.id())) {
                     newInterceptFlowRules.add(generateLocalSubnetIpBctFlowRule(device.id(), subnet.prefix(),
                             fabricNetwork));
@@ -673,7 +673,7 @@ public class SimpleFabricRouting {
             // destination is local subnet ip
             if (ALLOW_ETH_ADDRESS_SELECTOR && dstSubnet.equals(srcSubnet)) {
                 // NOTE: if ALLOW_ETH_ADDRESS_SELECTOR=false; isForward is always false
-                FabricNetwork fabricNetwork = simpleFabric.fabricNetwork(dstSubnet.name());
+                FabricNetwork fabricNetwork = simpleFabric.fabricNetwork(dstSubnet.networkName());
                 treatmentSrcMac = ethPkt.getSourceMAC();
                 if (fabricNetwork != null && fabricNetwork.isForward()) {
                     // NOTE: no reactive route action but do forward packet for L2Forward do not handle packet

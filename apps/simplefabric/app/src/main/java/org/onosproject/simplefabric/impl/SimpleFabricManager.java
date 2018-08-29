@@ -64,7 +64,6 @@ import org.onosproject.net.intf.InterfaceService;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketService;
-import org.onosproject.simplefabric.api.DefaultFabricNetwork;
 import org.onosproject.simplefabric.api.FabricNetwork;
 import org.onosproject.simplefabric.api.FabricRoute;
 import org.onosproject.simplefabric.api.FabricSubnet;
@@ -450,10 +449,10 @@ public class SimpleFabricManager extends ListenerRegistry<SimpleFabricEvent, Sim
             log.warn("simple fabric request mac failed for unknown fabricSubnet: {}", ip);
             return false;
         }
-        FabricNetwork fabricNetwork = fabricNetwork(fabricSubnet.name());
+        FabricNetwork fabricNetwork = fabricNetwork(fabricSubnet.networkName());
         if (fabricNetwork == null) {
             log.warn("simple fabric request mac failed for unknown fabricNetwork name {}: {}",
-                     fabricSubnet.name(), ip);
+                     fabricSubnet.networkName(), ip);
             return false;
         }
         log.debug("simple fabric send request mac fabricNetwork {}: {}", fabricNetwork.name(), ip);

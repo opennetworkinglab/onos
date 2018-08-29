@@ -17,6 +17,7 @@ osgi_jar_with_tests (
     api_description = 'REST API for Simple Fabric',
     api_package = 'org.onosproject.simplefabric.web',
     api_title = 'Simple Fabric API',
+    api_version = '1.0',
     deps = COMPILE_DEPS,
     test_deps = TEST_DEPS,
     web_context = '/onos/v1/simplefabric',
