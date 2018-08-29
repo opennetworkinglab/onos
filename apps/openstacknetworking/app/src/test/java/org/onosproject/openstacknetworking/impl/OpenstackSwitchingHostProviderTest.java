@@ -17,7 +17,6 @@ package org.onosproject.openstacknetworking.impl;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.MoreExecutors;
 import org.junit.After;
 import org.junit.Before;
@@ -41,6 +40,7 @@ import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceServiceAdapter;
 import org.onosproject.net.host.DefaultHostDescription;
 import org.onosproject.net.host.HostDescription;
@@ -59,6 +59,8 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.onosproject.openstacknetworking.api.Constants.ANNOTATION_NETWORK_ID;
 import static org.onosproject.openstacknetworking.api.Constants.ANNOTATION_PORT_ID;
 
@@ -68,6 +70,8 @@ import static org.onosproject.openstacknetworking.api.Constants.ANNOTATION_PORT_
 public class OpenstackSwitchingHostProviderTest {
 
     private static final String PORT_ID = "65c0ee9f-d634-4522-8954-51021b570b0d";
+    private static final String PORT_NAME = "tap123456";
+
     private static final String NETWORK_ID = "396f12f8-521e-4b91-8e21-2e003500433a";
     private static final String IP_ADDRESS = "10.10.10.2";
     private static final String SUBNET_ID = "d32019d3-bc6e-4319-9c1d-6722fc136a22";
@@ -78,7 +82,8 @@ public class OpenstackSwitchingHostProviderTest {
     private static final DefaultAnnotations ANNOTATIONS =
                                     DefaultAnnotations.builder()
                                             .set(ANNOTATION_NETWORK_ID, NETWORK_ID)
-                                            .set(ANNOTATION_PORT_ID, PORT_ID).build();
+                                            .set(ANNOTATION_PORT_ID, PORT_ID)
+                                            .set("portName", PORT_NAME).build();
 
     // Host Mac, VLAN
     private static final ProviderId PROVIDER_ID = ProviderId.NONE;
@@ -118,10 +123,6 @@ public class OpenstackSwitchingHostProviderTest {
 
     private OpenstackSwitchingHostProvider target;
 
-    private HostDescription resultHostDesc;
-    private HostId resultHostId;
-    private HostLocation resultHostLocation;
-
     /**
      * Initial setup for this unit test.
      */
@@ -136,10 +137,6 @@ public class OpenstackSwitchingHostProviderTest {
         TestUtils.setField(target, "osNetworkService", new TestOpenstackNetworkService());
         TestUtils.setField(target, "hostProviderRegistry", new TestHostProviderRegistry());
         TestUtils.setField(target, "executor", MoreExecutors.newDirectExecutorService());
-
-        Host host1 = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
-                Sets.newHashSet(HOST_LOC11), Sets.newHashSet(HOST_IP11), false);
-        hostMap.put(HOST_ID_UNTAGGED, host1);
 
         macMap.put(CP11, HOST_MAC);
         macMap.put(CP12, HOST_MAC);
@@ -163,14 +160,16 @@ public class OpenstackSwitchingHostProviderTest {
     @Test
     public void testProcessPortAddedForNewAddition() {
         org.onosproject.net.Port port = new DefaultPort(DEV2, P1, true, ANNOTATIONS);
-        target.processPortAdded(port);
+        DeviceEvent event = new DeviceEvent(DeviceEvent.Type.PORT_ADDED, DEV2, port);
+
+        target.portAddedHelper(event);
 
         HostId hostId = HostId.hostId(HOST_MAC2);
         HostDescription hostDesc = new DefaultHostDescription(
                 HOST_MAC2,
                 VlanId.NONE,
                 new HostLocation(CP21, System.currentTimeMillis()),
-                ImmutableSet.of(),
+                ImmutableSet.of(HOST_IP11),
                 ANNOTATIONS
 
         );
@@ -183,19 +182,42 @@ public class OpenstackSwitchingHostProviderTest {
      */
     @Test
     public void testProcessPortAddedForUpdate() {
-        org.onosproject.net.Port port = new DefaultPort(DEV1, P1, true, ANNOTATIONS);
-        target.processPortAdded(port);
+        org.onosproject.net.Port addedPort = new DefaultPort(DEV1, P1, true, ANNOTATIONS);
+        DeviceEvent addedEvent = new DeviceEvent(DeviceEvent.Type.PORT_ADDED, DEV1, addedPort);
+
+        target.portAddedHelper(addedEvent);
+
+        //org.onosproject.net.Port updatedPort = new DefaultPort(DEV1, P2, true, ANNOTATIONS);
+        //DeviceEvent updatedEvent = new DeviceEvent(DeviceEvent.Type.PORT_ADDED, DEV1, updatedPort);
+
+        target.portAddedHelper(addedEvent);
+
 
         HostId hostId = HostId.hostId(HOST_MAC);
         HostDescription hostDesc = new DefaultHostDescription(
                 HOST_MAC,
                 VlanId.NONE,
                 new HostLocation(CP11, System.currentTimeMillis()),
-                ImmutableSet.of(),
+                ImmutableSet.of(HOST_IP11),
                 ANNOTATIONS
         );
 
         verifyHostResult(hostId, hostDesc);
+    }
+
+    @Test
+    public void testProcessPortRemoved() {
+        org.onosproject.net.Port addedPort = new DefaultPort(DEV1, P1, true, ANNOTATIONS);
+        DeviceEvent addedEvent = new DeviceEvent(DeviceEvent.Type.PORT_ADDED, DEV1, addedPort);
+
+        target.portAddedHelper(addedEvent);
+
+        org.onosproject.net.Port removedPort = new DefaultPort(DEV2, P1, true, ANNOTATIONS);
+        DeviceEvent removedEvent = new DeviceEvent(DeviceEvent.Type.PORT_REMOVED, DEV2, removedPort);
+
+        target.portRemovedHelper(removedEvent);
+
+        assertNull(target.hostService.getHost(HostId.hostId(HOST_MAC)));
     }
 
     /**
@@ -237,6 +259,11 @@ public class OpenstackSwitchingHostProviderTest {
         public Host getHost(HostId hostId) {
             return hostMap.get(hostId);
         }
+
+        @Override
+        public Set<Host> getConnectedHosts(ConnectPoint connectPoint) {
+            return ImmutableSet.copyOf(hostMap.values());
+        }
     }
 
     /**
@@ -247,13 +274,23 @@ public class OpenstackSwitchingHostProviderTest {
         @Override
         public void hostDetected(HostId hostId, HostDescription hostDescription,
                                  boolean replaceIps) {
-            resultHostId = hostId;
-            resultHostDesc = hostDescription;
+            Host host = new DefaultHost(PROVIDER_ID,
+                    hostId,
+                    hostDescription.hwAddress(),
+                    hostDescription.vlan(),
+                    hostDescription.locations(),
+                    ImmutableSet.copyOf(hostDescription.ipAddress()),
+                    hostDescription.innerVlan(),
+                    hostDescription.tpid(),
+                    hostDescription.configured(),
+                    hostDescription.annotations());
+
+            hostMap.put(hostId, host);
         }
 
         @Override
         public void hostVanished(HostId hostId) {
-
+            hostMap.remove(hostId);
         }
 
         @Override
@@ -268,8 +305,23 @@ public class OpenstackSwitchingHostProviderTest {
 
         @Override
         public void addLocationToHost(HostId hostId, HostLocation location) {
-            resultHostId = hostId;
-            resultHostLocation = location;
+            Host oldHost = hostMap.get(hostId);
+
+            Set<HostLocation> newHostlocations = oldHost.locations();
+            newHostlocations.add(location);
+
+            Host newHost = new DefaultHost(oldHost.providerId(),
+                    oldHost.id(),
+                    oldHost.mac(),
+                    oldHost.vlan(),
+                    newHostlocations,
+                    oldHost.ipAddresses(),
+                    oldHost.innerVlan(),
+                    oldHost.tpid(),
+                    oldHost.configured(),
+                    oldHost.annotations());
+
+            hostMap.put(hostId, newHost);
         }
 
         @Override
@@ -348,10 +400,12 @@ public class OpenstackSwitchingHostProviderTest {
      * @param hostDesc      host description
      */
     private void verifyHostResult(HostId hostId, HostDescription hostDesc) {
-        assertEquals(hostId, resultHostId);
-        assertEquals(hostDesc.hwAddress(), resultHostDesc.hwAddress());
+        Host host = hostMap.get(hostId);
+
+        assertEquals(hostId, host.id());
+        assertEquals(hostDesc.hwAddress(), host.mac());
         assertEquals(hostDesc.annotations().value(NETWORK_ID),
-                resultHostDesc.annotations().value(NETWORK_ID));
+                host.annotations().value(NETWORK_ID));
     }
 
     /**
@@ -361,8 +415,7 @@ public class OpenstackSwitchingHostProviderTest {
      * @param hostLocation  host location
      */
     private void verifyHostLocationResult(HostId hostId, HostLocation hostLocation) {
-        assertEquals(hostId, resultHostId);
-        assertEquals(hostLocation.deviceId(), resultHostLocation.deviceId());
-        assertEquals(hostLocation.port(), resultHostLocation.port());
+        Host host = hostMap.get(hostId);
+        assertTrue(host.locations().stream().anyMatch(location -> location.equals(hostLocation)));
     }
 }
