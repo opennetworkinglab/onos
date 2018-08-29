@@ -81,7 +81,11 @@ Run `ng generate component component-name` to generate a new component. You can 
 
 ## Build
 The build is handled through the web/gui2/BUCK file. This downloads Node, NPM and Angular CLI
-It runs ```ng build --prod --extract-css``` and copies everything over in to WEB-INF/classes/dist
+It runs ```ng build --prod --extract-css``` and copies everything over in to WEB-INF/classes/dist (there
+is something weird in BUCK resources - if there is a file in the root dir of the
+outputted folder this is copied to the sources root directory, where as files
+are copied to WEB-INF/classes. To get around this I put all the outputted stuff in to 
+```dist``` and it gets copied to /WEB-INF/classes/dist/ )
 
 To run it manually in Angular CLI run `ng build` (and add on --prod --extract-css --watch as necessary to alter its behaviour)
 

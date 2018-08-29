@@ -108,7 +108,7 @@ genrule(
           " export HOME=. &&" +
           " export XDG_CONFIG_HOME=$(@D)/config &&" +  # npm config cache to the sandbos
           " export BABEL_DISABLE_CACHE=1 &&" +  # turn off babel cache
-          " if [[ ! -z $${HTTP_PROXY-} ]]; then NPM_ARGS='--proxy $$HTTP_PROXY --without-ssl --insecure'; else NPM_ARGS=''; fi &&" +
+          ' if [[ ! -z $${HTTP_PROXY-} ]]; then NPM_ARGS="--proxy $$HTTP_PROXY --without-ssl --insecure"; else NPM_ARGS=""; fi &&' +
           " NPM=$$ROOT/$(location @nodejs//:bin/npm) &&" +
           " mkdir -p tools/gui &&" +
           " cd tools/gui &&" +
@@ -203,15 +203,6 @@ osgi_jar_with_tests(
     test_deps = TEST_DEPS,
     web_context = "/onos/ui",
     deps = COMPILE_DEPS,
-)
-
-filegroup(
-    name = "onos-gui-java-for-gui2",
-    srcs = glob([
-        "src/main/java/org/onosproject/ui/impl/Main*Resource.java",
-        "src/main/java/org/onosproject/ui/impl/ApplicationResource.java",
-    ]),
-    visibility = ["//visibility:public"],
 )
 
 """

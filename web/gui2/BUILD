@@ -120,11 +120,10 @@ genrule(
           " export HOME=. &&" +
           " export XDG_CONFIG_HOME=$(@D)/config &&" +  # npm config cache to the sandbox
           " export BABEL_DISABLE_CACHE=1 &&" +  # turn off babel cache
-          " if [[ ! -z $${HTTP_PROXY-} ]]; then NPM_ARGS='--proxy $$HTTP_PROXY --without-ssl --insecure'; else NPM_ARGS=''; fi &&" +
           " NPM=$$ROOT/$(location @nodejs//:bin/npm) &&" +
           " mkdir -p web/gui2 &&" +
           " cd web/gui2 &&" +
-          " $$NPM $$NPM_ARGS install  --no-cache --loglevel=error > $$ROOT/$(location onos-gui2-npm-install.log) 2>&1 &&" +
+          " $$NPM install  --no-cache --loglevel=error > $$ROOT/$(location onos-gui2-npm-install.log) 2>&1 &&" +
           " jar Mcf $$ROOT/$(location onos-gui2-npm-install.jar) . &&" +
           " touch $$ROOT/$(location onos-gui2-npm-install.log)",  # to get the log always as the 2nd file
     visibility = ["//visibility:public"],
@@ -301,9 +300,9 @@ genrule(
 
 osgi_jar_with_tests(
     name = "_onos-gui2-base-jar",
-    srcs = [
-        "src/main/java/org/onosproject/ui/impl/gui2/LogoutResource.java",
-        "//web/gui:onos-gui-java-for-gui2",
+    exclude_tests = [
+        "org.onosproject.ui.impl.AbstractUiImplTest",
+        "org.onosproject.ui.impl.topo.model.AbstractTopoModelTest",
     ],
     test_deps = TEST_DEPS,
     web_context = "/onos/ui2",
@@ -320,7 +319,6 @@ genrule(
         ":_onos-gui2-ng-build",
         ":_onos-gui2-base-jar",
         ":_web_inf_classes_files",
-        "src/main/webapp/WEB-INF/web.xml",
     ],
     outs = ["onos-gui2.jar"],
     cmd = " ROOT=`pwd` &&" +
@@ -331,7 +329,7 @@ genrule(
           " (cd WEB-INF/classes && jar xf $$ROOT/$${BUILD_FILES[1]}) &&" +
           " jar xf $$ROOT/$(location :_onos-gui2-base-jar) &&" +
           " find . -type f -exec touch -t 201808280000 {} \; &&" +
-          " jar cmf META-INF/MANIFEST.MF $$ROOT/$@ WEB-INF/web.xml WEB-INF/classes",
+          " jar cmf META-INF/MANIFEST.MF $$ROOT/$@ WEB-INF/classes",
     output_to_bindir = 1,
     visibility = ["//visibility:public"],
 )

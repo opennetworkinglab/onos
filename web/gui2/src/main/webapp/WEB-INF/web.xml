@@ -135,25 +135,25 @@
         <!--<url-pattern>/raw/*</url-pattern>-->
     <!--</servlet-mapping>-->
 
-    <servlet>
-        <servlet-name>JAX-RS Service</servlet-name>
-        <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
-        <init-param>
-            <param-name>jersey.config.server.provider.classnames</param-name>
-            <param-value>
-                org.glassfish.jersey.media.multipart.MultiPartFeature,
-                org.onosproject.ui.impl.gui2.LogoutResource,
+    <!--<servlet>-->
+        <!--<servlet-name>JAX-RS Service</servlet-name>-->
+        <!--<servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>-->
+        <!--<init-param>-->
+            <!--<param-name>jersey.config.server.provider.classnames</param-name>-->
+            <!--<param-value>-->
+                <!--org.glassfish.jersey.media.multipart.MultiPartFeature,-->
+                <!--org.onosproject.ui.impl.LogoutResource,-->
                 <!--org.onosproject.ui.impl.TopologyResource,-->
-                org.onosproject.ui.impl.ApplicationResource
-            </param-value>
-        </init-param>
-        <load-on-startup>1</load-on-startup>
-    </servlet>
+                <!--org.onosproject.ui.impl.ApplicationResource-->
+            <!--</param-value>-->
+        <!--</init-param>-->
+        <!--<load-on-startup>1</load-on-startup>-->
+    <!--</servlet>-->
 
-    <servlet-mapping>
-        <servlet-name>JAX-RS Service</servlet-name>
-        <url-pattern>/rs/*</url-pattern>
-    </servlet-mapping>
+    <!--<servlet-mapping>-->
+        <!--<servlet-name>JAX-RS Service</servlet-name>-->
+        <!--<url-pattern>/rs/*</url-pattern>-->
+    <!--</servlet-mapping>-->
 
     <!--<servlet>-->
         <!--<servlet-name>Web Socket Service</servlet-name>-->
