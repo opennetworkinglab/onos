@@ -1,0 +1,25 @@
+{
+  "type": "object",
+  "title": "route",
+  "required": [
+    "prefix",
+    "nextHop"
+  ],
+  "properties": {
+    "source": {
+      "type": "string",
+      "example": "STATIC",
+      "description": "Route type"
+    },
+    "prefix": {
+      "type": "string",
+      "example": "10.1.1.0/24",
+      "description": "Route prefix"
+    },
+    "nextHop": {
+      "type": "string",
+      "example": "1.1.1.1",
+      "description": "Next hop IP address"
+    }
+  }
+}

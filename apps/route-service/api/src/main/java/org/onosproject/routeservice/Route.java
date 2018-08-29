@@ -68,7 +68,12 @@ public class Route {
         /**
          * Route source was not defined.
          */
-        UNDEFINED
+        UNDEFINED,
+
+        /**
+         * Route can from the DHCP-LQ route source.
+         */
+        DHCPLQ
     }
 
     private final Source source;
