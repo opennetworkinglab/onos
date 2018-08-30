@@ -289,6 +289,9 @@ public final class OpenStackSwitchingDirectPortProvider {
             String intfName = OpenstackNetworkingUtil.getIntfNameFromPciAddress(port);
             if (intfName == null) {
                 log.error("Failed to retrieve interface name from a port {}", port.getId());
+            } else if (intfName.equals(UNSUPPORTED_VENDOR)) {
+                log.warn("Failed to retrieve interface name from a port {} because of unsupported ovs-based sr-iov");
+                return;
             }
 
             if (!hasIntfAleadyInDevice(node.intgBridge(), intfName, deviceService)) {
