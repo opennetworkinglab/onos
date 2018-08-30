@@ -16,14 +16,16 @@
 
 package org.onosproject.store.pi.impl;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Multimaps;
+import com.google.common.collect.SetMultimap;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.util.KryoNamespace;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.pi.model.PiPipeconfId;
 import org.onosproject.net.pi.service.PiPipeconfDeviceMappingEvent;
@@ -31,24 +33,19 @@ import org.onosproject.net.pi.service.PiPipeconfMappingStore;
 import org.onosproject.net.pi.service.PiPipeconfMappingStoreDelegate;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.serializers.KryoNamespaces;
-import org.onosproject.store.service.EventuallyConsistentMap;
-import org.onosproject.store.service.EventuallyConsistentMapEvent;
-import org.onosproject.store.service.EventuallyConsistentMapListener;
-import org.onosproject.store.service.MultiValuedTimestamp;
+import org.onosproject.store.service.ConsistentMap;
+import org.onosproject.store.service.MapEvent;
+import org.onosproject.store.service.MapEventListener;
+import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
-import org.onosproject.store.service.WallClockTimestamp;
 import org.slf4j.Logger;
 
-import java.util.Collections;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Manages information of pipeconf to device binding using gossip protocol to distribute
- * information.
+ * Manages information of pipeconf to device binding.
  */
 @Component(immediate = true)
 @Service
@@ -61,22 +58,20 @@ public class DistributedDevicePipeconfMappingStore
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected StorageService storageService;
 
-    protected EventuallyConsistentMap<DeviceId, PiPipeconfId> deviceToPipeconf;
+    protected ConsistentMap<DeviceId, PiPipeconfId> deviceToPipeconf;
 
-    protected final EventuallyConsistentMapListener<DeviceId, PiPipeconfId> pipeconfListener =
+    protected final MapEventListener<DeviceId, PiPipeconfId> pipeconfListener =
             new InternalPiPipeconfListener();
 
-    protected ConcurrentMap<PiPipeconfId, Set<DeviceId>> pipeconfToDevices = new ConcurrentHashMap<>();
+    protected SetMultimap<PiPipeconfId, DeviceId> pipeconfToDevices =
+            Multimaps.synchronizedSetMultimap(HashMultimap.create());
 
     @Activate
     public void activate() {
-        KryoNamespace.Builder serializer = KryoNamespace.newBuilder()
-                .register(KryoNamespaces.API)
-                .register(MultiValuedTimestamp.class);
-        deviceToPipeconf = storageService.<DeviceId, PiPipeconfId>eventuallyConsistentMapBuilder()
+        deviceToPipeconf = storageService.<DeviceId, PiPipeconfId>consistentMapBuilder()
                 .withName("onos-pipeconf-table")
-                .withSerializer(serializer)
-                .withTimestampProvider((k, v) -> new WallClockTimestamp()).build();
+                .withSerializer(Serializer.using(KryoNamespaces.API))
+                .build();
         deviceToPipeconf.addListener(pipeconfListener);
         log.info("Started");
     }
@@ -91,12 +86,15 @@ public class DistributedDevicePipeconfMappingStore
 
     @Override
     public PiPipeconfId getPipeconfId(DeviceId deviceId) {
-        return deviceToPipeconf.get(deviceId);
+        if (!deviceToPipeconf.containsKey(deviceId)) {
+            return null;
+        }
+        return deviceToPipeconf.get(deviceId).value();
     }
 
     @Override
     public Set<DeviceId> getDevices(PiPipeconfId pipeconfId) {
-        return pipeconfToDevices.getOrDefault(pipeconfId, Collections.emptySet());
+        return ImmutableSet.copyOf(pipeconfToDevices.get(pipeconfId));
     }
 
     @Override
@@ -109,35 +107,38 @@ public class DistributedDevicePipeconfMappingStore
         deviceToPipeconf.remove(deviceId);
     }
 
-    private class InternalPiPipeconfListener implements EventuallyConsistentMapListener<DeviceId, PiPipeconfId> {
+    private class InternalPiPipeconfListener implements MapEventListener<DeviceId, PiPipeconfId> {
 
         @Override
-        public void event(EventuallyConsistentMapEvent<DeviceId, PiPipeconfId> mapEvent) {
-            final PiPipeconfDeviceMappingEvent.Type type;
+        public void event(MapEvent<DeviceId, PiPipeconfId> mapEvent) {
+            PiPipeconfDeviceMappingEvent.Type eventType = null;
             final DeviceId deviceId = mapEvent.key();
-            final PiPipeconfId pipeconfId = mapEvent.value();
+            final PiPipeconfId newPipeconfId = mapEvent.newValue() != null
+                    ? mapEvent.newValue().value() : null;
+            final PiPipeconfId oldPipeconfId = mapEvent.oldValue() != null
+                    ? mapEvent.oldValue().value() : null;
             switch (mapEvent.type()) {
-                case PUT:
-                    type = PiPipeconfDeviceMappingEvent.Type.CREATED;
-                    pipeconfToDevices.compute(pipeconfId, (pipeconf, devices) -> {
-                        if (devices == null) {
-                            devices = Sets.newConcurrentHashSet();
+                case INSERT:
+                case UPDATE:
+                    if (newPipeconfId != null) {
+                        if (!newPipeconfId.equals(oldPipeconfId)) {
+                            eventType = PiPipeconfDeviceMappingEvent.Type.CREATED;
                         }
-                        devices.add(deviceId);
-                        return devices;
-                    });
+                        pipeconfToDevices.put(newPipeconfId, deviceId);
+                    }
                     break;
                 case REMOVE:
-                    type = PiPipeconfDeviceMappingEvent.Type.REMOVED;
-                    pipeconfToDevices.computeIfPresent(pipeconfId, (pipeconf, devices) -> {
-                        devices.remove(deviceId);
-                        return devices;
-                    });
+                    if (oldPipeconfId != null) {
+                        eventType = PiPipeconfDeviceMappingEvent.Type.REMOVED;
+                        pipeconfToDevices.remove(oldPipeconfId, deviceId);
+                    }
                     break;
                 default:
                     throw new IllegalArgumentException("Wrong event type " + mapEvent.type());
             }
-            notifyDelegate(new PiPipeconfDeviceMappingEvent(type, deviceId));
+            if (eventType != null) {
+                notifyDelegate(new PiPipeconfDeviceMappingEvent(eventType, deviceId));
+            }
         }
     }
 }

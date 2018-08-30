@@ -26,6 +26,7 @@ import io.grpc.Context;
 import io.grpc.ManagedChannel;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
+import io.grpc.stub.ClientCallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.onlab.osgi.DefaultServiceDirectory;
@@ -59,6 +60,8 @@ import p4.v1.P4RuntimeOuterClass.ActionProfileGroup;
 import p4.v1.P4RuntimeOuterClass.ActionProfileMember;
 import p4.v1.P4RuntimeOuterClass.Entity;
 import p4.v1.P4RuntimeOuterClass.ForwardingPipelineConfig;
+import p4.v1.P4RuntimeOuterClass.GetForwardingPipelineConfigRequest;
+import p4.v1.P4RuntimeOuterClass.GetForwardingPipelineConfigResponse;
 import p4.v1.P4RuntimeOuterClass.MasterArbitrationUpdate;
 import p4.v1.P4RuntimeOuterClass.MulticastGroupEntry;
 import p4.v1.P4RuntimeOuterClass.PacketReplicationEngineEntry;
@@ -73,6 +76,7 @@ import p4.v1.P4RuntimeOuterClass.Update;
 import p4.v1.P4RuntimeOuterClass.WriteRequest;
 
 import java.math.BigInteger;
+import java.net.ConnectException;
 import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.Collections;
@@ -86,6 +90,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
@@ -132,10 +137,12 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
     private final P4RuntimeGrpc.P4RuntimeBlockingStub blockingStub;
     private final ExecutorService executorService;
     private final Executor contextExecutor;
-    private final StreamObserver<StreamMessageRequest> streamRequestObserver;
+    private StreamChannelManager streamChannelManager;
 
     // Used by this client for write requests.
     private Uint128 clientElectionId = Uint128.newBuilder().setLow(1).build();
+
+    private final AtomicBoolean isClientMaster = new AtomicBoolean(false);
 
     /**
      * Default constructor.
@@ -155,8 +162,7 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
         this.contextExecutor = this.cancellableContext.fixedContextExecutor(executorService);
         //TODO Investigate use of stub deadlines instead of timeout in supplyInContext
         this.blockingStub = P4RuntimeGrpc.newBlockingStub(channel);
-        this.streamRequestObserver = P4RuntimeGrpc.newStub(channel)
-                .streamChannel(new StreamChannelResponseObserver());
+        this.streamChannelManager = new StreamChannelManager(channel);
     }
 
     /**
@@ -206,7 +212,7 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
     }
 
     @Override
-    public CompletableFuture<Boolean> start() {
+    public CompletableFuture<Boolean> startStreamChannel() {
         return supplyInContext(() -> sendMasterArbitrationUpdate(false),
                                "start-initStreamChannel");
     }
@@ -224,8 +230,23 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
     }
 
     @Override
+    public boolean isMaster() {
+        return streamChannelManager.isOpen() && isClientMaster.get();
+    }
+
+    @Override
+    public boolean isStreamChannelOpen() {
+        return streamChannelManager.isOpen();
+    }
+
+    @Override
     public CompletableFuture<Boolean> setPipelineConfig(PiPipeconf pipeconf, ByteBuffer deviceData) {
         return supplyInContext(() -> doSetPipelineConfig(pipeconf, deviceData), "setPipelineConfig");
+    }
+
+    @Override
+    public boolean isPipelineConfigSet(PiPipeconf pipeconf, ByteBuffer deviceData) {
+        return doIsPipelineConfigSet(pipeconf, deviceData);
     }
 
     @Override
@@ -338,24 +359,94 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
         final Uint128 idMsg = bigIntegerToUint128(
                 controller.newMasterElectionId(deviceId));
 
-        log.info("Sending arbitration update to {}... electionId={}",
-                 deviceId, newId);
-        try {
-            streamRequestObserver.onNext(
-                    StreamMessageRequest.newBuilder()
-                            .setArbitration(
-                                    MasterArbitrationUpdate
-                                            .newBuilder()
-                                            .setDeviceId(p4DeviceId)
-                                            .setElectionId(idMsg)
-                                            .build())
-                            .build());
-            clientElectionId = idMsg;
-            return true;
-        } catch (StatusRuntimeException e) {
-            log.error("Unable to perform arbitration update on {}: {}", deviceId, e.getMessage());
+        log.debug("Sending arbitration update to {}... electionId={}",
+                  deviceId, newId);
+
+        streamChannelManager.send(
+                StreamMessageRequest.newBuilder()
+                        .setArbitration(
+                                MasterArbitrationUpdate
+                                        .newBuilder()
+                                        .setDeviceId(p4DeviceId)
+                                        .setElectionId(idMsg)
+                                        .build())
+                        .build());
+        clientElectionId = idMsg;
+        return true;
+    }
+
+    private ForwardingPipelineConfig getPipelineConfig(
+            PiPipeconf pipeconf, ByteBuffer deviceData) {
+        P4Info p4Info = PipeconfHelper.getP4Info(pipeconf);
+        if (p4Info == null) {
+            // Problem logged by PipeconfHelper.
+            return null;
         }
-        return false;
+
+        // FIXME: This is specific to PI P4Runtime implementation.
+        P4Config.P4DeviceConfig p4DeviceConfigMsg = P4Config.P4DeviceConfig
+                .newBuilder()
+                .setExtras(P4Config.P4DeviceConfig.Extras.getDefaultInstance())
+                .setReassign(true)
+                .setDeviceData(ByteString.copyFrom(deviceData))
+                .build();
+
+        return ForwardingPipelineConfig
+                .newBuilder()
+                .setP4Info(p4Info)
+                .setP4DeviceConfig(p4DeviceConfigMsg.toByteString())
+                .build();
+    }
+
+    private boolean doIsPipelineConfigSet(PiPipeconf pipeconf, ByteBuffer deviceData) {
+
+        GetForwardingPipelineConfigRequest request = GetForwardingPipelineConfigRequest
+                .newBuilder()
+                .setDeviceId(p4DeviceId)
+                .build();
+
+        GetForwardingPipelineConfigResponse resp;
+        try {
+            resp = this.blockingStub
+                    .getForwardingPipelineConfig(request);
+        } catch (StatusRuntimeException ex) {
+            checkGrpcException(ex);
+            // FAILED_PRECONDITION means that a pipeline config was not set in
+            // the first place. Don't bother logging.
+            if (!ex.getStatus().getCode()
+                    .equals(Status.FAILED_PRECONDITION.getCode())) {
+                log.warn("Unable to get pipeline config from {}: {}",
+                         deviceId, ex.getMessage());
+            }
+            return false;
+        }
+
+        ForwardingPipelineConfig expectedConfig = getPipelineConfig(
+                pipeconf, deviceData);
+
+        if (expectedConfig == null) {
+            return false;
+        }
+        if (!resp.hasConfig()) {
+            log.warn("{} returned GetForwardingPipelineConfigResponse " +
+                             "with 'config' field unset",
+                     deviceId);
+            return false;
+        }
+        if (resp.getConfig().getP4DeviceConfig().isEmpty()
+                && !expectedConfig.getP4DeviceConfig().isEmpty()) {
+            // Don't bother with a warn or error since we don't really allow
+            // updating the pipeline to a different one. So the P4Info should be
+            // enough for us.
+            log.debug("{} returned GetForwardingPipelineConfigResponse " +
+                              "with empty 'p4_device_config' field, " +
+                              "equality will be based only on P4Info",
+                      deviceId);
+            return resp.getConfig().getP4Info().equals(
+                    expectedConfig.getP4Info());
+        } else {
+            return resp.getConfig().equals(expectedConfig);
+        }
     }
 
     private boolean doSetPipelineConfig(PiPipeconf pipeconf, ByteBuffer deviceData) {
@@ -364,24 +455,12 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
 
         checkNotNull(deviceData, "deviceData cannot be null");
 
-        P4Info p4Info = PipeconfHelper.getP4Info(pipeconf);
-        if (p4Info == null) {
-            // Problem logged by PipeconfHelper.
+        ForwardingPipelineConfig pipelineConfig = getPipelineConfig(pipeconf, deviceData);
+
+        if (pipelineConfig == null) {
+            // Error logged in getPipelineConfig()
             return false;
         }
-
-        P4Config.P4DeviceConfig p4DeviceConfigMsg = P4Config.P4DeviceConfig
-                .newBuilder()
-                .setExtras(P4Config.P4DeviceConfig.Extras.getDefaultInstance())
-                .setReassign(true)
-                .setDeviceData(ByteString.copyFrom(deviceData))
-                .build();
-
-        ForwardingPipelineConfig pipelineConfig = ForwardingPipelineConfig
-                .newBuilder()
-                .setP4Info(p4Info)
-                .setP4DeviceConfig(p4DeviceConfigMsg.toByteString())
-                .build();
 
         SetForwardingPipelineConfigRequest request = SetForwardingPipelineConfigRequest
                 .newBuilder()
@@ -392,9 +471,11 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
                 .build();
 
         try {
+            //noinspection ResultOfMethodCallIgnored
             this.blockingStub.setForwardingPipelineConfig(request);
             return true;
         } catch (StatusRuntimeException ex) {
+            checkGrpcException(ex);
             log.warn("Unable to set pipeline config on {}: {}", deviceId, ex.getMessage());
             return false;
         }
@@ -462,6 +543,7 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
         try {
             responses = blockingStub.read(requestMsg);
         } catch (StatusRuntimeException e) {
+            checkGrpcException(e);
             log.warn("Unable to dump table {} from {}: {}", piTableId, deviceId, e.getMessage());
             return Collections.emptyList();
         }
@@ -490,7 +572,7 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
                     .newBuilder().setPacket(packetOut).build();
 
             //Send the request
-            streamRequestObserver.onNext(packetOutRequest);
+            streamChannelManager.send(packetOutRequest);
 
         } catch (P4InfoBrowser.NotFoundException e) {
             log.error("Cant find expected metadata in p4Info file. {}", e.getMessage());
@@ -534,12 +616,14 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
         if (!msg.hasElectionId() || !msg.hasStatus()) {
             return;
         }
-        final boolean isMaster = msg.getStatus().getCode() == Status.OK.getCode().value();
-        log.info("Received arbitration update from {}: isMaster={}, electionId={}",
-                 deviceId, isMaster, uint128ToBigInteger(msg.getElectionId()));
+        final boolean isMaster =
+                msg.getStatus().getCode() == Status.OK.getCode().value();
+        log.debug("Received arbitration update from {}: isMaster={}, electionId={}",
+                  deviceId, isMaster, uint128ToBigInteger(msg.getElectionId()));
         controller.postEvent(new P4RuntimeEvent(
                 P4RuntimeEvent.Type.ARBITRATION_RESPONSE,
                 new ArbitrationResponse(deviceId, isMaster)));
+        isClientMaster.set(isMaster);
     }
 
     private Collection<PiCounterCellData> doReadAllCounterCells(
@@ -572,6 +656,7 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
         try {
             responses = () -> blockingStub.read(request);
         } catch (StatusRuntimeException e) {
+            checkGrpcException(e);
             log.warn("Unable to read counter cells from {}: {}", deviceId, e.getMessage());
             return Collections.emptyList();
         }
@@ -654,6 +739,7 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
         try {
             groupResponses = blockingStub.read(groupRequestMsg);
         } catch (StatusRuntimeException e) {
+            checkGrpcException(e);
             log.warn("Unable to dump action profile {} from {}: {}", piActionProfileId, deviceId, e.getMessage());
             return Collections.emptySet();
         }
@@ -702,6 +788,7 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
         try {
             memberResponses = blockingStub.read(memberRequestMsg);
         } catch (StatusRuntimeException e) {
+            checkGrpcException(e);
             log.warn("Unable to read members of action profile {} from {}: {}",
                      piActionProfileId, deviceId, e.getMessage());
             return Collections.emptyList();
@@ -794,6 +881,7 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
         try {
             responses = () -> blockingStub.read(request);
         } catch (StatusRuntimeException e) {
+            checkGrpcException(e);
             log.warn("Unable to read meter cells: {}", e.getMessage());
             log.debug("exception", e);
             return Collections.emptyList();
@@ -866,6 +954,7 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
         try {
             responses = blockingStub.read(req);
         } catch (StatusRuntimeException e) {
+            checkGrpcException(e);
             log.warn("Unable to read multicast group entries from {}: {}", deviceId, e.getMessage());
             return Collections.emptyList();
         }
@@ -894,6 +983,8 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
                                                WriteOperationType opType,
                                                String entryType) {
         try {
+
+            //noinspection ResultOfMethodCallIgnored
             blockingStub.write(writeRequest(updates));
             return true;
         } catch (StatusRuntimeException e) {
@@ -911,18 +1002,11 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
     }
 
     private Void doShutdown() {
-        log.info("Shutting down client for {}...", deviceId);
-        if (streamRequestObserver != null) {
-            try {
-                streamRequestObserver.onCompleted();
-            } catch (IllegalStateException e) {
-                // Thrown if stream channel is already completed. Can ignore.
-                log.debug("Ignored expection: {}", e);
-            }
-            cancellableContext.cancel(new InterruptedException(
-                    "Requested client shutdown"));
-        }
-        this.executorService.shutdown();
+        log.debug("Shutting down client for {}...", deviceId);
+        streamChannelManager.complete();
+        cancellableContext.cancel(new InterruptedException(
+                "Requested client shutdown"));
+        this.executorService.shutdownNow();
         try {
             executorService.awaitTermination(5, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
@@ -1080,13 +1164,111 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
     }
 
     /**
+     * A manager for the P4Runtime stream channel that opportunistically creates
+     * new stream RCP stubs (e.g. when one fails because of errors) and posts
+     * channel events via the P4Runtime controller.
+     */
+    private final class StreamChannelManager {
+
+        private final ManagedChannel channel;
+        private final AtomicBoolean open;
+        private final StreamObserver<StreamMessageResponse> responseObserver;
+        private ClientCallStreamObserver<StreamMessageRequest> requestObserver;
+
+        private StreamChannelManager(ManagedChannel channel) {
+            this.channel = channel;
+            this.responseObserver = new InternalStreamResponseObserver(this);
+            this.open = new AtomicBoolean(false);
+        }
+
+        private void initIfRequired() {
+            if (requestObserver == null) {
+                log.debug("Creating new stream channel for {}...", deviceId);
+                requestObserver =
+                        (ClientCallStreamObserver<StreamMessageRequest>)
+                                P4RuntimeGrpc.newStub(channel)
+                                        .streamChannel(responseObserver);
+                open.set(false);
+            }
+        }
+
+        public boolean send(StreamMessageRequest value) {
+            synchronized (this) {
+                initIfRequired();
+                try {
+                    requestObserver.onNext(value);
+                    // FIXME
+                    // signalOpen();
+                    return true;
+                } catch (Throwable ex) {
+                    if (ex instanceof StatusRuntimeException) {
+                        log.warn("Unable to send {} to {}: {}",
+                                 value.getUpdateCase().toString(), deviceId, ex.getMessage());
+                    } else {
+                        log.warn(format(
+                                "Exception while sending %s to %s",
+                                value.getUpdateCase().toString(), deviceId), ex);
+                    }
+                    complete();
+                    return false;
+                }
+            }
+        }
+
+        public void complete() {
+            synchronized (this) {
+                signalClosed();
+                if (requestObserver != null) {
+                    requestObserver.onCompleted();
+                    requestObserver.cancel("Terminated", null);
+                    requestObserver = null;
+                }
+            }
+        }
+
+        void signalOpen() {
+            synchronized (this) {
+                final boolean wasOpen = open.getAndSet(true);
+                if (!wasOpen) {
+                    controller.postEvent(new P4RuntimeEvent(
+                            P4RuntimeEvent.Type.CHANNEL_EVENT,
+                            new ChannelEvent(deviceId, ChannelEvent.Type.OPEN)));
+                }
+            }
+        }
+
+        void signalClosed() {
+            synchronized (this) {
+                final boolean wasOpen = open.getAndSet(false);
+                if (wasOpen) {
+                    controller.postEvent(new P4RuntimeEvent(
+                            P4RuntimeEvent.Type.CHANNEL_EVENT,
+                            new ChannelEvent(deviceId, ChannelEvent.Type.CLOSED)));
+                }
+            }
+        }
+
+        public boolean isOpen() {
+            return open.get();
+        }
+    }
+
+    /**
      * Handles messages received from the device on the stream channel.
      */
-    private class StreamChannelResponseObserver
+    private final class InternalStreamResponseObserver
             implements StreamObserver<StreamMessageResponse> {
+
+        private final StreamChannelManager streamChannelManager;
+
+        private InternalStreamResponseObserver(
+                StreamChannelManager streamChannelManager) {
+            this.streamChannelManager = streamChannelManager;
+        }
 
         @Override
         public void onNext(StreamMessageResponse message) {
+            streamChannelManager.signalOpen();
             executorService.submit(() -> doNext(message));
         }
 
@@ -1113,19 +1295,26 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
 
         @Override
         public void onError(Throwable throwable) {
-            log.warn("Error on stream channel for {}: {}",
-                     deviceId, Status.fromThrowable(throwable));
-            controller.postEvent(new P4RuntimeEvent(
-                    P4RuntimeEvent.Type.CHANNEL_EVENT,
-                    new ChannelEvent(deviceId, ChannelEvent.Type.ERROR)));
+            if (throwable instanceof StatusRuntimeException) {
+                StatusRuntimeException sre = (StatusRuntimeException) throwable;
+                if (sre.getStatus().getCause() instanceof ConnectException) {
+                    log.warn("Device {} is unreachable ({})",
+                             deviceId, sre.getCause().getMessage());
+                } else {
+                    log.warn("Received error on stream channel for {}: {}",
+                             deviceId, throwable.getMessage());
+                }
+            } else {
+                log.warn(format("Received exception on stream channel for %s",
+                                deviceId), throwable);
+            }
+            streamChannelManager.complete();
         }
 
         @Override
         public void onCompleted() {
             log.warn("Stream channel for {} has completed", deviceId);
-            controller.postEvent(new P4RuntimeEvent(
-                    P4RuntimeEvent.Type.CHANNEL_EVENT,
-                    new ChannelEvent(deviceId, ChannelEvent.Type.CLOSED)));
+            streamChannelManager.complete();
         }
     }
 }

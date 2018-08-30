@@ -181,6 +181,11 @@ public class PiPipeconfManager implements PiPipeconfService {
             return null;
         }
         String baseDriverName = basicDeviceConfig.driver();
+        if (baseDriverName == null) {
+            log.warn("Missing driver from basic device config for {}, " +
+                             "cannot produce merged driver", deviceId);
+            return null;
+        }
         if (isMergedDriverName(baseDriverName)) {
             // The config already has driver name that is a merged one. We still
             // need to make sure an instance of that merged driver is present in

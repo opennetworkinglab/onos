@@ -24,21 +24,40 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Behavior to program the pipeline of a device that supports protocol-independence.
+ * Behavior to program the pipeline of a device that supports
+ * protocol-independence.
  */
 @Beta
 public interface PiPipelineProgrammable extends HandlerBehaviour {
     /**
-     * Deploys the given pipeconf to the device.
+     * Writes the given pipeconf to the device, returns a completable future
+     * with true is the operations was successful, false otherwise.
+     * <p>
+     * After the future has been completed, the device is expected to process
+     * data plane packets according to the written pipeconf.
      *
      * @param pipeconf pipeconf
-     * @return true if the operation was successful, false otherwise
+     * @return completable future set to true if the operation was successful,
+     * false otherwise
      */
     // TODO: return an explanation of why things went wrong, and the status of the device.
-    CompletableFuture<Boolean> deployPipeconf(PiPipeconf pipeconf);
+    CompletableFuture<Boolean> setPipeconf(PiPipeconf pipeconf);
 
     /**
-     * Returns the default pipeconf for ths device, to be used when any other pipeconf is not available.
+     * Returns true if the device is configured with the given pipeconf, false
+     * otherwise.
+     * <p>
+     * This method is expected to always return true after successfully calling
+     * {@link #setPipeconf(PiPipeconf)} with the given pipeconf.
+     *
+     * @param pipeconf pipeconf
+     * @return true if the device has the given pipeconf set, false otherwise
+     */
+    boolean isPipeconfSet(PiPipeconf pipeconf);
+
+    /**
+     * Returns the default pipeconf for this device, to be used when any other
+     * pipeconf is not available.
      *
      * @return optional pipeconf
      */

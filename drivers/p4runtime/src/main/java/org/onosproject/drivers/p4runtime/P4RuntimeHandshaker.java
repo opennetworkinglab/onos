@@ -20,6 +20,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.device.DeviceAgentListener;
 import org.onosproject.net.device.DeviceHandshaker;
+import org.onosproject.net.provider.ProviderId;
 import org.onosproject.p4runtime.api.P4RuntimeClient;
 import org.onosproject.p4runtime.api.P4RuntimeController;
 
@@ -38,8 +39,16 @@ public class P4RuntimeHandshaker extends AbstractP4RuntimeHandlerBehaviour imple
                     if (client == null) {
                         return CompletableFuture.completedFuture(false);
                     }
-                    return client.start();
+                    return client.startStreamChannel();
                 });
+    }
+
+    @Override
+    public boolean isConnected() {
+        final P4RuntimeController controller = handler().get(P4RuntimeController.class);
+        final DeviceId deviceId = handler().data().deviceId();
+        final P4RuntimeClient client = controller.getClient(deviceId);
+        return client != null && client.isStreamChannelOpen();
     }
 
     @Override
@@ -59,10 +68,18 @@ public class P4RuntimeHandshaker extends AbstractP4RuntimeHandlerBehaviour imple
 
     @Override
     public CompletableFuture<Boolean> isReachable() {
-        return CompletableFuture.supplyAsync(() -> handler()
-                .get(P4RuntimeController.class)
-                .isReachable(handler().data().deviceId())
-        );
+        return CompletableFuture
+                // P4RuntimeController requires a client to be created to
+                // check for reachability.
+                .supplyAsync(super::createClient)
+                .thenApplyAsync(client -> {
+                    if (client == null) {
+                        return false;
+                    }
+                    return handler()
+                            .get(P4RuntimeController.class)
+                            .isReachable(handler().data().deviceId());
+                });
     }
 
     @Override
@@ -78,16 +95,27 @@ public class P4RuntimeHandshaker extends AbstractP4RuntimeHandlerBehaviour imple
     }
 
     @Override
-    public void addDeviceAgentListener(DeviceAgentListener listener) {
-        // Don't use controller/deviceId class variables as they might be uninitialized.
-        handler().get(P4RuntimeController.class)
-                .addDeviceAgentListener(data().deviceId(), listener);
+    public MastershipRole getRole() {
+        final P4RuntimeController controller = handler().get(P4RuntimeController.class);
+        final DeviceId deviceId = handler().data().deviceId();
+        final P4RuntimeClient client = controller.getClient(deviceId);
+        if (client == null || !client.isStreamChannelOpen()) {
+            return MastershipRole.NONE;
+        }
+        return client.isMaster() ? MastershipRole.MASTER : MastershipRole.STANDBY;
     }
 
     @Override
-    public void removeDeviceAgentListener(DeviceAgentListener listener) {
+    public void addDeviceAgentListener(ProviderId providerId, DeviceAgentListener listener) {
+        // Don't use controller/deviceId class variables as they might be uninitialized.
+        handler().get(P4RuntimeController.class)
+                .addDeviceAgentListener(data().deviceId(), providerId, listener);
+    }
+
+    @Override
+    public void removeDeviceAgentListener(ProviderId providerId) {
         // Don't use controller/deviceId class variable as they might be uninitialized.
         handler().get(P4RuntimeController.class)
-                .removeDeviceAgentListener(data().deviceId(), listener);
+                .removeDeviceAgentListener(data().deviceId(), providerId);
     }
 }

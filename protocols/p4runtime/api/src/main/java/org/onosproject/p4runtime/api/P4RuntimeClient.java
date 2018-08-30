@@ -54,13 +54,19 @@ public interface P4RuntimeClient {
     }
 
     /**
-     * Starts the client by starting the Stream RPC with the device. The
-     * implementation of this method is equivalent to {@link #becomeMaster()}.
+     * Starts the Stream RPC with the device.
      *
      * @return completable future containing true if the operation was
      * successful, false otherwise.
      */
-    CompletableFuture<Boolean> start();
+    CompletableFuture<Boolean> startStreamChannel();
+
+    /**
+     * Returns true if the stream RPC is active, false otherwise.
+     *
+     * @return boolean
+     */
+    boolean isStreamChannelOpen();
 
     /**
      * Shutdowns the client by terminating any active RPC such as the Stream
@@ -81,6 +87,13 @@ public interface P4RuntimeClient {
     CompletableFuture<Boolean> becomeMaster();
 
     /**
+     * Returns true if this client is master for the device, false otherwise.
+     *
+     * @return boolean
+     */
+    boolean isMaster();
+
+    /**
      * Sets the device pipeline according to the given pipeconf, and for the
      * given byte buffer representing the target-specific data to be used in the
      * P4Runtime's SetPipelineConfig message. This method should be called
@@ -93,6 +106,21 @@ public interface P4RuntimeClient {
      */
     CompletableFuture<Boolean> setPipelineConfig(
             PiPipeconf pipeconf, ByteBuffer deviceData);
+
+    /**
+     * Returns true if the device has the given pipeconf set, false otherwise.
+     * Equality is based on the P4Info extension of the pipeconf as well as the
+     * given device data byte buffer.
+     * <p>
+     * This method is expected to return {@code true} if invoked after calling
+     * {@link #setPipelineConfig(PiPipeconf, ByteBuffer)} with the same
+     * parameters.
+     *
+     * @param pipeconf   pipeconf
+     * @param deviceData target-specific data
+     * @return boolean
+     */
+    boolean isPipelineConfigSet(PiPipeconf pipeconf, ByteBuffer deviceData);
 
     /**
      * Performs the given write operation for the given table entries and

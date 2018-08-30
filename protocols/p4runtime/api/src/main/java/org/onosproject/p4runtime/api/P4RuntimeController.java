@@ -20,6 +20,7 @@ import com.google.common.annotations.Beta;
 import org.onosproject.event.ListenerService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceAgentListener;
+import org.onosproject.net.provider.ProviderId;
 
 /**
  * Controller of P4Runtime devices.
@@ -94,18 +95,21 @@ public interface P4RuntimeController
     boolean isReachable(DeviceId deviceId);
 
     /**
-     * Adds a listener for device agent events.
+     * Adds a listener for device agent events for the given provider.
      *
      * @param deviceId device identifier
+     * @param providerId provider ID
      * @param listener the device agent listener
      */
-    void addDeviceAgentListener(DeviceId deviceId, DeviceAgentListener listener);
+    void addDeviceAgentListener(DeviceId deviceId, ProviderId providerId,
+                                DeviceAgentListener listener);
 
     /**
-     * Removes the listener for device agent events.
+     * Removes the listener for device agent events that was previously
+     * registered for the given provider.
      *
-     * @param deviceId device identifier
-     * @param listener the device agent listener
+     * @param deviceId   device identifier
+     * @param providerId the provider ID
      */
-    void removeDeviceAgentListener(DeviceId deviceId, DeviceAgentListener listener);
+    void removeDeviceAgentListener(DeviceId deviceId, ProviderId providerId);
 }
