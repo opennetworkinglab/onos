@@ -33,6 +33,7 @@ import org.onosproject.grpc.api.GrpcController;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceAgentEvent;
 import org.onosproject.net.device.DeviceAgentListener;
+import org.onosproject.net.provider.ProviderId;
 import org.onosproject.p4runtime.api.P4RuntimeClient;
 import org.onosproject.p4runtime.api.P4RuntimeController;
 import org.onosproject.p4runtime.api.P4RuntimeEvent;
@@ -42,10 +43,8 @@ import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.Lock;
 import java.util.function.Supplier;
 
@@ -68,7 +67,8 @@ public class P4RuntimeControllerImpl
     private final Map<ClientKey, P4RuntimeClient> clients = Maps.newHashMap();
     private final Map<DeviceId, GrpcChannelId> channelIds = Maps.newHashMap();
 
-    private final ConcurrentMap<DeviceId, List<DeviceAgentListener>> deviceAgentListeners = Maps.newConcurrentMap();
+    private final ConcurrentMap<DeviceId, ConcurrentMap<ProviderId, DeviceAgentListener>>
+            deviceAgentListeners = Maps.newConcurrentMap();
     private final Striped<Lock> stripedLocks = Striped.lock(30);
 
     private DistributedElectionIdGenerator electionIdGenerator;
@@ -120,13 +120,16 @@ public class P4RuntimeControllerImpl
         if (clientKeys.containsKey(deviceId)) {
             final ClientKey existingKey = clientKeys.get(deviceId);
             if (clientKey.equals(existingKey)) {
-                log.info("Not creating client for {} as it already exists (server={}:{}, p4DeviceId={})...",
+                log.debug("Not creating client for {} as it already exists (server={}:{}, p4DeviceId={})...",
                          deviceId, serverAddr, serverPort, p4DeviceId);
                 return true;
             } else {
-                throw new IllegalStateException(
-                        "A client for the same device ID but different " +
-                                "server endpoints already exists");
+                log.info("Requested client for {} with new " +
+                                 "endpoint, removing old client (server={}:{}, " +
+                                 "p4DeviceId={})...",
+                         deviceId, existingKey.serverAddr(),
+                         existingKey.serverPort(), existingKey.p4DeviceId());
+                doRemoveClient(deviceId);
             }
         }
 
@@ -218,19 +221,20 @@ public class P4RuntimeControllerImpl
     }
 
     @Override
-    public void addDeviceAgentListener(DeviceId deviceId, DeviceAgentListener listener) {
+    public void addDeviceAgentListener(DeviceId deviceId, ProviderId providerId, DeviceAgentListener listener) {
         checkNotNull(deviceId, "deviceId cannot be null");
+        checkNotNull(deviceId, "providerId cannot be null");
         checkNotNull(listener, "listener cannot be null");
-        deviceAgentListeners.putIfAbsent(deviceId, new CopyOnWriteArrayList<>());
-        deviceAgentListeners.get(deviceId).add(listener);
+        deviceAgentListeners.putIfAbsent(deviceId, Maps.newConcurrentMap());
+        deviceAgentListeners.get(deviceId).put(providerId, listener);
     }
 
     @Override
-    public void removeDeviceAgentListener(DeviceId deviceId, DeviceAgentListener listener) {
+    public void removeDeviceAgentListener(DeviceId deviceId, ProviderId providerId) {
         checkNotNull(deviceId, "deviceId cannot be null");
-        checkNotNull(listener, "listener cannot be null");
+        checkNotNull(providerId, "listener cannot be null");
         deviceAgentListeners.computeIfPresent(deviceId, (did, listeners) -> {
-            listeners.remove(listener);
+            listeners.remove(providerId);
             return listeners;
         });
     }
@@ -298,7 +302,7 @@ public class P4RuntimeControllerImpl
 
     private void postDeviceAgentEvent(DeviceId deviceId, DeviceAgentEvent event) {
         if (deviceAgentListeners.containsKey(deviceId)) {
-            deviceAgentListeners.get(deviceId).forEach(l -> l.event(event));
+            deviceAgentListeners.get(deviceId).values().forEach(l -> l.event(event));
         }
     }
 }

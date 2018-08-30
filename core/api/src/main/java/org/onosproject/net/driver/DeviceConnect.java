@@ -20,27 +20,38 @@ import com.google.common.annotations.Beta;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Abstraction of handler behaviour used to set-up and tear-down
- * connection with a device.
+ * Abstraction of handler behaviour used to set-up and tear-down connections
+ * with a device.
  */
 @Beta
 public interface DeviceConnect extends HandlerBehaviour {
 
     /**
-     * Connects to the device.
-     * It's supposed to initiate the transport sessions, channel and also,
-     * if applicable, store them in the proper protocol specific
-     * controller (e.g. GrpcController).
+     * Connects to the device, for example by opening the transport session that
+     * will be later used to send control messages. Returns true if the
+     * connection was initiated successfully, false otherwise.
+     * <p>
+     * Calling multiple times this method while a connection to the device is
+     * open should result in a no-op.
      *
      * @return CompletableFuture with true if the operation was successful
      */
     CompletableFuture<Boolean> connect();
 
     /**
-     * Disconnects from the device.
-     * It's supposed to destroy the transport sessions and channel and also,
-     * if applicable, remove them in the proper protocol specific
-     * controller (e.g. GrpcController).
+     * Returns true if a connection to the device is open, false otherwise.
+     *
+     * @return true if the connection is open, false otherwise
+     */
+    boolean isConnected();
+
+    /**
+     * Disconnects from the device, for example closing the transport session
+     * previously opened. Returns true if the disconnection procedure was
+     * successful, false otherwise.
+     * <p>
+     * Calling multiple times this method while a connection to the device is
+     * closed should result in a no-op.
      *
      * @return CompletableFuture with true if the operation was successful
      */

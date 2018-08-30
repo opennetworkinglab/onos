@@ -22,7 +22,11 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.pi.model.PiPipeconfId;
 import org.onosproject.store.service.TestStorageService;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Test class for the Distributed Device to Pipeconf store.
@@ -72,10 +76,14 @@ public class DistributedDevicePipeconfMappingStoreTest {
     @Test
     public void createOrUpdatePipeconfToDeviceBinding() {
         store.createOrUpdateBinding(DEVICE_ID, PIPECONF_ID);
-        assertTrue("Value should be in the map", store.deviceToPipeconf.containsKey(DEVICE_ID));
-        assertTrue("Value should be in the map", store.deviceToPipeconf.containsValue(PIPECONF_ID));
-        assertTrue("Value should be in the map", store.pipeconfToDevices.containsKey(PIPECONF_ID));
-        assertTrue("Value should be in the map", store.pipeconfToDevices.containsValue(ImmutableSet.of(DEVICE_ID)));
+        assertTrue("Value should be in the map",
+                   store.deviceToPipeconf.containsKey(DEVICE_ID));
+        assertEquals("Value should be in the map",
+                     PIPECONF_ID, store.deviceToPipeconf.get(DEVICE_ID).value());
+        assertTrue("Value should be in the map",
+                   store.pipeconfToDevices.containsKey(PIPECONF_ID));
+        assertTrue("Value should be in the map",
+                   store.pipeconfToDevices.get(PIPECONF_ID).contains(DEVICE_ID));
     }
 
     /**

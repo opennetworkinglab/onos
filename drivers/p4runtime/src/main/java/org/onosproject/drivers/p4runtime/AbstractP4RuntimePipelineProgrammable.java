@@ -48,7 +48,7 @@ public abstract class AbstractP4RuntimePipelineProgrammable
     public abstract ByteBuffer createDeviceDataBuffer(PiPipeconf pipeconf);
 
     @Override
-    public CompletableFuture<Boolean> deployPipeconf(PiPipeconf pipeconf) {
+    public CompletableFuture<Boolean> setPipeconf(PiPipeconf pipeconf) {
         return CompletableFuture.supplyAsync(
                 () -> doDeployConfig(pipeconf),
                 SharedExecutors.getPoolThreadExecutor());
@@ -71,21 +71,6 @@ public abstract class AbstractP4RuntimePipelineProgrammable
             return false;
         }
 
-        // We need to be master to perform write RPC to the device.
-        // FIXME: properly perform mastership handling in the device provider
-        // This would probably mean deploying the pipeline after the device as
-        // been notified to the core.
-        final Boolean masterSuccess = getFutureWithDeadline(
-                client.becomeMaster(),
-                "becoming master ", null);
-        if (masterSuccess == null) {
-            // Error already logged by getFutureWithDeadline()
-            return false;
-        } else if (!masterSuccess) {
-            log.warn("Unable to become master for {}, aborting pipeconf deploy", deviceId);
-            return false;
-        }
-
         final Boolean deploySuccess = getFutureWithDeadline(
                 client.setPipelineConfig(pipeconf, deviceDataBuffer),
                 "deploying pipeconf", null);
@@ -97,6 +82,26 @@ public abstract class AbstractP4RuntimePipelineProgrammable
         }
 
         return true;
+    }
+
+    @Override
+    public boolean isPipeconfSet(PiPipeconf pipeconf) {
+        DeviceId deviceId = handler().data().deviceId();
+        P4RuntimeController controller = handler().get(P4RuntimeController.class);
+
+        P4RuntimeClient client = controller.getClient(deviceId);
+        if (client == null) {
+            log.warn("Unable to find client for {}, cannot check if pipeconf is set", deviceId);
+            return false;
+        }
+
+        ByteBuffer deviceDataBuffer = createDeviceDataBuffer(pipeconf);
+        if (deviceDataBuffer == null) {
+            // Hopefully the child class logged the problem.
+            return false;
+        }
+
+        return client.isPipelineConfigSet(pipeconf, deviceDataBuffer);
     }
 
     @Override

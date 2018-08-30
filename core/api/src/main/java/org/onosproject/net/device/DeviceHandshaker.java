@@ -19,6 +19,7 @@ package org.onosproject.net.device;
 import com.google.common.annotations.Beta;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.driver.DeviceConnect;
+import org.onosproject.net.provider.ProviderId;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -48,21 +49,32 @@ public interface DeviceHandshaker extends DeviceConnect {
     void roleChanged(MastershipRole newRole);
 
     /**
-     * Adds a device agent listener.
+     * Returns the last known mastership role agreed by the device for this
+     * node.
      *
-     * @param listener device agent listener
+     * @return mastership role
      */
-    default void addDeviceAgentListener(DeviceAgentListener listener) {
+    MastershipRole getRole();
+
+    /**
+     * Adds a device agent listener for the given provider ID.
+     *
+     * @param providerId provider ID
+     * @param listener   device agent listener
+     */
+    default void addDeviceAgentListener(
+            ProviderId providerId, DeviceAgentListener listener) {
         throw new UnsupportedOperationException(
                 "Device agent listener registration not supported");
     }
 
     /**
-     * Removes a device agent listener.
+     * Removes a device agent listener previously registered for the given
+     * provider ID.
      *
-     * @param listener device agent listener
+     * @param providerId provider ID
      */
-    default void removeDeviceAgentListener(DeviceAgentListener listener) {
+    default void removeDeviceAgentListener(ProviderId providerId) {
         throw new UnsupportedOperationException(
                 "Device agent listener removal not supported");
     }
