@@ -1,6 +1,9 @@
 BUNDLES = [
     '//apps/openstacknetworking/api:onos-apps-openstacknetworking-api',
     '//apps/openstacknetworking/app:onos-apps-openstacknetworking-app',
+    '//lib:httpclient-osgi',
+    '//lib:httpcore-osgi',
+    '//lib:commons-codec',
 ]
 
 onos_app (

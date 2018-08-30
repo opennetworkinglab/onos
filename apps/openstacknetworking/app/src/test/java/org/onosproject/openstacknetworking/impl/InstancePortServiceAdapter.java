@@ -18,6 +18,8 @@ package org.onosproject.openstacknetworking.impl;
 import com.google.common.collect.ImmutableSet;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.PortNumber;
 import org.onosproject.openstacknetworking.api.InstancePort;
 import org.onosproject.openstacknetworking.api.InstancePortListener;
 import org.onosproject.openstacknetworking.api.InstancePortService;
@@ -40,6 +42,11 @@ public class InstancePortServiceAdapter implements InstancePortService {
 
     @Override
     public InstancePort instancePort(String osPortId) {
+        return null;
+    }
+
+    @Override
+    public InstancePort instancePort(DeviceId deviceId, PortNumber portNumber) {
         return null;
     }
 
