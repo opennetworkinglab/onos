@@ -68,21 +68,26 @@ import org.onosproject.net.meter.MeterProviderService;
 import org.onosproject.net.meter.MeterRequest;
 import org.onosproject.net.meter.MeterService;
 import org.onosproject.net.meter.MeterState;
+import org.onosproject.net.pi.PiPipeconfServiceAdapter;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.TestStorageService;
 
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.onosproject.net.NetTestTools.APP_ID;
 import static org.onosproject.net.NetTestTools.did;
 import static org.onosproject.net.NetTestTools.injectEventDispatcher;
@@ -526,6 +531,7 @@ public class MeterManagerTest {
             this.registry = registry;
             this.deviceService = deviceService;
             this.networkConfigService = networkConfigService;
+            this.pipeconfService = new PiPipeconfServiceAdapter();
             activate();
         }
     }

@@ -37,6 +37,7 @@ import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.config.NetworkConfigServiceAdapter;
 import org.onosproject.net.device.DeviceServiceAdapter;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.driver.DefaultDriver;
@@ -64,6 +65,7 @@ import org.onosproject.net.group.GroupProviderRegistry;
 import org.onosproject.net.group.GroupProviderService;
 import org.onosproject.net.group.GroupService;
 import org.onosproject.net.group.StoredGroupEntry;
+import org.onosproject.net.pi.PiPipeconfServiceAdapter;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.trivial.SimpleGroupStore;
@@ -74,7 +76,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.onosproject.net.NetTestTools.injectEventDispatcher;
 
 /**
@@ -787,6 +793,8 @@ public class GroupManagerTest {
         TestDriverManager(DriverRegistry registry) {
             this.registry = registry;
             this.deviceService = mgr.deviceService;
+            this.pipeconfService = new PiPipeconfServiceAdapter();
+            this.networkConfigService = new NetworkConfigServiceAdapter();
             activate();
         }
     }

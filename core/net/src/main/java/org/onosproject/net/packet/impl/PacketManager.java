@@ -309,6 +309,10 @@ public class PacketManager
             return;
         }
 
+        if (!deviceService.isAvailable(device.id())) {
+            return;
+        }
+
         ForwardingObjective forwarding = createBuilder(request)
                 .add(new ObjectiveContext() {
                     @Override

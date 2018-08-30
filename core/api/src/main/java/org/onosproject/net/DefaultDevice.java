@@ -16,6 +16,7 @@
 package org.onosproject.net;
 
 import org.onlab.packet.ChassisId;
+import org.onlab.util.ItemNotFoundException;
 import org.onosproject.net.driver.Behaviour;
 import org.onosproject.net.driver.DefaultDriverHandler;
 import org.onosproject.net.driver.Driver;
@@ -152,9 +153,11 @@ public class DefaultDevice extends AbstractElement implements Device {
 
     @Override
     protected Driver locateDriver() {
-        Driver driver = super.locateDriver();
-        return driver != null ? driver :
-                driverService().getDriver(manufacturer, hwVersion, swVersion);
+        try {
+            return driverService().getDriver(id());
+        } catch (ItemNotFoundException e) {
+            return null;
+        }
     }
 
     /**

@@ -35,6 +35,7 @@ import org.onosproject.mastership.MastershipListener;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.mastership.MastershipTerm;
 import org.onosproject.mastership.MastershipTermService;
+import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.Device.Type;
@@ -823,6 +824,12 @@ public class DeviceManager
         return (cfg == null || cfg.isAllowed());
     }
 
+    private boolean canMarkOnline(Device device) {
+        final boolean providerMarkOnline = Boolean.parseBoolean(
+                device.annotations().value(AnnotationKeys.PROVIDER_MARK_ONLINE));
+        return !providerMarkOnline;
+    }
+
     // Applies the specified role to the device; ignores NONE
 
     /**
@@ -884,7 +891,7 @@ public class DeviceManager
         switch (myNextRole) {
             case MASTER:
                 final Device device = getDevice(did);
-                if ((device != null) && !isAvailable(did)) {
+                if (device != null && !isAvailable(did) && canMarkOnline(device)) {
                     post(store.markOnline(did));
                 }
                 // TODO: should apply role only if there is mismatch

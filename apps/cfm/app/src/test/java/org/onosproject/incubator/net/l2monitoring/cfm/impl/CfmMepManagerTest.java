@@ -78,10 +78,10 @@ import java.util.concurrent.atomic.AtomicLong;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.onosproject.net.NetTestTools.injectEventDispatcher;
 
@@ -222,7 +222,8 @@ public class CfmMepManagerTest {
         expect(deviceService.getDevice(DEVICE_ID2)).andReturn(device2).anyTimes();
         replay(deviceService);
 
-        expect(driverService.getDriver(TEST_DRIVER)).andReturn(testDriver).anyTimes();
+        expect(driverService.getDriver(DEVICE_ID1)).andReturn(testDriver).anyTimes();
+        expect(driverService.getDriver(DEVICE_ID2)).andReturn(testDriver).anyTimes();
         replay(driverService);
 
         Collection<MepEntry> mepEntries = mepManager.getAllMeps(MDNAME1, MANAME1);
@@ -241,7 +242,7 @@ public class CfmMepManagerTest {
         expect(deviceService.getDevice(DEVICE_ID1)).andReturn(device1).anyTimes();
         replay(deviceService);
 
-        expect(driverService.getDriver(TEST_DRIVER)).andReturn(testDriver).anyTimes();
+        expect(driverService.getDriver(DEVICE_ID1)).andReturn(testDriver).anyTimes();
         replay(driverService);
 
         MepEntry mepEntry = mepManager.getMep(MDNAME1, MANAME1, MEPID1);
@@ -260,7 +261,7 @@ public class CfmMepManagerTest {
         expect(deviceService.getDevice(DEVICE_ID1)).andReturn(null).anyTimes();
         replay(deviceService);
 
-        expect(driverService.getDriver(TEST_DRIVER)).andReturn(testDriver).anyTimes();
+        expect(driverService.getDriver(DEVICE_ID1)).andReturn(testDriver).anyTimes();
         replay(driverService);
 
         try {
@@ -282,7 +283,8 @@ public class CfmMepManagerTest {
         expect(deviceService.getDevice(DEVICE_ID2)).andReturn(device2).anyTimes();
         replay(deviceService);
 
-        expect(driverService.getDriver(TEST_DRIVER)).andReturn(testDriver).anyTimes();
+        expect(driverService.getDriver(DEVICE_ID1)).andReturn(testDriver).anyTimes();
+        expect(driverService.getDriver(DEVICE_ID2)).andReturn(testDriver).anyTimes();
         replay(driverService);
 
         assertTrue(mepManager.deleteMep(MDNAME1, MANAME1, MEPID1, Optional.empty()));
@@ -299,7 +301,8 @@ public class CfmMepManagerTest {
         expect(deviceService.getDevice(DEVICE_ID2)).andReturn(device2).anyTimes();
         replay(deviceService);
 
-        expect(driverService.getDriver(TEST_DRIVER)).andReturn(testDriver).anyTimes();
+        expect(driverService.getDriver(DEVICE_ID1)).andReturn(testDriver).anyTimes();
+        expect(driverService.getDriver(DEVICE_ID2)).andReturn(testDriver).anyTimes();
         replay(driverService);
 
         MepId mepId3 = MepId.valueOf((short) 3);
@@ -336,7 +339,7 @@ public class CfmMepManagerTest {
         expect(deviceService.getDevice(deviceId3)).andReturn(device3).anyTimes();
         replay(deviceService);
 
-        expect(driverService.getDriver(TEST_DRIVER_3)).andReturn(testDriver3).anyTimes();
+        expect(driverService.getDriver(deviceId3)).andReturn(testDriver3).anyTimes();
         replay(driverService);
 
         MepId mepId3 = MepId.valueOf((short) 3);
@@ -362,7 +365,7 @@ public class CfmMepManagerTest {
         expect(deviceService.getDevice(DEVICE_ID1)).andReturn(device1).anyTimes();
         replay(deviceService);
 
-        expect(driverService.getDriver(TEST_DRIVER)).andReturn(testDriver).anyTimes();
+        expect(driverService.getDriver(DEVICE_ID1)).andReturn(testDriver).anyTimes();
         replay(driverService);
 
         MepLbCreate lbCreate = DefaultMepLbCreate.builder(MepId.valueOf((short) 11)).build();
@@ -383,7 +386,7 @@ public class CfmMepManagerTest {
         expect(deviceService.getDevice(DEVICE_ID1)).andReturn(device1).anyTimes();
         replay(deviceService);
 
-        expect(driverService.getDriver(TEST_DRIVER)).andReturn(testDriver).anyTimes();
+        expect(driverService.getDriver(DEVICE_ID1)).andReturn(testDriver).anyTimes();
         replay(driverService);
 
         try {
@@ -403,7 +406,7 @@ public class CfmMepManagerTest {
         expect(deviceService.getDevice(DEVICE_ID1)).andReturn(device1).anyTimes();
         replay(deviceService);
 
-        expect(driverService.getDriver(TEST_DRIVER)).andReturn(testDriver).anyTimes();
+        expect(driverService.getDriver(DEVICE_ID1)).andReturn(testDriver).anyTimes();
         replay(driverService);
 
         MepLtCreate ltCreate = DefaultMepLtCreate.builder(MepId.valueOf((short) 11)).build();
@@ -428,7 +431,8 @@ public class CfmMepManagerTest {
         expect(deviceService.getDevice(DEVICE_ID2)).andReturn(device2).anyTimes();
         replay(deviceService);
 
-        expect(driverService.getDriver(TEST_DRIVER)).andReturn(testDriver).anyTimes();
+        expect(driverService.getDriver(DEVICE_ID1)).andReturn(testDriver).anyTimes();
+        expect(driverService.getDriver(DEVICE_ID2)).andReturn(testDriver).anyTimes();
         replay(driverService);
 
 //        This is arranged like
