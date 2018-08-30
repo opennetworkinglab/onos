@@ -30,6 +30,7 @@ import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DefaultDevice;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.config.NetworkConfigServiceAdapter;
 import org.onosproject.net.device.DeviceServiceAdapter;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.driver.DefaultDriver;
@@ -41,6 +42,7 @@ import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketProgrammable;
 import org.onosproject.net.packet.PacketProviderRegistry;
+import org.onosproject.net.pi.PiPipeconfServiceAdapter;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.provider.TestProvider;
 import org.onosproject.store.trivial.SimplePacketStore;
@@ -147,6 +149,8 @@ public class PacketManagerTest {
         TestDriverManager(DriverRegistry registry) {
             this.registry = registry;
             this.deviceService = mgr.deviceService;
+            this.pipeconfService = new PiPipeconfServiceAdapter();
+            this.networkConfigService = new NetworkConfigServiceAdapter();
             activate();
         }
     }

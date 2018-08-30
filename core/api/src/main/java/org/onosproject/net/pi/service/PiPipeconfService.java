@@ -98,7 +98,7 @@ public interface PiPipeconfService {
      * @param pipeconfId a pipeconf identifier
      * @return driver name or null.
      */
-    String mergeDriver(DeviceId deviceId, PiPipeconfId pipeconfId);
+    String getMergedDriver(DeviceId deviceId, PiPipeconfId pipeconfId);
 
     /**
      * Returns the pipeconf identifier currently associated with the given

@@ -541,22 +541,23 @@ public class GeneralDeviceProvider extends AbstractProvider
         }
         final PiPipeconfId pipeconfId = pipeconf.id();
 
-        final String mergedDriverName = piPipeconfService.mergeDriver(
-                deviceId, pipeconfId);
-        if (mergedDriverName == null) {
-            log.error("Unable to get merged driver for {} and {}, aborting device discovery",
-                      deviceId, pipeconfId);
-            return false;
-        }
+        // To be removed in change #19606
+        // final String mergedDriverName = piPipeconfService.mergeDriver(
+        //         deviceId, pipeconfId);
+        // if (mergedDriverName == null) {
+        //     log.error("Unable to get merged driver for {} and {}, aborting device discovery",
+        //               deviceId, pipeconfId);
+        //     return false;
+        // }
 
         if (!asMaster) {
             // From now one only the master.
             return true;
         }
 
-        if (!setDriverViaCfg(deviceId, mergedDriverName)) {
-            return false;
-        }
+        // if (!setDriverViaCfg(deviceId, mergedDriverName)) {
+        //     return false;
+        // }
 
         // FIXME: we just introduced a race condition as it might happen that a
         // node does not receive the new cfg (with the merged driver) before the

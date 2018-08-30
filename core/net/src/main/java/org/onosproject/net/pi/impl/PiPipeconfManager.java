@@ -27,7 +27,6 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.ItemNotFoundException;
-import org.onosproject.cluster.ClusterService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigRegistry;
@@ -40,7 +39,6 @@ import org.onosproject.net.driver.DriverAdminService;
 import org.onosproject.net.driver.DriverEvent;
 import org.onosproject.net.driver.DriverListener;
 import org.onosproject.net.driver.DriverProvider;
-import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipeconfId;
 import org.onosproject.net.pi.service.PiPipeconfConfig;
@@ -81,16 +79,10 @@ public class PiPipeconfManager implements PiPipeconfService {
     protected NetworkConfigRegistry cfgService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected DriverService driverService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DriverAdminService driverAdminService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private PiPipeconfMappingStore pipeconfMappingStore;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ClusterService clusterService;
 
     // Registered pipeconf are replicated through the app subsystem and
     // registered on app activated events. Hence, there should be no need of
@@ -117,7 +109,7 @@ public class PiPipeconfManager implements PiPipeconfService {
     @Activate
     public void activate() {
         cfgService.registerConfigFactory(configFactory);
-        driverService.addListener(driverListener);
+        driverAdminService.addListener(driverListener);
         checkMissingMergedDrivers();
         log.info("Started");
     }
@@ -127,12 +119,11 @@ public class PiPipeconfManager implements PiPipeconfService {
     public void deactivate() {
         executor.shutdown();
         cfgService.unregisterConfigFactory(configFactory);
-        driverService.removeListener(driverListener);
+        driverAdminService.removeListener(driverListener);
         pipeconfs.clear();
         missingMergedDrivers.clear();
         cfgService = null;
         driverAdminService = null;
-        driverService = null;
         log.info("Stopped");
     }
 
@@ -170,11 +161,17 @@ public class PiPipeconfManager implements PiPipeconfService {
 
     @Override
     public void bindToDevice(PiPipeconfId pipeconfId, DeviceId deviceId) {
+        PiPipeconfId existingPipeconfId = pipeconfMappingStore.getPipeconfId(deviceId);
+        if (existingPipeconfId != null && !existingPipeconfId.equals(pipeconfId)) {
+            log.error("Cannot set binding for {} to {} as one already exists ({})",
+                      deviceId, pipeconfId, existingPipeconfId);
+            return;
+        }
         pipeconfMappingStore.createOrUpdateBinding(deviceId, pipeconfId);
     }
 
     @Override
-    public String mergeDriver(DeviceId deviceId, PiPipeconfId pipeconfId) {
+    public String getMergedDriver(DeviceId deviceId, PiPipeconfId pipeconfId) {
         log.debug("Starting device driver merge of {} with {}...", deviceId, pipeconfId);
         final BasicDeviceConfig basicDeviceConfig = cfgService.getConfig(
                 deviceId, BasicDeviceConfig.class);
@@ -298,7 +295,7 @@ public class PiPipeconfManager implements PiPipeconfService {
 
     private Driver getDriver(String name) {
         try {
-            return driverService.getDriver(name);
+            return driverAdminService.getDriver(name);
         } catch (ItemNotFoundException e) {
             return null;
         }

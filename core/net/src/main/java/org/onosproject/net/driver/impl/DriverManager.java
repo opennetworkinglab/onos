@@ -36,6 +36,8 @@ import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.driver.DriverListener;
 import org.onosproject.net.driver.DriverRegistry;
 import org.onosproject.net.driver.DriverService;
+import org.onosproject.net.pi.model.PiPipeconfId;
+import org.onosproject.net.pi.service.PiPipeconfService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,6 +72,9 @@ public class DriverManager implements DriverService {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetworkConfigService networkConfigService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected PiPipeconfService pipeconfService;
 
     @Activate
     protected void activate() {
@@ -113,9 +118,25 @@ public class DriverManager implements DriverService {
     public Driver getDriver(DeviceId deviceId) {
         checkPermission(DRIVER_READ);
 
+        Driver driver;
+
         // Primary source of driver configuration is the network config.
+        if (pipeconfService.ofDevice(deviceId).isPresent()) {
+            // Device has pipeconf associated, look for merged driver.
+            // Implementation of PiPipeconfService is expected to look for a
+            // base driver in network config.
+            PiPipeconfId pipeconfId = pipeconfService.ofDevice(deviceId).get();
+            String mergedDriver = pipeconfService.getMergedDriver(deviceId, pipeconfId);
+            driver = mergedDriver != null ? lookupDriver(mergedDriver) : null;
+            if (driver != null) {
+                return driver;
+            } else {
+                log.error("Merged driver for {} with pipeconf {} not found, falling back.",
+                          deviceId, pipeconfId);
+            }
+        }
         BasicDeviceConfig cfg = networkConfigService.getConfig(deviceId, BasicDeviceConfig.class);
-        Driver driver = lookupDriver(cfg != null ? cfg.driver() : null);
+        driver = lookupDriver(cfg != null ? cfg.driver() : null);
         if (driver != null) {
             return driver;
         }

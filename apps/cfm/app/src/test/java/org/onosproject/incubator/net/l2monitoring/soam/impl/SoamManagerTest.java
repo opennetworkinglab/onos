@@ -172,7 +172,7 @@ public class SoamManagerTest {
         expect(mepService.getMep(MDNAME1, MANAME1, MEPID1)).andReturn(mep1).anyTimes();
         replay(mepService);
 
-        expect(driverService.getDriver(TEST_DRIVER)).andReturn(testDriver).anyTimes();
+        expect(driverService.getDriver(DEVICE_ID1)).andReturn(testDriver).anyTimes();
         replay(driverService);
 
         Collection<DelayMeasurementEntry> dmEntries =
@@ -189,7 +189,7 @@ public class SoamManagerTest {
         expect(mepService.getMep(MDNAME1, MANAME1, MEPID1)).andReturn(mep1).anyTimes();
         replay(mepService);
 
-        expect(driverService.getDriver(TEST_DRIVER)).andReturn(testDriver).anyTimes();
+        expect(driverService.getDriver(DEVICE_ID1)).andReturn(testDriver).anyTimes();
         replay(driverService);
 
         DelayMeasurementEntry dmEntry =
@@ -207,7 +207,7 @@ public class SoamManagerTest {
         expect(mepService.getMep(MDNAME1, MANAME1, MEPID1)).andReturn(mep1).anyTimes();
         replay(mepService);
 
-        expect(driverService.getDriver(TEST_DRIVER)).andReturn(testDriver).anyTimes();
+        expect(driverService.getDriver(DEVICE_ID1)).andReturn(testDriver).anyTimes();
         replay(driverService);
 
         DelayMeasurementStatCurrent dmCurrentStat =
@@ -225,7 +225,7 @@ public class SoamManagerTest {
         expect(mepService.getMep(MDNAME1, MANAME1, MEPID1)).andReturn(mep1).anyTimes();
         replay(mepService);
 
-        expect(driverService.getDriver(TEST_DRIVER)).andReturn(testDriver).anyTimes();
+        expect(driverService.getDriver(DEVICE_ID1)).andReturn(testDriver).anyTimes();
         replay(driverService);
 
         Collection<DelayMeasurementStatHistory> dmHistoricalStats =
@@ -243,7 +243,7 @@ public class SoamManagerTest {
         expect(mepService.getMep(MDNAME1, MANAME1, MEPID1)).andReturn(mep1).anyTimes();
         replay(mepService);
 
-        expect(driverService.getDriver(TEST_DRIVER)).andReturn(testDriver).anyTimes();
+        expect(driverService.getDriver(DEVICE_ID1)).andReturn(testDriver).anyTimes();
         replay(driverService);
 
         DelayMeasurementCreate dmCreate1 = DefaultDelayMeasurementCreate
@@ -288,7 +288,7 @@ public class SoamManagerTest {
         expect(mepService.getMep(MDNAME1, MANAME1, mepId3)).andReturn(mep3).anyTimes();
         replay(mepService);
 
-        expect(driverService.getDriver(TEST_DRIVER_3)).andReturn(testDriver3).anyTimes();
+        expect(driverService.getDriver(deviceId3)).andReturn(testDriver3).anyTimes();
         replay(driverService);
 
         DelayMeasurementCreate dmCreate1 = DefaultDelayMeasurementCreate

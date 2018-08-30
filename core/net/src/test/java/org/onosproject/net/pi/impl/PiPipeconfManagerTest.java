@@ -42,8 +42,6 @@ import org.onosproject.net.driver.DriverAdapter;
 import org.onosproject.net.driver.DriverAdminService;
 import org.onosproject.net.driver.DriverAdminServiceAdapter;
 import org.onosproject.net.driver.DriverProvider;
-import org.onosproject.net.driver.DriverService;
-import org.onosproject.net.driver.DriverServiceAdapter;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipeconfId;
 import org.onosproject.net.pi.service.PiPipeconfConfig;
@@ -72,7 +70,6 @@ public class PiPipeconfManagerTest {
 
     //Mock util sets and classes
     private final NetworkConfigRegistry cfgService = new MockNetworkConfigRegistry();
-    private final DriverService driverService = new MockDriverService();
     private final DriverAdminService driverAdminService = new MockDriverAdminService();
     private Driver baseDriver = new MockDriver();
 
@@ -97,7 +94,6 @@ public class PiPipeconfManagerTest {
         piPipeconfService = new PiPipeconfManager();
         piPipeconf = BASIC_PIPECONF;
         piPipeconfService.cfgService = cfgService;
-        piPipeconfService.driverService = driverService;
         piPipeconfService.driverAdminService = driverAdminService;
         String key = "piPipeconf";
         ObjectMapper mapper = new ObjectMapper();
@@ -112,7 +108,7 @@ public class PiPipeconfManagerTest {
 
     @Test
     public void activate() {
-        assertEquals("Incorrect driver service", driverService, piPipeconfService.driverService);
+        assertEquals("Incorrect driver admin service", driverAdminService, piPipeconfService.driverAdminService);
         assertEquals("Incorrect driverAdminService service", driverAdminService, piPipeconfService.driverAdminService);
         assertEquals("Incorrect configuration service", cfgService, piPipeconfService.cfgService);
         assertTrue("Incorrect config factory", cfgFactories.contains(piPipeconfService.configFactory));
@@ -121,7 +117,7 @@ public class PiPipeconfManagerTest {
     @Test
     public void deactivate() {
         piPipeconfService.deactivate();
-        assertEquals("Incorrect driver service", null, piPipeconfService.driverService);
+        assertEquals("Incorrect driver admin service", null, piPipeconfService.driverAdminService);
         assertEquals("Incorrect driverAdminService service", null, piPipeconfService.driverAdminService);
         assertEquals("Incorrect configuration service", null, piPipeconfService.cfgService);
         assertFalse("Config factory should be unregistered", cfgFactories.contains(piPipeconfService.configFactory));
@@ -153,7 +149,10 @@ public class PiPipeconfManagerTest {
         assertEquals("Returned PiPipeconf is not correct", piPipeconf,
                      piPipeconfService.getPipeconf(piPipeconf.id()).get());
 
-        String mergedDriverName = piPipeconfService.mergeDriver(DEVICE_ID, piPipeconfId);
+        String mergedDriverName = piPipeconfService.getMergedDriver(DEVICE_ID, piPipeconfId);
+
+        String expectedName = BASE_DRIVER + ":" + piPipeconfId.id();
+        assertEquals(expectedName, mergedDriverName);
 
         //we assume that the provider is 1 and that it contains 1 driver
         //we also assume that everything after driverAdminService.registerProvider(provider); has been tested.
@@ -208,7 +207,8 @@ public class PiPipeconfManagerTest {
         }
     }
 
-    private class MockDriverService extends DriverServiceAdapter {
+    private class MockDriverAdminService extends DriverAdminServiceAdapter {
+
         @Override
         public Driver getDriver(String driverName) {
             if (driverName.equals(BASE_DRIVER)) {
@@ -216,9 +216,6 @@ public class PiPipeconfManagerTest {
             }
             throw new ItemNotFoundException("Driver not found");
         }
-    }
-
-    private class MockDriverAdminService extends DriverAdminServiceAdapter {
 
         @Override
         public void registerProvider(DriverProvider provider) {

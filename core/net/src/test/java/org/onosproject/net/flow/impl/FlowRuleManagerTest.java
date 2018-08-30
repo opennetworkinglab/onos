@@ -39,6 +39,7 @@ import org.onosproject.net.Device;
 import org.onosproject.net.Device.Type;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
+import org.onosproject.net.config.NetworkConfigServiceAdapter;
 import org.onosproject.net.device.DeviceServiceAdapter;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.driver.DefaultDriver;
@@ -51,7 +52,6 @@ import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowEntry.FlowEntryState;
 import org.onosproject.net.flow.FlowRule;
-import org.onosproject.net.flow.oldbatch.FlowRuleBatchOperation;
 import org.onosproject.net.flow.FlowRuleEvent;
 import org.onosproject.net.flow.FlowRuleListener;
 import org.onosproject.net.flow.FlowRuleProgrammable;
@@ -66,6 +66,8 @@ import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.Instructions.MetadataInstruction;
+import org.onosproject.net.flow.oldbatch.FlowRuleBatchOperation;
+import org.onosproject.net.pi.PiPipeconfServiceAdapter;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.trivial.SimpleFlowRuleStore;
@@ -84,9 +86,16 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.onosproject.net.NetTestTools.injectEventDispatcher;
-import static org.onosproject.net.flow.FlowRuleEvent.Type.*;
+import static org.onosproject.net.flow.FlowRuleEvent.Type.RULE_ADDED;
+import static org.onosproject.net.flow.FlowRuleEvent.Type.RULE_ADD_REQUESTED;
+import static org.onosproject.net.flow.FlowRuleEvent.Type.RULE_REMOVED;
+import static org.onosproject.net.flow.FlowRuleEvent.Type.RULE_REMOVE_REQUESTED;
+import static org.onosproject.net.flow.FlowRuleEvent.Type.RULE_UPDATED;
 
 /**
  * Test codifying the flow rule service & flow rule provider service contracts.
@@ -712,6 +721,8 @@ public class FlowRuleManagerTest {
         TestDriverManager(DriverRegistry registry) {
             this.registry = registry;
             this.deviceService = mgr.deviceService;
+            this.pipeconfService = new PiPipeconfServiceAdapter();
+            this.networkConfigService = new NetworkConfigServiceAdapter();
             activate();
         }
     }
