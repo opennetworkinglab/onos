@@ -514,6 +514,11 @@ def osgi_jar_with_tests(
             name = name + "_checkstyle_test",
             srcs = srcs,
         )
+        if test_srcs != []:
+            checkstyle_test(
+                name = name + "_checkstyle_tests_test",
+                srcs = test_srcs,
+            )
 
 """
     Creates an OSGI jar file from a set of source files.
