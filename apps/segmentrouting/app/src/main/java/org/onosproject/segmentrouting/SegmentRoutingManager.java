@@ -1236,6 +1236,13 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                                  event.type(), ((Device) event.subject()).id());
                         processDeviceAdded((Device) event.subject());
                     } else {
+                        if (event.type() == DeviceEvent.Type.DEVICE_ADDED) {
+                            // Note: For p4 devices, the device will be added but unavailable at the beginning.
+                            //       The device will later on being marked as available once the pipeline is pushed
+                            //       to the device.
+                            log.info("** DEVICE ADDED but unavailable. Ignore");
+                            return;
+                        }
                         log.info(" ** DEVICE DOWN Processing device event {}"
                                 + " for unavailable device {}",
                                  event.type(), ((Device) event.subject()).id());
