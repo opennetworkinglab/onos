@@ -22,6 +22,18 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
+import org.apache.commons.codec.binary.Hex;
+import org.apache.http.HttpException;
+import org.apache.http.HttpRequest;
+import org.apache.http.HttpResponse;
+import org.apache.http.impl.io.DefaultHttpRequestParser;
+import org.apache.http.impl.io.DefaultHttpRequestWriter;
+import org.apache.http.impl.io.DefaultHttpResponseParser;
+import org.apache.http.impl.io.DefaultHttpResponseWriter;
+import org.apache.http.impl.io.HttpTransportMetricsImpl;
+import org.apache.http.impl.io.SessionInputBufferImpl;
+import org.apache.http.impl.io.SessionOutputBufferImpl;
+import org.apache.http.io.HttpMessageWriter;
 import org.onosproject.cfg.ConfigProperty;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
@@ -50,11 +62,15 @@ import org.openstack4j.openstack.networking.domain.NeutronRouterInterface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.cert.X509Certificate;
@@ -98,6 +114,10 @@ public final class OpenstackNetworkingUtil {
 
     private static final String PROXY_MODE = "proxy";
     private static final String BROADCAST_MODE = "broadcast";
+
+    private static final int HTTP_PAYLOAD_BUFFER = 8 * 1024;
+
+    private static final String HMAC_SHA256 = "HmacSHA256";
 
     private static final String ERR_FLOW = "Failed set flows for floating IP %s: ";
 
@@ -463,7 +483,8 @@ public final class OpenstackNetworkingUtil {
      * @param routerInterface2 router interface
      * @return returns true if two router interfaces are equal, false otherwise
      */
-    public static boolean routerInterfacesEquals(RouterInterface routerInterface1, RouterInterface routerInterface2) {
+    public static boolean routerInterfacesEquals(RouterInterface routerInterface1,
+                                                 RouterInterface routerInterface2) {
         return Objects.equals(routerInterface1.getId(), routerInterface2.getId()) &&
                 Objects.equals(routerInterface1.getPortId(), routerInterface2.getPortId()) &&
                 Objects.equals(routerInterface1.getSubnetId(), routerInterface2.getSubnetId()) &&
@@ -479,6 +500,147 @@ public final class OpenstackNetworkingUtil {
         } else {
             return VnicType.UNSUPPORTED;
         }
+    }
+
+    /**
+     * Deserializes raw payload into HttpRequest object.
+     *
+     * @param rawData raw http payload
+     * @return HttpRequest object
+     */
+    public static HttpRequest parseHttpRequest(byte[] rawData) {
+        SessionInputBufferImpl sessionInputBuffer =
+                new SessionInputBufferImpl(
+                        new HttpTransportMetricsImpl(), HTTP_PAYLOAD_BUFFER);
+        sessionInputBuffer.bind(new ByteArrayInputStream(rawData));
+        DefaultHttpRequestParser requestParser = new DefaultHttpRequestParser(sessionInputBuffer);
+        try {
+            return requestParser.parse();
+        } catch (IOException | HttpException e) {
+            log.warn("Failed to parse HttpRequest, due to {}", e);
+        }
+
+        return null;
+    }
+
+    /**
+     * Serializes HttpRequest object to byte array.
+     *
+     * @param request http request object
+     * @return byte array
+     */
+    public static byte[] unparseHttpRequest(HttpRequest request) {
+        try {
+            SessionOutputBufferImpl sessionOutputBuffer =
+                    new SessionOutputBufferImpl(
+                            new HttpTransportMetricsImpl(), HTTP_PAYLOAD_BUFFER);
+
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            sessionOutputBuffer.bind(baos);
+
+            HttpMessageWriter<HttpRequest> requestWriter = new DefaultHttpRequestWriter(
+                    sessionOutputBuffer);
+            requestWriter.write(request);
+            sessionOutputBuffer.flush();
+
+            return baos.toByteArray();
+        } catch (HttpException | IOException e) {
+            log.warn("Failed to unparse HttpRequest, due to {}", e);
+        }
+
+        return null;
+    }
+
+    /**
+     * Deserializes raw payload into HttpResponse object.
+     *
+     * @param rawData raw http payload
+     * @return HttpResponse object
+     */
+    public static HttpResponse parseHttpResponse(byte[] rawData) {
+        SessionInputBufferImpl sessionInputBuffer =
+                new SessionInputBufferImpl(
+                        new HttpTransportMetricsImpl(), HTTP_PAYLOAD_BUFFER);
+        sessionInputBuffer.bind(new ByteArrayInputStream(rawData));
+        DefaultHttpResponseParser responseParser = new DefaultHttpResponseParser(sessionInputBuffer);
+        try {
+            return responseParser.parse();
+        } catch (IOException | HttpException e) {
+            log.warn("Failed to parse HttpResponse, due to {}", e);
+        }
+
+        return null;
+    }
+
+    /**
+     * Serializes HttpResponse header to byte array.
+     *
+     * @param response http response object
+     * @return byte array
+     */
+    public static byte[] unparseHttpResponseHeader(HttpResponse response) {
+        try {
+            SessionOutputBufferImpl sessionOutputBuffer =
+                    new SessionOutputBufferImpl(
+                            new HttpTransportMetricsImpl(), HTTP_PAYLOAD_BUFFER);
+
+            ByteArrayOutputStream headerBaos = new ByteArrayOutputStream();
+            sessionOutputBuffer.bind(headerBaos);
+
+            HttpMessageWriter<HttpResponse> responseWriter =
+                    new DefaultHttpResponseWriter(sessionOutputBuffer);
+            responseWriter.write(response);
+            sessionOutputBuffer.flush();
+
+            log.debug(headerBaos.toString());
+
+            return headerBaos.toByteArray();
+        } catch (IOException | HttpException e) {
+            log.warn("Failed to unparse HttpResponse headers, due to {}", e);
+        }
+
+        return null;
+    }
+
+    /**
+     * Serializes HttpResponse object to byte array.
+     *
+     * @param response http response object
+     * @return byte array
+     */
+    public static byte[] unparseHttpResponseBody(HttpResponse response) {
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            response.getEntity().writeTo(baos);
+
+            log.debug(response.toString());
+            log.debug(baos.toString());
+
+            return baos.toByteArray();
+        } catch (IOException e) {
+            log.warn("Failed to unparse HttpResponse, due to {}", e);
+        }
+
+        return null;
+    }
+
+    /**
+     * Encodes the given data using HmacSHA256 encryption method with given secret key.
+     *
+     * @param key       secret key
+     * @param data      data to be encrypted
+     * @return Hmac256 encrypted data
+     */
+    public static String hmacEncrypt(String key, String data) {
+        try {
+            Mac sha256Hmac = Mac.getInstance(HMAC_SHA256);
+            SecretKeySpec secretKey = new SecretKeySpec(key.getBytes("UTF-8"), HMAC_SHA256);
+            sha256Hmac.init(secretKey);
+            return Hex.encodeHexString(sha256Hmac.doFinal(data.getBytes("UTF-8")));
+        } catch (Exception e) {
+            log.warn("Failed to encrypt data {} using key {}, due to {}", data, key, e);
+        }
+        return null;
     }
 
     private static boolean isDirectPort(String portName) {
