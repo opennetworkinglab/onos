@@ -31,7 +31,7 @@ CORE = UTILS + API + [
     '//protocols/bgp/bgpio:onos-protocols-bgp-bgpio',
     '//protocols/bgp/api:onos-protocols-bgp-api',
     '//protocols/bgp/ctl:onos-protocols-bgp-ctl',
-    '//protocols/bmv2/thrift-api:onos-protocols-bmv2-thrift-api',
+    # '//protocols/bmv2/thrift-api:onos-protocols-bmv2-thrift-api',
     '//protocols/netconf/api:onos-protocols-netconf-api',
     '//protocols/netconf/ctl:onos-protocols-netconf-ctl',
     '//protocols/openflow/api:onos-protocols-openflow-api',
@@ -77,7 +77,7 @@ CORE = UTILS + API + [
     '//providers/lisp/device:onos-providers-lisp-device',
     '//providers/tl1/device:onos-providers-tl1-device',
     '//providers/general/device:onos-providers-general-device',
-    '//providers/p4runtime/packet:onos-providers-p4runtime-packet',
+    # '//providers/p4runtime/packet:onos-providers-p4runtime-packet',
 
     '//web/api:onos-rest',
     '//web/gui2:onos-gui2',
@@ -110,12 +110,12 @@ ONOS_DRIVERS = [
     '//drivers/huawei:onos-drivers-huawei-oar',
     '//drivers/microsemi/ea1000:onos-drivers-microsemi-ea1000-oar',
     '//drivers/oplink:onos-drivers-oplink-oar',
-    '//drivers/bmv2:onos-drivers-bmv2-oar',
-    '//drivers/barefoot:onos-drivers-barefoot-oar',
-    '//drivers/mellanox:onos-drivers-mellanox-oar',
+    # '//drivers/bmv2:onos-drivers-bmv2-oar',
+    # '//drivers/barefoot:onos-drivers-barefoot-oar',
+    # '//drivers/mellanox:onos-drivers-mellanox-oar',
     '//drivers/hp:onos-drivers-hp-oar',
-    '//drivers/p4runtime:onos-drivers-p4runtime-oar',
-    '//drivers/gnmi:onos-drivers-gnmi-oar',
+    # '//drivers/p4runtime:onos-drivers-p4runtime-oar',
+    # '//drivers/gnmi:onos-drivers-gnmi-oar',
     '//drivers/polatis/netconf:onos-drivers-polatis-netconf-oar',
     '//drivers/polatis/openflow:onos-drivers-polatis-openflow-oar',
     '//drivers/polatis/snmp:onos-drivers-polatis-snmp-oar',
@@ -147,7 +147,7 @@ ONOS_PROVIDERS = [
     '//providers/lisp:onos-providers-lisp-oar',
     '//providers/tl1:onos-providers-tl1-oar',
     '//providers/general:onos-providers-general-oar',
-    '//providers/p4runtime:onos-providers-p4runtime-oar',
+    # '//providers/p4runtime:onos-providers-p4runtime-oar',
 #    '//providers/ietfte:onos-providers-ietfte-oar',
     '//providers/xmpp/device:onos-providers-xmpp-device-oar',
 ]
@@ -242,8 +242,8 @@ ONOS_APPS = [
     '//apps/openstacktelemetry:onos-apps-openstacktelemetry-oar',
     '//apps/openstacktroubleshoot:onos-apps-openstacktroubleshoot-oar',
     '//apps/openstackvtap:onos-apps-openstackvtap-oar',
-    '//apps/p4-tutorial/pipeconf:onos-apps-p4-tutorial-pipeconf-oar',
-    '//apps/p4-tutorial/mytunnel:onos-apps-p4-tutorial-mytunnel-oar',
+    # '//apps/p4-tutorial/pipeconf:onos-apps-p4-tutorial-pipeconf-oar',
+    # '//apps/p4-tutorial/mytunnel:onos-apps-p4-tutorial-mytunnel-oar',
     '//apps/cfm:onos-apps-cfm-oar',
     '//apps/routeradvertisement:onos-apps-routeradvertisement-oar',
     '//apps/powermanagement:onos-apps-powermanagement-oar',
@@ -263,8 +263,8 @@ ONOS_APPS = [
 ]
 
 PROTOCOL_APPS = [
-    '//protocols/grpc:onos-protocols-grpc-oar',
-    '//protocols/p4runtime:onos-protocols-p4runtime-oar',
+    # '//protocols/grpc:onos-protocols-grpc-oar',
+    # '//protocols/p4runtime:onos-protocols-p4runtime-oar',
     '//protocols/gnmi:onos-protocols-gnmi-oar',
     '//protocols/xmpp/core:onos-protocols-xmpp-core-oar',
     '//protocols/xmpp/pubsub:onos-protocols-xmpp-pubsub-oar',
@@ -285,8 +285,8 @@ MODELS = [
 ]
 
 PIPELINES = [
-    '//pipelines/basic:onos-pipelines-basic-oar',
-    '//pipelines/fabric:onos-pipelines-fabric-oar',
+    # '//pipelines/basic:onos-pipelines-basic-oar',
+    # '//pipelines/fabric:onos-pipelines-fabric-oar',
 ]
 
 APP_JARS = [
