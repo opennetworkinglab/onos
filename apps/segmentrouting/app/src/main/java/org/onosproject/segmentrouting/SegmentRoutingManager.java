@@ -474,9 +474,9 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                                       "allowDuplicateIps", "false");
         // For P4 switches
         compCfgService.preSetProperty("org.onosproject.net.flow.impl.FlowRuleManager",
-                                      "fallbackFlowPollFrequency", "5");
+                                      "fallbackFlowPollFrequency", "4");
         compCfgService.preSetProperty("org.onosproject.net.group.impl.GroupManager",
-                                      "fallbackGroupPollFrequency", "5");
+                                      "fallbackGroupPollFrequency", "3");
         compCfgService.registerProperties(getClass());
         modified(context);
 
