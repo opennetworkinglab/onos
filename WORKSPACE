@@ -80,7 +80,10 @@ rules_nodejs_dependencies()
 
 load("@build_bazel_rules_nodejs//:defs.bzl", "node_repositories")
 
-node_repositories(package_json = ["//tools/gui:package.json"])
+node_repositories(
+    node_version = "8.11.1",
+    package_json = ["//tools/gui:package.json"],
+)
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 

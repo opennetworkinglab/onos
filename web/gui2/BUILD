@@ -121,12 +121,15 @@ genrule(
           " export XDG_CONFIG_HOME=$(@D)/config &&" +  # npm config cache to the sandbox
           " export BABEL_DISABLE_CACHE=1 &&" +  # turn off babel cache
           ' if [[ ! -z $${HTTP_PROXY-} ]]; then NPM_ARGS="--proxy $$HTTP_PROXY --without-ssl --insecure"; else NPM_ARGS=""; fi &&' +
-          " NPM=$$ROOT/$(location @nodejs//:bin/npm) &&" +
+          " NPM=$(location @nodejs//:bin/npm) &&" +
+          " export PATH=$$ROOT/$$(dirname $${NPM}):$$PATH &&" +
           " mkdir -p web/gui2 &&" +
           " cd web/gui2 &&" +
-          " $$NPM $$NPM_ARGS install  --no-cache --loglevel=error > $$ROOT/$(location onos-gui2-npm-install.log) 2>&1 &&" +
+          " npm -v > $$ROOT/$(location onos-gui2-npm-install.log) 2>&1 &&" +
+          " npm $$NPM_ARGS install --no-cache >> $$ROOT/$(location onos-gui2-npm-install.log) 2>&1 &&" +
           " jar Mcf $$ROOT/$(location onos-gui2-npm-install.jar) . &&" +
           " touch $$ROOT/$(location onos-gui2-npm-install.log)",  # to get the log always as the 2nd file
+    message = "NodeJS npm install in web/gui2",
     visibility = ["//visibility:public"],
 )
 
