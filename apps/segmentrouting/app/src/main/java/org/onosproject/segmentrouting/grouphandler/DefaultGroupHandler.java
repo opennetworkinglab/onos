@@ -408,9 +408,12 @@ public class DefaultGroupHandler {
      */
     private void removeFromHashedNextObjective(Collection<PortLabel> portLabels,
                                                MacAddress dstMac, Integer nextId) {
+        TrafficSelector.Builder metabuilder = DefaultTrafficSelector.builder();
+        metabuilder.matchVlanId(srManager.getDefaultInternalVlan());
         NextObjective.Builder nextObjBuilder = DefaultNextObjective
                 .builder()
                 .withType(NextObjective.Type.HASHED) //same as original
+                .withMeta(metabuilder.build())
                 .withId(nextId)
                 .fromApp(appId);
         // Create the buckets to be removed
