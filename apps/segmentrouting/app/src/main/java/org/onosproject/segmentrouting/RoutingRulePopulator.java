@@ -1441,8 +1441,6 @@ public class RoutingRulePopulator {
                 }
 
                 TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
-
-                tBuilder.transition(60);
                 tBuilder.wipeDeferred();
 
                 ForwardingObjective.Builder fob = DefaultForwardingObjective.builder();
