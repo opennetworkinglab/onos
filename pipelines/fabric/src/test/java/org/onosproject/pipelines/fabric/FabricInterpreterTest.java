@@ -135,7 +135,7 @@ public class FabricInterpreterTest {
         PiAction mappedAction = interpreter.mapTreatment(treatment,
                                                          FabricConstants.FABRIC_INGRESS_FORWARDING_ROUTING_V4);
         PiAction expectedAction = PiAction.builder()
-                .withId(FabricConstants.NOP)
+                .withId(FabricConstants.FABRIC_INGRESS_FORWARDING_NOP_ROUTING_V4)
                 .build();
         assertEquals(expectedAction, mappedAction);
 

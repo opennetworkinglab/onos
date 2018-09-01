@@ -84,6 +84,10 @@ control Forwarding (
         routing_v4_counter.count();
     }
 
+    action nop_routing_v4() {
+        routing_v4_counter.count();
+    }
+
     table routing_v4 {
         key = {
             hdr.ipv4.dst_addr: lpm;
@@ -91,6 +95,7 @@ control Forwarding (
 
         actions = {
             set_next_id_routing_v4;
+            nop_routing_v4;
         }
         counters = routing_v4_counter;
     }
