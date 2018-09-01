@@ -277,7 +277,7 @@
     "apache-karaf-patches": "http://repo1.maven.org/maven2/org/onosproject/onos-apache-karaf-patches/3.0.8/onos-apache-karaf-patches-3.0.8.tar.gz",
     "bndlib": "mvn:biz.aQute.bnd:biz.aQute.bndlib:jar:4.0.0",
     "bndexe": "mvn:biz.aQute.bnd:biz.aQute.bnd:4.0.0",
-    "libthrift": "mvn:org.apache.thrift:libthrift:0.9.3",
+    "libthrift": "mvn:org.apache.thrift:libthrift:0.11.0",
     "qdox": "mvn:com.thoughtworks.qdox:qdox:2.0-M3",
     "org.apache.felix.scr.bnd": {
       "uri": "mvn:org.onosproject:org.apache.felix.scr.bnd:1.4.1-SNAPSHOT",
