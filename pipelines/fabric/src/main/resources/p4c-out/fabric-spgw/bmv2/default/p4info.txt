@@ -180,6 +180,9 @@ tables {
     id: 16777434
   }
   action_refs {
+    id: 16804187
+  }
+  action_refs {
     id: 16800567
     annotations: "@defaultonly()"
   }
@@ -562,6 +565,13 @@ actions {
     id: 1
     name: "next_id"
     bitwidth: 32
+  }
+}
+actions {
+  preamble {
+    id: 16804187
+    name: "FabricIngress.forwarding.nop_routing_v4"
+    alias: "nop_routing_v4"
   }
 }
 actions {

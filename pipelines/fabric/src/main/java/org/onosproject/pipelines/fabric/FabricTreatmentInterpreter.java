@@ -58,6 +58,8 @@ final class FabricTreatmentInterpreter {
             .withId(FabricConstants.FABRIC_INGRESS_FILTERING_NOP_INGRESS_PORT_VLAN).build();
     private static final PiAction NOP_ACL = PiAction.builder()
             .withId(FabricConstants.FABRIC_INGRESS_FORWARDING_NOP_ACL).build();
+    private static final PiAction NOP_ROUTING_V4 = PiAction.builder()
+            .withId(FabricConstants.FABRIC_INGRESS_FORWARDING_NOP_ROUTING_V4).build();
 
     private static final PiAction POP_VLAN = PiAction.builder()
             .withId(FabricConstants.FABRIC_EGRESS_EGRESS_NEXT_POP_VLAN)
@@ -143,9 +145,12 @@ final class FabricTreatmentInterpreter {
     public static PiAction mapForwardingTreatment(TrafficTreatment treatment, PiTableId tableId)
             throws PiInterpreterException {
         // Empty treatment, generate table entry with no action
-        if (treatment.equals(DefaultTrafficTreatment.emptyTreatment())) {
+        if (treatment.equals(DefaultTrafficTreatment.emptyTreatment()) ||
+                treatment.allInstructions().isEmpty()) {
             if (tableId.equals(FabricConstants.FABRIC_INGRESS_FORWARDING_ACL)) {
                 return NOP_ACL;
+            } else if (tableId.equals(FabricConstants.FABRIC_INGRESS_FORWARDING_ROUTING_V4)) {
+                return NOP_ROUTING_V4;
             } else {
                 return NOP;
             }

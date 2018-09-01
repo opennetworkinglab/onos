@@ -177,6 +177,8 @@ public final class FabricConstants {
             PiActionId.of("FabricEgress.process_int_transit.int_set_header_0003_i10");
     public static final PiActionId FABRIC_INGRESS_NEXT_MPLS_ROUTING_V6_SIMPLE =
             PiActionId.of("FabricIngress.next.mpls_routing_v6_simple");
+    public static final PiActionId FABRIC_INGRESS_FORWARDING_NOP_ROUTING_V4 =
+            PiActionId.of("FabricIngress.forwarding.nop_routing_v4");
     public static final PiActionId FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_UPDATE_TOTAL_HOP_CNT =
             PiActionId.of("FabricEgress.process_int_transit.int_update_total_hop_cnt");
     public static final PiActionId FABRIC_INGRESS_FILTERING_NOP_INGRESS_PORT_VLAN =
