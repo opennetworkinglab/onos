@@ -74,7 +74,10 @@ public class FabricNextPipeliner {
     public PipelinerTranslationResult next(NextObjective nextObjective) {
         PipelinerTranslationResult.Builder resultBuilder = PipelinerTranslationResult.builder();
 
-        processNextVlanMeta(nextObjective, resultBuilder);
+        if (nextObjective.op() != Objective.Operation.ADD_TO_EXISTING &&
+                nextObjective.op() != Objective.Operation.REMOVE_FROM_EXISTING) {
+            processNextVlanMeta(nextObjective, resultBuilder);
+        }
 
         switch (nextObjective.type()) {
             case SIMPLE:
