@@ -18,7 +18,7 @@
 
 #traceInfoDialogId h2 {
     text-align: center;
-    width: 200px;
+    width: 300px;
     margin: 0;
     font-weight: lighter;
     word-wrap: break-word;
@@ -47,7 +47,7 @@ div.traceInfo td {
     cursor: pointer;
 
     color: #3c3a3a;
-    width: 100px;
+    width: 170px;
 }
 
 div.traceInfo td.label {
@@ -124,3 +124,4 @@ div.flowTraceResult .table-body td {
 div.flowTraceResult .table-body tr.drop {
     background-color: #e28d8d;
 }
+

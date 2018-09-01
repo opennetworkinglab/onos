@@ -35,6 +35,15 @@ public interface StatsFlowRuleAdminService {
     void stop();
 
     /**
+     * Creates or delete a stat flow rule with network layer-2 information.
+     *
+     * @param srcIp source IP address
+     * @param dstIp destination IP address
+     * @param install installing flag
+     */
+    void setStatFlowL2Rule(String srcIp, String dstIp, Boolean install);
+
+    /**
      * Creates a stat flow rule.
      *
      * @param statFlowRule stat flow rule for a VM

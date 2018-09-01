@@ -145,6 +145,7 @@ public class StatsFlowRuleManager implements StatsFlowRuleAdminService {
     private static final boolean DEFAULT_MONITOR_UNDERLAY = true;
 
     private static final String ARBITRARY_IP = "0.0.0.0/32";
+    private static final int ARBITRARY_PROTOCOL = 0x0;
     private static final int ARBITRARY_LENGTH = 32;
     private static final String ARBITRARY_MAC = "00:00:00:00:00:00";
     private static final IpAddress NO_HOST_IP = IpAddress.valueOf("255.255.255.255");
@@ -266,14 +267,22 @@ public class StatsFlowRuleManager implements StatsFlowRuleAdminService {
     }
 
     @Override
-    public void createStatFlowRule(StatsFlowRule statsFlowRule) {
+    public void setStatFlowL2Rule(String srcIp, String dstIp, Boolean install) {
+        StatsFlowRule statsFlowRule = DefaultStatsFlowRule.builder()
+                .srcIpPrefix(IpPrefix.valueOf(IpAddress.valueOf(srcIp), ARBITRARY_LENGTH))
+                .dstIpPrefix(IpPrefix.valueOf(IpAddress.valueOf(dstIp), ARBITRARY_LENGTH))
+                .ipProtocol((byte) ARBITRARY_PROTOCOL)
+                .build();
+        setStatFlowRule(statsFlowRule, install);
+    }
 
+    @Override
+    public void createStatFlowRule(StatsFlowRule statsFlowRule) {
         setStatFlowRule(statsFlowRule, true);
     }
 
     @Override
     public void deleteStatFlowRule(StatsFlowRule statsFlowRule) {
-
         setStatFlowRule(statsFlowRule, false);
     }
 

@@ -6,6 +6,7 @@ BUNDLES = [
 COMPILE_DEPS = CORE_DEPS + JACKSON + CLI + REST + [
     "//core/store/serializers:onos-core-serializers",
     "//apps/openstacknode/api:onos-apps-openstacknode-api",
+    "//apps/openstacktelemetry/api:onos-apps-openstacktelemetry-api",
     "//apps/openstacknetworking/api:onos-apps-openstacknetworking-api",
     "@sshd_core//jar",
 ]

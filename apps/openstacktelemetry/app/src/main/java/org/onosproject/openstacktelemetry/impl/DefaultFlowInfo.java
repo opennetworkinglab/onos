@@ -196,8 +196,11 @@ public final class DefaultFlowInfo implements FlowInfo {
                 return EGRESS_STATS + dstIp.toString();
             }
         }
-        return srcIp.toString() + ":" + srcPort.toString() + " -> " +
-                dstIp.toString() + ":" + dstPort.toString();
+        return srcIp.toString() + ":" +
+                ((srcPort == null) ? "any" : srcPort.toString()) +
+                " -> " +
+                dstIp.toString() + ":" +
+                ((dstPort == null) ? "any" : dstPort.toString());
     }
 
     @Override

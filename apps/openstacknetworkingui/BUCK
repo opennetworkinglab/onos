@@ -9,6 +9,7 @@ COMPILE_DEPS = [
   '//lib:org.apache.karaf.shell.console',
   '//lib:sshd-core',
   '//apps/openstacknode/api:onos-apps-openstacknode-api',
+  '//apps/openstacktelemetry/api:onos-apps-openstacktelemetry-api',
   '//apps/openstacknetworking/api:onos-apps-openstacknetworking-api',
 ]
 
