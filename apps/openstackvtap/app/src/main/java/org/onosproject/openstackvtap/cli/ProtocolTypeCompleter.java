@@ -28,10 +28,10 @@ public class ProtocolTypeCompleter extends AbstractChoicesCompleter {
     @Override
     protected List<String> choices() {
         List<String> strings = Lists.newArrayList();
+        strings.add("any");
         strings.add("tcp");
         strings.add("udp");
         strings.add("icmp");
-        strings.add("none");
         return strings;
     }
 }

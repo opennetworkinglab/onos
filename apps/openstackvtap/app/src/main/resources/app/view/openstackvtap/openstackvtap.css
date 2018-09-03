@@ -13,26 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.openstackvtap.api;
 
-/**
- * Service for administering the inventory of openstack vtap.
+/*
+ ONOS GUI -- OpenstackVtap -- CSS file
  */
-public interface OpenstackVtapAdminService extends OpenstackVtapService {
 
-    /**
-     * Initializes the flow rules and group tables, tunneling interface for all completed compute nodes.
-     */
-    void initVtap();
+/* --- Topo Vtap Panel --- */
+#topo-p-vtap {
+    padding: 16px;
+    top: 190px;
+    left: 20px;
+}
 
-    /**
-     * Clears the flow rules and group tables, tunneling interfaces for all compute nodes.
-     */
-    void clearVtap();
+.topo-p td input.number-input {
+    width: 50px;
+}
 
-    /**
-     * Purges all flow rules and group tables, tunneling interface for openstack vtap.
-     */
-    void purgeVtap();
+.topo-p div.footer tbody {
+    float: right;
+}
 
+.topo-p div.footer tbody input.button-input {
+    background-color: #5b99d2;
+    border: 0;
+    border-radius: 3px;
+    color: #fff;
+    height: 25px;
+    width: 60px;
+    padding: 1px 0 0 0;
+}
+
+#vtap-dialog {
+    padding: 16px;
+    top: 190px;
+    left: 20px;
 }

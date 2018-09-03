@@ -4,12 +4,13 @@ BUNDLES = [
 ]
 
 onos_app(
+    app_name = "org.onosproject.openstackvtap",
     category = "Integration",
-    description = "SONA Openstack vTap Application.",
+    description = "Openstack Vtap Application.",
     included_bundles = BUNDLES,
     required_apps = [
         "org.onosproject.openstacknetworking",
     ],
-    title = "OpenStack vTap Application",
+    title = "Openstack Vtap Application",
     url = "https://wiki.onosproject.org/display/ONOS/SONA%3A+DC+Network+Virtualization",
 )

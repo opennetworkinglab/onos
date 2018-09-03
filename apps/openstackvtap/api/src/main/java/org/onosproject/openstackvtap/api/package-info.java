@@ -15,6 +15,6 @@
  */
 
 /**
- * Application API for Openstack vTap.
+ * Application API for openstack vtap.
  */
 package org.onosproject.openstackvtap.api;

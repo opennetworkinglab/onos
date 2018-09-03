@@ -16,52 +16,40 @@
 package org.onosproject.openstackvtap.cli;
 
 import com.google.common.collect.ImmutableSet;
-import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
-import org.onosproject.openstackvtap.api.OpenstackVtap;
-import org.onosproject.openstackvtap.api.OpenstackVtapService;
+import org.onosproject.openstackvtap.api.OpenstackVtapAdminService;
+import org.onosproject.openstackvtap.api.OpenstackVtapNetwork;
 
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.onosproject.openstackvtap.util.OpenstackVtapUtil.getVtapTypeFromString;
-
 /**
- * Lists openstack vtap rules.
+ * Lists openstack vtap networks.
  */
-@Command(scope = "onos", name = "openstack-vtap-list",
-        description = "OpenstackVtap list")
-public class OpenstackVtapListCommand extends AbstractShellCommand {
+@Command(scope = "onos", name = "openstack-vtap-network-list",
+        description = "OpenstackVtap network list")
+public class OpenstackVtapNetworkListCommand extends AbstractShellCommand {
 
-    private final OpenstackVtapService vtapService = get(OpenstackVtapService.class);
+    private final OpenstackVtapAdminService osVtapAdminService = get(OpenstackVtapAdminService.class);
     private final OpenstackNodeService osNodeService = get(OpenstackNodeService.class);
 
-    @Argument(index = 0, name = "type",
-            description = "vtap type [any|all|rx|tx]",
-            required = false, multiValued = false)
-    String vtapType = "any";
-
-    private static final String FORMAT = "ID { %s }: type [%s], srcIP [%s], dstIP [%s]";
-    private static final String FORMAT_TX_NODES = "   tx openstack nodes: %s";
-    private static final String FORMAT_RX_NODES = "   rx openstack nodes: %s";
+    private static final String FORMAT = "mode [%s], networkId [%d], serverIp [%s]";
+    private static final String FORMAT_NODES = "   openstack nodes: %s";
 
     @Override
     protected void execute() {
-        OpenstackVtap.Type type = getVtapTypeFromString(vtapType);
-        Set<OpenstackVtap> openstackVtaps = vtapService.getVtaps(type);
-        for (OpenstackVtap vtap : openstackVtaps) {
+        OpenstackVtapNetwork vtapNetwork = osVtapAdminService.getVtapNetwork();
+        if (vtapNetwork != null) {
             print(FORMAT,
-                    vtap.id().toString(),
-                    vtap.type().toString(),
-                    vtap.vtapCriterion().srcIpPrefix().toString(),
-                    vtap.vtapCriterion().dstIpPrefix().toString());
-            print(FORMAT_TX_NODES, osNodeNames(vtap.txDeviceIds()));
-            print(FORMAT_RX_NODES, osNodeNames(vtap.rxDeviceIds()));
+                    vtapNetwork.mode().toString(),
+                    vtapNetwork.networkId() != null ? vtapNetwork.networkId() : "N/A",
+                    vtapNetwork.serverIp().toString());
+            print(FORMAT_NODES, osNodeNames(osVtapAdminService.getVtapNetworkDevices()));
         }
     }
 

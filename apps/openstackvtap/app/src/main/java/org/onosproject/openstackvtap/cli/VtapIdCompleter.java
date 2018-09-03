@@ -27,11 +27,11 @@ import java.util.SortedSet;
 import static org.onosproject.openstackvtap.util.OpenstackVtapUtil.getVtapTypeFromString;
 
 /**
- * vTap ID completer.
+ * Vtap ID completer.
  */
 public class VtapIdCompleter implements Completer {
 
-    private static final String VTAP_TYPE = "none";
+    private static final String VTAP_TYPE = "any";
 
     @Override
     public int complete(String buffer, int cursor, List<String> candidates) {

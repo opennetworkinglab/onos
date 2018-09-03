@@ -15,6 +15,6 @@
  */
 
 /**
- * Implementation for Openstack vtap.
+ * Implementation for openstack vtap.
  */
 package org.onosproject.openstackvtap.impl;

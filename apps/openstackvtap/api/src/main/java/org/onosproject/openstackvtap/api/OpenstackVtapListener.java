@@ -18,7 +18,7 @@ package org.onosproject.openstackvtap.api;
 import org.onosproject.event.EventListener;
 
 /**
- * Entity capable of receiving user related events.
+ * Entity capable of receiving openstack vtap related events.
  */
 public interface OpenstackVtapListener extends EventListener<OpenstackVtapEvent> {
 }

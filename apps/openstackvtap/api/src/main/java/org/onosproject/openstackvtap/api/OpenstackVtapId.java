@@ -19,12 +19,12 @@ import java.util.Objects;
 import java.util.UUID;
 
 /**
- * Immutable representation of an openstack vTap identifier.
+ * Immutable representation of an openstack vtap identifier.
  */
 public final class OpenstackVtapId {
 
     /**
-     * Represents either no vTap, or an unspecified vTap.
+     * Represents either no vtap, or an unspecified vtap.
      */
     public static final OpenstackVtapId NONE = new OpenstackVtapId(null);
 
@@ -50,35 +50,35 @@ public final class OpenstackVtapId {
     }
 
     /**
-     * Creates a vTap identifier using the supplied UUID.
+     * Creates a vtap identifier using the supplied UUID.
      *
-     * @param uuid vTap UUID
-     * @return vTap identifier
+     * @param uuid vtap UUID
+     * @return vtap identifier
      */
-    public static OpenstackVtapId vTapId(UUID uuid) {
+    public static OpenstackVtapId vtapId(UUID uuid) {
         return new OpenstackVtapId(uuid);
     }
 
     /**
-     * Creates a vTap identifier using the supplied string format of UUID.
+     * Creates a vtap identifier using the supplied string format of UUID.
      *
-     * @param uuidString vTap UUID
-     * @return vTap identifier
+     * @param uuidString vtap UUID
+     * @return vtap identifier
      */
-    public static OpenstackVtapId vTapId(String uuidString) {
+    public static OpenstackVtapId vtapId(String uuidString) {
         try {
-            return vTapId(UUID.fromString(uuidString));
+            return vtapId(UUID.fromString(uuidString));
         } catch (Exception e) {
             throw new IllegalArgumentException("Invalid UUID string: " + uuidString);
         }
     }
 
     /**
-     * Creates a OpenstackVtap id using random uuid.
+     * Creates a openstack vtap id using random uuid.
      *
-     * @return OpenstackVtap identifier
+     * @return openstack vtap identifier
      */
-    public static OpenstackVtapId vTapId() {
+    public static OpenstackVtapId vtapId() {
         return new OpenstackVtapId(UUID.randomUUID());
     }
 

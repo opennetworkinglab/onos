@@ -21,16 +21,17 @@ import org.onosproject.cli.AbstractChoicesCompleter;
 import java.util.List;
 
 /**
- * vTap type completer.
+ * Vtap type completer.
  */
 public class VtapTypeCompleter extends AbstractChoicesCompleter {
 
     @Override
     protected List<String> choices() {
         List<String> strings = Lists.newArrayList();
-        strings.add("tx");
-        strings.add("rx");
         strings.add("all");
+        strings.add("rx");
+        strings.add("tx");
+        strings.add("any");
         return strings;
     }
 }

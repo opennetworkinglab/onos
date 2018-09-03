@@ -22,15 +22,14 @@ import org.onosproject.net.SparseAnnotations;
 import java.util.Set;
 
 /**
- * Abstraction of an OpenstackVtap.
+ * Abstraction of an openstack vtap.
  */
 public interface OpenstackVtap extends Annotated {
 
     /**
-     * Openstack vTap type.
+     * List of openstack vtap types.
      */
     enum Type {
-
         /**
          * Indicates mirroring both TX and RX traffic.
          */
@@ -47,9 +46,9 @@ public interface OpenstackVtap extends Annotated {
         VTAP_TX(0x1),
 
         /**
-         * Indicates do not mirroring any traffic.
+         * Indicates selection of mirroring any traffic.
          */
-        VTAP_NONE(0);
+        VTAP_ANY(0x0);
 
         private final int type;
 
@@ -63,97 +62,96 @@ public interface OpenstackVtap extends Annotated {
     }
 
     /**
-     * OpenstackVtap identifier.
+     * Returns the openstack vtap identifier.
      *
-     * @return OpenstackVtap id
+     * @return vtap ID
      */
     OpenstackVtapId id();
 
     /**
-     * Returns OpenstackVtap type.
+     * Returns the openstack vtap type.
      *
-     * @return type
+     * @return type of vtap
      */
     Type type();
 
     /**
-     * Returns the vTap criterion.
+     * Returns the openstack vtap criterion.
      *
-     * @return vTap criterion
+     * @return criterion of vtap
      */
-    OpenstackVtapCriterion vTapCriterion();
+    OpenstackVtapCriterion vtapCriterion();
 
     /**
-     * Returns a collection of TX device identifiers.
+     * Returns a collection of device identifiers for tx.
      *
-     * @return device identifiers
+     * @return device identifiers for tx
      */
     Set<DeviceId> txDeviceIds();
 
     /**
-     * Returns a collection of RX device identifiers.
+     * Returns a collection of device identifiers for rx.
      *
-     * @return device identifiers
+     * @return device identifiers for rx
      */
     Set<DeviceId> rxDeviceIds();
 
     /**
-     * Builder of new openstack vTap instance.
+     * Builder of new openstack vtap instance.
      */
     interface Builder {
-
         /**
-         * Returns openstack vTap builder with supplied vTap identifier.
+         * Returns openstack vtap builder with supplied id.
          *
-         * @param id vTap identifier
-         * @return openstack vTap builder
+         * @param id openstack vtap id
+         * @return openstack vtap builder
          */
         Builder id(OpenstackVtapId id);
 
         /**
-         * Returns openstack vTap builder with supplied vTap type.
+         * Returns openstack vtap builder with supplied type.
          *
-         * @param type vTap type
-         * @return openstack vTap builder
+         * @param type of the vtap
+         * @return openstack vtap builder
          */
         Builder type(OpenstackVtap.Type type);
 
         /**
-         * Returns openstack vTap builder with supplied vTap criterion.
+         * Returns openstack vtap builder with supplied criterion.
          *
-         * @param vTapCriterion vTap criterion
-         * @return openstack vTap builder
+         * @param vtapCriterion for the vtap
+         * @return openstack vtap builder
          */
-        Builder vTapCriterion(OpenstackVtapCriterion vTapCriterion);
+        Builder vtapCriterion(OpenstackVtapCriterion vtapCriterion);
 
         /**
-         * Returns openstack vTap builder with supplied TX device identifiers.
+         * Returns openstack vtap builder with supplied tx deviceId set.
          *
-         * @param txDeviceIds TX device identifiers
-         * @return openstack vTap builder
+         * @param txDeviceIds deviceId set for tx
+         * @return openstack vtap builder
          */
         Builder txDeviceIds(Set<DeviceId> txDeviceIds);
 
         /**
-         * Returns openstack vTap builder with supplied RX device identifiers.
+         * Returns openstack vtap builder with supplied rx deviceId set.
          *
-         * @param rxDeviceIds RX device identifiers
-         * @return openstack vTap builder
+         * @param rxDeviceIds deviceId set for rx
+         * @return openstack vtap builder
          */
         Builder rxDeviceIds(Set<DeviceId> rxDeviceIds);
 
         /**
-         * Returns openstack vTap builder with supplied annotations.
+         * Returns openstack vtap builder with supplied annotations.
          *
          * @param annotations a set of annotations
-         * @return openstack vTap builder
+         * @return openstack vtap builder
          */
-        Builder annotations(SparseAnnotations... annotations);
+        Builder annotations(SparseAnnotations annotations);
 
         /**
-         * Builds an immutable openstack vTap instance.
+         * Builds an immutable OpenstackVtap instance.
          *
-         * @return openstack vTap instance
+         * @return openstack vtap instance
          */
         OpenstackVtap build();
     }

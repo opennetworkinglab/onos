@@ -34,8 +34,8 @@ import static org.hamcrest.Matchers.is;
  */
 public class DefaultOpenstackVtapTest {
 
-    private static final OpenstackVtapId VTAP_ID_1 = OpenstackVtapId.vTapId();
-    private static final OpenstackVtapId VTAP_ID_2 = OpenstackVtapId.vTapId();
+    private static final OpenstackVtapId VTAP_ID_1 = OpenstackVtapId.vtapId();
+    private static final OpenstackVtapId VTAP_ID_2 = OpenstackVtapId.vtapId();
 
     private static final OpenstackVtap.Type VTAP_TYPE_1 = OpenstackVtap.Type.VTAP_TX;
     private static final OpenstackVtap.Type VTAP_TYPE_2 = OpenstackVtap.Type.VTAP_RX;
@@ -74,10 +74,9 @@ public class DefaultOpenstackVtapTest {
         vtap1 = builder1
                     .id(VTAP_ID_1)
                     .type(VTAP_TYPE_1)
-                    .vTapCriterion(CRITERION_1)
+                    .vtapCriterion(CRITERION_1)
                     .txDeviceIds(Sets.newHashSet())
                     .rxDeviceIds(Sets.newHashSet())
-                    .annotations()
                     .build();
 
         OpenstackVtap.Builder builder2 = DefaultOpenstackVtap.builder();
@@ -85,10 +84,9 @@ public class DefaultOpenstackVtapTest {
         sameAsVtap1 = builder2
                         .id(VTAP_ID_1)
                         .type(VTAP_TYPE_1)
-                        .vTapCriterion(CRITERION_1)
+                        .vtapCriterion(CRITERION_1)
                         .txDeviceIds(Sets.newHashSet())
                         .rxDeviceIds(Sets.newHashSet())
-                        .annotations()
                         .build();
 
         OpenstackVtap.Builder builder3 = DefaultOpenstackVtap.builder();
@@ -96,10 +94,9 @@ public class DefaultOpenstackVtapTest {
         vtap2 = builder3
                     .id(VTAP_ID_2)
                     .type(VTAP_TYPE_2)
-                    .vTapCriterion(CRITERION_2)
+                    .vtapCriterion(CRITERION_2)
                     .txDeviceIds(Sets.newHashSet())
                     .rxDeviceIds(Sets.newHashSet())
-                    .annotations()
                     .build();
 
     }
@@ -116,7 +113,7 @@ public class DefaultOpenstackVtapTest {
         DefaultOpenstackVtap vtap = (DefaultOpenstackVtap) vtap1;
 
         assertThat(vtap.id(), is(VTAP_ID_1));
-        assertThat(vtap.vTapCriterion(), is(CRITERION_1));
+        assertThat(vtap.vtapCriterion(), is(CRITERION_1));
         assertThat(vtap.type(), is(VTAP_TYPE_1));
     }
 

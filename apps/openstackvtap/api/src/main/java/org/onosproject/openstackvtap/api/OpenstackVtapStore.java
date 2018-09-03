@@ -21,92 +21,162 @@ import org.onosproject.store.Store;
 import java.util.Set;
 
 /**
- * Manages inventory of OpenstackVtap states; not intended for direct use.
+ * Manages inventory of openstack vtap datum; not intended for direct use.
  */
 public interface OpenstackVtapStore
         extends Store<OpenstackVtapEvent, OpenstackVtapStoreDelegate> {
 
     /**
-     * Creates a new vTap or updates the existing one based on the specified
-     * description.
+     * Creates a new openstack vtap network based on the specified description.
      *
-     * @param vTapId             vTap identifier
-     * @param description        vTap description data
-     * @param replaceFlag        replace device set if true, merge device set otherwise
-     * @return created or updated vTap object or null if error occurred
+     * @param key         vtap network identifier
+     * @param description description of vtap network
+     * @return created openstack vtap network object or null if error occurred
      */
-    OpenstackVtap createOrUpdateVtap(OpenstackVtapId vTapId, OpenstackVtap description, boolean replaceFlag);
+    OpenstackVtapNetwork createVtapNetwork(Integer key, OpenstackVtapNetwork description);
 
     /**
-     * Removes the specified vTap from the inventory by the given vTap identifier.
+     * Updates the openstack vtap network based on the specified description.
      *
-     * @param vTapId             vTap identifier
-     * @return removed vTap object or null if error occurred
+     * @param key         vtap network identifier
+     * @param description description of vtap network
+     * @return updated openstack vtap network object or null if error occurred
      */
-    OpenstackVtap removeVtapById(OpenstackVtapId vTapId);
+    OpenstackVtapNetwork updateVtapNetwork(Integer key, OpenstackVtapNetwork description);
 
     /**
-     * Adds the specified device id from the vTap entry.
+     * Removes the specified openstack vtap network with the specified identifier.
      *
-     * @param vTapId             vTap identification
-     * @param type               vTap type
-     * @param deviceId           device identifier to be added
+     * @param key vtap network identifier
+     * @return removed openstack vtap network object or null if error occurred
+     */
+    OpenstackVtapNetwork removeVtapNetwork(Integer key);
+
+    /**
+     * Removes all openstack vtap networks.
+     */
+    void clearVtapNetworks();
+
+    /**
+     * Returns the number of openstack vtap networks.
+     *
+     * @return number of openstack vtap networks
+     */
+    int getVtapNetworkCount();
+
+    /**
+     * Returns the openstack vtap network with the specified identifier.
+     *
+     * @param key vtap network identifier
+     * @return openstack vtap or null if one with the given identifier is not known
+     */
+    OpenstackVtapNetwork getVtapNetwork(Integer key);
+
+    /**
+     * Adds the specified device id to the specified vtap network entry.
+     *
+     * @param key      vtap network identifier
+     * @param deviceId device identifier to be added
      * @return true on success, false otherwise
      */
-    boolean addDeviceToVtap(OpenstackVtapId vTapId, OpenstackVtap.Type type, DeviceId deviceId);
+    boolean addDeviceToVtapNetwork(Integer key, DeviceId deviceId);
 
     /**
-     * Removes the specified device id from the vTap entry.
+     * Removes the specified device id from the specified vtap network entry.
      *
-     * @param vTapId             vTap identification
-     * @param type               vTap type
-     * @param deviceId           device identifier to be removed
+     * @param key      vtap network identifier
+     * @param deviceId device identifier to be removed
      * @return true on success, false otherwise
      */
-    boolean removeDeviceFromVtap(OpenstackVtapId vTapId, OpenstackVtap.Type type, DeviceId deviceId);
+    boolean removeDeviceFromVtapNetwork(Integer key, DeviceId deviceId);
 
     /**
-     * Adds the specified device id from the vTap entry.
+     * Returns a set of device identifiers from the specified vtap network entry.
      *
-     * @param vTapId             vTap identification
-     * @param txDeviceIds        TX device identifiers to be updated
-     * @param rxDeviceIds        RX device identifiers to be updated
-     * @param replaceFlag        replace device set if true, merge device set otherwise
-     * @return true on success, false otherwise
+     * @param key vtap network identifier
+     * @return set of device identifier
      */
-    boolean updateDeviceForVtap(OpenstackVtapId vTapId, Set<DeviceId> txDeviceIds,
-                                Set<DeviceId> rxDeviceIds, boolean replaceFlag);
+    Set<DeviceId> getVtapNetworkDevices(Integer key);
 
     /**
-     * Returns the number of vTaps in the store.
+     * Creates a new openstack vtap based on the specified description.
      *
-     * @param type               vTap type
-     * @return vTap count
+     * @param description description of vtap
+     * @return created openstack vtap object or null if error occurred
+     */
+    OpenstackVtap createVtap(OpenstackVtap description);
+
+    /**
+     * Updates the openstack vtap with specified description.
+     *
+     * @param description    description of vtap
+     * @param replaceDevices replace device set if true, merge device set otherwise
+     * @return updated openstack vtap object or null if error occurred
+     */
+    OpenstackVtap updateVtap(OpenstackVtap description, boolean replaceDevices);
+
+    /**
+     * Removes the specified openstack vtap with given vtap identifier.
+     *
+     * @param vtapId vtap identifier
+     * @return removed openstack vtap object or null if error occurred
+     */
+    OpenstackVtap removeVtap(OpenstackVtapId vtapId);
+
+    /**
+     * Removes all openstack vtaps.
+     */
+    void clearVtaps();
+
+    /**
+     * Returns the number of openstack vtaps for the given type.
+     *
+     * @param type type of vtap (any,rx,tx,all)
+     * @return number of openstack vtaps
      */
     int getVtapCount(OpenstackVtap.Type type);
 
     /**
-     * Returns a collection of selected vTaps in the store.
+     * Returns a set of openstack vtaps for the given type.
      *
-     * @param type               vTap type
-     * @return iterable collection of selected vTaps
+     * @param type type of vtap (any,rx,tx,all)
+     * @return set of openstack vtaps
      */
     Set<OpenstackVtap> getVtaps(OpenstackVtap.Type type);
 
     /**
-     * Returns the vTap with the specified identifier.
+     * Returns the openstack vtap with the specified identifier.
      *
-     * @param vTapId             vTap identifier
-     * @return vtap or null if not found
+     * @param vtapId vtap identifier
+     * @return openstack vtap or null if one with the given identifier is not known
      */
-    OpenstackVtap getVtap(OpenstackVtapId vTapId);
+    OpenstackVtap getVtap(OpenstackVtapId vtapId);
 
     /**
-     * Returns the set of vTaps whose included on device.
+     * Adds the specified device id to the specified vtap entry.
      *
-     * @param type               vTap type
-     * @param deviceId           device identifier
-     * @return set of vTaps
+     * @param vtapId   vtap identifier
+     * @param type     type of vtap (any,rx,tx,all)
+     * @param deviceId device identifier to be added
+     * @return true on success, false otherwise
      */
-    Set<OpenstackVtap> getVtapsByDeviceId(OpenstackVtap.Type type, DeviceId deviceId);
+    boolean addDeviceToVtap(OpenstackVtapId vtapId, OpenstackVtap.Type type, DeviceId deviceId);
+
+    /**
+     * Removes the specified device id from the vtap entry.
+     *
+     * @param vtapId   vtap identifier
+     * @param type     type of vtap (any,rx,tx,all)
+     * @param deviceId device identifier to be removed
+     * @return true on success, false otherwise
+     */
+    boolean removeDeviceFromVtap(OpenstackVtapId vtapId, OpenstackVtap.Type type, DeviceId deviceId);
+
+    /**
+     * Returns a set of openstack vtaps which are associated with the given device.
+     *
+     * @param deviceId device identifier
+     * @return set of openstack vtaps
+     */
+    Set<OpenstackVtap> getVtapsByDeviceId(DeviceId deviceId);
 }

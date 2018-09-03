@@ -42,7 +42,7 @@
         </command>
 
         <command>
-            <action class="org.onosproject.openstackvtap.cli.OpenstackVtapOutputCommand" />
+            <action class="org.onosproject.openstackvtap.cli.OpenstackVtapNetworkListCommand" />
         </command>
     </command-bundle>
 

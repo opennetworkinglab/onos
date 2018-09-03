@@ -19,35 +19,35 @@ import org.onlab.packet.IpPrefix;
 import org.onlab.packet.TpPort;
 
 /**
- * A vTAP criterion used for mirroring traffic.
+ * A vtap criterion used for mirroring traffic.
  */
 public interface OpenstackVtapCriterion {
 
     /**
-     * Returns IP Prefix of Source VM.
+     * Returns IP prefix of source.
      *
-     * @return source IP prefix
+     * @return source IP prefix of vtap criterion
      */
     IpPrefix srcIpPrefix();
 
     /**
-     * Returns IP Prefix of Destination VM.
+     * Returns IP prefix of destination.
      *
-     * @return destination IP prefix
+     * @return destination IP prefix of vtap criterion
      */
     IpPrefix dstIpPrefix();
 
     /**
      * Returns IP protocol.
      *
-     * @return IP protocol
+     * @return IP protocol of vtap criterion
      */
     byte ipProtocol();
 
     /**
      * Returns source transport port.
      *
-     * @return source transport port number
+     * @return source transport port of vtap criterion
      */
 
     TpPort srcTpPort();
@@ -55,60 +55,59 @@ public interface OpenstackVtapCriterion {
     /**
      * Returns destination transport port.
      *
-     * @return destination transport port number
+     * @return destination transport port of vtap criterion
      */
     TpPort dstTpPort();
 
     /**
-     * Builder of new openstack vTap criteria.
+     * Builder of new OpenstackVtapCriterion instance.
      */
     interface Builder {
-
         /**
-         * Builds an immutable openstack vTap criterion instance.
+         * Returns openstack vtap criterion builder with supplied source IP prefix.
          *
-         * @return openstack vTap criterion
-         */
-        OpenstackVtapCriterion build();
-
-        /**
-         * Returns openstack vTap criterion builder with supplied srcIpPrefix.
-         *
-         * @param srcIpPrefix Source IP address
-         * @return openstack vTap criterion builder
+         * @param srcIpPrefix Source IP prefix
+         * @return openstack vtap criterion builder
          */
         Builder srcIpPrefix(IpPrefix srcIpPrefix);
 
         /**
-         * Returns openstack vTap criterion builder with supplied srcIpPrefix.
+         * Returns openstack vtap criterion builder with supplied destination IP prefix.
          *
-         * @param dstIpPrefix Destination IP Prefix
-         * @return openstack vTap criterion builder
+         * @param dstIpPrefix Destination IP prefix
+         * @return openstack vtap criterion builder
          */
         Builder dstIpPrefix(IpPrefix dstIpPrefix);
 
         /**
-         * Returns openstack vTap criterion builder with supplied ipProtocol.
+         * Returns openstack vtap criterion builder with supplied ipProtocol.
          *
-         * @param ipProtocol IP protocol number
-         * @return openstack vTap criterion builder
+         * @param ipProtocol IP protocol
+         * @return openstack vtap criterion builder
          */
         Builder ipProtocol(byte ipProtocol);
 
         /**
-         * Returns openstack vTap criterion builder with supplied srcTpPort.
+         * Returns openstack vtap criterion builder with supplied source port.
          *
-         * @param srcTpPort Source transport port number
-         * @return openstack vTap criterion builder
+         * @param srcTpPort Source transport port
+         * @return openstack vtap criterion builder
          */
         Builder srcTpPort(TpPort srcTpPort);
 
         /**
-         * Returns openstack vTap criterion builder with supplied dstTpPort.
+         * Returns openstack vtap criterion builder with supplied destination port.
          *
-         * @param dstTpPort Destination transport port number
-         * @return openstack vTap criterion builder
+         * @param dstTpPort Destination transport port
+         * @return openstack vtap criterion builder
          */
         Builder dstTpPort(TpPort dstTpPort);
+
+        /**
+         * Builds an immutable OpenstackVtapCriterion instance.
+         *
+         * @return OpenstackVtapCriterion criterion
+         */
+        OpenstackVtapCriterion build();
     }
 }

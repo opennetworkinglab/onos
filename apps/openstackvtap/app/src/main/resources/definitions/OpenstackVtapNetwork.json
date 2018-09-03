@@ -1,0 +1,30 @@
+{
+  "type": "object",
+  "required": [
+    "network"
+  ],
+  "properties": {
+    "network": {
+      "type": "object",
+      "required": [
+        "mode",
+        "networkId",
+        "serverIp"
+      ],
+      "properties": {
+        "mode": {
+          "type": "string",
+          "example": "GRE"
+        },
+        "networkId": {
+          "type": "int",
+          "example": 1000
+        },
+        "serverIp": {
+          "type": "string",
+          "example": "10.20.0.1"
+        }
+      }
+    }
+  }
+}

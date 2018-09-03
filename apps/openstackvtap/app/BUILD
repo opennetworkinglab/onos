@@ -12,9 +12,9 @@ TEST_DEPS = TEST_ADAPTERS + TEST_REST + [
 ]
 
 osgi_jar_with_tests(
-    api_description = "OpenStack Network vTap REST API",
+    api_description = "Openstack Vtap REST API",
     api_package = "org.onosproject.openstackvtap.web",
-    api_title = "OpenStack Network vTap REST API",
+    api_title = "Openstack Vtap REST API",
     api_version = "1.0",
     test_deps = TEST_DEPS,
     web_context = "/onos/openstackvtap",

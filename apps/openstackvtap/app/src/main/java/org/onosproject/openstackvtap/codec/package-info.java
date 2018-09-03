@@ -13,26 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.openstackvtap.api;
 
 /**
- * Service for administering the inventory of openstack vtap.
+ * Implementations of the codec broker and openstack vtap entity JSON codecs.
  */
-public interface OpenstackVtapAdminService extends OpenstackVtapService {
-
-    /**
-     * Initializes the flow rules and group tables, tunneling interface for all completed compute nodes.
-     */
-    void initVtap();
-
-    /**
-     * Clears the flow rules and group tables, tunneling interfaces for all compute nodes.
-     */
-    void clearVtap();
-
-    /**
-     * Purges all flow rules and group tables, tunneling interface for openstack vtap.
-     */
-    void purgeVtap();
-
-}
+package org.onosproject.openstackvtap.codec;

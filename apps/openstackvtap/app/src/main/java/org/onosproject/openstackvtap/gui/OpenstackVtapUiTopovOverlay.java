@@ -13,26 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.openstackvtap.api;
+package org.onosproject.openstackvtap.gui;
 
-/**
- * Service for administering the inventory of openstack vtap.
- */
-public interface OpenstackVtapAdminService extends OpenstackVtapService {
+import org.onosproject.ui.UiTopoOverlay;
 
-    /**
-     * Initializes the flow rules and group tables, tunneling interface for all completed compute nodes.
-     */
-    void initVtap();
+public class OpenstackVtapUiTopovOverlay extends UiTopoOverlay {
+    private static final String OVERLAY_ID = "vtap-overlay";
 
-    /**
-     * Clears the flow rules and group tables, tunneling interfaces for all compute nodes.
-     */
-    void clearVtap();
+    public OpenstackVtapUiTopovOverlay() {
+        super(OVERLAY_ID);
+    }
 
-    /**
-     * Purges all flow rules and group tables, tunneling interface for openstack vtap.
-     */
-    void purgeVtap();
+    @Override
+    public void activate() {
+        super.activate();
+        log.debug("Openstack VtapOverlay Activated");
+    }
+
+    @Override
+    public void deactivate() {
+        super.deactivate();
+        log.debug("Openstack VtapOverlay Deactivated");
+    }
 
 }
+
