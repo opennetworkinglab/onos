@@ -16,13 +16,11 @@
 
 package org.onosproject.openstacknetworking.impl;
 
-import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Modified;
-import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.http.Header;
@@ -31,8 +29,10 @@ import org.apache.http.HttpMessage;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -46,8 +46,6 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.TCP;
 import org.onlab.packet.TpPort;
-import org.onlab.util.Tools;
-import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.LeadershipService;
 import org.onosproject.cluster.NodeId;
@@ -72,13 +70,12 @@ import org.onosproject.openstacknode.api.OpenstackNodeEvent;
 import org.onosproject.openstacknode.api.OpenstackNodeListener;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
 import org.openstack4j.model.network.Port;
-import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Dictionary;
 import java.util.Objects;
+import java.util.Set;
 
 import static org.onosproject.openstacknetworking.api.Constants.DHCP_ARP_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_DHCP_RULE;
@@ -121,15 +118,11 @@ public class OpenstackMetadataProxyHandler {
 
     private static final String HTTP_GET_METHOD = "GET";
     private static final String HTTP_POST_METHOD = "POST";
-
-    private static final String METADATA_SECRET = "metadataSecret";
-    private static final String DEFAULT_METADATA_SECRET = "nova";
+    private static final String HTTP_PUT_METHOD = "PUT";
+    private static final String HTTP_DELETE_METHOD = "DELETE";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected ComponentConfigService configService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected PacketService packetService;
@@ -152,12 +145,10 @@ public class OpenstackMetadataProxyHandler {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OpenstackFlowRuleService osFlowRuleService;
 
-    @Property(name = METADATA_SECRET, value = DEFAULT_METADATA_SECRET,
-            label = "Metadata secret")
-    private String metadataSecret = DEFAULT_METADATA_SECRET;
-
     private final PacketProcessor packetProcessor = new InternalPacketProcessor();
     private final OpenstackNodeListener osNodeListener = new InternalNodeEventListener();
+
+    private Set<String> excludedHeaders = ImmutableSet.of("content-type", "content-length");
 
     private ApplicationId appId;
     private NodeId localNodeId;
@@ -166,7 +157,6 @@ public class OpenstackMetadataProxyHandler {
     protected void activate() {
         appId = coreService.registerApplication(Constants.OPENSTACK_NETWORKING_APP_ID);
         localNodeId = clusterService.getLocalNode().id();
-        configService.registerProperties(getClass());
         osNodeService.addListener(osNodeListener);
         packetService.addProcessor(packetProcessor, PacketProcessor.director(0));
         leadershipService.runForLeadership(appId.name());
@@ -177,32 +167,21 @@ public class OpenstackMetadataProxyHandler {
     @Deactivate
     protected void deactivate() {
         packetService.removeProcessor(packetProcessor);
-        configService.unregisterProperties(getClass(), false);
         osNodeService.removeListener(osNodeListener);
         leadershipService.withdraw(appId.name());
 
         log.info("Stopped");
     }
 
-    @Modified
-    protected void modified(ComponentContext context) {
-        Dictionary<?, ?> properties = context.getProperties();
-        String updatedMetadataSecret;
-
-        updatedMetadataSecret = Tools.get(properties, METADATA_SECRET);
-
-        if (!Strings.isNullOrEmpty(updatedMetadataSecret) &&
-                !updatedMetadataSecret.equals(metadataSecret)) {
-            metadataSecret = updatedMetadataSecret;
-        }
-
-        log.info("Modified");
-    }
-
     private class InternalPacketProcessor implements PacketProcessor {
 
         @Override
         public void process(PacketContext context) {
+
+            if (!useMetadataProxy()) {
+                return;
+            }
+
             if (context.isHandled()) {
                 return;
             }
@@ -224,12 +203,16 @@ public class OpenstackMetadataProxyHandler {
                 return;
             }
 
+            // (three-way handshaking)
+            // reply TCP SYN-ACK packet with receiving TCP SYN packet
             if (tcpPacket.getFlags() == SYN_FLAG) {
                 Ethernet ethReply = buildTcpSynAckPacket(ethPacket, ipv4Packet, tcpPacket);
                 sendReply(context, ethReply);
                 return;
             }
 
+            // (four-way handshaking)
+            // reply TCP ACK and TCP FIN-ACK packets with receiving TCP FIN-ACK packet
             if (tcpPacket.getFlags() == FIN_ACK_FLAG) {
                 Ethernet ackReply = buildTcpAckPacket(ethPacket, ipv4Packet, tcpPacket);
                 sendReply(context, ackReply);
@@ -238,6 +221,7 @@ public class OpenstackMetadataProxyHandler {
                 return;
             }
 
+            // normal TCP data transmission
             Data data = (Data) tcpPacket.getPayload();
             byte[] byteData = data.getData();
 
@@ -252,7 +236,7 @@ public class OpenstackMetadataProxyHandler {
                 }
 
                 // attempt to send HTTP request to the meta-data server (nova-api),
-                // obtain the HTTP response
+                // obtain the HTTP response, relay the response to VM through packet-out
                 CloseableHttpResponse proxyResponse = proxyHttpRequest(request, instPort);
 
                 if (proxyResponse == null) {
@@ -434,19 +418,30 @@ public class OpenstackMetadataProxyHandler {
                 return null;
             }
 
-            log.info("Sending request to metadata endpoint {}...", url);
-
             HttpRequestBase request;
 
-            switch (oldRequest.getRequestLine().getMethod()) {
+            String method = oldRequest.getRequestLine().getMethod().toUpperCase();
+
+            log.info("Sending HTTP {} request to metadata endpoint {}...", method, url);
+
+            switch (method) {
                 case HTTP_GET_METHOD:
                     request = new HttpGet(url);
                     break;
                 case HTTP_POST_METHOD:
                     request = new HttpPost(url);
-                    HttpEntityEnclosingRequest entityRequest =
+                    HttpEntityEnclosingRequest postRequest =
                             (HttpEntityEnclosingRequest) oldRequest;
-                    ((HttpPost) request).setEntity(entityRequest.getEntity());
+                    ((HttpPost) request).setEntity(postRequest.getEntity());
+                    break;
+                case HTTP_PUT_METHOD:
+                    request = new HttpPut(url);
+                    HttpEntityEnclosingRequest putRequest =
+                            (HttpEntityEnclosingRequest) oldRequest;
+                    ((HttpPut) request).setEntity(putRequest.getEntity());
+                    break;
+                case HTTP_DELETE_METHOD:
+                    request = new HttpDelete(url);
                     break;
                 default:
                     request = new HttpGet(url);
@@ -455,6 +450,13 @@ public class OpenstackMetadataProxyHandler {
 
             // configure headers from original HTTP request
             for (Header header : oldRequest.getAllHeaders()) {
+                if (method.equals(HTTP_POST_METHOD) ||
+                        method.equals(HTTP_PUT_METHOD)) {
+                    // we DO NOT add duplicated HTTP headers for POST and PUT methods
+                    if (excludedHeaders.contains(header.getName().toLowerCase())) {
+                        continue;
+                    }
+                }
                 request.addHeader(header);
             }
 
@@ -463,11 +465,12 @@ public class OpenstackMetadataProxyHandler {
             Port port = osNetworkService.port(instPort.portId());
 
             request.addHeader(new BasicHeader(INSTANCE_ID_HEADER, port.getDeviceId()));
-            request.addHeader(new BasicHeader(INSTANCE_ID_SIGNATURE_HEADER,
-                    hmacEncrypt(metadataSecret, port.getDeviceId())));
             request.addHeader(new BasicHeader(TENANT_ID_HEADER, port.getTenantId()));
-            request.addHeader(new BasicHeader(
-                    FORWARDED_FOR_HEADER, instPort.ipAddress().toString()));
+            request.addHeader(new BasicHeader(FORWARDED_FOR_HEADER, instPort.ipAddress().toString()));
+            if (metadataSecret() != null) {
+                request.addHeader(new BasicHeader(INSTANCE_ID_SIGNATURE_HEADER,
+                        hmacEncrypt(metadataSecret(), port.getDeviceId())));
+            }
 
             try {
                 return client.execute(request);
@@ -508,7 +511,7 @@ public class OpenstackMetadataProxyHandler {
             // do not allow to proceed without leadership
             NodeId leader = leadershipService.getLeader(appId.name());
             return Objects.equals(localNodeId, leader) &&
-                    event.subject().type() == COMPUTE;
+                    event.subject().type() == COMPUTE && useMetadataProxy();
         }
 
         @Override
@@ -557,6 +560,28 @@ public class OpenstackMetadataProxyHandler {
                     DHCP_ARP_TABLE,
                     install);
         }
+    }
+
+    private boolean useMetadataProxy() {
+        OpenstackNode gw = osNodeService.completeNodes(CONTROLLER)
+                .stream().findFirst().orElse(null);
+
+        if (gw != null && gw.neutronConfig() != null) {
+            return gw.neutronConfig().useMetadataProxy();
+        }
+
+        return false;
+    }
+
+    private String metadataSecret() {
+        OpenstackNode controller = osNodeService.completeNodes(CONTROLLER)
+                .stream().findFirst().orElse(null);
+
+        if (controller != null && controller.neutronConfig() != null) {
+            return controller.neutronConfig().metadataProxySecret();
+        }
+
+        return null;
     }
 
     /**
