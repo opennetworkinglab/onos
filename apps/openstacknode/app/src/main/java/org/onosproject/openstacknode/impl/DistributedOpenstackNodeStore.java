@@ -26,6 +26,8 @@ import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.behaviour.ControllerInfo;
+import org.onosproject.openstacknode.api.DefaultKeystoneConfig;
+import org.onosproject.openstacknode.api.DefaultNeutronConfig;
 import org.onosproject.openstacknode.api.DefaultOpenstackAuth;
 import org.onosproject.openstacknode.api.DefaultOpenstackNode;
 import org.onosproject.openstacknode.api.DpdkConfig;
@@ -98,6 +100,8 @@ public class DistributedOpenstackNodeStore
             .register(DefaultOpenstackAuth.Perspective.class)
             .register(DefaultOpenstackAuth.Protocol.class)
             .register(DefaultOpenstackSshAuth.class)
+            .register(DefaultKeystoneConfig.class)
+            .register(DefaultNeutronConfig.class)
             .register(Collection.class)
             .build();
 
