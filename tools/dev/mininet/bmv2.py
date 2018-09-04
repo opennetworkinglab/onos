@@ -5,9 +5,10 @@ import random
 import re
 import socket
 import threading
-import time
 import urllib2
 from contextlib import closing
+
+import time
 from mininet.log import info, warn
 from mininet.node import Switch, Host
 
@@ -82,7 +83,7 @@ class ONOSBmv2Switch(Switch):
     mininet_exception = multiprocessing.Value('i', 0)
 
     def __init__(self, name, json=None, debugger=False, loglevel="warn",
-                 elogger=False, grpcport=None, cpuport=255,
+                 elogger=False, grpcport=None, cpuport=255, notifications=False,
                  thriftport=None, netcfg=True, dryrun=False, pipeconf="",
                  pktdump=False, valgrind=False, gnmi=False,
                  portcfg=True, onosdevid=None, **kwargs):
@@ -92,6 +93,7 @@ class ONOSBmv2Switch(Switch):
         self.cpuPort = cpuport
         self.json = json
         self.debugger = parseBoolean(debugger)
+        self.notifications = parseBoolean(notifications)
         self.loglevel = loglevel
         # Important: Mininet removes all /tmp/*.log files in case of exceptions.
         # We want to be able to see the bmv2 log if anything goes wrong, hence
@@ -266,8 +268,9 @@ class ONOSBmv2Switch(Switch):
             if not intf.IP():
                 args.append('-i %d@%s' % (port, intf.name))
         args.append('--thrift-port %s' % self.thriftPort)
-        ntfaddr = 'ipc:///tmp/bmv2-%s-notifications.ipc' % self.name
-        args.append('--notifications-addr %s' % ntfaddr)
+        if self.notifications:
+            ntfaddr = 'ipc:///tmp/bmv2-%s-notifications.ipc' % self.name
+            args.append('--notifications-addr %s' % ntfaddr)
         if self.elogger:
             nanologaddr = 'ipc:///tmp/bmv2-%s-nanolog.ipc' % self.name
             args.append('--nanolog %s' % nanologaddr)

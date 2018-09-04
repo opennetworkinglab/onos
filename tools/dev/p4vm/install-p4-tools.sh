@@ -21,7 +21,7 @@ set -e
 BUILD_DIR=~/p4tools
 # in case BMV2_COMMIT value is updated, the same variable in
 # protocols/bmv2/thrift-api/BUCK file should also be updated
-BMV2_COMMIT="a3f0ebe4c0f10a656f8aa1ad68cb20402a62b0ee"
+BMV2_COMMIT="13370aaf9329fcb369a3ea3989722eb5f61c07f3"
 PI_COMMIT="7e94b025bac6db63bc8534e5dd21a008984e38bc"
 P4C_COMMIT="2d089af757212a057c6690998861ef67439305f4"
 PROTOBUF_COMMIT="tags/v3.2.0"
@@ -293,7 +293,7 @@ function do_bmv2 {
 
     ./autogen.sh
     if [ "${DEBUG_FLAGS}" = true ] ; then
-        ./configure --with-pi --enable-debugger --disable-elogger "CXXFLAGS=-O0 -g"
+        ./configure --with-pi --disable-elogger --without-nanomsg "CXXFLAGS=-O0 -g"
     else
         ./configure --with-pi --disable-logging-macros --disable-elogger --without-nanomsg
     fi
