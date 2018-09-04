@@ -24,12 +24,16 @@ import org.onosproject.codec.CodecService;
 import org.onosproject.net.behaviour.ControllerInfo;
 import org.onosproject.openstacknode.api.DpdkConfig;
 import org.onosproject.openstacknode.api.DpdkInterface;
+import org.onosproject.openstacknode.api.KeystoneConfig;
+import org.onosproject.openstacknode.api.NeutronConfig;
 import org.onosproject.openstacknode.api.OpenstackAuth;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackPhyInterface;
 import org.onosproject.openstacknode.api.OpenstackSshAuth;
 import org.onosproject.openstacknode.codec.DpdkConfigCodec;
 import org.onosproject.openstacknode.codec.DpdkInterfaceCodec;
+import org.onosproject.openstacknode.codec.KeystoneConfigCodec;
+import org.onosproject.openstacknode.codec.NeutronConfigCodec;
 import org.onosproject.openstacknode.codec.OpenstackAuthCodec;
 import org.onosproject.openstacknode.codec.OpenstackControllerCodec;
 import org.onosproject.openstacknode.codec.OpenstackNodeCodec;
@@ -58,6 +62,8 @@ public class OpenstackNodeCodecRegister {
         codecService.registerCodec(OpenstackSshAuth.class, new OpenstackSshAuthCodec());
         codecService.registerCodec(DpdkInterface.class, new DpdkInterfaceCodec());
         codecService.registerCodec(DpdkConfig.class, new DpdkConfigCodec());
+        codecService.registerCodec(KeystoneConfig.class, new KeystoneConfigCodec());
+        codecService.registerCodec(NeutronConfig.class, new NeutronConfigCodec());
 
         log.info("Started");
     }
@@ -71,6 +77,8 @@ public class OpenstackNodeCodecRegister {
         codecService.unregisterCodec(OpenstackSshAuth.class);
         codecService.unregisterCodec(DpdkConfig.class);
         codecService.unregisterCodec(DpdkInterface.class);
+        codecService.unregisterCodec(KeystoneConfig.class);
+        codecService.unregisterCodec(NeutronConfig.class);
 
         log.info("Stopped");
     }

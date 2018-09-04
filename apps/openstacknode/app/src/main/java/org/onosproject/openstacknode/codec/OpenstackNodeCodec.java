@@ -25,11 +25,14 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.ControllerInfo;
 import org.onosproject.openstacknode.api.DefaultOpenstackNode;
 import org.onosproject.openstacknode.api.DpdkConfig;
+import org.onosproject.openstacknode.api.KeystoneConfig;
+import org.onosproject.openstacknode.api.NeutronConfig;
 import org.onosproject.openstacknode.api.NodeState;
 import org.onosproject.openstacknode.api.OpenstackAuth;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackPhyInterface;
 import org.onosproject.openstacknode.api.OpenstackSshAuth;
+import org.onosproject.openstacknode.api.DefaultKeystoneConfig;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -59,8 +62,10 @@ public final class OpenstackNodeCodec extends JsonCodec<OpenstackNode> {
     private static final String STATE = "state";
     private static final String PHYSICAL_INTERFACES = "phyIntfs";
     private static final String CONTROLLERS = "controllers";
+    private static final String KEYSTONE_CONFIG = "keystoneConfig";
+    private static final String ENDPOINT = "endpoint";
     private static final String AUTHENTICATION = "authentication";
-    private static final String END_POINT = "endpoint";
+    private static final String NEUTRON_CONFIG = "neutronConfig";
     private static final String SSH_AUTH = "sshAuth";
     private static final String DPDK_CONFIG = "dpdkConfig";
 
@@ -83,7 +88,18 @@ public final class OpenstackNodeCodec extends JsonCodec<OpenstackNode> {
         }
 
         if (type == OpenstackNode.NodeType.CONTROLLER) {
-            result.put(END_POINT, node.endpoint());
+
+            ObjectNode keystoneConfigJson = context.codec(KeystoneConfig.class)
+                    .encode(node.keystoneConfig(), context);
+
+            result.set(KEYSTONE_CONFIG, keystoneConfigJson);
+        }
+
+        if (node.neutronConfig() != null) {
+            ObjectNode neutronConfigJson = context.codec(NeutronConfig.class)
+                    .encode(node.neutronConfig(), context);
+
+            result.set(NEUTRON_CONFIG, neutronConfigJson);
         }
 
         if (node.intgBridge() != null) {
@@ -98,27 +114,20 @@ public final class OpenstackNodeCodec extends JsonCodec<OpenstackNode> {
             result.put(DATA_IP, node.dataIp().toString());
         }
 
-        // TODO: need to find a way to not refer to ServiceDirectory from
-        // DefaultOpenstackNode
-
         ArrayNode phyIntfs = context.mapper().createArrayNode();
         node.phyIntfs().forEach(phyIntf -> {
-            ObjectNode phyIntfJson = context.codec(OpenstackPhyInterface.class).encode(phyIntf, context);
+            ObjectNode phyIntfJson =
+                    context.codec(OpenstackPhyInterface.class).encode(phyIntf, context);
             phyIntfs.add(phyIntfJson);
         });
         result.set(PHYSICAL_INTERFACES, phyIntfs);
 
         ArrayNode controllers = context.mapper().createArrayNode();
         node.controllers().forEach(controller -> {
-            ObjectNode controllerJson = context.codec(ControllerInfo.class).encode(controller, context);
+            ObjectNode controllerJson =
+                    context.codec(ControllerInfo.class).encode(controller, context);
             controllers.add(controllerJson);
         });
-
-        if (node.authentication() != null) {
-            ObjectNode authJson = context.codec(OpenstackAuth.class)
-                    .encode(node.authentication(), context);
-            result.set(AUTHENTICATION, authJson);
-        }
 
         if (node.sshAuthInfo() != null) {
             ObjectNode sshAuthJson = context.codec(OpenstackSshAuth.class)
@@ -159,9 +168,30 @@ public final class OpenstackNodeCodec extends JsonCodec<OpenstackNode> {
                     UPLINK_PORT + MISSING_MESSAGE));
         }
         if (type.equals(CONTROLLER)) {
-            String endPoint = nullIsIllegal(json.get(END_POINT).asText(),
-                    END_POINT + MISSING_MESSAGE);
-            nodeBuilder.endpoint(endPoint);
+
+            JsonNode keystoneConfigJson = json.get(KEYSTONE_CONFIG);
+
+            KeystoneConfig keystoneConfig;
+            if (keystoneConfigJson != null) {
+                final JsonCodec<KeystoneConfig> keystoneConfigCodec =
+                                        context.codec(KeystoneConfig.class);
+                keystoneConfig = keystoneConfigCodec.decode((ObjectNode)
+                                        keystoneConfigJson.deepCopy(), context);
+            } else {
+                JsonNode authJson = json.get(AUTHENTICATION);
+                final JsonCodec<OpenstackAuth> authCodec = context.codec(OpenstackAuth.class);
+                OpenstackAuth auth = authCodec.decode((ObjectNode) authJson.deepCopy(), context);
+
+                String endpoint = nullIsIllegal(json.get(ENDPOINT).asText(),
+                        ENDPOINT + MISSING_MESSAGE);
+
+                keystoneConfig = DefaultKeystoneConfig.builder()
+                        .authentication(auth)
+                        .endpoint(endpoint)
+                        .build();
+            }
+
+            nodeBuilder.keystoneConfig(keystoneConfig);
         }
         if (json.get(VLAN_INTF_NAME) != null) {
             nodeBuilder.vlanIntf(json.get(VLAN_INTF_NAME).asText());
@@ -205,30 +235,36 @@ public final class OpenstackNodeCodec extends JsonCodec<OpenstackNode> {
         }
         nodeBuilder.controllers(controllers);
 
-        // parse authentication
-        JsonNode authJson = json.get(AUTHENTICATION);
-        if (authJson != null) {
+        // parse neutron config
+        JsonNode neutronConfigJson = json.get(NEUTRON_CONFIG);
+        if (neutronConfigJson != null) {
+            final JsonCodec<NeutronConfig> neutronConfigJsonCodec =
+                                context.codec(NeutronConfig.class);
 
-            final JsonCodec<OpenstackAuth> authCodec = context.codec(OpenstackAuth.class);
-
-            OpenstackAuth auth = authCodec.decode((ObjectNode) authJson.deepCopy(), context);
-            nodeBuilder.authentication(auth);
+            NeutronConfig neutronConfig =
+                    neutronConfigJsonCodec.decode((ObjectNode)
+                            neutronConfigJson.deepCopy(), context);
+            nodeBuilder.neutronConfig(neutronConfig);
         }
 
         // parse ssh authentication
         JsonNode sshAuthJson = json.get(SSH_AUTH);
         if (sshAuthJson != null) {
-            final JsonCodec<OpenstackSshAuth> sshAuthJsonCodec = context.codec(OpenstackSshAuth.class);
+            final JsonCodec<OpenstackSshAuth> sshAuthJsonCodec =
+                                context.codec(OpenstackSshAuth.class);
 
-            OpenstackSshAuth sshAuth = sshAuthJsonCodec.decode((ObjectNode) sshAuthJson.deepCopy(), context);
+            OpenstackSshAuth sshAuth = sshAuthJsonCodec.decode((ObjectNode)
+                            sshAuthJson.deepCopy(), context);
             nodeBuilder.sshAuthInfo(sshAuth);
         }
 
         JsonNode dpdkConfigJson = json.get(DPDK_CONFIG);
         if (dpdkConfigJson != null) {
-            final JsonCodec<DpdkConfig> dpdkConfigJsonCodec = context.codec(DpdkConfig.class);
+            final JsonCodec<DpdkConfig> dpdkConfigJsonCodec =
+                                context.codec(DpdkConfig.class);
 
-            DpdkConfig dpdkConfig = dpdkConfigJsonCodec.decode((ObjectNode) dpdkConfigJson.deepCopy(), context);
+            DpdkConfig dpdkConfig = dpdkConfigJsonCodec.decode((ObjectNode)
+                                dpdkConfigJson.deepCopy(), context);
             nodeBuilder.dpdkConfig(dpdkConfig);
         }
 

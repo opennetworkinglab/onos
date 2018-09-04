@@ -192,20 +192,6 @@ public interface OpenstackNode {
     PortNumber phyIntfPortNum(String providerPhysnet);
 
     /**
-     * Returns the keystone authentication info.
-     *
-     * @return keystone authentication info
-     */
-    OpenstackAuth authentication();
-
-    /**
-     * Returns the endpoint URL info.
-     *
-     * @return keystone authentication info
-     */
-    String endpoint();
-
-    /**
      * Returns a collection of customized controllers.
      *
      * @return customized controllers
@@ -225,6 +211,20 @@ public interface OpenstackNode {
      * @return dpdk config
      */
     DpdkConfig dpdkConfig();
+
+    /**
+     * Returns the keystone config info.
+     *
+     * @return keystone config
+     */
+    KeystoneConfig keystoneConfig();
+
+    /**
+     * Returns the neutron config info.
+     *
+     * @return neutron config
+     */
+    NeutronConfig neutronConfig();
 
     /**
      * Builder of new node entities.
@@ -319,22 +319,6 @@ public interface OpenstackNode {
         Builder controllers(Collection<ControllerInfo> controllers);
 
         /**
-         * Returns openstack node builder with supplied authentication info.
-         *
-         * @param auth keystone authentication info
-         * @return openstack node builder
-         */
-        Builder authentication(OpenstackAuth auth);
-
-        /**
-         * Returns openstack node builder with supplied endpoint info.
-         *
-         * @param endpoint endpoint info
-         * @return openstack node builder
-         */
-        Builder endpoint(String endpoint);
-
-        /**
          * Returns openstack node builder with supplied ssh authentication info.
          *
          * @param sshAuth ssh authentication info
@@ -349,6 +333,22 @@ public interface OpenstackNode {
          * @return openstack node builder
          */
         Builder dpdkConfig(DpdkConfig dpdkConfig);
+
+        /**
+         * Returns openstack node builder with supplied keystone config info.
+         *
+         * @param keystoneConfig keystone config
+         * @return openstack node builder
+         */
+        Builder keystoneConfig(KeystoneConfig keystoneConfig);
+
+        /**
+         * Returns openstack node builder with supplied neutron config info.
+         *
+         * @param neutronConfig neutron config
+         * @return openstack node builder
+         */
+        Builder neutronConfig(NeutronConfig neutronConfig);
     }
 }
 

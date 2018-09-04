@@ -1,0 +1,18 @@
+{
+  "hostname": "controller",
+  "type": "CONTROLLER",
+  "managementIp": "172.16.130.10",
+  "neutronConfig": {
+    "useMetadataProxy": true,
+    "metadataProxySecret": "onos"
+  },
+  "endpoint": "172.16.130.10:35357/v2.0",
+  "authentication": {
+    "version": "v2.0",
+    "protocol": "HTTP",
+    "project": "admin",
+    "username": "admin",
+    "password": "nova",
+    "perspective": "PUBLIC"
+  }
+}

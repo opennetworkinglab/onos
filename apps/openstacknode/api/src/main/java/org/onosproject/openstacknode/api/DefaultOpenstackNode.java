@@ -53,10 +53,10 @@ public class DefaultOpenstackNode implements OpenstackNode {
     private final NodeState state;
     private final Collection<OpenstackPhyInterface> phyIntfs;
     private final Collection<ControllerInfo> controllers;
-    private final OpenstackAuth auth;
-    private final String endpoint;
     private final OpenstackSshAuth sshAuth;
     private final DpdkConfig dpdkConfig;
+    private final KeystoneConfig keystoneConfig;
+    private final NeutronConfig neutronConfig;
 
     private static final String NOT_NULL_MSG = "Node % cannot be null";
 
@@ -65,20 +65,20 @@ public class DefaultOpenstackNode implements OpenstackNode {
     /**
      * A default constructor of Openstack Node.
      *
-     * @param hostname      hostname
-     * @param type          node type
-     * @param intgBridge    integration bridge
-     * @param managementIp  management IP address
-     * @param dataIp        data IP address
-     * @param vlanIntf      VLAN interface
-     * @param uplinkPort    uplink port name
-     * @param state         node state
-     * @param phyIntfs      physical interfaces
-     * @param controllers   customized controllers
-     * @param auth          keystone authentication info
-     * @param endpoint      openstack endpoint URL
-     * @param sshAuth       ssh authentication info
-     * @param dpdkConfig    dpdk config
+     * @param hostname          hostname
+     * @param type              node type
+     * @param intgBridge        integration bridge
+     * @param managementIp      management IP address
+     * @param dataIp            data IP address
+     * @param vlanIntf          VLAN interface
+     * @param uplinkPort        uplink port name
+     * @param state             node state
+     * @param phyIntfs          physical interfaces
+     * @param controllers       customized controllers
+     * @param sshAuth           ssh authentication info
+     * @param dpdkConfig        dpdk config
+     * @param keystoneConfig    keystone config
+     * @param neutronConfig     neutron config
      */
     protected DefaultOpenstackNode(String hostname, NodeType type,
                                    DeviceId intgBridge,
@@ -89,10 +89,10 @@ public class DefaultOpenstackNode implements OpenstackNode {
                                    NodeState state,
                                    Collection<OpenstackPhyInterface> phyIntfs,
                                    Collection<ControllerInfo> controllers,
-                                   OpenstackAuth auth,
-                                   String endpoint,
                                    OpenstackSshAuth sshAuth,
-                                   DpdkConfig dpdkConfig) {
+                                   DpdkConfig dpdkConfig,
+                                   KeystoneConfig keystoneConfig,
+                                   NeutronConfig neutronConfig) {
         this.hostname = hostname;
         this.type = type;
         this.intgBridge = intgBridge;
@@ -103,10 +103,10 @@ public class DefaultOpenstackNode implements OpenstackNode {
         this.state = state;
         this.phyIntfs = phyIntfs;
         this.controllers = controllers;
-        this.auth = auth;
-        this.endpoint = endpoint;
         this.sshAuth = sshAuth;
         this.dpdkConfig = dpdkConfig;
+        this.keystoneConfig = keystoneConfig;
+        this.neutronConfig = neutronConfig;
     }
 
     @Override
@@ -253,10 +253,10 @@ public class DefaultOpenstackNode implements OpenstackNode {
                     Objects.equals(vlanIntf, that.vlanIntf) &&
                     Objects.equals(phyIntfs, that.phyIntfs) &&
                     Objects.equals(controllers, that.controllers) &&
-                    Objects.equals(auth, that.auth) &&
-                    Objects.equals(endpoint, that.endpoint) &&
                     Objects.equals(sshAuth, that.sshAuth) &&
-                    Objects.equals(dpdkConfig, that.dpdkConfig);
+                    Objects.equals(dpdkConfig, that.dpdkConfig) &&
+                    Objects.equals(keystoneConfig, that.keystoneConfig) &&
+                    Objects.equals(neutronConfig, that.neutronConfig);
         }
         return false;
     }
@@ -272,10 +272,10 @@ public class DefaultOpenstackNode implements OpenstackNode {
                 uplinkPort,
                 phyIntfs,
                 controllers,
-                auth,
-                endpoint,
                 sshAuth,
-                dpdkConfig);
+                dpdkConfig,
+                keystoneConfig,
+                neutronConfig);
     }
 
     @Override
@@ -291,10 +291,10 @@ public class DefaultOpenstackNode implements OpenstackNode {
                 .add("state", state)
                 .add("phyIntfs", phyIntfs)
                 .add("controllers", controllers)
-                .add("auth", auth)
-                .add("endpoint", endpoint)
                 .add("sshAuth", sshAuth)
-                .add("datapathType", dpdkConfig)
+                .add("dpdkConfig", dpdkConfig)
+                .add("keystoneConfig", keystoneConfig)
+                .add("neutronConfig", neutronConfig)
                 .toString();
     }
 
@@ -311,10 +311,10 @@ public class DefaultOpenstackNode implements OpenstackNode {
                 .state(newState)
                 .phyIntfs(phyIntfs)
                 .controllers(controllers)
-                .authentication(auth)
-                .endpoint(endpoint)
                 .sshAuthInfo(sshAuth)
                 .dpdkConfig(dpdkConfig)
+                .keystoneConfig(keystoneConfig)
+                .neutronConfig(neutronConfig)
                 .build();
     }
 
@@ -330,11 +330,10 @@ public class DefaultOpenstackNode implements OpenstackNode {
                 .uplinkPort(uplinkPort)
                 .state(state)
                 .phyIntfs(phyIntfs)
-                .controllers(controllers)
-                .authentication(auth)
-                .endpoint(endpoint)
                 .sshAuthInfo(sshAuth)
                 .dpdkConfig(dpdkConfig)
+                .keystoneConfig(keystoneConfig)
+                .neutronConfig(neutronConfig)
                 .build();
     }
 
@@ -368,6 +367,16 @@ public class DefaultOpenstackNode implements OpenstackNode {
     }
 
     @Override
+    public KeystoneConfig keystoneConfig() {
+        return keystoneConfig;
+    }
+
+    @Override
+    public NeutronConfig neutronConfig() {
+        return neutronConfig;
+    }
+
+    @Override
     public PortNumber phyIntfPortNum(String providerPhysnet) {
         Optional<OpenstackPhyInterface> openstackPhyInterface =
                 phyIntfs.stream().filter(p -> p.network().equals(providerPhysnet)).findAny();
@@ -384,16 +393,6 @@ public class DefaultOpenstackNode implements OpenstackNode {
             return null;
         }
 
-    }
-
-    @Override
-    public OpenstackAuth authentication() {
-        return auth;
-    }
-
-    @Override
-    public String endpoint() {
-        return endpoint;
     }
 
     /**
@@ -423,10 +422,10 @@ public class DefaultOpenstackNode implements OpenstackNode {
                 .state(osNode.state())
                 .phyIntfs(osNode.phyIntfs())
                 .controllers(osNode.controllers())
-                .authentication(osNode.authentication())
-                .endpoint(osNode.endpoint())
                 .sshAuthInfo(osNode.sshAuthInfo())
-                .dpdkConfig(osNode.dpdkConfig());
+                .dpdkConfig(osNode.dpdkConfig())
+                .keystoneConfig(osNode.keystoneConfig())
+                .neutronConfig(osNode.neutronConfig());
     }
 
     /**
@@ -444,10 +443,10 @@ public class DefaultOpenstackNode implements OpenstackNode {
         private NodeState state;
         private Collection<OpenstackPhyInterface> phyIntfs;
         private Collection<ControllerInfo> controllers;
-        private OpenstackAuth auth;
-        private String endpoint;
         private OpenstackSshAuth sshAuth;
         private DpdkConfig dpdkConfig;
+        private KeystoneConfig keystoneConfig;
+        private NeutronConfig neutronConfig;
 
         // private constructor not intended to use from external
         private Builder() {
@@ -465,7 +464,7 @@ public class DefaultOpenstackNode implements OpenstackNode {
                     throw new IllegalArgumentException("Either data IP or VLAN interface is required");
                 }
             } else {
-                checkArgument(endpoint != null, NOT_NULL_MSG, "endpoint URL");
+                checkArgument(keystoneConfig != null, NOT_NULL_MSG, "keystone config");
             }
 
             if (type == NodeType.GATEWAY && uplinkPort == null) {
@@ -482,10 +481,10 @@ public class DefaultOpenstackNode implements OpenstackNode {
                     state,
                     phyIntfs,
                     controllers,
-                    auth,
-                    endpoint,
                     sshAuth,
-                    dpdkConfig);
+                    dpdkConfig,
+                    keystoneConfig,
+                    neutronConfig);
         }
 
         @Override
@@ -551,18 +550,6 @@ public class DefaultOpenstackNode implements OpenstackNode {
         }
 
         @Override
-        public Builder authentication(OpenstackAuth auth) {
-            this.auth = auth;
-            return this;
-        }
-
-        @Override
-        public Builder endpoint(String endpoint) {
-            this.endpoint = endpoint;
-            return this;
-        }
-
-        @Override
         public Builder sshAuthInfo(OpenstackSshAuth sshAuth) {
             this.sshAuth = sshAuth;
             return this;
@@ -571,6 +558,18 @@ public class DefaultOpenstackNode implements OpenstackNode {
         @Override
         public Builder dpdkConfig(DpdkConfig dpdkConfig) {
             this.dpdkConfig = dpdkConfig;
+            return this;
+        }
+
+        @Override
+        public Builder keystoneConfig(KeystoneConfig keystoneConfig) {
+            this.keystoneConfig = keystoneConfig;
+            return this;
+        }
+
+        @Override
+        public Builder neutronConfig(NeutronConfig neutronConfig) {
+            this.neutronConfig = neutronConfig;
             return this;
         }
     }

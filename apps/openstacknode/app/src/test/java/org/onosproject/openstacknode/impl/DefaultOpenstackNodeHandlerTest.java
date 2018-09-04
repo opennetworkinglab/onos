@@ -71,8 +71,9 @@ import org.onosproject.net.flow.instructions.ExtensionTreatmentType;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.openstacknode.api.DefaultOpenstackNode;
 import org.onosproject.openstacknode.api.DpdkConfig;
+import org.onosproject.openstacknode.api.KeystoneConfig;
+import org.onosproject.openstacknode.api.NeutronConfig;
 import org.onosproject.openstacknode.api.NodeState;
-import org.onosproject.openstacknode.api.OpenstackAuth;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackPhyInterface;
 import org.onosproject.openstacknode.api.OpenstackSshAuth;
@@ -501,10 +502,10 @@ public class DefaultOpenstackNodeHandlerTest {
                                   NodeState state,
                                   Set<OpenstackPhyInterface> phyIntfs,
                                   Set<ControllerInfo> controllers,
-                                  OpenstackAuth auth,
-                                  String endpoint,
                                   OpenstackSshAuth sshAuth,
-                                  DpdkConfig dpdkConfig) {
+                                  DpdkConfig dpdkConfig,
+                                  KeystoneConfig keystoneConfig,
+                                  NeutronConfig neutronConfig) {
             super(hostname,
                     type,
                     intgBridge,
@@ -515,10 +516,10 @@ public class DefaultOpenstackNodeHandlerTest {
                     state,
                     phyIntfs,
                     controllers,
-                    auth,
-                    endpoint,
                     sshAuth,
-                    dpdkConfig);
+                    dpdkConfig,
+                    keystoneConfig,
+                    neutronConfig);
         }
 
         @Override

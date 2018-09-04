@@ -263,7 +263,7 @@ public final class OpenstackNetworkingUtil {
      * @return a connected openstack client
      */
     public static OSClient getConnectedClient(OpenstackNode osNode) {
-        OpenstackAuth auth = osNode.authentication();
+        OpenstackAuth auth = osNode.keystoneConfig().authentication();
         String endpoint = buildEndpoint(osNode);
         Perspective perspective = auth.perspective();
 
@@ -655,12 +655,12 @@ public final class OpenstackNetworkingUtil {
      */
     private static String buildEndpoint(OpenstackNode node) {
 
-        OpenstackAuth auth = node.authentication();
+        OpenstackAuth auth = node.keystoneConfig().authentication();
 
         StringBuilder endpointSb = new StringBuilder();
         endpointSb.append(auth.protocol().name().toLowerCase());
         endpointSb.append("://");
-        endpointSb.append(node.endpoint());
+        endpointSb.append(node.keystoneConfig().endpoint());
         return endpointSb.toString();
     }
 
