@@ -129,16 +129,6 @@ public class OpenstackNodeAdapter implements OpenstackNode {
     }
 
     @Override
-    public OpenstackAuth authentication() {
-        return null;
-    }
-
-    @Override
-    public String endpoint() {
-        return null;
-    }
-
-    @Override
     public Collection<ControllerInfo> controllers() {
         return null;
     }
@@ -150,6 +140,16 @@ public class OpenstackNodeAdapter implements OpenstackNode {
 
     @Override
     public DpdkConfig dpdkConfig() {
+        return null;
+    }
+
+    @Override
+    public KeystoneConfig keystoneConfig() {
+        return null;
+    }
+
+    @Override
+    public NeutronConfig neutronConfig() {
         return null;
     }
 }

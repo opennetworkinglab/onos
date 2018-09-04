@@ -55,7 +55,6 @@ public final class OpenstackNodeUtil {
     private static final String DOMAIN_DEFAULT = "default";
     private static final String KEYSTONE_V2 = "v2.0";
     private static final String KEYSTONE_V3 = "v3";
-    private static final String IDENTITY_PATH = "identity/";
     private static final String SSL_TYPE = "SSL";
 
     private static final int HEX_LENGTH = 16;
@@ -110,7 +109,7 @@ public final class OpenstackNodeUtil {
      * @return a connected openstack client
      */
     public static OSClient getConnectedClient(OpenstackNode osNode) {
-        OpenstackAuth auth = osNode.authentication();
+        OpenstackAuth auth = osNode.keystoneConfig().authentication();
         String endpoint = buildEndpoint(osNode);
         Perspective perspective = auth.perspective();
 
@@ -221,12 +220,12 @@ public final class OpenstackNodeUtil {
      */
     private static String buildEndpoint(OpenstackNode node) {
 
-        OpenstackAuth auth = node.authentication();
+        OpenstackAuth auth = node.keystoneConfig().authentication();
 
         StringBuilder endpointSb = new StringBuilder();
         endpointSb.append(auth.protocol().name().toLowerCase());
         endpointSb.append("://");
-        endpointSb.append(node.endpoint());
+        endpointSb.append(node.keystoneConfig().endpoint());
         return endpointSb.toString();
     }
 

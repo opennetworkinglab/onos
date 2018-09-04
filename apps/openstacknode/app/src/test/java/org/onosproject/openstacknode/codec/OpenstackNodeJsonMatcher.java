@@ -21,7 +21,6 @@ import org.hamcrest.TypeSafeDiagnosingMatcher;
 import org.onosproject.net.behaviour.ControllerInfo;
 import org.onosproject.openstacknode.api.Constants;
 import org.onosproject.openstacknode.api.DpdkConfig;
-import org.onosproject.openstacknode.api.OpenstackAuth;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackPhyInterface;
 import org.onosproject.openstacknode.api.OpenstackSshAuth;
@@ -113,17 +112,6 @@ public final class OpenstackNodeJsonMatcher extends TypeSafeDiagnosingMatcher<Js
             }
         }
 
-        // check openstack auth
-        JsonNode jsonAuth = jsonNode.get(AUTHENTICATION);
-        if (jsonAuth != null) {
-            OpenstackAuth auth = node.authentication();
-            OpenstackAuthJsonMatcher authMatcher =
-                    OpenstackAuthJsonMatcher.matchOpenstackAuth(auth);
-            if (!authMatcher.matches(jsonAuth)) {
-                return false;
-            }
-        }
-
         // check openstack ssh auth
         JsonNode jsonSshAuth = jsonNode.get(SSH_AUTH);
         if (jsonSshAuth != null) {
@@ -140,16 +128,6 @@ public final class OpenstackNodeJsonMatcher extends TypeSafeDiagnosingMatcher<Js
         if (jsonDpdkConfig != null) {
             DpdkConfig dpdkConfig = node.dpdkConfig();
 
-        }
-
-        // check endpoint URL
-        JsonNode jsonEndpoint = jsonNode.get(END_POINT);
-        if (jsonEndpoint != null) {
-            String endpoint = node.endpoint();
-            if (!jsonEndpoint.asText().equals(endpoint)) {
-                description.appendText("endpoint URL was " + jsonEndpoint);
-                return false;
-            }
         }
 
         // check physical interfaces
