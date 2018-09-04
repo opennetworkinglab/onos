@@ -76,13 +76,16 @@ public abstract class BuckArtifact {
         return generateForBazel;
     }
 
+    String httpUrl() {
+        return "";
+    }
 
     String mavenCoords() {
         return null;
     }
 
     String bazelExport() {
-        return "@" + jarTarget() + "//jar";
+        return "@" + jarTarget() + "//:" + jarTarget();
     }
 
     private boolean isJar() {
@@ -118,29 +121,25 @@ public abstract class BuckArtifact {
     }
 
     String getBazelMavenJarFragment() {
-        if (isJar() && mavenCoords() != null) {
-            String repo = extractRepo();
-            String repoAttribute = "";
-            if (!"".equals(repo)) {
-                repoAttribute = "        repository = \"" + repo + "\",\n";
-            }
-            String format =
-                    "\n    native.maven_jar(\n" +
-                            "        name = \"%s\",\n" +
-                            "        artifact = \"%s\",\n" +
-                            "        sha1 = \"%s\",\n" +
-                            "%s" +
-                            "    )\n";
-            return String.format(format, jarTarget(), mavenCoords(), sha, repoAttribute);
-        } else {
-            String format =
-                    "\n    native.http_file(\n" +
-                            "        name = \"%s\",\n" +
-                            "        url = \"%s\",\n" +
-                            "        sha256 = \"%s\",\n" +
-                            "    )\n";
-            return String.format(format, jarTarget(), url(), sha);
-        }
+        System.out.println(name + " == " + httpUrl());
+
+        //String repo = extractRepo();
+        //String repoAttribute = "";
+        //if (!"".equals(repo)) {
+        //    repoAttribute = "            repository = \"" + repo + "\",\n";
+        //}
+
+        String sha256 = BuckLibGenerator.getHttpSha256(name, httpUrl());
+        String format = "\n" +
+                "    if \"%s\" not in native.existing_rules():\n" +
+                "        java_import_external(\n" +
+                "            name = \"%s\",\n" +
+                "            jar_sha256 = \"%s\",\n" +
+                "            licenses = [\"notice\"],\n" +
+                "            jar_urls = [\"%s\"]," +
+                "        )";
+
+        return String.format(format, jarTarget(), jarTarget(), sha256, httpUrl());
     }
 
     public String getBuckFragment() {
@@ -190,6 +189,11 @@ public abstract class BuckArtifact {
         String url(boolean withClassifier) {
             return url;
         }
+
+        @Override
+        String httpUrl() {
+            return url;
+        }
     }
 
     private static class MavenArtifact extends BuckArtifact {
@@ -218,6 +222,15 @@ public abstract class BuckArtifact {
             }
             mvnUrl.append(artifact.getVersion());
             return mvnUrl.toString();
+        }
+
+        @Override
+        String httpUrl() {
+            return "http://repo1.maven.org/maven2/" +
+                    artifact.getGroupId().replace(".", "/") +
+                    "/" + artifact.getArtifactId() +
+                    "/" + artifact.getVersion() +
+                    "/" + artifact.getFile().getName();
         }
 
         @Override

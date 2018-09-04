@@ -9,7 +9,7 @@ set -e
 cd $ONOS_ROOT
 
 REPO=${M2_REPO:-~/.m2/repository}
-VER=1.2
+VER=1.5
 ARTIFACT=org/onosproject/onos-libgen/$VER/onos-libgen-$VER.jar
 JAR=$REPO/$ARTIFACT
 

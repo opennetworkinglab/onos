@@ -247,6 +247,7 @@ public class BuckLibGenerator {
                         ")\n\n");
             } else {
                 writer.write("\nload(\"//tools/build/bazel:variables.bzl\", \"ONOS_GROUP_ID\", \"ONOS_VERSION\")\n\n");
+                writer.write("\nload(\"@bazel_tools//tools/build_defs/repo:java.bzl\", \"java_import_external\")\n\n");
             }
 
             libraries.forEach(library -> writer.print(library.getFragment()));
@@ -263,16 +264,15 @@ public class BuckLibGenerator {
         }
     }
 
-    String getHttpSha1(String name, String urlStr) {
+    static String getHttpSha1(String name, String urlStr) {
         return getHttpSha(name, urlStr, "SHA-1");
     }
 
-    String getHttpSha256(String name, String urlStr) {
+    static String getHttpSha256(String name, String urlStr) {
         return getHttpSha(name, urlStr, "SHA-256");
     }
 
-    String getHttpSha(String name, String urlStr, String algorithm) {
-        //FIXME need http download cache
+    private static String getHttpSha(String name, String urlStr, String algorithm) {
         try {
             MessageDigest md = MessageDigest.getInstance(algorithm);
             byte[] buffer = new byte[8192];
