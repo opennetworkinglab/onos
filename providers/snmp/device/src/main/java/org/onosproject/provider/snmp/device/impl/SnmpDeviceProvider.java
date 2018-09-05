@@ -275,7 +275,7 @@ public class SnmpDeviceProvider extends AbstractProvider
 
                 log.debug("Persisting Device " + did.uri().toString());
 
-                controller.addDevice(did, device);
+                controller.addDevice(device);
                 providerService.deviceConnected(did, desc);
                 log.info("Added device to ONOS core. Device Info: "
                                  + device.deviceInfo() + " " + did.uri().toString());

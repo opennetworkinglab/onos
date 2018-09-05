@@ -60,15 +60,6 @@ public interface SnmpController {
     void removeDevice(DeviceId deviceId);
 
     /**
-     * Add a device with a specific DeviceId.
-     * @param deviceId deviceId of the device
-     * @param device   device to add to this controller
-     * @deprecated 1.10.0 moved to single parameter method with boolean return
-     */
-    @Deprecated
-    void addDevice(DeviceId deviceId, SnmpDevice device);
-
-    /**
      * Add a snmp device.
      *
      * @param device device to add to this controller

@@ -70,7 +70,7 @@ public class DefaultSnmpControllerTest {
 
     @Test
     public void addDevice() {
-        snmpController.addDevice(device.deviceId(), device);
+        snmpController.addDevice(device);
         assertEquals("Controller should contain device", device, snmpController.getDevice(device.deviceId()));
     }
 

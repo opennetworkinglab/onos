@@ -128,12 +128,6 @@ public class DefaultSnmpController implements SnmpController {
     }
 
     @Override
-    @Deprecated // in 1.14.0
-    public void addDevice(DeviceId did, SnmpDevice device) {
-        snmpDeviceMap.put(did, device);
-    }
-
-    @Override
     public void addDevice(SnmpDevice device) {
         log.info("Adding device {}", device.deviceId());
         snmpDeviceMap.put(device.deviceId(), device);

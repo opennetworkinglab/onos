@@ -55,11 +55,6 @@ public class SnmpControllerAdapter implements SnmpController {
     }
 
     @Override
-    public void addDevice(DeviceId deviceId, SnmpDevice snmpDevice) {
-        devices.put(deviceId, snmpDevice);
-    }
-
-    @Override
     public void addDevice(SnmpDevice device) {
         devices.put(device.deviceId(), device);
     }
