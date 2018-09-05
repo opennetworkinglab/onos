@@ -14,12 +14,12 @@
     <parent>
         <groupId>org.onosproject</groupId>
         <artifactId>onos-apps-cfm</artifactId>
-        <version>1.13.3</version>
+        <version>1.13.4-SNAPSHOT</version>
     </parent>
 
     <artifactId>onos-apps-cfm-nbi</artifactId>
     <packaging>bundle</packaging>
-    <version>1.13.3</version>
+    <version>1.13.4-SNAPSHOT</version>
 
     <description>ONOS OSGi bundle archetype</description>
     <url>http://onosproject.org</url>
