@@ -46,14 +46,14 @@ if __name__ == '__main__':
     import sys
 
     if len(sys.argv) < 2:
-        print 'USAGE'
+        print('USAGE')
         sys.exit(1)
 
     output = sys.argv[1]
     args = sys.argv[2:]
 
     if len(args) % 2 != 0:
-        print 'There must be an even number of args: file mvn_coords'
+        print('There must be an even number of args: file mvn_coords')
         sys.exit(2)
 
     files = zip(*[iter(args)]*2)

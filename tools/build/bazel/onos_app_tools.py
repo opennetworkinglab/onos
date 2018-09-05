@@ -153,7 +153,7 @@ def write(name, msg):
         with open(name, "w") as file:
             file.write(msg)
     else:
-        print msg
+        print(msg)
 
 if __name__ == '__main__':
     import sys, optparse
