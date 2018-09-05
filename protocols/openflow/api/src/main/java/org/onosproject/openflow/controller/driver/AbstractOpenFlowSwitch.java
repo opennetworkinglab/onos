@@ -83,23 +83,20 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
     // >= OF1.3 : multipart stats reply (OFStatsReply:PORT_DESC)
     private Map<OFPort, OFPortDesc> portDescs = new ConcurrentHashMap<>();
 
-    @Deprecated // in 1.13.0
-    protected List<OFPortDescStatsReply> ports = Lists.newCopyOnWriteArrayList();
+    private List<OFPortDescStatsReply> ports = Lists.newCopyOnWriteArrayList();
 
-    protected boolean tableFull;
+    private boolean tableFull;
 
     private RoleHandler roleMan;
 
     // TODO this is accessed from multiple threads, but volatile may have performance implications
     protected volatile RoleState role;
 
-    @Deprecated // in 1.13.0 to be made private after deprecation
-    protected OFFeaturesReply features;
-    @Deprecated // in 1.13.0 to be made private after deprecation
-    protected OFDescStatsReply desc;
+    private OFFeaturesReply features;
 
-    @Deprecated // in 1.13.0 to be made private after deprecation
-    protected OFMeterFeaturesStatsReply meterfeatures;
+    private OFDescStatsReply desc;
+
+    private OFMeterFeaturesStatsReply meterfeatures;
 
     // messagesPendingMastership is used as synchronization variable for
     // all mastership related changes. In this block, mastership (including
