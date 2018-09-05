@@ -20,7 +20,7 @@
     <parent>
         <artifactId>onos-apps</artifactId>
         <groupId>org.onosproject</groupId>
-        <version>1.13.3-SNAPSHOT</version>
+        <version>1.13.3</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
