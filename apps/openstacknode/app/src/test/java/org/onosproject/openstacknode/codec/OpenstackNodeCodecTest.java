@@ -278,6 +278,8 @@ public class OpenstackNodeCodecTest {
         NeutronConfig neutronConfig = DefaultNeutronConfig.builder()
                                             .useMetadataProxy(true)
                                             .metadataProxySecret("onos")
+                                            .novaMetadataIp("172.16.130.10")
+                                            .novaMetadataPort(8775)
                                             .build();
 
         OpenstackNode node = DefaultOpenstackNode.builder()
@@ -321,6 +323,8 @@ public class OpenstackNodeCodecTest {
 
         assertThat(neutronConfig.useMetadataProxy(), is(true));
         assertThat(neutronConfig.metadataProxySecret(), is("onos"));
+        assertThat(neutronConfig.novaMetadataIp(), is("172.16.130.10"));
+        assertThat(neutronConfig.novaMetadataPort(), is(8775));
     }
 
     /**

@@ -29,12 +29,19 @@ public final class DefaultNeutronConfig implements NeutronConfig {
 
     private final boolean useMetadataProxy;
     private final String metadataProxySecret;
+    private final String novaMetadataIp;
+    private final Integer novaMetadataPort;
 
     private static final String NOT_NULL_MSG = "% cannot be null";
 
-    private DefaultNeutronConfig(boolean useMetadataProxy, String metadataProxySecret) {
+    private DefaultNeutronConfig(boolean useMetadataProxy,
+                                 String metadataProxySecret,
+                                 String novaMetadataIp,
+                                 Integer novaMetadataPort) {
         this.useMetadataProxy = useMetadataProxy;
         this.metadataProxySecret = metadataProxySecret;
+        this.novaMetadataIp = novaMetadataIp;
+        this.novaMetadataPort = novaMetadataPort;
     }
 
     @Override
@@ -48,6 +55,16 @@ public final class DefaultNeutronConfig implements NeutronConfig {
     }
 
     @Override
+    public String novaMetadataIp() {
+        return novaMetadataIp;
+    }
+
+    @Override
+    public Integer novaMetadataPort() {
+        return novaMetadataPort;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -56,7 +73,9 @@ public final class DefaultNeutronConfig implements NeutronConfig {
         if (o instanceof DefaultNeutronConfig) {
             DefaultNeutronConfig that = (DefaultNeutronConfig) o;
             return Objects.equals(useMetadataProxy, that.useMetadataProxy) &&
-                    Objects.equals(metadataProxySecret, that.metadataProxySecret);
+                    Objects.equals(metadataProxySecret, that.metadataProxySecret) &&
+                    Objects.equals(novaMetadataIp, that.novaMetadataIp) &&
+                    Objects.equals(novaMetadataPort, that.novaMetadataPort);
         }
         return false;
     }
@@ -64,7 +83,8 @@ public final class DefaultNeutronConfig implements NeutronConfig {
     @Override
     public int hashCode() {
 
-        return Objects.hash(useMetadataProxy, metadataProxySecret);
+        return Objects.hash(useMetadataProxy, metadataProxySecret,
+                            novaMetadataIp, novaMetadataPort);
     }
 
     @Override
@@ -72,6 +92,8 @@ public final class DefaultNeutronConfig implements NeutronConfig {
         return MoreObjects.toStringHelper(this)
                 .add("useMetadataProxy", useMetadataProxy)
                 .add("metadataProxySecret", metadataProxySecret)
+                .add("novaMetadataIp", novaMetadataIp)
+                .add("novaMetadataPort", novaMetadataPort)
                 .toString();
     }
 
@@ -91,6 +113,9 @@ public final class DefaultNeutronConfig implements NeutronConfig {
 
         private boolean useMetadataProxy;
         private String metadataProxySecret;
+        private String novaMetadataIp;
+        private Integer novaMetadataPort;
+
 
         // private constructor not intended to use from external
         private Builder() {
@@ -101,7 +126,8 @@ public final class DefaultNeutronConfig implements NeutronConfig {
             checkArgument(metadataProxySecret != null,
                                         NOT_NULL_MSG, "metadataProxySecret");
 
-            return new DefaultNeutronConfig(useMetadataProxy, metadataProxySecret);
+            return new DefaultNeutronConfig(useMetadataProxy, metadataProxySecret,
+                                            novaMetadataIp, novaMetadataPort);
         }
 
         @Override
@@ -113,6 +139,18 @@ public final class DefaultNeutronConfig implements NeutronConfig {
         @Override
         public NeutronConfig.Builder metadataProxySecret(String metadataProxySecret) {
             this.metadataProxySecret = metadataProxySecret;
+            return this;
+        }
+
+        @Override
+        public NeutronConfig.Builder novaMetadataIp(String novaMetadataIp) {
+            this.novaMetadataIp = novaMetadataIp;
+            return this;
+        }
+
+        @Override
+        public NeutronConfig.Builder novaMetadataPort(Integer novaMetadataPort) {
+            this.novaMetadataPort = novaMetadataPort;
             return this;
         }
     }

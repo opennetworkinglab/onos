@@ -37,6 +37,20 @@ public interface NeutronConfig {
     String metadataProxySecret();
 
     /**
+     * Returns NOVA metadata IP address.
+     *
+     * @return NOVA metadata IP address
+     */
+    String novaMetadataIp();
+
+    /**
+     * Returns NOVA metadata port number.
+     *
+     * @return NOVA metadata port number
+     */
+    Integer novaMetadataPort();
+
+    /**
      * Builder of neutron config.
      */
     interface Builder {
@@ -63,5 +77,21 @@ public interface NeutronConfig {
          * @return neutron config builder
          */
         Builder metadataProxySecret(String metadataProxySecret);
+
+        /**
+         * Returns neutron config with supplied NOVA metadata IP address.
+         *
+         * @param novaMetadataIp NOVA metadata IP address
+         * @return neutron config builder
+         */
+        Builder novaMetadataIp(String novaMetadataIp);
+
+        /**
+         * Returns neutron config with supplied NOVA metadata port number.
+         *
+         * @param novaMetadataPort NOVA metadata port number
+         * @return neutron config builder
+         */
+        Builder novaMetadataPort(Integer novaMetadataPort);
     }
 }

@@ -33,6 +33,12 @@ public class DefaultNeutronConfigTest {
     private static final String METADATA_PROXY_SECRET_1 = "onos";
     private static final String METADATA_PROXY_SECRET_2 = "cord";
 
+    private static final String NOVA_METADATA_IP_1 = "10.10.10.1";
+    private static final String NOVA_METADATA_IP_2 = "20.20.20.2";
+
+    private static final Integer NOVA_METADATA_PORT_1 = 8775;
+    private static final Integer NOVA_METADATA_PORT_2 = 8776;
+
     private NeutronConfig config1;
     private NeutronConfig sameAsConfig1;
     private NeutronConfig config2;
@@ -53,16 +59,22 @@ public class DefaultNeutronConfigTest {
         config1 = DefaultNeutronConfig.builder()
                         .useMetadataProxy(USE_METADATA_PROXY_1)
                         .metadataProxySecret(METADATA_PROXY_SECRET_1)
+                        .novaMetadataIp(NOVA_METADATA_IP_1)
+                        .novaMetadataPort(NOVA_METADATA_PORT_1)
                         .build();
 
         sameAsConfig1 = DefaultNeutronConfig.builder()
                         .useMetadataProxy(USE_METADATA_PROXY_1)
                         .metadataProxySecret(METADATA_PROXY_SECRET_1)
+                        .novaMetadataIp(NOVA_METADATA_IP_1)
+                        .novaMetadataPort(NOVA_METADATA_PORT_1)
                         .build();
 
         config2 = DefaultNeutronConfig.builder()
                         .useMetadataProxy(USE_METADATA_PROXY_2)
                         .metadataProxySecret(METADATA_PROXY_SECRET_2)
+                        .novaMetadataIp(NOVA_METADATA_IP_2)
+                        .novaMetadataPort(NOVA_METADATA_PORT_2)
                         .build();
     }
 
@@ -85,5 +97,7 @@ public class DefaultNeutronConfigTest {
 
         assertEquals(config.useMetadataProxy(), USE_METADATA_PROXY_1);
         assertEquals(config.metadataProxySecret(), METADATA_PROXY_SECRET_1);
+        assertEquals(config.novaMetadataIp(), NOVA_METADATA_IP_1);
+        assertEquals(config.novaMetadataPort(), NOVA_METADATA_PORT_1);
     }
 }
