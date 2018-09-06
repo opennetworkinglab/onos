@@ -95,7 +95,9 @@
       },
       "neutronConfig": {
         "useMetadataProxy": true,
-        "metadataProxySecret": "onos"
+        "metadataProxySecret": "nova",
+        "novaMetadataIp": "172.16.130.10",
+        "novaMetadataPort": 8775
       }
     },
     {

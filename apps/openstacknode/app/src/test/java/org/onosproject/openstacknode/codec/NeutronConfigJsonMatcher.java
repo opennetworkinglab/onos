@@ -29,6 +29,8 @@ public final class NeutronConfigJsonMatcher extends TypeSafeDiagnosingMatcher<Js
 
     private static final String USE_METADATA_PROXY = "useMetadataProxy";
     private static final String METADATA_PROXY_SECRET = "metadataProxySecret";
+    private static final String NOVA_METADATA_IP = "novaMetadataIp";
+    private static final String NOVA_METADATA_PORT = "novaMetadataPort";
 
     private NeutronConfigJsonMatcher(NeutronConfig neutronConfig) {
         this.neutronConfig = neutronConfig;
@@ -53,6 +55,26 @@ public final class NeutronConfigJsonMatcher extends TypeSafeDiagnosingMatcher<Js
             String metadataProxySecret = neutronConfig.metadataProxySecret();
             if (!jsonMetadataProxySecret.asText().equals(metadataProxySecret)) {
                 description.appendText("metadataProxySecret was " + jsonUseMetadataProxy);
+                return false;
+            }
+        }
+
+        // check NOVA metadata IP
+        JsonNode jsonNovaMetadataIp = jsonNode.get(NOVA_METADATA_IP);
+        if (jsonNovaMetadataIp != null) {
+            String novaMetadataIp = neutronConfig.novaMetadataIp();
+            if (!jsonNovaMetadataIp.asText().equals(novaMetadataIp)) {
+                description.appendText("novaMetadataIp was " + jsonNovaMetadataIp);
+                return false;
+            }
+        }
+
+        // check NOVA metadata port
+        JsonNode jsonNovaMetadataPort = jsonNode.get(NOVA_METADATA_PORT);
+        if (jsonNovaMetadataPort != null) {
+            Integer novaMetadataPort = neutronConfig.novaMetadataPort();
+            if (jsonNovaMetadataPort.asInt() != novaMetadataPort) {
+                description.appendText("novaMetadataPort was " + jsonNovaMetadataIp);
                 return false;
             }
         }

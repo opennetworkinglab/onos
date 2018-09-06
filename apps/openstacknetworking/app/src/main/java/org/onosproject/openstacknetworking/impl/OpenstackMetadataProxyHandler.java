@@ -393,6 +393,29 @@ public class OpenstackMetadataProxyHandler {
         }
 
         /**
+         * Obtains the metadata path.
+         *
+         * @param uri metadata request URI
+         * @return full metadata path
+         */
+        private String getMetadataPath(String uri) {
+            OpenstackNode controller = osNodeService.completeNodes(CONTROLLER).
+                    stream().findFirst().orElse(null);
+            if (controller == null) {
+                return null;
+            }
+
+            String novaMetadataIpTmp = controller.neutronConfig().novaMetadataIp();
+            String novaMetadataIp = novaMetadataIpTmp != null
+                    ? novaMetadataIpTmp : controller.managementIp().toString();
+            Integer novaMetadataPortTmp = controller.neutronConfig().novaMetadataPort();
+            int novaMetadataPort = novaMetadataPortTmp != null
+                    ? novaMetadataPortTmp : METADATA_SERVER_PORT;
+
+            return HTTP_PREFIX + novaMetadataIp + COLON + novaMetadataPort + uri;
+        }
+
+        /**
          * Proxyies HTTP request.
          *
          * @param oldRequest    HTTP request
@@ -403,15 +426,7 @@ public class OpenstackMetadataProxyHandler {
                                                        InstancePort instPort) {
 
             CloseableHttpClient client = HttpClientBuilder.create().build();
-            OpenstackNode controller = osNodeService.completeNodes(CONTROLLER).
-                    stream().findFirst().orElse(null);
-            if (controller == null) {
-                return null;
-            }
-
-            String path = oldRequest.getRequestLine().getUri();
-            String url = HTTP_PREFIX + controller.managementIp().toString() +
-                    COLON + METADATA_SERVER_PORT + path;
+            String url = getMetadataPath(oldRequest.getRequestLine().getUri());
 
             if (StringUtils.isEmpty(url)) {
                 log.warn("The metadata endpoint is not configured!");
