@@ -49,16 +49,6 @@ public class AddPointToPointIntentCommand extends ConnectivityIntentCommand {
               required = true, multiValued = false)
     String egressDeviceString = null;
 
-
-    /**
-     * Option to produce protected path.
-     * @deprecated in 1.9.0
-     */
-    // -p already defined in ConnectivityIntentCommand
-    @Deprecated
-    @Option(name = "-r", aliases = "--protect",
-            description = "(deprecated) Utilize path protection",
-            required = false, multiValued = false)
     private boolean backup = false;
 
     /**
