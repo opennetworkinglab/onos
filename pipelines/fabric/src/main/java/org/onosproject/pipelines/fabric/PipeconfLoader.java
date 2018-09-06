@@ -23,7 +23,6 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.core.CoreService;
 import org.onosproject.inbandtelemetry.api.IntProgrammable;
-import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.Pipeliner;
 import org.onosproject.net.device.PortStatisticsDiscovery;
 import org.onosproject.net.pi.model.DefaultPiPipeconf;
@@ -44,7 +43,6 @@ import java.io.FileNotFoundException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
@@ -79,12 +77,11 @@ public class PipeconfLoader {
     private static final String DEFAULT_PLATFORM = "default";
     private static final String BMV2_JSON = "bmv2.json";
     private static final String P4INFO_TXT = "p4info.txt";
+    private static final String CPU_PORT_TXT = "cpu_port.txt";
     private static final String TOFINO_BIN = "tofino.bin";
     private static final String TOFINO_CTX_JSON = "context.json";
     private static final String INT_PROFILE_SUFFIX = "-int";
     private static final String FULL_PROFILE_SUFFIX = "-full";
-
-    private static final int BMV2_CPU_PORT = 255;
 
     private static final Collection<PiPipeconf> PIPECONFS = buildAllPipeconf();
 
@@ -131,45 +128,56 @@ public class PipeconfLoader {
         String profile = pieces[1];
         String target = pieces[2];
         String platform = pieces[3];
+        final DefaultPiPipeconf.Builder pipeconfBuilder;
         try {
             switch (target) {
                 case BMV2:
-                    return buildBmv2Pipeconf(profile, platform);
+                    pipeconfBuilder = bmv2Pipeconf(profile, platform);
+                    break;
                 case TOFINO:
-                    return buildTofinoPipeconf(profile, platform);
+                    pipeconfBuilder = tofinoPipeconf(profile, platform);
+                    break;
                 default:
                     log.warn("Unknown target '{}', skipping pipeconf build...",
                              target);
                     return null;
             }
         } catch (FileNotFoundException e) {
-            log.warn("Unable to build pipeconf at {} because one or more p4c outputs are missing",
-                     path);
+            log.warn("Unable to build pipeconf at {} because file is missing: {}",
+                     path, e.getMessage());
             return null;
         }
+        // Add IntProgrammable behaviour for INT-enabled profiles.
+        if (profile.endsWith(INT_PROFILE_SUFFIX) || profile.endsWith(FULL_PROFILE_SUFFIX)) {
+            pipeconfBuilder.addBehaviour(IntProgrammable.class, IntProgrammableImpl.class);
+        }
+        return pipeconfBuilder.build();
     }
 
-    private static PiPipeconf buildBmv2Pipeconf(String profile, String platform)
+    private static DefaultPiPipeconf.Builder bmv2Pipeconf(
+            String profile, String platform)
             throws FileNotFoundException {
         final URL bmv2JsonUrl = PipeconfLoader.class.getResource(format(
                 P4C_RES_BASE_PATH + BMV2_JSON, profile, BMV2, platform));
         final URL p4InfoUrl = PipeconfLoader.class.getResource(format(
                 P4C_RES_BASE_PATH + P4INFO_TXT, profile, BMV2, platform));
-        if (bmv2JsonUrl == null || p4InfoUrl == null) {
-            throw new FileNotFoundException();
+        final URL cpuPortUrl = PipeconfLoader.class.getResource(format(
+                P4C_RES_BASE_PATH + CPU_PORT_TXT, profile, BMV2, platform));
+        if (bmv2JsonUrl == null) {
+            throw new FileNotFoundException(BMV2_JSON);
         }
-
-        DefaultPiPipeconf.Builder builder = basePipeconfBuilder(
-                profile, platform, p4InfoUrl, Bmv2FabricInterpreter.class)
+        if (p4InfoUrl == null) {
+            throw new FileNotFoundException(P4INFO_TXT);
+        }
+        if (cpuPortUrl == null) {
+            throw new FileNotFoundException(CPU_PORT_TXT);
+        }
+        return basePipeconfBuilder(profile, platform, p4InfoUrl, cpuPortUrl)
                 .addExtension(ExtensionType.BMV2_JSON, bmv2JsonUrl);
-        // Add IntProgrammable behaviour for INT-enabled profiles.
-        if (profile.endsWith(INT_PROFILE_SUFFIX) || profile.endsWith(FULL_PROFILE_SUFFIX)) {
-            builder.addBehaviour(IntProgrammable.class, IntProgrammableImpl.class);
-        }
-        return builder.build();
     }
 
-    private static PiPipeconf buildTofinoPipeconf(String profile, String platform)
+    private static DefaultPiPipeconf.Builder tofinoPipeconf(
+            String profile, String platform)
             throws FileNotFoundException {
         final URL tofinoBinUrl = PipeconfLoader.class.getResource(format(
                 P4C_RES_BASE_PATH + TOFINO_BIN, profile, TOFINO, platform));
@@ -177,19 +185,27 @@ public class PipeconfLoader {
                 P4C_RES_BASE_PATH + TOFINO_CTX_JSON, profile, TOFINO, platform));
         final URL p4InfoUrl = PipeconfLoader.class.getResource(format(
                 P4C_RES_BASE_PATH + P4INFO_TXT, profile, TOFINO, platform));
-        if (tofinoBinUrl == null || contextJsonUrl == null || p4InfoUrl == null) {
-            throw new FileNotFoundException();
+        final URL cpuPortUrl = PipeconfLoader.class.getResource(format(
+                P4C_RES_BASE_PATH + CPU_PORT_TXT, profile, TOFINO, platform));
+        if (tofinoBinUrl == null) {
+            throw new FileNotFoundException(TOFINO_BIN);
         }
-        return basePipeconfBuilder(
-                profile, platform, p4InfoUrl, FabricInterpreter.class)
+        if (contextJsonUrl == null) {
+            throw new FileNotFoundException(TOFINO_CTX_JSON);
+        }
+        if (p4InfoUrl == null) {
+            throw new FileNotFoundException(P4INFO_TXT);
+        }
+        if (cpuPortUrl == null) {
+            throw new FileNotFoundException(CPU_PORT_TXT);
+        }
+        return basePipeconfBuilder(profile, platform, p4InfoUrl, cpuPortUrl)
                 .addExtension(ExtensionType.TOFINO_BIN, tofinoBinUrl)
-                .addExtension(ExtensionType.TOFINO_CONTEXT_JSON, contextJsonUrl)
-                .build();
+                .addExtension(ExtensionType.TOFINO_CONTEXT_JSON, contextJsonUrl);
     }
 
     private static DefaultPiPipeconf.Builder basePipeconfBuilder(
-            String profile, String platform, URL p4InfoUrl,
-            Class<? extends FabricInterpreter> interpreterClass) {
+            String profile, String platform, URL p4InfoUrl, URL cpuPortUrl) {
         final String pipeconfId = platform.equals(DEFAULT_PLATFORM)
                 // Omit platform if default, e.g. with BMv2 pipeconf
                 ? format("%s.%s", BASE_PIPECONF_ID, profile)
@@ -199,12 +215,13 @@ public class PipeconfLoader {
                 .withId(new PiPipeconfId(pipeconfId))
                 .withPipelineModel(model)
                 .addBehaviour(PiPipelineInterpreter.class,
-                              interpreterClass)
+                              FabricInterpreter.class)
                 .addBehaviour(Pipeliner.class,
                               FabricPipeliner.class)
                 .addBehaviour(PortStatisticsDiscovery.class,
                               FabricPortStatisticsDiscovery.class)
-                .addExtension(ExtensionType.P4_INFO_TEXT, p4InfoUrl);
+                .addExtension(ExtensionType.P4_INFO_TEXT, p4InfoUrl)
+                .addExtension(ExtensionType.CPU_PORT_TXT, cpuPortUrl);
     }
 
     private static PiPipelineModel parseP4Info(URL p4InfoUrl) {
@@ -212,18 +229,6 @@ public class PipeconfLoader {
             return P4InfoParser.parse(p4InfoUrl);
         } catch (P4InfoParserException e) {
             throw new IllegalStateException(e);
-        }
-    }
-
-    // TODO: define interpreters with logical port mapping for Tofino platforms.
-    public static class Bmv2FabricInterpreter extends FabricInterpreter {
-        @Override
-        public Optional<Integer> mapLogicalPortNumber(PortNumber port) {
-            if (port.equals(PortNumber.CONTROLLER)) {
-                return Optional.of(BMV2_CPU_PORT);
-            } else {
-                return Optional.empty();
-            }
         }
     }
 }

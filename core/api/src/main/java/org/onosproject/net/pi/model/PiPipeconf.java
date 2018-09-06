@@ -100,6 +100,14 @@ public interface PiPipeconf {
         /**
          * Barefoot's Tofino context JSON.
          */
-        TOFINO_CONTEXT_JSON
+        TOFINO_CONTEXT_JSON,
+
+        /**
+         * CPU port file in UTF 8 encoding.
+         */
+        // TODO: consider a better way to get the CPU port in the interpreter
+        // (see FabricInterpreter.java mapLogicalPortNumber). Perhaps using
+        // pipeconf annotations?
+        CPU_PORT_TXT
     }
 }
