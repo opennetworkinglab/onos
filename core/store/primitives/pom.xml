@@ -75,7 +75,7 @@
         <dependency>
             <groupId>io.atomix</groupId>
             <artifactId>atomix-raft</artifactId>
-            <version>3.0.3</version>
+            <version>3.0.5</version>
         </dependency>
 
         <dependency>
