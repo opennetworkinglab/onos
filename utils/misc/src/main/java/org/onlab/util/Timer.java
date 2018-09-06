@@ -52,28 +52,4 @@ public final class Timer {
         return TIMER.get().newTimeout(task, delay, unit);
     }
 
-    /**
-     * Returns the singleton hashed-wheel timer.
-     *
-     * @return hashed-wheel timer
-     *
-     * @deprecated in 1.11.0
-     */
-    @Deprecated
-    public static org.jboss.netty.util.HashedWheelTimer getTimer() {
-        if (Timer.timer == null) {
-            initTimer();
-        }
-        return Timer.timer;
-    }
-
-    private static synchronized  void initTimer() {
-        if (Timer.timer == null) {
-            org.jboss.netty.util.HashedWheelTimer hwTimer =
-                    new org.jboss.netty.util.HashedWheelTimer();
-            hwTimer.start();
-            Timer.timer = hwTimer;
-        }
-    }
-
 }
