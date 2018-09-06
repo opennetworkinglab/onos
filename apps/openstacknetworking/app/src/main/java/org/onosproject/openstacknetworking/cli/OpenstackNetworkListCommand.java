@@ -50,7 +50,7 @@ public class OpenstackNetworkListCommand extends AbstractShellCommand {
         if (outputJson()) {
             print("%s", json(networks));
         } else {
-            print(FORMAT, "ID", "Name", "Network Mode", "VNI", "Subnets", "HostRoutes");
+            print(FORMAT, "ID", "Name", "Network Mode", "SegId", "Subnets", "HostRoutes");
             for (Network net: networks) {
                 List<Subnet> subnets = service.subnets().stream()
                         .filter(subnet -> subnet.getNetworkId().equals(net.getId()))
