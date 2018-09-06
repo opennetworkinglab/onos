@@ -1113,8 +1113,8 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
             case PERMISSION_DENIED:
                 // Notify upper layers that this node is not master.
                 controller.postEvent(new P4RuntimeEvent(
-                        P4RuntimeEvent.Type.ARBITRATION_RESPONSE,
-                        new ArbitrationResponse(deviceId, false)));
+                        P4RuntimeEvent.Type.PERMISSION_DENIED,
+                        new BaseP4RuntimeEventSubject(deviceId)));
                 break;
             case RESOURCE_EXHAUSTED:
                 break;

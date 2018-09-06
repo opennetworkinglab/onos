@@ -64,6 +64,12 @@ public final class DeviceAgentEvent
          */
         ROLE_NONE,
 
+        /**
+         * Signifies that the agent cannot perform operations on the device
+         * because its role is not master.
+         */
+        NOT_MASTER,
+
     }
 
     /**
