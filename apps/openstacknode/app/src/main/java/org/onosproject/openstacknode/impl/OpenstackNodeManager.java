@@ -31,10 +31,7 @@ import org.onosproject.cluster.LeadershipService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.event.ListenerRegistry;
-import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.behaviour.BridgeConfig;
-import org.onosproject.net.behaviour.BridgeName;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeAdminService;
@@ -54,6 +51,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -61,9 +59,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.packet.TpPort.tpPort;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 import static org.onosproject.openstacknode.api.Constants.INTEGRATION_BRIDGE;
 import static org.onosproject.openstacknode.api.NodeState.COMPLETE;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.CONTROLLER;
+import static org.onosproject.openstacknode.util.OpenstackNodeUtil.addOrRemoveSystemInterface;
 import static org.onosproject.openstacknode.util.OpenstackNodeUtil.genDpid;
 import static org.onosproject.openstacknode.util.OpenstackNodeUtil.isOvsdbConnected;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -189,10 +189,33 @@ public class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEvent, O
 
         OpenstackNode updatedNode;
 
-        OpenstackNode existNode = osNodeStore.node(osNode.hostname());
-        checkNotNull(existNode, ERR_NULL_NODE);
+        OpenstackNode existingNode = osNodeStore.node(osNode.hostname());
+        checkNotNull(existingNode, ERR_NULL_NODE);
 
         DeviceId existDeviceId = osNodeStore.node(osNode.hostname()).intgBridge();
+
+        if (vlanIntfChanged(existingNode, osNode) ||
+                physicalIntfChanged(existingNode, osNode) ||
+                dpdkIntfChanged(existingNode, osNode)) {
+
+            removeNode(osNode.hostname());
+
+            //we wait 1 second for ovsdb client completely to do removal job
+            try {
+                TimeUnit.MILLISECONDS.sleep(1000);
+            } catch (InterruptedException e) {
+                log.error("Exception occurred because of {}", e);
+            }
+
+            if (!intfsRemovedFromExistNode(existingNode)) {
+                log.error("Updated node failed because intfs of existingNode {} are not removed properly",
+                        existingNode.toString());
+                return;
+            }
+
+            createNode(osNode);
+            return;
+        }
 
         if (osNode.intgBridge() == null && osNode.type() != CONTROLLER) {
             updatedNode = osNode.updateIntbridge(existDeviceId);
@@ -266,7 +289,7 @@ public class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEvent, O
 
         connectSwitch(osNode);
 
-        addOrRemoveSystemInterface(osNode, INTEGRATION_BRIDGE, portName, true);
+        addOrRemoveSystemInterface(osNode, INTEGRATION_BRIDGE, portName, deviceService, true);
     }
 
     @Override
@@ -275,7 +298,44 @@ public class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEvent, O
 
         connectSwitch(osNode);
 
-        addOrRemoveSystemInterface(osNode, INTEGRATION_BRIDGE, portName, false);
+        addOrRemoveSystemInterface(osNode, INTEGRATION_BRIDGE, portName, deviceService, false);
+    }
+
+    private boolean intfsRemovedFromExistNode(OpenstackNode osNode) {
+        if (osNode.vlanIntf() != null &&
+                !intfRemoved(osNode.vlanIntf(), osNode.intgBridge())) {
+            return false;
+        }
+
+        if (osNode.phyIntfs().stream().anyMatch(phyInterface ->
+                !intfRemoved(phyInterface.intf(), osNode.intgBridge()))) {
+            return false;
+        }
+
+        if (osNode.dpdkConfig() != null &&
+                osNode.dpdkConfig().dpdkIntfs().stream().anyMatch(dpdkInterface ->
+                        !intfRemoved(dpdkInterface.intf(), osNode.intgBridge()))) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean intfRemoved(String intf, DeviceId deviceId) {
+        return !deviceService.getPorts(deviceId).stream()
+                .anyMatch(port -> port.annotations().value(PORT_NAME).equals(intf));
+    }
+
+    private boolean vlanIntfChanged(OpenstackNode oldNode, OpenstackNode newNode) {
+        return !Objects.equals(oldNode.vlanIntf(), newNode.vlanIntf());
+    }
+
+    private boolean physicalIntfChanged(OpenstackNode oldNode, OpenstackNode newNode) {
+        return !Objects.equals(oldNode.phyIntfs(), newNode.phyIntfs());
+    }
+
+    private boolean dpdkIntfChanged(OpenstackNode oldNode, OpenstackNode newNode) {
+        return !Objects.equals(oldNode.dpdkConfig(), newNode.dpdkConfig());
     }
 
     private void connectSwitch(OpenstackNode osNode) {
@@ -288,21 +348,6 @@ public class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEvent, O
                 log.error("Failed to connect to the openstackNode via ovsdb protocol because of exception {}",
                         e.toString());
             }
-        }
-    }
-
-    private void addOrRemoveSystemInterface(OpenstackNode osNode, String bridgeName, String intfName,
-                                            boolean addOrRemove) {
-        Device device = deviceService.getDevice(osNode.ovsdb());
-        if (device == null || !device.is(BridgeConfig.class)) {
-            log.info("device is null or this device if not ovsdb device");
-            return;
-        }
-        BridgeConfig bridgeConfig =  device.as(BridgeConfig.class);
-        if (addOrRemove) {
-            bridgeConfig.addPort(BridgeName.bridgeName(bridgeName), intfName);
-        } else {
-            bridgeConfig.deletePort(BridgeName.bridgeName(bridgeName), intfName);
         }
     }
 

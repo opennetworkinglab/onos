@@ -169,7 +169,7 @@ public class OpenstackNodeWebResource extends AbstractWebResource {
 
                      nodeSet.add(openstackNode);
                  } catch (Exception e) {
-                     log.error(e.toString());
+                     log.error("Exception occurred due to {}", e);
                      throw new IllegalArgumentException();
                  }
              });

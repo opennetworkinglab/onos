@@ -17,12 +17,18 @@ package org.onosproject.openstacknode.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableMap;
+import org.onosproject.net.Device;
+import org.onosproject.net.behaviour.BridgeConfig;
+import org.onosproject.net.behaviour.BridgeName;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.openstacknode.api.DpdkInterface;
 import org.onosproject.openstacknode.api.OpenstackAuth;
 import org.onosproject.openstacknode.api.OpenstackAuth.Perspective;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.ovsdb.controller.OvsdbClientService;
 import org.onosproject.ovsdb.controller.OvsdbController;
+import org.onosproject.ovsdb.controller.OvsdbInterface;
 import org.onosproject.ovsdb.controller.OvsdbNodeId;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.api.client.IOSClientBuilder;
@@ -42,6 +48,7 @@ import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
 import java.security.cert.X509Certificate;
 import java.util.Dictionary;
+import java.util.Map;
 
 import static org.onlab.util.Tools.get;
 
@@ -60,6 +67,8 @@ public final class OpenstackNodeUtil {
     private static final int HEX_LENGTH = 16;
     private static final String OF_PREFIX = "of:";
     private static final String ZERO = "0";
+
+    private static final String DPDK_DEVARGS = "dpdk-devargs";
 
     /**
      * Prevents object installation from external.
@@ -210,6 +219,74 @@ public final class OpenstackNodeUtil {
         }
 
         return OF_PREFIX + zeroPadding.toString() + hexStr;
+    }
+
+
+    /**
+     * Adds or removes a network interface (aka port) into a given bridge of openstack node.
+     *
+     * @param osNode openstack node
+     * @param bridgeName bridge name
+     * @param intfName interface name
+     * @param deviceService device service
+     * @param addOrRemove add port is true, remove it otherwise
+     */
+    public static synchronized void addOrRemoveSystemInterface(OpenstackNode osNode,
+                                                               String bridgeName,
+                                                               String intfName,
+                                                               DeviceService deviceService,
+                                                               boolean addOrRemove) {
+
+
+        Device device = deviceService.getDevice(osNode.ovsdb());
+        if (device == null || !device.is(BridgeConfig.class)) {
+            log.info("device is null or this device if not ovsdb device");
+            return;
+        }
+        BridgeConfig bridgeConfig =  device.as(BridgeConfig.class);
+
+        if (addOrRemove) {
+            bridgeConfig.addPort(BridgeName.bridgeName(bridgeName), intfName);
+        } else {
+            bridgeConfig.deletePort(BridgeName.bridgeName(bridgeName), intfName);
+        }
+    }
+
+    /**
+     * Adds or removes a dpdk interface into a given openstack node.
+     *
+     * @param osNode openstack node
+     * @param dpdkInterface dpdk interface
+     * @param ovsdbPort ovsdb port
+     * @param ovsdbController ovsdb controller
+     * @param addOrRemove add port is true, remove it otherwise
+     */
+    public static synchronized void addOrRemoveDpdkInterface(OpenstackNode osNode,
+                                                             DpdkInterface dpdkInterface,
+                                                             int ovsdbPort,
+                                                             OvsdbController ovsdbController,
+                                                             boolean addOrRemove) {
+
+        OvsdbClientService client = getOvsdbClient(osNode, ovsdbPort, ovsdbController);
+        if (client == null) {
+            log.info("Failed to get ovsdb client");
+            return;
+        }
+
+        if (addOrRemove) {
+            Map<String, String> options = ImmutableMap.of(DPDK_DEVARGS, dpdkInterface.pciAddress());
+
+            OvsdbInterface.Builder builder = OvsdbInterface.builder()
+                    .name(dpdkInterface.intf())
+                    .type(OvsdbInterface.Type.DPDK)
+                    .mtu(dpdkInterface.mtu())
+                    .options(options);
+
+
+            client.createInterface(dpdkInterface.deviceName(), builder.build());
+        } else {
+            client.dropInterface(dpdkInterface.intf());
+        }
     }
 
     /**
