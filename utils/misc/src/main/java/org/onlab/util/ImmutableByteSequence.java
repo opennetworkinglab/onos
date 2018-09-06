@@ -414,28 +414,6 @@ public final class ImmutableByteSequence {
         return doFit(this, bitWidth);
     }
 
-    /**
-     * Trims or expands the given byte sequence so to fit a given bit-width.
-     * When trimming, the operations is deemed to be safe only if the trimmed
-     * bits are zero, i.e. it is safe to trim only when {@code bitWidth >
-     * msbIndex()}, otherwise an exception will be thrown. When expanding, the
-     * sequence will be padded with zeros. The returned byte sequence will have
-     * minimum size to contain the given bit-width.
-     *
-     * @param original a byte sequence
-     * @param bitWidth a non-zero positive integer
-     * @return a new byte sequence
-     * @throws ByteSequenceTrimException if the byte sequence cannot be fitted
-     * @deprecated in ONOS 1.13, use {@link ImmutableByteSequence#fit(int)}
-     * instead.
-     */
-    @Deprecated
-    public static ImmutableByteSequence fit(ImmutableByteSequence original,
-                                            int bitWidth)
-            throws ByteSequenceTrimException {
-        return doFit(original, bitWidth);
-    }
-
     private static ImmutableByteSequence doFit(ImmutableByteSequence original,
                                                int bitWidth)
             throws ByteSequenceTrimException {
