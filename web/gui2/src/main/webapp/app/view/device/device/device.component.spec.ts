@@ -17,21 +17,22 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Params } from '@angular/router';
 import { DebugElement } from '@angular/core';
 import { By } from '@angular/platform-browser';
-import { LogService } from '../../../log.service';
 import { DeviceComponent } from './device.component';
 import { } from 'jasmine';
 
-import { FnService } from '../../../fw/util/fn.service';
-import { IconService } from '../../../fw/svg/icon.service';
-import { GlyphService } from '../../../fw/svg/glyph.service';
-import { IconComponent } from '../../../fw/svg/icon/icon.component';
-import { KeyService } from '../../../fw/util/key.service';
-import { LoadingService } from '../../../fw/layer/loading.service';
-import { NavService } from '../../../fw/nav/nav.service';
-import { MastService } from '../../../fw/mast/mast.service';
-import { TableFilterPipe } from '../../../fw/widget/tablefilter.pipe';
-import { ThemeService } from '../../../fw/util/theme.service';
-import { WebSocketService } from '../../../fw/remote/websocket.service';
+import {
+    FnService,
+    IconService,
+    GlyphService,
+    IconComponent,
+    LoadingService,
+    LogService,
+    NavService,
+    MastService,
+    TableFilterPipe,
+    ThemeService,
+    WebSocketService
+} from 'gui2-fw-lib';
 import { of } from 'rxjs';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
@@ -50,8 +51,6 @@ class MockIconService {
 }
 
 class MockGlyphService { }
-
-class MockKeyService { }
 
 class MockLoadingService {
     startAnim() { }
@@ -106,7 +105,6 @@ describe('DeviceComponent', () => {
                 { provide: FnService, useValue: fs },
                 { provide: IconService, useClass: MockIconService },
                 { provide: GlyphService, useClass: MockGlyphService },
-                { provide: KeyService, useClass: MockKeyService },
                 { provide: LoadingService, useClass: MockLoadingService },
                 { provide: MastService, useClass: MockMastService },
                 { provide: NavService, useClass: MockNavService },

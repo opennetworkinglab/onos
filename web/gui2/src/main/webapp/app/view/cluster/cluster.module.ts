@@ -13,20 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {NgModule} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {SvgModule} from '../../fw/svg/svg.module';
-import {WidgetModule} from '../../fw/widget/widget.module';
-import {ClusterComponent} from './cluster/cluster.component';
-import {ClusterRoutingModule} from './cluster-routing.module';
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Gui2FwLibModule } from 'gui2-fw-lib';
+import { ClusterComponent } from './cluster/cluster.component';
+import { ClusterRoutingModule } from './cluster-routing.module';
 import { ClusterDetailsDirective } from './cluster-details.directive';
 
 @NgModule({
     imports: [
         CommonModule,
-        SvgModule,
-        ClusterRoutingModule,
-        WidgetModule
+        Gui2FwLibModule,
+        ClusterRoutingModule
     ],
     declarations: [ClusterComponent, ClusterDetailsDirective]
 })

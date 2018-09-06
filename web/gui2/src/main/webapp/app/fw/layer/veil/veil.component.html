@@ -1,9 +1,0 @@
-<div id="veil" *ngIf="enabled">
-    <p *ngFor="let msg of messages">{{ msg }}</p>
-    <svg [attr.width]="fs.windowSize().width" [attr.height]="fs.windowSize().height">
-        <use [attr.width]="birdDim" [attr.height]="birdDim" class="glyph"
-             style="opacity: 0.2;"
-             xlink:href = "#bird" [attr.transform]="trans"/>
-
-    </svg>
-</div>

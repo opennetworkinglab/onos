@@ -1,0 +1,61 @@
+/*
+ * Copyright 2018-present Open Networking Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
+ ONOS GUI -- Panel Service (layout) -- CSS file
+ */
+
+.floatpanel {
+    position: absolute;
+    z-index: 100;
+    display: block;
+    top: 160px;
+    width: 544px;
+    right: -550px;
+    opacity: 100;
+
+    padding: 2px;
+    font-size: 10pt;
+}
+
+/* The following 4 are copied here from Theme until we sort out the
+ * theme service
+ */
+.floatpanel {
+    background-color: white;
+    color: #3c3a3a;
+    border: 1px solid #c7c7c0;
+}
+
+.floatpanel hr {
+    border: 1px solid #c7c7c0;
+}
+
+.floatpanel .bottom tr:nth-child(odd) {
+    background-color: #f4f4f4;
+}
+
+.floatpanel .bottom tr:nth-child(even) {
+    background-color: #fbfbfb;
+}
+
+.floatpanel.dialog {
+    top: 180px;
+}
+
+html[data-platform='iPad'] .floatpanel {
+    top: 80px;
+}

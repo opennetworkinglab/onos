@@ -98,44 +98,14 @@ filegroup(
 )
 
 """
-    Install npm packages listed in package.json in web/gui2
-    See bazel-genfiles/web/gui2/onos-gui2-npm-install.log for details of the 'npm install'
-"""
-
-genrule(
-    name = "_onos-gui2-npm-install",
-    srcs = [
-        "@nodejs//:bin/npm",
-        "@nodejs//:bin/node",
-        "@nodejs//:bin/node.js",
-        "@nodejs//:bin/nodejs/bin/node",
-        "@nodejs//:bin/nodejs/bin/npm",
-        ":_root_level_files",
-    ],
-    outs = [
-        "onos-gui2-npm-install.jar",
-        "onos-gui2-npm-install.log",
-    ],
-    cmd = " ROOT=`pwd` &&" +
-          " export HOME=. &&" +
-          " export XDG_CONFIG_HOME=$(@D)/config &&" +  # npm config cache to the sandbox
-          " export BABEL_DISABLE_CACHE=1 &&" +  # turn off babel cache
-          ' if [[ ! -z $${HTTP_PROXY-} ]]; then NPM_ARGS="--proxy $$HTTP_PROXY --without-ssl --insecure"; else NPM_ARGS=""; fi &&' +
-          " NPM=$(location @nodejs//:bin/npm) &&" +
-          " export PATH=$$ROOT/$$(dirname $${NPM}):$$PATH &&" +
-          " mkdir -p web/gui2 &&" +
-          " cd web/gui2 &&" +
-          " npm -v > $$ROOT/$(location onos-gui2-npm-install.log) 2>&1 &&" +
-          " npm $$NPM_ARGS install --no-cache >> $$ROOT/$(location onos-gui2-npm-install.log) 2>&1 &&" +
-          " jar Mcf $$ROOT/$(location onos-gui2-npm-install.jar) . &&" +
-          " touch $$ROOT/$(location onos-gui2-npm-install.log)",  # to get the log always as the 2nd file
-    message = "NodeJS npm install in web/gui2",
-    visibility = ["//visibility:public"],
-)
-
-"""
     Run ng build to create outputs in production mode
     See bazel-genfiles/web/gui2/onos-gui2-ng-build-prod.log for details of the Angular CLI output
+
+    To avoid the overhead of having several "npm install" invocations, we just do
+    it once in the //web/gui2-fw-lib which is really the core for the whole Angular 6
+    structure in ONOS. This copies files in to node_modules, but because the gui2-fw-lib
+    has not been generated at that time we copy it in separately below with the 'tar' cmd
+    and then 'mv'
 """
 
 genrule(
@@ -146,7 +116,10 @@ genrule(
         "@nodejs//:bin/node.js",
         "@nodejs//:bin/nodejs/bin/node",
         "@nodejs//:bin/nodejs/bin/npm",
-        ":_onos-gui2-npm-install",
+        "//web/gui2-fw-lib:onos-gui2-fw-npm-install",
+        "//web/gui2-fw-lib:onos-gui2-fw-ng-build",
+        "//web/gui2-fw-lib:gui2_fw_lib_ext_css",
+        ":_root_level_files",
         ":_web_app_all",
     ],
     outs = [
@@ -157,17 +130,24 @@ genrule(
           " export HOME=. &&" +
           " export XDG_CONFIG_HOME=$(@D)/config &&" +
           " NODE=$(location @nodejs//:bin/node) &&" +
-          " INSTALL_FILES=($(locations :_onos-gui2-npm-install)) &&" +  # An array of filenames - sorted by time created
+          " INSTALL_FILES=($(locations //web/gui2-fw-lib:onos-gui2-fw-npm-install)) &&" +  # An array of filenames - sorted by time created
+          " FWLIB_FILES=($(locations //web/gui2-fw-lib:onos-gui2-fw-ng-build)) &&" +  # An array of filenames - sorted by time created
           " mkdir -p web/gui2 && cd web/gui2 &&" +
           " jar xf ../../$(location :_web_app_all) &&" +
           " jar xf $$ROOT/$${INSTALL_FILES[0]} &&" +
+          " tar xf $$ROOT/$${FWLIB_FILES[0]} &&" +
+          " mv package/ node_modules/gui2-fw-lib/ &&" +
+          " mkdir -p src/main/webapp/app/fw &&" +
+          " (cd src/main/webapp/app/fw &&" +
+          "  jar xf $$ROOT/$(location //web/gui2-fw-lib:gui2_fw_lib_ext_css)) &&" +
           " chmod +x $$ROOT/web/gui2/node_modules/@angular/cli/bin/ng &&" +
           " export PATH=$$ROOT/$$(dirname $${NODE}):$$ROOT/web/gui2/node_modules/@angular/cli/bin:$$PATH &&" +
           " node -v > ../../$(location onos-gui2-ng-build-prod.log) &&" +
           " npm -v >> ../../$(location onos-gui2-ng-build-prod.log) &&" +
           " ng -v >> ../../$(location onos-gui2-ng-build-prod.log) &&" +
           # Build it in production mode - optimization is turned off because of Angular CLI 6.0.x bug https://github.com/angular/angular-cli/issues/7799
-          " ng build --extract-css --prod --optimization=false --preserve-symlinks --base-href /onos/ui2/ --deploy-url /onos/ui2/ >> $$ROOT/$(location onos-gui2-ng-build-prod.log) 2>&1 &&" +
+          " ng build --extract-css --prod --optimization=false --preserve-symlinks" +
+          "   --base-href /onos/ui2/ --deploy-url /onos/ui2/ >> $$ROOT/$(location onos-gui2-ng-build-prod.log) 2>&1 &&" +
           " cd src/main/webapp/dist && jar Mcf $$ROOT/$(location onos-gui2-ng-build.jar) .",
     message = "Angular CLI 6 build",
 )
@@ -186,7 +166,9 @@ genrule(
         "@nodejs//:bin/node.js",
         "@nodejs//:bin/nodejs/bin/node",
         "@nodejs//:bin/nodejs/bin/npm",
-        ":_onos-gui2-npm-install",
+        "//web/gui2-fw-lib:onos-gui2-fw-npm-install",
+        "//web/gui2-fw-lib:onos-gui2-fw-ng-build",
+        "//web/gui2-fw-lib:gui2_fw_lib_ext_css",
         ":_web_app_all",
         ":_web_app_tests",
         ":_angular_all",
@@ -200,13 +182,19 @@ genrule(
           " export HOME=. &&" +
           " export XDG_CONFIG_HOME=$(@D)/config &&" +
           " NODE=$(location @nodejs//:bin/node) &&" +
-          " INSTALL_FILES=($(locations :_onos-gui2-npm-install)) &&" +  # An array of filenames - sorted by time created
+          " INSTALL_FILES=($(locations //web/gui2-fw-lib:onos-gui2-fw-npm-install)) &&" +  # An array of filenames - sorted by time created
+          " FWLIB_FILES=($(locations //web/gui2-fw-lib:onos-gui2-fw-ng-build)) &&" +  # An array of filenames - sorted by time created
           " mkdir -p web/gui2 &&" +
           " cd web/gui2 &&" +
           " jar xf ../../$(location :_angular_all) &&" +
           " jar xf ../../$(location :_web_app_all) &&" +
           " jar xf ../../$(location :_web_app_tests) &&" +
           " jar xf $$ROOT/$${INSTALL_FILES[0]} &&" +
+          " tar xf $$ROOT/$${FWLIB_FILES[0]} &&" +
+          " mv package/ node_modules/gui2-fw-lib/ &&" +
+          " mkdir -p src/main/webapp/app/fw &&" +
+          " (cd src/main/webapp/app/fw &&" +
+          "  jar xf $$ROOT/$(location //web/gui2-fw-lib:gui2_fw_lib_ext_css)) &&" +
           " chmod +x $$ROOT/web/gui2/node_modules/@angular/cli/bin/ng &&" +
           " export PATH=$$ROOT/$$(dirname $${NODE}):$$ROOT/web/gui2/node_modules/@angular/cli/bin:$$PATH &&" +
           " node -v > ../../$(location onos-gui2-ng-ver.log) &&" +

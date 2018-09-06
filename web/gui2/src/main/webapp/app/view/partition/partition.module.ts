@@ -15,8 +15,7 @@
  */
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { SvgModule } from '../../fw/svg/svg.module';
-import { WidgetModule } from '../../fw/widget/widget.module';
+import { Gui2FwLibModule } from 'gui2-fw-lib';
 
 import { PartitionRoutingModule } from './partition-routing.module';
 import { PartitionComponent } from './partition/partition.component';
@@ -24,8 +23,7 @@ import { PartitionComponent } from './partition/partition.component';
 @NgModule({
     imports: [
         CommonModule,
-        SvgModule,
-        WidgetModule,
+        Gui2FwLibModule,
         PartitionRoutingModule
     ],
     declarations: [PartitionComponent]

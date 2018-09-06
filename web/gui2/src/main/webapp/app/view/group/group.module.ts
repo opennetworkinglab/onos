@@ -18,8 +18,7 @@ import { CommonModule } from '@angular/common';
 
 import { GroupRoutingModule } from './group-routing.module';
 import { GroupComponent } from './group/group.component';
-import { SvgModule } from '../../fw/svg/svg.module';
-import { WidgetModule } from '../../fw/widget/widget.module';
+import { Gui2FwLibModule } from 'gui2-fw-lib';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 
@@ -27,8 +26,7 @@ import { RouterModule } from '@angular/router';
   imports: [
     CommonModule,
     GroupRoutingModule,
-    SvgModule,
-    WidgetModule,
+    Gui2FwLibModule,
     FormsModule,
     RouterModule
   ],

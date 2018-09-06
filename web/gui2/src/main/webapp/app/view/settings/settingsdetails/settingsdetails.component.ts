@@ -14,11 +14,14 @@
 * limitations under the License.
 */
 import { Component, OnInit, Input, OnDestroy, OnChanges } from '@angular/core';
-import { FnService } from '../../../fw/util/fn.service';
-import { DetailsPanelBaseImpl } from '../../../fw/widget/detailspanel.base';
-import { LoadingService } from '../../../fw/layer/loading.service';
-import { LogService } from '../../../log.service';
-import { WebSocketService } from '../../../fw/remote/websocket.service';
+import {
+    FnService,
+    IconService,
+    LoadingService,
+    LogService,
+    DetailsPanelBaseImpl,
+    WebSocketService
+} from 'gui2-fw-lib';
 import { trigger, state, style, transition, animate } from '@angular/animations';
 import { Settings } from '../settings/settings.component';
 

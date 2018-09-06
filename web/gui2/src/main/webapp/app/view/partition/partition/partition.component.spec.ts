@@ -17,12 +17,14 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Params } from '@angular/router';
 import { DebugElement } from '@angular/core';
 import { By } from '@angular/platform-browser';
-import { LogService } from '../../../log.service';
-import { FnService } from '../../../fw/util/fn.service';
-import { IconComponent } from '../../../fw/svg/icon/icon.component';
-import { IconService } from '../../../fw/svg/icon.service';
-import { LoadingService } from '../../../fw/layer/loading.service';
-import { WebSocketService } from '../../../fw/remote/websocket.service';
+import {
+    FnService,
+    IconService,
+    IconComponent,
+    LoadingService,
+    LogService,
+    WebSocketService
+} from 'gui2-fw-lib';
 import { of } from 'rxjs';
 import { } from 'jasmine';
 import { RouterTestingModule } from '@angular/router/testing';

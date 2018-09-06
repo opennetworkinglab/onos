@@ -17,8 +17,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DeviceRoutingModule } from './device-routing.module';
 import { DeviceComponent } from './device/device.component';
-import { SvgModule } from '../../fw/svg/svg.module';
-import { WidgetModule } from '../../fw/widget/widget.module';
+import { Gui2FwLibModule } from 'gui2-fw-lib';
 import { FormsModule } from '@angular/forms';
 import { DeviceDetailsComponent } from './devicedetails/devicedetails.component';
 
@@ -29,8 +28,7 @@ import { DeviceDetailsComponent } from './devicedetails/devicedetails.component'
     imports: [
         CommonModule,
         DeviceRoutingModule,
-        SvgModule,
-        WidgetModule,
+        Gui2FwLibModule,
         FormsModule
     ],
     declarations: [

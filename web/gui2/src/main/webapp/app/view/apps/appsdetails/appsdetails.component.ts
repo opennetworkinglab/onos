@@ -15,14 +15,15 @@
  */
 import { Component, Input, OnInit, OnDestroy, OnChanges } from '@angular/core';
 import { trigger, state, style, animate, transition } from '@angular/animations';
+import {
+    FnService,
+    LionService,
+    LoadingService,
+    LogService,
+    DetailsPanelBaseImpl,
+    WebSocketService
+} from 'gui2-fw-lib';
 
-import { FnService } from '../../../fw/util/fn.service';
-import { LionService } from '../../../fw/util/lion.service';
-import { LoadingService } from '../../../fw/layer/loading.service';
-import { LogService } from '../../../log.service';
-import { WebSocketService } from '../../../fw/remote/websocket.service';
-
-import { DetailsPanelBaseImpl } from '../../../fw/widget/detailspanel.base';
 import { App, APPURLPREFIX, ICONURLSUFFIX } from '../apps/apps.component';
 
 /**

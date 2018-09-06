@@ -18,13 +18,14 @@ import { ActivatedRoute, Params } from '@angular/router';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { DebugElement } from '@angular/core';
 import { By } from '@angular/platform-browser';
-
-import { LogService } from '../../../log.service';
-import { FnService } from '../../../../app/fw/util/fn.service';
-import { IconComponent } from '../../../../app/fw/svg/icon/icon.component';
-import { IconService } from '../../../../app/fw/svg/icon.service';
-import { UrlFnService } from '../../../fw/remote/urlfn.service';
-import { WebSocketService } from '../../../fw/remote/websocket.service';
+import {
+    FnService,
+    IconService,
+    LogService,
+    UrlFnService,
+    WebSocketService,
+    IconComponent
+} from 'gui2-fw-lib';
 import { of } from 'rxjs';
 import { } from 'jasmine';
 

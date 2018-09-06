@@ -1,0 +1,61 @@
+/*
+ * Copyright 2018-present Open Networking Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
+ ONOS GUI -- Tooltip Service (layout) -- CSS file
+ */
+
+#tooltip {
+    text-align: center;
+    font-size: 80%;
+    border: 1px solid;
+    padding: 5px;
+    position: absolute;
+    z-index: 5000;
+    display: inline-block;
+    pointer-events: none;
+    top: 40px;
+    right: auto;
+    /* width: 240px; */
+}
+
+.tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+.tooltip .tooltiptext {
+    display: inline-block;
+    visibility: hidden;
+    background-color: #dbeffc;
+    color: #3c3a3a;
+    border-color: #c7c7c0;
+    text-align: center;
+    border-radius: 6px;
+    font-size: 80%;
+    padding: 5px;
+
+    /* Position the tooltip */
+    position: absolute;
+    z-index: 5000;
+    top: 42px;
+    right: 10%;
+    white-space: nowrap;
+}
+
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+}

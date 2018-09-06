@@ -18,24 +18,26 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { FlowComponent } from './flow.component';
 import { ActivatedRoute, Params } from '@angular/router';
 import { of } from 'rxjs/index';
-import { LogService } from '../../../log.service';
-import { FnService } from '../../../fw/util/fn.service';
+import {
+    FnService,
+    IconService,
+    GlyphService,
+    IconComponent,
+    LionService,
+    LoadingService,
+    LogService,
+    NavService,
+    MastService,
+    TableFilterPipe,
+    ThemeService,
+    WebSocketService
+} from 'gui2-fw-lib';
+
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
-import { TableFilterPipe } from '../../../fw/widget/tablefilter.pipe';
-import { IconComponent } from '../../../fw/svg/icon/icon.component';
-import { IconService } from '../../../fw/svg/icon.service';
-import { GlyphService } from '../../../fw/svg/glyph.service';
-import { KeyService } from '../../../fw/util/key.service';
-import { LoadingService } from '../../../fw/layer/loading.service';
-import { MastService } from '../../../fw/mast/mast.service';
-import { NavService } from '../../../fw/nav/nav.service';
-import { ThemeService } from '../../../fw/util/theme.service';
-import { WebSocketService } from '../../../fw/remote/websocket.service';
 import { DebugElement } from '@angular/core';
 import { By } from '@angular/platform-browser';
-import { LionService } from '../../../fw/util/lion.service';
 import { FlowDetailsComponent } from '../flowdetails/flowdetails/flowdetails.component';
 
 class MockActivatedRoute extends ActivatedRoute {
@@ -50,8 +52,6 @@ class MockIconService {
 }
 
 class MockGlyphService { }
-
-class MockKeyService { }
 
 class MockLoadingService {
     startAnim() { }
@@ -116,7 +116,6 @@ describe('FlowComponent', () => {
                 { provide: FnService, useValue: fs },
                 { provide: IconService, useClass: MockIconService },
                 { provide: GlyphService, useClass: MockGlyphService },
-                { provide: KeyService, useClass: MockKeyService },
                 {
                     provide: LionService, useFactory: (() => {
                         return {

@@ -18,18 +18,10 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpClientModule } from '@angular/common/http';
 import { NgModule } from '@angular/core';
 
-import { LayerModule } from './fw/layer/layer.module';
-import { MastModule } from './fw/mast/mast.module';
-import { NavModule } from './fw/nav/nav.module';
-import { SvgModule } from './fw/svg/svg.module';
-import { WidgetModule } from './fw/widget/widget.module';
 import { OnosRoutingModule } from './onos-routing.module';
-
+import { NavComponent } from './nav/nav.component';
 import { OnosComponent } from './onos.component';
-import { DetectBrowserDirective } from './detectbrowser.directive';
-
-import { ConsoleLoggerService } from './consolelogger.service';
-import { LogService } from './log.service';
+import { Gui2FwLibModule, ConsoleLoggerService, LogService } from 'gui2-fw-lib';
 import { OnosService } from './onos.service';
 
 /**
@@ -37,18 +29,14 @@ import { OnosService } from './onos.service';
  */
 @NgModule({
   declarations: [
-    OnosComponent,
-    DetectBrowserDirective
+    NavComponent,
+    OnosComponent
   ],
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
     HttpClientModule,
-    LayerModule,
-    MastModule,
-    NavModule,
-    SvgModule,
-    WidgetModule,
+    Gui2FwLibModule,
     OnosRoutingModule
   ],
   providers: [

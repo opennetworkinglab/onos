@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { SortDir, TableBaseImpl, TableResponse } from '../../../fw/widget/table.base';
-import { WebSocketService } from '../../../fw/remote/websocket.service';
-import { LogService } from '../../../log.service';
-import { LoadingService } from '../../../fw/layer/loading.service';
-import { FnService } from '../../../fw/util/fn.service';
+import {
+    FnService,
+    LoadingService,
+    LogService,
+    WebSocketService,
+    SortDir, TableBaseImpl, TableResponse
+} from 'gui2-fw-lib';
 import { ActivatedRoute } from '@angular/router';
 
 /**

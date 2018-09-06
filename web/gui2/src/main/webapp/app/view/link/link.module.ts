@@ -16,16 +16,14 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LinkComponent } from './link/link.component';
-import { SvgModule } from '../../fw/svg/svg.module';
+import { Gui2FwLibModule } from 'gui2-fw-lib';
 import { LinkRoutingModule } from './link-routing.module';
-import { WidgetModule } from '../../fw/widget/widget.module';
 
 @NgModule({
   imports: [
     CommonModule,
     LinkRoutingModule,
-    SvgModule,
-    WidgetModule
+    Gui2FwLibModule
   ],
   declarations: [
     LinkComponent

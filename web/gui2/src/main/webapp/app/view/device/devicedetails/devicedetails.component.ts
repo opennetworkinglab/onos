@@ -15,14 +15,15 @@
  */
 import { Component, Input, OnInit, OnDestroy, OnChanges } from '@angular/core';
 import { trigger, state, style, animate, transition } from '@angular/animations';
-
-import { FnService } from '../../../fw/util/fn.service';
-import { LoadingService } from '../../../fw/layer/loading.service';
-import { LogService } from '../../../log.service';
-import { WebSocketService } from '../../../fw/remote/websocket.service';
-
-import { DetailsPanelBaseImpl } from '../../../fw/widget/detailspanel.base';
-import { IconService } from '../../../fw/svg/icon.service';
+import {
+    FnService,
+    IconService,
+    LionService,
+    LoadingService,
+    LogService,
+    DetailsPanelBaseImpl,
+    WebSocketService
+} from 'gui2-fw-lib';
 
 /**
  * The details view when a device row is clicked from the Device view

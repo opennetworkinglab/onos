@@ -1,0 +1,108 @@
+/*
+ * Copyright 2018-present Open Networking Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
+ ONOS GUI -- Icon Service (theme) -- CSS file
+ */
+
+div.close-btn svg.embeddedIcon g.icon .glyph {
+    fill: #333333;
+}
+
+/* Sortable table headers */
+div.tableColSort svg.embeddedIcon .icon .glyph {
+    fill: #353333;
+}
+
+/* --- Control Buttons --- */
+
+/* INACTIVE */
+svg.embeddedIcon g.icon use {
+    fill: #e0dfd6;
+}
+/* note: no change for inactive buttons when hovered */
+
+
+/* ACTIVE */
+.ctrl-btns div.active svg.embeddedIcon g.icon use {
+    fill: #939598;
+}
+
+svg.embeddedIcon g.icon.active:hover use {
+    fill: #ce5b58;
+}
+
+/* CURRENT-VIEW */
+svg.embeddedIcon g.icon.current-view rect {
+    fill: #518ecc;
+}
+svg.embeddedIcon g.icon.current-view use {
+    fill: white;
+}
+
+/* REFRESH */
+svg.embeddedIcon g.icon.refresh use {
+    fill: #cdeff2;
+}
+svg.embeddedIcon g.icon.refresh:hover use {
+    fill: #ce5b58;
+}
+svg.embeddedIcon g.icon.refresh.active use {
+    fill: #009fdb;
+}
+svg.embeddedIcon g.icon.refresh.active:hover use {
+    fill: #ce5b58;
+}
+
+
+/* ========== DARK Theme ========== */
+
+ div.close-btn svg.embeddedIcon g.icon .glyph {
+    fill: #8d8d8d;
+}
+
+ div.tableColSort svg.embeddedIcon .icon .glyph {
+    fill: #888888;
+}
+
+ /*svg.embeddedIcon .icon.active .glyph {
+    fill: #04bf34;
+}
+ svg.embeddedIcon .icon.inactive .glyph {
+    fill: #c0242b;
+}*/
+
+ table svg.embeddedIcon .icon .glyph {
+    fill: #9999aa;
+}
+
+/*
+svg.embeddedIcon g.icon .glyph {
+    fill: #007dc4;
+}
+
+svg.embeddedIcon:hover g.icon .glyph {
+    fill: #20b2ff;
+}
+*/
+
+svg.embeddedIcon g.icon.devIcon_SWITCH .glyph {
+    fill: #0071bd;;
+}
+
+svg.embeddedIcon g.icon.hostIcon_endstation .glyph {
+    fill: #0071bd;;
+}

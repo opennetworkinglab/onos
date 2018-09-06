@@ -15,9 +15,7 @@
 */
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { SvgModule } from '../../fw/svg/svg.module';
-import { WidgetModule } from '../../fw/widget/widget.module';
-
+import { Gui2FwLibModule } from 'gui2-fw-lib';
 
 import { MeterRoutingModule } from './meter-routing.module';
 import { MeterComponent } from './meter/meter.component';
@@ -27,10 +25,9 @@ import { FormsModule } from '@angular/forms';
 @NgModule({
   imports: [
     CommonModule,
-    SvgModule,
+    Gui2FwLibModule,
     MeterRoutingModule,
-    FormsModule,
-    WidgetModule
+    FormsModule
   ],
   declarations: [MeterComponent]
 })

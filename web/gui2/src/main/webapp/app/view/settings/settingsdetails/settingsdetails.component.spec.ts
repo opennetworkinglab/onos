@@ -18,12 +18,14 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { SettingsDetailsComponent } from './settingsdetails.component';
 import { ActivatedRoute, Params } from '@angular/router';
 import { of } from 'rxjs';
-import { FnService } from '../../../fw/util/fn.service';
-import { LogService } from '../../../log.service';
+import {
+    FnService,
+    IconService,
+    LogService,
+    WebSocketService,
+    IconComponent
+} from 'gui2-fw-lib';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { IconComponent } from '../../../fw/svg/icon/icon.component';
-import { IconService } from '../../../fw/svg/icon.service';
-import { WebSocketService } from '../../../fw/remote/websocket.service';
 import { DebugElement } from '@angular/core';
 import { By } from '@angular/platform-browser';
 

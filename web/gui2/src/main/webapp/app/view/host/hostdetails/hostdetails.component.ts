@@ -16,13 +16,13 @@
 
 import { Component, Input, OnInit, OnDestroy, OnChanges } from '@angular/core';
 import { trigger, state, style, animate, transition } from '@angular/animations';
-
-import { FnService } from '../../../fw/util/fn.service';
-import { LoadingService } from '../../../fw/layer/loading.service';
-import { LogService } from '../../../log.service';
-import { WebSocketService } from '../../../fw/remote/websocket.service';
-
-import { DetailsPanelBaseImpl } from '../../../fw/widget/detailspanel.base';
+import {
+    FnService,
+    LoadingService,
+    LogService,
+    DetailsPanelBaseImpl,
+    WebSocketService
+} from 'gui2-fw-lib';
 
 /**
  * The details view when a host row is clicked from the Host view

@@ -15,12 +15,14 @@
  */
 import { Component, Input, OnChanges, OnDestroy, OnInit } from '@angular/core';
 import { animate, state, style, transition, trigger } from '@angular/animations';
-import { DetailsPanelBaseImpl } from '../../../fw/widget/detailspanel.base';
-import { FnService } from '../../../fw/util/fn.service';
-import { LoadingService } from '../../../fw/layer/loading.service';
-import { LogService } from '../../../log.service';
-import { IconService } from '../../../fw/svg/icon.service';
-import { WebSocketService } from '../../../fw/remote/websocket.service';
+import {
+    FnService,
+    IconService,
+    LoadingService,
+    LogService,
+    DetailsPanelBaseImpl,
+    WebSocketService
+} from 'gui2-fw-lib';
 
 /**
  * The details view when a port row is clicked from the Port view

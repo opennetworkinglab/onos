@@ -16,8 +16,7 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FlowComponent } from './flow/flow.component';
-import { SvgModule } from '../../fw/svg/svg.module';
-import { WidgetModule } from '../../fw/widget/widget.module';
+import { Gui2FwLibModule } from 'gui2-fw-lib';
 import { FlowRoutingModule } from './flow-routing.module';
 import { FormsModule } from '@angular/forms';
 import { FlowDetailsComponent } from './flowdetails/flowdetails/flowdetails.component';
@@ -28,10 +27,9 @@ import { FlowDetailsComponent } from './flowdetails/flowdetails/flowdetails.comp
 @NgModule({
     imports: [
         CommonModule,
-        SvgModule,
+        Gui2FwLibModule,
         FlowRoutingModule,
-        FormsModule,
-        WidgetModule
+        FormsModule
     ],
     declarations: [
         FlowComponent,

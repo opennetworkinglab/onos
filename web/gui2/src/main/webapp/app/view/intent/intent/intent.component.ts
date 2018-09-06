@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { LogService } from '../../../log.service';
-import { FnService } from '../../../fw/util/fn.service';
-import { LoadingService } from '../../../fw/layer/loading.service';
-import { DialogService } from '../../../fw/layer/dialog.service';
-import { WebSocketService } from '../../../fw/remote/websocket.service';
-import { TableResponse, TableBaseImpl, SortDir } from '../../../fw/widget/table.base';
+import {
+    FnService,
+    LoadingService,
+    LogService,
+    WebSocketService,
+    SortDir, TableBaseImpl, TableResponse
+} from 'gui2-fw-lib';
 
 const RESUBMITINTENT = 'resubmitIntent';
 const REMOVEINTENT = 'removeIntent';
@@ -87,7 +88,6 @@ export class IntentComponent extends TableBaseImpl implements OnInit, OnDestroy 
     constructor(
         protected log: LogService,
         protected fs: FnService,
-        private ds: DialogService,
         protected ls: LoadingService,
         protected wss: WebSocketService,
     ) {

@@ -18,12 +18,14 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { TunnelComponent } from './tunnel.component';
 import { ActivatedRoute, Params } from '@angular/router';
 import { of } from 'rxjs';
-import { FnService } from '../../../fw/util/fn.service';
-import { LogService } from '../../../log.service';
-import { LoadingService } from '../../../fw/layer/loading.service';
-import { WebSocketService } from '../../../fw/remote/websocket.service';
-import { IconService } from '../../../fw/svg/icon.service';
-import { IconComponent } from '../../../fw/svg/icon/icon.component';
+import {
+    FnService,
+    IconService,
+    IconComponent,
+    LoadingService,
+    LogService,
+    WebSocketService
+} from 'gui2-fw-lib';
 import { DebugElement } from '@angular/core';
 import { By } from '@angular/platform-browser';
 

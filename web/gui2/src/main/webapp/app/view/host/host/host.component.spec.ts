@@ -19,20 +19,22 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
 import { DebugElement } from '@angular/core';
 import { By } from '@angular/platform-browser';
-
-import { LogService } from '../../../log.service';
+import {
+    FnService,
+    IconService,
+    GlyphService,
+    IconComponent,
+    LoadingService,
+    LogService,
+    NavService,
+    MastService,
+    TableFilterPipe,
+    ThemeService,
+    UrlFnService,
+    WebSocketService
+} from 'gui2-fw-lib';
 import { HostComponent } from './host.component';
 import { HostDetailsComponent } from '../hostdetails/hostdetails.component';
-import { DialogService } from '../../../fw/layer/dialog.service';
-import { FnService } from '../../../fw/util/fn.service';
-import { IconComponent } from '../../../fw/svg/icon/icon.component';
-import { IconService } from '../../../fw/svg/icon.service';
-import { KeyService } from '../../../fw/util/key.service';
-import { LoadingService } from '../../../fw/layer/loading.service';
-import { ThemeService } from '../../../fw/util/theme.service';
-import { TableFilterPipe } from '../../../fw/widget/tablefilter.pipe';
-import { UrlFnService } from '../../../fw/remote/urlfn.service';
-import { WebSocketService } from '../../../fw/remote/websocket.service';
 import { of } from 'rxjs';
 import { } from 'jasmine';
 
@@ -43,15 +45,11 @@ class MockActivatedRoute extends ActivatedRoute {
     }
 }
 
-class MockDialogService { }
-
 class MockFnService { }
 
 class MockIconService {
     loadIconDef() { }
 }
-
-class MockKeyService { }
 
 class MockLoadingService {
     startAnim() { }
@@ -110,10 +108,8 @@ describe('HostComponent', () => {
             imports: [BrowserAnimationsModule, FormsModule],
             declarations: [HostComponent, HostDetailsComponent, IconComponent, TableFilterPipe],
             providers: [
-                { provide: DialogService, useClass: MockDialogService },
                 { provide: FnService, useValue: fs },
                 { provide: IconService, useClass: MockIconService },
-                { provide: KeyService, useClass: MockKeyService },
                 { provide: LoadingService, useClass: MockLoadingService },
                 { provide: LogService, useValue: logSpy },
                 { provide: ThemeService, useClass: MockThemeService },

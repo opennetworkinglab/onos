@@ -19,16 +19,18 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
 import { DebugElement } from '@angular/core';
 import { By } from '@angular/platform-browser';
-import { ConfirmComponent } from '../../../fw/layer/confirm/confirm.component';
-import { FlashComponent } from '../../../fw/layer/flash/flash.component';
+import {
+    FnService,
+    IconService,
+    IconComponent,
+    ConfirmComponent,
+    FlashComponent,
+    LoadingService,
+    LogService,
+    TableFilterPipe,
+    WebSocketService
+} from 'gui2-fw-lib';
 
-import { LogService } from '../../../log.service';
-import { FnService } from '../../../fw/util/fn.service';
-import { IconComponent } from '../../../fw/svg/icon/icon.component';
-import { IconService } from '../../../fw/svg/icon.service';
-import { LoadingService } from '../../../fw/layer/loading.service';
-import { TableFilterPipe } from '../../../fw/widget/tablefilter.pipe';
-import { WebSocketService } from '../../../fw/remote/websocket.service';
 import { of } from 'rxjs';
 import { } from 'jasmine';
 

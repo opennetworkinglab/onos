@@ -19,9 +19,7 @@ import { FormsModule } from '@angular/forms';
 import { AppsRoutingModule } from './apps-routing.module';
 import { AppsComponent } from './apps/apps.component';
 import { AppsDetailsComponent } from './appsdetails/appsdetails.component';
-import { LayerModule } from '../../fw/layer/layer.module';
-import { SvgModule } from '../../fw/svg/svg.module';
-import { WidgetModule } from '../../fw/widget/widget.module';
+import { Gui2FwLibModule } from 'gui2-fw-lib';
 
 /**
  * ONOS GUI -- Apps View Module
@@ -34,10 +32,8 @@ import { WidgetModule } from '../../fw/widget/widget.module';
     imports: [
         CommonModule,
         AppsRoutingModule,
-        SvgModule,
-        WidgetModule,
-        FormsModule,
-        LayerModule
+        Gui2FwLibModule,
+        FormsModule
     ],
     declarations: [
         AppsComponent,

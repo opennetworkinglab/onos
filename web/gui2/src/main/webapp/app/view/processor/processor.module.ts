@@ -15,8 +15,7 @@
  */
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { SvgModule } from '../../fw/svg/svg.module';
-import { WidgetModule } from '../../fw/widget/widget.module';
+import { Gui2FwLibModule } from 'gui2-fw-lib';
 import { ProcessorRoutingModule } from './processor-routing.module';
 import { ProcessorComponent } from './processor/processor.component';
 
@@ -24,8 +23,7 @@ import { ProcessorComponent } from './processor/processor.component';
     imports: [
         CommonModule,
         ProcessorRoutingModule,
-        SvgModule,
-        WidgetModule
+        Gui2FwLibModule
     ],
     declarations: [ProcessorComponent]
 })

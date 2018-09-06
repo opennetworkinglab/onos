@@ -16,19 +16,17 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PortComponent } from './port/port.component';
-import { SvgModule } from '../../fw/svg/svg.module';
+import { Gui2FwLibModule } from 'gui2-fw-lib';
 import { FormsModule } from '@angular/forms';
-import { WidgetModule } from '../../fw/widget/widget.module';
 import { PortRoutingModule } from './port-routing.module';
 import { PortDetailsComponent } from './portdetails/portdetails.component';
 
 @NgModule({
     imports: [
         CommonModule,
-        SvgModule,
+        Gui2FwLibModule,
         PortRoutingModule,
-        FormsModule,
-        WidgetModule
+        FormsModule
     ],
     declarations: [PortComponent, PortDetailsComponent]
 })

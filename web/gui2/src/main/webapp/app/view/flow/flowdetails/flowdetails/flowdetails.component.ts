@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 import { Component, OnInit, OnDestroy, OnChanges, Input, Output, EventEmitter } from '@angular/core';
-import { DetailsPanelBaseImpl } from '../../../../fw/widget/detailspanel.base';
-import { FnService } from '../../../../fw/util/fn.service';
-import { LoadingService } from '../../../../fw/layer/loading.service';
-import { LogService } from '../../../../log.service';
-import { WebSocketService } from '../../../../fw/remote/websocket.service';
-import { LionService } from '../../../../fw/util/lion.service';
+import {
+    FnService,
+    IconService,
+    LionService,
+    LoadingService,
+    LogService,
+    DetailsPanelBaseImpl,
+    WebSocketService
+} from 'gui2-fw-lib';
 import { trigger, state, style, transition, animate } from '@angular/animations';
 
 /**

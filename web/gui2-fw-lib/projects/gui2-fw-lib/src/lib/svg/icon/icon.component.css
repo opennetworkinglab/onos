@@ -1,0 +1,87 @@
+/*
+ * Copyright 2018-present Open Networking Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
+ ONOS GUI -- Icon Service (layout) -- CSS file
+ */
+
+svg#IconLibDefs {
+  display: none;
+}
+
+svg .svgIcon {
+    fill-rule: evenodd;
+}
+
+svg.embeddedIcon g.icon {
+    fill: none;
+}
+
+.ctrl-btns div svg.embeddedIcon g.icon use {
+    fill: #e0dfd6;
+}
+
+.ctrl-btns div.active svg.embeddedIcon g.icon use {
+    fill: #939598;
+}
+.ctrl-btns div.active:hover svg.embeddedIcon g.icon use {
+    fill: #ce5b58;
+}
+
+.ctrl-btns div.current-view svg.embeddedIcon g.icon rect {
+    fill: #518ecc;
+}
+.ctrl-btns div.current-view svg.embeddedIcon g.icon use {
+    fill: white;
+}
+
+svg.embeddedIcon .icon.active .glyph {
+    fill: #04bf34;
+}
+
+svg.embeddedIcon .icon.inactive .glyph {
+    fill: #c0242b;
+}
+
+svg.embeddedIcon .icon.active-rect .glyph {
+    fill:#939598;
+}
+
+svg.embeddedIcon .icon.active-sort .glyph {
+    fill:#333333;
+}
+
+svg.embeddedIcon g.icon.active-rect:hover use {
+    fill: #ce5b58;
+}
+
+svg.embeddedIcon g.icon.active-type .glyph {
+    fill: #3c3a3a;
+}
+
+svg.embeddedIcon g.icon.active-close:hover use {
+    fill: #ce5b58;
+}
+
+svg.embeddedIcon g.icon.active-close .glyph {
+    fill: #333333;
+}
+
+svg.embeddedIcon g.icon.details-icon .glyph {
+    fill: #0071bd;;
+}
+
+

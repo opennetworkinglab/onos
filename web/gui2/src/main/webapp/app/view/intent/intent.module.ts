@@ -18,19 +18,15 @@ import { CommonModule } from '@angular/common';
 
 import { IntentRoutingModule } from './intent-routing.module';
 import { IntentComponent } from './intent/intent.component';
-import { SvgModule } from '../../fw/svg/svg.module';
-import { WidgetModule } from '../../fw/widget/widget.module';
+import { Gui2FwLibModule } from 'gui2-fw-lib';
 import { RouterModule } from '@angular/router';
-import { LayerModule } from '../../fw/layer/layer.module';
 
 @NgModule({
     imports: [
         CommonModule,
-        SvgModule,
-        WidgetModule,
+        Gui2FwLibModule,
         RouterModule,
         IntentRoutingModule,
-        LayerModule
     ],
     declarations: [IntentComponent],
     exports: [IntentComponent]

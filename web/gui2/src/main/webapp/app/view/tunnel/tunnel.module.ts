@@ -18,15 +18,13 @@ import { CommonModule } from '@angular/common';
 
 import { TunnelRoutingModule } from './tunnel-routing.module';
 import { TunnelComponent } from './tunnel/tunnel.component';
-import { SvgModule } from '../../fw/svg/svg.module';
-import { WidgetModule } from '../../fw/widget/widget.module';
+import { Gui2FwLibModule } from 'gui2-fw-lib';
 
 @NgModule({
   imports: [
     CommonModule,
     TunnelRoutingModule,
-    SvgModule,
-    WidgetModule
+    Gui2FwLibModule
   ],
   declarations: [
     TunnelComponent

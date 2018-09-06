@@ -16,17 +16,17 @@
 import { Component, OnInit, OnDestroy, Inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 
-import { DialogService } from '../../../fw/layer/dialog.service';
-import { FnService } from '../../../fw/util/fn.service';
-import { IconService } from '../../../fw/svg/icon.service';
-import { KeyService } from '../../../fw/util/key.service';
-import { LionService } from '../../../fw/util/lion.service';
-import { LoadingService } from '../../../fw/layer/loading.service';
-import { LogService } from '../../../log.service';
-import { TableBaseImpl, TableResponse, TableFilter, SortParams, SortDir } from '../../../fw/widget/table.base';
-import { UrlFnService } from '../../../fw/remote/urlfn.service';
-import { WebSocketService } from '../../../fw/remote/websocket.service';
-import { TableFilterPipe } from '../../../fw/widget/tablefilter.pipe';
+import {
+    FnService,
+    IconService,
+    LionService,
+    LoadingService,
+    LogService,
+    TableBaseImpl, TableResponse, TableFilter, SortParams, SortDir,
+    UrlFnService,
+    WebSocketService,
+    TableFilterPipe
+} from 'gui2-fw-lib';
 
 const INSTALLED = 'INSTALLED';
 const ACTIVE = 'ACTIVE';
@@ -131,9 +131,7 @@ export class AppsComponent extends TableBaseImpl implements OnInit, OnDestroy {
 
     constructor(
         protected fs: FnService,
-        private ds: DialogService,
         private is: IconService,
-        private ks: KeyService,
         private lion: LionService,
         protected ls: LoadingService,
         protected log: LogService,

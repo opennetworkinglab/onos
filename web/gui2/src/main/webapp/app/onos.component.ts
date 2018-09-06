@@ -17,15 +17,14 @@ import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
 import { Observable, Subscription, fromEvent } from 'rxjs';
 import { map, filter } from 'rxjs/operators';
 
-import { LionService } from './fw/util/lion.service';
-import { LogService } from './log.service';
-import { KeyService } from './fw/util/key.service';
-import { ThemeService } from './fw/util/theme.service';
-import { GlyphService } from './fw/svg/glyph.service';
-import { QuickHelpService } from './fw/layer/quickhelp.service';
-import { EeService } from './fw/util/ee.service';
-import { WebSocketService, WsOptions } from './fw/remote/websocket.service';
-import { SpriteService } from './fw/svg/sprite.service';
+import {
+    LionService,
+    LogService,
+    ThemeService,
+    GlyphService,
+    WebSocketService,
+    WsOptions
+} from 'gui2-fw-lib';
 import { OnosService, View } from './onos.service';
 
 // secret sauce
@@ -80,13 +79,9 @@ export class OnosComponent implements OnInit, AfterViewInit, OnDestroy {
 
     constructor (
         private lion: LionService,
-        private ks: KeyService,
         private ts: ThemeService,
         private gs: GlyphService,
-        private qhs: QuickHelpService,
-        private ee: EeService,
         public wss: WebSocketService,
-        private ss: SpriteService,
         private log: LogService,
         private onos: OnosService
     ) {

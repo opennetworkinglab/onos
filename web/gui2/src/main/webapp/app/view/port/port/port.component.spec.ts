@@ -19,25 +19,26 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { PortComponent } from './port.component';
 import { ActivatedRoute, Params } from '@angular/router';
 import { of } from 'rxjs/index';
-import { FnService } from '../../../fw/util/fn.service';
-import { LogService } from '../../../log.service';
+import {
+    FnService,
+    IconService,
+    GlyphService,
+    IconComponent,
+    LoadingService,
+    LogService,
+    NavService,
+    MastService,
+    PrefsService,
+    TableFilterPipe,
+    ThemeService,
+    WebSocketService
+} from 'gui2-fw-lib';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
-import { IconComponent } from '../../../fw/svg/icon/icon.component';
-import { TableFilterPipe } from '../../../fw/widget/tablefilter.pipe';
-import { GlyphService } from '../../../fw/svg/glyph.service';
-import { IconService } from '../../../fw/svg/icon.service';
-import { KeyService } from '../../../fw/util/key.service';
-import { LoadingService } from '../../../fw/layer/loading.service';
-import { MastService } from '../../../fw/mast/mast.service';
-import { NavService } from '../../../fw/nav/nav.service';
-import { ThemeService } from '../../../fw/util/theme.service';
-import { WebSocketService } from '../../../fw/remote/websocket.service';
 import { DebugElement } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { PortDetailsComponent } from '../portdetails/portdetails.component';
-import { PrefsService } from '../../../fw/util/prefs.service';
 class MockActivatedRoute extends ActivatedRoute {
     constructor(params: Params) {
         super();
@@ -57,8 +58,6 @@ class MockPrefsService {
 }
 
 class MockGlyphService { }
-
-class MockKeyService { }
 
 class MockLoadingService {
     startAnim() { }
@@ -116,7 +115,6 @@ describe('PortComponent', () => {
                 { provide: FnService, useValue: fs },
                 { provide: IconService, useClass: MockIconService },
                 { provide: GlyphService, useClass: MockGlyphService },
-                { provide: KeyService, useClass: MockKeyService },
                 { provide: LoadingService, useClass: MockLoadingService },
                 { provide: MastService, useClass: MockMastService },
                 { provide: NavService, useClass: MockNavService },

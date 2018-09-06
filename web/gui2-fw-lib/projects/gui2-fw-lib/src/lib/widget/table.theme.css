@@ -1,0 +1,152 @@
+/*
+ * Copyright 2018-present Open Networking Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/* ------ for summary-list tables (theme) ------ */
+
+.light div.summary-list, .table-header th {
+    background-color: #e5e5e6;
+    color: #3c3a3a;
+}
+
+.light div.summary-list, td {
+    color: #3c3a3a;
+}
+
+.light div.summary-list, tr:nth-child(even) {
+    background-color: #f4f4f4;
+}
+.light div.summary-list, tr:nth-child(odd) {
+    background-color: #fbfbfb;
+}
+
+.light div.summary-list, tr.selected {
+    background-color: #dbeffc !important;
+}
+
+
+.light div.summary-list, tr.data-change {
+    background-color: #FDFFDC;
+}
+
+/* --- Control Buttons --- */
+
+/* INACTIVE */
+.light .ctrl-btns div svg.embeddedIcon g.icon use {
+    fill: #e0dfd6;
+}
+/* note: no change for inactive buttons when hovered */
+
+
+/* ACTIVE */
+.light .ctrl-btns div.active svg.embeddedIcon g.icon use {
+    fill: #939598;
+}
+.light .ctrl-btns div.active:hover svg.embeddedIcon g.icon use {
+    fill: #ce5b58;
+}
+
+/* CURRENT-VIEW */
+.light .ctrl-btns div.current-view svg.embeddedIcon g.icon rect {
+    fill: #518ecc;
+}
+.light .ctrl-btns div.current-view svg.embeddedIcon g.icon use {
+    fill: white;
+}
+
+/* REFRESH */
+.light .ctrl-btns div.refresh svg.embeddedIcon g.icon use {
+    fill: #cdeff2;
+}
+.light .ctrl-btns div.refresh:hover svg.embeddedIcon g.icon use {
+    fill: #ce5b58;
+}
+.light .ctrl-btns div.refresh.active svg.embeddedIcon g.icon use {
+    fill: #009fdb;
+}
+.light .ctrl-btns div.refresh.active:hover svg.embeddedIcon g.icon use {
+    fill: #ce5b58;
+}
+
+
+/* ========== DARK Theme ========== */
+
+.dark div.summary-list .table-header td {
+    background-color: #222222;
+    color: #cccccc;
+}
+
+.dark div.summary-list td {
+    /* note: don't put background-color here */
+    color: #cccccc;
+}
+.dark div.summary-list tr.no-data td {
+    background-color: #333333;
+}
+
+.dark div.summary-list tr:nth-child(even) {
+    background-color: #333333;
+}
+.dark div.summary-list tr:nth-child(odd) {
+    background-color: #3a3a3a;
+}
+
+.dark div.summary-list tr.selected {
+    background-color: #304860 !important;
+}
+
+
+.dark div.summary-list tr.data-change {
+    background-color: #423708;
+}
+
+/* --- Control Buttons --- */
+
+/* INACTIVE */
+.dark .ctrl-btns div svg.embeddedIcon g.icon use {
+    fill: #444444;
+}
+/* note: no change for inactive buttons when hovered */
+
+
+/* ACTIVE */
+.dark .ctrl-btns div.active svg.embeddedIcon g.icon use {
+    fill: #939598;
+}
+.dark .ctrl-btns div.active:hover svg.embeddedIcon g.icon use {
+    fill: #ce5b58;
+}
+
+/* CURRENT-VIEW */
+.dark .ctrl-btns div.current-view svg.embeddedIcon g.icon rect {
+    fill: #518ecc;
+}
+.dark .ctrl-btns div.current-view svg.embeddedIcon g.icon use {
+    fill: #dddddd;
+}
+
+/* REFRESH */
+.dark .ctrl-btns div.refresh svg.embeddedIcon g.icon use {
+    fill: #364144;
+}
+.dark .ctrl-btns div.refresh:hover svg.embeddedIcon g.icon use {
+    fill: #ce5b58;
+}
+.dark .ctrl-btns div.refresh.active svg.embeddedIcon g.icon use {
+    fill: #0074a6;
+}
+.dark .ctrl-btns div.refresh.active:hover svg.embeddedIcon g.icon use {
+    fill: #ce5b58;
+}

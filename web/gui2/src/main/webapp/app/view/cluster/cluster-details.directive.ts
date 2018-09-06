@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 import {Directive, ElementRef, EventEmitter, Inject, Input, OnChanges, OnDestroy, OnInit, Output} from '@angular/core';
-import {FnService} from '../../fw/util/fn.service';
-import {LogService} from '../../log.service';
-import {MastService} from '../../fw/mast/mast.service';
-import {DetailsPanelBaseImpl} from '../../fw/widget/detailspanel.base';
-import {LoadingService} from '../../fw/layer/loading.service';
-import {IconService} from '../../fw/svg/icon.service';
-import {LionService} from '../../fw/util/lion.service';
-import {WebSocketService} from '../../fw/remote/websocket.service';
+import {
+    FnService,
+    LogService,
+    MastService,
+    DetailsPanelBaseImpl,
+    LoadingService,
+    IconService,
+    LionService,
+    PanelService,
+    WebSocketService
+} from 'gui2-fw-lib';
 import * as d3 from 'd3';
-import {PanelService} from '../../fw/layer/panel.service';
 import {HostListener} from '@angular/core';
 
 // internal state

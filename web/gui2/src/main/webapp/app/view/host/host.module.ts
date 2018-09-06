@@ -18,16 +18,14 @@ import { CommonModule } from '@angular/common';
 
 import { HostRoutingModule } from './host-routing.module';
 import { HostComponent } from './host/host.component';
-import { SvgModule } from '../../fw/svg/svg.module';
-import { WidgetModule } from '../../fw/widget/widget.module';
+import { Gui2FwLibModule } from 'gui2-fw-lib';
 import { HostDetailsComponent } from './hostdetails/hostdetails.component';
 
 @NgModule({
     imports: [
         CommonModule,
         HostRoutingModule,
-        WidgetModule,
-        SvgModule
+        Gui2FwLibModule
     ],
     declarations: [HostComponent, HostDetailsComponent]
 })
