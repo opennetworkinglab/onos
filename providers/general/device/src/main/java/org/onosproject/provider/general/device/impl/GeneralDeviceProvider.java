@@ -455,7 +455,7 @@ public class GeneralDeviceProvider extends AbstractProvider
         // Start connection via handshaker.
         final Boolean connectSuccess = getFutureWithDeadline(
                 handshaker.connect(), "initiating connection",
-                deviceId, null, opTimeoutShort);
+                deviceId, false, opTimeoutShort);
         if (!connectSuccess) {
             log.warn("Unable to connect to {}", deviceId);
         }
@@ -887,6 +887,12 @@ public class GeneralDeviceProvider extends AbstractProvider
         }
     }
 
+    private void handleNotMaster(DeviceId deviceId) {
+        log.warn("Device {} notified that this node is not master, " +
+                         "relinquishing mastership...", deviceId);
+        mastershipService.relinquishMastership(deviceId);
+    }
+
     private <U> U getFutureWithDeadline(CompletableFuture<U> future, String opDescription,
                                         DeviceId deviceId, U defaultValue, int timeout) {
         try {
@@ -947,6 +953,9 @@ public class GeneralDeviceProvider extends AbstractProvider
                     break;
                 case ROLE_NONE:
                     handleMastershipResponse(deviceId, MastershipRole.NONE);
+                    break;
+                case NOT_MASTER:
+                    handleNotMaster(deviceId);
                     break;
                 default:
                     log.warn("Unrecognized device agent event {}", event.type());

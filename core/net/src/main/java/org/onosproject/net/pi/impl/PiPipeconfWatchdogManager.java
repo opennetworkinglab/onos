@@ -108,7 +108,7 @@ public class PiPipeconfWatchdogManager
     private ComponentConfigService componentConfigService;
 
     private static final String PROBE_INTERVAL = "probeInterval";
-    private static final int DEFAULT_PROBE_INTERVAL = 30;
+    private static final int DEFAULT_PROBE_INTERVAL = 15;
     @Property(name = PROBE_INTERVAL, intValue = DEFAULT_PROBE_INTERVAL,
             label = "Configure interval in seconds for device pipeconf probing")
     private int probeInterval = DEFAULT_PROBE_INTERVAL;

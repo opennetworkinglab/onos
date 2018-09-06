@@ -261,10 +261,18 @@ public class P4RuntimeControllerImpl
             case ARBITRATION_RESPONSE:
                 handleArbitrationReply(event);
                 break;
+            case PERMISSION_DENIED:
+                handlePermissionDenied(event);
+                break;
             default:
                 post(event);
                 break;
         }
+    }
+
+    private void handlePermissionDenied(P4RuntimeEvent event) {
+        postDeviceAgentEvent(event.subject().deviceId(), new DeviceAgentEvent(
+                DeviceAgentEvent.Type.NOT_MASTER, event.subject().deviceId()));
     }
 
     private void handleChannelEvent(P4RuntimeEvent event) {

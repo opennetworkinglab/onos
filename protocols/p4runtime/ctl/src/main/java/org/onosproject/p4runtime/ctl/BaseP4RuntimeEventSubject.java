@@ -20,32 +20,20 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.p4runtime.api.P4RuntimeEventSubject;
 
 /**
- * Default implementation of arbitration in P4Runtime.
+ * Base P4Runtime event subject that carries just the device ID that originated
+ * the event.
  */
-final class ArbitrationResponse implements P4RuntimeEventSubject {
+final class BaseP4RuntimeEventSubject implements P4RuntimeEventSubject {
 
     private DeviceId deviceId;
-    private boolean isMaster;
 
     /**
-     * Creates arbitration with given role and master flag.
+     * Creates an event subject.
      *
      * @param deviceId the device
-     * @param isMaster true if arbitration response signals master status
      */
-    ArbitrationResponse(DeviceId deviceId, boolean isMaster) {
+    BaseP4RuntimeEventSubject(DeviceId deviceId) {
         this.deviceId = deviceId;
-        this.isMaster = isMaster;
-    }
-
-    /**
-     * Returns true if arbitration response signals master status, false
-     * otherwise.
-     *
-     * @return boolean flag
-     */
-    boolean isMaster() {
-        return isMaster;
     }
 
     @Override
