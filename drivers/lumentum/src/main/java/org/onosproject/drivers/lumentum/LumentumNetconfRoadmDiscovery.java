@@ -271,9 +271,14 @@ public class LumentumNetconfRoadmDiscovery
             log.debug("Lumentum NETCONF - retrieved port {},{},{},{},{}",
                     portNum, isEnabled, type, speed, annotations.build());
 
-            portDescriptions.add(new DefaultPortDescription(portNum, isEnabled,
-                                                            type, speed,
-                                                            annotations.build()));
+            DefaultPortDescription.Builder portDescriptionBuilder = DefaultPortDescription.builder();
+            portDescriptionBuilder.withPortNumber(portNum)
+                    .isEnabled(isEnabled)
+                    .type(type)
+                    .portSpeed(speed)
+                    .annotations(annotations.build());
+
+            portDescriptions.add(portDescriptionBuilder.build());
         });
 
         return portDescriptions;

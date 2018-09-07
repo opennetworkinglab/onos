@@ -39,38 +39,6 @@ public class DefaultPortDescription extends AbstractDescription
     private final long portSpeed;
 
     /**
-     * Creates a DEFAULT_SPEED COPPER port description using the supplied information.
-     *
-     * @param number      port number
-     * @param isEnabled   port enabled state
-     * @param annotations optional key/value annotations map
-     *
-     * @deprecated in 1.13.0 use {@link #builder()} instead
-     */
-    @Deprecated
-    public DefaultPortDescription(PortNumber number, boolean isEnabled,
-                                  SparseAnnotations... annotations) {
-        this(number, isEnabled, Type.COPPER, DEFAULT_SPEED, annotations);
-    }
-
-    /**
-     * Creates a port description using the supplied information.
-     *
-     * @param number      port number
-     * @param isEnabled   port enabled state
-     * @param type        port type
-     * @param portSpeed   port speed in Mbps
-     * @param annotations optional key/value annotations map
-     * @deprecated in 1.13.0 use {@link #builder()} instead
-     */
-    @Deprecated
-    public DefaultPortDescription(PortNumber number, boolean isEnabled,
-                                  Type type, long portSpeed,
-                                  SparseAnnotations...annotations) {
-        this(number, isEnabled, false, type, portSpeed, annotations);
-    }
-
-    /**
      * Creates a port description using the supplied information.
      *
      * @param number      port number
@@ -79,10 +47,8 @@ public class DefaultPortDescription extends AbstractDescription
      * @param type        port type
      * @param portSpeed   port speed in Mbps
      * @param annotations optional key/value annotations map
-     * @deprecated in 1.13.0 use {@link #builder()} instead
      */
-    @Deprecated // to be made non-public
-    public DefaultPortDescription(PortNumber number, boolean isEnabled, boolean isRemoved,
+    private DefaultPortDescription(PortNumber number, boolean isEnabled, boolean isRemoved,
                                   Type type, long portSpeed,
                                   SparseAnnotations...annotations) {
         super(annotations);
@@ -100,39 +66,6 @@ public class DefaultPortDescription extends AbstractDescription
         this.isRemoved = false;
         this.portSpeed = DEFAULT_SPEED;
         this.type = Type.COPPER;
-    }
-
-    /**
-     * Creates a port description using the supplied information.
-     *
-     * @param base        PortDescription to get basic information from
-     * @param annotations optional key/value annotations map
-     *
-     * @deprecated in 1.13.0 use {@link #builder(PortDescription)} instead.
-     */
-    @Deprecated
-    public DefaultPortDescription(PortDescription base,
-                                  SparseAnnotations annotations) {
-        this(base.portNumber(), base.isEnabled(), base.isRemoved(), base.type(), base.portSpeed(),
-             annotations);
-    }
-
-    /**
-     * Creates a port description using the supplied information.
-     *
-     * @param base port description to copy fields from
-     * @param annotations to be used in the copied description.
-     *        Note: Annotations on {@code base} will be ignored.
-     * @return copied port description
-     *
-     * @deprecated in 1.13.0 use {@link #builder(PortDescription)} instead.
-     */
-    @Deprecated
-    public static DefaultPortDescription copyReplacingAnnotation(PortDescription base,
-                                                                 SparseAnnotations annotations) {
-        return DefaultPortDescription.builder(base)
-                .annotations(annotations)
-                .build();
     }
 
     @Override
