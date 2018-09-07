@@ -583,11 +583,6 @@ public class Controller {
         return ofSwitchDriver;
     }
 
-    @Deprecated
-    public void start(OpenFlowAgent ag, DriverService driverService) {
-        start(ag, driverService, null);
-    }
-
     public void start(OpenFlowAgent ag, DriverService driverService,
                       NetworkConfigRegistry netCfgService) {
         log.info("Starting OpenFlow IO");
