@@ -15,6 +15,8 @@
  */
 package org.onosproject.cluster;
 
+import java.util.Map;
+
 /**
  * Interface for administratively manipulating leadership assignments.
  */
@@ -45,4 +47,11 @@ public interface LeadershipAdminService {
      * @param nodeId node identifier
      */
     void unregister(NodeId nodeId);
+
+    /**
+     * Returns the current leader board.
+     *
+     * @return mapping from topic to leadership info.
+     */
+    Map<String, Leadership> getLeaderBoard();
 }

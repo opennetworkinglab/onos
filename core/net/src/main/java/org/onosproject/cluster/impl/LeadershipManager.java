@@ -18,7 +18,9 @@ package org.onosproject.cluster.impl;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Map;
+import java.util.Set;
 
+import com.google.common.base.Objects;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -81,6 +83,11 @@ public class LeadershipManager
     @Override
     public Leadership getLeadership(String topic) {
         return store.getLeadership(topic);
+    }
+
+    @Override
+    public Set<String> ownedTopics(NodeId nodeId) {
+        return Maps.filterValues(store.getLeaderships(), v -> Objects.equal(nodeId, v.leaderNodeId())).keySet();
     }
 
     @Override

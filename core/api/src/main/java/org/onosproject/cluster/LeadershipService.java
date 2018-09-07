@@ -15,15 +15,10 @@
  */
 package org.onosproject.cluster;
 
+import com.google.common.collect.ImmutableList;
 import org.onosproject.event.ListenerService;
 
-import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
-
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -66,9 +61,7 @@ public interface LeadershipService
      * @param nodeId node identifier.
      * @return set of topics for which this node is the current leader.
      */
-    default Set<String> ownedTopics(NodeId nodeId) {
-        return Maps.filterValues(getLeaderBoard(), v -> Objects.equal(nodeId, v.leaderNodeId())).keySet();
-    }
+    Set<String> ownedTopics(NodeId nodeId);
 
     /**
      * Enters a leadership contest.
@@ -84,26 +77,6 @@ public interface LeadershipService
      * @param topic leadership topic
      */
     void withdraw(String topic);
-
-    /**
-     * Returns the current leader board.
-     *
-     * @return mapping from topic to leadership info.
-     * @deprecated 1.6.0 Goldeneye release. Replace usages with {@link #getLeadership(String)}
-     */
-    @Deprecated
-    Map<String, Leadership> getLeaderBoard();
-
-    /**
-     * Returns the candidate nodes for each topic.
-     *
-     * @return A mapping from topics to corresponding list of candidates.
-     * @deprecated 1.6.0 Goldeneye release. Replace usages with {@link #getLeadership(String)}
-     */
-    @Deprecated
-    default Map<String, List<NodeId>> getCandidates() {
-        return ImmutableMap.copyOf(Maps.transformValues(getLeaderBoard(), v -> ImmutableList.copyOf(v.candidates())));
-    }
 
     /**
      * Returns the candidate nodes for a given topic.

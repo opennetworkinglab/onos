@@ -106,13 +106,6 @@ public class SimpleLeadershipManager implements LeadershipService {
     }
 
     @Override
-    public Map<String, Leadership> getLeaderBoard() {
-        //FIXME
-        throw new UnsupportedOperationException("I don't know what to do." +
-                                                        " I wish you luck.");
-    }
-
-    @Override
     public void addListener(LeadershipEventListener listener) {
         listeners.add(listener);
     }
@@ -120,11 +113,6 @@ public class SimpleLeadershipManager implements LeadershipService {
     @Override
     public void removeListener(LeadershipEventListener listener) {
         listeners.remove(listener);
-    }
-
-    @Override
-    public Map<String, List<NodeId>> getCandidates() {
-        return null;
     }
 
     @Override
