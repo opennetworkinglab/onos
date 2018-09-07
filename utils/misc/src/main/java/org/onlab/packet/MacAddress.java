@@ -206,18 +206,6 @@ public class MacAddress {
     }
 
     /**
-     * Returns true if this MAC address is link local.
-     *
-     * @return true if link local
-     * @deprecated in Kingfisher release. Link local is not a correct description for
-     *             this MAC address. Replaced with {@link #isLldp()}
-     */
-    @Deprecated
-    public boolean isLinkLocal() {
-        return isLldp();
-    }
-
-    /**
      * Returns true if this MAC address is used by link layer discovery protocol.
      *
      * @return true if this MAC is LLDP MAC.

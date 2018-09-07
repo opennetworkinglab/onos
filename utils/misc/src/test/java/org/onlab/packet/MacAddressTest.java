@@ -132,20 +132,6 @@ public class MacAddressTest {
     }
 
     @Test
-    @Deprecated
-    public void testIsLinkLocal() throws Exception {
-        assertFalse(MAC_NORMAL.isLinkLocal());
-        assertFalse(MAC_BCAST.isLinkLocal());
-        assertFalse(MAC_MCAST.isLinkLocal());
-        assertFalse(MAC_MCAST_2.isLinkLocal());
-        assertTrue(MAC_LLDP.isLinkLocal());
-        assertTrue(MAC_LLDP_2.isLinkLocal());
-        assertTrue(MAC_LLDP_3.isLinkLocal());
-        assertFalse(MAC_ONOS.isLinkLocal());
-    }
-
-
-    @Test
     public void testIsLldp() throws Exception {
         assertFalse(MAC_NORMAL.isLldp());
         assertFalse(MAC_BCAST.isLldp());
