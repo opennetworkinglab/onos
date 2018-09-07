@@ -21,10 +21,13 @@
 #include "include/control/forwarding.p4"
 #include "include/control/next.p4"
 #include "include/control/packetio.p4"
-#include "include/control/port_counter.p4"
 #include "include/header.p4"
 #include "include/checksum.p4"
 #include "include/parser.p4"
+
+#ifdef WITH_PORT_COUNTER
+#include "include/control/port_counter.p4"
+#endif // WITH_PORT_COUNTER
 
 #ifdef WITH_SPGW
 #include "include/spgw.p4"
@@ -45,7 +48,9 @@ inout standard_metadata_t standard_metadata) {
     Filtering() filtering;
     Forwarding() forwarding;
     Next() next;
+#ifdef WITH_PORT_COUNTER
     PortCountersControl() port_counters_control;
+#endif // WITH_PORT_COUNTER
 
     apply {
 #ifdef WITH_SPGW
@@ -64,7 +69,9 @@ inout standard_metadata_t standard_metadata) {
         filtering.apply(hdr, fabric_metadata, standard_metadata);
         forwarding.apply(hdr, fabric_metadata, standard_metadata);
         next.apply(hdr, fabric_metadata, standard_metadata);
+#ifdef WITH_PORT_COUNTER
         port_counters_control.apply(hdr, fabric_metadata, standard_metadata);
+#endif // WITH_PORT_COUNTER
 #ifdef WITH_INT
         process_set_source_sink.apply(hdr, fabric_metadata, standard_metadata);
         if(fabric_metadata.int_meta.sink == 1) {

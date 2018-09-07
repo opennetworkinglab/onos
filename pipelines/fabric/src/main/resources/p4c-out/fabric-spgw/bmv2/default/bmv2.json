@@ -3155,7 +3155,7 @@
           ],
           "source_info" : {
             "filename" : "fabric.p4",
-            "line" : 52,
+            "line" : 57,
             "column" : 50,
             "source_fragment" : "hdr.gtpu_ipv4"
           }
@@ -3170,7 +3170,7 @@
           ],
           "source_info" : {
             "filename" : "fabric.p4",
-            "line" : 52,
+            "line" : 57,
             "column" : 65,
             "source_fragment" : "hdr.gtpu_udp"
           }
@@ -4970,7 +4970,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "fabric.p4",
-        "line" : 40,
+        "line" : 43,
         "column" : 8,
         "source_fragment" : "FabricIngress"
       },
@@ -6799,7 +6799,7 @@
       "id" : 1,
       "source_info" : {
         "filename" : "fabric.p4",
-        "line" : 80,
+        "line" : 87,
         "column" : 8,
         "source_fragment" : "FabricEgress"
       },

@@ -173,6 +173,8 @@ public class PipeconfLoader {
             throw new FileNotFoundException(CPU_PORT_TXT);
         }
         return basePipeconfBuilder(profile, platform, p4InfoUrl, cpuPortUrl)
+                .addBehaviour(PortStatisticsDiscovery.class,
+                              FabricPortStatisticsDiscovery.class)
                 .addExtension(ExtensionType.BMV2_JSON, bmv2JsonUrl);
     }
 
@@ -218,8 +220,6 @@ public class PipeconfLoader {
                               FabricInterpreter.class)
                 .addBehaviour(Pipeliner.class,
                               FabricPipeliner.class)
-                .addBehaviour(PortStatisticsDiscovery.class,
-                              FabricPortStatisticsDiscovery.class)
                 .addExtension(ExtensionType.P4_INFO_TEXT, p4InfoUrl)
                 .addExtension(ExtensionType.CPU_PORT_TXT, cpuPortUrl);
     }

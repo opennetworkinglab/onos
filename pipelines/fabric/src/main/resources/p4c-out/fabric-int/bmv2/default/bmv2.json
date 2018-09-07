@@ -9426,7 +9426,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "fabric.p4",
-        "line" : 40,
+        "line" : 43,
         "column" : 8,
         "source_fragment" : "FabricIngress"
       },
@@ -10737,7 +10737,7 @@
           "id" : 13,
           "source_info" : {
             "filename" : "fabric.p4",
-            "line" : 70,
+            "line" : 77,
             "column" : 11,
             "source_fragment" : "fabric_metadata.int_meta.sink == 1"
           },
@@ -10765,7 +10765,7 @@
       "id" : 1,
       "source_info" : {
         "filename" : "fabric.p4",
-        "line" : 80,
+        "line" : 87,
         "column" : 8,
         "source_fragment" : "FabricEgress"
       },
@@ -11493,7 +11493,7 @@
           "id" : 19,
           "source_info" : {
             "filename" : "fabric.p4",
-            "line" : 94,
+            "line" : 101,
             "column" : 12,
             "source_fragment" : "standard_metadata.ingress_port != 255 && ..."
           },
@@ -11573,7 +11573,7 @@
           "id" : 20,
           "source_info" : {
             "filename" : "fabric.p4",
-            "line" : 97,
+            "line" : 104,
             "column" : 16,
             "source_fragment" : "fabric_metadata.int_meta.source == 1"
           },
@@ -11599,7 +11599,7 @@
           "id" : 21,
           "source_info" : {
             "filename" : "fabric.p4",
-            "line" : 100,
+            "line" : 107,
             "column" : 15,
             "source_fragment" : "hdr.int_header.isValid()"
           },
@@ -11691,7 +11691,7 @@
           "id" : 25,
           "source_info" : {
             "filename" : "fabric.p4",
-            "line" : 104,
+            "line" : 111,
             "column" : 20,
             "source_fragment" : "standard_metadata.instance_type == 1"
           },
@@ -11717,7 +11717,7 @@
           "id" : 26,
           "source_info" : {
             "filename" : "fabric.p4",
-            "line" : 108,
+            "line" : 115,
             "column" : 20,
             "source_fragment" : "fabric_metadata.int_meta.sink == 1"
           },

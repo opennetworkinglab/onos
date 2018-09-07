@@ -3391,7 +3391,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "fabric.p4",
-        "line" : 40,
+        "line" : 43,
         "column" : 8,
         "source_fragment" : "FabricIngress"
       },
@@ -4607,7 +4607,7 @@
       "id" : 1,
       "source_info" : {
         "filename" : "fabric.p4",
-        "line" : 80,
+        "line" : 87,
         "column" : 8,
         "source_fragment" : "FabricEgress"
       },
