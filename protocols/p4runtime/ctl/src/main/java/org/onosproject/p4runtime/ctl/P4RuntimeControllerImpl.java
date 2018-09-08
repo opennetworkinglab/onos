@@ -61,6 +61,10 @@ public class P4RuntimeControllerImpl
         extends AbstractListenerManager<P4RuntimeEvent, P4RuntimeEventListener>
         implements P4RuntimeController {
 
+    // Getting the pipeline config from the device can take tens of MBs.
+    private static final int MAX_INBOUND_MSG_SIZE = 256; // Megabytes.
+    private static final int MEGABYTES = 1024 * 1024;
+
     private final Logger log = getLogger(getClass());
 
     private final Map<DeviceId, ClientKey> clientKeys = Maps.newHashMap();
@@ -121,7 +125,7 @@ public class P4RuntimeControllerImpl
             final ClientKey existingKey = clientKeys.get(deviceId);
             if (clientKey.equals(existingKey)) {
                 log.debug("Not creating client for {} as it already exists (server={}:{}, p4DeviceId={})...",
-                         deviceId, serverAddr, serverPort, p4DeviceId);
+                          deviceId, serverAddr, serverPort, p4DeviceId);
                 return true;
             } else {
                 log.info("Requested client for {} with new " +
@@ -141,7 +145,8 @@ public class P4RuntimeControllerImpl
 
         ManagedChannelBuilder channelBuilder = NettyChannelBuilder
                 .forAddress(serverAddr, serverPort)
-                .usePlaintext(true);
+                .maxInboundMessageSize(MAX_INBOUND_MSG_SIZE * MEGABYTES)
+                .usePlaintext();
 
         ManagedChannel channel;
         try {
