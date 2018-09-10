@@ -140,7 +140,7 @@ public class P4RuntimeGroupProgrammable
                 processMcGroupOp(groupToApply, op.opType());
             } else {
 
-                processGroupOp(groupToApply, op.opType());
+                processActionGroupOp(groupToApply, op.opType());
             }
         });
     }
@@ -213,8 +213,8 @@ public class P4RuntimeGroupProgrammable
             final PiActionGroupHandle handle = PiActionGroupHandle.of(deviceId, piGroup);
             STRIPED_LOCKS.get(handle).lock();
             try {
-                processPiGroup(handle, piGroup, piGroup, null,
-                               GroupOperation.Type.DELETE);
+                processActionGroup(handle, piGroup, null, null,
+                                   GroupOperation.Type.DELETE);
             } finally {
                 STRIPED_LOCKS.get(handle).unlock();
             }
@@ -234,7 +234,7 @@ public class P4RuntimeGroupProgrammable
                 .collect(Collectors.toList());
     }
 
-    private void processGroupOp(Group pdGroup, GroupOperation.Type opType) {
+    private void processActionGroupOp(Group pdGroup, GroupOperation.Type opType) {
         final PiActionGroup piGroup;
         try {
             piGroup = groupTranslator.translate(pdGroup, pipeconf);
@@ -250,8 +250,8 @@ public class P4RuntimeGroupProgrammable
         final Lock lock = STRIPED_LOCKS.get(handle);
         lock.lock();
         try {
-            processPiGroup(handle, piGroup,
-                           groupOnDevice, pdGroup, opType);
+            processActionGroup(handle, piGroup,
+                               groupOnDevice, pdGroup, opType);
         } finally {
             lock.unlock();
         }
@@ -281,50 +281,60 @@ public class P4RuntimeGroupProgrammable
         }
     }
 
-    private void processPiGroup(PiActionGroupHandle handle,
-                                PiActionGroup groupToApply,
-                                PiActionGroup groupOnDevice,
-                                Group pdGroup, GroupOperation.Type operationType) {
-        if (operationType == GroupOperation.Type.ADD) {
-            if (groupOnDevice != null) {
-                log.warn("Unable to add group {} since group already on device {}",
-                         groupToApply.id(), deviceId);
-                log.debug("To apply: {}", groupToApply);
-                log.debug("On device: {}", groupOnDevice);
+    private void processActionGroup(PiActionGroupHandle handle,
+                                    PiActionGroup groupToApply,
+                                    PiActionGroup groupOnDevice,
+                                    Group pdGroup, GroupOperation.Type operationType) {
+        switch (operationType) {
+            case ADD:
+                if (groupOnDevice != null) {
+                    log.warn("Requested to ADD group {} on {}, but a group " +
+                                     "with the same ID already exists, will " +
+                                     "MODIFY instead",
+                             groupToApply.id(), deviceId);
+                    log.debug("To apply: {}", groupToApply);
+                    log.debug("On device: {}", groupOnDevice);
+                    processActionGroup(handle, groupToApply, groupOnDevice,
+                                       pdGroup, GroupOperation.Type.MODIFY);
+                    return;
+                }
+                if (writeGroupToDevice(groupToApply)) {
+                    groupMirror.put(handle, groupToApply);
+                    groupTranslator.learn(handle, new PiTranslatedEntity<>(
+                            pdGroup, groupToApply, handle));
+                }
                 return;
-            }
-
-            if (writeGroupToDevice(groupToApply)) {
-                groupMirror.put(handle, groupToApply);
-                groupTranslator.learn(handle, new PiTranslatedEntity<>(
-                        pdGroup, groupToApply, handle));
-            }
-        } else if (operationType == GroupOperation.Type.MODIFY) {
-            if (groupOnDevice == null) {
-                log.warn("Group {} does not exists on device {}, can not modify it",
-                         groupToApply.id(), deviceId);
+            case MODIFY:
+                if (groupOnDevice == null) {
+                    log.warn("Requested to MODIFY group {} on {}, but no " +
+                                     "such group exists on the device, " +
+                                     "will ADD instead",
+                             groupToApply.id(), deviceId);
+                    processActionGroup(handle, groupToApply, null,
+                                       pdGroup, GroupOperation.Type.ADD);
+                    return;
+                }
+                if (driverBoolProperty(CHECK_MIRROR_BEFORE_UPDATE,
+                                       DEFAULT_CHECK_MIRROR_BEFORE_UPDATE)
+                        && groupOnDevice.equals(groupToApply)) {
+                    // Group on device has the same members, ignore operation.
+                    return;
+                }
+                if (modifyGroupFromDevice(groupToApply, groupOnDevice)) {
+                    groupMirror.put(handle, groupToApply);
+                    groupTranslator.learn(handle, new PiTranslatedEntity<>(
+                            pdGroup, groupToApply, handle));
+                }
                 return;
-            }
-            if (driverBoolProperty(CHECK_MIRROR_BEFORE_UPDATE, DEFAULT_CHECK_MIRROR_BEFORE_UPDATE)
-                    && groupOnDevice.equals(groupToApply)) {
-                // Group on device has the same members, ignore operation.
-                return;
-            }
-            if (modifyGroupFromDevice(groupToApply, groupOnDevice)) {
-                groupMirror.put(handle, groupToApply);
-                groupTranslator.learn(handle,
-                                      new PiTranslatedEntity<>(pdGroup, groupToApply, handle));
-            }
-        } else {
-            if (groupOnDevice == null) {
-                log.warn("Unable to remove group {} from device {} since it does" +
-                                 "not exists on device.", groupToApply.id(), deviceId);
-                return;
-            }
-            if (deleteGroupFromDevice(groupOnDevice)) {
-                groupMirror.remove(handle);
-                groupTranslator.forget(handle);
-            }
+            case DELETE:
+                if (deleteGroupFromDevice(groupToApply)) {
+                    groupMirror.remove(handle);
+                    groupTranslator.forget(handle);
+                }
+                break;
+            default:
+                log.error("Unknwon group operation type {}, cannot process group", operationType);
+                break;
         }
     }
 
