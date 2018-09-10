@@ -106,6 +106,14 @@ public interface PiTableModel {
     boolean hasDefaultMutableParams();
 
     /**
+     * Returns true if the table is populated with static entries that cannot be
+     * modified by the control plane at runtime.
+     *
+     * @return true if table is populated with static entries, false otherwise
+     */
+    boolean isConstantTable();
+
+    /**
      * Returns the action model associated with the given ID, if present. If not present, it means that this table does
      * not support such an action.
      *

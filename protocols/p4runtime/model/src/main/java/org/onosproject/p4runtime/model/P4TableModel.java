@@ -50,14 +50,16 @@ final class P4TableModel implements PiTableModel {
     private final ImmutableMap<PiActionId, PiActionModel> actions;
     private final PiActionModel defaultAction;
     private final boolean hasDefaultMutableParams;
+    private final boolean isConstTable;
 
     P4TableModel(PiTableId id, PiTableType tableType,
-                        PiActionProfileModel actionProfile, long maxSize,
-                        ImmutableMap<PiCounterId, PiCounterModel> counters,
-                        ImmutableMap<PiMeterId, PiMeterModel> meters, boolean supportAging,
-                        ImmutableMap<PiMatchFieldId, PiMatchFieldModel> matchFields,
-                        ImmutableMap<PiActionId, PiActionModel> actions,
-                        PiActionModel defaultAction, boolean hasDefaultMutableParams) {
+                 PiActionProfileModel actionProfile, long maxSize,
+                 ImmutableMap<PiCounterId, PiCounterModel> counters,
+                 ImmutableMap<PiMeterId, PiMeterModel> meters, boolean supportAging,
+                 ImmutableMap<PiMatchFieldId, PiMatchFieldModel> matchFields,
+                 ImmutableMap<PiActionId, PiActionModel> actions,
+                 PiActionModel defaultAction, boolean hasDefaultMutableParams,
+                 boolean isConstTable) {
         this.id = id;
         this.tableType = tableType;
         this.actionProfile = actionProfile;
@@ -69,6 +71,7 @@ final class P4TableModel implements PiTableModel {
         this.actions = actions;
         this.defaultAction = defaultAction;
         this.hasDefaultMutableParams = hasDefaultMutableParams;
+        this.isConstTable = isConstTable;
     }
 
     @Override
@@ -124,6 +127,11 @@ final class P4TableModel implements PiTableModel {
     @Override
     public boolean hasDefaultMutableParams() {
         return hasDefaultMutableParams;
+    }
+
+    @Override
+    public boolean isConstantTable() {
+        return isConstTable;
     }
 
     @Override

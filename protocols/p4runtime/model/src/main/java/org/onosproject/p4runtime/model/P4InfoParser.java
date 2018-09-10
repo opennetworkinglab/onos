@@ -215,7 +215,8 @@ public final class P4InfoParser {
                             tableFieldMapBuilder.build(),
                             tableActionMapBuilder.build(),
                             actionMap.get(tableMsg.getConstDefaultActionId()),
-                            tableMsg.getConstDefaultActionHasMutableParams()));
+                            tableMsg.getConstDefaultActionHasMutableParams(),
+                            tableMsg.getIsConstTable()));
 
         }
 
