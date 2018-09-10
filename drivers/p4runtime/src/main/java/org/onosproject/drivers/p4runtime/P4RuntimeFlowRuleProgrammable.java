@@ -41,6 +41,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -188,12 +189,12 @@ public class P4RuntimeFlowRuleProgrammable
         final TimedEntry<PiTableEntry> timedEntry = tableMirror.get(handle);
 
         if (!translatedEntity.isPresent()) {
-            log.debug("Handle not found in store: {}", handle);
+            log.warn("Table entry handle not found in translation store: {}", handle);
             return null;
         }
 
         if (timedEntry == null) {
-            log.debug("Handle not found in device mirror: {}", handle);
+            log.warn("Table entry handle not found in device mirror: {}", handle);
             return null;
         }
 
@@ -211,16 +212,22 @@ public class P4RuntimeFlowRuleProgrammable
         return tableMirror.getAll(deviceId).stream()
                 .map(timedEntry -> forgeFlowEntry(
                         timedEntry.entry(), null))
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
     private void cleanUpInconsistentEntries(Collection<PiTableEntry> piEntries) {
-        log.warn("Found {} entries from {} not on translation store, removing them...",
+        log.warn("Found {} inconsistent table entries on {}, removing them...",
                  piEntries.size(), deviceId);
         piEntries.forEach(entry -> {
             log.debug(entry.toString());
-            applyEntry(PiTableEntryHandle.of(deviceId, entry),
-                       entry, null, REMOVE);
+            final PiTableEntryHandle handle = PiTableEntryHandle.of(deviceId, entry);
+            ENTRY_LOCKS.get(handle).lock();
+            try {
+                applyEntry(handle, entry, null, REMOVE);
+            } finally {
+                ENTRY_LOCKS.get(handle).unlock();
+            }
         });
     }
 
