@@ -265,30 +265,31 @@ public class P4RuntimeGroupProgrammable
                                 PiMulticastGroupEntry groupToApply,
                                 PiMulticastGroupEntry groupOnDevice,
                                 Group pdGroup, GroupOperation.Type opType) {
-        if (opType == GroupOperation.Type.DELETE) {
-            if (writeMcGroupOnDevice(groupToApply, DELETE)) {
-                mcGroupMirror.remove(handle);
-                mcGroupTranslator.forget(handle);
-            }
-            return;
-        }
-
-        final P4RuntimeClient.WriteOperationType p4OpType =
-                opType == GroupOperation.Type.ADD ? INSERT : MODIFY;
-
-        if (driverBoolProperty(CHECK_MIRROR_BEFORE_UPDATE,
-                               DEFAULT_CHECK_MIRROR_BEFORE_UPDATE)
-                && p4OpType == MODIFY
-                && groupOnDevice != null
-                && groupOnDevice.equals(groupToApply)) {
-            // Ignore.
-            return;
-        }
-
-        if (writeMcGroupOnDevice(groupToApply, p4OpType)) {
-            mcGroupMirror.put(handle, groupToApply);
-            mcGroupTranslator.learn(handle, new PiTranslatedEntity<>(
-                    pdGroup, groupToApply, handle));
+        switch (opType) {
+            case ADD:
+                robustMcGroupAdd(handle, groupToApply, pdGroup);
+                return;
+            case MODIFY:
+                // Since reading multicast groups is not supported yet on
+                // PI/Stratum, we cannot trust groupOnDevic) as we don't have a
+                // mechanism to enforce consistency of the mirror with the
+                // device state.
+                // if (driverBoolProperty(CHECK_MIRROR_BEFORE_UPDATE,
+                //                        DEFAULT_CHECK_MIRROR_BEFORE_UPDATE)
+                //         && p4OpType == MODIFY
+                //         && groupOnDevice != null
+                //         && groupOnDevice.equals(groupToApply)) {
+                //     // Ignore.
+                //     return;
+                // }
+                robustMcGroupModify(handle, groupToApply, pdGroup);
+                return;
+            case DELETE:
+                mcGroupApply(handle, groupToApply, pdGroup, DELETE);
+                return;
+            default:
+                log.error("Unknown group operation type {}, " +
+                                  "cannot process multicast group", opType);
         }
     }
 
@@ -297,6 +298,57 @@ public class P4RuntimeGroupProgrammable
                 client.writePreMulticastGroupEntries(
                         Collections.singleton(group), opType),
                 "performing multicast group " + opType, false);
+    }
+
+    private boolean mcGroupApply(PiMulticastGroupEntryHandle handle,
+                                 PiMulticastGroupEntry piGroup,
+                                 Group pdGroup,
+                                 P4RuntimeClient.WriteOperationType opType) {
+        switch (opType) {
+            case DELETE:
+                if (writeMcGroupOnDevice(piGroup, DELETE)) {
+                    mcGroupMirror.remove(handle);
+                    mcGroupTranslator.forget(handle);
+                    return true;
+                } else {
+                    return false;
+                }
+            case INSERT:
+            case MODIFY:
+                if (writeMcGroupOnDevice(piGroup, opType)) {
+                    mcGroupMirror.put(handle, piGroup);
+                    mcGroupTranslator.learn(handle, new PiTranslatedEntity<>(
+                            pdGroup, piGroup, handle));
+                    return true;
+                } else {
+                    return false;
+                }
+            default:
+                log.warn("Unknown operation type {}, cannot apply group", opType);
+                return false;
+        }
+    }
+
+    private void robustMcGroupAdd(PiMulticastGroupEntryHandle handle,
+                                  PiMulticastGroupEntry piGroup,
+                                  Group pdGroup) {
+        if (mcGroupApply(handle, piGroup, pdGroup, INSERT)) {
+            return;
+        }
+        // Try to delete (perhaps it already exists) and re-add...
+        mcGroupApply(handle, piGroup, pdGroup, DELETE);
+        mcGroupApply(handle, piGroup, pdGroup, INSERT);
+    }
+
+    private void robustMcGroupModify(PiMulticastGroupEntryHandle handle,
+                                     PiMulticastGroupEntry piGroup,
+                                     Group pdGroup) {
+        if (mcGroupApply(handle, piGroup, pdGroup, MODIFY)) {
+            return;
+        }
+        // Not sure for which reason it cannot be modified, so try to delete and insert instead...
+        mcGroupApply(handle, piGroup, pdGroup, DELETE);
+        mcGroupApply(handle, piGroup, pdGroup, INSERT);
     }
 
     private boolean modifyGroupFromDevice(PiActionGroup groupToApply, PiActionGroup groupOnDevice) {
