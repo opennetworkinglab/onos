@@ -71,6 +71,7 @@ import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -327,9 +328,13 @@ public class NetconfDeviceProvider extends AbstractProvider
         // method to test reachability.
         //test connection to device opening a socket to it.
         log.debug("Testing reachability for {}:{}", ip, port);
-        try (Socket socket = new Socket(ip, port)) {
+        Socket socket = new Socket();
+        try {
+            socket.connect(new InetSocketAddress(ip, port), 1000);
             log.debug("rechability of {}, {}, {}", deviceId, socket.isConnected(), !socket.isClosed());
-            return socket.isConnected() && !socket.isClosed();
+            boolean isConnected = socket.isConnected() && !socket.isClosed();
+            socket.close();
+            return isConnected;
         } catch (IOException e) {
             log.info("Device {} is not reachable", deviceId);
             log.debug("  error details", e);
@@ -426,6 +431,10 @@ public class NetconfDeviceProvider extends AbstractProvider
             log.trace("{} not my scheme, skipping", deviceId);
             return;
         }
+        if (!isReachable(deviceId)) {
+            log.warn("Can't connect to device {}", deviceId);
+            return;
+        }
         DeviceDescription deviceDescription = createDeviceRepresentation(deviceId, config);
         log.debug("Connecting NETCONF device {}, on {}:{} with username {}",
                   deviceId, config.ip(), config.port(), config.username());
@@ -433,11 +442,6 @@ public class NetconfDeviceProvider extends AbstractProvider
         retriedPortDiscoveryMap.put(deviceId, new AtomicInteger(0));
         if (deviceService.getDevice(deviceId) == null) {
             providerService.deviceConnected(deviceId, deviceDescription);
-        }
-        try {
-            checkAndUpdateDevice(deviceId, deviceDescription, true);
-        } catch (Exception e) {
-            log.error("Unhandled exception checking {}", deviceId, e);
         }
     }
 
@@ -451,7 +455,7 @@ public class NetconfDeviceProvider extends AbstractProvider
         if (!isReachable && deviceService.isAvailable(deviceId)) {
             providerService.deviceDisconnected(deviceId);
             return;
-        } else if (newlyConnected) {
+        } else if (newlyConnected && mastershipService.isLocalMaster(deviceId)) {
             updateDeviceDescription(deviceId, deviceDescription, device);
         }
         if (isReachable && deviceService.isAvailable(deviceId) &&
@@ -478,11 +482,16 @@ public class NetconfDeviceProvider extends AbstractProvider
                             deviceId, new DefaultDeviceDescription(
                                     updatedDeviceDescription, true,
                                     updatedDeviceDescription.annotations()));
-                } else if (updatedDeviceDescription == null) {
+                } else if (updatedDeviceDescription == null && deviceDescription != null) {
                     providerService.deviceConnected(
                             deviceId, new DefaultDeviceDescription(
                                     deviceDescription, true,
                                     deviceDescription.annotations()));
+                } else {
+                    providerService.deviceConnected(deviceId, new DefaultDeviceDescription(deviceId.uri(),
+                            device.type(), device.manufacturer(), device.hwVersion(), device.swVersion(),
+                            device.serialNumber(), device.chassisId(), true,
+                            (SparseAnnotations) device.annotations()));
                 }
             }
         } else {
@@ -540,6 +549,7 @@ public class NetconfDeviceProvider extends AbstractProvider
                 .set(IPADDRESS, ipAddress)
                 .set(PORT, String.valueOf(config.port()))
                 .set(AnnotationKeys.PROTOCOL, SCHEME_NAME.toUpperCase())
+                .set(AnnotationKeys.PROVIDER_MARK_ONLINE, String.valueOf(true))
                 .build();
         return new DefaultDeviceDescription(
                 deviceId.uri(),
@@ -568,8 +578,15 @@ public class NetconfDeviceProvider extends AbstractProvider
     private void initiateConnection(DeviceId deviceId, MastershipRole newRole) {
         try {
             if (isReachable(deviceId)) {
-                controller.connectDevice(deviceId);
-                providerService.receivedRoleReply(deviceId, newRole, MastershipRole.MASTER);
+                NetconfDevice device = controller.connectDevice(deviceId);
+                if (device != null) {
+                    providerService.receivedRoleReply(deviceId, newRole, MastershipRole.MASTER);
+                    try {
+                        checkAndUpdateDevice(deviceId, null, true);
+                    } catch (Exception e) {
+                        log.error("Unhandled exception checking {}", deviceId, e);
+                    }
+                }
             }
         } catch (Exception e) {
             if (deviceService.getDevice(deviceId) != null) {
@@ -645,12 +662,15 @@ public class NetconfDeviceProvider extends AbstractProvider
     private class InternalDeviceListener implements DeviceListener {
         @Override
         public void event(DeviceEvent event) {
-            executor.execute(() -> discoverPorts(event.subject().id()));
+            if (deviceService.isAvailable(event.subject().id())) {
+                executor.execute(() -> discoverPorts(event.subject().id()));
+            }
         }
 
         @Override
         public boolean isRelevant(DeviceEvent event) {
-            if (event.type() != DeviceEvent.Type.DEVICE_ADDED) {
+            if (event.type() != DeviceEvent.Type.DEVICE_ADDED &&
+                    event.type() != DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED) {
                 return false;
             }
             if (mastershipService.getMasterFor(event.subject().id()) == null) {
