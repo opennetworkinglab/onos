@@ -383,7 +383,7 @@ public class OSGiWrapper {
         }
     }
 
-    private boolean addFileToJar(Jar jar, String destination, String sourceAbsPath) {
+    private boolean addFileToJar(Jar jar, String destination, String sourceAbsPath) throws IOException {
         if (includedResources.contains(sourceAbsPath)) {
             log("Skipping already included resource: %s\n", sourceAbsPath);
             return false;
