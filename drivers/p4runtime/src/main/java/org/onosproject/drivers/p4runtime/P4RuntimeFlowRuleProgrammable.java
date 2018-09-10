@@ -16,11 +16,9 @@
 
 package org.onosproject.drivers.p4runtime;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.Striped;
 import org.onlab.util.SharedExecutors;
 import org.onosproject.drivers.p4runtime.mirror.P4RuntimeTableMirror;
 import org.onosproject.drivers.p4runtime.mirror.TimedEntry;
@@ -46,9 +44,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 import static com.google.common.collect.Lists.newArrayList;
@@ -94,18 +90,9 @@ public class P4RuntimeFlowRuleProgrammable
     // FIXME: set to true as soon as the feature is implemented in P4Runtime.
     private static final boolean DEFAULT_READ_ALL_DIRECT_COUNTERS = false;
 
-    private static final int TABLE_ENTRY_LOCK_EXPIRE_TIME_IN_MIN = 10;
-
     // Needed to synchronize operations over the same table entry.
-    private static final LoadingCache<PiTableEntryHandle, Lock>
-            ENTRY_LOCKS = CacheBuilder.newBuilder()
-            .expireAfterAccess(TABLE_ENTRY_LOCK_EXPIRE_TIME_IN_MIN, TimeUnit.MINUTES)
-            .build(new CacheLoader<PiTableEntryHandle, Lock>() {
-                @Override
-                public Lock load(PiTableEntryHandle handle) {
-                    return new ReentrantLock();
-                }
-            });
+    private static final Striped<Lock> ENTRY_LOCKS = Striped.lock(30);
+
     private PiPipelineModel pipelineModel;
     private P4RuntimeTableMirror tableMirror;
     private PiFlowRuleTranslator translator;
@@ -141,7 +128,11 @@ public class P4RuntimeFlowRuleProgrammable
         // TODO: ONOS-7596 read counters with table entries
         final Collection<PiTableEntry> installedEntries = getFutureWithDeadline(
                 client.dumpAllTables(pipeconf), "dumping all tables",
-                Collections.emptyList());
+                Collections.emptyList())
+                // Filter out entries from constant table.
+                .stream()
+                .filter(e -> !tableIsConstant(e.table()))
+                .collect(Collectors.toList());
 
         if (installedEntries.isEmpty()) {
             return Collections.emptyList();
@@ -170,7 +161,7 @@ public class P4RuntimeFlowRuleProgrammable
         }
 
         if (inconsistentEntries.size() > 0) {
-            // Async clean up inconsistent entries.
+            // Trigger clean up of inconsistent entries.
             SharedExecutors.getSingleThreadExecutor().execute(
                     () -> cleanUpInconsistentEntries(inconsistentEntries));
         }
@@ -261,14 +252,14 @@ public class P4RuntimeFlowRuleProgrammable
                     .of(deviceId, piEntryToApply);
 
             // Serialize operations over the same match key/table/device ID.
-            ENTRY_LOCKS.getUnchecked(handle).lock();
+            ENTRY_LOCKS.get(handle).lock();
             try {
                 if (applyEntry(handle, piEntryToApply,
                                ruleToApply, driverOperation)) {
                     result.add(ruleToApply);
                 }
             } finally {
-                ENTRY_LOCKS.getUnchecked(handle).unlock();
+                ENTRY_LOCKS.get(handle).unlock();
             }
         }
 
@@ -396,6 +387,11 @@ public class P4RuntimeFlowRuleProgrammable
     private boolean tableHasCounter(PiTableId tableId) {
         return pipelineModel.table(tableId).isPresent() &&
                 !pipelineModel.table(tableId).get().counters().isEmpty();
+    }
+
+    private boolean tableIsConstant(PiTableId tableId) {
+        return pipelineModel.table(tableId).isPresent() &&
+                pipelineModel.table(tableId).get().isConstantTable();
     }
 
     enum Operation {
