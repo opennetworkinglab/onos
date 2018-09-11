@@ -45,9 +45,10 @@ import java.util.List;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.net.Device.Type.FIBER_SWITCH;
 
-import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.netconfGet;
 import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.configAt;
 import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.configsAt;
+import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.netconfGet;
+import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.subscribe;
 import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.xmlOpen;
 import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.xmlClose;
 import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.xmlEmpty;
@@ -102,6 +103,7 @@ public class PolatisDeviceDescription extends AbstractHandlerBehaviour
                     new ChassisId());
         }
         String reply = netconfGet(handler(), getProductInformationFilter());
+        subscribe(handler());
         HierarchicalConfiguration cfg = configAt(reply, KEY_DATA_PRODINF);
         return new DefaultDeviceDescription(dev.id().uri(), FIBER_SWITCH,
                 cfg.getString(KEY_MANUFACTURER), cfg.getString(KEY_HWVERSION),

@@ -119,6 +119,7 @@ public class NetconfSessionMinaImpl extends AbstractNetconfSession {
     private static final String NETCONF_10_CAPABILITY = "urn:ietf:params:netconf:base:1.0";
     private static final String NETCONF_11_CAPABILITY = "urn:ietf:params:netconf:base:1.1";
     private static final String NETCONF_CLIENT_CAPABILITY = "netconfClientCapability";
+    private static final String NOTIFICATION_STREAM = "notificationStream";
 
     private static ServiceDirectory directory = new DefaultServiceDirectory();
 
@@ -351,6 +352,16 @@ public class NetconfSessionMinaImpl extends AbstractNetconfSession {
         subscriptionbuffer.append("<rpc xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\">\n");
         subscriptionbuffer.append("  <create-subscription\n");
         subscriptionbuffer.append("xmlns=\"urn:ietf:params:xml:ns:netconf:notification:1.0\">\n");
+        DriverService driverService = directory.get(DriverService.class);
+        Driver driver = driverService.getDriver(deviceInfo.getDeviceId());
+        if (driver != null) {
+            String stream = driver.getProperty(NOTIFICATION_STREAM);
+            if (stream != null) {
+                subscriptionbuffer.append("    <stream>");
+                subscriptionbuffer.append(stream);
+                subscriptionbuffer.append("</stream>\n");
+            }
+        }
         // FIXME Only subtree filtering supported at the moment.
         if (filterSchema != null) {
             subscriptionbuffer.append("    ");

@@ -220,6 +220,23 @@ public final class PolatisNetconfUtility {
     }
 
     /**
+     * Subscribes for notifications.
+     *
+     * @param handler parent driver handler
+     * @return true on success, false otherwise
+     */
+    public static boolean subscribe(DriverHandler handler) {
+        NetconfSession session = getNetconfSession(handler);
+        try {
+            session.startSubscription();
+        } catch (NetconfException e) {
+            log.error("Failed to subscribe for notifications.");
+            return false;
+        }
+        return true;
+    }
+
+    /**
      * Returns the NETCONF session of the device.
      *
      * @return session

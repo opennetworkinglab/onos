@@ -28,5 +28,6 @@
         <behaviour api="org.onosproject.incubator.net.faultmanagement.alarm.AlarmConsumer"
                    impl="org.onosproject.drivers.polatis.netconf.PolatisAlarmConsumer"/>
         <property name="uiType">policon</property>
+        <property name="notificationStream">Polatis</property>
     </driver>
 </drivers>
