@@ -24,8 +24,10 @@ import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.grpc.Context;
 import io.grpc.ManagedChannel;
+import io.grpc.Metadata;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
+import io.grpc.protobuf.lite.ProtoLiteUtils;
 import io.grpc.stub.ClientCallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -117,6 +119,11 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
 
     // Timeout in seconds to obtain the request lock.
     private static final int LOCK_TIMEOUT = 60;
+
+    private static final Metadata.Key<com.google.rpc.Status> STATUS_DETAILS_KEY =
+            Metadata.Key.of("grpc-status-details-bin",
+                            ProtoLiteUtils.metadataMarshaller(
+                                    com.google.rpc.Status.getDefaultInstance()));
 
     private static final Map<WriteOperationType, Update.Type> UPDATE_TYPES = ImmutableMap.of(
             WriteOperationType.UNSPECIFIED, Update.Type.UNSPECIFIED,
@@ -1022,37 +1029,32 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
 
         checkGrpcException(ex);
 
-        List<P4RuntimeOuterClass.Error> errors = null;
-        String description = null;
-        try {
-            errors = extractWriteErrorDetails(ex);
-        } catch (InvalidProtocolBufferException e) {
-            description = ex.getStatus().getDescription();
-        }
+        final List<P4RuntimeOuterClass.Error> errors = extractWriteErrorDetails(ex);
 
-        log.warn("Unable to {} {} {}(s) on {}: {}{} (detailed errors might be logged below)",
+        if (errors.isEmpty()) {
+            final String description = ex.getStatus().getDescription();
+            log.warn("Unable to {} {} {}(s) on {}: {}",
                  opType.name(), writeEntities.size(), entryType, deviceId,
                  ex.getStatus().getCode().name(),
-                 description == null ? "" : " - " + description);
-
-        if (errors == null || errors.isEmpty()) {
+                     description == null ? "" : " - " + description);
             return;
         }
 
         // FIXME: we are assuming entities is an ordered collection, e.g. a list,
         // and that errors are reported in the same order as the corresponding
         // written entity. Write RPC methods should be refactored to accept an
-        // order list of entities, instead of a collection.
+        // ordered list of entities, instead of a collection.
         if (errors.size() == writeEntities.size()) {
             Iterator<E> entityIterator = writeEntities.iterator();
             errors.stream()
                     .map(e -> ImmutablePair.of(e, entityIterator.next()))
                     .filter(p -> p.left.getCanonicalCode() != Status.OK.getCode().value())
-                    .forEach(p -> log.warn("Unable to {} {}: {} [{}]",
-                                           opType.name(), entryType, parseP4Error(p.getLeft()),
+                    .forEach(p -> log.warn("Unable to {} {} on {}: {} [{}]",
+                                           opType.name(), entryType, deviceId,
+                                           parseP4Error(p.getLeft()),
                                            p.getRight().toString()));
         } else {
-            log.error("Unable to reconcile error details to updates " +
+            log.warn("Unable to reconcile error details to updates " +
                               "(sent {} updates, but device returned {} errors)",
                       entryType, writeEntities.size(), errors.size());
             errors.stream()
@@ -1063,13 +1065,14 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
     }
 
     private List<P4RuntimeOuterClass.Error> extractWriteErrorDetails(
-            StatusRuntimeException ex) throws InvalidProtocolBufferException {
-        String statusString = ex.getStatus().getDescription();
-        if (statusString == null) {
+            StatusRuntimeException ex) {
+        if (!ex.getTrailers().containsKey(STATUS_DETAILS_KEY)) {
             return Collections.emptyList();
         }
-        com.google.rpc.Status status = com.google.rpc.Status
-                .parseFrom(statusString.getBytes());
+        com.google.rpc.Status status = ex.getTrailers().get(STATUS_DETAILS_KEY);
+        if (status == null) {
+            return Collections.emptyList();
+        }
         return status.getDetailsList().stream()
                 .map(any -> {
                     try {
@@ -1086,12 +1089,12 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
     }
 
     private String parseP4Error(P4RuntimeOuterClass.Error err) {
-        return format("%s %s (%s code %d)%s",
-                      Status.fromCodeValue(err.getCanonicalCode()),
+        return format("%s %s%s (%s:%d)",
+                      Status.fromCodeValue(err.getCanonicalCode()).getCode(),
                       err.getMessage(),
+                      err.hasDetails() ? ", " + err.getDetails().toString() : "",
                       err.getSpace(),
-                      err.getCode(),
-                      err.hasDetails() ? "\n" + err.getDetails().toString() : "");
+                      err.getCode());
     }
 
     private void checkGrpcException(StatusRuntimeException ex) {

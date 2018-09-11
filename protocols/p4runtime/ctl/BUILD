@@ -6,6 +6,7 @@ COMPILE_DEPS = CORE_DEPS + KRYO + [
     "@com_google_protobuf//:protobuf_java",
     "//protocols/grpc:grpc-core-repkg",
     "@io_grpc_grpc_java//netty",
+    "@io_grpc_grpc_java//protobuf-lite",
     "@io_grpc_grpc_java//stub",
     "@com_google_api_grpc_proto_google_common_protos//jar",
 ]
