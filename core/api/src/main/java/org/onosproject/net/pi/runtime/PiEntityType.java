@@ -31,12 +31,12 @@ public enum PiEntityType {
     /**
      * Action profile group.
      */
-    GROUP,
+    ACTION_PROFILE_GROUP,
 
     /**
-     * Action profile group member.
+     * Action profile member.
      */
-    GROUP_MEMBER,
+    ACTION_PROFILE_MEMBER,
 
     /**
      * Meter config.

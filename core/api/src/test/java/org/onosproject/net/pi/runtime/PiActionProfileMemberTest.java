@@ -31,49 +31,49 @@ import static org.onosproject.net.pi.runtime.PiConstantsTest.DST_ADDR;
 import static org.onosproject.net.pi.runtime.PiConstantsTest.MOD_NW_DST;
 
 /**
- * Unit tests for PiActionGroupMember class.
+ * Unit tests for PiActionProfileMember class.
  */
-public class PiActionGroupMemberTest {
+public class PiActionProfileMemberTest {
 
     private final PiActionProfileId actionProfileId1 = PiActionProfileId.of("foo");
     private final PiActionProfileId actionProfileId2 = PiActionProfileId.of("bar");
-    private final PiActionGroupMemberId piActionGroupMemberId = PiActionGroupMemberId.of(10);
+    private final PiActionProfileMemberId piActionProfileMemberId = PiActionProfileMemberId.of(10);
     private final PiAction piAction = PiAction.builder().withId(PiActionId.of(MOD_NW_DST))
             .withParameter(new PiActionParam(PiActionParamId.of(DST_ADDR), copyFrom(0x0a010101)))
             .build();
 
-    private final PiActionGroupMember piActionGroupMember1 = PiActionGroupMember.builder()
+    private final PiActionProfileMember piActionProfileMember1 = PiActionProfileMember.builder()
             .forActionProfile(actionProfileId1)
-            .withId(piActionGroupMemberId)
+            .withId(piActionProfileMemberId)
             .withAction(piAction)
             .withWeight(10)
             .build();
-    private final PiActionGroupMember sameAsPiActionGroupMember1 = PiActionGroupMember.builder()
+    private final PiActionProfileMember sameAsPiActionProfileMember1 = PiActionProfileMember.builder()
             .forActionProfile(actionProfileId1)
-            .withId(piActionGroupMemberId)
+            .withId(piActionProfileMemberId)
             .withAction(piAction)
             .withWeight(10)
             .build();
-    private final PiActionGroupMember piActionGroupMember2 = PiActionGroupMember.builder()
+    private final PiActionProfileMember piActionProfileMember2 = PiActionProfileMember.builder()
             .forActionProfile(actionProfileId1)
-            .withId(piActionGroupMemberId)
+            .withId(piActionProfileMemberId)
             .withAction(piAction)
             .withWeight(20)
             .build();
-    private final PiActionGroupMember piActionGroupMember1ForOtherProfile = PiActionGroupMember.builder()
+    private final PiActionProfileMember piActionGroupMember1ForOtherProfile = PiActionProfileMember.builder()
             .forActionProfile(actionProfileId2)
-            .withId(piActionGroupMemberId)
+            .withId(piActionProfileMemberId)
             .withAction(piAction)
             .withWeight(10)
             .build();
 
     /**
-     * Checks that the PiActionGroupMember class is immutable.
+     * Checks that the PiActionProfileMember class is immutable.
      */
     @Test
     public void testImmutability() {
 
-        assertThatClassIsImmutable(PiActionGroupMember.class);
+        assertThatClassIsImmutable(PiActionProfileMember.class);
     }
 
     /**
@@ -83,21 +83,21 @@ public class PiActionGroupMemberTest {
     public void testEquals() {
 
         new EqualsTester()
-                .addEqualityGroup(piActionGroupMember1, sameAsPiActionGroupMember1)
-                .addEqualityGroup(piActionGroupMember2)
+                .addEqualityGroup(piActionProfileMember1, sameAsPiActionProfileMember1)
+                .addEqualityGroup(piActionProfileMember2)
                 .addEqualityGroup(piActionGroupMember1ForOtherProfile)
                 .testEquals();
     }
 
     /**
-     * Checks the methods of PiActionGroupMember.
+     * Checks the methods of PiActionProfileMember.
      */
     @Test
     public void testMethods() {
 
-        assertThat(piActionGroupMember1, is(notNullValue()));
-        assertThat(piActionGroupMember1.weight(), is(10));
-        assertThat(piActionGroupMember1.id(), is(piActionGroupMemberId));
-        assertThat(piActionGroupMember1.action(), is(piAction));
+        assertThat(piActionProfileMember1, is(notNullValue()));
+        assertThat(piActionProfileMember1.weight(), is(10));
+        assertThat(piActionProfileMember1.id(), is(piActionProfileMemberId));
+        assertThat(piActionProfileMember1.action(), is(piAction));
     }
 }

@@ -35,48 +35,48 @@ import static org.onosproject.net.pi.runtime.PiConstantsTest.DST_ADDR;
 import static org.onosproject.net.pi.runtime.PiConstantsTest.MOD_NW_DST;
 
 /**
- * Unit tests for PiActionGroup class.
+ * Unit tests for PiActionProfileGroup class.
  */
-public class PiActionGroupTest {
+public class PiActionProfileGroupTest {
 
-    private final PiActionGroupMemberId piActionGroupMemberId = PiActionGroupMemberId.of(10);
+    private final PiActionProfileMemberId piActionProfileMemberId = PiActionProfileMemberId.of(10);
     private final PiAction piAction = PiAction.builder().withId(PiActionId.of(MOD_NW_DST))
             .withParameter(new PiActionParam(PiActionParamId.of(DST_ADDR), copyFrom(0x0a010101)))
             .build();
 
-    private final PiActionGroupMember piActionGroupMember = PiActionGroupMember.builder()
+    private final PiActionProfileMember piActionProfileMember = PiActionProfileMember.builder()
             .forActionProfile(ACTION_PROF_ID)
-            .withId(piActionGroupMemberId)
+            .withId(piActionProfileMemberId)
             .withAction(piAction)
             .withWeight(10)
             .build();
-    private PiActionGroupId piActionGroupId = PiActionGroupId.of(10);
-    private PiActionGroup piActionGroup1 = PiActionGroup.builder()
-            .addMember(piActionGroupMember)
+    private PiActionProfileGroupId piActionGroupId = PiActionProfileGroupId.of(10);
+    private PiActionProfileGroup piActionGroup1 = PiActionProfileGroup.builder()
+            .addMember(piActionProfileMember)
             .withId(piActionGroupId)
             .withActionProfileId(ACTION_PROF_ID)
             .build();
 
-    private PiActionGroup sameAsPiActionGroup1 = PiActionGroup.builder()
-            .addMember(piActionGroupMember)
+    private PiActionProfileGroup sameAsPiActionProfileGroup1 = PiActionProfileGroup.builder()
+            .addMember(piActionProfileMember)
             .withId(piActionGroupId)
             .withActionProfileId(ACTION_PROF_ID)
             .build();
 
-    private PiActionGroupId piActionGroupId2 = PiActionGroupId.of(20);
-    private PiActionGroup piActionGroup2 = PiActionGroup.builder()
-            .addMember(piActionGroupMember)
+    private PiActionProfileGroupId piActionGroupId2 = PiActionProfileGroupId.of(20);
+    private PiActionProfileGroup piActionGroup2 = PiActionProfileGroup.builder()
+            .addMember(piActionProfileMember)
             .withId(piActionGroupId2)
             .withActionProfileId(ACTION_PROF_ID)
             .build();
 
     /**
-     * Checks that the PiActionGroup class is immutable.
+     * Checks that the PiActionProfileGroup class is immutable.
      */
     @Test
     public void testImmutability() {
 
-        assertThatClassIsImmutable(PiActionGroup.class);
+        assertThatClassIsImmutable(PiActionProfileGroup.class);
     }
 
     /**
@@ -86,23 +86,23 @@ public class PiActionGroupTest {
     public void testEquals() {
 
         new EqualsTester()
-                .addEqualityGroup(piActionGroup1, sameAsPiActionGroup1)
+                .addEqualityGroup(piActionGroup1, sameAsPiActionProfileGroup1)
                 .addEqualityGroup(piActionGroup2)
                 .testEquals();
     }
 
     /**
-     * Checks the methods of PiActionGroup.
+     * Checks the methods of PiActionProfileGroup.
      */
     @Test
     public void testMethods() {
 
-        Collection<PiActionGroupMember> piActionGroupMembers = Lists.newArrayList();
+        Collection<PiActionProfileMember> piActionProfileMembers = Lists.newArrayList();
 
-        piActionGroupMembers.add(piActionGroupMember);
+        piActionProfileMembers.add(piActionProfileMember);
         assertThat(piActionGroup1, is(notNullValue()));
         assertThat(piActionGroup1.id(), is(piActionGroupId));
         assertThat("Incorrect members value",
-                   CollectionUtils.isEqualCollection(piActionGroup1.members(), piActionGroupMembers));
+                   CollectionUtils.isEqualCollection(piActionGroup1.members(), piActionProfileMembers));
     }
 }

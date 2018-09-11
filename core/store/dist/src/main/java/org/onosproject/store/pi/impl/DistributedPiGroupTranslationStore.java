@@ -17,7 +17,7 @@
 package org.onosproject.store.pi.impl;
 
 import org.onosproject.net.group.Group;
-import org.onosproject.net.pi.runtime.PiActionGroup;
+import org.onosproject.net.pi.runtime.PiActionProfileGroup;
 import org.onosproject.net.pi.service.PiGroupTranslationStore;
 import org.osgi.service.component.annotations.Component;
 
@@ -26,7 +26,7 @@ import org.osgi.service.component.annotations.Component;
  */
 @Component(immediate = true, service = PiGroupTranslationStore.class)
 public class DistributedPiGroupTranslationStore
-        extends AbstractDistributedPiTranslationStore<Group, PiActionGroup>
+        extends AbstractDistributedPiTranslationStore<Group, PiActionProfileGroup>
         implements PiGroupTranslationStore {
 
     private static final String MAP_SIMPLE_NAME = "group";

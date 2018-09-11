@@ -30,8 +30,8 @@ import org.onosproject.net.pi.model.PiPipeconfId;
 import org.onosproject.net.pi.model.PiPipelineModel;
 import org.onosproject.net.pi.model.PiTableId;
 import org.onosproject.net.pi.runtime.PiAction;
-import org.onosproject.net.pi.runtime.PiActionGroupId;
 import org.onosproject.net.pi.runtime.PiActionParam;
+import org.onosproject.net.pi.runtime.PiActionProfileGroupId;
 import org.onosproject.net.pi.runtime.PiCounterCellData;
 import org.onosproject.net.pi.runtime.PiExactFieldMatch;
 import org.onosproject.net.pi.runtime.PiMatchKey;
@@ -140,7 +140,7 @@ public class TableEntryEncoderTest {
             .withMatchKey(PiMatchKey.builder()
                                   .addFieldMatch(new PiExactFieldMatch(ecmpGroupFieldId, ofOnes(1)))
                                   .build())
-            .withAction(PiActionGroupId.of(1))
+            .withAction(PiActionProfileGroupId.of(1))
             .withPriority(1)
             .withCookie(2)
             .withCounterCellData(counterCellData)

@@ -37,9 +37,9 @@ import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPInst
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.ModIPv6FlowLabelInstruction;
 import org.onosproject.net.flow.instructions.PiInstruction;
 import org.onosproject.net.pi.runtime.PiAction;
-import org.onosproject.net.pi.runtime.PiActionGroupId;
-import org.onosproject.net.pi.runtime.PiActionGroupMemberId;
 import org.onosproject.net.pi.runtime.PiActionParam;
+import org.onosproject.net.pi.runtime.PiActionProfileGroupId;
+import org.onosproject.net.pi.runtime.PiActionProfileMemberId;
 
 import java.util.Collection;
 import java.util.Objects;
@@ -554,19 +554,19 @@ public final class InstructionJsonMatcher extends TypeSafeDiagnosingMatcher<Json
                     }
                 }
                 break;
-            case ACTION_GROUP_ID:
+            case ACTION_PROFILE_GROUP_ID:
                 if (!Objects.equals(instructionJson.get("groupId").asInt(),
-                                    ((PiActionGroupId) instructionToMatch.action()).id())) {
-                    description.appendText("action group id was " +
-                                                   ((PiActionGroupId) instructionToMatch.action()).id());
+                                    ((PiActionProfileGroupId) instructionToMatch.action()).id())) {
+                    description.appendText("action profile group id was " +
+                                                   ((PiActionProfileGroupId) instructionToMatch.action()).id());
                     return false;
                 }
                 break;
-            case GROUP_MEMBER_ID:
+            case ACTION_PROFILE_MEMBER_ID:
                 if (!Objects.equals(instructionJson.get("memberId").asInt(),
-                                    ((PiActionGroupMemberId) instructionToMatch.action()).id())) {
-                    description.appendText("action member id was " +
-                                                   ((PiActionGroupMemberId) instructionToMatch.action()).id());
+                                    ((PiActionProfileMemberId) instructionToMatch.action()).id())) {
+                    description.appendText("action profile member id was " +
+                                                   ((PiActionProfileMemberId) instructionToMatch.action()).id());
                     return false;
                 }
                 break;

@@ -20,12 +20,12 @@ import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.util.HexString;
 import org.onosproject.codec.CodecContext;
-import org.onosproject.net.flow.ExtensionTreatmentCodec;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.OduSignalId;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.flow.ExtensionTreatmentCodec;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction;
@@ -35,9 +35,9 @@ import org.onosproject.net.flow.instructions.L3ModificationInstruction;
 import org.onosproject.net.flow.instructions.L4ModificationInstruction;
 import org.onosproject.net.flow.instructions.PiInstruction;
 import org.onosproject.net.pi.runtime.PiAction;
-import org.onosproject.net.pi.runtime.PiActionGroupId;
-import org.onosproject.net.pi.runtime.PiActionGroupMemberId;
 import org.onosproject.net.pi.runtime.PiActionParam;
+import org.onosproject.net.pi.runtime.PiActionProfileGroupId;
+import org.onosproject.net.pi.runtime.PiActionProfileMemberId;
 import org.slf4j.Logger;
 
 import static org.onlab.util.Tools.toHexWithPrefix;
@@ -264,13 +264,13 @@ public final class EncodeInstructionCodecHelper {
                 }
                 result.set(InstructionCodec.PI_ACTION_PARAMS, jsonActionParams);
                 break;
-            case ACTION_GROUP_ID:
-                final PiActionGroupId piActionGroupId = (PiActionGroupId) piInstruction.action();
-                result.put(InstructionCodec.PI_ACTION_GROUP_ID, piActionGroupId.id());
+            case ACTION_PROFILE_GROUP_ID:
+                final PiActionProfileGroupId groupId = (PiActionProfileGroupId) piInstruction.action();
+                result.put(InstructionCodec.PI_ACTION_PROFILE_GROUP_ID, groupId.id());
                 break;
-            case GROUP_MEMBER_ID:
-                final PiActionGroupMemberId piActionGroupMemberId = (PiActionGroupMemberId) piInstruction.action();
-                result.put(InstructionCodec.PI_ACTION_GROUP_MEMBER_ID, piActionGroupMemberId.id());
+            case ACTION_PROFILE_MEMBER_ID:
+                final PiActionProfileMemberId memberId = (PiActionProfileMemberId) piInstruction.action();
+                result.put(InstructionCodec.PI_ACTION_PROFILE_MEMBER_ID, memberId.id());
                 break;
             default:
                 throw new IllegalArgumentException("Cannot convert protocol-independent subtype of" +
