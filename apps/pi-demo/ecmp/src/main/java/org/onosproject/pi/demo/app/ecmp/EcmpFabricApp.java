@@ -40,8 +40,8 @@ import org.onosproject.net.group.GroupBuckets;
 import org.onosproject.net.group.GroupDescription;
 import org.onosproject.net.group.GroupKey;
 import org.onosproject.net.pi.runtime.PiAction;
-import org.onosproject.net.pi.runtime.PiActionGroupId;
 import org.onosproject.net.pi.runtime.PiActionParam;
+import org.onosproject.net.pi.runtime.PiActionProfileGroupId;
 import org.onosproject.net.pi.runtime.PiGroupKey;
 import org.onosproject.net.pi.runtime.PiTableAction;
 import org.onosproject.net.topology.DefaultTopologyVertex;
@@ -272,7 +272,7 @@ public class EcmpFabricApp extends AbstractUpgradableFabricApp {
                                 .build())
                 .withTreatment(
                         DefaultTrafficTreatment.builder()
-                                .piTableAction(PiActionGroupId.of(groupId))
+                                .piTableAction(PiActionProfileGroupId.of(groupId))
                                 .build())
                 .build();
     }

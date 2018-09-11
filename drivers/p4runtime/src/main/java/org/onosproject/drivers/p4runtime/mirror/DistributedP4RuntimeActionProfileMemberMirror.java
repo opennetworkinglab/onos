@@ -19,8 +19,8 @@ package org.onosproject.drivers.p4runtime.mirror;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoNamespace;
-import org.onosproject.net.pi.runtime.PiActionGroupMember;
-import org.onosproject.net.pi.runtime.PiActionGroupMemberHandle;
+import org.onosproject.net.pi.runtime.PiActionProfileMember;
+import org.onosproject.net.pi.runtime.PiActionProfileMemberHandle;
 import org.onosproject.store.serializers.KryoNamespaces;
 
 /**
@@ -30,7 +30,7 @@ import org.onosproject.store.serializers.KryoNamespaces;
 @Service
 public class DistributedP4RuntimeActionProfileMemberMirror
         extends AbstractDistributedP4RuntimeMirror
-        <PiActionGroupMemberHandle, PiActionGroupMember>
+        <PiActionProfileMemberHandle, PiActionProfileMember>
         implements P4RuntimeActionProfileMemberMirror {
 
     private static final String DIST_MAP_NAME = "onos-p4runtime-act-prof-member-mirror";

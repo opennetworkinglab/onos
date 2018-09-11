@@ -36,8 +36,8 @@ import org.onosproject.net.group.GroupBuckets;
 import org.onosproject.net.group.GroupDescription;
 import org.onosproject.net.group.GroupKey;
 import org.onosproject.net.pi.runtime.PiAction;
-import org.onosproject.net.pi.runtime.PiActionGroupId;
 import org.onosproject.net.pi.runtime.PiActionParam;
+import org.onosproject.net.pi.runtime.PiActionProfileGroupId;
 import org.onosproject.net.pi.runtime.PiGroupKey;
 import org.onosproject.pipelines.fabric.FabricConstants;
 
@@ -256,7 +256,7 @@ public class FabricNextPipelinerTest extends FabricPipelinerTest {
         TrafficSelector nextIdSelector = DefaultTrafficSelector.builder()
                 .matchPi(nextIdCriterion)
                 .build();
-        PiActionGroupId actionGroupId = PiActionGroupId.of(NEXT_ID_1);
+        PiActionProfileGroupId actionGroupId = PiActionProfileGroupId.of(NEXT_ID_1);
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                 .piTableAction(actionGroupId)
                 .build();

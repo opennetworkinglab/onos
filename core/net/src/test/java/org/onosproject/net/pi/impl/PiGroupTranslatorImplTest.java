@@ -38,10 +38,10 @@ import org.onosproject.net.group.GroupBuckets;
 import org.onosproject.net.group.GroupDescription;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.runtime.PiAction;
-import org.onosproject.net.pi.runtime.PiActionGroup;
-import org.onosproject.net.pi.runtime.PiActionGroupMember;
-import org.onosproject.net.pi.runtime.PiActionGroupMemberId;
 import org.onosproject.net.pi.runtime.PiActionParam;
+import org.onosproject.net.pi.runtime.PiActionProfileGroup;
+import org.onosproject.net.pi.runtime.PiActionProfileMember;
+import org.onosproject.net.pi.runtime.PiActionProfileMemberId;
 import org.onosproject.net.pi.runtime.PiGroupKey;
 import org.onosproject.net.pi.runtime.PiTableAction;
 import org.onosproject.pipelines.basic.PipeconfLoader;
@@ -80,7 +80,7 @@ public class PiGroupTranslatorImplTest {
     private static final Group SELECT_GROUP = new DefaultGroup(GROUP_ID, SELECT_GROUP_DESC);
     private static final int DEFAULT_MEMBER_WEIGHT = 1;
     private static final int BASE_MEM_ID = 65535;
-    private Collection<PiActionGroupMember> expectedMembers;
+    private Collection<PiActionProfileMember> expectedMembers;
 
     private PiPipeconf pipeconf;
 
@@ -102,16 +102,16 @@ public class PiGroupTranslatorImplTest {
         return DefaultGroupBucket.createSelectGroupBucket(treatment);
     }
 
-    private static PiActionGroupMember outputMember(int portNum)
+    private static PiActionProfileMember outputMember(int portNum)
             throws ImmutableByteSequence.ByteSequenceTrimException {
         PiActionParam param = new PiActionParam(ACT_PRM_PORT_ID, copyFrom(portNum).fit(PORT_BITWIDTH));
         PiAction piAction = PiAction.builder()
                 .withId(ACT_SET_EGRESS_PORT_WCMP_ID)
                 .withParameter(param).build();
-        return PiActionGroupMember.builder()
+        return PiActionProfileMember.builder()
                 .forActionProfile(ACT_PRF_WCMP_SELECTOR_ID)
                 .withAction(piAction)
-                .withId(PiActionGroupMemberId.of(BASE_MEM_ID + portNum))
+                .withId(PiActionProfileMemberId.of(BASE_MEM_ID + portNum))
                 .withWeight(DEFAULT_MEMBER_WEIGHT)
                 .build();
     }
@@ -122,8 +122,8 @@ public class PiGroupTranslatorImplTest {
     @Test
     public void testTranslateGroups() throws Exception {
 
-        PiActionGroup piGroup1 = PiGroupTranslatorImpl.translate(SELECT_GROUP, pipeconf, null);
-        PiActionGroup piGroup2 = PiGroupTranslatorImpl.translate(SELECT_GROUP, pipeconf, null);
+        PiActionProfileGroup piGroup1 = PiGroupTranslatorImpl.translate(SELECT_GROUP, pipeconf, null);
+        PiActionProfileGroup piGroup2 = PiGroupTranslatorImpl.translate(SELECT_GROUP, pipeconf, null);
 
         new EqualsTester()
                 .addEqualityGroup(piGroup1, piGroup2)
@@ -135,7 +135,7 @@ public class PiGroupTranslatorImplTest {
                    piGroup1.actionProfileId(), is(equalTo(ACT_PRF_WCMP_SELECTOR_ID)));
 
         // members installed
-        Collection<PiActionGroupMember> members = piGroup1.members();
+        Collection<PiActionProfileMember> members = piGroup1.members();
         assertThat("The number of group members must be equal",
                    piGroup1.members().size(), is(expectedMembers.size()));
         assertThat("Group members must be equal",

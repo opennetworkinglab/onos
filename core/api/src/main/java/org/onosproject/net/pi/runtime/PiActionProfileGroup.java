@@ -29,37 +29,38 @@ import java.util.Map;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Instance of an action group of a protocol-independent pipeline.
+ * Instance of an action profile group of a protocol-independent pipeline.
  */
 @Beta
-public final class PiActionGroup implements PiEntity {
+public final class PiActionProfileGroup implements PiEntity {
 
-    private final PiActionGroupId id;
-    private final ImmutableSet<PiActionGroupMember> members;
-    private final PiActionProfileId piActionProfileId;
+    private final PiActionProfileGroupId id;
+    private final ImmutableSet<PiActionProfileMember> members;
+    private final PiActionProfileId actionProfileId;
 
-    private PiActionGroup(PiActionGroupId id, ImmutableSet<PiActionGroupMember> members,
-                          PiActionProfileId piActionProfileId) {
+    private PiActionProfileGroup(PiActionProfileGroupId id,
+                                 ImmutableSet<PiActionProfileMember> members,
+                                 PiActionProfileId actionProfileId) {
         this.id = id;
         this.members = members;
-        this.piActionProfileId = piActionProfileId;
+        this.actionProfileId = actionProfileId;
     }
 
     /**
-     * Returns the identifier of this action group.
+     * Returns the identifier of this action profile group.
      *
-     * @return action group identifier
+     * @return action profile group identifier
      */
-    public PiActionGroupId id() {
+    public PiActionProfileGroupId id() {
         return id;
     }
 
     /**
-     * Returns the members of this action group.
+     * Returns the members of this action profile group.
      *
-     * @return collection of action members.
+     * @return collection of action profile members.
      */
-    public Collection<PiActionGroupMember> members() {
+    public Collection<PiActionProfileMember> members() {
         return members;
     }
 
@@ -69,7 +70,7 @@ public final class PiActionGroup implements PiEntity {
      * @return action profile id
      */
     public PiActionProfileId actionProfileId() {
-        return piActionProfileId;
+        return actionProfileId;
     }
 
     @Override
@@ -77,13 +78,13 @@ public final class PiActionGroup implements PiEntity {
         if (this == o) {
             return true;
         }
-        if (o == null || !(o instanceof PiActionGroup)) {
+        if (o == null || !(o instanceof PiActionProfileGroup)) {
             return false;
         }
-        PiActionGroup that = (PiActionGroup) o;
+        PiActionProfileGroup that = (PiActionProfileGroup) o;
         return Objects.equal(id, that.id) &&
                 Objects.equal(members, that.members) &&
-                Objects.equal(piActionProfileId, that.piActionProfileId);
+                Objects.equal(actionProfileId, that.actionProfileId);
     }
 
     @Override
@@ -96,14 +97,14 @@ public final class PiActionGroup implements PiEntity {
         return MoreObjects.toStringHelper(this)
                 .add("groupId", id)
                 .add("members", members)
-                .add("piActionProfileId", piActionProfileId)
+                .add("piActionProfileId", actionProfileId)
                 .toString();
     }
 
     /**
-     * Returns a new builder of action groups.
+     * Returns a new builder of action profile groups.
      *
-     * @return action group builder
+     * @return action profile group builder
      */
     public static Builder builder() {
         return new Builder();
@@ -111,16 +112,16 @@ public final class PiActionGroup implements PiEntity {
 
     @Override
     public PiEntityType piEntityType() {
-        return PiEntityType.GROUP;
+        return PiEntityType.ACTION_PROFILE_GROUP;
     }
 
     /**
-     * Builder of action groups.
+     * Builder of action profile groups.
      */
     public static final class Builder {
 
-        private PiActionGroupId id;
-        private Map<PiActionGroupMemberId, PiActionGroupMember> members = Maps.newHashMap();
+        private PiActionProfileGroupId id;
+        private Map<PiActionProfileMemberId, PiActionProfileMember> members = Maps.newHashMap();
         private PiActionProfileId piActionProfileId;
 
         private Builder() {
@@ -128,34 +129,34 @@ public final class PiActionGroup implements PiEntity {
         }
 
         /**
-         * Sets the identifier of this action group.
+         * Sets the identifier of this action profile group.
          *
-         * @param id action group identifier
+         * @param id action profile group identifier
          * @return this
          */
-        public Builder withId(PiActionGroupId id) {
+        public Builder withId(PiActionProfileGroupId id) {
             this.id = id;
             return this;
         }
 
         /**
-         * Adds one member to this action group.
+         * Adds one member to this action profile group.
          *
-         * @param member action group member
+         * @param member action profile member
          * @return this
          */
-        public Builder addMember(PiActionGroupMember member) {
+        public Builder addMember(PiActionProfileMember member) {
             members.put(member.id(), member);
             return this;
         }
 
         /**
-         * Adds many members to this action group.
+         * Adds many members to this action profile group.
          *
-         * @param members action group members
+         * @param members action profile members
          * @return this
          */
-        public Builder addMembers(Collection<PiActionGroupMember> members) {
+        public Builder addMembers(Collection<PiActionProfileMember> members) {
             members.forEach(this::addMember);
             return this;
         }
@@ -172,15 +173,15 @@ public final class PiActionGroup implements PiEntity {
         }
 
         /**
-         * Creates a new action group.
+         * Creates a new action profile group.
          *
-         * @return action group
+         * @return action profile group
          */
-        public PiActionGroup build() {
+        public PiActionProfileGroup build() {
             checkNotNull(id);
             checkNotNull(piActionProfileId);
-            return new PiActionGroup(id, ImmutableSet.copyOf(members.values()),
-                                     piActionProfileId);
+            return new PiActionProfileGroup(
+                    id, ImmutableSet.copyOf(members.values()), piActionProfileId);
         }
     }
 }

@@ -38,9 +38,9 @@ import org.onosproject.net.pi.model.PiCounterId;
 import org.onosproject.net.pi.model.PiMeterId;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiTableId;
-import org.onosproject.net.pi.runtime.PiActionGroup;
-import org.onosproject.net.pi.runtime.PiActionGroupMember;
-import org.onosproject.net.pi.runtime.PiActionGroupMemberId;
+import org.onosproject.net.pi.runtime.PiActionProfileGroup;
+import org.onosproject.net.pi.runtime.PiActionProfileMember;
+import org.onosproject.net.pi.runtime.PiActionProfileMemberId;
 import org.onosproject.net.pi.runtime.PiCounterCell;
 import org.onosproject.net.pi.runtime.PiCounterCellId;
 import org.onosproject.net.pi.runtime.PiMeterCellConfig;
@@ -218,41 +218,41 @@ final class P4RuntimeClientImpl extends AbstractGrpcClient implements P4RuntimeC
     }
 
     @Override
-    public CompletableFuture<Boolean> writeActionGroupMembers(List<PiActionGroupMember> members,
+    public CompletableFuture<Boolean> writeActionProfileMembers(List<PiActionProfileMember> members,
+                                                                WriteOperationType opType,
+                                                                PiPipeconf pipeconf) {
+        return supplyInContext(() -> doWriteActionProfileMembers(members, opType, pipeconf),
+                               "writeActionProfileMembers-" + opType.name());
+    }
+
+
+    @Override
+    public CompletableFuture<Boolean> writeActionProfileGroup(PiActionProfileGroup group,
                                                               WriteOperationType opType,
-                                                              PiPipeconf pipeconf) {
-        return supplyInContext(() -> doWriteActionGroupMembers(members, opType, pipeconf),
-                               "writeActionGroupMembers-" + opType.name());
-    }
-
-
-    @Override
-    public CompletableFuture<Boolean> writeActionGroup(PiActionGroup group,
-                                                       WriteOperationType opType,
-                                                       PiPipeconf pipeconf,
+                                                              PiPipeconf pipeconf,
                                                        int maxMemberSize) {
-        return supplyInContext(() -> doWriteActionGroup(group, opType, pipeconf, maxMemberSize),
-                               "writeActionGroup-" + opType.name());
+        return supplyInContext(() -> doWriteActionProfileGroup(group, opType, pipeconf, maxMemberSize),
+                               "writeActionProfileGroup-" + opType.name());
     }
 
     @Override
-    public CompletableFuture<List<PiActionGroup>> dumpGroups(PiActionProfileId actionProfileId,
-                                                             PiPipeconf pipeconf) {
+    public CompletableFuture<List<PiActionProfileGroup>> dumpActionProfileGroups(
+            PiActionProfileId actionProfileId, PiPipeconf pipeconf) {
         return supplyInContext(() -> doDumpGroups(actionProfileId, pipeconf),
-                               "dumpGroups-" + actionProfileId.id());
+                               "dumpActionProfileGroups-" + actionProfileId.id());
     }
 
     @Override
-    public CompletableFuture<List<PiActionGroupMemberId>> dumpActionProfileMemberIds(
+    public CompletableFuture<List<PiActionProfileMemberId>> dumpActionProfileMemberIds(
             PiActionProfileId actionProfileId, PiPipeconf pipeconf) {
         return supplyInContext(() -> doDumpActionProfileMemberIds(actionProfileId, pipeconf),
                                "dumpActionProfileMemberIds-" + actionProfileId.id());
     }
 
     @Override
-    public CompletableFuture<List<PiActionGroupMemberId>> removeActionProfileMembers(
+    public CompletableFuture<List<PiActionProfileMemberId>> removeActionProfileMembers(
             PiActionProfileId actionProfileId,
-            List<PiActionGroupMemberId> memberIds,
+            List<PiActionProfileMemberId> memberIds,
             PiPipeconf pipeconf) {
         return supplyInContext(
                 () -> doRemoveActionProfileMembers(actionProfileId, memberIds, pipeconf),
@@ -667,15 +667,15 @@ final class P4RuntimeClientImpl extends AbstractGrpcClient implements P4RuntimeC
         return CounterEntryCodec.decodeCounterEntities(entities, pipeconf);
     }
 
-    private boolean doWriteActionGroupMembers(List<PiActionGroupMember> members,
-                                              WriteOperationType opType, PiPipeconf pipeconf) {
+    private boolean doWriteActionProfileMembers(List<PiActionProfileMember> members,
+                                                WriteOperationType opType, PiPipeconf pipeconf) {
         final List<ActionProfileMember> actionProfileMembers = Lists.newArrayList();
 
-        for (PiActionGroupMember member : members) {
+        for (PiActionProfileMember member : members) {
             try {
                 actionProfileMembers.add(ActionProfileMemberEncoder.encode(member, pipeconf));
             } catch (EncodeException | P4InfoBrowser.NotFoundException e) {
-                log.warn("Unable to encode group member, aborting {} operation: {} [{}]",
+                log.warn("Unable to encode action profile member, aborting {} operation: {} [{}]",
                          opType.name(), e.getMessage(), member.toString());
                 return false;
             }
@@ -696,10 +696,10 @@ final class P4RuntimeClientImpl extends AbstractGrpcClient implements P4RuntimeC
             return true;
         }
 
-        return write(updateMsgs, members, opType, "group member");
+        return write(updateMsgs, members, opType, "action profile member");
     }
 
-    private List<PiActionGroup> doDumpGroups(PiActionProfileId piActionProfileId, PiPipeconf pipeconf) {
+    private List<PiActionProfileGroup> doDumpGroups(PiActionProfileId piActionProfileId, PiPipeconf pipeconf) {
         log.debug("Dumping groups from action profile {} from {} (pipeconf {})...",
                   piActionProfileId.id(), deviceId, pipeconf.id());
 
@@ -806,7 +806,7 @@ final class P4RuntimeClientImpl extends AbstractGrpcClient implements P4RuntimeC
                         .map(Map.Entry::getKey)
                         .forEach(gid -> groupIdToMembersMap.put(gid, member)));
 
-        log.debug("Retrieved {} group members from action profile {} on {}...",
+        log.debug("Retrieved {} members from action profile {} on {}...",
                   groupIdToMembersMap.size(), piActionProfileId.id(), deviceId);
 
         return groupMsgs.stream()
@@ -824,7 +824,7 @@ final class P4RuntimeClientImpl extends AbstractGrpcClient implements P4RuntimeC
                 .collect(Collectors.toList());
     }
 
-    private List<PiActionGroupMemberId> doDumpActionProfileMemberIds(
+    private List<PiActionProfileMemberId> doDumpActionProfileMemberIds(
             PiActionProfileId actionProfileId, PiPipeconf pipeconf) {
 
         final P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(pipeconf);
@@ -875,13 +875,13 @@ final class P4RuntimeClientImpl extends AbstractGrpcClient implements P4RuntimeC
                 // removing members of other groups.
                 .filter(m -> m.getActionProfileId() == p4ActProfId)
                 .map(ActionProfileMember::getMemberId)
-                .map(PiActionGroupMemberId::of)
+                .map(PiActionProfileMemberId::of)
                 .collect(Collectors.toList());
     }
 
-    private List<PiActionGroupMemberId> doRemoveActionProfileMembers(
+    private List<PiActionProfileMemberId> doRemoveActionProfileMembers(
             PiActionProfileId actionProfileId,
-            List<PiActionGroupMemberId> memberIds,
+            List<PiActionProfileMemberId> memberIds,
             PiPipeconf pipeconf) {
 
         if (memberIds.isEmpty()) {
@@ -922,7 +922,8 @@ final class P4RuntimeClientImpl extends AbstractGrpcClient implements P4RuntimeC
                 "action profile members");
     }
 
-    private boolean doWriteActionGroup(PiActionGroup group, WriteOperationType opType, PiPipeconf pipeconf,
+    private boolean doWriteActionProfileGroup(
+            PiActionProfileGroup group, WriteOperationType opType, PiPipeconf pipeconf,
                                        int maxMemberSize) {
         final ActionProfileGroup actionProfileGroup;
         if (opType == P4RuntimeClient.WriteOperationType.INSERT && maxMemberSize < group.members().size()) {

@@ -39,11 +39,11 @@ import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipeconfId;
 import org.onosproject.net.pi.model.PiPipelineModel;
 import org.onosproject.net.pi.runtime.PiAction;
-import org.onosproject.net.pi.runtime.PiActionGroup;
-import org.onosproject.net.pi.runtime.PiActionGroupId;
-import org.onosproject.net.pi.runtime.PiActionGroupMember;
-import org.onosproject.net.pi.runtime.PiActionGroupMemberId;
 import org.onosproject.net.pi.runtime.PiActionParam;
+import org.onosproject.net.pi.runtime.PiActionProfileGroup;
+import org.onosproject.net.pi.runtime.PiActionProfileGroupId;
+import org.onosproject.net.pi.runtime.PiActionProfileMember;
+import org.onosproject.net.pi.runtime.PiActionProfileMemberId;
 import org.onosproject.p4runtime.api.P4RuntimeClientKey;
 import p4.v1.P4RuntimeOuterClass.ActionProfileGroup;
 import p4.v1.P4RuntimeOuterClass.ActionProfileMember;
@@ -78,19 +78,19 @@ public class P4RuntimeGroupTest {
     private static final PiPipeconf PIPECONF = buildPipeconf();
     private static final int P4_INFO_ACT_PROF_ID = 285227860;
     private static final PiActionProfileId ACT_PROF_ID = PiActionProfileId.of("ecmp_selector");
-    private static final PiActionGroupId GROUP_ID = PiActionGroupId.of(1);
+    private static final PiActionProfileGroupId GROUP_ID = PiActionProfileGroupId.of(1);
     private static final int DEFAULT_MEMBER_WEIGHT = 1;
     private static final PiActionId EGRESS_PORT_ACTION_ID = PiActionId.of("set_egress_port");
     private static final PiActionParamId PORT_PARAM_ID = PiActionParamId.of("port");
     private static final int BASE_MEM_ID = 65535;
     private static final List<Integer> MEMBER_IDS = ImmutableList.of(65536, 65537, 65538);
-    private static final List<PiActionGroupMember> GROUP_MEMBERS =
+    private static final List<PiActionProfileMember> GROUP_MEMBERS =
             Lists.newArrayList(
                     outputMember((short) 1),
                     outputMember((short) 2),
                     outputMember((short) 3)
             );
-    private static final PiActionGroup GROUP = PiActionGroup.builder()
+    private static final PiActionProfileGroup GROUP = PiActionProfileGroup.builder()
             .withId(GROUP_ID)
             .addMembers(GROUP_MEMBERS)
             .withActionProfileId(ACT_PROF_ID)
@@ -110,17 +110,17 @@ public class P4RuntimeGroupTest {
     private static Server grpcServer;
     private static ManagedChannel grpcChannel;
 
-    private static PiActionGroupMember outputMember(short portNum) {
+    private static PiActionProfileMember outputMember(short portNum) {
         PiActionParam param = new PiActionParam(PORT_PARAM_ID,
                                                 ImmutableByteSequence.copyFrom(portNum));
         PiAction piAction = PiAction.builder()
                 .withId(EGRESS_PORT_ACTION_ID)
                 .withParameter(param).build();
 
-        return PiActionGroupMember.builder()
+        return PiActionProfileMember.builder()
                 .forActionProfile(ACT_PROF_ID)
                 .withAction(piAction)
-                .withId(PiActionGroupMemberId.of(BASE_MEM_ID + portNum))
+                .withId(PiActionProfileMemberId.of(BASE_MEM_ID + portNum))
                 .withWeight(DEFAULT_MEMBER_WEIGHT)
                 .build();
     }
@@ -161,9 +161,9 @@ public class P4RuntimeGroupTest {
     }
 
     @Test
-    public void testInsertPiActionGroup() throws Exception {
+    public void testInsertPiActionProfileGroup() throws Exception {
         CompletableFuture<Void> complete = p4RuntimeServerImpl.expectRequests(1);
-        client.writeActionGroup(GROUP, INSERT, PIPECONF, 3);
+        client.writeActionProfileGroup(GROUP, INSERT, PIPECONF, 3);
         complete.get(DEFAULT_TIMEOUT_TIME, TimeUnit.SECONDS);
         WriteRequest result = p4RuntimeServerImpl.getWriteReqs().get(0);
         assertEquals(1, result.getDeviceId());
@@ -192,7 +192,7 @@ public class P4RuntimeGroupTest {
     @Test
     public void testInsertPiActionMembers() throws Exception {
         CompletableFuture<Void> complete = p4RuntimeServerImpl.expectRequests(1);
-        client.writeActionGroupMembers(GROUP_MEMBERS, INSERT, PIPECONF);
+        client.writeActionProfileMembers(GROUP_MEMBERS, INSERT, PIPECONF);
         complete.get(DEFAULT_TIMEOUT_TIME, TimeUnit.SECONDS);
         WriteRequest result = p4RuntimeServerImpl.getWriteReqs().get(0);
         assertEquals(1, result.getDeviceId());
@@ -269,12 +269,12 @@ public class P4RuntimeGroupTest {
 
         p4RuntimeServerImpl.willReturnReadResult(responses);
         CompletableFuture<Void> complete = p4RuntimeServerImpl.expectRequests(2);
-        CompletableFuture<List<PiActionGroup>> groupsComplete = client.dumpGroups(ACT_PROF_ID, PIPECONF);
+        CompletableFuture<List<PiActionProfileGroup>> groupsComplete = client.dumpActionProfileGroups(ACT_PROF_ID, PIPECONF);
         complete.get(DEFAULT_TIMEOUT_TIME, TimeUnit.SECONDS);
 
-        Collection<PiActionGroup> groups = groupsComplete.get(DEFAULT_TIMEOUT_TIME, TimeUnit.SECONDS);
+        Collection<PiActionProfileGroup> groups = groupsComplete.get(DEFAULT_TIMEOUT_TIME, TimeUnit.SECONDS);
         assertEquals(1, groups.size());
-        PiActionGroup piActionGroup = groups.iterator().next();
+        PiActionProfileGroup piActionGroup = groups.iterator().next();
         assertEquals(ACT_PROF_ID, piActionGroup.actionProfileId());
         assertEquals(GROUP_ID, piActionGroup.id());
         assertEquals(3, piActionGroup.members().size());

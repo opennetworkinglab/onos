@@ -179,10 +179,10 @@ public final class PiTableEntry implements PiEntity {
             return "null";
         }
         switch (tableAction.type()) {
-            case ACTION_GROUP_ID:
-                return "GROUP:" + ((PiActionGroupId) tableAction).id();
-            case GROUP_MEMBER_ID:
-                return "GROUP_MEMBER:" + ((PiActionGroupMemberId) tableAction).id();
+            case ACTION_PROFILE_GROUP_ID:
+                return "ACT_PROF_GROUP:" + ((PiActionProfileGroupId) tableAction).id();
+            case ACTION_PROFILE_MEMBER_ID:
+                return "ACT_PROF_MEMBER:" + ((PiActionProfileMemberId) tableAction).id();
             case ACTION:
             default:
                 return tableAction.toString();

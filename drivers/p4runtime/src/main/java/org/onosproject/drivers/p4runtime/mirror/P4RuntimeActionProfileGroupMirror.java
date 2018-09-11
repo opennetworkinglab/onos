@@ -16,12 +16,12 @@
 
 package org.onosproject.drivers.p4runtime.mirror;
 
-import org.onosproject.net.pi.runtime.PiActionGroup;
-import org.onosproject.net.pi.runtime.PiActionGroupHandle;
+import org.onosproject.net.pi.runtime.PiActionProfileGroup;
+import org.onosproject.net.pi.runtime.PiActionProfileGroupHandle;
 
 /**
- * Mirror of action groups installed on a P4Runtime device.
+ * Mirror of action profile groups installed on a P4Runtime device.
  */
-public interface P4RuntimeGroupMirror
-        extends P4RuntimeMirror<PiActionGroupHandle, PiActionGroup> {
+public interface P4RuntimeActionProfileGroupMirror
+        extends P4RuntimeMirror<PiActionProfileGroupHandle, PiActionProfileGroup> {
 }

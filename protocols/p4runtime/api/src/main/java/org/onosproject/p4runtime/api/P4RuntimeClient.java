@@ -23,9 +23,9 @@ import org.onosproject.net.pi.model.PiCounterId;
 import org.onosproject.net.pi.model.PiMeterId;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiTableId;
-import org.onosproject.net.pi.runtime.PiActionGroup;
-import org.onosproject.net.pi.runtime.PiActionGroupMember;
-import org.onosproject.net.pi.runtime.PiActionGroupMemberId;
+import org.onosproject.net.pi.runtime.PiActionProfileGroup;
+import org.onosproject.net.pi.runtime.PiActionProfileMember;
+import org.onosproject.net.pi.runtime.PiActionProfileMemberId;
 import org.onosproject.net.pi.runtime.PiCounterCell;
 import org.onosproject.net.pi.runtime.PiCounterCellId;
 import org.onosproject.net.pi.runtime.PiMeterCellConfig;
@@ -185,41 +185,44 @@ public interface P4RuntimeClient extends GrpcClient {
             Set<PiCounterCellId> cellIds, PiPipeconf pipeconf);
 
     /**
-     * Performs the given write operation for the given action group members and
-     * pipeconf.
+     * Performs the given write operation for the given action profile members
+     * and pipeconf.
      *
-     * @param members  action group members
-     * @param opType   write operation type
-     * @param pipeconf the pipeconf currently deployed on the device
+     * @param members   action profile members
+     * @param opType    write operation type
+     * @param pipeconf  the pipeconf currently deployed on the device
      * @return true if the operation was successful, false otherwise
      */
-    CompletableFuture<Boolean> writeActionGroupMembers(
-            List<PiActionGroupMember> members,
+    CompletableFuture<Boolean> writeActionProfileMembers(
+            List<PiActionProfileMember> members,
             WriteOperationType opType, PiPipeconf pipeconf);
 
     /**
-     * Performs the given write operation for the given action group and
+     * Performs the given write operation for the given action profile group and
      * pipeconf.
      *
-     * @param group    the action group
-     * @param opType   write operation type
-     * @param pipeconf the pipeconf currently deployed on the device
-     * @param maxMemberSize the maximum number of members that can be added to the group.
-     *                      This is meaningful only if it's an INSERT operation, otherwise
-     *                      its value should be 0
+     * @param group         the action profile group
+     * @param opType        write operation type
+     * @param pipeconf      the pipeconf currently deployed on the device
+     * @param maxMemberSize the maximum number of members that can be added to
+     *                      the group. This is meaningful only if it's an INSERT
+     *                      operation, otherwise its value should be 0
      * @return true if the operation was successful, false otherwise
      */
-    CompletableFuture<Boolean> writeActionGroup(
-            PiActionGroup group, WriteOperationType opType, PiPipeconf pipeconf, int maxMemberSize);
+    CompletableFuture<Boolean> writeActionProfileGroup(
+            PiActionProfileGroup group,
+            WriteOperationType opType,
+            PiPipeconf pipeconf,
+            int maxMemberSize);
 
     /**
-     * Dumps all groups currently installed for the given action profile.
+     * Dumps all groups currently installed in the given action profile.
      *
      * @param actionProfileId the action profile id
      * @param pipeconf        the pipeconf currently deployed on the device
      * @return completable future of a list of groups
      */
-    CompletableFuture<List<PiActionGroup>> dumpGroups(
+    CompletableFuture<List<PiActionProfileGroup>> dumpActionProfileGroups(
             PiActionProfileId actionProfileId, PiPipeconf pipeconf);
 
     /**
@@ -229,7 +232,7 @@ public interface P4RuntimeClient extends GrpcClient {
      * @param pipeconf        pipeconf
      * @return future of list of action profile member ID
      */
-    CompletableFuture<List<PiActionGroupMemberId>> dumpActionProfileMemberIds(
+    CompletableFuture<List<PiActionProfileMemberId>> dumpActionProfileMemberIds(
             PiActionProfileId actionProfileId, PiPipeconf pipeconf);
 
     /**
@@ -241,9 +244,9 @@ public interface P4RuntimeClient extends GrpcClient {
      * @param pipeconf        pipeconf
      * @return list of member IDs that were successfully removed from the device
      */
-    CompletableFuture<List<PiActionGroupMemberId>> removeActionProfileMembers(
+    CompletableFuture<List<PiActionProfileMemberId>> removeActionProfileMembers(
             PiActionProfileId actionProfileId,
-            List<PiActionGroupMemberId> memberIds,
+            List<PiActionProfileMemberId> memberIds,
             PiPipeconf pipeconf);
 
     /**

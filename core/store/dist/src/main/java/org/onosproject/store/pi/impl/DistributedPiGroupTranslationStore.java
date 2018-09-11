@@ -19,7 +19,7 @@ package org.onosproject.store.pi.impl;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.net.group.Group;
-import org.onosproject.net.pi.runtime.PiActionGroup;
+import org.onosproject.net.pi.runtime.PiActionProfileGroup;
 import org.onosproject.net.pi.service.PiGroupTranslationStore;
 
 /**
@@ -28,7 +28,7 @@ import org.onosproject.net.pi.service.PiGroupTranslationStore;
 @Component(immediate = true)
 @Service
 public class DistributedPiGroupTranslationStore
-        extends AbstractDistributedPiTranslationStore<Group, PiActionGroup>
+        extends AbstractDistributedPiTranslationStore<Group, PiActionProfileGroup>
         implements PiGroupTranslationStore {
 
     private static final String MAP_SIMPLE_NAME = "group";
