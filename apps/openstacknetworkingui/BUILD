@@ -1,4 +1,7 @@
-EXCLUDE_PACKAGES = "!org.apache.sshd.client,!org.apache.sshd.client.*,!org.apache.sshd.common.util.io"
+BUNDLES = [
+    "//apps/openstacknetworkingui:onos-apps-openstacknetworkingui",
+    "@sshd_core//jar",
+]
 
 COMPILE_DEPS = CORE_DEPS + JACKSON + CLI + REST + [
     "//core/store/serializers:onos-core-serializers",
@@ -17,7 +20,6 @@ TEST_DEPS = TEST_ADAPTERS + [
 ]
 
 osgi_jar_with_tests(
-    import_packages = EXCLUDE_PACKAGES,
     test_deps = TEST_DEPS,
     deps = COMPILE_DEPS,
 )
@@ -27,6 +29,7 @@ onos_app(
     category = "GUI",
     description = "Openstack Networking UI Service",
     excluded_bundles = EXCLUDED_BUNDLES,
+    included_bundles = BUNDLES,
     required_apps = [
         "org.onosproject.openstacknetworking",
     ],
