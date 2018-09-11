@@ -37,6 +37,8 @@ import org.slf4j.Logger;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -131,11 +133,49 @@ public abstract class AbstractDistributedP4RuntimeMirror
         mirrorMap.remove(handle);
     }
 
-    private void removeAll(DeviceId deviceId) {
+    @Override
+    public void sync(DeviceId deviceId, Map<H, E> deviceState) {
         checkNotNull(deviceId);
-        Collection<H> handles = mirrorMap.keySet().stream()
+        Set<Map.Entry<H, TimedEntry<E>>> localEntries = getEntriesForDevice(deviceId);
+        final AtomicInteger removeCount = new AtomicInteger(0);
+        final AtomicInteger updateCount = new AtomicInteger(0);
+        localEntries.forEach(e -> {
+            final H handle = e.getKey();
+            final E storedValue = e.getValue().entry();
+            if (!deviceState.containsKey(handle)) {
+                log.debug("Removing mirror entry for {}: {}", deviceId, storedValue);
+                removeCount.incrementAndGet();
+            } else {
+                final E deviceValue = deviceState.get(handle);
+                if (!deviceValue.equals(storedValue)) {
+                    log.debug("Updating mirror entry for {}: {}-->{}",
+                             deviceId, storedValue, deviceValue);
+                    put(handle, deviceValue);
+                    updateCount.incrementAndGet();
+                }
+            }
+        });
+        if (removeCount.get() + updateCount.get() > 0) {
+            log.info("Synchronized mirror entries for {}: {} removed, {} updated",
+                     deviceId, removeCount, updateCount);
+        }
+    }
+
+    private Collection<H> getHandlesForDevice(DeviceId deviceId) {
+        return mirrorMap.keySet().stream()
                 .filter(h -> h.deviceId().equals(deviceId))
                 .collect(Collectors.toList());
+    }
+
+    private Set<Map.Entry<H, TimedEntry<E>>> getEntriesForDevice(DeviceId deviceId) {
+        return mirrorMap.entrySet().stream()
+                .filter(e -> e.getKey().deviceId().equals(deviceId))
+                .collect(Collectors.toSet());
+    }
+
+    private void removeAll(DeviceId deviceId) {
+        checkNotNull(deviceId);
+        Collection<H> handles = getHandlesForDevice(deviceId);
         handles.forEach(mirrorMap::remove);
     }
 

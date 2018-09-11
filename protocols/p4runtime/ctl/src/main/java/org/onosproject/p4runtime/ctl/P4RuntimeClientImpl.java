@@ -20,6 +20,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.grpc.Context;
@@ -264,13 +265,15 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
     }
 
     @Override
-    public CompletableFuture<Collection<PiTableEntry>> dumpTable(PiTableId piTableId, PiPipeconf pipeconf) {
-        return supplyInContext(() -> doDumpTable(piTableId, pipeconf), "dumpTable-" + piTableId);
+    public CompletableFuture<Collection<PiTableEntry>> dumpTables(
+            Set<PiTableId> piTableIds, boolean defaultEntries, PiPipeconf pipeconf) {
+        return supplyInContext(() -> doDumpTables(piTableIds, defaultEntries, pipeconf),
+                               "dumpTables-" + piTableIds.hashCode());
     }
 
     @Override
     public CompletableFuture<Collection<PiTableEntry>> dumpAllTables(PiPipeconf pipeconf) {
-        return supplyInContext(() -> doDumpTable(null, pipeconf), "dumpAllTables");
+        return supplyInContext(() -> doDumpTables(null, false, pipeconf), "dumpAllTables");
     }
 
     @Override
@@ -515,43 +518,53 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
         return write(updateMsgs, piTableEntries, opType, "table entry");
     }
 
-    private Collection<PiTableEntry> doDumpTable(PiTableId piTableId, PiPipeconf pipeconf) {
+    private Collection<PiTableEntry> doDumpTables(
+            Set<PiTableId> piTableIds, boolean defaultEntries, PiPipeconf pipeconf) {
 
-        log.debug("Dumping table {} from {} (pipeconf {})...", piTableId, deviceId, pipeconf.id());
+        log.debug("Dumping tables {} from {} (pipeconf {})...",
+                  piTableIds, deviceId, pipeconf.id());
 
-        int tableId;
-        if (piTableId == null) {
+        Set<Integer> tableIds = Sets.newHashSet();
+        if (piTableIds == null) {
             // Dump all tables.
-            tableId = 0;
+            tableIds.add(0);
         } else {
             P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(pipeconf);
             if (browser == null) {
                 log.warn("Unable to get a P4Info browser for pipeconf {}", pipeconf);
                 return Collections.emptyList();
             }
-            try {
-                tableId = browser.tables().getByName(piTableId.id()).getPreamble().getId();
-            } catch (P4InfoBrowser.NotFoundException e) {
-                log.warn("Unable to dump table: {}", e.getMessage());
-                return Collections.emptyList();
-            }
+            piTableIds.forEach(piTableId -> {
+                try {
+                    tableIds.add(browser.tables().getByName(piTableId.id()).getPreamble().getId());
+                } catch (P4InfoBrowser.NotFoundException e) {
+                    log.warn("Unable to dump table {}: {}", piTableId, e.getMessage());
+                }
+            });
         }
 
-        ReadRequest requestMsg = ReadRequest.newBuilder()
-                .setDeviceId(p4DeviceId)
-                .addEntities(Entity.newBuilder()
-                                     .setTableEntry(TableEntry.newBuilder()
-                                                            .setTableId(tableId)
-                                                            .build())
-                                     .build())
-                .build();
+        if (tableIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        ReadRequest.Builder requestMsgBuilder = ReadRequest.newBuilder()
+                .setDeviceId(p4DeviceId);
+        tableIds.forEach(tableId -> requestMsgBuilder.addEntities(
+                Entity.newBuilder()
+                        .setTableEntry(
+                                TableEntry.newBuilder()
+                                        .setTableId(tableId)
+                                        .setIsDefaultAction(defaultEntries)
+                                        .build())
+                        .build())
+                .build());
 
         Iterator<ReadResponse> responses;
         try {
-            responses = blockingStub.read(requestMsg);
+            responses = blockingStub.read(requestMsgBuilder.build());
         } catch (StatusRuntimeException e) {
             checkGrpcException(e);
-            log.warn("Unable to dump table {} from {}: {}", piTableId, deviceId, e.getMessage());
+            log.warn("Unable to dump tables from {}: {}", deviceId, e.getMessage());
             return Collections.emptyList();
         }
 
@@ -564,7 +577,8 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
                 .map(Entity::getTableEntry)
                 .collect(Collectors.toList());
 
-        log.debug("Retrieved {} entries from table {} on {}...", tableEntryMsgs.size(), piTableId, deviceId);
+        log.debug("Retrieved {} entries from {} tables on {}...",
+                  tableEntryMsgs.size(), tableIds.size(), deviceId);
 
         return TableEntryEncoder.decode(tableEntryMsgs, pipeconf);
     }
@@ -1034,8 +1048,8 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
         if (errors.isEmpty()) {
             final String description = ex.getStatus().getDescription();
             log.warn("Unable to {} {} {}(s) on {}: {}",
-                 opType.name(), writeEntities.size(), entryType, deviceId,
-                 ex.getStatus().getCode().name(),
+                     opType.name(), writeEntities.size(), entryType, deviceId,
+                     ex.getStatus().getCode().name(),
                      description == null ? "" : " - " + description);
             return;
         }
