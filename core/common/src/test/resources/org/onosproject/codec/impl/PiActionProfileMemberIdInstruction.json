@@ -1,5 +1,5 @@
 {
   "type":"PROTOCOL_INDEPENDENT",
-  "subtype":"GROUP_MEMBER_ID",
+  "subtype": "ACTION_PROFILE_MEMBER_ID",
   "memberId": 100
 }

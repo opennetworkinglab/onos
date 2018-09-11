@@ -19,28 +19,27 @@ package org.onosproject.net.pi.runtime;
 import com.google.common.testing.EqualsTester;
 import org.junit.Test;
 
-
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 
 /**
- * Unit tests for PiActionGroupId class.
+ * Unit tests for PiActionProfileGroupId class.
  */
-public class PiActionGroupIdTest {
+public class PiActionProfileGroupIdTest {
 
-    final PiActionGroupId piActionGroupId1 = PiActionGroupId.of(10);
-    final PiActionGroupId sameAsPiActionGroupId1 = PiActionGroupId.of(10);
-    final PiActionGroupId piActionGroupId2 = PiActionGroupId.of(20);
+    final PiActionProfileGroupId piActionGroupId1 = PiActionProfileGroupId.of(10);
+    final PiActionProfileGroupId sameAsPiActionProfileGroupId1 = PiActionProfileGroupId.of(10);
+    final PiActionProfileGroupId piActionGroupId2 = PiActionProfileGroupId.of(20);
 
     /**
-     * Checks that the PiActionGroupId class is immutable.
+     * Checks that the PiActionProfileGroupId class is immutable.
      */
     @Test
     public void testImmutability() {
 
-        assertThatClassIsImmutable(PiActionGroupId.class);
+        assertThatClassIsImmutable(PiActionProfileGroupId.class);
     }
 
     /**
@@ -50,19 +49,19 @@ public class PiActionGroupIdTest {
     public void testEquals() {
 
         new EqualsTester()
-                .addEqualityGroup(piActionGroupId1, sameAsPiActionGroupId1)
+                .addEqualityGroup(piActionGroupId1, sameAsPiActionProfileGroupId1)
                 .addEqualityGroup(piActionGroupId2)
                 .testEquals();
     }
 
     /**
-     * Checks the methods of PiActionGroupId.
+     * Checks the methods of PiActionProfileGroupId.
      */
     @Test
     public void testMethods() {
 
         assertThat(piActionGroupId1, is(notNullValue()));
-        assertThat(piActionGroupId1.type(), is(PiTableAction.Type.ACTION_GROUP_ID));
+        assertThat(piActionGroupId1.type(), is(PiTableAction.Type.ACTION_PROFILE_GROUP_ID));
         assertThat(piActionGroupId1.id(), is(10));
     }
 }

@@ -25,21 +25,21 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 
 /**
- * Unit tests for PiActionGroupMemberId class.
+ * Unit tests for PiActionProfileMemberId class.
  */
-public class PiActionGroupMemberIdTest {
+public class PiActionProfileMemberIdTest {
 
-    final PiActionGroupMemberId piActionGroupMemberId1 = PiActionGroupMemberId.of(10);
-    final PiActionGroupMemberId sameAsPiActionGroupMemberId1 = PiActionGroupMemberId.of(10);
-    final PiActionGroupMemberId piActionGroupMemberId2 = PiActionGroupMemberId.of(20);
+    final PiActionProfileMemberId piActionProfileMemberId1 = PiActionProfileMemberId.of(10);
+    final PiActionProfileMemberId sameAsPiActionProfileMemberId1 = PiActionProfileMemberId.of(10);
+    final PiActionProfileMemberId piActionProfileMemberId2 = PiActionProfileMemberId.of(20);
 
     /**
-     * Checks that the PiActionGroupMemberId class is immutable.
+     * Checks that the PiActionProfileMemberId class is immutable.
      */
     @Test
     public void testImmutability() {
 
-        assertThatClassIsImmutable(PiActionGroupMemberId.class);
+        assertThatClassIsImmutable(PiActionProfileMemberId.class);
     }
 
     /**
@@ -49,19 +49,19 @@ public class PiActionGroupMemberIdTest {
     public void testEquals() {
 
         new EqualsTester()
-                .addEqualityGroup(piActionGroupMemberId1, sameAsPiActionGroupMemberId1)
-                .addEqualityGroup(piActionGroupMemberId2)
+                .addEqualityGroup(piActionProfileMemberId1, sameAsPiActionProfileMemberId1)
+                .addEqualityGroup(piActionProfileMemberId2)
                 .testEquals();
     }
 
     /**
-     * Checks the methods of PiActionGroupMemberId.
+     * Checks the methods of PiActionProfileMemberId.
      */
     @Test
     public void testMethods() {
 
-        assertThat(piActionGroupMemberId1, is(notNullValue()));
-        assertThat(piActionGroupMemberId1.type(), is(PiTableAction.Type.GROUP_MEMBER_ID));
-        assertThat(piActionGroupMemberId1.id(), is(10));
+        assertThat(piActionProfileMemberId1, is(notNullValue()));
+        assertThat(piActionProfileMemberId1.type(), is(PiTableAction.Type.ACTION_PROFILE_MEMBER_ID));
+        assertThat(piActionProfileMemberId1.id(), is(10));
     }
 }

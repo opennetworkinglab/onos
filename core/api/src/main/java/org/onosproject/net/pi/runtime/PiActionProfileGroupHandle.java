@@ -23,36 +23,36 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.pi.model.PiActionProfileId;
 
 /**
- * Global identifier of a PI action group applied to a device, uniquely defined
- * by a device ID, action profile ID and group ID.
+ * Global identifier of a PI action profile group applied to a device, uniquely
+ * defined by a device ID, action profile ID and group ID.
  */
 @Beta
-public final class PiActionGroupHandle extends PiHandle<PiActionGroup> {
+public final class PiActionProfileGroupHandle extends PiHandle<PiActionProfileGroup> {
 
     private final PiActionProfileId actionProfileId;
-    private final PiActionGroupId groupId;
+    private final PiActionProfileGroupId groupId;
 
-    private PiActionGroupHandle(DeviceId deviceId, PiActionGroup group) {
+    private PiActionProfileGroupHandle(DeviceId deviceId, PiActionProfileGroup group) {
         super(deviceId);
         actionProfileId = group.actionProfileId();
         groupId = group.id();
     }
 
     /**
-     * Creates a new handle for the given device ID and PI action group.
+     * Creates a new handle for the given device ID and PI action profile group.
      *
      * @param deviceId device ID
-     * @param group PI action group
-     * @return PI action group handle
+     * @param group PI action profile group
+     * @return PI action profile group handle
      */
-    public static PiActionGroupHandle of(DeviceId deviceId,
-                                         PiActionGroup group) {
-        return new PiActionGroupHandle(deviceId, group);
+    public static PiActionProfileGroupHandle of(DeviceId deviceId,
+                                                PiActionProfileGroup group) {
+        return new PiActionProfileGroupHandle(deviceId, group);
     }
 
     @Override
     public PiEntityType entityType() {
-        return PiEntityType.GROUP;
+        return PiEntityType.ACTION_PROFILE_GROUP;
     }
 
     @Override
@@ -70,7 +70,7 @@ public final class PiActionGroupHandle extends PiHandle<PiActionGroup> {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        PiActionGroupHandle that = (PiActionGroupHandle) o;
+        PiActionProfileGroupHandle that = (PiActionProfileGroupHandle) o;
         return Objects.equal(deviceId(), that.deviceId()) &&
                 Objects.equal(actionProfileId,
                               that.actionProfileId) &&

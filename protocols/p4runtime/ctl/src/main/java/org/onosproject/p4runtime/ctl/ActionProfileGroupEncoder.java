@@ -19,8 +19,8 @@ package org.onosproject.p4runtime.ctl;
 import com.google.common.collect.Maps;
 import org.onosproject.net.pi.model.PiActionProfileId;
 import org.onosproject.net.pi.model.PiPipeconf;
-import org.onosproject.net.pi.runtime.PiActionGroup;
-import org.onosproject.net.pi.runtime.PiActionGroupId;
+import org.onosproject.net.pi.runtime.PiActionProfileGroup;
+import org.onosproject.net.pi.runtime.PiActionProfileGroupId;
 import p4.config.v1.P4InfoOuterClass;
 import p4.v1.P4RuntimeOuterClass.ActionProfileGroup;
 import p4.v1.P4RuntimeOuterClass.ActionProfileGroup.Member;
@@ -41,18 +41,18 @@ final class ActionProfileGroupEncoder {
     }
 
     /**
-     * Encode a PI action group to a action profile group.
+     * Encode a PI action profile group to a action profile group.
      *
      * @param piActionGroup the action profile group
      * @param pipeconf      the pipeconf
      * @param maxMemberSize the max member size of action group
-     * @return a action profile group encoded from PI action group
+     * @return a action profile group encoded from PI action profile group
      * @throws P4InfoBrowser.NotFoundException if can't find action profile from
      *                                         P4Info browser
      * @throws EncodeException                 if can't find P4Info from
      *                                         pipeconf
      */
-    static ActionProfileGroup encode(PiActionGroup piActionGroup, PiPipeconf pipeconf, int maxMemberSize)
+    static ActionProfileGroup encode(PiActionProfileGroup piActionGroup, PiPipeconf pipeconf, int maxMemberSize)
             throws P4InfoBrowser.NotFoundException, EncodeException {
         P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(pipeconf);
 
@@ -86,26 +86,26 @@ final class ActionProfileGroupEncoder {
 
     /**
      * Decode an action profile group with members information to a PI action
-     * group.
+     * profile group.
      *
      * @param actionProfileGroup the action profile group
      * @param members            members of the action profile group
      * @param pipeconf           the pipeconf
-     * @return decoded PI action group
+     * @return decoded PI action profile group
      * @throws P4InfoBrowser.NotFoundException if can't find action profile from
      *                                         P4Info browser
      * @throws EncodeException                 if can't find P4Info from
      *                                         pipeconf
      */
-    static PiActionGroup decode(ActionProfileGroup actionProfileGroup,
-                                Collection<ActionProfileMember> members,
-                                PiPipeconf pipeconf)
+    static PiActionProfileGroup decode(ActionProfileGroup actionProfileGroup,
+                                       Collection<ActionProfileMember> members,
+                                       PiPipeconf pipeconf)
             throws P4InfoBrowser.NotFoundException, EncodeException {
         P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(pipeconf);
         if (browser == null) {
             throw new EncodeException(format("Can't get P4 info browser from pipeconf %s", pipeconf));
         }
-        PiActionGroup.Builder piActionGroupBuilder = PiActionGroup.builder();
+        PiActionProfileGroup.Builder piActionGroupBuilder = PiActionProfileGroup.builder();
 
         P4InfoOuterClass.ActionProfile actionProfile = browser.actionProfiles()
                 .getById(actionProfileGroup.getActionProfileId());
@@ -113,14 +113,14 @@ final class ActionProfileGroupEncoder {
 
         piActionGroupBuilder
                 .withActionProfileId(piActionProfileId)
-                .withId(PiActionGroupId.of(actionProfileGroup.getGroupId()));
+                .withId(PiActionProfileGroupId.of(actionProfileGroup.getGroupId()));
 
         Map<Integer, Integer> memberWeights = Maps.newHashMap();
         actionProfileGroup.getMembersList().forEach(member -> {
             int weight = member.getWeight();
             if (weight < 1) {
                 // FIXME: currently PI has a bug which will always return weight 0
-                // ONOS won't accept group member with weight 0
+                // ONOS won't accept group buckets with weight 0
                 weight = 1;
             }
             memberWeights.put(member.getMemberId(), weight);

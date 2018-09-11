@@ -18,8 +18,8 @@ package org.onosproject.p4runtime.ctl;
 
 import org.onosproject.net.pi.model.PiActionProfileId;
 import org.onosproject.net.pi.model.PiPipeconf;
-import org.onosproject.net.pi.runtime.PiActionGroupMember;
-import org.onosproject.net.pi.runtime.PiActionGroupMemberId;
+import org.onosproject.net.pi.runtime.PiActionProfileMember;
+import org.onosproject.net.pi.runtime.PiActionProfileMemberId;
 import p4.config.v1.P4InfoOuterClass;
 import p4.v1.P4RuntimeOuterClass;
 import p4.v1.P4RuntimeOuterClass.ActionProfileMember;
@@ -37,16 +37,16 @@ final class ActionProfileMemberEncoder {
     }
 
     /**
-     * Encode a PiActionGroupMember to a ActionProfileMember.
+     * Encode a PiActionProfileMember to a ActionProfileMember.
      *
-     * @param member   the member to encode
-     * @param pipeconf the pipeconf, as encode spec
+     * @param member    the member to encode
+     * @param pipeconf  the pipeconf, as encode spec
      * @return encoded member
      * @throws P4InfoBrowser.NotFoundException can't find action profile from
      *                                         P4Info browser
      * @throws EncodeException                 can't find P4Info from pipeconf
      */
-    static ActionProfileMember encode(PiActionGroupMember member,
+    static ActionProfileMember encode(PiActionProfileMember member,
                                       PiPipeconf pipeconf)
             throws P4InfoBrowser.NotFoundException, EncodeException {
 
@@ -77,20 +77,20 @@ final class ActionProfileMemberEncoder {
     }
 
     /**
-     * Decode an action profile member to PI action group member.
+     * Decode an action profile member to PI action profile member.
      *
      * @param member   the action profile member
      * @param weight   the weight of the member
      * @param pipeconf the pipeconf, as decode spec
-     * @return decoded PI action group member
+     * @return decoded PI action profile member
      * @throws P4InfoBrowser.NotFoundException can't find definition of action
      *                                         from P4 info
      * @throws EncodeException                 can't get P4 info browser from
      *                                         pipeconf
      */
-    static PiActionGroupMember decode(ActionProfileMember member,
-                                      int weight,
-                                      PiPipeconf pipeconf)
+    static PiActionProfileMember decode(ActionProfileMember member,
+                                        int weight,
+                                        PiPipeconf pipeconf)
             throws P4InfoBrowser.NotFoundException, EncodeException {
         P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(pipeconf);
         if (browser == null) {
@@ -103,9 +103,9 @@ final class ActionProfileMemberEncoder {
                         .getPreamble()
                         .getName());
 
-        return PiActionGroupMember.builder()
+        return PiActionProfileMember.builder()
                 .forActionProfile(actionProfileId)
-                .withId(PiActionGroupMemberId.of(member.getMemberId()))
+                .withId(PiActionProfileMemberId.of(member.getMemberId()))
                 .withWeight(weight)
                 .withAction(decodeActionMsg(member.getAction(), browser))
                 .build();

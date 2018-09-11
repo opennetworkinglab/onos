@@ -29,7 +29,7 @@ import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.group.Group;
 import org.onosproject.net.meter.Meter;
 import org.onosproject.net.pi.model.PiPipeconf;
-import org.onosproject.net.pi.runtime.PiActionGroup;
+import org.onosproject.net.pi.runtime.PiActionProfileGroup;
 import org.onosproject.net.pi.runtime.PiMeterCellConfig;
 import org.onosproject.net.pi.runtime.PiMulticastGroupEntry;
 import org.onosproject.net.pi.runtime.PiTableEntry;
@@ -139,7 +139,7 @@ public class PiTranslationServiceImpl implements PiTranslationService {
     }
 
     private final class InternalGroupTranslator
-            extends AbstractPiTranslatorImpl<Group, PiActionGroup>
+            extends AbstractPiTranslatorImpl<Group, PiActionProfileGroup>
             implements PiGroupTranslator {
 
         private InternalGroupTranslator(PiGroupTranslationStore store) {
@@ -147,7 +147,7 @@ public class PiTranslationServiceImpl implements PiTranslationService {
         }
 
         @Override
-        public PiActionGroup translate(Group original, PiPipeconf pipeconf)
+        public PiActionProfileGroup translate(Group original, PiPipeconf pipeconf)
                 throws PiTranslationException {
             return PiGroupTranslatorImpl
                     .translate(original, pipeconf, getDevice(original.deviceId()));

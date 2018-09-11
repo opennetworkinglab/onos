@@ -26,9 +26,9 @@ import org.onosproject.net.pi.model.PiMatchFieldId;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiTableId;
 import org.onosproject.net.pi.runtime.PiAction;
-import org.onosproject.net.pi.runtime.PiActionGroupId;
-import org.onosproject.net.pi.runtime.PiActionGroupMemberId;
 import org.onosproject.net.pi.runtime.PiActionParam;
+import org.onosproject.net.pi.runtime.PiActionProfileGroupId;
+import org.onosproject.net.pi.runtime.PiActionProfileMemberId;
 import org.onosproject.net.pi.runtime.PiCounterCellData;
 import org.onosproject.net.pi.runtime.PiExactFieldMatch;
 import org.onosproject.net.pi.runtime.PiFieldMatch;
@@ -46,7 +46,6 @@ import p4.v1.P4RuntimeOuterClass.FieldMatch;
 import p4.v1.P4RuntimeOuterClass.TableAction;
 import p4.v1.P4RuntimeOuterClass.TableEntry;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -109,7 +108,7 @@ final class TableEntryEncoder {
     }
 
     /**
-     * Same as {@link #encode(Collection, PiPipeconf)} but encodes only one entry.
+     * Same as {@link #encode(List, PiPipeconf)} but encodes only one entry.
      *
      * @param piTableEntry table entry
      * @param pipeconf     pipeconf
@@ -162,7 +161,7 @@ final class TableEntryEncoder {
     }
 
     /**
-     * Same as {@link #decode(Collection, PiPipeconf)} but decodes only one entry.
+     * Same as {@link #decode(List, PiPipeconf)} but decodes only one entry.
      *
      * @param tableEntryMsg table entry message
      * @param pipeconf      pipeconf
@@ -443,13 +442,13 @@ final class TableEntryEncoder {
                 Action theAction = encodePiAction(piAction, browser);
                 tableActionMsgBuilder.setAction(theAction);
                 break;
-            case ACTION_GROUP_ID:
-                PiActionGroupId actionGroupId = (PiActionGroupId) piTableAction;
+            case ACTION_PROFILE_GROUP_ID:
+                PiActionProfileGroupId actionGroupId = (PiActionProfileGroupId) piTableAction;
                 tableActionMsgBuilder.setActionProfileGroupId(actionGroupId.id());
                 break;
-            case GROUP_MEMBER_ID:
-                PiActionGroupMemberId actionGroupMemberId = (PiActionGroupMemberId) piTableAction;
-                tableActionMsgBuilder.setActionProfileMemberId(actionGroupMemberId.id());
+            case ACTION_PROFILE_MEMBER_ID:
+                PiActionProfileMemberId actionProfileMemberId = (PiActionProfileMemberId) piTableAction;
+                tableActionMsgBuilder.setActionProfileMemberId(actionProfileMemberId.id());
                 break;
             default:
                 throw new EncodeException(
@@ -467,9 +466,9 @@ final class TableEntryEncoder {
                 Action actionMsg = tableActionMsg.getAction();
                 return decodeActionMsg(actionMsg, browser);
             case ACTION_PROFILE_GROUP_ID:
-                return PiActionGroupId.of(tableActionMsg.getActionProfileGroupId());
+                return PiActionProfileGroupId.of(tableActionMsg.getActionProfileGroupId());
             case ACTION_PROFILE_MEMBER_ID:
-                return PiActionGroupMemberId.of(tableActionMsg.getActionProfileMemberId());
+                return PiActionProfileMemberId.of(tableActionMsg.getActionProfileMemberId());
             default:
                 throw new EncodeException(
                         format("Decoding of table action type %s not implemented", typeCase.name()));

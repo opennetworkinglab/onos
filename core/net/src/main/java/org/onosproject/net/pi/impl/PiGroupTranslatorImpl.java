@@ -24,10 +24,10 @@ import org.onosproject.net.group.GroupDescription;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipelineInterpreter;
 import org.onosproject.net.pi.runtime.PiAction;
-import org.onosproject.net.pi.runtime.PiActionGroup;
-import org.onosproject.net.pi.runtime.PiActionGroupId;
-import org.onosproject.net.pi.runtime.PiActionGroupMember;
-import org.onosproject.net.pi.runtime.PiActionGroupMemberId;
+import org.onosproject.net.pi.runtime.PiActionProfileGroup;
+import org.onosproject.net.pi.runtime.PiActionProfileGroupId;
+import org.onosproject.net.pi.runtime.PiActionProfileMember;
+import org.onosproject.net.pi.runtime.PiActionProfileMemberId;
 import org.onosproject.net.pi.runtime.PiGroupKey;
 import org.onosproject.net.pi.runtime.PiTableAction;
 import org.onosproject.net.pi.service.PiTranslationException;
@@ -55,15 +55,16 @@ final class PiGroupTranslatorImpl {
     }
 
     /**
-     * Returns a PI action group equivalent to the given group, for the given pipeconf and device.
+     * Returns a PI action profile group equivalent to the given group, for the given pipeconf and device.
      *
      * @param group    group
      * @param pipeconf pipeconf
      * @param device   device
-     * @return PI action group
+     * @return PI action profile group
      * @throws PiTranslationException if the group cannot be translated
      */
-    static PiActionGroup translate(Group group, PiPipeconf pipeconf, Device device) throws PiTranslationException {
+    static PiActionProfileGroup translate(Group group, PiPipeconf pipeconf, Device device)
+            throws PiTranslationException {
 
         if (!SUPPORTED_GROUP_TYPES.contains(group.type())) {
             throw new PiTranslationException(format(
@@ -72,8 +73,8 @@ final class PiGroupTranslatorImpl {
 
         final PiPipelineInterpreter interpreter = getInterpreterOrNull(device, pipeconf);
 
-        final PiActionGroup.Builder piActionGroupBuilder = PiActionGroup.builder()
-                .withId(PiActionGroupId.of(group.id().id()));
+        final PiActionProfileGroup.Builder piActionGroupBuilder = PiActionProfileGroup.builder()
+                .withId(PiActionProfileGroupId.of(group.id().id()));
 
         if (!(group.appCookie() instanceof PiGroupKey)) {
             throw new PiTranslationException("group app cookie is not PI (class should be PiGroupKey)");
@@ -88,7 +89,7 @@ final class PiGroupTranslatorImpl {
             /*
             FIXME: the way member IDs are computed can cause collisions!
             Problem:
-            In P4Runtime action group members, i.e. action buckets, are associated to a numeric ID chosen
+            In P4Runtime action profile members, i.e. action buckets, are associated to a numeric ID chosen
             at member insertion time. This ID must be unique for the whole action profile (i.e. the group table in
             OpenFlow). In ONOS, GroupBucket doesn't specify any ID.
 
@@ -118,9 +119,9 @@ final class PiGroupTranslatorImpl {
                         "PI table action of type %s is not supported in groups", tableAction.type()));
             }
 
-            piActionGroupBuilder.addMember(PiActionGroupMember.builder()
+            piActionGroupBuilder.addMember(PiActionProfileMember.builder()
                                                    .forActionProfile(groupKey.actionProfileId())
-                                                   .withId(PiActionGroupMemberId.of(memberId))
+                                                   .withId(PiActionProfileMemberId.of(memberId))
                                                    .withAction((PiAction) tableAction)
                                                    .withWeight(bucket.weight())
                                                    .build());

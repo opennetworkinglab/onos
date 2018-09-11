@@ -24,24 +24,25 @@ import org.onosproject.net.pi.model.PiActionProfileId;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Instance of a member of an action group in a protocol-independent pipeline.
+ * Instance of a member of an action profile in a protocol-independent pipeline.
  */
 @Beta
-public final class PiActionGroupMember implements PiEntity {
+public final class PiActionProfileMember implements PiEntity {
 
     private final PiActionProfileId actionProfileId;
-    private final PiActionGroupMemberId id;
+    private final PiActionProfileMemberId memberId;
     private final PiAction action;
     // FIXME: in P4Runtime weight is an attribute of the member reference in a
     // group. Either remove it from this class or define the containing group
     // ID.
     private final int weight;
 
-    private PiActionGroupMember(
-            PiActionProfileId actionProfileId, PiActionGroupMemberId id,
-            PiAction action, int weight) {
+    private PiActionProfileMember(PiActionProfileId actionProfileId,
+                                  PiActionProfileMemberId memberId,
+                                  PiAction action,
+                                  int weight) {
         this.actionProfileId = actionProfileId;
-        this.id = id;
+        this.memberId = memberId;
         this.action = action;
         this.weight = weight;
     }
@@ -51,8 +52,8 @@ public final class PiActionGroupMember implements PiEntity {
      *
      * @return member identifier
      */
-    public PiActionGroupMemberId id() {
-        return id;
+    public PiActionProfileMemberId id() {
+        return memberId;
     }
 
     /**
@@ -84,7 +85,7 @@ public final class PiActionGroupMember implements PiEntity {
 
     @Override
     public PiEntityType piEntityType() {
-        return PiEntityType.GROUP_MEMBER;
+        return PiEntityType.ACTION_PROFILE_MEMBER;
     }
 
     @Override
@@ -92,33 +93,33 @@ public final class PiActionGroupMember implements PiEntity {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof PiActionGroupMember)) {
+        if (!(o instanceof PiActionProfileMember)) {
             return false;
         }
-        PiActionGroupMember that = (PiActionGroupMember) o;
+        PiActionProfileMember that = (PiActionProfileMember) o;
         return weight == that.weight &&
                 Objects.equal(actionProfileId, that.actionProfileId) &&
-                Objects.equal(id, that.id) &&
+                Objects.equal(memberId, that.memberId) &&
                 Objects.equal(action, that.action);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(actionProfileId, id, action, weight);
+        return Objects.hashCode(actionProfileId, memberId, action, weight);
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
                 .add("actionProfile", actionProfileId)
-                .add("id", id)
+                .add("id", memberId)
                 .add("action", action)
                 .add("weight", weight)
                 .toString();
     }
 
     /**
-     * Returns a new builder of action group members.
+     * Returns a new builder of action profile members.
      *
      * @return member builder
      */
@@ -127,12 +128,12 @@ public final class PiActionGroupMember implements PiEntity {
     }
 
     /**
-     * Builder of action group members.
+     * Builder of action profile members.
      */
     public static final class Builder {
 
         private PiActionProfileId actionProfileId;
-        private PiActionGroupMemberId id;
+        private PiActionProfileMemberId id;
         private PiAction action;
         private int weight;
 
@@ -157,7 +158,7 @@ public final class PiActionGroupMember implements PiEntity {
          * @param id member identifier
          * @return this
          */
-        public Builder withId(PiActionGroupMemberId id) {
+        public Builder withId(PiActionProfileMemberId id) {
             this.id = id;
             return this;
         }
@@ -187,15 +188,15 @@ public final class PiActionGroupMember implements PiEntity {
         }
 
         /**
-         * Creates a new action group member.
+         * Creates a new action profile member.
          *
-         * @return action group member
+         * @return action profile member
          */
-        public PiActionGroupMember build() {
+        public PiActionProfileMember build() {
             checkNotNull(actionProfileId);
             checkNotNull(id);
             checkNotNull(action);
-            return new PiActionGroupMember(actionProfileId, id, action, weight);
+            return new PiActionProfileMember(actionProfileId, id, action, weight);
         }
     }
 }
