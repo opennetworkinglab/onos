@@ -359,7 +359,6 @@ public class DistributedOpenstackNetworkStore
         public void event(MapEvent<String, Port> event) {
             switch (event.type()) {
                 case UPDATE:
-                    log.debug("OpenStack port updated");
                     eventExecutor.execute(() -> {
                         Port oldPort = event.oldValue().value();
                         Port newPort = event.newValue().value();

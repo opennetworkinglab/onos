@@ -158,8 +158,8 @@ public class OpenstackSecurityGroupHandler {
     private static final IpPrefix IP_PREFIX_ANY = Ip4Prefix.valueOf("0.0.0.0/0");
 
     // We expose pipeline structure to SONA application considering removing pipeline soon.
-    private static final int GOTO_CONNTRACK_TABLE = 2;
-    private static final int GOTO_JUMP_TABLE = 3;
+    private static final int GOTO_CONNTRACK_TABLE = CT_TABLE;
+    private static final int GOTO_JUMP_TABLE = JUMP_TABLE;
 
     private static final int CT_COMMIT = 0;
     private static final int CT_NO_COMMIT = 1;
@@ -333,7 +333,7 @@ public class OpenstackSecurityGroupHandler {
             tb.drop();
         }
 
-        if (action != ACTION_NONE) {
+        if (action != ACTION_NONE && action != ACTION_DROP) {
             tb.transition(action);
         }
 
@@ -671,7 +671,7 @@ public class OpenstackSecurityGroupHandler {
 
         @Override
         public boolean isRelevant(OpenstackNetworkEvent event) {
-            if (event.port() == null || !Strings.isNullOrEmpty(event.port().getId())) {
+            if (event.port() == null || Strings.isNullOrEmpty(event.port().getId())) {
                 return false;
             }
             if (event.securityGroupId() == null ||
@@ -689,6 +689,7 @@ public class OpenstackSecurityGroupHandler {
 
         @Override
         public void event(OpenstackNetworkEvent event) {
+            log.debug("security group event received {}", event);
             Port osPort = event.port();
             InstancePort instPort = instancePortService.instancePort(osPort.getId());
             SecurityGroup osSg = securityGroupService.securityGroup(event.securityGroupId());
