@@ -193,7 +193,7 @@ public class P4InfoParserTest {
                    wcmpTableModel.actions(), IsIterableContainingInAnyOrder.containsInAnyOrder(
                         setEgressPortAction, noAction));
 
-        PiActionModel table0DefaultAction = table0Model.defaultAction().orElse(null);
+        PiActionModel table0DefaultAction = table0Model.constDefaultAction().orElse(null);
 
         new EqualsTester().addEqualityGroup(table0DefaultAction, dropAction).testEquals();
 

@@ -147,6 +147,14 @@ public class FabricInterpreter extends AbstractHandlerBehaviour
                     .put(FabricConstants.HDR_ICMP_ICMP_CODE, Criterion.Type.ICMPV6_CODE)
                     .build();
 
+    private static final PiAction NOACTION = PiAction.builder().withId(
+            FabricConstants.NO_ACTION).build();
+
+    private static final ImmutableMap<PiTableId, PiAction> DEFAULT_ACTIONS =
+            ImmutableMap.<PiTableId, PiAction>builder()
+                    .put(FabricConstants.FABRIC_INGRESS_FORWARDING_ROUTING_V4, NOACTION)
+                    .build();
+
     @Override
     public Optional<PiMatchFieldId> mapCriterionType(Criterion.Type type) {
         return Optional.ofNullable(CRITERION_MAP.get(type));
@@ -274,6 +282,11 @@ public class FabricInterpreter extends AbstractHandlerBehaviour
                     "Missing metadata '%s' in packet-in received from '%s': %s",
                     FabricConstants.INGRESS_PORT, deviceId, packetIn));
         }
+    }
+
+    @Override
+    public Optional<PiAction> getOriginalDefaultAction(PiTableId tableId) {
+        return Optional.ofNullable(DEFAULT_ACTIONS.get(tableId));
     }
 
     @Override

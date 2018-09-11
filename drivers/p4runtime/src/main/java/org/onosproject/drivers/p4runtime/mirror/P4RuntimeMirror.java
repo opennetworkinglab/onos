@@ -22,6 +22,7 @@ import org.onosproject.net.pi.runtime.PiEntity;
 import org.onosproject.net.pi.runtime.PiHandle;
 
 import java.util.Collection;
+import java.util.Map;
 
 /**
  * Service to keep track of the device state for a given class of PI entities.
@@ -71,4 +72,12 @@ public interface P4RuntimeMirror
      * @param handle handle
      */
     void remove(H handle);
+
+    /**
+     * Synchronizes the state of the given device ID with the given handle map.
+     *
+     * @param deviceId  device ID
+     * @param handleMap handle map
+     */
+    void sync(DeviceId deviceId, Map<H, E> handleMap);
 }

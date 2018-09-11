@@ -136,15 +136,18 @@ public interface P4RuntimeClient {
             PiPipeconf pipeconf);
 
     /**
-     * Dumps all entries currently installed in the given table, for the given
-     * pipeconf.
+     * Dumps all entries currently installed in the given tables, for the given
+     * pipeconf. If defaultEntries is set to true only the default action
+     * entries will be returned, otherwise non-default entries will be
+     * considered.
      *
-     * @param tableId  table identifier
+     * @param tableIds  table identifiers
+     * @param defaultEntries true to read default entries, false for non-default
      * @param pipeconf pipeconf currently deployed on the device
      * @return completable future of a collection of table entries
      */
-    CompletableFuture<Collection<PiTableEntry>> dumpTable(
-            PiTableId tableId, PiPipeconf pipeconf);
+    CompletableFuture<Collection<PiTableEntry>> dumpTables(
+            Set<PiTableId> tableIds, boolean defaultEntries, PiPipeconf pipeconf);
 
     /**
      * Dumps entries from all tables, for the given pipeconf.

@@ -263,7 +263,9 @@ final class TableEntryEncoder {
         piTableEntryBuilder.forTable(PiTableId.of(tableInfo.getPreamble().getName()));
 
         // Priority.
-        piTableEntryBuilder.withPriority(tableEntryMsg.getPriority());
+        if (tableEntryMsg.getPriority() > 0) {
+            piTableEntryBuilder.withPriority(tableEntryMsg.getPriority());
+        }
 
         // Controller metadata (cookie)
         piTableEntryBuilder.withCookie(tableEntryMsg.getControllerMetadata());
