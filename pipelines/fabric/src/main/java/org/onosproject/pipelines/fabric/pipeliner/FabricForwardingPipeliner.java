@@ -17,6 +17,7 @@
 package org.onosproject.pipelines.fabric.pipeliner;
 
 import com.google.common.collect.ImmutableSet;
+import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.net.DeviceId;
@@ -224,13 +225,21 @@ public class FabricForwardingPipeliner {
     private void processIpv4RoutingRule(IPCriterion ipDstCriterion, ForwardingObjective fwd,
                                         PipelinerTranslationResult.Builder resultBuilder) {
         checkNotNull(ipDstCriterion, "IP dst criterion should not be null");
-        TrafficSelector selector = DefaultTrafficSelector.builder()
-                .matchIPDst(ipDstCriterion.ip())
-                .build();
+
+        if (ipDstCriterion.ip().prefixLength() == 0) {
+            setDefaultIpv4Route(fwd, resultBuilder);
+            return;
+        }
+
+        final TrafficSelector selector = DefaultTrafficSelector.builder()
+                    .matchIPDst(ipDstCriterion.ip())
+                    .build();
+
         TrafficTreatment treatment = fwd.treatment();
         if (fwd.nextId() != null) {
-            treatment = buildSetNextIdTreatment(fwd.nextId(),
-                                                FabricConstants.FABRIC_INGRESS_FORWARDING_SET_NEXT_ID_ROUTING_V4);
+            treatment = buildSetNextIdTreatment(
+                    fwd.nextId(),
+                    FabricConstants.FABRIC_INGRESS_FORWARDING_SET_NEXT_ID_ROUTING_V4);
         }
         FlowRule flowRule = DefaultFlowRule.builder()
                 .withSelector(selector)
@@ -243,6 +252,35 @@ public class FabricForwardingPipeliner {
                 .build();
 
         resultBuilder.addFlowRule(flowRule);
+    }
+
+    private void setDefaultIpv4Route(ForwardingObjective fwd,
+                                     PipelinerTranslationResult.Builder resultBuilder) {
+        final TrafficSelector selector1 = DefaultTrafficSelector.builder()
+                .matchIPDst(IpPrefix.valueOf("0.0.0.0/1")).build();
+        final TrafficSelector selector2 = DefaultTrafficSelector.builder()
+                .matchIPDst(IpPrefix.valueOf("128.0.0.0/1")).build();
+
+        TrafficTreatment treatment = fwd.treatment();
+        if (fwd.nextId() != null) {
+            treatment = buildSetNextIdTreatment(
+                    fwd.nextId(),
+                    FabricConstants.FABRIC_INGRESS_FORWARDING_SET_NEXT_ID_ROUTING_V4);
+        }
+
+        for (TrafficSelector selector : new TrafficSelector[]{selector1, selector2}) {
+            FlowRule rule = DefaultFlowRule.builder()
+                    .withSelector(selector)
+                    .withTreatment(treatment)
+                    .fromApp(fwd.appId())
+                    .withPriority(0)
+                    .makePermanent()
+                    .forDevice(deviceId)
+                    .forTable(FabricConstants.FABRIC_INGRESS_FORWARDING_ROUTING_V4)
+                    .build();
+
+            resultBuilder.addFlowRule(rule);
+        }
     }
 
     private void processMplsRule(MplsCriterion mplsCriterion, ForwardingObjective fwd,
