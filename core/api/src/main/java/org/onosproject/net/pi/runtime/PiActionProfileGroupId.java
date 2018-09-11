@@ -20,33 +20,34 @@ import com.google.common.annotations.Beta;
 import org.onlab.util.Identifier;
 
 /**
- * Identifier of a member of an action group in a protocol-independent pipeline, unique withing the scope on an action
- * profile.
+ * Identifier of an action profile group in a protocol-independent pipeline,
+ * unique within the scope of an action profile.
  */
 @Beta
-public final class PiActionGroupMemberId extends Identifier<Integer> implements PiTableAction {
+public final class PiActionProfileGroupId extends Identifier<Integer> implements PiTableAction {
 
-    private PiActionGroupMemberId(int id) {
+    private PiActionProfileGroupId(int id) {
         super(id);
     }
 
     /**
-     * Returns an action group identifier for the given integer value.
+     * Returns an action profile group identifier for the given integer value.
      *
      * @param id identifier
-     * @return action group
+     * @return action profile group
      */
-    public static PiActionGroupMemberId of(int id) {
-        return new PiActionGroupMemberId(id);
+    public static PiActionProfileGroupId of(int id) {
+        return new PiActionProfileGroupId(id);
     }
 
     /*
-    In P4Runtime, group members can be referenced directly as table actions.
-    In future we should consider having a more appropriate wrapper class for group member IDs, instead of implementing
-    the PiTableAction interface.
+    In P4Runtime, groups can be referenced directly as table actions (i.e.
+    without invoking the selector). In future we should consider having a more
+    appropriate wrapper class for group IDs, instead of implementing the
+    PiTableAction interface.
      */
     @Override
     public Type type() {
-        return Type.GROUP_MEMBER_ID;
+        return Type.ACTION_PROFILE_GROUP_ID;
     }
 }

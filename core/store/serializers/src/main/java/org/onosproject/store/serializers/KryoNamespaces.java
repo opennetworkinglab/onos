@@ -225,13 +225,13 @@ import org.onosproject.net.pi.model.PiPipeconfId;
 import org.onosproject.net.pi.model.PiTableId;
 import org.onosproject.net.pi.model.PiTableType;
 import org.onosproject.net.pi.runtime.PiAction;
-import org.onosproject.net.pi.runtime.PiActionGroup;
-import org.onosproject.net.pi.runtime.PiActionGroupHandle;
-import org.onosproject.net.pi.runtime.PiActionGroupId;
-import org.onosproject.net.pi.runtime.PiActionGroupMember;
-import org.onosproject.net.pi.runtime.PiActionGroupMemberHandle;
-import org.onosproject.net.pi.runtime.PiActionGroupMemberId;
 import org.onosproject.net.pi.runtime.PiActionParam;
+import org.onosproject.net.pi.runtime.PiActionProfileGroup;
+import org.onosproject.net.pi.runtime.PiActionProfileGroupHandle;
+import org.onosproject.net.pi.runtime.PiActionProfileGroupId;
+import org.onosproject.net.pi.runtime.PiActionProfileMember;
+import org.onosproject.net.pi.runtime.PiActionProfileMemberHandle;
+import org.onosproject.net.pi.runtime.PiActionProfileMemberId;
 import org.onosproject.net.pi.runtime.PiControlMetadata;
 import org.onosproject.net.pi.runtime.PiCounterCell;
 import org.onosproject.net.pi.runtime.PiCounterCellData;
@@ -690,12 +690,12 @@ public final class KryoNamespaces {
                     PiTableType.class,
                     // PI Runtime
                     PiAction.class,
-                    PiActionGroup.class,
-                    PiActionGroupHandle.class,
-                    PiActionGroupId.class,
-                    PiActionGroupMember.class,
-                    PiActionGroupMemberHandle.class,
-                    PiActionGroupMemberId.class,
+                    PiActionProfileGroup.class,
+                    PiActionProfileGroupHandle.class,
+                    PiActionProfileGroupId.class,
+                    PiActionProfileMember.class,
+                    PiActionProfileMemberHandle.class,
+                    PiActionProfileMemberId.class,
                     PiActionParam.class,
                     PiControlMetadata.class,
                     PiCounterCell.class,

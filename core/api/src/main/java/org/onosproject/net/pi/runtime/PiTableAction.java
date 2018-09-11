@@ -19,8 +19,8 @@ package org.onosproject.net.pi.runtime;
 import com.google.common.annotations.Beta;
 
 /**
- * Instance of an action that can be executed as a consequence of a match in a match+action table of a
- * protocol-independent pipeline.
+ * Instance of an action that can be executed as a consequence of a match in a
+ * match+action table of a protocol-independent pipeline.
  */
 @Beta
 public interface PiTableAction {
@@ -35,14 +35,15 @@ public interface PiTableAction {
         ACTION,
 
         /**
-         * Executes the action group specified by the given identifier.
+         * Executes the action profile group specified by the given identifier.
          */
-        ACTION_GROUP_ID,
+        ACTION_PROFILE_GROUP_ID,
 
         /**
-         * Executes the action member group specified by the given identifier.
+         * Executes the action profile member specified by the given
+         * identifier.
          */
-        GROUP_MEMBER_ID
+        ACTION_PROFILE_MEMBER_ID
     }
 
     /**

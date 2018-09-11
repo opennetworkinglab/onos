@@ -29,7 +29,6 @@ import org.onlab.packet.VlanId;
 import org.onlab.util.HexString;
 import org.onlab.util.ImmutableByteSequence;
 import org.onosproject.codec.CodecContext;
-import org.onosproject.net.flow.ExtensionTreatmentCodec;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.Device;
@@ -39,6 +38,7 @@ import org.onosproject.net.OchSignal;
 import org.onosproject.net.OduSignalId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.flow.ExtensionTreatmentCodec;
 import org.onosproject.net.flow.StatTriggerField;
 import org.onosproject.net.flow.StatTriggerFlag;
 import org.onosproject.net.flow.instructions.ExtensionTreatment;
@@ -53,9 +53,9 @@ import org.onosproject.net.meter.MeterId;
 import org.onosproject.net.pi.model.PiActionId;
 import org.onosproject.net.pi.model.PiActionParamId;
 import org.onosproject.net.pi.runtime.PiAction;
-import org.onosproject.net.pi.runtime.PiActionGroupId;
-import org.onosproject.net.pi.runtime.PiActionGroupMemberId;
 import org.onosproject.net.pi.runtime.PiActionParam;
+import org.onosproject.net.pi.runtime.PiActionProfileGroupId;
+import org.onosproject.net.pi.runtime.PiActionProfileMemberId;
 import org.onosproject.net.pi.runtime.PiTableAction;
 import org.slf4j.Logger;
 
@@ -306,18 +306,18 @@ public final class DecodeInstructionCodecHelper {
             }
 
             return Instructions.piTableAction(builder.withId(piActionId).build());
-        } else if (subType.equals(PiTableAction.Type.ACTION_GROUP_ID.name())) {
-            PiActionGroupId piActionGroupId = PiActionGroupId.of(nullIsIllegal(
-                    json.get(InstructionCodec.PI_ACTION_GROUP_ID),
-                    InstructionCodec.PI_ACTION_GROUP_ID + InstructionCodec.MISSING_MEMBER_MESSAGE).asInt());
+        } else if (subType.equals(PiTableAction.Type.ACTION_PROFILE_GROUP_ID.name())) {
+            PiActionProfileGroupId piActionGroupId = PiActionProfileGroupId.of(nullIsIllegal(
+                    json.get(InstructionCodec.PI_ACTION_PROFILE_GROUP_ID),
+                    InstructionCodec.PI_ACTION_PROFILE_GROUP_ID + InstructionCodec.MISSING_MEMBER_MESSAGE).asInt());
 
             return Instructions.piTableAction(piActionGroupId);
-        } else if (subType.equals(PiTableAction.Type.GROUP_MEMBER_ID.name())) {
-            PiActionGroupMemberId piActionGroupMemberId = PiActionGroupMemberId.of(nullIsIllegal(
-                    json.get(InstructionCodec.PI_ACTION_GROUP_MEMBER_ID),
-                    InstructionCodec.PI_ACTION_GROUP_MEMBER_ID + InstructionCodec.MISSING_MEMBER_MESSAGE).asInt());
+        } else if (subType.equals(PiTableAction.Type.ACTION_PROFILE_MEMBER_ID.name())) {
+            PiActionProfileMemberId piActionProfileMemberId = PiActionProfileMemberId.of(nullIsIllegal(
+                    json.get(InstructionCodec.PI_ACTION_PROFILE_MEMBER_ID),
+                    InstructionCodec.PI_ACTION_PROFILE_MEMBER_ID + InstructionCodec.MISSING_MEMBER_MESSAGE).asInt());
 
-            return Instructions.piTableAction(piActionGroupMemberId);
+            return Instructions.piTableAction(piActionProfileMemberId);
         }
         throw new IllegalArgumentException("Protocol-independent Instruction subtype "
                                                    + subType + " is not supported");

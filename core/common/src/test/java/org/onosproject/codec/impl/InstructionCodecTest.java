@@ -44,9 +44,9 @@ import org.onosproject.net.flow.instructions.PiInstruction;
 import org.onosproject.net.pi.model.PiActionId;
 import org.onosproject.net.pi.model.PiActionParamId;
 import org.onosproject.net.pi.runtime.PiAction;
-import org.onosproject.net.pi.runtime.PiActionGroupId;
-import org.onosproject.net.pi.runtime.PiActionGroupMemberId;
 import org.onosproject.net.pi.runtime.PiActionParam;
+import org.onosproject.net.pi.runtime.PiActionProfileGroupId;
+import org.onosproject.net.pi.runtime.PiActionProfileMemberId;
 import org.onosproject.net.pi.runtime.PiTableAction;
 
 import java.io.IOException;
@@ -264,17 +264,17 @@ public class InstructionCodecTest {
                 instructionCodec.encode(actionInstruction, context);
         assertThat(actionInstructionJson, matchesInstruction(actionInstruction));
 
-        PiTableAction actionGroupId = PiActionGroupId.of(10);
+        PiTableAction actionGroupId = PiActionProfileGroupId.of(10);
         final PiInstruction actionGroupIdInstruction = Instructions.piTableAction(actionGroupId);
         final ObjectNode actionGroupIdInstructionJson =
                 instructionCodec.encode(actionGroupIdInstruction, context);
         assertThat(actionGroupIdInstructionJson, matchesInstruction(actionGroupIdInstruction));
 
-        PiTableAction actionGroupMemberId = PiActionGroupMemberId.of(10);
-        final PiInstruction actionGroupMemberIdInstruction = Instructions.piTableAction(actionGroupMemberId);
-        final ObjectNode actionGroupMemberIdInstructionJson =
-                instructionCodec.encode(actionGroupMemberIdInstruction, context);
-        assertThat(actionGroupMemberIdInstructionJson, matchesInstruction(actionGroupMemberIdInstruction));
+        PiTableAction actionProfileMemberId = PiActionProfileMemberId.of(10);
+        final PiInstruction actionProfileMemberIdInstruction = Instructions.piTableAction(actionProfileMemberId);
+        final ObjectNode actionProfileMemberIdInstructionJson =
+                instructionCodec.encode(actionProfileMemberIdInstruction, context);
+        assertThat(actionProfileMemberIdInstructionJson, matchesInstruction(actionProfileMemberIdInstruction));
     }
 
     /**
@@ -294,17 +294,17 @@ public class InstructionCodecTest {
         Assert.assertThat(actionParam.id().id(), is("port"));
         Assert.assertThat(actionParam.value(), is(copyFrom((byte) 0x1)));
 
-        Instruction actionGroupIdInstruction = getInstruction("PiActionGroupIdInstruction.json");
+        Instruction actionGroupIdInstruction = getInstruction("PiActionProfileGroupIdInstruction.json");
         Assert.assertThat(actionInstruction.type(), is(Instruction.Type.PROTOCOL_INDEPENDENT));
         PiTableAction actionGroupId = ((PiInstruction) actionGroupIdInstruction).action();
-        Assert.assertThat(actionGroupId.type(), is(PiTableAction.Type.ACTION_GROUP_ID));
-        Assert.assertThat(((PiActionGroupId) actionGroupId).id(), is(100));
+        Assert.assertThat(actionGroupId.type(), is(PiTableAction.Type.ACTION_PROFILE_GROUP_ID));
+        Assert.assertThat(((PiActionProfileGroupId) actionGroupId).id(), is(100));
 
-        Instruction actionMemberIdInstruction = getInstruction("PiActionMemberIdInstruction.json");
+        Instruction actionMemberIdInstruction = getInstruction("PiActionProfileMemberIdInstruction.json");
         Assert.assertThat(actionInstruction.type(), is(Instruction.Type.PROTOCOL_INDEPENDENT));
         PiTableAction actionMemberId = ((PiInstruction) actionMemberIdInstruction).action();
-        Assert.assertThat(actionMemberId.type(), is(PiTableAction.Type.GROUP_MEMBER_ID));
-        Assert.assertThat(((PiActionGroupMemberId) actionMemberId).id(), is(100));
+        Assert.assertThat(actionMemberId.type(), is(PiTableAction.Type.ACTION_PROFILE_MEMBER_ID));
+        Assert.assertThat(((PiActionProfileMemberId) actionMemberId).id(), is(100));
     }
 
     /**

@@ -17,21 +17,21 @@
 package org.onosproject.drivers.p4runtime.mirror;
 
 import org.onlab.util.KryoNamespace;
-import org.onosproject.net.pi.runtime.PiActionGroup;
-import org.onosproject.net.pi.runtime.PiActionGroupHandle;
+import org.onosproject.net.pi.runtime.PiActionProfileGroup;
+import org.onosproject.net.pi.runtime.PiActionProfileGroupHandle;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.osgi.service.component.annotations.Component;
 
 /**
- * Distributed implementation of a P4Runtime group mirror.
+ * Distributed implementation of a P4Runtime action profile group mirror.
  */
-@Component(immediate = true, service = P4RuntimeGroupMirror.class)
-public final class DistributedP4RuntimeGroupMirror
+@Component(immediate = true, service = P4RuntimeActionProfileGroupMirror.class)
+public final class DistributedP4RuntimeActionProfileGroupMirror
         extends AbstractDistributedP4RuntimeMirror
-                        <PiActionGroupHandle, PiActionGroup>
-        implements P4RuntimeGroupMirror {
+        <PiActionProfileGroupHandle, PiActionProfileGroup>
+        implements P4RuntimeActionProfileGroupMirror {
 
-    private static final String DIST_MAP_NAME = "onos-p4runtime-group-mirror";
+    private static final String DIST_MAP_NAME = "onos-p4runtime-act-prof-group-mirror";
 
     @Override
     String mapName() {

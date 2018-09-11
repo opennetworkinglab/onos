@@ -27,14 +27,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Global identifier of a PI action profile group member, uniquely defined by a
  * device ID, action profile ID, and member ID.
  */
-public final class PiActionGroupMemberHandle extends PiHandle<PiActionGroupMember> {
+public final class PiActionProfileMemberHandle extends PiHandle<PiActionProfileMember> {
 
-    private final PiActionGroupMemberId memberId;
+    private final PiActionProfileMemberId memberId;
     private final PiActionProfileId actionProfileId;
 
-    private PiActionGroupMemberHandle(DeviceId deviceId,
+    private PiActionProfileMemberHandle(DeviceId deviceId,
                                       PiActionProfileId actionProfileId,
-                                      PiActionGroupMemberId memberId) {
+                                      PiActionProfileMemberId memberId) {
         super(deviceId);
         this.actionProfileId = actionProfileId;
         this.memberId = memberId;
@@ -49,11 +49,11 @@ public final class PiActionGroupMemberHandle extends PiHandle<PiActionGroupMembe
      * @param memberId        member ID
      * @return action profile group member handle
      */
-    public static PiActionGroupMemberHandle of(
+    public static PiActionProfileMemberHandle of(
             DeviceId deviceId,
             PiActionProfileId actionProfileId,
-            PiActionGroupMemberId memberId) {
-        return new PiActionGroupMemberHandle(
+            PiActionProfileMemberId memberId) {
+        return new PiActionProfileMemberHandle(
                 deviceId, actionProfileId, memberId);
     }
 
@@ -65,11 +65,11 @@ public final class PiActionGroupMemberHandle extends PiHandle<PiActionGroupMembe
      * @param member   member instance
      * @return action profile group member handle
      */
-    public static PiActionGroupMemberHandle of(
+    public static PiActionProfileMemberHandle of(
             DeviceId deviceId,
-            PiActionGroupMember member) {
+            PiActionProfileMember member) {
         checkNotNull(member);
-        return new PiActionGroupMemberHandle(
+        return new PiActionProfileMemberHandle(
                 deviceId, member.actionProfile(), member.id());
     }
 
@@ -78,7 +78,7 @@ public final class PiActionGroupMemberHandle extends PiHandle<PiActionGroupMembe
      *
      * @return member ID
      */
-    public PiActionGroupMemberId memberId() {
+    public PiActionProfileMemberId memberId() {
         return memberId;
     }
 
@@ -93,7 +93,7 @@ public final class PiActionGroupMemberHandle extends PiHandle<PiActionGroupMembe
 
     @Override
     public PiEntityType entityType() {
-        return PiEntityType.GROUP_MEMBER;
+        return PiEntityType.ACTION_PROFILE_MEMBER;
     }
 
     @Override
@@ -109,7 +109,7 @@ public final class PiActionGroupMemberHandle extends PiHandle<PiActionGroupMembe
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final PiActionGroupMemberHandle other = (PiActionGroupMemberHandle) obj;
+        final PiActionProfileMemberHandle other = (PiActionProfileMemberHandle) obj;
         return Objects.equal(this.deviceId(), other.deviceId())
                 && Objects.equal(this.actionProfileId, other.actionProfileId)
                 && Objects.equal(this.memberId, other.memberId);

@@ -43,8 +43,8 @@ import org.onosproject.net.group.GroupDescription;
 import org.onosproject.net.group.GroupKey;
 import org.onosproject.net.pi.model.PiTableId;
 import org.onosproject.net.pi.runtime.PiAction;
-import org.onosproject.net.pi.runtime.PiActionGroupId;
 import org.onosproject.net.pi.runtime.PiActionParam;
+import org.onosproject.net.pi.runtime.PiActionProfileGroupId;
 import org.onosproject.net.pi.runtime.PiGroupKey;
 import org.onosproject.pipelines.fabric.FabricCapabilities;
 import org.onosproject.pipelines.fabric.FabricConstants;
@@ -216,7 +216,7 @@ class NextObjectiveTranslator
 
         final TrafficSelector selector = nextIdSelector(obj.id());
         final TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .piTableAction(PiActionGroupId.of(groupId))
+                .piTableAction(PiActionProfileGroupId.of(groupId))
                 .build();
 
         resultBuilder.addFlowRule(flowRule(
