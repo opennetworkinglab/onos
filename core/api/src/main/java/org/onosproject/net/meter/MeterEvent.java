@@ -42,7 +42,12 @@ public class MeterEvent extends AbstractEvent<MeterEvent.Type, Meter> {
         /**
          * A meter was finally removed from device.
          */
-        METER_REMOVED
+        METER_REMOVED,
+
+        /**
+         * Meter is not used by any flow. It can be deleted.
+         */
+        METER_REFERENCE_COUNT_ZERO
     }
 
 

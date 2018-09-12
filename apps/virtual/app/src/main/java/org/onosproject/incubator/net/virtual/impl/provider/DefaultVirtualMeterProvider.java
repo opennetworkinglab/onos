@@ -195,6 +195,8 @@ public class DefaultVirtualMeterProvider extends AbstractVirtualProvider
                     break;
                 case METER_REMOVED:
                     break;
+                case METER_REFERENCE_COUNT_ZERO:
+                    break;
                 default:
                     log.warn("Unknown meter event {}", event.type());
             }
