@@ -1,14 +1,23 @@
 #!/bin/bash
 export PATH="$PATH:bin:onos/bin"
 
-# Creates ONOS cluster using ONOS docker images
-ONOS_IMAGE=onosproject/onos:1.13.1
 SSH_KEY=$(cut -d\  -f2 ~/.ssh/id_rsa.pub)
 
+# Create Atomix cluster using Atomix docker image
+ATOMIX_IMAGE=atomix/atomix:3.0.5
+for i in {1..3}; do
+    echo "Setting up atomix-$i..."
+    docker container run --detach --name atomix-$i --hostname atomix-$i \
+        --restart=always -v /home/sdn/bin/config:/atomix $ATOMIX_IMAGE \
+        --config /atomix/atomix-$i.conf
+done
+
+# Create ONOS cluster using ONOS docker image
+ONOS_IMAGE=onosproject/onos:1.14.0
 for i in {1..3}; do
     echo "Setting up onos-$i..."
-    docker container run --detach --name onos-$i --hostname onos-$i --restart always $ONOS_IMAGE
-    docker exec -i onos-$i /bin/bash -c "mkdir config; cat > config/cluster.json" < $(dirname $0)/cluster.json
+    docker container run --detach --name onos-$i --hostname onos-$i --restart=always $ONOS_IMAGE
+    docker exec -i onos-$i /bin/bash -c "mkdir config; cat > config/cluster.json" < $(dirname $0)/config/cluster-$i.json
     docker exec -it onos-$i bin/onos-user-key sdn $SSH_KEY  >/dev/null 2>&1
     docker exec -it onos-$i bin/onos-user-password onos rocks >/dev/null 2>&1
 done
@@ -26,6 +35,7 @@ function waitForStart {
     done
 }
 
+# Extract the IP addresses of the ONOS nodes
 OC1=$(docker container inspect onos-1 | grep \"IPAddress | cut -d: -f2 | sort -u | tr -d '", ')
 OC2=$(docker container inspect onos-2 | grep \"IPAddress | cut -d: -f2 | sort -u | tr -d '", ')
 OC3=$(docker container inspect onos-3 | grep \"IPAddress | cut -d: -f2 | sort -u | tr -d '", ')
