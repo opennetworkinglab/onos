@@ -21,6 +21,8 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import org.onosproject.net.DeviceId;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Global identifier of a PI multicast group entry applied to the packet
  * replication engine of a device, uniquely defined by a device ID, and group
@@ -29,8 +31,23 @@ import org.onosproject.net.DeviceId;
 @Beta
 public final class PiMulticastGroupEntryHandle extends PiHandle<PiMulticastGroupEntry> {
 
-    private PiMulticastGroupEntryHandle(DeviceId deviceId, PiMulticastGroupEntry entry) {
-        super(deviceId, entry);
+    private final long groupId;
+
+    private PiMulticastGroupEntryHandle(DeviceId deviceId, long groupId) {
+        super(deviceId);
+        this.groupId = groupId;
+    }
+
+    /**
+     * Creates a new handle for the given device ID and PI multicast group ID.
+     *
+     * @param deviceId device ID
+     * @param groupId  multicast group ID
+     * @return PI multicast group entry handle
+     */
+    public static PiMulticastGroupEntryHandle of(DeviceId deviceId,
+                                                 long groupId) {
+        return new PiMulticastGroupEntryHandle(deviceId, groupId);
     }
 
     /**
@@ -43,12 +60,18 @@ public final class PiMulticastGroupEntryHandle extends PiHandle<PiMulticastGroup
      */
     public static PiMulticastGroupEntryHandle of(DeviceId deviceId,
                                                  PiMulticastGroupEntry entry) {
-        return new PiMulticastGroupEntryHandle(deviceId, entry);
+        checkNotNull(entry);
+        return new PiMulticastGroupEntryHandle(deviceId, entry.groupId());
+    }
+
+    @Override
+    public PiEntityType entityType() {
+        return PiEntityType.PRE_MULTICAST_GROUP_ENTRY;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(deviceId(), piEntity().groupId());
+        return Objects.hashCode(deviceId(), groupId);
     }
 
     @Override
@@ -61,14 +84,14 @@ public final class PiMulticastGroupEntryHandle extends PiHandle<PiMulticastGroup
         }
         PiMulticastGroupEntryHandle that = (PiMulticastGroupEntryHandle) o;
         return Objects.equal(deviceId(), that.deviceId()) &&
-                Objects.equal(piEntity().groupId(), that.piEntity().groupId());
+                Objects.equal(groupId, that.groupId);
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
                 .add("deviceId", deviceId())
-                .add("groupId", piEntity().groupId())
+                .add("groupId", groupId)
                 .toString();
     }
 }

@@ -24,6 +24,7 @@ import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiTableId;
 import org.onosproject.net.pi.runtime.PiActionGroup;
 import org.onosproject.net.pi.runtime.PiActionGroupMember;
+import org.onosproject.net.pi.runtime.PiActionGroupMemberId;
 import org.onosproject.net.pi.runtime.PiCounterCellData;
 import org.onosproject.net.pi.runtime.PiCounterCellId;
 import org.onosproject.net.pi.runtime.PiMeterCellConfig;
@@ -33,7 +34,7 @@ import org.onosproject.net.pi.runtime.PiPacketOperation;
 import org.onosproject.net.pi.runtime.PiTableEntry;
 
 import java.nio.ByteBuffer;
-import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
@@ -132,7 +133,7 @@ public interface P4RuntimeClient {
      * @return true if the operation was successful, false otherwise.
      */
     CompletableFuture<Boolean> writeTableEntries(
-            Collection<PiTableEntry> entries, WriteOperationType opType,
+            List<PiTableEntry> entries, WriteOperationType opType,
             PiPipeconf pipeconf);
 
     /**
@@ -141,21 +142,22 @@ public interface P4RuntimeClient {
      * entries will be returned, otherwise non-default entries will be
      * considered.
      *
-     * @param tableIds  table identifiers
-     * @param defaultEntries true to read default entries, false for non-default
-     * @param pipeconf pipeconf currently deployed on the device
-     * @return completable future of a collection of table entries
+     * @param tableIds       table identifiers
+     * @param defaultEntries true to read default entries, false for
+     *                       non-default
+     * @param pipeconf       pipeconf currently deployed on the device
+     * @return completable future of a list of table entries
      */
-    CompletableFuture<Collection<PiTableEntry>> dumpTables(
+    CompletableFuture<List<PiTableEntry>> dumpTables(
             Set<PiTableId> tableIds, boolean defaultEntries, PiPipeconf pipeconf);
 
     /**
      * Dumps entries from all tables, for the given pipeconf.
      *
      * @param pipeconf pipeconf currently deployed on the device
-     * @return completable future of a collection of table entries
+     * @return completable future of a list of table entries
      */
-    CompletableFuture<Collection<PiTableEntry>> dumpAllTables(PiPipeconf pipeconf);
+    CompletableFuture<List<PiTableEntry>> dumpAllTables(PiPipeconf pipeconf);
 
     /**
      * Executes a packet-out operation for the given pipeconf.
@@ -174,34 +176,33 @@ public interface P4RuntimeClient {
      *
      * @param counterIds counter identifiers
      * @param pipeconf   pipeconf
-     * @return collection of counter data
+     * @return list of counter data
      */
-    CompletableFuture<Collection<PiCounterCellData>> readAllCounterCells(
+    CompletableFuture<List<PiCounterCellData>> readAllCounterCells(
             Set<PiCounterId> counterIds, PiPipeconf pipeconf);
 
     /**
-     * Returns a collection of counter data corresponding to the given set of
-     * counter cell identifiers, for the given pipeconf.
+     * Returns a list of counter data corresponding to the given set of counter
+     * cell identifiers, for the given pipeconf.
      *
      * @param cellIds  set of counter cell identifiers
      * @param pipeconf pipeconf
-     * @return collection of counter data
+     * @return list of counter data
      */
-    CompletableFuture<Collection<PiCounterCellData>> readCounterCells(
+    CompletableFuture<List<PiCounterCellData>> readCounterCells(
             Set<PiCounterCellId> cellIds, PiPipeconf pipeconf);
 
     /**
      * Performs the given write operation for the given action group members and
      * pipeconf.
      *
-     * @param profileId action group profile ID
-     * @param members   action group members
-     * @param opType    write operation type
-     * @param pipeconf  the pipeconf currently deployed on the device
+     * @param members  action group members
+     * @param opType   write operation type
+     * @param pipeconf the pipeconf currently deployed on the device
      * @return true if the operation was successful, false otherwise
      */
     CompletableFuture<Boolean> writeActionGroupMembers(
-            PiActionProfileId profileId, Collection<PiActionGroupMember> members,
+            List<PiActionGroupMember> members,
             WriteOperationType opType, PiPipeconf pipeconf);
 
     /**
@@ -221,10 +222,34 @@ public interface P4RuntimeClient {
      *
      * @param actionProfileId the action profile id
      * @param pipeconf        the pipeconf currently deployed on the device
-     * @return completable future of a collection of groups
+     * @return completable future of a list of groups
      */
-    CompletableFuture<Collection<PiActionGroup>> dumpGroups(
+    CompletableFuture<List<PiActionGroup>> dumpGroups(
             PiActionProfileId actionProfileId, PiPipeconf pipeconf);
+
+    /**
+     * Dumps all action profile member IDs for a given action profile.
+     *
+     * @param actionProfileId action profile ID
+     * @param pipeconf        pipeconf
+     * @return future of list of action profile member ID
+     */
+    CompletableFuture<List<PiActionGroupMemberId>> dumpActionProfileMemberIds(
+            PiActionProfileId actionProfileId, PiPipeconf pipeconf);
+
+    /**
+     * Removes the given members from the given action profile. Returns the list
+     * of successfully removed members.
+     *
+     * @param actionProfileId action profile ID
+     * @param memberIds       member IDs
+     * @param pipeconf        pipeconf
+     * @return list of member IDs that were successfully removed from the device
+     */
+    CompletableFuture<List<PiActionGroupMemberId>> removeActionProfileMembers(
+            PiActionProfileId actionProfileId,
+            List<PiActionGroupMemberId> memberIds,
+            PiPipeconf pipeconf);
 
     /**
      * Returns the configuration of all meter cells for the given set of meter
@@ -232,20 +257,20 @@ public interface P4RuntimeClient {
      *
      * @param meterIds meter identifiers
      * @param pipeconf pipeconf
-     * @return collection of meter configurations
+     * @return list of meter configurations
      */
-    CompletableFuture<Collection<PiMeterCellConfig>> readAllMeterCells(
+    CompletableFuture<List<PiMeterCellConfig>> readAllMeterCells(
             Set<PiMeterId> meterIds, PiPipeconf pipeconf);
 
     /**
-     * Returns a collection of meter configurations corresponding to the given
-     * set of meter cell identifiers, for the given pipeconf.
+     * Returns a list of meter configurations corresponding to the given set of
+     * meter cell identifiers, for the given pipeconf.
      *
      * @param cellIds  set of meter cell identifiers
      * @param pipeconf pipeconf
-     * @return collection of meter configrations
+     * @return list of meter configrations
      */
-    CompletableFuture<Collection<PiMeterCellConfig>> readMeterCells(
+    CompletableFuture<List<PiMeterCellConfig>> readMeterCells(
             Set<PiMeterCellId> cellIds, PiPipeconf pipeconf);
 
     /**
@@ -257,7 +282,7 @@ public interface P4RuntimeClient {
      * @return true if the operation was successful, false otherwise.
      */
     CompletableFuture<Boolean> writeMeterCells(
-            Collection<PiMeterCellConfig> cellConfigs, PiPipeconf pipeconf);
+            List<PiMeterCellConfig> cellConfigs, PiPipeconf pipeconf);
 
     /**
      * Performs the given write operation for the given PI multicast groups
@@ -268,7 +293,7 @@ public interface P4RuntimeClient {
      * @return true if the operation was successful, false otherwise
      */
     CompletableFuture<Boolean> writePreMulticastGroupEntries(
-            Collection<PiMulticastGroupEntry> entries,
+            List<PiMulticastGroupEntry> entries,
             WriteOperationType opType);
 
     /**
@@ -276,5 +301,5 @@ public interface P4RuntimeClient {
      *
      * @return multicast groups
      */
-    CompletableFuture<Collection<PiMulticastGroupEntry>> readAllMulticastGroupEntries();
+    CompletableFuture<List<PiMulticastGroupEntry>> readAllMulticastGroupEntries();
 }

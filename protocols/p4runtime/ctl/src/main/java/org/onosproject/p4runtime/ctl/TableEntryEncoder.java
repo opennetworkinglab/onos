@@ -38,11 +38,11 @@ import org.onosproject.net.pi.runtime.PiTableAction;
 import org.onosproject.net.pi.runtime.PiTableEntry;
 import org.onosproject.net.pi.runtime.PiTernaryFieldMatch;
 import org.slf4j.Logger;
+import p4.config.v1.P4InfoOuterClass;
 import p4.v1.P4RuntimeOuterClass.Action;
 import p4.v1.P4RuntimeOuterClass.FieldMatch;
 import p4.v1.P4RuntimeOuterClass.TableAction;
 import p4.v1.P4RuntimeOuterClass.TableEntry;
-import p4.config.v1.P4InfoOuterClass;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -82,7 +82,7 @@ final class TableEntryEncoder {
      * @return collection of P4Runtime table entry protobuf messages
      * @throws EncodeException if a PI table entry cannot be encoded
      */
-    static Collection<TableEntry> encode(Collection<PiTableEntry> piTableEntries,
+    static List<TableEntry> encode(List<PiTableEntry> piTableEntries,
                                                 PiPipeconf pipeconf)
             throws EncodeException {
 
@@ -137,7 +137,7 @@ final class TableEntryEncoder {
      * @param pipeconf       PI pipeconf
      * @return collection of PI table entry objects
      */
-    static Collection<PiTableEntry> decode(Collection<TableEntry> tableEntryMsgs, PiPipeconf pipeconf) {
+    static List<PiTableEntry> decode(List<TableEntry> tableEntryMsgs, PiPipeconf pipeconf) {
 
         P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(pipeconf);
 
@@ -375,7 +375,7 @@ final class TableEntryEncoder {
         }
     }
 
-    private static PiMatchKey decodeFieldMatchMsgs(Collection<FieldMatch> fieldMatchs, P4InfoOuterClass.Table tableInfo,
+    private static PiMatchKey decodeFieldMatchMsgs(List<FieldMatch> fieldMatchs, P4InfoOuterClass.Table tableInfo,
                                                    P4InfoBrowser browser)
             throws P4InfoBrowser.NotFoundException, EncodeException {
         // Match key for field matches.

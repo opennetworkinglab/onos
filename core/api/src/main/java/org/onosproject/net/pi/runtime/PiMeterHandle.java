@@ -21,33 +21,56 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import org.onosproject.net.DeviceId;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
- * Global identifier of a PI meter cell configuration applied to a device, uniquely defined
- * by a device ID and meter cell ID.
+ * Global identifier of a PI meter cell configuration applied to a device,
+ * uniquely defined by a device ID and meter cell ID.
  */
 @Beta
 public final class PiMeterHandle extends PiHandle<PiMeterCellConfig> {
 
-    private PiMeterHandle(DeviceId deviceId, PiMeterCellConfig meterCellConfig) {
-        super(deviceId, meterCellConfig);
+    private final PiMeterCellId cellId;
+
+    private PiMeterHandle(DeviceId deviceId, PiMeterCellId meterCellId) {
+        super(deviceId);
+        this.cellId = meterCellId;
     }
 
     /**
-     * Creates a new handle for the given device ID and PI meter cell configuration.
+     * Creates a new handle for the given device ID and PI meter cell ID.
      *
-     * @param deviceId device ID
+     * @param deviceId    device ID
+     * @param meterCellId meter cell ID
+     * @return PI meter handle
+     */
+    public static PiMeterHandle of(DeviceId deviceId,
+                                   PiMeterCellId meterCellId) {
+        return new PiMeterHandle(deviceId, meterCellId);
+    }
+
+    /**
+     * Creates a new handle for the given device ID and PI meter cell
+     * configuration.
+     *
+     * @param deviceId        device ID
      * @param meterCellConfig meter config
      * @return PI meter handle
      */
     public static PiMeterHandle of(DeviceId deviceId,
                                    PiMeterCellConfig meterCellConfig) {
-        return new PiMeterHandle(deviceId, meterCellConfig);
+        checkNotNull(meterCellConfig);
+        return new PiMeterHandle(deviceId, meterCellConfig.cellId());
+    }
+
+    @Override
+    public PiEntityType entityType() {
+        return PiEntityType.METER_CELL_CONFIG;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(deviceId(),
-                                piEntity().cellId());
+        return Objects.hashCode(deviceId(), cellId);
     }
 
     @Override
@@ -60,15 +83,14 @@ public final class PiMeterHandle extends PiHandle<PiMeterCellConfig> {
         }
         PiMeterHandle that = (PiMeterHandle) o;
         return Objects.equal(deviceId(), that.deviceId()) &&
-                Objects.equal(piEntity().cellId(),
-                              that.piEntity().cellId());
+                Objects.equal(cellId, that.cellId);
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
                 .add("deviceId", deviceId())
-                .add("meterCellId", piEntity().cellId())
+                .add("meterCellId", cellId)
                 .toString();
     }
 }

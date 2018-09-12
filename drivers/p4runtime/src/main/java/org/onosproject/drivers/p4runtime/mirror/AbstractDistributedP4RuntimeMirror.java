@@ -17,6 +17,7 @@
 package org.onosproject.drivers.p4runtime.mirror;
 
 import com.google.common.annotations.Beta;
+import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -136,41 +137,54 @@ public abstract class AbstractDistributedP4RuntimeMirror
     @Override
     public void sync(DeviceId deviceId, Map<H, E> deviceState) {
         checkNotNull(deviceId);
-        Set<Map.Entry<H, TimedEntry<E>>> localEntries = getEntriesForDevice(deviceId);
+        final Map<H, E> localState = getMirrorMapForDevice(deviceId);
+
         final AtomicInteger removeCount = new AtomicInteger(0);
         final AtomicInteger updateCount = new AtomicInteger(0);
-        localEntries.forEach(e -> {
-            final H handle = e.getKey();
-            final E storedValue = e.getValue().entry();
-            if (!deviceState.containsKey(handle)) {
-                log.debug("Removing mirror entry for {}: {}", deviceId, storedValue);
+        final AtomicInteger addCount = new AtomicInteger(0);
+        // Add missing entries.
+        deviceState.keySet().stream()
+                .filter(deviceHandle -> !localState.containsKey(deviceHandle))
+                .forEach(deviceHandle -> {
+                    final E entryToAdd = deviceState.get(deviceHandle);
+                    log.debug("Adding mirror entry for {}: {}",
+                              deviceId, entryToAdd);
+                    put(deviceHandle, entryToAdd);
+                    addCount.incrementAndGet();
+                });
+        // Update or remove local entries.
+        localState.keySet().forEach(localHandle -> {
+            final E localEntry = localState.get(localHandle);
+            final E deviceEntry = deviceState.get(localHandle);
+            if (deviceEntry == null) {
+                log.debug("Removing mirror entry for {}: {}", deviceId, localEntry);
+                remove(localHandle);
                 removeCount.incrementAndGet();
-            } else {
-                final E deviceValue = deviceState.get(handle);
-                if (!deviceValue.equals(storedValue)) {
-                    log.debug("Updating mirror entry for {}: {}-->{}",
-                             deviceId, storedValue, deviceValue);
-                    put(handle, deviceValue);
-                    updateCount.incrementAndGet();
-                }
+            } else if (!deviceEntry.equals(localEntry)) {
+                log.debug("Updating mirror entry for {}: {}-->{}",
+                          deviceId, localEntry, deviceEntry);
+                put(localHandle, deviceEntry);
+                updateCount.incrementAndGet();
             }
         });
-        if (removeCount.get() + updateCount.get() > 0) {
-            log.info("Synchronized mirror entries for {}: {} removed, {} updated",
-                     deviceId, removeCount, updateCount);
+        if (removeCount.get() + updateCount.get() + addCount.get() > 0) {
+            log.info("Synchronized mirror entries for {}: {} removed, {} updated, {} added",
+                     deviceId, removeCount, updateCount, addCount);
         }
     }
 
-    private Collection<H> getHandlesForDevice(DeviceId deviceId) {
+    private Set<H> getHandlesForDevice(DeviceId deviceId) {
         return mirrorMap.keySet().stream()
                 .filter(h -> h.deviceId().equals(deviceId))
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
     }
 
-    private Set<Map.Entry<H, TimedEntry<E>>> getEntriesForDevice(DeviceId deviceId) {
-        return mirrorMap.entrySet().stream()
+    private Map<H, E> getMirrorMapForDevice(DeviceId deviceId) {
+        final Map<H, E> deviceMap = Maps.newHashMap();
+        mirrorMap.entrySet().stream()
                 .filter(e -> e.getKey().deviceId().equals(deviceId))
-                .collect(Collectors.toSet());
+                .forEach(e -> deviceMap.put(e.getKey(), e.getValue().entry()));
+        return deviceMap;
     }
 
     private void removeAll(DeviceId deviceId) {

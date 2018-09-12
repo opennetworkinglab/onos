@@ -45,7 +45,12 @@ public class DistributedPiTranslationStoreTest {
             };
     private static final PiEntity PI_ENTITY = () -> PiEntityType.TABLE_ENTRY;
     private static final PiHandle<PiEntity> PI_HANDLE =
-            new PiHandle<PiEntity>(DeviceId.NONE, PI_ENTITY) {
+            new PiHandle<PiEntity>(DeviceId.NONE) {
+                @Override
+                public PiEntityType entityType() {
+                    return PI_ENTITY.piEntityType();
+                }
+
                 @Override
                 public int hashCode() {
                     return HANDLE_HASH;

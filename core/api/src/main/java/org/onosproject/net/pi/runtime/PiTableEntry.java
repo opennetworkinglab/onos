@@ -135,6 +135,7 @@ public final class PiTableEntry implements PiEntity {
         }
         PiTableEntry that = (PiTableEntry) o;
         return priority == that.priority &&
+                cookie == that.cookie &&
                 Double.compare(that.timeout, timeout) == 0 &&
                 Objects.equal(tableId, that.tableId) &&
                 Objects.equal(matchKey, that.matchKey) &&
@@ -145,7 +146,7 @@ public final class PiTableEntry implements PiEntity {
     @Override
     public int hashCode() {
         return Objects.hashCode(tableId, matchKey, isDefaultAction, tableAction,
-                                priority, timeout);
+                                priority, cookie, timeout);
     }
 
     @Override
