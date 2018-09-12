@@ -29,11 +29,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public abstract class PiHandle<E extends PiEntity> {
 
     private final DeviceId deviceId;
-    private final E piEntity;
 
-    protected PiHandle(DeviceId deviceId, E piEntity) {
+    protected PiHandle(DeviceId deviceId) {
         this.deviceId = checkNotNull(deviceId);
-        this.piEntity = checkNotNull(piEntity);
     }
 
     /**
@@ -50,18 +48,7 @@ public abstract class PiHandle<E extends PiEntity> {
      *
      * @return PI entity type
      */
-    public final PiEntityType entityType() {
-        return piEntity.piEntityType();
-    }
-
-    /**
-     * The entity to which this handle is associated.
-     *
-     * @return PI entity
-     */
-    public final E piEntity() {
-        return piEntity;
-    }
+    public abstract PiEntityType entityType();
 
     @Override
     public abstract int hashCode();

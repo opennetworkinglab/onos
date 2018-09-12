@@ -31,8 +31,8 @@ import p4.v1.P4RuntimeOuterClass.Entity;
 import p4.v1.P4RuntimeOuterClass.MeterConfig;
 import p4.v1.P4RuntimeOuterClass.MeterEntry;
 
-import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -66,7 +66,7 @@ final class MeterEntryCodec {
      * @return collection of entity messages describing both meter or direct
      * meter entries
      */
-    static Collection<Entity> encodePiMeterCellConfigs(Collection<PiMeterCellConfig> cellConfigs,
+    static List<Entity> encodePiMeterCellConfigs(List<PiMeterCellConfig> cellConfigs,
                                                        PiPipeconf pipeconf) {
         final P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(pipeconf);
 
@@ -101,7 +101,7 @@ final class MeterEntryCodec {
      * @param pipeconf pipeconf
      * @return collection of entity messages
      */
-    static Collection<Entity> readAllCellsEntities(Collection<PiMeterId> meterIds,
+    static List<Entity> readAllCellsEntities(List<PiMeterId> meterIds,
                                                    PiPipeconf pipeconf) {
         final P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(pipeconf);
 
@@ -136,8 +136,8 @@ final class MeterEntryCodec {
      * @param pipeconf pipeconf
      * @return collection of PI meter cell data
      */
-    static Collection<PiMeterCellConfig> decodeMeterEntities(Collection<Entity> entities,
-                                                             PiPipeconf pipeconf) {
+    static List<PiMeterCellConfig> decodeMeterEntities(List<Entity> entities,
+                                                       PiPipeconf pipeconf) {
         final P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(pipeconf);
 
         if (browser == null) {

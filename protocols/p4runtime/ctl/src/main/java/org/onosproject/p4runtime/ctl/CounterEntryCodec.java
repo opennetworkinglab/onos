@@ -30,8 +30,8 @@ import p4.v1.P4RuntimeOuterClass.CounterEntry;
 import p4.v1.P4RuntimeOuterClass.DirectCounterEntry;
 import p4.v1.P4RuntimeOuterClass.Entity;
 
-import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -65,7 +65,7 @@ final class CounterEntryCodec {
      * @return collection of entity messages describing both counter or direct
      * counter entries
      */
-    static Collection<Entity> encodePiCounterCellIds(Collection<PiCounterCellId> cellIds,
+    static List<Entity> encodePiCounterCellIds(List<PiCounterCellId> cellIds,
                                                      PiPipeconf pipeconf) {
 
         final P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(pipeconf);
@@ -100,7 +100,7 @@ final class CounterEntryCodec {
      * @param pipeconf   pipeconf
      * @return collection of entity messages
      */
-    static Collection<Entity> readAllCellsEntities(Collection<PiCounterId> counterIds,
+    static List<Entity> readAllCellsEntities(List<PiCounterId> counterIds,
                                                    PiPipeconf pipeconf) {
         final P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(pipeconf);
 
@@ -135,8 +135,8 @@ final class CounterEntryCodec {
      * @param pipeconf pipeconf
      * @return collection of PI counter cell data
      */
-    static Collection<PiCounterCellData> decodeCounterEntities(Collection<Entity> entities,
-                                                               PiPipeconf pipeconf) {
+    static List<PiCounterCellData> decodeCounterEntities(List<Entity> entities,
+                                                         PiPipeconf pipeconf) {
 
         final P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(pipeconf);
 

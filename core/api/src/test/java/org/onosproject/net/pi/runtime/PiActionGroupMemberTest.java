@@ -20,6 +20,7 @@ import com.google.common.testing.EqualsTester;
 import org.junit.Test;
 import org.onosproject.net.pi.model.PiActionId;
 import org.onosproject.net.pi.model.PiActionParamId;
+import org.onosproject.net.pi.model.PiActionProfileId;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -34,25 +35,36 @@ import static org.onosproject.net.pi.runtime.PiConstantsTest.MOD_NW_DST;
  */
 public class PiActionGroupMemberTest {
 
+    private final PiActionProfileId actionProfileId1 = PiActionProfileId.of("foo");
+    private final PiActionProfileId actionProfileId2 = PiActionProfileId.of("bar");
     private final PiActionGroupMemberId piActionGroupMemberId = PiActionGroupMemberId.of(10);
     private final PiAction piAction = PiAction.builder().withId(PiActionId.of(MOD_NW_DST))
             .withParameter(new PiActionParam(PiActionParamId.of(DST_ADDR), copyFrom(0x0a010101)))
             .build();
 
     private final PiActionGroupMember piActionGroupMember1 = PiActionGroupMember.builder()
+            .forActionProfile(actionProfileId1)
             .withId(piActionGroupMemberId)
             .withAction(piAction)
             .withWeight(10)
             .build();
     private final PiActionGroupMember sameAsPiActionGroupMember1 = PiActionGroupMember.builder()
+            .forActionProfile(actionProfileId1)
             .withId(piActionGroupMemberId)
             .withAction(piAction)
             .withWeight(10)
             .build();
     private final PiActionGroupMember piActionGroupMember2 = PiActionGroupMember.builder()
+            .forActionProfile(actionProfileId1)
             .withId(piActionGroupMemberId)
             .withAction(piAction)
             .withWeight(20)
+            .build();
+    private final PiActionGroupMember piActionGroupMember1ForOtherProfile = PiActionGroupMember.builder()
+            .forActionProfile(actionProfileId2)
+            .withId(piActionGroupMemberId)
+            .withAction(piAction)
+            .withWeight(10)
             .build();
 
     /**
@@ -73,6 +85,7 @@ public class PiActionGroupMemberTest {
         new EqualsTester()
                 .addEqualityGroup(piActionGroupMember1, sameAsPiActionGroupMember1)
                 .addEqualityGroup(piActionGroupMember2)
+                .addEqualityGroup(piActionGroupMember1ForOtherProfile)
                 .testEquals();
     }
 

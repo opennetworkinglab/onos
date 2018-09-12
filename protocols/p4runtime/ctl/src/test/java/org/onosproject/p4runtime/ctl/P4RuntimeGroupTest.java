@@ -17,7 +17,6 @@
 package org.onosproject.p4runtime.ctl;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.protobuf.ByteString;
 import io.grpc.ManagedChannel;
@@ -84,8 +83,8 @@ public class P4RuntimeGroupTest {
     private static final PiActionParamId PORT_PARAM_ID = PiActionParamId.of("port");
     private static final int BASE_MEM_ID = 65535;
     private static final List<Integer> MEMBER_IDS = ImmutableList.of(65536, 65537, 65538);
-    private static final Collection<PiActionGroupMember> GROUP_MEMBERS =
-            ImmutableSet.of(
+    private static final List<PiActionGroupMember> GROUP_MEMBERS =
+            Lists.newArrayList(
                     outputMember((short) 1),
                     outputMember((short) 2),
                     outputMember((short) 3)
@@ -116,6 +115,7 @@ public class P4RuntimeGroupTest {
                 .withParameter(param).build();
 
         return PiActionGroupMember.builder()
+                .forActionProfile(ACT_PROF_ID)
                 .withAction(piAction)
                 .withId(PiActionGroupMemberId.of(BASE_MEM_ID + portNum))
                 .withWeight(DEFAULT_MEMBER_WEIGHT)
@@ -139,7 +139,6 @@ public class P4RuntimeGroupTest {
         grpcServer = builder.build().start();
         grpcChannel = InProcessChannelBuilder.forName(GRPC_SERVER_NAME)
                 .directExecutor()
-                .usePlaintext(true)
                 .build();
     }
 
@@ -191,7 +190,7 @@ public class P4RuntimeGroupTest {
     @Test
     public void testInsertPiActionMembers() throws Exception {
         CompletableFuture<Void> complete = p4RuntimeServerImpl.expectRequests(1);
-        client.writeActionGroupMembers(ACT_PROF_ID, GROUP_MEMBERS, INSERT, PIPECONF);
+        client.writeActionGroupMembers(GROUP_MEMBERS, INSERT, PIPECONF);
         complete.get(DEFAULT_TIMEOUT_TIME, TimeUnit.SECONDS);
         WriteRequest result = p4RuntimeServerImpl.getWriteReqs().get(0);
         assertEquals(1, result.getDeviceId());
@@ -246,6 +245,7 @@ public class P4RuntimeGroupTest {
 
             ActionProfileMember actProfMember =
                     ActionProfileMember.newBuilder()
+                            .setActionProfileId(P4_INFO_ACT_PROF_ID)
                             .setMemberId(id)
                             .setAction(action)
                             .build();
@@ -260,13 +260,14 @@ public class P4RuntimeGroupTest {
 
         responses.add(ReadResponse.newBuilder()
                               .addAllEntities(members.stream()
-                                                      .map(m -> Entity.newBuilder().setActionProfileMember(m).build())
+                                                      .map(m -> Entity.newBuilder()
+                                                              .setActionProfileMember(m).build())
                                                       .collect(Collectors.toList()))
                               .build());
 
         p4RuntimeServerImpl.willReturnReadResult(responses);
         CompletableFuture<Void> complete = p4RuntimeServerImpl.expectRequests(2);
-        CompletableFuture<Collection<PiActionGroup>> groupsComplete = client.dumpGroups(ACT_PROF_ID, PIPECONF);
+        CompletableFuture<List<PiActionGroup>> groupsComplete = client.dumpGroups(ACT_PROF_ID, PIPECONF);
         complete.get(DEFAULT_TIMEOUT_TIME, TimeUnit.SECONDS);
 
         Collection<PiActionGroup> groups = groupsComplete.get(DEFAULT_TIMEOUT_TIME, TimeUnit.SECONDS);

@@ -140,6 +140,11 @@ public class P4RuntimeFlowRuleProgrammable
                 streamEntries(), streamDefaultEntries())
                 // Ignore entries from constant tables.
                 .filter(e -> !tableIsConstant(e.table()))
+                // Device implementation might return duplicate entries. For
+                // example if reading only default ones is not supported and
+                // non-default entries are returned, by using distinct() we are
+                // robust against that possibility.
+                .distinct()
                 .collect(Collectors.toList());
 
         if (deviceEntries.isEmpty()) {
@@ -148,7 +153,6 @@ public class P4RuntimeFlowRuleProgrammable
 
         // Synchronize mirror with the device state.
         syncMirror(deviceEntries);
-        // Read table direct counters for non default-entries (if any).
         // TODO: ONOS-7596 read counters with table entries
         final Map<PiTableEntry, PiCounterCellData> counterCellMap =
                 readEntryCounters(deviceEntries);
@@ -229,7 +233,12 @@ public class P4RuntimeFlowRuleProgrammable
             log.warn("Table entry handle not found in translation store: {}", handle);
             return null;
         }
-
+        if (!translatedEntity.get().translated().equals(entry)) {
+            log.warn("Table entry obtained from device {} is different from " +
+                             "one in in translation store: device={}, store={}",
+                     deviceId, entry, translatedEntity.get().translated());
+            return null;
+        }
         if (timedEntry == null) {
             log.warn("Table entry handle not found in device mirror: {}", handle);
             return null;
@@ -460,6 +469,7 @@ public class P4RuntimeFlowRuleProgrammable
             cellDatas = Collections.emptyList();
         } else {
             Set<PiCounterCellId> cellIds = tableEntries.stream()
+                    // Ignore counter for default entry.
                     .filter(e -> !e.isDefaultAction())
                     .filter(e -> tableHasCounter(e.table()))
                     .map(PiCounterCellId::ofDirect)
