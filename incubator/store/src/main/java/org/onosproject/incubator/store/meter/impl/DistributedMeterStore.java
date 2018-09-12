@@ -287,6 +287,9 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
             m.setLife(meter.life());
             // TODO: Prune if drops to zero.
             m.setReferenceCount(meter.referenceCount());
+            if (meter.referenceCount() == 0) {
+                notifyDelegate(new MeterEvent(MeterEvent.Type.METER_REFERENCE_COUNT_ZERO, m));
+            }
             return new MeterData(m, null, v.origin());
         });
     }
