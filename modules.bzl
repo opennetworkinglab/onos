@@ -250,6 +250,7 @@ ONOS_APPS = [
     "//apps/imr:onos-apps-imr-oar",
     "//apps/nodemetrics:onos-apps-nodemetrics-oar",
     # "//web/gui2:onos-web-gui2-oar",
+    "//apps/workflow:onos-apps-workflow-oar",
 ]
 
 PROTOCOL_APPS = [

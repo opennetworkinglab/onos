@@ -257,6 +257,7 @@ ONOS_APPS = [
     '//apps/layout:onos-apps-layout-oar',
     '//apps/imr:onos-apps-imr-oar',
     '//apps/inbandtelemetry/app:onos-apps-inbandtelemetry-app-oar',
+    '//apps/workflow:onos-apps-workflow-oar',
     # nodemetrics application
     '//apps/nodemetrics:onos-apps-nodemetrics-oar',
     #'//web/gui2:onos-web-gui2-oar',
