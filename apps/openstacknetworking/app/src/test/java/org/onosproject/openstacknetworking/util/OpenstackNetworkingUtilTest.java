@@ -78,6 +78,7 @@ import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 import static org.onosproject.openstacknetworking.api.Constants.UNSUPPORTED_VENDOR;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.addRouterIface;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.associatedFloatingIp;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.checkActivationFlag;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.checkArpMode;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getConnectedClient;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getGwByComputeDevId;
@@ -470,6 +471,24 @@ public final class OpenstackNetworkingUtilTest {
         assertEquals(vnicType(portNameNormalVhu), Constants.VnicType.NORMAL);
         assertEquals(vnicType(portNameNormalCavium), Constants.VnicType.DIRECT);
         assertEquals(vnicType(portNameUnsupported), Constants.VnicType.UNSUPPORTED);
+    }
+
+    /**
+     * Tests the checkActivationFlag method.
+     */
+    @Test
+    public void testCheckActivationFlag() {
+        assertFalse(checkActivationFlag("disable"));
+        assertTrue(checkActivationFlag("enable"));
+    }
+
+    /**
+     * Tests the checkActivationFlag method with incorrect input parameters.
+     */
+    @Test (expected = IllegalArgumentException.class)
+    public void testCheckActivationFlagWithException() {
+        checkActivationFlag("test");
+        checkActivationFlag(null);
     }
 
     private DeviceId genDeviceId(int index) {

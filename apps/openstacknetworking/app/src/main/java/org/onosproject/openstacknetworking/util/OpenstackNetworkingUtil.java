@@ -115,6 +115,9 @@ public final class OpenstackNetworkingUtil {
     private static final String PROXY_MODE = "proxy";
     private static final String BROADCAST_MODE = "broadcast";
 
+    private static final String ENABLE = "enable";
+    private static final String DISABLE = "disable";
+
     private static final int HTTP_PAYLOAD_BUFFER = 8 * 1024;
 
     private static final String HMAC_SHA256 = "HmacSHA256";
@@ -453,6 +456,24 @@ public final class OpenstackNetworkingUtil {
             return false;
         } else {
             return arpMode.equals(PROXY_MODE) || arpMode.equals(BROADCAST_MODE);
+        }
+    }
+
+    /**
+     * Checks the validity of activation flag.
+     *
+     * @param activationFlag activation flag
+     * @return returns true if the activation flag is valid, false otherwise
+     */
+    public static boolean checkActivationFlag(String activationFlag) {
+
+        switch (activationFlag) {
+            case ENABLE:
+                return true;
+            case DISABLE:
+                return false;
+            default:
+                throw new IllegalArgumentException("The given activation flag is not valid!");
         }
     }
 

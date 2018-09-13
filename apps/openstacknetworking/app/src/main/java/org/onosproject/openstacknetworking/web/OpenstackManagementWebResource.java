@@ -29,6 +29,7 @@ import org.onosproject.openstacknetworking.api.OpenstackNetworkAdminService;
 import org.onosproject.openstacknetworking.api.OpenstackRouterAdminService;
 import org.onosproject.openstacknetworking.api.OpenstackSecurityGroupAdminService;
 import org.onosproject.openstacknetworking.impl.OpenstackRoutingArpHandler;
+import org.onosproject.openstacknetworking.impl.OpenstackSecurityGroupHandler;
 import org.onosproject.openstacknetworking.impl.OpenstackSwitchingArpHandler;
 import org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil;
 import org.onosproject.openstacknode.api.NodeState;
@@ -53,9 +54,7 @@ import java.util.Optional;
 
 import static java.lang.Thread.sleep;
 import static org.onlab.util.Tools.nullIsIllegal;
-import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.addRouterIface;
-import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.checkArpMode;
-import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getPropertyValue;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.*;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.CONTROLLER;
 
 /**
@@ -67,12 +66,15 @@ public class OpenstackManagementWebResource extends AbstractWebResource {
 
     private static final String FLOATINGIPS = "floatingips";
     private static final String ARP_MODE_NAME = "arpMode";
+    private static final String USE_SECURITY_GROUP_NAME = "useSecurityGroup";
 
     private static final long SLEEP_MS = 3000; // we wait 3s for init each node
 
     private static final String DEVICE_OWNER_IFACE = "network:router_interface";
 
     private static final String ARP_MODE_REQUIRED = "ARP mode is not specified";
+
+    private static final String SECURITY_GROUP_FLAG_REQUIRED = "Security Group flag is not specified";
 
     private final ObjectNode root = mapper().createObjectNode();
     private final ArrayNode floatingipsNode = root.putArray(FLOATINGIPS);
@@ -247,6 +249,28 @@ public class OpenstackManagementWebResource extends AbstractWebResource {
         } else {
             throw new IllegalArgumentException("The ARP mode is not valid");
         }
+
+        return ok(mapper().createObjectNode()).build();
+    }
+
+    /**
+     * Configures the security group (enable | disable).
+     *
+     * @param securityGroup security group activation flag
+     * @return 200 OK with config result, 404 not found
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("config/securityGroup/{securityGroup}")
+    public Response configSecurityGroup(@PathParam("securityGroup") String securityGroup) {
+        String securityGroupStr = nullIsIllegal(securityGroup, SECURITY_GROUP_FLAG_REQUIRED);
+
+        boolean flag = checkActivationFlag(securityGroupStr);
+
+        ComponentConfigService service = get(ComponentConfigService.class);
+        String securityGroupComponent = OpenstackSecurityGroupHandler.class.getName();
+
+        service.setProperty(securityGroupComponent, USE_SECURITY_GROUP_NAME, String.valueOf(flag));
 
         return ok(mapper().createObjectNode()).build();
     }
