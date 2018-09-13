@@ -269,11 +269,17 @@ control process_int_transit (
 
     // Default action used to set switch ID.
     table tb_int_insert {
-        key = {}
+        // We don't really need a key here, however we add a dummy one as a
+        // workaround to ONOS inability to properly support default actions.
+        key = {
+            hdr.int_header.isValid(): exact @name("hdr.int_header.is_valid");
+        }
         actions = {
             init_metadata;
+            @defaultonly nop;
         }
-        size = 0;
+        const default_action = nop;
+        size = 1;
     }
 
     // Table to process instruction bits 0-3.

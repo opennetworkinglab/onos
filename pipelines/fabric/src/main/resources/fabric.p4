@@ -50,6 +50,7 @@ inout standard_metadata_t standard_metadata) {
 #endif // WITH_PORT_COUNTER
 
     apply {
+        _PRE_INGRESS
 #ifdef WITH_SPGW
         spgw_normalizer.apply(hdr.gtpu.isValid(), hdr.gtpu_ipv4, hdr.gtpu_udp,
                               hdr.ipv4, hdr.udp, hdr.inner_ipv4, hdr.inner_udp);
@@ -83,6 +84,7 @@ control FabricEgress (inout parsed_headers_t hdr,
     EgressNextControl() egress_next;
 
     apply {
+        _PRE_EGRESS
         pkt_io_egress.apply(hdr, fabric_metadata, standard_metadata);
         egress_next.apply(hdr, fabric_metadata, standard_metadata);
 #ifdef WITH_SPGW

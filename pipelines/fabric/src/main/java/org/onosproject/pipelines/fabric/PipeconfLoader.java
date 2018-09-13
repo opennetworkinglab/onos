@@ -62,11 +62,10 @@ public class PipeconfLoader {
 
     private static Logger log = getLogger(PipeconfLoader.class);
 
+    static final String PIPELINE_APP_NAME = "org.onosproject.pipelines.fabric";
+
     private static final String BASE_PIPECONF_ID = "org.onosproject.pipelines";
-
     private static final String P4C_OUT_PATH = "/p4c-out";
-
-    private static final String PIPELINE_APP_NAME = "org.onosproject.pipelines.fabric";
 
     // profile/target/platform
     private static final String P4C_RES_BASE_PATH = P4C_OUT_PATH + "/%s/%s/%s/";

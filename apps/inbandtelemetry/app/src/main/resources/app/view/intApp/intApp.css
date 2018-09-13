@@ -58,6 +58,10 @@
     text-align: center;
 }
 
+#ov-int-app-main input {
+    padding: 4px;
+    font-size: inherit;
+}
 
 .light #ov-int-app-main .int-app-config-button {
     color: white;
@@ -68,8 +72,25 @@
     background-color: #aaa;
 }
 /*---------------------------------------------------------------------------*/
+#ov-int-app-main hr {
+    border: 0;
+    height: 1px;
+    background: #333;
+}
+
 #ov-int-app-main h2 {
     display: inline-block;
+    margin: 15px 0px 15px;
+}
+
+#ov-int-app-main h3 {
+    display: inline-block;
+    margin-bottom: 10px;
+}
+
+#ov-int-app-main h4 {
+    display: inline-block;
+    margin-bottom: 10px;
 }
 /* #ov-int-app-main .table-body{
     display: inline-block;

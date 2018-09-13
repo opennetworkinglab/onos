@@ -431,14 +431,21 @@ tables {
     name: "FabricEgress.process_int_main.process_int_transit.tb_int_insert"
     alias: "tb_int_insert"
   }
+  match_fields {
+    id: 1
+    name: "hdr.int_header.is_valid"
+    bitwidth: 1
+    match_type: EXACT
+  }
   action_refs {
     id: 16780783
   }
   action_refs {
-    id: 16800567
+    id: 16819938
     annotations: "@defaultonly()"
   }
-  size: 1024
+  const_default_action_id: 16819938
+  size: 1
   idle_timeout_behavior: NO_TIMEOUT
 }
 tables {

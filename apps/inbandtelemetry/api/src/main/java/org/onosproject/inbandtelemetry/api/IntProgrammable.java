@@ -16,18 +16,64 @@
 package org.onosproject.inbandtelemetry.api;
 
 import com.google.common.annotations.Beta;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.driver.HandlerBehaviour;
 
-import java.util.concurrent.CompletableFuture;
-
+/**
+ * Abstraction of a device implementing In-band Network Telemetry (INT)
+ * capabilities.
+ */
 @Beta
 public interface IntProgrammable extends HandlerBehaviour {
 
     /**
-     * Initializes the pipeline, by installing required flow rules
-     * not relevant to specific watchlist, report and event.
+     * INT functionalities that a device can implement.
      */
-    void init();
+    enum IntFunctionality {
+        /**
+         * Source functionality.
+         */
+        SOURCE,
+        /**
+         * Sink functionality.
+         */
+        SINK,
+        /**
+         * Transit functionality.
+         */
+        TRANSIT
+    }
+
+    /**
+     * Initializes the pipeline, by installing required flow rules not relevant
+     * to specific watchlist, report and event. Returns true if the operation
+     * was successful, false otherwise.
+     *
+     * @return true if successful, false otherwise
+     */
+    boolean init();
+
+    /**
+     * Configures the given port as an INT source port. Packets received via
+     * this port can be modified to add the INT header, if a corresponding  INT
+     * objective is matched. Returns true if the operation was successful, false
+     * otherwise.
+     *
+     * @param port port
+     * @return true if successful, false otherwise
+     */
+    boolean setSourcePort(PortNumber port);
+
+    /**
+     * Configures the given port as an INT sink port. Packets forwarded via this
+     * port will be stripped of the INT header and a corresponding INT report
+     * will be generated. Returns true if the operation was successful, false
+     * otherwise.
+     *
+     * @param port port
+     * @return true if successful, false otherwise
+     */
+    boolean setSinkPort(PortNumber port);
 
     /**
      * Adds a given IntObjective to the device.
@@ -35,7 +81,7 @@ public interface IntProgrammable extends HandlerBehaviour {
      * @param obj an IntObjective
      * @return true if the objective is successfully added; false otherwise.
      */
-    CompletableFuture<Boolean> addIntObjective(IntObjective obj);
+    boolean addIntObjective(IntObjective obj);
 
     /**
      * Removes a given IntObjective entry from the device.
@@ -43,7 +89,7 @@ public interface IntProgrammable extends HandlerBehaviour {
      * @param obj an IntObjective
      * @return true if the objective is successfully removed; false otherwise.
      */
-    CompletableFuture<Boolean> removeIntObjective(IntObjective obj);
+    boolean removeIntObjective(IntObjective obj);
 
     /**
      * Set up report-related configuration.
@@ -51,7 +97,20 @@ public interface IntProgrammable extends HandlerBehaviour {
      * @param config a configuration regarding to the collector
      * @return true if the objective is successfully added; false otherwise.
      */
-    CompletableFuture<Boolean> setupIntConfig(IntConfig config);
+    boolean setupIntConfig(IntConfig config);
+
+    /**
+     * Clean up any INT-related configuration from the device.
+     */
+    void cleanup();
+
+    /**
+     * Returns true if this device supports the given INT functionality.
+     *
+     * @param functionality INt functionality
+     * @return true if functionality is supported, false otherwise
+     */
+    boolean supportsFunctionality(IntFunctionality functionality);
 
     //TODO: [ONOS-7616] Design IntEvent and related APIs
 }

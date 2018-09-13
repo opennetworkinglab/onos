@@ -37,6 +37,14 @@
 #define _PKT_OUT_HDR_ANNOT
 #endif
 
+#ifndef _PRE_INGRESS
+#define _PRE_INGRESS
+#endif
+
+#ifndef _PRE_EGRESS
+#define _PRE_EGRESS
+#endif
+
 #ifndef IP_VER_LENGTH
 #define IP_VER_LENGTH 4
 #endif
