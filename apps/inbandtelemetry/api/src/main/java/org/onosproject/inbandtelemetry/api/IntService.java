@@ -43,13 +43,13 @@ public interface IntService {
     }
 
     /**
-     * Starts the INT functionalities in all INT-capable devices.
+     * Starts the INT functionality in all INT-capable devices.
      * This will include populating tables to process INT packets.
      */
     void startInt();
 
     /**
-     * Starts the INT functionalities in specified set of INT transit devices.
+     * Starts the INT functionality in specified set of INT transit devices.
      * <p>
      * Note: this is an experimental API, which can be either changed or removed.
      *

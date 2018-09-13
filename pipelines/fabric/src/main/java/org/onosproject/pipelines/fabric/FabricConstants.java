@@ -45,6 +45,8 @@ public final class FabricConstants {
             PiMatchFieldId.of("hdr.vlan_tag.is_valid");
     public static final PiMatchFieldId HDR_ICMP_ICMP_CODE =
             PiMatchFieldId.of("hdr.icmp.icmp_code");
+    public static final PiMatchFieldId HDR_INT_HEADER_IS_VALID =
+            PiMatchFieldId.of("hdr.int_header.is_valid");
     public static final PiMatchFieldId HDR_ETHERNET_SRC_ADDR =
             PiMatchFieldId.of("hdr.ethernet.src_addr");
     public static final PiMatchFieldId HDR_ICMP_ICMP_TYPE =

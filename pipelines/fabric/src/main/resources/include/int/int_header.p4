@@ -26,6 +26,8 @@ struct int_metadata_t {
     bit<32> switch_id;
     bit<8>  new_words;
     bit<16> new_bytes;
+    bit<32> ig_tstamp;
+    bit<32> eg_tstamp;
 }
 
 // INT headers - 8 bytes

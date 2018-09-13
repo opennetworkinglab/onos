@@ -3608,7 +3608,7 @@
       "primitives" : []
     },
     {
-      "name" : "NoAction",
+      "name" : "nop",
       "id" : 53,
       "runtime_data" : [],
       "primitives" : []
@@ -10280,7 +10280,7 @@
           ],
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
-            "line" : 370,
+            "line" : 374,
             "column" : 12,
             "source_fragment" : "return"
           }
@@ -10329,7 +10329,7 @@
           ],
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
-            "line" : 378,
+            "line" : 382,
             "column" : 12,
             "source_fragment" : "hdr.ipv4.total_len = hdr.ipv4.total_len + fmeta.int_meta.new_bytes"
           }
@@ -10378,7 +10378,7 @@
           ],
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
-            "line" : 375,
+            "line" : 379,
             "column" : 8,
             "source_fragment" : "hdr.int_header.total_hop_cnt = hdr.int_header.total_hop_cnt + 1"
           }
@@ -10427,7 +10427,7 @@
           ],
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
-            "line" : 381,
+            "line" : 385,
             "column" : 12,
             "source_fragment" : "hdr.udp.len = hdr.udp.len + fmeta.int_meta.new_bytes"
           }
@@ -10476,7 +10476,7 @@
           ],
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
-            "line" : 384,
+            "line" : 388,
             "column" : 12,
             "source_fragment" : "hdr.intl4_shim.len_words = hdr.intl4_shim.len_words + fmeta.int_meta.new_words"
           }
@@ -11971,25 +11971,32 @@
             "column" : 10,
             "source_fragment" : "tb_int_insert"
           },
-          "key" : [],
+          "key" : [
+            {
+              "match_type" : "exact",
+              "name" : "hdr.int_header.is_valid",
+              "target" : ["int_header", "$valid$"],
+              "mask" : null
+            }
+          ],
           "match_type" : "exact",
           "type" : "simple",
-          "max_size" : 1024,
+          "max_size" : 1,
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [58, 51],
-          "actions" : ["FabricEgress.process_int_main.process_int_transit.init_metadata", "NoAction"],
+          "action_ids" : [58, 53],
+          "actions" : ["FabricEgress.process_int_main.process_int_transit.init_metadata", "nop"],
           "base_default_next" : "node_60",
           "next_tables" : {
             "FabricEgress.process_int_main.process_int_transit.init_metadata" : "node_60",
-            "NoAction" : "node_60"
+            "nop" : "node_60"
           },
           "default_entry" : {
-            "action_id" : 51,
-            "action_const" : false,
+            "action_id" : 53,
+            "action_const" : true,
             "action_data" : [],
-            "action_entry_const" : false
+            "action_entry_const" : true
           }
         },
         {
@@ -12020,7 +12027,7 @@
           "id" : 36,
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
-            "line" : 280,
+            "line" : 284,
             "column" : 10,
             "source_fragment" : "tb_int_inst_0003"
           },
@@ -12038,7 +12045,7 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 52],
+          "action_ids" : [59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 51],
           "actions" : ["FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i0", "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i1", "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i2", "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i3", "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i4", "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i5", "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i6", "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i7", "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i8", "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i9", "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i10", "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i11", "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i12", "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i13", "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i14", "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i15", "NoAction"],
           "base_default_next" : "FabricEgress.process_int_main.process_int_transit.tb_int_inst_0407",
           "next_tables" : {
@@ -12061,7 +12068,7 @@
             "NoAction" : "FabricEgress.process_int_main.process_int_transit.tb_int_inst_0407"
           },
           "default_entry" : {
-            "action_id" : 52,
+            "action_id" : 51,
             "action_const" : false,
             "action_data" : [],
             "action_entry_const" : false
@@ -12282,7 +12289,7 @@
           "id" : 37,
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
-            "line" : 324,
+            "line" : 328,
             "column" : 10,
             "source_fragment" : "tb_int_inst_0407"
           },
@@ -12300,7 +12307,7 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 53],
+          "action_ids" : [75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 52],
           "actions" : ["FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i0", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i1", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i2", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i3", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i4", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i5", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i6", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i7", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i8", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i9", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i10", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i11", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i12", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i13", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i14", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i15", "NoAction"],
           "base_default_next" : "tbl_act_18",
           "next_tables" : {
@@ -12323,7 +12330,7 @@
             "NoAction" : "tbl_act_18"
           },
           "default_entry" : {
-            "action_id" : 53,
+            "action_id" : 52,
             "action_const" : false,
             "action_data" : [],
             "action_entry_const" : false
@@ -12997,7 +13004,7 @@
           "id" : 21,
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
-            "line" : 369,
+            "line" : 373,
             "column" : 12,
             "source_fragment" : "fmeta.int_meta.transit == false"
           },
@@ -13054,7 +13061,7 @@
           "id" : 23,
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
-            "line" : 377,
+            "line" : 381,
             "column" : 12,
             "source_fragment" : "hdr.ipv4.isValid()"
           },
@@ -13077,7 +13084,7 @@
           "id" : 24,
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
-            "line" : 380,
+            "line" : 384,
             "column" : 12,
             "source_fragment" : "hdr.udp.isValid()"
           },
@@ -13100,7 +13107,7 @@
           "id" : 25,
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
-            "line" : 383,
+            "line" : 387,
             "column" : 12,
             "source_fragment" : "hdr.intl4_shim.isValid()"
           },
