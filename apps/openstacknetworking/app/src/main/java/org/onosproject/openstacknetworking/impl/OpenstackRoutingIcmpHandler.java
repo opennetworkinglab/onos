@@ -53,7 +53,6 @@ import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
 import org.openstack4j.model.network.ExternalGateway;
-import org.openstack4j.model.network.IP;
 import org.openstack4j.model.network.Port;
 import org.openstack4j.model.network.Router;
 import org.openstack4j.model.network.RouterInterface;
@@ -272,12 +271,8 @@ public class OpenstackRoutingIcmpHandler {
         checkNotNull(srcIp);
 
         Port osPort = osNetworkService.port(instance.portId());
-        IP fixedIp = osPort.getFixedIps().stream()
-                .filter(ip -> IpAddress.valueOf(ip.getIpAddress()).equals(srcIp))
-                .findAny().orElse(null);
-        checkNotNull(fixedIp);
-
-        return osNetworkService.subnet(fixedIp.getSubnetId());
+        return osNetworkService.subnets(osPort.getNetworkId())
+                                        .stream().findAny().orElse(null);
     }
 
     private boolean isForSubnetGateway(IpAddress dstIp, Subnet srcSubnet) {

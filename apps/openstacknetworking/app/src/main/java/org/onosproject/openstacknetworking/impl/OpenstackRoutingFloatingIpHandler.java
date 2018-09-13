@@ -860,6 +860,11 @@ public class OpenstackRoutingFloatingIpHandler {
                 case OPENSTACK_PORT_PRE_REMOVE:
                     InstancePort instPort =
                             instancePortService.instancePort(event.port().getId());
+
+                    if (instPort == null) {
+                        break;
+                    }
+
                     NetFloatingIP fip =
                             associatedFloatingIp(instPort, osRouterAdminService.floatingIps());
 

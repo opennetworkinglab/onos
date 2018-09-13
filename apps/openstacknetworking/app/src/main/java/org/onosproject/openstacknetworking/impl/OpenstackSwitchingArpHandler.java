@@ -651,6 +651,11 @@ public final class OpenstackSwitchingArpHandler {
         }
 
         private void setDefaultArpRule(OpenstackNode osNode, boolean install) {
+
+            if (getArpMode() == null) {
+                return;
+            }
+
             switch (getArpMode()) {
                 case ARP_PROXY_MODE:
                     setDefaultArpRuleForProxyMode(osNode, install);
