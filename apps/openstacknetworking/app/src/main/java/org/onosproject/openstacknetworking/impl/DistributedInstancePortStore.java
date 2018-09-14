@@ -50,6 +50,7 @@ import static org.onosproject.openstacknetworking.api.InstancePort.State.ACTIVE;
 import static org.onosproject.openstacknetworking.api.InstancePort.State.INACTIVE;
 import static org.onosproject.openstacknetworking.api.InstancePort.State.MIGRATED;
 import static org.onosproject.openstacknetworking.api.InstancePort.State.MIGRATING;
+import static org.onosproject.openstacknetworking.api.InstancePort.State.REMOVE_PENDING;
 import static org.onosproject.openstacknetworking.api.InstancePortEvent.Type.OPENSTACK_INSTANCE_MIGRATION_ENDED;
 import static org.onosproject.openstacknetworking.api.InstancePortEvent.Type.OPENSTACK_INSTANCE_MIGRATION_STARTED;
 import static org.onosproject.openstacknetworking.api.InstancePortEvent.Type.OPENSTACK_INSTANCE_PORT_DETECTED;
@@ -221,6 +222,11 @@ public class DistributedInstancePortStore
 
             // this should be auto-transition
             if (oldState == MIGRATED && newState == ACTIVE) {
+                return;
+            }
+
+            // we do not trigger instance port update for pending state transition
+            if (newState == REMOVE_PENDING) {
                 return;
             }
 

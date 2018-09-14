@@ -321,7 +321,8 @@ public class DistributedOpenstackRouterStore
         }
     }
 
-    private class OpenstackRouterInterfaceMapListener implements MapEventListener<String, RouterInterface> {
+    private class OpenstackRouterInterfaceMapListener
+                        implements MapEventListener<String, RouterInterface> {
 
         @Override
         public void event(MapEvent<String, RouterInterface> event) {
@@ -360,7 +361,8 @@ public class DistributedOpenstackRouterStore
         }
     }
 
-    private class OpenstackFloatingIpMapListener implements MapEventListener<String, NetFloatingIP> {
+    private class OpenstackFloatingIpMapListener
+                            implements MapEventListener<String, NetFloatingIP> {
 
         @Override
         public void event(MapEvent<String, NetFloatingIP> event) {
