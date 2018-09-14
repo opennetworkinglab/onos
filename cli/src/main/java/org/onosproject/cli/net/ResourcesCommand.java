@@ -172,8 +172,16 @@ public class ResourcesCommand extends AbstractShellCommand {
         List<Resource> nonAggregatable = new ArrayList<>();
 
         for (Resource r : children) {
-            if (!isPrintTarget(r)) {
+            if (!isPrintTarget(r)) { // A
                 continue;
+            }
+
+            if (r instanceof DiscreteResource) {
+
+                if (resourceService.getRegisteredResources(((DiscreteResource) r).id()).isEmpty()) {
+                    // resource which has children should be printed
+                    continue;
+                }
             }
 
             if (r instanceof ContinuousResource) {
@@ -187,6 +195,7 @@ public class ResourcesCommand extends AbstractShellCommand {
                 nonAggregatable.add(r);
             }
         }
+
 
         // print aggregated (terminal)
         aggregatables.asMap().entrySet()
@@ -236,12 +245,7 @@ public class ResourcesCommand extends AbstractShellCommand {
 
         String resourceName = resource.simpleTypeName();
         if (resource instanceof DiscreteResource) {
-            // TODO This distributed store access incurs overhead.
-            //      This should be merged with the one in printResource()
-            if (!resourceService.getRegisteredResources(((DiscreteResource) resource).id()).isEmpty()) {
-                // resource which has children should be printed
-                return true;
-            }
+
             if (availablesOnly && !resourceService.isAvailable(resource)) {
                 // don't print unavailable discrete resource
                 return false;
@@ -250,7 +254,6 @@ public class ResourcesCommand extends AbstractShellCommand {
             log.warn("Unexpected resource class: {}", resource.getClass().getSimpleName());
             return false;
         }
-
         return typesToPrint.contains(resourceName);
     }
 }
