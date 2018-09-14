@@ -17,8 +17,12 @@
 package org.onosproject.pipelines.fabric.pipeliner;
 
 import com.google.common.collect.ImmutableList;
+import org.easymock.EasyMock;
 import org.junit.Test;
+import org.onlab.junit.TestUtils;
 import org.onlab.util.ImmutableByteSequence;
+import org.onosproject.net.behaviour.DefaultNextGroup;
+import org.onosproject.net.behaviour.NextGroup;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -27,7 +31,9 @@ import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.PiCriterion;
 import org.onosproject.net.flowobjective.DefaultNextObjective;
+import org.onosproject.net.flowobjective.FlowObjectiveStore;
 import org.onosproject.net.flowobjective.NextObjective;
+import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.group.DefaultGroupBucket;
 import org.onosproject.net.group.DefaultGroupDescription;
 import org.onosproject.net.group.DefaultGroupKey;
@@ -42,8 +48,10 @@ import org.onosproject.net.pi.runtime.PiGroupKey;
 import org.onosproject.pipelines.fabric.FabricConstants;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
+import static org.easymock.EasyMock.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -381,5 +389,43 @@ public class FabricNextPipelinerTest extends FabricPipelinerTest {
                 APP_ID
         );
         assertEquals(expectedGroup, actualGroup);
+    }
+
+    /**
+     * Test removing next objective, and expect the next objective data will be removed from the store.
+     */
+    @Test
+    public void testRemoveNextObjective() {
+        // Initialize mock objects
+        NextObjective mockNextObjective = DefaultNextObjective.builder()
+                .fromApp(APP_ID)
+                .withId(NEXT_ID_1)
+                .makePermanent()
+                .withPriority(PRIORITY)
+                .withType(NextObjective.Type.SIMPLE)
+                .remove();
+        FlowObjectiveStore mockFlowObjStore = EasyMock.createNiceMock(FlowObjectiveStore.class);
+        FabricNextPipeliner mockNextPipeliner = EasyMock.createNiceMock(FabricNextPipeliner.class);
+        PipelinerTranslationResult mockResult = PipelinerTranslationResult.builder().build(); // empty result
+        NextGroup mockNextGroup = new DefaultNextGroup(null);
+        expect(mockNextPipeliner.next(mockNextObjective)).andReturn(mockResult).once();
+        expect(mockFlowObjStore.getNextGroup(mockNextObjective.id())).andReturn(mockNextGroup).once();
+        expect(mockFlowObjStore.removeNextGroup(mockNextObjective.id())).andReturn(mockNextGroup).once();
+        replay(mockNextPipeliner, mockFlowObjStore);
+
+        // Initialize the pipeliner
+        FabricPipeliner thePipeliner = new FabricPipeliner();
+        thePipeliner.pipelinerNext = mockNextPipeliner;
+        TestUtils.setField(thePipeliner, "flowObjectiveStore", mockFlowObjStore);
+        // execute removing process
+        thePipeliner.next(mockNextObjective);
+        Map<Objective, FabricPipeliner.PendingInstallObjective> pios =
+                TestUtils.getField(thePipeliner, "pendingInstallObjectives");
+        FabricPipeliner.PendingInstallObjective pio = pios.get(mockNextObjective);
+        pio.callback.accept(null); // applying successful result
+
+        // "removeNextGroup" method should be called once, or failed if not.
+        verify(mockNextPipeliner, mockFlowObjStore);
+
     }
 }
