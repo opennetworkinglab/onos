@@ -209,12 +209,12 @@ public class RouteManagerTest {
     @Test
     public void testRouteAdd() {
         Route route = new Route(Route.Source.STATIC, V4_PREFIX1, V4_NEXT_HOP1);
-        ResolvedRoute resolvedRoute = new ResolvedRoute(route, MAC1, CP1);
+        ResolvedRoute resolvedRoute = new ResolvedRoute(route, MAC1);
 
         verifyRouteAdd(route, resolvedRoute);
 
         route = new Route(Route.Source.STATIC, V6_PREFIX1, V6_NEXT_HOP1);
-        resolvedRoute = new ResolvedRoute(route, MAC3, CP1);
+        resolvedRoute = new ResolvedRoute(route, MAC3);
 
         verifyRouteAdd(route, resolvedRoute);
     }
@@ -247,8 +247,8 @@ public class RouteManagerTest {
     public void testRouteUpdate() {
         Route route = new Route(Route.Source.STATIC, V4_PREFIX1, V4_NEXT_HOP1);
         Route updatedRoute = new Route(Route.Source.STATIC, V4_PREFIX1, V4_NEXT_HOP2);
-        ResolvedRoute resolvedRoute = new ResolvedRoute(route, MAC1, CP1);
-        ResolvedRoute updatedResolvedRoute = new ResolvedRoute(updatedRoute, MAC2, CP1);
+        ResolvedRoute resolvedRoute = new ResolvedRoute(route, MAC1);
+        ResolvedRoute updatedResolvedRoute = new ResolvedRoute(updatedRoute, MAC2);
 
         verifyRouteUpdated(route, updatedRoute, resolvedRoute, updatedResolvedRoute);
 
@@ -256,15 +256,15 @@ public class RouteManagerTest {
         // In this case we expect to receive a ROUTE_UPDATED event.
         route = new Route(Route.Source.STATIC, V4_PREFIX2, V4_NEXT_HOP1);
         updatedRoute = new Route(Route.Source.STATIC, V4_PREFIX2, V4_NEXT_HOP2);
-        resolvedRoute = new ResolvedRoute(route, MAC1, CP1);
-        updatedResolvedRoute = new ResolvedRoute(updatedRoute, MAC2, CP1);
+        resolvedRoute = new ResolvedRoute(route, MAC1);
+        updatedResolvedRoute = new ResolvedRoute(updatedRoute, MAC2);
 
         verifyRouteUpdated(route, updatedRoute, resolvedRoute, updatedResolvedRoute);
 
         route = new Route(Route.Source.STATIC, V6_PREFIX1, V6_NEXT_HOP1);
         updatedRoute = new Route(Route.Source.STATIC, V6_PREFIX1, V6_NEXT_HOP2);
-        resolvedRoute = new ResolvedRoute(route, MAC3, CP1);
-        updatedResolvedRoute = new ResolvedRoute(updatedRoute, MAC4, CP1);
+        resolvedRoute = new ResolvedRoute(route, MAC3);
+        updatedResolvedRoute = new ResolvedRoute(updatedRoute, MAC4);
 
         verifyRouteUpdated(route, updatedRoute, resolvedRoute, updatedResolvedRoute);
     }
@@ -303,12 +303,12 @@ public class RouteManagerTest {
     @Test
     public void testRouteDelete() {
         Route route = new Route(Route.Source.STATIC, V4_PREFIX1, V4_NEXT_HOP1);
-        ResolvedRoute removedResolvedRoute = new ResolvedRoute(route, MAC1, CP1);
+        ResolvedRoute removedResolvedRoute = new ResolvedRoute(route, MAC1);
 
         verifyDelete(route, removedResolvedRoute);
 
         route = new Route(Route.Source.STATIC, V6_PREFIX1, V6_NEXT_HOP1);
-        removedResolvedRoute = new ResolvedRoute(route, MAC3, CP1);
+        removedResolvedRoute = new ResolvedRoute(route, MAC3);
 
         verifyDelete(route, removedResolvedRoute);
     }
@@ -362,7 +362,7 @@ public class RouteManagerTest {
 
         // Now when we send the event, we expect the FIB update to be sent
         reset(routeListener);
-        ResolvedRoute resolvedRoute = new ResolvedRoute(route, MAC1, CP1);
+        ResolvedRoute resolvedRoute = new ResolvedRoute(route, MAC1);
         routeListener.event(event(RouteEvent.Type.ROUTE_ADDED, resolvedRoute, null,
                 Sets.newHashSet(resolvedRoute), null));
         replay(routeListener);

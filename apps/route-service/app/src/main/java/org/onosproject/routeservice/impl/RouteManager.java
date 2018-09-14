@@ -205,7 +205,7 @@ public class RouteManager implements RouteService, RouteAdminService {
     private ResolvedRoute tryResolve(Route route) {
         ResolvedRoute resolvedRoute = resolve(route);
         if (resolvedRoute == null) {
-            resolvedRoute = new ResolvedRoute(route, null, null, null);
+            resolvedRoute = new ResolvedRoute(route, null, null);
         }
         return resolvedRoute;
     }
@@ -252,7 +252,7 @@ public class RouteManager implements RouteService, RouteAdminService {
         Set<Host> hosts = hostService.getHostsByIp(route.nextHop());
 
         return hosts.stream().findFirst()
-                .map(host -> new ResolvedRoute(route, host.mac(), host.vlan(), host.location()))
+                .map(host -> new ResolvedRoute(route, host.mac(), host.vlan()))
                 .orElse(null);
     }
 

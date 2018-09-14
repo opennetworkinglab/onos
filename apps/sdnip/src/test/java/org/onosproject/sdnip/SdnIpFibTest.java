@@ -193,7 +193,7 @@ public class SdnIpFibTest extends AbstractIntentTest {
     @Test
     public void testRouteAddToNoVlan() {
         // Build the expected route
-        ResolvedRoute route = createRoute(PREFIX1, IP3, MAC3, SW3_ETH1);
+        ResolvedRoute route = createRoute(PREFIX1, IP3, MAC3);
 
         MultiPointToSinglePointIntent intent =
                 createIntentToThreeSrcOneTwo(PREFIX1);
@@ -217,7 +217,7 @@ public class SdnIpFibTest extends AbstractIntentTest {
     @Test
     public void testRouteAddToVlan() {
         // Build the expected route
-        ResolvedRoute route = createRoute(PREFIX2, IP1, MAC1, SW1_ETH1);
+        ResolvedRoute route = createRoute(PREFIX2, IP1, MAC1);
 
         MultiPointToSinglePointIntent intent = createIntentToOne(PREFIX2);
 
@@ -246,8 +246,8 @@ public class SdnIpFibTest extends AbstractIntentTest {
         testRouteAddToNoVlan();
 
         // Build the new route entries for prefix1 and prefix2
-        ResolvedRoute oldRoutePrefixOne = createRoute(PREFIX1, IP3, MAC3, SW3_ETH1);
-        ResolvedRoute routePrefixOne = createRoute(PREFIX1, IP1, MAC1, SW1_ETH1);
+        ResolvedRoute oldRoutePrefixOne = createRoute(PREFIX1, IP3, MAC3);
+        ResolvedRoute routePrefixOne = createRoute(PREFIX1, IP1, MAC1);
 
         // Create the new expected intents
         MultiPointToSinglePointIntent newPrefixOneIntent = createIntentToOne(PREFIX1);
@@ -281,8 +281,8 @@ public class SdnIpFibTest extends AbstractIntentTest {
         testRouteAddToVlan();
 
         // Build the new route entries for prefix1 and prefix2
-        ResolvedRoute oldRoutePrefix = createRoute(PREFIX2, IP1, MAC1, SW1_ETH1);
-        ResolvedRoute routePrefix = createRoute(PREFIX2, IP3, MAC3, SW3_ETH1);
+        ResolvedRoute oldRoutePrefix = createRoute(PREFIX2, IP1, MAC1);
+        ResolvedRoute routePrefix = createRoute(PREFIX2, IP3, MAC3);
 
         // Create the new expected intents
         MultiPointToSinglePointIntent newPrefixIntent =
@@ -314,7 +314,7 @@ public class SdnIpFibTest extends AbstractIntentTest {
         testRouteAddToNoVlan();
 
         // Construct the existing route entry
-        ResolvedRoute route = createRoute(PREFIX1, IP3, MAC3, SW3_ETH1);
+        ResolvedRoute route = createRoute(PREFIX1, IP3, MAC3);
 
         // Create existing intent
         MultiPointToSinglePointIntent removedIntent =
@@ -625,9 +625,9 @@ public class SdnIpFibTest extends AbstractIntentTest {
     }
 
     private static ResolvedRoute createRoute(IpPrefix prefix, IpAddress nextHop,
-                                             MacAddress nextHopMac, ConnectPoint location) {
+                                             MacAddress nextHopMac) {
         return new ResolvedRoute(
-                new Route(Route.Source.UNDEFINED, prefix, nextHop), nextHopMac, location);
+                new Route(Route.Source.UNDEFINED, prefix, nextHop), nextHopMac);
     }
 
     private class TestCoreService extends CoreServiceAdapter {
