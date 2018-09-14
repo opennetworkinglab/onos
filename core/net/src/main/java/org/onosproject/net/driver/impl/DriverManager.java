@@ -120,21 +120,14 @@ public class DriverManager implements DriverService {
 
         Driver driver;
 
-        // Primary source of driver configuration is the network config.
+        // Special processing for devices with pipeconf.
         if (pipeconfService.ofDevice(deviceId).isPresent()) {
-            // Device has pipeconf associated, look for merged driver.
-            // Implementation of PiPipeconfService is expected to look for a
-            // base driver in network config.
-            PiPipeconfId pipeconfId = pipeconfService.ofDevice(deviceId).get();
-            String mergedDriver = pipeconfService.getMergedDriver(deviceId, pipeconfId);
-            driver = mergedDriver != null ? lookupDriver(mergedDriver) : null;
-            if (driver != null) {
-                return driver;
-            } else {
-                log.error("Merged driver for {} with pipeconf {} not found, falling back.",
-                          deviceId, pipeconfId);
-            }
+            // No fallback for pipeconf merged drivers. Returns null if driver
+            // does not exist.
+            return getPipeconfMergedDriver(deviceId);
         }
+
+        // Primary source of driver configuration is the network config.
         BasicDeviceConfig cfg = networkConfigService.getConfig(deviceId, BasicDeviceConfig.class);
         driver = lookupDriver(cfg != null ? cfg.driver() : null);
         if (driver != null) {
@@ -153,6 +146,28 @@ public class DriverManager implements DriverService {
         return nullIsNotFound(getDriver(device.manufacturer(),
                                         device.hwVersion(), device.swVersion()),
                               NO_DRIVER);
+    }
+
+    private Driver getPipeconfMergedDriver(DeviceId deviceId) {
+        PiPipeconfId pipeconfId = pipeconfService.ofDevice(deviceId).orElse(null);
+        if (pipeconfId == null) {
+            log.warn("Missing pipeconf for {}, cannot produce a pipeconf merged driver",
+                      deviceId);
+            return null;
+        }
+        String mergedDriverName = pipeconfService.getMergedDriver(deviceId, pipeconfId);
+        if (mergedDriverName == null) {
+            log.warn("Unable to get pipeconf merged driver for {} and {}",
+                     deviceId, pipeconfId);
+            return null;
+        }
+        try {
+            return getDriver(mergedDriverName);
+        } catch (ItemNotFoundException e) {
+            log.warn("Specified pipeconf merged driver {} for {} not found",
+                     mergedDriverName, deviceId);
+            return null;
+        }
     }
 
     private Driver lookupDriver(String driverName) {
