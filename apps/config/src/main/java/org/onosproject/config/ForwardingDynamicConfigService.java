@@ -81,12 +81,6 @@ public class ForwardingDynamicConfigService implements DynamicConfigService {
     }
 
     @Override
-    public CompletableFuture<RpcOutput> invokeRpc(ResourceId id,
-                                                  RpcInput input) {
-        return delegate.invokeRpc(id, input);
-    }
-
-    @Override
     public CompletableFuture<RpcOutput> invokeRpc(RpcInput input) {
         return delegate.invokeRpc(input);
     }

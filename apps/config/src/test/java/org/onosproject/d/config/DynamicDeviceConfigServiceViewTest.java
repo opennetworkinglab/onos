@@ -163,8 +163,8 @@ public class DynamicDeviceConfigServiceViewTest {
 
     @Test
     public void testInvokeRpc() {
-        RpcInput input = null;
-        view.invokeRpc(relIntf, input);
+        RpcInput input = new RpcInput(relIntf, null);
+        view.invokeRpc(input);
 
         assertTrue(ResourceIds.isPrefix(rid, realId));
     }
@@ -205,10 +205,9 @@ public class DynamicDeviceConfigServiceViewTest {
         }
 
         @Override
-        public CompletableFuture<RpcOutput> invokeRpc(ResourceId id,
-                                                      RpcInput input) {
-            realId = id;
-            return super.invokeRpc(id, input);
+        public CompletableFuture<RpcOutput> invokeRpc(RpcInput input) {
+            realId = input.id();
+            return super.invokeRpc(input);
         }
 
         public void post(DynamicConfigEvent event) {

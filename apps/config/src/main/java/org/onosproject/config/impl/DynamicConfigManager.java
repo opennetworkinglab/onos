@@ -185,19 +185,6 @@ public class DynamicConfigManager
     }
 
     @Override
-    public CompletableFuture<RpcOutput> invokeRpc(ResourceId id, RpcInput input) {
-        RpcContext context = contextProvider.getRpcContext(id);
-        String srvcIntf = context.serviceIntf().getName();
-        RpcService handler = handlerRegistry.get(srvcIntf);
-        if (handler == null) {
-            throw new FailedException("No registered handler found, cannot invoke");
-        }
-        return CompletableFuture.supplyAsync(
-                new RpcExecutor(handler, getSvcId(handler, srvcIntf),
-                                context.rpcName(), RpcMessageId.generate(), input));
-    }
-
-    @Override
     public CompletableFuture<RpcOutput> invokeRpc(RpcInput input) {
         checkNotNull(input);
         checkNotNull(input.id());

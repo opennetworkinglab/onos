@@ -63,15 +63,8 @@ public class DynamicConfigServiceAdapter
     }
 
     @Override
-    public CompletableFuture<RpcOutput> invokeRpc(ResourceId id,
-                                                  RpcInput input) {
-        return CompletableFuture.completedFuture(new RpcOutput(RPC_NODATA, null));
-    }
-
-    @Override
     public CompletableFuture<RpcOutput> invokeRpc(RpcInput input) {
-        //TODO: implement me, not sure about purpose of this adapter.
-        throw new UnsupportedOperationException();
+        return CompletableFuture.completedFuture(new RpcOutput(RPC_NODATA, null));
     }
 
     @Override
