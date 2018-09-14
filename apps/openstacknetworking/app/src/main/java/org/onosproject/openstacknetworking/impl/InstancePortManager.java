@@ -331,6 +331,16 @@ public class InstancePortManager
                     }
                     break;
                 case HOST_REMOVED:
+
+                    // in case the instance port cannot be found in the store,
+                    // this indicates that the instance port was removed due to
+                    // the removal of openstack port; in some cases, openstack
+                    // port removal message arrives before ovs port removal message
+                    if (instancePortStore.instancePort(instPort.portId()) == null) {
+                        log.debug("instance port was removed before ovs port removal");
+                        break;
+                    }
+
                     // we will remove instance port from persistent store,
                     // only if we receive port removal signal from neutron.
                     // by default, we update the instance port state to INACTIVE

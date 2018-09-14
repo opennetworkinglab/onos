@@ -835,7 +835,7 @@ public class OpenstackSecurityGroupHandler {
                         try {
                             if (useSecurityGroup) {
                                 initializeConnTrackTable(osNode.intgBridge(), true);
-                                log.warn("SG table initialization : {} is done",
+                                log.info("SG table initialization : {} is done",
                                                             osNode.intgBridge());
                             }
                         } catch (IllegalArgumentException e) {

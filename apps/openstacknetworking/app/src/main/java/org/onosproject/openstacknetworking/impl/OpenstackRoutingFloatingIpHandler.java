@@ -569,23 +569,31 @@ public class OpenstackRoutingFloatingIpHandler {
                 case OPENSTACK_FLOATING_IP_ASSOCIATED:
                     eventExecutor.execute(() -> {
                         NetFloatingIP osFip = event.floatingIp();
-                        associateFloatingIp(osFip);
-                        log.info("Associated floating IP {}:{}",
-                                osFip.getFloatingIpAddress(), osFip.getFixedIpAddress());
+                        if (instancePortService.instancePort(osFip.getPortId()) != null) {
+                            associateFloatingIp(osFip);
+                            log.info("Associated floating IP {}:{}",
+                                    osFip.getFloatingIpAddress(),
+                                    osFip.getFixedIpAddress());
+                        }
                     });
                     break;
                 case OPENSTACK_FLOATING_IP_DISASSOCIATED:
                     eventExecutor.execute(() -> {
                         NetFloatingIP osFip = event.floatingIp();
-                        disassociateFloatingIp(osFip, event.portId());
-                        log.info("Disassociated floating IP {}:{}",
-                                osFip.getFloatingIpAddress(), osFip.getFixedIpAddress());
+                        if (instancePortService.instancePort(event.portId()) != null) {
+                            disassociateFloatingIp(osFip, event.portId());
+                            log.info("Disassociated floating IP {}:{}",
+                                    osFip.getFloatingIpAddress(),
+                                    osFip.getFixedIpAddress());
+                        }
                     });
                     break;
                 case OPENSTACK_FLOATING_IP_CREATED:
                     eventExecutor.execute(() -> {
                         NetFloatingIP osFip = event.floatingIp();
-                        if (!Strings.isNullOrEmpty(osFip.getPortId())) {
+                        String portId = osFip.getPortId();
+                        if (!Strings.isNullOrEmpty(portId) &&
+                                instancePortService.instancePort(portId) != null) {
                             associateFloatingIp(event.floatingIp());
                         }
                         log.info("Created floating IP {}", osFip.getFloatingIpAddress());
@@ -594,11 +602,13 @@ public class OpenstackRoutingFloatingIpHandler {
                 case OPENSTACK_FLOATING_IP_REMOVED:
                     eventExecutor.execute(() -> {
                         NetFloatingIP osFip = event.floatingIp();
+                        String portId = osFip.getPortId();
                         if (!Strings.isNullOrEmpty(osFip.getPortId())) {
                             // in case the floating IP is not associated with any port due to
                             // port removal, we simply do not execute floating IP disassociation
-                            if (osNetworkService.port(osFip.getPortId()) != null) {
-                                disassociateFloatingIp(osFip, osFip.getPortId());
+                            if (osNetworkService.port(portId) != null &&
+                                    instancePortService.instancePort(portId) != null) {
+                                disassociateFloatingIp(osFip, portId);
                             }
 
                             // since we skip floating IP disassociation, we need to
