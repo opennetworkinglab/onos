@@ -117,24 +117,6 @@ public final class ResourceIdParser {
         return (path + leaf.substring(leaf.indexOf(KEY_SEP)));
     }
 
-    // 1.12.0 - not used by anyone
-    @Deprecated
-    public static String appendKeyLeaf(String path, String key) {
-        return (path + EL_SEP + key);
-    }
-
-    // 1.12.0 - not used by anyone
-    @Deprecated
-    public static String appendKeyLeaf(String path, KeyLeaf key) {
-        StringBuilder bldr = new StringBuilder();
-        bldr.append(key.leafSchema().name());
-        bldr.append(NM_SEP);
-        bldr.append(key.leafSchema().namespace());
-        bldr.append(NM_SEP);
-        bldr.append(key.leafValue().toString());
-        return (path + EL_SEP + bldr.toString());
-    }
-
     public static String appendNodeKey(String path, NodeKey key) {
         // FIXME this is not handling root path exception
         return (path + EL_SEP + key.schemaId().name() + NM_SEP + key.schemaId().namespace());
@@ -163,23 +145,6 @@ public final class ResourceIdParser {
             bldr.append(keyLeaf.leafValue().toString());
         }
         return (path + bldr.toString());
-    }
-
-    // 1.12.0 - not used by anyone
-    @Deprecated
-    public static String parseNodeKey(NodeKey key) {
-        if (key == null) {
-            return null;
-        }
-        StringBuilder bldr = new StringBuilder();
-        if (key instanceof LeafListKey) {
-            parseLeafList((LeafListKey) key, bldr);
-        } else if (key instanceof ListKey) {
-            parseKeyList((ListKey) key, bldr);
-        } else {
-            parseNodeKey(key, bldr);
-        }
-        return bldr.toString();
     }
 
     /**
