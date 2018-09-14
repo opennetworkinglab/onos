@@ -55,6 +55,11 @@ public interface InstancePort {
          * Signifies that the given instance port has been migrated.
          */
         MIGRATED,
+
+        /**
+         * Signifies that the given instance port in the pending status for removal.
+         */
+        REMOVE_PENDING,
     }
 
     /**

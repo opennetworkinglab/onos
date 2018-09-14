@@ -79,6 +79,7 @@ import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWOR
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_EXTERNAL_FLOATING_ROUTING_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_FLOATING_EXTERNAL;
 import static org.onosproject.openstacknetworking.api.Constants.ROUTING_TABLE;
+import static org.onosproject.openstacknetworking.api.InstancePort.State.REMOVE_PENDING;
 import static org.onosproject.openstacknetworking.api.InstancePortEvent.Type.OPENSTACK_INSTANCE_MIGRATION_ENDED;
 import static org.onosproject.openstacknetworking.api.InstancePortEvent.Type.OPENSTACK_INSTANCE_MIGRATION_STARTED;
 import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_PORT_PRE_REMOVE;
@@ -869,6 +870,9 @@ public class OpenstackRoutingFloatingIpHandler {
                             associatedFloatingIp(instPort, osRouterAdminService.floatingIps());
 
                     if (fip != null) {
+
+                        instancePortService.updateInstancePort(instPort.updateState(REMOVE_PENDING));
+
                         eventExecutor.execute(() ->
                                 updateFipStore(instancePortService.instancePort(event.port().getId())));
                     } else {
