@@ -72,7 +72,7 @@ public class DeviceKeyListCommand extends AbstractShellCommand {
             print(FMT_USERNAME_PASSWORD, deviceKey.deviceKeyId().id(), deviceKey.type(),
                   deviceKey.asUsernamePassword().username(), deviceKey.asUsernamePassword().password());
         } else {
-            log.error("Unsupported device key type: " + deviceKey.type());
+            log.error("Unsupported device key type: {}" + deviceKey.type());
         }
     }
 
