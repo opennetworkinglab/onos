@@ -65,13 +65,6 @@ public abstract class DeviceResourceIds {
     public static final String DEVICE_ID_KL_NAME = "device-id";
 
     /**
-     * Absolute ResourceId pointing at root node.
-     * @deprecated Use {@link ResourceIds#ROOT_ID} instead
-     */
-    @Deprecated
-    public static final ResourceId ROOT_ID = ResourceIds.ROOT_ID;
-
-    /**
      * Absolute ResourceId pointing at 'devices' node.
      */
     public static final ResourceId DEVICES_ID = ResourceId.builder()
@@ -86,16 +79,15 @@ public abstract class DeviceResourceIds {
     /**
      * nodeKeys index for root node.
      */
-    @Deprecated
-    static final int ROOT_INDEX = 0;
+    private static final int ROOT_INDEX = 0;
     /**
      * nodeKeys index relative from root for devices node.
      */
-    static final int DEVICES_INDEX = 1;
+    private static final int DEVICES_INDEX = 1;
     /**
      * nodeKeys index relative from root for device node.
      */
-    static final int DEVICE_INDEX = 2;
+    private static final int DEVICE_INDEX = 2;
 
     /**
      * Converts root relative ResourceId used by DynamicConfigEvent.
