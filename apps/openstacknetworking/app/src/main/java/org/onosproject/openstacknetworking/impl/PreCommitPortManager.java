@@ -24,6 +24,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.openstacknetworking.api.InstancePort;
 import org.onosproject.openstacknetworking.api.InstancePortAdminService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkEvent;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type;
@@ -41,6 +42,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
+import static org.onosproject.openstacknetworking.api.InstancePort.State.REMOVE_PENDING;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -125,7 +127,12 @@ public class PreCommitPortManager implements PreCommitPortService {
         });
 
         if (subscriberCountByEventType(portId, eventType) == 0) {
-            service.removeInstancePort(portId);
+
+            InstancePort instPort = service.instancePort(portId);
+
+            if (instPort != null && instPort.state() == REMOVE_PENDING) {
+                service.removeInstancePort(portId);
+            }
         }
     }
 
