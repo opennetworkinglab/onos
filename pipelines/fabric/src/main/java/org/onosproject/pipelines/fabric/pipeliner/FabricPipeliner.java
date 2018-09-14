@@ -169,20 +169,29 @@ public class FabricPipeliner  extends AbstractHandlerBehaviour implements Pipeli
                 return;
             }
 
-            // Success, put next group to objective store
-            List<PortNumber> portNumbers = Lists.newArrayList();
-            nextObjective.next().forEach(treatment ->
-                treatment.allInstructions()
-                        .stream()
-                        .filter(inst -> inst.type() == Instruction.Type.OUTPUT)
-                        .map(inst -> (Instructions.OutputInstruction) inst)
-                        .findFirst()
-                        .map(Instructions.OutputInstruction::port)
-                        .ifPresent(portNumbers::add)
-            );
-            FabricNextGroup nextGroup = new FabricNextGroup(nextObjective.type(),
-                                                            portNumbers);
-            flowObjectiveStore.putNextGroup(nextObjective.id(), nextGroup);
+            if (nextObjective.op() == Objective.Operation.REMOVE) {
+                if (flowObjectiveStore.getNextGroup(nextObjective.id()) == null) {
+                    log.warn("Can not find next obj {} from store", nextObjective.id());
+                    return;
+                }
+                flowObjectiveStore.removeNextGroup(nextObjective.id());
+            } else {
+                // Success, put next group to objective store
+                List<PortNumber> portNumbers = Lists.newArrayList();
+                nextObjective.next().forEach(treatment ->
+                        treatment.allInstructions()
+                                .stream()
+                                .filter(inst -> inst.type() == Instruction.Type.OUTPUT)
+                                .map(inst -> (Instructions.OutputInstruction) inst)
+                                .findFirst()
+                                .map(Instructions.OutputInstruction::port)
+                                .ifPresent(portNumbers::add)
+                );
+                FabricNextGroup nextGroup = new FabricNextGroup(nextObjective.type(),
+                                                                portNumbers);
+                flowObjectiveStore.putNextGroup(nextObjective.id(), nextGroup);
+            }
+
             success(nextObjective);
         });
     }
