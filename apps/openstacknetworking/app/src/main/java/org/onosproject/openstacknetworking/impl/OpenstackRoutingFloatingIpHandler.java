@@ -33,7 +33,6 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -79,7 +78,6 @@ import static org.onosproject.openstacknetworking.api.Constants.GW_COMMON_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_EXTERNAL_FLOATING_ROUTING_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_FLOATING_EXTERNAL;
-import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_FLOATING_INTERNAL;
 import static org.onosproject.openstacknetworking.api.Constants.ROUTING_TABLE;
 import static org.onosproject.openstacknetworking.api.InstancePortEvent.Type.OPENSTACK_INSTANCE_MIGRATION_ENDED;
 import static org.onosproject.openstacknetworking.api.InstancePortEvent.Type.OPENSTACK_INSTANCE_MIGRATION_STARTED;
@@ -207,10 +205,6 @@ public class OpenstackRoutingFloatingIpHandler {
 
         updateComputeNodeRules(instPort, osNet, gateway, install);
         updateGatewayNodeRules(floatingIp, instPort, osNet, externalPeerRouter, gateway, install);
-
-        // FIXME: downstream internal rules are still duplicated in all gateway nodes
-        // need to make the internal rules de-duplicated sooner or later
-        setDownstreamInternalRules(floatingIp, osNet, instPort, install);
 
         // TODO: need to refactor setUpstreamRules if possible
         setUpstreamRules(floatingIp, osNet, instPort, externalPeerRouter, install);
@@ -371,76 +365,6 @@ public class OpenstackRoutingFloatingIpHandler {
         log.trace("Succeeded to set flow rules from compute node to gateway on compute node");
     }
 
-    private void setDownstreamInternalRules(NetFloatingIP floatingIp,
-                                            Network osNet,
-                                            InstancePort instPort,
-                                            boolean install) {
-        OpenstackNode cNode = osNodeService.node(instPort.deviceId());
-        if (cNode == null) {
-            final String error = String.format("Cannot find openstack node for device %s",
-                    instPort.deviceId());
-            throw new IllegalStateException(error);
-        }
-        if (osNet.getNetworkType() == NetworkType.VXLAN && cNode.dataIp() == null) {
-            final String errorFormat = ERR_FLOW + "VXLAN mode is not ready for %s";
-            final String error = String.format(errorFormat, floatingIp, cNode.hostname());
-            throw new IllegalStateException(error);
-        }
-        if (osNet.getNetworkType() == NetworkType.VLAN && cNode.vlanIntf() == null) {
-            final String errorFormat = ERR_FLOW + "VLAN mode is not ready for %s";
-            final String error = String.format(errorFormat, floatingIp, cNode.hostname());
-            throw new IllegalStateException(error);
-        }
-
-        IpAddress floating = IpAddress.valueOf(floatingIp.getFloatingIpAddress());
-
-        // TODO: following code snippet will be refactored sooner or later
-        osNodeService.completeNodes(GATEWAY).forEach(gNode -> {
-            // access from one VM to the others via floating IP
-            TrafficSelector internalSelector = DefaultTrafficSelector.builder()
-                    .matchEthType(Ethernet.TYPE_IPV4)
-                    .matchIPDst(floating.toIpPrefix())
-                    .matchInPort(gNode.tunnelPortNum())
-                    .build();
-
-            TrafficTreatment.Builder internalBuilder = DefaultTrafficTreatment.builder()
-                    .setEthSrc(Constants.DEFAULT_GATEWAY_MAC)
-                    .setEthDst(instPort.macAddress())
-                    .setIpDst(instPort.ipAddress().getIp4Address());
-
-            switch (osNet.getNetworkType()) {
-                case VXLAN:
-                    internalBuilder.setTunnelId(Long.valueOf(osNet.getProviderSegID()))
-                            .extension(buildExtension(
-                                    deviceService,
-                                    gNode.intgBridge(),
-                                    cNode.dataIp().getIp4Address()),
-                                    gNode.intgBridge())
-                            .setOutput(PortNumber.IN_PORT);
-                    break;
-                case VLAN:
-                    internalBuilder.pushVlan()
-                            .setVlanId(VlanId.vlanId(osNet.getProviderSegID()))
-                            .setOutput(PortNumber.IN_PORT);
-                    break;
-                default:
-                    final String error = String.format(ERR_UNSUPPORTED_NET_TYPE,
-                            osNet.getNetworkType());
-                    throw new IllegalStateException(error);
-            }
-
-            osFlowRuleService.setRule(
-                    appId,
-                    gNode.intgBridge(),
-                    internalSelector,
-                    internalBuilder.build(),
-                    PRIORITY_FLOATING_INTERNAL,
-                    GW_COMMON_TABLE,
-                    install);
-        });
-        log.trace("Succeeded to set flow rules for downstream on gateway nodes");
-    }
-
     private void setDownstreamExternalRulesHelper(NetFloatingIP floatingIp,
                                                   Network osNet,
                                                   InstancePort instPort,
@@ -474,6 +398,7 @@ public class OpenstackRoutingFloatingIpHandler {
 
         TrafficSelector.Builder externalSelectorBuilder = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
+                .matchInPort(selectedGatewayNode.uplinkPortNum())
                 .matchIPDst(floating.toIpPrefix());
 
         TrafficTreatment.Builder externalTreatmentBuilder = DefaultTrafficTreatment.builder()
@@ -848,10 +773,6 @@ public class OpenstackRoutingFloatingIpHandler {
                     }
 
                     eventExecutor.execute(() -> {
-
-                        // since downstream internal rules are located in all gateway
-                        // nodes, therefore, we simply update the rules with new compute node info
-                        setDownstreamInternalRules(fip, osNet, event.subject(), true);
 
                         // since DownstreamExternal rules should only be placed in
                         // corresponding gateway node, we need to install new rule to
