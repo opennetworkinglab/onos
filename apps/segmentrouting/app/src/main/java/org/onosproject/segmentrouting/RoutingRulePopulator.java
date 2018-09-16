@@ -1404,9 +1404,7 @@ public class RoutingRulePopulator {
     }
 
     /**
-     * Populates a forwarding objective to send packets that miss other high
-     * priority Bridging Table entries to a group that contains all ports of
-     * its subnet.
+     * Block given prefix in routing table.
      *
      * @param address the address to block
      * @param deviceId switch ID to set the rules
@@ -1416,9 +1414,7 @@ public class RoutingRulePopulator {
     }
 
     /**
-     * Populates a forwarding objective to send packets that miss other high
-     * priority Bridging Table entries to a group that contains all ports of
-     * its subnet.
+     * Unblock given prefix in routing table.
      *
      * @param address the address to block
      * @param deviceId switch ID to set the rules
