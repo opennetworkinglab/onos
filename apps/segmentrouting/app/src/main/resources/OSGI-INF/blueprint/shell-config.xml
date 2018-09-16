@@ -134,6 +134,9 @@
                 <null/>
             </completers>
         </command>
+        <command>
+            <action class="org.onosproject.segmentrouting.cli.BlackHoleCommand"/>
+        </command>
     </command-bundle>
 
     <bean id="nullCompleter" class="org.apache.karaf.shell.console.completer.NullCompleter"/>
