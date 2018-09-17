@@ -24,6 +24,11 @@ COMPILE_DEPS = [
     '//lib:btf',
     '//lib:msg-simple',
     '//lib:snakeyaml',
+    '//lib:sshd-core',
+]
+
+EXCLUDED_BUNDLES = [
+  '//lib:sshd-core',
 ]
 
 TEST_DEPS = [

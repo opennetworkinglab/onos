@@ -21,7 +21,9 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
@@ -34,6 +36,13 @@ import org.apache.http.impl.io.HttpTransportMetricsImpl;
 import org.apache.http.impl.io.SessionInputBufferImpl;
 import org.apache.http.impl.io.SessionOutputBufferImpl;
 import org.apache.http.io.HttpMessageWriter;
+import org.apache.sshd.client.SshClient;
+import org.apache.sshd.client.channel.ClientChannel;
+import org.apache.sshd.client.channel.ClientChannelEvent;
+import org.apache.sshd.client.future.OpenFuture;
+import org.apache.sshd.client.session.ClientSession;
+import org.apache.sshd.common.util.io.NoCloseInputStream;
+import org.onlab.packet.IpAddress;
 import org.onosproject.cfg.ConfigProperty;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
@@ -45,6 +54,7 @@ import org.onosproject.openstacknetworking.impl.DefaultInstancePort;
 import org.onosproject.openstacknode.api.OpenstackAuth;
 import org.onosproject.openstacknode.api.OpenstackAuth.Perspective;
 import org.onosproject.openstacknode.api.OpenstackNode;
+import org.onosproject.openstacknode.api.OpenstackSshAuth;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.api.client.IOSClientBuilder;
 import org.openstack4j.api.exceptions.AuthenticationException;
@@ -73,7 +83,9 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.security.cert.X509Certificate;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -81,11 +93,13 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 
 import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
+import static org.onosproject.openstacknetworking.api.Constants.DEFAULT_GATEWAY_MAC_STR;
 import static org.onosproject.openstacknetworking.api.Constants.PCISLOT;
 import static org.onosproject.openstacknetworking.api.Constants.PCI_VENDOR_INFO;
 import static org.onosproject.openstacknetworking.api.Constants.PORT_NAME_PREFIX_VM;
@@ -123,6 +137,21 @@ public final class OpenstackNetworkingUtil {
     private static final String HMAC_SHA256 = "HmacSHA256";
 
     private static final String ERR_FLOW = "Failed set flows for floating IP %s: ";
+
+    private static final String FLAT = "FLAT";
+    private static final String VXLAN = "VXLAN";
+    private static final String VLAN = "VLAN";
+    private static final String DL_DST = "dl_dst=";
+    private static final String NW_DST = "nw_dst=";
+    private static final String DEFAULT_REQUEST_STRING = "sudo ovs-appctl ofproto/trace br-int ip";
+    private static final String IN_PORT = "in_port=";
+    private static final String NW_SRC = "nw_src=";
+    private static final String COMMA = ",";
+    private static final String TUN_ID = "tun_id=";
+
+    private static final long TIMEOUT_MS = 5000;
+    private static final long WAIT_OUTPUT_STREAM_SECOND = 2;
+    private static final int SSH_PORT = 22;
 
     /**
      * Prevents object instantiation from external.
@@ -662,6 +691,144 @@ public final class OpenstackNetworkingUtil {
             log.warn("Failed to encrypt data {} using key {}, due to {}", data, key, e);
         }
         return null;
+    }
+
+    /**
+     * Creates flow trace request string.
+     *
+     * @param srcIp src ip address
+     * @param dstIp dst ip address
+     * @param srcInstancePort src instance port
+     * @param osNetService openstack networking service
+     * @param uplink true if this request if uplink
+     * @return flow trace request string
+     */
+    public static String traceRequestString(String srcIp,
+                                            String dstIp,
+                                            InstancePort srcInstancePort,
+                                            OpenstackNetworkService osNetService, boolean uplink) {
+
+        StringBuilder requestStringBuilder = new StringBuilder(DEFAULT_REQUEST_STRING);
+
+        if (uplink) {
+
+            requestStringBuilder.append(COMMA)
+                    .append(IN_PORT)
+                    .append(srcInstancePort.portNumber().toString())
+                    .append(COMMA)
+                    .append(NW_SRC)
+                    .append(srcIp)
+                    .append(COMMA);
+
+            if (osNetService.networkType(srcInstancePort.networkId()).equals(VXLAN) ||
+                    osNetService.networkType(srcInstancePort.networkId()).equals(VLAN)) {
+                if (srcIp.equals(dstIp)) {
+                    dstIp = osNetService.gatewayIp(srcInstancePort.portId());
+                    requestStringBuilder.append(DL_DST)
+                            .append(DEFAULT_GATEWAY_MAC_STR).append(COMMA);
+                } else if (!osNetService.ipPrefix(srcInstancePort.portId()).contains(IpAddress.valueOf(dstIp))) {
+                    requestStringBuilder.append(DL_DST)
+                            .append(DEFAULT_GATEWAY_MAC_STR)
+                            .append(COMMA);
+                }
+            } else {
+                if (srcIp.equals(dstIp)) {
+                    dstIp = osNetService.gatewayIp(srcInstancePort.portId());
+                }
+            }
+
+            requestStringBuilder.append(NW_DST)
+                    .append(dstIp)
+                    .append("\n");
+        } else {
+            requestStringBuilder.append(COMMA)
+                    .append(NW_SRC)
+                    .append(dstIp)
+                    .append(COMMA);
+
+            if (osNetService.networkType(srcInstancePort.networkId()).equals(VXLAN) ||
+                    osNetService.networkType(srcInstancePort.networkId()).equals(VLAN)) {
+                requestStringBuilder.append(TUN_ID)
+                        .append(osNetService.segmentId(srcInstancePort.networkId()))
+                        .append(COMMA);
+            }
+            requestStringBuilder.append(NW_DST)
+                    .append(srcIp)
+                    .append("\n");
+
+        }
+
+        return requestStringBuilder.toString();
+    }
+
+    /**
+     * Sends flow trace string to node.
+     *
+     * @param requestString reqeust string
+     * @param node src node
+     * @return flow trace result in string format
+     */
+    public static String sendTraceRequestToNode(String requestString,
+                                                OpenstackNode node) {
+        String traceResult = null;
+        OpenstackSshAuth sshAuth = node.sshAuthInfo();
+
+        try (SshClient client = SshClient.setUpDefaultClient()) {
+            client.start();
+
+            try (ClientSession session = client
+                    .connect(sshAuth.id(), node.managementIp().getIp4Address().toString(), SSH_PORT)
+                    .verify(TIMEOUT_MS, TimeUnit.SECONDS).getSession()) {
+                session.addPasswordIdentity(sshAuth.password());
+                session.auth().verify(TIMEOUT_MS, TimeUnit.SECONDS);
+
+
+                try (ClientChannel channel = session.createChannel(ClientChannel.CHANNEL_SHELL)) {
+
+                    log.debug("requestString: {}", requestString);
+                    final InputStream inputStream =
+                            new ByteArrayInputStream(requestString.getBytes());
+
+                    OutputStream outputStream = new ByteArrayOutputStream();
+                    OutputStream errStream = new ByteArrayOutputStream();
+
+                    channel.setIn(new NoCloseInputStream(inputStream));
+                    channel.setErr(errStream);
+                    channel.setOut(outputStream);
+
+                    Collection<ClientChannelEvent> eventList = Lists.newArrayList();
+                    eventList.add(ClientChannelEvent.OPENED);
+
+                    OpenFuture channelFuture = channel.open();
+
+                    if (channelFuture.await(TIMEOUT_MS, TimeUnit.SECONDS)) {
+
+                        long timeoutExpiredMs = System.currentTimeMillis() + TIMEOUT_MS;
+
+                        while (!channelFuture.isOpened()) {
+                            if ((timeoutExpiredMs - System.currentTimeMillis()) <= 0) {
+                                log.error("Failed to open channel");
+                                return null;
+                            }
+                        }
+                        TimeUnit.SECONDS.sleep(WAIT_OUTPUT_STREAM_SECOND);
+
+                        traceResult = ((ByteArrayOutputStream) outputStream).toString(Charsets.UTF_8.name());
+
+                        channel.close();
+                    }
+                } finally {
+                    session.close();
+                }
+            } finally {
+                client.stop();
+            }
+
+        } catch (Exception e) {
+            log.error("Exception occurred because of {}", e.toString());
+        }
+
+        return traceResult;
     }
 
     private static boolean isDirectPort(String portName) {

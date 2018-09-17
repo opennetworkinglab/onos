@@ -24,6 +24,11 @@ COMPILE_DEPS = CORE_DEPS + JACKSON + KRYO + CLI + REST + [
     "@btf//jar",
     "@msg_simple//jar",
     "@snakeyaml//jar",
+    "@sshd_core//jar",
+]
+
+EXCLUDED_BUNDLES = [
+    "@sshd_core//jar",
 ]
 
 TEST_DEPS = TEST_ADAPTERS + TEST_REST + [

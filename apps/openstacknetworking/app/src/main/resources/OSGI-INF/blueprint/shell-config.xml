@@ -101,6 +101,12 @@
                 <ref component-id="directPortCompleter"/>
             </completers>
         </command>
+        <command>
+            <action class="org.onosproject.openstacknetworking.cli.OpenstackFlowTraceCommand" />
+            <completers>
+                <ref component-id="instanceIpAddressCompleter"/>
+            </completers>
+        </command>
     </command-bundle>
 
     <bean id="ipAddressCompleter" class="org.onosproject.openstacknetworking.cli.IpAddressCompleter"/>
@@ -109,4 +115,5 @@
     <bean id="vlanIdCompleter" class="org.onosproject.openstacknetworking.cli.VlanIdCompleter"/>
     <bean id="arpModeCompleter" class="org.onosproject.openstacknetworking.cli.ArpModeCompleter"/>
     <bean id="instancePortIdCompleter" class="org.onosproject.openstacknetworking.cli.InstancePortIdCompleter"/>
+    <bean id="instanceIpAddressCompleter" class="org.onosproject.openstacknetworking.cli.InstanceIpAddressCompleter"/>
 </blueprint>

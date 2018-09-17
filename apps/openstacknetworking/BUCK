@@ -4,6 +4,7 @@ BUNDLES = [
     '//lib:httpclient-osgi',
     '//lib:httpcore-osgi',
     '//lib:commons-codec',
+    '//lib:sshd-core',
 ]
 
 onos_app (
