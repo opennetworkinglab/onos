@@ -16,7 +16,7 @@
 <div id="ov-app" (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)">
     <div class="tabular-header">
         <onos-flash id="appMsgFlash" message="{{ alertMsg }}" dwell="5000" warning="true" (closed)="alertMsg = ''"></onos-flash>
-        <onos-confirm message="{{ confirmMsg }}" warning="{{ strongWarning }}" (chosen)="dOk($event)"></onos-confirm>
+        <onos-confirm title="{{ lionFn('dlg_confirm_action') }}" message="{{ confirmMsg }}" warning="{{ strongWarning }}" (chosen)="dOk($event)"></onos-confirm>
         <h2>
             {{lionFn('title_apps')}}
             ({{ tableData.length }}

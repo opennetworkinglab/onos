@@ -74,7 +74,7 @@ export class DeviceDetailsComponent extends DetailsPanelBaseImpl implements OnIn
 
     ngOnInit() {
         this.init();
-        this.log.debug('App Details Component initialized:', this.id);
+        this.log.debug('Device Details Component initialized:', this.id);
     }
 
     /**
@@ -82,7 +82,7 @@ export class DeviceDetailsComponent extends DetailsPanelBaseImpl implements OnIn
      */
     ngOnDestroy() {
         this.destroy();
-        this.log.debug('App Details Component destroyed');
+        this.log.debug('Device Details Component destroyed');
     }
 
     /**

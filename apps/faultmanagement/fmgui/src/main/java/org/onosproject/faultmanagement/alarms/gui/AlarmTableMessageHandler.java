@@ -55,6 +55,11 @@ public class AlarmTableMessageHandler extends UiMessageHandler {
     private static final String TIME_UPDATED = "alarmTimeUpdated";
     private static final String TIME_CLEARED = "alarmTimeCleared";
     private static final String SEVERITY = "alarmSeverity";
+    private static final String SERVICE_AFFECTING = "alarmServiceAffecting";
+    private static final String ACKNOWLEDGED = "alarmAcknowledged";
+    private static final String CLEARED = "alarmCleared";
+    private static final String MANUALLY_CLEARABLE = "alarmManuallyClearable";
+    private static final String ASSIGNED_USER = "alarmAssignedUser";
     private static final String RESULT = "result";
 
     // TODO No need to show id column in ONOS-GUI
@@ -63,7 +68,8 @@ public class AlarmTableMessageHandler extends UiMessageHandler {
     // e.g. red=critical, green=cleared etc
 
     private static final String[] COLUMN_IDS = {
-            ID, DEVICE_ID_STR, DESCRIPTION, SOURCE, TIME_RAISED, SEVERITY
+            ID, DEVICE_ID_STR, DESCRIPTION, SOURCE, TIME_RAISED, SEVERITY,
+            MANUALLY_CLEARABLE, CLEARED, ACKNOWLEDGED
     };
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -127,7 +133,10 @@ public class AlarmTableMessageHandler extends UiMessageHandler {
                     .cell(DESCRIPTION, alarm.description())
                     .cell(SOURCE, alarm.source())
                     .cell(TIME_RAISED, Instant.ofEpochMilli(alarm.timeRaised()))
-                    .cell(SEVERITY, alarm.severity());
+                    .cell(SEVERITY, alarm.severity())
+                    .cell(MANUALLY_CLEARABLE, alarm.manuallyClearable())
+                    .cell(CLEARED, alarm.cleared())
+                    .cell(ACKNOWLEDGED, alarm.acknowledged());
         }
     }
 
@@ -166,6 +175,14 @@ public class AlarmTableMessageHandler extends UiMessageHandler {
                 data.put(TIME_UPDATED, formatTime(alarm.timeUpdated()));
                 data.put(TIME_CLEARED, formatTime(alarm.timeCleared()));
                 data.put(SEVERITY, alarm.severity().toString());
+                // TODO: The following should be change to %yes% and %no% if LION is added to Alarm View
+                data.put(SERVICE_AFFECTING,
+                         alarm.serviceAffecting() ? "Yes" : "No");
+                data.put(ACKNOWLEDGED,
+                         alarm.acknowledged() ? "Yes" : "No");
+                data.put(CLEARED,
+                         alarm.cleared() ? "Yes" : "No");
+                data.put(ASSIGNED_USER, alarm.assignedUser());
             }
             log.debug("send = {}", rootNode);
 

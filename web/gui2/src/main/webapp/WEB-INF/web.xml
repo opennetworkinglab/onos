@@ -36,6 +36,10 @@
             <web-resource-name>Secured API</web-resource-name>
             <url-pattern>/rs/applications/*</url-pattern>
         </web-resource-collection>
+        <web-resource-collection>
+            <web-resource-name>Secured Nav</web-resource-name>
+            <url-pattern>/rs/nav/*</url-pattern>
+        </web-resource-collection>
         <auth-constraint>
             <role-name>admin</role-name>
         </auth-constraint>
@@ -144,7 +148,8 @@
                 org.glassfish.jersey.media.multipart.MultiPartFeature,
                 org.onosproject.ui.impl.gui2.LogoutResource,
                 <!--org.onosproject.ui.impl.TopologyResource,-->
-                org.onosproject.ui.impl.ApplicationResource
+                org.onosproject.ui.impl.ApplicationResource,
+                org.onosproject.ui.impl.gui2.NavResource
             </param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>

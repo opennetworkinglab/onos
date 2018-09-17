@@ -14,7 +14,7 @@
 ~ limitations under the License.
 -->
 <div id="app-dialog" class="floatpanel dialog" [@confirmDlgState]="message!==''">
-    <h3> {{ lionFn('dlg_confirm_action') }} </h3>
+    <h3> {{ title }} </h3>
     <p>{{ message }}</p>
     <p *ngIf="warning" class="warning strong">{{ warning }}</p>
     <div tabindex="10" class="dialog-button" (click)="choice(true)">OK</div>

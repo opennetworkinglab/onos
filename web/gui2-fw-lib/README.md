@@ -26,13 +26,14 @@ so that other projects and libraries can use it.
 To build the library project using Angular CLI run 'ng build --prod gui2-fw-lib'
 inside the ~/onos/web/gui2-fw-lib folder
 
-To make the library in to an NPM package use 'npm pack' inside the project/gui2-fw-lib folder
+To make the library in to an NPM package use 'npm pack' inside the dist/gui2-fw-lib folder
 
 To build the app that surrounds the library run 'ng build'. This app is not
 part of the ONOS GUI and is there as a placeholder for testing the library
 
 Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`.
 The app will automatically reload if you change any of the source files.
+__NOTE__ If you make changes to files in the library, the app will not pick them up until you build the library again
 
 ## Code scaffolding
 

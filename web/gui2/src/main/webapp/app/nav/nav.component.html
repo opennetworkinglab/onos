@@ -1,5 +1,5 @@
 <!--
-~ Copyright 2014-present Open Networking Foundation
+~ Copyright 2018-present Open Networking Foundation
 ~
 ~ Licensed under the Apache License, Version 2.0 (the "License");
 ~ you may not use this file except in compliance with the License.
@@ -15,38 +15,21 @@
 -->
 <nav id="nav" [@navState]="ns.showNav">
     <div id="platform" class="nav-hdr">{{ lionFn('cat_platform') }}</div>
-
-    <a id="app" (click)="ns.hideNav()" routerLink="/app" routerLinkActive="active">
-        <onos-icon iconId="nav_apps"></onos-icon> Applications</a>
-
-    <a id="settings" (click)="ns.hideNav()" routerLink="/settings" routerLinkActive="active">
-        <onos-icon iconId="nav_settings"></onos-icon> Settings</a>
-
-    <a id="cluster" (click)="ns.hideNav()" routerLink="/cluster" routerLinkActive="active">
-        <onos-icon iconId="nav_cluster"></onos-icon> Cluster Nodes</a>
-
-    <a id="processor" (click)="ns.hideNav()" routerLink="/processor" routerLinkActive="active">
-        <onos-icon iconId="nav_processors"></onos-icon> Packet Processors</a>
-
-    <a id="partition" (click)="ns.hideNav()" routerLink="/partition" routerLinkActive="active">
-        <onos-icon iconId="nav_partitions"></onos-icon> Partitions</a>
+    <div *ngFor="let uiView of ns.uiPlatformViews">
+        <a id="{{uiView.id}}" (click)="ns.hideNav()" routerLink="/{{uiView.id}}">
+        <onos-icon iconId="{{ uiView.icon }}"></onos-icon> {{ uiView.label }}</a>
+    </div>
 
     <div id="network" class="nav-hdr">{{ lionFn('cat_network') }}</div>
+    <div *ngFor="let uiView of ns.uiNetworkViews">
+        <a id="{{uiView.id}}" (click)="ns.hideNav()" routerLink="/{{uiView.id}}">
+            <onos-icon iconId="{{ uiView.icon }}"></onos-icon> {{ uiView.label }}</a>
+    </div>
 
-    <a id="device" (click)="ns.hideNav()" routerLink="/device" routerLinkActive="active">
-        <onos-icon iconId="nav_devs"></onos-icon> Devices</a>
+    <div *ngIf="ns.uiOtherViews.length > 0" id="other" class="nav-hdr">{{ lionFn('cat_other') }}</div>
+    <div *ngFor="let uiView of ns.uiOtherViews">
+        <a id="{{uiView.id}}" (click)="ns.hideNav()" routerLink="/{{uiView.id}}">
+            <onos-icon iconId="{{ uiView.icon }}"></onos-icon> {{ uiView.label }}</a>
+    </div>
 
-    <a id="link" (click)="ns.hideNav()" routerLink="/link" routerLinkActive="active">
-        <onos-icon iconId="nav_links"></onos-icon> Links</a>
-
-    <a id="host" (click)="ns.hideNav()" routerLink="/host" routerLinkActive="active">
-        <onos-icon iconId="nav_hosts"></onos-icon> Hosts</a>
-
-    <a id="intent" (click)="ns.hideNav()" routerLink="/intent" routerLinkActive="active">
-        <onos-icon iconId="nav_intents"></onos-icon> Intents</a>
-
-    <a id="tunnel" (click)="ns.hideNav()" routerLink="/tunnel" routerLinkActive="active">
-        <onos-icon iconId="nav_tunnels"></onos-icon> Tunnels</a>
-
-    <div id="other" class="nav-hdr">{{ lionFn('cat_other') }}</div>
 </nav>

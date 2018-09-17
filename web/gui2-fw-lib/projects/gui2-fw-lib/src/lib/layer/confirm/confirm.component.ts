@@ -61,6 +61,7 @@ export class ConfirmComponent {
 
     @Input() message: string;
     @Input() warning: string;
+    @Input() title: string;
     @Output() chosen: EventEmitter<boolean> = new EventEmitter();
 
     constructor(

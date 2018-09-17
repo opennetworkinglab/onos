@@ -63,7 +63,7 @@ div.summary-list td.table-icon {
     text-align: center;
 }
 
-div.summary-list .table-header th {
+div.summary-list .table-header td {
     font-weight: bold;
     font-variant: small-caps;
     text-transform: uppercase;

@@ -32,7 +32,8 @@ describe('ConfirmComponent', () => {
     let fixture: ComponentFixture<ConfirmComponent>;
     const bundleObj = {
         'core.view.App': {
-            test: 'test1'
+            test: 'test1',
+            dlg_confirm_action: 'Confirm'
         }
     };
     const mockLion = (key) => {
@@ -62,6 +63,9 @@ describe('ConfirmComponent', () => {
     beforeEach(() => {
         fixture = TestBed.createComponent(ConfirmComponent);
         component = fixture.debugElement.componentInstance;
+        component.title = 'Confirm';
+        component.message = 'A message';
+        component.warning = 'A warning';
         fixture.detectChanges();
     });
 
@@ -73,7 +77,7 @@ describe('ConfirmComponent', () => {
         const appDe: DebugElement = fixture.debugElement;
         const divDe = appDe.query(By.css('div#app-dialog h3'));
         const div: HTMLElement = divDe.nativeElement;
-        expect(div.textContent).toEqual(' %dlg_confirm_action% ');
+        expect(div.textContent).toEqual(' Confirm ');
     });
 
     it('should have a div.dialog-button inside a div#app-dialog', () => {

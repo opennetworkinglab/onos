@@ -52,7 +52,7 @@ export class NavComponent implements OnInit, OnDestroy {
     constructor(
         private log: LogService,
         private lion: LionService,
-        public ns: NavService
+        public ns: NavService,
     ) {
         this.log.debug('NavComponent constructed');
     }
@@ -70,6 +70,7 @@ export class NavComponent implements OnInit, OnDestroy {
         } else {
             this.doLion();
         }
+        this.ns.getUiViews();
     }
 
     /**
@@ -94,5 +95,4 @@ export class NavComponent implements OnInit, OnDestroy {
     dummyLion(key: string): string {
         return '%' + key + '%';
     }
-
 }

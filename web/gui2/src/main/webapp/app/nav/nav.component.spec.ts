@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-import { ActivatedRoute, Params } from '@angular/router';
+import { RouterModule, ActivatedRoute, Params } from '@angular/router';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { DebugElement } from '@angular/core';
 import { By } from '@angular/platform-browser';
-import { of } from 'rxjs';
+import { of, from } from 'rxjs';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 
 import {
     ConsoleLoggerService,
@@ -37,7 +38,23 @@ class MockActivatedRoute extends ActivatedRoute {
     }
 }
 
-class MockNavService {}
+class MockHttpClient {
+    get() {
+        return from(['{"id":"app","icon":"nav_apps","cat":"PLATFORM","label":"Applications"},' +
+            '{"id":"settings","icon":"nav_settings","cat":"PLATFORM","label":"Settings"}']);
+    }
+
+    subscribe() {}
+}
+
+class MockNavService {
+    uiPlatformViews = [];
+    uiNetworkViews = [];
+    uiOtherViews = [];
+    uiHiddenViews = [];
+
+    getUiViews() {}
+}
 
 class MockIconService {
     loadIconDef() {}
@@ -80,11 +97,12 @@ describe('NavComponent', () => {
         fs = new FnService(ar, log, windowMock);
 
         TestBed.configureTestingModule({
-            imports: [ BrowserAnimationsModule ],
+            imports: [ BrowserAnimationsModule, RouterModule ],
             declarations: [ NavComponent, IconComponent ],
             providers: [
                 { provide: FnService, useValue: fs },
                 { provide: IconService, useClass: MockIconService },
+                { provide: HttpClient, useClass: MockHttpClient },
                 { provide: LionService, useFactory: (() => {
                         return {
                             bundle: ((bundleId) => mockLion),
@@ -124,41 +142,6 @@ describe('NavComponent', () => {
         expect(div.textContent).toEqual('%cat_platform%');
     });
 
-    it('should have an app view link inside a nav#nav', () => {
-        const appDe: DebugElement = fixture.debugElement;
-        const divDe = appDe.query(By.css('nav#nav a#app'));
-        const div: HTMLElement = divDe.nativeElement;
-        expect(div.textContent).toEqual(' Applications');
-    });
-
-    it('should have an cluster view link inside a nav#nav', () => {
-        const appDe: DebugElement = fixture.debugElement;
-        const divDe = appDe.query(By.css('nav#nav a#cluster'));
-        const div: HTMLElement = divDe.nativeElement;
-        expect(div.textContent).toEqual(' Cluster Nodes');
-    });
-
-    it('should have an processor view link inside a nav#nav', () => {
-        const appDe: DebugElement = fixture.debugElement;
-        const divDe = appDe.query(By.css('nav#nav a#processor'));
-        const div: HTMLElement = divDe.nativeElement;
-        expect(div.textContent).toEqual(' Packet Processors');
-    });
-
-    it('should have a settings view link inside a nav#nav', () => {
-        const appDe: DebugElement = fixture.debugElement;
-        const divDe = appDe.query(By.css('nav#nav a#settings'));
-        const div: HTMLElement = divDe.nativeElement;
-        expect(div.textContent).toEqual(' Settings');
-    });
-
-    it('should have a partition view link inside a nav#nav', () => {
-        const appDe: DebugElement = fixture.debugElement;
-        const divDe = appDe.query(By.css('nav#nav a#partition'));
-        const div: HTMLElement = divDe.nativeElement;
-        expect(div.textContent).toEqual(' Partitions');
-    });
-
     it('should have a network div.nav-hdr inside a nav#nav', () => {
         const appDe: DebugElement = fixture.debugElement;
         const divDe = appDe.query(By.css('nav#nav div#network.nav-hdr'));
@@ -166,38 +149,4 @@ describe('NavComponent', () => {
         expect(div.textContent).toEqual('%cat_network%');
     });
 
-    it('should have a device view link inside a nav#nav', () => {
-        const appDe: DebugElement = fixture.debugElement;
-        const divDe = appDe.query(By.css('nav#nav a#device'));
-        const div: HTMLElement = divDe.nativeElement;
-        expect(div.textContent).toEqual(' Devices');
-    });
-
-    it('should have a link view link inside a nav#nav', () => {
-        const appDe: DebugElement = fixture.debugElement;
-        const divDe = appDe.query(By.css('nav#nav a#link'));
-        const div: HTMLElement = divDe.nativeElement;
-        expect(div.textContent).toEqual(' Links');
-    });
-
-    it('should have a host view link inside a nav#nav', () => {
-        const appDe: DebugElement = fixture.debugElement;
-        const divDe = appDe.query(By.css('nav#nav a#host'));
-        const div: HTMLElement = divDe.nativeElement;
-        expect(div.textContent).toEqual(' Hosts');
-    });
-
-    it('should have a intent view link inside a nav#nav', () => {
-        const appDe: DebugElement = fixture.debugElement;
-        const divDe = appDe.query(By.css('nav#nav a#intent'));
-        const div: HTMLElement = divDe.nativeElement;
-        expect(div.textContent).toEqual(' Intents');
-    });
-
-    it('should have a tunnel view link inside a nav#nav', () => {
-        const appDe: DebugElement = fixture.debugElement;
-        const divDe = appDe.query(By.css('nav#nav a#tunnel'));
-        const div: HTMLElement = divDe.nativeElement;
-        expect(div.textContent).toEqual(' Tunnels');
-    });
 });
