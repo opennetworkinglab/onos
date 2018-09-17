@@ -34,7 +34,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-
 /**
  * Parser for Netconf XML configurations and replys.
  */

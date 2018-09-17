@@ -21,14 +21,12 @@ import org.onosproject.incubator.net.faultmanagement.alarm.Alarm;
 import org.onosproject.incubator.net.faultmanagement.alarm.AlarmId;
 import org.onosproject.incubator.net.faultmanagement.alarm.AlarmTranslator;
 import org.onosproject.incubator.net.faultmanagement.alarm.DefaultAlarm;
+import org.onosproject.incubator.net.faultmanagement.alarm.XmlEventParser;
 import org.onosproject.net.DeviceId;
 import org.slf4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
-import org.xml.sax.InputSource;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
@@ -39,8 +37,6 @@ import javax.xml.transform.stream.StreamResult;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
-import java.time.Instant;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -56,24 +52,13 @@ public class NetconfAlarmTranslator implements AlarmTranslator {
     private final Logger log = getLogger(getClass());
     private static final String EVENTTIME_TAGNAME = "eventTime";
 
-    private static final String DISALLOW_DTD_FEATURE = "http://apache.org/xml/features/disallow-doctype-decl";
-
-    private static final String DISALLOW_EXTERNAL_DTD =
-            "http://apache.org/xml/features/nonvalidating/load-external-dtd";
-
     @Override
     public Collection<Alarm> translateToAlarm(DeviceId deviceId, InputStream message) {
         try {
             Collection<Alarm> alarms = new ArrayList<>();
-            Document doc = createDocFromMessage(message);
-
-            // parse date element value into long
-            Node eventTime = doc.getElementsByTagName(EVENTTIME_TAGNAME).item(0);
-            String date = eventTime.getTextContent();
-            long timeStamp = parseDate(date);
-
-            // event-specific tag names as alarm descriptions
-            Node descriptionNode = eventTime.getNextSibling();
+            Document doc = XmlEventParser.createDocFromMessage(message);
+            long timeStamp = XmlEventParser.getEventTime(doc);
+            Node descriptionNode = XmlEventParser.getDescriptionNode(doc);
             while (descriptionNode != null) {
                 if (descriptionNode.getNodeType() == Node.ELEMENT_NODE) {
                     String description = nodeToString(descriptionNode);
@@ -93,33 +78,6 @@ public class NetconfAlarmTranslator implements AlarmTranslator {
             log.error("Exception thrown translating message from {}.", deviceId, e);
             return ImmutableSet.of();
         }
-    }
-
-    private Document createDocFromMessage(InputStream message)
-            throws SAXException, IOException, ParserConfigurationException {
-        DocumentBuilderFactory dbfactory = DocumentBuilderFactory.newInstance();
-        //Disabling DTDs in order to avoid XXE xml-based attacks.
-        disableFeature(dbfactory, DISALLOW_DTD_FEATURE);
-        disableFeature(dbfactory, DISALLOW_EXTERNAL_DTD);
-        dbfactory.setXIncludeAware(false);
-        dbfactory.setExpandEntityReferences(false);
-        DocumentBuilder builder = dbfactory.newDocumentBuilder();
-        return builder.parse(new InputSource(message));
-    }
-
-    private void disableFeature(DocumentBuilderFactory dbfactory, String feature) {
-        try {
-            dbfactory.setFeature(feature, true);
-        } catch (ParserConfigurationException e) {
-            // This should catch a failed setFeature feature
-            log.info("ParserConfigurationException was thrown. The feature '" +
-                    feature + "' is probably not supported by your XML processor.");
-        }
-    }
-
-    private long parseDate(String timeStr)
-            throws UnsupportedOperationException, IllegalArgumentException {
-        return DateTimeFormatter.ISO_DATE_TIME.parse(timeStr, Instant::from).getEpochSecond();
     }
 
     private static String nodeToString(Node rootNode) throws TransformerException {

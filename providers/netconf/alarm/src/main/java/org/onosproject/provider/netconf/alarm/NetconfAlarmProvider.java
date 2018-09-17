@@ -16,6 +16,7 @@
 
 package org.onosproject.provider.netconf.alarm;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -27,7 +28,15 @@ import org.onosproject.incubator.net.faultmanagement.alarm.AlarmProvider;
 import org.onosproject.incubator.net.faultmanagement.alarm.AlarmProviderService;
 import org.onosproject.incubator.net.faultmanagement.alarm.AlarmProviderRegistry;
 import org.onosproject.incubator.net.faultmanagement.alarm.AlarmTranslator;
+import org.onosproject.incubator.net.faultmanagement.alarm.DeviceAlarmConfig;
+import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.driver.DefaultDriverData;
+import org.onosproject.net.driver.DefaultDriverHandler;
+import org.onosproject.net.driver.Driver;
+import org.onosproject.net.driver.DriverData;
+import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.netconf.FilteringNetconfDeviceOutputEventListener;
@@ -45,6 +54,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -63,6 +73,12 @@ public class NetconfAlarmProvider extends AbstractProvider implements AlarmProvi
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetconfController controller;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DriverService driverService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DeviceService deviceService;
 
     protected AlarmProviderService providerService;
 
@@ -123,10 +139,20 @@ public class NetconfAlarmProvider extends AbstractProvider implements AlarmProvi
         public void event(NetconfDeviceOutputEvent event) {
             if (event.type() == NetconfDeviceOutputEvent.Type.DEVICE_NOTIFICATION) {
                 DeviceId deviceId = event.getDeviceInfo().getDeviceId();
-                String message = event.getMessagePayload();
-                InputStream in = new ByteArrayInputStream(message.getBytes(StandardCharsets.UTF_8));
-                Collection<Alarm> newAlarms = translator.translateToAlarm(deviceId, in);
-                triggerProbe(deviceId, newAlarms);
+                Driver deviceDriver = driverService.getDriver(deviceId);
+                Device device = deviceService.getDevice(deviceId);
+                if (deviceDriver != null && device.is(DeviceAlarmConfig.class)) {
+                    DeviceAlarmConfig alarmTranslator = device.as(DeviceAlarmConfig.class);
+                    DriverData driverData = new DefaultDriverData(deviceDriver, deviceId);
+                    alarmTranslator.setHandler(new DefaultDriverHandler(driverData));
+                    Set<Alarm> alarms = alarmTranslator.translateAlarms(ImmutableList.of(event));
+                    triggerProbe(deviceId, alarms);
+                } else {
+                    String message = event.getMessagePayload();
+                    InputStream in = new ByteArrayInputStream(message.getBytes(StandardCharsets.UTF_8));
+                    Collection<Alarm> newAlarms = translator.translateToAlarm(deviceId, in);
+                    triggerProbe(deviceId, newAlarms);
+                }
             }
         }
     }
