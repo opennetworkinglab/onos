@@ -96,7 +96,8 @@ public class CounterTest {
                 .addEqualityGroup(tt, same)
                 .addEqualityGroup(400)
                 .addEqualityGroup("")
-                .addEqualityGroup(diff);
+                .addEqualityGroup(diff)
+                .testEquals();
 
     }
 

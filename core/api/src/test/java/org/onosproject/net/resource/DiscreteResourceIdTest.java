@@ -42,8 +42,10 @@ public class DiscreteResourceIdTest {
 
         new EqualsTester()
                 .addEqualityGroup(id1, sameAsId1)
-                .addEqualityGroup(id2);
+                .addEqualityGroup(id2)
+                .testEquals();
     }
+
 
     @Test
     public void testSimpleTypeName() {

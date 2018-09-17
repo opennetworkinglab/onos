@@ -53,7 +53,8 @@ public class DisjointPathPairTest {
     public void testSwappingPrimarySecondaryDoesntImpactEquality() {
         new EqualsTester()
             .addEqualityGroup(new DisjointPathPair<>(ABC, ADC),
-                              new DisjointPathPair<>(ADC, ABC));
+                              new DisjointPathPair<>(ADC, ABC))
+            .testEquals();
     }
 
 }
