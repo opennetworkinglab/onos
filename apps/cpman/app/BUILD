@@ -11,6 +11,7 @@ TEST_DEPS = TEST_REST + [
 BUNDLES = [
     "//apps/cpman/api:onos-apps-cpman-api",
     ":onos-apps-cpman-app",
+    "@rrd4j//jar",
 ]
 
 EXCLUDED_BUNDLES = [
