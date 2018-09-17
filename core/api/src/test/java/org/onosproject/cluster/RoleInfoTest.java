@@ -45,7 +45,8 @@ public class RoleInfoTest {
     public void testEquality() {
         new EqualsTester()
         .addEqualityGroup(RI1, new RoleInfo(new NodeId("n1"), Lists.newArrayList(N2, N3)))
-        .addEqualityGroup(RI3);
+        .addEqualityGroup(RI3)
+        .testEquals();
     }
 
     @Test

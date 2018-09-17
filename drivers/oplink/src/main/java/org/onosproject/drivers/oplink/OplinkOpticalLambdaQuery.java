@@ -40,10 +40,12 @@ import static org.onosproject.drivers.oplink.OplinkOpticalUtility.START_CENTER_F
  */
 public class OplinkOpticalLambdaQuery extends AbstractHandlerBehaviour implements LambdaQuery {
 
+    @SuppressWarnings("MathRoundIntLong")
     private static final int MIN_CHANNEL = (int) Math.round(
-            START_CENTER_FREQ.subtract(CENTER_FREQUENCY).asHz() / CHANNEL_SPACING.frequency().asHz());
+            (START_CENTER_FREQ.subtract(CENTER_FREQUENCY).asHz() / CHANNEL_SPACING.frequency().asHz()));
+    @SuppressWarnings("MathRoundIntLong")
     private static final int MAX_CHANNEL = (int) Math.round(
-            STOP_CENTER_FREQ.subtract(CENTER_FREQUENCY).asHz() / CHANNEL_SPACING.frequency().asHz());
+            (STOP_CENTER_FREQ.subtract(CENTER_FREQUENCY).asHz() / CHANNEL_SPACING.frequency().asHz()));
 
     @Override
     public Set<OchSignal> queryLambdas(PortNumber port) {

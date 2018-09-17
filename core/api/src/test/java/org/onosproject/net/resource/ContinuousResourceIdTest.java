@@ -43,7 +43,8 @@ public class ContinuousResourceIdTest {
                 .resource(BW2.bps()).id();
 
         new EqualsTester()
-                .addEqualityGroup(id1, sameAsId1);
+                .addEqualityGroup(id1, sameAsId1)
+                .testEquals();
     }
 
     @Test
