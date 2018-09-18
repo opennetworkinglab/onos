@@ -19,6 +19,7 @@ package org.onosproject.incubator.net.virtual.impl;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.graph.ScalarWeight;
 import org.onlab.junit.TestUtils;
 import org.onlab.osgi.TestServiceDirectory;
 import org.onosproject.common.event.impl.TestEventDispatcher;
@@ -233,7 +234,7 @@ public class VirtualNetworkPathManagerTest extends TestDeviceParams {
             assertEquals("incorrect length", length, path.links().size());
             assertEquals("incorrect source", src, path.src().elementId());
             assertEquals("incorrect destination", dst, path.dst().elementId());
-            assertEquals("incorrect cost", cost, path.cost(), 0);
+            assertEquals("incorrect cost", ScalarWeight.toWeight(cost), path.weight());
         }
     }
 }

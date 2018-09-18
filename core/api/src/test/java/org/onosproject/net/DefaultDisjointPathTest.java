@@ -84,7 +84,7 @@ public class DefaultDisjointPathTest {
         assertThat(disjointPath1.primary(), is(path1));
         assertThat(disjointPath1.backup(), is(path2));
         assertThat(disjointPath1.links(), is(links1));
-        assertThat(disjointPath1.cost(), is(1.0));
+        assertThat(disjointPath1.weight(), is(ScalarWeight.toWeight(1.0)));
     }
 
     /**

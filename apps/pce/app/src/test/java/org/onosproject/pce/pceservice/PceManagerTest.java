@@ -21,6 +21,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.graph.GraphPathSearch;
+import org.onlab.graph.ScalarWeight;
 import org.onlab.junit.TestUtils;
 import org.onlab.junit.TestUtils.TestUtilsException;
 import org.onlab.util.Bandwidth;
@@ -1011,10 +1012,10 @@ public class PceManagerTest {
     }
 
     /**
-     * Tests resilency when L2 link is down.
+     * Tests resiliency when L2 link is down.
      */
     @Test
-    public void resilencyTest1() {
+    public void resiliencyTest1() {
         build4RouterTopo(true, false, false, false, 10);
 
 
@@ -1050,14 +1051,14 @@ public class PceManagerTest {
 
         //Path is D1-D3-D4
         assertThat(pathService.paths().iterator().next().links(), is(links));
-        assertThat(pathService.paths().iterator().next().cost(), is((double) 180));
+        assertThat(pathService.paths().iterator().next().weight(), is(ScalarWeight.toWeight(180.0)));
     }
 
     /**
-     * Tests resilency when L2 and L4 link is down.
+     * Tests resiliency when L2 and L4 link is down.
      */
     @Test
-    public void resilencyTest2() {
+    public void resiliencyTest2() {
         build4RouterTopo(true, false, false, false, 10);
 
         List<Constraint> constraints = new LinkedList<Constraint>();
@@ -1093,10 +1094,10 @@ public class PceManagerTest {
     }
 
     /**
-     * Tests resilency when D2 device is down.
+     * Tests resiliency when D2 device is down.
      */
     @Test
-    public void resilencyTest3() {
+    public void resiliencyTest3() {
         build4RouterTopo(true, false, false, false, 10);
 
         List<Constraint> constraints = new LinkedList<Constraint>();
@@ -1134,14 +1135,14 @@ public class PceManagerTest {
         Path path = tunnelService.queryAllTunnels().iterator().next().path();
         //Path is D1-D3-D4
         assertThat(path.links(), is(links));
-        assertThat(path.cost(), is((double) 180));
+        assertThat(path.weight(), is(ScalarWeight.toWeight(180.0)));
     }
 
     /**
-     * Tests resilency when ingress device is down.
+     * Tests resiliency when ingress device is down.
      */
     @Test
-    public void resilencyTest4() {
+    public void resiliencyTest4() {
         build4RouterTopo(true, false, false, false, 10);
 
         List<Constraint> constraints = new LinkedList<Constraint>();
@@ -1177,10 +1178,10 @@ public class PceManagerTest {
     }
 
     /**
-     * Tests resilency when D2 and D3 devices are down.
+     * Tests resiliency when D2 and D3 devices are down.
      */
     @Test
-    public void resilencyTest5() {
+    public void resiliencyTest5() {
         build4RouterTopo(true, false, false, false, 10);
 
         List<Constraint> constraints = new LinkedList<Constraint>();
@@ -1226,10 +1227,10 @@ public class PceManagerTest {
     }
 
     /**
-     * Tests resilency when egress device is down.
+     * Tests resiliency when egress device is down.
      */
     @Test
-    public void resilencyTest6() {
+    public void resiliencyTest6() {
         build4RouterTopo(true, false, false, false, 10);
 
         List<Constraint> constraints = new LinkedList<Constraint>();
@@ -1268,10 +1269,10 @@ public class PceManagerTest {
     }
 
     /**
-     * Tests resilency when egress device is down.
+     * Tests resiliency when egress device is down.
      */
     @Test
-    public void resilencyTest7() {
+    public void resiliencyTest7() {
         build4RouterTopo(true, false, false, false, 10);
 
         List<Constraint> constraints = new LinkedList<Constraint>();
@@ -1310,10 +1311,10 @@ public class PceManagerTest {
     }
 
     /**
-     * Tests resilency when D2 device is suspended.
+     * Tests resiliency when D2 device is suspended.
      */
     @Test
-    public void resilencyTest8() {
+    public void resiliencyTest8() {
         build4RouterTopo(true, false, false, false, 10);
 
         List<Constraint> constraints = new LinkedList<Constraint>();
@@ -1355,14 +1356,14 @@ public class PceManagerTest {
 
         //Path is D1-D3-D4
         assertThat(path.links(), is(links));
-        assertThat(path.cost(), is((double) 180));
+        assertThat(path.weight(), is(ScalarWeight.toWeight(180.0)));
     }
 
     /**
-     * Tests resilency when D2 device availability is changed.
+     * Tests resiliency when D2 device availability is changed.
      */
     @Test
-    public void resilencyTest11() {
+    public void resiliencyTest11() {
         build4RouterTopo(true, false, false, false, 10);
 
         List<Constraint> constraints = new LinkedList<Constraint>();
@@ -1404,14 +1405,14 @@ public class PceManagerTest {
 
         //Path is D1-D3-D4
         assertThat(path.links(), is(links));
-        assertThat(path.cost(), is((double) 180));
+        assertThat(path.weight(), is(ScalarWeight.toWeight(180.0)));
     }
 
     /**
-     * Tests resilency when link2 availability is changed.
+     * Tests resiliency when link2 availability is changed.
      */
     @Test
-    public void resilencyTest12() {
+    public void resiliencyTest12() {
         build4RouterTopo(true, false, false, false, 10);
 
         List<Constraint> constraints = new LinkedList<Constraint>();

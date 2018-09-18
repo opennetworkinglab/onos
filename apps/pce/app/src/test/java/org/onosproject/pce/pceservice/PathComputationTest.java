@@ -483,7 +483,7 @@ public class PathComputationTest {
         links.add(link2);
 
         assertThat(paths.iterator().next().links(), is(links));
-        assertThat(paths.iterator().next().cost(), is((double) 70));
+        assertThat(paths.iterator().next().weight(), is(ScalarWeight.toWeight(70.0)));
     }
 
     /**
@@ -524,7 +524,7 @@ public class PathComputationTest {
         links.add(link2);
 
         assertThat(paths.iterator().next().links(), is(links));
-        assertThat(paths.iterator().next().cost(), is((double) 200));
+        assertThat(paths.iterator().next().weight(), is(ScalarWeight.toWeight(200.0)));
     }
 
     /**
@@ -561,7 +561,7 @@ public class PathComputationTest {
 
         Set<Path> paths = computePath(link1, link2, link3, link4, constraints);
 
-        assertThat(paths.iterator().next().cost(), is((double) 2));
+        assertThat(paths.iterator().next().weight(), is(ScalarWeight.toWeight(2.0)));
     }
 
     /**
@@ -597,7 +597,7 @@ public class PathComputationTest {
         constraints.add(bandwidthConst);
         Set<Path> paths = computePath(link1, link2, link3, link4, constraints);
 
-        assertThat(paths.iterator().next().cost(), is((double) 2));
+        assertThat(paths.iterator().next().weight(), is(ScalarWeight.toWeight(2.0)));
     }
 
     /**
@@ -662,7 +662,7 @@ public class PathComputationTest {
         constraints.add(costConst);
         Set<Path> paths = computePath(link1, link2, link3, link4, constraints);
         assertThat(paths.iterator().next().links(), is(links));
-        assertThat(paths.iterator().next().cost(), is((double) 70));
+        assertThat(paths.iterator().next().weight(), is(ScalarWeight.toWeight(70.0)));
     }
 
     /**
@@ -727,7 +727,7 @@ public class PathComputationTest {
         Set<Path> paths = computePath(link1, link2, link3, link4, constraints);
 
         assertThat(paths.iterator().next().links(), is(links));
-        assertThat(paths.iterator().next().cost(), is((double) 70));
+        assertThat(paths.iterator().next().weight(), is(ScalarWeight.toWeight(70.0)));
     }
 
     /**
@@ -742,7 +742,7 @@ public class PathComputationTest {
         List<Constraint> constraints = new LinkedList<>();
         Set<Path> paths = computePath(link1, link2, link3, link4, constraints);
 
-        assertThat(paths.iterator().next().cost(), is((double) 2));
+        assertThat(paths.iterator().next().weight(), is(ScalarWeight.toWeight(2.0)));
     }
 
     /**
@@ -784,7 +784,7 @@ public class PathComputationTest {
         links.add(link1);
         links.add(link2);
         assertThat(paths.iterator().next().links(), is(links));
-        assertThat(paths.iterator().next().cost(), is((double) 70));
+        assertThat(paths.iterator().next().weight(), is(ScalarWeight.toWeight(70.0)));
     }
 
     /**
@@ -877,7 +877,7 @@ public class PathComputationTest {
         links.add(link1);
         links.add(link2);
         assertThat(paths.iterator().next().links(), is(links));
-        assertThat(paths.iterator().next().cost(), is((double) 70));
+        assertThat(paths.iterator().next().weight(), is(ScalarWeight.toWeight(70.0)));
     }
 
     /**
@@ -964,7 +964,7 @@ public class PathComputationTest {
         links.add(link1);
         links.add(link2);
         assertThat(paths.iterator().next().links(), is(links));
-        assertThat(paths.iterator().next().cost(), is((double) 70));
+        assertThat(paths.iterator().next().weight(), is(ScalarWeight.toWeight(70.0)));
     }
 
     /**
@@ -1050,7 +1050,7 @@ public class PathComputationTest {
         links.add(link1);
         links.add(link2);
         assertThat(paths.iterator().next().links(), is(links));
-        assertThat(paths.iterator().next().cost(), is((double) 70));
+        assertThat(paths.iterator().next().weight(), is(ScalarWeight.toWeight(70.0)));
     }
 
     /**
@@ -1138,7 +1138,7 @@ public class PathComputationTest {
         links.add(link1);
         links.add(link2);
         assertThat(paths.iterator().next().links(), is(links));
-        assertThat(paths.iterator().next().cost(), is((double) 70));
+        assertThat(paths.iterator().next().weight(), is(ScalarWeight.toWeight(70.0)));
     }
 
     /**
@@ -1205,7 +1205,7 @@ public class PathComputationTest {
         List<Link> links = new LinkedList<>();
         links.add(link1);
         links.add(link2);
-        assertThat(paths.iterator().next().cost(), is((double) 2));
+        assertThat(paths.iterator().next().weight(), is(ScalarWeight.toWeight(2.0)));
     }
 
     /**
@@ -1221,7 +1221,7 @@ public class PathComputationTest {
         List<Constraint> constraints = new LinkedList<>();
         Set<Path> paths = computePath(link1, link2, link3, link4, constraints);
 
-        assertThat(paths.iterator().next().cost(), is((double) 2));
+        assertThat(paths.iterator().next().weight(), is(ScalarWeight.toWeight(2.0)));
     }
 
     /**
@@ -1237,7 +1237,7 @@ public class PathComputationTest {
         List<Constraint> constraints = null;
         Set<Path> paths = computePath(link1, link2, link3, link4, constraints);
 
-        assertThat(paths.iterator().next().cost(), is((double) 2));
+        assertThat(paths.iterator().next().weight(), is(ScalarWeight.toWeight(2.0)));
     }
 
     /**
@@ -1296,7 +1296,7 @@ public class PathComputationTest {
         links.add(link4);
         links.add(link5);
         assertThat(builder.build().iterator().next().links(), is(links));
-        assertThat(builder.build().iterator().next().cost(), is((double) 40));
+        assertThat(builder.build().iterator().next().weight(), is(ScalarWeight.toWeight(40.0)));
     }
 
     /**
@@ -1353,7 +1353,7 @@ public class PathComputationTest {
         links.add(link2);
 
         assertThat(paths.iterator().next().links(), is(links));
-        assertThat(paths.iterator().next().cost(), is((double) 2));
+        assertThat(paths.iterator().next().weight(), is(ScalarWeight.toWeight(2.0)));
     }
 
     /**

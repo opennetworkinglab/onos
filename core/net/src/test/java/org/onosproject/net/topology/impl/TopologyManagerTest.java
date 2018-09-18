@@ -18,6 +18,7 @@ package org.onosproject.net.topology.impl;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.graph.ScalarWeight;
 import org.onosproject.event.Event;
 import org.onosproject.common.event.impl.TestEventDispatcher;
 import org.onosproject.net.ConnectPoint;
@@ -168,7 +169,7 @@ public class TopologyManagerTest {
         assertEquals("wrong path count", 2, paths.size());
         Path path = paths.iterator().next();
         assertEquals("wrong path length", 2, path.links().size());
-        assertEquals("wrong path cost", 2, path.cost(), 0.01);
+        assertEquals("wrong path cost", ScalarWeight.toWeight(2), path.weight());
     }
 
     @Test
@@ -181,7 +182,7 @@ public class TopologyManagerTest {
         assertEquals("wrong path count", 2, paths.size());
         Path path = paths.iterator().next();
         assertEquals("wrong path length", 2, path.links().size());
-        assertEquals("wrong path cost", 6.6, path.cost(), 0.01);
+        assertEquals("wrong path cost", ScalarWeight.toWeight(6.6), path.weight());
     }
 
     protected void validateEvents(Enum... types) {
