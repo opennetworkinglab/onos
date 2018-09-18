@@ -53,6 +53,7 @@ public class PolatisAlarmConsumer extends AbstractHandlerBehaviour implements Al
 
     private static final String ALARM_TIME = "alarm-time";
     private static final String ALARM_TYPE = "alarm-type";
+    private static final String ALARM_TYPE_LOS = "NOTIF_PORT_POWER";
     private static final String ALARM_MESSAGE = "alarm-message";
 
     private DeviceId deviceId;
@@ -101,10 +102,12 @@ public class PolatisAlarmConsumer extends AbstractHandlerBehaviour implements Al
 
     private Alarm parseAlarm(HierarchicalConfiguration cfg) {
         boolean cleared = false;
-        // TODO: Use the type for severity or in the description?
         String alarmType = cfg.getString(ALARM_TYPE);
         String alarmMessage = cfg.getString(ALARM_MESSAGE);
         SeverityLevel alarmLevel = SeverityLevel.INDETERMINATE;
+        if (alarmType.equals(ALARM_TYPE_LOS)) {
+            alarmLevel = SeverityLevel.MAJOR;
+        }
         long timeRaised = getTimeRaised(cfg);
         DefaultAlarm.Builder alarmBuilder = new DefaultAlarm.Builder(
                 AlarmId.alarmId(deviceId, Long.toString(timeRaised)),
