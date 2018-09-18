@@ -72,7 +72,7 @@ public class DeviceKeyAddCommand extends AbstractShellCommand {
             deviceKey = DeviceKey.createDeviceKeyUsingUsernamePassword(DeviceKeyId.deviceKeyId(id),
                                                                        label, username, password);
         } else {
-            print("Invalid Device key type: ", type);
+            print("Invalid Device key type: {}", type);
             return;
         }
         service.addKey(deviceKey);
