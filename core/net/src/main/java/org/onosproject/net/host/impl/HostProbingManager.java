@@ -25,7 +25,6 @@ import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.MacAddress;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Host;
-import org.onosproject.net.host.HostLocationProbingService;
 import org.onosproject.net.host.HostProbingEvent;
 import org.onosproject.net.host.ProbeMode;
 import org.onosproject.net.host.HostProbingListener;
@@ -46,7 +45,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class HostProbingManager extends
         AbstractListenerProviderRegistry<HostProbingEvent, HostProbingListener, HostProbingProvider,
                 HostProbingProviderService>
-        implements HostProbingService, HostProbingProviderRegistry, HostLocationProbingService {
+        implements HostProbingService, HostProbingProviderRegistry {
     private final Logger log = getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
