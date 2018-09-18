@@ -21,7 +21,7 @@ from zipfile import ZipFile
 from tarfile import TarFile, TarInfo
 import tarfile
 import time
-from cStringIO import StringIO
+from io import BytesIO
 import subprocess
 
 
@@ -33,18 +33,18 @@ def addFile(tar, dest, file, file_size):
         info = TarInfo(dest)
         info.size = file_size
         info.mtime = now
-        info.mode = 0777
+        info.mode = 0o777
         tar.addfile(info, fileobj=file)
         written_files.add(dest)
 
-def addString(tar, dest, string):
+def addBytes(tar, dest, bytes):
     if dest not in written_files:
         # print dest, string
         info = TarInfo(dest)
-        info.size = len(string)
+        info.size = len(bytes)
         info.mtime = now
-        info.mode = 0777
-        file = StringIO(string)
+        info.mode = 0o777
+        file = BytesIO(bytes)
         tar.addfile(info, fileobj=file)
         file.close()
         written_files.add(dest)
@@ -74,11 +74,11 @@ def stageOnos(output, version, files=[]):
             elif '.oar' in file:
                 with ZipFile(file, 'r') as oar:
                     app_xml = oar.open('app.xml').read()
-                    app_name = re.search('name="([^"]+)"', app_xml).group(1)
+                    app_name = re.search(b'name="([^"]+)"', app_xml).group(1).decode('utf-8')
                     dest = base + 'apps/%(name)s/%(name)s.oar' % { 'name': app_name}
-                    addFile(output, dest, open(file), os.stat(file).st_size)
+                    addFile(output, dest, open(file, 'rb'), os.stat(file).st_size)
                     dest = base + 'apps/%s/app.xml' % app_name
-                    addString(output, dest, app_xml)
+                    addBytes(output, dest, app_xml)
                     for f in oar.infolist():
                         filename = f.filename
                         if 'm2' in filename:
@@ -89,16 +89,16 @@ def stageOnos(output, version, files=[]):
             elif 'features.xml' in file:
                 dest = base + 'apache-karaf-3.0.8/system/org/onosproject/onos-features/%s/' % version
                 dest += 'onos-features-%s-features.xml' % version
-                with open(file) as f:
+                with open(file, 'rb') as f:
                     addFile(output, dest, f, os.stat(file).st_size)
-        addString(output, base + 'apps/org.onosproject.drivers/active', '')
-        addString(output, base + 'VERSION', runtimeVersion)
+        addBytes(output, base + 'apps/org.onosproject.drivers/active', b'')
+        addBytes(output, base + 'VERSION', runtimeVersion.encode('utf-8'))
 
 if __name__ == '__main__':
     import sys
 
     if len(sys.argv) < 3:
-        print 'USAGE' #FIXME
+        print('USAGE') #FIXME
         sys.exit(1)
 
     output = sys.argv[1]
