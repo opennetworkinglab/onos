@@ -49,7 +49,13 @@ public class MastershipEvent extends AbstractEvent<MastershipEvent.Type, DeviceI
          * Signifies that the underlying storage for the Mastership state
          * of this device is unavailable.
          */
-        SUSPENDED
+        SUSPENDED,
+
+        /**
+         * Signifies that the underlying storage for the Mastership state
+         * of this device became available again.
+         */
+        RESTORED
     }
 
     private final MastershipInfo mastershipInfo;

@@ -18,6 +18,7 @@ package org.onosproject.store.mastership.impl;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.mastership.MastershipEvent.Type.BACKUPS_CHANGED;
 import static org.onosproject.mastership.MastershipEvent.Type.MASTER_CHANGED;
+import static org.onosproject.mastership.MastershipEvent.Type.RESTORED;
 import static org.onosproject.mastership.MastershipEvent.Type.SUSPENDED;
 import static org.slf4j.LoggerFactory.getLogger;
 import static com.google.common.base.Preconditions.checkArgument;
@@ -356,7 +357,7 @@ public class ConsistentDeviceMastershipStore
                     notifyDelegate(new MastershipEvent(SUSPENDED, deviceId, mastershipInfo));
                     break;
                 case SERVICE_RESTORED:
-                    // Do nothing, wait for updates from peers
+                    notifyDelegate(new MastershipEvent(RESTORED, deviceId, mastershipInfo));
                     break;
                 default:
                     return;
