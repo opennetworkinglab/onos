@@ -78,8 +78,8 @@ public class LinkCollectionIntentTest extends IntentTest {
                         .selector(selector)
                         .treatment(treatment)
                         .links(links1)
-                        .ingressPoints(ImmutableSet.of(ingress))
-                        .egressPoints(ImmutableSet.of(egress))
+                        .filteredIngressPoints(ImmutableSet.of(new FilteredConnectPoint(ingress)))
+                        .filteredEgressPoints(ImmutableSet.of(new FilteredConnectPoint(egress)))
                         .resourceGroup(resourceGroup)
                         .build();
 
@@ -91,8 +91,8 @@ public class LinkCollectionIntentTest extends IntentTest {
                         .selector(selector)
                         .treatment(treatment)
                         .links(links2)
-                        .ingressPoints(ImmutableSet.of(ingress))
-                        .egressPoints(ImmutableSet.of(egress))
+                        .filteredIngressPoints(ImmutableSet.of(new FilteredConnectPoint(ingress)))
+                        .filteredEgressPoints(ImmutableSet.of(new FilteredConnectPoint(egress)))
                         .resourceGroup(resourceGroup)
                         .build();
 
@@ -115,8 +115,8 @@ public class LinkCollectionIntentTest extends IntentTest {
                         .selector(selector)
                         .treatment(treatment)
                         .links(links1)
-                        .ingressPoints(ImmutableSet.of(ingress))
-                        .egressPoints(ImmutableSet.of(egress))
+                        .filteredIngressPoints(ImmutableSet.of(new FilteredConnectPoint(ingress)))
+                        .filteredEgressPoints(ImmutableSet.of(new FilteredConnectPoint(egress)))
                         .resourceGroup(resourceGroup)
                         .build();
 
@@ -149,8 +149,8 @@ public class LinkCollectionIntentTest extends IntentTest {
                         .selector(selector)
                         .treatment(treatment)
                         .links(links1)
-                        .ingressPoints(ImmutableSet.of(ingress))
-                        .egressPoints(ImmutableSet.of(egress))
+                        .filteredIngressPoints(ImmutableSet.of(new FilteredConnectPoint(ingress)))
+                        .filteredEgressPoints(ImmutableSet.of(new FilteredConnectPoint(egress)))
                         .constraints(constraints)
                         .priority(8888)
                         .build();
@@ -231,8 +231,8 @@ public class LinkCollectionIntentTest extends IntentTest {
                 .selector(selector)
                 .treatment(treatment)
                 .links(links1)
-                .ingressPoints(ImmutableSet.of(ingress))
-                .egressPoints(ImmutableSet.of(egress))
+                .filteredIngressPoints(ImmutableSet.of(new FilteredConnectPoint(ingress)))
+                .filteredEgressPoints(ImmutableSet.of(new FilteredConnectPoint(egress)))
                 .build();
     }
 
@@ -245,8 +245,8 @@ public class LinkCollectionIntentTest extends IntentTest {
                 .selector(selector)
                 .treatment(treatment)
                 .links(links2)
-                .ingressPoints(ImmutableSet.of(ingress))
-                .egressPoints(ImmutableSet.of(egress))
+                .filteredIngressPoints(ImmutableSet.of(new FilteredConnectPoint(ingress)))
+                .filteredEgressPoints(ImmutableSet.of(new FilteredConnectPoint(egress)))
                 .build();
     }
 

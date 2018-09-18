@@ -172,44 +172,6 @@ public final class LinkCollectionIntent extends ConnectivityIntent {
         }
 
         /**
-         * Sets the ingress point of the single point to multi point intent
-         * that will be built.
-         *
-         * @param ingressPoints ingress connect points
-         * @return this builder
-         */
-        @Deprecated
-        public Builder ingressPoints(Set<ConnectPoint> ingressPoints) {
-            if (this.ingressPoints != null) {
-                log.warn("Ingress points are already set, " +
-                                 "this will override original ingress points.");
-            }
-            this.ingressPoints = ingressPoints.stream()
-                    .map(FilteredConnectPoint::new)
-                    .collect(Collectors.toSet());
-            return this;
-        }
-
-        /**
-         * Sets the egress points of the single point to multi point intent
-         * that will be built.
-         *
-         * @param egressPoints egress connect points
-         * @return this builder
-         */
-        @Deprecated
-        public Builder egressPoints(Set<ConnectPoint> egressPoints) {
-            if (this.egressPoints != null) {
-                log.warn("Egress points are already set, " +
-                                 "this will override original egress points.");
-            }
-            this.egressPoints = egressPoints.stream()
-                    .map(FilteredConnectPoint::new)
-                    .collect(Collectors.toSet());
-            return this;
-        }
-
-        /**
          * Sets the filtered ingress point of the single point to multi point intent
          * that will be built.
          *

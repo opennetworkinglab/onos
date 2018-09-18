@@ -23,7 +23,6 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.cfg.ComponentConfigAdapter;
 import org.onosproject.core.CoreService;
-import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultLink;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.FilteredConnectPoint;
@@ -88,8 +87,8 @@ public class LinkCollectionIntentCompilerTest extends AbstractLinkCollectionTest
                 .selector(selector)
                 .treatment(treatment)
                 .links(links)
-                .ingressPoints(ImmutableSet.of(d1p1))
-                .egressPoints(ImmutableSet.of(d3p1))
+                .filteredIngressPoints(ImmutableSet.of(new FilteredConnectPoint(d1p1)))
+                .filteredEgressPoints(ImmutableSet.of(new FilteredConnectPoint(d3p1)))
                 .build();
 
         intentExtensionService = createMock(IntentExtensionService.class);
@@ -474,21 +473,21 @@ public class LinkCollectionIntentCompilerTest extends AbstractLinkCollectionTest
 
 
 
-        Set<ConnectPoint> ingress = ImmutableSet.of(
-                of1p1
+        Set<FilteredConnectPoint> ingress = ImmutableSet.of(
+                new FilteredConnectPoint(of1p1)
         );
 
-        Set<ConnectPoint> egress = ImmutableSet.of(
-                of3p2,
-                of4p2
+        Set<FilteredConnectPoint> egress = ImmutableSet.of(
+                new FilteredConnectPoint(of3p2),
+                new FilteredConnectPoint(of4p2)
         );
 
         intent = LinkCollectionIntent.builder()
                 .appId(APP_ID)
                 .selector(ipPrefixSelector)
                 .treatment(ethDstTreatment)
-                .ingressPoints(ingress)
-                .egressPoints(egress)
+                .filteredIngressPoints(ingress)
+                .filteredEgressPoints(egress)
                 .applyTreatmentOnEgress(true)
                 .links(testLinks)
                 .build();
@@ -563,13 +562,13 @@ public class LinkCollectionIntentCompilerTest extends AbstractLinkCollectionTest
                 DefaultLink.builder().providerId(PID).src(of2p2).dst(of4p1).type(DIRECT).build()
         );
 
-        Set<ConnectPoint> ingress = ImmutableSet.of(
-                of1p1,
-                of3p1
+        Set<FilteredConnectPoint> ingress = ImmutableSet.of(
+                new FilteredConnectPoint(of1p1),
+                new FilteredConnectPoint(of3p1)
         );
 
-        Set<ConnectPoint> egress = ImmutableSet.of(
-                of4p2
+        Set<FilteredConnectPoint> egress = ImmutableSet.of(
+                new FilteredConnectPoint(of4p2)
         );
 
         TrafficSelector expectOf1Selector = DefaultTrafficSelector.builder(ipPrefixSelector)
@@ -614,8 +613,8 @@ public class LinkCollectionIntentCompilerTest extends AbstractLinkCollectionTest
         intent = LinkCollectionIntent.builder()
                 .appId(APP_ID)
                 .selector(ipPrefixSelector)
-                .ingressPoints(ingress)
-                .egressPoints(egress)
+                .filteredIngressPoints(ingress)
+                .filteredEgressPoints(egress)
                 .treatment(ethDstTreatment)
                 .links(testlinks)
                 .build();
