@@ -350,17 +350,6 @@ public abstract class L2ModificationInstruction implements Instruction {
             return mplsLabel;
         }
 
-        /**
-         * Extracts the MPLS label from the instruction.
-         *
-         * @return MPLS label
-         * @deprecated deprecated in 1.5.0 Falcon
-         */
-        @Deprecated
-        public MplsLabel mplsLabel() {
-            return label();
-        }
-
         @Override
         public L2SubType subtype() {
             return L2SubType.MPLS_LABEL;
