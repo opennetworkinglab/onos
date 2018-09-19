@@ -108,7 +108,7 @@ public class PolatisAlarmConsumer extends AbstractHandlerBehaviour implements Al
         }
         long timeRaised = getTimeRaised(cfg);
         DefaultAlarm.Builder alarmBuilder = new DefaultAlarm.Builder(
-                AlarmId.alarmId(deviceId, Long.toString(timeRaised)),
+                AlarmId.alarmId(deviceId, alarmMessage),
                 deviceId, alarmMessage, alarmLevel, timeRaised);
         return alarmBuilder.build();
     }

@@ -51,6 +51,7 @@ public class PolatisAlarmConfig extends AbstractHandlerBehaviour implements Devi
     private final Logger log = getLogger(getClass());
 
     private DeviceId deviceId;
+    private static final String ALARM_TYPE_LOS = "port-power-alarm";
 
     @Override
     public boolean configureDevice(IpAddress address, int port, String protocol) {
@@ -74,12 +75,12 @@ public class PolatisAlarmConfig extends AbstractHandlerBehaviour implements Devi
                         while (descriptionNode != null) {
                             if (descriptionNode.getNodeType() == Node.ELEMENT_NODE) {
                                 String nodeName = descriptionNode.getNodeName();
-                                if (nodeName == "port-power-alarm") {
+                                if (nodeName.equals(ALARM_TYPE_LOS)) {
                                     Node portIdNode = descriptionNode.getChildNodes().item(1);
                                     String portId = portIdNode.getTextContent();
                                     String description = "Loss of Service alarm raised for fibre " + portId;
                                     alarms.add(new DefaultAlarm.Builder(AlarmId.alarmId(deviceId,
-                                                Long.toString(timeStamp)), deviceId, description,
+                                                description), deviceId, description,
                                                 Alarm.SeverityLevel.MAJOR, timeStamp).build());
                                     descriptionNode = null;
                                 }
