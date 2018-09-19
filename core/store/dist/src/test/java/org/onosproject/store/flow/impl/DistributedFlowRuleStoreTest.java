@@ -25,6 +25,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.packet.Ip4Address;
+import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
@@ -126,8 +127,18 @@ public class DistributedFlowRuleStoreTest {
         }
 
         @Override
+        public String host() {
+            return "127.0.0.1";
+        }
+
+        @Override
         public Ip4Address ip() {
             return Ip4Address.valueOf("127.0.0.1");
+        }
+
+        @Override
+        public IpAddress ip(boolean resolve) {
+            return ip();
         }
 
         @Override

@@ -34,7 +34,24 @@ public interface Node {
      *
      * @return IP address
      */
-    IpAddress ip();
+    default IpAddress ip() {
+        return ip(false);
+    }
+
+    /**
+     * Returns the IP address of the controller instance.
+     *
+     * @param resolve whether to resolve the hostname
+     * @return IP address
+     */
+    IpAddress ip(boolean resolve);
+
+    /**
+     * Returns the host name of the controller instance.
+     *
+     * @return the host name of the controller instance
+     */
+    String host();
 
     /**
      * Returns the TCP port on which the node listens for connections.

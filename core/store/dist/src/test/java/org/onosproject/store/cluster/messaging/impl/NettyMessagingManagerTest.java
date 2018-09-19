@@ -257,8 +257,18 @@ public class NettyMessagingManagerTest {
                     }
 
                     @Override
+                    public String host() {
+                        return ipAddress;
+                    }
+
+                    @Override
                     public IpAddress ip() {
                         return IpAddress.valueOf(ipAddress);
+                    }
+
+                    @Override
+                    public IpAddress ip(boolean resolve) {
+                        return ip();
                     }
 
                     @Override
