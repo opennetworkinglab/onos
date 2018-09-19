@@ -22,6 +22,7 @@ import org.onosproject.incubator.net.faultmanagement.alarm.Alarm;
 import org.onosproject.incubator.net.faultmanagement.alarm.AlarmConsumer;
 import org.onosproject.incubator.net.faultmanagement.alarm.AlarmId;
 import org.onosproject.incubator.net.faultmanagement.alarm.DefaultAlarm;
+import org.onosproject.incubator.net.faultmanagement.alarm.XmlEventParser;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.driver.DriverHandler;
@@ -33,9 +34,6 @@ import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.time.format.DateTimeFormatter;
-import java.time.DateTimeException;
-import java.time.OffsetDateTime;
 
 import static org.onosproject.incubator.net.faultmanagement.alarm.Alarm.SeverityLevel;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -116,16 +114,7 @@ public class PolatisAlarmConsumer extends AbstractHandlerBehaviour implements Al
     }
 
     private long getTimeRaised(HierarchicalConfiguration cfg) {
-        long timeRaised;
-
         String alarmTime = cfg.getString(ALARM_TIME);
-        try {
-            OffsetDateTime date = OffsetDateTime.parse(alarmTime, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
-            timeRaised = date.toInstant().toEpochMilli();
-            return timeRaised;
-        } catch (DateTimeException e) {
-            log.error("Cannot parse exception {} {}", alarmTime, e);
-        }
-        return System.currentTimeMillis();
+        return XmlEventParser.getEventTime(alarmTime);
     }
 }

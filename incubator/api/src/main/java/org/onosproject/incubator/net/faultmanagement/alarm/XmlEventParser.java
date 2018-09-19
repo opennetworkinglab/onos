@@ -28,7 +28,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.time.Instant;
+import java.time.DateTimeException;
+import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 
 /**
@@ -77,10 +78,21 @@ public final class XmlEventParser {
         }
     }
 
+    public static long getEventTime(String dateTime)
+        throws UnsupportedOperationException, IllegalArgumentException {
+        try {
+            OffsetDateTime date = OffsetDateTime.parse(dateTime, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+            return date.toInstant().toEpochMilli();
+        } catch (DateTimeException e) {
+            log.error("Cannot parse exception {} {}", dateTime, e);
+        }
+        return System.currentTimeMillis();
+    }
+
     public static long getEventTime(Document doc)
         throws UnsupportedOperationException, IllegalArgumentException {
         String dateTime = getEventTimeNode(doc).getTextContent();
-        return DateTimeFormatter.ISO_DATE_TIME.parse(dateTime, Instant::from).getEpochSecond();
+        return getEventTime(dateTime);
     }
 
     public static Node getDescriptionNode(Document doc) {
