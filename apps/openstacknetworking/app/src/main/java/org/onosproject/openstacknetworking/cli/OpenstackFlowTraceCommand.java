@@ -67,7 +67,7 @@ public class OpenstackFlowTraceCommand extends AbstractShellCommand {
         if (srcNode == null || srcNode.sshAuthInfo() == null) {
             log.error("Openstack node {} is null or has no SSH authentication information.\n" +
                             " Please refers to the sample network-cfg.json in OpenstackNode app to push" +
-                            "SSH authentication information", srcNode.hostname());
+                            "SSH authentication information", srcNode == null ? "" : srcNode.hostname());
 
             return;
         }
