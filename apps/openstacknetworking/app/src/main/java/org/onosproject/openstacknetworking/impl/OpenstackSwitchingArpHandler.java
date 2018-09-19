@@ -16,7 +16,6 @@
 package org.onosproject.openstacknetworking.impl;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -149,7 +148,6 @@ public final class OpenstackSwitchingArpHandler {
     private final InstancePortListener instancePortListener = new InternalInstancePortListener();
     private final OpenstackNodeListener osNodeListener = new InternalNodeEventListener();
 
-    private final Set<IpAddress> gateways = Sets.newConcurrentHashSet();
 
     private ApplicationId appId;
     private NodeId localNodeId;
@@ -165,16 +163,6 @@ public final class OpenstackSwitchingArpHandler {
         packetService.addProcessor(packetProcessor, PacketProcessor.director(0));
 
         instancePortService.addListener(instancePortListener);
-
-        osNetworkService.networks().forEach(n -> {
-            if (n.getNetworkType() != NetworkType.FLAT) {
-                osNetworkService.subnets().forEach(s -> {
-                    if (s.getNetworkId().equals(n.getId())) {
-                        addSubnetGateway(s);
-                    }
-                });
-            }
-        });
 
         log.info("Started");
     }
@@ -201,24 +189,6 @@ public final class OpenstackSwitchingArpHandler {
     private String getArpMode() {
         Set<ConfigProperty> properties = configService.getProperties(this.getClass().getName());
         return getPropertyValue(properties, ARP_MODE);
-    }
-
-    private void addSubnetGateway(Subnet osSubnet) {
-        if (Strings.isNullOrEmpty(osSubnet.getGateway())) {
-            return;
-        }
-        IpAddress gatewayIp = IpAddress.valueOf(osSubnet.getGateway());
-        gateways.add(gatewayIp);
-        log.debug("Added ARP proxy entry IP:{}", gatewayIp);
-    }
-
-    private void removeSubnetGateway(Subnet osSubnet) {
-        if (Strings.isNullOrEmpty(osSubnet.getGateway())) {
-            return;
-        }
-        IpAddress gatewayIp = IpAddress.valueOf(osSubnet.getGateway());
-        gateways.remove(gatewayIp);
-        log.debug("Removed ARP proxy entry IP:{}", gatewayIp);
     }
 
     /**
@@ -249,7 +219,8 @@ public final class OpenstackSwitchingArpHandler {
         }
 
         IpAddress targetIp = Ip4Address.valueOf(arpPacket.getTargetProtocolAddress());
-        MacAddress replyMac = gateways.contains(targetIp) ? MacAddress.valueOf(gatewayMac) :
+
+        MacAddress replyMac = gatewayIp(targetIp) ? MacAddress.valueOf(gatewayMac) :
                 getMacFromHostOpenstack(targetIp, srcInstPort.networkId());
         if (replyMac == MacAddress.NONE) {
             log.trace("Failed to find MAC address for {}", targetIp);
@@ -269,6 +240,11 @@ public final class OpenstackSwitchingArpHandler {
                 context.inPacket().receivedFrom().deviceId(),
                 treatment,
                 ByteBuffer.wrap(ethReply.serialize())));
+    }
+
+    private boolean gatewayIp(IpAddress targetIp) {
+        return osNetworkService.subnets().stream()
+                .anyMatch(subnet -> subnet.getGateway().equals(targetIp.toString()));
     }
 
     /**
@@ -580,11 +556,9 @@ public final class OpenstackSwitchingArpHandler {
             switch (event.type()) {
                 case OPENSTACK_SUBNET_CREATED:
                 case OPENSTACK_SUBNET_UPDATED:
-                    addSubnetGateway(event.subnet());
                     setFakeGatewayArpRule(event.subnet(), true, null);
                     break;
                 case OPENSTACK_SUBNET_REMOVED:
-                    removeSubnetGateway(event.subnet());
                     setFakeGatewayArpRule(event.subnet(), false, null);
                     break;
                 case OPENSTACK_NETWORK_CREATED:
@@ -610,11 +584,6 @@ public final class OpenstackSwitchingArpHandler {
         @Override
         public boolean isRelevant(OpenstackNodeEvent event) {
 
-            // add subnet gateway to local storage in all cluster nodes
-            // TODO: need to persistent the gateway collection into eventually
-            // consistent map sooner or later
-            addAllSubnetGateways();
-
             // do not allow to proceed without leadership
             NodeId leader = leadershipService.getLeader(appId.name());
             return Objects.equals(localNodeId, leader) && event.subject().type() == COMPUTE;
@@ -635,19 +604,6 @@ public final class OpenstackSwitchingArpHandler {
                 default:
                     break;
             }
-        }
-
-        private void addAllSubnetGateways() {
-            osNetworkService.networks().forEach(n -> {
-                if (n.getNetworkType() != NetworkType.FLAT) {
-                    osNetworkService.subnets()
-                            .stream()
-                            .filter(s -> s.getNetworkId().equals(n.getId()))
-                            .filter(s -> !Strings.isNullOrEmpty(s.getGateway()))
-                            .filter(s -> !gateways.contains(IpAddress.valueOf(s.getGateway())))
-                            .forEach(OpenstackSwitchingArpHandler.this::addSubnetGateway);
-                }
-            });
         }
 
         private void setDefaultArpRule(OpenstackNode osNode, boolean install) {
