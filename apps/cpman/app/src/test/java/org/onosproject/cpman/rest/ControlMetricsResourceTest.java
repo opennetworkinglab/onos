@@ -88,6 +88,16 @@ public class ControlMetricsResourceTest extends ResourceTest {
         }
 
         @Override
+        public IpAddress ip(boolean resolve) {
+            return null;
+        }
+
+        @Override
+        public String host() {
+            return null;
+        }
+
+        @Override
         public int tcpPort() {
             return 0;
         }

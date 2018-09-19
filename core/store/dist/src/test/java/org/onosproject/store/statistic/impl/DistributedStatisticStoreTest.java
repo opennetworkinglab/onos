@@ -135,7 +135,12 @@ public class DistributedStatisticStoreTest {
         }
 
         @Override
-        public Ip4Address ip() {
+        public String host() {
+            return "127.0.0.1";
+        }
+
+        @Override
+        public Ip4Address ip(boolean resolve) {
             return Ip4Address.valueOf("127.0.0.1");
         }
 

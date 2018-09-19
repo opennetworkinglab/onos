@@ -35,7 +35,6 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.ClusterMetadata;
 import org.onosproject.cluster.ClusterMetadataProvider;
 import org.onosproject.cluster.ClusterMetadataProviderRegistry;
@@ -126,7 +125,7 @@ public class ConfigFileBasedClusterMetadataProvider implements ClusterMetadataPr
     private NodePrototype toPrototype(Node node) {
         NodePrototype prototype = new NodePrototype();
         prototype.setId(node.id().id());
-        prototype.setIp(node.ip().toString());
+        prototype.setHost(node.host());
         prototype.setPort(node.tcpPort());
         return prototype;
     }
@@ -198,6 +197,36 @@ public class ConfigFileBasedClusterMetadataProvider implements ClusterMetadataPr
         }
     }
 
+    private static NodeId getNodeId(NodePrototype node) {
+        if (node.getId() != null) {
+            return NodeId.nodeId(node.getId());
+        } else if (node.getHost() != null) {
+            return NodeId.nodeId(node.getHost());
+        } else if (node.getIp() != null) {
+            return NodeId.nodeId(node.getIp());
+        } else {
+            return NodeId.nodeId(UUID.randomUUID().toString());
+        }
+    }
+
+    private static String getNodeHost(NodePrototype node) {
+        if (node.getHost() != null) {
+            return node.getHost();
+        } else if (node.getIp() != null) {
+            return node.getIp();
+        } else {
+            throw new IllegalArgumentException(
+                "Malformed cluster configuration: No host specified for node " + node.getId());
+        }
+    }
+
+    private static int getNodePort(NodePrototype node) {
+        if (node.getPort() != null) {
+            return node.getPort();
+        }
+        return DefaultControllerNode.DEFAULT_PORT;
+    }
+
     private Versioned<ClusterMetadata> fetchMetadata(String metadataUrl) {
         try {
             URL url = new URL(metadataUrl);
@@ -235,30 +264,16 @@ public class ConfigFileBasedClusterMetadataProvider implements ClusterMetadataPr
                 metadata.getName(),
                 metadata.getNode() != null ?
                     new DefaultControllerNode(
-                        metadata.getNode().getId() != null
-                            ? NodeId.nodeId(metadata.getNode().getId())
-                            : metadata.getNode().getIp() != null
-                            ? NodeId.nodeId(IpAddress.valueOf(metadata.getNode().getIp()).toString())
-                            : NodeId.nodeId(UUID.randomUUID().toString()),
-                        metadata.getNode().getIp() != null
-                            ? IpAddress.valueOf(metadata.getNode().getIp())
-                            : null,
-                        metadata.getNode().getPort() != null
-                            ? metadata.getNode().getPort()
-                            : DefaultControllerNode.DEFAULT_PORT) : null,
+                        getNodeId(metadata.getNode()),
+                        getNodeHost(metadata.getNode()),
+                        getNodePort(metadata.getNode())) : null,
                     metadata.getController()
                         .stream()
-                        .map(node -> new DefaultControllerNode(
-                            NodeId.nodeId(node.getId()),
-                            IpAddress.valueOf(node.getIp()),
-                            node.getPort() != null ? node.getPort() : 5679))
+                        .map(node -> new DefaultControllerNode(getNodeId(node), getNodeHost(node), getNodePort(node)))
                         .collect(Collectors.toSet()),
                     metadata.getStorage()
                         .stream()
-                        .map(node -> new DefaultControllerNode(
-                            NodeId.nodeId(node.getId()),
-                            IpAddress.valueOf(node.getIp()),
-                            node.getPort() != null ? node.getPort() : 5679))
+                        .map(node -> new DefaultControllerNode(getNodeId(node), getNodeHost(node), getNodePort(node)))
                         .collect(Collectors.toSet())),
                 version);
         } catch (IOException e) {
@@ -329,6 +344,7 @@ public class ConfigFileBasedClusterMetadataProvider implements ClusterMetadataPr
     private static class NodePrototype {
         private String id;
         private String ip;
+        private String host;
         private Integer port;
 
         public String getId() {
@@ -345,6 +361,14 @@ public class ConfigFileBasedClusterMetadataProvider implements ClusterMetadataPr
 
         public void setIp(String ip) {
             this.ip = ip;
+        }
+
+        public String getHost() {
+            return host;
+        }
+
+        public void setHost(String host) {
+            this.host = host;
         }
 
         public Integer getPort() {
