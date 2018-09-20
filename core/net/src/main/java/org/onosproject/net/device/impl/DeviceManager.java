@@ -519,6 +519,31 @@ public class DeviceManager
             super(provider);
         }
 
+        /**
+         * Apply role in reaction to provider event.
+         *
+         * @param deviceId device identifier
+         * @param newRole  new role to apply to the device
+         * @return true if the request was sent to provider
+         */
+        private boolean applyRole(DeviceId deviceId, MastershipRole newRole) {
+
+            if (newRole.equals(MastershipRole.NONE)) {
+                //no-op
+                return true;
+            }
+
+            DeviceProvider provider = provider();
+            if (provider == null) {
+                log.warn("Provider for {} was not found. Cannot apply role {}",
+                         deviceId, newRole);
+                return false;
+            }
+            provider.roleChanged(deviceId, newRole);
+            // not triggering probe when triggered by provider service event
+            return true;
+        }
+
         @Override
         public void deviceConnected(DeviceId deviceId,
                                     DeviceDescription deviceDescription) {
@@ -545,6 +570,7 @@ public class DeviceManager
             log.info("Local role is {} for {}", role, deviceId);
             DeviceEvent event = store.createOrUpdateDevice(provider().id(), deviceId,
                     deviceDescription);
+            applyRole(deviceId, role);
 
             if (portConfig != null) {
                 //updating the ports if configration exists
