@@ -56,7 +56,7 @@ public class GroupsListCommand extends AbstractShellCommand {
     private static final String FORMAT =
             "   id=0x%s, state=%s, type=%s, bytes=%s, packets=%s, appId=%s, referenceCount=%s";
     private static final String BUCKET_FORMAT =
-            "       id=0x%s, bucket=%s, bytes=%s, packets=%s, actions=%s";
+            "       id=0x%s, bucket=%s, bytes=%s, packets=%s, weight=%s, actions=%s";
 
     @Argument(index = 1, name = "uri", description = "Device ID",
             required = false, multiValued = false)
@@ -155,7 +155,7 @@ public class GroupsListCommand extends AbstractShellCommand {
             int i = 0;
             for (GroupBucket bucket:group.buckets().buckets()) {
                 print(BUCKET_FORMAT, Integer.toHexString(group.id().id()), ++i,
-                      bucket.bytes(), bucket.packets(),
+                      bucket.bytes(), bucket.packets(), bucket.weight(),
                       bucket.treatment().allInstructions());
             }
         }
