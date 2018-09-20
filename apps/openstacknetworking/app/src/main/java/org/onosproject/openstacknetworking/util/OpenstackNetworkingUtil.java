@@ -700,7 +700,7 @@ public final class OpenstackNetworkingUtil {
      * @param dstIp dst ip address
      * @param srcInstancePort src instance port
      * @param osNetService openstack networking service
-     * @param uplink true if this request if uplink
+     * @param uplink true if this request is for uplink
      * @return flow trace request string
      */
     public static String traceRequestString(String srcIp,

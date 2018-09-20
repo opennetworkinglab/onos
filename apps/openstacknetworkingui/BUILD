@@ -8,6 +8,7 @@ COMPILE_DEPS = CORE_DEPS + JACKSON + CLI + REST + [
     "//apps/openstacknode/api:onos-apps-openstacknode-api",
     "//apps/openstacktelemetry/api:onos-apps-openstacktelemetry-api",
     "//apps/openstacknetworking/api:onos-apps-openstacknetworking-api",
+    "//apps/openstacknetworking/app:onos-apps-openstacknetworking-app",
     "@sshd_core//jar",
 ]
 

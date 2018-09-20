@@ -28,7 +28,7 @@
     var flowStatsDstIp = null;
 
     var traceInfoDialogId = 'traceInfoDialogId',
-        traceInfoDialogOpt = {
+        traceInfoDialogOpt =   {
             width: 350,
             edge: 'left',
             margin: 20,
@@ -278,7 +278,7 @@
     }
 
     function flowTraceResultBtn() {
-        sts.sendFlowTraceRequest(traceSrc, traceDst, srcDeviceId, dstDeviceId);
+        sts.sendFlowTraceRequest(traceSrc, traceDst, srcDeviceId, dstDeviceId, true);
         ds.closeDialog();
         traceSrc = null;
         traceDst = null;

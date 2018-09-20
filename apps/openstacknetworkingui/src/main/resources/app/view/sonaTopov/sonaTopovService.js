@@ -28,6 +28,12 @@
     // injected refs
     var $log, fs, flash, wss, ds;
 
+    var traceSrc = null;
+    var traceDst = null;
+    var srcDeviceId = null;
+    var dstDeviceId = null;
+    var uplink = null;
+
     // constants
     var displayStart = 'openstackNetworkingUiStart',
         displayUpdate = 'openstackNetworkingUiUpdate',
@@ -76,12 +82,13 @@
         flash.flash('sendFlowStatsRemoveRequest called');
     }
 
-    function sendFlowTraceRequest(src, dst, srcDeviceId, dstDeviceId) {
+    function sendFlowTraceRequest(src, dst, srcDeviceId, dstDeviceId, uplink) {
         wss.sendEvent(flowTraceRequest, {
             srcIp: src,
             dstIp: dst,
             srcDeviceId: srcDeviceId,
             dstDeviceId: dstDeviceId,
+            uplink: uplink,
         });
         flash.flash('sendFlowTraceRequest called');
     }
@@ -175,11 +182,32 @@
                 hideMargin: -20
             }
         var traceSuccess = data.traceSuccess == true ? "SUCCESS" : "FALSE";
-        ds.openDialog(flowTraceResultDialogId, flowTraceResultDialogOpt)
-                    .setTitle('Flow Trace Result: ' + traceSuccess)
-                    .addContent(createTraceResultInfoDiv(data))
-                    .addOk(dOk, 'Close')
-                    .bindKeys();
+        traceSrc = data.srcIp;
+        traceDst = data.dstIp;
+        srcDeviceId = data.srcDeviceId;
+        dstDeviceId = data.dstDeviceId;
+        uplink = data.uplink;
+
+        if (data.uplink == true) {
+            ds.openDialog(flowTraceResultDialogId, flowTraceResultDialogOpt)
+                .setTitle('Flow Trace Result: ' + traceSuccess)
+                .addContent(createTraceResultInfoDiv(data))
+                .addOk(downlinkTraceRequestBtn, 'Downlink Trace')
+                .bindKeys();
+        } else {
+            ds.openDialog(flowTraceResultDialogId, flowTraceResultDialogOpt)
+                .setTitle('Flow Trace Result: ' + traceSuccess)
+                .addContent(createTraceResultInfoDiv(data))
+                .addOk(dOk, 'Close')
+                .bindKeys();
+        }
+
+    }
+
+    function downlinkTraceRequestBtn() {
+        sendFlowTraceRequest(traceSrc, traceDst, srcDeviceId, dstDeviceId, false);
+        ds.closeDialog();
+        flash.flash('Send Downlink Flow Trace Request')
     }
 
     function createTraceResultInfoDiv(data) {
