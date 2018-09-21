@@ -592,15 +592,17 @@ public final class JuniperUtils {
             List<HierarchicalConfiguration> routes = routeTable.configurationsAt("rt");
             for (HierarchicalConfiguration route : routes) {
                 if (route != null) {
-                    HierarchicalConfiguration rtEntry = route.configurationAt("rt-entry");
-                    if (rtEntry.getString(PROTOCOL_NAME) != null &&
-                            rtEntry.getString(PROTOCOL_NAME).contains("Static")) {
-                        parseStaticRoute(rtEntry,
-                                route.getString("rt-destination"),
-                                rtEntry.getString("metric"))
-                                .ifPresent(x -> staticRoutes.add(x));
+                    List<HierarchicalConfiguration> rtEntries = route.configurationsAt("rt-entry");
+                    rtEntries.forEach(rtEntry -> {
+                        if (rtEntry.getString(PROTOCOL_NAME) != null &&
+                                rtEntry.getString(PROTOCOL_NAME).contains("Static")) {
+                            parseStaticRoute(rtEntry,
+                                    route.getString("rt-destination"),
+                                    rtEntry.getString("metric"))
+                                    .ifPresent(staticRoutes::add);
 
-                    }
+                        }
+                    });
                 }
             }
         }
