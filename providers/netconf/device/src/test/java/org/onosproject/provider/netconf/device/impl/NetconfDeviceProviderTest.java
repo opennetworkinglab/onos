@@ -263,12 +263,8 @@ public class NetconfDeviceProviderTest {
         assertNotNull(providerService);
         assertTrue("Event should be relevant", provider.cfgListener.isRelevant(deviceAddedEvent));
         available = true;
-        provider.cfgListener.event(deviceAddedEvent);
-
-        deviceAdded.await();
-        assertEquals("Device should be added", 1, deviceStore.getDeviceCount());
-        assertTrue("Device incorrectly added" + NETCONF_DEVICE_ID_STRING,
-                   devices.containsKey(DeviceId.deviceId(NETCONF_DEVICE_ID_STRING)));
+        assertFalse("Device should not be reachable" + NETCONF_DEVICE_ID_STRING,
+                provider.isReachable(DeviceId.deviceId(NETCONF_DEVICE_ID_STRING)));
         devices.clear();
     }
 
@@ -339,6 +335,11 @@ public class NetconfDeviceProviderTest {
 
     private class MockDeviceService extends DeviceServiceAdapter {
         DeviceListener listener = null;
+
+        @Override
+        public boolean isAvailable(DeviceId deviceId) {
+            return true;
+        }
 
         @Override
         public Device getDevice(DeviceId deviceId) {
