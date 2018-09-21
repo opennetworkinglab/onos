@@ -81,4 +81,18 @@ public interface LinkDiscoveryContext {
      * @return the cluster identifier
      */
     String fingerprint();
+
+    /**
+     * Returns the cluster-wide MAC secret used to secure LLDP packets.
+     *
+     * @return the secret
+     */
+    String lldpSecret();
+
+    /**
+     * Returns the maximum delay in milliseconds between sending an LLDP packet and receiving it elsewhere.
+     *
+     * @return delay in ms
+     */
+    long maxDiscoveryDelay();
 }

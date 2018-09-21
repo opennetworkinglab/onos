@@ -20,6 +20,7 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.util.Collections;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
@@ -73,7 +74,8 @@ public class DefaultClusterMetadataProvider implements ClusterMetadataProvider {
         ControllerNode localNode =
                 new DefaultControllerNode(new NodeId(localIp), IpAddress.valueOf(localIp), DEFAULT_ONOS_PORT);
         ClusterMetadata metadata = new ClusterMetadata(
-            PROVIDER_ID, "default", localNode, ImmutableSet.of(), ImmutableSet.of());
+            PROVIDER_ID, "default", localNode, ImmutableSet.of(), ImmutableSet.of(),
+            UUID.randomUUID().toString());
         long version = System.currentTimeMillis();
         cachedMetadata.set(new Versioned<>(metadata, version));
         providerRegistry.register(this);

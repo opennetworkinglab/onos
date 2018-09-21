@@ -30,8 +30,9 @@ public class ONOSLLDPTest {
     private static final Integer PORT_NUMBER = 2;
     private static final Integer PORT_NUMBER_2 = 98761234;
     private static final String PORT_DESC = "Ethernet1";
+    private static final String TEST_SECRET = "test";
 
-    private ONOSLLDP onoslldp = ONOSLLDP.onosLLDP(DEVICE_ID, CHASSIS_ID, PORT_NUMBER, PORT_DESC);
+    private ONOSLLDP onoslldp = ONOSLLDP.onosSecureLLDP(DEVICE_ID, CHASSIS_ID, PORT_NUMBER, PORT_DESC, TEST_SECRET);
 
     /**
      * Tests port number and getters.

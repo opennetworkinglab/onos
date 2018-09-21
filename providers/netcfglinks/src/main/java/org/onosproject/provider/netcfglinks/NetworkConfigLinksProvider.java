@@ -107,6 +107,12 @@ public class NetworkConfigLinksProvider
             label = "LLDP and BDDP probe rate specified in millis")
     private int probeRate = DEFAULT_PROBE_RATE;
 
+    private static final String PROP_DISCOVERY_DELAY = "maxLLDPAge";
+    private static final int DEFAULT_DISCOVERY_DELAY = 1000;
+    @Property(name = PROP_DISCOVERY_DELAY, intValue = DEFAULT_DISCOVERY_DELAY,
+            label = "Number of millis beyond which an LLDP packet will not be accepted")
+    private int maxDiscoveryDelayMs = DEFAULT_DISCOVERY_DELAY;
+
     // Device link discovery helpers.
     protected final Map<DeviceId, LinkDiscovery> discoverers = new ConcurrentHashMap<>();
 
@@ -265,8 +271,29 @@ public class NetworkConfigLinksProvider
         public DeviceService deviceService() {
             return deviceService;
         }
+
+        @Override
+        public String lldpSecret() {
+            return metadataService.getClusterMetadata().getClusterSecret();
+        }
+
+        @Override
+        public long maxDiscoveryDelay() {
+            return maxDiscoveryDelayMs;
+        }
     }
 
+    // true if *NOT* this cluster's own probe.
+    private boolean isOthercluster(String mac) {
+        // if we are using DEFAULT_MAC, clustering hadn't initialized, so conservative 'yes'
+        String ourMac = context.fingerprint();
+        if (ProbedLinkProvider.defaultMac().equalsIgnoreCase(ourMac)) {
+            return true;
+        }
+        return !mac.equalsIgnoreCase(ourMac);
+    }
+
+    //doesn't validate. Used just to decide if this is expected link.
     LinkKey extractLinkKey(PacketContext packetContext) {
         Ethernet eth = packetContext.inPacket().parsed();
         if (eth == null) {
@@ -285,6 +312,27 @@ public class NetworkConfigLinksProvider
             return LinkKey.linkKey(src, dst);
         }
         return null;
+    }
+
+    private boolean verify(PacketContext packetContext) {
+        Ethernet eth = packetContext.inPacket().parsed();
+        if (eth == null) {
+            return false;
+        }
+
+        ONOSLLDP onoslldp = ONOSLLDP.parseONOSLLDP(eth);
+        if (onoslldp != null) {
+            if (!isOthercluster(eth.getSourceMAC().toString())) {
+                return false;
+            }
+
+            if (!ONOSLLDP.verify(onoslldp, context.lldpSecret(), context.maxDiscoveryDelay())) {
+                log.warn("LLDP Packet failed to validate!");
+                return false;
+            }
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -344,13 +392,15 @@ public class NetworkConfigLinksProvider
                         context.block();
                     }
                 } else {
-                    log.debug("Found link that was not in the configuration {}", linkKey);
-                    providerService.linkDetected(
-                            new DefaultLinkDescription(linkKey.src(),
-                                                       linkKey.dst(),
-                                                       Link.Type.DIRECT,
-                                                       DefaultLinkDescription.NOT_EXPECTED,
-                                                       DefaultAnnotations.EMPTY));
+                    if (verify(context)) {
+                        log.debug("Found link that was not in the configuration {}", linkKey);
+                        providerService.linkDetected(
+                                new DefaultLinkDescription(linkKey.src(),
+                                                           linkKey.dst(),
+                                                           Link.Type.DIRECT,
+                                                           DefaultLinkDescription.NOT_EXPECTED,
+                                                           DefaultAnnotations.EMPTY));
+                    }
                 }
             }
         }
