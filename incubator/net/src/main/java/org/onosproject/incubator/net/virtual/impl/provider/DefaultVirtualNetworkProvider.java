@@ -22,9 +22,7 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.incubator.net.virtual.DefaultVirtualLink;
-import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.provider.VirtualNetworkProvider;
 import org.onosproject.incubator.net.virtual.provider.VirtualNetworkProviderRegistry;
 import org.onosproject.incubator.net.virtual.provider.VirtualNetworkProviderService;
@@ -119,16 +117,6 @@ public class DefaultVirtualNetworkProvider
             }
         });
         return foundSrc[0] && foundDst[0];
-    }
-
-    @Override
-    public TunnelId createTunnel(NetworkId networkId, ConnectPoint src, ConnectPoint dst) {
-        return null;
-    }
-
-    @Override
-    public void destroyTunnel(NetworkId networkId, TunnelId tunnelId) {
-
     }
 
     /**
