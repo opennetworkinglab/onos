@@ -114,7 +114,7 @@ public class XconnectManager implements XconnectService {
 
     private ApplicationId appId;
     private ConsistentMap<XconnectKey, Set<PortNumber>> xconnectStore;
-    private ConsistentMap<XconnectKey, NextObjective> xconnectNextObjStore;
+    private ConsistentMap<XconnectKey, Integer> xconnectNextObjStore;
 
     private final MapEventListener<XconnectKey, Set<PortNumber>> xconnectListener = new XconnectMapListener();
     private final DeviceListener deviceListener = new InternalDeviceListener();
@@ -138,7 +138,7 @@ public class XconnectManager implements XconnectService {
                 .build();
         xconnectStore.addListener(xconnectListener);
 
-        xconnectNextObjStore = storageService.<XconnectKey, NextObjective>consistentMapBuilder()
+        xconnectNextObjStore = storageService.<XconnectKey, Integer>consistentMapBuilder()
                 .withName("onos-sr-xconnect-next")
                 .withRelaxedReadConsistency()
                 .withSerializer(Serializer.using(serializer.build()))
@@ -194,7 +194,7 @@ public class XconnectManager implements XconnectService {
     }
 
     @Override
-    public ImmutableMap<XconnectKey, NextObjective> getNext() {
+    public ImmutableMap<XconnectKey, Integer> getNext() {
         if (xconnectNextObjStore != null) {
             return ImmutableMap.copyOf(xconnectNextObjStore.asJavaMap());
         } else {
@@ -205,7 +205,7 @@ public class XconnectManager implements XconnectService {
     @Override
     public void removeNextId(int nextId) {
         xconnectNextObjStore.entrySet().forEach(e -> {
-            if (e.getValue().value().id() == nextId) {
+            if (e.getValue().value() == nextId) {
                 xconnectNextObjStore.remove(e.getKey());
             }
         });
@@ -260,13 +260,13 @@ public class XconnectManager implements XconnectService {
         }
     }
 
-    void init(DeviceId deviceId) {
+    private void init(DeviceId deviceId) {
         getXconnects().stream()
                 .filter(desc -> desc.key().deviceId().equals(deviceId))
                 .forEach(desc -> populateXConnect(desc.key(), desc.ports()));
     }
 
-    void cleanup(DeviceId deviceId) {
+    private void cleanup(DeviceId deviceId) {
         xconnectNextObjStore.entrySet().stream()
                 .filter(entry -> entry.getKey().deviceId().equals(deviceId))
                 .forEach(entry -> xconnectNextObjStore.remove(entry.getKey()));
@@ -316,11 +316,11 @@ public class XconnectManager implements XconnectService {
      * @param key XConnect store key
      * @param ports XConnect ports
      */
-    private NextObjective populateNext(XconnectKey key, Set<PortNumber> ports) {
-        NextObjective nextObj;
+    private int populateNext(XconnectKey key, Set<PortNumber> ports) {
         if (xconnectNextObjStore.containsKey(key)) {
-            nextObj = xconnectNextObjStore.get(key).value();
-            log.debug("NextObj for {} found, id={}", key, nextObj.id());
+            int nextId = xconnectNextObjStore.get(key).value();
+            log.debug("NextObj for {} found, id={}", key, nextId);
+            return nextId;
         } else {
             NextObjective.Builder nextObjBuilder = nextObjBuilder(key, ports);
             ObjectiveContext nextContext = new DefaultObjectiveContext(
@@ -331,22 +331,22 @@ public class XconnectManager implements XconnectService {
                         log.warn("Failed to add XConnect NextObj for {}: {}", key, error);
                         srService.invalidateNextObj(objective.id());
                     });
-            nextObj = nextObjBuilder.add(nextContext);
+            NextObjective nextObj = nextObjBuilder.add(nextContext);
             flowObjectiveService.next(key.deviceId(), nextObj);
-            xconnectNextObjStore.put(key, nextObj);
+            xconnectNextObjStore.put(key, nextObj.id());
             log.debug("NextObj for {} not found. Creating new NextObj with id={}", key, nextObj.id());
+            return nextObj.id();
         }
-        return nextObj;
     }
 
     /**
      * Populates bridging forwarding objectives for given XConnect.
      *
      * @param key XConnect store key
-     * @param nextObj next objective
+     * @param nextId next objective id
      */
-    private void populateFwd(XconnectKey key, NextObjective nextObj) {
-        ForwardingObjective.Builder fwdObjBuilder = fwdObjBuilder(key, nextObj.id());
+    private void populateFwd(XconnectKey key, int nextId) {
+        ForwardingObjective.Builder fwdObjBuilder = fwdObjBuilder(key, nextId);
         ObjectiveContext fwdContext = new DefaultObjectiveContext(
                 (objective) -> log.debug("XConnect FwdObj for {} populated", key),
                 (objective, error) ->
@@ -383,9 +383,9 @@ public class XconnectManager implements XconnectService {
         ports = addPairPort(key.deviceId(), ports);
         revokeFilter(key, ports);
         if (xconnectNextObjStore.containsKey(key)) {
-            NextObjective nextObj = xconnectNextObjStore.get(key).value();
-            revokeFwd(key, nextObj, null);
-            revokeNext(key, nextObj, null);
+            int nextId = xconnectNextObjStore.get(key).value();
+            revokeFwd(key, nextId, null);
+            revokeNext(key, ports, nextId, null);
         } else {
             log.warn("NextObj for {} does not exist in the store.", key);
         }
@@ -415,10 +415,11 @@ public class XconnectManager implements XconnectService {
      * Revokes next objectives for given XConnect.
      *
      * @param key XConnect store key
-     * @param nextObj next objective
+     * @param ports ports in the XConnect
+     * @param nextId next objective id
      * @param nextFuture completable future for this next objective operation
      */
-    private void revokeNext(XconnectKey key, NextObjective nextObj,
+    private void revokeNext(XconnectKey key, Set<PortNumber> ports, int nextId,
                             CompletableFuture<ObjectiveError> nextFuture) {
         ObjectiveContext context = new ObjectiveContext() {
             @Override
@@ -438,8 +439,7 @@ public class XconnectManager implements XconnectService {
                 srService.invalidateNextObj(objective.id());
             }
         };
-        flowObjectiveService.next(key.deviceId(),
-                (NextObjective) nextObj.copy().remove(context));
+        flowObjectiveService.next(key.deviceId(), (NextObjective) nextObjBuilder(key, ports, nextId).remove(context));
         xconnectNextObjStore.remove(key);
     }
 
@@ -447,12 +447,11 @@ public class XconnectManager implements XconnectService {
      * Revokes bridging forwarding objectives for given XConnect.
      *
      * @param key XConnect store key
-     * @param nextObj next objective
+     * @param nextId next objective id
      * @param fwdFuture completable future for this forwarding objective operation
      */
-    private void revokeFwd(XconnectKey key, NextObjective nextObj,
-                           CompletableFuture<ObjectiveError> fwdFuture) {
-        ForwardingObjective.Builder fwdObjBuilder = fwdObjBuilder(key, nextObj.id());
+    private void revokeFwd(XconnectKey key, int nextId, CompletableFuture<ObjectiveError> fwdFuture) {
+        ForwardingObjective.Builder fwdObjBuilder = fwdObjBuilder(key, nextId);
         ObjectiveContext context = new ObjectiveContext() {
             @Override
             public void onSuccess(Objective objective) {
@@ -510,13 +509,13 @@ public class XconnectManager implements XconnectService {
         CompletableFuture<ObjectiveError> nextFuture = new CompletableFuture<>();
 
         if (xconnectNextObjStore.containsKey(key)) {
-            NextObjective nextObj = xconnectNextObjStore.get(key).value();
-            revokeFwd(key, nextObj, fwdFuture);
+            int nextId = xconnectNextObjStore.get(key).value();
+            revokeFwd(key, nextId, fwdFuture);
 
             fwdFuture.thenAcceptAsync(fwdStatus -> {
                 if (fwdStatus == null) {
                     log.debug("Fwd removed. Now remove group {}", key);
-                    revokeNext(key, nextObj, nextFuture);
+                    revokeNext(key, prevPorts, nextId, nextFuture);
                 }
             });
 
@@ -532,14 +531,14 @@ public class XconnectManager implements XconnectService {
     }
 
     /**
-     * Creates a next objective builder for XConnect.
+     * Creates a next objective builder for XConnect with given nextId.
      *
      * @param key XConnect key
      * @param ports set of XConnect ports
+     * @param nextId next objective id
      * @return next objective builder
      */
-    private NextObjective.Builder nextObjBuilder(XconnectKey key, Set<PortNumber> ports) {
-        int nextId = flowObjectiveService.allocateNextId();
+    private NextObjective.Builder nextObjBuilder(XconnectKey key, Set<PortNumber> ports, int nextId) {
         TrafficSelector metadata =
                 DefaultTrafficSelector.builder().matchVlanId(key.vlanId()).build();
         NextObjective.Builder nextObjBuilder = DefaultNextObjective
@@ -553,6 +552,19 @@ public class XconnectManager implements XconnectService {
         });
         return nextObjBuilder;
     }
+
+    /**
+     * Creates a next objective builder for XConnect.
+     *
+     * @param key XConnect key
+     * @param ports set of XConnect ports
+     * @return next objective builder
+     */
+    private NextObjective.Builder nextObjBuilder(XconnectKey key, Set<PortNumber> ports) {
+        int nextId = flowObjectiveService.allocateNextId();
+        return nextObjBuilder(key, ports, nextId);
+    }
+
 
     /**
      * Creates a bridging forwarding objective builder for XConnect.
