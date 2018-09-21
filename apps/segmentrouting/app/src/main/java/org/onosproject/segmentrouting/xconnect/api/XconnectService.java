@@ -21,7 +21,6 @@ import org.onlab.packet.VlanId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
-import org.onosproject.net.flowobjective.NextObjective;
 
 import java.util.Set;
 
@@ -78,7 +77,7 @@ public interface XconnectService {
      *
      * @return current contents of the xconnectNextObjStore
      */
-    ImmutableMap<XconnectKey, NextObjective> getNext();
+    ImmutableMap<XconnectKey, Integer> getNext();
 
     /**
      * Removes given next ID from Xconnect next objective store.
