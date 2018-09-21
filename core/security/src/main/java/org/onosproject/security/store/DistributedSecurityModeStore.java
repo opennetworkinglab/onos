@@ -42,6 +42,7 @@ import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
+import org.onosproject.store.service.Versioned;
 import org.slf4j.Logger;
 
 import java.util.HashSet;
@@ -232,7 +233,8 @@ public class DistributedSecurityModeStore
                 return;
             }
             ApplicationId appId = event.key();
-            SecurityInfo info = event.value().value();
+            Versioned<SecurityInfo> value = event.type() == MapEvent.Type.REMOVE ? event.oldValue() : event.newValue();
+            SecurityInfo info = value.value();
 
             if (event.type() == MapEvent.Type.INSERT || event.type() == MapEvent.Type.UPDATE) {
                 switch (info.getState()) {

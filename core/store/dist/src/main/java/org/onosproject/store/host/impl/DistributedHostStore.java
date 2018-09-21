@@ -49,6 +49,7 @@ import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.DistributedPrimitive.Status;
+import org.onosproject.store.service.Versioned;
 import org.slf4j.Logger;
 
 import java.util.Collection;
@@ -420,7 +421,8 @@ public class DistributedHostStore
     private class HostLocationTracker implements MapEventListener<HostId, DefaultHost> {
         @Override
         public void event(MapEvent<HostId, DefaultHost> event) {
-            DefaultHost host = checkNotNull(event.value().value());
+            Versioned<DefaultHost> value = event.type() == MapEvent.Type.REMOVE ? event.oldValue() : event.newValue();
+            DefaultHost host = checkNotNull(value.value());
             switch (event.type()) {
                 case INSERT:
                     updateHostsByIp(host);

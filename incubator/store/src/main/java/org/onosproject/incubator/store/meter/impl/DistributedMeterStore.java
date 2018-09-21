@@ -448,7 +448,8 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
         @Override
         public void event(MapEvent<MeterKey, MeterData> event) {
             MeterKey key = event.key();
-            MeterData data = event.value().value();
+            Versioned<MeterData> value = event.type() == MapEvent.Type.REMOVE ? event.oldValue() : event.newValue();
+            MeterData data = value.value();
             NodeId master = mastershipService.getMasterFor(data.meter().deviceId());
             switch (event.type()) {
                 case INSERT:
