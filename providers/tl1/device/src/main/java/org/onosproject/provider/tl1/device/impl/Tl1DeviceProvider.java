@@ -71,11 +71,6 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Component(immediate = true)
 public class Tl1DeviceProvider extends AbstractProvider implements DeviceProvider {
     private static final String APP_NAME = "org.onosproject.tl1";
-    /**
-     * @deprecated in 1.11.0. Use {@link Tl1DeviceConfig#TL1} instead
-     */
-    @Deprecated
-    protected static final String TL1 = Tl1DeviceConfig.TL1;
     private static final String PROVIDER = "org.onosproject.provider.tl1.device";
     private static final String UNKNOWN = "unknown";
     private static final int REACHABILITY_TIMEOUT = 2000;      // in milliseconds
