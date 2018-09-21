@@ -18,7 +18,6 @@ package org.onosproject.segmentrouting.cli;
 
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.net.flowobjective.NextObjective;
 import org.onosproject.segmentrouting.xconnect.api.XconnectKey;
 import org.onosproject.segmentrouting.xconnect.api.XconnectService;
 
@@ -39,7 +38,7 @@ public class XconnectNextListCommand extends AbstractShellCommand {
         print(xconnectService.getNext());
     }
 
-    private void print(Map<XconnectKey, NextObjective> nextStore) {
+    private void print(Map<XconnectKey, Integer> nextStore) {
         ArrayList<XconnectKey> a = new ArrayList<>(nextStore.keySet());
         a.sort(Comparator
                 .comparing((XconnectKey o) -> o.deviceId().toString())
@@ -50,7 +49,7 @@ public class XconnectNextListCommand extends AbstractShellCommand {
             builder.append("\n")
                     .append(k)
                     .append(" --> ")
-                    .append(nextStore.get(k).id())
+                    .append(nextStore.get(k))
         );
         print(builder.toString());
     }
