@@ -1214,7 +1214,8 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
         DhcpServerInfo foundServerInfo = findServerInfoFromServer(directConnFlag, inPort);
 
         if (foundServerInfo == null) {
-            log.warn("Cannot find server info");
+            log.warn("Cannot find server info for {} server, inPort {}",
+                      directConnFlag ? "direct" : "indirect", inPort);
             dhcpRelayCountersStore.incrementCounter(gCount, DhcpRelayCounters.NO_SERVER_INFO);
             return null;
         } else {
@@ -1849,9 +1850,6 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
                 log.debug("ServerInfo found for Rcv port {} Server Connect Point {} for {}",
                         inPort, serverInfo.getDhcpServerConnectPoint(), directConnFlag ? "direct" : "indirect");
                 break;
-            } else {
-                log.warn("Rcv port {} not the same as Server Connect Point {} for {}",
-                        inPort, serverInfo.getDhcpServerConnectPoint(), directConnFlag ? "direct" : "indirect");
             }
         }
         return foundServerInfo;
