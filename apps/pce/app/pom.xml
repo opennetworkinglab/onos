@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.onosproject</groupId>
         <artifactId>onos-apps-pce</artifactId>
-        <version>1.13.4-SNAPSHOT</version>
+        <version>1.13.4</version>
     </parent>
     <artifactId>onos-apps-pce-app</artifactId>
     <packaging>bundle</packaging>

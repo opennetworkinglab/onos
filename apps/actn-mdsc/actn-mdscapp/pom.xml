@@ -23,7 +23,7 @@
     <parent>
         <artifactId>onos-actn-mdsc</artifactId>
         <groupId>org.onosproject</groupId>
-        <version>1.13.4-SNAPSHOT</version>
+        <version>1.13.4</version>
     </parent>
 
     <artifactId>onos-actn-mdscapp</artifactId>

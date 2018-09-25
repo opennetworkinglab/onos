@@ -21,7 +21,7 @@
     <parent>
         <artifactId>onos-apps</artifactId>
         <groupId>org.onosproject</groupId>
-        <version>1.13.4-SNAPSHOT</version>
+        <version>1.13.4</version>
     </parent>
 
     <artifactId>onos-events</artifactId>
