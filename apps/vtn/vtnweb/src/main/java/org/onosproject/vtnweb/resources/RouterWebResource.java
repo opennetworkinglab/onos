@@ -204,7 +204,7 @@ public class RouterWebResource extends AbstractWebResource {
             } else if (subnode.get("tenant_id").asText().isEmpty()) {
                 throw new IllegalArgumentException("tenant_id should not be empty");
             }
-            TenantId tenentId = TenantId
+            TenantId tenantId = TenantId
                     .tenantId(subnode.get("tenant_id").asText());
             if (!subnode.hasNonNull("port_id")) {
                 throw new IllegalArgumentException("port_id should not be null");
@@ -214,7 +214,7 @@ public class RouterWebResource extends AbstractWebResource {
             VirtualPortId portId = VirtualPortId
                     .portId(subnode.get("port_id").asText());
             RouterInterface routerInterface = RouterInterface
-                    .routerInterface(subnetId, portId, routerId, tenentId);
+                    .routerInterface(subnetId, portId, routerId, tenantId);
             get(RouterInterfaceService.class)
                     .addRouterInterface(routerInterface);
             return ok(INTFACR_ADD_SUCCESS).build();
@@ -260,10 +260,10 @@ public class RouterWebResource extends AbstractWebResource {
             } else if (subnode.get("tenant_id").asText().isEmpty()) {
                 throw new IllegalArgumentException("tenant_id should not be empty");
             }
-            TenantId tenentId = TenantId
+            TenantId tenantId = TenantId
                     .tenantId(subnode.get("tenant_id").asText());
             RouterInterface routerInterface = RouterInterface
-                    .routerInterface(subnetId, portId, routerId, tenentId);
+                    .routerInterface(subnetId, portId, routerId, tenantId);
             get(RouterInterfaceService.class)
                     .removeRouterInterface(routerInterface);
             return ok(INTFACR_DEL_SUCCESS).build();
