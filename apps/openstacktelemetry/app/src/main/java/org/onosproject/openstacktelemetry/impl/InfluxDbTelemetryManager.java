@@ -58,8 +58,6 @@ public class InfluxDbTelemetryManager implements InfluxDbTelemetryAdminService {
     private static final String SRC_PORT = "srcPort";
     private static final String DST_PORT = "dstPort";
     private static final String PROTOCOL = "protocol";
-    private static final String SRC_MAC = "srcMac";
-    private static final String DST_MAC = "dstMac";
 
     private static final String STARTUP_TIME = "startupTime";
     private static final String FST_PKT_ARR_TIME = "fstPktArrTime";
@@ -130,7 +128,7 @@ public class InfluxDbTelemetryManager implements InfluxDbTelemetryAdminService {
             producer = null;
         }
 
-        log.info("InfluxDB producer has Stopped");
+        log.info("InfluxDB producer has stopped");
     }
 
     @Override
