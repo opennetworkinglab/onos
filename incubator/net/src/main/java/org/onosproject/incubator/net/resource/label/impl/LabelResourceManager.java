@@ -54,7 +54,8 @@ import static org.slf4j.LoggerFactory.getLogger;
  * provides implementation of the label resource NB &amp; SB APIs.
  *
  */
-@Component(immediate = true, service = {LabelResourceService.class, LabelResourceAdminService.class, LabelResourceProviderRegistry.class})
+@Component(immediate = true,
+           service = {LabelResourceService.class, LabelResourceAdminService.class, LabelResourceProviderRegistry.class})
 public class LabelResourceManager
         extends AbstractListenerProviderRegistry<LabelResourceEvent, LabelResourceListener,
                                                  LabelResourceProvider, LabelResourceProviderService>

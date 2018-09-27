@@ -16,7 +16,7 @@
 
 package org.onosproject.routing.fpm.cli;
 
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.routing.fpm.FpmInfoService;
 
@@ -28,7 +28,7 @@ import org.onosproject.routing.fpm.FpmInfoService;
         description = "Pushes all local FPM routes to route store")
 public class FpmPushRoutesCommand extends AbstractShellCommand {
     @Override
-    protected void execute() {
+    protected void doExecute() {
         FpmInfoService fpmInfo = get(FpmInfoService.class);
         fpmInfo.pushFpmRoutes();
     }

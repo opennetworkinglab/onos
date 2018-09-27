@@ -28,16 +28,14 @@
     the sandbox at the proper locations and then returned as a tar ball.
 """
 
-COMPILE_DEPS = CORE_DEPS + JACKSON + KRYO + [
+COMPILE_DEPS = CORE_DEPS + JACKSON + KRYO + CLI + [
     "@javax_ws_rs_api//jar",
     "@servlet_api//jar",
     "@jetty_websocket//jar",
     "@jetty_websocket_api//jar",
     "@jetty_util//jar",
     "@jersey_media_multipart//jar",
-    "@org_apache_karaf_shell_core//jar",
     "@jersey_server//jar",
-    "//cli:onos-cli",
     "//incubator/api:onos-incubator-api",
     "//incubator/net:onos-incubator-net",
     "//utils/rest:onlab-rest",

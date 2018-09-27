@@ -90,7 +90,8 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * An implementation of intent service.
  */
-@Component(immediate = true, service = { IntentService.class, IntentExtensionService.class, IntentInstallCoordinator.class })
+@Component(immediate = true,
+           service = { IntentService.class, IntentExtensionService.class, IntentInstallCoordinator.class })
 public class IntentManager
         extends AbstractListenerManager<IntentEvent, IntentListener>
         implements IntentService, IntentExtensionService, IntentInstallCoordinator {

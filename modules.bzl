@@ -23,7 +23,6 @@ CORE = UTILS + API + [
     "//incubator/store:onos-incubator-store",
     "//incubator/rpc:onos-incubator-rpc",
     "//cli:onos-cli",
-    "//cli2:onos-cli2",
     "//protocols/rest/api:onos-protocols-rest-api",
     "//protocols/rest/ctl:onos-protocols-rest-ctl",
     "//protocols/bgp/bgpio:onos-protocols-bgp-bgpio",
@@ -306,13 +305,11 @@ FEATURES = [
     "//tools/package/features:onos-core",
     "//tools/package/features:onos-incubator",
     "//tools/package/features:onos-cli",
-    "//tools/package/features:onos-cli2",
     "//tools/package/features:onos-rest",
     "//tools/package/features:onos-gui",
     # "//tools/package/features:onos-gui2",
     # "//tools/package/features:onos-security",
 ]
 
-APPS = ["//drivers/default:onos-drivers-default-oar"]
-#APPS = ONOS_DRIVERS + ONOS_PROVIDERS + ONOS_APPS + MODELS + PIPELINES + \
-#       PROTOCOL_APPS + APP_JARS
+APPS = ONOS_DRIVERS + ONOS_PROVIDERS + ONOS_APPS + MODELS + PIPELINES + \
+       PROTOCOL_APPS + APP_JARS

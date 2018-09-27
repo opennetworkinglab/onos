@@ -32,9 +32,9 @@ REGISTRATOR = \
     "package org.onosproject.model.registrator.impl;\n" + \
     "\n" + \
     "import org.onosproject.yang.AbstractYangModelRegistrator;\n" + \
-    "import org.apache.felix.scr.annotations.Component;\n" + \
+    "import org.osgi.service.component.annotations.Component;\n" + \
     "\n" + \
-    "@Component(immediate = true)\n" + \
+    "@Component(immediate = true, service = YangModelRegistrator.class)\n" + \
     "public class YangModelRegistrator extends AbstractYangModelRegistrator {\n" + \
     "    public YangModelRegistrator() {\n" + \
     "        super(YangModelRegistrator.class);\n" + \

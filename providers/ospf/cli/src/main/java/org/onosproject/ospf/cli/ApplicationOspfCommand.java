@@ -20,8 +20,8 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.ospf.controller.OspfArea;
 import org.onosproject.ospf.controller.OspfController;
@@ -95,7 +95,7 @@ public class ApplicationOspfCommand extends AbstractShellCommand {
     }
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         if (DATABASE.equals(name)) {
             buildOspfDatabaseInformation();
         } else if (NEIGHBORLIST.equals(name)) {

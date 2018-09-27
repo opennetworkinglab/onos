@@ -1,7 +1,6 @@
-COMPILE_DEPS = CORE_DEPS + JACKSON + [
+COMPILE_DEPS = CORE_DEPS + JACKSON + CLI + [
     "//incubator/api:onos-incubator-api",
     "//apps/faultmanagement/fmmgr:onos-apps-faultmanagement-fmmgr",
-    "//cli:onos-cli",
 ]
 
 osgi_jar_with_tests(

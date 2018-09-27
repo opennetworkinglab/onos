@@ -16,8 +16,8 @@
 package org.onosproject.openstacknetworking.cli;
 
 import com.google.common.collect.Lists;
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.openstacknetworking.api.ExternalPeerRouter;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkAdminService;
@@ -38,7 +38,7 @@ public class DeleteExternalPeerRouterCommand extends AbstractShellCommand {
     private static final String NO_ELEMENT = "There's no external peer router information with given ip address";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         OpenstackNetworkAdminService service = AbstractShellCommand.get(OpenstackNetworkAdminService.class);
 
         if (service.externalPeerRouters().stream()

@@ -53,7 +53,8 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Implementation of mapping management service.
  */
-@Component(immediate = true, service = { MappingService.class, MappingAdminService.class, MappingProviderRegistry.class })
+@Component(immediate = true,
+           service = { MappingService.class, MappingAdminService.class, MappingProviderRegistry.class })
 public class MappingManager
         extends AbstractListenerProviderRegistry<MappingEvent, MappingListener,
                                                  MappingProvider, MappingProviderService>

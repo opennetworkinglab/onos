@@ -17,8 +17,8 @@ package org.onosproject.vtnrsc.cli.virtualport;
 
 import java.util.Set;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.vtnrsc.VirtualPortId;
 import org.onosproject.vtnrsc.virtualport.VirtualPortService;
@@ -37,7 +37,7 @@ public class VirtualPortRemoveCommand extends AbstractShellCommand {
     String id = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         VirtualPortService service = get(VirtualPortService.class);
         Set<VirtualPortId> virtualPorts = Sets.newHashSet(VirtualPortId.portId(id));
         service.removePorts(virtualPorts);

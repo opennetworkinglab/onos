@@ -19,7 +19,7 @@ package org.onosproject.segmentrouting.cli;
 
 import java.util.Map;
 
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
 import org.onosproject.segmentrouting.EcmpShortestPathGraph;
@@ -37,7 +37,7 @@ public class EcmpGraphCommand extends AbstractShellCommand {
     private static final String FORMAT_MAPPING = "  %s";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         SegmentRoutingService srService =
                 AbstractShellCommand.get(SegmentRoutingService.class);
         printEcmpGraph(srService.getCurrentEcmpSpg());

@@ -16,9 +16,9 @@
 package org.onosproject.openstacktroubleshoot.cli;
 
 import com.google.common.collect.Sets;
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Option;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cluster.ClusterService;
@@ -60,7 +60,7 @@ public class OpenstackEastWestProbeCommand extends AbstractShellCommand {
     private String[] vmIps = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         OpenstackTroubleshootService tsService = get(OpenstackTroubleshootService.class);
         InstancePortService instPortService = get(InstancePortService.class);
         MastershipService mastershipService = get(MastershipService.class);

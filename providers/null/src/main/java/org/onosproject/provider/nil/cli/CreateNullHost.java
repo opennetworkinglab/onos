@@ -17,8 +17,8 @@
 package org.onosproject.provider.nil.cli;
 
 import com.google.common.collect.ImmutableSet;
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
 import org.onlab.packet.IpAddress;
 import org.onlab.util.Tools;
 import org.onosproject.net.ConnectPoint;
@@ -65,7 +65,7 @@ public class CreateNullHost extends CreateNullEntity {
     String locType = GEO;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         NullProviders service = get(NullProviders.class);
         NetworkConfigService cfgService = get(NetworkConfigService.class);
 

@@ -19,8 +19,8 @@ package org.onosproject.segmentrouting.cli;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
 import org.onlab.packet.IpPrefix;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.config.NetworkConfigService;
@@ -46,7 +46,7 @@ public class BlackHoleCommand extends AbstractShellCommand {
     private String prefix;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         SegmentRoutingService srService = AbstractShellCommand.get(SegmentRoutingService.class);
         NetworkConfigService netcfgService = AbstractShellCommand.get(NetworkConfigService.class);
 

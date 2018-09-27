@@ -17,8 +17,8 @@ package org.onosproject.pce.cli;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Option;
 
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.tunnel.Tunnel;
@@ -45,7 +45,7 @@ public class PceQueryPathCommand extends AbstractShellCommand {
     String id = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         log.info("executing pce-query-path");
 
         PceService service = get(PceService.class);

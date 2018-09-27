@@ -15,8 +15,8 @@
  */
 package org.onosproject.cfm.cli;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
 import org.onlab.packet.VlanId;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.l2monitoring.cfm.Component;
@@ -86,7 +86,7 @@ public class CfmMaAddCommand extends AbstractShellCommand {
     private String[] rmepArray = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         CfmMdService service = get(CfmMdService.class);
 
         String[] mdNameParts = mdName.split("[()]");

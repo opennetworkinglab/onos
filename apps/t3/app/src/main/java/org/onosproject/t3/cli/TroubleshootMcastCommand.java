@@ -17,8 +17,8 @@
 package org.onosproject.t3.cli;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Option;
 import org.onlab.packet.EthType;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.VlanId;
@@ -58,7 +58,7 @@ public class TroubleshootMcastCommand extends AbstractShellCommand {
 
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         TroubleshootService service = get(TroubleshootService.class);
         print("Tracing all Multicast routes in the System");
 

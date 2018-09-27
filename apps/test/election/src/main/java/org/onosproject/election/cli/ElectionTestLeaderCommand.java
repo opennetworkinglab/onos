@@ -16,7 +16,7 @@
 package org.onosproject.election.cli;
 
 import org.onosproject.cluster.NodeId;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cluster.LeadershipService;
 
@@ -31,7 +31,7 @@ public class ElectionTestLeaderCommand extends AbstractShellCommand {
     private static final String ELECTION_APP = "org.onosproject.election";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         LeadershipService service = get(LeadershipService.class);
 
         //print the current leader

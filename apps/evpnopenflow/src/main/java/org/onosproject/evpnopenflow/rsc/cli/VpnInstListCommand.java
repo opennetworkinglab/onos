@@ -16,7 +16,7 @@
 
 package org.onosproject.evpnopenflow.rsc.cli;
 
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.evpnopenflow.rsc.EvpnConstants;
 import org.onosproject.evpnopenflow.rsc.VpnInstance;
@@ -32,7 +32,7 @@ import java.util.Collection;
 public class VpnInstListCommand extends AbstractShellCommand {
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         VpnInstanceService service = get(VpnInstanceService.class);
         Collection<VpnInstance> vpnInstances = service
                 .getInstances();

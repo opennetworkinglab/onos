@@ -17,8 +17,8 @@ package org.onosproject.vtnrsc.cli.network;
 
 import java.util.Set;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.vtnrsc.TenantNetworkId;
 import org.onosproject.vtnrsc.tenantnetwork.TenantNetworkService;
@@ -37,7 +37,7 @@ public class TenantNetworkRemoveCommand extends AbstractShellCommand {
     String id = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         TenantNetworkService service = get(TenantNetworkService.class);
         Set<TenantNetworkId> networkIds = Sets.newHashSet(TenantNetworkId.networkId(id));
         service.removeNetworks(networkIds);

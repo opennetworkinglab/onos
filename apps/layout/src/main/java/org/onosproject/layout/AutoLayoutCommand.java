@@ -15,8 +15,8 @@
  */
 package org.onosproject.layout;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 
 /**
@@ -31,7 +31,7 @@ public class AutoLayoutCommand extends AbstractShellCommand {
     String algorithm = "access";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         RoleBasedLayoutManager mgr = get(RoleBasedLayoutManager.class);
         switch (algorithm) {
             case "access":

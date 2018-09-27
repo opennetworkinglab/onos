@@ -16,7 +16,7 @@
 
 package org.onosproject.pim.cli;
 
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.pim.impl.PimInterface;
 import org.onosproject.pim.impl.PimInterfaceService;
@@ -34,7 +34,7 @@ public class PimInterfacesListCommand extends AbstractShellCommand {
     private static final String ROUTE_FORMAT = "    %s";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         PimInterfaceService interfaceService = get(PimInterfaceService.class);
 
         Set<PimInterface> interfaces = interfaceService.getPimInterfaces();

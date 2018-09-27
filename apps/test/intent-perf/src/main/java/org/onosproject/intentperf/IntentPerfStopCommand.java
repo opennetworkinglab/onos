@@ -15,7 +15,7 @@
  */
 package org.onosproject.intentperf;
 
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 
 /**
@@ -26,7 +26,7 @@ import org.onosproject.cli.AbstractShellCommand;
 public class IntentPerfStopCommand extends AbstractShellCommand {
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         get(IntentPerfInstaller.class).stop();
     }
 

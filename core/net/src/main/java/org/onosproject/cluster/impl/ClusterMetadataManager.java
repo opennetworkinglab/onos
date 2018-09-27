@@ -29,15 +29,12 @@ import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.DefaultControllerNode;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.PartitionId;
-import org.onosproject.event.EventDeliveryService;
 import org.onosproject.net.provider.AbstractListenerProviderRegistry;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.onosproject.store.service.Versioned;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
-import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.net.Inet4Address;
@@ -57,7 +54,9 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Implementation of ClusterMetadataService.
  */
-@Component(immediate = true, service = {ClusterMetadataService.class, ClusterMetadataAdminService.class, ClusterMetadataProviderRegistry.class})
+@Component(immediate = true,
+           service = {ClusterMetadataService.class, ClusterMetadataAdminService.class,
+                      ClusterMetadataProviderRegistry.class})
 public class ClusterMetadataManager
     extends AbstractListenerProviderRegistry<ClusterMetadataEvent,
                                              ClusterMetadataEventListener,

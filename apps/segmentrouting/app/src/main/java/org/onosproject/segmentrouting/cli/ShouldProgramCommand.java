@@ -16,7 +16,7 @@
 
 package org.onosproject.segmentrouting.cli;
 
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.net.DeviceId;
@@ -32,7 +32,7 @@ import java.util.Set;
         description = "Display current shouldProgram map")
 public class ShouldProgramCommand extends AbstractShellCommand {
     @Override
-    protected void execute() {
+    protected void doExecute() {
         SegmentRoutingService srService = AbstractShellCommand.get(SegmentRoutingService.class);
         Map<Set<DeviceId>, NodeId> shouldProgram = srService.getShouldProgram();
         Map<DeviceId, Boolean> shouldProgramCache = srService.getShouldProgramCache();

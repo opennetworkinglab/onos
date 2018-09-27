@@ -17,8 +17,8 @@
 package org.onosproject.dhcprelay.cli;
 
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
@@ -80,7 +80,7 @@ public class DhcpRelayCommand extends AbstractShellCommand {
 
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         List<DhcpServerInfo> defaultDhcpServerInfoList = DHCP_RELAY_SERVICE.getDefaultDhcpServerInfoList();
         List<DhcpServerInfo> indirectDhcpServerInfoList = DHCP_RELAY_SERVICE.getIndirectDhcpServerInfoList();
 

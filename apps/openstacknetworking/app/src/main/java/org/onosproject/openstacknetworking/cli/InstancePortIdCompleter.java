@@ -15,8 +15,11 @@
  */
 package org.onosproject.openstacknetworking.cli;
 
-import org.apache.karaf.shell.console.Completer;
-import org.apache.karaf.shell.console.completer.StringsCompleter;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.apache.karaf.shell.api.console.CommandLine;
+import org.apache.karaf.shell.api.console.Completer;
+import org.apache.karaf.shell.api.console.Session;
+import org.apache.karaf.shell.support.completers.StringsCompleter;
 import org.onosproject.openstacknetworking.api.InstancePort;
 import org.onosproject.openstacknetworking.api.InstancePortService;
 
@@ -30,10 +33,11 @@ import static org.onosproject.cli.AbstractShellCommand.get;
 /**
  * Instance port ID completer.
  */
+@Service
 public class InstancePortIdCompleter implements Completer {
 
     @Override
-    public int complete(String buffer, int cursor, List<String> candidates) {
+    public int complete(Session session, CommandLine commandLine, List<String> candidates) {
         StringsCompleter delegate = new StringsCompleter();
 
         InstancePortService service = get(InstancePortService.class);
@@ -43,6 +47,6 @@ public class InstancePortIdCompleter implements Completer {
 
         strings.addAll(portIds);
 
-        return delegate.complete(buffer, cursor, candidates);
+        return delegate.complete(session, commandLine, candidates);
     }
 }

@@ -15,8 +15,8 @@
  */
 package org.onosproject.ofagent.cli;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.TpPort;
 import org.onosproject.cli.AbstractShellCommand;
@@ -46,7 +46,7 @@ public class OFAgentAddControllerCommand extends AbstractShellCommand {
     private String strCtrl;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         if (!isValidController(strCtrl)) {
             error("Invalid controller string %s, must be IP:PORT", strCtrl);
             return;

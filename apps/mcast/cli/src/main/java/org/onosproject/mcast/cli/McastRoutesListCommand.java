@@ -15,7 +15,7 @@
  */
 package org.onosproject.mcast.cli;
 
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.mcast.api.McastRoute;
@@ -51,7 +51,7 @@ public class McastRoutesListCommand extends AbstractShellCommand {
     private static final String SINKS = "Sinks";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         // Get the service
         MulticastRouteService mcastService = get(MulticastRouteService.class);
         // Get the routes

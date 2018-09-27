@@ -16,8 +16,8 @@
 
 package org.onosproject.dhcprelay.cli;
 
-//import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+//import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 
 import org.onosproject.dhcprelay.api.DhcpRelayService;
@@ -39,7 +39,7 @@ public class DhcpFpmRoutesCommand extends AbstractShellCommand {
     private static final DhcpRelayService DHCP_RELAY_SERVICE = get(DhcpRelayService.class);
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
 
             print("Dhcp Fpm Feature is %s !", DHCP_RELAY_SERVICE.isDhcpFpmEnabled() ? "enabled" : "disabled");
             print("\n");

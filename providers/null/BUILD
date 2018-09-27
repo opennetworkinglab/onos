@@ -1,7 +1,4 @@
-COMPILE_DEPS = CORE_DEPS + NETTY + [
-    "@org_apache_karaf_shell_console//jar",
-    "//cli:onos-cli",
-]
+COMPILE_DEPS = CORE_DEPS + NETTY + CLI
 
 osgi_jar_with_tests(
     import_packages = "*,org.onosproject.cli.net",

@@ -61,7 +61,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Provider which uses an Alarm Manager to keep track of device notifications.
  */
-@Component(immediate = true)
+@Component(immediate = true, service = AlarmProvider.class)
 public class NetconfAlarmProvider extends AbstractProvider implements AlarmProvider {
 
     public static final String ACTIVE = "active";
@@ -74,10 +74,10 @@ public class NetconfAlarmProvider extends AbstractProvider implements AlarmProvi
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected NetconfController controller;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DriverService driverService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DeviceService deviceService;
 
     protected AlarmProviderService providerService;

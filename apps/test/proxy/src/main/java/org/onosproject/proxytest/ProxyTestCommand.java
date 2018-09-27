@@ -19,8 +19,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.net.DeviceId;
@@ -64,7 +64,7 @@ public class ProxyTestCommand extends AbstractShellCommand {
     String arg2;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         ProxyTest proxyTest = get(ProxyTest.class);
         TestProxy proxy;
         if ("node".equals(type)) {

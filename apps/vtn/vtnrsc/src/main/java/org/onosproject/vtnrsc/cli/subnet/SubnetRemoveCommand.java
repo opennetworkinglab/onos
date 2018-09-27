@@ -17,8 +17,8 @@ package org.onosproject.vtnrsc.cli.subnet;
 
 import java.util.Set;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.vtnrsc.SubnetId;
 import org.onosproject.vtnrsc.subnet.SubnetService;
@@ -36,7 +36,7 @@ public class SubnetRemoveCommand extends AbstractShellCommand {
     String id = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         SubnetService service = get(SubnetService.class);
         Set<SubnetId> subnetsSet = Sets.newHashSet();
         subnetsSet.add(SubnetId.subnetId(id));

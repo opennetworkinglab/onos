@@ -15,8 +15,8 @@
  */
 package org.onosproject.vtnrsc.cli.subnet;
 
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Option;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.vtnrsc.Subnet;
 import org.onosproject.vtnrsc.SubnetId;
@@ -36,7 +36,7 @@ public class SubnetQueryCommand extends AbstractShellCommand {
             + "tenantId=%s, cidr=%s, dhcpEnabled=%s, gatewayIp=%s," + "ipVersion=%s";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         SubnetService service = get(SubnetService.class);
         if (id != null) {
             Subnet subnet = service.getSubnet(SubnetId.subnetId(id));

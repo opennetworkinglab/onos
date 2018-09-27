@@ -40,7 +40,6 @@ import org.onosproject.net.provider.AbstractProviderService;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
-import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
@@ -97,12 +96,6 @@ public class AlarmManager
         store.unsetDelegate(delegate);
         eventDispatcher.removeSink(AlarmEvent.class);
         log.info("Stopped");
-    }
-
-    @Modified
-    public boolean modified() {
-        log.info("Modified");
-        return true;
     }
 
     @Override

@@ -16,7 +16,7 @@
 
 package org.onosproject.segmentrouting.cli;
 
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.segmentrouting.xconnect.api.XconnectKey;
 import org.onosproject.segmentrouting.xconnect.api.XconnectService;
@@ -32,7 +32,7 @@ import java.util.Map;
         description = "Displays the current next-id for xconnect")
 public class XconnectNextListCommand extends AbstractShellCommand {
     @Override
-    protected void execute() {
+    protected void doExecute() {
         XconnectService xconnectService =
                 AbstractShellCommand.get(XconnectService.class);
         print(xconnectService.getNext());

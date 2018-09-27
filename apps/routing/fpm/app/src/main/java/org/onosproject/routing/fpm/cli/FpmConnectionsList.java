@@ -16,7 +16,7 @@
 
 package org.onosproject.routing.fpm.cli;
 
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
 import org.onlab.packet.IpAddress;
 import org.onlab.util.Tools;
 import org.onosproject.cli.AbstractShellCommand;
@@ -38,7 +38,7 @@ public class FpmConnectionsList extends AbstractShellCommand {
     private static final String FORMAT = "peer %s:%s connected to %s since %s %s (%d routes locally)";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         FpmInfoService fpmInfo = get(FpmInfoService.class);
 
         print(String.format("PD Pushing is %s.", fpmInfo.isPdPushEnabled() ? "enabled" : "disabled"));

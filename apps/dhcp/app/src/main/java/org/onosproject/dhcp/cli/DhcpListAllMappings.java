@@ -15,7 +15,7 @@
  */
 package org.onosproject.dhcp.cli;
 
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.dhcp.DhcpService;
 import org.onosproject.dhcp.IpAssignment;
@@ -32,7 +32,7 @@ public class DhcpListAllMappings extends AbstractShellCommand {
 
     private static final String DHCP_MAPPING_FORMAT = "MAC ID: %s -> IP ASSIGNED %s";
     @Override
-    protected void execute() {
+    protected void doExecute() {
 
         DhcpService dhcpService = AbstractShellCommand.get(DhcpService.class);
         Map<HostId, IpAssignment> allocationMap = dhcpService.listMapping();

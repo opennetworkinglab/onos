@@ -15,8 +15,9 @@
  */
 package org.onosproject.openstackvtap.cli;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.packet.VlanId;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.Device;
@@ -32,6 +33,7 @@ import static org.onosproject.openstackvtap.util.OpenstackVtapUtil.getVtapTypeFr
 /**
  * Command line interface for set openstack vTap output.
  */
+@Service
 @Command(scope = "onos", name = "openstack-vtap-output",
         description = "OpenstackVtap output setup")
 public class OpenstackVtapOutputCommand extends AbstractShellCommand {
@@ -57,7 +59,7 @@ public class OpenstackVtapOutputCommand extends AbstractShellCommand {
     String vTapTypeStr = "all";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         try {
             Device device = deviceService.getDevice(DeviceId.deviceId(id));
             if (device != null) {

@@ -15,8 +15,11 @@
  */
 package org.onosproject.openstacknetworking.cli;
 
-import org.apache.karaf.shell.console.Completer;
-import org.apache.karaf.shell.console.completer.StringsCompleter;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.apache.karaf.shell.api.console.CommandLine;
+import org.apache.karaf.shell.api.console.Completer;
+import org.apache.karaf.shell.api.console.Session;
+import org.apache.karaf.shell.support.completers.StringsCompleter;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.openstacknetworking.api.InstancePort;
@@ -31,11 +34,12 @@ import java.util.stream.Collectors;
 /**
  * Instance port ip address completer.
  */
+@Service
 public class InstanceIpAddressCompleter implements Completer {
     private static final String EXTERNAL_IP = "8.8.8.8";
 
     @Override
-    public int complete(String buffer, int cursor, List<String> candidates) {
+    public int complete(Session session, CommandLine commandLine, List<String> candidates) {
         StringsCompleter delegate = new StringsCompleter();
         InstancePortService instancePortService =
                 AbstractShellCommand.get(InstancePortService.class);
@@ -53,7 +57,7 @@ public class InstanceIpAddressCompleter implements Completer {
             strings.add(it.next().toString());
         }
 
-        return delegate.complete(buffer, cursor, candidates);
+        return delegate.complete(session, commandLine, candidates);
 
 
     }

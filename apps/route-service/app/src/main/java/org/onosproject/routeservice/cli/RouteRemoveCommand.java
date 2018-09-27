@@ -16,8 +16,8 @@
 
 package org.onosproject.routeservice.cli;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onosproject.cli.AbstractShellCommand;
@@ -42,7 +42,7 @@ public class RouteRemoveCommand extends AbstractShellCommand {
     String nextHopString = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         RouteAdminService service = AbstractShellCommand.get(RouteAdminService.class);
 
         IpPrefix prefix = IpPrefix.valueOf(prefixString);

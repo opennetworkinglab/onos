@@ -15,8 +15,8 @@
  */
 package org.onosproject.cfm.cli;
 
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Argument;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.l2monitoring.cfm.DefaultMaintenanceDomain;
 import org.onosproject.incubator.net.l2monitoring.cfm.MaintenanceDomain;
@@ -52,7 +52,7 @@ public class CfmMdAddCommand extends AbstractShellCommand {
     private Short numericId = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         CfmMdService service = get(CfmMdService.class);
         MdId mdId = CfmMdListMdCommand.parseMdName(name + "(" + nameType + ")");
 

@@ -17,8 +17,8 @@
 package org.onosproject.t3.cli;
 
 import com.google.common.base.Preconditions;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Option;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
@@ -102,7 +102,7 @@ public class TroubleshootTraceCommand extends AbstractShellCommand {
     String udpDst = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         TroubleshootService service = get(TroubleshootService.class);
         String[] cpInfo = srcPort.split("/");
         Preconditions.checkArgument(cpInfo.length == 2, "wrong format of source port");

@@ -17,8 +17,8 @@ package org.onosproject.vtnrsc.cli.floatingip;
 
 import java.util.Set;
 
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Option;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.vtnrsc.FloatingIp;
 import org.onosproject.vtnrsc.FloatingIpId;
@@ -44,7 +44,7 @@ public class FloatingIpRemoveCommand extends AbstractShellCommand {
     String floatingIp = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         FloatingIpService service = get(FloatingIpService.class);
         if (id == null && fixedIp == null && floatingIp == null) {
             print(null, "one of id, fixedIp, floatingIp should not be null");

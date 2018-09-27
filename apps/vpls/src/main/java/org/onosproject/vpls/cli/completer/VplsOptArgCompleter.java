@@ -15,12 +15,11 @@
  */
 package org.onosproject.vpls.cli.completer;
 
-import com.google.common.collect.Lists;
-import org.apache.karaf.shell.console.completer.ArgumentCompleter;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractChoicesCompleter;
+import org.onosproject.net.EncapsulationType;
 import org.onosproject.net.intf.Interface;
 import org.onosproject.net.intf.InterfaceService;
-import org.onosproject.net.EncapsulationType;
 import org.onosproject.vpls.api.Vpls;
 import org.onosproject.vpls.api.VplsData;
 import org.onosproject.vpls.cli.VplsCommandEnum;
@@ -37,6 +36,7 @@ import static org.onosproject.cli.AbstractShellCommand.get;
 /**
  * VPLS optional argument completer.
  */
+@Service
 public class VplsOptArgCompleter extends AbstractChoicesCompleter {
     protected Vpls vpls;
     protected InterfaceService interfaceService;
@@ -46,12 +46,11 @@ public class VplsOptArgCompleter extends AbstractChoicesCompleter {
         if (vpls == null) {
             vpls = get(Vpls.class);
         }
-        ArgumentCompleter.ArgumentList argumentList = getArgumentList();
-        if (argumentList == null) {
+        String[] argList = commandLine.getArguments();
+        if (argList == null) {
             return Collections.emptyList();
         }
-        List<String> argList = Lists.newArrayList(argumentList.getArguments());
-        String argOne = argList.get(1);
+        String argOne = argList[1];
         VplsCommandEnum vplsCommandEnum = VplsCommandEnum.enumFromString(argOne);
         if (vplsCommandEnum != null) {
             switch (vplsCommandEnum) {
@@ -107,8 +106,7 @@ public class VplsOptArgCompleter extends AbstractChoicesCompleter {
      * @return the list of interfaces associated to a VPLS
      */
     private List<String> vplsIfaces() {
-        ArgumentCompleter.ArgumentList list = getArgumentList();
-        String vplsName = list.getArguments()[2];
+        String vplsName = commandLine.getArguments()[2];
         VplsData vplsData = vpls.getVpls(vplsName);
         return vplsData.interfaces().stream()
                 .map(Interface::name)

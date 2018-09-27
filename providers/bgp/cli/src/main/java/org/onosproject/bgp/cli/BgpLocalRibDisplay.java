@@ -15,8 +15,8 @@
  */
 package org.onosproject.bgp.cli;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.bgp.controller.BgpController;
 import org.onosproject.bgp.controller.BgpLocalRib;
 import org.onosproject.bgpio.protocol.BgpLSNlri;
@@ -97,7 +97,7 @@ public class BgpLocalRibDisplay extends AbstractShellCommand {
     private int count = 0;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         switch (name) {
             case NODETREE:
                 displayNodes();

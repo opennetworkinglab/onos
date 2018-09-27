@@ -16,9 +16,9 @@
 
 package org.onosproject.t3.cli;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Option;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cli.net.HostIdCompleter;
 import org.onosproject.net.HostId;
@@ -56,7 +56,7 @@ public class TroubleshootSimpleTraceCommand extends AbstractShellCommand {
     String ethType = "ipv4";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         TroubleshootService service = get(TroubleshootService.class);
 
         EtherType type = EtherType.valueOf(ethType.toUpperCase());

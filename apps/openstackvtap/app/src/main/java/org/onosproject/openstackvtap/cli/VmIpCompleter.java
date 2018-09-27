@@ -15,8 +15,11 @@
  */
 package org.onosproject.openstackvtap.cli;
 
-import org.apache.karaf.shell.console.Completer;
-import org.apache.karaf.shell.console.completer.StringsCompleter;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.apache.karaf.shell.api.console.CommandLine;
+import org.apache.karaf.shell.api.console.Completer;
+import org.apache.karaf.shell.api.console.Session;
+import org.apache.karaf.shell.support.completers.StringsCompleter;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.Host;
@@ -29,12 +32,13 @@ import java.util.SortedSet;
 /**
  * VM IP completer.
  */
+@Service
 public class VmIpCompleter implements Completer {
 
     private static final String CIDR = "/32";
 
     @Override
-    public int complete(String buffer, int cursor, List<String> candidates) {
+    public int complete(Session session, CommandLine commandLine, List<String> candidates) {
         // Delegate string completer
         StringsCompleter delegate = new StringsCompleter();
 
@@ -47,6 +51,6 @@ public class VmIpCompleter implements Completer {
             }
         }
 
-        return delegate.complete(buffer, cursor, candidates);
+        return delegate.complete(session, commandLine, candidates);
     }
 }

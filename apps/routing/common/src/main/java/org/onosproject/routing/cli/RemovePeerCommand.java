@@ -16,8 +16,8 @@
 
 package org.onosproject.routing.cli;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.core.ApplicationId;
@@ -46,7 +46,7 @@ public class RemovePeerCommand extends AbstractShellCommand {
     private IpAddress peerAddress = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         peerAddress = IpAddress.valueOf(ip);
 
         NetworkConfigService configService = get(NetworkConfigService.class);

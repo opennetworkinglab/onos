@@ -15,7 +15,7 @@
  */
 package org.onosproject.segmentrouting.cli;
 
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.segmentrouting.Policy;
 import org.onosproject.segmentrouting.SegmentRoutingService;
@@ -32,7 +32,7 @@ public class PolicyListCommand extends AbstractShellCommand {
             "  id=%s, type=%s,  prio=%d, src=%s, port=%d, dst=%s, port=%d, proto=%s, tunnel=%s";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
 
         SegmentRoutingService srService =
                 AbstractShellCommand.get(SegmentRoutingService.class);

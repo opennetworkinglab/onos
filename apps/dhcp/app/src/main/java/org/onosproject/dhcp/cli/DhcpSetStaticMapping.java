@@ -15,8 +15,8 @@
  */
 package org.onosproject.dhcp.cli;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.MacAddress;
 import org.onosproject.cli.AbstractShellCommand;
@@ -47,7 +47,7 @@ public class DhcpSetStaticMapping extends AbstractShellCommand {
     private static final String DHCP_SUCCESS = "Static Mapping Successfully Added.";
     private static final String DHCP_FAILURE = "Static Mapping Failed. The IP maybe unavailable.";
     @Override
-    protected void execute() {
+    protected void doExecute() {
         DhcpService dhcpService = AbstractShellCommand.get(DhcpService.class);
 
         try {

@@ -15,8 +15,8 @@
  */
 package org.onosproject.routescale;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cli.AbstractShellCommand;
 
@@ -32,7 +32,7 @@ public class CreateRoutes extends AbstractShellCommand {
     int routeCount;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         ComponentConfigService service = get(ComponentConfigService.class);
         service.setProperty("org.onosproject.routescale.ScaleTestManager",
                             "routeCount", String.valueOf(routeCount));

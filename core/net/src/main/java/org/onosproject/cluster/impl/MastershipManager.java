@@ -80,8 +80,9 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Component providing the node-device mastership service.
  */
-@Component(immediate = true, service = {MastershipService.class, MastershipAdminService.class, MastershipTermService.class,
-        MetricsHelper.class})
+@Component(immediate = true,
+           service = {MastershipService.class, MastershipAdminService.class, MastershipTermService.class,
+                      MetricsHelper.class})
 public class MastershipManager
         extends AbstractListenerManager<MastershipEvent, MastershipListener>
         implements MastershipService, MastershipAdminService, MastershipTermService,

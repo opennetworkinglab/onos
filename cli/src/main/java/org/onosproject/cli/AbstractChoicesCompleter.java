@@ -28,8 +28,8 @@ import java.util.SortedSet;
 public abstract class AbstractChoicesCompleter extends AbstractCompleter {
 
     protected abstract List<String> choices();
-    protected CommandLine commandLine;
-    protected Session session;
+    public CommandLine commandLine;
+    public Session session;
 
     @Override
     public int complete(Session session, CommandLine commandLine, List<String> candidates) {

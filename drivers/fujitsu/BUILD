@@ -1,9 +1,7 @@
-COMPILE_DEPS = CORE_DEPS + [
-    "@org_apache_karaf_shell_console//jar",
+COMPILE_DEPS = CORE_DEPS + CLI + [
     "//drivers/utilities:onos-drivers-utilities",
     "//protocols/netconf/api:onos-protocols-netconf-api",
     "//protocols/netconf/ctl:onos-protocols-netconf-ctl",
-    "//cli:onos-cli",
     "//apps/optical-model:onos-apps-optical-model",
     "//incubator/api:onos-incubator-api",
 ]

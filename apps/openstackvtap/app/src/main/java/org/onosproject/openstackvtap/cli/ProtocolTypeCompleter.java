@@ -16,6 +16,7 @@
 package org.onosproject.openstackvtap.cli;
 
 import com.google.common.collect.Lists;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractChoicesCompleter;
 
 import java.util.List;
@@ -23,6 +24,7 @@ import java.util.List;
 /**
  * IP protocol type completer.
  */
+@Service
 public class ProtocolTypeCompleter extends AbstractChoicesCompleter {
 
     @Override

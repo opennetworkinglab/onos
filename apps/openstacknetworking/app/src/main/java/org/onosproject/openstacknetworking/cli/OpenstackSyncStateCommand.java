@@ -16,7 +16,7 @@
 package org.onosproject.openstacknetworking.cli;
 
 import com.google.common.base.Strings;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkAdminService;
 import org.onosproject.openstacknetworking.api.OpenstackRouterAdminService;
@@ -58,7 +58,7 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
     private static final String DEVICE_OWNER_IFACE = "network:router_interface";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         OpenstackSecurityGroupAdminService osSgAdminService = get(OpenstackSecurityGroupAdminService.class);
         OpenstackNetworkAdminService osNetAdminService = get(OpenstackNetworkAdminService.class);
         OpenstackRouterAdminService osRouterAdminService = get(OpenstackRouterAdminService.class);

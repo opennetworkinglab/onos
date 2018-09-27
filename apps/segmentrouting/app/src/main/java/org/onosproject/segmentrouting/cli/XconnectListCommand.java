@@ -15,7 +15,7 @@
  */
 package org.onosproject.segmentrouting.cli;
 
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.segmentrouting.xconnect.api.XconnectService;
 
@@ -25,7 +25,7 @@ import org.onosproject.segmentrouting.xconnect.api.XconnectService;
 @Command(scope = "onos", name = "sr-xconnect", description = "Lists all Xconnects")
 public class XconnectListCommand extends AbstractShellCommand {
     @Override
-    protected void execute() {
+    protected void doExecute() {
         XconnectService xconnectService = get(XconnectService.class);
         xconnectService.getXconnects().forEach(desc -> print("%s", desc));
     }

@@ -68,7 +68,7 @@ public class VplsCommandTest extends VplsTest {
     public void testCreate() {
         vplsCommand.command = VplsCommandEnum.CREATE.toString();
         vplsCommand.vplsName = VPLS1;
-        vplsCommand.execute();
+        vplsCommand.doExecute();
         Collection<VplsData> vplss = vplsCommand.vpls.getAllVpls();
         assertEquals(1, vplss.size());
         VplsData result = vplss.iterator().next();
@@ -86,12 +86,12 @@ public class VplsCommandTest extends VplsTest {
         vplsCommand.command = VplsCommandEnum.ADD_IFACE.toString();
         vplsCommand.vplsName = VPLS1;
         vplsCommand.optArg = V100H1.name();
-        vplsCommand.execute();
+        vplsCommand.doExecute();
 
         vplsCommand.command = VplsCommandEnum.ADD_IFACE.toString();
         vplsCommand.vplsName = VPLS1;
         vplsCommand.optArg = V200H1.name();
-        vplsCommand.execute();
+        vplsCommand.doExecute();
 
         Collection<VplsData> vplss = vplsCommand.vpls.getAllVpls();
         assertEquals(1, vplss.size());
@@ -113,7 +113,7 @@ public class VplsCommandTest extends VplsTest {
         vplsCommand.command = VplsCommandEnum.REMOVE_IFACE.toString();
         vplsCommand.vplsName = VPLS1;
         vplsCommand.optArg = V200H1.name();
-        vplsCommand.execute();
+        vplsCommand.doExecute();
 
         Collection<VplsData> vplss = vplsCommand.vpls.getAllVpls();
         assertEquals(1, vplss.size());
@@ -133,7 +133,7 @@ public class VplsCommandTest extends VplsTest {
         PrintStream ps = new PrintStream(baos);
         System.setOut(ps);
         vplsCommand.command = VplsCommandEnum.LIST.toString();
-        vplsCommand.execute();
+        vplsCommand.doExecute();
         String result = baos.toString();
 
         assertEquals(LIST_OUTPUT, result);
@@ -150,7 +150,7 @@ public class VplsCommandTest extends VplsTest {
         vplsCommand.command = VplsCommandEnum.SET_ENCAP.toString();
         vplsCommand.vplsName = VPLS1;
         vplsCommand.optArg = EncapsulationType.NONE.name();
-        vplsCommand.execute();
+        vplsCommand.doExecute();
         VplsData result = vplsCommand.vpls.getVpls(VPLS1);
         assertEquals(result.encapsulationType(), EncapsulationType.NONE);
 
@@ -158,7 +158,7 @@ public class VplsCommandTest extends VplsTest {
         vplsCommand.command = VplsCommandEnum.SET_ENCAP.toString();
         vplsCommand.vplsName = VPLS1;
         vplsCommand.optArg = EncapsulationType.VLAN.name();
-        vplsCommand.execute();
+        vplsCommand.doExecute();
         result = vplsCommand.vpls.getVpls(VPLS1);
         assertEquals(result.encapsulationType(), EncapsulationType.VLAN);
 
@@ -166,7 +166,7 @@ public class VplsCommandTest extends VplsTest {
         vplsCommand.command = VplsCommandEnum.SET_ENCAP.toString();
         vplsCommand.vplsName = VPLS1;
         vplsCommand.optArg = EncapsulationType.MPLS.name();
-        vplsCommand.execute();
+        vplsCommand.doExecute();
         result = vplsCommand.vpls.getVpls(VPLS1);
         assertEquals(result.encapsulationType(), EncapsulationType.MPLS);
     }
@@ -179,7 +179,7 @@ public class VplsCommandTest extends VplsTest {
         ((TestVpls) vplsCommand.vpls).initSampleData();
         vplsCommand.command = VplsCommandEnum.DELETE.toString();
         vplsCommand.vplsName = VPLS1;
-        vplsCommand.execute();
+        vplsCommand.doExecute();
         Collection<VplsData> vplss = vplsCommand.vpls.getAllVpls();
         assertEquals(1, vplss.size());
     }
@@ -194,7 +194,7 @@ public class VplsCommandTest extends VplsTest {
         PrintStream ps = new PrintStream(baos);
         System.setOut(ps);
         vplsCommand.command = VplsCommandEnum.SHOW.toString();
-        vplsCommand.execute();
+        vplsCommand.doExecute();
         String result = baos.toString();
         assertEquals(SHOW_ALL_RES, result);
     }
@@ -210,7 +210,7 @@ public class VplsCommandTest extends VplsTest {
         System.setOut(ps);
         vplsCommand.command = VplsCommandEnum.SHOW.toString();
         vplsCommand.vplsName = VPLS1;
-        vplsCommand.execute();
+        vplsCommand.doExecute();
         String result = baos.toString();
         assertEquals(SHOW_ONE_RES, result);
     }
@@ -227,7 +227,7 @@ public class VplsCommandTest extends VplsTest {
         vplsCommand.command = VplsCommandEnum.ADD_IFACE.toString();
         vplsCommand.vplsName = VPLS1;
         vplsCommand.optArg = V200H1.name();
-        vplsCommand.execute();
+        vplsCommand.doExecute();
 
         String result = baos.toString();
         assertEquals(IFACE_ALREADY_USED, result);
@@ -240,7 +240,7 @@ public class VplsCommandTest extends VplsTest {
     public void testClean() {
         ((TestVpls) vplsCommand.vpls).initSampleData();
         vplsCommand.command = VplsCommandEnum.CLEAN.toString();
-        vplsCommand.execute();
+        vplsCommand.doExecute();
         Collection<VplsData> vplss = vplsCommand.vpls.getAllVpls();
         assertEquals(0, vplss.size());
     }

@@ -155,6 +155,7 @@
     "commons-configuration": "mvn:commons-configuration:commons-configuration:1.10",
     "commons-io": "mvn:commons-io:commons-io:2.6",
     "commons-beanutils": "mvn:commons-beanutils:commons-beanutils:1.9.3",
+    "commons-jxpath": "mvn:commons-jxpath:commons-jxpath:1.3",
     "fast-classpath-scanner": "mvn:io.github.lukehutch:fast-classpath-scanner:2.21",
     "jdom": "mvn:jdom:jdom:1.0",
     "commons-lang": "mvn:commons-lang:commons-lang:2.6",

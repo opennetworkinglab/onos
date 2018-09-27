@@ -21,7 +21,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.event.Event;
 import org.onosproject.metrics.topology.TopologyMetricsService;
@@ -38,7 +38,7 @@ public class TopologyEventsListCommand extends AbstractShellCommand {
     private static final String FORMAT_REASON = "    Reason=%s";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         TopologyMetricsService service = get(TopologyMetricsService.class);
 
         if (outputJson()) {

@@ -15,8 +15,9 @@
  */
 package org.onosproject.drivers.fujitsu.cli;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
 import org.onosproject.drivers.fujitsu.behaviour.VoltNniLinkConfig;
@@ -26,6 +27,7 @@ import org.onosproject.net.driver.DriverService;
 /**
  * Gets NNI links in vOLT.
  */
+@Service
 @Command(scope = "onos", name = "volt-nnilinks",
         description = "Gets NNI links in vOLT")
 public class VoltGetNniLinksCommand extends AbstractShellCommand {
@@ -41,7 +43,7 @@ public class VoltGetNniLinksCommand extends AbstractShellCommand {
     private DeviceId deviceId;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         DriverService service = get(DriverService.class);
         deviceId = DeviceId.deviceId(uri);
         DriverHandler h = service.createHandler(deviceId);

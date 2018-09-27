@@ -15,8 +15,9 @@
  */
 package org.onosproject.gluon.rsc.cli;
 
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.gluon.manager.GluonManager;
 import org.onosproject.gluon.rsc.GluonServer;
@@ -32,6 +33,7 @@ import static org.onosproject.gluon.rsc.GluonConstants.SERVER_POOL;
 /**
  * Supports for querying Gluon Servers list and statistics.
  */
+@Service
 @Command(scope = "onos", name = "gluon-server-list",
         description = "Gluon server list")
 public class GluonServerListCommand extends AbstractShellCommand {
@@ -54,7 +56,7 @@ public class GluonServerListCommand extends AbstractShellCommand {
 
 
     @Override
-    public void execute() {
+    protected void doExecute() {
         try {
             String serverUrl = GLUON_HTTP + ipAddress + ":" + port;
             if (ipAddress != null && checkServerPool(serverUrl)) {

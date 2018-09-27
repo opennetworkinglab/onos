@@ -67,7 +67,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Provides implementation of the group service APIs.
  */
-@Component(immediate = true,service = { GroupService.class, GroupProviderRegistry.class })
+@Component(immediate = true, service = { GroupService.class, GroupProviderRegistry.class })
 public class GroupManager
         extends AbstractListenerProviderRegistry<GroupEvent, GroupListener,
         GroupProvider, GroupProviderService>

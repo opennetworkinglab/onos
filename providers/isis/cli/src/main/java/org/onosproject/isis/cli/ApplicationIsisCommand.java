@@ -17,8 +17,8 @@ package org.onosproject.isis.cli;
 
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Deactivate;
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
 import org.onlab.packet.MacAddress;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.isis.controller.IsisController;
@@ -74,7 +74,7 @@ public class ApplicationIsisCommand extends AbstractShellCommand {
     }
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         switch (name) {
             case INTERFACE:
                 displayIsisInterfaces();

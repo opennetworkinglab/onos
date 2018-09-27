@@ -15,8 +15,8 @@
  */
 package org.onosproject.distributedprimitives.cli;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.Leadership;
@@ -48,7 +48,7 @@ public class LeaderElectorTestCommand extends AbstractShellCommand {
     LeaderElector leaderElector;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         ClusterService clusterService = get(ClusterService.class);
         DistributedPrimitivesTest test = get(DistributedPrimitivesTest.class);
         leaderElector = test.getLeaderElector(name);

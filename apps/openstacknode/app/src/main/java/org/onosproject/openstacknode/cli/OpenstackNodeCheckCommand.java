@@ -16,8 +16,8 @@
 
 package org.onosproject.openstacknode.cli;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
@@ -45,7 +45,7 @@ public class OpenstackNodeCheckCommand extends AbstractShellCommand {
     private static final String MSG_NO = "NO";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         OpenstackNodeService osNodeService = AbstractShellCommand.get(OpenstackNodeService.class);
         DeviceService deviceService = AbstractShellCommand.get(DeviceService.class);
 

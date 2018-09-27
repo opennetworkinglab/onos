@@ -15,29 +15,14 @@
  */
 package org.onosproject.net.intent.impl.compiler;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.collect.Lists.transform;
-import static java.util.stream.Stream.concat;
-import static org.onosproject.net.MarkerResource.marker;
-import static org.onosproject.net.behaviour.protection.ProtectedTransportEndpointDescription.buildDescription;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
+import com.google.common.annotations.Beta;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.osgi.service.component.annotations.Activate;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Deactivate;
-import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.onlab.packet.VlanId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultLink;
@@ -58,16 +43,27 @@ import org.onosproject.net.intent.ProtectedTransportIntent;
 import org.onosproject.net.intent.ProtectionEndpointIntent;
 import org.onosproject.net.resource.DiscreteResourceId;
 import org.onosproject.net.resource.Resource;
-import org.onosproject.net.resource.ResourceService;
 import org.onosproject.net.resource.Resources;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
 import org.slf4j.Logger;
 
-import com.google.common.annotations.Beta;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.Lists.transform;
+import static java.util.stream.Stream.concat;
+import static org.onosproject.net.MarkerResource.marker;
+import static org.onosproject.net.behaviour.protection.ProtectedTransportEndpointDescription.buildDescription;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * IntentCompiler for {@link ProtectedTransportIntent}.

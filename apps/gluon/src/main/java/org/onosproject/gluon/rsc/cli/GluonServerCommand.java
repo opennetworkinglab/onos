@@ -15,8 +15,9 @@
  */
 package org.onosproject.gluon.rsc.cli;
 
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.gluon.rsc.GluonServer;
 
@@ -46,6 +47,7 @@ import static org.onosproject.gluon.rsc.GluonConstants.WRONG_IP_FORMAT;
 /**
  * To monitor Gluon etcd server.
  */
+@Service
 @Command(scope = "onos", name = "gluon",
         description = "Support for reading Gluon data via etcd client")
 public class GluonServerCommand extends AbstractShellCommand {
@@ -72,7 +74,7 @@ public class GluonServerCommand extends AbstractShellCommand {
     public String version = null;
 
     @Override
-    public void execute() {
+    protected void doExecute() {
         try {
             if (ipAddress != null && isValidIP(ipAddress) && isValidPort(port)
                     && isValidMode(mode) && isValidProtonKey(protonKey)

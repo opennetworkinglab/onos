@@ -16,8 +16,8 @@
 
 package org.onosproject.segmentrouting.cli;
 
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Option;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cluster.NodeId;
@@ -48,7 +48,7 @@ public class McastLeaderListCommand extends AbstractShellCommand {
     String gAddr = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         // Verify mcast group
         IpAddress mcastGroup = null;
         if (!isNullOrEmpty(gAddr)) {

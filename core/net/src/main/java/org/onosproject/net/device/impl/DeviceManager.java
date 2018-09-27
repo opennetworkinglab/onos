@@ -109,7 +109,9 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Provides implementation of the device SB &amp; NB APIs.
  */
-@Component(immediate = true, service = {DeviceService.class, DeviceAdminService.class, DeviceProviderRegistry.class, PortConfigOperatorRegistry.class })
+@Component(immediate = true,
+           service = {DeviceService.class, DeviceAdminService.class,
+                      DeviceProviderRegistry.class, PortConfigOperatorRegistry.class })
 public class DeviceManager
         extends AbstractListenerProviderRegistry<DeviceEvent, DeviceListener, DeviceProvider, DeviceProviderService>
         implements DeviceService, DeviceAdminService, DeviceProviderRegistry, PortConfigOperatorRegistry {

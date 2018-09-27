@@ -15,8 +15,9 @@
  */
 package org.onosproject.drivers.fujitsu.cli;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
 import org.onosproject.drivers.fujitsu.behaviour.VoltPonLinkConfig;
@@ -26,6 +27,7 @@ import org.onosproject.net.driver.DriverService;
 /**
  * Sets a parameter of a PON link in vOLT.
  */
+@Service
 @Command(scope = "onos", name = "volt-setponlink",
         description = "Sets a parameter of a PON link in vOLT")
 public class VoltSetPonLinkCommand extends AbstractShellCommand {
@@ -41,7 +43,7 @@ public class VoltSetPonLinkCommand extends AbstractShellCommand {
     private DeviceId deviceId;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         DriverService service = get(DriverService.class);
         deviceId = DeviceId.deviceId(uri);
         DriverHandler h = service.createHandler(deviceId);

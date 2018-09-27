@@ -47,7 +47,8 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Provides implementation of administering and interfacing OpenStack security
  * groups.
  */
-@Component(immediate = true, service = { OpenstackSecurityGroupAdminService.class, OpenstackSecurityGroupService.class })
+@Component(immediate = true,
+           service = { OpenstackSecurityGroupAdminService.class, OpenstackSecurityGroupService.class })
 public class OpenstackSecurityGroupManager
         extends ListenerRegistry<OpenstackSecurityGroupEvent, OpenstackSecurityGroupListener>
         implements OpenstackSecurityGroupAdminService, OpenstackSecurityGroupService {

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 package org.onosproject.fwd;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
-import org.apache.karaf.shell.commands.Argument;
+import org.apache.karaf.shell.api.action.Argument;
 import org.onlab.packet.MacAddress;
 
 /**
@@ -29,7 +29,7 @@ public class ReactiveForwardingCommand extends AbstractShellCommand {
             required = false, multiValued = false)
     String mac = null;
     @Override
-    protected void execute() {
+    protected void doExecute() {
         ReactiveForwarding reactiveForwardingService = AbstractShellCommand.get(ReactiveForwarding.class);
         MacAddress macAddress = null;
         if (mac != null) {

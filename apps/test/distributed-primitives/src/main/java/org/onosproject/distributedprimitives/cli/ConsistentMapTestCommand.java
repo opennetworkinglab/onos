@@ -15,8 +15,8 @@
  */
 package org.onosproject.distributedprimitives.cli;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.core.Version;
 import org.onosproject.store.serializers.KryoNamespaces;
@@ -60,7 +60,7 @@ public class ConsistentMapTestCommand extends AbstractShellCommand {
     ConsistentMap<String, String> map;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         StorageService storageService = get(StorageService.class);
         map = storageService.<String, String>consistentMapBuilder()
             .withName(name)

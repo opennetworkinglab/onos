@@ -18,8 +18,8 @@ package org.onosproject.openstacknetworking.cli;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Lists;
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.openstacknetworking.api.OpenstackSecurityGroupService;
 import org.openstack4j.model.network.SecurityGroup;
@@ -44,7 +44,7 @@ public class OpenstackSecurityGroupListCommand extends AbstractShellCommand {
     private String networkId = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         OpenstackSecurityGroupService service =
                 AbstractShellCommand.get(OpenstackSecurityGroupService.class);
 

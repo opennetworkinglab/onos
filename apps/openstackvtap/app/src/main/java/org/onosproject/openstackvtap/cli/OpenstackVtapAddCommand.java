@@ -15,8 +15,9 @@
  */
 package org.onosproject.openstackvtap.cli;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.TpPort;
 import org.onosproject.cli.AbstractShellCommand;
@@ -30,6 +31,7 @@ import static org.onosproject.openstackvtap.util.OpenstackVtapUtil.getVtapTypeFr
 /**
  * Command line interface for adding openstack vTap rule.
  */
+@Service
 @Command(scope = "onos", name = "openstack-vtap-add",
         description = "OpenstackVtap activate")
 public class OpenstackVtapAddCommand extends AbstractShellCommand {
@@ -68,7 +70,7 @@ public class OpenstackVtapAddCommand extends AbstractShellCommand {
     String vTapTypeStr = "all";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         DefaultOpenstackVtapCriterion.Builder
                     defaultVtapCriterionBuilder = DefaultOpenstackVtapCriterion.builder();
         if (makeCriterion(defaultVtapCriterionBuilder)) {

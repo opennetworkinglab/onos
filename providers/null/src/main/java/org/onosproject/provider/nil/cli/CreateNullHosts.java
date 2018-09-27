@@ -16,8 +16,8 @@
 
 package org.onosproject.provider.nil.cli;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
 import org.onlab.packet.IpAddress;
 import org.onlab.util.Tools;
 import org.onosproject.net.ConnectPoint;
@@ -69,7 +69,7 @@ public class CreateNullHosts extends CreateNullEntity {
 
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         NullProviders service = get(NullProviders.class);
         NetworkConfigService cfgService = get(NetworkConfigService.class);
 

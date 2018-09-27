@@ -17,8 +17,8 @@ package org.onosproject.pce.cli;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
 
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.tunnel.Tunnel;
@@ -44,7 +44,7 @@ public class PceQueryLoadBalancingPathCommand extends AbstractShellCommand {
     String name = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         log.info("executing pce-query-load-balancing-path");
 
         PceService service = get(PceService.class);

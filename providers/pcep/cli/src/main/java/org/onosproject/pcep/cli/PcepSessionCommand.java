@@ -16,8 +16,8 @@
 package org.onosproject.pcep.cli;
 
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.pcep.server.PcepClientController;
 import org.onosproject.pcep.server.PcepErrorDetail;
@@ -68,7 +68,7 @@ public class PcepSessionCommand extends AbstractShellCommand {
     String peer = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         switch (name) {
             case SESSION:
                 displayPcepSession();

@@ -22,8 +22,8 @@ import java.util.function.Predicate;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
 
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Option;
 import org.onlab.util.Tools;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cluster.ClusterEvent;
@@ -101,7 +101,7 @@ public class EventsCommand
     private long maxSize = -1;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         EventHistoryService eventHistoryService = get(EventHistoryService.class);
 
         Stream<Event<?, ?>> events = eventHistoryService.history().stream();

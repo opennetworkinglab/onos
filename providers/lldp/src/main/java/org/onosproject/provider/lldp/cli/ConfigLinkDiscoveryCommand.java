@@ -17,9 +17,9 @@ package org.onosproject.provider.lldp.cli;
 
 import java.util.Optional;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Option;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cli.net.DeviceIdCompleter;
 import org.onosproject.cli.net.PortNumberCompleter;
@@ -65,7 +65,7 @@ public class ConfigLinkDiscoveryCommand extends AbstractShellCommand {
 
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         DeviceService deviceService = get(DeviceService.class);
         NetworkConfigService netcfgService = get(NetworkConfigService.class);
 

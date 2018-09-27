@@ -31,9 +31,9 @@ import java.util.regex.Pattern;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Option;
 import org.onlab.util.XmlString;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cli.net.DeviceIdCompleter;
@@ -121,7 +121,7 @@ public class OdtnManualTestCommand extends AbstractShellCommand {
 
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         dcs = get(DynamicConfigService.class);
         deviceService = get(DeviceService.class);
 

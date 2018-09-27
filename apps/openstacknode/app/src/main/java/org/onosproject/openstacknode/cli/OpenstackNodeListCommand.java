@@ -19,7 +19,7 @@ package org.onosproject.openstacknode.cli;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Lists;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
@@ -39,7 +39,7 @@ public class OpenstackNodeListCommand extends AbstractShellCommand {
     private static final String FORMAT = "%-20s%-15s%-24s%-24s%-20s%-20s%-15s%s";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         OpenstackNodeService osNodeService = AbstractShellCommand.get(OpenstackNodeService.class);
         List<OpenstackNode> osNodes = Lists.newArrayList(osNodeService.nodes());
         osNodes.sort(Comparator.comparing(OpenstackNode::hostname));

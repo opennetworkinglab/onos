@@ -17,8 +17,8 @@ package org.onosproject.distributedprimitives.cli;
 
 import java.time.Duration;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.distributedprimitives.DistributedPrimitivesTest;
 import org.onosproject.store.service.DistributedLock;
@@ -47,7 +47,7 @@ public class DistributedLockTestCommand extends AbstractShellCommand {
     DistributedLock lock;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         DistributedPrimitivesTest test = get(DistributedPrimitivesTest.class);
         lock = test.getLock(name);
         if ("lock".equals(operation)) {

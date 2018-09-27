@@ -15,7 +15,7 @@
  */
 package org.onosproject.fnl.cli;
 
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.fnl.intf.NetworkDiagnostic;
 import org.onosproject.fnl.intf.NetworkDiagnosticService;
 import org.onosproject.cli.AbstractShellCommand;
@@ -35,7 +35,7 @@ import org.onosproject.net.link.LinkService;
 public class TsCheckLoop extends AbstractShellCommand {
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         NetworkDiagnosticService service = getService(NetworkDiagnosticService.class);
 
         DeviceService ds = getService(DeviceService.class);

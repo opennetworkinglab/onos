@@ -18,7 +18,7 @@ package org.onosproject.newoptical.cli;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.LinkKey;
 import org.onosproject.newoptical.OpticalConnectivity;
@@ -29,7 +29,7 @@ import org.onosproject.newoptical.api.OpticalPathService;
 public class ListOpticalConnectivityCommand extends AbstractShellCommand {
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         OpticalPathService opticalPathService = get(OpticalPathService.class);
 
         Collection<OpticalConnectivity> connectivities = opticalPathService.listConnectivity();

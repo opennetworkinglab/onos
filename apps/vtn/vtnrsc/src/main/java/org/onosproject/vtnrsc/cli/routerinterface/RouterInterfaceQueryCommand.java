@@ -15,8 +15,8 @@
  */
 package org.onosproject.vtnrsc.cli.routerinterface;
 
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Option;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.vtnrsc.RouterInterface;
 import org.onosproject.vtnrsc.SubnetId;
@@ -34,7 +34,7 @@ public class RouterInterfaceQueryCommand extends AbstractShellCommand {
     private static final String FMT = "subnetId=%s, tenantId=%s, portId=%s, routerId=%s";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         RouterInterfaceService service = get(RouterInterfaceService.class);
         if (subnetId != null) {
             RouterInterface routerInterface = service

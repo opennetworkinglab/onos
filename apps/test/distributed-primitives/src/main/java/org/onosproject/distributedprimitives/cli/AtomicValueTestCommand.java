@@ -15,8 +15,8 @@
  */
 package org.onosproject.distributedprimitives.cli;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.AtomicValue;
@@ -53,7 +53,7 @@ public class AtomicValueTestCommand extends AbstractShellCommand {
     AtomicValue<String> atomicValue;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         StorageService storageService = get(StorageService.class);
         atomicValue = storageService.<String>atomicValueBuilder()
                                     .withName(name)

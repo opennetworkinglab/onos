@@ -16,8 +16,8 @@
 package org.onosproject.ofagent.cli;
 
 import com.google.common.collect.Sets;
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.TpPort;
 import org.onosproject.cli.AbstractShellCommand;
@@ -52,7 +52,7 @@ public class OFAgentCreateCommand extends AbstractShellCommand {
     private String[] strCtrls = {};
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         Set<OFController> ctrls = Sets.newHashSet();
         for (String strCtrl : strCtrls) {
             if (!isValidController(strCtrl)) {

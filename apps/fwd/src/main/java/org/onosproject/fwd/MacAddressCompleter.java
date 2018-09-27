@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 package org.onosproject.fwd;
-import org.apache.karaf.shell.console.Completer;
-import org.apache.karaf.shell.console.completer.StringsCompleter;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.apache.karaf.shell.api.console.CommandLine;
+import org.apache.karaf.shell.api.console.Completer;
+import org.apache.karaf.shell.api.console.Session;
+import org.apache.karaf.shell.support.completers.StringsCompleter;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import java.util.List;
@@ -25,9 +28,10 @@ import org.onlab.packet.MacAddress;
 /**
  * Sample reactive forwarding application.
  */
+@Service
 public class MacAddressCompleter implements Completer {
     @Override
-    public int complete(String buffer, int cursor, List<String> candidates) {
+    public int complete(Session session, CommandLine commandLine, List<String> candidates) {
         // Delegate string completer
         StringsCompleter delegate = new StringsCompleter();
         EventuallyConsistentMap<MacAddress, ReactiveForwardMetrics> macAddress;
@@ -39,6 +43,6 @@ public class MacAddressCompleter implements Completer {
             strings.add(key.toString());
         }
         // Now let the completer do the work for figuring out what to offer.
-        return delegate.complete(buffer, cursor, candidates);
+        return delegate.complete(session, commandLine, candidates);
     }
 }

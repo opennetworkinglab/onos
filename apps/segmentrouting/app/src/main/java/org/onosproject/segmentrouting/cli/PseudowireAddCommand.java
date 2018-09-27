@@ -16,8 +16,8 @@
 package org.onosproject.segmentrouting.cli;
 
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.segmentrouting.SegmentRoutingService;
@@ -90,7 +90,7 @@ public class PseudowireAddCommand extends AbstractShellCommand {
     String cP2OuterVlan;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
 
         SegmentRoutingService srService =
                 AbstractShellCommand.get(SegmentRoutingService.class);

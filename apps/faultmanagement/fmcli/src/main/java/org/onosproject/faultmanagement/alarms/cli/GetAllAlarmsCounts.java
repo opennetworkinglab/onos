@@ -17,9 +17,9 @@ package org.onosproject.faultmanagement.alarms.cli;
 
 import static java.util.Comparator.comparingInt;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Option;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.faultmanagement.alarm.Alarm;
 import org.onosproject.incubator.net.faultmanagement.alarm.AlarmService;
@@ -47,7 +47,7 @@ public class GetAllAlarmsCounts extends AbstractShellCommand {
     private Map<Alarm.SeverityLevel, Long> alarmCounts;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         if (deviceId != null) {
             if (activeOnly) {
                 alarmCounts = alarmService.getActiveAlarms(DeviceId.deviceId(deviceId))

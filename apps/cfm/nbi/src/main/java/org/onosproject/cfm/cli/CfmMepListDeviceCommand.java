@@ -15,8 +15,8 @@
  */
 package org.onosproject.cfm.cli;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.l2monitoring.cfm.Mep;
 import org.onosproject.incubator.net.l2monitoring.cfm.service.CfmConfigException;
@@ -35,7 +35,7 @@ public class CfmMepListDeviceCommand extends AbstractShellCommand {
     private String deviceStr = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         CfmMepService mepService = get(CfmMepService.class);
         if (deviceStr != null) {
             DeviceId deviceId = DeviceId.deviceId(deviceStr);

@@ -107,7 +107,9 @@ public class ComponentConfigManager implements ComponentConfigService {
 
     @Override
     public void registerProperties(Class<?> componentClass) {
-        if (true) return;
+        if (true) {
+            return;
+        }
 
         checkPermission(CONFIG_WRITE);
 
@@ -133,7 +135,9 @@ public class ComponentConfigManager implements ComponentConfigService {
 
     @Override
     public void unregisterProperties(Class<?> componentClass, boolean clear) {
-        if (true) return;
+        if (true) {
+            return;
+        }
 
         checkPermission(CONFIG_WRITE);
 

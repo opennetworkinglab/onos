@@ -19,7 +19,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.virtualbng.VbngConfigurationService;
@@ -37,7 +37,7 @@ public class MappingListCommand extends AbstractShellCommand {
             "   %s - %s";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
 
         VbngConfigurationService service =
                 AbstractShellCommand.get(VbngConfigurationService.class);

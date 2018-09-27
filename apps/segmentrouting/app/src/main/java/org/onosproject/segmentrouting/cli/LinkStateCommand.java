@@ -20,7 +20,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
@@ -40,7 +40,7 @@ public class LinkStateCommand extends AbstractShellCommand {
     private static final String FORMAT_MAPPING = "  %s";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         SegmentRoutingService srService = AbstractShellCommand
                 .get(SegmentRoutingService.class);
         printLinkState(srService.getSeenLinks(),

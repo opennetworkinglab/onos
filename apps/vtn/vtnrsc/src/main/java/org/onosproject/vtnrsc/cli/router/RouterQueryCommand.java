@@ -15,8 +15,8 @@
  */
 package org.onosproject.vtnrsc.cli.router;
 
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Option;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.vtnrsc.Router;
 import org.onosproject.vtnrsc.RouterId;
@@ -39,7 +39,7 @@ public class RouterQueryCommand extends AbstractShellCommand {
             + "externalGatewayInfo=%s, status=%s, adminStateUp=%s, distributed=%s, routers=%s";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         RouterService service = get(RouterService.class);
         if (id != null) {
             Router router = service.getRouter(RouterId.valueOf(id));

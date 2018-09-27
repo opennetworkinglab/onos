@@ -15,8 +15,8 @@
  */
 package org.onosproject.vtnrsc.cli.routerinterface;
 
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Option;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.vtnrsc.RouterInterface;
 import org.onosproject.vtnrsc.SubnetId;
@@ -32,7 +32,7 @@ public class RouterInterfaceRemoveCommand extends AbstractShellCommand {
     String subnetId = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         RouterInterfaceService service = get(RouterInterfaceService.class);
         try {
             RouterInterface routerInterface = service

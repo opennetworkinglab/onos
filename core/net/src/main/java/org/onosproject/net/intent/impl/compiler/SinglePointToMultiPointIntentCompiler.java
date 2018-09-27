@@ -16,19 +16,16 @@
 package org.onosproject.net.intent.impl.compiler;
 
 import com.google.common.collect.ImmutableSet;
-import org.osgi.service.component.annotations.Activate;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Deactivate;
-import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Link;
 import org.onosproject.net.Path;
-import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentException;
 import org.onosproject.net.intent.LinkCollectionIntent;
 import org.onosproject.net.intent.SinglePointToMultiPointIntent;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
 
 import java.util.Collections;
 import java.util.HashSet;

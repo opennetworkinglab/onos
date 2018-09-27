@@ -16,8 +16,8 @@
 
 package org.onosproject.scalablegateway.cli;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
 import org.onlab.packet.Ip4Address;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
@@ -50,7 +50,7 @@ public class ScalableGatewayAddCommand extends AbstractShellCommand {
     String interfaceName = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         ScalableGatewayService service = get(ScalableGatewayService.class);
 
         GatewayNode gatewayNode = GatewayNode.builder()

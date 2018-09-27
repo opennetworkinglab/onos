@@ -17,7 +17,7 @@
 package org.onosproject.odtn.cli.impl;
 
 import java.util.regex.Pattern;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
 import org.onlab.util.XmlString;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.config.DynamicConfigService;
@@ -52,7 +52,7 @@ public class OdtnDcsModelCheckCommand extends AbstractShellCommand {
     }
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         dcs = get(DynamicConfigService.class);
         modelConverter = get(ModelConverter.class);
         dumpDcsStore(DefaultContext.class);

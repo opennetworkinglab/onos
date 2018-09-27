@@ -15,8 +15,8 @@
  */
 package org.onosproject.intentsync.cli;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.intentsync.IntentSynchronizationAdminService;
 
@@ -33,7 +33,7 @@ public class PrimaryChangeCommand extends AbstractShellCommand {
     boolean isPrimary = false;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         AbstractShellCommand.get(IntentSynchronizationAdminService.class).modifyPrimary(isPrimary);
     }
 

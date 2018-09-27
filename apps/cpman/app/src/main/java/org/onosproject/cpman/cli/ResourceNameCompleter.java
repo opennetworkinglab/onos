@@ -17,8 +17,10 @@ package org.onosproject.cpman.cli;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import org.apache.karaf.shell.console.completer.ArgumentCompleter;
-import org.apache.karaf.shell.console.completer.StringsCompleter;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.apache.karaf.shell.api.console.CommandLine;
+import org.apache.karaf.shell.api.console.Session;
+import org.apache.karaf.shell.support.completers.StringsCompleter;
 import org.onosproject.cli.AbstractCompleter;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cluster.NodeId;
@@ -34,6 +36,7 @@ import java.util.SortedSet;
 /**
  * Resource name completer.
  */
+@Service
 public class ResourceNameCompleter extends AbstractCompleter {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -46,14 +49,13 @@ public class ResourceNameCompleter extends AbstractCompleter {
 
 
     @Override
-    public int complete(String buffer, int cursor, List<String> candidates) {
+    public int complete(Session session, CommandLine commandLine, List<String> candidates) {
         // delegate string completer
         StringsCompleter delegate = new StringsCompleter();
 
         // Resource type is the second argument.
-        ArgumentCompleter.ArgumentList list = getArgumentList();
-        String nodeId = list.getArguments()[1];
-        String type = list.getArguments()[2];
+        String nodeId = commandLine.getArguments()[1];
+        String type = commandLine.getArguments()[2];
 
         if (resourceTypes.contains(type)) {
             ControlPlaneMonitorService monitorService =
@@ -85,6 +87,6 @@ public class ResourceNameCompleter extends AbstractCompleter {
             }
         }
 
-        return delegate.complete(buffer, cursor, candidates);
+        return delegate.complete(session, commandLine, candidates);
     }
 }

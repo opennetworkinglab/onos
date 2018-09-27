@@ -15,8 +15,9 @@
  */
 package org.onosproject.openstackvtap.cli;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.openstackvtap.api.OpenstackVtap;
 import org.onosproject.openstackvtap.api.OpenstackVtapService;
@@ -28,6 +29,7 @@ import static org.onosproject.openstackvtap.util.OpenstackVtapUtil.getVtapTypeFr
 /**
  * Command line interface for listing openstack vTap rules.
  */
+@Service
 @Command(scope = "onos", name = "openstack-vtap-list",
         description = "OpenstackVtap list")
 public class OpenstackVtapListCommand extends AbstractShellCommand {
@@ -44,7 +46,7 @@ public class OpenstackVtapListCommand extends AbstractShellCommand {
     private static final String FORMAT_RX_DEVICES  = "   rx devices: %s";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         OpenstackVtap.Type type = getVtapTypeFromString(vTapType);
         Set<OpenstackVtap> openstackVtaps = vTapService.getVtaps(type);
         for (OpenstackVtap vTap : openstackVtaps) {

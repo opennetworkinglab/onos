@@ -18,7 +18,7 @@ package org.onosproject.openstacknetworking.cli;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Lists;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.openstacknetworking.api.InstancePort;
 import org.onosproject.openstacknetworking.api.InstancePortService;
@@ -38,7 +38,7 @@ public class InstancePortListCommand extends AbstractShellCommand {
     private static final String FORMAT = "%-40s%-10s%-25s%-15s%-20s";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         InstancePortService service = get(InstancePortService.class);
         List<InstancePort> instancePorts = Lists.newArrayList(service.instancePorts());
         instancePorts.sort(Comparator.comparing(InstancePort::portId));

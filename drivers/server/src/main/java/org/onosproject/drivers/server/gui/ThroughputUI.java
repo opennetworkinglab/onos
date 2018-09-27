@@ -22,13 +22,12 @@ import org.onosproject.ui.UiMessageHandlerFactory;
 import org.onosproject.ui.UiView;
 
 import com.google.common.collect.ImmutableList;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.Service;
 
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,8 +39,7 @@ import static org.onosproject.ui.GlyphConstants.ENDSTATION;
 /**
  * Mechanism to stream throughput data to the GUI.
  */
-@Component(immediate = true, enabled = true)
-@Service(value = ThroughputUI.class)
+@Component(immediate = true, service = ThroughputUI.class)
 public class ThroughputUI {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -73,7 +71,7 @@ public class ThroughputUI {
     /**
      * Interact with ONOS.
      */
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected UiExtensionService uiExtensionService;
 
     @Activate

@@ -15,7 +15,7 @@
  */
 package org.onosproject.openstacknetworking.cli;
 
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.openstacknode.api.NodeState;
 import org.onosproject.openstacknode.api.OpenstackNode;
@@ -34,7 +34,7 @@ public class OpenstackSyncRulesCommand extends AbstractShellCommand {
     private static final long SLEEP_MS = 3000; // we wait 3s for init each node
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         // All handlers in this application reacts the node complete event and
         // tries to re-configure flow rules for the complete node.
         OpenstackNodeService osNodeService = AbstractShellCommand.get(OpenstackNodeService.class);

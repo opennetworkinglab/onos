@@ -15,8 +15,8 @@
  */
 package org.onosproject.ofagent.cli;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.ofagent.api.OFAgent;
@@ -33,7 +33,7 @@ public class OFAgentRemoveCommand extends AbstractShellCommand {
     private long networkId = NetworkId.NONE.id();
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         OFAgentAdminService adminService = get(OFAgentAdminService.class);
         OFAgent removed = adminService.removeAgent(NetworkId.networkId(networkId));
         if (removed != null) {

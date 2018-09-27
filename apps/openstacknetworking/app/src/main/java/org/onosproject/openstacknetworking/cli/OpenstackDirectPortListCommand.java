@@ -15,7 +15,7 @@
  */
 package org.onosproject.openstacknetworking.cli;
 
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.openstack4j.model.network.IP;
@@ -39,7 +39,7 @@ public class OpenstackDirectPortListCommand extends AbstractShellCommand {
     private static final String FORMAT = "%-40s%-20s%-20s%-20s%-20s%-20s";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         OpenstackNetworkService service = AbstractShellCommand.get(OpenstackNetworkService.class);
 
         List<Port> ports = service.ports().stream()

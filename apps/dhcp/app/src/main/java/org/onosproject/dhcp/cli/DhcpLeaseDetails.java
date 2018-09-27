@@ -15,7 +15,7 @@
  */
 package org.onosproject.dhcp.cli;
 
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.dhcp.DhcpService;
 
@@ -28,7 +28,7 @@ public class DhcpLeaseDetails extends AbstractShellCommand {
     private static final String DHCP_LEASE_FORMAT = "Lease Time: %ds\nRenewal Time: %ds\nRebinding Time: %ds";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         DhcpService dhcpService = AbstractShellCommand.get(DhcpService.class);
         int leaseTime = dhcpService.getLeaseTime();
         int renewTime = dhcpService.getRenewalTime();

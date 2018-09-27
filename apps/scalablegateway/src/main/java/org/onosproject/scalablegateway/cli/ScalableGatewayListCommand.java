@@ -16,7 +16,7 @@
 
 package org.onosproject.scalablegateway.cli;
 
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.scalablegateway.api.ScalableGatewayService;
 
@@ -30,7 +30,7 @@ public class ScalableGatewayListCommand extends AbstractShellCommand {
 
     private static final String FORMAT = "GatewayNode Id[%s]: DataPlane Ip[%s], External Interface names[%s]";
     @Override
-    protected void execute() {
+    protected void doExecute() {
         ScalableGatewayService service = get(ScalableGatewayService.class);
         service.getGatewayNodes().forEach(node -> print(FORMAT,
                 node.getGatewayDeviceId().toString(),

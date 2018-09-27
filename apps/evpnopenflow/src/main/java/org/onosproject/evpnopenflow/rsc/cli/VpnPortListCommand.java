@@ -16,7 +16,7 @@
 
 package org.onosproject.evpnopenflow.rsc.cli;
 
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.evpnopenflow.rsc.VpnPort;
 import org.onosproject.evpnopenflow.rsc.vpnport.VpnPortService;
@@ -33,7 +33,7 @@ import static org.onosproject.evpnopenflow.rsc.EvpnConstants.FORMAT_VPN_PORT;
 public class VpnPortListCommand extends AbstractShellCommand {
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         VpnPortService portService = get(VpnPortService.class);
         Collection<VpnPort> ports = portService.getPorts();
         ports.forEach(port -> {

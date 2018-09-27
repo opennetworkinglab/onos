@@ -15,7 +15,7 @@
  */
 package org.onosproject.segmentrouting.cli;
 
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.segmentrouting.SegmentRoutingService;
 import org.onosproject.segmentrouting.Tunnel;
@@ -31,7 +31,7 @@ public class TunnelListCommand extends AbstractShellCommand {
             "  id=%s, path=%s";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
 
         SegmentRoutingService srService =
                 AbstractShellCommand.get(SegmentRoutingService.class);

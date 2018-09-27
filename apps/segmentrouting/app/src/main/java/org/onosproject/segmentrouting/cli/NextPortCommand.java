@@ -16,7 +16,7 @@
 
 package org.onosproject.segmentrouting.cli;
 
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.segmentrouting.SegmentRoutingService;
 import org.onosproject.segmentrouting.storekey.PortNextObjectiveStoreKey;
@@ -32,7 +32,7 @@ import java.util.Map;
         description = "Displays the current port / next-id it mapping")
 public class NextPortCommand extends AbstractShellCommand {
     @Override
-    protected void execute() {
+    protected void doExecute() {
         SegmentRoutingService srService =
                 AbstractShellCommand.get(SegmentRoutingService.class);
         print(srService.getPortNextObjStore());

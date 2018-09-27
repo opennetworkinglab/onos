@@ -15,8 +15,8 @@
  */
 package org.onosproject.cpman.cli;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cpman.ControlLoadSnapshot;
@@ -58,7 +58,7 @@ public class ControlMetricsStatsListCommand extends AbstractShellCommand {
     String name = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         ControlPlaneMonitorService service = get(ControlPlaneMonitorService.class);
         NodeId nodeId = NodeId.nodeId(node);
         switch (type) {

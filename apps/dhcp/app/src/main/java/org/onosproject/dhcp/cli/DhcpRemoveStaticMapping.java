@@ -15,8 +15,8 @@
  */
 package org.onosproject.dhcp.cli;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
 import org.onlab.packet.MacAddress;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.dhcp.DhcpService;
@@ -38,7 +38,7 @@ public class DhcpRemoveStaticMapping extends AbstractShellCommand {
                                                 "Either the mapping does not exist or it is not static.";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         DhcpService dhcpService = AbstractShellCommand.get(DhcpService.class);
 
         try {

@@ -1,4 +1,5 @@
 COMPILE_DEPS = CORE_DEPS + [
+    "@commons_jxpath//jar",
     "//drivers/utilities:onos-drivers-utilities",
     "//protocols/netconf/api:onos-protocols-netconf-api",
     "//apps/odtn/api:onos-apps-odtn-api",

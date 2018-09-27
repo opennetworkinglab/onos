@@ -15,8 +15,9 @@
  */
 package org.onosproject.drivers.fujitsu.cli;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.drivers.fujitsu.behaviour.VoltNeConfig;
 import org.onosproject.net.DeviceId;
@@ -26,6 +27,7 @@ import org.onosproject.net.driver.DriverService;
 /**
  * Gets all available data in vOLT.
  */
+@Service
 @Command(scope = "onos", name = "volt-all",
         description = "Gets all available data in vOLT")
 public class VoltGetAllCommand extends AbstractShellCommand {
@@ -37,7 +39,7 @@ public class VoltGetAllCommand extends AbstractShellCommand {
     private DeviceId deviceId;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         DriverService service = get(DriverService.class);
         deviceId = DeviceId.deviceId(uri);
         DriverHandler h = service.createHandler(deviceId);

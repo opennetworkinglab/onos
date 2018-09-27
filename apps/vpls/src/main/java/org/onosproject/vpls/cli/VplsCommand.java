@@ -16,8 +16,8 @@
 package org.onosproject.vpls.cli;
 
 import com.google.common.collect.ImmutableSet;
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.intf.Interface;
 import org.onosproject.net.intf.InterfaceService;
@@ -119,7 +119,7 @@ public class VplsCommand extends AbstractShellCommand {
     String optArg = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         if (vpls == null) {
             vpls = get(Vpls.class);
         }

@@ -19,7 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.openstacknetworking.api.OpenstackRouterService;
 import org.openstack4j.model.network.NetFloatingIP;
@@ -41,7 +41,7 @@ public class OpenstackFloatingIpListCommand extends AbstractShellCommand {
     private static final String FORMAT = "%-40s%-20s%-20s";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         OpenstackRouterService service = AbstractShellCommand.get(OpenstackRouterService.class);
         List<NetFloatingIP> floatingIps = Lists.newArrayList(service.floatingIps());
         floatingIps.sort(Comparator.comparing(NetFloatingIP::getFloatingIpAddress));

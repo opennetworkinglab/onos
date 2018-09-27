@@ -17,8 +17,8 @@
 package org.onosproject.segmentrouting.cli;
 
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
 import org.onlab.osgi.ServiceNotFoundException;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.segmentrouting.SegmentRoutingService;
@@ -39,7 +39,7 @@ public class InvalidateNextCommand extends AbstractShellCommand {
     private String please = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         if (please == null || !please.equals(CONFIRM_PHRASE)) {
             print("WARNING: System may enter an unpredictable state if the next ID is force invalidated." +
                     "Enter confirmation phrase to continue.");

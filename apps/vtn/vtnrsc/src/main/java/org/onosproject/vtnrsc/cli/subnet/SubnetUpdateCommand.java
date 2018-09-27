@@ -17,9 +17,9 @@ package org.onosproject.vtnrsc.cli.subnet;
 
 import java.util.Set;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Option;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpAddress.Version;
 import org.onlab.packet.IpPrefix;
@@ -95,7 +95,7 @@ public class SubnetUpdateCommand extends AbstractShellCommand {
     Set<AllocationPool> allocationPools = Sets.newHashSet();
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         SubnetService service = get(SubnetService.class);
         if (id == null || networkId == null || tenantId == null) {
             print("id,networkId,tenantId can not be null");

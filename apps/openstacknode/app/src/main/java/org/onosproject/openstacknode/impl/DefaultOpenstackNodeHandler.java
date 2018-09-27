@@ -15,7 +15,7 @@
  */
 package org.onosproject.openstacknode.impl;
 
-import com.google.common.collect.Maps;
+import com.google.common.collect.Lists;
 import org.onlab.packet.IpAddress;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;

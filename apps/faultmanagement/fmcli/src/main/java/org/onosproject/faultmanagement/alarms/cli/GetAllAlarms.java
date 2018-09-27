@@ -17,9 +17,9 @@ package org.onosproject.faultmanagement.alarms.cli;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Option;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.faultmanagement.alarm.Alarm;
 import org.onosproject.incubator.net.faultmanagement.alarm.AlarmService;
@@ -46,7 +46,7 @@ public class GetAllAlarms extends AbstractShellCommand {
     private Set<Alarm> alarms;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         if (deviceId != null) {
             if (activeOnly) {
                 alarms = alarmService.getActiveAlarms(DeviceId.deviceId(deviceId));

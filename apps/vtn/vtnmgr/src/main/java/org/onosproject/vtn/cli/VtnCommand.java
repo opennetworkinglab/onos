@@ -15,8 +15,8 @@
  */
 package org.onosproject.vtn.cli;
 
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Option;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.vtn.manager.impl.VtnManager;
 
@@ -32,7 +32,7 @@ public class VtnCommand extends AbstractShellCommand {
     String exPortName = "";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         VtnManager.setExPortName(exPortName);
     }
 }

@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Map;
 
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.segmentrouting.SegmentRoutingService;
 import org.onosproject.segmentrouting.grouphandler.NextNeighbors;
@@ -38,7 +38,7 @@ public class NextDstCommand extends AbstractShellCommand {
     private static final String FORMAT_MAPPING = "  %s";
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         SegmentRoutingService srService =
                 AbstractShellCommand.get(SegmentRoutingService.class);
         printDestinationSet(srService.getDstNextObjStore());

@@ -17,8 +17,8 @@
 package org.onosproject.t3.cli;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Option;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.Host;
@@ -58,7 +58,7 @@ public class TroubleshootPingAllCommand extends AbstractShellCommand {
     private long delay = 0;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         TroubleshootService service = get(TroubleshootService.class);
 
         EtherType type = EtherType.valueOf(ethType.toUpperCase());

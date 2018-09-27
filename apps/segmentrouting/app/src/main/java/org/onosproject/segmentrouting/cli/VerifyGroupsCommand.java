@@ -16,8 +16,8 @@
 
 package org.onosproject.segmentrouting.cli;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -40,7 +40,7 @@ public class VerifyGroupsCommand extends AbstractShellCommand {
     String uri = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         DeviceService deviceService = get(DeviceService.class);
         SegmentRoutingService srService =
                 AbstractShellCommand.get(SegmentRoutingService.class);

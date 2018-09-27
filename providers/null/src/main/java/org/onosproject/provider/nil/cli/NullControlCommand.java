@@ -15,8 +15,8 @@
  */
 package org.onosproject.provider.nil.cli;
 
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.provider.nil.NullProviders;
@@ -41,7 +41,7 @@ public class NullControlCommand extends AbstractShellCommand {
     String topoShape = null;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
         ComponentConfigService service = get(ComponentConfigService.class);
         // If there is an existing topology; make sure it's stopped before restarting
         if (cmd.equals(START)) {

@@ -19,9 +19,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.apache.karaf.shell.commands.Argument;
-import org.apache.karaf.shell.commands.Command;
-import org.apache.karaf.shell.commands.Option;
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Option;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.mapping.MappingEntry;
 import org.onosproject.mapping.MappingKey;
@@ -81,7 +81,7 @@ public class MappingsListCommand extends AbstractShellCommand {
     private List<MappingEntry> mappings;
 
     @Override
-    protected void execute() {
+    protected void doExecute() {
 
         MappingStore.Type typeEnum = getTypeEnum(type);
 
