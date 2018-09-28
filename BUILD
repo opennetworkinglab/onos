@@ -14,8 +14,6 @@ filegroup(
 
 KARAF = "@apache_karaf//:apache_karaf"
 
-PATCHES = "@apache_karaf_patches//:apache_karaf_patches"
-
 BRANDING = "//tools/package/branding:onos-tools-package-branding"
 
 # Generates auxiliary karaf.zip file; branded and augmented with ONOS runtime tools
@@ -23,7 +21,6 @@ genrule(
     name = "onos-karaf",
     srcs = [
         KARAF,
-        PATCHES,
         BRANDING,
     ] + glob([
         "tools/package/bin/*",
@@ -32,8 +29,8 @@ genrule(
         "tools/package/runtime/bin/*",
     ]),
     outs = ["karaf.zip"],
-    cmd = "$(location tools/package/onos-prep-karaf) $(location karaf.zip) $(location %s) %s $(location %s) $(location %s) tools/package" %
-          (KARAF, ONOS_VERSION, BRANDING, PATCHES),
+    cmd = "$(location tools/package/onos-prep-karaf) $(location karaf.zip) $(location %s) %s $(location %s) '' tools/package" %
+          (KARAF, ONOS_VERSION, BRANDING),
     tools = ["tools/package/onos-prep-karaf"],
 )
 

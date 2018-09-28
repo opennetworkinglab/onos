@@ -1,6 +1,6 @@
 #!/bin/bash
-
-KARAF_VERSION="3.0.8"
+ 
+KARAF_VERSION="4.2.1"
 KARAF_TARFILE_NAME="apache-karaf-${KARAF_VERSION}.tar"
 BOOT_FEATURES="standard,ssh,scr,war,webconsole"
 

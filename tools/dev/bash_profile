@@ -22,7 +22,7 @@ fi
 
 export MAVEN=${MAVEN:-~/Applications/apache-maven-3.3.9}
 
-export KARAF_VERSION=${KARAF_VERSION:-3.0.8}
+export KARAF_VERSION=4.2.1
 export KARAF_ROOT=${KARAF_ROOT:-~/Applications/apache-karaf-$KARAF_VERSION}
 export KARAF_LOG=$KARAF_ROOT/data/log/karaf.log
 

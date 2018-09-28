@@ -6,8 +6,7 @@
 set -eu -o pipefail
 
 OUT=$1
-#export HOME=/Users/tom
-KARAF_TAR="$HOME/Downloads/apache-karaf-4.2.1.tar.gz"
+KARAF_TAR=$2
 ONOS_VERSION=$3
 BRANDING=$4
 KARAF_PATCHES=$5
