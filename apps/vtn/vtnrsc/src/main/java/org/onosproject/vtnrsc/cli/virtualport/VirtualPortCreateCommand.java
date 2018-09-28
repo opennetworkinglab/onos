@@ -21,6 +21,7 @@ import java.util.Set;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.packet.MacAddress;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
@@ -41,6 +42,7 @@ import com.google.common.collect.Sets;
 /**
  * Supports for creating a virtualPort.
  */
+@Service
 @Command(scope = "onos", name = "virtualport-create",
         description = "Supports for creating a virtualPort.")
 public class VirtualPortCreateCommand extends AbstractShellCommand {

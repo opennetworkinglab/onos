@@ -16,6 +16,7 @@
 package org.onosproject.openstacknetworking.cli;
 
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.openstack4j.model.network.IP;
@@ -32,6 +33,7 @@ import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.g
 /**
  * Lists OpenStack direct ports.
  */
+@Service
 @Command(scope = "onos", name = "openstack-direct-ports",
         description = "Lists all OpenStack direct ports")
 public class OpenstackDirectPortListCommand extends AbstractShellCommand {

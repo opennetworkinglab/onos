@@ -18,6 +18,7 @@ package org.onosproject.openstacknetworking.cli;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.openstacknetworking.api.InstancePort;
 import org.onosproject.openstacknetworking.api.InstancePortAdminService;
@@ -28,6 +29,7 @@ import static org.onosproject.openstacknetworking.api.InstancePort.State.INACTIV
 /**
  * Purges existing instance ports.
  */
+@Service
 @Command(scope = "onos", name = "openstack-reset-ports",
         description = "Reset existing instance ports created by OpenStack networking app")
 public class OpenstackResetPortsCommand extends AbstractShellCommand {

@@ -17,6 +17,7 @@ package org.onosproject.vtnrsc.cli.floatingip;
 
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.vtnrsc.FloatingIpId;
 import org.onosproject.vtnrsc.FloatingIp;
@@ -25,6 +26,7 @@ import org.onosproject.vtnrsc.floatingip.FloatingIpService;
 /**
  * Supports for query a floating IP.
  */
+@Service
 @Command(scope = "onos", name = "floatingips", description = "Supports for querying a floating IP")
 public class FloatingIpQueryCommand extends AbstractShellCommand {
     @Option(name = "-I", aliases = "--id", description = "The floating IP identifier",

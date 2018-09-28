@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.mcast.cli.McastGroupCompleter;
@@ -38,6 +39,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 /**
  * Command to show the list of mcast trees.
  */
+@Service
 @Command(scope = "onos", name = "sr-mcast-tree",
         description = "Lists all mcast trees")
 public class McastTreeListCommand extends AbstractShellCommand {

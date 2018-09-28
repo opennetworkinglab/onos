@@ -17,11 +17,13 @@ package org.onosproject.layout;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 
 /**
  * Lays out the elements in the topology using the specified algorithm.
  */
+@Service
 @Command(scope = "onos", name = "topo-layout",
         description = "Lays out the elements in the topology using the specified algorithm")
 public class AutoLayoutCommand extends AbstractShellCommand {

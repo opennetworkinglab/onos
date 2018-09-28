@@ -20,6 +20,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
 
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.tunnel.Tunnel;
 import org.onosproject.incubator.net.tunnel.TunnelId;
@@ -34,6 +35,7 @@ import java.util.List;
 /**
  * Supports quering PCE path.
  */
+@Service
 @Command(scope = "onos", name = "pce-query-path",
         description = "Supports querying PCE path.")
 public class PceQueryPathCommand extends AbstractShellCommand {

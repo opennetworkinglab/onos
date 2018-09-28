@@ -17,6 +17,7 @@
 package org.onosproject.evpnopenflow.rsc.cli;
 
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.evpnopenflow.rsc.EvpnConstants;
 import org.onosproject.evpnopenflow.rsc.VpnInstance;
@@ -27,6 +28,7 @@ import java.util.Collection;
 /**
  * Support for displaying EVPN VPN instances.
  */
+@Service
 @Command(scope = "onos", name = "evpn-instance-list", description = "Lists " +
         "all EVPN instances")
 public class VpnInstListCommand extends AbstractShellCommand {

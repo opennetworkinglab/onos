@@ -18,12 +18,14 @@
 package org.onosproject.ui.impl.topo.cli;
 
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.ui.impl.TopologyViewMessageHandlerBase;
 
 /**
  * Clears meta-UI data for topology view.
  */
+@Service
 @Command(scope = "onos", name = "ui-clear-meta",
         description = "Clears meta-UI data for topology view")
 public class UiClearMetaCommand extends AbstractShellCommand {

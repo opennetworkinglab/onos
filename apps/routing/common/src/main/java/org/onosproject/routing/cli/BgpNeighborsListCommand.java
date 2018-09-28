@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.routing.bgp.BgpInfoService;
 import org.onosproject.routing.bgp.BgpSession;
@@ -31,6 +32,7 @@ import java.util.Collection;
 /**
  * Command to show the BGP neighbors.
  */
+@Service
 @Command(scope = "onos", name = "bgp-neighbors",
          description = "Lists the BGP neighbors")
 public class BgpNeighborsListCommand extends AbstractShellCommand {

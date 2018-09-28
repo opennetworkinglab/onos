@@ -17,6 +17,7 @@ package org.onosproject.vtnrsc.cli.network;
 
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.vtnrsc.TenantNetwork;
 import org.onosproject.vtnrsc.TenantNetworkId;
@@ -25,6 +26,7 @@ import org.onosproject.vtnrsc.tenantnetwork.TenantNetworkService;
 /**
  * Supports for querying TenantNetworks by network id.
  */
+@Service
 @Command(scope = "onos", name = "tenantnetworks", description = "Supports for querying"
         + "tenantNetworks by networkid")
 public class TenantNetworkQueryCommand extends AbstractShellCommand {

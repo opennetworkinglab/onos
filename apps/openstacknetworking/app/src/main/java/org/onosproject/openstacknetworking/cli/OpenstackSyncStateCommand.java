@@ -17,6 +17,7 @@ package org.onosproject.openstacknetworking.cli;
 
 import com.google.common.base.Strings;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkAdminService;
 import org.onosproject.openstacknetworking.api.OpenstackRouterAdminService;
@@ -43,6 +44,7 @@ import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.CONTROLLE
 /**
  * Synchronizes OpenStack network states.
  */
+@Service
 @Command(scope = "onos", name = "openstack-sync-states",
         description = "Synchronizes all OpenStack network states")
 public class OpenstackSyncStateCommand extends AbstractShellCommand {

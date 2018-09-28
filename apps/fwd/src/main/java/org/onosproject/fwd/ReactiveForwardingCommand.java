@@ -15,6 +15,7 @@
  */
 package org.onosproject.fwd;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.apache.karaf.shell.api.action.Argument;
 import org.onlab.packet.MacAddress;
@@ -22,6 +23,7 @@ import org.onlab.packet.MacAddress;
 /**
  * Sample reactive forwarding application.
  */
+@Service
 @Command(scope = "onos", name = "reactive-fwd-metrics",
         description = "List all the metrics of reactive fwd app based on mac address")
 public class ReactiveForwardingCommand extends AbstractShellCommand {

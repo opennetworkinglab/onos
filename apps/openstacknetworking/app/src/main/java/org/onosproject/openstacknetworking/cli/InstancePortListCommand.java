@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Lists;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.openstacknetworking.api.InstancePort;
 import org.onosproject.openstacknetworking.api.InstancePortService;
@@ -31,6 +32,7 @@ import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.p
 /**
  * Lists OpenStack instance ports.
  */
+@Service
 @Command(scope = "onos", name = "openstack-instance-ports",
         description = "Lists all OpenStack instance ports")
 public class InstancePortListCommand extends AbstractShellCommand {

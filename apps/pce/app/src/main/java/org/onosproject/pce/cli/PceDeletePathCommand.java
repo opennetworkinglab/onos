@@ -20,6 +20,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.tunnel.TunnelId;
 import org.onosproject.pce.pceservice.api.PceService;
@@ -29,6 +30,7 @@ import org.slf4j.Logger;
 /**
  * Supports deleting pce path.
  */
+@Service
 @Command(scope = "onos", name = "pce-delete-path", description = "Supports deleting pce path.")
 public class PceDeletePathCommand extends AbstractShellCommand {
     private final Logger log = getLogger(getClass());

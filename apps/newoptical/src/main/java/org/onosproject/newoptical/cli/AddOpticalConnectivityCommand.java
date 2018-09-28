@@ -17,6 +17,7 @@ package org.onosproject.newoptical.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.util.Bandwidth;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cli.net.ConnectPointCompleter;
@@ -28,6 +29,7 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 
+@Service
 @Command(scope = "onos", name = "add-optical-connectivity",
         description = "Configure optical domain connectivity")
 public class AddOpticalConnectivityCommand extends AbstractShellCommand {

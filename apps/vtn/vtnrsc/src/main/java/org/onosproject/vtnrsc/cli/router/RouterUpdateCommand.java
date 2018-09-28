@@ -22,6 +22,7 @@ import java.util.Set;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.vtnrsc.DefaultRouter;
 import org.onosproject.vtnrsc.Router;
@@ -36,6 +37,7 @@ import com.google.common.collect.Sets;
 /**
  * Supports for update a router.
  */
+@Service
 @Command(scope = "onos", name = "router-update", description = "Supports for updating a router")
 public class RouterUpdateCommand extends AbstractShellCommand {
     @Argument(index = 0, name = "id", description = "The router identifier",

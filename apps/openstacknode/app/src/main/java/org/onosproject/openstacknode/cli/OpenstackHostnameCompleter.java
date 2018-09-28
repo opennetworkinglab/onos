@@ -15,6 +15,7 @@
  */
 package org.onosproject.openstacknode.cli;
 
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.apache.karaf.shell.api.console.CommandLine;
 import org.apache.karaf.shell.api.console.Completer;
 import org.apache.karaf.shell.api.console.Session;
@@ -31,6 +32,7 @@ import java.util.stream.Collectors;
 /**
  * Openstack host completer.
  */
+@Service
 public class OpenstackHostnameCompleter implements Completer {
 
     @Override

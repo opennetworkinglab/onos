@@ -18,6 +18,7 @@ package org.onosproject.scalablegateway.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.packet.Ip4Address;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
@@ -27,7 +28,7 @@ import org.onosproject.scalablegateway.api.ScalableGatewayService;
 /**
  * Adds gateway node information for scalablegateway node managements.
  */
-
+@Service
 @Command(scope = "onos", name = "gateway-add",
         description = "Adds gateway node information for scalablegateway node managements")
 public class ScalableGatewayAddCommand extends AbstractShellCommand {

@@ -17,6 +17,7 @@
 package org.onosproject.routing.fpm.cli;
 
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.routing.fpm.FpmInfoService;
 
@@ -24,6 +25,7 @@ import org.onosproject.routing.fpm.FpmInfoService;
 /**
  * Displays the current FPM connections.
  */
+@Service
 @Command(scope = "onos", name = "fpm-push-routes",
         description = "Pushes all local FPM routes to route store")
 public class FpmPushRoutesCommand extends AbstractShellCommand {

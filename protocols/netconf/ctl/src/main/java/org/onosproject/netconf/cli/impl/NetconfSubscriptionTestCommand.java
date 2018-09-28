@@ -18,6 +18,7 @@ package org.onosproject.netconf.cli.impl;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cli.net.DeviceIdCompleter;
 import org.onosproject.net.DeviceId;
@@ -28,6 +29,7 @@ import org.onosproject.netconf.NetconfException;
 /**
  * Debug command to start subscription on specified device.
  */
+@Service
 @Command(scope = "onos", name = "netconf-subscription-test",
          description = "Debug command to start subscription on specified device")
 public class NetconfSubscriptionTestCommand extends AbstractShellCommand {

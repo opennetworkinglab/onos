@@ -17,11 +17,13 @@
 package org.onosproject.ui.impl.topo.cli;
 
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.ui.impl.topo.model.UiSharedTopologyModel;
 
 /**
  * CLI command to list the UiDevices stored in the ModelCache.
  */
+@Service
 @Command(scope = "onos", name = "ui-cache-devices",
         description = "Lists UiDevices in the Model Cache")
 public class UiCacheDevicesCommand extends AbstractUiCacheElementCommand {

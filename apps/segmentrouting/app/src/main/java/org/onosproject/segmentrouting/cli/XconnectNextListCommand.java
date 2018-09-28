@@ -17,6 +17,7 @@
 package org.onosproject.segmentrouting.cli;
 
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.segmentrouting.xconnect.api.XconnectKey;
 import org.onosproject.segmentrouting.xconnect.api.XconnectService;
@@ -28,6 +29,7 @@ import java.util.Map;
 /**
  * Command to read the current state of the xconnect next stores.
  */
+@Service
 @Command(scope = "onos", name = "sr-next-xconnect",
         description = "Displays the current next-id for xconnect")
 public class XconnectNextListCommand extends AbstractShellCommand {

@@ -20,6 +20,7 @@ import static java.util.Comparator.comparingInt;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.faultmanagement.alarm.Alarm;
 import org.onosproject.incubator.net.faultmanagement.alarm.AlarmService;
@@ -31,6 +32,7 @@ import java.util.stream.Collectors;
 /**
  * Lists alarm counts across all devices.
  */
+@Service
 @Command(scope = "onos", name = "alarms-counts",
         description = "Lists the count of alarms for each severity")
 public class GetAllAlarmsCounts extends AbstractShellCommand {

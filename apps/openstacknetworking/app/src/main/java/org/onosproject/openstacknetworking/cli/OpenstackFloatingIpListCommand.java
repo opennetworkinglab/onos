@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.openstacknetworking.api.OpenstackRouterService;
 import org.openstack4j.model.network.NetFloatingIP;
@@ -34,6 +35,7 @@ import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.p
 /**
  * Lists OpenStack floating IP addresses.
  */
+@Service
 @Command(scope = "onos", name = "openstack-floatingips",
         description = "Lists all OpenStack floating IP addresses")
 public class OpenstackFloatingIpListCommand extends AbstractShellCommand {

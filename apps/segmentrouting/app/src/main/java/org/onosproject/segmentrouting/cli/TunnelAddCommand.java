@@ -17,6 +17,7 @@ package org.onosproject.segmentrouting.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.segmentrouting.DefaultTunnel;
 import org.onosproject.segmentrouting.SegmentRoutingService;
@@ -30,6 +31,7 @@ import java.util.StringTokenizer;
 /**
  * Command to add a new tunnel.
  */
+@Service
 @Command(scope = "onos", name = "sr-tunnel-add",
         description = "Create a new tunnel")
 public class TunnelAddCommand extends AbstractShellCommand {

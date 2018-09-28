@@ -18,9 +18,11 @@ package org.onosproject.clusterha.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.clusterha.ClusterHATest;
 
+@Service
 @Command(scope = "onos", name = "cluster-ha-test",
         description = "test addition & deletion on consistent map")
 public class ClusterHATestCommand extends AbstractShellCommand {

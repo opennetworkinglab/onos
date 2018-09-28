@@ -20,6 +20,7 @@ import java.util.Set;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpAddress.Version;
 import org.onlab.packet.IpPrefix;
@@ -39,6 +40,7 @@ import com.google.common.collect.Sets;
 /**
  * Supports for creating a subnet.
  */
+@Service
 @Command(scope = "onos", name = "subnet-create", description = "Supports for creating a subnet")
 public class SubnetCreateCommand extends AbstractShellCommand {
 

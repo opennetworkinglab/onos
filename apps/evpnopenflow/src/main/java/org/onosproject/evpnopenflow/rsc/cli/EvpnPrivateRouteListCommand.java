@@ -17,6 +17,7 @@
 package org.onosproject.evpnopenflow.rsc.cli;
 
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.evpnopenflow.manager.EvpnService;
 import org.onosproject.evpnopenflow.manager.impl.EvpnManager;
@@ -29,6 +30,7 @@ import static org.onosproject.evpnopenflow.rsc.EvpnConstants.FORMAT_PRIVATE_ROUT
 /**
  * Support for displaying EVPN private routes.
  */
+@Service
 @Command(scope = "onos", name = "evpn-private-routes", description = "Lists" +
         " all EVPN private routes")
 public class EvpnPrivateRouteListCommand extends AbstractShellCommand {

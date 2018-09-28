@@ -17,6 +17,7 @@ package org.onosproject.provider.nil.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.provider.nil.NullProviders;
@@ -27,6 +28,7 @@ import static org.onosproject.cli.UpDownCompleter.UP;
 /**
  * Severs or repairs a simulated link.
  */
+@Service
 @Command(scope = "onos", name = "null-link",
         description = "Severs or repairs a simulated link")
 public class NullLinkCommand extends AbstractShellCommand {

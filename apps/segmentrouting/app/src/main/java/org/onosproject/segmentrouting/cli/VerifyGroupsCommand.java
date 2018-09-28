@@ -18,6 +18,7 @@ package org.onosproject.segmentrouting.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -29,6 +30,7 @@ import org.onosproject.segmentrouting.SegmentRoutingService;
  * and corrects the buckets if necessary. Outcome can be viewed in the 'groups'
  * command.
  */
+@Service
 @Command(scope = "onos", name = "sr-verify-groups",
         description = "Triggers the verification of hashed groups in the specified "
                 + "device. Does not return any output; users can query the results "

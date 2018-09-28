@@ -19,6 +19,7 @@ package org.onosproject.dhcprelay.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
@@ -41,6 +42,7 @@ import java.util.Map;
 /**
  * Prints DHCP server and DHCP relay status.
  */
+@Service
 @Command(scope = "onos", name = "dhcp-relay", description = "DHCP relay app cli.")
 public class DhcpRelayCommand extends AbstractShellCommand {
     @Argument(index = 0, name = "counter",

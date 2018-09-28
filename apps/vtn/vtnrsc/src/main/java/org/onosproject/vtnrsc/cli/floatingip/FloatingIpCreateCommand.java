@@ -20,6 +20,7 @@ import java.util.Set;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.vtnrsc.DefaultFloatingIp;
@@ -37,6 +38,7 @@ import com.google.common.collect.Sets;
 /**
  * Supports for create a floating IP.
  */
+@Service
 @Command(scope = "onos", name = "floatingip-create",
         description = "Supports for creating a floating IP")
 public class FloatingIpCreateCommand extends AbstractShellCommand {

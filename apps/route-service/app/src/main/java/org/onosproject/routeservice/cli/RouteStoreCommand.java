@@ -16,12 +16,14 @@
 package org.onosproject.routeservice.cli;
 
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.routeservice.RouteStore;
 
 /**
  * Command to show the current route store implementation.
  */
+@Service
 @Command(scope = "onos", name = "route-store",
         description = "Show the current route store implementation.")
 public class RouteStoreCommand extends AbstractShellCommand {

@@ -17,6 +17,7 @@
 package org.onosproject.evpnopenflow.rsc.cli;
 
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.evpnrouteservice.EvpnRoute;
 import org.onosproject.evpnrouteservice.EvpnRouteSet;
@@ -29,6 +30,7 @@ import static org.onosproject.evpnopenflow.rsc.EvpnConstants.FORMAT_PUBLIC_ROUTE
 /**
  * Support for displaying EVPN public routes.
  */
+@Service
 @Command(scope = "onos", name = "evpn-public-routes", description = "Lists" +
         " all EVPN public routes")
 public class EvpnPublicRouteListCommand extends AbstractShellCommand {

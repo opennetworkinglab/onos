@@ -17,6 +17,7 @@ package org.onosproject.net.optical.cli;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.util.Frequency;
 import org.onosproject.cli.net.DevicePortsListCommand;
 import org.onosproject.net.Device;
@@ -38,6 +39,7 @@ import static org.onosproject.net.optical.device.OpticalDeviceServiceView.optica
 /**
  * Lists all ports or all ports of a device.
  */
+@Service
 @Command(scope = "onos", name = "optical-ports",
          description = "Lists all optical ports or all optical ports of a device")
 public class OpticalPortsListCommand extends DevicePortsListCommand {

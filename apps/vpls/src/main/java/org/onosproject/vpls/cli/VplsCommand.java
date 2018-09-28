@@ -18,6 +18,7 @@ package org.onosproject.vpls.cli;
 import com.google.common.collect.ImmutableSet;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.intf.Interface;
 import org.onosproject.net.intf.InterfaceService;
@@ -39,6 +40,7 @@ import static org.onosproject.vpls.api.VplsData.VplsState.*;
 /**
  * CLI to interact with the VPLS application.
  */
+@Service
 @Command(scope = "onos", name = "vpls",
         description = "Manages the VPLS application")
 public class VplsCommand extends AbstractShellCommand {

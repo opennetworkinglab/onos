@@ -19,10 +19,12 @@ import java.time.Duration;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.distributedprimitives.DistributedPrimitivesTest;
 import org.onosproject.store.service.DistributedLock;
 
+@Service
 @Command(scope = "onos", name = "lock-test",
     description = "DistributedLock test cli fixture")
 public class DistributedLockTestCommand extends AbstractShellCommand {

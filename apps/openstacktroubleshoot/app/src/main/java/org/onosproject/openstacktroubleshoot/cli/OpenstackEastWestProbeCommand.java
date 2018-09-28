@@ -19,6 +19,7 @@ import com.google.common.collect.Sets;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cluster.ClusterService;
@@ -41,6 +42,7 @@ import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
 /**
  * Checks the east-west VMs connectivity.
  */
+@Service
 @Command(scope = "onos", name = "openstack-check-east-west",
         description = "Checks the east-west VMs connectivity")
 public class OpenstackEastWestProbeCommand extends AbstractShellCommand {

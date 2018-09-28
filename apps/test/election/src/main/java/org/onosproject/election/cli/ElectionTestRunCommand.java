@@ -16,12 +16,14 @@
 package org.onosproject.election.cli;
 
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cluster.LeadershipService;
 
 /**
  * CLI command to run for leadership of the Election test application.
  */
+@Service
 @Command(scope = "onos", name = "election-test-run",
         description = "Run for leader of the Election test application")
 public class ElectionTestRunCommand extends AbstractShellCommand {

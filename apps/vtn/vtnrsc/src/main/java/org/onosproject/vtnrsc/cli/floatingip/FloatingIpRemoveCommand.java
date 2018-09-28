@@ -19,6 +19,7 @@ import java.util.Set;
 
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.vtnrsc.FloatingIp;
 import org.onosproject.vtnrsc.FloatingIpId;
@@ -29,6 +30,7 @@ import com.google.common.collect.Sets;
 /**
  * Supports for remove a floating IP.
  */
+@Service
 @Command(scope = "onos", name = "floatingip-remove", description = "Supports for removing a floating IP")
 public class FloatingIpRemoveCommand extends AbstractShellCommand {
     @Option(name = "-I", aliases = "--id", description = "The floating IP identifier",

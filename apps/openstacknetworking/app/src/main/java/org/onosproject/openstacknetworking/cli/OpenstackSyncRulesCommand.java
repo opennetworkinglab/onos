@@ -16,6 +16,7 @@
 package org.onosproject.openstacknetworking.cli;
 
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.openstacknode.api.NodeState;
 import org.onosproject.openstacknode.api.OpenstackNode;
@@ -27,6 +28,7 @@ import static java.lang.Thread.sleep;
 /**
  * Re-installs flow rules for OpenStack networking.
  */
+@Service
 @Command(scope = "onos", name = "openstack-sync-rules",
         description = "Re-installs flow rules for OpenStack networking")
 public class OpenstackSyncRulesCommand extends AbstractShellCommand {

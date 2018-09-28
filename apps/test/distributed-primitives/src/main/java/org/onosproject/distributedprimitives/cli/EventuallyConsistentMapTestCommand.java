@@ -17,6 +17,7 @@ package org.onosproject.distributedprimitives.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.distributedprimitives.DistributedPrimitivesTest;
 import org.onosproject.store.service.EventuallyConsistentMap;
@@ -24,6 +25,7 @@ import org.onosproject.store.service.EventuallyConsistentMap;
 /**
  * CLI command to manipulate a distributed map.
  */
+@Service
 @Command(scope = "onos", name = "ec-map-test",
         description = "Manipulate an eventually consistent map")
 public class EventuallyConsistentMapTestCommand extends AbstractShellCommand {

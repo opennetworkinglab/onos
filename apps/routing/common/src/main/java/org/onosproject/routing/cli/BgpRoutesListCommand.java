@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.routing.bgp.BgpConstants;
 import org.onosproject.routing.bgp.BgpInfoService;
@@ -34,6 +35,7 @@ import java.util.Collection;
 /**
  * Command to show the routes learned through BGP.
  */
+@Service
 @Command(scope = "onos", name = "bgp-routes",
          description = "Lists all BGP best routes")
 public class BgpRoutesListCommand extends AbstractShellCommand {

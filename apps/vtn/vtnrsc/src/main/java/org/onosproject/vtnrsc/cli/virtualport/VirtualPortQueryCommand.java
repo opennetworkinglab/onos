@@ -19,6 +19,7 @@ import java.util.Collection;
 
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
 import org.onosproject.vtnrsc.TenantNetworkId;
@@ -29,6 +30,7 @@ import org.onosproject.vtnrsc.virtualport.VirtualPortService;
 /**
  * Supports for querying virtualPorts.
  */
+@Service
 @Command(scope = "onos", name = "virtualports", description = "Supports for querying virtualPorts.")
 public class VirtualPortQueryCommand extends AbstractShellCommand {
 

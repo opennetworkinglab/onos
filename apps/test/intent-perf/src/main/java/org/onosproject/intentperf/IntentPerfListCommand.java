@@ -17,6 +17,7 @@ package org.onosproject.intentperf;
 
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.intentperf.IntentPerfCollector.Sample;
 
@@ -27,6 +28,7 @@ import java.util.List;
 /**
  * Displays accumulated performance metrics.
  */
+@Service
 @Command(scope = "onos", name = "intent-perf",
         description = "Displays accumulated performance metrics")
 public class IntentPerfListCommand extends AbstractShellCommand {

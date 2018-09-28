@@ -19,6 +19,7 @@ import java.util.Set;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.vtnrsc.TenantNetworkId;
 import org.onosproject.vtnrsc.tenantnetwork.TenantNetworkService;
@@ -28,6 +29,7 @@ import com.google.common.collect.Sets;
 /**
  * Supports for removing a TenantNetwork by network id.
  */
+@Service
 @Command(scope = "onos", name = "tenantnetwork-remove", description = "Supports for removing"
         + " a tenantNetwork by tenantNetworkid")
 public class TenantNetworkRemoveCommand extends AbstractShellCommand {

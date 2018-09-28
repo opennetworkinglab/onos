@@ -24,6 +24,7 @@ import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
 
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.util.DataRateUnit;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.tunnel.TunnelId;
@@ -37,6 +38,7 @@ import org.slf4j.Logger;
 /**
  * Supports updating the PCE path.
  */
+@Service
 @Command(scope = "onos", name = "pce-update-path",
         description = "Supports updating PCE path.")
 public class PceUpdatePathCommand extends AbstractShellCommand {

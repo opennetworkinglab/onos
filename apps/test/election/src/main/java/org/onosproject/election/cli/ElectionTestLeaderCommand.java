@@ -15,6 +15,7 @@
  */
 package org.onosproject.election.cli;
 
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cluster.NodeId;
 import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
@@ -23,6 +24,7 @@ import org.onosproject.cluster.LeadershipService;
 /**
  * CLI command to get the current leader for the Election test application.
  */
+@Service
 @Command(scope = "onos", name = "election-test-leader",
         description = "Get the current leader for the Election test application")
 public class ElectionTestLeaderCommand extends AbstractShellCommand {

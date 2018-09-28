@@ -20,6 +20,7 @@ package org.onosproject.segmentrouting.cli;
 import java.util.Map;
 
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
 import org.onosproject.segmentrouting.EcmpShortestPathGraph;
@@ -29,6 +30,7 @@ import org.onosproject.segmentrouting.SegmentRoutingService;
  * Command to read the current state of the ECMP shortest-path graph.
  *
  */
+@Service
 @Command(scope = "onos", name = "sr-ecmp-spg",
         description = "Displays the current ecmp shortest-path-graph in this "
                 + "controller instance")

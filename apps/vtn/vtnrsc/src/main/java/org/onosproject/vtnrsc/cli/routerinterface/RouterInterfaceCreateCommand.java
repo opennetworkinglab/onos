@@ -17,6 +17,7 @@ package org.onosproject.vtnrsc.cli.routerinterface;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.vtnrsc.RouterId;
 import org.onosproject.vtnrsc.RouterInterface;
@@ -28,6 +29,7 @@ import org.onosproject.vtnrsc.routerinterface.RouterInterfaceService;
 /**
  * Supports for create a router interface.
  */
+@Service
 @Command(scope = "onos", name = "routerinterface-create", description = "Supports for creating a router interface")
 public class RouterInterfaceCreateCommand extends AbstractShellCommand {
     @Argument(index = 0, name = "routerId", description = "The router identifier of router interface",

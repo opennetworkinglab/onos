@@ -17,6 +17,7 @@ package org.onosproject.cfm.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdShort;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdId;
@@ -26,6 +27,7 @@ import org.onosproject.incubator.net.l2monitoring.cfm.service.CfmMdService;
 /**
  * Delete a Maintenance Association from the existing list of a Maintenance Domain.
  */
+@Service
 @Command(scope = "onos", name = "cfm-ma-delete",
         description = "Delete a CFM Maintenance Association and its children.")
 public class CfmMaDeleteCommand extends AbstractShellCommand {

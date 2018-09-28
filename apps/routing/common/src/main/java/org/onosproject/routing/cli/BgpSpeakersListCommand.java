@@ -18,6 +18,7 @@ package org.onosproject.routing.cli;
 
 import com.google.common.collect.Lists;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.utils.Comparators;
 import org.onosproject.core.ApplicationId;
@@ -33,6 +34,7 @@ import java.util.List;
 /**
  * Lists the BGP speakers configured in the system.
  */
+@Service
 @Command(scope = "onos", name = "bgp-speakers",
         description = "Lists all BGP speakers")
 public class BgpSpeakersListCommand extends AbstractShellCommand {

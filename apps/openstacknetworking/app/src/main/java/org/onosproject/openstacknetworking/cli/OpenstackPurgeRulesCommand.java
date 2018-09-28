@@ -16,6 +16,7 @@
 package org.onosproject.openstacknetworking.cli;
 
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -25,6 +26,7 @@ import org.onosproject.openstacknetworking.api.Constants;
 /**
  * Purges all existing network states.
  */
+@Service
 @Command(scope = "onos", name = "openstack-purge-rules",
         description = "Purges all flow rules installed by OpenStack networking app")
 public class OpenstackPurgeRulesCommand extends AbstractShellCommand {

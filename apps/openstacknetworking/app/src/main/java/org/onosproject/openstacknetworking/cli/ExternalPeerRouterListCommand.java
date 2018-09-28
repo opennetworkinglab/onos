@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Lists;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.openstacknetworking.api.ExternalPeerRouter;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
@@ -30,6 +31,7 @@ import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.p
 /**
  * Lists external peer router lists.
  */
+@Service
 @Command(scope = "onos", name = "openstack-peer-routers",
         description = "Lists external peer router lists")
 public class ExternalPeerRouterListCommand extends AbstractShellCommand {

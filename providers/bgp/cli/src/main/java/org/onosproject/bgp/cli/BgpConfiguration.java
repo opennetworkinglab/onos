@@ -17,6 +17,7 @@ package org.onosproject.bgp.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.bgp.controller.BgpCfg;
 import org.onosproject.bgp.controller.BgpConnectPeer;
 import org.onosproject.bgp.controller.BgpController;
@@ -28,7 +29,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Set;
 import java.util.TreeMap;
 
-
+@Service
 @Command(scope = "onos", name = "bgp", description = "lists configuration")
 public class BgpConfiguration extends AbstractShellCommand {
     private static final Logger log = LoggerFactory.getLogger(BgpConfiguration.class);

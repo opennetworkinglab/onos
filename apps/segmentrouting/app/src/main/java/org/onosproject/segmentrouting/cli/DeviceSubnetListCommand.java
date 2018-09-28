@@ -17,6 +17,7 @@
 package org.onosproject.segmentrouting.cli;
 
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.packet.IpPrefix;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
@@ -28,6 +29,7 @@ import java.util.Set;
 /**
  * Command to list device-subnet mapping in Segment Routing.
  */
+@Service
 @Command(scope = "onos", name = "sr-device-subnets",
         description = "List device-subnet mapping in Segment Routing")
 public class DeviceSubnetListCommand extends AbstractShellCommand {

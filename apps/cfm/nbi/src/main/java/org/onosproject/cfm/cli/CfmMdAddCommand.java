@@ -17,6 +17,7 @@ package org.onosproject.cfm.cli;
 
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.l2monitoring.cfm.DefaultMaintenanceDomain;
 import org.onosproject.incubator.net.l2monitoring.cfm.MaintenanceDomain;
@@ -27,6 +28,7 @@ import org.onosproject.incubator.net.l2monitoring.cfm.service.CfmMdService;
 /**
  * Adds a Maintenance Domain to the existing list.
  */
+@Service
 @Command(scope = "onos", name = "cfm-md-add",
         description = "Add a CFM Maintenance Domain.")
 public class CfmMdAddCommand extends AbstractShellCommand {

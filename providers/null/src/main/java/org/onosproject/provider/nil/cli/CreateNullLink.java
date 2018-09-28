@@ -19,6 +19,7 @@ package org.onosproject.provider.nil.cli;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Link;
 import org.onosproject.provider.nil.CustomTopologySimulator;
@@ -28,6 +29,7 @@ import org.onosproject.provider.nil.TopologySimulator;
 /**
  * Adds a simulated link to the custom topology simulation.
  */
+@Service
 @Command(scope = "onos", name = "null-create-link",
         description = "Adds a simulated link to the custom topology simulation")
 public class CreateNullLink extends CreateNullEntity {

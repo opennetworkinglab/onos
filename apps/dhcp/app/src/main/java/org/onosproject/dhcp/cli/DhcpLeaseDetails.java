@@ -16,12 +16,14 @@
 package org.onosproject.dhcp.cli;
 
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.dhcp.DhcpService;
 
 /**
  * Lists all the default lease parameters offered by the DHCP Server.
  */
+@Service
 @Command(scope = "onos", name = "dhcp-lease",
         description = "Lists all the default lease parameters offered by the DHCP Server")
 public class DhcpLeaseDetails extends AbstractShellCommand {

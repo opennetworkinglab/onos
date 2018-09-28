@@ -17,6 +17,7 @@ package org.onosproject.cfm.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.l2monitoring.cfm.MepEntry;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdShort;
@@ -35,6 +36,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Lists a particular Maintenance Domain.
  */
+@Service
 @Command(scope = "onos", name = "cfm-mep-list",
         description = "Lists a filtered set of MEPs or all if no parameters specified.")
 public class CfmMepListCommand extends AbstractShellCommand {

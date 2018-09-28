@@ -18,6 +18,7 @@ package org.onosproject.distributedprimitives.cli;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.store.serializers.KryoNamespaces;
@@ -30,6 +31,7 @@ import java.util.Set;
 /**
  * CLI command to get the elements in a distributed set.
  */
+@Service
 @Command(scope = "onos", name = "set-test-get",
         description = "Get the elements in a distributed set")
 public class SetTestGetCommand extends AbstractShellCommand {

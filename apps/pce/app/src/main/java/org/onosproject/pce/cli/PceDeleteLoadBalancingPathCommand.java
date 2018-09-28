@@ -20,6 +20,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.pce.pceservice.api.PceService;
 
@@ -28,6 +29,7 @@ import org.slf4j.Logger;
 /**
  * Supports deleting pce load balancing path.
  */
+@Service
 @Command(scope = "onos", name = "pce-delete-load-balancing-path",
         description = "Supports deleting pce load balancing path.")
 public class PceDeleteLoadBalancingPathCommand extends AbstractShellCommand {

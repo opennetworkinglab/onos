@@ -16,11 +16,13 @@
 package org.onosproject.intentperf;
 
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 
 /**
  * Stops intent performance test run.
  */
+@Service
 @Command(scope = "onos", name = "intent-perf-stop",
         description = "Stops intent performance test run")
 public class IntentPerfStopCommand extends AbstractShellCommand {

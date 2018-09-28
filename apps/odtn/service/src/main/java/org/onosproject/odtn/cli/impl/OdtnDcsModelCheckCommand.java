@@ -18,6 +18,7 @@ package org.onosproject.odtn.cli.impl;
 
 import java.util.regex.Pattern;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.util.XmlString;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.config.DynamicConfigService;
@@ -38,7 +39,7 @@ import org.onosproject.yang.model.ResourceId;
 import org.slf4j.Logger;
 import static org.slf4j.LoggerFactory.getLogger;
 
-
+@Service
 @Command(scope = "onos", name = "odtn-show-tapi-context")
 public class OdtnDcsModelCheckCommand extends AbstractShellCommand {
 

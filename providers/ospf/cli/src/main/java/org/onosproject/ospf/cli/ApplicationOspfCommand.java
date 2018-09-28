@@ -15,6 +15,7 @@
 */
 package org.onosproject.ospf.cli;
 
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -39,6 +40,7 @@ import java.util.List;
 /**
  * Representation of OSPF cli commands.
  */
+@Service
 @Component(immediate = true)
 @Command(scope = "onos", name = "ospf", description = "list database")
 public class ApplicationOspfCommand extends AbstractShellCommand {

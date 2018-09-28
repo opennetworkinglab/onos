@@ -17,6 +17,7 @@ package org.onosproject.dhcp.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.MacAddress;
 import org.onosproject.cli.AbstractShellCommand;
@@ -30,6 +31,7 @@ import static org.onosproject.dhcp.IpAssignment.AssignmentStatus.Option_Requeste
 /**
  * Registers a static MAC Address to IP Mapping with the DHCP Server.
  */
+@Service
 @Command(scope = "onos", name = "dhcp-set-static-mapping",
         description = "Registers a static MAC Address to IP Mapping with the DHCP Server")
 public class DhcpSetStaticMapping extends AbstractShellCommand {

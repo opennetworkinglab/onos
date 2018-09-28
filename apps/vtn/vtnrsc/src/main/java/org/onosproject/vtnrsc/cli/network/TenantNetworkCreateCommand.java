@@ -20,6 +20,7 @@ import java.util.Set;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.vtnrsc.DefaultTenantNetwork;
 import org.onosproject.vtnrsc.PhysicalNetwork;
@@ -34,6 +35,7 @@ import com.google.common.collect.Sets;
 /**
  * Supports for creating a TenantNetwork.
  */
+@Service
 @Command(scope = "onos", name = "tenantnetwork-create",
         description = "Supports for creating a TenantNetwork")
 public class TenantNetworkCreateCommand extends AbstractShellCommand {

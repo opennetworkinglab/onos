@@ -16,12 +16,14 @@
 package org.onosproject.fnl.cli;
 
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.fnl.intf.NetworkDiagnosticService;
 
 /**
  * Search for all types of network anomalies.
  */
+@Service
 @Command(scope = "onos",
         name = "ts-all-anomalies",
         description = "search all types of network anomalies once",

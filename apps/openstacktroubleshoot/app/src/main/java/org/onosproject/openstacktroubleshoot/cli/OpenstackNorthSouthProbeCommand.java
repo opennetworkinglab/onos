@@ -19,6 +19,7 @@ import com.google.common.collect.Sets;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
@@ -38,6 +39,7 @@ import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
 /**
  * Checks the north-south VM connectivity.
  */
+@Service
 @Command(scope = "onos", name = "openstack-check-north-south",
         description = "Checks the north-south VMs connectivity")
 public class OpenstackNorthSouthProbeCommand extends AbstractShellCommand {

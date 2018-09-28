@@ -25,6 +25,7 @@ import java.util.concurrent.TimeoutException;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
 import org.onosproject.netconf.NetconfController;
@@ -36,6 +37,7 @@ import org.onosproject.netconf.NetconfSession;
  * Command that gets the configuration of the specified type from the specified
  * device. If configuration cannot be retrieved it prints an error string.
  */
+@Service
 @Command(scope = "onos", name = "netconf-get-config",
         description = "Gets the configuration of the specified type from the" +
                 "specified device.")

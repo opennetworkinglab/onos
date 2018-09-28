@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Lists;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
@@ -32,6 +33,7 @@ import static org.onosproject.openstacknode.util.OpenstackNodeUtil.prettyJson;
 /**
  * Lists all nodes registered to the service.
  */
+@Service
 @Command(scope = "onos", name = "openstack-nodes",
         description = "Lists all nodes registered in OpenStack node service")
 public class OpenstackNodeListCommand extends AbstractShellCommand {

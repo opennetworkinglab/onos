@@ -17,6 +17,7 @@
 package org.onosproject.evpnopenflow.rsc.cli;
 
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.evpnopenflow.rsc.VpnPort;
 import org.onosproject.evpnopenflow.rsc.vpnport.VpnPortService;
@@ -28,6 +29,7 @@ import static org.onosproject.evpnopenflow.rsc.EvpnConstants.FORMAT_VPN_PORT;
 /**
  * Support for displaying EVPN VPN ports.
  */
+@Service
 @Command(scope = "onos", name = "evpn-port-list", description = "Lists all" +
         "EVPN ports")
 public class VpnPortListCommand extends AbstractShellCommand {

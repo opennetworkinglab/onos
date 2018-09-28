@@ -19,6 +19,7 @@ package org.onosproject.t3.cli;
 import org.apache.commons.lang.StringUtils;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.Host;
@@ -38,6 +39,7 @@ import static org.onlab.packet.EthType.EtherType;
 /**
  * Starts a Static Packet Trace for a given input and prints the result.
  */
+@Service
 @Command(scope = "onos", name = "t3-troubleshoot-pingall",
         description = "Traces a ping between all hosts in the system of a given ETH type")
 public class TroubleshootPingAllCommand extends AbstractShellCommand {

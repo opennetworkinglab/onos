@@ -20,6 +20,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.faultmanagement.alarm.Alarm;
 import org.onosproject.incubator.net.faultmanagement.alarm.AlarmService;
@@ -30,6 +31,7 @@ import java.util.Set;
 /**
  * Lists alarms across all devices.
  */
+@Service
 @Command(scope = "onos", name = "alarms",
         description = "Lists alarms")
 public class GetAllAlarms extends AbstractShellCommand {

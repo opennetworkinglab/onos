@@ -18,6 +18,7 @@ package org.onosproject.segmentrouting.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.segmentrouting.SegmentRoutingManager;
 import org.onosproject.segmentrouting.SegmentRoutingService;
@@ -29,6 +30,7 @@ import static org.onosproject.segmentrouting.pwaas.PwaasUtil.parsePwId;
 /**
  * Command to remove a pseudowire.
  */
+@Service
 @Command(scope = "onos", name = "sr-pw-remove",
         description = "Remove a pseudowire")
 public class PseudowireRemoveCommand extends AbstractShellCommand {

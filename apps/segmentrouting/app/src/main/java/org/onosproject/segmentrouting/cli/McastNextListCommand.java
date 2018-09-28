@@ -19,6 +19,7 @@ package org.onosproject.segmentrouting.cli;
 import com.google.common.collect.Maps;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.cli.AbstractShellCommand;
@@ -37,6 +38,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 /**
  * Command to show the list of mcast nextids.
  */
+@Service
 @Command(scope = "onos", name = "sr-next-mcast",
         description = "Lists all mcast nextids")
 public class McastNextListCommand extends AbstractShellCommand {

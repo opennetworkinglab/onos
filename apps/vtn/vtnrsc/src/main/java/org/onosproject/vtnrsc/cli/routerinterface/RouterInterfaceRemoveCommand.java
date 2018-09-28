@@ -17,6 +17,7 @@ package org.onosproject.vtnrsc.cli.routerinterface;
 
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.vtnrsc.RouterInterface;
 import org.onosproject.vtnrsc.SubnetId;
@@ -25,6 +26,7 @@ import org.onosproject.vtnrsc.routerinterface.RouterInterfaceService;
 /**
  * Supports for remove a router interface.
  */
+@Service
 @Command(scope = "onos", name = "routerinterface-remove", description = "Supports for removing a router interface")
 public class RouterInterfaceRemoveCommand extends AbstractShellCommand {
     @Option(name = "-s", aliases = "--subnetId", description = "The subnet identifier of router interface",

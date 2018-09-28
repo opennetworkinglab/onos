@@ -18,6 +18,7 @@ package org.onosproject.dhcprelay.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.dhcprelay.api.DhcpRelayService;
 import org.onosproject.dhcprelay.store.DhcpRelayCounters;
@@ -30,6 +31,7 @@ import java.util.Optional;
 /**
  * Prints Dhcp FPM Routes information.
  */
+@Service
 @Command(scope = "onos", name = "dhcp-relay-agg-counters",
          description = "DHCP Relay Aggregate Counters cli.")
 public class DhcpRelayAggCountersCommand extends AbstractShellCommand {

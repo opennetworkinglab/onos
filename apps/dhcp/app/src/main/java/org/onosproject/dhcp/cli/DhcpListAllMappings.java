@@ -16,6 +16,7 @@
 package org.onosproject.dhcp.cli;
 
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.dhcp.DhcpService;
 import org.onosproject.dhcp.IpAssignment;
@@ -26,6 +27,7 @@ import java.util.Map;
 /**
  * Lists all the MacAddress to IP Address mappings held by the DHCP Server.
  */
+@Service
 @Command(scope = "onos", name = "dhcp-list",
         description = "Lists all the MAC to IP mappings held by the DHCP Server")
 public class DhcpListAllMappings extends AbstractShellCommand {

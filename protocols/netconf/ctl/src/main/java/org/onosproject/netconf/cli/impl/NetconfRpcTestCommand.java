@@ -17,6 +17,7 @@ package org.onosproject.netconf.cli.impl;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.ConfigSetter;
@@ -35,7 +36,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 //Temporary Developer tool, NOT TO BE USED in production or as example for
 // future commands.
 //FIXME Remove dependency to ConfigSetter.
-
+@Service
 @Command(scope = "onos", name = "netconf-rpc-test",
         description = "Debug tool to send NETCONF RPC request")
 public class NetconfRpcTestCommand extends AbstractShellCommand {

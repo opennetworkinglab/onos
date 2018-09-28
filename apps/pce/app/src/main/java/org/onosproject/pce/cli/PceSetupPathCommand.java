@@ -28,6 +28,7 @@ import com.google.common.collect.Lists;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.util.DataRateUnit;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.tunnel.Tunnel;
@@ -49,6 +50,7 @@ import org.slf4j.Logger;
 /**
  * Supports creating the pce path.
  */
+@Service
 @Command(scope = "onos", name = "pce-setup-path", description = "Supports creating pce path.")
 public class PceSetupPathCommand extends AbstractShellCommand {
     private final Logger log = getLogger(getClass());

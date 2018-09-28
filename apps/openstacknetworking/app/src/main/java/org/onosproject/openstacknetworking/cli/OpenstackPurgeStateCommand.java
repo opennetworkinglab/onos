@@ -16,6 +16,7 @@
 package org.onosproject.openstacknetworking.cli;
 
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkAdminService;
 import org.onosproject.openstacknetworking.api.OpenstackRouterAdminService;
@@ -24,6 +25,7 @@ import org.onosproject.openstacknetworking.api.OpenstackSecurityGroupAdminServic
 /**
  * Purges all existing network states.
  */
+@Service
 @Command(scope = "onos", name = "openstack-purge-states",
         description = "Purges all OpenStack network states")
 public class OpenstackPurgeStateCommand extends AbstractShellCommand {

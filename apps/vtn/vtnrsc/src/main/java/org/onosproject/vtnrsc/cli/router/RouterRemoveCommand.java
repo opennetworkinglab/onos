@@ -19,6 +19,7 @@ import java.util.Set;
 
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.vtnrsc.Router;
 import org.onosproject.vtnrsc.RouterId;
@@ -29,6 +30,7 @@ import com.google.common.collect.Sets;
 /**
  * Supports for remove a router.
  */
+@Service
 @Command(scope = "onos", name = "router-remove", description = "Supports for removing a router")
 public class RouterRemoveCommand extends AbstractShellCommand {
     @Option(name = "-i", aliases = "--id", description = "The router identifier",

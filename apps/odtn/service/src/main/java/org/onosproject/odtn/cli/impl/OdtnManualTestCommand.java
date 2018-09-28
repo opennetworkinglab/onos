@@ -34,6 +34,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.util.XmlString;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cli.net.DeviceIdCompleter;
@@ -58,7 +59,7 @@ import org.w3c.dom.Element;
 import com.google.common.collect.Lists;
 import com.google.common.io.CharSource;
 
-
+@Service
 @Command(scope = "onos", name = "odtn-manual-test",
          description = "ODTN manual test command")
 public class OdtnManualTestCommand extends AbstractShellCommand {

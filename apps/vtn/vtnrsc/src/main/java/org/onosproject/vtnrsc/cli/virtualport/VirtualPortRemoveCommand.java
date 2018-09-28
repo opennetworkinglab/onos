@@ -19,6 +19,7 @@ import java.util.Set;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.vtnrsc.VirtualPortId;
 import org.onosproject.vtnrsc.virtualport.VirtualPortService;
@@ -28,6 +29,7 @@ import com.google.common.collect.Sets;
 /**
  * Supports for removing a virtualPort.
  */
+@Service
 @Command(scope = "onos", name = "virtualport-remove",
         description = "Supports for removing a virtualPort.")
 public class VirtualPortRemoveCommand extends AbstractShellCommand {

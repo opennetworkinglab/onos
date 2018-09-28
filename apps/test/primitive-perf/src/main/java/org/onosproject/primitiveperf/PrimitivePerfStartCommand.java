@@ -16,11 +16,13 @@
 package org.onosproject.primitiveperf;
 
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 
 /**
  * Starts primitive performance test run.
  */
+@Service
 @Command(scope = "onos", name = "primitive-perf-start",
         description = "Starts primitive performance test run")
 public class PrimitivePerfStartCommand extends AbstractShellCommand {

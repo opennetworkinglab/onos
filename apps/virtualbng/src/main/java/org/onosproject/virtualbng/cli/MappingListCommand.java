@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.virtualbng.VbngConfigurationService;
@@ -27,6 +28,7 @@ import org.onosproject.virtualbng.VbngConfigurationService;
 /**
  * Command to show the list of vBNG IP address mapping entries.
  */
+@Service
 @Command(scope = "onos", name = "vbngs",
         description = "Lists all vBNG IP address mapping entries")
 public class MappingListCommand extends AbstractShellCommand {

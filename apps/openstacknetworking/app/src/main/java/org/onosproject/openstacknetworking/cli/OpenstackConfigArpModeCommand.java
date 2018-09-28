@@ -17,6 +17,7 @@ package org.onosproject.openstacknetworking.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.core.ApplicationId;
@@ -37,6 +38,7 @@ import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.g
 /**
  * Configure ARP mode.
  */
+@Service
 @Command(scope = "onos", name = "openstack-config-arp-mode",
         description = "Re-configure ARP mode (proxy | broadcast)")
 public class OpenstackConfigArpModeCommand extends AbstractShellCommand {

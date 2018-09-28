@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.event.Event;
 import org.onosproject.metrics.topology.TopologyMetricsService;
@@ -30,6 +31,7 @@ import org.onosproject.net.topology.TopologyEvent;
 /**
  * Command to show the list of last topology events.
  */
+@Service
 @Command(scope = "onos", name = "topology-events",
          description = "Lists the last topology events")
 public class TopologyEventsListCommand extends AbstractShellCommand {

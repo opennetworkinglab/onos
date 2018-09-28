@@ -16,11 +16,13 @@
 package org.onosproject.primitiveperf;
 
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 
 /**
  * Stops primitive performance test run.
  */
+@Service
 @Command(scope = "onos", name = "primitive-perf-stop",
         description = "Stops primitive performance test run")
 public class PrimitivePerfStopCommand extends AbstractShellCommand {

@@ -17,6 +17,7 @@ package org.onosproject.mcast.cli;
 
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.mcast.api.McastRoute;
@@ -26,6 +27,7 @@ import org.onosproject.net.HostId;
 /**
  * Deletes a multicast route.
  */
+@Service
 @Command(scope = "onos", name = "mcast-sink-delete",
         description = "Delete a sink from multicast route flow. If no sin is specified removes the whole route.")
 public class McastSinkDeleteCommand extends AbstractShellCommand {

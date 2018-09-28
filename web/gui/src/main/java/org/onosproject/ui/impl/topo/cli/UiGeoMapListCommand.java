@@ -18,6 +18,7 @@
 package org.onosproject.ui.impl.topo.cli;
 
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.ui.UiExtensionService;
 import org.onosproject.ui.UiTopoMapFactory;
@@ -26,6 +27,7 @@ import org.onosproject.ui.UiTopoMapFactory;
  * CLI command to list the registered geographic maps, that may be used
  * by the topology view.
  */
+@Service
 @Command(scope = "onos", name = "ui-geo-map-list",
         description = "Lists available geographic maps for topology view")
 public class UiGeoMapListCommand extends AbstractShellCommand {

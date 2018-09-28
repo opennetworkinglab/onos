@@ -17,6 +17,7 @@ package org.onosproject.mcast.cli;
 
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.mcast.api.McastRoute;
@@ -26,6 +27,7 @@ import org.onosproject.net.HostId;
 /**
  * Installs a source, multicast group flow.
  */
+@Service
 @Command(scope = "onos", name = "mcast-host-join",
         description = "Installs a source, multicast group flow")
 public class McastHostJoinCommand extends AbstractShellCommand {

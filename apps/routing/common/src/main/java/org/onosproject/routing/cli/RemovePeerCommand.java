@@ -18,6 +18,7 @@ package org.onosproject.routing.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.core.ApplicationId;
@@ -29,6 +30,7 @@ import org.onosproject.routing.config.BgpConfig;
 /**
  * Command to remove existing BGP peer.
  */
+@Service
 @Command(scope = "onos", name = "bgp-peer-remove",
         description = "Removes a BGP peer")
 public class RemovePeerCommand extends AbstractShellCommand {

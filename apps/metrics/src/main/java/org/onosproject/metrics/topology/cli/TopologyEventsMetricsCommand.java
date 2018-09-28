@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.metrics.EventMetric;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.metrics.topology.TopologyMetricsService;
@@ -33,6 +34,7 @@ import org.onosproject.metrics.topology.TopologyMetricsService;
 /**
  * Command to show the topology events metrics.
  */
+@Service
 @Command(scope = "onos", name = "topology-events-metrics",
          description = "Lists topology events metrics")
 public class TopologyEventsMetricsCommand extends AbstractShellCommand {

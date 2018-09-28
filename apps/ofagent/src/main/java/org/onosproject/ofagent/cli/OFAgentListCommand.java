@@ -16,6 +16,7 @@
 package org.onosproject.ofagent.cli;
 
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.ofagent.api.OFAgentService;
 
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
 /**
  * Lists the existing OFAgents.
  */
+@Service
 @Command(scope = "onos", name = "ofagents", description = "Lists all ofagents")
 public class OFAgentListCommand extends AbstractShellCommand {
 

@@ -17,10 +17,12 @@ package org.onosproject.newoptical.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.newoptical.api.OpticalConnectivityId;
 import org.onosproject.newoptical.api.OpticalPathService;
 
+@Service
 @Command(scope = "onos", name = "remove-optical-connectivity",
         description = "Remove optical domain connectivity")
 public class RemoveOpticalConnectivityCommand extends AbstractShellCommand {

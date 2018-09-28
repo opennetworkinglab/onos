@@ -19,6 +19,7 @@ package org.onosproject.t3.cli;
 import org.apache.commons.lang.StringUtils;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.packet.EthType;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.VlanId;
@@ -39,6 +40,7 @@ import java.util.Set;
 /**
  * Starts a Static Packet Trace for all the multicast routes in the system and prints the result.
  */
+@Service
 @Command(scope = "onos", name = "t3-troubleshoot-mcast",
         description = "Traces all the mcast routes present in the system")
 public class TroubleshootMcastCommand extends AbstractShellCommand {

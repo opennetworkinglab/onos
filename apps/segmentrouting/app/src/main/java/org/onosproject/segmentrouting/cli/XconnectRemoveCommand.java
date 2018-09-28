@@ -17,6 +17,7 @@ package org.onosproject.segmentrouting.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.packet.VlanId;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
@@ -25,6 +26,7 @@ import org.onosproject.segmentrouting.xconnect.api.XconnectService;
 /**
  * Deletes Xconnect.
  */
+@Service
 @Command(scope = "onos", name = "sr-xconnect-remove", description = "Remove Xconnect")
 public class XconnectRemoveCommand extends AbstractShellCommand {
     @Argument(index = 0, name = "deviceId",

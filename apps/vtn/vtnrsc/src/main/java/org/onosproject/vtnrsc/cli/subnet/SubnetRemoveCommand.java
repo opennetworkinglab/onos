@@ -19,6 +19,7 @@ import java.util.Set;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.vtnrsc.SubnetId;
 import org.onosproject.vtnrsc.subnet.SubnetService;
@@ -28,6 +29,7 @@ import com.google.common.collect.Sets;
 /**
  * Supports for removing a subnet.
  */
+@Service
 @Command(scope = "onos", name = "subnet-remove", description = "Supports for removing a subnet")
 public class SubnetRemoveCommand extends AbstractShellCommand {
 

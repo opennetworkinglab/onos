@@ -18,12 +18,14 @@ package org.onosproject.ui.impl.cli;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.ui.UiPreferencesService;
 
 /**
  * Lists all UI user preferences.
  */
+@Service
 @Command(scope = "onos", name = "ui-prefs",
         description = "Lists all UI user preferences")
 public class UiPreferencesListCommand extends AbstractShellCommand {

@@ -18,6 +18,7 @@ package org.onosproject.segmentrouting.cli;
 
 
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.segmentrouting.SegmentRoutingService;
 
@@ -25,6 +26,7 @@ import org.onosproject.segmentrouting.SegmentRoutingService;
  * Command to manually trigger routing and rule-population in the network.
  *
  */
+@Service
 @Command(scope = "onos", name = "sr-reroute-network",
         description = "Repopulate routing rules given current network state")
 public class RerouteNetworkCommand extends AbstractShellCommand {

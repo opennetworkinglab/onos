@@ -19,6 +19,7 @@ package org.onosproject.t3.cli;
 import com.google.common.base.Preconditions;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
@@ -38,6 +39,7 @@ import static org.onlab.packet.EthType.EtherType;
 /**
  * Starts a Static Packet Trace for a given input and prints the result.
  */
+@Service
 @Command(scope = "onos", name = "t3-troubleshoot",
         description = "troubleshoots flows and groups between source and destination")
 public class TroubleshootTraceCommand extends AbstractShellCommand {

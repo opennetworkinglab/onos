@@ -17,6 +17,7 @@ package org.onosproject.distributedprimitives.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.Leadership;
@@ -26,6 +27,7 @@ import org.onosproject.store.service.LeaderElector;
 
 import com.google.common.base.Joiner;
 
+@Service
 @Command(scope = "onos", name = "leader-test",
 description = "LeaderElector test cli fixture")
 public class LeaderElectorTestCommand extends AbstractShellCommand {

@@ -23,6 +23,7 @@ import java.util.concurrent.TimeoutException;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
 import org.onosproject.netconf.NetconfController;
@@ -34,6 +35,7 @@ import org.onosproject.netconf.NetconfSession;
  * Command that retrieves running configuration and device state.
  * If configuration cannot be retrieved it prints an error string.
  */
+@Service
 @Command(scope = "onos", name = "netconf-get",
         description = "Retrieve running configuration and "
                 + "device state information from specified device.")

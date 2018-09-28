@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.mapping.MappingEntry;
 import org.onosproject.mapping.MappingKey;
@@ -40,6 +41,7 @@ import static com.google.common.collect.Lists.newArrayList;
 /**
  * A command for querying mapping information.
  */
+@Service
 @Command(scope = "onos", name = "mappings",
         description = "Lists mappings")
 public class MappingsListCommand extends AbstractShellCommand {

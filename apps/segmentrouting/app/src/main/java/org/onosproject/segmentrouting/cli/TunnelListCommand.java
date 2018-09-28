@@ -16,6 +16,7 @@
 package org.onosproject.segmentrouting.cli;
 
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.segmentrouting.SegmentRoutingService;
 import org.onosproject.segmentrouting.Tunnel;
@@ -23,6 +24,7 @@ import org.onosproject.segmentrouting.Tunnel;
 /**
  * Command to show the list of tunnels.
  */
+@Service
 @Command(scope = "onos", name = "sr-tunnel-list",
         description = "Lists all tunnels")
 public class TunnelListCommand extends AbstractShellCommand {

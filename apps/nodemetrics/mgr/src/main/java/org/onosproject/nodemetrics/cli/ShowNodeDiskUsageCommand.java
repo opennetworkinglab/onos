@@ -18,6 +18,7 @@ package org.onosproject.nodemetrics.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.nodemetrics.NodeDiskUsage;
@@ -29,6 +30,7 @@ import java.util.Objects;
 /**
  * Lists disk usage across nodes.
  */
+@Service
 @Command(scope = "onos", name = "node-disk",
         description = "Lists all node disk utilization")
 public class ShowNodeDiskUsageCommand extends AbstractShellCommand {

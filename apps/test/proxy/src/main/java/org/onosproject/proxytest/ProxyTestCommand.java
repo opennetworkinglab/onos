@@ -21,6 +21,7 @@ import java.util.concurrent.TimeoutException;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.net.DeviceId;
@@ -28,6 +29,7 @@ import org.onosproject.net.DeviceId;
 /**
  * Proxy test command.
  */
+@Service
 @Command(scope = "onos", name = "proxy-test", description = "Manipulate a distributed proxy")
 public class ProxyTestCommand extends AbstractShellCommand {
 

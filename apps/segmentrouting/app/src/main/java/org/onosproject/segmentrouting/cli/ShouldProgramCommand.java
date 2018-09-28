@@ -17,6 +17,7 @@
 package org.onosproject.segmentrouting.cli;
 
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.net.DeviceId;
@@ -28,6 +29,7 @@ import java.util.Set;
 /**
  * Display current shouldProgram map.
  */
+@Service
 @Command(scope = "onos", name = "sr-should-program",
         description = "Display current shouldProgram map")
 public class ShouldProgramCommand extends AbstractShellCommand {

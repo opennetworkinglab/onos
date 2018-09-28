@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Lists;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.openstack4j.model.network.Network;
@@ -35,6 +36,7 @@ import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.p
 /**
  * Lists OpenStack networks.
  */
+@Service
 @Command(scope = "onos", name = "openstack-networks",
         description = "Lists all OpenStack networks")
 public class OpenstackNetworkListCommand extends AbstractShellCommand {

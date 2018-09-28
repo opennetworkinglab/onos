@@ -17,6 +17,7 @@ package org.onosproject.provider.nil.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.provider.nil.NullProviders;
@@ -27,6 +28,7 @@ import static org.onosproject.cli.StartStopCompleter.START;
 /**
  * Starts or stops topology simulation.
  */
+@Service
 @Command(scope = "onos", name = "null-simulation",
         description = "Starts or stops topology simulation")
 public class NullControlCommand extends AbstractShellCommand {

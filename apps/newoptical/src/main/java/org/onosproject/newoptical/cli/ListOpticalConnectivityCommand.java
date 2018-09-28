@@ -19,11 +19,13 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.LinkKey;
 import org.onosproject.newoptical.OpticalConnectivity;
 import org.onosproject.newoptical.api.OpticalPathService;
 
+@Service
 @Command(scope = "onos", name = "list-optical-connectivity",
         description = "List optical domain connectivity")
 public class ListOpticalConnectivityCommand extends AbstractShellCommand {

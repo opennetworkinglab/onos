@@ -18,6 +18,7 @@ package org.onosproject.ofagent.cli;
 import com.google.common.collect.Sets;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.TpPort;
 import org.onosproject.cli.AbstractShellCommand;
@@ -37,6 +38,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Creates a new OFAagent.
  */
+@Service
 @Command(scope = "onos", name = "ofagent-create", description = "Add a new ofagent")
 public class OFAgentCreateCommand extends AbstractShellCommand {
 

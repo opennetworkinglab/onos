@@ -17,6 +17,7 @@ package org.onosproject.ofagent.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.ofagent.api.OFSwitch;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
 /**
  * Lists virtual OF switches.
  */
+@Service
 @Command(scope = "onos", name = "ofagent-switches", description = "Lists all OF switches")
 public class OFSwitchListCommand extends AbstractShellCommand {
 

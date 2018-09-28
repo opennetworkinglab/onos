@@ -15,6 +15,7 @@
  */
 package org.onosproject.isis.cli;
 
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Deactivate;
 import org.apache.karaf.shell.api.action.Argument;
@@ -43,6 +44,7 @@ import java.util.Set;
 /**
  * Lists ISIS neighbors, database and interfaces details.
  */
+@Service
 @Command(scope = "onos", name = "isis", description = "lists database, neighbors and interfaces")
 public class ApplicationIsisCommand extends AbstractShellCommand {
     private static final Logger log = LoggerFactory.getLogger(ApplicationIsisCommand.class);

@@ -18,6 +18,7 @@ package org.onosproject.openstacknode.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
@@ -33,6 +34,7 @@ import static org.onosproject.openstacknode.api.Constants.INTEGRATION_BRIDGE;
 /**
  * Checks detailed node init state.
  */
+@Service
 @Command(scope = "onos", name = "openstack-node-check",
         description = "Shows detailed node init state")
 public class OpenstackNodeCheckCommand extends AbstractShellCommand {

@@ -17,6 +17,7 @@ package org.onosproject.vtnrsc.cli.subnet;
 
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.vtnrsc.Subnet;
 import org.onosproject.vtnrsc.SubnetId;
@@ -25,6 +26,7 @@ import org.onosproject.vtnrsc.subnet.SubnetService;
 /**
  * Supports for querying a subnet.
  */
+@Service
 @Command(scope = "onos", name = "subnets", description = "Supports for querying a subnet")
 public class SubnetQueryCommand extends AbstractShellCommand {
 

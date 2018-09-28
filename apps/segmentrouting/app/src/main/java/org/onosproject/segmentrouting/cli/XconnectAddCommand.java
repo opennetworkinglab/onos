@@ -18,6 +18,7 @@ package org.onosproject.segmentrouting.cli;
 import com.google.common.collect.Sets;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.packet.VlanId;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
@@ -29,6 +30,7 @@ import java.util.Set;
 /**
  * Creates Xconnect.
  */
+@Service
 @Command(scope = "onos", name = "sr-xconnect-add", description = "Create Xconnect")
 public class XconnectAddCommand extends AbstractShellCommand {
     @Argument(index = 0, name = "deviceId",

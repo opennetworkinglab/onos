@@ -18,6 +18,7 @@ package org.onosproject.routing.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.cli.AbstractShellCommand;
@@ -34,6 +35,7 @@ import java.util.Optional;
 /**
  * Command to add a new internal BGP speaker.
  */
+@Service
 @Command(scope = "onos", name = "bgp-speaker-add",
         description = "Adds an internal BGP speaker")
 public class AddSpeakerCommand extends AbstractShellCommand {

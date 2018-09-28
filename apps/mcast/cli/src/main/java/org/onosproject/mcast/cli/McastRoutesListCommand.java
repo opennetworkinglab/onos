@@ -16,6 +16,7 @@
 package org.onosproject.mcast.cli;
 
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.mcast.api.McastRoute;
@@ -30,6 +31,7 @@ import java.util.stream.Collectors;
 /**
  * Displays the source, multicast group flows entries.
  */
+@Service
 @Command(scope = "onos", name = "mcast-host-routes",
         description = "Lists routes in the mcast route store")
 public class McastRoutesListCommand extends AbstractShellCommand {

@@ -18,6 +18,7 @@ package org.onosproject.distributedprimitives.cli;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.store.serializers.KryoNamespaces;
@@ -30,6 +31,7 @@ import java.util.Set;
 /**
  * CLI command to remove elements from a distributed set.
  */
+@Service
 @Command(scope = "onos", name = "set-test-remove",
         description = "Remove from a distributed set")
 public class SetTestRemoveCommand extends AbstractShellCommand {

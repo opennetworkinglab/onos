@@ -17,6 +17,7 @@
 package org.onosproject.dhcprelay.cli;
 
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.apache.karaf.shell.api.action.Argument;
 import org.onlab.packet.IpPrefix;
@@ -25,6 +26,7 @@ import org.onosproject.dhcprelay.api.DhcpRelayService;
 /**
  * Prints Dhcp FPM Routes information.
  */
+@Service
 @Command(scope = "onos", name = "dhcp-fpm-delete",
          description = "delete DHCP FPM prefix in dhcp-fpm-store")
 public class DhcpFpmDeleteCommand extends AbstractShellCommand {

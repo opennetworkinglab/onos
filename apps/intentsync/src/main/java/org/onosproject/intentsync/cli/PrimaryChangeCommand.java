@@ -17,12 +17,14 @@ package org.onosproject.intentsync.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.intentsync.IntentSynchronizationAdminService;
 
 /**
  * Command to change whether this instance's intent synchronizer is primary.
  */
+@Service
 @Command(scope = "onos", name = "sdnip-set-primary",
          description = "Changes the primary status of this SDN-IP instance")
 public class PrimaryChangeCommand extends AbstractShellCommand {

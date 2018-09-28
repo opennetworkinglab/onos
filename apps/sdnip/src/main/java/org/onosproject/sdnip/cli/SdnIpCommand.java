@@ -17,6 +17,7 @@ package org.onosproject.sdnip.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -28,6 +29,7 @@ import org.onosproject.sdnip.config.SdnIpConfig;
 /**
  * CLI to interact with the SDN-IP application.
  */
+@Service
 @Command(scope = "onos", name = "sdnip",
         description = "Manages the SDN-IP application")
 public class SdnIpCommand extends AbstractShellCommand {

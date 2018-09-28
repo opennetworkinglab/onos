@@ -19,6 +19,7 @@ package org.onosproject.t3.cli;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cli.net.HostIdCompleter;
 import org.onosproject.net.HostId;
@@ -32,6 +33,7 @@ import static org.onlab.packet.EthType.EtherType;
 /**
  * Starts a Static Packet Trace for a given input and prints the result.
  */
+@Service
 @Command(scope = "onos", name = "t3-troubleshoot-simple",
         description = "Given two hosts troubleshoots flows and groups between them, in case of segment routing")
 public class TroubleshootSimpleTraceCommand extends AbstractShellCommand {

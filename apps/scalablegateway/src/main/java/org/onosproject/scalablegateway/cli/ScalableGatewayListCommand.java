@@ -17,13 +17,14 @@
 package org.onosproject.scalablegateway.cli;
 
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.scalablegateway.api.ScalableGatewayService;
 
 /**
  * Lists all gateway node information of scalablegateway.
  */
-
+@Service
 @Command(scope = "onos", name = "gateways",
         description = "Lists gateway node information")
 public class ScalableGatewayListCommand extends AbstractShellCommand {

@@ -17,6 +17,7 @@ package org.onosproject.openstacknetworking.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
@@ -36,6 +37,7 @@ import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
  * VM is instantiated but the related VF port can't be added.
  * After recovering ovsdb connection, you can manually add VF ports by this CLI.
  */
+@Service
 @Command(scope = "onos", name = "openstack-direct-port-add",
         description = "Manually adds OpenStack direct ports to the device")
 public class OpenstackDirectPortAddCommand extends AbstractShellCommand {

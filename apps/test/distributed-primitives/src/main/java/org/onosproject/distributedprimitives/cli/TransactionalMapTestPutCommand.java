@@ -17,6 +17,7 @@ package org.onosproject.distributedprimitives.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.Serializer;
@@ -27,6 +28,7 @@ import org.onosproject.store.service.TransactionalMap;
 /**
  * CLI command to put a value into a transactional map.
  */
+@Service
 @Command(scope = "onos", name = "transactional-map-test-put",
         description = "Put a value into a transactional map")
 public class TransactionalMapTestPutCommand extends AbstractShellCommand {

@@ -17,6 +17,7 @@ package org.onosproject.distributedprimitives.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.core.Version;
 import org.onosproject.store.serializers.KryoNamespaces;
@@ -28,6 +29,7 @@ import org.onosproject.store.service.Versioned;
 /**
  * CLI command to manipulate a distributed value.
  */
+@Service
 @Command(scope = "onos", name = "map-test",
         description = "Manipulate a consistent map")
 public class ConsistentMapTestCommand extends AbstractShellCommand {

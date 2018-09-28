@@ -17,6 +17,7 @@ package org.onosproject.ofagent.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.TpPort;
 import org.onosproject.cli.AbstractShellCommand;
@@ -30,6 +31,7 @@ import org.onosproject.ofagent.impl.DefaultOFController;
 /**
  * Removes the controller from the OFAgent.
  */
+@Service
 @Command(scope = "onos", name = "ofagent-controller-delete",
         description = "Deletes a controller from the ofagent")
 public class OFAgentDeleteControllerCommand extends AbstractShellCommand {

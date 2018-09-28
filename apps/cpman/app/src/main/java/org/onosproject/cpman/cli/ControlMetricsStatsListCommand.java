@@ -17,6 +17,7 @@ package org.onosproject.cpman.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.cpman.ControlLoadSnapshot;
@@ -36,6 +37,7 @@ import static org.onosproject.cpman.ControlResource.NETWORK_METRICS;
 /**
  * Lists all stats information of control plane metrics.
  */
+@Service
 @Command(scope = "onos", name = "cpman-stats-list",
         description = "Lists control metrics statistics")
 public class ControlMetricsStatsListCommand extends AbstractShellCommand {

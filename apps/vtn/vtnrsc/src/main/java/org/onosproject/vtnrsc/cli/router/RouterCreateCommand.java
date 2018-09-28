@@ -22,6 +22,7 @@ import java.util.Set;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.vtnrsc.DefaultRouter;
 import org.onosproject.vtnrsc.Router;
@@ -36,6 +37,7 @@ import com.google.common.collect.Sets;
 /**
  * Supports for create a router.
  */
+@Service
 @Command(scope = "onos", name = "router-create",
         description = "Supports for creating a router")
 public class RouterCreateCommand extends AbstractShellCommand {

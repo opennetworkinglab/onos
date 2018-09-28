@@ -24,6 +24,7 @@ import java.util.stream.Stream;
 
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.util.Tools;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cluster.ClusterEvent;
@@ -49,6 +50,7 @@ import static java.util.stream.Collectors.toList;
 /**
  * Command to print history of instance local ONOS Events.
  */
+@Service
 @Command(scope = "onos", name = "events",
          description = "Command to print history of instance local ONOS Events")
 public class EventsCommand

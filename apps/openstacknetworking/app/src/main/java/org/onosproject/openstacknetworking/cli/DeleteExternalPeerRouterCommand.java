@@ -18,6 +18,7 @@ package org.onosproject.openstacknetworking.cli;
 import com.google.common.collect.Lists;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.openstacknetworking.api.ExternalPeerRouter;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkAdminService;
@@ -27,6 +28,7 @@ import java.util.List;
 /**
  * Deletes external peer router.
  */
+@Service
 @Command(scope = "onos", name = "openstack-delete-peer-router",
         description = "Delete external peer router")
 public class DeleteExternalPeerRouterCommand extends AbstractShellCommand {

@@ -21,12 +21,14 @@ import java.util.List;
 
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.primitiveperf.PrimitivePerfCollector.Sample;
 
 /**
  * Displays accumulated performance metrics.
  */
+@Service
 @Command(scope = "onos", name = "primitive-perf",
         description = "Displays accumulated performance metrics")
 public class PrimitivePerfListCommand extends AbstractShellCommand {

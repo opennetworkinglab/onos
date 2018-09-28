@@ -20,6 +20,7 @@ import java.util.Optional;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cli.net.DeviceIdCompleter;
 import org.onosproject.cli.net.PortNumberCompleter;
@@ -34,6 +35,7 @@ import org.onosproject.provider.lldp.impl.LinkDiscoveryFromPort;
 /**
  *
  */
+@Service
 @Command(scope = "onos", name = "config-link-discovery",
          description = "Adds configuration to disable LLDP link discovery")
 public class ConfigLinkDiscoveryCommand extends AbstractShellCommand {

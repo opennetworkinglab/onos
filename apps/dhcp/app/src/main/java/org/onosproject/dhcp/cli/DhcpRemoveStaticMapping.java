@@ -17,6 +17,7 @@ package org.onosproject.dhcp.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.packet.MacAddress;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.dhcp.DhcpService;
@@ -24,6 +25,7 @@ import org.onosproject.dhcp.DhcpService;
 /**
  * Removes a static MAC Address to IP Mapping from the DHCP Server.
  */
+@Service
 @Command(scope = "onos", name = "dhcp-remove-static-mapping",
         description = "Removes a static MAC Address to IP Mapping from the DHCP Server")
 public class DhcpRemoveStaticMapping extends AbstractShellCommand {

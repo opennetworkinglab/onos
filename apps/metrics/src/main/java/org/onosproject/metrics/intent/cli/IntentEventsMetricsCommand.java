@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.metrics.EventMetric;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.metrics.intent.IntentMetricsService;
@@ -33,6 +34,7 @@ import org.onosproject.metrics.intent.IntentMetricsService;
 /**
  * Command to show the intent events metrics.
  */
+@Service
 @Command(scope = "onos", name = "intents-events-metrics",
          description = "Lists intent events metrics")
 public class IntentEventsMetricsCommand extends AbstractShellCommand {

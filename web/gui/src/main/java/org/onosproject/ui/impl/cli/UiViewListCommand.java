@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.ui.UiExtension;
 import org.onosproject.ui.UiExtensionService;
@@ -28,6 +29,7 @@ import java.util.List;
 /**
  * Lists all registered UI views.
  */
+@Service
 @Command(scope = "onos", name = "ui-views",
         description = "Lists all registered UI views")
 public class UiViewListCommand extends AbstractShellCommand {

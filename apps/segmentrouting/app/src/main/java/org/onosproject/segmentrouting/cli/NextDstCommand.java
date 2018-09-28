@@ -22,6 +22,7 @@ import java.util.Comparator;
 import java.util.Map;
 
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.segmentrouting.SegmentRoutingService;
 import org.onosproject.segmentrouting.grouphandler.NextNeighbors;
@@ -30,6 +31,7 @@ import org.onosproject.segmentrouting.storekey.DestinationSetNextObjectiveStoreK
 /**
  * Command to read the current state of the DestinationSetNextObjectiveStore.
  */
+@Service
 @Command(scope = "onos", name = "sr-next-dst",
         description = "Displays the current next-hops seen by each switch "
                 + "towards a set of destinations and the next-id it maps to")

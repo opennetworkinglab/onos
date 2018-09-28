@@ -18,6 +18,7 @@ package org.onosproject.provider.nil.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.packet.IpAddress;
 import org.onlab.util.Tools;
 import org.onosproject.net.ConnectPoint;
@@ -34,6 +35,7 @@ import java.util.List;
 /**
  * Adds a simulated end-station host to the custom topology simulation.
  */
+@Service
 @Command(scope = "onos", name = "null-create-hosts",
         description = "Adds a simulated end-station host to the custom topology simulation")
 public class CreateNullHosts extends CreateNullEntity {

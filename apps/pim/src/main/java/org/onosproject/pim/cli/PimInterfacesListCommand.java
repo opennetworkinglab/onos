@@ -17,6 +17,7 @@
 package org.onosproject.pim.cli;
 
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.pim.impl.PimInterface;
 import org.onosproject.pim.impl.PimInterfaceService;
@@ -26,6 +27,7 @@ import java.util.Set;
 /**
  * Lists the interfaces where PIM is enabled.
  */
+@Service
 @Command(scope = "onos", name = "pim-interfaces",
         description = "Lists the interfaces where PIM is enabled")
 public class PimInterfacesListCommand extends AbstractShellCommand {

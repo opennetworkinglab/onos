@@ -20,6 +20,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.tunnel.Tunnel;
 import org.onosproject.incubator.net.tunnel.TunnelId;
@@ -33,6 +34,7 @@ import java.util.List;
 /**
  * Supports quering PCE load balanced path.
  */
+@Service
 @Command(scope = "onos", name = "pce-query-load-balancing-path",
         description = "Supports querying PCE path.")
 public class PceQueryLoadBalancingPathCommand extends AbstractShellCommand {

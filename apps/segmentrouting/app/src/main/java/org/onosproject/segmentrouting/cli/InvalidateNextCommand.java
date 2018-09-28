@@ -19,6 +19,7 @@ package org.onosproject.segmentrouting.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.osgi.ServiceNotFoundException;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.segmentrouting.SegmentRoutingService;
@@ -26,6 +27,7 @@ import org.onosproject.segmentrouting.SegmentRoutingService;
 /**
  * Command to invalidate next id from SR internal stores.
  */
+@Service
 @Command(scope = "onos", name = "sr-next-invalidate",
         description = "Invalidate given next id from SR internal stores")
 public class InvalidateNextCommand extends AbstractShellCommand {

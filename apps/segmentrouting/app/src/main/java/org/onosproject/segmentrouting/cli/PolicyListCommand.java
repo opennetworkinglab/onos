@@ -16,6 +16,7 @@
 package org.onosproject.segmentrouting.cli;
 
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.segmentrouting.Policy;
 import org.onosproject.segmentrouting.SegmentRoutingService;
@@ -24,6 +25,7 @@ import org.onosproject.segmentrouting.TunnelPolicy;
 /**
  * Command to show the list of policies.
  */
+@Service
 @Command(scope = "onos", name = "sr-policy-list",
         description = "Lists all policies")
 public class PolicyListCommand extends AbstractShellCommand {
