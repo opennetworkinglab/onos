@@ -77,6 +77,7 @@ public final class OfdpaGroupHandlerUtility {
     static final int MPLS_L3VPN_SUBTYPE = 0x92000000;
     static final int L3_ECMP_TYPE = 0x70000000;
     static final int L2_FLOOD_TYPE = 0x40000000;
+    static final int L2_MULTICAST_TYPE = 0x30000000;
 
     static final int TYPE_MASK = 0x0fffffff;
     static final int SUBTYPE_MASK = 0x00ffffff;
@@ -450,6 +451,12 @@ public final class OfdpaGroupHandlerUtility {
     public static GroupKey l2FloodGroupKey(VlanId vlanId, DeviceId deviceId) {
         int hash = Objects.hash(deviceId, vlanId);
         hash = L2_FLOOD_TYPE | TYPE_MASK & hash;
+        return new DefaultGroupKey(Ofdpa2Pipeline.appKryo.serialize(hash));
+    }
+
+    public static GroupKey l2MulticastGroupKey(VlanId vlanId, DeviceId deviceId) {
+        int hash = Objects.hash(deviceId, vlanId);
+        hash = L2_MULTICAST_TYPE | TYPE_MASK & hash;
         return new DefaultGroupKey(Ofdpa2Pipeline.appKryo.serialize(hash));
     }
 

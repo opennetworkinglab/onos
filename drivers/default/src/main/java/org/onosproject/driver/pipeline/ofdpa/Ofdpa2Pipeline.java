@@ -56,6 +56,8 @@ import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.EthCriterion;
 import org.onosproject.net.flow.criteria.EthTypeCriterion;
+import org.onosproject.net.flow.criteria.ExtensionCriterion;
+import org.onosproject.net.flow.criteria.ExtensionSelector;
 import org.onosproject.net.flow.criteria.IPCriterion;
 import org.onosproject.net.flow.criteria.Icmpv6CodeCriterion;
 import org.onosproject.net.flow.criteria.Icmpv6TypeCriterion;
@@ -1851,6 +1853,15 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 ? null : ((VlanIdCriterion) criterion).vlanId();
     }
 
+    static MacAddress readEthDstFromSelector(TrafficSelector selector) {
+        if (selector == null) {
+            return null;
+        }
+        Criterion criterion = selector.getCriterion(Criterion.Type.ETH_DST);
+        return (criterion == null)
+                ? null : ((EthCriterion) criterion).mac();
+    }
+
     static IpPrefix readIpDstFromSelector(TrafficSelector selector) {
         if (selector == null) {
             return null;
@@ -1884,6 +1895,14 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             }
         }
         return null;
+    }
+
+    static ExtensionSelector readExtensionFromSelector(TrafficSelector selector) {
+        if (selector == null) {
+            return null;
+        }
+        ExtensionCriterion criterion = (ExtensionCriterion) selector.getCriterion(Criterion.Type.EXTENSION);
+        return (criterion == null) ? null : criterion.extensionSelector();
     }
 
     /**
