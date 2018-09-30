@@ -845,6 +845,11 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     }
 
     @Override
+    public boolean shouldProgram(DeviceId deviceId) {
+        return defaultRoutingHandler.shouldProgram(deviceId);
+    }
+
+    @Override
     public ApplicationId appId() {
         return appId;
     }
