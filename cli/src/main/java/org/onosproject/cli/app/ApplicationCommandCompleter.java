@@ -16,6 +16,7 @@
 package org.onosproject.cli.app;
 
 import com.google.common.collect.ImmutableList;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractChoicesCompleter;
 
 import java.util.List;
@@ -25,6 +26,7 @@ import static org.onosproject.cli.app.ApplicationCommand.*;
 /**
  * Application command completer.
  */
+@Service
 public class ApplicationCommandCompleter extends AbstractChoicesCompleter {
     @Override
     public List<String> choices() {

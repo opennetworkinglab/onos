@@ -21,6 +21,7 @@ import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.stream.StreamSupport;
 
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.app.ApplicationService;
 import org.onosproject.cli.AbstractChoicesCompleter;
 import org.onosproject.core.Application;
@@ -32,6 +33,7 @@ import static org.onosproject.cli.AbstractShellCommand.get;
 /**
  * All installed application name completer.
  */
+@Service
 public class AllApplicationNamesCompleter extends AbstractChoicesCompleter {
     @Override
     public List<String> choices() {
