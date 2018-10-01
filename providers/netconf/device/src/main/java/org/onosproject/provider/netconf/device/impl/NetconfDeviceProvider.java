@@ -677,10 +677,15 @@ public class NetconfDeviceProvider extends AbstractProvider
     private class InternalDeviceListener implements DeviceListener {
         @Override
         public void event(DeviceEvent event) {
-            DeviceId deviceId = event.subject().id();
+            Device device = event.subject();
+            DeviceId deviceId = device.id();
             if (event.type() == DeviceEvent.Type.DEVICE_ADDED && !deviceService.isAvailable(event.subject().id())) {
                 try {
-                    checkAndUpdateDevice(deviceId, null, true);
+                    DeviceDescription description = new DefaultDeviceDescription(deviceId.uri(), device.type(),
+                            device.manufacturer(), device.hwVersion(), device.swVersion(),
+                            device.serialNumber(), device.chassisId(),
+                            (SparseAnnotations) device.annotations());
+                    checkAndUpdateDevice(deviceId, description, true);
                 } catch (Exception e) {
                     log.error("Unhandled exception checking {}", deviceId, e);
                 }
