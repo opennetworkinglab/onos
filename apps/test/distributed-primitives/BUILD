@@ -5,6 +5,7 @@ COMPILE_DEPS = CORE_DEPS + KRYO + CLI + [
 ]
 
 osgi_jar(
+    karaf_command_packages = ["org.onosproject.distributedprimitives.cli"],
     deps = COMPILE_DEPS,
 )
 
