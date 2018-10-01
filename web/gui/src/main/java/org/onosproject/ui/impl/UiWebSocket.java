@@ -245,7 +245,7 @@ public class UiWebSocket
     }
 
     @OnWebSocketMessage
-    public void onMessage(String data) {
+    public void onText(Session session, String data) {
         lastActive = System.currentTimeMillis();
         try {
             ObjectNode message = (ObjectNode) mapper.reader().readTree(data);

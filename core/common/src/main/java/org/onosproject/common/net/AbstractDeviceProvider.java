@@ -17,7 +17,6 @@
 package org.onosproject.common.net;
 
 import org.osgi.service.component.annotations.Activate;
-import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
@@ -46,7 +45,6 @@ import org.slf4j.LoggerFactory;
  * configuration.
  * </p>
  */
-@Component(immediate = true)
 public abstract class AbstractDeviceProvider extends AbstractProvider
         implements DeviceProvider {
 

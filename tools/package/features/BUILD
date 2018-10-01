@@ -169,7 +169,6 @@ osgi_feature(
     description = "ONOS GUI console components",
     included_bundles = [
         "//web/gui:onos-gui",
-        "@jetty_websocket//jar",
         "//utils/rest:onlab-rest",
     ],
     required_features = [
@@ -184,7 +183,6 @@ osgi_feature(
     description = "ONOS GUI2 components",
     included_bundles = [
         "//web/gui2:onos-gui2",
-        "@jetty_websocket//jar",
         "//utils/rest:onlab-rest",
     ],
     required_features = [

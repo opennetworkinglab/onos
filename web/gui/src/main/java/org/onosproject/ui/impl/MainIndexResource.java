@@ -94,7 +94,8 @@ public class MainIndexResource extends AbstractInjectionResource {
         // FIXME: use global opaque auth token to allow secure failover
 
         // for now, just use the user principal name...
-        String userName = ctx.getUserPrincipal().getName();
+        String userName = ctx != null && ctx.getUserPrincipal() != null ?
+                ctx.getUserPrincipal().getName() : "unknown";
 
         // get a session token to use for UI-web-socket authentication
         UiSessionToken token = tokens.issueToken(userName);

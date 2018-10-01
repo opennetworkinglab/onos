@@ -18,7 +18,6 @@ package org.onosproject.net.intent.impl.compiler;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.onlab.graph.DefaultEdgeWeigher;
@@ -66,7 +65,6 @@ import java.util.stream.Collectors;
  * Base class for compilers of various
  * {@link org.onosproject.net.intent.ConnectivityIntent connectivity intents}.
  */
-@Component(immediate = true)
 public abstract class ConnectivityIntentCompiler<T extends ConnectivityIntent>
         implements IntentCompiler<T> {
 
