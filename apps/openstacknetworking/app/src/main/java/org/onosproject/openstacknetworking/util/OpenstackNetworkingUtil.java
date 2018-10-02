@@ -216,7 +216,8 @@ public final class OpenstackNetworkingUtil {
             if (Strings.isNullOrEmpty(fip.getFloatingIpAddress())) {
                 continue;
             }
-            if (fip.getFixedIpAddress().equals(port.ipAddress().toString())) {
+            if (fip.getFixedIpAddress().equals(port.ipAddress().toString()) &&
+                    fip.getPortId().equals(port.portId())) {
                 return fip;
             }
         }
