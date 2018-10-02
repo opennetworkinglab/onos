@@ -13,6 +13,10 @@ osgi_jar_with_tests(
     api_title = "L2 Monitoring CFM",
     api_version = "1.0",
     exclude_tests = ["org/onosproject/cfm/impl/CfmResourceTest"],
+    karaf_command_packages = [
+        "org.onosproject.cfm.cli",
+        "org.onosproject.cfm.cli.completer",
+    ],
     test_deps = TEST_DEPS,
     web_context = "/onos/cfm",
     deps = COMPILE_DEPS,

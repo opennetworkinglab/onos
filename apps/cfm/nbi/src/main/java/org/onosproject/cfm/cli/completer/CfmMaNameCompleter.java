@@ -15,6 +15,7 @@
  */
 package org.onosproject.cfm.cli.completer;
 
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractChoicesCompleter;
 import org.onosproject.incubator.net.l2monitoring.cfm.service.CfmMdService;
 
@@ -26,6 +27,7 @@ import static org.onosproject.cli.AbstractShellCommand.get;
 /**
  * CLI completer for MA Name creation.
  */
+@Service
 public class CfmMaNameCompleter extends AbstractChoicesCompleter {
     @Override
     public List<String> choices() {

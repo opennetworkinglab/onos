@@ -17,7 +17,9 @@ package org.onosproject.cfm.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.onosproject.cfm.cli.completer.CfmMepIdCompleter;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.l2monitoring.cfm.MepEntry;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdShort;
@@ -43,6 +45,7 @@ public class CfmMepListCommand extends AbstractShellCommand {
     private final Logger log = getLogger(getClass());
     @Argument(name = "md",
             description = "Maintenance Domain name and type (in brackets) - will use all MDs if not specified")
+    @Completion(CfmMepIdCompleter.class)
     private String mdStr = null;
     @Argument(index = 1, name = "ma",
             description = "Maintenance Association name and type (in brackets) - requires MD")

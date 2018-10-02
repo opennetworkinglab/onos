@@ -15,6 +15,7 @@
  */
 package org.onosproject.cfm.cli.completer;
 
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractChoicesCompleter;
 import org.onosproject.incubator.net.l2monitoring.cfm.MaintenanceAssociation;
 
@@ -24,6 +25,7 @@ import java.util.List;
 /**
  * CLI completer for Ccm Interval creation.
  */
+@Service
 public class CfmMaCcmIntervalCompleter extends AbstractChoicesCompleter {
     @Override
     public List<String> choices() {

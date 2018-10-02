@@ -16,6 +16,7 @@
 
 package org.onosproject.cli;
 
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.apache.karaf.shell.api.console.CommandLine;
 import org.apache.karaf.shell.api.console.Session;
 import org.apache.karaf.shell.support.completers.StringsCompleter;
@@ -27,6 +28,7 @@ import java.util.SortedSet;
  * A completer that can be used as a placeholder for arguments that don't
  * need/want completers.
  */
+@Service
 public class PlaceholderCompleter extends AbstractCompleter {
 
     @Override

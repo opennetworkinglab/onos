@@ -17,9 +17,14 @@ package org.onosproject.cfm.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.packet.VlanId;
+import org.onosproject.cfm.cli.completer.CfmMaCcmIntervalCompleter;
+import org.onosproject.cfm.cli.completer.CfmMaNameTypeCompleter;
+import org.onosproject.cfm.cli.completer.CfmMdNameCompleter;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.cli.PlaceholderCompleter;
 import org.onosproject.incubator.net.l2monitoring.cfm.Component;
 import org.onosproject.incubator.net.l2monitoring.cfm.DefaultComponent;
 import org.onosproject.incubator.net.l2monitoring.cfm.DefaultMaintenanceAssociation;
@@ -40,22 +45,26 @@ public class CfmMaAddCommand extends AbstractShellCommand {
     @Argument(name = "name",
             description = "Maintenance Domain name and type (in brackets)",
             required = true)
+    @Completion(CfmMdNameCompleter.class)
     private String mdName = null;
 
     @Argument(index = 1, name = "name-type",
-            description = "Maintenance Assocation name type",
+            description = "Maintenance Association name type",
             required = true)
+    @Completion(CfmMaNameTypeCompleter.class)
     private String nameType = null;
 
     @Argument(index = 2, name = "name",
             description = "Maintenance Assocation name. Restrictions apply depending " +
                     "on name-type",
             required = true)
+    @Completion(PlaceholderCompleter.class)
     private String name = null;
 
     @Argument(index = 3, name = "ccm-interval",
             description = "CCM Interval values from list",
             required = true)
+    @Completion(CfmMaCcmIntervalCompleter.class)
     private String ccmInterval = null;
 
     @Argument(index = 4, name = "numeric-id",

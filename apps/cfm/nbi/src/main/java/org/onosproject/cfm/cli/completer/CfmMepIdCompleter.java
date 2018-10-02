@@ -15,6 +15,7 @@
  */
 package org.onosproject.cfm.cli.completer;
 
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractChoicesCompleter;
 import org.onosproject.incubator.net.l2monitoring.cfm.service.CfmConfigException;
 import org.onosproject.incubator.net.l2monitoring.cfm.service.CfmMdService;
@@ -30,6 +31,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * CLI completer for Mep Id creation.
  */
+@Service
 public class CfmMepIdCompleter extends AbstractChoicesCompleter {
     private final Logger log = getLogger(getClass());
 

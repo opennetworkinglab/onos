@@ -17,7 +17,9 @@ package org.onosproject.cfm.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.onosproject.cfm.cli.completer.CfmMaNameCompleter;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MaIdShort;
 import org.onosproject.incubator.net.l2monitoring.cfm.identifier.MdId;
@@ -37,6 +39,7 @@ public class CfmMaDeleteCommand extends AbstractShellCommand {
             description = "Maintenance Domain name and type (in brackets) " +
                     "and the Maintenance Association name and type (in brackets)",
             required = true)
+    @Completion(CfmMaNameCompleter.class)
     private String name = null;
 
     @Override
