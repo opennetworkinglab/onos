@@ -23,10 +23,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
+import org.onosproject.cluster.NodeId;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.routeservice.InternalRouteEvent;
 import org.onosproject.routeservice.Route;
@@ -50,7 +50,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class DefaultRouteTable implements RouteTable {
 
     private final RouteTableId id;
-    private final ConsistentMultimap<IpPrefix, Route> routes;
+
+    // The route map stores RawRoute instead of Route to translate the polymorphic IpPrefix and IpAddress types
+    // into monomorphic types (specifically String). Using strings in the stored RawRoute is necessary to ensure
+    // the serialized bytes are consistent whether e.g. IpAddress or Ip4Address is used when storing a route.
+    private final ConsistentMultimap<String, RawRoute> routes;
+
     private final RouteStoreDelegate delegate;
     private final ExecutorService executor;
     private final RouteTableListener listener = new RouteTableListener();
@@ -89,13 +94,14 @@ public class DefaultRouteTable implements RouteTable {
             new InternalRouteEvent(InternalRouteEvent.Type.ROUTE_ADDED, routeSet)));
     }
 
-    private ConsistentMultimap<IpPrefix, Route> buildRouteMap(StorageService storageService) {
+    private ConsistentMultimap<String, RawRoute> buildRouteMap(StorageService storageService) {
         KryoNamespace routeTableSerializer = KryoNamespace.newBuilder()
                 .register(KryoNamespaces.API)
                 .register(Route.class)
                 .register(Route.Source.class)
+                .register(RawRoute.class)
                 .build();
-        return storageService.<IpPrefix, Route>consistentMultimapBuilder()
+        return storageService.<String, RawRoute>consistentMultimapBuilder()
                 .withName("onos-routes-" + id.name())
                 .withRelaxedReadConsistency()
                 .withSerializer(Serializer.using(routeTableSerializer))
@@ -121,36 +127,37 @@ public class DefaultRouteTable implements RouteTable {
 
     @Override
     public void update(Route route) {
-        routes.put(route.prefix(), route);
+        routes.put(route.prefix().toString(), new RawRoute(route));
     }
 
     @Override
     public void remove(Route route) {
-        routes.remove(route.prefix(), route);
+        routes.remove(route.prefix().toString(), new RawRoute(route));
     }
 
     @Override
     public void replace(Route route) {
-        routes.replaceValues(route.prefix(), Sets.newHashSet(route));
+        routes.replaceValues(route.prefix().toString(), Sets.newHashSet(new RawRoute(route)));
     }
 
     @Override
     public Collection<RouteSet> getRoutes() {
         return routes.stream()
             .map(Map.Entry::getValue)
-            .collect(Collectors.groupingBy(Route::prefix))
+            .collect(Collectors.groupingBy(RawRoute::prefix))
             .entrySet()
             .stream()
-            .map(entry -> new RouteSet(id, entry.getKey(), ImmutableSet.copyOf(entry.getValue())))
+            .map(entry -> new RouteSet(id,
+                IpPrefix.valueOf(entry.getKey()),
+                entry.getValue().stream().map(RawRoute::route).collect(Collectors.toSet())))
             .collect(Collectors.toList());
     }
 
     @Override
     public RouteSet getRoutes(IpPrefix prefix) {
-        Versioned<Collection<? extends Route>> routeSet = routes.get(prefix);
-
+        Versioned<Collection<? extends RawRoute>> routeSet = routes.get(prefix.toString());
         if (routeSet != null) {
-            return new RouteSet(id, prefix, ImmutableSet.copyOf(routeSet.value()));
+            return new RouteSet(id, prefix, routeSet.value().stream().map(RawRoute::route).collect(Collectors.toSet()));
         }
         return null;
     }
@@ -159,22 +166,25 @@ public class DefaultRouteTable implements RouteTable {
     public Collection<Route> getRoutesForNextHop(IpAddress nextHop) {
         return routes.stream()
             .map(Map.Entry::getValue)
-            .filter(r -> r.nextHop().equals(nextHop))
+            .filter(r -> IpAddress.valueOf(r.nextHop()).equals(nextHop))
+            .map(RawRoute::route)
             .collect(Collectors.toSet());
     }
 
     private class RouteTableListener
-            implements MultimapEventListener<IpPrefix, Route> {
+            implements MultimapEventListener<String, RawRoute> {
 
         private InternalRouteEvent createRouteEvent(
-                InternalRouteEvent.Type type, MultimapEvent<IpPrefix, Route> event) {
-            Collection<? extends Route> currentRoutes = Versioned.valueOrNull(routes.get(event.key()));
+                InternalRouteEvent.Type type, MultimapEvent<String, RawRoute> event) {
+            Collection<? extends RawRoute> currentRoutes = Versioned.valueOrNull(routes.get(event.key()));
             return new InternalRouteEvent(type, new RouteSet(
-                id, event.key(), currentRoutes != null ? ImmutableSet.copyOf(currentRoutes) : Collections.emptySet()));
+                id, IpPrefix.valueOf(event.key()), currentRoutes != null ?
+                currentRoutes.stream().map(RawRoute::route).collect(Collectors.toSet())
+                : Collections.emptySet()));
         }
 
         @Override
-        public void event(MultimapEvent<IpPrefix, Route> event) {
+        public void event(MultimapEvent<String, RawRoute> event) {
             InternalRouteEvent ire = null;
             switch (event.type()) {
             case INSERT:
@@ -190,4 +200,32 @@ public class DefaultRouteTable implements RouteTable {
         }
     }
 
+    /**
+     * Represents a route object stored in the underlying ConsistentMultimap.
+     */
+    private static class RawRoute {
+        private Route.Source source;
+        private String prefix;
+        private String nextHop;
+        private NodeId sourceNode;
+
+        RawRoute(Route route) {
+            this.source = route.source();
+            this.prefix = route.prefix().toString();
+            this.nextHop = route.nextHop().toString();
+            this.sourceNode = route.sourceNode();
+        }
+
+        String prefix() {
+            return prefix;
+        }
+
+        String nextHop() {
+            return nextHop;
+        }
+
+        Route route() {
+            return new Route(source, IpPrefix.valueOf(prefix), IpAddress.valueOf(nextHop), sourceNode);
+        }
+    }
 }
