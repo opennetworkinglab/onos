@@ -112,7 +112,7 @@ ONOS_DRIVERS = [
     "//drivers/gnmi:onos-drivers-gnmi-oar",
     "//drivers/polatis/netconf:onos-drivers-polatis-netconf-oar",
     "//drivers/polatis/openflow:onos-drivers-polatis-openflow-oar",
-    #"//drivers/odtn-driver:onos-drivers-odtn-driver-oar",
+    "//drivers/odtn-driver:onos-drivers-odtn-driver-oar",
 ]
 
 ONOS_PROVIDERS = [
