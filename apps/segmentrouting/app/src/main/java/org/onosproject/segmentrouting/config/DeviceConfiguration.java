@@ -67,8 +67,8 @@ public class DeviceConfiguration implements DeviceProperties {
     private SegmentRoutingManager srManager;
 
     private class SegmentRouterInfo {
-        int ipv4NodeSid;
-        int ipv6NodeSid;
+        int ipv4NodeSid = -1;
+        int ipv6NodeSid = -1;
         DeviceId deviceId;
         Ip4Address ipv4Loopback;
         Ip6Address ipv6Loopback;
@@ -271,9 +271,15 @@ public class DeviceConfiguration implements DeviceProperties {
      * @return node segment id, or -1 if not found in config
      */
     public int getIPv4SegmentId(Ip4Address routerAddress) {
-        for (Map.Entry<DeviceId, SegmentRouterInfo> entry:
-            deviceConfigMap.entrySet()) {
+        for (Map.Entry<DeviceId, SegmentRouterInfo> entry: deviceConfigMap.entrySet()) {
+            Ip4Address ipv4Loopback = entry.getValue().ipv4Loopback;
+            if (ipv4Loopback == null) {
+                continue;
+            }
             if (entry.getValue().ipv4Loopback.equals(routerAddress)) {
+                if (entry.getValue().ipv4NodeSid == -1) {
+                    continue;
+                }
                 return entry.getValue().ipv4NodeSid;
             }
         }
@@ -288,9 +294,15 @@ public class DeviceConfiguration implements DeviceProperties {
      * @return node segment id, or -1 if not found in config
      */
     public int getIPv6SegmentId(Ip6Address routerAddress) {
-        for (Map.Entry<DeviceId, SegmentRouterInfo> entry:
-                deviceConfigMap.entrySet()) {
+        for (Map.Entry<DeviceId, SegmentRouterInfo> entry: deviceConfigMap.entrySet()) {
+            Ip6Address ipv6Loopback = entry.getValue().ipv6Loopback;
+            if (ipv6Loopback == null) {
+                continue;
+            }
             if (entry.getValue().ipv6Loopback.equals(routerAddress)) {
+                if (entry.getValue().ipv6NodeSid == -1) {
+                    continue;
+                }
                 return entry.getValue().ipv6NodeSid;
             }
         }
