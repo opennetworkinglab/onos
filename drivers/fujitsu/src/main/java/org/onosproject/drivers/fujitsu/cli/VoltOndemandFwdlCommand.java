@@ -17,8 +17,10 @@ package org.onosproject.drivers.fujitsu.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.cli.net.DeviceIdCompleter;
 import org.onosproject.drivers.fujitsu.behaviour.VoltFwdlConfig;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.driver.DriverHandler;
@@ -34,6 +36,7 @@ public class VoltOndemandFwdlCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "uri", description = "Device ID",
             required = true, multiValued = false)
+    @Completion(DeviceIdCompleter.class)
     String uri = null;
 
     @Argument(index = 1, name = "target",

@@ -13,6 +13,7 @@ BUNDLES = [
 
 osgi_jar_with_tests(
     exclude_tests = ["org.onosproject.drivers.fujitsu.FujitsuNetconfSessionListenerTest"],
+    karaf_command_packages = ["org.onosproject.drivers.fujitsu.cli"],
     resources = glob(["src/main/resources/**"]),
     resources_root = "src/main/resources",
     test_deps = TEST_ADAPTERS,
