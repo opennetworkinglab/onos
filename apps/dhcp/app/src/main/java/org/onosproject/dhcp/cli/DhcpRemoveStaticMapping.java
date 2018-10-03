@@ -17,6 +17,7 @@ package org.onosproject.dhcp.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.packet.MacAddress;
 import org.onosproject.cli.AbstractShellCommand;
@@ -33,6 +34,7 @@ public class DhcpRemoveStaticMapping extends AbstractShellCommand {
     @Argument(index = 0, name = "macAddr",
             description = "MAC Address of the client",
             required = true, multiValued = false)
+    @Completion(MacIdCompleter.class)
     String macAddr = null;
 
     private static final String DHCP_SUCCESS = "Static Mapping Successfully Removed.";

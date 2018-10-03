@@ -17,6 +17,7 @@ package org.onosproject.dhcp.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.MacAddress;
@@ -39,11 +40,13 @@ public class DhcpSetStaticMapping extends AbstractShellCommand {
     @Argument(index = 0, name = "macAddr",
             description = "MAC Address of the client",
             required = true, multiValued = false)
+    @Completion(MacIdCompleter.class)
     String macAddr = null;
 
     @Argument(index = 1, name = "ipAddr",
             description = "IP Address requested for static mapping",
             required = true, multiValued = false)
+    @Completion(FreeIpCompleter.class)
     String ipAddr = null;
 
     private static final String DHCP_SUCCESS = "Static Mapping Successfully Added.";
