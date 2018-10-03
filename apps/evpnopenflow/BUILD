@@ -8,6 +8,7 @@ COMPILE_DEPS = CORE_DEPS + JACKSON + KRYO + CLI + [
 ]
 
 osgi_jar_with_tests(
+    karaf_command_packages = ["org.onosproject.evpnopenflow.rsc.cli"],
     deps = COMPILE_DEPS,
 )
 
