@@ -16,6 +16,7 @@
 package org.onosproject.cpman.cli;
 
 import com.google.common.collect.ImmutableList;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractChoicesCompleter;
 
 import java.util.List;
@@ -26,6 +27,7 @@ import static org.onosproject.cpman.ControlResource.Type;
 /**
  * Control resource type completer.
  */
+@Service
 public class ControlResourceTypeCompleter extends AbstractChoicesCompleter {
 
     private static final List<Type> RESOURCE_TYPES =
