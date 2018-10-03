@@ -4,6 +4,6 @@ COMPILE_DEPS = CORE_DEPS + CLI + [
 ]
 
 osgi_jar_with_tests(
-    import_packages = "*,org.onosproject.cli.net",
+    karaf_command_packages = ["org.onosproject.faultmanagement.alarms.cli"],
     deps = COMPILE_DEPS,
 )
