@@ -1,6 +1,7 @@
 COMPILE_DEPS = CORE_DEPS + JACKSON + CLI
 
 osgi_jar_with_tests(
+    karaf_command_packages = ["org.onosproject.events"],
     resources = glob(["src/main/resources/**"]),
     resources_root = "src/main/resources",
     deps = COMPILE_DEPS,

@@ -51,7 +51,7 @@ import static org.onlab.util.Tools.minPriority;
 /**
  * Application to store history of instance local ONOS Events.
  */
-@Component(immediate = true, service = EventHistoryManager.class)
+@Component(immediate = true, service = EventHistoryService.class)
 public class EventHistoryManager
     implements EventHistoryService {
 
