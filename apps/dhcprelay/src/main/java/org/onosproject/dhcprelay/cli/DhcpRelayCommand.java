@@ -19,6 +19,7 @@ package org.onosproject.dhcprelay.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
@@ -48,11 +49,13 @@ public class DhcpRelayCommand extends AbstractShellCommand {
     @Argument(index = 0, name = "counter",
             description = "shows counter values",
             required = false, multiValued = false)
+    @Completion(DhcpRelayCounterCompleter.class)
     String counter = null;
 
     @Argument(index = 1, name = "reset",
             description = "reset counters or not",
             required = false, multiValued = false)
+    @Completion(DhcpRelayResetCompleter.class)
     String reset = null;
 
 

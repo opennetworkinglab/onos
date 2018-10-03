@@ -18,6 +18,7 @@ package org.onosproject.dhcprelay.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.dhcprelay.api.DhcpRelayService;
@@ -38,6 +39,7 @@ public class DhcpRelayAggCountersCommand extends AbstractShellCommand {
     @Argument(index = 0, name = "reset",
             description = "reset counters or not",
             required = false, multiValued = false)
+    @Completion(DhcpRelayResetCompleter.class)
     String reset = null;
 
     private static final String HEADER = "DHCP Relay Aggregate Counters :";
