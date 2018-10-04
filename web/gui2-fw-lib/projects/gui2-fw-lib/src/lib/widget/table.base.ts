@@ -77,11 +77,11 @@ export interface PayloadParams {
  */
 export abstract class TableBaseImpl {
     // attributes from the interface
-    protected annots: TableAnnots;
+    public annots: TableAnnots;
     protected changedData: string[] = [];
     protected payloadParams: PayloadParams;
     protected sortParams: SortParams;
-    protected selectCallback; // Function
+    public selectCallback; // Function
     protected parentSelCb = null;
     protected responseCallback; // Function
     selId: string = undefined;

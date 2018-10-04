@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { RouterTestingModule } from '@angular/router/testing';
 import { DebugElement } from '@angular/core';
 import { By } from '@angular/platform-browser';
 
@@ -21,6 +23,7 @@ import { LogService } from '../../log.service';
 import { ConsoleLoggerService } from '../../consolelogger.service';
 import { MastComponent } from './mast.component';
 import { IconComponent } from '../../svg/icon/icon.component';
+import { ConfirmComponent } from '../../layer/confirm/confirm.component';
 import { LionService } from '../../util/lion.service';
 import { IconService } from '../../svg/icon.service';
 import { NavService } from '../../nav/nav.service';
@@ -73,7 +76,8 @@ describe('MastComponent', () => {
         };
 
         TestBed.configureTestingModule({
-            declarations: [ MastComponent, IconComponent ],
+            imports: [ BrowserAnimationsModule, RouterTestingModule ],
+            declarations: [ MastComponent, IconComponent, ConfirmComponent ],
             providers: [
                 { provide: LogService, useValue: log },
                 { provide: NavService, useClass: MockNavService },

@@ -24,6 +24,7 @@
         <img src="data/img/nav-menu-mojo.png"/>
     </span>
     <img class="logo" src="data/img/masthead-logo-mojo.png">
+    <onos-confirm title="{{ lionFn('ui_ok_to_update') }}" message="{{ confirmMessage }}" warning="{{ strongWarning }}" (chosen)="dOk($event)"></onos-confirm>
     <div id="mast-right">
         <nav>
             <div class="dropdown-parent">

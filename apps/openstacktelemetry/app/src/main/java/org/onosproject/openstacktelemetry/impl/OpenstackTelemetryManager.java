@@ -24,6 +24,7 @@ import org.onosproject.openstacktelemetry.api.GrpcTelemetryService;
 import org.onosproject.openstacktelemetry.api.InfluxDbTelemetryService;
 import org.onosproject.openstacktelemetry.api.KafkaTelemetryService;
 import org.onosproject.openstacktelemetry.api.OpenstackTelemetryService;
+import org.onosproject.openstacktelemetry.api.PrometheusTelemetryService;
 import org.onosproject.openstacktelemetry.api.RestTelemetryService;
 import org.onosproject.openstacktelemetry.api.TelemetryService;
 import org.onosproject.openstacktelemetry.codec.TinaMessageByteBufferCodec;
@@ -94,6 +95,12 @@ public class OpenstackTelemetryManager implements OpenstackTelemetryService {
                 invokeInfluxDbPublisher((InfluxDbTelemetryService) service, flowInfos);
             }
 
+            if (service instanceof PrometheusTelemetryManager &&
+                    getPropertyValueAsBoolean(componentConfigService.getProperties(
+                            PrometheusTelemetryConfigManager.class.getName()), ENABLE_SERVICE)) {
+                invokePrometheusPublisher((PrometheusTelemetryService) service, flowInfos);
+            }
+
             if (service instanceof KafkaTelemetryManager &&
                     getPropertyValueAsBoolean(componentConfigService.getProperties(
                             KafkaTelemetryConfigManager.class.getName()), ENABLE_SERVICE)) {
@@ -123,6 +130,10 @@ public class OpenstackTelemetryManager implements OpenstackTelemetryService {
         DefaultInfluxRecord<String, Set<FlowInfo>> influxRecord
                 = new DefaultInfluxRecord<>(DEFAULT_INFLUXDB_MEASUREMENT, flowInfos);
         service.publish(influxRecord);
+    }
+
+    private void invokePrometheusPublisher(PrometheusTelemetryService service, Set<FlowInfo> flowInfos) {
+        service.publish(flowInfos);
     }
 
     private void invokeKafkaPublisher(KafkaTelemetryService service, Set<FlowInfo> flowInfos) {

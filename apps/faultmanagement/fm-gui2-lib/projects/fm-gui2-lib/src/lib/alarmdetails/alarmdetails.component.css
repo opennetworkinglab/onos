@@ -1,0 +1,67 @@
+/*
+ * Copyright 2018-present Open Networking Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/* css for alarm details table view */
+
+/* Panel Styling */
+#ov-alarm-table-item-details-panel.floatpanel {
+    z-index: 0;
+    font-size: 10pt;
+    top: 185px;
+}
+
+#ov-alarm-table-item-details-panel .container {
+    padding: 0 30px;
+}
+
+#ov-alarm-table-item-details-panel .close-btn {
+    position: absolute;
+    right:5px;
+    top: 5px;
+    cursor: pointer;
+}
+
+.light #ov-alarm-table-item-details-panel.floatpanel {
+    background-color: rgb(229, 234, 237);
+}
+.dark #ov-alarm-table-item-details-panel.floatpanel {
+    background-color: #3A4042;
+}
+
+#ov-alarm-table-item-details-panel h2 {
+    display: inline-block;
+    margin: 8px 0;
+    font-weight: bold;
+    font-size: 16pt;
+}
+
+#ov-alarm-table-item-details-panel h3 {
+    margin: 0;
+    font-size: large;
+}
+
+#ov-alarm-table-item-details-panel h4 {
+    margin: 0;
+}
+
+#ov-alarm-table-item-details-panel td {
+    padding: 5px;
+}
+#ov-alarm-table-item-details-panel td.label {
+    font-weight: bold;
+    text-align: right;
+    padding-right: 6px;
+}

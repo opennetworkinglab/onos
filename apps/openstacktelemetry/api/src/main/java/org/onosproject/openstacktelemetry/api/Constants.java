@@ -42,6 +42,10 @@ public final class Constants {
     public static final String DEFAULT_INFLUXDB_MEASUREMENT = "sonaflow";
     public static final boolean DEFAULT_INFLUXDB_ENABLE_BATCH = true;
 
+    // default configuration variables for Promethetus exporter
+    public static final String DEFAULT_PROMETHEUS_EXPORTER_IP = "0.0.0.0";
+    public static final int DEFAULT_PROMETHEUS_EXPORTER_PORT = 9501;
+
     // default configuration variables for Kafka
     public static final String DEFAULT_KAFKA_SERVER_IP = DEFAULT_SERVER_IP;
     public static final int DEFAULT_KAFKA_SERVER_PORT = 9092;

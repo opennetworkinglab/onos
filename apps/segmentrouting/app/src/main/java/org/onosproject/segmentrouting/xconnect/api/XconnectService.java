@@ -21,6 +21,7 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -71,6 +72,24 @@ public interface XconnectService {
     boolean hasXconnect(ConnectPoint cp);
 
     /**
+     * Gives xconnect VLAN of given port of a device.
+     *
+     * @param deviceId Device ID
+     * @param port Port number
+     * @return true if given VLAN vlanId is XConnect VLAN on device deviceId.
+     */
+    List<VlanId> getXconnectVlans(DeviceId deviceId, PortNumber port);
+
+    /**
+     * Checks given VLAN is XConnect VLAN in given device.
+     *
+     * @param deviceId Device ID
+     * @param vlanId VLAN ID
+     * @return true if given VLAN vlanId is XConnect VLAN on device deviceId.
+     */
+    boolean isXconnectVlan(DeviceId deviceId, VlanId vlanId);
+
+    /**
      * Returns the Xconnect next objective store.
      *
      * @return current contents of the xconnectNextObjStore
@@ -84,4 +103,12 @@ public interface XconnectService {
      */
     void removeNextId(int nextId);
 
+    /**
+     * Returns Xconnect next objective ID associated with group device + vlan.
+     *
+     * @param deviceId - Device ID
+     * @param vlanId - VLAN ID
+     * @return Current associated group ID
+     */
+    int getNextId(DeviceId deviceId, VlanId vlanId);
 }

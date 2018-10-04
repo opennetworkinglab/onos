@@ -14,8 +14,16 @@
  * limitations under the License.
  */
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { FnService } from '../util/fn.service';
 import { LogService } from '../log.service';
+
+export interface UiView {
+    id: string;
+    icon: string;
+    cat: string;
+    label: string;
+}
 
 /**
  * ONOS GUI -- Navigation Service
@@ -26,9 +34,15 @@ import { LogService } from '../log.service';
 export class NavService {
     public showNav = false;
 
+    uiPlatformViews = new Array<UiView>();
+    uiNetworkViews = new Array<UiView>();
+    uiOtherViews = new Array<UiView>();
+    uiHiddenViews = new Array<UiView>();
+
     constructor(
         private _fn_: FnService,
-        private log: LogService
+        private log: LogService,
+        private httpClient: HttpClient
     ) {
         this.log.debug('NavService constructed');
     }
@@ -47,6 +61,26 @@ export class NavService {
         } else {
             this.log.debug('Hiding Nav menu');
         }
+    }
+
+    getUiViews() {
+        this.uiPlatformViews = new Array<UiView>();
+        this.uiNetworkViews = new Array<UiView>();
+        this.uiOtherViews = new Array<UiView>();
+        this.uiHiddenViews = new Array<UiView>();
+        this.httpClient.get('rs/nav/uiextensions').subscribe((v: UiView[]) => {
+            v.forEach((uiView: UiView) => {
+                if (uiView.cat === 'PLATFORM') {
+                    this.uiPlatformViews.push(uiView);
+                } else if (uiView.cat === 'NETWORK') {
+                    this.uiNetworkViews.push(uiView);
+                } else if (uiView.cat === 'HIDDEN') {
+                    this.uiHiddenViews.push(uiView);
+                } else {
+                    this.uiOtherViews.push(uiView);
+                }
+            });
+        });
     }
 
 }

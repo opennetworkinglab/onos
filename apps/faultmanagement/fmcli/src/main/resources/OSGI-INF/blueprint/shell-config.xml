@@ -29,8 +29,33 @@
                 <ref component-id="deviceIdCompleter"/>
             </completers>
         </command>
+        <command>
+            <action class="org.onosproject.faultmanagement.alarms.cli.CreateAlarm"/>
+            <completers>
+                <ref component-id="deviceIdCompleter"/>
+                <ref component-id="alarmSeverityCompleter"/>
+            </completers>
+        </command>
+        <command>
+            <action class="org.onosproject.faultmanagement.alarms.cli.UpdateAlarm"/>
+            <completers>
+                <ref component-id="alarmIdCompleter"/>
+                <ref component-id="alarmFieldCompleter"/>
+                <ref component-id="alarmFieldValueCompleter"/>
+            </completers>
+        </command>
+        <command>
+            <action class="org.onosproject.faultmanagement.alarms.cli.RemoveAlarm"/>
+            <completers>
+                <ref component-id="alarmIdCompleter"/>
+            </completers>
+        </command>
     </command-bundle>
 
     <bean id="deviceIdCompleter" class="org.onosproject.cli.net.DeviceIdCompleter"/>
+    <bean id="alarmIdCompleter" class="org.onosproject.faultmanagement.alarms.cli.completer.AlarmIdCompleter"/>
+    <bean id="alarmSeverityCompleter" class="org.onosproject.faultmanagement.alarms.cli.completer.AlarmSeverityCompleter"/>
+    <bean id="alarmFieldCompleter" class="org.onosproject.faultmanagement.alarms.cli.completer.AlarmFieldCompleter"/>
+    <bean id="alarmFieldValueCompleter" class="org.onosproject.faultmanagement.alarms.cli.completer.AlarmFieldValueCompleter"/>
 
 </blueprint>

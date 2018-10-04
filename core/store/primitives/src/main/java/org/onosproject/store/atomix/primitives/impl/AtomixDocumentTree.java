@@ -103,7 +103,7 @@ public class AtomixDocumentTree<V> implements AsyncDocumentTree<V> {
     public synchronized CompletableFuture<Void> addListener(DocumentPath path, DocumentTreeListener<V> listener) {
         io.atomix.core.tree.DocumentTreeEventListener<V> atomixListener = event ->
             listener.event(new DocumentTreeEvent<V>(
-                DocumentPath.from(event.path().pathElements()),
+                toOnosPath(event.path()),
                 DocumentTreeEvent.Type.valueOf(event.type().name()),
                 event.newValue().map(this::toVersioned),
                 event.oldValue().map(this::toVersioned)));
@@ -158,7 +158,8 @@ public class AtomixDocumentTree<V> implements AsyncDocumentTree<V> {
 
     private io.atomix.core.tree.DocumentPath toAtomixPath(DocumentPath path) {
         List<String> pathElements = Lists.newArrayList(path.pathElements());
-        pathElements.set(0, "");
+        // We need to remove the root element here since the Atomix factory method assumes no root is present.
+        pathElements.remove(0);
         return io.atomix.core.tree.DocumentPath.from(pathElements);
     }
 

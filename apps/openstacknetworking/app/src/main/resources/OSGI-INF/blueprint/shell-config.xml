@@ -19,6 +19,9 @@
             <action class="org.onosproject.openstacknetworking.cli.OpenstackNetworkListCommand"/>
         </command>
         <command>
+            <action class="org.onosproject.openstacknetworking.cli.OpenstackSubnetListCommand"/>
+        </command>
+        <command>
             <action class="org.onosproject.openstacknetworking.cli.OpenstackPortListCommand"/>
         </command>
         <command>

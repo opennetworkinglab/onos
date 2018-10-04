@@ -1,0 +1,197 @@
+/*
+ * Copyright 2018-present Open Networking Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.onosproject.workflow.cli;
+
+import org.apache.karaf.shell.api.action.Argument;
+import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.workflow.api.WorkflowContext;
+import org.onosproject.workflow.api.WorkflowException;
+import org.onosproject.workflow.api.WorkflowService;
+import org.onosproject.workflow.api.Workplace;
+import org.onosproject.workflow.api.DefaultWorkplaceDescription;
+import org.onosproject.workflow.api.WorkplaceStore;
+
+import java.util.Arrays;
+import java.util.Objects;
+
+@Service
+@Command(scope = "onos", name = "workplace",
+        description = "workplace cli")
+public class WorkplaceStoreCommand extends AbstractShellCommand {
+
+    @Argument(index = 0, name = "cmd", description = "command(add/rm/clear/print)", required = false)
+    private String cmd = null;
+
+    @Argument (index = 1, name = "name", description = "workspace name", required = false)
+    private String name = null;
+
+    @Option(name = "-f", aliases = "--filter", description = "including filter",
+            required = false, multiValued = false)
+    private String inFilter = null;
+
+    @Option(name = "-e", aliases = "--excludefilter", description = "excluding filter",
+            required = false, multiValued = false)
+    private String exFilter = null;
+
+    @Override
+    protected void doExecute() {
+
+        if (Objects.isNull(cmd)) {
+            printAllWorkplace();
+            return;
+        }
+
+        switch (cmd) {
+            case "add":
+                if (Objects.isNull(name)) {
+                    error("invalid name");
+                    return;
+                }
+                addEmptyWorkplace(name);
+                return;
+
+            case "rm":
+                if (Objects.isNull(name)) {
+                    print("invalid name");
+                    return;
+                }
+                rmWorkplace(name);
+                break;
+
+            case "clear":
+                clearWorkplace();
+                break;
+
+            case "print":
+                if (Objects.isNull(name)) {
+                    print("invalid name");
+                    return;
+                }
+                printWorkplace(name);
+                break;
+
+            default:
+                print("Unsupported cmd: " + cmd);
+        }
+    }
+
+    /**
+     * Adds empty workplace.
+     * @param name workplace name
+     */
+    private void addEmptyWorkplace(String name) {
+        WorkflowService service = get(WorkflowService.class);
+        DefaultWorkplaceDescription wpDesc = DefaultWorkplaceDescription.builder()
+                .name(name)
+                .build();
+        try {
+            service.createWorkplace(wpDesc);
+        } catch (WorkflowException e) {
+            error(e.getMessage() + ", trace: " + Arrays.asList(e.getStackTrace()));
+        }
+    }
+
+    /**
+     * Clears all workplaces.
+     */
+    private void clearWorkplace() {
+        WorkflowService service = get(WorkflowService.class);
+        try {
+            service.clearWorkplace();
+        } catch (WorkflowException e) {
+            error(e.getMessage() + ", trace: " + Arrays.asList(e.getStackTrace()));
+        }
+    }
+
+    /**
+     * Removes workplace.
+     * @param name workplace name to remove
+     */
+    private void rmWorkplace(String name) {
+        WorkflowService service = get(WorkflowService.class);
+        DefaultWorkplaceDescription wpDesc = DefaultWorkplaceDescription.builder()
+                .name(name)
+                .build();
+        try {
+            service.removeWorkplace(wpDesc);
+        } catch (WorkflowException e) {
+            error(e.getMessage() + ", trace: " + Arrays.asList(e.getStackTrace()));
+        }
+    }
+
+    /**
+     * Prints workplace.
+     * @param name workplace name
+     */
+    private void printWorkplace(String name) {
+        WorkplaceStore workplaceStore = get(WorkplaceStore.class);
+        Workplace workplace = workplaceStore.getWorkplace(name);
+        print(getWorkplaceString(workplace));
+    }
+
+    /**
+     * Prints all workplaces.
+     */
+    private void printAllWorkplace() {
+        WorkplaceStore workplaceStore = get(WorkplaceStore.class);
+        for (Workplace workplace : workplaceStore.getWorkplaces()) {
+            print(getWorkplaceString(workplace));
+            printWorkplaceContexts(workplaceStore, workplace.name());
+        }
+    }
+
+    /**
+     * Prints contexts of workplace.
+     * @param workplaceStore workplace store service
+     * @param workplaceName workplace name
+     */
+    private void printWorkplaceContexts(WorkplaceStore workplaceStore, String workplaceName) {
+        for (WorkflowContext context : workplaceStore.getWorkplaceContexts(workplaceName)) {
+            String str = context.toString();
+            if (Objects.nonNull(inFilter)) {
+                if (str.indexOf(inFilter) != -1) {
+                    if (Objects.nonNull(exFilter)) {
+                        if (str.indexOf(exFilter) == -1) {
+                            print(" - " + context);
+                        }
+                    } else {
+                        print(" - " + context);
+                    }
+                }
+            } else {
+                if (Objects.nonNull(exFilter)) {
+                    if (str.indexOf(exFilter) == -1) {
+                        print(" - " + context);
+                    }
+                } else {
+                    print(" - " + context);
+                }
+            }
+        }
+    }
+
+    /**
+     * Gets workplace string.
+     * @param workplace workplace
+     * @return workplace string
+     */
+    private String getWorkplaceString(Workplace workplace) {
+        return workplace.toString();
+    }
+}

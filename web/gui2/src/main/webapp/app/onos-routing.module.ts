@@ -15,6 +15,7 @@
  */
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
+import { FmGui2LibModule } from 'fm-gui2-lib';
 
 /**
  * The set of Routes in the application - can be chosen from nav menu or
@@ -77,6 +78,11 @@ const onosRoutes: Routes = [
         path: 'meter',
         loadChildren: 'app/view/meter/meter.module#MeterModule'
     },
+/*  Comment out below section for running locally with 'ng serve' when developing */
+    {
+        path: 'alarmTable',
+        loadChildren: 'fm-gui2-lib#FmGui2LibModule'
+    },
     {
         path: '',
         redirectTo: 'device', // Default to devices view - change to topo in future
@@ -92,7 +98,7 @@ const onosRoutes: Routes = [
  */
 @NgModule({
     imports: [
-        RouterModule.forRoot(onosRoutes)
+        RouterModule.forRoot(onosRoutes, { useHash : true })
     ],
     exports: [RouterModule],
     providers: []

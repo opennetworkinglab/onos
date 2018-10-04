@@ -1,0 +1,11 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:jackson-core',
+    '//lib:jackson-annotations',
+    '//lib:jackson-databind',
+    '//core/store/serializers:onos-core-serializers',
+]
+
+osgi_jar_with_tests (
+    deps = COMPILE_DEPS,
+)

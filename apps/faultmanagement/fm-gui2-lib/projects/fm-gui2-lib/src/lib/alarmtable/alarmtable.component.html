@@ -1,0 +1,87 @@
+<!--
+~ Copyright 2018-present Open Networking Foundation
+~
+~ Licensed under the Apache License, Version 2.0 (the "License");
+~ you may not use this file except in compliance with the License.
+~ You may obtain a copy of the License at
+~
+~     http://www.apache.org/licenses/LICENSE-2.0
+~
+~ Unless required by applicable law or agreed to in writing, software
+~ distributed under the License is distributed on an "AS IS" BASIS,
+~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+~ See the License for the specific language governing permissions and
+~ limitations under the License.
+-->
+<div id="ov-alarm-table">
+  <div class="tabular-header">
+    <h2>Alarms  for {{ "all devices."}} ({{ tableData.length }} total)</h2>
+    <div class="ctrl-btns">
+      <div class="refresh" (click)="toggleRefresh()">
+        <!-- See icon.theme.css for the defintions of the classes active and refresh-->
+        <onos-icon classes="{{ autoRefresh?'active refresh':'refresh' }}" iconId="refresh" iconSize="36" toolTip="{{ autoRefreshTip }}"></onos-icon>
+      </div>
+      <!--div class="separator"></div>
+      <div (click)="(!!selId) ? confirmAction(AlarmActionEnum.ACKNOWLEDGE) : ''">
+        <onos-icon classes="{{ ctrlBtnState.acknowledged?'active-rect play':'play' }}"
+                   iconId="play" iconSize="42" toolTip="{{ acknowledgeTip }}"></onos-icon>
+      </div>
+      <div (click)="(!!selId) ? confirmAction(AlarmActionEnum.CLEAR) : ''">
+        <onos-icon classes="{{ ctrlBtnState.cleared?'active-rect stop':'stop' }}"
+                   iconId="stop" iconSize="42" toolTip="{{ clearTip }}"></onos-icon>
+      </div-->
+    </div>
+  </div>
+
+  <div class="summary-list" class="summary-list" onosTableResize>
+
+    <div class="table-header">
+      <table>
+        <tr>
+          <td colId="alarmId" (click)="onSort('id')">Id
+              <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('id')"></onos-icon>
+          </td>
+          <td colId="alarmDeviceId" (click)="onSort('alarmDeviceId')">Device
+              <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('alarmDeviceId')"></onos-icon>
+          </td>
+          <td colId="alarmDesc" (click)="onSort('alarmDesc')">Description
+              <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('alarmDesc')"></onos-icon>
+          </td>
+          <td colId="alarmSource" (click)="onSort('alarmSource')">Source
+              <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('alarmSource')"></onos-icon>
+          </td>
+          <td colId="alarmTimeRaised" (click)="onSort('alarmTimeRaised')">Time Raised
+              <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('alarmTimeRaised')"></onos-icon>
+          </td>
+          <td colId="alarmSeverity" (click)="onSort('alarmSeverity')">Severity
+              <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('alarmSeverity')"></onos-icon>
+          </td>
+          <td colId="alarmAcknowledged" (click)="onSort('alarmAcknowledged')">Acknowledged
+              <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('alarmAcknowledged')"></onos-icon>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="table-body">
+      <table>
+        <tr class="table-body" *ngIf="tableData.length === 0" class="no-data">
+          <td colspan="9">{{ annots.noRowsMsg }}</td>
+        </tr>
+        <tr *ngFor="let item of tableData | filter : tableDataFilter" (click)="selectCallback($event, item)" [ngClass]="{selected: item.id === selId, 'data-change': isChanged(item.id)}">
+          <td>{{ item.id }}</td>
+          <td>{{ item.alarmDeviceId }}</td>
+          <td>{{ item.alarmDesc }}</td>
+          <td>{{ item.alarmSource }}</td>
+          <td>{{ item.alarmTimeRaised }}</td>
+          <td>{{ item.alarmSeverity }}</td>
+          <td class="table-icon">
+            <onos-icon [iconId]="ackIcon(item.alarmAcknowledged)"></onos-icon>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <onos-alarmdetails class="floatpanels" id="{{ selId }}" (closeEvent)="deselectRow($event)"></onos-alarmdetails>
+</div>

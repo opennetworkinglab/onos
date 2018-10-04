@@ -1,0 +1,47 @@
+<!--
+~ Copyright 2018-present Open Networking Foundation
+~
+~ Licensed under the Apache License, Version 2.0 (the "License");
+~ you may not use this file except in compliance with the License.
+~ You may obtain a copy of the License at
+~
+~     http://www.apache.org/licenses/LICENSE-2.0
+~
+~ Unless required by applicable law or agreed to in writing, software
+~ distributed under the License is distributed on an "AS IS" BASIS,
+~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+~ See the License for the specific language governing permissions and
+~ limitations under the License.
+-->
+<div style="text-align:center">
+  <onos-icon iconId="nav_apps" iconSize="200" toolTip="Test app"></onos-icon>
+  <h1>
+    Welcome to {{ title }}!
+  </h1>
+</div>
+<h2>Test App - Do not use or extend</h2>
+<p>This app is just a wrapper around the FM GUI2 Library and is
+  necessary only to provide a base for that library.
+  It has a use in validating that the library can be loaded.
+
+  The library is linked in here by the addition of the paths statement in
+  tsconfig.json. This is fine for accessing a local library, but for another
+  project it should be added in through package.json, using the 'file' locator.
+  Then run "npm install" in that target project and the tar will be expanded in
+  to it's node_modules folder.
+
+  A good article on the creation and use of libraries in Angular 6 is given in<br />
+  <a href="https://blog.angularindepth.com/creating-a-library-in-angular-6-87799552e7e5">The Angular Library Series - Creating a Library with the Angular CLI</a><br />
+  and <br />
+  <a href="https://blog.angularindepth.com/creating-a-library-in-angular-6-part-2-6e2bc1e14121">The Angular Library Series - Building and Packaging</a><br />
+
+  This "app" component is not built by Bazel - it's only the library that is built
+  by bazel which in turn calls "ng build --prod fm-gui2-lib" and then "npm pack"
+  resulting in a tar file that can be used as an NPM package anywhere.
+  <br />
+  Note: Please remember that in Angular 6 rebuilding of libraries is not automatic.
+  If you change anything in the library, you will have to build it again before
+  it is picked up in this app.
+</p>
+<onos-alarmtable></onos-alarmtable>
+

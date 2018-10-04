@@ -1134,7 +1134,8 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
         DhcpServerInfo foundServerInfo = findServerInfoFromServer(directConnFlag, inPort);
 
         if (foundServerInfo == null) {
-            log.warn("Cannot find server info");
+            log.warn("Cannot find server info for {} server, inPort {}",
+                      directConnFlag ? "direct" : "indirect", inPort);
             return null;
         } else {
             if (Dhcp4HandlerUtil.isServerIpEmpty(foundServerInfo)) {
@@ -1517,7 +1518,14 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
         // sent by ONOS or circuit Id can't be parsed
         // TODO: remove relay store from this method
         MacAddress dstMac = valueOf(dhcpPayload.getClientHardwareAddress());
-        Optional<DhcpRecord> dhcpRecord = dhcpRelayStore.getDhcpRecord(HostId.hostId(dstMac, originalPacketVlanId));
+        VlanId filteredVlanId = getVlanIdFromDhcpRecord(dstMac, originalPacketVlanId);
+        // Get the vlan from the dhcp record
+        if (filteredVlanId == null) {
+            log.debug("not find the matching DHCP record for mac: {} and vlan: {}", dstMac, originalPacketVlanId);
+            return Optional.empty();
+        }
+
+        Optional<DhcpRecord> dhcpRecord = dhcpRelayStore.getDhcpRecord(HostId.hostId(dstMac, filteredVlanId));
         ConnectPoint clientConnectPoint = dhcpRecord
                 .map(DhcpRecord::locations)
                 .orElse(Collections.emptySet())
@@ -1534,11 +1542,50 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
         if (clientConnectPoint != null) {
             return interfaceService.getInterfacesByPort(clientConnectPoint)
                     .stream()
-                    .filter(iface -> interfaceContainsVlan(iface, originalPacketVlanId))
+                    .filter(iface -> interfaceContainsVlan(iface, filteredVlanId))
                     .findFirst();
         }
         return Optional.empty();
     }
+
+    /**
+     * Get the required vlanId in case the DCHP record has more than one vlanId for a given MAC.
+     *
+     * @param mac MAC address of the DHCP client
+     * @param vlan Expected vlan of the DHCP client
+     */
+    private VlanId getVlanIdFromDhcpRecord(MacAddress mac, VlanId vlan) {
+        // Get all the DHCP records matching with the mac address
+        // If only one entry is present then pick the vlan of that entry
+        // If more then one entry is present then look for an entry with matching vlan
+        // else return null
+        Collection<DhcpRecord> records = dhcpRelayStore.getDhcpRecords();
+        List<DhcpRecord> filteredRecords = new ArrayList<>();
+        for (DhcpRecord e: records) {
+            if (e.macAddress().equals(mac)) {
+                filteredRecords.add(e);
+            }
+        }
+        log.debug("getVlanIdFromDhcpRecord mac: {} vlan: {}", mac, vlan);
+        log.debug("filteredRecords are: {}", filteredRecords);
+        if (filteredRecords.size() == 1) {
+            log.debug("Only one DHCP record entry. Returning back the vlan of that DHCP record: {}", filteredRecords);
+            return filteredRecords.get(0).vlanId();
+        }
+        // Check in the DHCP filtered record for matching vlan
+        for (DhcpRecord e: filteredRecords) {
+            if (e.vlanId().equals(vlan)) {
+                log.debug("Found a matching vlan entry in the DHCP record:{}", e);
+                return vlan;
+            }
+        }
+        // Found nothing return null
+        log.debug("Returning null as no matching or more than one matching entry found");
+        return null;
+
+    }
+
+
 
     /**
      * Send the response DHCP to the requester host.
@@ -1924,9 +1971,6 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
                 log.debug("ServerInfo found for Rcv port {} Server Connect Point {} for {}",
                         inPort, serverInfo.getDhcpServerConnectPoint(), directConnFlag ? "direct" : "indirect");
                 break;
-            } else {
-                log.warn("Rcv port {} not the same as Server Connect Point {} for {}",
-                        inPort, serverInfo.getDhcpServerConnectPoint(), directConnFlag ? "direct" : "indirect");
             }
         }
         return foundServerInfo;

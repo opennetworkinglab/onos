@@ -353,6 +353,14 @@ public interface SegmentRoutingService {
     Map<DeviceId, Boolean> getShouldProgramCache();
 
     /**
+     * Returns whether instance should program device or not.
+     *
+     * @param deviceId .
+     * @return boolean status saying instance should program device or not.
+     */
+    boolean shouldProgram(DeviceId deviceId);
+
+    /**
      * Gets application id.
      *
      * @return application id

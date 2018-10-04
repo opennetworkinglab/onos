@@ -18,6 +18,7 @@ package org.onosproject.segmentrouting.xconnect.impl;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import org.onlab.packet.Ethernet;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onlab.util.KryoNamespace;
@@ -27,6 +28,8 @@ import org.onosproject.core.CoreService;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.Host;
+import org.onosproject.net.HostLocation;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.device.DeviceEvent;
@@ -48,7 +51,12 @@ import org.onosproject.net.flowobjective.NextObjective;
 import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.flowobjective.ObjectiveContext;
 import org.onosproject.net.flowobjective.ObjectiveError;
+import org.onosproject.net.host.HostEvent;
+import org.onosproject.net.host.HostListener;
+import org.onosproject.net.host.HostService;
+import org.onosproject.net.intf.InterfaceService;
 import org.onosproject.segmentrouting.SegmentRoutingService;
+import org.onosproject.segmentrouting.storekey.VlanNextObjectiveStoreKey;
 import org.onosproject.segmentrouting.xconnect.api.XconnectCodec;
 import org.onosproject.segmentrouting.xconnect.api.XconnectDesc;
 import org.onosproject.segmentrouting.xconnect.api.XconnectKey;
@@ -69,6 +77,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -105,6 +118,12 @@ public class XconnectManager implements XconnectService {
     @Reference(cardinality = ReferenceCardinality.OPTIONAL)
     public SegmentRoutingService srService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    public InterfaceService interfaceService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    HostService hostService;
+
     private static final String APP_NAME = "org.onosproject.xconnect";
     private static final String ERROR_NOT_MASTER = "Not master controller";
 
@@ -114,10 +133,17 @@ public class XconnectManager implements XconnectService {
     private ConsistentMap<XconnectKey, Set<PortNumber>> xconnectStore;
     private ConsistentMap<XconnectKey, Integer> xconnectNextObjStore;
 
+    private ConsistentMap<VlanNextObjectiveStoreKey, Integer> xconnectMulticastNextStore;
+    private ConsistentMap<VlanNextObjectiveStoreKey, List<PortNumber>> xconnectMulticastPortsStore;
+
     private final MapEventListener<XconnectKey, Set<PortNumber>> xconnectListener = new XconnectMapListener();
     private final DeviceListener deviceListener = new InternalDeviceListener();
 
     private ExecutorService deviceEventExecutor;
+
+    private final HostListener hostListener = new InternalHostListener();
+    private ExecutorService hostEventExecutor;
+
 
     @Activate
     void activate() {
@@ -127,7 +153,8 @@ public class XconnectManager implements XconnectService {
         KryoNamespace.Builder serializer = KryoNamespace.newBuilder()
                 .register(KryoNamespaces.API)
                 .register(XconnectManager.class)
-                .register(XconnectKey.class);
+                .register(XconnectKey.class)
+                .register(VlanNextObjectiveStoreKey.class);
 
         xconnectStore = storageService.<XconnectKey, Set<PortNumber>>consistentMapBuilder()
                 .withName("onos-sr-xconnect")
@@ -142,10 +169,24 @@ public class XconnectManager implements XconnectService {
                 .withSerializer(Serializer.using(serializer.build()))
                 .build();
 
+        xconnectMulticastNextStore = storageService.<VlanNextObjectiveStoreKey, Integer>consistentMapBuilder()
+                .withName("onos-sr-xconnect-l2multicast-next")
+                .withSerializer(Serializer.using(serializer.build()))
+                .build();
+        xconnectMulticastPortsStore = storageService.<VlanNextObjectiveStoreKey, List<PortNumber>>consistentMapBuilder()
+                .withName("onos-sr-xconnect-l2multicast-ports")
+                .withSerializer(Serializer.using(serializer.build()))
+                .build();
+
         deviceEventExecutor = Executors.newSingleThreadScheduledExecutor(
                 groupedThreads("sr-xconnect-device-event", "%d", log));
 
         deviceService.addListener(deviceListener);
+
+        hostEventExecutor = Executors.newSingleThreadExecutor(
+                groupedThreads("sr-xconnect-host-event", "%d", log));
+
+        hostService.addListener(hostListener);
 
         log.info("Started");
     }
@@ -154,9 +195,11 @@ public class XconnectManager implements XconnectService {
     void deactivate() {
         xconnectStore.removeListener(xconnectListener);
         deviceService.removeListener(deviceListener);
+        hostService.removeListener(hostListener);
         codecService.unregisterCodec(XconnectDesc.class);
 
         deviceEventExecutor.shutdown();
+        hostEventExecutor.shutdown();
 
         log.info("Stopped");
     }
@@ -164,7 +207,7 @@ public class XconnectManager implements XconnectService {
     @Override
     public void addOrUpdateXconnect(DeviceId deviceId, VlanId vlanId, Set<PortNumber> ports) {
         log.info("Adding or updating xconnect. deviceId={}, vlanId={}, ports={}",
-                deviceId, vlanId, ports);
+                 deviceId, vlanId, ports);
         final XconnectKey key = new XconnectKey(deviceId, vlanId);
         xconnectStore.put(key, ports);
     }
@@ -172,9 +215,15 @@ public class XconnectManager implements XconnectService {
     @Override
     public void removeXonnect(DeviceId deviceId, VlanId vlanId) {
         log.info("Removing xconnect. deviceId={}, vlanId={}",
-                deviceId, vlanId);
+                 deviceId, vlanId);
         final XconnectKey key = new XconnectKey(deviceId, vlanId);
         xconnectStore.remove(key);
+
+        // Cleanup multicasting support, if any.
+        srService.getPairDeviceId(deviceId).ifPresent(pairDeviceId -> {
+            cleanupL2MulticastRule(pairDeviceId, srService.getPairLocalPort(pairDeviceId).get(), vlanId, true);
+        });
+
     }
 
     @Override
@@ -187,8 +236,24 @@ public class XconnectManager implements XconnectService {
     @Override
     public boolean hasXconnect(ConnectPoint cp) {
         return getXconnects().stream().anyMatch(desc ->
-                desc.key().deviceId().equals(cp.deviceId()) && desc.ports().contains(cp.port())
+                                                        desc.key().deviceId().equals(cp.deviceId())
+                                                                && desc.ports().contains(cp.port())
         );
+    }
+
+    @Override
+    public List<VlanId> getXconnectVlans(DeviceId deviceId, PortNumber port) {
+        return getXconnects().stream()
+                .filter(desc -> desc.key().deviceId().equals(deviceId) && desc.ports().contains(port))
+                .map(XconnectDesc::key)
+                .map(XconnectKey::vlanId)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public boolean isXconnectVlan(DeviceId deviceId, VlanId vlanId) {
+        return getXconnects().stream()
+                .anyMatch(desc -> desc.key().deviceId().equals(deviceId) && desc.key().vlanId().equals(vlanId));
     }
 
     @Override
@@ -198,6 +263,15 @@ public class XconnectManager implements XconnectService {
         } else {
             return ImmutableMap.of();
         }
+    }
+
+    @Override
+    public int getNextId(final DeviceId deviceId, final VlanId vlanId) {
+        Optional<Integer> nextObjective = getNext().entrySet().stream()
+                .filter(d -> d.getKey().deviceId().equals(deviceId) && d.getKey().vlanId().equals(vlanId))
+                .findFirst()
+                .map(Map.Entry::getValue);
+        return nextObjective.isPresent() ? nextObjective.get() : -1;
     }
 
     @Override
@@ -258,6 +332,98 @@ public class XconnectManager implements XconnectService {
         }
     }
 
+    private class InternalHostListener implements HostListener {
+        @Override
+        public void event(HostEvent event) {
+            hostEventExecutor.execute(() -> {
+
+                switch (event.type()) {
+                    case HOST_MOVED:
+                        log.trace("Processing host event {}", event);
+
+                        Host host = event.subject();
+                        Set<HostLocation> prevLocations = event.prevSubject().locations();
+                        Set<HostLocation> newLocations = host.locations();
+
+                        // Dual-home host port failure
+                        // For each old location, in failed and paired devices update L2 vlan groups
+                        Sets.difference(prevLocations, newLocations).forEach(prevLocation -> {
+
+                            Optional<DeviceId> pairDeviceId = srService.getPairDeviceId(prevLocation.deviceId());
+                            Optional<PortNumber> pairLocalPort = srService.getPairLocalPort(prevLocation.deviceId());
+
+                            if (pairDeviceId.isPresent() && pairLocalPort.isPresent() && newLocations.stream()
+                                    .anyMatch(location -> location.deviceId().equals(pairDeviceId.get())) &&
+                                    hasXconnect(new ConnectPoint(prevLocation.deviceId(), prevLocation.port()))) {
+
+                                List<VlanId> xconnectVlans = getXconnectVlans(prevLocation.deviceId(),
+                                                                              prevLocation.port());
+                                xconnectVlans.forEach(xconnectVlan -> {
+                                    // Add single-home host into L2 multicast group at paired device side.
+                                    // Also append ACL rule to forward traffic from paired port to L2 multicast group.
+                                    newLocations.stream()
+                                            .filter(location -> location.deviceId().equals(pairDeviceId.get()))
+                                            .forEach(location -> populateL2Multicast(location.deviceId(),
+                                                                                     srService.getPairLocalPort(
+                                                                                             location.deviceId()).get(),
+                                                                                     xconnectVlan,
+                                                                                     Collections.singletonList(
+                                                                                             location.port())));
+                               // Ensure pair-port attached to xconnect vlan flooding group at dual home failed device.
+                                    updateL2Flooding(prevLocation.deviceId(), pairLocalPort.get(), xconnectVlan, true);
+                                });
+                            }
+                        });
+
+                        // Dual-home host port restoration
+                        // For each new location, reverse xconnect loop prevention groups.
+                        Sets.difference(newLocations, prevLocations).forEach(newLocation -> {
+                            final Optional<DeviceId> pairDeviceId = srService.getPairDeviceId(newLocation.deviceId());
+                            Optional<PortNumber> pairLocalPort = srService.getPairLocalPort(newLocation.deviceId());
+                            if (pairDeviceId.isPresent() && pairLocalPort.isPresent() &&
+                                    hasXconnect((new ConnectPoint(newLocation.deviceId(), newLocation.port())))) {
+
+                                List<VlanId> xconnectVlans = getXconnectVlans(newLocation.deviceId(),
+                                                                              newLocation.port());
+                                xconnectVlans.forEach(xconnectVlan -> {
+                                    // Remove recovered dual homed port from vlan L2 multicast group
+                                    prevLocations.stream()
+                                            .filter(prevLocation -> prevLocation.deviceId().equals(pairDeviceId.get()))
+                                            .forEach(prevLocation -> revokeL2Multicast(prevLocation.deviceId(),
+                                                                                 srService.getPairLocalPort(
+                                                                                       prevLocation.deviceId()).get(),
+                                                                                       xconnectVlan,
+                                                                      Collections.singletonList(newLocation.port()))
+                                            );
+
+                                 // Remove pair-port from vlan's flooding group at dual home restored device,if needed.
+                                    if (!hasAccessPortInMulticastGroup(newLocation.deviceId(),
+                                                                       xconnectVlan,
+                                                                       pairLocalPort.get())) {
+                                        updateL2Flooding(newLocation.deviceId(),
+                                                         pairLocalPort.get(),
+                                                         xconnectVlan,
+                                                         false);
+
+                                        // Clean L2 multicast group at pair-device; also update store.
+                                        cleanupL2MulticastRule(pairDeviceId.get(),
+                                                               srService.getPairLocalPort(pairDeviceId.get()).get(),
+                                                               xconnectVlan,
+                                                               false);
+                                    }
+                                });
+                            }
+                        });
+                        break;
+
+                    default:
+                        log.warn("Unsupported host event type: {} received. Ignoring.", event.type());
+                        break;
+                }
+            });
+        }
+    }
+
     private void init(DeviceId deviceId) {
         getXconnects().stream()
                 .filter(desc -> desc.key().deviceId().equals(deviceId))
@@ -274,7 +440,7 @@ public class XconnectManager implements XconnectService {
     /**
      * Populates XConnect groups and flows for given key.
      *
-     * @param key XConnect key
+     * @param key   XConnect key
      * @param ports a set of ports to be cross-connected
      */
     private void populateXConnect(XconnectKey key, Set<PortNumber> ports) {
@@ -283,7 +449,6 @@ public class XconnectManager implements XconnectService {
             return;
         }
 
-        ports = addPairPort(key.deviceId(), ports);
         populateFilter(key, ports);
         populateFwd(key, populateNext(key, ports));
         populateAcl(key);
@@ -292,7 +457,7 @@ public class XconnectManager implements XconnectService {
     /**
      * Populates filtering objectives for given XConnect.
      *
-     * @param key XConnect store key
+     * @param key   XConnect store key
      * @param ports XConnect ports
      */
     private void populateFilter(XconnectKey key, Set<PortNumber> ports) {
@@ -300,10 +465,10 @@ public class XconnectManager implements XconnectService {
             FilteringObjective.Builder filtObjBuilder = filterObjBuilder(key, port);
             ObjectiveContext context = new DefaultObjectiveContext(
                     (objective) -> log.debug("XConnect FilterObj for {} on port {} populated",
-                            key, port),
+                                             key, port),
                     (objective, error) ->
                             log.warn("Failed to populate XConnect FilterObj for {} on port {}: {}",
-                                    key, port, error));
+                                     key, port, error));
             flowObjectiveService.filter(key.deviceId(), filtObjBuilder.add(context));
         });
     }
@@ -311,7 +476,7 @@ public class XconnectManager implements XconnectService {
     /**
      * Populates next objectives for given XConnect.
      *
-     * @param key XConnect store key
+     * @param key   XConnect store key
      * @param ports XConnect ports
      */
     private int populateNext(XconnectKey key, Set<PortNumber> ports) {
@@ -340,7 +505,7 @@ public class XconnectManager implements XconnectService {
     /**
      * Populates bridging forwarding objectives for given XConnect.
      *
-     * @param key XConnect store key
+     * @param key    XConnect store key
      * @param nextId next objective id
      */
     private void populateFwd(XconnectKey key, int nextId) {
@@ -369,7 +534,7 @@ public class XconnectManager implements XconnectService {
     /**
      * Revokes XConnect groups and flows for given key.
      *
-     * @param key XConnect key
+     * @param key   XConnect key
      * @param ports XConnect ports
      */
     private void revokeXConnect(XconnectKey key, Set<PortNumber> ports) {
@@ -378,7 +543,6 @@ public class XconnectManager implements XconnectService {
             return;
         }
 
-        ports = addPairPort(key.deviceId(), ports);
         revokeFilter(key, ports);
         if (xconnectNextObjStore.containsKey(key)) {
             int nextId = xconnectNextObjStore.get(key).value();
@@ -393,7 +557,7 @@ public class XconnectManager implements XconnectService {
     /**
      * Revokes filtering objectives for given XConnect.
      *
-     * @param key XConnect store key
+     * @param key   XConnect store key
      * @param ports XConnect ports
      */
     private void revokeFilter(XconnectKey key, Set<PortNumber> ports) {
@@ -401,10 +565,10 @@ public class XconnectManager implements XconnectService {
             FilteringObjective.Builder filtObjBuilder = filterObjBuilder(key, port);
             ObjectiveContext context = new DefaultObjectiveContext(
                     (objective) -> log.debug("XConnect FilterObj for {} on port {} revoked",
-                            key, port),
+                                             key, port),
                     (objective, error) ->
                             log.warn("Failed to revoke XConnect FilterObj for {} on port {}: {}",
-                                    key, port, error));
+                                     key, port, error));
             flowObjectiveService.filter(key.deviceId(), filtObjBuilder.remove(context));
         });
     }
@@ -412,9 +576,9 @@ public class XconnectManager implements XconnectService {
     /**
      * Revokes next objectives for given XConnect.
      *
-     * @param key XConnect store key
-     * @param ports ports in the XConnect
-     * @param nextId next objective id
+     * @param key        XConnect store key
+     * @param ports      ports in the XConnect
+     * @param nextId     next objective id
      * @param nextFuture completable future for this next objective operation
      */
     private void revokeNext(XconnectKey key, Set<PortNumber> ports, int nextId,
@@ -444,8 +608,8 @@ public class XconnectManager implements XconnectService {
     /**
      * Revokes bridging forwarding objectives for given XConnect.
      *
-     * @param key XConnect store key
-     * @param nextId next objective id
+     * @param key       XConnect store key
+     * @param nextId    next objective id
      * @param fwdFuture completable future for this forwarding objective operation
      */
     private void revokeFwd(XconnectKey key, int nextId, CompletableFuture<ObjectiveError> fwdFuture) {
@@ -487,9 +651,9 @@ public class XconnectManager implements XconnectService {
     /**
      * Updates XConnect groups and flows for given key.
      *
-     * @param key XConnect key
+     * @param key       XConnect key
      * @param prevPorts previous XConnect ports
-     * @param ports new XConnect ports
+     * @param ports     new XConnect ports
      */
     private void updateXConnect(XconnectKey key, Set<PortNumber> prevPorts,
                                 Set<PortNumber> ports) {
@@ -498,10 +662,12 @@ public class XconnectManager implements XconnectService {
 
         // remove old filter
         prevPorts.stream().filter(port -> !ports.contains(port)).forEach(port ->
-                revokeFilter(key, ImmutableSet.of(port)));
+                                                                                 revokeFilter(key,
+                                                                                              ImmutableSet.of(port)));
         // install new filter
         ports.stream().filter(port -> !prevPorts.contains(port)).forEach(port ->
-                populateFilter(key, ImmutableSet.of(port)));
+                                                                                 populateFilter(key,
+                                                                                                ImmutableSet.of(port)));
 
         CompletableFuture<ObjectiveError> fwdFuture = new CompletableFuture<>();
         CompletableFuture<ObjectiveError> nextFuture = new CompletableFuture<>();
@@ -531,8 +697,8 @@ public class XconnectManager implements XconnectService {
     /**
      * Creates a next objective builder for XConnect with given nextId.
      *
-     * @param key XConnect key
-     * @param ports set of XConnect ports
+     * @param key    XConnect key
+     * @param ports  set of XConnect ports
      * @param nextId next objective id
      * @return next objective builder
      */
@@ -554,7 +720,7 @@ public class XconnectManager implements XconnectService {
     /**
      * Creates a next objective builder for XConnect.
      *
-     * @param key XConnect key
+     * @param key   XConnect key
      * @param ports set of XConnect ports
      * @return next objective builder
      */
@@ -567,7 +733,7 @@ public class XconnectManager implements XconnectService {
     /**
      * Creates a bridging forwarding objective builder for XConnect.
      *
-     * @param key XConnect key
+     * @param key    XConnect key
      * @param nextId next ID of the broadcast group for this XConnect key
      * @return forwarding objective builder
      */
@@ -615,7 +781,7 @@ public class XconnectManager implements XconnectService {
     /**
      * Creates a filtering objective builder for XConnect.
      *
-     * @param key XConnect key
+     * @param key  XConnect key
      * @param port XConnect ports
      * @return next objective builder
      */
@@ -629,18 +795,320 @@ public class XconnectManager implements XconnectService {
     }
 
     /**
-     * Add pair port to the given set of port.
+     * Updates L2 flooding groups; add pair link into L2 flooding group of given xconnect vlan.
      *
-     * @param deviceId device Id
-     * @param ports ports specified in the xconnect config
-     * @return port specified in the xconnect config plus the pair port (if configured)
+     * @param deviceId Device ID
+     * @param port     Port details
+     * @param vlanId   VLAN ID
+     * @param install  Whether to add or revoke pair link addition to flooding group
      */
-    private Set<PortNumber> addPairPort(DeviceId deviceId, Set<PortNumber> ports) {
-        if (srService == null) {
-            return ports;
+    private void updateL2Flooding(DeviceId deviceId, final PortNumber port, VlanId vlanId, boolean install) {
+
+        // Ensure mastership on device
+        if (!mastershipService.isLocalMaster(deviceId)) {
+            return;
         }
-        Set<PortNumber> newPorts = Sets.newHashSet(ports);
-        srService.getPairLocalPort(deviceId).ifPresent(newPorts::add);
-        return newPorts;
+
+        // Locate L2 flooding group details for given xconnect vlan
+        int nextId = getNextId(deviceId, vlanId);
+        if (nextId == -1) {
+            log.debug("XConnect vlan {} broadcast group for device {} doesn't exists. " +
+                              "Aborting pair group linking.", vlanId, deviceId);
+            return;
+        }
+
+        // Add pairing-port group to flooding group
+        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
+        // treatment.popVlan();
+        treatment.setOutput(port);
+        ObjectiveContext context = new DefaultObjectiveContext(
+                (objective) ->
+                        log.debug("Pair port added/removed to vlan {} next objective {} on {}",
+                                  vlanId, nextId, deviceId),
+                (objective, error) ->
+                        log.warn("Failed adding/removing pair port to vlan {} next objective {} on {}." +
+                                         "Error : {}", vlanId, nextId, deviceId, error)
+        );
+        NextObjective.Builder vlanNextObjectiveBuilder = DefaultNextObjective.builder()
+                .withId(nextId)
+                .withType(NextObjective.Type.BROADCAST)
+                .fromApp(srService.appId())
+                .withMeta(DefaultTrafficSelector.builder().matchVlanId(vlanId).build())
+                .addTreatment(treatment.build());
+        if (install) {
+            flowObjectiveService.next(deviceId, vlanNextObjectiveBuilder.addToExisting(context));
+        } else {
+            flowObjectiveService.next(deviceId, vlanNextObjectiveBuilder.removeFromExisting(context));
+        }
+        log.debug("Submitted next objective {} for vlan: {} in device {}",
+                  nextId, vlanId, deviceId);
     }
+
+    /**
+     * Populate L2 multicast rule on given deviceId that matches given mac, given vlan and
+     * output to given port's L2 mulitcast group.
+     *
+     * @param deviceId    Device ID
+     * @param pairPort    Pair port number
+     * @param vlanId      VLAN ID
+     * @param accessPorts List of access ports to be added into L2 multicast group
+     */
+    private void populateL2Multicast(DeviceId deviceId, final PortNumber pairPort,
+                             VlanId vlanId, List<PortNumber> accessPorts) {
+
+        boolean multicastGroupExists = true;
+        int vlanMulticastNextId;
+
+        // Ensure enough rights to program pair device
+        if (!srService.shouldProgram(deviceId)) {
+            return;
+        }
+
+        // Step 1 : Populate single homed access ports into vlan's L2 multicast group
+        NextObjective.Builder vlanMulticastNextObjBuilder = DefaultNextObjective
+                .builder()
+                .withType(NextObjective.Type.BROADCAST)
+                .fromApp(srService.appId())
+            .withMeta(DefaultTrafficSelector.builder().matchVlanId(vlanId)
+                          .matchEthDst(MacAddress.IPV4_MULTICAST).build());
+        vlanMulticastNextId = getMulticastGroupNextObjectiveId(deviceId, vlanId);
+        if (vlanMulticastNextId == -1) {
+            // Vlan's L2 multicast group doesn't exist; create it, update store and add pair port as sub-group
+            multicastGroupExists = false;
+            vlanMulticastNextId = flowObjectiveService.allocateNextId();
+            addMulticastGroupNextObjectiveId(deviceId, vlanId, vlanMulticastNextId);
+            vlanMulticastNextObjBuilder.addTreatment(
+                    DefaultTrafficTreatment.builder().popVlan().setOutput(pairPort).build()
+            );
+        }
+        vlanMulticastNextObjBuilder.withId(vlanMulticastNextId);
+        final int nextId = vlanMulticastNextId;
+        accessPorts.forEach(p -> {
+            TrafficTreatment.Builder egressAction = DefaultTrafficTreatment.builder();
+            // Do vlan popup action based on interface configuration
+            if (interfaceService.getInterfacesByPort(new ConnectPoint(deviceId, p))
+                    .stream().noneMatch(i -> i.vlanTagged().contains(vlanId))) {
+                egressAction.popVlan();
+            }
+            egressAction.setOutput(p);
+            vlanMulticastNextObjBuilder.addTreatment(egressAction.build());
+            addMulticastGroupPort(deviceId, vlanId, p);
+        });
+        ObjectiveContext context = new DefaultObjectiveContext(
+                (objective) ->
+                        log.debug("L2 multicast group installed/updated. "
+                                          + "NextObject Id {} on {} for subnet {} ",
+                                  nextId, deviceId, vlanId),
+                (objective, error) ->
+                        log.warn("L2 multicast group failed to install/update. "
+                                         + " NextObject Id {} on {} for subnet {} : {}",
+                                 nextId, deviceId, vlanId, error)
+        );
+        if (!multicastGroupExists) {
+            flowObjectiveService.next(deviceId, vlanMulticastNextObjBuilder.add(context));
+
+            // Step 2 : Populate ACL rule; selector = vlan + pair-port, output = vlan L2 multicast group
+            TrafficSelector.Builder multicastSelector = DefaultTrafficSelector.builder();
+            multicastSelector.matchEthType(Ethernet.TYPE_VLAN);
+            multicastSelector.matchInPort(pairPort);
+            multicastSelector.matchVlanId(vlanId);
+            ForwardingObjective.Builder vlanMulticastForwardingObj = DefaultForwardingObjective.builder()
+                    .withFlag(ForwardingObjective.Flag.VERSATILE)
+                    .nextStep(vlanMulticastNextId)
+                    .withSelector(multicastSelector.build())
+                    .withPriority(100)
+                    .fromApp(srService.appId())
+                    .makePermanent();
+            context = new DefaultObjectiveContext(
+                    (objective) -> log.debug("L2 multicasting versatile rule for device {}, port/vlan {}/{} populated",
+                                             deviceId,
+                                             pairPort,
+                                             vlanId),
+                    (objective, error) -> log.warn("Failed to populate L2 multicasting versatile rule for device {}, " +
+                                                           "ports/vlan {}/{}: {}", deviceId, pairPort, vlanId, error));
+            flowObjectiveService.forward(deviceId, vlanMulticastForwardingObj.add(context));
+        } else {
+            // L2_MULTICAST & BROADCAST are similar structure in subgroups; so going with BROADCAST type.
+            vlanMulticastNextObjBuilder.withType(NextObjective.Type.BROADCAST);
+            flowObjectiveService.next(deviceId, vlanMulticastNextObjBuilder.addToExisting(context));
+        }
+    }
+
+    /**
+     * Removes access ports from VLAN L2 multicast group on given deviceId.
+     *
+     * @param deviceId    Device ID
+     * @param pairPort    Pair port number
+     * @param vlanId      VLAN ID
+     * @param accessPorts List of access ports to be added into L2 multicast group
+     */
+    private void revokeL2Multicast(DeviceId deviceId, final PortNumber pairPort,
+                           VlanId vlanId, List<PortNumber> accessPorts) {
+
+        // Ensure enough rights to program pair device
+        if (!srService.shouldProgram(deviceId)) {
+            return;
+        }
+
+        int vlanMulticastNextId = getMulticastGroupNextObjectiveId(deviceId, vlanId);
+        if (vlanMulticastNextId == -1) {
+            return;
+        }
+        NextObjective.Builder vlanMulticastNextObjBuilder = DefaultNextObjective
+                .builder()
+                .withType(NextObjective.Type.BROADCAST)
+                .fromApp(srService.appId())
+                .withMeta(DefaultTrafficSelector.builder().matchVlanId(vlanId).build())
+                .withId(vlanMulticastNextId);
+        accessPorts.forEach(p -> {
+            TrafficTreatment.Builder egressAction = DefaultTrafficTreatment.builder();
+            // Do vlan popup action based on interface configuration
+            if (interfaceService.getInterfacesByPort(new ConnectPoint(deviceId, p))
+                    .stream().noneMatch(i -> i.vlanTagged().contains(vlanId))) {
+                egressAction.popVlan();
+            }
+            egressAction.setOutput(p);
+            vlanMulticastNextObjBuilder.addTreatment(egressAction.build());
+            removeMulticastGroupPort(deviceId, vlanId, p);
+        });
+        ObjectiveContext context = new DefaultObjectiveContext(
+                (objective) ->
+                        log.debug("L2 multicast group installed/updated. "
+                                          + "NextObject Id {} on {} for subnet {} ",
+                                  vlanMulticastNextId, deviceId, vlanId),
+                (objective, error) ->
+                        log.warn("L2 multicast group failed to install/update. "
+                                         + " NextObject Id {} on {} for subnet {} : {}",
+                                 vlanMulticastNextId, deviceId, vlanId, error)
+        );
+        flowObjectiveService.next(deviceId, vlanMulticastNextObjBuilder.removeFromExisting(context));
+    }
+
+    /**
+     * Cleans up VLAN L2 multicast group on given deviceId. ACL rules for the group will also be deleted.
+     * Normally multicast group is not removed if it contains access ports; which can be forced
+     * by "force" flag
+     *
+     * @param deviceId Device ID
+     * @param pairPort Pair port number
+     * @param vlanId   VLAN ID
+     * @param force    Forceful removal
+     */
+    private void cleanupL2MulticastRule(DeviceId deviceId, PortNumber pairPort, VlanId vlanId, boolean force) {
+
+        // Ensure enough rights to program pair device
+        if (!srService.shouldProgram(deviceId)) {
+            return;
+        }
+
+        // Ensure L2 multicast group doesn't contain access ports
+        if (hasAccessPortInMulticastGroup(deviceId, vlanId, pairPort) && !force) {
+            return;
+        }
+
+        // Load L2 multicast group details
+        int vlanMulticastNextId = getMulticastGroupNextObjectiveId(deviceId, vlanId);
+        if (vlanMulticastNextId == -1) {
+            return;
+        }
+
+        // Step 1 : Clear ACL rule; selector = vlan + pair-port, output = vlan L2 multicast group
+        TrafficSelector.Builder l2MulticastSelector = DefaultTrafficSelector.builder();
+        l2MulticastSelector.matchEthType(Ethernet.TYPE_VLAN);
+        l2MulticastSelector.matchInPort(pairPort);
+        l2MulticastSelector.matchVlanId(vlanId);
+        ForwardingObjective.Builder vlanMulticastForwardingObj = DefaultForwardingObjective.builder()
+                .withFlag(ForwardingObjective.Flag.VERSATILE)
+                .nextStep(vlanMulticastNextId)
+                .withSelector(l2MulticastSelector.build())
+                .withPriority(100)
+                .fromApp(srService.appId())
+                .makePermanent();
+        ObjectiveContext context = new DefaultObjectiveContext(
+                (objective) -> log.debug("L2 multicasting rule for device {}, port/vlan {}/{} deleted", deviceId,
+                                         pairPort, vlanId),
+                (objective, error) -> log.warn("Failed to delete L2 multicasting rule for device {}, " +
+                                                       "ports/vlan {}/{}: {}", deviceId, pairPort, vlanId, error));
+        flowObjectiveService.forward(deviceId, vlanMulticastForwardingObj.remove(context));
+
+        // Step 2 : Clear L2 multicast group associated with vlan
+        NextObjective.Builder l2MulticastGroupBuilder = DefaultNextObjective
+                .builder()
+                .withId(vlanMulticastNextId)
+                .withType(NextObjective.Type.BROADCAST)
+                .fromApp(srService.appId())
+            .withMeta(DefaultTrafficSelector.builder()
+                          .matchVlanId(vlanId)
+                          .matchEthDst(MacAddress.IPV4_MULTICAST).build())
+                .addTreatment(DefaultTrafficTreatment.builder().popVlan().setOutput(pairPort).build());
+        context = new DefaultObjectiveContext(
+                (objective) ->
+                        log.debug("L2 multicast group with NextObject Id {} deleted on {} for subnet {} ",
+                                  vlanMulticastNextId, deviceId, vlanId),
+                (objective, error) ->
+                        log.warn("L2 multicast group with NextObject Id {} failed to delete on {} for subnet {} : {}",
+                                 vlanMulticastNextId, deviceId, vlanId, error)
+        );
+        flowObjectiveService.next(deviceId, l2MulticastGroupBuilder.remove(context));
+
+        // Finally clear store.
+        removeMulticastGroup(deviceId, vlanId);
+    }
+
+    private boolean isMulticastGroupExists(DeviceId deviceId, VlanId vlanId) {
+        return xconnectMulticastNextStore.asJavaMap().entrySet().stream()
+                .anyMatch(e -> e.getKey().deviceId().equals(deviceId) &&
+                        e.getKey().vlanId().equals(vlanId));
+    }
+
+    private int getMulticastGroupNextObjectiveId(DeviceId deviceId, VlanId vlanId) {
+        Optional<Integer> nextId
+                = xconnectMulticastNextStore.asJavaMap().entrySet().stream()
+                .filter(e -> e.getKey().deviceId().equals(deviceId) &&
+                        e.getKey().vlanId().equals(vlanId))
+                .findFirst()
+                .map(Map.Entry::getValue);
+        return nextId.orElse(-1);
+    }
+
+    private void addMulticastGroupNextObjectiveId(DeviceId deviceId, VlanId vlanId, int nextId) {
+        if (nextId == -1) {
+            return;
+        }
+        VlanNextObjectiveStoreKey key = new VlanNextObjectiveStoreKey(deviceId, vlanId);
+        xconnectMulticastNextStore.put(key, nextId);
+
+        // Update port store with empty entry.
+        xconnectMulticastPortsStore.put(key, new ArrayList<PortNumber>());
+    }
+
+    private void addMulticastGroupPort(DeviceId deviceId, VlanId vlanId, PortNumber port) {
+        VlanNextObjectiveStoreKey key = new VlanNextObjectiveStoreKey(deviceId, vlanId);
+        List<PortNumber> ports = xconnectMulticastPortsStore.get(key).value();
+        ports.add(port);
+        xconnectMulticastPortsStore.put(key, ports);
+    }
+
+    private void removeMulticastGroupPort(DeviceId deviceId, VlanId vlanId, PortNumber port) {
+        VlanNextObjectiveStoreKey key = new VlanNextObjectiveStoreKey(deviceId, vlanId);
+        List<PortNumber> ports = xconnectMulticastPortsStore.get(key).value();
+        ports.remove(port);
+        xconnectMulticastPortsStore.put(key, ports);
+    }
+
+    private void removeMulticastGroup(DeviceId deviceId, VlanId vlanId) {
+        VlanNextObjectiveStoreKey key = new VlanNextObjectiveStoreKey(deviceId, vlanId);
+        xconnectMulticastPortsStore.remove(key);
+        xconnectMulticastNextStore.remove(key);
+    }
+
+    private boolean hasAccessPortInMulticastGroup(DeviceId deviceId, VlanId vlanId, PortNumber pairPort) {
+        VlanNextObjectiveStoreKey key = new VlanNextObjectiveStoreKey(deviceId, vlanId);
+        if (!xconnectMulticastPortsStore.containsKey(key)) {
+            return false;
+        }
+        List<PortNumber> ports = xconnectMulticastPortsStore.get(key).value();
+        return ports.stream().anyMatch(p -> !p.equals(pairPort));
+    }
+
 }

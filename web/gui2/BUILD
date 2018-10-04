@@ -119,6 +119,7 @@ genrule(
         "//web/gui2-fw-lib:onos-gui2-fw-npm-install",
         "//web/gui2-fw-lib:onos-gui2-fw-ng-build",
         "//web/gui2-fw-lib:gui2_fw_lib_ext_css",
+        "//apps/faultmanagement/fm-gui2-lib:fm-gui2-lib-build",
         ":_root_level_files",
         ":_web_app_all",
     ],
@@ -137,6 +138,11 @@ genrule(
           " jar xf $$ROOT/$${INSTALL_FILES[0]} &&" +
           " tar xf $$ROOT/$${FWLIB_FILES[0]} &&" +
           " mv package/ node_modules/gui2-fw-lib/ &&" +
+          # Add in modules from external packages
+          " FM_GUI2_LIB_FILES=($(locations //apps/faultmanagement/fm-gui2-lib:fm-gui2-lib-build)) &&" +  # An array of filenames - sorted by time created
+          " tar xf $$ROOT/$${FM_GUI2_LIB_FILES[0]} &&" +
+          " mv package/ node_modules/fm-gui2-lib/ &&" +
+          # End of add in modules from external packages
           " mkdir -p src/main/webapp/app/fw &&" +
           " (cd src/main/webapp/app/fw &&" +
           "  jar xf $$ROOT/$(location //web/gui2-fw-lib:gui2_fw_lib_ext_css)) &&" +
@@ -147,7 +153,14 @@ genrule(
           " ng -v >> ../../$(location onos-gui2-ng-build-prod.log) &&" +
           # Build it in production mode - optimization is turned off because of Angular CLI 6.0.x bug https://github.com/angular/angular-cli/issues/7799
           " ng build --extract-css --prod --optimization=false --preserve-symlinks" +
-          "   --base-href /onos/ui2/ --deploy-url /onos/ui2/ >> $$ROOT/$(location onos-gui2-ng-build-prod.log) 2>&1 &&" +
+          "   --base-href /onos/ui2/ --deploy-url /onos/ui2/ >> $$ROOT/$(location onos-gui2-ng-build-prod.log) 2>&1 ||" +
+          " if [ $$? -eq 0 ]; then echo 'Successfully ran build';" +
+          " else " +
+          "   echo 'Error running \'ng build\' on \'//web/gui2:_onos-gui2-ng-build\'. \\\n" +
+          "     See bazel-genfiles/web/gui2/onos-gui2-ng-build-prod.log for more details' >&2;" +
+          #"   tail -n 100 ../../$(location onos-gui2-ng-test.log) >&2;" +
+          "   exit 1;" +
+          " fi;" +
           " cd src/main/webapp/dist && jar Mcf $$ROOT/$(location onos-gui2-ng-build.jar) .",
     message = "Angular CLI 6 build",
 )
@@ -241,6 +254,7 @@ genrule(
             "src/main/webapp/node_modules/**",
             "src/main/webapp/dist/**",
             "src/main/webapp/doc/**",
+            "src/main/webapp/app/fw/**",
         ],
     ),
     outs = ["web_app_all.jar"],
@@ -292,10 +306,12 @@ genrule(
 
 osgi_jar_with_tests(
     name = "_onos-gui2-base-jar",
-    srcs = [
-        "src/main/java/org/onosproject/ui/impl/gui2/LogoutResource.java",
-        "//web/gui:onos-gui-java-for-gui2",
-    ],
+    srcs =
+        glob([
+            "src/main/java/**",
+        ]) + [
+            "//web/gui:onos-gui-java-for-gui2",
+        ],
     suppress_checkstyle = True,
     test_deps = TEST_DEPS,
     web_context = "/onos/ui2",

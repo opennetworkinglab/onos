@@ -18,7 +18,6 @@ package org.onosproject.drivers.server.devices.nic;
 
 import org.onosproject.net.flow.FlowRule;
 
-import org.onlab.packet.Ip4Address;
 import org.onlab.packet.MacAddress;
 
 /**
@@ -81,21 +80,21 @@ public class DefaultDpdkNicFlowRule extends DefaultNicFlowRule {
             }
 
             if (this.ipv4SrcAddress() != null) {
-                rule += "src is " + this.ipv4SrcAddress().toString() + " ";
-            }
-
-            if (this.ipv4SrcMask() != null) {
-                rule += "src spec " + this.ipv4SrcMask().address().getIp4Address().toString() + " ";
-                rule += "src mask " + Ip4Address.makeMaskPrefix(this.ipv4SrcMask().prefixLength()).toString() + " ";
+                if ((this.ipv4SrcMask() != null) && (this.ipv4SrcMask().prefixLength() < 32)) {
+                    rule += "src spec " + this.ipv4SrcAddress().toString() + " ";
+                    rule += "src prefix " + this.ipv4SrcMask().prefixLength() + " ";
+                } else {
+                    rule += "src is " + this.ipv4SrcAddress().toString() + " ";
+                }
             }
 
             if (this.ipv4DstAddress() != null) {
-                rule += "dst is " + this.ipv4DstAddress().toString() + " ";
-            }
-
-            if (this.ipv4DstMask() != null) {
-                rule += "dst spec " + this.ipv4DstMask().address().getIp4Address().toString() + " ";
-                rule += "dst mask " + Ip4Address.makeMaskPrefix(this.ipv4DstMask().prefixLength()).toString() + " ";
+                if ((this.ipv4DstMask() != null) && (this.ipv4DstMask().prefixLength() < 32)) {
+                    rule += "dst spec " + this.ipv4DstAddress().toString() + " ";
+                    rule += "dst prefix " + this.ipv4DstMask().prefixLength() + " ";
+                } else {
+                    rule += "dst is " + this.ipv4DstAddress().toString() + " ";
+                }
             }
 
             rule += "/ ";

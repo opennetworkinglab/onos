@@ -53,7 +53,7 @@ export class TableResizeDirective implements AfterContentChecked {
         this.adjustTable(tables, wsz.width, wsz.height);
     }
 
-    @HostListener('window:resize', ['event'])
+    @HostListener('window:resize', ['$event.target'])
     onResize(event: any) {
         this.windowSize(this.tables);
         return {
