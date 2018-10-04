@@ -40,7 +40,7 @@ public class VersionManager implements VersionService {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private static final File VERSION_FILE = new File("../VERSION");
-    private static Version version = Version.version("1.12.2-rc1");
+    private static Version version = Version.version("1.12.2-SNAPSHOT");
 
     @Activate
     protected void activate() {
