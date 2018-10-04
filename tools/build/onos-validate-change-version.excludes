@@ -15,6 +15,7 @@
 \./apps/tenbi
 \./apps/vrouter/pom.xml
 \./apps/yms
+\./apps/t3
 \./buck-out/
 \./buck-tools/onos_stage.py
 \./bucklets/maven_jar\.bucklet
