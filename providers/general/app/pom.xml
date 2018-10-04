@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.onosproject</groupId>
         <artifactId>onos-general-providers</artifactId>
-        <version>1.12.2-SNAPSHOT</version>
+        <version>1.12.2-rc1</version>
     </parent>
 
     <artifactId>onos-general-provider-app</artifactId>
