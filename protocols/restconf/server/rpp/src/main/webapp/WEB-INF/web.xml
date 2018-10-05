@@ -20,6 +20,27 @@
          id="ONOS" version="2.5">
     <display-name>ONOS RESTCONF Protocol Proxy</display-name>
 
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>Secured</web-resource-name>
+            <url-pattern>/*</url-pattern>
+        </web-resource-collection>
+        <auth-constraint>
+            <role-name>admin</role-name>
+            <role-name>viewer</role-name>
+        </auth-constraint>
+    </security-constraint>
+
+    <security-role>
+        <role-name>admin</role-name>
+        <role-name>viewer</role-name>
+    </security-role>
+
+    <login-config>
+        <auth-method>BASIC</auth-method>
+        <realm-name>karaf</realm-name>
+    </login-config>
+
     <servlet>
         <servlet-name>RESTCONF Protocol Proxy</servlet-name>
         <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
