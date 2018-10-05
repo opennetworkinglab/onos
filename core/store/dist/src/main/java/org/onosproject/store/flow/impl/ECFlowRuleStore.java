@@ -822,9 +822,18 @@ public class ECFlowRuleStore
          * @param deviceId the device for which to purge flow rules
          */
         public void purgeFlowRule(DeviceId deviceId) {
-            DeviceFlowTable flowTable = flowTables.remove(deviceId);
-            if (flowTable != null) {
-                flowTable.close();
+            // If the device is still present in the store, purge the underlying DeviceFlowTable.
+            // Otherwise, remove the DeviceFlowTable and unregister message handlers.
+            if (deviceService.getDevice(deviceId) != null) {
+                DeviceFlowTable flowTable = flowTables.get(deviceId);
+                if (flowTable != null) {
+                    flowTable.purge();
+                }
+            } else {
+                DeviceFlowTable flowTable = flowTables.remove(deviceId);
+                if (flowTable != null) {
+                    flowTable.close();
+                }
             }
         }
 
