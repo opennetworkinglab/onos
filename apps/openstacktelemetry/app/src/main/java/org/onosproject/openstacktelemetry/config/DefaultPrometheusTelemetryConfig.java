@@ -124,7 +124,6 @@ public final class DefaultPrometheusTelemetryConfig implements PrometheusTelemet
         @Override
         public PrometheusTelemetryConfig build() {
             checkNotNull(address, "Prometheus exporter binding address cannot be null");
-            checkNotNull(configMap, "Config map cannot be null");
             return new DefaultPrometheusTelemetryConfig(address, port, configMap);
         }
     }
