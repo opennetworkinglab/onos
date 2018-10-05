@@ -264,6 +264,13 @@ public class FlowBucket {
     }
 
     /**
+     * Purges the bucket.
+     */
+    public void purge() {
+        flowBucket.clear();
+    }
+
+    /**
      * Clears the bucket.
      */
     public void clear() {
