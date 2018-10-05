@@ -22,10 +22,12 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.cli.net.ConnectPointCompleter;
 import org.onosproject.mcast.cli.McastGroupCompleter;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.segmentrouting.SegmentRoutingService;
@@ -56,12 +58,14 @@ public class McastTreeListCommand extends AbstractShellCommand {
             description = "IP Address of the multicast group",
             valueToShowInHelp = "224.0.0.0",
             required = false, multiValued = false)
+    @Completion(McastGroupCompleter.class)
     String gAddr = null;
 
     @Option(name = "-src", aliases = "--connectPoint",
             description = "Source port of:XXXXXXXXXX/XX",
             valueToShowInHelp = "of:0000000000000001/1",
             required = false, multiValued = false)
+    @Completion(ConnectPointCompleter.class)
     String source = null;
 
     @Override

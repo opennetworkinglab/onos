@@ -18,6 +18,7 @@ package org.onosproject.segmentrouting.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.segmentrouting.SegmentRoutingManager;
@@ -38,6 +39,7 @@ public class PseudowireRemoveCommand extends AbstractShellCommand {
     @Argument(index = 0, name = "pwId",
             description = "pseudowire ID",
             required = true, multiValued = false)
+    @Completion(PseudowireIdCompleter.class)
     String pwId;
 
     @Override

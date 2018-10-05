@@ -14,6 +14,7 @@ TEST_DEPS = TEST_ADAPTERS + [
 ]
 
 osgi_jar_with_tests(
+    karaf_command_packages = ["org.onosproject.segmentrouting.cli"],
     test_deps = TEST_DEPS,
     deps = COMPILE_DEPS,
 )

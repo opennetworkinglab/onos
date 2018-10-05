@@ -18,6 +18,7 @@ package org.onosproject.segmentrouting.cli;
 
 import com.google.common.collect.Maps;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.packet.IpAddress;
@@ -53,6 +54,7 @@ public class McastNextListCommand extends AbstractShellCommand {
             description = "IP Address of the multicast group",
             valueToShowInHelp = "224.0.0.0",
             required = false, multiValued = false)
+    @Completion(McastGroupCompleter.class)
     String gAddr = null;
 
     @Override
