@@ -12,9 +12,9 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
-KARAF = "@apache_karaf//file"
+KARAF = "@apache_karaf//:apache_karaf"
 
-PATCHES = "@apache_karaf_patches//file"
+PATCHES = "@apache_karaf_patches//:apache_karaf_patches"
 
 BRANDING = "//tools/package/branding:onos-tools-package-branding"
 
