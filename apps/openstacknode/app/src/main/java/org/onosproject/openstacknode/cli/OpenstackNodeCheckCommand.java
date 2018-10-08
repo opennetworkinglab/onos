@@ -23,12 +23,17 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.Device;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.openstacknode.api.NodeState;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
+import org.openstack4j.api.OSClient;
 
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 import static org.onosproject.openstacknode.api.Constants.DEFAULT_TUNNEL;
 import static org.onosproject.openstacknode.api.Constants.INTEGRATION_BRIDGE;
+import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.CONTROLLER;
+import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
+import static org.onosproject.openstacknode.util.OpenstackNodeUtil.getConnectedClient;
 
 /**
  * Checks detailed node init state.
@@ -42,7 +47,7 @@ public class OpenstackNodeCheckCommand extends AbstractShellCommand {
     private String hostname = null;
 
     private static final String MSG_OK = "OK";
-    private static final String MSG_NO = "NO";
+    private static final String MSG_ERROR = "ERROR";
 
     @Override
     protected void execute() {
@@ -55,29 +60,49 @@ public class OpenstackNodeCheckCommand extends AbstractShellCommand {
             return;
         }
 
-        print("[Integration Bridge Status]");
-        Device device = deviceService.getDevice(osNode.intgBridge());
-        if (device != null) {
-            print("%s %s=%s available=%s %s",
-                    deviceService.isAvailable(device.id()) ? MSG_OK : MSG_NO,
-                    INTEGRATION_BRIDGE,
-                    device.id(),
-                    deviceService.isAvailable(device.id()),
-                    device.annotations());
-            if (osNode.dataIp() != null) {
-                printPortState(deviceService, osNode.intgBridge(), DEFAULT_TUNNEL);
+        if (osNode.type() == CONTROLLER) {
+            print("[Openstack Controller Status]");
+
+            OSClient client = getConnectedClient(osNode);
+            if (client == null) {
+                error("The given keystone info is incorrect to get authorized to openstack");
+                print("keystoneConfig=%s", osNode.keystoneConfig());
             }
-            if (osNode.vlanIntf() != null) {
-                printPortState(deviceService, osNode.intgBridge(), osNode.vlanIntf());
-            }
-            if (osNode.type() == OpenstackNode.NodeType.GATEWAY) {
-                printPortState(deviceService, osNode.intgBridge(), osNode.uplinkPort());
+
+            if (osNode.keystoneConfig() != null) {
+                print("%s keystoneConfig=%s, neutronConfig=%s",
+                        osNode.state() == NodeState.COMPLETE && client != null ?
+                                MSG_OK : MSG_ERROR,
+                        osNode.keystoneConfig(),
+                        osNode.neutronConfig());
+            } else {
+                print("%s keystoneConfig is missing", MSG_ERROR);
             }
         } else {
-            print("%s %s=%s is not available",
-                    MSG_NO,
-                    INTEGRATION_BRIDGE,
-                    osNode.intgBridge());
+            print("[Integration Bridge Status]");
+            Device device = deviceService.getDevice(osNode.intgBridge());
+            if (device != null) {
+                print("%s %s=%s available=%s %s",
+                        deviceService.isAvailable(device.id()) ? MSG_OK : MSG_ERROR,
+                        INTEGRATION_BRIDGE,
+                        device.id(),
+                        deviceService.isAvailable(device.id()),
+                        device.annotations());
+                if (osNode.dataIp() != null) {
+                    printPortState(deviceService, osNode.intgBridge(), DEFAULT_TUNNEL);
+                }
+                if (osNode.vlanIntf() != null) {
+                    printPortState(deviceService, osNode.intgBridge(), osNode.vlanIntf());
+                }
+                if (osNode.type() == GATEWAY) {
+                    printPortState(deviceService, osNode.intgBridge(), osNode.uplinkPort());
+                }
+            } else {
+                print("%s %s=%s is not available",
+                        MSG_ERROR,
+                        INTEGRATION_BRIDGE,
+                        osNode.intgBridge());
+            }
         }
     }
 
@@ -89,13 +114,13 @@ public class OpenstackNodeCheckCommand extends AbstractShellCommand {
 
         if (port != null) {
             print("%s %s portNum=%s enabled=%s %s",
-                    port.isEnabled() ? MSG_OK : MSG_NO,
+                    port.isEnabled() ? MSG_OK : MSG_ERROR,
                     portName,
                     port.number(),
                     port.isEnabled() ? Boolean.TRUE : Boolean.FALSE,
                     port.annotations());
         } else {
-            print("%s %s does not exist", MSG_NO, portName);
+            print("%s %s does not exist", MSG_ERROR, portName);
         }
     }
 }
