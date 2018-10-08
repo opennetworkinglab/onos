@@ -334,6 +334,7 @@ public class DefaultOpenstackNode implements OpenstackNode {
                 .dpdkConfig(dpdkConfig)
                 .keystoneConfig(keystoneConfig)
                 .neutronConfig(neutronConfig)
+                .controllers(controllers)
                 .build();
     }
 
