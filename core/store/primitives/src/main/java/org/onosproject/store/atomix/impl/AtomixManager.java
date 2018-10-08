@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 /**
  * Atomix manager.
  */
-@Component(immediate = true, service = AtomixManager.class)
+@Component(immediate = true, enabled = false, service = AtomixManager.class)
 public class AtomixManager {
     private static final String LOCAL_DATA_DIR = System.getProperty("karaf.data") + "/db/partitions/";
     private final Logger log = LoggerFactory.getLogger(getClass());
