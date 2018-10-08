@@ -19,7 +19,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.openstacknode.api.OpenstackPhyInterface;
-import org.onosproject.openstacknode.impl.DefaultOpenstackPhyInterface;
+import org.onosproject.openstacknode.api.DefaultOpenstackPhyInterface;
 import org.slf4j.Logger;
 
 import static com.google.common.base.Preconditions.checkNotNull;

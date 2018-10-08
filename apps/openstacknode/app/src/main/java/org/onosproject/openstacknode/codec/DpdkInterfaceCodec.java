@@ -21,7 +21,7 @@ import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.openstacknode.api.DpdkInterface;
 import org.onosproject.openstacknode.api.DpdkInterface.Type;
-import org.onosproject.openstacknode.impl.DefaultDpdkInterface;
+import org.onosproject.openstacknode.api.DefaultDpdkInterface;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.util.Tools.nullIsIllegal;
