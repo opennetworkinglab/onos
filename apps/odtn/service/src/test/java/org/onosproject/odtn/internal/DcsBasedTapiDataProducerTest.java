@@ -31,13 +31,15 @@ import org.onosproject.odtn.utils.tapi.TapiNepRef;
 import org.onosproject.odtn.utils.tapi.TapiNodeHandler;
 import org.onosproject.odtn.utils.tapi.TapiNodeRef;
 import org.onosproject.odtn.utils.tapi.TapiSipHandler;
+import org.onosproject.odtn.utils.tapi.TapiTopologyContextHandler;
 import org.onosproject.odtn.utils.tapi.TapiTopologyHandler;
-import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.DefaultContext;
-import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.tapicontext.DefaultServiceInterfacePoint;
-import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.context.DefaultAugmentedTapiCommonContext;
-import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.node.DefaultOwnedNodeEdgePoint;
-import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.topology.DefaultNode;
-import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.topologycontext.DefaultTopology;
+import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.DefaultContext;
+import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.tapicontext.DefaultServiceInterfacePoint;
+import org.onosproject.yang.gen.v1.tapitopology.rev20181016.tapitopology.context.DefaultAugmentedTapiCommonContext;
+import org.onosproject.yang.gen.v1.tapitopology.rev20181016.tapitopology.context.augmentedtapicommoncontext.DefaultTopologyContext;
+import org.onosproject.yang.gen.v1.tapitopology.rev20181016.tapitopology.node.DefaultOwnedNodeEdgePoint;
+import org.onosproject.yang.gen.v1.tapitopology.rev20181016.tapitopology.topology.DefaultNode;
+import org.onosproject.yang.gen.v1.tapitopology.rev20181016.tapitopology.topologycontext.DefaultTopology;
 import org.onosproject.yang.model.Augmentable;
 
 import static org.easymock.EasyMock.expectLastCall;
@@ -73,10 +75,14 @@ public class DcsBasedTapiDataProducerTest {
         context = new DefaultContext();
 
         topology = TapiTopologyHandler.create().getModelObject();
-        DefaultAugmentedTapiCommonContext topologyContext = new DefaultAugmentedTapiCommonContext();
-        topologyContext.addToTopology(topology);
+        DefaultTopologyContext topologyContext = TapiTopologyContextHandler.create().getModelObject();
+
+        DefaultAugmentedTapiCommonContext augmentedTopologyContext = new DefaultAugmentedTapiCommonContext();
         Augmentable augmentableContext = context;
-        augmentableContext.addAugmentation(topologyContext);
+        augmentableContext.addAugmentation(augmentedTopologyContext);
+
+        augmentedTopologyContext.topologyContext(topologyContext);
+        topologyContext.addToTopology(topology);
 
         node1 = TapiNodeHandler.create()
                 .setTopologyUuid(topology.uuid())

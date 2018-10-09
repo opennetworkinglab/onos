@@ -1,0 +1,214 @@
+module tapi-dsr {
+    namespace "urn:onf:otcc:yang:tapi-dsr";
+    prefix tapi-dsr;
+    import tapi-common {
+        prefix tapi-common;
+    }
+    organization "ONF OTCC (Open Transport Configuration & Control) Project";
+    contact "
+         Project Web: <https://wiki.opennetworking.org/display/OTCC/TAPI>
+         Project List: <mailto:transport-api@opennetworking.org>
+         Editor: Karthik Sethuraman
+                 <mailto:karthik.sethuraman@necam.com>";
+    description "none";
+    revision 2018-10-16 {
+        description "ONF Transport API version 2.1.0.
+          - The TAPI YANG models included in this TAPI release (v2.1.0) are a *normative* part of the TAPI SDK.
+          - The YANG specifications have been generated from the corresponding UML model using the [ONF EAGLE UML2YANG mapping tool]
+            <https://github.com/OpenNetworkingFoundation/EagleUmlYang>
+            and further edited manually to comply with the [ONF IISOMI UML2YANG mapping guidelines]
+            <https://wiki.opennetworking.org/display/OIMT/UML+-+YANG+Guidelines>
+          - Status of YANG model artifacts can be determined by referring to the corresponding UML artifacts.
+            As described in the UML models, some artifacts are considered *experimental*, and thus the corresponding YANG artifacts.
+          - The ONF TAPI release process does not guarantee backward compatibility of YANG models across major versions of TAPI releases.
+            The YANG model backward compatibility criteria are outlined in section 11 of <https://tools.ietf.org/html/rfc7950>.
+            YANG models included in this release are not backward compatible with previous TAPI releases.
+          - Changes included in this TAPI release (v2.1.0) are listed in
+            <https://github.com/OpenNetworkingFoundation/TAPI/blob/develop/CHANGE_LOG/change-log.2.1.0.md>";
+        reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 7950, RFC 6087 and ONF TAPI UML model
+                  <https://github.com/OpenNetworkingFoundation/TAPI/tree/v2.1.0/UML>";
+    }
+    revision 2018-03-07 {
+        description "ONF Transport API version 2.0.2
+        This YANG module has been generated from the TAPI UML Model using the IISOMI-Eagle xmi2yang mapping tool.
+        Changes in this revision: <https://github.com/OpenNetworkingFoundation/TAPI/blob/develop/CHANGE_LOG/change-log.2.0.2.md>";
+        reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 6020, RFC 6087 and ONF TAPI UML model
+                  <https://github.com/OpenNetworkingFoundation/TAPI/tree/v2.0.2/UML>";
+    }
+    revision 2018-02-16 {
+        description "ONF Transport API version 2.0.1
+        This YANG module has been generated from the TAPI UML Model using the IISOMI-Eagle xmi2yang mapping tool.
+        Changes in this revision: <https://github.com/OpenNetworkingFoundation/TAPI/blob/develop/CHANGE_LOG/change-log.2.0.1.md>";
+        reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 6020, RFC 6087 and ONF TAPI UML model
+                  <https://github.com/OpenNetworkingFoundation/TAPI/tree/v2.0.1/UML>";
+    }
+    revision 2018-01-02 {
+        description "ONF Transport API version 2.0.0
+        This YANG module has been generated from the TAPI UML Model using the IISOMI-Eagle xmi2yang mapping tool.
+        Changes in this revision: <https://github.com/OpenNetworkingFoundation/TAPI/blob/develop/CHANGE_LOG/change-log.2.0.0.md>";
+        reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 6020, RFC 6087 and ONF TAPI UML model
+                  <https://github.com/OpenNetworkingFoundation/TAPI/tree/v2.0.0/UML>";
+    }
+    /***********************
+    * package type-definitions
+    **********************/ 
+        identity DIGITAL_SIGNAL_TYPE {
+        	base tapi-common:LAYER_PROTOCOL_QUALIFIER;
+            description "none";
+        }
+        identity DIGITAL_SIGNAL_TYPE_GigE {
+            base DIGITAL_SIGNAL_TYPE;
+            description "none";
+        }
+        identity DIGITAL_SIGNAL_TYPE_10_GigE_LAN {
+            base DIGITAL_SIGNAL_TYPE;
+            description "none";
+        }
+        identity DIGITAL_SIGNAL_TYPE_10_GigE_WAN {
+            base DIGITAL_SIGNAL_TYPE;
+            description "none";
+        }
+        identity DIGITAL_SIGNAL_TYPE_40_GigE {
+            base DIGITAL_SIGNAL_TYPE;
+            description "none";
+        }
+        identity DIGITAL_SIGNAL_TYPE_100_GigE {
+            base DIGITAL_SIGNAL_TYPE;
+            description "none";
+        }
+        identity DIGITAL_SIGNAL_TYPE_FC_100 {
+            base DIGITAL_SIGNAL_TYPE;
+            description "none";
+        }
+        identity DIGITAL_SIGNAL_TYPE_FC_200 {
+            base DIGITAL_SIGNAL_TYPE;
+            description "none";
+        }
+        identity DIGITAL_SIGNAL_TYPE_FC_400 {
+            base DIGITAL_SIGNAL_TYPE;
+            description "none";
+        }
+        identity DIGITAL_SIGNAL_TYPE_FC_800 {
+            base DIGITAL_SIGNAL_TYPE;
+            description "none";
+        }
+        identity DIGITAL_SIGNAL_TYPE_FC_1200 {
+            base DIGITAL_SIGNAL_TYPE;
+            description "none";
+        }
+        identity DIGITAL_SIGNAL_TYPE_FC_1600 {
+            base DIGITAL_SIGNAL_TYPE;
+            description "none";
+        }
+        identity DIGITAL_SIGNAL_TYPE_FC_3200 {
+            base DIGITAL_SIGNAL_TYPE;
+            description "none";
+        }
+        identity DIGITAL_SIGNAL_TYPE_STM_1 {
+            base DIGITAL_SIGNAL_TYPE;
+            description "none";
+        }
+        identity DIGITAL_SIGNAL_TYPE_STM_4 {
+            base DIGITAL_SIGNAL_TYPE;
+            description "none";
+        }
+        identity DIGITAL_SIGNAL_TYPE_STM_16 {
+            base DIGITAL_SIGNAL_TYPE;
+            description "none";
+        }
+        identity DIGITAL_SIGNAL_TYPE_STM_64 {
+            base DIGITAL_SIGNAL_TYPE;
+            description "none";
+        }
+        identity DIGITAL_SIGNAL_TYPE_STM_256 {
+            base DIGITAL_SIGNAL_TYPE;
+            description "none";
+        }
+        identity DIGITAL_SIGNAL_TYPE_OC_3 {
+            base DIGITAL_SIGNAL_TYPE;
+            description "none";
+        }
+        identity DIGITAL_SIGNAL_TYPE_OC_12 {
+            base DIGITAL_SIGNAL_TYPE;
+            description "none";
+        }
+        identity DIGITAL_SIGNAL_TYPE_OC_48 {
+            base DIGITAL_SIGNAL_TYPE;
+            description "none";
+        }
+        identity DIGITAL_SIGNAL_TYPE_OC_192 {
+            base DIGITAL_SIGNAL_TYPE;
+            description "none";
+        }
+        identity DIGITAL_SIGNAL_TYPE_OC_768 {
+            base DIGITAL_SIGNAL_TYPE;
+            description "none";
+        }
+        identity DIGITAL_SIGNAL_TYPE_OTU_1 {
+            base DIGITAL_SIGNAL_TYPE;
+            description "none";
+        }
+        identity DIGITAL_SIGNAL_TYPE_OTU_2 {
+            base DIGITAL_SIGNAL_TYPE;
+            description "none";
+        }
+        identity DIGITAL_SIGNAL_TYPE_OTU_2E {
+            base DIGITAL_SIGNAL_TYPE;
+            description "none";
+        }
+        identity DIGITAL_SIGNAL_TYPE_OTU_3 {
+            base DIGITAL_SIGNAL_TYPE;
+            description "none";
+        }
+        identity DIGITAL_SIGNAL_TYPE_OTU_4 {
+            base DIGITAL_SIGNAL_TYPE;
+            description "none";
+        }
+        identity DIGITAL_SIGNAL_TYPE_GPON {
+            base DIGITAL_SIGNAL_TYPE;
+            description "none";
+        }
+        identity DIGITAL_SIGNAL_TYPE_XGPON {
+            base DIGITAL_SIGNAL_TYPE;
+            description "none";
+        }
+        identity DIGITAL_SIGNAL_TYPE_IB_SDR {
+            base DIGITAL_SIGNAL_TYPE;
+            description "none";
+        }
+        identity DIGITAL_SIGNAL_TYPE_IB_DDR {
+            base DIGITAL_SIGNAL_TYPE;
+            description "none";
+        }
+        identity DIGITAL_SIGNAL_TYPE_IB_QDR {
+            base DIGITAL_SIGNAL_TYPE;
+            description "none";
+        }
+        identity DIGITAL_SIGNAL_TYPE_SBCON_ESCON {
+            base DIGITAL_SIGNAL_TYPE;
+            description "none";
+        }
+        identity DIGITAL_SIGNAL_TYPE_DVB_ASI {
+            base DIGITAL_SIGNAL_TYPE;
+            description "none";
+        }
+        identity DIGITAL_SIGNAL_TYPE_SDI {
+            base DIGITAL_SIGNAL_TYPE;
+            description "none";
+        }
+        identity DIGITAL_SIGNAL_TYPE_SDI_1G5 {
+            base DIGITAL_SIGNAL_TYPE;
+            description "none";
+        }
+        identity DIGITAL_SIGNAL_TYPE_SDI_3G {
+            base DIGITAL_SIGNAL_TYPE;
+            description "none";
+        }
+        typedef digital-signal-type {
+            type identityref {
+                base DIGITAL_SIGNAL_TYPE;
+            }
+            description "none";
+        }
+
+}

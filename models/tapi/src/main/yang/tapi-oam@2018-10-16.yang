@@ -1,0 +1,826 @@
+module tapi-oam {
+    namespace "urn:onf:otcc:yang:tapi-oam";
+    prefix tapi-oam;
+    import tapi-common {
+        prefix tapi-common;
+    }
+    import tapi-connectivity {
+        prefix tapi-connectivity;
+    }
+    import tapi-topology {
+        prefix tapi-topology;
+    }
+    organization "ONF OTCC (Open Transport Configuration & Control) Project";
+    contact "
+         Project Web: <https://wiki.opennetworking.org/display/OTCC/TAPI>
+         Project List: <mailto:transport-api@opennetworking.org>
+         Editor: Karthik Sethuraman
+                 <mailto:karthik.sethuraman@necam.com>";
+    description "
+        This module contains TAPI OAM Model definitions.
+        Source: TapiOam.uml
+        Copyright (c) 2018 Open Networking Foundation (ONF). All rights reserved.
+        License: This module is distributed under the Apache License 2.0";
+    revision 2018-10-16 {
+        description "ONF Transport API version 2.1.0.
+          - The TAPI YANG models included in this TAPI release (v2.1.0) are a *normative* part of the TAPI SDK.
+          - The YANG specifications have been generated from the corresponding UML model using the [ONF EAGLE UML2YANG mapping tool]
+            <https://github.com/OpenNetworkingFoundation/EagleUmlYang>
+            and further edited manually to comply with the [ONF IISOMI UML2YANG mapping guidelines]
+            <https://wiki.opennetworking.org/display/OIMT/UML+-+YANG+Guidelines>
+          - Status of YANG model artifacts can be determined by referring to the corresponding UML artifacts.
+            As described in the UML models, some artifacts are considered *experimental*, and thus the corresponding YANG artifacts.
+          - The ONF TAPI release process does not guarantee backward compatibility of YANG models across major versions of TAPI releases.
+            The YANG model backward compatibility criteria are outlined in section 11 of <https://tools.ietf.org/html/rfc7950>.
+            YANG models included in this release are not backward compatible with previous TAPI releases.
+          - Changes included in this TAPI release (v2.1.0) are listed in
+            <https://github.com/OpenNetworkingFoundation/TAPI/blob/develop/CHANGE_LOG/change-log.2.1.0.md>";
+        reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 7950, RFC 6087 and ONF TAPI UML model
+                  <https://github.com/OpenNetworkingFoundation/TAPI/tree/v2.1.0/UML>";
+    }
+    revision 2018-03-07 {
+        description "ONF Transport API version 2.0.2
+        This YANG module has been generated from the TAPI UML Model using the IISOMI-Eagle xmi2yang mapping tool.
+        Changes in this revision: <https://github.com/OpenNetworkingFoundation/TAPI/blob/develop/CHANGE_LOG/change-log.2.0.2.md>";
+        reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 6020, RFC 6087 and ONF TAPI UML model
+                  <https://github.com/OpenNetworkingFoundation/TAPI/tree/v2.0.2/UML>";
+    }
+    revision 2018-02-16 {
+        description "ONF Transport API version 2.0.1
+        This YANG module has been generated from the TAPI UML Model using the IISOMI-Eagle xmi2yang mapping tool.
+        Changes in this revision: <https://github.com/OpenNetworkingFoundation/TAPI/blob/develop/CHANGE_LOG/change-log.2.0.1.md>";
+        reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 6020, RFC 6087 and ONF TAPI UML model
+                  <https://github.com/OpenNetworkingFoundation/TAPI/tree/v2.0.1/UML>";
+    }
+    revision 2018-01-02 {
+        description "ONF Transport API version 2.0.0
+        This YANG module has been generated from the TAPI UML Model using the IISOMI-Eagle xmi2yang mapping tool.
+        Changes in this revision: <https://github.com/OpenNetworkingFoundation/TAPI/blob/develop/CHANGE_LOG/change-log.2.0.0.md>";
+        reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 6020, RFC 6087 and ONF TAPI UML model
+                  <https://github.com/OpenNetworkingFoundation/TAPI/tree/v2.0.0/UML>";
+    }
+    augment "/tapi-common:context" {
+        container oam-context {
+            uses oam-context;
+            description "Augments the base TAPI Context with OamService information";
+        }
+        description "Augments the base TAPI Context with OamService information";
+    }
+    augment "/tapi-common:context/tapi-topology:topology-context/tapi-topology:topology/tapi-topology:node/tapi-topology:owned-node-edge-point/tapi-connectivity:cep-list/tapi-connectivity:connection-end-point" {
+    	container mep-mip-list {
+            uses mep-mip-list;
+            description "none";
+        }
+        description "none";
+    }
+    
+    /*************************
+    * definitions of references
+    *************************/
+    grouping oam-service-ref {
+        leaf oam-service-uuid {
+            type leafref {
+                path '/tapi-common:context/tapi-oam:oam-context/tapi-oam:oam-service/tapi-oam:uuid';
+            }
+            description "none";
+        }
+        description "none";
+    }
+
+    grouping oam-service-end-point-ref {
+    	uses oam-service-ref;
+    	leaf oam-service-end-point-local-id {
+	    	type leafref {
+	            path '/tapi-common:context/tapi-oam:oam-context/tapi-oam:oam-service/tapi-oam:end-point/tapi-oam:local-id';
+	        }
+	    	description "none";
+    	}
+    	description "none";
+    }
+    
+    grouping meg-ref {
+        leaf meg-uuid {
+            type leafref {
+                path '/tapi-common:context/tapi-oam:oam-context/tapi-oam:meg/tapi-oam:uuid';
+            }
+            description "none";
+        }
+        description "none";
+    }
+    
+    grouping maintenance-entity-ref {
+    	uses meg-ref;
+    	leaf maintenance-entity-local-id {
+	    	type leafref {
+	            path '/tapi-common:context/tapi-oam:oam-context/tapi-oam:meg/tapi-oam:me/tapi-oam:local-id';
+	        }
+	    	description "none";
+    	}
+    	description "none";
+    }
+    
+    grouping mep-ref {
+    	uses meg-ref;
+    	leaf mep-local-id {
+	    	type leafref {
+	            path '/tapi-common:context/tapi-oam:oam-context/tapi-oam:meg/tapi-oam:mep/tapi-oam:local-id';
+	        }
+	    	description "none";
+    	}
+    	description "none";
+    }
+    
+    grouping mip-ref {
+    	uses meg-ref;
+    	leaf mip-local-id {
+	    	type leafref {
+	            path '/tapi-common:context/tapi-oam:oam-context/tapi-oam:meg/tapi-oam:mip/tapi-oam:local-id';
+	        }
+	    	description "none";
+    	}
+    	description "none";
+    }
+    
+    grouping oam-job-ref {
+        leaf oam-job-uuid {
+            type leafref {
+                path '/tapi-common:context/tapi-oam:oam-context/tapi-oam:oam-job/tapi-oam:uuid';
+            }
+            description "none";
+        }
+        description "none";
+    }
+    
+    grouping pm-current-data-ref {
+    	uses oam-job-ref;
+    	leaf pm-current-data-local-id {
+	    	type leafref {
+	            path '/tapi-common:context/tapi-oam:oam-context/tapi-oam:oam-job/tapi-oam:pm-current-data/tapi-oam:local-id';
+	        }
+	    	description "none";
+    	}
+    	description "none";
+    }
+    
+    grouping pm-history-data-ref {
+    	uses pm-current-data-ref;
+    	leaf pm-history-data-local-id {
+	    	type leafref {
+	            path '/tapi-common:context/tapi-oam:oam-context/tapi-oam:oam-job/tapi-oam:pm-current-data/tapi-oam:pm-history-data/tapi-oam:local-id';
+	        }
+	    	description "none";
+    	}
+    	description "none";
+    }
+    
+    grouping oam-profile-ref {
+        leaf oam-profile-uuid {
+            type leafref {
+                path '/tapi-common:context/tapi-oam:oam-context/tapi-oam:oam-profile/tapi-oam:uuid';
+            }
+            description "none";
+        }
+        description "none";
+    }
+    
+    grouping pm-threshold-data-ref {
+    	uses oam-profile-ref;
+    	leaf pm-threshold-data-local-id {
+	    	type leafref {
+	            path '/tapi-common:context/tapi-oam:oam-context/tapi-oam:oam-profile/tapi-oam:pm-threshold-data/tapi-oam:local-id';
+	        }
+	    	description "none";
+    	}
+    	description "none";
+    }
+    
+    grouping pm-bin-data-ref {
+    	uses oam-profile-ref;
+    	leaf pm-bin-data-local-id {
+	    	type leafref {
+	            path '/tapi-common:context/tapi-oam:oam-context/tapi-oam:oam-profile/tapi-oam:pm-bin-data/tapi-oam:local-id';
+	        }
+	    	description "none";
+    	}
+    	description "none";
+    }
+    
+    /***********************
+    * package object-classes
+    **********************/ 
+        grouping mep {
+            leaf layer-protocol-name {
+                type tapi-common:layer-protocol-name;
+                config false;
+                description "none";
+            }
+            leaf direction {
+                type tapi-common:termination-direction;
+                config false;
+                description "none";
+            }
+            leaf mep-identifier {
+                type string;
+                config false;
+                description "none";
+            }
+            leaf-list peer-mep-identifier {
+                type string;
+                config false;
+                min-elements 1;
+                description "none";
+            }
+            uses tapi-common:local-class;
+            uses tapi-common:operational-state-pac;
+            description "none";
+        }
+        grouping oam-job {
+            list oam-service-end-point {
+            	uses oam-service-end-point-ref;
+            	key 'oam-service-uuid oam-service-end-point-local-id';
+            	min-elements 1;
+                description "none";
+            }
+            container oam-profile {
+                uses oam-profile-ref;
+                description "none";
+            }
+            list pm-current-data {
+                key 'local-id';
+                config false;
+                uses pm-current-data;
+                description "Granularity period of the CurrentData identifies the specific CurrentData instance in the scope of this OamJob.
+                    For example, typically at least
+                    one 15min and
+                    one 24hr;
+                    optionally one additional configurable (< 15min)";
+            }
+            leaf oam-job-type {
+                type oam-job-type;
+                description "none";
+            }
+            container schedule {
+                uses tapi-common:time-range;
+                description "none";
+            }
+            leaf creation-time {
+                type tapi-common:date-and-time;
+                config false;
+                description "none";
+            }
+            uses tapi-common:global-class;
+            uses tapi-common:admin-state-pac;
+            description "none";
+        }
+        grouping meg {
+            list mep {
+                key 'local-id';
+                config false;
+                uses mep;
+                description "1. ME may have 0 MEPs (case of transit domains where at least 1 MIP is present)
+                    2. ME may have 1 MEP (case of edge domaind, where the peer MEP is ouside the managed domain)
+                    3. ME may have 2 MEPs";
+            }
+            list mip {
+                key 'local-id';
+                config false;
+                uses mip;
+                description "ME may 0, 1, or more MIPs";
+            }
+            leaf layer-protocol-name {
+                type tapi-common:layer-protocol-name;
+                config false;
+                description "none";
+            }
+            leaf direction {
+                type tapi-common:forwarding-direction;
+                config false;
+                description "none";
+            }
+            leaf meg-level {
+                type uint64;
+                config false;
+                description "none";
+            }
+            leaf meg-identifier {
+                type string;
+                config false;
+                description "none";
+            }
+            uses tapi-common:resource-spec;
+            uses tapi-common:operational-state-pac;
+            description "none";
+        }
+        grouping mip {
+            leaf layer-protocol-name {
+                type tapi-common:layer-protocol-name;
+                config false;
+                description "none";
+            }
+            uses tapi-common:local-class;
+            description "none";
+        }
+        grouping oam-service {
+            list end-point {
+                key 'local-id';
+                min-elements 2;
+                uses oam-service-end-point;
+                description "none";
+            }
+            container meg {
+                uses meg-ref;
+                config false;
+                description "none";
+            }
+            container oam-profile {
+                uses oam-profile-ref;
+                description "none";
+            }
+            uses tapi-common:service-spec;
+            uses tapi-common:admin-state-pac;
+            uses oam-constraint;
+            description "none";
+        }
+        grouping oam-context {
+            list oam-service {
+                key 'uuid';
+                uses oam-service;
+                description "none";
+            }
+            list meg {
+                key 'uuid';
+                config false;
+                uses meg;
+                description "none";
+            }
+            list oam-job {
+                key 'uuid';
+                uses oam-job;
+                description "none";
+            }
+            list oam-profile {
+                key 'uuid';
+                uses oam-profile;
+                description "none";
+            }
+            description "none";
+        }
+        grouping oam-service-end-point {
+            container service-interface-point {
+                uses tapi-common:service-interface-point-ref;
+                description "none";
+            }
+            container connectivity-service-end-point {
+                uses tapi-connectivity:connectivity-service-end-point-ref;
+                description "none";
+            }
+            container mep {
+                uses mep-ref;
+                config false;
+                description "none";
+            }
+            container mip {
+                uses mip-ref;
+                config false;
+                description "none";
+            }
+            leaf layer-protocol-name {
+                type tapi-common:layer-protocol-name;
+                description "none";
+            }
+            leaf direction {
+                type tapi-common:port-direction;
+                description "none";
+            }
+            leaf mep-identifier {
+                type string;
+                description "This attribute contains the identifier of the MEP.
+                    This attribute is empty in case the OSEP relates to the provisioing of an MIP.
+                    ";
+            }
+            leaf-list peer-mep-identifier {
+                type string;
+                description "This attribute models the MI_PeerMEP_ID[i] defined in G.8021 and configured as specified in G.8051. It provides the identifiers of the MEPs which are peer to the subject MEP.
+                    This attribute is not specified in case the OSEP relates to the provisioing of an MIP.
+                    In case of P2P, there is only one peer";
+            }
+            uses tapi-common:local-class;
+            uses tapi-common:admin-state-pac;
+            description "none";
+        }
+        grouping mep-mip-list {
+            list mip {
+                uses mip-ref;
+                key 'meg-uuid mip-local-id';
+                description "none";
+            }
+            list mep {
+                uses mep-ref;
+                key 'meg-uuid mep-local-id';
+                description "none";
+            }
+            description "none";
+        }
+        grouping oam-constraint {
+            leaf layer-protocol-name {
+                type tapi-common:layer-protocol-name;
+                description "none";
+            }
+            leaf direction {
+                type tapi-common:forwarding-direction;
+                description "none";
+            }
+            leaf meg-level {
+                type uint64;
+                description "none";
+            }
+            description "none";
+        }
+        grouping pm-current-data {
+            list pm-history-data {
+                key 'local-id';
+                config false;
+                uses pm-history-data;
+                description "in case of 24hr Current Data, at least 1 History Data.
+                    In case of 15min Current Data, at least 16 History Data.
+                    In case of <15min, the number of History Data shall be able to cover a span of 4 hours.";
+            }
+            container granularity-period {
+                uses tapi-common:time-period;
+                description "none";
+            }
+            leaf timestamp {
+                type tapi-common:date-and-time;
+                config false;
+                description "This attribute indicates the start of the current monitoring interval.
+                    The value is bound to the quarter of an hour in case of a 15 minute interval and bound to the hour in case of a 24 hour interval.";
+            }
+            container elapsed-time {
+                uses tapi-common:time-interval;
+                description "none";
+            }
+            leaf suspect-interval-flag {
+                type boolean;
+                description "This attribute is used to indicate that the performance data for the current period may not be reliable. Some reasons for this to occur are:
+                    – Suspect data were detected by the actual resource doing data collection.
+                    – Transition of the administrativeState attribute to/from the 'lock' state.
+                    – Transition of the operationalState to/from the 'disabled' state.
+                    – Scheduler setting that inhibits the collection function.
+                    – The performance counters were reset during the interval.
+                    – The currentData (or subclass) object instance was created during the monitoring period.";
+            }
+            uses tapi-common:local-class;
+            description "none";
+        }
+        grouping pm-history-data {
+            container granularity-period {
+                uses tapi-common:time-period;
+                description "none";
+            }
+            leaf period-end-time {
+                type tapi-common:date-and-time;
+                description "none";
+            }
+            leaf suspect-interval-flag {
+                type boolean;
+                config false;
+                description "This attribute indicates that the performance data may not be reliable.";
+            }
+            uses tapi-common:local-class;
+            description "none";
+        }
+        grouping oam-profile {
+            list pm-threshold-data {
+                key 'local-id';
+                min-elements 1;
+                uses pm-threshold-data;
+                description "none";
+            }
+            list pm-bin-data {
+                key 'local-id';
+                min-elements 1;
+                uses pm-bin-data;
+                description "none";
+            }
+            uses tapi-common:global-class;
+            description "none";
+        }
+        grouping pm-threshold-data {
+            container granularity-period {
+                uses tapi-common:time-period;
+                description "none";
+            }
+            leaf is-transient {
+                type boolean;
+                description "none";
+            }
+            uses tapi-common:local-class;
+            description "none";
+        }
+        grouping pm-bin-data {
+            container granularity-period {
+                uses tapi-common:time-period;
+                description "none";
+            }
+            uses tapi-common:local-class;
+            description "none";
+        }
+
+    /***********************
+    * package type-definitions
+    **********************/ 
+        identity OAM_JOB_TYPE {
+            description "none";
+        }
+        typedef oam-job-type {
+            type identityref {
+                base OAM_JOB_TYPE;
+            }
+            description "none";
+        }
+
+    /***********************
+    * package interfaces
+    **********************/ 
+        rpc create-oam-service {
+            description "none";
+            input {
+                list end-point {
+                    min-elements 2;
+                    uses oam-service-end-point;
+                    description "none";
+                }
+                container oam-constraint {
+                    uses oam-constraint;
+                    description "none";
+                }
+                leaf state {
+                    type string;
+                    description "none";
+                }
+            }
+            output {
+                container service {
+                    uses oam-service;
+                    description "none";
+                }
+            }
+        }
+        rpc delete-oam-service {
+            description "none";
+            input {
+                leaf service-id {
+                    type string;
+                    description "none";
+                }
+            }
+        }
+        rpc get-oam-service {
+            description "none";
+            input {
+                leaf service-id {
+                    type string;
+                    description "none";
+                }
+            }
+            output {
+                container service {
+                    uses oam-service;
+                    description "none";
+                }
+            }
+        }
+        rpc create-oam-job {
+            description "none";
+            input {
+                leaf oam-job-type {
+                    type oam-job-type;
+                    description "none";
+                }
+                list oam-service-end-point {
+                    min-elements 2;
+                    uses oam-service-end-point;
+                    description "none";
+                }
+                container oam-profile {
+                    uses oam-profile;
+                    description "none";
+                }
+                leaf state {
+                    type string;
+                    description "none";
+                }
+                leaf schedule {
+                    type string;
+                    description "none";
+                }
+            }
+            output {
+                container oam-job {
+                    uses oam-job;
+                    description "none";
+                }
+            }
+        }
+        rpc get-oam-job {
+            description "none";
+            input {
+                leaf job-id {
+                    type string;
+                    description "none";
+                }
+            }
+            output {
+                container oam-job {
+                    uses oam-job;
+                    description "none";
+                }
+            }
+        }
+        rpc get-oam-service-list {
+            description "none";
+            output {
+                list service {
+                    uses oam-service;
+                    description "none";
+                }
+            }
+        }
+        rpc get-meg {
+            description "none";
+            input {
+                leaf service-id {
+                    type string;
+                    description "none";
+                }
+            }
+            output {
+                container meg {
+                    uses meg;
+                    description "none";
+                }
+            }
+        }
+        rpc update-oam-service {
+            description "none";
+            input {
+                leaf service-id {
+                    type string;
+                    description "none";
+                }
+                list end-point {
+                    uses oam-service-end-point;
+                    description "none";
+                }
+                container oam-constraint {
+                    uses oam-constraint;
+                    description "none";
+                }
+                leaf state {
+                    type string;
+                    description "none";
+                }
+            }
+            output {
+                container service {
+                    uses oam-service;
+                    description "none";
+                }
+            }
+        }
+        rpc delete-oam-job {
+            description "none";
+            input {
+                leaf job-id {
+                    type string;
+                    description "none";
+                }
+            }
+        }
+        rpc update-oam-job {
+            description "none";
+            input {
+                leaf job-id {
+                    type string;
+                    description "none";
+                }
+                container oam-profile {
+                    uses oam-profile;
+                    description "none";
+                }
+                leaf state {
+                    type string;
+                    description "none";
+                }
+                leaf schedule {
+                    type string;
+                    description "none";
+                }
+            }
+            output {
+                container oam-job {
+                    uses oam-job;
+                    description "none";
+                }
+            }
+        }
+        rpc create-oam-service-end-point {
+            description "none";
+            input {
+                leaf service-id {
+                    type string;
+                    description "none";
+                }
+                leaf sip-id {
+                    type string;
+                    description "none";
+                }
+                leaf c-sep-id {
+                    type string;
+                    description "none";
+                }
+                leaf layer {
+                    type string;
+                    description "none";
+                }
+                leaf direction {
+                    type string;
+                    description "none";
+                }
+                leaf state {
+                    type string;
+                    description "none";
+                }
+                leaf mep-identifier {
+                    type string;
+                    description "none";
+                }
+                leaf-list peer-mep-identifier {
+                    type string;
+                    description "none";
+                }
+            }
+            output {
+                container end-point {
+                    uses oam-service-end-point;
+                    description "none";
+                }
+            }
+        }
+        rpc delete-oam-service-end-point {
+            description "none";
+            input {
+                leaf service-id {
+                    type string;
+                    description "none";
+                }
+                leaf o-sep-id {
+                    type string;
+                    description "none";
+                }
+            }
+        }
+        rpc update-oam-service-end-point {
+            description "none";
+            input {
+                leaf service-id {
+                    type string;
+                    description "none";
+                }
+                leaf o-sep-id {
+                    type string;
+                    description "none";
+                }
+                leaf state {
+                    type string;
+                    description "none";
+                }
+            }
+            output {
+                container end-point {
+                    uses oam-service-end-point;
+                    description "none";
+                }
+            }
+        }
+        rpc get-oam-service-end-point {
+            description "none";
+            input {
+                leaf service-id {
+                    type string;
+                    description "none";
+                }
+                leaf o-sep-id {
+                    type string;
+                    description "none";
+                }
+            }
+            output {
+                container end-point {
+                    uses oam-service-end-point;
+                    description "none";
+                }
+            }
+        }
+
+}

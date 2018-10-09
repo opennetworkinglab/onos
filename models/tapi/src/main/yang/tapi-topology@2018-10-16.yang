@@ -6,15 +6,32 @@ module tapi-topology {
     }
     organization "ONF OTCC (Open Transport Configuration & Control) Project";
     contact "
-        Project Web: <https://wiki.opennetworking.org/display/OTCC/TAPI>
-        Project List: <mailto:transport-api@opennetworking.org>
-        Editor: Karthik Sethuraman
-                <mailto:karthik.sethuraman@necam.com>";
+         Project Web: <https://wiki.opennetworking.org/display/OTCC/TAPI>
+         Project List: <mailto:transport-api@opennetworking.org>
+         Editor: Karthik Sethuraman
+                 <mailto:karthik.sethuraman@necam.com>";
     description "
         This module contains TAPI Topology Model definitions.
         Source: TapiTopology.uml
         Copyright (c) 2018 Open Networking Foundation (ONF). All rights reserved.
         License: This module is distributed under the Apache License 2.0";
+    revision 2018-10-16 {
+        description "ONF Transport API version 2.1.0.
+          - The TAPI YANG models included in this TAPI release (v2.1.0) are a *normative* part of the TAPI SDK.
+          - The YANG specifications have been generated from the corresponding UML model using the [ONF EAGLE UML2YANG mapping tool]
+            <https://github.com/OpenNetworkingFoundation/EagleUmlYang>
+            and further edited manually to comply with the [ONF IISOMI UML2YANG mapping guidelines]
+            <https://wiki.opennetworking.org/display/OIMT/UML+-+YANG+Guidelines>
+          - Status of YANG model artifacts can be determined by referring to the corresponding UML artifacts.
+            As described in the UML models, some artifacts are considered *experimental*, and thus the corresponding YANG artifacts.
+          - The ONF TAPI release process does not guarantee backward compatibility of YANG models across major versions of TAPI releases.
+            The YANG model backward compatibility criteria are outlined in section 11 of <https://tools.ietf.org/html/rfc7950>.
+            YANG models included in this release are not backward compatible with previous TAPI releases.
+          - Changes included in this TAPI release (v2.1.0) are listed in
+            <https://github.com/OpenNetworkingFoundation/TAPI/blob/develop/CHANGE_LOG/change-log.2.1.0.md>";
+        reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 7950, RFC 6087 and ONF TAPI UML model
+                  <https://github.com/OpenNetworkingFoundation/TAPI/tree/v2.1.0/UML>";
+    }
     revision 2018-03-07 {
         description "ONF Transport API version 2.0.2
         This YANG module has been generated from the TAPI UML Model using the IISOMI-Eagle xmi2yang mapping tool.
@@ -37,7 +54,10 @@ module tapi-topology {
                   <https://github.com/OpenNetworkingFoundation/TAPI/tree/v2.0.0/UML>";
     }
     augment "/tapi-common:context" {
-        uses topology-context;
+        container topology-context {
+            uses topology-context;
+            description "Augments the base TAPI Context with TopologyService information";
+        }
         description "Augments the base TAPI Context with TopologyService information";
     }
 
@@ -46,9 +66,9 @@ module tapi-topology {
     *************************/
 
     grouping topology-ref {
-        leaf topology-id {
+        leaf topology-uuid {
             type leafref {
-                path '/tapi-common:context/tapi-topology:topology/tapi-topology:uuid';
+                path '/tapi-common:context/tapi-topology:topology-context/tapi-topology:topology/tapi-topology:uuid';
             }
             description "none";
         }
@@ -57,9 +77,9 @@ module tapi-topology {
 
     grouping link-ref {
         uses topology-ref;
-        leaf link-id {
+        leaf link-uuid {
             type leafref {
-                path '/tapi-common:context/tapi-topology:topology/tapi-topology:link/tapi-topology:uuid';
+                path '/tapi-common:context/tapi-topology:topology-context/tapi-topology:topology/tapi-topology:link/tapi-topology:uuid';
             }
             description "none";
         }
@@ -68,20 +88,20 @@ module tapi-topology {
 
     grouping node-ref {
         uses topology-ref;
-        leaf node-id {
+        leaf node-uuid {
             type leafref {
-                path '/tapi-common:context/tapi-topology:topology/tapi-topology:node/tapi-topology:uuid';
+                path '/tapi-common:context/tapi-topology:topology-context/tapi-topology:topology/tapi-topology:node/tapi-topology:uuid';
             }
             description "none";
         }
         description "none";
     }
 
-    grouping owned-node-edge-point-ref {
+    grouping node-edge-point-ref {
         uses node-ref;
-        leaf owned-node-edge-point-id {
+        leaf node-edge-point-uuid {
             type leafref {
-                path '/tapi-common:context/tapi-topology:topology/tapi-topology:node/tapi-topology:owned-node-edge-point/tapi-topology:uuid';
+                path '/tapi-common:context/tapi-topology:topology-context/tapi-topology:topology/tapi-topology:node/tapi-topology:owned-node-edge-point/tapi-topology:uuid';
             }
             description "none";
         }
@@ -90,9 +110,9 @@ module tapi-topology {
 
     grouping node-rule-group-ref {
         uses node-ref;
-        leaf node-rule-group-id {
+        leaf node-rule-group-uuid {
             type leafref {
-                path '/tapi-common:context/tapi-topology:topology/tapi-topology:node/tapi-topology:node-rule-group/tapi-topology:uuid';
+                path '/tapi-common:context/tapi-topology:topology-context/tapi-topology:topology/tapi-topology:node/tapi-topology:node-rule-group/tapi-topology:uuid';
             }
             description "none";
         }
@@ -104,8 +124,8 @@ module tapi-topology {
     **********************/ 
         grouping link {
             list node-edge-point {
-                uses owned-node-edge-point-ref;
-                key 'topology-id node-id owned-node-edge-point-id';
+                uses node-edge-point-ref;
+                key 'topology-uuid node-uuid node-edge-point-uuid';
                 config false;
                 min-elements 2;
                 description "none";
@@ -146,8 +166,8 @@ module tapi-topology {
                 description "none";
             }
             list aggregated-node-edge-point {
-            	uses owned-node-edge-point-ref;
-                key 'topology-id node-id owned-node-edge-point-id';
+            	uses node-edge-point-ref;
+                key 'topology-uuid node-uuid node-edge-point-uuid';
                 config false;
                 description "none";
             }
@@ -217,15 +237,20 @@ module tapi-topology {
                 config false;
                 description "none";
             }
+            leaf-list supported-cep-layer-protocol-qualifier {
+                type tapi-common:layer-protocol-qualifier;
+                min-elements 1;
+                description "none";
+            }
             list aggregated-node-edge-point {
-            	uses owned-node-edge-point-ref;
-                key 'topology-id node-id owned-node-edge-point-id';
+            	uses node-edge-point-ref;
+                key 'topology-uuid node-uuid node-edge-point-uuid';
                 config false;
                 description "none";
             }
             list mapped-service-interface-point {
                 uses tapi-common:service-interface-point-ref;
-                key 'service-interface-point-id';
+                key 'service-interface-point-uuid';
                 config false;
                 description "NodeEdgePoint mapped to more than ServiceInterfacePoint (slicing/virtualizing) or a ServiceInterfacePoint mapped to more than one NodeEdgePoint (load balancing/Resilience) should be considered experimental";
             }
@@ -342,7 +367,7 @@ module tapi-topology {
         grouping network-topology-service {
             list topology {
                 uses topology-ref;
-                key 'topology-id';
+                key 'topology-uuid';
                 config false;
                 description "none";
             }
@@ -372,7 +397,7 @@ module tapi-topology {
             }
             list associated-node-rule-group {
                 uses node-rule-group-ref;
-                key 'topology-id node-id node-rule-group-id';
+                key 'topology-uuid node-uuid node-rule-group-uuid';
                 min-elements 2;
                 description "none";
             }
@@ -391,14 +416,14 @@ module tapi-topology {
                 description "none";
             }
             list node-edge-point {
-            	uses owned-node-edge-point-ref;
-                key 'topology-id node-id owned-node-edge-point-id';
+            	uses node-edge-point-ref;
+                key 'topology-uuid node-uuid node-edge-point-uuid';
                 min-elements 1;
                 description "none";
             }
             list composed-rule-group {
                 uses node-rule-group-ref;
-                key 'topology-id node-id node-rule-group-id';
+                key 'topology-uuid node-uuid node-rule-group-uuid';
                 description "none";
             }
             list inter-rule-group {

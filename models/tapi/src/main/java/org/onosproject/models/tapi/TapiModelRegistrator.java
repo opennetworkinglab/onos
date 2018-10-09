@@ -22,10 +22,11 @@ package org.onosproject.models.tapi;
 import com.google.common.collect.ImmutableMap;
 import org.apache.felix.scr.annotations.Component;
 import org.onosproject.yang.AbstractYangModelRegistrator;
-import org.onosproject.yang.gen.v1.tapicommon.rev20180307.TapiCommon;
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20180307.TapiConnectivity;
-import org.onosproject.yang.gen.v1.tapipathcomputation.rev20180307.TapiPathComputation;
-import org.onosproject.yang.gen.v1.tapitopology.rev20180307.TapiTopology;
+import org.onosproject.yang.gen.v1.tapicommon.rev20181016.TapiCommon;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.TapiConnectivity;
+import org.onosproject.yang.gen.v1.tapipathcomputation.rev20181016.TapiPathComputation;
+import org.onosproject.yang.gen.v1.tapiphotonicmedia.rev20181016.TapiPhotonicMedia;
+import org.onosproject.yang.gen.v1.tapitopology.rev20181016.TapiTopology;
 import org.onosproject.yang.model.DefaultYangModuleId;
 import org.onosproject.yang.model.YangModuleId;
 import org.onosproject.yang.runtime.AppModuleInfo;
@@ -48,16 +49,19 @@ public class TapiModelRegistrator extends AbstractYangModelRegistrator {
     private static Map<YangModuleId, AppModuleInfo> getAppInfo() {
         Map<YangModuleId, AppModuleInfo> appInfo = new HashMap<>();
 
-        appInfo.put(new DefaultYangModuleId("tapi-connectivity", "2018-03-07"),
+        appInfo.put(new DefaultYangModuleId("tapi-connectivity", "2018-10-16"),
                     new DefaultAppModuleInfo(TapiConnectivity.class, null));
 
-        appInfo.put(new DefaultYangModuleId("tapi-common", "2018-03-07"),
+        appInfo.put(new DefaultYangModuleId("tapi-common", "2018-10-16"),
                     new DefaultAppModuleInfo(TapiCommon.class, null));
 
-        appInfo.put(new DefaultYangModuleId("tapi-topology", "2018-03-07"),
+        appInfo.put(new DefaultYangModuleId("tapi-topology", "2018-10-16"),
                     new DefaultAppModuleInfo(TapiTopology.class, null));
 
-        appInfo.put(new DefaultYangModuleId("tapi-path-computation", "2018-03-07"),
+        appInfo.put(new DefaultYangModuleId("tapi-photonic-media", "2018-10-16"),
+                    new DefaultAppModuleInfo(TapiPhotonicMedia.class, null));
+
+        appInfo.put(new DefaultYangModuleId("tapi-path-computation", "2018-10-16"),
                     new DefaultAppModuleInfo(TapiPathComputation.class, null));
 
         return ImmutableMap.copyOf(appInfo);

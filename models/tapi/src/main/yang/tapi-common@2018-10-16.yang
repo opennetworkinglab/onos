@@ -3,16 +3,33 @@ module tapi-common {
     prefix tapi-common;
     organization "ONF OTCC (Open Transport Configuration & Control) Project";
     contact "
-        Project Web: <https://wiki.opennetworking.org/display/OTCC/TAPI>
-        Project List: <mailto:transport-api@opennetworking.org>
-        Editor: Karthik Sethuraman
-                <mailto:karthik.sethuraman@necam.com>";
+         Project Web: <https://wiki.opennetworking.org/display/OTCC/TAPI>
+         Project List: <mailto:transport-api@opennetworking.org>
+         Editor: Karthik Sethuraman
+                 <mailto:karthik.sethuraman@necam.com>";
     description "
         This module contains TAPI Common Model definitions.
         Source: TapiCommon.uml
         Copyright (c) 2018 Open Networking Foundation (ONF). All rights reserved.
         License: This module is distributed under the Apache License 2.0
         ";
+    revision 2018-10-16 {
+        description "ONF Transport API version 2.1.0.
+          - The TAPI YANG models included in this TAPI release (v2.1.0) are a *normative* part of the TAPI SDK.
+          - The YANG specifications have been generated from the corresponding UML model using the [ONF EAGLE UML2YANG mapping tool]
+            <https://github.com/OpenNetworkingFoundation/EagleUmlYang>
+            and further edited manually to comply with the [ONF IISOMI UML2YANG mapping guidelines]
+            <https://wiki.opennetworking.org/display/OIMT/UML+-+YANG+Guidelines>
+          - Status of YANG model artifacts can be determined by referring to the corresponding UML artifacts.
+            As described in the UML models, some artifacts are considered *experimental*, and thus the corresponding YANG artifacts.
+          - The ONF TAPI release process does not guarantee backward compatibility of YANG models across major versions of TAPI releases.
+            The YANG model backward compatibility criteria are outlined in section 11 of <https://tools.ietf.org/html/rfc7950>.
+            YANG models included in this release are not backward compatible with previous TAPI releases.
+          - Changes included in this TAPI release (v2.1.0) are listed in
+            <https://github.com/OpenNetworkingFoundation/TAPI/blob/develop/CHANGE_LOG/change-log.2.1.0.md>";
+        reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 7950, RFC 6087 and ONF TAPI UML model
+                  <https://github.com/OpenNetworkingFoundation/TAPI/tree/v2.1.0/UML>";
+    }
     revision 2018-03-07 {
         description "ONF Transport API version 2.0.2
         This YANG module has been generated from the TAPI UML Model using the IISOMI-Eagle xmi2yang mapping tool.
@@ -39,7 +56,7 @@ module tapi-common {
     * definitions of refrences
     *************************/
     grouping service-interface-point-ref {
-        leaf service-interface-point-id {
+        leaf service-interface-point-uuid {
             type leafref {
                 path '/tapi-common:context/tapi-common:service-interface-point/tapi-common:uuid';
             }
@@ -124,7 +141,6 @@ module tapi-common {
         grouping tapi-context {
             list service-interface-point {
                 key 'uuid';
-                min-elements 2;
                 uses service-interface-point;
                 description "none";
             }
@@ -140,11 +156,16 @@ module tapi-common {
             description "none";
         }
         grouping service-interface-point {
-            leaf-list layer-protocol-name {
+            leaf layer-protocol-name {
                 type layer-protocol-name;
                 config false;
-                min-elements 1;
                 description "Usage of layerProtocolName [>1]  in the ServiceInterfacePoint should be considered experimental";
+            }
+            leaf-list supported-layer-protocol-qualifier {
+                type layer-protocol-qualifier;
+                config false;
+                min-elements 1;
+                description "none";
             }
             uses resource-spec;
             uses admin-state-pac;
@@ -192,6 +213,9 @@ module tapi-common {
     /***********************
     * package type-definitions
     **********************/ 
+        identity LAYER_PROTOCOL_QUALIFIER {
+            description "none";
+        }
         typedef administrative-state {
             type enumeration {
                 enum LOCKED {
@@ -255,26 +279,17 @@ module tapi-common {
         }
         typedef layer-protocol-name {
             type enumeration {
-                enum OTSiA {
-                    description "Models the OTSiA layer as per ITU-T G.872 (2017) version 4";
-                }
-                enum OCH {
-                    description "Models the legacy OCH layer as per ITU-T G.872";
-                }
-                enum OTU {
-                    description "Models the OTU layer as per ITU-T G.872";
-                }
                 enum ODU {
                     description "Models the ODU layer as per ITU-T G.872";
                 }
                 enum ETH {
                     description "Models the ETH layer as per ITU-T G.8010";
                 }
-                enum ETY {
-                    description "Models the ETY layer as per ITU-T G.8010";
-                }
                 enum DSR {
                     description "Models a Digital Signal of an unspecified rate. This value can be used when the intent is to respresent an generic digital layer signal without making any statement on its format or overhead (processing) capabilities.";
+                }
+                enum PHOTONIC_MEDIA {
+                    description "Models the OCH, OTSi, OTSiA, OTSiG, OMS, OTS and Media channels as per ITU-T G.872 (2017) version 4";
                 }
             }
             description "Provides a controlled list of layer protocol names and indicates the naming authority.
@@ -509,6 +524,12 @@ module tapi-common {
                 enum KBPS {
                     description "Indicates that the integer CapacityValue is in Kilobit-per-second";
                 }
+                enum GHz {
+                    description "none";
+                }
+                enum MHz {
+                    description "none";
+                }
             }
             description "none";
         }
@@ -539,6 +560,76 @@ module tapi-common {
                 description "none";
             }
             description "none";
+        }
+        grouping time-period {
+            leaf value {
+                type uint64;
+                description "none";
+            }
+            leaf unit {
+                type time-unit;
+                description "none";
+            }
+            description "none";
+        }
+        typedef time-unit {
+            type enumeration {
+                enum YEARS {
+                    description "none";
+                }
+                enum MONTHS {
+                    description "none";
+                }
+                enum DAYS {
+                    description "none";
+                }
+                enum HOURS {
+                    description "none";
+                }
+                enum MINUTES {
+                    description "none";
+                }
+                enum SECONDS {
+                    description "none";
+                }
+                enum MILLISECONDS {
+                    description "none";
+                }
+                enum MICROSECONDS {
+                    description "none";
+                }
+                enum NANOSECONDS {
+                    description "none";
+                }
+                enum PICOSECONDS {
+                    description "none";
+                }
+            }
+            description "none";
+        }
+        grouping time-interval {
+            list period {
+                min-elements 1;
+                max-elements 5;
+                uses time-period;
+                description "none";
+            }
+            description "none";
+        }
+        typedef layer-protocol-qualifier {
+            type identityref {
+                base LAYER_PROTOCOL_QUALIFIER;
+            }
+            description "This enumeration is used to qualify the sub-layers (if applicable) for a specific LayerProtocol.
+                This extensible enumeration is intentionally empty in the common module and will be augmented with layer-specific values in the respective technology-specific modules.
+                Examples:
+                - LayerProtocolName := OPTICAL_DATA_UNIT
+                LayerProtocolQualifier := 'ODU_FLEX', 'ODU_0', 'ODU_1', 'ODU_2', 'ODU_2E', 'ODU_3', 'ODU_4'', 'ODU_CBR'', 'ODU_GFP'', 'ODU_GFP_HAO', etc
+                - LayerProtocolName := DIGITAL_SIGNAL_RATE
+                LayerProtocolQualifier := 'GBE', '10_GBE_WAN', '10_GBE_LAN', '100_GBE', 'FC_100', 'FC_200', 'FC_400', 'FC_800', 'FC_1200', 'FC_1600', 'FC_3200', 'STM_1', 'STM_4', 'STM_16', 'STM_64', 'STM_256', 'OC_3', 'OC_12', 'OC_48', 'OC_192', 'OC_768', 'OTU_1', 'OTU_2', 'OTU_2E', 'OTU_3', 'OTU_4', 'GPON', 'XGPON', 'IB_SDR', 'IB_DDR', 'IB_QDR', 'SBCON_ESCON', 'DVB_ASI', 'SDI', 'SDI_1G5', 'SDI_3G', etc
+                - LayerProtocolName := PHOTONIC_MEDIA
+                LayerProtocolQualifier := OCH, OTSi, OTSiA, NMC, NMCA, SMC, SMCA, OMS, OTS
+                ";
         }
 
     /***********************

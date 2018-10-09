@@ -16,45 +16,42 @@
 
 package org.onosproject.odtn.utils.tapi;
 
-import static org.onosproject.odtn.utils.tapi.TapiGlobalClassUtil.getUuid;
-import static org.onosproject.odtn.utils.tapi.TapiGlobalClassUtil.setUuid;
-
 import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.DefaultContext;
 import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.Uuid;
-import org.onosproject.yang.gen.v1.tapitopology.rev20181016.tapitopology.context.augmentedtapicommoncontext.DefaultTopologyContext;
-import org.onosproject.yang.gen.v1.tapitopology.rev20181016.tapitopology.topologycontext.DefaultTopology;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.context.DefaultAugmentedTapiCommonContext;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.context.augmentedtapicommoncontext.DefaultConnectivityContext;
 import org.onosproject.yang.model.ModelObjectId;
 
 /**
- * Utility class to deal with TAPI Topology with DCS.
+ * Utility class to deal with TAPI Augmented Connectivity Context with DCS.
  */
-public final class TapiTopologyHandler extends TapiObjectHandler<DefaultTopology> {
+public final class TapiConnectivityContextHandler extends TapiObjectHandler<DefaultConnectivityContext> {
 
-    private TapiTopologyHandler() {
-        obj = new DefaultTopology();
-        setId();
+    private TapiConnectivityContextHandler() {
+        obj = new DefaultConnectivityContext();
     }
 
-    public static TapiTopologyHandler create() {
-        return new TapiTopologyHandler();
+    public static TapiConnectivityContextHandler create() {
+        return new TapiConnectivityContextHandler();
     }
 
     @Override
     protected Uuid getIdDetail() {
-        return getUuid(obj);
+        // The target yang object of this class is container, so no need to handle Id.
+        return null;
     }
 
     @Override
     protected void setIdDetail(Uuid uuid) {
-        setUuid(obj, uuid);
+        // The target yang object of this class is container, so no need to handle Id.
     }
 
     @Override
     public ModelObjectId getParentModelObjectId() {
+        DefaultAugmentedTapiCommonContext context = new DefaultAugmentedTapiCommonContext();
+        context.connectivityContext(obj);
 
         return ModelObjectId.builder()
-                .addChild(DefaultContext.class)
-                .addChild(DefaultTopologyContext.class)
-                .build();
+                .addChild(DefaultContext.class).build();
     }
 }

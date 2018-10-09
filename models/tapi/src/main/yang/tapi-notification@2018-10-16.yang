@@ -6,15 +6,32 @@ module tapi-notification {
     }
     organization "ONF OTCC (Open Transport Configuration & Control) Project";
     contact "
-        Project Web: <https://wiki.opennetworking.org/display/OTCC/TAPI>
-        Project List: <mailto:transport-api@opennetworking.org>
-        Editor: Karthik Sethuraman
-                <mailto:karthik.sethuraman@necam.com>";
+         Project Web: <https://wiki.opennetworking.org/display/OTCC/TAPI>
+         Project List: <mailto:transport-api@opennetworking.org>
+         Editor: Karthik Sethuraman
+                 <mailto:karthik.sethuraman@necam.com>";
     description "
         This module contains TAPI Notification Model definitions.
         Source: TapiNotification.uml
         Copyright (c) 2018 Open Networking Foundation (ONF). All rights reserved.
         License: This module is distributed under the Apache License 2.0";
+    revision 2018-10-16 {
+        description "ONF Transport API version 2.1.0.
+          - The TAPI YANG models included in this TAPI release (v2.1.0) are a *normative* part of the TAPI SDK.
+          - The YANG specifications have been generated from the corresponding UML model using the [ONF EAGLE UML2YANG mapping tool]
+            <https://github.com/OpenNetworkingFoundation/EagleUmlYang>
+            and further edited manually to comply with the [ONF IISOMI UML2YANG mapping guidelines]
+            <https://wiki.opennetworking.org/display/OIMT/UML+-+YANG+Guidelines>
+          - Status of YANG model artifacts can be determined by referring to the corresponding UML artifacts.
+            As described in the UML models, some artifacts are considered *experimental*, and thus the corresponding YANG artifacts.
+          - The ONF TAPI release process does not guarantee backward compatibility of YANG models across major versions of TAPI releases.
+            The YANG model backward compatibility criteria are outlined in section 11 of <https://tools.ietf.org/html/rfc7950>.
+            YANG models included in this release are not backward compatible with previous TAPI releases.
+          - Changes included in this TAPI release (v2.1.0) are listed in
+            <https://github.com/OpenNetworkingFoundation/TAPI/blob/develop/CHANGE_LOG/change-log.2.1.0.md>";
+        reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 7950, RFC 6087 and ONF TAPI UML model
+                  <https://github.com/OpenNetworkingFoundation/TAPI/tree/v2.1.0/UML>";
+    }
     revision 2018-03-07 {
         description "ONF Transport API version 2.0.2
         This YANG module has been generated from the TAPI UML Model using the IISOMI-Eagle xmi2yang mapping tool.
@@ -37,7 +54,10 @@ module tapi-notification {
                   <https://github.com/OpenNetworkingFoundation/TAPI/tree/v2.0.0/UML>";
     }
     augment "/tapi-common:context" {
-        uses notification-context;
+        container notification-context {
+            uses notification-context;
+            description "Augments the base TAPI Context with NotificationService information";
+        }
         description "Augments the base TAPI Context with NotificationService information";
     }
     /***********************
@@ -207,8 +227,8 @@ module tapi-notification {
                 config false;
                 description "none";
             }
-            leaf pervceived-severity {
-                type perceived-serverity-type;
+            leaf perceived-severity {
+                type perceived-severity-type;
                 config false;
                 description "none";
             }
@@ -241,6 +261,18 @@ module tapi-notification {
             leaf threshold-value {
                 type uint64;
                 config false;
+                description "none";
+            }
+            leaf perceived-severity {
+                type perceived-tca-severity;
+                description "none";
+            }
+            leaf measurement-interval {
+                type tapi-common:date-and-time;
+                description "none";
+            }
+            leaf suspect-interval-flag {
+                type boolean;
                 description "none";
             }
             description "none";
@@ -349,6 +381,9 @@ module tapi-notification {
                 enum RULE {
                     description "none";
                 }
+                enum OAM_JOB {
+                    description "none";
+                }
             }
             description "The list of TAPI Global Object Class types on which Notifications can be raised.";
         }
@@ -377,7 +412,7 @@ module tapi-notification {
             }
             description "none";
         }
-        typedef perceived-serverity-type {
+        typedef perceived-severity-type {
             type enumeration {
                 enum CRITICAL {
                     description "none";
@@ -420,6 +455,17 @@ module tapi-notification {
                     description "none";
                 }
                 enum UNKNOWN {
+                    description "none";
+                }
+            }
+            description "none";
+        }
+        typedef perceived-tca-severity {
+            type enumeration {
+                enum WARNING {
+                    description "none";
+                }
+                enum CLEAR {
                     description "none";
                 }
             }

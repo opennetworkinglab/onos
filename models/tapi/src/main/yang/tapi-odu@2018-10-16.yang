@@ -13,17 +13,37 @@ module tapi-odu {
     import tapi-oam {
         prefix tapi-oam;
     }
+    import tapi-dsr {
+        prefix tapi-dsr;
+    }
     organization "ONF OTCC (Open Transport Configuration & Control) Project";
     contact "
-        Project Web: <https://wiki.opennetworking.org/display/OTCC/TAPI>
-        Project List: <mailto:transport-api@opennetworking.org>
-        Editor: Karthik Sethuraman
-                <mailto:karthik.sethuraman@necam.com>";
+         Project Web: <https://wiki.opennetworking.org/display/OTCC/TAPI>
+         Project List: <mailto:transport-api@opennetworking.org>
+         Editor: Karthik Sethuraman
+                 <mailto:karthik.sethuraman@necam.com>";
     description "
         This module contains TAPI Odu Model definitions.
         Source: TapiOdu.uml
         Copyright (c) 2018 Open Networking Foundation (ONF). All rights reserved.
         License: This module is distributed under the Apache License 2.0";
+    revision 2018-10-16 {
+        description "ONF Transport API version 2.1.0.
+          - The TAPI YANG models included in this TAPI release (v2.1.0) are a *normative* part of the TAPI SDK.
+          - The YANG specifications have been generated from the corresponding UML model using the [ONF EAGLE UML2YANG mapping tool]
+            <https://github.com/OpenNetworkingFoundation/EagleUmlYang>
+            and further edited manually to comply with the [ONF IISOMI UML2YANG mapping guidelines]
+            <https://wiki.opennetworking.org/display/OIMT/UML+-+YANG+Guidelines>
+          - Status of YANG model artifacts can be determined by referring to the corresponding UML artifacts.
+            As described in the UML models, some artifacts are considered *experimental*, and thus the corresponding YANG artifacts.
+          - The ONF TAPI release process does not guarantee backward compatibility of YANG models across major versions of TAPI releases.
+            The YANG model backward compatibility criteria are outlined in section 11 of <https://tools.ietf.org/html/rfc7950>.
+            YANG models included in this release are not backward compatible with previous TAPI releases.
+          - Changes included in this TAPI release (v2.1.0) are listed in
+            <https://github.com/OpenNetworkingFoundation/TAPI/blob/develop/CHANGE_LOG/change-log.2.1.0.md>";
+        reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 7950, RFC 6087 and ONF TAPI UML model
+                  <https://github.com/OpenNetworkingFoundation/TAPI/tree/v2.1.0/UML>";
+    }
     revision 2018-03-07 {
         description "ONF Transport API version 2.0.2
         This YANG module has been generated from the TAPI UML Model using the IISOMI-Eagle xmi2yang mapping tool.
@@ -45,20 +65,32 @@ module tapi-odu {
         reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 6020, RFC 6087 and ONF TAPI UML model
                   <https://github.com/OpenNetworkingFoundation/TAPI/tree/v2.0.0/UML>";
     }
-    augment "/tapi-common:context/tapi-topology:topology/tapi-topology:node/tapi-topology:owned-node-edge-point" {
-        uses odu-node-edge-point-spec;
+    augment "/tapi-common:context/tapi-topology:topology-context/tapi-topology:topology/tapi-topology:node/tapi-topology:owned-node-edge-point" {
+        container odu-node-edge-point-spec {
+            uses odu-node-edge-point-spec;
+            description "Augments the base LayerProtocol information in NodeEdgePoint with ODU-specific information";
+        }
         description "Augments the base LayerProtocol information in NodeEdgePoint with ODU-specific information";
     }
-    augment "/tapi-common:context/tapi-topology:topology/tapi-topology:node/tapi-topology:owned-node-edge-point/tapi-connectivity:connection-end-point" {
-        uses odu-connection-end-point-spec;
+    augment "/tapi-common:context/tapi-topology:topology-context/tapi-topology:topology/tapi-topology:node/tapi-topology:owned-node-edge-point/tapi-connectivity:cep-list/tapi-connectivity:connection-end-point" {
+        container odu-connection-end-point-spec {
+            uses odu-connection-end-point-spec;
+            description "none";
+        }
         description "none";
     }
-    augment "/tapi-common:context/tapi-oam:meg/tapi-oam:mep" {
-        uses odu-connection-end-point-spec;
+    augment "/tapi-common:context/tapi-oam:oam-context/tapi-oam:meg/tapi-oam:mep" {
+        container odu-connection-end-point-spec {
+            uses odu-connection-end-point-spec;
+            description "none";
+        }
         description "none";
     }
-    augment "/tapi-common:context/tapi-oam:meg/tapi-oam:mip" {
-        uses odu-mip-spec;
+    augment "/tapi-common:context/tapi-oam:oam-context/tapi-oam:meg/tapi-oam:mip" {
+        container odu-mip-spec {
+            uses odu-mip-spec;
+            description "none";
+        }
         description "none";
     }
     /***********************
@@ -76,7 +108,7 @@ module tapi-odu {
                 description "This attribute is applicable when the ODU CTP object instance represents a lower order ODU CTP Source at the client layer of the ODUP/ODUj-21 adaptation function. The value of true of this attribute configures that the adaptation source function shall fall back to the payload type PT=20 if the conditions specified in 14.3.10.1/G.798 are satisfied. ";
             }
             leaf configured-client-type {
-                type string;
+                type tapi-dsr:digital-signal-type;
                 config false;
                 description "This attribute configures the type of the client CTP of the server ODU TTP.";
             }
@@ -421,32 +453,45 @@ module tapi-odu {
     /***********************
     * package type-definitions
     **********************/ 
+        identity ODU_TYPE {
+        	base tapi-common:LAYER_PROTOCOL_QUALIFIER;
+            description "none";
+        }
+        identity ODU_TYPE_ODU0 {
+            base ODU_TYPE;
+            description "none";
+        }
+        identity ODU_TYPE_ODU1 {
+            base ODU_TYPE;
+            description "none";
+        }
+        identity ODU_TYPE_ODU2 {
+            base ODU_TYPE;
+            description "none";
+        }
+        identity ODU_TYPE_ODU2E {
+            base ODU_TYPE;
+            description "none";
+        }
+        identity ODU_TYPE_ODU3 {
+            base ODU_TYPE;
+            description "none";
+        }
+        identity ODU_TYPE_ODU4 {
+            base ODU_TYPE;
+            description "none";
+        }
+        identity ODU_TYPE_ODU_FLEX {
+            base ODU_TYPE;
+            description "none";
+        }
+        identity ODU_TYPE_ODU_CN {
+            base ODU_TYPE;
+            description "none";
+        }
         typedef odu-type {
-            type enumeration {
-                enum ODU0 {
-                    description "none";
-                }
-                enum ODU1 {
-                    description "none";
-                }
-                enum ODU2 {
-                    description "none";
-                }
-                enum ODU2E {
-                    description "none";
-                }
-                enum ODU3 {
-                    description "none";
-                }
-                enum ODU4 {
-                    description "none";
-                }
-                enum ODU_FLEX {
-                    description "none";
-                }
-                enum ODU_CN {
-                    description "none";
-                }
+            type identityref {
+                base ODU_TYPE;
             }
             description "none";
         }

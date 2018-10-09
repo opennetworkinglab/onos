@@ -26,18 +26,20 @@ import static org.onosproject.odtn.utils.tapi.TapiGlobalClassUtil.getUuid;
 import static org.onosproject.odtn.utils.tapi.TapiGlobalClassUtil.setUuid;
 
 import org.onosproject.net.Port;
-import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.DefaultContext;
-import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.Uuid;
+import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.DefaultContext;
+import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.Uuid;
 
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20180307.tapiconnectivity.ceplist.DefaultConnectionEndPoint;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.ceplist.DefaultConnectionEndPoint;
 
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20180307.tapiconnectivity.context.topology.node.ownednodeedgepoint.DefaultAugmentedTapiTopologyOwnedNodeEdgePoint;
-import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.node.DefaultOwnedNodeEdgePoint;
-import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.nodeedgepoint.DefaultMappedServiceInterfacePoint;
-import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.topology.DefaultNode;
-import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.topology.NodeKeys;
-import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.topologycontext.DefaultTopology;
-import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.topologycontext.TopologyKeys;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.context.topologycontext.topology.node.ownednodeedgepoint.DefaultAugmentedTapiTopologyOwnedNodeEdgePoint;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.context.topologycontext.topology.node.ownednodeedgepoint.augmentedtapitopologyownednodeedgepoint.DefaultCepList;
+import org.onosproject.yang.gen.v1.tapitopology.rev20181016.tapitopology.context.augmentedtapicommoncontext.DefaultTopologyContext;
+import org.onosproject.yang.gen.v1.tapitopology.rev20181016.tapitopology.node.DefaultOwnedNodeEdgePoint;
+import org.onosproject.yang.gen.v1.tapitopology.rev20181016.tapitopology.nodeedgepoint.DefaultMappedServiceInterfacePoint;
+import org.onosproject.yang.gen.v1.tapitopology.rev20181016.tapitopology.topology.DefaultNode;
+import org.onosproject.yang.gen.v1.tapitopology.rev20181016.tapitopology.topology.NodeKeys;
+import org.onosproject.yang.gen.v1.tapitopology.rev20181016.tapitopology.topologycontext.DefaultTopology;
+import org.onosproject.yang.gen.v1.tapitopology.rev20181016.tapitopology.topologycontext.TopologyKeys;
 import org.onosproject.yang.model.ModelObjectId;
 
 /**
@@ -80,6 +82,7 @@ public final class TapiNepHandler extends TapiObjectHandler<DefaultOwnedNodeEdge
 
         return ModelObjectId.builder()
                 .addChild(DefaultContext.class)
+                .addChild(DefaultTopologyContext.class)
                 .addChild(DefaultTopology.class, topologyKey)
                 .addChild(DefaultNode.class, nodeKey)
                 .build();
@@ -111,16 +114,21 @@ public final class TapiNepHandler extends TapiObjectHandler<DefaultOwnedNodeEdge
 
     public TapiNepHandler addSip(Uuid sipUuid) {
         DefaultMappedServiceInterfacePoint mappedSip = new DefaultMappedServiceInterfacePoint();
-        mappedSip.serviceInterfacePointId(sipUuid);
+        mappedSip.serviceInterfacePointUuid(sipUuid);
         obj.addToMappedServiceInterfacePoint(mappedSip);
         return this;
     }
 
     public TapiNepHandler addCep(DefaultConnectionEndPoint cep) {
+
+        DefaultCepList cepList = new DefaultCepList();
+        cepList.addToConnectionEndPoint(cep);
+
         DefaultAugmentedTapiTopologyOwnedNodeEdgePoint augmentNep =
                 new DefaultAugmentedTapiTopologyOwnedNodeEdgePoint();
-        augmentNep.addToConnectionEndPoint(cep);
+        augmentNep.cepList(cepList);
         obj.addAugmentation(augmentNep);
+
         return this;
     }
 

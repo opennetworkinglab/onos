@@ -30,11 +30,11 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.odtn.utils.tapi.DcsBasedTapiObjectRefFactory;
 import org.onosproject.odtn.utils.tapi.TapiNepRef;
 import org.onosproject.odtn.utils.tapi.TapiNodeRef;
-import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.DefaultContext;
-import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.globalclass.Name;
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20180307.tapiconnectivity.context.topology.node.ownednodeedgepoint.DefaultAugmentedTapiTopologyOwnedNodeEdgePoint;
-import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.context.DefaultAugmentedTapiCommonContext;
-import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.topologycontext.Topology;
+import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.DefaultContext;
+import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.globalclass.Name;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.context.topologycontext.topology.node.ownednodeedgepoint.DefaultAugmentedTapiTopologyOwnedNodeEdgePoint;
+import org.onosproject.yang.gen.v1.tapitopology.rev20181016.tapitopology.context.DefaultAugmentedTapiCommonContext;
+import org.onosproject.yang.gen.v1.tapitopology.rev20181016.tapitopology.topologycontext.Topology;
 import org.onosproject.yang.model.DataNode;
 import org.onosproject.yang.model.DefaultModelObjectData;
 import org.onosproject.yang.model.DefaultResourceData;
@@ -114,7 +114,7 @@ public class DcsBasedTapiDataProducer implements TapiDataProducer {
     private List<TapiNodeRef> getNodes(DefaultContext context) {
         DefaultAugmentedTapiCommonContext topologyContext
                 = context.augmentation(DefaultAugmentedTapiCommonContext.class);
-        Topology topology = topologyContext.topology().get(0);
+        Topology topology = topologyContext.topologyContext().topology().get(0);
 
         if (topology.node() == null) {
             return Collections.emptyList();
@@ -142,7 +142,7 @@ public class DcsBasedTapiDataProducer implements TapiDataProducer {
     private List<TapiNepRef> getNeps(DefaultContext context) {
         DefaultAugmentedTapiCommonContext topologyContext
                 = context.augmentation(DefaultAugmentedTapiCommonContext.class);
-        Topology topology = topologyContext.topology().get(0);
+        Topology topology = topologyContext.topologyContext().topology().get(0);
 
         if (topology.node() == null) {
             return Collections.emptyList();
@@ -169,15 +169,15 @@ public class DcsBasedTapiDataProducer implements TapiDataProducer {
                                         if (nep.mappedServiceInterfacePoint() != null) {
                                             nep.mappedServiceInterfacePoint().stream()
                                                     .forEach(sip -> {
-                                                        nepRef.setSipId(sip.serviceInterfacePointId().toString());
+                                                        nepRef.setSipId(sip.serviceInterfacePointUuid().toString());
                                                     });
                                         }
 
                                         DefaultAugmentedTapiTopologyOwnedNodeEdgePoint augmentNep =
                                                 nep.augmentation(DefaultAugmentedTapiTopologyOwnedNodeEdgePoint.class);
                                         try {
-                                            if (augmentNep.connectionEndPoint() != null) {
-                                                List<String> cepIds = augmentNep.connectionEndPoint().stream()
+                                            if (augmentNep.cepList().connectionEndPoint() != null) {
+                                                List<String> cepIds = augmentNep.cepList().connectionEndPoint().stream()
                                                         .map(cep -> cep.uuid().toString()).collect(Collectors.toList());
                                                 nepRef.setCepIds(cepIds);
                                             }

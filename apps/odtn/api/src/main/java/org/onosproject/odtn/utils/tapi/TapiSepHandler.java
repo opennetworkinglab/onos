@@ -16,9 +16,9 @@
 
 package org.onosproject.odtn.utils.tapi;
 
-import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.Uuid;
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20180307.tapiconnectivity.connectivityservice.DefaultEndPoint;
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20180307.tapiconnectivity.connectivityserviceendpoint.DefaultServiceInterfacePoint;
+import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.Uuid;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.connectivityservice.DefaultEndPoint;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.connectivityserviceendpoint.DefaultServiceInterfacePoint;
 import org.onosproject.yang.model.ModelObjectId;
 
 import static org.onosproject.odtn.utils.tapi.TapiLocalClassUtil.getLocalId;
@@ -55,7 +55,7 @@ public final class TapiSepHandler extends TapiObjectHandler<DefaultEndPoint> {
 
     public TapiSepHandler setSip(String sipId) {
         DefaultServiceInterfacePoint sip = new DefaultServiceInterfacePoint();
-        sip.serviceInterfacePointId(sipId);
+        sip.serviceInterfacePointUuid(sipId);
         obj.serviceInterfacePoint(sip);
         return this;
     }

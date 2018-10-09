@@ -22,16 +22,16 @@ import org.onosproject.net.ConnectPoint;
 
 import org.onosproject.net.Port;
 import org.onosproject.odtn.behaviour.OdtnDeviceDescriptionDiscovery;
-import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.DefaultContext;
-import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.LayerProtocolName;
-import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.Uuid;
+import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.DefaultContext;
+import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.LayerProtocolName;
+import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.Uuid;
 
 import static org.onosproject.odtn.behaviour.OdtnDeviceDescriptionDiscovery.PORT_TYPE;
 import static org.onosproject.odtn.utils.tapi.TapiGlobalClassUtil.addNameList;
 import static org.onosproject.odtn.utils.tapi.TapiGlobalClassUtil.getUuid;
 import static org.onosproject.odtn.utils.tapi.TapiGlobalClassUtil.setUuid;
-import static org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.layerprotocolname.LayerProtocolNameEnum.DSR;
-import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.tapicontext.DefaultServiceInterfacePoint;
+import static org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.layerprotocolname.LayerProtocolNameEnum.DSR;
+import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.tapicontext.DefaultServiceInterfacePoint;
 import org.onosproject.yang.model.ModelObjectId;
 
 /**
@@ -90,7 +90,7 @@ public final class TapiSipHandler extends TapiObjectHandler<DefaultServiceInterf
         Map<String, String> kvs = new HashMap<>();
         kvs.put(ONOS_CP, cp.toString());
         addNameList(obj, kvs);
-        obj.addToLayerProtocolName(LayerProtocolName.of(DSR));
+        obj.layerProtocolName(LayerProtocolName.of(DSR));
         return this;
     }
 
