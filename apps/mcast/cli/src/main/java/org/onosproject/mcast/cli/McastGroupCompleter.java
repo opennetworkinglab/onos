@@ -16,6 +16,7 @@
 
 package org.onosproject.mcast.cli;
 
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.packet.IpAddress;
 import org.onlab.util.Tools;
 import org.onosproject.cli.AbstractChoicesCompleter;
@@ -29,6 +30,7 @@ import java.util.stream.Collectors;
 /**
  * Mcast group Completer.
  */
+@Service
 public class McastGroupCompleter extends AbstractChoicesCompleter {
 
     @Override

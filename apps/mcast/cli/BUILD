@@ -4,6 +4,6 @@ COMPILE_DEPS = CORE_DEPS + CLI + REST + [
 ]
 
 osgi_jar(
-    import_packages = "*,org.onosproject.cli.net",
+    karaf_command_packages = ["org.onosproject.mcast.cli"],
     deps = COMPILE_DEPS,
 )
