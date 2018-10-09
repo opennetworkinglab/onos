@@ -9,6 +9,7 @@ COMPILE_DEPS = CORE_DEPS + ONOS_YANG + CLI + JACKSON + [
 ]
 
 osgi_jar_with_tests(
+    karaf_command_packages = ["org.onosproject.odtn.cli.impl"],
     test_deps = TEST_ADAPTERS,
     deps = COMPILE_DEPS,
 )

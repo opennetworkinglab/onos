@@ -20,9 +20,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractChoicesCompleter;
 import org.onosproject.odtn.cli.impl.OdtnManualTestCommand.Mode;
 
+@Service
 public class ModeCompleter extends AbstractChoicesCompleter {
 
     @Override

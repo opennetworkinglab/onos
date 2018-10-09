@@ -33,6 +33,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.util.XmlString;
@@ -76,24 +77,24 @@ public class OdtnManualTestCommand extends AbstractShellCommand {
     ModeCompleter modeCompleter;
     @Argument(index = 0, name = "mode", description = "one of Mode see source",
               required = true)
+    @Completion(ModeCompleter.class)
     String modeStr = Mode.ENABLE_TRANSCEIVER.name();
     Mode mode;
 
-    // injecting dependency for OSGi package import generation purpose
-    DeviceIdCompleter uriCompleter;
     @Option(name = "--deviceId", description = "Device ID URI to send configuration to",
               required = false)
+    @Completion(DeviceIdCompleter.class)
     String uri = null;
 
-    // injecting dependency for OSGi package import generation purpose
-    PortNumberCompleter portNoCompleter;
     // Note: this will required Port information in device subystem
     @Option(name = "--cltPortNo", description = "Client-side PortNumber to send configuration to",
             required = false)
+    @Completion(PortNumberCompleter.class)
     String cltPortNo = null;
 
     @Option(name = "--linePortNo", description = "Line-side PortNumber to send configuration to",
             required = false)
+    @Completion(PortNumberCompleter.class)
     String linePortNo = null;
 
 
