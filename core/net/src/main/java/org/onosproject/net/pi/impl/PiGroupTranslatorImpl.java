@@ -116,6 +116,7 @@ final class PiGroupTranslatorImpl {
             }
 
             piActionGroupBuilder.addMember(PiActionGroupMember.builder()
+                                                   .forActionProfile(groupKey.actionProfileId())
                                                    .withId(PiActionGroupMemberId.of(memberId))
                                                    .withAction((PiAction) tableAction)
                                                    .withWeight(bucket.weight())

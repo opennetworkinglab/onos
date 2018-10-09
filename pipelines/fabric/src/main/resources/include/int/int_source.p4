@@ -27,13 +27,12 @@ control process_int_source (
     direct_counter(CounterType.packets_and_bytes) counter_int_source;
 
     action int_source(bit<8> max_hop, bit<5> ins_cnt, bit<4> ins_mask0003, bit<4> ins_mask0407) {
-        // insert INT shim header
+        // Insert INT shim header.
         hdr.intl4_shim.setValid();
         // int_type: Hop-by-hop type (1) , destination type (2)
         hdr.intl4_shim.int_type = 1;
-        hdr.intl4_shim.len = INT_HEADER_LEN_WORD;
-
-        // insert INT header
+        hdr.intl4_shim.len_words = INT_HEADER_LEN_WORDS;
+        // Insert INT header.
         hdr.int_header.setValid();
         hdr.int_header.ver = 0;
         hdr.int_header.rep = 0;
@@ -47,20 +46,20 @@ control process_int_source (
         hdr.int_header.instruction_mask_0407 = ins_mask0407;
         hdr.int_header.instruction_mask_0811 = 0; // not supported
         hdr.int_header.instruction_mask_1215 = 0; // not supported
-
-        // insert INT tail header
+        // Insert INT tail header.
         hdr.intl4_tail.setValid();
         hdr.intl4_tail.next_proto = hdr.ipv4.protocol;
         hdr.intl4_tail.dest_port = fabric_metadata.l4_dst_port;
-        hdr.intl4_tail.dscp = (bit<8>) hdr.ipv4.dscp;
-
-        // add the header len (8 bytes) to total len
-        hdr.ipv4.total_len = hdr.ipv4.total_len + 16;
-        hdr.udp.len = hdr.udp.len + 16;
+        hdr.intl4_tail.dscp = hdr.ipv4.dscp;
+        // Update IP and UDP (if not valid we don't care) lens (in bytes).
+        hdr.ipv4.total_len = hdr.ipv4.total_len + INT_HEADER_LEN_BYTES;
+        hdr.udp.len = hdr.udp.len + INT_HEADER_LEN_BYTES;
     }
+
     action int_source_dscp(bit<8> max_hop, bit<5> ins_cnt, bit<4> ins_mask0003, bit<4> ins_mask0407) {
         int_source(max_hop, ins_cnt, ins_mask0003, ins_mask0407);
         hdr.ipv4.dscp = INT_DSCP;
+        counter_int_source.count();
     }
 
     table tb_int_source {
@@ -74,54 +73,10 @@ control process_int_source (
             int_source_dscp;
         }
         counters = counter_int_source;
-        size = 1024;
     }
 
     apply {
         tb_int_source.apply();
-    }
-}
-
-control process_set_source_sink (
-    inout parsed_headers_t hdr,
-    inout fabric_metadata_t fabric_metadata,
-    inout standard_metadata_t standard_metadata) {
-
-    direct_counter(CounterType.packets_and_bytes) counter_set_source;
-    direct_counter(CounterType.packets_and_bytes) counter_set_sink;
-
-    action int_set_source () {
-        fabric_metadata.int_meta.source = 1;
-    }
-
-    action int_set_sink () {
-        fabric_metadata.int_meta.sink = 1;
-    }
-
-    table tb_set_source {
-        key = {
-            standard_metadata.ingress_port: exact;
-        }
-        actions = {
-            int_set_source;
-        }
-        counters = counter_set_source;
-        size = 256;
-    }
-    table tb_set_sink {
-        key = {
-            standard_metadata.egress_spec: exact;
-        }
-        actions = {
-            int_set_sink;
-        }
-        counters = counter_set_sink;
-        size = 256;
-    }
-
-    apply {
-        tb_set_source.apply();
-        tb_set_sink.apply();
     }
 }
 #endif

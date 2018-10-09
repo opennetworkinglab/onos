@@ -30,7 +30,7 @@ public final class IntConfig {
     /**
      * Represents a type of telemetry spec to collect in the dataplane.
      */
-    enum TelemetrySpec {
+    public enum TelemetrySpec {
         /**
          * Embeds telemetry metadata according to the INT specification.
          *

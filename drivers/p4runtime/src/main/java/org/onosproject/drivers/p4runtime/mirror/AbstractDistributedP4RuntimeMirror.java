@@ -17,15 +17,21 @@
 package org.onosproject.drivers.p4runtime.mirror;
 
 import com.google.common.annotations.Beta;
+import com.google.common.collect.Maps;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
+
 import org.onlab.util.KryoNamespace;
+import org.onlab.util.SharedExecutors;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.pi.runtime.PiEntity;
 import org.onosproject.net.pi.runtime.PiHandle;
+import org.onosproject.net.pi.service.PiPipeconfWatchdogEvent;
+import org.onosproject.net.pi.service.PiPipeconfWatchdogListener;
+import org.onosproject.net.pi.service.PiPipeconfWatchdogService;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.WallClockTimestamp;
@@ -33,9 +39,12 @@ import org.slf4j.Logger;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.net.pi.service.PiPipeconfWatchdogService.PipelineStatus.READY;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -56,7 +65,13 @@ public abstract class AbstractDistributedP4RuntimeMirror
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private StorageService storageService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    private PiPipeconfWatchdogService pipeconfWatchdogService;
+
     private EventuallyConsistentMap<H, TimedEntry<E>> mirrorMap;
+
+    private final PiPipeconfWatchdogListener pipeconfListener =
+            new InternalPipeconfWatchdogListener();
 
     @Activate
     public void activate() {
@@ -66,6 +81,7 @@ public abstract class AbstractDistributedP4RuntimeMirror
                 .withSerializer(storeSerializer())
                 .withTimestampProvider((k, v) -> new WallClockTimestamp())
                 .build();
+        pipeconfWatchdogService.addListener(pipeconfListener);
         log.info("Started");
     }
 
@@ -75,6 +91,7 @@ public abstract class AbstractDistributedP4RuntimeMirror
 
     @Deactivate
     public void deactivate() {
+        pipeconfWatchdogService.removeListener(pipeconfListener);
         mirrorMap.destroy();
         mirrorMap = null;
         log.info("Stopped");
@@ -99,6 +116,14 @@ public abstract class AbstractDistributedP4RuntimeMirror
     public void put(H handle, E entry) {
         checkNotNull(handle);
         checkNotNull(entry);
+        final PiPipeconfWatchdogService.PipelineStatus status =
+                pipeconfWatchdogService.getStatus(handle.deviceId());
+        if (!status.equals(READY)) {
+            log.info("Ignoring device mirror update because pipeline " +
+                             "status of {} is {}: {}",
+                     handle.deviceId(), status, entry);
+            return;
+        }
         final long now = new WallClockTimestamp().unixTimestamp();
         final TimedEntry<E> timedEntry = new TimedEntry<>(now, entry);
         mirrorMap.put(handle, timedEntry);
@@ -110,4 +135,77 @@ public abstract class AbstractDistributedP4RuntimeMirror
         mirrorMap.remove(handle);
     }
 
+    @Override
+    public void sync(DeviceId deviceId, Map<H, E> deviceState) {
+        checkNotNull(deviceId);
+        final Map<H, E> localState = getMirrorMapForDevice(deviceId);
+
+        final AtomicInteger removeCount = new AtomicInteger(0);
+        final AtomicInteger updateCount = new AtomicInteger(0);
+        final AtomicInteger addCount = new AtomicInteger(0);
+        // Add missing entries.
+        deviceState.keySet().stream()
+                .filter(deviceHandle -> !localState.containsKey(deviceHandle))
+                .forEach(deviceHandle -> {
+                    final E entryToAdd = deviceState.get(deviceHandle);
+                    log.debug("Adding mirror entry for {}: {}",
+                              deviceId, entryToAdd);
+                    put(deviceHandle, entryToAdd);
+                    addCount.incrementAndGet();
+                });
+        // Update or remove local entries.
+        localState.keySet().forEach(localHandle -> {
+            final E localEntry = localState.get(localHandle);
+            final E deviceEntry = deviceState.get(localHandle);
+            if (deviceEntry == null) {
+                log.debug("Removing mirror entry for {}: {}", deviceId, localEntry);
+                remove(localHandle);
+                removeCount.incrementAndGet();
+            } else if (!deviceEntry.equals(localEntry)) {
+                log.debug("Updating mirror entry for {}: {}-->{}",
+                          deviceId, localEntry, deviceEntry);
+                put(localHandle, deviceEntry);
+                updateCount.incrementAndGet();
+            }
+        });
+        if (removeCount.get() + updateCount.get() + addCount.get() > 0) {
+            log.info("Synchronized mirror entries for {}: {} removed, {} updated, {} added",
+                     deviceId, removeCount, updateCount, addCount);
+        }
+    }
+
+    private Set<H> getHandlesForDevice(DeviceId deviceId) {
+        return mirrorMap.keySet().stream()
+                .filter(h -> h.deviceId().equals(deviceId))
+                .collect(Collectors.toSet());
+    }
+
+    private Map<H, E> getMirrorMapForDevice(DeviceId deviceId) {
+        final Map<H, E> deviceMap = Maps.newHashMap();
+        mirrorMap.entrySet().stream()
+                .filter(e -> e.getKey().deviceId().equals(deviceId))
+                .forEach(e -> deviceMap.put(e.getKey(), e.getValue().entry()));
+        return deviceMap;
+    }
+
+    private void removeAll(DeviceId deviceId) {
+        checkNotNull(deviceId);
+        Collection<H> handles = getHandlesForDevice(deviceId);
+        handles.forEach(mirrorMap::remove);
+    }
+
+    public class InternalPipeconfWatchdogListener implements PiPipeconfWatchdogListener {
+        @Override
+        public void event(PiPipeconfWatchdogEvent event) {
+            log.debug("Flushing mirror for {}, pipeline status is {}",
+                      event.subject(), event.type());
+            SharedExecutors.getPoolThreadExecutor().execute(
+                    () -> removeAll(event.subject()));
+        }
+
+        @Override
+        public boolean isRelevant(PiPipeconfWatchdogEvent event) {
+            return event.type().equals(PiPipeconfWatchdogEvent.Type.PIPELINE_UNKNOWN);
+        }
+    }
 }

@@ -20,6 +20,9 @@ import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.pi.model.PiTableId;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Global identifier of a PI table entry applied on a device, uniquely defined
@@ -28,8 +31,28 @@ import org.onosproject.net.DeviceId;
 @Beta
 public final class PiTableEntryHandle extends PiHandle<PiTableEntry> {
 
-    private PiTableEntryHandle(DeviceId deviceId, PiTableEntry entry) {
-        super(deviceId, entry);
+    private final PiTableId tableId;
+    private final PiMatchKey matchKey;
+
+    private PiTableEntryHandle(DeviceId deviceId, PiTableId tableId, PiMatchKey matchKey) {
+        super(deviceId);
+        this.tableId = tableId;
+        this.matchKey = matchKey;
+    }
+
+    /**
+     * Creates a new handle for the given device ID, PI table ID, and match
+     * key.
+     *
+     * @param deviceId device ID
+     * @param tableId  table ID
+     * @param matchKey match key
+     * @return PI table entry handle
+     */
+    public static PiTableEntryHandle of(DeviceId deviceId, PiTableId tableId, PiMatchKey matchKey) {
+        checkNotNull(tableId);
+        checkNotNull(matchKey);
+        return new PiTableEntryHandle(deviceId, tableId, matchKey);
     }
 
     /**
@@ -40,14 +63,18 @@ public final class PiTableEntryHandle extends PiHandle<PiTableEntry> {
      * @return PI table entry handle
      */
     public static PiTableEntryHandle of(DeviceId deviceId, PiTableEntry entry) {
-        return new PiTableEntryHandle(deviceId, entry);
+        checkNotNull(entry);
+        return PiTableEntryHandle.of(deviceId, entry.table(), entry.matchKey());
+    }
+
+    @Override
+    public PiEntityType entityType() {
+        return PiEntityType.TABLE_ENTRY;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(deviceId(),
-                                piEntity().table(),
-                                piEntity().matchKey());
+        return Objects.hashCode(deviceId(), tableId, matchKey);
     }
 
     @Override
@@ -60,18 +87,16 @@ public final class PiTableEntryHandle extends PiHandle<PiTableEntry> {
         }
         final PiTableEntryHandle other = (PiTableEntryHandle) obj;
         return Objects.equal(this.deviceId(), other.deviceId())
-                && Objects.equal(this.piEntity().table(),
-                                 other.piEntity().table())
-                && Objects.equal(this.piEntity().matchKey(),
-                                 other.piEntity().matchKey());
+                && Objects.equal(this.tableId, other.tableId)
+                && Objects.equal(this.matchKey, other.matchKey);
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
                 .add("deviceId", deviceId())
-                .add("tableId", piEntity().table())
-                .add("matchKey", piEntity().matchKey())
+                .add("tableId", tableId)
+                .add("matchKey", matchKey)
                 .toString();
     }
 }

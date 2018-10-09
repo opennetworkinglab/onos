@@ -19,6 +19,7 @@ package org.onosproject.net.pi.runtime;
 import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+import org.onosproject.net.pi.model.PiActionProfileId;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -28,11 +29,18 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Beta
 public final class PiActionGroupMember implements PiEntity {
 
+    private final PiActionProfileId actionProfileId;
     private final PiActionGroupMemberId id;
     private final PiAction action;
+    // FIXME: in P4Runtime weight is an attribute of the member reference in a
+    // group. Either remove it from this class or define the containing group
+    // ID.
     private final int weight;
 
-    private PiActionGroupMember(PiActionGroupMemberId id, PiAction action, int weight) {
+    private PiActionGroupMember(
+            PiActionProfileId actionProfileId, PiActionGroupMemberId id,
+            PiAction action, int weight) {
+        this.actionProfileId = actionProfileId;
         this.id = id;
         this.action = action;
         this.weight = weight;
@@ -45,6 +53,15 @@ public final class PiActionGroupMember implements PiEntity {
      */
     public PiActionGroupMemberId id() {
         return id;
+    }
+
+    /**
+     * Returns the identifier of the action profile.
+     *
+     * @return action profile identifier
+     */
+    public PiActionProfileId actionProfile() {
+        return actionProfileId;
     }
 
     /**
@@ -80,18 +97,20 @@ public final class PiActionGroupMember implements PiEntity {
         }
         PiActionGroupMember that = (PiActionGroupMember) o;
         return weight == that.weight &&
+                Objects.equal(actionProfileId, that.actionProfileId) &&
                 Objects.equal(id, that.id) &&
                 Objects.equal(action, that.action);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(id, action, weight);
+        return Objects.hashCode(actionProfileId, id, action, weight);
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
+                .add("actionProfile", actionProfileId)
                 .add("id", id)
                 .add("action", action)
                 .add("weight", weight)
@@ -112,12 +131,24 @@ public final class PiActionGroupMember implements PiEntity {
      */
     public static final class Builder {
 
+        private PiActionProfileId actionProfileId;
         private PiActionGroupMemberId id;
         private PiAction action;
         private int weight;
 
         private Builder() {
             // Hides constructor.
+        }
+
+        /**
+         * Sets the action profile identifier of this member.
+         *
+         * @param actionProfileId action profile identifier
+         * @return this
+         */
+        public Builder forActionProfile(PiActionProfileId actionProfileId) {
+            this.actionProfileId = actionProfileId;
+            return this;
         }
 
         /**
@@ -161,9 +192,10 @@ public final class PiActionGroupMember implements PiEntity {
          * @return action group member
          */
         public PiActionGroupMember build() {
+            checkNotNull(actionProfileId);
             checkNotNull(id);
             checkNotNull(action);
-            return new PiActionGroupMember(id, action, weight);
+            return new PiActionGroupMember(actionProfileId, id, action, weight);
         }
     }
 }

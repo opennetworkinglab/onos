@@ -20,24 +20,21 @@ import com.google.common.collect.Sets;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.onlab.util.ImmutableByteSequence;
-import org.onlab.util.SharedExecutors;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.inbandtelemetry.api.IntConfig;
 import org.onosproject.inbandtelemetry.api.IntIntent;
 import org.onosproject.inbandtelemetry.api.IntObjective;
 import org.onosproject.inbandtelemetry.api.IntProgrammable;
-import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
-import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleService;
+import org.onosproject.net.flow.TableId;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
@@ -45,7 +42,6 @@ import org.onosproject.net.flow.criteria.IPCriterion;
 import org.onosproject.net.flow.criteria.PiCriterion;
 import org.onosproject.net.flow.criteria.TcpPortCriterion;
 import org.onosproject.net.flow.criteria.UdpPortCriterion;
-import org.onosproject.net.host.HostService;
 import org.onosproject.net.pi.model.PiActionId;
 import org.onosproject.net.pi.model.PiMatchFieldId;
 import org.onosproject.net.pi.model.PiTableId;
@@ -53,11 +49,9 @@ import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiActionParam;
 import org.slf4j.Logger;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -79,14 +73,17 @@ public class IntProgrammableImpl extends AbstractHandlerBehaviour implements Int
             Criterion.Type.TCP_SRC, Criterion.Type.TCP_DST,
             Criterion.Type.IP_PROTO);
 
+    private static final Set<PiTableId> TABLES_TO_CLEANUP = Sets.newHashSet(
+            IntConstants.TBL_INT_INSERT_ID,
+            IntConstants.TBL_INT_INST_0003_ID,
+            IntConstants.TBL_INT_INST_0407_ID,
+            IntConstants.TBL_SET_SOURCE_ID,
+            IntConstants.TBL_SET_SINK_ID,
+            IntConstants.TBL_INT_SOURCE_ID,
+            IntConstants.TBL_GENERATE_REPORT_ID);
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private FlowRuleService flowRuleService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    private DeviceService deviceService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    private HostService hostService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private CoreService coreService;
@@ -134,22 +131,15 @@ public class IntProgrammableImpl extends AbstractHandlerBehaviour implements Int
                     .build();
 
     @Override
-    public void init() {
+    public boolean init() {
         deviceId = this.data().deviceId();
         flowRuleService = handler().get(FlowRuleService.class);
-        deviceService = handler().get(DeviceService.class);
-        hostService = handler().get(HostService.class);
         coreService = handler().get(CoreService.class);
         appId = coreService.getAppId(PIPELINE_APP_NAME);
         if (appId == null) {
             log.warn("Application ID is null. Cannot initialize INT-pipeline.");
-            return;
+            return false;
         }
-
-        Set<PortNumber> hostPorts = deviceService.getPorts(deviceId).stream().filter(port ->
-             hostService.getConnectedHosts(new ConnectPoint(deviceId, port.number())).size() > 0
-        ).map(Port::number).collect(Collectors.toSet());
-        List<FlowRule> flowRules = new ArrayList<>();
 
         // process_int_transit.tb_int_insert
         PiActionParam transitIdParam = new PiActionParam(
@@ -173,58 +163,8 @@ public class IntProgrammableImpl extends AbstractHandlerBehaviour implements Int
                 .forDevice(deviceId)
                 .forTable(IntConstants.TBL_INT_INSERT_ID)
                 .build();
-        flowRules.add(transitFlowRule);
 
-        for (PortNumber portNumber: hostPorts) {
-            // process_set_source_sink.tb_set_source for each host-facing port
-            PiCriterion ingressCriterion = PiCriterion.builder()
-                    .matchExact(BasicConstants.HDR_IN_PORT_ID, portNumber.toLong())
-                    .build();
-            TrafficSelector srcSelector = DefaultTrafficSelector.builder()
-                    .matchPi(ingressCriterion)
-                    .build();
-            PiAction setSourceAct = PiAction.builder()
-                    .withId(IntConstants.ACT_INT_SET_SOURCE_ID)
-                    .build();
-            TrafficTreatment srcTreatment = DefaultTrafficTreatment.builder()
-                    .piTableAction(setSourceAct)
-                    .build();
-            FlowRule srcFlowRule = DefaultFlowRule.builder()
-                    .withSelector(srcSelector)
-                    .withTreatment(srcTreatment)
-                    .fromApp(appId)
-                    .withPriority(DEFAULT_PRIORITY)
-                    .makePermanent()
-                    .forDevice(deviceId)
-                    .forTable(IntConstants.TBL_SET_SOURCE_ID)
-                    .build();
-            flowRules.add(srcFlowRule);
-
-            // process_set_source_sink.tb_set_sink
-            PiCriterion egressCriterion = PiCriterion.builder()
-                    .matchExact(IntConstants.HDR_OUT_PORT_ID, portNumber.toLong())
-                    .build();
-            TrafficSelector sinkSelector = DefaultTrafficSelector.builder()
-                    .matchPi(egressCriterion)
-                    .build();
-            PiAction setSinkAct = PiAction.builder()
-                    .withId(IntConstants.ACT_INT_SET_SINK_ID)
-                    .build();
-            TrafficTreatment sinkTreatment = DefaultTrafficTreatment.builder()
-                    .piTableAction(setSinkAct)
-                    .build();
-            FlowRule sinkFlowRule = DefaultFlowRule.builder()
-                    .withSelector(sinkSelector)
-                    .withTreatment(sinkTreatment)
-                    .fromApp(appId)
-                    .withPriority(DEFAULT_PRIORITY)
-                    .makePermanent()
-                    .forDevice(deviceId)
-                    .forTable(IntConstants.TBL_SET_SINK_ID)
-                    .build();
-            flowRules.add(sinkFlowRule);
-        }
-        flowRules.forEach(flowRule -> flowRuleService.applyFlowRules(flowRule));
+        flowRuleService.applyFlowRules(transitFlowRule);
 
         // Populate tb_int_inst_0003 table
         INST_0003_ACTION_MAP.forEach((matchValue, actionId) ->
@@ -240,32 +180,103 @@ public class IntProgrammableImpl extends AbstractHandlerBehaviour implements Int
                                                                     matchValue,
                                                                     actionId,
                                                                     appId));
+
+        return true;
     }
 
     @Override
-    public CompletableFuture<Boolean> addIntObjective(IntObjective obj) {
+    public boolean setSourcePort(PortNumber port) {
+        // process_set_source_sink.tb_set_source for each host-facing port
+        PiCriterion ingressCriterion = PiCriterion.builder()
+                .matchExact(BasicConstants.HDR_IN_PORT_ID, port.toLong())
+                .build();
+        TrafficSelector srcSelector = DefaultTrafficSelector.builder()
+                .matchPi(ingressCriterion)
+                .build();
+        PiAction setSourceAct = PiAction.builder()
+                .withId(IntConstants.ACT_INT_SET_SOURCE_ID)
+                .build();
+        TrafficTreatment srcTreatment = DefaultTrafficTreatment.builder()
+                .piTableAction(setSourceAct)
+                .build();
+        FlowRule srcFlowRule = DefaultFlowRule.builder()
+                .withSelector(srcSelector)
+                .withTreatment(srcTreatment)
+                .fromApp(appId)
+                .withPriority(DEFAULT_PRIORITY)
+                .makePermanent()
+                .forDevice(deviceId)
+                .forTable(IntConstants.TBL_SET_SOURCE_ID)
+                .build();
+        flowRuleService.applyFlowRules(srcFlowRule);
+        return true;
+    }
+
+    @Override
+    public boolean setSinkPort(PortNumber port) {
+        // process_set_source_sink.tb_set_sink
+        PiCriterion egressCriterion = PiCriterion.builder()
+                .matchExact(IntConstants.HDR_OUT_PORT_ID, port.toLong())
+                .build();
+        TrafficSelector sinkSelector = DefaultTrafficSelector.builder()
+                .matchPi(egressCriterion)
+                .build();
+        PiAction setSinkAct = PiAction.builder()
+                .withId(IntConstants.ACT_INT_SET_SINK_ID)
+                .build();
+        TrafficTreatment sinkTreatment = DefaultTrafficTreatment.builder()
+                .piTableAction(setSinkAct)
+                .build();
+        FlowRule sinkFlowRule = DefaultFlowRule.builder()
+                .withSelector(sinkSelector)
+                .withTreatment(sinkTreatment)
+                .fromApp(appId)
+                .withPriority(DEFAULT_PRIORITY)
+                .makePermanent()
+                .forDevice(deviceId)
+                .forTable(IntConstants.TBL_SET_SINK_ID)
+                .build();
+        flowRuleService.applyFlowRules(sinkFlowRule);
+        return true;
+    }
+
+    @Override
+    public boolean addIntObjective(IntObjective obj) {
         // TODO: support different types of watchlist other than flow watchlist
 
-        return CompletableFuture.supplyAsync(
-                () -> processIntObjective(obj, true),
-                SharedExecutors.getPoolThreadExecutor()
-        );
+        return processIntObjective(obj, true);
     }
 
     @Override
-    public CompletableFuture<Boolean> removeIntObjective(IntObjective obj) {
-        return CompletableFuture.supplyAsync(
-                () -> processIntObjective(obj, false),
-                SharedExecutors.getPoolThreadExecutor()
-        );
+    public boolean removeIntObjective(IntObjective obj) {
+        return processIntObjective(obj, false);
     }
 
     @Override
-    public CompletableFuture<Boolean> setupIntConfig(IntConfig config) {
-        return CompletableFuture.supplyAsync(
-                () -> setupIntReportInternal(config),
-                SharedExecutors.getPoolThreadExecutor()
-        );
+    public boolean setupIntConfig(IntConfig config) {
+        return setupIntReportInternal(config);
+    }
+
+    @Override
+    public void cleanup() {
+        StreamSupport.stream(flowRuleService.getFlowEntries(
+                data().deviceId()).spliterator(), false)
+                .filter(f -> f.table().type() == TableId.Type.PIPELINE_INDEPENDENT)
+                .filter(f -> TABLES_TO_CLEANUP.contains((PiTableId) f.table()))
+                .forEach(flowRuleService::removeFlowRules);
+    }
+
+    @Override
+    public boolean supportsFunctionality(IntFunctionality functionality) {
+        switch (functionality) {
+            case SOURCE:
+            case SINK:
+            case TRANSIT:
+                return true;
+            default:
+                log.warn("Unknown functionality {}", functionality);
+                return false;
+        }
     }
 
     private void populateInstTableEntry(PiTableId tableId, PiMatchFieldId matchFieldId,
@@ -419,12 +430,12 @@ public class IntProgrammableImpl extends AbstractHandlerBehaviour implements Int
     }
 
     /**
-     * Returns a subset of Criterion from given selector,
-     * which is unsupported by this INT pipeline.
+     * Returns a subset of Criterion from given selector, which is unsupported
+     * by this INT pipeline.
      *
      * @param selector a traffic selector
-     * @return a subset of Criterion from given selector, unsupported by this INT pipeline,
-     *  empty if all criteria are supported.
+     * @return a subset of Criterion from given selector, unsupported by this
+     * INT pipeline, empty if all criteria are supported.
      */
     private Set<Criterion> unsupportedSelectors(TrafficSelector selector) {
         return selector.criteria().stream()

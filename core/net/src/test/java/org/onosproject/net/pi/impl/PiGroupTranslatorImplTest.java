@@ -109,6 +109,7 @@ public class PiGroupTranslatorImplTest {
                 .withId(ACT_SET_EGRESS_PORT_WCMP_ID)
                 .withParameter(param).build();
         return PiActionGroupMember.builder()
+                .forActionProfile(ACT_PRF_WCMP_SELECTOR_ID)
                 .withAction(piAction)
                 .withId(PiActionGroupMemberId.of(BASE_MEM_ID + portNum))
                 .withWeight(DEFAULT_MEMBER_WEIGHT)

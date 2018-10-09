@@ -3,7 +3,7 @@
 set -ex
 
 BMV2_CPU_PORT="255"
-BMV2_PP_FLAGS="-DTARGET_BMV2 -DCPU_PORT=${BMV2_CPU_PORT}"
+BMV2_PP_FLAGS="-DTARGET_BMV2 -DCPU_PORT=${BMV2_CPU_PORT} -DWITH_PORT_COUNTER"
 
 PROFILE=$1
 OTHER_PP_FLAGS=$2
@@ -18,3 +18,5 @@ p4c-bm2-ss --arch v1model \
         --p4runtime-file ${OUT_DIR}/p4info.txt \
         --p4runtime-format text \
         fabric.p4
+
+echo ${BMV2_CPU_PORT} > ${OUT_DIR}/cpu_port.txt

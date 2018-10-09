@@ -6,6 +6,7 @@ COMPILE_DEPS = [
     '//pipelines/basic:onos-pipelines-basic',
     '//core/store/serializers:onos-core-serializers',
     '//apps/inbandtelemetry/api:onos-apps-inbandtelemetry-api',
+    '//providers/general/device:onos-providers-general-device',
 ]
 
 TEST_DEPS = [

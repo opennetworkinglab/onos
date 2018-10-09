@@ -39,16 +39,14 @@ final class ActionProfileMemberEncoder {
     /**
      * Encode a PiActionGroupMember to a ActionProfileMember.
      *
-     * @param profileId the PI action group profile ID of members
-     * @param member    the member to encode
-     * @param pipeconf  the pipeconf, as encode spec
+     * @param member   the member to encode
+     * @param pipeconf the pipeconf, as encode spec
      * @return encoded member
      * @throws P4InfoBrowser.NotFoundException can't find action profile from
      *                                         P4Info browser
      * @throws EncodeException                 can't find P4Info from pipeconf
      */
-    static ActionProfileMember encode(PiActionProfileId profileId,
-                                      PiActionGroupMember member,
+    static ActionProfileMember encode(PiActionGroupMember member,
                                       PiPipeconf pipeconf)
             throws P4InfoBrowser.NotFoundException, EncodeException {
 
@@ -66,7 +64,7 @@ final class ActionProfileMemberEncoder {
 
         // action profile id
         P4InfoOuterClass.ActionProfile actionProfile =
-                browser.actionProfiles().getByName(profileId.id());
+                browser.actionProfiles().getByName(member.actionProfile().id());
 
         int actionProfileId = actionProfile.getPreamble().getId();
         actionProfileMemberBuilder.setActionProfileId(actionProfileId);
@@ -95,11 +93,19 @@ final class ActionProfileMemberEncoder {
                                       PiPipeconf pipeconf)
             throws P4InfoBrowser.NotFoundException, EncodeException {
         P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(pipeconf);
-
         if (browser == null) {
             throw new EncodeException(format("Can't get P4 info browser from pipeconf %s", pipeconf));
         }
-        return PiActionGroupMember.builder().withId(PiActionGroupMemberId.of(member.getMemberId()))
+
+        final PiActionProfileId actionProfileId = PiActionProfileId.of(
+                browser.actionProfiles()
+                        .getById(member.getActionProfileId())
+                        .getPreamble()
+                        .getName());
+
+        return PiActionGroupMember.builder()
+                .forActionProfile(actionProfileId)
+                .withId(PiActionGroupMemberId.of(member.getMemberId()))
                 .withWeight(weight)
                 .withAction(decodeActionMsg(member.getAction(), browser))
                 .build();

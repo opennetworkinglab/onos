@@ -45,6 +45,7 @@ public class PiActionGroupTest {
             .build();
 
     private final PiActionGroupMember piActionGroupMember = PiActionGroupMember.builder()
+            .forActionProfile(ACTION_PROF_ID)
             .withId(piActionGroupMemberId)
             .withAction(piAction)
             .withWeight(10)

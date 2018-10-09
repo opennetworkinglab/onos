@@ -20,6 +20,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.grpc.Context;
@@ -30,7 +31,6 @@ import io.grpc.StatusRuntimeException;
 import io.grpc.protobuf.lite.ProtoLiteUtils;
 import io.grpc.stub.ClientCallStreamObserver;
 import io.grpc.stub.StreamObserver;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.util.SharedExecutors;
 import org.onlab.util.Tools;
@@ -42,9 +42,9 @@ import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiTableId;
 import org.onosproject.net.pi.runtime.PiActionGroup;
 import org.onosproject.net.pi.runtime.PiActionGroupMember;
+import org.onosproject.net.pi.runtime.PiActionGroupMemberId;
 import org.onosproject.net.pi.runtime.PiCounterCellData;
 import org.onosproject.net.pi.runtime.PiCounterCellId;
-import org.onosproject.net.pi.runtime.PiEntity;
 import org.onosproject.net.pi.runtime.PiMeterCellConfig;
 import org.onosproject.net.pi.runtime.PiMeterCellId;
 import org.onosproject.net.pi.runtime.PiMulticastGroupEntry;
@@ -80,7 +80,6 @@ import p4.v1.P4RuntimeOuterClass.WriteRequest;
 import java.math.BigInteger;
 import java.net.ConnectException;
 import java.nio.ByteBuffer;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -101,6 +100,7 @@ import java.util.stream.StreamSupport;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
+import static java.util.Collections.singletonList;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 import static p4.v1.P4RuntimeOuterClass.Entity.EntityCase.ACTION_PROFILE_GROUP;
@@ -257,20 +257,22 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
     }
 
     @Override
-    public CompletableFuture<Boolean> writeTableEntries(Collection<PiTableEntry> piTableEntries,
+    public CompletableFuture<Boolean> writeTableEntries(List<PiTableEntry> piTableEntries,
                                                         WriteOperationType opType, PiPipeconf pipeconf) {
         return supplyInContext(() -> doWriteTableEntries(piTableEntries, opType, pipeconf),
                                "writeTableEntries-" + opType.name());
     }
 
     @Override
-    public CompletableFuture<Collection<PiTableEntry>> dumpTable(PiTableId piTableId, PiPipeconf pipeconf) {
-        return supplyInContext(() -> doDumpTable(piTableId, pipeconf), "dumpTable-" + piTableId);
+    public CompletableFuture<List<PiTableEntry>> dumpTables(
+            Set<PiTableId> piTableIds, boolean defaultEntries, PiPipeconf pipeconf) {
+        return supplyInContext(() -> doDumpTables(piTableIds, defaultEntries, pipeconf),
+                               "dumpTables-" + piTableIds.hashCode());
     }
 
     @Override
-    public CompletableFuture<Collection<PiTableEntry>> dumpAllTables(PiPipeconf pipeconf) {
-        return supplyInContext(() -> doDumpTable(null, pipeconf), "dumpAllTables");
+    public CompletableFuture<List<PiTableEntry>> dumpAllTables(PiPipeconf pipeconf) {
+        return supplyInContext(() -> doDumpTables(null, false, pipeconf), "dumpAllTables");
     }
 
     @Override
@@ -279,25 +281,24 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
     }
 
     @Override
-    public CompletableFuture<Collection<PiCounterCellData>> readCounterCells(Set<PiCounterCellId> cellIds,
-                                                                             PiPipeconf pipeconf) {
-        return supplyInContext(() -> doReadCounterCells(cellIds, pipeconf),
+    public CompletableFuture<List<PiCounterCellData>> readCounterCells(Set<PiCounterCellId> cellIds,
+                                                                       PiPipeconf pipeconf) {
+        return supplyInContext(() -> doReadCounterCells(Lists.newArrayList(cellIds), pipeconf),
                                "readCounterCells-" + cellIds.hashCode());
     }
 
     @Override
-    public CompletableFuture<Collection<PiCounterCellData>> readAllCounterCells(Set<PiCounterId> counterIds,
-                                                                                PiPipeconf pipeconf) {
-        return supplyInContext(() -> doReadAllCounterCells(counterIds, pipeconf),
+    public CompletableFuture<List<PiCounterCellData>> readAllCounterCells(Set<PiCounterId> counterIds,
+                                                                          PiPipeconf pipeconf) {
+        return supplyInContext(() -> doReadAllCounterCells(Lists.newArrayList(counterIds), pipeconf),
                                "readAllCounterCells-" + counterIds.hashCode());
     }
 
     @Override
-    public CompletableFuture<Boolean> writeActionGroupMembers(PiActionProfileId profileId,
-                                                              Collection<PiActionGroupMember> members,
+    public CompletableFuture<Boolean> writeActionGroupMembers(List<PiActionGroupMember> members,
                                                               WriteOperationType opType,
                                                               PiPipeconf pipeconf) {
-        return supplyInContext(() -> doWriteActionGroupMembers(profileId, members, opType, pipeconf),
+        return supplyInContext(() -> doWriteActionGroupMembers(members, opType, pipeconf),
                                "writeActionGroupMembers-" + opType.name());
     }
 
@@ -311,14 +312,31 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
     }
 
     @Override
-    public CompletableFuture<Collection<PiActionGroup>> dumpGroups(PiActionProfileId actionProfileId,
-                                                                   PiPipeconf pipeconf) {
+    public CompletableFuture<List<PiActionGroup>> dumpGroups(PiActionProfileId actionProfileId,
+                                                             PiPipeconf pipeconf) {
         return supplyInContext(() -> doDumpGroups(actionProfileId, pipeconf),
                                "dumpGroups-" + actionProfileId.id());
     }
 
     @Override
-    public CompletableFuture<Boolean> writeMeterCells(Collection<PiMeterCellConfig> cellIds, PiPipeconf pipeconf) {
+    public CompletableFuture<List<PiActionGroupMemberId>> dumpActionProfileMemberIds(
+            PiActionProfileId actionProfileId, PiPipeconf pipeconf) {
+        return supplyInContext(() -> doDumpActionProfileMemberIds(actionProfileId, pipeconf),
+                               "dumpActionProfileMemberIds-" + actionProfileId.id());
+    }
+
+    @Override
+    public CompletableFuture<List<PiActionGroupMemberId>> removeActionProfileMembers(
+            PiActionProfileId actionProfileId,
+            List<PiActionGroupMemberId> memberIds,
+            PiPipeconf pipeconf) {
+        return supplyInContext(
+                () -> doRemoveActionProfileMembers(actionProfileId, memberIds, pipeconf),
+                "cleanupActionProfileMembers-" + actionProfileId.id());
+    }
+
+    @Override
+    public CompletableFuture<Boolean> writeMeterCells(List<PiMeterCellConfig> cellIds, PiPipeconf pipeconf) {
 
         return supplyInContext(() -> doWriteMeterCells(cellIds, pipeconf),
                                "writeMeterCells");
@@ -326,29 +344,29 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
 
     @Override
     public CompletableFuture<Boolean> writePreMulticastGroupEntries(
-            Collection<PiMulticastGroupEntry> entries,
+            List<PiMulticastGroupEntry> entries,
             WriteOperationType opType) {
         return supplyInContext(() -> doWriteMulticastGroupEntries(entries, opType),
                                "writePreMulticastGroupEntries");
     }
 
     @Override
-    public CompletableFuture<Collection<PiMulticastGroupEntry>> readAllMulticastGroupEntries() {
+    public CompletableFuture<List<PiMulticastGroupEntry>> readAllMulticastGroupEntries() {
         return supplyInContext(this::doReadAllMulticastGroupEntries,
                                "readAllMulticastGroupEntries");
     }
 
     @Override
-    public CompletableFuture<Collection<PiMeterCellConfig>> readMeterCells(Set<PiMeterCellId> cellIds,
-                                                                           PiPipeconf pipeconf) {
-        return supplyInContext(() -> doReadMeterCells(cellIds, pipeconf),
+    public CompletableFuture<List<PiMeterCellConfig>> readMeterCells(Set<PiMeterCellId> cellIds,
+                                                                     PiPipeconf pipeconf) {
+        return supplyInContext(() -> doReadMeterCells(Lists.newArrayList(cellIds), pipeconf),
                                "readMeterCells-" + cellIds.hashCode());
     }
 
     @Override
-    public CompletableFuture<Collection<PiMeterCellConfig>> readAllMeterCells(Set<PiMeterId> meterIds,
-                                                                              PiPipeconf pipeconf) {
-        return supplyInContext(() -> doReadAllMeterCells(meterIds, pipeconf),
+    public CompletableFuture<List<PiMeterCellConfig>> readAllMeterCells(Set<PiMeterId> meterIds,
+                                                                        PiPipeconf pipeconf) {
+        return supplyInContext(() -> doReadAllMeterCells(Lists.newArrayList(meterIds), pipeconf),
                                "readAllMeterCells-" + meterIds.hashCode());
     }
 
@@ -488,13 +506,13 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
         }
     }
 
-    private boolean doWriteTableEntries(Collection<PiTableEntry> piTableEntries, WriteOperationType opType,
+    private boolean doWriteTableEntries(List<PiTableEntry> piTableEntries, WriteOperationType opType,
                                         PiPipeconf pipeconf) {
         if (piTableEntries.size() == 0) {
             return true;
         }
 
-        Collection<Update> updateMsgs;
+        List<Update> updateMsgs;
         try {
             updateMsgs = TableEntryEncoder.encode(piTableEntries, pipeconf)
                     .stream()
@@ -515,43 +533,53 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
         return write(updateMsgs, piTableEntries, opType, "table entry");
     }
 
-    private Collection<PiTableEntry> doDumpTable(PiTableId piTableId, PiPipeconf pipeconf) {
+    private List<PiTableEntry> doDumpTables(
+            Set<PiTableId> piTableIds, boolean defaultEntries, PiPipeconf pipeconf) {
 
-        log.debug("Dumping table {} from {} (pipeconf {})...", piTableId, deviceId, pipeconf.id());
+        log.debug("Dumping tables {} from {} (pipeconf {})...",
+                  piTableIds, deviceId, pipeconf.id());
 
-        int tableId;
-        if (piTableId == null) {
+        Set<Integer> tableIds = Sets.newHashSet();
+        if (piTableIds == null) {
             // Dump all tables.
-            tableId = 0;
+            tableIds.add(0);
         } else {
             P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(pipeconf);
             if (browser == null) {
                 log.warn("Unable to get a P4Info browser for pipeconf {}", pipeconf);
                 return Collections.emptyList();
             }
-            try {
-                tableId = browser.tables().getByName(piTableId.id()).getPreamble().getId();
-            } catch (P4InfoBrowser.NotFoundException e) {
-                log.warn("Unable to dump table: {}", e.getMessage());
-                return Collections.emptyList();
-            }
+            piTableIds.forEach(piTableId -> {
+                try {
+                    tableIds.add(browser.tables().getByName(piTableId.id()).getPreamble().getId());
+                } catch (P4InfoBrowser.NotFoundException e) {
+                    log.warn("Unable to dump table {}: {}", piTableId, e.getMessage());
+                }
+            });
         }
 
-        ReadRequest requestMsg = ReadRequest.newBuilder()
-                .setDeviceId(p4DeviceId)
-                .addEntities(Entity.newBuilder()
-                                     .setTableEntry(TableEntry.newBuilder()
-                                                            .setTableId(tableId)
-                                                            .build())
-                                     .build())
-                .build();
+        if (tableIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        ReadRequest.Builder requestMsgBuilder = ReadRequest.newBuilder()
+                .setDeviceId(p4DeviceId);
+        tableIds.forEach(tableId -> requestMsgBuilder.addEntities(
+                Entity.newBuilder()
+                        .setTableEntry(
+                                TableEntry.newBuilder()
+                                        .setTableId(tableId)
+                                        .setIsDefaultAction(defaultEntries)
+                                        .build())
+                        .build())
+                .build());
 
         Iterator<ReadResponse> responses;
         try {
-            responses = blockingStub.read(requestMsg);
+            responses = blockingStub.read(requestMsgBuilder.build());
         } catch (StatusRuntimeException e) {
             checkGrpcException(e);
-            log.warn("Unable to dump table {} from {}: {}", piTableId, deviceId, e.getMessage());
+            log.warn("Unable to dump tables from {}: {}", deviceId, e.getMessage());
             return Collections.emptyList();
         }
 
@@ -564,7 +592,8 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
                 .map(Entity::getTableEntry)
                 .collect(Collectors.toList());
 
-        log.debug("Retrieved {} entries from table {} on {}...", tableEntryMsgs.size(), piTableId, deviceId);
+        log.debug("Retrieved {} entries from {} tables on {}...",
+                  tableEntryMsgs.size(), tableIds.size(), deviceId);
 
         return TableEntryEncoder.decode(tableEntryMsgs, pipeconf);
     }
@@ -633,22 +662,22 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
         isClientMaster.set(isMaster);
     }
 
-    private Collection<PiCounterCellData> doReadAllCounterCells(
-            Collection<PiCounterId> counterIds, PiPipeconf pipeconf) {
+    private List<PiCounterCellData> doReadAllCounterCells(
+            List<PiCounterId> counterIds, PiPipeconf pipeconf) {
         return doReadCounterEntities(
                 CounterEntryCodec.readAllCellsEntities(counterIds, pipeconf),
                 pipeconf);
     }
 
-    private Collection<PiCounterCellData> doReadCounterCells(
-            Collection<PiCounterCellId> cellIds, PiPipeconf pipeconf) {
+    private List<PiCounterCellData> doReadCounterCells(
+            List<PiCounterCellId> cellIds, PiPipeconf pipeconf) {
         return doReadCounterEntities(
                 CounterEntryCodec.encodePiCounterCellIds(cellIds, pipeconf),
                 pipeconf);
     }
 
-    private Collection<PiCounterCellData> doReadCounterEntities(
-            Collection<Entity> counterEntities, PiPipeconf pipeconf) {
+    private List<PiCounterCellData> doReadCounterEntities(
+            List<Entity> counterEntities, PiPipeconf pipeconf) {
 
         if (counterEntities.size() == 0) {
             return Collections.emptyList();
@@ -676,13 +705,13 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
         return CounterEntryCodec.decodeCounterEntities(entities, pipeconf);
     }
 
-    private boolean doWriteActionGroupMembers(PiActionProfileId profileId, Collection<PiActionGroupMember> members,
+    private boolean doWriteActionGroupMembers(List<PiActionGroupMember> members,
                                               WriteOperationType opType, PiPipeconf pipeconf) {
-        final Collection<ActionProfileMember> actionProfileMembers = Lists.newArrayList();
+        final List<ActionProfileMember> actionProfileMembers = Lists.newArrayList();
 
         for (PiActionGroupMember member : members) {
             try {
-                actionProfileMembers.add(ActionProfileMemberEncoder.encode(profileId, member, pipeconf));
+                actionProfileMembers.add(ActionProfileMemberEncoder.encode(member, pipeconf));
             } catch (EncodeException | P4InfoBrowser.NotFoundException e) {
                 log.warn("Unable to encode group member, aborting {} operation: {} [{}]",
                          opType.name(), e.getMessage(), member.toString());
@@ -690,7 +719,7 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
             }
         }
 
-        final Collection<Update> updateMsgs = actionProfileMembers.stream()
+        final List<Update> updateMsgs = actionProfileMembers.stream()
                 .map(actionProfileMember ->
                              Update.newBuilder()
                                      .setEntity(Entity.newBuilder()
@@ -708,14 +737,14 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
         return write(updateMsgs, members, opType, "group member");
     }
 
-    private Collection<PiActionGroup> doDumpGroups(PiActionProfileId piActionProfileId, PiPipeconf pipeconf) {
+    private List<PiActionGroup> doDumpGroups(PiActionProfileId piActionProfileId, PiPipeconf pipeconf) {
         log.debug("Dumping groups from action profile {} from {} (pipeconf {})...",
                   piActionProfileId.id(), deviceId, pipeconf.id());
 
         final P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(pipeconf);
         if (browser == null) {
             log.warn("Unable to get a P4Info browser for pipeconf {}, aborting dump action profile", pipeconf);
-            return Collections.emptySet();
+            return Collections.emptyList();
         }
 
         final int actionProfileId;
@@ -727,7 +756,7 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
                     .getId();
         } catch (P4InfoBrowser.NotFoundException e) {
             log.warn("Unable to dump groups: {}", e.getMessage());
-            return Collections.emptySet();
+            return Collections.emptyList();
         }
 
         // Prepare read request to read all groups from the given action profile.
@@ -748,7 +777,7 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
         } catch (StatusRuntimeException e) {
             checkGrpcException(e);
             log.warn("Unable to dump action profile {} from {}: {}", piActionProfileId, deviceId, e.getMessage());
-            return Collections.emptySet();
+            return Collections.emptyList();
         }
 
         final List<ActionProfileGroup> groupMsgs = Tools.stream(() -> groupResponses)
@@ -833,6 +862,104 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
                 .collect(Collectors.toList());
     }
 
+    private List<PiActionGroupMemberId> doDumpActionProfileMemberIds(
+            PiActionProfileId actionProfileId, PiPipeconf pipeconf) {
+
+        final P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(pipeconf);
+        if (browser == null) {
+            log.warn("Unable to get a P4Info browser for pipeconf {}, " +
+                             "aborting cleanup of action profile members",
+                     pipeconf);
+            return Collections.emptyList();
+        }
+
+        final int p4ActProfId;
+        try {
+            p4ActProfId = browser
+                    .actionProfiles()
+                    .getByName(actionProfileId.id())
+                    .getPreamble()
+                    .getId();
+        } catch (P4InfoBrowser.NotFoundException e) {
+            log.warn("Unable to cleanup action profile members: {}", e.getMessage());
+            return Collections.emptyList();
+        }
+
+        final ReadRequest memberRequestMsg = ReadRequest.newBuilder()
+                .setDeviceId(p4DeviceId)
+                .addEntities(Entity.newBuilder().setActionProfileMember(
+                        ActionProfileMember.newBuilder()
+                                .setActionProfileId(p4ActProfId)
+                                .build()).build())
+                .build();
+
+        // Read members.
+        final Iterator<ReadResponse> memberResponses;
+        try {
+            memberResponses = blockingStub.read(memberRequestMsg);
+        } catch (StatusRuntimeException e) {
+            checkGrpcException(e);
+            log.warn("Unable to read members of action profile {} from {}: {}",
+                     actionProfileId, deviceId, e.getMessage());
+            return Collections.emptyList();
+        }
+
+        return Tools.stream(() -> memberResponses)
+                .map(ReadResponse::getEntitiesList)
+                .flatMap(List::stream)
+                .filter(e -> e.getEntityCase() == ACTION_PROFILE_MEMBER)
+                .map(Entity::getActionProfileMember)
+                // Perhaps not needed, but better to double check to avoid
+                // removing members of other groups.
+                .filter(m -> m.getActionProfileId() == p4ActProfId)
+                .map(ActionProfileMember::getMemberId)
+                .map(PiActionGroupMemberId::of)
+                .collect(Collectors.toList());
+    }
+
+    private List<PiActionGroupMemberId> doRemoveActionProfileMembers(
+            PiActionProfileId actionProfileId,
+            List<PiActionGroupMemberId> memberIds,
+            PiPipeconf pipeconf) {
+
+        if (memberIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        final P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(pipeconf);
+        if (browser == null) {
+            log.warn("Unable to get a P4Info browser for pipeconf {}, " +
+                             "aborting cleanup of action profile members",
+                     pipeconf);
+            return Collections.emptyList();
+        }
+
+        final int p4ActProfId;
+        try {
+            p4ActProfId = browser.actionProfiles()
+                    .getByName(actionProfileId.id()).getPreamble().getId();
+        } catch (P4InfoBrowser.NotFoundException e) {
+            log.warn("Unable to cleanup action profile members: {}", e.getMessage());
+            return Collections.emptyList();
+        }
+
+        final List<Update> updateMsgs = memberIds.stream()
+                .map(m -> ActionProfileMember.newBuilder()
+                        .setActionProfileId(p4ActProfId)
+                        .setMemberId(m.id()).build())
+                .map(m -> Entity.newBuilder().setActionProfileMember(m).build())
+                .map(e -> Update.newBuilder().setEntity(e)
+                        .setType(Update.Type.DELETE).build())
+                .collect(Collectors.toList());
+
+        log.debug("Removing {} members of action profile '{}'...",
+                  memberIds.size(), actionProfileId);
+
+        return writeAndReturnSuccessEntities(
+                updateMsgs, memberIds, WriteOperationType.DELETE,
+                "action profile members");
+    }
+
     private boolean doWriteActionGroup(PiActionGroup group, WriteOperationType opType, PiPipeconf pipeconf) {
         final ActionProfileGroup actionProfileGroup;
         try {
@@ -849,20 +976,20 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
                 .setType(UPDATE_TYPES.get(opType))
                 .build();
 
-        return write(Collections.singleton(updateMsg), Collections.singleton(group),
+        return write(singletonList(updateMsg), singletonList(group),
                      opType, "group");
     }
 
-    private Collection<PiMeterCellConfig> doReadAllMeterCells(
-            Collection<PiMeterId> meterIds, PiPipeconf pipeconf) {
+    private List<PiMeterCellConfig> doReadAllMeterCells(
+            List<PiMeterId> meterIds, PiPipeconf pipeconf) {
         return doReadMeterEntities(MeterEntryCodec.readAllCellsEntities(
                 meterIds, pipeconf), pipeconf);
     }
 
-    private Collection<PiMeterCellConfig> doReadMeterCells(
-            Collection<PiMeterCellId> cellIds, PiPipeconf pipeconf) {
+    private List<PiMeterCellConfig> doReadMeterCells(
+            List<PiMeterCellId> cellIds, PiPipeconf pipeconf) {
 
-        final Collection<PiMeterCellConfig> piMeterCellConfigs = cellIds.stream()
+        final List<PiMeterCellConfig> piMeterCellConfigs = cellIds.stream()
                 .map(cellId -> PiMeterCellConfig.builder()
                         .withMeterCellId(cellId)
                         .build())
@@ -872,8 +999,8 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
                 piMeterCellConfigs, pipeconf), pipeconf);
     }
 
-    private Collection<PiMeterCellConfig> doReadMeterEntities(
-            Collection<Entity> entitiesToRead, PiPipeconf pipeconf) {
+    private List<PiMeterCellConfig> doReadMeterEntities(
+            List<Entity> entitiesToRead, PiPipeconf pipeconf) {
 
         if (entitiesToRead.size() == 0) {
             return Collections.emptyList();
@@ -903,9 +1030,9 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
         return MeterEntryCodec.decodeMeterEntities(responseEntities, pipeconf);
     }
 
-    private boolean doWriteMeterCells(Collection<PiMeterCellConfig> cellConfigs, PiPipeconf pipeconf) {
+    private boolean doWriteMeterCells(List<PiMeterCellConfig> cellConfigs, PiPipeconf pipeconf) {
 
-        Collection<Update> updateMsgs = MeterEntryCodec.encodePiMeterCellConfigs(cellConfigs, pipeconf)
+        List<Update> updateMsgs = MeterEntryCodec.encodePiMeterCellConfigs(cellConfigs, pipeconf)
                 .stream()
                 .map(meterEntryMsg ->
                              Update.newBuilder()
@@ -922,7 +1049,7 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
     }
 
     private boolean doWriteMulticastGroupEntries(
-            Collection<PiMulticastGroupEntry> entries,
+            List<PiMulticastGroupEntry> entries,
             WriteOperationType opType) {
 
         final List<Update> updateMsgs = entries.stream()
@@ -941,7 +1068,7 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
         return write(updateMsgs, entries, opType, "multicast group entry");
     }
 
-    private Collection<PiMulticastGroupEntry> doReadAllMulticastGroupEntries() {
+    private List<PiMulticastGroupEntry> doReadAllMulticastGroupEntries() {
 
         final Entity entity = Entity.newBuilder()
                 .setPacketReplicationEngineEntry(
@@ -985,18 +1112,24 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
         return mcEntries;
     }
 
-    private <E extends PiEntity> boolean write(Collection<Update> updates,
-                                               Collection<E> writeEntities,
-                                               WriteOperationType opType,
-                                               String entryType) {
-        try {
+    private <T> boolean write(List<Update> updates,
+                              List<T> writeEntities,
+                              WriteOperationType opType,
+                              String entryType) {
+        // True if all entities were successfully written.
+        return writeAndReturnSuccessEntities(updates, writeEntities, opType,
+                                             entryType).size() == writeEntities.size();
+    }
 
+    private <T> List<T> writeAndReturnSuccessEntities(
+            List<Update> updates, List<T> writeEntities,
+            WriteOperationType opType, String entryType) {
+        try {
             //noinspection ResultOfMethodCallIgnored
             blockingStub.write(writeRequest(updates));
-            return true;
+            return writeEntities;
         } catch (StatusRuntimeException e) {
-            checkAndLogWriteErrors(writeEntities, e, opType, entryType);
-            return false;
+            return checkAndLogWriteErrors(writeEntities, e, opType, entryType);
         }
     }
 
@@ -1023,8 +1156,9 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
         return null;
     }
 
-    private <E extends PiEntity> void checkAndLogWriteErrors(
-            Collection<E> writeEntities, StatusRuntimeException ex,
+    // Returns the collection of succesfully write entities.
+    private <T> List<T> checkAndLogWriteErrors(
+            List<T> writeEntities, StatusRuntimeException ex,
             WriteOperationType opType, String entryType) {
 
         checkGrpcException(ex);
@@ -1034,33 +1168,35 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
         if (errors.isEmpty()) {
             final String description = ex.getStatus().getDescription();
             log.warn("Unable to {} {} {}(s) on {}: {}",
-                 opType.name(), writeEntities.size(), entryType, deviceId,
-                 ex.getStatus().getCode().name(),
+                     opType.name(), writeEntities.size(), entryType, deviceId,
+                     ex.getStatus().getCode().name(),
                      description == null ? "" : " - " + description);
-            return;
+            return Collections.emptyList();
         }
 
-        // FIXME: we are assuming entities is an ordered collection, e.g. a list,
-        // and that errors are reported in the same order as the corresponding
-        // written entity. Write RPC methods should be refactored to accept an
-        // ordered list of entities, instead of a collection.
         if (errors.size() == writeEntities.size()) {
-            Iterator<E> entityIterator = writeEntities.iterator();
-            errors.stream()
-                    .map(e -> ImmutablePair.of(e, entityIterator.next()))
-                    .filter(p -> p.left.getCanonicalCode() != Status.OK.getCode().value())
-                    .forEach(p -> log.warn("Unable to {} {} on {}: {} [{}]",
-                                           opType.name(), entryType, deviceId,
-                                           parseP4Error(p.getLeft()),
-                                           p.getRight().toString()));
+            List<T> okEntities = Lists.newArrayList();
+            Iterator<T> entityIterator = writeEntities.iterator();
+            for (P4RuntimeOuterClass.Error error : errors) {
+                T entity = entityIterator.next();
+                if (error.getCanonicalCode() != Status.OK.getCode().value()) {
+                    log.warn("Unable to {} {} on {}: {} [{}]",
+                             opType.name(), entryType, deviceId,
+                             parseP4Error(error), entity.toString());
+                } else {
+                    okEntities.add(entity);
+                }
+            }
+            return okEntities;
         } else {
             log.warn("Unable to reconcile error details to updates " +
-                              "(sent {} updates, but device returned {} errors)",
-                      entryType, writeEntities.size(), errors.size());
+                             "(sent {} updates, but device returned {} errors)",
+                     entryType, writeEntities.size(), errors.size());
             errors.stream()
                     .filter(err -> err.getCanonicalCode() != Status.OK.getCode().value())
                     .forEach(err -> log.warn("Unable to {} {} (unknown): {}",
                                              opType.name(), entryType, parseP4Error(err)));
+            return Collections.emptyList();
         }
     }
 
@@ -1085,7 +1221,6 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
                 })
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
-
     }
 
     private String parseP4Error(P4RuntimeOuterClass.Error err) {

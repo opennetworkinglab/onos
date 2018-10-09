@@ -45,6 +45,8 @@ public final class FabricConstants {
             PiMatchFieldId.of("hdr.vlan_tag.is_valid");
     public static final PiMatchFieldId HDR_ICMP_ICMP_CODE =
             PiMatchFieldId.of("hdr.icmp.icmp_code");
+    public static final PiMatchFieldId HDR_INT_HEADER_IS_VALID =
+            PiMatchFieldId.of("hdr.int_header.is_valid");
     public static final PiMatchFieldId HDR_ETHERNET_SRC_ADDR =
             PiMatchFieldId.of("hdr.ethernet.src_addr");
     public static final PiMatchFieldId HDR_ICMP_ICMP_TYPE =
@@ -82,36 +84,36 @@ public final class FabricConstants {
             PiTableId.of("FabricIngress.forwarding.acl");
     public static final PiTableId FABRIC_INGRESS_NEXT_HASHED =
             PiTableId.of("FabricIngress.next.hashed");
+    public static final PiTableId FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_SOURCE_TB_INT_SOURCE =
+            PiTableId.of("FabricEgress.process_int_main.process_int_source.tb_int_source");
     public static final PiTableId FABRIC_INGRESS_FORWARDING_MPLS =
             PiTableId.of("FabricIngress.forwarding.mpls");
     public static final PiTableId FABRIC_INGRESS_PROCESS_SET_SOURCE_SINK_TB_SET_SINK =
             PiTableId.of("FabricIngress.process_set_source_sink.tb_set_sink");
     public static final PiTableId FABRIC_INGRESS_FORWARDING_ROUTING_V4 =
             PiTableId.of("FabricIngress.forwarding.routing_v4");
+    public static final PiTableId FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_TB_INT_INST_0407 =
+            PiTableId.of("FabricEgress.process_int_main.process_int_transit.tb_int_inst_0407");
+    public static final PiTableId FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_TB_INT_INSERT =
+            PiTableId.of("FabricEgress.process_int_main.process_int_transit.tb_int_insert");
     public static final PiTableId FABRIC_INGRESS_NEXT_SIMPLE =
             PiTableId.of("FabricIngress.next.simple");
-    public static final PiTableId FABRIC_EGRESS_PROCESS_INT_SOURCE_TB_INT_SOURCE =
-            PiTableId.of("FabricEgress.process_int_source.tb_int_source");
-    public static final PiTableId FABRIC_EGRESS_PROCESS_INT_TRANSIT_TB_INT_INST_0003 =
-            PiTableId.of("FabricEgress.process_int_transit.tb_int_inst_0003");
-    public static final PiTableId FABRIC_EGRESS_PROCESS_INT_TRANSIT_TB_INT_INSERT =
-            PiTableId.of("FabricEgress.process_int_transit.tb_int_insert");
     public static final PiTableId FABRIC_INGRESS_FILTERING_FWD_CLASSIFIER =
             PiTableId.of("FabricIngress.filtering.fwd_classifier");
     public static final PiTableId FABRIC_INGRESS_PROCESS_SET_SOURCE_SINK_TB_SET_SOURCE =
             PiTableId.of("FabricIngress.process_set_source_sink.tb_set_source");
-    public static final PiTableId FABRIC_EGRESS_PROCESS_INT_REPORT_TB_GENERATE_REPORT =
-            PiTableId.of("FabricEgress.process_int_report.tb_generate_report");
     public static final PiTableId FABRIC_INGRESS_FORWARDING_BRIDGING =
             PiTableId.of("FabricIngress.forwarding.bridging");
     public static final PiTableId FABRIC_INGRESS_SPGW_INGRESS_S1U_FILTER_TABLE =
             PiTableId.of("FabricIngress.spgw_ingress.s1u_filter_table");
+    public static final PiTableId FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_TB_INT_INST_0003 =
+            PiTableId.of("FabricEgress.process_int_main.process_int_transit.tb_int_inst_0003");
     public static final PiTableId FABRIC_INGRESS_FILTERING_INGRESS_PORT_VLAN =
             PiTableId.of("FabricIngress.filtering.ingress_port_vlan");
+    public static final PiTableId FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_REPORT_TB_GENERATE_REPORT =
+            PiTableId.of("FabricEgress.process_int_main.process_int_report.tb_generate_report");
     public static final PiTableId FABRIC_INGRESS_SPGW_INGRESS_DL_SESS_LOOKUP =
             PiTableId.of("FabricIngress.spgw_ingress.dl_sess_lookup");
-    public static final PiTableId FABRIC_EGRESS_PROCESS_INT_TRANSIT_TB_INT_INST_0407 =
-            PiTableId.of("FabricEgress.process_int_transit.tb_int_inst_0407");
     public static final PiTableId FABRIC_EGRESS_EGRESS_NEXT_EGRESS_VLAN =
             PiTableId.of("FabricEgress.egress_next.egress_vlan");
     public static final PiTableId FABRIC_INGRESS_NEXT_MULTICAST =
@@ -140,22 +142,16 @@ public final class FabricConstants {
             PiCounterId.of("FabricIngress.forwarding.routing_v4_counter");
     public static final PiCounterId FABRIC_INGRESS_PROCESS_SET_SOURCE_SINK_COUNTER_SET_SOURCE =
             PiCounterId.of("FabricIngress.process_set_source_sink.counter_set_source");
-    public static final PiCounterId FABRIC_EGRESS_PROCESS_INT_TRANSIT_COUNTER_INT_INST_0407 =
-            PiCounterId.of("FabricEgress.process_int_transit.counter_int_inst_0407");
+    public static final PiCounterId FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_SOURCE_COUNTER_INT_SOURCE =
+            PiCounterId.of("FabricEgress.process_int_main.process_int_source.counter_int_source");
     public static final PiCounterId FABRIC_INGRESS_SPGW_INGRESS_UE_COUNTER =
             PiCounterId.of("FabricIngress.spgw_ingress.ue_counter");
-    public static final PiCounterId FABRIC_EGRESS_EGRESS_NEXT_EGRESS_VLAN_COUNTER =
-            PiCounterId.of("FabricEgress.egress_next.egress_vlan_counter");
     public static final PiCounterId FABRIC_INGRESS_NEXT_SIMPLE_COUNTER =
             PiCounterId.of("FabricIngress.next.simple_counter");
     public static final PiCounterId FABRIC_INGRESS_PROCESS_SET_SOURCE_SINK_COUNTER_SET_SINK =
             PiCounterId.of("FabricIngress.process_set_source_sink.counter_set_sink");
-    public static final PiCounterId FABRIC_EGRESS_PROCESS_INT_TRANSIT_COUNTER_INT_INSERT =
-            PiCounterId.of("FabricEgress.process_int_transit.counter_int_insert");
-    public static final PiCounterId FABRIC_EGRESS_PROCESS_INT_SOURCE_COUNTER_INT_SOURCE =
-            PiCounterId.of("FabricEgress.process_int_source.counter_int_source");
-    public static final PiCounterId FABRIC_EGRESS_PROCESS_INT_TRANSIT_COUNTER_INT_INST_0003 =
-            PiCounterId.of("FabricEgress.process_int_transit.counter_int_inst_0003");
+    public static final PiCounterId FABRIC_EGRESS_EGRESS_NEXT_EGRESS_VLAN_COUNTER =
+            PiCounterId.of("FabricEgress.egress_next.egress_vlan_counter");
     public static final PiCounterId FABRIC_INGRESS_FORWARDING_ROUTING_V6_COUNTER =
             PiCounterId.of("FabricIngress.forwarding.routing_v6_counter");
     public static final PiCounterId FABRIC_INGRESS_FILTERING_INGRESS_PORT_VLAN_COUNTER =
@@ -165,145 +161,129 @@ public final class FabricConstants {
     public static final PiCounterId FABRIC_INGRESS_NEXT_HASHED_COUNTER =
             PiCounterId.of("FabricIngress.next.hashed_counter");
     // Action IDs
-    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I14 =
-            PiActionId.of("FabricEgress.process_int_transit.int_set_header_0003_i14");
     public static final PiActionId FABRIC_INGRESS_FORWARDING_PUNT_TO_CPU =
             PiActionId.of("FabricIngress.forwarding.punt_to_cpu");
-    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I12 =
-            PiActionId.of("FabricEgress.process_int_transit.int_set_header_0003_i12");
-    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I13 =
-            PiActionId.of("FabricEgress.process_int_transit.int_set_header_0003_i13");
-    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I10 =
-            PiActionId.of("FabricEgress.process_int_transit.int_set_header_0003_i10");
+    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I5 =
+            PiActionId.of("FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i5");
     public static final PiActionId FABRIC_INGRESS_NEXT_MPLS_ROUTING_V6_SIMPLE =
             PiActionId.of("FabricIngress.next.mpls_routing_v6_simple");
+    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I12 =
+            PiActionId.of("FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i12");
     public static final PiActionId FABRIC_INGRESS_FORWARDING_NOP_ROUTING_V4 =
             PiActionId.of("FabricIngress.forwarding.nop_routing_v4");
-    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_UPDATE_TOTAL_HOP_CNT =
-            PiActionId.of("FabricEgress.process_int_transit.int_update_total_hop_cnt");
+    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I10 =
+            PiActionId.of("FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i10");
+    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I11 =
+            PiActionId.of("FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i11");
     public static final PiActionId FABRIC_INGRESS_FILTERING_NOP_INGRESS_PORT_VLAN =
             PiActionId.of("FabricIngress.filtering.nop_ingress_port_vlan");
-    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I14 =
-            PiActionId.of("FabricEgress.process_int_transit.int_set_header_0407_i14");
+    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I14 =
+            PiActionId.of("FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i14");
     public static final PiActionId FABRIC_INGRESS_FORWARDING_SET_NEXT_ID_BRIDGING =
             PiActionId.of("FabricIngress.forwarding.set_next_id_bridging");
-    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I15 =
-            PiActionId.of("FabricEgress.process_int_transit.int_set_header_0003_i15");
-    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I2 =
-            PiActionId.of("FabricEgress.process_int_transit.int_set_header_0407_i2");
-    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I5 =
-            PiActionId.of("FabricEgress.process_int_transit.int_set_header_0003_i5");
-    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I4 =
-            PiActionId.of("FabricEgress.process_int_transit.int_set_header_0003_i4");
-    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_SINK_INT_SINK =
-            PiActionId.of("FabricEgress.process_int_sink.int_sink");
-    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I3 =
-            PiActionId.of("FabricEgress.process_int_transit.int_set_header_0003_i3");
-    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I13 =
-            PiActionId.of("FabricEgress.process_int_transit.int_set_header_0407_i13");
-    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I7 =
-            PiActionId.of("FabricEgress.process_int_transit.int_set_header_0407_i7");
+    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_SOURCE_INT_SOURCE_DSCP =
+            PiActionId.of("FabricEgress.process_int_main.process_int_source.int_source_dscp");
+    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I0 =
+            PiActionId.of("FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i0");
+    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INIT_METADATA =
+            PiActionId.of("FabricEgress.process_int_main.process_int_transit.init_metadata");
+    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I14 =
+            PiActionId.of("FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i14");
+    public static final PiActionId FABRIC_EGRESS_EGRESS_NEXT_POP_VLAN =
+            PiActionId.of("FabricEgress.egress_next.pop_vlan");
+    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I4 =
+            PiActionId.of("FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i4");
+    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I2 =
+            PiActionId.of("FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i2");
     public static final PiActionId FABRIC_INGRESS_NEXT_SET_VLAN =
             PiActionId.of("FabricIngress.next.set_vlan");
-    public static final PiActionId FABRIC_EGRESS_PKT_IO_EGRESS_POP_VLAN =
-            PiActionId.of("FabricEgress.pkt_io_egress.pop_vlan");
-    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I8 =
-            PiActionId.of("FabricEgress.process_int_transit.int_set_header_0407_i8");
-    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I9 =
-            PiActionId.of("FabricEgress.process_int_transit.int_set_header_0407_i9");
+    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I4 =
+            PiActionId.of("FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i4");
     public static final PiActionId FABRIC_EGRESS_SPGW_EGRESS_GTPU_ENCAP =
             PiActionId.of("FabricEgress.spgw_egress.gtpu_encap");
-    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I4 =
-            PiActionId.of("FabricEgress.process_int_transit.int_set_header_0407_i4");
-    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I5 =
-            PiActionId.of("FabricEgress.process_int_transit.int_set_header_0407_i5");
+    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I12 =
+            PiActionId.of("FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i12");
+    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I13 =
+            PiActionId.of("FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i13");
     public static final PiActionId FABRIC_INGRESS_FILTERING_SET_VLAN =
             PiActionId.of("FabricIngress.filtering.set_vlan");
-    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I11 =
-            PiActionId.of("FabricEgress.process_int_transit.int_set_header_0003_i11");
-    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I0 =
-            PiActionId.of("FabricEgress.process_int_transit.int_set_header_0407_i0");
-    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I1 =
-            PiActionId.of("FabricEgress.process_int_transit.int_set_header_0407_i1");
+    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I11 =
+            PiActionId.of("FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i11");
+    public static final PiActionId FABRIC_EGRESS_PKT_IO_EGRESS_POP_VLAN =
+            PiActionId.of("FabricEgress.pkt_io_egress.pop_vlan");
     public static final PiActionId FABRIC_INGRESS_NEXT_L3_ROUTING_SIMPLE =
             PiActionId.of("FabricIngress.next.l3_routing_simple");
-    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I3 =
-            PiActionId.of("FabricEgress.process_int_transit.int_set_header_0407_i3");
+    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I15 =
+            PiActionId.of("FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i15");
     public static final PiActionId FABRIC_INGRESS_NEXT_SET_MCAST_GROUP =
             PiActionId.of("FabricIngress.next.set_mcast_group");
     public static final PiActionId FABRIC_INGRESS_FORWARDING_SET_NEXT_ID_ROUTING_V4 =
             PiActionId.of("FabricIngress.forwarding.set_next_id_routing_v4");
-    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_OUTER_ENCAP_INT_UPDATE_UDP =
-            PiActionId.of("FabricEgress.process_int_outer_encap.int_update_udp");
     public static final PiActionId FABRIC_INGRESS_FORWARDING_SET_NEXT_ID_ROUTING_V6 =
             PiActionId.of("FabricIngress.forwarding.set_next_id_routing_v6");
+    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I13 =
+            PiActionId.of("FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i13");
     public static final PiActionId FABRIC_INGRESS_SPGW_INGRESS_SET_DL_SESS_INFO =
             PiActionId.of("FabricIngress.spgw_ingress.set_dl_sess_info");
+    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I7 =
+            PiActionId.of("FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i7");
     public static final PiActionId FABRIC_INGRESS_FILTERING_PUSH_INTERNAL_VLAN =
             PiActionId.of("FabricIngress.filtering.push_internal_vlan");
     public static final PiActionId FABRIC_INGRESS_FORWARDING_CLONE_TO_CPU =
             PiActionId.of("FabricIngress.forwarding.clone_to_cpu");
     public static final PiActionId FABRIC_INGRESS_SPGW_INGRESS_GTPU_DECAP =
             PiActionId.of("FabricIngress.spgw_ingress.gtpu_decap");
-    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I15 =
-            PiActionId.of("FabricEgress.process_int_transit.int_set_header_0407_i15");
-    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I12 =
-            PiActionId.of("FabricEgress.process_int_transit.int_set_header_0407_i12");
     public static final PiActionId FABRIC_INGRESS_FORWARDING_POP_MPLS_AND_NEXT =
             PiActionId.of("FabricIngress.forwarding.pop_mpls_and_next");
-    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I10 =
-            PiActionId.of("FabricEgress.process_int_transit.int_set_header_0407_i10");
-    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I11 =
-            PiActionId.of("FabricEgress.process_int_transit.int_set_header_0407_i11");
     public static final PiActionId DROP_NOW = PiActionId.of("drop_now");
     public static final PiActionId FABRIC_INGRESS_NEXT_L3_ROUTING_HASHED =
             PiActionId.of("FabricIngress.next.l3_routing_hashed");
-    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_SOURCE_INT_SOURCE_DSCP =
-            PiActionId.of("FabricEgress.process_int_source.int_source_dscp");
-    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_REPORT_DO_REPORT_ENCAPSULATION =
-            PiActionId.of("FabricEgress.process_int_report.do_report_encapsulation");
-    public static final PiActionId FABRIC_EGRESS_EGRESS_NEXT_POP_VLAN =
-            PiActionId.of("FabricEgress.egress_next.pop_vlan");
+    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I10 =
+            PiActionId.of("FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i10");
+    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I8 =
+            PiActionId.of("FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i8");
+    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I0 =
+            PiActionId.of("FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i0");
     public static final PiActionId FABRIC_INGRESS_PROCESS_SET_SOURCE_SINK_INT_SET_SINK =
             PiActionId.of("FabricIngress.process_set_source_sink.int_set_sink");
-    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_OUTER_ENCAP_INT_UPDATE_SHIM =
-            PiActionId.of("FabricEgress.process_int_outer_encap.int_update_shim");
+    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_SINK_INT_SINK =
+            PiActionId.of("FabricEgress.process_int_main.process_int_sink.int_sink");
+    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I1 =
+            PiActionId.of("FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i1");
     public static final PiActionId FABRIC_INGRESS_NEXT_MPLS_ROUTING_V4_HASHED =
             PiActionId.of("FabricIngress.next.mpls_routing_v4_hashed");
+    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I1 =
+            PiActionId.of("FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i1");
     public static final PiActionId FABRIC_INGRESS_PROCESS_SET_SOURCE_SINK_INT_SET_SOURCE =
             PiActionId.of("FabricIngress.process_set_source_sink.int_set_source");
+    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I3 =
+            PiActionId.of("FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i3");
     public static final PiActionId NOP = PiActionId.of("nop");
     public static final PiActionId FABRIC_INGRESS_FORWARDING_DROP =
             PiActionId.of("FabricIngress.forwarding.drop");
+    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I6 =
+            PiActionId.of("FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i6");
     public static final PiActionId FABRIC_INGRESS_NEXT_OUTPUT_SIMPLE =
             PiActionId.of("FabricIngress.next.output_simple");
     public static final PiActionId FABRIC_INGRESS_FILTERING_DROP =
             PiActionId.of("FabricIngress.filtering.drop");
-    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_OUTER_ENCAP_INT_UPDATE_IPV4 =
-            PiActionId.of("FabricEgress.process_int_outer_encap.int_update_ipv4");
-    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I8 =
-            PiActionId.of("FabricEgress.process_int_transit.int_set_header_0003_i8");
-    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I9 =
-            PiActionId.of("FabricEgress.process_int_transit.int_set_header_0003_i9");
-    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_SINK_RESTORE_HEADER =
-            PiActionId.of("FabricEgress.process_int_sink.restore_header");
+    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_SINK_RESTORE_HEADER =
+            PiActionId.of("FabricEgress.process_int_main.process_int_sink.restore_header");
+    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I9 =
+            PiActionId.of("FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i9");
     public static final PiActionId FABRIC_INGRESS_FILTERING_SET_FORWARDING_TYPE =
             PiActionId.of("FabricIngress.filtering.set_forwarding_type");
     public static final PiActionId FABRIC_INGRESS_NEXT_SET_VLAN_OUTPUT =
             PiActionId.of("FabricIngress.next.set_vlan_output");
-    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I6 =
-            PiActionId.of("FabricEgress.process_int_transit.int_set_header_0003_i6");
-    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I7 =
-            PiActionId.of("FabricEgress.process_int_transit.int_set_header_0003_i7");
-    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I0 =
-            PiActionId.of("FabricEgress.process_int_transit.int_set_header_0003_i0");
-    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I1 =
-            PiActionId.of("FabricEgress.process_int_transit.int_set_header_0003_i1");
-    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I2 =
-            PiActionId.of("FabricEgress.process_int_transit.int_set_header_0003_i2");
+    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_REPORT_DO_REPORT_ENCAPSULATION =
+            PiActionId.of("FabricEgress.process_int_main.process_int_report.do_report_encapsulation");
     public static final PiActionId NO_ACTION = PiActionId.of("NoAction");
-    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_TRANSIT =
-            PiActionId.of("FabricEgress.process_int_transit.int_transit");
+    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I8 =
+            PiActionId.of("FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i8");
+    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I9 =
+            PiActionId.of("FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i9");
+    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I15 =
+            PiActionId.of("FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i15");
     public static final PiActionId FABRIC_INGRESS_NEXT_MPLS_ROUTING_V4_SIMPLE =
             PiActionId.of("FabricIngress.next.mpls_routing_v4_simple");
     public static final PiActionId FABRIC_INGRESS_FORWARDING_NOP_ACL =
@@ -312,10 +292,18 @@ public final class FabricConstants {
             PiActionId.of("FabricIngress.next.mpls_routing_v6_hashed");
     public static final PiActionId FABRIC_INGRESS_NEXT_L3_ROUTING_VLAN =
             PiActionId.of("FabricIngress.next.l3_routing_vlan");
+    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I2 =
+            PiActionId.of("FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i2");
+    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I3 =
+            PiActionId.of("FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i3");
     public static final PiActionId FABRIC_INGRESS_FORWARDING_SET_NEXT_ID_ACL =
             PiActionId.of("FabricIngress.forwarding.set_next_id_acl");
-    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_TRANSIT_INT_SET_HEADER_0407_I6 =
-            PiActionId.of("FabricEgress.process_int_transit.int_set_header_0407_i6");
+    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I5 =
+            PiActionId.of("FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i5");
+    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I6 =
+            PiActionId.of("FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i6");
+    public static final PiActionId FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INT_SET_HEADER_0003_I7 =
+            PiActionId.of("FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i7");
     // Action Param IDs
     public static final PiActionParamId DMAC = PiActionParamId.of("dmac");
     public static final PiActionParamId MON_IP = PiActionParamId.of("mon_ip");

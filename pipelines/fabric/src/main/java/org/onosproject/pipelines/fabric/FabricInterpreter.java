@@ -36,12 +36,20 @@ import org.onosproject.net.packet.DefaultInboundPacket;
 import org.onosproject.net.packet.InboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.pi.model.PiMatchFieldId;
+import org.onosproject.net.pi.model.PiPipeconf;
+import org.onosproject.net.pi.model.PiPipeconfId;
 import org.onosproject.net.pi.model.PiPipelineInterpreter;
 import org.onosproject.net.pi.model.PiTableId;
 import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiControlMetadata;
 import org.onosproject.net.pi.runtime.PiPacketOperation;
+import org.onosproject.net.pi.service.PiPipeconfService;
+import org.slf4j.Logger;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.List;
@@ -51,15 +59,20 @@ import java.util.Set;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static org.onlab.util.ImmutableByteSequence.copyFrom;
+import static org.onosproject.net.PortNumber.CONTROLLER;
 import static org.onosproject.net.PortNumber.FLOOD;
 import static org.onosproject.net.flow.instructions.Instruction.Type.OUTPUT;
 import static org.onosproject.net.pi.model.PiPacketOperationType.PACKET_OUT;
+import static org.onosproject.net.pi.model.PiPipeconf.ExtensionType.CPU_PORT_TXT;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Interpreter for fabric pipeline.
  */
 public class FabricInterpreter extends AbstractHandlerBehaviour
         implements PiPipelineInterpreter {
+
+    private final Logger log = getLogger(getClass());
 
     public static final int PORT_BITWIDTH = 9;
 
@@ -132,6 +145,14 @@ public class FabricInterpreter extends AbstractHandlerBehaviour
                     .put(FabricConstants.FABRIC_METADATA_IP_PROTO, Criterion.Type.IP_PROTO)
                     .put(FabricConstants.HDR_ICMP_ICMP_TYPE, Criterion.Type.ICMPV6_TYPE)
                     .put(FabricConstants.HDR_ICMP_ICMP_CODE, Criterion.Type.ICMPV6_CODE)
+                    .build();
+
+    private static final PiAction NOACTION = PiAction.builder().withId(
+            FabricConstants.NO_ACTION).build();
+
+    private static final ImmutableMap<PiTableId, PiAction> DEFAULT_ACTIONS =
+            ImmutableMap.<PiTableId, PiAction>builder()
+                    .put(FabricConstants.FABRIC_INGRESS_FORWARDING_ROUTING_V4, NOACTION)
                     .build();
 
     @Override
@@ -260,6 +281,62 @@ public class FabricInterpreter extends AbstractHandlerBehaviour
             throw new PiInterpreterException(format(
                     "Missing metadata '%s' in packet-in received from '%s': %s",
                     FabricConstants.INGRESS_PORT, deviceId, packetIn));
+        }
+    }
+
+    @Override
+    public Optional<PiAction> getOriginalDefaultAction(PiTableId tableId) {
+        return Optional.ofNullable(DEFAULT_ACTIONS.get(tableId));
+    }
+
+    @Override
+    public Optional<Integer> mapLogicalPortNumber(PortNumber port) {
+        if (!port.equals(CONTROLLER)) {
+            return Optional.empty();
+        }
+        // This is probably brittle, but needed to dynamically get the CPU port
+        // for different platforms.
+        final DeviceId deviceId = data().deviceId();
+        final PiPipeconfService pipeconfService = handler().get(
+                PiPipeconfService.class);
+        final PiPipeconfId pipeconfId = pipeconfService
+                .ofDevice(deviceId).orElse(null);
+        if (pipeconfId == null ||
+                !pipeconfService.getPipeconf(pipeconfId).isPresent()) {
+            log.error("Unable to get pipeconf of {} - BUG?");
+            return Optional.empty();
+        }
+        final PiPipeconf pipeconf = pipeconfService.getPipeconf(pipeconfId).get();
+        if (!pipeconf.extension(CPU_PORT_TXT).isPresent()) {
+            log.error("Missing {} extension from pipeconf {}",
+                      CPU_PORT_TXT, pipeconfId);
+            return Optional.empty();
+        }
+        return Optional.ofNullable(
+                readCpuPort(pipeconf.extension(CPU_PORT_TXT).get(),
+                            pipeconfId));
+    }
+
+    private Integer readCpuPort(InputStream stream, PiPipeconfId pipeconfId) {
+        try {
+            final BufferedReader buff = new BufferedReader(
+                    new InputStreamReader(stream));
+            final String str = buff.readLine();
+            buff.close();
+            if (str == null) {
+                log.error("Empty CPU port file for {}", pipeconfId);
+                return null;
+            }
+            try {
+                return Integer.parseInt(str);
+            } catch (NumberFormatException e) {
+                log.error("Invalid CPU port for {}: {}", pipeconfId, str);
+                return null;
+            }
+        } catch (IOException e) {
+            log.error("Unable to read CPU port file of {}: {}",
+                      pipeconfId, e.getMessage());
+            return null;
         }
     }
 }

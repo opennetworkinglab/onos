@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Striped;
 import org.onlab.util.ItemNotFoundException;
+import org.onlab.util.SharedExecutors;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigRegistry;
@@ -54,6 +55,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 
 import static java.lang.String.format;
@@ -72,6 +74,8 @@ public class PiPipeconfManager implements PiPipeconfService {
 
     private static final String MERGED_DRIVER_SEPARATOR = ":";
     private static final String CFG_SCHEME = "piPipeconf";
+
+    private static final int MISSING_DRIVER_WATCHDOG_INTERVAL = 5; // Seconds.
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected NetworkConfigRegistry cfgService;
@@ -109,6 +113,13 @@ public class PiPipeconfManager implements PiPipeconfService {
         cfgService.registerConfigFactory(configFactory);
         driverAdminService.addListener(driverListener);
         checkMissingMergedDrivers();
+        if (!missingMergedDrivers.isEmpty()) {
+            // Missing drivers should be created upon detecting registration
+            // events of a new pipeconf or a base driver. If, for any reason, we
+            // miss such event, here's a watchdog task.
+            SharedExecutors.getPoolThreadExecutor()
+                    .execute(this::missingDriversWatchdogTask);
+        }
         log.info("Started");
     }
 
@@ -132,7 +143,7 @@ public class PiPipeconfManager implements PiPipeconfService {
         }
         pipeconfs.put(pipeconf.id(), pipeconf);
         log.info("New pipeconf registered: {}", pipeconf.id());
-        executor.execute(() -> mergeAll(pipeconf.id()));
+        executor.execute(() -> attemptMergeAll(pipeconf.id()));
     }
 
     @Override
@@ -304,64 +315,102 @@ public class PiPipeconfManager implements PiPipeconfService {
         }
     }
 
-    private void checkMissingMergedDrivers() {
-        cfgService.getSubjects(DeviceId.class, BasicDeviceConfig.class).stream()
-                .map(d -> cfgService.getConfig(d, BasicDeviceConfig.class))
-                .map(BasicDeviceConfig::driver)
-                .filter(Objects::nonNull)
-                .filter(d -> getDriver(d) == null)
-                .forEach(driverName -> {
-                    final String baseDriverName = getBaseDriverNameFromMerged(driverName);
-                    final PiPipeconfId pipeconfId = getPipeconfIdFromMerged(driverName);
-                    if (baseDriverName == null || pipeconfId == null) {
-                        // Not a merged driver.
-                        return;
-                    }
-                    log.info("Detected missing merged driver: {}", driverName);
-                    missingMergedDrivers.add(driverName);
-                    // Attempt building the driver now if all pieces are present.
-                    // If not, either a driver or pipeconf event will re-trigger
-                    // the merge process.
-                    if (getDriver(baseDriverName) != null
-                            && pipeconfs.containsKey(pipeconfId)) {
-                        mergedDriverName(baseDriverName, pipeconfId);
-                    }
-                });
+    private boolean driverExists(String name) {
+        return getDriver(name) != null;
     }
 
-    private void mergeAll(String baseDriverName) {
+    private void checkMissingMergedDriver(DeviceId deviceId) {
+        final PiPipeconfId pipeconfId = pipeconfMappingStore.getPipeconfId(deviceId);
+        final BasicDeviceConfig cfg = cfgService.getConfig(deviceId, BasicDeviceConfig.class);
+
+        if (pipeconfId == null) {
+            // No pipeconf associated.
+            return;
+        }
+
+        if (cfg == null || cfg.driver() == null) {
+            log.warn("Missing basic device config or driver key in netcfg for " +
+                             "{}, which is odd since it has a " +
+                             "pipeconf associated ({})",
+                     deviceId, pipeconfId);
+            return;
+        }
+
+        final String baseDriverName = cfg.driver();
+        final String mergedDriverName = mergedDriverName(baseDriverName, pipeconfId);
+
+        if (driverExists(mergedDriverName) ||
+                missingMergedDrivers.contains(mergedDriverName)) {
+            // Not missing, or already aware of it missing.
+            return;
+        }
+
+        log.info("Detected missing merged driver: {}", mergedDriverName);
+        missingMergedDrivers.add(mergedDriverName);
+        // Attempt building the driver now if all pieces are present.
+        // If not, either a driver or pipeconf event will re-trigger
+        // the process.
+        attemptDriverMerge(mergedDriverName);
+    }
+
+    private void attemptDriverMerge(String mergedDriverName) {
+        final String baseDriverName = getBaseDriverNameFromMerged(mergedDriverName);
+        final PiPipeconfId pipeconfId = getPipeconfIdFromMerged(mergedDriverName);
+        if (driverExists(baseDriverName) && pipeconfs.containsKey(pipeconfId)) {
+            doMergeDriver(baseDriverName, pipeconfId);
+        }
+    }
+
+    private void missingDriversWatchdogTask() {
+        while (true) {
+            // Most probably all missing drivers will be created before the
+            // watchdog interval, so wait before starting...
+            try {
+                TimeUnit.SECONDS.sleep(MISSING_DRIVER_WATCHDOG_INTERVAL);
+            } catch (InterruptedException e) {
+                log.warn("Interrupted! There are still {} missing merged drivers",
+                         missingMergedDrivers.size());
+            }
+            if (missingMergedDrivers.isEmpty()) {
+                log.info("There are no more missing merged drivers!");
+                return;
+            }
+            log.info("Detected {} missing merged drivers, attempt merge...",
+                     missingMergedDrivers.size());
+            missingMergedDrivers.forEach(this::attemptDriverMerge);
+        }
+    }
+
+    private void checkMissingMergedDrivers() {
+        cfgService.getSubjects(DeviceId.class, BasicDeviceConfig.class)
+                .forEach(this::checkMissingMergedDriver);
+    }
+
+    private void attemptMergeAll(String baseDriverName) {
         missingMergedDrivers.stream()
-                .filter(driverName -> {
-                    final String xx = getBaseDriverNameFromMerged(driverName);
+                .filter(missingDriver -> {
+                    // Filter missing merged drivers using this base driver.
+                    final String xx = getBaseDriverNameFromMerged(missingDriver);
                     return xx != null && xx.equals(baseDriverName);
                 })
-                .forEach(driverName -> {
-                    final PiPipeconfId pipeconfId = getPipeconfIdFromMerged(driverName);
-                    if (pipeconfs.containsKey(pipeconfId)) {
-                        doMergeDriver(baseDriverName, pipeconfId);
-                    }
-                });
+                .forEach(this::attemptDriverMerge);
     }
 
-    private void mergeAll(PiPipeconfId pipeconfId) {
+    private void attemptMergeAll(PiPipeconfId pipeconfId) {
         missingMergedDrivers.stream()
-                .filter(driverName -> {
-                    final PiPipeconfId xx = getPipeconfIdFromMerged(driverName);
+                .filter(missingDriver -> {
+                    // Filter missing merged drivers using this pipeconf.
+                    final PiPipeconfId xx = getPipeconfIdFromMerged(missingDriver);
                     return xx != null && xx.equals(pipeconfId);
                 })
-                .forEach(driverName -> {
-                    final String baseDriverName = getBaseDriverNameFromMerged(driverName);
-                    if (getDriver(baseDriverName) != null) {
-                        doMergeDriver(baseDriverName, pipeconfId);
-                    }
-                });
+                .forEach(this::attemptDriverMerge);
     }
 
     private class InternalDriverListener implements DriverListener {
 
         @Override
         public void event(DriverEvent event) {
-            executor.execute(() -> mergeAll(event.subject().name()));
+            executor.execute(() -> attemptMergeAll(event.subject().name()));
         }
 
         @Override

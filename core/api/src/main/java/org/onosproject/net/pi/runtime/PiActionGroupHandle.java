@@ -20,6 +20,7 @@ import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.pi.model.PiActionProfileId;
 
 /**
  * Global identifier of a PI action group applied to a device, uniquely defined
@@ -28,8 +29,13 @@ import org.onosproject.net.DeviceId;
 @Beta
 public final class PiActionGroupHandle extends PiHandle<PiActionGroup> {
 
+    private final PiActionProfileId actionProfileId;
+    private final PiActionGroupId groupId;
+
     private PiActionGroupHandle(DeviceId deviceId, PiActionGroup group) {
-        super(deviceId, group);
+        super(deviceId);
+        actionProfileId = group.actionProfileId();
+        groupId = group.id();
     }
 
     /**
@@ -45,10 +51,15 @@ public final class PiActionGroupHandle extends PiHandle<PiActionGroup> {
     }
 
     @Override
+    public PiEntityType entityType() {
+        return PiEntityType.GROUP;
+    }
+
+    @Override
     public int hashCode() {
         return Objects.hashCode(deviceId(),
-                                piEntity().actionProfileId(),
-                                piEntity().id());
+                                actionProfileId,
+                                groupId);
     }
 
     @Override
@@ -61,17 +72,17 @@ public final class PiActionGroupHandle extends PiHandle<PiActionGroup> {
         }
         PiActionGroupHandle that = (PiActionGroupHandle) o;
         return Objects.equal(deviceId(), that.deviceId()) &&
-                Objects.equal(piEntity().actionProfileId(),
-                              that.piEntity().actionProfileId()) &&
-                Objects.equal(piEntity().id(), that.piEntity().id());
+                Objects.equal(actionProfileId,
+                              that.actionProfileId) &&
+                Objects.equal(groupId, that.groupId);
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
                 .add("deviceId", deviceId())
-                .add("actionProfileId", piEntity().actionProfileId())
-                .add("groupId", piEntity().id())
+                .add("actionProfileId", actionProfileId)
+                .add("groupId", groupId)
                 .toString();
     }
 }

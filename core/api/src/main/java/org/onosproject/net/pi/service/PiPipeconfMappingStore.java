@@ -31,7 +31,7 @@ import java.util.Set;
 public interface PiPipeconfMappingStore extends Store<PiPipeconfDeviceMappingEvent, PiPipeconfMappingStoreDelegate> {
 
     /**
-     * Retrieves the id of the pipeconf deployed on a given device.
+     * Retrieves the id of the pipeconf associated to a given device.
      *
      * @param deviceId device identifier
      * @return PiPipeconfId

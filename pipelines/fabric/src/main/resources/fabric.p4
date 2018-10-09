@@ -21,20 +21,20 @@
 #include "include/control/forwarding.p4"
 #include "include/control/next.p4"
 #include "include/control/packetio.p4"
-#include "include/control/port_counter.p4"
 #include "include/header.p4"
 #include "include/checksum.p4"
 #include "include/parser.p4"
+
+#ifdef WITH_PORT_COUNTER
+#include "include/control/port_counter.p4"
+#endif // WITH_PORT_COUNTER
 
 #ifdef WITH_SPGW
 #include "include/spgw.p4"
 #endif // WITH_SPGW
 
 #ifdef WITH_INT
-#include "include/int_source.p4"
-#include "include/int_transit.p4"
-#include "include/int_sink.p4"
-#include "include/int_report.p4"
+#include "include/int/int_main.p4"
 #endif // WITH_INT
 
 control FabricIngress (
@@ -45,9 +45,12 @@ inout standard_metadata_t standard_metadata) {
     Filtering() filtering;
     Forwarding() forwarding;
     Next() next;
+#ifdef WITH_PORT_COUNTER
     PortCountersControl() port_counters_control;
+#endif // WITH_PORT_COUNTER
 
     apply {
+        _PRE_INGRESS
 #ifdef WITH_SPGW
         spgw_normalizer.apply(hdr.gtpu.isValid(), hdr.gtpu_ipv4, hdr.gtpu_udp,
                               hdr.ipv4, hdr.udp, hdr.inner_ipv4, hdr.inner_udp);
@@ -64,15 +67,12 @@ inout standard_metadata_t standard_metadata) {
         filtering.apply(hdr, fabric_metadata, standard_metadata);
         forwarding.apply(hdr, fabric_metadata, standard_metadata);
         next.apply(hdr, fabric_metadata, standard_metadata);
+#ifdef WITH_PORT_COUNTER
+        // FIXME: we're not counting pkts punted to cpu or forwarded via multicast groups.
         port_counters_control.apply(hdr, fabric_metadata, standard_metadata);
-#ifdef WITH_INT
+#endif // WITH_PORT_COUNTER
+#if defined(WITH_INT_SOURCE) || defined(WITH_INT_SINK)
         process_set_source_sink.apply(hdr, fabric_metadata, standard_metadata);
-        if(fabric_metadata.int_meta.sink == 1) {
-            // clone packet for Telemetry Report
-            #ifdef __TARGET_BMV2__
-            clone(CloneType.I2E, REPORT_MIRROR_SESSION_ID);
-            #endif
-        }
 #endif
     }
 }
@@ -84,6 +84,7 @@ control FabricEgress (inout parsed_headers_t hdr,
     EgressNextControl() egress_next;
 
     apply {
+        _PRE_EGRESS
         pkt_io_egress.apply(hdr, fabric_metadata, standard_metadata);
         egress_next.apply(hdr, fabric_metadata, standard_metadata);
 #ifdef WITH_SPGW
@@ -91,26 +92,7 @@ control FabricEgress (inout parsed_headers_t hdr,
                           fabric_metadata.spgw, standard_metadata);
 #endif // WITH_SPGW
 #ifdef WITH_INT
-        if (standard_metadata.ingress_port != CPU_PORT &&
-            standard_metadata.egress_port != CPU_PORT &&
-            (hdr.udp.isValid() || hdr.tcp.isValid())) {
-            if (fabric_metadata.int_meta.source == 1) {
-                process_int_source.apply(hdr, fabric_metadata, standard_metadata);
-            }
-            if(hdr.int_header.isValid()) {
-                process_int_transit.apply(hdr, fabric_metadata, standard_metadata);
-                // update underlay header based on INT information inserted
-                process_int_outer_encap.apply(hdr, fabric_metadata, standard_metadata);
-                if (standard_metadata.instance_type == PKT_INSTANCE_TYPE_INGRESS_CLONE) {
-                    /* send int report */
-                    process_int_report.apply(hdr, fabric_metadata, standard_metadata);
-                }
-                if (fabric_metadata.int_meta.sink == 1) {
-                    // int sink
-                    process_int_sink.apply(hdr, fabric_metadata, standard_metadata);
-                }
-            }
-        }
+        process_int_main.apply(hdr, fabric_metadata, standard_metadata);
 #endif
     }
 }

@@ -21,10 +21,10 @@ import org.onosproject.net.pi.model.PiActionProfileId;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.runtime.PiActionGroup;
 import org.onosproject.net.pi.runtime.PiActionGroupId;
+import p4.config.v1.P4InfoOuterClass;
 import p4.v1.P4RuntimeOuterClass.ActionProfileGroup;
 import p4.v1.P4RuntimeOuterClass.ActionProfileGroup.Member;
 import p4.v1.P4RuntimeOuterClass.ActionProfileMember;
-import p4.config.v1.P4InfoOuterClass;
 
 import java.util.Collection;
 import java.util.Map;
@@ -36,6 +36,8 @@ import static java.lang.String.format;
  */
 final class ActionProfileGroupEncoder {
 
+    private static final int GROUP_SIZE_ADDITIONAL_MEMBERS = 10;
+
     private ActionProfileGroupEncoder() {
         // hide default constructor
     }
@@ -44,10 +46,12 @@ final class ActionProfileGroupEncoder {
      * Encode a PI action group to a action profile group.
      *
      * @param piActionGroup the action profile group
-     * @param pipeconf the pipeconf
+     * @param pipeconf      the pipeconf
      * @return a action profile group encoded from PI action group
-     * @throws P4InfoBrowser.NotFoundException if can't find action profile from P4Info browser
-     * @throws EncodeException if can't find P4Info from pipeconf
+     * @throws P4InfoBrowser.NotFoundException if can't find action profile from
+     *                                         P4Info browser
+     * @throws EncodeException                 if can't find P4Info from
+     *                                         pipeconf
      */
     static ActionProfileGroup encode(PiActionGroup piActionGroup, PiPipeconf pipeconf)
             throws P4InfoBrowser.NotFoundException, EncodeException {
@@ -62,8 +66,8 @@ final class ActionProfileGroupEncoder {
                 .getByName(piActionProfileId.id());
         int actionProfileId = actionProfile.getPreamble().getId();
         ActionProfileGroup.Builder actionProfileGroupBuilder = ActionProfileGroup.newBuilder()
-                        .setGroupId(piActionGroup.id().id())
-                        .setActionProfileId(actionProfileId);
+                .setGroupId(piActionGroup.id().id())
+                .setActionProfileId(actionProfileId);
 
         piActionGroup.members().forEach(m -> {
             // TODO: currently we don't set "watch" field of member
@@ -74,20 +78,31 @@ final class ActionProfileGroupEncoder {
             actionProfileGroupBuilder.addMembers(member);
         });
 
-        actionProfileGroupBuilder.setMaxSize(piActionGroup.members().size());
+        // FIXME: ONOS-7797 Make this configurable, or find a different way of
+        // supporting group modify. In P4Runtime, group size cannot be modified
+        // once the group is created. To allow adding members to an existing
+        // group we set max_size to support an additional number of members
+        // other than the one already defined in the PI group. Clearly, this
+        // will break if we try to add more than GROUP_SIZE_ADDITIONAL_MEMBERS
+        // to the same group.
+        actionProfileGroupBuilder.setMaxSize(
+                piActionGroup.members().size() + GROUP_SIZE_ADDITIONAL_MEMBERS);
 
         return actionProfileGroupBuilder.build();
     }
 
     /**
-     * Decode an action profile group with members information to a PI action group.
+     * Decode an action profile group with members information to a PI action
+     * group.
      *
      * @param actionProfileGroup the action profile group
-     * @param members members of the action profile group
-     * @param pipeconf the pipeconf
+     * @param members            members of the action profile group
+     * @param pipeconf           the pipeconf
      * @return decoded PI action group
-     * @throws P4InfoBrowser.NotFoundException if can't find action profile from P4Info browser
-     * @throws EncodeException if can't find P4Info from pipeconf
+     * @throws P4InfoBrowser.NotFoundException if can't find action profile from
+     *                                         P4Info browser
+     * @throws EncodeException                 if can't find P4Info from
+     *                                         pipeconf
      */
     static PiActionGroup decode(ActionProfileGroup actionProfileGroup,
                                 Collection<ActionProfileMember> members,

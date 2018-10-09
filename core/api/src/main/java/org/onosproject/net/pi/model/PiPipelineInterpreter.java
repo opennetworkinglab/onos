@@ -126,6 +126,18 @@ public interface PiPipelineInterpreter extends HandlerBehaviour {
     }
 
     /**
+     * If the given table allows for mutable default actions, this method
+     * returns an action instance to be used when ONOS tries to remove a
+     * different default action previously set.
+     *
+     * @param tableId table ID
+     * @return optional default action
+     */
+    default Optional<PiAction> getOriginalDefaultAction(PiTableId tableId) {
+        return Optional.empty();
+    }
+
+    /**
      * Signals that an error was encountered while executing the interpreter.
      */
     @Beta

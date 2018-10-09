@@ -157,13 +157,13 @@ public class AtomixClusterStore extends AbstractStore<ClusterEvent, ClusterStore
     private ControllerNode toControllerNode(Member member) {
         return new DefaultControllerNode(
             NodeId.nodeId(member.id().id()),
-            IpAddress.valueOf(member.address().address()),
+            member.address().host(),
             member.address().port());
     }
 
     @Override
     public ControllerNode getLocalNode() {
-        return toControllerNode(membershipService.getLocalMember());
+        return localNode;
     }
 
     @Override

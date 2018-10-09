@@ -42,8 +42,9 @@ public interface PiTableModel {
     PiTableType tableType();
 
     /**
-     * Returns the model of the action profile that implements this table. Meaningful if this table is of type {@link
-     * PiTableType#INDIRECT}, otherwise returns null.
+     * Returns the model of the action profile that implements this table.
+     * Meaningful if this table is of type {@link PiTableType#INDIRECT},
+     * otherwise returns null.
      *
      * @return action profile ID
      */
@@ -92,16 +93,19 @@ public interface PiTableModel {
     Collection<PiActionModel> actions();
 
     /**
-     * Returns the model of the default action associated with this table, if any.
+     * Returns the model of the constant default action associated with this
+     * table, if any.
      *
      * @return optional default action model
      */
-    Optional<PiActionModel> defaultAction();
+    Optional<PiActionModel> constDefaultAction();
 
     /**
-     * Returns true if the default action has mutable parameters that can be changed at runtime, false otherwise.
+     * Returns true if the default action has mutable parameters that can be
+     * changed at runtime, false otherwise.
      *
-     * @return true if the default action has mutable parameters, false otherwise
+     * @return true if the default action has mutable parameters, false
+     * otherwise
      */
     boolean hasDefaultMutableParams();
 
@@ -114,8 +118,8 @@ public interface PiTableModel {
     boolean isConstantTable();
 
     /**
-     * Returns the action model associated with the given ID, if present. If not present, it means that this table does
-     * not support such an action.
+     * Returns the action model associated with the given ID, if present. If not
+     * present, it means that this table does not support such an action.
      *
      * @param actionId action ID
      * @return optional action model
@@ -123,8 +127,9 @@ public interface PiTableModel {
     Optional<PiActionModel> action(PiActionId actionId);
 
     /**
-     * Returns the match field model associated with the given ID, if present. If not present, it means that this table
-     * does not support such a match field.
+     * Returns the match field model associated with the given ID, if present.
+     * If not present, it means that this table does not support such a match
+     * field.
      *
      * @param matchFieldId match field ID
      * @return optional match field model
