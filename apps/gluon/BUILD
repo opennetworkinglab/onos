@@ -15,6 +15,7 @@ BUNDLES = [
 ]
 
 osgi_jar_with_tests(
+    karaf_command_packages = ["org.onosproject.gluon.rsc.cli"],
     deps = COMPILE_DEPS,
 )
 
