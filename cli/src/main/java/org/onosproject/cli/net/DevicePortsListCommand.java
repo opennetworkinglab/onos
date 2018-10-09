@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.apache.karaf.shell.api.action.Option;
 import org.onosproject.utils.Comparators;
@@ -53,6 +54,7 @@ public class DevicePortsListCommand extends DevicesListCommand {
 
     @Argument(index = 0, name = "uri", description = "Device ID",
               required = false, multiValued = false)
+    @Completion(DeviceIdCompleter.class)
     protected String uri = null;
 
     @Override

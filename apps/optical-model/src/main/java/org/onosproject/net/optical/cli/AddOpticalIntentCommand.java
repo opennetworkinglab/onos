@@ -18,9 +18,9 @@ package org.onosproject.net.optical.cli;
 import com.google.common.collect.ImmutableMap;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
-import org.onosproject.cli.app.AllApplicationNamesCompleter;
 import org.onosproject.cli.net.ConnectPointCompleter;
 import org.onosproject.cli.net.ConnectivityIntentCommand;
 import org.onosproject.net.ChannelSpacing;
@@ -65,22 +65,16 @@ public class AddOpticalIntentCommand extends ConnectivityIntentCommand {
             .put(CH_100, ChannelSpacing.CHL_100GHZ)
             .build();
 
-    // OSGi workaround
-    @SuppressWarnings("unused")
-    private ConnectPointCompleter cpCompleter;
-
-    // OSGi workaround
-    @SuppressWarnings("unused")
-    private AllApplicationNamesCompleter appCompleter;
-
     @Argument(index = 0, name = "ingress",
             description = "Ingress Device/Port Description",
             required = true, multiValued = false)
+    @Completion(ConnectPointCompleter.class)
     String ingressString = "";
 
     @Argument(index = 1, name = "egress",
             description = "Egress Device/Port Description",
             required = true, multiValued = false)
+    @Completion(ConnectPointCompleter.class)
     String egressString = "";
 
     @Option(name = "-b", aliases = "--bidirectional",
