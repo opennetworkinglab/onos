@@ -29,6 +29,7 @@ osgi_jar_with_tests(
     api_package = "org.onosproject.ofagent.rest",
     api_title = "OFAgent API",
     api_version = "1.0",
+    karaf_command_packages = ["org.onosproject.ofagent.cli"],
     test_deps = TEST_DEPS,
     web_context = "/onos/ofagent",
     deps = COMPILE_DEPS,
