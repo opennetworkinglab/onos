@@ -18,6 +18,7 @@ package org.onosproject.imr.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
@@ -41,16 +42,19 @@ public class StopMonitorCommand extends AbstractShellCommand {
     @Argument(index = 0, name = "applicationId",
             description = "Application ID that submitted the intent",
             required = true)
+    @Completion(ApplicationIdImrCompleter.class)
     private Short appId = null;
 
     @Argument(index = 1, name = "applicationName",
             description = "Application Name that submitted the intent",
             required = true)
+    @Completion(ApplicationNameImrCompleter.class)
     private String appName = null;
 
     @Argument(index = 2, name = "intentKey",
             description = "String representation of the key of the intent",
             required = false)
+    @Completion(IntentKeyImrCompleter.class)
     private String key = null;
 
     private IntentMonitorAndRerouteService imrService;
