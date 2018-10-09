@@ -17,6 +17,7 @@ package org.onosproject.newoptical.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.newoptical.api.OpticalConnectivityId;
@@ -28,6 +29,7 @@ import org.onosproject.newoptical.api.OpticalPathService;
 public class RemoveOpticalConnectivityCommand extends AbstractShellCommand {
     @Argument(index = 0, name = "id", description = "ID of optical connectivity",
             required = true, multiValued = false)
+    @Completion(OpticalConnectivityIdCompleter.class)
     String idStr = null;
 
     @Override

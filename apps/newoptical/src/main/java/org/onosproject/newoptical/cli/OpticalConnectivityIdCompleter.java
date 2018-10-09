@@ -18,6 +18,7 @@ package org.onosproject.newoptical.cli;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.util.Identifier;
 import org.onosproject.cli.AbstractChoicesCompleter;
 import org.onosproject.newoptical.OpticalConnectivity;
@@ -28,6 +29,7 @@ import static org.onosproject.cli.AbstractShellCommand.get;
 /**
  * Completer for OpticalConnectivityId.
  */
+@Service
 public class OpticalConnectivityIdCompleter extends AbstractChoicesCompleter {
 
     @Override

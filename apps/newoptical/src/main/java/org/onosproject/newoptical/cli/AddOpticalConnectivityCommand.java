@@ -17,6 +17,7 @@ package org.onosproject.newoptical.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.util.Bandwidth;
 import org.onosproject.cli.AbstractShellCommand;
@@ -41,10 +42,12 @@ public class AddOpticalConnectivityCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "ingress", description = "Ingress connect point",
             required = true, multiValued = false)
+    @Completion(ConnectPointCompleter.class)
     String ingressStr = null;
 
     @Argument(index = 1, name = "egress", description = "Egress connect point",
             required = true, multiValued = false)
+    @Completion(ConnectPointCompleter.class)
     String egressStr = null;
 
     @Argument(index = 2, name = "bandwidth", description = "Bandwidth",
