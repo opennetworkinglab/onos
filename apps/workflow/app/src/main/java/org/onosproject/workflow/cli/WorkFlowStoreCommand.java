@@ -32,7 +32,7 @@ public class WorkFlowStoreCommand extends AbstractShellCommand {
     @Argument(index = 0, name = "cmd", description = "command(rm)", required = false)
     private String cmd = null;
 
-    @Argument (index = 1, name = "id", description = "workflow id(URI)", required = false)
+    @Argument(index = 1, name = "id", description = "workflow id(URI)", required = false)
     private String id = null;
 
     @Override

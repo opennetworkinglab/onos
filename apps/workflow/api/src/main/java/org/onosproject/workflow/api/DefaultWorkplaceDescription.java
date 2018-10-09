@@ -27,6 +27,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static org.onosproject.workflow.api.CheckCondition.check;
+
 /**
  * Class for default workplace description.
  */
@@ -161,8 +163,10 @@ public final class DefaultWorkplaceDescription implements WorkplaceDescription {
         /**
          * Builds workplace description from builder.
          * @return instance of workflow description
+         * @throws WorkflowException workflow exception
          */
-        public DefaultWorkplaceDescription build() {
+        public DefaultWorkplaceDescription build() throws WorkflowException {
+            check(name != null, "name is invalid");
             return new DefaultWorkplaceDescription(this);
         }
     }

@@ -19,6 +19,8 @@ import com.google.common.base.MoreObjects;
 
 import java.util.Objects;
 
+import static org.onosproject.workflow.api.CheckCondition.check;
+
 /**
  * Class for event timeout task.
  */
@@ -81,7 +83,7 @@ public final class EventTimeoutTask extends HandlerTask {
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                 .add("context", context())
-                .add("workletType", workletType())
+                .add("programCounter", programCounter())
                 .add("eventType", eventType())
                 .add("eventHint", eventHint())
                 .toString();
@@ -136,16 +138,19 @@ public final class EventTimeoutTask extends HandlerTask {
         }
 
         @Override
-        public Builder workletType(String workletType) {
-            super.workletType(workletType);
+        public Builder programCounter(ProgramCounter programCounter) {
+            super.programCounter(programCounter);
             return this;
         }
 
         /**
          * Builds EventTimeoutTask.
          * @return instance of EventTimeoutTask
+         * @throws WorkflowException workflow exception
          */
-        public EventTimeoutTask build() {
+        public EventTimeoutTask build() throws WorkflowException {
+            check(eventType != null, "eventType is invalid");
+            check(eventHint != null, "eventType is invalid");
             return new EventTimeoutTask(this);
         }
     }

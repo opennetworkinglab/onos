@@ -23,7 +23,7 @@ import org.onosproject.event.Event;
  */
 public interface Worklet {
 
-    int MAX_WORKS = 1000;
+    int MAX_WORKS = 10000;
 
     /**
      * Returns tag name of worklet. class name is usually used.

@@ -59,5 +59,12 @@ public interface DataModelTree {
      * @throws WorkflowException workflow exception
      */
     DataModelTree alloc(String path, Nodetype leaftype) throws WorkflowException;
+
+    /**
+     * Remove node on the path.
+     * @param path data model tree path
+     * @throws WorkflowException workflow exception
+     */
+    void remove(String path) throws WorkflowException;
 }
 

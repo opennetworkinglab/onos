@@ -17,8 +17,6 @@ package org.onosproject.workflow.api;
 
 import com.google.common.base.MoreObjects;
 
-import java.net.URI;
-
 /**
  * WorkflowContext for system workflow.
  */
@@ -36,12 +34,10 @@ public class SystemWorkflowContext extends DefaultWorkflowContext {
 
     /**
      * The constructor of SystemWorkflowContext.
-     * @param workflowId id of workflow
-     * @param workplaceName workplace name
-     * @param data data model tree
+     * @param builder builder of SystemWorkflowContext
      */
-    public SystemWorkflowContext(URI workflowId, String workplaceName, DataModelTree data) {
-        super(workflowId, workplaceName, data);
+    public SystemWorkflowContext(Builder builder) {
+        super(builder);
         timestamp = System.currentTimeMillis();
         //initial distributor(It can be changed)
         distributor = name();
@@ -78,4 +74,27 @@ public class SystemWorkflowContext extends DefaultWorkflowContext {
                 .add("cause", cause())
                 .toString();
     }
+
+    /**
+     * Gets systemBuilder instance.
+     * @return systemBuilder instance
+     */
+    public static final Builder systemBuilder() {
+        return new Builder();
+    }
+
+    /**
+     * Builder for system workflow context.
+     */
+    public static class Builder extends DefaultWorkflowContext.Builder {
+
+        /**
+         * Builds system workflow context.
+         * @return instance of default workflow context.
+         */
+        public SystemWorkflowContext build() {
+            return new SystemWorkflowContext(this);
+        }
+    }
+
 }

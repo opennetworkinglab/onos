@@ -42,11 +42,19 @@ public abstract class AbstractWorkflow implements Workflow {
 
     @Override
     public WorkflowContext buildContext(Workplace workplace, DataModelTree data) throws WorkflowException {
-        return new DefaultWorkflowContext(id, workplace.name(), data);
+        return DefaultWorkflowContext.builder()
+                .workflowId(id)
+                .workplaceName(workplace.name())
+                .data(data)
+                .build();
     }
 
     @Override
     public WorkflowContext buildSystemContext(Workplace workplace, DataModelTree data) throws WorkflowException {
-        return new SystemWorkflowContext(id, workplace.name(), data);
+        return SystemWorkflowContext.systemBuilder()
+                .workflowId(id)
+                .workplaceName(workplace.name())
+                .data(data)
+                .build();
     }
 }

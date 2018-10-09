@@ -22,10 +22,13 @@ import org.onosproject.cluster.LeadershipService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.store.service.StorageException;
 import org.onosproject.workflow.api.DefaultWorkplace;
 import org.onosproject.workflow.api.EventHintSupplier;
 import org.onosproject.workflow.api.EventTask;
+import org.onosproject.workflow.api.JsonDataModelInjector;
 import org.onosproject.workflow.api.JsonDataModelTree;
+import org.onosproject.workflow.api.ProgramCounter;
 import org.onosproject.workflow.api.SystemWorkflowContext;
 import org.onosproject.workflow.api.EventTimeoutTask;
 import org.onosproject.workflow.api.TimeoutTask;
@@ -122,6 +125,8 @@ public class WorkFlowEngine extends AbstractListenerManager<WorkflowDataEvent, W
 
     private TimerChain timerChain = new TimerChain();
 
+    private JsonDataModelInjector dataModelInjector = new JsonDataModelInjector();
+
     public static final String APPID = "org.onosproject.workflow";
     private ApplicationId appId;
     private NodeId localNodeId;
@@ -177,11 +182,20 @@ public class WorkFlowEngine extends AbstractListenerManager<WorkflowDataEvent, W
         try {
             Worklet initWorklet = workflow.init(context);
             if (initWorklet != null) {
+
+                log.info("{} worklet.process:{}", context.name(), initWorklet.tag());
+                log.trace("{} context: {}", context.name(), context);
+
+                dataModelInjector.inject(initWorklet, context);
                 initWorklet.process(context);
+                dataModelInjector.inhale(initWorklet, context);
+
+                log.info("{} worklet.process(done): {}", context.name(), initWorklet.tag());
+                log.trace("{} context: {}", context.name(), context);
             }
 
         } catch (WorkflowException e) {
-            log.error("Exception: {}, trace: {}", e, Lists.newArrayList(e.getStackTrace()));
+            log.error("Exception: ", e);
             context.setCause(e.getMessage());
             context.setState(WorkflowState.EXCEPTION);
             workplaceStore.commitContext(context.name(), context, false);
@@ -189,6 +203,20 @@ public class WorkFlowEngine extends AbstractListenerManager<WorkflowDataEvent, W
         }
         // trigger the execution of next worklet.
         workplaceStore.registerContext(context.name(), context);
+    }
+
+    @Override
+    public void eval(String contextName) {
+
+        final WorkflowContext latestContext = workplaceStore.getContext(contextName);
+        if (latestContext == null) {
+            log.error("Invalid workflow context {}", contextName);
+            return;
+        }
+
+        initWorkletExecution(latestContext);
+
+        workplaceStore.commitContext(latestContext.name(), latestContext, true);
     }
 
     @Override
@@ -204,7 +232,7 @@ public class WorkFlowEngine extends AbstractListenerManager<WorkflowDataEvent, W
         try {
             eventHint = supplier.apply(event);
         } catch (Throwable e) {
-            log.error("Exception: {}, trace: {}", e, Lists.newArrayList(e.getStackTrace()));
+            log.error("Exception: ", e);
             return;
         }
         if (eventHint == null) {
@@ -216,7 +244,7 @@ public class WorkFlowEngine extends AbstractListenerManager<WorkflowDataEvent, W
         try {
             eventMap = eventMapStore.getEventMap(event.getClass().getName(), eventHint);
         } catch (WorkflowException e) {
-            log.error("Exception: {}, trace: {}", e, Lists.newArrayList(e.getStackTrace()));
+            log.error("Exception: ", e);
             return;
         }
 
@@ -228,28 +256,43 @@ public class WorkFlowEngine extends AbstractListenerManager<WorkflowDataEvent, W
 
         for (Map.Entry<String, String> entry : eventMap.entrySet()) {
             String contextName = entry.getKey();
-            String workletType = entry.getValue();
+            String strProgramCounter = entry.getValue();
+            ProgramCounter pc;
+            try {
+                pc = ProgramCounter.valueOf(strProgramCounter);
+            } catch (IllegalArgumentException e) {
+                log.error("Exception: ", e);
+                return;
+            }
+
             WorkflowContext context = workplaceStore.getContext(contextName);
             if (Objects.isNull(context)) {
                 log.info("Invalid context: {}, event: {}", contextName, event);
                 continue;
             }
-            EventTask eventtask = EventTask.builder()
+            EventTask eventtask = null;
+            try {
+                eventtask = EventTask.builder()
                     .event(event)
                     .eventHint(eventHint)
                     .context(context)
-                    .workletType(workletType)
+                    .programCounter(pc)
                     .build();
+            } catch (WorkflowException e) {
+                log.error("Exception: ", e);
+            }
 
-            log.info("eventtaskAccumulator.add: task: {}", eventtask);
-            eventtaskAccumulator.add(eventtask);
+            log.debug("eventtaskAccumulator.add: task: {}", eventtask);
+            if (!Objects.isNull(eventtask)) {
+                eventtaskAccumulator.add(eventtask);
+            }
         }
     }
 
     @Override
     public void registerEventMap(Class<? extends Event> eventType, String eventHint,
-                                 String contextName, String workletType) throws WorkflowException {
-        eventMapStore.registerEventMap(eventType.getName(), eventHint, contextName, workletType);
+                                 String contextName, String programCounterString) throws WorkflowException {
+        eventMapStore.registerEventMap(eventType.getName(), eventHint, contextName, programCounterString);
         for (int i = 0; i < MAX_REGISTER_EVENTMAP_WAITS; i++) {
             Map<String, String> eventMap = eventMapStore.getEventMap(eventType.getName(), eventHint);
             if (eventMap != null && eventMap.containsKey(contextName)) {
@@ -259,6 +302,7 @@ public class WorkFlowEngine extends AbstractListenerManager<WorkflowDataEvent, W
                 log.info("sleep {}", i);
                 Thread.sleep(10L * (i + 1));
             } catch (InterruptedException e) {
+                log.error("Exception: ", e);
                 Thread.currentThread().interrupt();
             }
         }
@@ -278,7 +322,7 @@ public class WorkFlowEngine extends AbstractListenerManager<WorkflowDataEvent, W
             case INSERT:
             case UPDATE:
                 if (dataModelContainer.triggerNext()) {
-                    log.info("workflowAccumulator.add: {}", dataModelContainer);
+                    log.debug("workflowAccumulator.add: {}", dataModelContainer);
                     workflowAccumulator.add(dataModelContainer);
                 } else {
                     log.debug("pass-workflowAccumulator.add: {}", dataModelContainer);
@@ -430,33 +474,60 @@ public class WorkFlowEngine extends AbstractListenerManager<WorkflowDataEvent, W
         }
 
         try {
-            Worklet worklet = workflow.getWorkletInstance(task.workletType());
-            if (!Objects.equals(latestContext.current(), worklet.tag())) {
+            if (!Objects.equals(latestContext.current(), task.programCounter())) {
                 log.error("Current worklet({}) is not mismatched with task work({}). Ignored.",
-                        latestContext.current(), worklet.tag());
+                        latestContext.current(), task.programCounter());
                 return task;
             }
 
-            if (worklet == Worklet.Common.COMPLETED || worklet == Worklet.Common.INIT) {
+            Worklet worklet = workflow.getWorkletInstance(task.programCounter().workletType());
+            if (Worklet.Common.COMPLETED.equals(worklet) || Worklet.Common.INIT.equals(worklet)) {
                 log.error("Current worklet is {}, Ignored", worklet);
                 return task;
             }
 
             initWorkletExecution(latestContext);
 
-            log.info("processHandlerTask.isCompleted-task:{}, latest:{}", task, latestContext);
-            if (worklet.isCompleted(latestContext, task.event())) {
+            log.info("{} worklet.isCompleted:{}", latestContext.name(), worklet.tag());
+            log.trace("{} task:{}, context: {}", latestContext.name(), task, latestContext);
+
+            dataModelInjector.inject(worklet, latestContext);
+            boolean completed = worklet.isCompleted(latestContext, task.event());
+            dataModelInjector.inhale(worklet, latestContext);
+
+            if (completed) {
+
+                log.info("{} worklet.isCompleted(true):{}", latestContext.name(), worklet.tag());
+                log.trace("{} task:{}, context: {}", latestContext.name(), task, latestContext);
+
                 eventMapStore.unregisterEventMap(
                         task.eventType(), task.eventHint(), latestContext.name());
+
+                //completed case
+                // increase program counter
+                ProgramCounter pc = latestContext.current();
+                latestContext.setCurrent(workflow.increased(pc));
 
                 workplaceStore.commitContext(latestContext.name(), latestContext, true);
                 return null;
             } else {
+
+                log.info("{} worklet.isCompleted(false):{}", latestContext.name(), worklet.tag());
+                log.trace("{} task:{}, context: {}", latestContext.name(), task, latestContext);
+
                 workplaceStore.commitContext(latestContext.name(), latestContext, false);
             }
 
         } catch (WorkflowException e) {
-            log.error("Exception: {}, trace: {}", e, Lists.newArrayList(e.getStackTrace()));
+            log.error("Exception: ", e);
+            latestContext.setCause(e.getMessage());
+            latestContext.setState(WorkflowState.EXCEPTION);
+            workplaceStore.commitContext(latestContext.name(), latestContext, false);
+        } catch (StorageException e) {
+            log.error("Exception: ", e);
+            // StorageException does not commit context.
+        } catch (Exception e) {
+            log.error("Exception: ", e);
             latestContext.setCause(e.getMessage());
             latestContext.setState(WorkflowState.EXCEPTION);
             workplaceStore.commitContext(latestContext.name(), latestContext, false);
@@ -491,7 +562,7 @@ public class WorkFlowEngine extends AbstractListenerManager<WorkflowDataEvent, W
 
         log.debug("execEventTimeoutTask- task: {}, hash: {}", task, stringHash(task.context().distributor()));
 
-        WorkflowContext context = task.context();
+        WorkflowContext context = (WorkflowContext) (task.context());
         Workflow workflow = workflowStore.get(context.workflowId());
         if (workflow == null) {
             log.error("execEventTimeoutTask: Invalid workflow {}", context.workflowId());
@@ -505,13 +576,13 @@ public class WorkFlowEngine extends AbstractListenerManager<WorkflowDataEvent, W
         }
 
         try {
-            Worklet worklet = workflow.getWorkletInstance(task.workletType());
-            if (!Objects.equals(latestContext.current(), worklet.tag())) {
+            if (!Objects.equals(latestContext.current(), task.programCounter())) {
                 log.error("execEventTimeoutTask: Current worklet({}) is not mismatched with task work({}). Ignored.",
-                        latestContext.current(), worklet.tag());
+                        latestContext.current(), task.programCounter());
                 return task;
             }
 
+            Worklet worklet = workflow.getWorkletInstance(task.programCounter().workletType());
             if (worklet == Worklet.Common.COMPLETED || worklet == Worklet.Common.INIT) {
                 log.error("execEventTimeoutTask: Current worklet is {}, Ignored", worklet);
                 return task;
@@ -519,15 +590,32 @@ public class WorkFlowEngine extends AbstractListenerManager<WorkflowDataEvent, W
 
             initWorkletExecution(latestContext);
 
-            log.info("execEventTimeoutTask.timeout-task:{}, latest:{}", task, latestContext);
             eventMapStore.unregisterEventMap(
                     task.eventType(), task.eventHint(), latestContext.name());
 
+            log.info("{} worklet.timeout(for event):{}", latestContext.name(), worklet.tag());
+            log.trace("{} task:{}, context: {}", latestContext.name(), task, latestContext);
+
+            dataModelInjector.inject(worklet, latestContext);
             worklet.timeout(latestContext);
+            dataModelInjector.inhale(worklet, latestContext);
+
+            log.info("{} worklet.timeout(for event)(done):{}", latestContext.name(), worklet.tag());
+            log.trace("{} task:{}, context: {}", latestContext.name(), task, latestContext);
+
+
             workplaceStore.commitContext(latestContext.name(), latestContext, latestContext.triggerNext());
 
         } catch (WorkflowException e) {
-            log.error("Exception: {}, trace: {}", e, Lists.newArrayList(e.getStackTrace()));
+            log.error("Exception: ", e);
+            latestContext.setCause(e.getMessage());
+            latestContext.setState(WorkflowState.EXCEPTION);
+            workplaceStore.commitContext(latestContext.name(), latestContext, false);
+        } catch (StorageException e) {
+            log.error("Exception: ", e);
+            // StorageException does not commit context.
+        } catch (Exception e) {
+            log.error("Exception: ", e);
             latestContext.setCause(e.getMessage());
             latestContext.setState(WorkflowState.EXCEPTION);
             workplaceStore.commitContext(latestContext.name(), latestContext, false);
@@ -559,13 +647,13 @@ public class WorkFlowEngine extends AbstractListenerManager<WorkflowDataEvent, W
         }
 
         try {
-            Worklet worklet = workflow.getWorkletInstance(task.workletType());
-            if (!Objects.equals(latestContext.current(), worklet.tag())) {
+            if (!Objects.equals(latestContext.current(), task.programCounter())) {
                 log.error("execTimeoutTask: Current worklet({}) is not mismatched with task work({}). Ignored.",
-                        latestContext.current(), worklet.tag());
+                        latestContext.current(), task.programCounter());
                 return task;
             }
 
+            Worklet worklet = workflow.getWorkletInstance(task.programCounter().workletType());
             if (worklet == Worklet.Common.COMPLETED || worklet == Worklet.Common.INIT) {
                 log.error("execTimeoutTask: Current worklet is {}, Ignored", worklet);
                 return task;
@@ -573,11 +661,28 @@ public class WorkFlowEngine extends AbstractListenerManager<WorkflowDataEvent, W
 
             initWorkletExecution(latestContext);
 
+            log.info("{} worklet.timeout:{}", latestContext.name(), worklet.tag());
+            log.trace("{} context: {}", latestContext.name(), latestContext);
+
+            dataModelInjector.inject(worklet, latestContext);
             worklet.timeout(latestContext);
+            dataModelInjector.inhale(worklet, latestContext);
+
+            log.info("{} worklet.timeout(done):{}", latestContext.name(), worklet.tag());
+            log.trace("{} context: {}", latestContext.name(), latestContext);
+
             workplaceStore.commitContext(latestContext.name(), latestContext, latestContext.triggerNext());
 
         } catch (WorkflowException e) {
-            log.error("Exception: {}, trace: {}", e, Lists.newArrayList(e.getStackTrace()));
+            log.error("Exception: ", e);
+            latestContext.setCause(e.getMessage());
+            latestContext.setState(WorkflowState.EXCEPTION);
+            workplaceStore.commitContext(latestContext.name(), latestContext, false);
+        } catch (StorageException e) {
+            log.error("Exception: ", e);
+            // StorageException does not commit context.
+        } catch (Exception e) {
+            log.error("Exception: ", e);
             latestContext.setCause(e.getMessage());
             latestContext.setState(WorkflowState.EXCEPTION);
             workplaceStore.commitContext(latestContext.name(), latestContext, false);
@@ -651,14 +756,15 @@ public class WorkFlowEngine extends AbstractListenerManager<WorkflowDataEvent, W
         initWorkletExecution(latestContext);
 
         try {
-            final Worklet worklet = workflow.next(latestContext);
+            final ProgramCounter pc = workflow.next(latestContext);
+            final Worklet worklet = workflow.getWorkletInstance(pc.workletType());
 
             if (worklet == Worklet.Common.INIT) {
                 log.error("workflow.next gave INIT. It cannot be executed (context: {})", context.name());
                 return latestContext;
             }
 
-            latestContext.setCurrent(worklet);
+            latestContext.setCurrent(pc);
             if (worklet == Worklet.Common.COMPLETED) {
 
                 if (workflow.attributes().contains(REMOVE_AFTER_COMPLETE)) {
@@ -671,8 +777,16 @@ public class WorkFlowEngine extends AbstractListenerManager<WorkflowDataEvent, W
                 }
             }
 
-            log.info("execWorkflowContext.process:{}, {}", worklet.tag(), latestContext);
+            log.info("{} worklet.process:{}", latestContext.name(), worklet.tag());
+            log.trace("{} context: {}", latestContext.name(), latestContext);
+
+            dataModelInjector.inject(worklet, latestContext);
             worklet.process(latestContext);
+            dataModelInjector.inhale(worklet, latestContext);
+
+            log.info("{} worklet.process(done): {}", latestContext.name(), worklet.tag());
+            log.trace("{} context: {}", latestContext.name(), latestContext);
+
 
             if (latestContext.completionEventType() != null) {
                 if (latestContext.completionEventGenerator() == null) {
@@ -683,14 +797,14 @@ public class WorkFlowEngine extends AbstractListenerManager<WorkflowDataEvent, W
                 }
 
                 registerEventMap(latestContext.completionEventType(), latestContext.completionEventHint(),
-                        latestContext.name(), worklet.tag());
+                        latestContext.name(), pc.toString());
 
                 latestContext.completionEventGenerator().apply();
 
                 if (latestContext.completionEventTimeout() != 0L) {
                     final EventTimeoutTask eventTimeoutTask = EventTimeoutTask.builder()
                             .context(latestContext)
-                            .workletType(worklet.tag())
+                            .programCounter(pc)
                             .eventType(latestContext.completionEventType().getName())
                             .eventHint(latestContext.completionEventHint())
                             .build();
@@ -703,20 +817,32 @@ public class WorkFlowEngine extends AbstractListenerManager<WorkflowDataEvent, W
                 if (latestContext.completionEventTimeout() != 0L) {
                     final TimeoutTask timeoutTask = TimeoutTask.builder()
                             .context(latestContext)
-                            .workletType(worklet.tag())
+                            .programCounter(pc)
                             .build();
 
                     timerChain.schedule(latestContext.completionEventTimeout(),
                             () -> {
                                 eventtaskAccumulator.add(timeoutTask);
                             });
+                } else {
+                    //completed case
+                    // increase program counter
+                    latestContext.setCurrent(workflow.increased(pc));
                 }
             }
 
             workplaceStore.commitContext(latestContext.name(), latestContext, latestContext.triggerNext());
 
         } catch (WorkflowException e) {
-            log.error("Exception: {}, trace: {}", e, Lists.newArrayList(e.getStackTrace()));
+            log.error("Exception: ", e);
+            latestContext.setCause(e.getMessage());
+            latestContext.setState(WorkflowState.EXCEPTION);
+            workplaceStore.commitContext(latestContext.name(), latestContext, false);
+        } catch (StorageException e) {
+            log.error("Exception: ", e);
+            // StorageException does not commit context.
+        } catch (Exception e) {
+            log.error("Exception: ", e);
             latestContext.setCause(e.getMessage());
             latestContext.setState(WorkflowState.EXCEPTION);
             workplaceStore.commitContext(latestContext.name(), latestContext, false);

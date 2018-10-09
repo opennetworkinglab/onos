@@ -24,6 +24,8 @@ import com.google.common.base.MoreObjects;
 
 import java.net.URI;
 
+import static org.onosproject.workflow.api.CheckCondition.check;
+
 
 /**
  * Class for default workflow description.
@@ -201,8 +203,12 @@ public final class DefaultWorkflowDescription implements WorkflowDescription {
         /**
          * Builds workflow description from builder.
          * @return instance of workflow description
+         * @throws WorkflowException workflow exception
          */
-        public DefaultWorkflowDescription build() {
+        public DefaultWorkflowDescription build() throws WorkflowException {
+            check(workplaceName != null, "workplaceName is invalid");
+            check(id != null, "id is invalid");
+            check(data != null, "data is invalid");
             return new DefaultWorkflowDescription(this);
         }
     }

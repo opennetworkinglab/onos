@@ -20,6 +20,8 @@ import com.fasterxml.jackson.databind.node.MissingNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.common.base.MoreObjects;
 
+import static org.onosproject.workflow.api.CheckCondition.check;
+
 /**
  * Class of workflow RPC description.
  */
@@ -169,8 +171,12 @@ public final class DefaultRpcDescription implements RpcDescription {
         /**
          * Builds workplace RPC description from builder.
          * @return instance of workflow RPC description
+         * @throws WorkflowException workflow exception
          */
-        public DefaultRpcDescription build() {
+        public DefaultRpcDescription build() throws WorkflowException {
+            check(op != null, "op is invalid");
+            check(params != null, "params is invalid");
+            check(id != null, "id is invalid");
             return new DefaultRpcDescription(this);
         }
     }

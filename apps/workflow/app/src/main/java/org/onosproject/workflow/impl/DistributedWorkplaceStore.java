@@ -52,6 +52,7 @@ import org.onosproject.workflow.api.DataModelTree;
 import org.onosproject.workflow.api.DefaultWorkplace;
 import org.onosproject.workflow.api.DefaultWorkflowContext;
 import org.onosproject.workflow.api.JsonDataModelTree;
+import org.onosproject.workflow.api.ProgramCounter;
 import org.onosproject.workflow.api.SystemWorkflowContext;
 import org.onosproject.workflow.api.WorkflowContext;
 import org.onosproject.workflow.api.WorkflowData;
@@ -119,6 +120,7 @@ public class DistributedWorkplaceStore
                 .register(DefaultWorkflowContext.class)
                 .register(SystemWorkflowContext.class)
                 .register(WorkflowState.class)
+                .register(ProgramCounter.class)
                 .register(DataModelTree.class)
                 .register(JsonDataModelTree.class)
                 .register(List.class)
@@ -311,7 +313,7 @@ public class DistributedWorkplaceStore
             WorkflowContext newContext = (WorkflowContext) Versioned.valueOrNull(event.newValue());
             WorkflowContext oldContext = (WorkflowContext) Versioned.valueOrNull(event.oldValue());
 
-            log.info("WorkflowContext event: {}", event);
+            log.debug("WorkflowContext event: {}", event);
             switch (event.type()) {
                 case INSERT:
                     insert(newContext);

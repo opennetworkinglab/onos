@@ -22,6 +22,7 @@ import org.onosproject.net.device.DeviceService;
 import org.onosproject.workflow.api.AbstractWorklet;
 import org.onosproject.workflow.api.DataModelTree;
 import org.onosproject.workflow.api.ImmutableListWorkflow;
+import org.onosproject.workflow.api.JsonDataModel;
 import org.onosproject.workflow.api.JsonDataModelTree;
 import org.onosproject.workflow.api.Workflow;
 import org.onosproject.workflow.api.WorkflowContext;
@@ -122,7 +123,8 @@ public class SampleWorkflow {
      */
     public abstract static class AbsSampleWorklet extends AbstractWorklet {
 
-        protected static final String SAMPLE_DATAMODEL_PTR = "/sample/job";
+        protected static final String MODEL_SAMPLE_JOB = "/sample/job";
+        protected static final String MODEL_COUNT = "/count";
 
         /**
          * Constructor for sample worklet.
@@ -142,10 +144,10 @@ public class SampleWorkflow {
             JsonDataModelTree tree = (JsonDataModelTree) context.data();
             JsonNode params = tree.root();
 
-            if (params.at(SAMPLE_DATAMODEL_PTR).getNodeType() == JsonNodeType.MISSING) {
-                tree.alloc(SAMPLE_DATAMODEL_PTR, DataModelTree.Nodetype.MAP);
+            if (params.at(MODEL_SAMPLE_JOB).getNodeType() == JsonNodeType.MISSING) {
+                tree.alloc(MODEL_SAMPLE_JOB, DataModelTree.Nodetype.MAP);
             }
-            return (ObjectNode) params.at(SAMPLE_DATAMODEL_PTR);
+            return (ObjectNode) params.at(MODEL_SAMPLE_JOB);
         }
 
         /**
@@ -156,7 +158,7 @@ public class SampleWorkflow {
          */
         protected ObjectNode getDataModel(WorkflowContext context) throws WorkflowException {
             DataModelTree tree = context.data();
-            return ((JsonDataModelTree) tree.subtree(SAMPLE_DATAMODEL_PTR)).rootObject();
+            return ((JsonDataModelTree) tree.subtree(MODEL_SAMPLE_JOB)).rootObject();
         }
 
         /**
@@ -167,6 +169,7 @@ public class SampleWorkflow {
             try {
                 Thread.sleep(ms);
             } catch (InterruptedException e) {
+                log.error("Exception: ", e);
                 Thread.currentThread().interrupt();
             }
         }
@@ -176,6 +179,10 @@ public class SampleWorkflow {
      * Class for sample worklet-1.
      */
     public static class SampleWorklet1 extends AbsSampleWorklet {
+
+        @JsonDataModel(path = MODEL_COUNT, type = Integer.class)
+        Integer intCount;
+
         @Override
         public void process(WorkflowContext context) throws WorkflowException {
             ObjectNode node = getDataModel(context);
@@ -200,12 +207,17 @@ public class SampleWorkflow {
      * Class for sample worklet-2 (using timeout).
      */
     public static class SampleWorklet2 extends AbsSampleWorklet {
+
+        @JsonDataModel(path = MODEL_COUNT, type = Integer.class)
+        Integer intCount;
+
         @Override
         public void process(WorkflowContext context) throws WorkflowException {
             ObjectNode node = getDataModel(context);
             node.put("work2", "done");
             log.info("workflow-process {}-{}", context.workplaceName(), this.getClass().getSimpleName());
             sleep(50);
+            intCount++;
 
             context.waitFor(50L); //Timeout will happen after 50 milli seconds.
         }
@@ -225,13 +237,17 @@ public class SampleWorkflow {
     }
 
     public static class SampleWorklet3 extends AbsSampleWorklet {
+
+        @JsonDataModel(path = MODEL_COUNT, type = Integer.class)
+        Integer intCount;
+
         @Override
         public void process(WorkflowContext context) throws WorkflowException {
             ObjectNode node = getDataModel(context);
             node.put("work3", "done");
             log.info("workflow-process {}-{}", context.workplaceName(), this.getClass().getSimpleName());
             sleep(10);
-
+            intCount++;
             context.completed();
         }
 
@@ -245,13 +261,17 @@ public class SampleWorkflow {
     }
 
     public static class SampleWorklet4 extends AbsSampleWorklet {
+
+        @JsonDataModel(path = MODEL_COUNT, type = Integer.class)
+        Integer intCount;
+
         @Override
         public void process(WorkflowContext context) throws WorkflowException {
             ObjectNode node = getDataModel(context);
             node.put("work4", "done");
             log.info("workflow-process {}-{}", context.workplaceName(), this.getClass().getSimpleName());
             sleep(10);
-
+            intCount++;
             context.completed();
         }
 
@@ -265,13 +285,17 @@ public class SampleWorkflow {
     }
 
     public static class SampleWorklet5 extends AbsSampleWorklet {
+
+        @JsonDataModel(path = MODEL_COUNT, type = Integer.class)
+        Integer intCount;
+
         @Override
         public void process(WorkflowContext context) throws WorkflowException {
             ObjectNode node = getDataModel(context);
             node.put("work5", "done");
             log.info("workflow-process {}-{}", context.workplaceName(), this.getClass().getSimpleName());
             sleep(10);
-
+            intCount++;
             context.completed();
         }
 

@@ -20,6 +20,8 @@ import org.onosproject.event.Event;
 
 import java.util.Objects;
 
+import static org.onosproject.workflow.api.CheckCondition.check;
+
 /**
  * Class for event task.
  */
@@ -91,7 +93,7 @@ public final class EventTask extends HandlerTask {
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                 .add("context", context())
-                .add("workletType", workletType())
+                .add("programCounter", programCounter())
                 .add("event", event())
                 .add("eventHint", eventHint())
                 .toString();
@@ -147,16 +149,19 @@ public final class EventTask extends HandlerTask {
         }
 
         @Override
-        public Builder workletType(String workletType) {
-            super.workletType(workletType);
+        public Builder programCounter(ProgramCounter programCounter) {
+            super.programCounter(programCounter);
             return this;
         }
 
         /**
          * Builds EventTask.
          * @return instance of EventTask
+         * @throws WorkflowException workflow exception
          */
-        public EventTask build() {
+        public EventTask build() throws WorkflowException {
+            check(event != null, "event is invalid");
+            check(eventHint != null, "eventHint is invalid");
             return new EventTask(this);
         }
     }

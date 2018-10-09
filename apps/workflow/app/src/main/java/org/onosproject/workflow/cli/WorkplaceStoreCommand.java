@@ -38,7 +38,7 @@ public class WorkplaceStoreCommand extends AbstractShellCommand {
     @Argument(index = 0, name = "cmd", description = "command(add/rm/clear/print)", required = false)
     private String cmd = null;
 
-    @Argument (index = 1, name = "name", description = "workspace name", required = false)
+    @Argument(index = 1, name = "name", description = "workspace name", required = false)
     private String name = null;
 
     @Option(name = "-f", aliases = "--filter", description = "including filter",
@@ -97,10 +97,10 @@ public class WorkplaceStoreCommand extends AbstractShellCommand {
      */
     private void addEmptyWorkplace(String name) {
         WorkflowService service = get(WorkflowService.class);
-        DefaultWorkplaceDescription wpDesc = DefaultWorkplaceDescription.builder()
-                .name(name)
-                .build();
         try {
+            DefaultWorkplaceDescription wpDesc = DefaultWorkplaceDescription.builder()
+                    .name(name)
+                    .build();
             service.createWorkplace(wpDesc);
         } catch (WorkflowException e) {
             error(e.getMessage() + ", trace: " + Arrays.asList(e.getStackTrace()));
@@ -125,10 +125,10 @@ public class WorkplaceStoreCommand extends AbstractShellCommand {
      */
     private void rmWorkplace(String name) {
         WorkflowService service = get(WorkflowService.class);
-        DefaultWorkplaceDescription wpDesc = DefaultWorkplaceDescription.builder()
-                .name(name)
-                .build();
         try {
+            DefaultWorkplaceDescription wpDesc = DefaultWorkplaceDescription.builder()
+                    .name(name)
+                    .build();
             service.removeWorkplace(wpDesc);
         } catch (WorkflowException e) {
             error(e.getMessage() + ", trace: " + Arrays.asList(e.getStackTrace()));

@@ -51,7 +51,7 @@ public class WorkFlowEventMapCommand extends AbstractShellCommand {
                     try {
                         print(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(tree));
                     } catch (JsonProcessingException e) {
-                        error(e.getMessage() + ", trace: " + Arrays.asList(e.getStackTrace()));
+                        error("Exception: " + e.getMessage() + ", trace: " + Arrays.asList(e.getStackTrace()));
                     }
                     break;
 

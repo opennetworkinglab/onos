@@ -21,23 +21,22 @@ import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.workflow.api.DefaultWorkflowDescription;
+import org.onosproject.workflow.api.WorkflowContext;
+import org.onosproject.workflow.api.WorkflowExecutionService;
 import org.onosproject.workflow.api.WorkflowService;
 import org.onosproject.workflow.api.WorkflowException;
+import org.onosproject.workflow.api.WorkplaceStore;
 
-import java.util.Arrays;
 import java.util.Objects;
 
 @Service
 @Command(scope = "onos", name = "workflow", description = "workflow cli")
 public class WorkFlowCommand extends AbstractShellCommand {
 
-    @Argument(index = 0, name = "cmd", description = "command(invoke)", required = true)
+    @Argument(index = 0, name = "cmd", description = "command(invoke|eval)", required = true)
     private String cmd = null;
 
-    @Argument (index = 1, name = "id", description = "workflow id(URI)", required = true)
-    private String id = null;
-
-    @Argument (index = 2, name = "name", description = "workplace name", required = true)
+    @Argument(index = 1, name = "name", description = "workflow context name(workflow@workplace)", required = true)
     private String name = null;
 
     @Override
@@ -47,19 +46,26 @@ public class WorkFlowCommand extends AbstractShellCommand {
             return;
         }
 
+        if (Objects.isNull(name)) {
+            error("invalid workflow context name");
+            return;
+        }
+
+        String[] tokens = name.split("@");
+        if (tokens != null && tokens.length != 2) {
+            error("invalid workflow context name(workflow@workplace)");
+            return;
+        }
+
+        String workflowId = tokens[0];
+        String workplace = tokens[1];
+
         switch (cmd) {
             case "invoke":
-                if (Objects.isNull(id)) {
-                    error("invalid workflow id parameter");
-                    return;
-                }
-
-                if (Objects.isNull(name)) {
-                    error("invalid workplace name parameter");
-                    return;
-                }
-
-                invoke(id, name);
+                invoke(workflowId, workplace);
+                break;
+            case "eval":
+                eval(name);
                 break;
             default:
                 print("Unsupported cmd: " + cmd);
@@ -74,15 +80,33 @@ public class WorkFlowCommand extends AbstractShellCommand {
     private void invoke(String workflowId, String workplaceName) {
 
         WorkflowService service = get(WorkflowService.class);
-        DefaultWorkflowDescription wfDesc = DefaultWorkflowDescription.builder()
-                .workplaceName(workplaceName)
-                .id(workflowId)
-                .data(JsonNodeFactory.instance.objectNode())
-                .build();
         try {
+            DefaultWorkflowDescription wfDesc = DefaultWorkflowDescription.builder()
+                    .workplaceName(workplaceName)
+                    .id(workflowId)
+                    .data(JsonNodeFactory.instance.objectNode())
+                    .build();
+
             service.invokeWorkflow(wfDesc);
         } catch (WorkflowException e) {
-            error(e.getMessage() + ", trace: " + Arrays.asList(e.getStackTrace()));
+            error("Exception: ", e);
         }
     }
+
+    /**
+     * Evaluates workflow context.
+     * @param workflowContextName workflow context name
+     */
+    private void eval(String workflowContextName) {
+        WorkplaceStore storService = get(WorkplaceStore.class);
+        WorkflowExecutionService execService = get(WorkflowExecutionService.class);
+
+        WorkflowContext context = storService.getContext(workflowContextName);
+        if (context == null) {
+            error("failed to find workflow context {}", workflowContextName);
+            return;
+        }
+        execService.eval(workflowContextName);
+    }
+
 }

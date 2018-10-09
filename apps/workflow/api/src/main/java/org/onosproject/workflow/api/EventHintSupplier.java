@@ -22,5 +22,5 @@ import org.onosproject.event.Event;
  */
 @FunctionalInterface
 public interface EventHintSupplier {
-    String apply(Event event);
+    String apply(Event event) throws Throwable;
 }

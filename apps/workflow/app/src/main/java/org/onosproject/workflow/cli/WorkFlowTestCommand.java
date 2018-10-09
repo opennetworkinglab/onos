@@ -16,6 +16,7 @@
 package org.onosproject.workflow.cli;
 
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
@@ -34,7 +35,7 @@ public class WorkFlowTestCommand extends AbstractShellCommand {
     @Argument(index = 0, name = "cmd", description = "command(invoke)", required = true)
     private String cmd = null;
 
-    @Argument (index = 1, name = "number", description = "number of test", required = true)
+    @Argument(index = 1, name = "number", description = "number of test", required = true)
     private String number = null;
 
     @Override
@@ -74,12 +75,16 @@ public class WorkFlowTestCommand extends AbstractShellCommand {
     private void invoke(String workflowId, String workplaceName) {
 
         WorkflowService service = get(WorkflowService.class);
-        DefaultWorkflowDescription wfDesc = DefaultWorkflowDescription.builder()
-                .workplaceName(workplaceName)
-                .id(workflowId)
-                .data(JsonNodeFactory.instance.objectNode())
-                .build();
+
+        ObjectNode dataModel = JsonNodeFactory.instance.objectNode();
+        dataModel.put("count", 0);
+
         try {
+            DefaultWorkflowDescription wfDesc = DefaultWorkflowDescription.builder()
+                    .workplaceName(workplaceName)
+                    .id(workflowId)
+                    .data(dataModel)
+                    .build();
             service.invokeWorkflow(wfDesc);
         } catch (WorkflowException e) {
             error(e.getMessage() + "trace: " + Arrays.asList(e.getStackTrace()));
@@ -94,6 +99,8 @@ public class WorkFlowTestCommand extends AbstractShellCommand {
         for (int i = 0; i <= num; i++) {
             String wpName = "test-" + i;
             invoke("sample.workflow-0", wpName);
+            invoke("sample.workflow-1", wpName);
+            invoke("sample.workflow-2", wpName);
         }
     }
 }

@@ -21,11 +21,17 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.BooleanNode;
+import com.fasterxml.jackson.databind.node.IntNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
 import com.fasterxml.jackson.databind.node.MissingNode;
+import com.fasterxml.jackson.databind.node.NumericNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.common.base.MoreObjects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 
@@ -33,6 +39,8 @@ import java.util.Objects;
  * Class for json data model tree.
  */
 public final class JsonDataModelTree implements DataModelTree {
+
+    private static final Logger log = LoggerFactory.getLogger(JsonDataModelTree.class);
 
     /**
      * Root node of json data model tree.
@@ -65,30 +73,88 @@ public final class JsonDataModelTree implements DataModelTree {
 
     @Override
     public void attach(String path, DataModelTree tree) throws WorkflowException {
+
         if (root == null || root instanceof MissingNode) {
             throw new WorkflowException("Invalid root node");
         }
 
         JsonPointer ptr = JsonPointer.compile(path);
-        JsonNode node = root.at(ptr);
-        if (!(node instanceof MissingNode)) {
-            throw new WorkflowException("Path(" + path + ") has already subtree(" + node + ")");
-        }
 
         if (!(tree instanceof JsonDataModelTree)) {
             throw new WorkflowException("Invalid subTree(" + tree + ")");
         }
         JsonNode attachingNode = ((JsonDataModelTree) tree).root();
 
-        alloc(ptr.head(), Nodetype.MAP);
-        JsonNode parentNode = root.at(ptr.head());
+        attach(ptr, attachingNode);
+    }
 
-        if (!parentNode.isObject()) {
-            throw new WorkflowException("Invalid parentNode type(" + parentNode.getNodeType() + ")");
+    private void attach(JsonPointer ptr, JsonNode attachingNode) throws WorkflowException {
+
+        JsonNode node = root.at(ptr);
+        if (!(node instanceof MissingNode)) {
+            throw new WorkflowException("Path(" + ptr + ") has already subtree(" + node + ")");
         }
 
-        String key = ptr.last().getMatchingProperty();
-        ((ObjectNode) parentNode).put(key, attachingNode);
+        if (ptr.last().getMatchingIndex() != -1) {
+
+            alloc(ptr.head(), Nodetype.ARRAY);
+            JsonNode parentNode = root.at(ptr.head());
+            if (!parentNode.isArray()) {
+                throw new WorkflowException("Invalid parentNode type(" + parentNode.getNodeType() + " != Array)");
+            }
+            int index = ptr.last().getMatchingIndex();
+            ((ArrayNode) parentNode).insert(index, attachingNode);
+
+        } else if (ptr.last().getMatchingProperty() != null) {
+
+            alloc(ptr.head(), Nodetype.MAP);
+            JsonNode parentNode = root.at(ptr.head());
+            if (!parentNode.isObject()) {
+                throw new WorkflowException("Invalid parentNode type(" + parentNode.getNodeType() + " != Object)");
+            }
+            String key = ptr.last().getMatchingProperty();
+            ((ObjectNode) parentNode).put(key, attachingNode);
+
+        } else {
+            throw new WorkflowException("Invalid path(" + ptr + ")");
+        }
+    }
+
+    @Override
+    public void remove(String path) throws WorkflowException {
+        JsonPointer ptr = JsonPointer.compile(path);
+        remove(ptr);
+    }
+
+    private void remove(JsonPointer ptr) throws WorkflowException {
+
+        JsonNode node = root.at(ptr);
+        if (node instanceof MissingNode) {
+            log.warn("{} does not have valid node", ptr);
+            return;
+        }
+
+        if (ptr.last().getMatchingIndex() != -1) {
+
+            JsonNode parentNode = root.at(ptr.head());
+            if (!parentNode.isArray()) {
+                throw new WorkflowException("Invalid parentNode type(" + parentNode.getNodeType() + " != Array)");
+            }
+            int index = ptr.last().getMatchingIndex();
+            ((ArrayNode) parentNode).remove(index);
+
+        } else if (ptr.last().getMatchingProperty() != null) {
+
+            JsonNode parentNode = root.at(ptr.head());
+            if (!parentNode.isObject()) {
+                throw new WorkflowException("Invalid parentNode type(" + parentNode.getNodeType() + " != Object)");
+            }
+            String key = ptr.last().getMatchingProperty();
+            ((ObjectNode) parentNode).remove(key);
+
+        } else {
+            throw new WorkflowException("Invalid path(" + ptr + ")");
+        }
     }
 
     @Override
@@ -200,6 +266,9 @@ public final class JsonDataModelTree implements DataModelTree {
             throw new WorkflowException("Invalid root node");
         }
         JsonNode node = root.at(ptr);
+        if (node instanceof MissingNode) {
+            return null;
+        }
         if (!(node instanceof ObjectNode)) {
             throw new WorkflowException("Invalid node(" + node + ") at " + ptr);
         }
@@ -228,10 +297,172 @@ public final class JsonDataModelTree implements DataModelTree {
             throw new WorkflowException("Invalid root node");
         }
         JsonNode node = root.at(ptr);
+        if (node instanceof MissingNode) {
+            return null;
+        }
         if (!(node instanceof ArrayNode)) {
             throw new WorkflowException("Invalid node(" + node + ") at " + ptr);
         }
         return (ArrayNode) node;
+    }
+
+    /**
+     * Gets text node on specific path.
+     * @param path path of json node
+     * @return text on specific path
+     * @throws WorkflowException workflow exception
+     */
+    public String textAt(String path) throws WorkflowException {
+        JsonPointer ptr = JsonPointer.compile(path);
+        return textAt(ptr);
+    }
+
+    /**
+     * Gets text on specific json pointer.
+     * @param ptr json pointer
+     * @return text on specific json pointer
+     * @throws WorkflowException workflow exception
+     */
+    public String textAt(JsonPointer ptr) throws WorkflowException {
+        if (root == null || root instanceof MissingNode) {
+            throw new WorkflowException("Invalid root node");
+        }
+        JsonNode node = root.at(ptr);
+        if (node instanceof MissingNode) {
+            return null;
+        }
+        if (!(node instanceof TextNode)) {
+            throw new WorkflowException("Invalid node(" + node + ") at " + ptr);
+        }
+        return ((TextNode) node).asText();
+    }
+
+    /**
+     * Gets integer node on specific path.
+     * @param path path of json node
+     * @return integer on specific path
+     * @throws WorkflowException workflow exception
+     */
+    public Integer intAt(String path) throws WorkflowException {
+        JsonPointer ptr = JsonPointer.compile(path);
+        return intAt(ptr);
+    }
+
+    /**
+     * Gets integer on specific json pointer.
+     * @param ptr json pointer
+     * @return integer on specific json pointer
+     * @throws WorkflowException workflow exception
+     */
+    public Integer intAt(JsonPointer ptr) throws WorkflowException {
+        if (root == null || root instanceof MissingNode) {
+            throw new WorkflowException("Invalid root node");
+        }
+        JsonNode node = root.at(ptr);
+        if (node instanceof MissingNode) {
+            return null;
+        }
+        if (!(node instanceof NumericNode)) {
+            throw new WorkflowException("Invalid node(" + node + ") at " + ptr);
+        }
+        return ((NumericNode) node).asInt();
+    }
+
+    /**
+     * Gets boolean on specific path.
+     * @param path path of json node
+     * @return boolean on specific path
+     * @throws WorkflowException workflow exception
+     */
+    public Boolean booleanAt(String path) throws WorkflowException {
+        JsonPointer ptr = JsonPointer.compile(path);
+        return booleanAt(ptr);
+    }
+
+    /**
+     * Gets boolean on specific json pointer.
+     * @param ptr json pointer
+     * @return boolean on specific json pointer
+     * @throws WorkflowException workflow exception
+     */
+    public Boolean booleanAt(JsonPointer ptr) throws WorkflowException {
+        if (root == null || root instanceof MissingNode) {
+            throw new WorkflowException("Invalid root node");
+        }
+        JsonNode node = root.at(ptr);
+        if (node instanceof MissingNode) {
+            return null;
+        }
+        if (!(node instanceof BooleanNode)) {
+            throw new WorkflowException("Invalid node(" + node + ") at " + ptr);
+        }
+        return ((BooleanNode) node).asBoolean();
+    }
+
+    /**
+     * Sets text on specific json path.
+     * @param path json path
+     * @param text text to set
+     * @throws WorkflowException workflow exception
+     */
+    public void setAt(String path, String text) throws WorkflowException {
+        JsonPointer ptr = JsonPointer.compile(path);
+        setAt(ptr, text);
+    }
+
+    /**
+     * Sets text on the specific json pointer.
+     * @param ptr json pointer
+     * @param text text to set
+     * @throws WorkflowException workflow exception
+     */
+    public void setAt(JsonPointer ptr, String text) throws WorkflowException {
+        TextNode textNode = TextNode.valueOf(text);
+        attach(ptr, textNode);
+    }
+
+    /**
+     * Sets boolean on specific json path.
+     * @param path json path
+     * @param isTrue boolean to set
+     * @throws WorkflowException workflow exception
+     */
+    public void setAt(String path, Boolean isTrue) throws WorkflowException {
+        JsonPointer ptr = JsonPointer.compile(path);
+        setAt(ptr, isTrue);
+    }
+
+    /**
+     * Sets boolean on the specific json pointer.
+     * @param ptr json pointer
+     * @param isTrue boolean to set
+     * @throws WorkflowException workflow exception
+     */
+    public void setAt(JsonPointer ptr, Boolean isTrue) throws WorkflowException {
+        BooleanNode booleanNode = BooleanNode.valueOf(isTrue);
+        attach(ptr, booleanNode);
+    }
+
+    /**
+     * Sets integer on specific json path.
+     * @param path json path
+     * @param number number to set
+     * @throws WorkflowException workflow exception
+     */
+    public void setAt(String path, Integer number) throws WorkflowException {
+        JsonPointer ptr = JsonPointer.compile(path);
+        setAt(ptr, number);
+    }
+
+    /**
+     * Sets integer on the specific json pointer.
+     * @param ptr json pointer
+     * @param number number to set
+     * @throws WorkflowException workflow exception
+     */
+    public void setAt(JsonPointer ptr, Integer number) throws WorkflowException {
+        IntNode intNode = IntNode.valueOf(number);
+        attach(ptr, intNode);
     }
 
     /**
@@ -245,11 +476,11 @@ public final class JsonDataModelTree implements DataModelTree {
     private JsonNode alloc(JsonNode node, JsonPointer ptr, JsonNodeType leaftype) throws WorkflowException {
 
         if (ptr.matches()) {
-            if (node instanceof MissingNode) {
+            if (node == null || node instanceof MissingNode) {
                 node = createEmpty(leaftype);
             } else {
                 //TODO: checking existing node type is matched with leaftype
-                if (Objects.equals(node.getNodeType(), leaftype)) {
+                if (!Objects.equals(node.getNodeType(), leaftype)) {
                     throw new WorkflowException("Requesting leaftype(" + leaftype + ") is not matched with "
                             + "existing nodetype(" + node.getNodeType() + ") for " + ptr);
                 }
@@ -258,7 +489,7 @@ public final class JsonDataModelTree implements DataModelTree {
         }
 
         if (ptr.getMatchingIndex() != -1) {
-            if (node instanceof MissingNode) {
+            if (node == null || node instanceof MissingNode) {
                 node = createEmpty(JsonNodeType.ARRAY);
             }
             JsonNode child = alloc(node.get(ptr.getMatchingIndex()), ptr.tail(), leaftype);
@@ -266,7 +497,7 @@ public final class JsonDataModelTree implements DataModelTree {
                 ((ArrayNode) node).insert(ptr.getMatchingIndex(), child);
             }
         } else if (ptr.getMatchingProperty() != null) {
-            if (node instanceof MissingNode) {
+            if (node == null || node instanceof MissingNode) {
                 node = createEmpty(JsonNodeType.OBJECT);
             }
             JsonNode child = alloc(node.get(ptr.getMatchingProperty()), ptr.tail(), leaftype);
@@ -304,7 +535,7 @@ public final class JsonDataModelTree implements DataModelTree {
         try {
             str = (new ObjectMapper()).writerWithDefaultPrettyPrinter().writeValueAsString(root);
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            log.error("Exception: ", e);
         }
         return str;
     }
@@ -312,7 +543,7 @@ public final class JsonDataModelTree implements DataModelTree {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
-                .add("json", formattedRootString())
+                .add("json", root)
                 .toString();
     }
 }

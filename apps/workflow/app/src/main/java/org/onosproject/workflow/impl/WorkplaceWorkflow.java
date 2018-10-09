@@ -143,6 +143,15 @@ public class WorkplaceWorkflow {
                 return false;
             }
         }
+
+        @Override
+        public void timeout(WorkflowContext context) throws WorkflowException {
+            if (!isNext(context)) {
+                context.completed(); //Complete the job of worklet by timeout
+            } else {
+                super.timeout(context);
+            }
+        }
     }
 
     public static class CreateWorkflowContext extends AbsWorkflowWorklet {

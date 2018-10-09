@@ -32,6 +32,13 @@ public class TimerChain {
     private TimerChainTask impendingTask;
 
     /**
+     * Constructor of timer chain.
+     */
+    public TimerChain() {
+
+    }
+
+    /**
      * Schedules timer event.
      * @param afterMs millisecond which time event happens.
      * @param runnable runnable to be executed after 'afterMs'
@@ -55,7 +62,7 @@ public class TimerChain {
      */
     private void schedule(TimerChainTask task) {
         synchronized (this) {
-            if (taskQueue.size() == 0) {
+            if (taskQueue.isEmpty()) {
                 scheduleImpending(task);
                 return;
             }
@@ -124,7 +131,7 @@ public class TimerChain {
      * @return timer chain task
      */
     public TimerChainTask head() {
-        if (taskQueue.size() > 0) {
+        if (!taskQueue.isEmpty()) {
             return taskQueue.peek();
         } else {
             return null;
@@ -136,7 +143,7 @@ public class TimerChain {
      * @return timer chain task
      */
     public TimerChainTask pop() {
-        if (taskQueue.size() > 0) {
+        if (!taskQueue.isEmpty()) {
             return taskQueue.poll();
         } else {
             return null;
@@ -186,7 +193,6 @@ public class TimerChain {
             TimerChainTask nextTask;
             synchronized (timerchain) {
                 if (timerchain.impendingTask() != this) {
-                    System.out.println("Invalid impendingTask");
                     runnable().run();
                     return;
                 }

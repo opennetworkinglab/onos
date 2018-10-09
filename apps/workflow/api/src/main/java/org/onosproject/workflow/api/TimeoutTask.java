@@ -17,6 +17,8 @@ package org.onosproject.workflow.api;
 
 import com.google.common.base.MoreObjects;
 
+import static org.onosproject.workflow.api.CheckCondition.check;
+
 
 public final class TimeoutTask extends HandlerTask {
 
@@ -28,7 +30,7 @@ public final class TimeoutTask extends HandlerTask {
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                 .add("context", context())
-                .add("workletType", workletType())
+                .add("programCounter", programCounter())
                 .toString();
     }
 
@@ -51,16 +53,19 @@ public final class TimeoutTask extends HandlerTask {
         }
 
         @Override
-        public Builder workletType(String workletType) {
-            super.workletType(workletType);
+        public Builder programCounter(ProgramCounter programCounter) {
+            super.programCounter(programCounter);
             return this;
         }
 
         /**
          * Builds TimeoutTask.
          * @return instance of TimeoutTask
+         * @throws WorkflowException workflow exception
          */
-        public TimeoutTask build() {
+        public TimeoutTask build() throws WorkflowException {
+            check(context != null, "context is invalid");
+            check(programCounter != null, "programCounter is invalid");
             return new TimeoutTask(this);
         }
     }

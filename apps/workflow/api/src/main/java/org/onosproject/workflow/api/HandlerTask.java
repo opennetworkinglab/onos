@@ -28,9 +28,9 @@ public abstract class HandlerTask {
     private final WorkflowContext context;
 
     /**
-     * Worklet type of handler task.
+     * Program counter of handler task.
      */
-    private final String workletType;
+    private final ProgramCounter programCounter;
 
     /**
      * Constructor for handler task.
@@ -38,7 +38,7 @@ public abstract class HandlerTask {
      */
     protected HandlerTask(Builder builder) {
         this.context = builder.context;
-        this.workletType = builder.workletType;
+        this.programCounter = builder.programCounter;
     }
 
     /**
@@ -50,18 +50,18 @@ public abstract class HandlerTask {
     }
 
     /**
-     * Returns worklet type name of this handler task.
-     * @return worklet type
+     * Returns program counter of this handler task.
+     * @return program counter
      */
-    public String workletType() {
-        return workletType;
+    public ProgramCounter programCounter() {
+        return programCounter;
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                 .add("context", context())
-                .add("workletType", workletType())
+                .add("programCounter", programCounter())
                 .toString();
     }
 
@@ -70,7 +70,7 @@ public abstract class HandlerTask {
      */
     public static class Builder {
         protected WorkflowContext context;
-        protected String workletType;
+        protected ProgramCounter programCounter;
 
         /**
          * Sets workflow context of handler task.
@@ -83,12 +83,12 @@ public abstract class HandlerTask {
         }
 
         /**
-         * Sets worklet type of handler task.
-         * @param workletType worklet type
+         * Sets program counter of handler task.
+         * @param programCounter program counter of handler type
          * @return builder of handler task
          */
-        public Builder workletType(String workletType) {
-            this.workletType = workletType;
+        public Builder programCounter(ProgramCounter programCounter) {
+            this.programCounter = programCounter;
             return this;
         }
     }

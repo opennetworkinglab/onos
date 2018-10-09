@@ -32,11 +32,11 @@ public interface ContextEventMapStore {
      * @param eventType the class name of event
      * @param eventHint event hint string value of the event
      * @param contextName workflow context name
-     * @param workletType the class name of worklet
+     * @param programCounterString the program counter of workflow
      * @throws WorkflowException workflow exception
      */
     void registerEventMap(String eventType, String eventHint,
-                          String contextName, String workletType) throws WorkflowException;
+                          String contextName, String programCounterString) throws WorkflowException;
 
     /**
      * Unregisters workflow context event mapping.

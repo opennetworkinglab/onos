@@ -68,7 +68,7 @@ public class WorkflowNetConfigListener implements NetworkConfigListener {
 
     @Override
     public boolean isRelevant(NetworkConfigEvent event) {
-        return true;
+        return event.config().isPresent() && event.config().get() instanceof WorkflowNetConfig;
     }
 
     @Override
@@ -116,7 +116,7 @@ public class WorkflowNetConfigListener implements NetworkConfigListener {
                     rpcMap.get(rpc.op()).apply(this.workflowService, rpc);
                 }
             } catch (WorkflowException e) {
-                e.printStackTrace();
+                log.error("Exception: ", e);
             }
         }
     }

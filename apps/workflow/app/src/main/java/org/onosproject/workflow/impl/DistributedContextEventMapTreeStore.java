@@ -89,13 +89,13 @@ public class DistributedContextEventMapTreeStore implements ContextEventMapStore
 
     @Override
     public void registerEventMap(String eventType, String eventHint,
-                                 String contextName, String workletType) throws WorkflowException {
+                                 String contextName, String programCounterString) throws WorkflowException {
         DocumentPath dpath = DocumentPath.from(Lists.newArrayList("root", eventType, eventHint, contextName));
         String currentWorkletType = completeVersioned(eventMapTree.get(dpath));
         if (currentWorkletType == null) {
-            complete(eventMapTree.createRecursive(dpath, workletType));
+            complete(eventMapTree.createRecursive(dpath, programCounterString));
         } else {
-            complete(eventMapTree.replace(dpath, workletType, currentWorkletType));
+            complete(eventMapTree.replace(dpath, programCounterString, currentWorkletType));
         }
     }
 
