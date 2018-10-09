@@ -10,6 +10,7 @@ TEST_DEPS = TEST_REST + [
 ]
 
 osgi_jar_with_tests(
+    karaf_command_packages = ["org.onosproject.pce.cli"],
     test_deps = TEST_DEPS,
     deps = COMPILE_DEPS,
 )
