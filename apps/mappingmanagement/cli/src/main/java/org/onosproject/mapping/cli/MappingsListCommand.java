@@ -21,9 +21,11 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.cli.net.DeviceIdCompleter;
 import org.onosproject.mapping.MappingEntry;
 import org.onosproject.mapping.MappingKey;
 import org.onosproject.mapping.MappingTreatment;
@@ -67,10 +69,12 @@ public class MappingsListCommand extends AbstractShellCommand {
     @Argument(index = 0, name = "type",
             description = "Shows mappings with specified type",
             required = true, multiValued = false)
+    @Completion(MappingStoreTypeCompleter.class)
     private String type = null;
 
     @Argument(index = 1, name = "deviceId", description = "Device identity",
             required = false, multiValued = false)
+    @Completion(DeviceIdCompleter.class)
     private String deviceId = null;
 
     @Option(name = "-s", aliases = "--short",

@@ -17,6 +17,7 @@ package org.onosproject.mapping.cli;
 
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractChoicesCompleter;
 import org.onosproject.mapping.MappingStore.Type;
 
@@ -26,6 +27,7 @@ import java.util.stream.Collectors;
 /**
  * Mapping store type completer.
  */
+@Service
 public class MappingStoreTypeCompleter extends AbstractChoicesCompleter {
 
     private static final List<Type> STORE_TYPES =

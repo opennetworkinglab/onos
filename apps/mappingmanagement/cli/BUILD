@@ -5,6 +5,6 @@ COMPILE_DEPS = CORE_DEPS + JACKSON + CLI + REST + [
 ]
 
 osgi_jar_with_tests(
-    import_packages = "*,org.onosproject.cli.net",
+    karaf_command_packages = ["org.onosproject.mapping.cli"],
     deps = COMPILE_DEPS,
 )
