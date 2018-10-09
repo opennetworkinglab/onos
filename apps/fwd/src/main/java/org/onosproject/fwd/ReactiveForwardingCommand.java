@@ -15,6 +15,7 @@
  */
 package org.onosproject.fwd;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.apache.karaf.shell.api.action.Argument;
@@ -29,6 +30,7 @@ import org.onlab.packet.MacAddress;
 public class ReactiveForwardingCommand extends AbstractShellCommand {
     @Argument(index = 0, name = "mac", description = "One Mac Address",
             required = false, multiValued = false)
+    @Completion(MacAddressCompleter.class)
     String mac = null;
     @Override
     protected void doExecute() {
