@@ -235,7 +235,8 @@ describe('FnService', () => {
             'isFirefox', 'parseDebugFlags',
             'debugOn', 'debug', 'find', 'inArray', 'removeFromArray',
             'isEmptyObject', 'cap', 'noPx', 'noPxStyle', 'endsWith',
-            'inEvilList', 'analyze', 'sanitize', 'sameObjProps', 'containsObj'
+            'inEvilList', 'analyze', 'sanitize', 'sameObjProps', 'containsObj',
+            'addToTrie', 'removeFromTrie', 'trieLookup'
 //            'find', 'inArray', 'removeFromArray', 'isEmptyObject', 'sameObjProps', 'containsObj', 'cap',
 //            'eecode', 'noPx', 'noPxStyle', 'endsWith', 'addToTrie', 'removeFromTrie', 'trieLookup',
 //            'classNames', 'extend', 'sanitize'

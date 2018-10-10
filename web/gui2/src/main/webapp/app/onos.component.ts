@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-present Open Networking Foundation
+ * Copyright 2018-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,15 @@
  */
 import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
 import { Observable, Subscription, fromEvent } from 'rxjs';
-import { map, filter } from 'rxjs/operators';
-
+import * as d3 from 'd3';
 import {
     LionService,
     LogService,
     ThemeService,
     GlyphService,
     WebSocketService,
-    WsOptions
+    WsOptions,
+    KeysService
 } from 'gui2-fw-lib';
 import { OnosService, View } from './onos.service';
 
@@ -81,6 +81,7 @@ export class OnosComponent implements OnInit, AfterViewInit, OnDestroy {
         private lion: LionService,
         private ts: ThemeService,
         private gs: GlyphService,
+        private ks: KeysService,
         public wss: WebSocketService,
         private log: LogService,
         private onos: OnosService
@@ -121,36 +122,38 @@ export class OnosComponent implements OnInit, AfterViewInit, OnDestroy {
      * quick help feature
      */
     ngAfterViewInit() {
-        const keyStrokeHandler =
-            fromEvent(document, 'keyup').pipe(map((x: KeyboardEvent) => x.keyCode));
-        this.quickHelpHandler = keyStrokeHandler.pipe(
-            filter(x => {
-                return [27, 191, 220].includes(x);
-            })
-        ).pipe(
-            map(x => {
-                let direction;
-                switch (x) {
-                    case 27:
-                        direction = 'esc';
-                        break;
-                    case 191:
-                        direction = 'fwdslash';
-                        break;
-                    case 220:
-                        direction = 'backslash';
-                        break;
-                    default:
-                        direction = 'esc';
-                }
-                return direction;
-            })
-        );
-
-        // TODO: Make a Quick Help component popup
-        this.quickHelpSub = this.quickHelpHandler.subscribe((keyname) => {
-            this.log.debug('Keystroke', keyname);
-        });
+        // const keyStrokeHandler =
+        //     fromEvent(document, 'keyup').pipe(map((x: KeyboardEvent) => x.keyCode));
+        // this.quickHelpHandler = keyStrokeHandler.pipe(
+        //     filter(x => {
+        //         return [27, 191, 220].includes(x);
+        //     })
+        // ).pipe(
+        //     map(x => {
+        //         let direction;
+        //         switch (x) {
+        //             case 27:
+        //                 direction = 'esc';
+        //                 break;
+        //             case 191:
+        //                 direction = 'fwdslash';
+        //                 break;
+        //             case 220:
+        //                 direction = 'backslash';
+        //                 break;
+        //             default:
+        //                 direction = 'esc';
+        //         }
+        //         return direction;
+        //     })
+        // );
+        //
+        // // TODO: Make a Quick Help component popup
+        // this.quickHelpSub = this.quickHelpHandler.subscribe((keyname) => {
+        //     this.log.debug('Keystroke', keyname);
+        // });
+        this.ks.installOn(d3.select('body'));
+        this.log.debug('OnosComponent after view initialized');
     }
 
     ngOnDestroy() {

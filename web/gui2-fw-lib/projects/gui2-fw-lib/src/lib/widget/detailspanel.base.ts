@@ -55,7 +55,7 @@ export abstract class DetailsPanelBaseImpl extends PanelBaseImpl {
         protected wss: WebSocketService,
         protected tag: string,
     ) {
-        super(fs, ls, log, wss, {});
+        super(fs, ls, log);
         this.root = tag + 's';
         this.req = tag + 'DetailsRequest';
         this.resp = tag + 'DetailsResponse';

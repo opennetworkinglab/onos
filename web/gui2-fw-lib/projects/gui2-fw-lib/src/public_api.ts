@@ -36,10 +36,14 @@ export * from './lib/layer/panel.service';
 export * from './lib/svg/svgutil.service';
 export * from './lib/svg/glyphdata.service';
 export * from './lib/svg/glyph.service';
+export * from './lib/svg/zoom.service';
+
 export * from './lib/util/prefs.service';
 export * from './lib/util/fn.service';
 export * from './lib/util/lion.service';
 export * from './lib/util/theme.service';
+export * from './lib/util/keys.service';
+export * from './lib/util/trie';
 
 export * from './lib/mast/mast/mast.component';
 export * from './lib/layer/veil/veil.component';

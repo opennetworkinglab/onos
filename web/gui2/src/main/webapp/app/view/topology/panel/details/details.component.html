@@ -1,0 +1,128 @@
+<!--
+~ Copyright 2018-present Open Networking Foundation
+~
+~ Licensed under the Apache License, Version 2.0 (the "License");
+~ you may not use this file except in compliance with the License.
+~ You may obtain a copy of the License at
+~
+~     http://www.apache.org/licenses/LICENSE-2.0
+~
+~ Unless required by applicable law or agreed to in writing, software
+~ distributed under the License is distributed on an "AS IS" BASIS,
+~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+~ See the License for the specific language governing permissions and
+~ limitations under the License.
+-->
+<div id="topo2-p-detail" class="floatpanel topo2-p"
+     style="opacity: 1; right: 20px; width: 260px; top: 350px;" [@detailsPanelState]="!on">
+    <div class="header">
+        <div class="icon clickable">
+            <svg>
+                <use width="26" height="26" class="glyph" xlink:href="#m_switch"></use>
+            </svg>
+        </div>
+        <h2 class="clickable">rest:10.1.2.2:443</h2>
+    </div>
+    <div class="body">
+        <table>
+            <tbody>
+            <tr>
+                <td class="label">URI :</td>
+                <td class="value">null:0000000000000002</td>
+            </tr>
+            <tr>
+                <td class="label">Vendor :</td>
+                <td class="value">ONF</td>
+            </tr>
+            <tr>
+                <td class="label">H/W Version :</td>
+                <td class="value">0.1</td>
+            </tr>
+            <tr>
+                <td class="label">S/W Version :</td>
+                <td class="value">0.1</td>
+            </tr>
+            <tr>
+                <td class="label">Serial # :</td>
+                <td class="value">1234</td>
+            </tr>
+            <tr>
+                <td class="label">Protocol :</td>
+                <td class="value"></td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <hr>
+                </td>
+            </tr>
+            <tr>
+                <td class="label">Ports :</td>
+                <td class="value">4</td>
+            </tr>
+            <tr>
+                <td class="label">Flows :</td>
+                <td class="value">4</td>
+            </tr>
+            <tr>
+                <td class="label">Tunnels :</td>
+                <td class="value">0</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="footer">
+        <hr>
+        <div class="actionBtns">
+            <div class="actionBtn">
+                <div class="button" id="topo2-p-detail-core-showDeviceView">
+                    <svg class="embeddedIcon" width="25" height="25" viewBox="0 0 50 50">
+                        <g class="icon">
+                            <rect width="50" height="50" rx="5"></rect>
+                            <use width="50" height="50" class="glyph" xlink:href="#switch"></use>
+                        </g>
+                    </svg>
+                </div>
+            </div>
+            <div class="actionBtn">
+                <div class="button" id="topo2-p-detail-core-showFlowView">
+                    <svg class="embeddedIcon" width="25" height="25" viewBox="0 0 50 50">
+                        <g class="icon">
+                            <rect width="50" height="50" rx="5"></rect>
+                            <use width="50" height="50" class="glyph" xlink:href="#flowTable"></use>
+                        </g>
+                    </svg>
+                </div>
+            </div>
+            <div class="actionBtn">
+                <div class="button" id="topo2-p-detail-core-showPortView">
+                    <svg class="embeddedIcon" width="25" height="25" viewBox="0 0 50 50">
+                        <g class="icon">
+                            <rect width="50" height="50" rx="5"></rect>
+                            <use width="50" height="50" class="glyph" xlink:href="#portTable"></use>
+                        </g>
+                    </svg>
+                </div>
+            </div>
+            <div class="actionBtn">
+                <div class="button" id="topo2-p-detail-core-showGroupView">
+                    <svg class="embeddedIcon" width="25" height="25" viewBox="0 0 50 50">
+                        <g class="icon">
+                            <rect width="50" height="50" rx="5"></rect>
+                            <use width="50" height="50" class="glyph" xlink:href="#groupTable"></use>
+                        </g>
+                    </svg>
+                </div>
+            </div>
+            <div class="actionBtn">
+                <div class="button" id="topo2-p-detail-core-showMeterView">
+                    <svg class="embeddedIcon" width="25" height="25" viewBox="0 0 50 50">
+                        <g class="icon">
+                            <rect width="50" height="50" rx="5"></rect>
+                            <use width="50" height="50" class="glyph" xlink:href="#meterTable"></use>
+                        </g>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

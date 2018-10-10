@@ -1,0 +1,90 @@
+/*
+ * Copyright 2018-present Open Networking Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
+ * ONOS GUI -- Topology Common styles -- CSS file
+ */
+.topo2-p div.header {
+    margin-bottom: 10px;
+}
+
+.topo2-p div.header div.icon {
+    vertical-align: middle;
+    display: inline-block;
+}
+.topo2-p div.body {
+    overflow-y: scroll;
+}
+
+.topo2-p div.body::-webkit-scrollbar {
+    display: none;
+}
+
+.topo2-p svg {
+    display: inline-block;
+    width: 26px;
+    height: 26px;
+}
+
+
+.topo2-p h2 {
+    padding: 0 0 0 10px;
+    margin: 0;
+    font-weight: lighter;
+    word-wrap: break-word;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.topo2-p h3 {
+    padding: 0 4px;
+    margin: 0;
+    word-wrap: break-word;
+    top: 20px;
+    left: 50px;
+}
+
+.topo2-p p,
+.topo2-p table {
+    padding: 0;
+    margin: 0;
+    width: 100%;
+}
+
+.topo2-p td {
+    word-wrap: break-word;
+}
+.topo2-p td.label {
+    font-weight: bold;
+    padding: 0 10px 0 0;
+}
+.topo2-p td.value {
+    padding: 0;
+}
+
+#topo2-p-summary  td.label {
+    width: 50%;
+}
+
+#topo2-p-detail  div.actionBtns {
+    padding-top: 6px;
+}
+
+.topo2-p hr {
+    height: 1px;
+    border: 0;
+    margin: 4px -3px;
+}

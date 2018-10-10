@@ -140,8 +140,7 @@ describe('AppsComponent', () => {
                 { provide: WebSocketService, useClass: MockWebSocketService },
                 { provide: 'Window', useValue: windowMock },
             ]
-        })
-            .compileComponents();
+        }).compileComponents();
         logServiceSpy = TestBed.get(LogService);
     }));
 

@@ -16,41 +16,6 @@
 import { FnService } from '../util/fn.service';
 import { LoadingService } from '../layer/loading.service';
 import { LogService } from '../log.service';
-import { WebSocketService } from '../remote/websocket.service';
-
-
-const noop = (): any => undefined;
-
-/**
- ********* Static functions *********
- */
-function margin(p) {
-    return p.settings.margin;
-}
-
-function hideMargin(p) {
-    return p.settings.hideMargin;
-}
-
-function noPx(p, what) {
-    return Number(p.el.style(what).replace(/px$/, ''));
-}
-
-function widthVal(p) {
-    return noPx(p, 'width');
-}
-
-function heightVal(p) {
-    return noPx(p, 'height');
-}
-
-function pxShow(p) {
-    return margin(p) + 'px';
-}
-
-function pxHide(p) {
-    return (-hideMargin(p) - widthVal(p) - (noPx(p, 'padding') * 2)) + 'px';
-}
 
 
 /**
@@ -60,14 +25,7 @@ export interface PanelBase {
     showPanel(cb: any): void;
     hidePanel(cb: any): void;
     togglePanel(cb: any): void;
-    emptyPanel(): void;
-    appendPanel(what: any): void;
-    panelWidth(w: number): number;
-    panelHeight(h: number): number;
-    panelBBox(): string;
     panelIsVisible(): boolean;
-    classed(cls: any, bool: boolean): boolean;
-    panelEl(): any;
 }
 
 /**
@@ -77,36 +35,22 @@ export interface PanelBase {
  */
 export abstract class PanelBaseImpl implements PanelBase {
 
-    protected on: boolean;
-    protected el: any;
+    on: boolean;
 
     constructor(
         protected fs: FnService,
         protected ls: LoadingService,
         protected log: LogService,
-        protected wss: WebSocketService,
-        protected settings: any
     ) {
 //        this.log.debug('Panel base class constructed');
     }
 
     showPanel(cb) {
-        const endCb = this.fs.isF(cb) || noop;
         this.on = true;
-        this.el.transition().duration(this.settings.xtnTime)
-            .each('end', endCb)
-            .style(this.settings.edge, pxShow(this))
-            .style('opacity', 1);
     }
 
     hidePanel(cb) {
-        const endCb = this.fs.isF(cb) || noop;
-        const endOpacity = this.settings.fade ? 0 : 1;
         this.on = false;
-        this.el.transition().duration(this.settings.xtnTime)
-            .each('end', endCb)
-            .style(this.settings.edge, pxHide(this))
-            .style('opacity', endOpacity);
     }
 
     togglePanel(cb): boolean {
@@ -118,44 +62,9 @@ export abstract class PanelBaseImpl implements PanelBase {
         return this.on;
     }
 
-    emptyPanel(): string {
-        return this.el.text('');
-    }
-
-    appendPanel(what) {
-        return this.el.append(what);
-    }
-
-    panelWidth(w: number): number {
-        if (w === undefined) {
-            return widthVal(this);
-        }
-        this.el.style('width', w + 'px');
-    }
-
-    panelHeight(h: number): number {
-        if (h === undefined) {
-            return heightVal(this);
-        }
-        this.el.style('height', h + 'px');
-    }
-
-    panelBBox(): string {
-        return this.el.node().getBoundingClientRect();
-    }
-
     panelIsVisible(): boolean {
         return this.on;
     }
-
-    classed(cls, bool): boolean {
-        return this.el.classed(cls, bool);
-    }
-
-    panelEl() {
-        return this.el;
-    }
-
 
     /**
      * A dummy implementation of the lionFn until the response is received and the LION

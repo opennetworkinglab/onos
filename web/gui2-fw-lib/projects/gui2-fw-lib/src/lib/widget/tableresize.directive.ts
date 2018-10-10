@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterContentChecked, Directive, ElementRef, Inject } from '@angular/core';
+import { AfterContentChecked, Directive, Inject } from '@angular/core';
 import { FnService } from '../util/fn.service';
 import { LogService } from '../log.service';
 import { MastService } from '../mast/mast.service';
@@ -34,7 +34,6 @@ export class TableResizeDirective implements AfterContentChecked {
     constructor(protected fs: FnService,
         protected log: LogService,
         protected mast: MastService,
-        protected el: ElementRef,
         @Inject('Window') private w: any) {
 
         log.info('TableResizeDirective constructed');
