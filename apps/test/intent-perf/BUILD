@@ -3,6 +3,7 @@ COMPILE_DEPS = CORE_DEPS + JACKSON + CLI + REST + [
 ]
 
 osgi_jar_with_tests(
+    karaf_command_packages = ["org.onosproject.intentperf"],
     deps = COMPILE_DEPS,
 )
 
