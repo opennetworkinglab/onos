@@ -4,6 +4,7 @@ COMPILE_DEPS = CORE_DEPS + JACKSON + KRYO + CLI + [
 ]
 
 osgi_jar_with_tests(
+    karaf_command_packages = ["org.onosproject.vtn.cli"],
     resources = glob(["src/main/resources/**"]),
     resources_root = "src/main/resources",
     deps = COMPILE_DEPS,
