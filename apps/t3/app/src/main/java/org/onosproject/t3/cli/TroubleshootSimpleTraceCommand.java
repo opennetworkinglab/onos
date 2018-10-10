@@ -18,9 +18,11 @@ package org.onosproject.t3.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.cli.net.EthTypeCompleter;
 import org.onosproject.cli.net.HostIdCompleter;
 import org.onosproject.net.HostId;
 import org.onosproject.t3.api.StaticPacketTrace;
@@ -42,10 +44,12 @@ public class TroubleshootSimpleTraceCommand extends AbstractShellCommand {
     HostIdCompleter completer;
     @Argument(index = 0, name = "one", description = "One host ID",
             required = true, multiValued = false)
+    @Completion(HostIdCompleter.class)
     String srcHost = null;
 
     @Argument(index = 1, name = "two", description = "Another host ID",
             required = true, multiValued = false)
+    @Completion(HostIdCompleter.class)
     String dstHost = null;
 
     @Option(name = "-v", aliases = "--verbose", description = "Outputs complete path")
@@ -55,6 +59,7 @@ public class TroubleshootSimpleTraceCommand extends AbstractShellCommand {
     private boolean verbosity2 = false;
 
     @Option(name = "-et", aliases = "--ethType", description = "ETH Type", valueToShowInHelp = "ipv4")
+    @Completion(EthTypeCompleter.class)
     String ethType = "ipv4";
 
     @Override

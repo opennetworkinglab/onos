@@ -18,10 +18,12 @@ package org.onosproject.t3.cli;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.cli.net.EthTypeCompleter;
 import org.onosproject.net.Host;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.IPCriterion;
@@ -48,6 +50,7 @@ public class TroubleshootPingAllCommand extends AbstractShellCommand {
             "id=%s, mac=%s, locations=%s, vlan=%s, ip(s)=%s";
 
     @Option(name = "-et", aliases = "--ethType", description = "ETH Type", valueToShowInHelp = "ipv4")
+    @Completion(EthTypeCompleter.class)
     String ethType = "ipv4";
 
     @Option(name = "-v", aliases = "--verbose", description = "Outputs trace for each host to host combination")
