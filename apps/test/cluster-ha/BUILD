@@ -3,6 +3,7 @@ COMPILE_DEPS = CORE_DEPS + CLI + KRYO + [
 ]
 
 osgi_jar(
+    karaf_command_packages = ["org.onosproject.clusterha.cli"],
     deps = COMPILE_DEPS,
 )
 
