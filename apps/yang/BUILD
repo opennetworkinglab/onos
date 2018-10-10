@@ -14,6 +14,7 @@ EXCLUDED_BUNDLES = [
 ]
 
 osgi_jar_with_tests(
+    karaf_command_packages = ["org.onosproject.yang.impl"],
     deps = COMPILE_DEPS,
 )
 
