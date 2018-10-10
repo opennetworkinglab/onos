@@ -17,6 +17,7 @@ package org.onosproject.sdnip.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.core.ApplicationId;
@@ -24,6 +25,8 @@ import org.onosproject.core.CoreService;
 import org.onosproject.net.EncapsulationType;
 import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.sdnip.SdnIp;
+import org.onosproject.sdnip.cli.completer.SdnIpCommandCompleter;
+import org.onosproject.sdnip.cli.completer.SdnIpEncapCompleter;
 import org.onosproject.sdnip.config.SdnIpConfig;
 
 /**
@@ -51,11 +54,13 @@ public class SdnIpCommand extends AbstractShellCommand {
     @Argument(index = 0, name = "command", description = "Command name" +
             " {set-encap}",
             required = true, multiValued = false)
+    @Completion(SdnIpCommandCompleter.class)
     String command = null;
 
     @Argument(index = 1, name = "encapType", description = "The encapsulation" +
             " type {NONE | VLAN | MPLS}",
             required = true, multiValued = false)
+    @Completion(SdnIpEncapCompleter.class)
     String encapType = null;
 
     @Override

@@ -15,6 +15,7 @@
  */
 package org.onosproject.sdnip.cli.completer;
 
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractChoicesCompleter;
 import org.onosproject.net.EncapsulationType;
 
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
 /**
  * SDN-IP encapsulation type completer.
  */
+@Service
 public class SdnIpEncapCompleter extends AbstractChoicesCompleter {
 
     @Override
