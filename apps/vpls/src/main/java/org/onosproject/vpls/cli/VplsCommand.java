@@ -18,6 +18,7 @@ package org.onosproject.vpls.cli;
 import com.google.common.collect.ImmutableSet;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.intf.Interface;
@@ -26,6 +27,9 @@ import org.onosproject.net.EncapsulationType;
 import org.onosproject.vpls.api.VplsData;
 import org.onosproject.vpls.api.Vpls;
 import org.onosproject.vpls.api.VplsData.VplsState;
+import org.onosproject.vpls.cli.completer.VplsCommandCompleter;
+import org.onosproject.vpls.cli.completer.VplsNameCompleter;
+import org.onosproject.vpls.cli.completer.VplsOptArgCompleter;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -109,15 +113,18 @@ public class VplsCommand extends AbstractShellCommand {
     @Argument(index = 0, name = "command", description = "Command name (add-if|" +
             "create|delete|list|rem-if|set-encap|show)",
             required = true, multiValued = false)
+    @Completion(VplsCommandCompleter.class)
     String command = null;
 
     @Argument(index = 1, name = "vplsName", description = "The name of the VPLS",
             required = false, multiValued = false)
+    @Completion(VplsNameCompleter.class)
     String vplsName = null;
 
     @Argument(index = 2, name = "optArg", description = "The interface name or" +
             " the encapsulation type for set-encap",
             required = false, multiValued = false)
+    @Completion(VplsOptArgCompleter.class)
     String optArg = null;
 
     @Override

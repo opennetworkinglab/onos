@@ -6,6 +6,10 @@ COMPILE_DEPS = CORE_DEPS + JACKSON + KRYO + REST + CLI + [
 
 osgi_jar_with_tests(
     exclude_tests = ["org.onosproject.vpls.VplsTest"],
+    karaf_command_packages = [
+        "org.onosproject.vpls.cli",
+        "org.onosproject.vpls.cli.completer",
+    ],
     test_deps = TEST_ADAPTERS,
     deps = COMPILE_DEPS,
 )

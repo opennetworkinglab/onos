@@ -16,6 +16,7 @@
 package org.onosproject.vpls.cli.completer;
 
 import com.google.common.collect.Lists;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractChoicesCompleter;
 import org.onosproject.vpls.cli.VplsCommandEnum;
 
@@ -25,6 +26,7 @@ import java.util.List;
 /**
  * VPLS command completer.
  */
+@Service
 public class VplsCommandCompleter extends AbstractChoicesCompleter {
 
     @Override
