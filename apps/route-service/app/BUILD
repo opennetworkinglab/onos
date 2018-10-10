@@ -11,6 +11,7 @@ TEST_DEPS = TEST + [
 ]
 
 osgi_jar_with_tests(
+    karaf_command_packages = ["org.onosproject.routeservice.cli"],
     test_deps = TEST_DEPS,
     deps = COMPILE_DEPS,
     #web_context = "/onos/routeservice",
