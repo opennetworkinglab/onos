@@ -17,6 +17,7 @@ package org.onosproject.simplefabric;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 
@@ -31,6 +32,7 @@ public class SimpleFabricCommand extends AbstractShellCommand {
     @Argument(index = 0, name = "command",
               description = "Command: show|intents|reactive-intents|refresh|flush",
               required = true, multiValued = false)
+    @Completion(SimpleFabricCommandCompleter.class)
     String command = null;
 
     @Override

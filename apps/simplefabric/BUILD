@@ -7,6 +7,7 @@ BUNDLES = [
 ]
 
 osgi_jar_with_tests(
+    karaf_command_packages = ["org.onosproject.simplefabric"],
     test_deps = TEST_ADAPTERS,
     web_context = "/onos/v1/simplefabric",
     deps = COMPILE_DEPS,
