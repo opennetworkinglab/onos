@@ -41,7 +41,7 @@ public class VerifyGroupsCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "uri", description = "Device ID",
             required = true, multiValued = false)
-            @Completion(DeviceIdCompleter.class)
+    @Completion(DeviceIdCompleter.class)
     String uri = null;
 
     @Override
