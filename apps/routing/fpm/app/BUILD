@@ -8,6 +8,7 @@ COMPILE_DEPS = CORE_DEPS + NETTY + KRYO + CLI + [
 ]
 
 osgi_jar_with_tests(
+    karaf_command_packages = ["org.onosproject.routing.fpm.cli"],
     test_deps = TEST_ADAPTERS,
     deps = COMPILE_DEPS,
 )
