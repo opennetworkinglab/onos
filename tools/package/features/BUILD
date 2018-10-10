@@ -134,12 +134,10 @@ osgi_feature(
     name = "onos-rest",
     description = "ONOS REST API components",
     included_bundles = [
-        "//utils/rest:onlab-rest",
         "//web/api:onos-rest",
     ],
     required_features = [
         "onos-api",
-        "onos-thirdparty-web",
     ],
     visibility = ["//visibility:public"],
 )
@@ -155,25 +153,13 @@ osgi_feature(
 )
 
 osgi_feature(
-    name = "onos-cli2",
-    description = "stripped down ONOS admin command console components",
-    included_bundles = [
-        "//cli2:onos-cli2",
-    ],
-    required_features = ["onos-api"],
-    visibility = ["//visibility:public"],
-)
-
-osgi_feature(
     name = "onos-gui",
     description = "ONOS GUI console components",
     included_bundles = [
         "//web/gui:onos-gui",
-        "//utils/rest:onlab-rest",
     ],
     required_features = [
         "onos-api",
-        "onos-thirdparty-web",
     ],
     visibility = ["//visibility:public"],
 )
@@ -183,22 +169,20 @@ osgi_feature(
     description = "ONOS GUI2 components",
     included_bundles = [
         "//web/gui2:onos-gui2",
-        "//utils/rest:onlab-rest",
     ],
     required_features = [
         "onos-api",
-        "onos-thirdparty-web",
     ],
     visibility = ["//visibility:public"],
 )
 
-osgi_feature(
-    name = "onos-security",
-    description = "Security-Mode ONOS",
-    included_bundles = [
-        "@org_apache_felix_framework_security//jar",
-        "//core/security:onos-security",
-    ],
-    required_features = ["onos-api"],
-    visibility = ["//visibility:public"],
-)
+#osgi_feature(
+#    name = "onos-security",
+#    description = "Security-Mode ONOS",
+#    included_bundles = [
+#        "@org_apache_felix_framework_security//jar",
+#        "//core/security:onos-security",
+#    ],
+#    required_features = ["onos-api"],
+#    visibility = ["//visibility:public"],
+#)

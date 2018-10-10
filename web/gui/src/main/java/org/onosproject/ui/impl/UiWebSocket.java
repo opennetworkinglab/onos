@@ -60,8 +60,7 @@ import java.util.Map;
  */
 
 @WebSocket
-public class UiWebSocket
-        implements UiConnection {
+public class UiWebSocket implements UiConnection {
 
     private static final Logger log = LoggerFactory.getLogger(UiWebSocket.class);
 
@@ -87,10 +86,6 @@ public class UiWebSocket
     private static final String GLYPHS = "glyphs";
 
     private static final long MAX_AGE_MS = 30_000;
-
-    private static final byte PING = 0x9;
-    private static final byte PONG = 0xA;
-    private static final byte[] PING_DATA = new byte[]{(byte) 0xde, (byte) 0xad};
 
     private final ObjectMapper mapper = new ObjectMapper();
     private final ServiceDirectory directory;
