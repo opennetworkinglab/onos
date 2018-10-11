@@ -22,7 +22,7 @@ import org.onosproject.net.DeviceId;
 import java.util.Objects;
 
 /**
- * Key the uniquely identifies a P4Runtime client.
+ * Key that uniquely identifies a P4Runtime client.
  */
 final class ClientKey {
 

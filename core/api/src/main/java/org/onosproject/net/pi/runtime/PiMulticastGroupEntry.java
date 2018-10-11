@@ -34,10 +34,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Beta
 public final class PiMulticastGroupEntry implements PiPreEntry {
 
-    private final long groupId;
+    private final int groupId;
     private final Set<PiPreReplica> replicas;
 
-    private PiMulticastGroupEntry(long groupId, Set<PiPreReplica> replicas) {
+    private PiMulticastGroupEntry(int groupId, Set<PiPreReplica> replicas) {
         this.groupId = groupId;
         this.replicas = replicas;
     }
@@ -48,7 +48,7 @@ public final class PiMulticastGroupEntry implements PiPreEntry {
      *
      * @return group entry ID
      */
-    public long groupId() {
+    public int groupId() {
         return groupId;
     }
 
@@ -111,7 +111,7 @@ public final class PiMulticastGroupEntry implements PiPreEntry {
      */
     public static final class Builder {
 
-        private Long groupId;
+        private Integer groupId;
         private ImmutableSet.Builder<PiPreReplica> replicaSetBuilder = ImmutableSet.builder();
 
         private Builder() {
@@ -124,7 +124,7 @@ public final class PiMulticastGroupEntry implements PiPreEntry {
          * @param groupId group ID
          * @return this
          */
-        public Builder withGroupId(long groupId) {
+        public Builder withGroupId(int groupId) {
             this.groupId = groupId;
             return this;
         }

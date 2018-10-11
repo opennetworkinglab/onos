@@ -38,6 +38,7 @@ class DistributedElectionIdGenerator {
 
     private final Logger log = getLogger(this.getClass());
 
+    // FIXME: counter map use long, but P4Runtime accepts 128bit election IDs
     private AtomicCounterMap<DeviceId> electionIds;
 
     /**

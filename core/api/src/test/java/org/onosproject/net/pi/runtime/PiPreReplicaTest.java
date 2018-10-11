@@ -28,8 +28,8 @@ import static org.hamcrest.Matchers.is;
  */
 public class PiPreReplicaTest {
 
-    private final long instanceId1 = 1;
-    private final long instanceId2 = 2;
+    private final int instanceId1 = 1;
+    private final int instanceId2 = 2;
     private final PortNumber port1 = PortNumber.portNumber(1);
     private final PortNumber port2 = PortNumber.portNumber(2);
 

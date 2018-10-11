@@ -28,10 +28,10 @@ import static org.hamcrest.Matchers.is;
  * Tests for {@link PiMulticastGroupEntry}.
  */
 public class PiMulticastGroupEntryTest {
-    private final long groupId1 = 1;
-    private final long groupId2 = 2;
+    private final int groupId1 = 1;
+    private final int groupId2 = 2;
 
-    private final long instanceId1 = 1;
+    private final int instanceId1 = 1;
 
     private final PortNumber port1 = PortNumber.portNumber(1);
     private final PortNumber port2 = PortNumber.portNumber(2);
