@@ -194,8 +194,9 @@ public class HostHandler {
             // Note: Do not continue removing any rule
             Optional<DeviceId> pairDeviceId = srManager.getPairDeviceId(prevLocation.deviceId());
             Optional<PortNumber> pairLocalPort = srManager.getPairLocalPort(prevLocation.deviceId());
-            if (pairDeviceId.isPresent() && pairLocalPort.isPresent() && newLocations.stream()
-                    .anyMatch(location -> location.deviceId().equals(pairDeviceId.get()))) {
+            if (pairDeviceId.isPresent() && pairLocalPort.isPresent() &&
+                    newLocations.stream().anyMatch(location -> location.deviceId().equals(pairDeviceId.get())) &&
+                    newLocations.stream().noneMatch(location -> location.deviceId().equals(prevLocation.deviceId()))) {
                 // NOTE: Since the pairLocalPort is trunk port, use assigned vlan of original port
                 //       when the host is untagged
                 VlanId vlanId = Optional.ofNullable(srManager.getInternalVlanId(prevLocation)).orElse(hostVlanId);
