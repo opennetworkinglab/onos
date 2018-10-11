@@ -8,5 +8,6 @@ COMPILE_DEPS = CORE_DEPS + CLI + [
 ]
 
 osgi_jar_with_tests(
+    karaf_command_packages = ["org.onosproject.bgp.cli"],
     deps = COMPILE_DEPS,
 )
