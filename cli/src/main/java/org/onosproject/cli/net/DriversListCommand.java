@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.ImmutableList;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.apache.karaf.shell.api.action.Option;
 import org.onosproject.cli.AbstractShellCommand;
@@ -46,6 +47,7 @@ public class DriversListCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "driverName", description = "Driver name",
             required = false, multiValued = false)
+    @Completion(DriverNameCompleter.class)
     String driverName = null;
 
     @Option(name = "-s", aliases = "--sort", description = "Sort output by driver name",

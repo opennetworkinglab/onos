@@ -17,6 +17,7 @@ package org.onosproject.cli.net;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.flow.TrafficSelector;
@@ -39,6 +40,7 @@ public class AddSinglePointToMultiPointIntentCommand extends ConnectivityIntentC
     @Argument(index = 0, name = "ingressDevice egressDevices",
             description = "ingressDevice/Port egressDevice/Port...egressDevice/Port",
             required = true, multiValued = true)
+    @Completion(ConnectPointCompleter.class)
     String[] deviceStrings = null;
 
     @Override

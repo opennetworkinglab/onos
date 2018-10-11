@@ -31,6 +31,7 @@ import com.google.common.collect.Ordering;
 import com.google.common.collect.TreeMultimap;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.metrics.MetricsService;
 import org.onlab.util.Tools;
@@ -70,6 +71,7 @@ public class MetricsListCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "metricName", description = "Name of Metric",
             required = false, multiValued = false)
+    @Completion(MetricNameCompleter.class)
     String metricName = null;
 
     @Override

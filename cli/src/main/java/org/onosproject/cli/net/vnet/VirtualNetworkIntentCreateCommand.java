@@ -18,6 +18,7 @@ package org.onosproject.cli.net.vnet;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.net.ConnectivityIntentCommand;
 import org.onosproject.incubator.net.virtual.NetworkId;
@@ -42,6 +43,7 @@ public class VirtualNetworkIntentCreateCommand extends ConnectivityIntentCommand
 
     @Argument(index = 0, name = "networkId", description = "Network ID",
             required = true, multiValued = false)
+    @Completion(VirtualNetworkCompleter.class)
     Long networkId = null;
 
     @Argument(index = 1, name = "ingressDevice",

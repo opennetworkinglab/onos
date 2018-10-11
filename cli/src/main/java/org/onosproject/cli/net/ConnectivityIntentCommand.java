@@ -15,6 +15,7 @@
  */
 package org.onosproject.cli.net;
 
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.Option;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpAddress;
@@ -24,6 +25,7 @@ import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onlab.util.Bandwidth;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.cli.app.AllApplicationNamesCompleter;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.EncapsulationType;
@@ -67,6 +69,7 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
 
     @Option(name = "-t", aliases = "--ethType", description = "Ethernet Type",
             required = false, multiValued = false)
+    @Completion(EthTypeCompleter.class)
     private String ethTypeString = null;
 
     @Option(name = "-v", aliases = "--vlan", description = "VLAN ID",
@@ -75,6 +78,7 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
 
     @Option(name = "--ipProto", description = "IP Protocol",
             required = false, multiValued = false)
+    @Completion(IpProtocolCompleter.class)
     private String ipProtoString = null;
 
     @Option(name = "--ipSrc", description = "Source IP Prefix",
@@ -91,10 +95,12 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
 
     @Option(name = "--icmp6Type", description = "ICMPv6 Type",
             required = false, multiValued = false)
+    @Completion(Icmp6TypeCompleter.class)
     private String icmp6TypeString = null;
 
     @Option(name = "--icmp6Code", description = "ICMPv6 Code",
             required = false, multiValued = false)
+    @Completion(Icmp6CodeCompleter.class)
     private String icmp6CodeString = null;
 
     @Option(name = "--ndTarget", description = "IPv6 Neighbor Discovery Target Address",
@@ -119,10 +125,12 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
 
     @Option(name = "--extHdr", description = "IPv6 Extension Header Pseudo-field",
             required = false, multiValued = true)
+    @Completion(ExtHeaderCompleter.class)
     private List<String> extHdrStringList = null;
 
     @Option(name = "-a", aliases = "--appId", description = "Application Id",
             required = false, multiValued = false)
+    @Completion(AllApplicationNamesCompleter.class)
     private String appId = null;
 
     @Option(name = "-k", aliases = "--key", description = "Intent Key",
@@ -180,6 +188,7 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
 
     @Option(name = "-e", aliases = "--encapsulation", description = "Encapsulation type",
             required = false, multiValued = false)
+    @Completion(EncapTypeCompleter.class)
     private String encapsulationString = null;
 
     @Option(name = "--hashed", description = "Hashed path selection",

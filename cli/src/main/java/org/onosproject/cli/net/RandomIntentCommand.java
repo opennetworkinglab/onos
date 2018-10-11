@@ -21,7 +21,9 @@ import java.util.List;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.apache.karaf.shell.support.completers.NullCompleter;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -52,6 +54,7 @@ public class RandomIntentCommand extends AbstractShellCommand {
                       "not be taken into account if it exceeds the maximum " +
                       "number of intents the command can push",
               required = true, multiValued = false)
+    @Completion(NullCompleter.class)
     String countString = null;
 
     private IntentService service;

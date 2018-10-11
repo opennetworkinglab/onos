@@ -19,6 +19,7 @@ import java.util.Optional;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.apache.karaf.shell.api.action.Option;
 import org.onosproject.cli.AbstractShellCommand;
@@ -58,10 +59,12 @@ public class TestAllocateResource extends AbstractShellCommand {
 
     @Argument(index = 0, name = "deviceId", description = "Device ID",
             required = true, multiValued = false)
+    @Completion(DeviceIdCompleter.class)
     String deviceIdStr = null;
 
     @Argument(index = 1, name = "portNumber", description = "PortNumber",
             required = true, multiValued = false)
+    @Completion(PortNumberCompleter.class)
     String portNumberStr = null;
 
     private ResourceService resourceService;

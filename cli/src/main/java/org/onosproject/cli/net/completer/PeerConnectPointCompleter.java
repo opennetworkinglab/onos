@@ -15,6 +15,7 @@
  */
 package org.onosproject.cli.net.completer;
 
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractChoicesCompleter;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.device.DeviceService;
@@ -37,6 +38,7 @@ import static org.onosproject.net.ConnectPoint.deviceConnectPoint;
  * This completer will look for (device id)/(port number) in the
  * existing argument and propose list of remote ports.
  */
+@Service
 public class PeerConnectPointCompleter extends AbstractChoicesCompleter {
 
     @Override

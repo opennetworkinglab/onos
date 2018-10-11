@@ -17,6 +17,7 @@ package org.onosproject.cli.net;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.core.CoreService;
@@ -41,6 +42,7 @@ public class MeterRemoveCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "uri", description = "Device ID",
             required = true, multiValued = false)
+    @Completion(DeviceIdCompleter.class)
     private String uri = null;
 
     @Argument(index = 1, name = "meterId", description = "Meter ID hexadecimal value",

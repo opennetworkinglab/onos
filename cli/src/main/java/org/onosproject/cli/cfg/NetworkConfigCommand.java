@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.apache.karaf.shell.api.action.Option;
 import org.onosproject.cli.AbstractShellCommand;
@@ -43,14 +44,17 @@ public class NetworkConfigCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "subjectClassKey", description = "Subject class key",
             required = false, multiValued = false)
+    @Completion(ComponentConfigCommandCompleter.class)
     String subjectClassKey = null;
 
     @Argument(index = 1, name = "subjectKey", description = "Subject key",
             required = false, multiValued = false)
+    @Completion(ComponentNameCompleter.class)
     String subjectKey = null;
 
     @Argument(index = 2, name = "configKey", description = "Config key",
             required = false, multiValued = false)
+    @Completion(ConfigKeyCompleter.class)
     String configKey = null;
 
     @Option(name = "--remove",

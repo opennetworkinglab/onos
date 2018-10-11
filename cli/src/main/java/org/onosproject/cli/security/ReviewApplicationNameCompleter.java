@@ -16,6 +16,7 @@
 
 package org.onosproject.cli.security;
 
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.apache.karaf.shell.api.console.CommandLine;
 import org.apache.karaf.shell.api.console.Session;
 import org.apache.karaf.shell.support.completers.StringsCompleter;
@@ -34,6 +35,7 @@ import static org.onosproject.cli.AbstractShellCommand.get;
 /**
  * Application name completer for security review command.
  */
+@Service
 public class ReviewApplicationNameCompleter extends AbstractCompleter {
     @Override
     public int complete(Session session, CommandLine commandLine, List<String> candidates) {

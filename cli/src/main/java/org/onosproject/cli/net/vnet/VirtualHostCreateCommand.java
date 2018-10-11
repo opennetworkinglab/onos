@@ -18,6 +18,7 @@ package org.onosproject.cli.net.vnet;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.apache.karaf.shell.api.action.Option;
 import org.onlab.packet.IpAddress;
@@ -45,6 +46,7 @@ public class VirtualHostCreateCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "networkId", description = "Network ID",
             required = true, multiValued = false)
+    @Completion(VirtualNetworkCompleter.class)
     Long networkId = null;
 
     @Argument(index = 1, name = "mac", description = "Mac address",

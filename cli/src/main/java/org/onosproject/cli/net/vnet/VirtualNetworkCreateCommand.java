@@ -18,6 +18,7 @@ package org.onosproject.cli.net.vnet;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.virtual.TenantId;
@@ -33,6 +34,7 @@ public class VirtualNetworkCreateCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "id", description = "Tenant ID",
             required = true, multiValued = false)
+    @Completion(TenantCompleter.class)
     String id = null;
 
     @Override

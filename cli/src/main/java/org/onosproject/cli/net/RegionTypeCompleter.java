@@ -16,6 +16,7 @@
 package org.onosproject.cli.net;
 
 import com.google.common.collect.Lists;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractChoicesCompleter;
 import org.onosproject.net.region.Region;
 
@@ -24,6 +25,7 @@ import java.util.List;
 /**
  * Region type completer.
  */
+@Service
 public class RegionTypeCompleter extends AbstractChoicesCompleter {
     @Override
     protected List<String> choices() {

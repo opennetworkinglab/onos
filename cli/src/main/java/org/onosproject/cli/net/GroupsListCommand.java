@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Lists;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.apache.karaf.shell.api.action.Option;
 import org.onosproject.cli.AbstractShellCommand;
@@ -59,10 +60,12 @@ public class GroupsListCommand extends AbstractShellCommand {
 
     @Argument(index = 1, name = "uri", description = "Device ID",
             required = false, multiValued = false)
+    @Completion(DeviceIdCompleter.class)
     String uri = null;
 
     @Argument(index = 0, name = "state", description = "Group state",
             required = false, multiValued = false)
+    @Completion(GroupStatusCompleter.class)
     String state;
 
     @Option(name = "-c", aliases = "--count",
@@ -78,6 +81,7 @@ public class GroupsListCommand extends AbstractShellCommand {
     @Option(name = "-t", aliases = "--type",
             description = "Print groups with specified type",
             required = false, multiValued = false)
+    @Completion(GroupTypeCompleter.class)
     private String type = null;
 
 

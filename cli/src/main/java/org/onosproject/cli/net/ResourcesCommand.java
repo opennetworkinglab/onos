@@ -27,6 +27,7 @@ import java.util.Collections;
 import com.google.common.collect.Iterables;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.apache.karaf.shell.api.action.Option;
 import org.onlab.packet.MplsLabel;
@@ -75,10 +76,12 @@ public class ResourcesCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "deviceIdString", description = "Device ID",
               required = false, multiValued = false)
+    @Completion(DeviceIdCompleter.class)
     String deviceIdStr = null;
 
     @Argument(index = 1, name = "portNumberString", description = "PortNumber",
               required = false, multiValued = false)
+    @Completion(PortNumberCompleter.class)
     String portNumberStr = null;
 
 

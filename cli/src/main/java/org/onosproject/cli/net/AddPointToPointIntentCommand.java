@@ -17,6 +17,7 @@ package org.onosproject.cli.net;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.apache.karaf.shell.api.action.Option;
 import org.onosproject.net.ConnectPoint;
@@ -44,11 +45,13 @@ public class AddPointToPointIntentCommand extends ConnectivityIntentCommand {
     @Argument(index = 0, name = "ingressDevice",
               description = "Ingress Device/Port Description",
               required = true, multiValued = false)
+    @Completion(ConnectPointCompleter.class)
     String ingressDeviceString = null;
 
     @Argument(index = 1, name = "egressDevice",
               description = "Egress Device/Port Description",
               required = true, multiValued = false)
+    @Completion(ConnectPointCompleter.class)
     String egressDeviceString = null;
 
     private boolean backup = false;

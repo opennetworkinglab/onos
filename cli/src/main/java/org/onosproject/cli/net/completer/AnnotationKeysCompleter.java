@@ -21,12 +21,14 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractChoicesCompleter;
 import org.onosproject.net.AnnotationKeys;
 
 /**
  * Completer for annotation keys declared in {@link AnnotationKeys}.
  */
+@Service
 public class AnnotationKeysCompleter extends AbstractChoicesCompleter {
 
 

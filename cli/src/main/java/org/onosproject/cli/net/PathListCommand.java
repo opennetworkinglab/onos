@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.apache.karaf.shell.api.action.Option;
 import org.onosproject.cli.AbstractShellCommand;
@@ -47,10 +48,12 @@ public class PathListCommand extends TopologyCommand {
 
     @Argument(index = 0, name = "src", description = "Source device ID",
               required = true, multiValued = false)
+    @Completion(DeviceIdCompleter.class)
     String src = null;
 
     @Argument(index = 1, name = "dst", description = "Destination device ID",
               required = true, multiValued = false)
+    @Completion(DeviceIdCompleter.class)
     String dst = null;
 
     @Option(name = "--disjoint", description = "Show disjoint Paths")

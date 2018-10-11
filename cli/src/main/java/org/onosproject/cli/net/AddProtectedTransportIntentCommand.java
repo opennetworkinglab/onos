@@ -19,6 +19,7 @@ import java.util.Optional;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.apache.karaf.shell.api.action.Option;
 import org.onosproject.cli.AbstractShellCommand;
@@ -45,11 +46,13 @@ public class AddProtectedTransportIntentCommand
     @Argument(index = 0, name = "deviceId1",
             description = "First Device ID of protected path",
             required = true, multiValued = false)
+    @Completion(DeviceIdCompleter.class)
     private String deviceId1Str = null;
 
     @Argument(index = 1, name = "deviceId2",
             description = "Second Device ID of protected path",
             required = true, multiValued = false)
+    @Completion(DeviceIdCompleter.class)
     private String deviceId2Str = null;
 
     private IntentService intentService;

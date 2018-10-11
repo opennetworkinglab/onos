@@ -18,6 +18,7 @@ package org.onosproject.cli.net;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.net.Device;
 import org.onosproject.net.behaviour.InterfaceConfig;
@@ -49,6 +50,7 @@ public class DeviceInterfacesListCommand extends DevicesListCommand {
 
     @Argument(index = 0, name = "uri", description = "Device ID",
             required = false, multiValued = false)
+    @Completion(DeviceIdCompleter.class)
     private String uri = null;
 
     @Override

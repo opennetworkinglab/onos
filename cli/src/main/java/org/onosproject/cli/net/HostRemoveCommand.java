@@ -17,6 +17,7 @@ package org.onosproject.cli.net;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.HostId;
@@ -32,6 +33,7 @@ public class HostRemoveCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "id", description = "Host ID",
               required = true, multiValued = false)
+    @Completion(HostIdCompleter.class)
     String id = null;
 
     @Override

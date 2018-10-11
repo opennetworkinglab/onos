@@ -18,6 +18,7 @@ package org.onosproject.cli.net.vnet;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.incubator.net.virtual.NetworkId;
@@ -35,14 +36,17 @@ public class VirtualPortRemoveCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "networkId", description = "Network ID",
             required = true, multiValued = false)
+    @Completion(VirtualNetworkCompleter.class)
     Long networkId = null;
 
     @Argument(index = 1, name = "deviceId", description = "Device ID",
             required = true, multiValued = false)
+    @Completion(VirtualDeviceCompleter.class)
     String deviceId = null;
 
     @Argument(index = 2, name = "portNum", description = "Device port number",
             required = true, multiValued = false)
+    @Completion(VirtualPortCompleter.class)
     Integer portNum = null;
 
     @Override

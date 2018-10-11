@@ -18,6 +18,7 @@ package org.onosproject.cli.net;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.apache.karaf.shell.api.action.Option;
 import org.onosproject.cli.AbstractShellCommand;
@@ -50,6 +51,7 @@ public class GetFlowStatisticsCommand extends AbstractShellCommand {
     @Argument(index = 0, name = "devicePort",
             description = "Device[/Port] connectPoint Description",
             required = true, multiValued = false)
+    @Completion(ConnectPointCompleter.class)
     String devicePort = null;
 
     @Option(name = "-s", aliases = "--summary",

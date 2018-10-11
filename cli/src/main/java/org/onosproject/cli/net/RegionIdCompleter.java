@@ -15,6 +15,7 @@
  */
 package org.onosproject.cli.net;
 
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractChoicesCompleter;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.region.RegionService;
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
 /**
  * Region ID completer.
  */
+@Service
 public class RegionIdCompleter extends AbstractChoicesCompleter {
     @Override
     protected List<String> choices() {

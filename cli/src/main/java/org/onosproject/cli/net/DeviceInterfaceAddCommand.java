@@ -17,6 +17,7 @@ package org.onosproject.cli.net;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.apache.karaf.shell.api.action.Option;
 import org.onlab.packet.VlanId;
@@ -54,6 +55,7 @@ public class DeviceInterfaceAddCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "uri", description = "Device ID",
             required = true, multiValued = false)
+    @Completion(DeviceIdCompleter.class)
     private String uri = null;
 
     @Argument(index = 1, name = "interface",

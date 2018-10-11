@@ -18,6 +18,7 @@ package org.onosproject.cli.security;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.app.ApplicationAdminService;
 import org.onosproject.cli.AbstractShellCommand;
@@ -41,6 +42,7 @@ public class ReviewCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "name", description = "Application name",
             required = true, multiValued = false)
+    @Completion(ReviewApplicationNameCompleter.class)
     String name = null;
 
     @Argument(index = 1, name = "accept", description = "Option to accept policy",

@@ -18,6 +18,7 @@ package org.onosproject.cli.net.vnet;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.apache.karaf.shell.api.action.Option;
 import org.onosproject.cli.AbstractShellCommand;
@@ -37,22 +38,27 @@ public class VirtualLinkRemoveCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "networkId", description = "Network ID",
             required = true, multiValued = false)
+    @Completion(VirtualNetworkCompleter.class)
     Long networkId = null;
 
     @Argument(index = 1, name = "srcDeviceId", description = "Source device ID",
             required = true, multiValued = false)
+    @Completion(VirtualDeviceCompleter.class)
     String srcDeviceId = null;
 
     @Argument(index = 2, name = "srcPortNum", description = "Source port number",
             required = true, multiValued = false)
+    @Completion(VirtualPortCompleter.class)
     Integer srcPortNum = null;
 
     @Argument(index = 3, name = "dstDeviceId", description = "Destination device ID",
             required = true, multiValued = false)
+    @Completion(VirtualDeviceCompleter.class)
     String dstDeviceId = null;
 
     @Argument(index = 4, name = "dstPortNum", description = "Destination port number",
             required = true, multiValued = false)
+    @Completion(VirtualPortCompleter.class)
     Integer dstPortNum = null;
 
     @Option(name = "-b", aliases = "--bidirectional",

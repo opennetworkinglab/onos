@@ -21,10 +21,13 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.apache.karaf.shell.api.action.Option;
 import org.onlab.util.StringFilter;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.cli.PlaceholderCompleter;
+import org.onosproject.cli.net.FlowRuleStatusCompleter;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.incubator.net.virtual.NetworkId;
@@ -72,18 +75,22 @@ public class VirtualFlowsListCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "networkId", description = "Network ID",
             required = true, multiValued = false)
+    @Completion(VirtualNetworkCompleter.class)
     Long networkId = null;
 
     @Argument(index = 1, name = "state", description = "Flow Rule state",
             required = false, multiValued = false)
+    @Completion(FlowRuleStatusCompleter.class)
     String state = null;
 
     @Argument(index = 2, name = "uri", description = "Device ID",
               required = false, multiValued = false)
+    @Completion(VirtualDeviceCompleter.class)
     String uri = null;
 
     @Argument(index = 3, name = "table", description = "Table ID",
             required = false, multiValued = false)
+    @Completion(PlaceholderCompleter.class)
     String table = null;
 
     @Option(name = "-s", aliases = "--short",

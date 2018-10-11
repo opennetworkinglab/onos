@@ -17,8 +17,10 @@ package org.onosproject.cli.net;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.cli.NodeIdCompleter;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.mastership.MastershipAdminService;
 import org.onosproject.net.MastershipRole;
@@ -37,14 +39,17 @@ public class DeviceRoleCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "uri", description = "Device ID",
               required = true, multiValued = false)
+    @Completion(DeviceIdCompleter.class)
     String uri = null;
 
     @Argument(index = 1, name = "node", description = "Node ID",
               required = true, multiValued = false)
+    @Completion(NodeIdCompleter.class)
     String node = null;
 
     @Argument(index = 2, name = "role", description = "Mastership role",
               required = true, multiValued = false)
+    @Completion(RoleCompleter.class)
     String role = null;
 
     @Override

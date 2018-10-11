@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.apache.karaf.shell.api.action.Option;
 import org.onlab.packet.Ip6Address;
@@ -30,10 +31,15 @@ import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cli.net.EthType;
+import org.onosproject.cli.net.EthTypeCompleter;
 import org.onosproject.cli.net.ExtHeader;
+import org.onosproject.cli.net.ExtHeaderCompleter;
 import org.onosproject.cli.net.Icmp6Code;
+import org.onosproject.cli.net.Icmp6CodeCompleter;
 import org.onosproject.cli.net.Icmp6Type;
+import org.onosproject.cli.net.Icmp6TypeCompleter;
 import org.onosproject.cli.net.IpProtocol;
+import org.onosproject.cli.net.IpProtocolCompleter;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.VirtualNetworkService;
 import org.onosproject.net.DeviceId;
@@ -80,6 +86,7 @@ public class VirtualNetworkPacketRequestCommand extends AbstractShellCommand {
 
     @Option(name = "-t", aliases = "--ethType", description = "Ethernet Type",
             required = false, multiValued = false)
+    @Completion(EthTypeCompleter.class)
     private String ethTypeString = null;
 
     @Option(name = "-v", aliases = "--vlan", description = "VLAN ID",
@@ -88,6 +95,7 @@ public class VirtualNetworkPacketRequestCommand extends AbstractShellCommand {
 
     @Option(name = "--ipProto", description = "IP Protocol",
             required = false, multiValued = false)
+    @Completion(IpProtocolCompleter.class)
     private String ipProtoString = null;
 
     @Option(name = "--ipSrc", description = "Source IP Prefix",
@@ -104,10 +112,12 @@ public class VirtualNetworkPacketRequestCommand extends AbstractShellCommand {
 
     @Option(name = "--icmp6Type", description = "ICMPv6 Type",
             required = false, multiValued = false)
+    @Completion(Icmp6TypeCompleter.class)
     private String icmp6TypeString = null;
 
     @Option(name = "--icmp6Code", description = "ICMPv6 Code",
             required = false, multiValued = false)
+    @Completion(Icmp6CodeCompleter.class)
     private String icmp6CodeString = null;
 
     @Option(name = "--ndTarget", description = "IPv6 Neighbor Discovery Target Address",
@@ -132,6 +142,7 @@ public class VirtualNetworkPacketRequestCommand extends AbstractShellCommand {
 
     @Option(name = "--extHdr", description = "IPv6 Extension Header Pseudo-field",
             required = false, multiValued = true)
+    @Completion(ExtHeaderCompleter.class)
     private List<String> extHdrStringList = null;
 
     @Override

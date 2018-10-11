@@ -21,8 +21,10 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.cli.NodeIdCompleter;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.config.basics.BasicRegionConfig;
@@ -66,6 +68,7 @@ public class RegionAddCommand extends AbstractShellCommand {
     @Argument(index = 2, name = "type", description = "Region Type (CONTINENT|" +
             "COUNTRY|METRO|CAMPUS|BUILDING|DATA_CENTER|FLOOR|ROOM|RACK|LOGICAL_GROUP)",
             required = true, multiValued = false)
+    @Completion(RegionTypeCompleter.class)
     String type = null;
 
     @Argument(index = 3, name = "latOrY",
@@ -85,6 +88,7 @@ public class RegionAddCommand extends AbstractShellCommand {
     @Argument(index = 6, name = "masters", description = "Region Master, a set " +
             "of nodeIds should be split with '/' delimiter (e.g., 1 2 3 / 4 5 6)",
             required = true, multiValued = true)
+    @Completion(NodeIdCompleter.class)
     List<String> masterArgs = null;
 
     @Override

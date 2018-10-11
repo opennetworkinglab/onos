@@ -18,6 +18,7 @@ package org.onosproject.cli.net.vnet;
 
 import static org.onlab.osgi.DefaultServiceDirectory.getService;
 
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractChoicesCompleter;
 import org.onosproject.incubator.net.virtual.NetworkId;
 import org.onosproject.incubator.net.virtual.VirtualDevice;
@@ -34,6 +35,7 @@ import java.util.stream.Collectors;
  *
  * Assumes the first argument which can be parsed to a number is network id.
  */
+@Service
 public class VirtualDeviceCompleter extends AbstractChoicesCompleter {
     @Override
     protected List<String> choices() {

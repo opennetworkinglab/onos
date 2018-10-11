@@ -46,6 +46,7 @@ public class DevicePortsListCommand extends DevicesListCommand {
 
     @Option(name = "-e", aliases = "--enabled", description = "Show only enabled ports",
             required = false, multiValued = false)
+    @Completion(DeviceIdCompleter.class)
     private boolean enabled = false;
 
     @Option(name = "-d", aliases = "--disabled", description = "Show only disabled ports",

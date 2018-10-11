@@ -15,6 +15,7 @@
  */
 package org.onosproject.cli;
 
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.metrics.MetricsService;
 
 import java.util.ArrayList;
@@ -23,6 +24,7 @@ import java.util.List;
 /**
  * Metric name completer.
  */
+@Service
 public class MetricNameCompleter extends AbstractChoicesCompleter {
 
     @Override

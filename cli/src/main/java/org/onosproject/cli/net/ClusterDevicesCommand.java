@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.utils.Comparators;
 import org.onosproject.net.DeviceId;
@@ -40,6 +41,7 @@ public class ClusterDevicesCommand extends ClustersListCommand {
 
     @Argument(index = 0, name = "id", description = "Cluster ID",
               required = true, multiValued = false)
+    @Completion(ClusterIdCompleter.class)
     String id = null;
 
     @Override

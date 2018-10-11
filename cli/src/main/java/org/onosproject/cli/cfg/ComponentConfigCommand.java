@@ -20,6 +20,7 @@ import java.util.Set;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.apache.karaf.shell.api.action.Option;
 import org.onosproject.cfg.ComponentConfigService;
@@ -30,6 +31,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.onosproject.cli.app.ApplicationCommandCompleter;
+import org.onosproject.cli.app.ApplicationNameCompleter;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
@@ -56,14 +59,17 @@ public class ComponentConfigCommand extends AbstractShellCommand {
     @Argument(index = 0, name = "command",
             description = "Command name (get|set|preset)",
             required = false, multiValued = false)
+    @Completion(ApplicationCommandCompleter.class)
     String command = null;
 
     @Argument(index = 1, name = "component", description = "Component name",
             required = false, multiValued = false)
+    @Completion(ApplicationNameCompleter.class)
     String component = null;
 
     @Argument(index = 2, name = "name", description = "Property name",
             required = false, multiValued = false)
+    @Completion(ComponentPropertyNameCompleter.class)
     String name = null;
 
     @Argument(index = 3, name = "value", description = "Property value",

@@ -17,6 +17,7 @@ package org.onosproject.cli.net;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cli.AbstractShellCommand;
@@ -42,6 +43,7 @@ public class McastShowCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "mcastIp", description = "mcast Ip",
             required = false, multiValued = false)
+    @Completion(McastGroupCompleter.class)
     String mcastIp;
 
     @Override

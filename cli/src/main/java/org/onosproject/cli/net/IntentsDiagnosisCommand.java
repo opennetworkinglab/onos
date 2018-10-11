@@ -21,6 +21,7 @@ import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Streams;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.apache.karaf.shell.api.action.Option;
 import org.onosproject.cli.AbstractShellCommand;
@@ -65,6 +66,7 @@ public class IntentsDiagnosisCommand extends AbstractShellCommand {
     @Argument(index = 0, name = "key",
             description = "Intent key",
             required = false, multiValued = false)
+    @Completion(IntentKeyCompleter.class)
     String key = null;
 
     @Option(name = "-d", aliases = "--details", description = "printing intent details",

@@ -17,6 +17,7 @@ package org.onosproject.cli.net;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.config.NetworkConfigService;
@@ -49,6 +50,7 @@ public class RegionAddPeerLocCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "id", description = "Region ID",
             required = true, multiValued = false)
+    @Completion(RegionIdCompleter.class)
     String id = null;
 
     @Argument(index = 1, name = "peer", description = "Peer region ID",

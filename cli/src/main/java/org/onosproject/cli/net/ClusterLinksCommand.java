@@ -17,6 +17,7 @@ package org.onosproject.cli.net;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.net.Link;
 import org.onosproject.net.topology.TopologyCluster;
@@ -35,6 +36,7 @@ public class ClusterLinksCommand extends ClustersListCommand {
 
     @Argument(index = 0, name = "id", description = "Cluster ID",
               required = true, multiValued = false)
+    @Completion(ClusterIdCompleter.class)
     String id = null;
 
     @Override

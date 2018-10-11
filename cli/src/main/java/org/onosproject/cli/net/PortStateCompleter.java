@@ -17,6 +17,7 @@ package org.onosproject.cli.net;
 
 import java.util.List;
 
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractChoicesCompleter;
 
 import com.google.common.collect.ImmutableList;
@@ -26,6 +27,7 @@ import com.google.common.collect.ImmutableList;
  *
  * Assumes argument right before the one being completed is PortNumber.
  */
+@Service
 public class PortStateCompleter extends AbstractChoicesCompleter {
 
     @Override

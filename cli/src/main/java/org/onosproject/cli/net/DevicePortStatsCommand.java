@@ -25,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 import com.google.common.collect.Lists;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.apache.karaf.shell.api.action.Option;
 import org.onosproject.cli.AbstractShellCommand;
@@ -60,10 +61,12 @@ public class DevicePortStatsCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "uri", description = "Device ID",
             required = false, multiValued = false)
+    @Completion(DeviceIdCompleter.class)
     String uri = null;
 
     @Argument(index = 1, name = "portNumber", description = "Port Number",
             required = false, multiValued = false)
+    @Completion(PortNumberCompleter.class)
     String portNumberStr = null;
 
     PortNumber portNumber = null;

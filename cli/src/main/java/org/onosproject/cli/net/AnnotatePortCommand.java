@@ -17,9 +17,11 @@ package org.onosproject.cli.net;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.apache.karaf.shell.api.action.Option;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.cli.net.completer.AnnotationKeysCompleter;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.config.basics.PortAnnotationConfig;
@@ -35,10 +37,12 @@ public class AnnotatePortCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "port", description = "Device Port",
               required = true)
+    @Completion(ConnectPointCompleter.class)
     String port = null;
 
     @Argument(index = 1, name = "key", description = "Annotation key",
              required = false)
+    @Completion(AnnotationKeysCompleter.class)
     String key = null;
 
     @Argument(index = 2, name = "value",

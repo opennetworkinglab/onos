@@ -19,11 +19,13 @@ package org.onosproject.cli.net;
 import com.google.common.collect.Lists;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.apache.karaf.shell.api.action.Option;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.cli.PlaceholderCompleter;
 import org.onosproject.net.intf.Interface;
 import org.onosproject.net.intf.InterfaceAdminService;
 import org.onosproject.net.ConnectPoint;
@@ -42,10 +44,12 @@ public class InterfaceAddCommand extends AbstractShellCommand {
     @Argument(index = 0, name = "port",
             description = "Device port that the interface is associated with",
             required = true, multiValued = false)
+    @Completion(ConnectPointCompleter.class)
     private String connectPoint = null;
 
     @Argument(index = 1, name = "name", description = "Interface name",
             required = true, multiValued = false)
+    @Completion(PlaceholderCompleter.class)
     private String name = null;
 
     @Option(name = "-m", aliases = "--mac",

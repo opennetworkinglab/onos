@@ -18,6 +18,7 @@ package org.onosproject.cli.net;
 import com.google.common.collect.Collections2;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
@@ -39,6 +40,7 @@ public class MetersListCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "uri", description = "Device ID",
             required = false, multiValued = false)
+    @Completion(DeviceIdCompleter.class)
     String uri = null;
 
     @Argument(index = 1, name = "meter", description = "Meter ID",

@@ -20,9 +20,12 @@ import static org.onosproject.net.ConnectPoint.deviceConnectPoint;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.apache.karaf.shell.api.action.Option;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.cli.net.completer.AnnotationKeysCompleter;
+import org.onosproject.cli.net.completer.PeerConnectPointCompleter;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Link;
@@ -50,16 +53,19 @@ public class AnnotateLinkCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "srcConnectPoint", description = "source Connect Point",
             required = true, multiValued = false)
+    @Completion(ConnectPointCompleter.class)
     private String srcCp = null;
 
     @Argument(index = 1, name = "dstConnectPoint", description = "destination Connect Point",
             required = true, multiValued = false)
+    @Completion(PeerConnectPointCompleter.class)
     private String dstCp = null;
 
 
 
     @Argument(index = 2, name = "key", description = "Annotation key",
             required = true, multiValued = false)
+    @Completion(AnnotationKeysCompleter.class)
     private String key = null;
 
     @Argument(index = 3, name = "value",

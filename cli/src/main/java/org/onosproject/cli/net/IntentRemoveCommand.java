@@ -18,9 +18,11 @@ package org.onosproject.cli.net;
 import com.google.common.collect.ImmutableList;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.apache.karaf.shell.api.action.Option;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.cli.app.ApplicationIdWithIntentNameCompleter;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.intent.Intent;
@@ -54,11 +56,13 @@ public class IntentRemoveCommand extends AbstractShellCommand {
     @Argument(index = 0, name = "app",
             description = "Application ID",
             required = false, multiValued = false)
+    @Completion(ApplicationIdWithIntentNameCompleter.class)
     String applicationIdString = null;
 
     @Argument(index = 1, name = "key",
             description = "Intent Key",
             required = false, multiValued = false)
+    @Completion(IntentKeyCompleter.class)
     String keyString = null;
 
     @Option(name = "-p", aliases = "--purge",

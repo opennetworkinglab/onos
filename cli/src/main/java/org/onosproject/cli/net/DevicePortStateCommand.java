@@ -17,6 +17,7 @@ package org.onosproject.cli.net;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.Device;
@@ -35,15 +36,18 @@ import org.onosproject.net.device.DeviceService;
 public class DevicePortStateCommand extends AbstractShellCommand {
     @Argument(index = 0, name = "uri", description = "Device ID",
             required = true, multiValued = false)
+    @Completion(DeviceIdCompleter.class)
     String uri = null;
 
     @Argument(index = 1, name = "portNumber", description = "Port Number",
             required = true, multiValued = false)
+    @Completion(PortNumberCompleter.class)
     String portNumber = null;
 
     @Argument(index = 2, name = "portState",
             description = "Desired State. Either \"enable\" or \"disable\".",
             required = true, multiValued = false)
+    @Completion(PortStateCompleter.class)
     String portState = null;
 
     @Override
