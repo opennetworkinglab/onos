@@ -21,9 +21,9 @@ set -e
 BUILD_DIR=~/p4tools
 # in case BMV2_COMMIT value is updated, the same variable in
 # protocols/bmv2/thrift-api/BUCK file should also be updated
-BMV2_COMMIT="13370aaf9329fcb369a3ea3989722eb5f61c07f3"
-PI_COMMIT="7e94b025bac6db63bc8534e5dd21a008984e38bc"
-P4C_COMMIT="2d089af757212a057c6690998861ef67439305f4"
+BMV2_COMMIT="ae87b4d4523488ac935133b4aef437796ad1bbd1"
+PI_COMMIT="539e4624f16aac39f8890a6dfb11c65040e735ad"
+P4C_COMMIT="380830f6c26135d1d65e1312e3ba2da628c18145"
 PROTOBUF_COMMIT="tags/v3.2.0"
 GRPC_COMMIT="tags/v1.3.2"
 LIBYANG_COMMIT="v0.14-r1"
@@ -32,7 +32,7 @@ SYSREPO_COMMIT="v0.7.2"
 NUM_CORES=`grep -c ^processor /proc/cpuinfo`
 
 # If false, build tools without debug features to improve throughput of BMv2 and
-# reduce CPU/memory footprint.
+# reduce CPU/memory footprint. Default is true.
 DEBUG_FLAGS=${DEBUG_FLAGS:-true}
 
 # Execute up to the given step (first argument), or all if not defined.
@@ -274,12 +274,8 @@ function do_PI {
 
     ./autogen.sh
     # FIXME: re-enable --with-sysrepo when gNMI support becomes more stable
-    # ./configure --with-proto --with-sysrepo 'CXXFLAGS=-O0 -g'
-    if [ "${DEBUG_FLAGS}" = true ] ; then
-        ./configure --with-proto "CXXFLAGS=-O0 -g"
-    else
-        ./configure --with-proto
-    fi
+    # ./configure --with-proto --with-sysrepo
+    ./configure --with-proto --without-internal-rpc --without-cli
     make -j${NUM_CORES}
     sudo make install
     sudo ldconfig
@@ -293,9 +289,9 @@ function do_bmv2 {
 
     ./autogen.sh
     if [ "${DEBUG_FLAGS}" = true ] ; then
-        ./configure --with-pi --disable-elogger --without-nanomsg "CXXFLAGS=-O0 -g"
+        ./configure --with-pi --disable-elogger --without-nanomsg
     else
-        ./configure --with-pi --disable-logging-macros --disable-elogger --without-nanomsg
+        ./configure --with-pi --disable-elogger --without-nanomsg --disable-logging-macros
     fi
     make -j${NUM_CORES}
     sudo make install
@@ -304,14 +300,9 @@ function do_bmv2 {
     # Simple_switch_grpc target
     cd targets/simple_switch_grpc
     ./autogen.sh
-
-    if [ "${DEBUG_FLAGS}" = true ] ; then
-        ./configure --with-thrift "CXXFLAGS=-O0 -g"
-    else
-        ./configure --with-thrift
-    fi
+    ./configure --with-thrift
     # FIXME: re-enable --with-sysrepo when gNMI support becomes more stable
-    # ./configure --with-sysrepo --with-thrift 'CXXFLAGS=-O0 -g'
+    # ./configure --with-sysrepo --with-thrift
     make -j${NUM_CORES}
     sudo make install
     sudo ldconfig
@@ -329,7 +320,7 @@ function do_p4c {
 
     mkdir -p build
     cd build
-    cmake ..
+    cmake .. -DENABLE_EBPF=OFF
     make -j${NUM_CORES}
     sudo make install
     sudo ldconfig

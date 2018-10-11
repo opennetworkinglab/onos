@@ -22,6 +22,8 @@ import org.onosproject.net.pi.runtime.PiPreReplica;
 import p4.v1.P4RuntimeOuterClass.MulticastGroupEntry;
 import p4.v1.P4RuntimeOuterClass.Replica;
 
+import static java.lang.String.format;
+
 /**
  * A coded of {@link PiMulticastGroupEntry} to P4Runtime MulticastGroupEntry
  * messages, and vice versa.
@@ -38,16 +40,26 @@ final class MulticastGroupEntryCodec {
      *
      * @param piEntry PiMulticastGroupEntry
      * @return P4Runtime MulticastGroupEntry message
+     * @throws EncodeException if the PiMulticastGroupEntry cannot be encoded.
      */
-    static MulticastGroupEntry encode(PiMulticastGroupEntry piEntry) {
+    static MulticastGroupEntry encode(PiMulticastGroupEntry piEntry) throws EncodeException {
         final MulticastGroupEntry.Builder msgBuilder = MulticastGroupEntry.newBuilder();
         msgBuilder.setMulticastGroupId(piEntry.groupId());
-        piEntry.replicas().stream()
-                .map(r -> Replica.newBuilder()
-                        .setEgressPort(r.egressPort().toLong())
-                        .setInstance(r.instanceId())
-                        .build())
-                .forEach(msgBuilder::addReplicas);
+        for (PiPreReplica replica : piEntry.replicas()) {
+            final int p4PortId;
+            try {
+                p4PortId = Math.toIntExact(replica.egressPort().toLong());
+            } catch (ArithmeticException e) {
+                throw new EncodeException(format(
+                        "Cannot cast 64bit port value '%s' to 32bit",
+                        replica.egressPort()));
+            }
+            msgBuilder.addReplicas(
+                    Replica.newBuilder()
+                            .setEgressPort(p4PortId)
+                            .setInstance(replica.instanceId())
+                            .build());
+        }
         return msgBuilder.build();
     }
 

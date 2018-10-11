@@ -4,7 +4,7 @@ set -xe
 VM_TYPE=${1:-dev}
 
 BAZEL_VER="0.15.2"
-BAZEL_DEB="bazel_${BAZEL_VER}-linux-x86_64.deb"
+BAZEL_SH="bazel-${BAZEL_VER}-installer-linux-x86_64.sh"
 # Create user sdn
 useradd -m -d /home/sdn -s /bin/bash sdn
 echo "sdn:rocks" | chpasswd
@@ -28,10 +28,8 @@ apt-get update
 
 DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade
 
-wget https://github.com/bazelbuild/bazel/releases/download/${BAZEL_VER}/${BAZEL_DEB}
 echo "oracle-java8-installer shared/accepted-oracle-license-v1-1 select true" | debconf-set-selections
 apt-get -y --no-install-recommends install \
-    ./${BAZEL_DEB} \
     avahi-daemon \
     bridge-utils \
     git \
@@ -59,12 +57,16 @@ apt-get -y --no-install-recommends install \
 
 DEBIAN_FRONTEND=noninteractive apt-get -yq install wireshark
 
-rm -f ${BAZEL_DEB}
+# Install Bazel
+wget https://github.com/bazelbuild/bazel/releases/download/${BAZEL_VER}/${BAZEL_SH}
+chmod +x ${BAZEL_SH}
+./${BAZEL_SH}
+rm -f ${BAZEL_SH}
 
+# Install pip and some python deps (others are defined in install-p4-tools.sh)
 curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 python2.7 get-pip.py --force-reinstall
 rm -f get-pip.py
-
 pip install ipaddress
 
 tee -a /etc/ssh/sshd_config <<EOF

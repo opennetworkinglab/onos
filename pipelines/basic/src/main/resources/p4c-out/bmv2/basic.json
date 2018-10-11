@@ -40,6 +40,7 @@
         ["egress_rid", 16, false],
         ["checksum_error", 1, false],
         ["recirculate_flag", 32, false],
+        ["parser_error", 32, false],
         ["_padding_0", 5, false]
       ]
     },
@@ -178,7 +179,14 @@
   "header_unions" : [],
   "header_union_stacks" : [],
   "field_lists" : [],
-  "errors" : [],
+  "errors" : [
+    ["NoError", 1],
+    ["PacketTooShort", 2],
+    ["NoMatch", 3],
+    ["StackOutOfBounds", 4],
+    ["HeaderTooShort", 5],
+    ["ParserTimeout", 6]
+  ],
   "enums" : [],
   "parsers" : [
     {
@@ -485,13 +493,25 @@
       "name" : "ingress.table0_control.table0_counter",
       "id" : 1,
       "is_direct" : true,
-      "binding" : "ingress.table0_control.table0"
+      "binding" : "ingress.table0_control.table0",
+      "source_info" : {
+        "filename" : "include/table0.p4",
+        "line" : 27,
+        "column" : 50,
+        "source_fragment" : "table0_counter"
+      }
     },
     {
       "name" : "ingress.wcmp_control.wcmp_table_counter",
       "id" : 2,
       "is_direct" : true,
-      "binding" : "ingress.wcmp_control.wcmp_table"
+      "binding" : "ingress.wcmp_control.wcmp_table",
+      "source_info" : {
+        "filename" : "include/wcmp.p4",
+        "line" : 27,
+        "column" : 50,
+        "source_fragment" : "wcmp_table_counter"
+      }
     },
     {
       "name" : "egress.port_counters_egress.egress_port_counter",
@@ -1338,6 +1358,12 @@
         {
           "name" : "ingress.wcmp_control.wcmp_selector",
           "id" : 0,
+          "source_info" : {
+            "filename" : "include/wcmp.p4",
+            "line" : 28,
+            "column" : 55,
+            "source_fragment" : "wcmp_selector"
+          },
           "max_size" : 64,
           "selector" : {
             "algo" : "crc16",

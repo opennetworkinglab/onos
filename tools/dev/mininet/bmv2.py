@@ -17,7 +17,7 @@ PKT_BYTES_TO_DUMP = 80
 VALGRIND_PREFIX = 'valgrind --leak-check=yes'
 SWITCH_START_TIMEOUT = 5  # seconds
 BMV2_LOG_LINES = 5
-BMV2_DEFAULT_DEVICE_ID = 0
+BMV2_DEFAULT_DEVICE_ID = 1
 
 
 def parseBoolean(value):

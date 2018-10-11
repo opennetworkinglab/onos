@@ -50,6 +50,7 @@
         ["egress_rid", 16, false],
         ["checksum_error", 1, false],
         ["recirculate_flag", 32, false],
+        ["parser_error", 32, false],
         ["_padding", 5, false]
       ]
     },
@@ -283,6 +284,8 @@
         ["switch_id", 32, false],
         ["new_words", 8, false],
         ["new_bytes", 16, false],
+        ["ig_tstamp", 32, false],
+        ["eg_tstamp", 32, false],
         ["_padding_0", 5, false]
       ]
     }
@@ -469,7 +472,14 @@
   "header_unions" : [],
   "header_union_stacks" : [],
   "field_lists" : [],
-  "errors" : [],
+  "errors" : [
+    ["NoError", 1],
+    ["PacketTooShort", 2],
+    ["NoMatch", 3],
+    ["StackOutOfBounds", 4],
+    ["HeaderTooShort", 5],
+    ["ParserTimeout", 6]
+  ],
   "enums" : [],
   "parsers" : [
     {
@@ -1016,67 +1026,133 @@
       "name" : "FabricIngress.process_set_source_sink.counter_set_source",
       "id" : 0,
       "is_direct" : true,
-      "binding" : "FabricIngress.process_set_source_sink.tb_set_source"
+      "binding" : "FabricIngress.process_set_source_sink.tb_set_source",
+      "source_info" : {
+        "filename" : "include/int/int_main.p4",
+        "line" : 39,
+        "column" : 50,
+        "source_fragment" : "counter_set_source"
+      }
     },
     {
       "name" : "FabricIngress.filtering.ingress_port_vlan_counter",
       "id" : 1,
       "is_direct" : true,
-      "binding" : "FabricIngress.filtering.ingress_port_vlan"
+      "binding" : "FabricIngress.filtering.ingress_port_vlan",
+      "source_info" : {
+        "filename" : "include/control/filtering.p4",
+        "line" : 34,
+        "column" : 50,
+        "source_fragment" : "ingress_port_vlan_counter"
+      }
     },
     {
       "name" : "FabricIngress.filtering.fwd_classifier_counter",
       "id" : 2,
       "is_direct" : true,
-      "binding" : "FabricIngress.filtering.fwd_classifier"
+      "binding" : "FabricIngress.filtering.fwd_classifier",
+      "source_info" : {
+        "filename" : "include/control/filtering.p4",
+        "line" : 96,
+        "column" : 50,
+        "source_fragment" : "fwd_classifier_counter"
+      }
     },
     {
       "name" : "FabricIngress.forwarding.bridging_counter",
       "id" : 3,
       "is_direct" : true,
-      "binding" : "FabricIngress.forwarding.bridging"
+      "binding" : "FabricIngress.forwarding.bridging",
+      "source_info" : {
+        "filename" : "include/control/forwarding.p4",
+        "line" : 34,
+        "column" : 50,
+        "source_fragment" : "bridging_counter"
+      }
     },
     {
       "name" : "FabricIngress.forwarding.mpls_counter",
       "id" : 4,
       "is_direct" : true,
-      "binding" : "FabricIngress.forwarding.mpls"
+      "binding" : "FabricIngress.forwarding.mpls",
+      "source_info" : {
+        "filename" : "include/control/forwarding.p4",
+        "line" : 57,
+        "column" : 50,
+        "source_fragment" : "mpls_counter"
+      }
     },
     {
       "name" : "FabricIngress.forwarding.routing_v4_counter",
       "id" : 5,
       "is_direct" : true,
-      "binding" : "FabricIngress.forwarding.routing_v4"
+      "binding" : "FabricIngress.forwarding.routing_v4",
+      "source_info" : {
+        "filename" : "include/control/forwarding.p4",
+        "line" : 80,
+        "column" : 50,
+        "source_fragment" : "routing_v4_counter"
+      }
     },
     {
       "name" : "FabricIngress.forwarding.acl_counter",
       "id" : 6,
       "is_direct" : true,
-      "binding" : "FabricIngress.forwarding.acl"
+      "binding" : "FabricIngress.forwarding.acl",
+      "source_info" : {
+        "filename" : "include/control/forwarding.p4",
+        "line" : 107,
+        "column" : 50,
+        "source_fragment" : "acl_counter"
+      }
     },
     {
       "name" : "FabricIngress.next.vlan_meta_counter",
       "id" : 7,
       "is_direct" : true,
-      "binding" : "FabricIngress.next.vlan_meta"
+      "binding" : "FabricIngress.next.vlan_meta",
+      "source_info" : {
+        "filename" : "include/control/next.p4",
+        "line" : 58,
+        "column" : 50,
+        "source_fragment" : "vlan_meta_counter"
+      }
     },
     {
       "name" : "FabricIngress.next.simple_counter",
       "id" : 8,
       "is_direct" : true,
-      "binding" : "FabricIngress.next.simple"
+      "binding" : "FabricIngress.next.simple",
+      "source_info" : {
+        "filename" : "include/control/next.p4",
+        "line" : 82,
+        "column" : 50,
+        "source_fragment" : "simple_counter"
+      }
     },
     {
       "name" : "FabricIngress.next.hashed_counter",
       "id" : 9,
       "is_direct" : true,
-      "binding" : "FabricIngress.next.hashed"
+      "binding" : "FabricIngress.next.hashed",
+      "source_info" : {
+        "filename" : "include/control/next.p4",
+        "line" : 146,
+        "column" : 50,
+        "source_fragment" : "hashed_counter"
+      }
     },
     {
       "name" : "FabricIngress.next.multicast_counter",
       "id" : 10,
       "is_direct" : true,
-      "binding" : "FabricIngress.next.multicast"
+      "binding" : "FabricIngress.next.multicast",
+      "source_info" : {
+        "filename" : "include/control/next.p4",
+        "line" : 199,
+        "column" : 50,
+        "source_fragment" : "multicast_counter"
+      }
     },
     {
       "name" : "FabricIngress.port_counters_control.egress_port_counter",
@@ -1106,13 +1182,25 @@
       "name" : "FabricEgress.process_int_main.process_int_source.counter_int_source",
       "id" : 13,
       "is_direct" : true,
-      "binding" : "FabricEgress.process_int_main.process_int_source.tb_int_source"
+      "binding" : "FabricEgress.process_int_main.process_int_source.tb_int_source",
+      "source_info" : {
+        "filename" : "include/int/int_source.p4",
+        "line" : 27,
+        "column" : 50,
+        "source_fragment" : "counter_int_source"
+      }
     },
     {
       "name" : "FabricEgress.egress_next.egress_vlan_counter",
       "id" : 14,
       "is_direct" : true,
-      "binding" : "FabricEgress.egress_next.egress_vlan"
+      "binding" : "FabricEgress.egress_next.egress_vlan",
+      "source_info" : {
+        "filename" : "include/control/next.p4",
+        "line" : 250,
+        "column" : 50,
+        "source_fragment" : "egress_vlan_counter"
+      }
     }
   ],
   "register_arrays" : [],
@@ -1470,7 +1558,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 91,
+            "line" : 99,
             "column" : 31,
             "source_fragment" : "0x8100; ..."
           }
@@ -2103,7 +2191,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 92,
+            "line" : 100,
             "column" : 31,
             "source_fragment" : "0x8847; ..."
           }
@@ -2179,7 +2267,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 115,
+            "line" : 123,
             "column" : 32,
             "source_fragment" : "64; ..."
           }
@@ -2294,7 +2382,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 92,
+            "line" : 100,
             "column" : 31,
             "source_fragment" : "0x8847; ..."
           }
@@ -2370,7 +2458,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 115,
+            "line" : 123,
             "column" : 32,
             "source_fragment" : "64; ..."
           }
@@ -2662,7 +2750,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 92,
+            "line" : 100,
             "column" : 31,
             "source_fragment" : "0x8847; ..."
           }
@@ -2738,7 +2826,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 115,
+            "line" : 123,
             "column" : 32,
             "source_fragment" : "64; ..."
           }
@@ -2853,7 +2941,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 92,
+            "line" : 100,
             "column" : 31,
             "source_fragment" : "0x8847; ..."
           }
@@ -2929,7 +3017,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 115,
+            "line" : 123,
             "column" : 32,
             "source_fragment" : "64; ..."
           }
@@ -3145,7 +3233,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 111,
+            "line" : 119,
             "column" : 31,
             "source_fragment" : "7; ..."
           }
@@ -3171,7 +3259,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 94,
+            "line" : 102,
             "column" : 31,
             "source_fragment" : "0x0800; ..."
           }
@@ -3743,7 +3831,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 131,
+            "line" : 139,
             "column" : 36,
             "source_fragment" : "4; ..."
           }
@@ -4161,7 +4249,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 127,
+            "line" : 135,
             "column" : 24,
             "source_fragment" : "0x1; ..."
           }
@@ -10280,7 +10368,7 @@
           ],
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
-            "line" : 374,
+            "line" : 376,
             "column" : 12,
             "source_fragment" : "return"
           }
@@ -10329,7 +10417,7 @@
           ],
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
-            "line" : 382,
+            "line" : 384,
             "column" : 12,
             "source_fragment" : "hdr.ipv4.total_len = hdr.ipv4.total_len + fmeta.int_meta.new_bytes"
           }
@@ -10378,7 +10466,7 @@
           ],
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
-            "line" : 379,
+            "line" : 381,
             "column" : 8,
             "source_fragment" : "hdr.int_header.total_hop_cnt = hdr.int_header.total_hop_cnt + 1"
           }
@@ -10427,7 +10515,7 @@
           ],
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
-            "line" : 385,
+            "line" : 387,
             "column" : 12,
             "source_fragment" : "hdr.udp.len = hdr.udp.len + fmeta.int_meta.new_bytes"
           }
@@ -10476,7 +10564,7 @@
           ],
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
-            "line" : 388,
+            "line" : 390,
             "column" : 12,
             "source_fragment" : "hdr.intl4_shim.len_words = hdr.intl4_shim.len_words + fmeta.int_meta.new_words"
           }
@@ -11370,6 +11458,12 @@
         {
           "name" : "FabricIngress.next.ecmp_selector",
           "id" : 0,
+          "source_info" : {
+            "filename" : "include/control/next.p4",
+            "line" : 145,
+            "column" : 55,
+            "source_fragment" : "ecmp_selector"
+          },
           "max_size" : 64,
           "selector" : {
             "algo" : "crc16",
@@ -11743,7 +11837,7 @@
       "id" : 1,
       "source_info" : {
         "filename" : "fabric.p4",
-        "line" : 79,
+        "line" : 80,
         "column" : 8,
         "source_fragment" : "FabricEgress"
       },
@@ -12027,7 +12121,7 @@
           "id" : 36,
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
-            "line" : 284,
+            "line" : 286,
             "column" : 10,
             "source_fragment" : "tb_int_inst_0003"
           },
@@ -12041,7 +12135,7 @@
           ],
           "match_type" : "exact",
           "type" : "simple",
-          "max_size" : 16,
+          "max_size" : 1024,
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
@@ -12075,6 +12169,12 @@
           },
           "entries" : [
             {
+              "source_info" : {
+                "filename" : "include/int/int_transit.p4",
+                "line" : 310,
+                "column" : 12,
+                "source_fragment" : "(0x0) : int_set_header_0003_i0()"
+              },
               "match_key" : [
                 {
                   "match_type" : "exact",
@@ -12088,6 +12188,12 @@
               "priority" : 1
             },
             {
+              "source_info" : {
+                "filename" : "include/int/int_transit.p4",
+                "line" : 311,
+                "column" : 12,
+                "source_fragment" : "(0x1) : int_set_header_0003_i1()"
+              },
               "match_key" : [
                 {
                   "match_type" : "exact",
@@ -12101,6 +12207,12 @@
               "priority" : 2
             },
             {
+              "source_info" : {
+                "filename" : "include/int/int_transit.p4",
+                "line" : 312,
+                "column" : 12,
+                "source_fragment" : "(0x2) : int_set_header_0003_i2()"
+              },
               "match_key" : [
                 {
                   "match_type" : "exact",
@@ -12114,6 +12226,12 @@
               "priority" : 3
             },
             {
+              "source_info" : {
+                "filename" : "include/int/int_transit.p4",
+                "line" : 313,
+                "column" : 12,
+                "source_fragment" : "(0x3) : int_set_header_0003_i3()"
+              },
               "match_key" : [
                 {
                   "match_type" : "exact",
@@ -12127,6 +12245,12 @@
               "priority" : 4
             },
             {
+              "source_info" : {
+                "filename" : "include/int/int_transit.p4",
+                "line" : 314,
+                "column" : 12,
+                "source_fragment" : "(0x4) : int_set_header_0003_i4()"
+              },
               "match_key" : [
                 {
                   "match_type" : "exact",
@@ -12140,6 +12264,12 @@
               "priority" : 5
             },
             {
+              "source_info" : {
+                "filename" : "include/int/int_transit.p4",
+                "line" : 315,
+                "column" : 12,
+                "source_fragment" : "(0x5) : int_set_header_0003_i5()"
+              },
               "match_key" : [
                 {
                   "match_type" : "exact",
@@ -12153,6 +12283,12 @@
               "priority" : 6
             },
             {
+              "source_info" : {
+                "filename" : "include/int/int_transit.p4",
+                "line" : 316,
+                "column" : 12,
+                "source_fragment" : "(0x6) : int_set_header_0003_i6()"
+              },
               "match_key" : [
                 {
                   "match_type" : "exact",
@@ -12166,6 +12302,12 @@
               "priority" : 7
             },
             {
+              "source_info" : {
+                "filename" : "include/int/int_transit.p4",
+                "line" : 317,
+                "column" : 12,
+                "source_fragment" : "(0x7) : int_set_header_0003_i7()"
+              },
               "match_key" : [
                 {
                   "match_type" : "exact",
@@ -12179,6 +12321,12 @@
               "priority" : 8
             },
             {
+              "source_info" : {
+                "filename" : "include/int/int_transit.p4",
+                "line" : 318,
+                "column" : 12,
+                "source_fragment" : "(0x8) : int_set_header_0003_i8()"
+              },
               "match_key" : [
                 {
                   "match_type" : "exact",
@@ -12192,6 +12340,12 @@
               "priority" : 9
             },
             {
+              "source_info" : {
+                "filename" : "include/int/int_transit.p4",
+                "line" : 319,
+                "column" : 12,
+                "source_fragment" : "(0x9) : int_set_header_0003_i9()"
+              },
               "match_key" : [
                 {
                   "match_type" : "exact",
@@ -12205,6 +12359,12 @@
               "priority" : 10
             },
             {
+              "source_info" : {
+                "filename" : "include/int/int_transit.p4",
+                "line" : 320,
+                "column" : 12,
+                "source_fragment" : "(0xA) : int_set_header_0003_i10()"
+              },
               "match_key" : [
                 {
                   "match_type" : "exact",
@@ -12218,6 +12378,12 @@
               "priority" : 11
             },
             {
+              "source_info" : {
+                "filename" : "include/int/int_transit.p4",
+                "line" : 321,
+                "column" : 12,
+                "source_fragment" : "(0xB) : int_set_header_0003_i11()"
+              },
               "match_key" : [
                 {
                   "match_type" : "exact",
@@ -12231,6 +12397,12 @@
               "priority" : 12
             },
             {
+              "source_info" : {
+                "filename" : "include/int/int_transit.p4",
+                "line" : 322,
+                "column" : 12,
+                "source_fragment" : "(0xC) : int_set_header_0003_i12()"
+              },
               "match_key" : [
                 {
                   "match_type" : "exact",
@@ -12244,6 +12416,12 @@
               "priority" : 13
             },
             {
+              "source_info" : {
+                "filename" : "include/int/int_transit.p4",
+                "line" : 323,
+                "column" : 12,
+                "source_fragment" : "(0xD) : int_set_header_0003_i13()"
+              },
               "match_key" : [
                 {
                   "match_type" : "exact",
@@ -12257,6 +12435,12 @@
               "priority" : 14
             },
             {
+              "source_info" : {
+                "filename" : "include/int/int_transit.p4",
+                "line" : 324,
+                "column" : 12,
+                "source_fragment" : "(0xE) : int_set_header_0003_i14()"
+              },
               "match_key" : [
                 {
                   "match_type" : "exact",
@@ -12270,6 +12454,12 @@
               "priority" : 15
             },
             {
+              "source_info" : {
+                "filename" : "include/int/int_transit.p4",
+                "line" : 325,
+                "column" : 12,
+                "source_fragment" : "(0xF) : int_set_header_0003_i15()"
+              },
               "match_key" : [
                 {
                   "match_type" : "exact",
@@ -12289,7 +12479,7 @@
           "id" : 37,
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
-            "line" : 328,
+            "line" : 330,
             "column" : 10,
             "source_fragment" : "tb_int_inst_0407"
           },
@@ -12303,7 +12493,7 @@
           ],
           "match_type" : "exact",
           "type" : "simple",
-          "max_size" : 16,
+          "max_size" : 1024,
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
@@ -12337,6 +12527,12 @@
           },
           "entries" : [
             {
+              "source_info" : {
+                "filename" : "include/int/int_transit.p4",
+                "line" : 354,
+                "column" : 12,
+                "source_fragment" : "(0x0) : int_set_header_0407_i0()"
+              },
               "match_key" : [
                 {
                   "match_type" : "exact",
@@ -12350,6 +12546,12 @@
               "priority" : 1
             },
             {
+              "source_info" : {
+                "filename" : "include/int/int_transit.p4",
+                "line" : 355,
+                "column" : 12,
+                "source_fragment" : "(0x1) : int_set_header_0407_i1()"
+              },
               "match_key" : [
                 {
                   "match_type" : "exact",
@@ -12363,6 +12565,12 @@
               "priority" : 2
             },
             {
+              "source_info" : {
+                "filename" : "include/int/int_transit.p4",
+                "line" : 356,
+                "column" : 12,
+                "source_fragment" : "(0x2) : int_set_header_0407_i2()"
+              },
               "match_key" : [
                 {
                   "match_type" : "exact",
@@ -12376,6 +12584,12 @@
               "priority" : 3
             },
             {
+              "source_info" : {
+                "filename" : "include/int/int_transit.p4",
+                "line" : 357,
+                "column" : 12,
+                "source_fragment" : "(0x3) : int_set_header_0407_i3()"
+              },
               "match_key" : [
                 {
                   "match_type" : "exact",
@@ -12389,6 +12603,12 @@
               "priority" : 4
             },
             {
+              "source_info" : {
+                "filename" : "include/int/int_transit.p4",
+                "line" : 358,
+                "column" : 12,
+                "source_fragment" : "(0x4) : int_set_header_0407_i4()"
+              },
               "match_key" : [
                 {
                   "match_type" : "exact",
@@ -12402,6 +12622,12 @@
               "priority" : 5
             },
             {
+              "source_info" : {
+                "filename" : "include/int/int_transit.p4",
+                "line" : 359,
+                "column" : 12,
+                "source_fragment" : "(0x5) : int_set_header_0407_i5()"
+              },
               "match_key" : [
                 {
                   "match_type" : "exact",
@@ -12415,6 +12641,12 @@
               "priority" : 6
             },
             {
+              "source_info" : {
+                "filename" : "include/int/int_transit.p4",
+                "line" : 360,
+                "column" : 12,
+                "source_fragment" : "(0x6) : int_set_header_0407_i6()"
+              },
               "match_key" : [
                 {
                   "match_type" : "exact",
@@ -12428,6 +12660,12 @@
               "priority" : 7
             },
             {
+              "source_info" : {
+                "filename" : "include/int/int_transit.p4",
+                "line" : 361,
+                "column" : 12,
+                "source_fragment" : "(0x7) : int_set_header_0407_i7()"
+              },
               "match_key" : [
                 {
                   "match_type" : "exact",
@@ -12441,6 +12679,12 @@
               "priority" : 8
             },
             {
+              "source_info" : {
+                "filename" : "include/int/int_transit.p4",
+                "line" : 362,
+                "column" : 12,
+                "source_fragment" : "(0x8) : int_set_header_0407_i8()"
+              },
               "match_key" : [
                 {
                   "match_type" : "exact",
@@ -12454,6 +12698,12 @@
               "priority" : 9
             },
             {
+              "source_info" : {
+                "filename" : "include/int/int_transit.p4",
+                "line" : 363,
+                "column" : 12,
+                "source_fragment" : "(0x9) : int_set_header_0407_i9()"
+              },
               "match_key" : [
                 {
                   "match_type" : "exact",
@@ -12467,6 +12717,12 @@
               "priority" : 10
             },
             {
+              "source_info" : {
+                "filename" : "include/int/int_transit.p4",
+                "line" : 364,
+                "column" : 12,
+                "source_fragment" : "(0xA) : int_set_header_0407_i10()"
+              },
               "match_key" : [
                 {
                   "match_type" : "exact",
@@ -12480,6 +12736,12 @@
               "priority" : 11
             },
             {
+              "source_info" : {
+                "filename" : "include/int/int_transit.p4",
+                "line" : 365,
+                "column" : 12,
+                "source_fragment" : "(0xB) : int_set_header_0407_i11()"
+              },
               "match_key" : [
                 {
                   "match_type" : "exact",
@@ -12493,6 +12755,12 @@
               "priority" : 12
             },
             {
+              "source_info" : {
+                "filename" : "include/int/int_transit.p4",
+                "line" : 366,
+                "column" : 12,
+                "source_fragment" : "(0xC) : int_set_header_0407_i12()"
+              },
               "match_key" : [
                 {
                   "match_type" : "exact",
@@ -12506,6 +12774,12 @@
               "priority" : 13
             },
             {
+              "source_info" : {
+                "filename" : "include/int/int_transit.p4",
+                "line" : 367,
+                "column" : 12,
+                "source_fragment" : "(0xD) : int_set_header_0407_i13()"
+              },
               "match_key" : [
                 {
                   "match_type" : "exact",
@@ -12519,6 +12793,12 @@
               "priority" : 14
             },
             {
+              "source_info" : {
+                "filename" : "include/int/int_transit.p4",
+                "line" : 368,
+                "column" : 12,
+                "source_fragment" : "(0xE) : int_set_header_0407_i14()"
+              },
               "match_key" : [
                 {
                   "match_type" : "exact",
@@ -12532,6 +12812,12 @@
               "priority" : 15
             },
             {
+              "source_info" : {
+                "filename" : "include/int/int_transit.p4",
+                "line" : 369,
+                "column" : 12,
+                "source_fragment" : "(0xF) : int_set_header_0407_i15()"
+              },
               "match_key" : [
                 {
                   "match_type" : "exact",
@@ -13004,7 +13290,7 @@
           "id" : 21,
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
-            "line" : 373,
+            "line" : 375,
             "column" : 12,
             "source_fragment" : "fmeta.int_meta.transit == false"
           },
@@ -13061,7 +13347,7 @@
           "id" : 23,
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
-            "line" : 381,
+            "line" : 383,
             "column" : 12,
             "source_fragment" : "hdr.ipv4.isValid()"
           },
@@ -13084,7 +13370,7 @@
           "id" : 24,
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
-            "line" : 384,
+            "line" : 386,
             "column" : 12,
             "source_fragment" : "hdr.udp.isValid()"
           },
@@ -13107,7 +13393,7 @@
           "id" : 25,
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
-            "line" : 387,
+            "line" : 389,
             "column" : 12,
             "source_fragment" : "hdr.intl4_shim.isValid()"
           },
@@ -13132,6 +13418,12 @@
     {
       "name" : "cksum",
       "id" : 0,
+      "source_info" : {
+        "filename" : "include/checksum.p4",
+        "line" : 28,
+        "column" : 8,
+        "source_fragment" : "update_checksum(hdr.ipv4.isValid(), ..."
+      },
       "target" : ["ipv4", "hdr_checksum"],
       "type" : "generic",
       "calculation" : "calc",
@@ -13150,6 +13442,12 @@
     {
       "name" : "cksum_0",
       "id" : 1,
+      "source_info" : {
+        "filename" : "include/checksum.p4",
+        "line" : 57,
+        "column" : 8,
+        "source_fragment" : "verify_checksum(hdr.ipv4.isValid(), ..."
+      },
       "target" : ["ipv4", "hdr_checksum"],
       "type" : "generic",
       "calculation" : "calc_0",

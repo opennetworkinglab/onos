@@ -1053,7 +1053,15 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
             WriteOperationType opType) {
 
         final List<Update> updateMsgs = entries.stream()
-                .map(MulticastGroupEntryCodec::encode)
+                .map(piEntry -> {
+                    try {
+                        return MulticastGroupEntryCodec.encode(piEntry);
+                    } catch (EncodeException e) {
+                        log.warn("Unable to encode PiMulticastGroupEntry: {}", e.getMessage());
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
                 .map(mcMsg -> PacketReplicationEngineEntry.newBuilder()
                         .setMulticastGroupEntry(mcMsg)
                         .build())
@@ -1117,13 +1125,22 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
                               WriteOperationType opType,
                               String entryType) {
         // True if all entities were successfully written.
-        return writeAndReturnSuccessEntities(updates, writeEntities, opType,
-                                             entryType).size() == writeEntities.size();
+        return writeAndReturnSuccessEntities(updates, writeEntities, opType, entryType)
+                .size() == writeEntities.size();
     }
 
     private <T> List<T> writeAndReturnSuccessEntities(
             List<Update> updates, List<T> writeEntities,
             WriteOperationType opType, String entryType) {
+        if (updates.isEmpty()) {
+            return Collections.emptyList();
+        }
+        if (updates.size() != writeEntities.size()) {
+            log.error("Cannot perform {} operation, provided {} " +
+                              "update messages for {} {} - BUG?",
+                      opType, updates.size(), writeEntities.size(), entryType);
+            return Collections.emptyList();
+        }
         try {
             //noinspection ResultOfMethodCallIgnored
             blockingStub.write(writeRequest(updates));

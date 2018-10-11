@@ -47,6 +47,7 @@
         ["egress_rid", 16, false],
         ["checksum_error", 1, false],
         ["recirculate_flag", 32, false],
+        ["parser_error", 32, false],
         ["_padding", 5, false]
       ]
     },
@@ -256,7 +257,14 @@
   "header_unions" : [],
   "header_union_stacks" : [],
   "field_lists" : [],
-  "errors" : [],
+  "errors" : [
+    ["NoError", 1],
+    ["PacketTooShort", 2],
+    ["NoMatch", 3],
+    ["StackOutOfBounds", 4],
+    ["HeaderTooShort", 5],
+    ["ParserTimeout", 6]
+  ],
   "enums" : [],
   "parsers" : [
     {
@@ -687,61 +695,121 @@
       "name" : "FabricIngress.filtering.ingress_port_vlan_counter",
       "id" : 0,
       "is_direct" : true,
-      "binding" : "FabricIngress.filtering.ingress_port_vlan"
+      "binding" : "FabricIngress.filtering.ingress_port_vlan",
+      "source_info" : {
+        "filename" : "include/control/filtering.p4",
+        "line" : 34,
+        "column" : 50,
+        "source_fragment" : "ingress_port_vlan_counter"
+      }
     },
     {
       "name" : "FabricIngress.filtering.fwd_classifier_counter",
       "id" : 1,
       "is_direct" : true,
-      "binding" : "FabricIngress.filtering.fwd_classifier"
+      "binding" : "FabricIngress.filtering.fwd_classifier",
+      "source_info" : {
+        "filename" : "include/control/filtering.p4",
+        "line" : 96,
+        "column" : 50,
+        "source_fragment" : "fwd_classifier_counter"
+      }
     },
     {
       "name" : "FabricIngress.forwarding.bridging_counter",
       "id" : 2,
       "is_direct" : true,
-      "binding" : "FabricIngress.forwarding.bridging"
+      "binding" : "FabricIngress.forwarding.bridging",
+      "source_info" : {
+        "filename" : "include/control/forwarding.p4",
+        "line" : 34,
+        "column" : 50,
+        "source_fragment" : "bridging_counter"
+      }
     },
     {
       "name" : "FabricIngress.forwarding.mpls_counter",
       "id" : 3,
       "is_direct" : true,
-      "binding" : "FabricIngress.forwarding.mpls"
+      "binding" : "FabricIngress.forwarding.mpls",
+      "source_info" : {
+        "filename" : "include/control/forwarding.p4",
+        "line" : 57,
+        "column" : 50,
+        "source_fragment" : "mpls_counter"
+      }
     },
     {
       "name" : "FabricIngress.forwarding.routing_v4_counter",
       "id" : 4,
       "is_direct" : true,
-      "binding" : "FabricIngress.forwarding.routing_v4"
+      "binding" : "FabricIngress.forwarding.routing_v4",
+      "source_info" : {
+        "filename" : "include/control/forwarding.p4",
+        "line" : 80,
+        "column" : 50,
+        "source_fragment" : "routing_v4_counter"
+      }
     },
     {
       "name" : "FabricIngress.forwarding.acl_counter",
       "id" : 5,
       "is_direct" : true,
-      "binding" : "FabricIngress.forwarding.acl"
+      "binding" : "FabricIngress.forwarding.acl",
+      "source_info" : {
+        "filename" : "include/control/forwarding.p4",
+        "line" : 107,
+        "column" : 50,
+        "source_fragment" : "acl_counter"
+      }
     },
     {
       "name" : "FabricIngress.next.vlan_meta_counter",
       "id" : 6,
       "is_direct" : true,
-      "binding" : "FabricIngress.next.vlan_meta"
+      "binding" : "FabricIngress.next.vlan_meta",
+      "source_info" : {
+        "filename" : "include/control/next.p4",
+        "line" : 58,
+        "column" : 50,
+        "source_fragment" : "vlan_meta_counter"
+      }
     },
     {
       "name" : "FabricIngress.next.simple_counter",
       "id" : 7,
       "is_direct" : true,
-      "binding" : "FabricIngress.next.simple"
+      "binding" : "FabricIngress.next.simple",
+      "source_info" : {
+        "filename" : "include/control/next.p4",
+        "line" : 82,
+        "column" : 50,
+        "source_fragment" : "simple_counter"
+      }
     },
     {
       "name" : "FabricIngress.next.hashed_counter",
       "id" : 8,
       "is_direct" : true,
-      "binding" : "FabricIngress.next.hashed"
+      "binding" : "FabricIngress.next.hashed",
+      "source_info" : {
+        "filename" : "include/control/next.p4",
+        "line" : 146,
+        "column" : 50,
+        "source_fragment" : "hashed_counter"
+      }
     },
     {
       "name" : "FabricIngress.next.multicast_counter",
       "id" : 9,
       "is_direct" : true,
-      "binding" : "FabricIngress.next.multicast"
+      "binding" : "FabricIngress.next.multicast",
+      "source_info" : {
+        "filename" : "include/control/next.p4",
+        "line" : 199,
+        "column" : 50,
+        "source_fragment" : "multicast_counter"
+      }
     },
     {
       "name" : "FabricIngress.port_counters_control.egress_port_counter",
@@ -771,7 +839,13 @@
       "name" : "FabricEgress.egress_next.egress_vlan_counter",
       "id" : 12,
       "is_direct" : true,
-      "binding" : "FabricEgress.egress_next.egress_vlan"
+      "binding" : "FabricEgress.egress_next.egress_vlan",
+      "source_info" : {
+        "filename" : "include/control/next.p4",
+        "line" : 250,
+        "column" : 50,
+        "source_fragment" : "egress_vlan_counter"
+      }
     }
   ],
   "register_arrays" : [],
@@ -1087,7 +1161,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 91,
+            "line" : 99,
             "column" : 31,
             "source_fragment" : "0x8100; ..."
           }
@@ -1720,7 +1794,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 92,
+            "line" : 100,
             "column" : 31,
             "source_fragment" : "0x8847; ..."
           }
@@ -1796,7 +1870,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 115,
+            "line" : 123,
             "column" : 32,
             "source_fragment" : "64; ..."
           }
@@ -1911,7 +1985,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 92,
+            "line" : 100,
             "column" : 31,
             "source_fragment" : "0x8847; ..."
           }
@@ -1987,7 +2061,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 115,
+            "line" : 123,
             "column" : 32,
             "source_fragment" : "64; ..."
           }
@@ -2279,7 +2353,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 92,
+            "line" : 100,
             "column" : 31,
             "source_fragment" : "0x8847; ..."
           }
@@ -2355,7 +2429,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 115,
+            "line" : 123,
             "column" : 32,
             "source_fragment" : "64; ..."
           }
@@ -2470,7 +2544,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 92,
+            "line" : 100,
             "column" : 31,
             "source_fragment" : "0x8847; ..."
           }
@@ -2546,7 +2620,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 115,
+            "line" : 123,
             "column" : 32,
             "source_fragment" : "64; ..."
           }
@@ -2762,7 +2836,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 111,
+            "line" : 119,
             "column" : 31,
             "source_fragment" : "7; ..."
           }
@@ -2788,7 +2862,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 94,
+            "line" : 102,
             "column" : 31,
             "source_fragment" : "0x0800; ..."
           }
@@ -4239,6 +4313,12 @@
         {
           "name" : "FabricIngress.next.ecmp_selector",
           "id" : 0,
+          "source_info" : {
+            "filename" : "include/control/next.p4",
+            "line" : 145,
+            "column" : 55,
+            "source_fragment" : "ecmp_selector"
+          },
           "max_size" : 64,
           "selector" : {
             "algo" : "crc16",
@@ -4612,7 +4692,7 @@
       "id" : 1,
       "source_info" : {
         "filename" : "fabric.p4",
-        "line" : 79,
+        "line" : 80,
         "column" : 8,
         "source_fragment" : "FabricEgress"
       },
@@ -4985,6 +5065,12 @@
     {
       "name" : "cksum",
       "id" : 0,
+      "source_info" : {
+        "filename" : "include/checksum.p4",
+        "line" : 28,
+        "column" : 8,
+        "source_fragment" : "update_checksum(hdr.ipv4.isValid(), ..."
+      },
       "target" : ["ipv4", "hdr_checksum"],
       "type" : "generic",
       "calculation" : "calc",
@@ -5003,6 +5089,12 @@
     {
       "name" : "cksum_0",
       "id" : 1,
+      "source_info" : {
+        "filename" : "include/checksum.p4",
+        "line" : 57,
+        "column" : 8,
+        "source_fragment" : "verify_checksum(hdr.ipv4.isValid(), ..."
+      },
       "target" : ["ipv4", "hdr_checksum"],
       "type" : "generic",
       "calculation" : "calc_0",
