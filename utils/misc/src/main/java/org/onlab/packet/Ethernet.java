@@ -700,6 +700,8 @@ public class Ethernet extends BasePacket {
             sb.append("\ndata packet");
         } else if (pkt instanceof LLC) {
             sb.append("\nllc packet");
+        } else if (pkt instanceof EAPOL) {
+            sb.append("\neapol");
         } else {
             sb.append("\nunknown packet");
         }
