@@ -17,8 +17,12 @@ package org.onosproject.provider.nil.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.cli.UpDownCompleter;
+import org.onosproject.cli.net.LinkDstCompleter;
+import org.onosproject.cli.net.LinkSrcCompleter;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.provider.nil.NullProviders;
 
@@ -35,14 +39,17 @@ public class NullLinkCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "one", description = "One link end-point as device/port",
             required = true, multiValued = false)
+    @Completion(LinkSrcCompleter.class)
     String one = null;
 
     @Argument(index = 1, name = "two", description = "Another link end-point as device/port",
             required = true, multiValued = false)
+    @Completion(LinkDstCompleter.class)
     String two = null;
 
     @Argument(index = 2, name = "cmd", description = "up/down",
             required = true, multiValued = false)
+    @Completion(UpDownCompleter.class)
     String cmd = null;
 
 

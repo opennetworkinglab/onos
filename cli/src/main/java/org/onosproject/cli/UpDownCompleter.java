@@ -16,12 +16,14 @@
 package org.onosproject.cli;
 
 import com.google.common.collect.ImmutableList;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 
 import java.util.List;
 
 /**
  * Up/down command completer.
  */
+@Service
 public class UpDownCompleter extends AbstractChoicesCompleter {
 
     public static final String UP = "up";
