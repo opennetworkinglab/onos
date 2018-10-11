@@ -17,8 +17,10 @@ package org.onosproject.netconf.cli.impl;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.cli.net.DeviceIdCompleter;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.ConfigSetter;
 import org.onosproject.net.driver.DriverHandler;
@@ -47,6 +49,7 @@ public class NetconfRpcTestCommand extends AbstractShellCommand {
 
     @Argument(index = 1, name = "cfgFile", description = "File path to RPC XML",
             required = true, multiValued = false)
+    @Completion(DeviceIdCompleter.class)
     private String cfgFile = null;
 
     private DeviceId deviceId;

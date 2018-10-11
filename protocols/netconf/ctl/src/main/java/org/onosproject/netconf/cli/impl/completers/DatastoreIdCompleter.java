@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractChoicesCompleter;
 import org.onosproject.netconf.DatastoreId;
 
@@ -28,6 +29,7 @@ import org.onosproject.netconf.DatastoreId;
  * Completer for predefined {@link DatastoreId}.
  *
  */
+@Service
 public class DatastoreIdCompleter extends AbstractChoicesCompleter {
 
     @Override

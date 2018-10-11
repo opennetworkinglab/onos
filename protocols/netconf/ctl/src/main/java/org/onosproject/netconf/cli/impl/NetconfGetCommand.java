@@ -22,9 +22,11 @@ import java.util.concurrent.TimeoutException;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.cli.net.DeviceIdCompleter;
 import org.onosproject.net.DeviceId;
 import org.onosproject.netconf.NetconfController;
 import org.onosproject.netconf.NetconfDevice;
@@ -43,6 +45,7 @@ public class NetconfGetCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "deviceId", description = "Device ID",
             required = true, multiValued = false)
+    @Completion(DeviceIdCompleter.class)
     String uri = null;
 
     @Option(name = "--timeout",
