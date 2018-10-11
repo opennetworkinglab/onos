@@ -548,6 +548,30 @@ public class HostHandlerTest {
     }
 
     @Test
+    public void testDualHomedHostMoveTransient() {
+        Host host1 = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
+                Sets.newHashSet(HOST_LOC31, HOST_LOC41), Sets.newHashSet(HOST_IP11), false);
+        Host host2 = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
+                Sets.newHashSet(HOST_LOC32, HOST_LOC41), Sets.newHashSet(HOST_IP11), false);
+        hostHandler.processHostAddedEvent(new HostEvent(HostEvent.Type.HOST_ADDED, host1));
+
+        // Mock DefaultRoutingHandler
+        DefaultRoutingHandler mockDefaultRoutingHandler = createMock(DefaultRoutingHandler.class);
+        hostHandler.srManager.defaultRoutingHandler = mockDefaultRoutingHandler;
+
+        // Host moved from [1A/1, 1B/1] to [1A/2, 1B/1]
+        // We should expect only one bridging flow and one routing flow programmed on 1A
+        mockDefaultRoutingHandler.populateBridging(DEV3, P2, HOST_MAC, HOST_VLAN_UNTAGGED);
+        expectLastCall().times(1);
+        mockDefaultRoutingHandler.populateRoute(DEV3, HOST_IP11.toIpPrefix(), HOST_MAC, HOST_VLAN_UNTAGGED, P2);
+        expectLastCall().times(1);
+        replay(mockDefaultRoutingHandler);
+
+        hostHandler.processHostMovedEvent(new HostEvent(HostEvent.Type.HOST_MOVED, host2, host1));
+        verify(mockDefaultRoutingHandler);
+    }
+
+    @Test
     public void testHostMoveToInvalidLocation() {
         Host host1 = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_UNTAGGED,
                 Sets.newHashSet(HOST_LOC11), Sets.newHashSet(HOST_IP11), false);
