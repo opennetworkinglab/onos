@@ -30,7 +30,20 @@ public enum PacketPriority {
      * Low priority for reactive applications. Packets are only sent to the
      * controller if they fail to match any of the rules installed in the switch.
      */
-    REACTIVE(5);
+    REACTIVE(5),
+
+    /**
+     * Other choices for applications.
+     */
+    MAX(65535),
+    HIGH5(65000),
+    HIGH4(64000),
+    HIGH3(63000),
+    HIGH2(62000),
+    HIGH1(61000),
+    HIGH(60000),
+    MEDIUM(30000),
+    LOWEST(1);
 
     private final int priorityValue;
 
@@ -47,6 +60,7 @@ public enum PacketPriority {
         return priorityValue;
     }
 
+    @Override
     public String toString() {
         return String.valueOf(priorityValue);
     }
