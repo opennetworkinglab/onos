@@ -48,9 +48,9 @@ import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.ExtensionSelector;
 import org.onosproject.openstacknetworking.api.InstancePort;
+import org.onosproject.openstacknetworking.api.InstancePortAdminService;
 import org.onosproject.openstacknetworking.api.InstancePortEvent;
 import org.onosproject.openstacknetworking.api.InstancePortListener;
-import org.onosproject.openstacknetworking.api.InstancePortService;
 import org.onosproject.openstacknetworking.api.OpenstackFlowRuleService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkEvent;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkListener;
@@ -58,6 +58,7 @@ import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.onosproject.openstacknetworking.api.OpenstackSecurityGroupEvent;
 import org.onosproject.openstacknetworking.api.OpenstackSecurityGroupListener;
 import org.onosproject.openstacknetworking.api.OpenstackSecurityGroupService;
+import org.onosproject.openstacknetworking.api.PreCommitPortService;
 import org.onosproject.openstacknetworking.util.RulePopulatorUtil;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeEvent;
@@ -81,14 +82,16 @@ import java.util.stream.Collectors;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.openstacknetworking.api.Constants.ACL_TABLE;
-import static org.onosproject.openstacknetworking.api.Constants.JUMP_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.CT_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.ERROR_TABLE;
+import static org.onosproject.openstacknetworking.api.Constants.JUMP_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ACL_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_CT_DROP_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_CT_HOOK_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_CT_RULE;
+import static org.onosproject.openstacknetworking.api.InstancePort.State.REMOVE_PENDING;
+import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_PORT_PRE_REMOVE;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.computeCtMaskFlag;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.computeCtStateFlag;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.niciraConnTrackTreatmentBuilder;
@@ -113,7 +116,7 @@ public class OpenstackSecurityGroupHandler {
     protected CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected InstancePortService instancePortService;
+    protected InstancePortAdminService instancePortService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MastershipService mastershipService;
@@ -141,6 +144,9 @@ public class OpenstackSecurityGroupHandler {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected PreCommitPortService preCommitPortService;
 
     private final InstancePortListener instancePortListener =
                                         new InternalInstancePortListener();
@@ -256,6 +262,16 @@ public class OpenstackSecurityGroupHandler {
             final String action = install ? "Installed " : "Removed ";
             log.debug(action + "security group rule ID : " + sgId);
         });
+
+        if (install) {
+            preCommitPortService.subscribePreCommit(instPort.portId(),
+                    OPENSTACK_PORT_PRE_REMOVE, this.getClass().getName());
+            log.info("Subscribed the port {} on listening pre-remove event", instPort.portId());
+        } else {
+            preCommitPortService.unsubscribePreCommit(instPort.portId(),
+                    OPENSTACK_PORT_PRE_REMOVE, instancePortService, this.getClass().getName());
+            log.info("Unsubscribed the port {} on listening pre-remove event", instPort.portId());
+        }
     }
 
     private void updateSecurityGroupRule(InstancePort instPort, Port port,
@@ -716,9 +732,11 @@ public class OpenstackSecurityGroupHandler {
 
             switch (event.type()) {
                 case OPENSTACK_PORT_PRE_REMOVE:
-                    eventExecutor.execute(() -> {
-                        setSecurityGroupRules(instPort, osPort, false);
-                    });
+                    instancePortService.updateInstancePort(
+                                        instPort.updateState(REMOVE_PENDING));
+                    eventExecutor.execute(() ->
+                        setSecurityGroupRules(instPort, osPort, false)
+                    );
                     break;
                 default:
                     // do nothing for the other events
@@ -804,8 +822,8 @@ public class OpenstackSecurityGroupHandler {
                                 securityGroupRuleToRemove.getId());
                     });
                     break;
-                case OPENSTACK_SECURITY_GROUP_CREATED:
                 case OPENSTACK_SECURITY_GROUP_REMOVED:
+                case OPENSTACK_SECURITY_GROUP_CREATED:
                 default:
                     // do nothing
                     break;
