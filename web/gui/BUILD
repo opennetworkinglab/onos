@@ -199,6 +199,10 @@ osgi_jar_with_tests(
         "org.onosproject.ui.impl.AbstractUiImplTest",
         "org.onosproject.ui.impl.topo.model.AbstractTopoModelTest",
     ],
+    karaf_command_packages = [
+        "org.onosproject.ui.impl.cli",
+        "org.onosproject.ui.impl.topo",
+    ],
     test_deps = TEST_DEPS,
     web_context = "/onos/ui",
     deps = COMPILE_DEPS,
