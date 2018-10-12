@@ -91,13 +91,23 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.openflow.controller.impl.OsgiPropertyConstants.*;
 
-
-@Component(immediate = true, service = OpenFlowController.class)
+@Component(
+        immediate = true,
+        service = OpenFlowController.class,
+        property = {
+                OFPORTS + "=" + OFPORTS_DEFAULT,
+                WORKER_THREADS + "=" + WORKER_THREADS_DEFAULT,
+                TLS_MODE + "=" + TLS_MODE_DEFAULT,
+                KEY_STORE + "=" + KEY_STORE_DEFAULT,
+                KEY_STORE_PASSWORD + "=" + KEY_STORE_PASSWORD_DEFAULT,
+                TRUST_STORE + "=" + TRUST_STORE_DEFAULT,
+                TRUST_STORE_PASSWORD + "=" + TRUST_STORE_PASSWORD_DEFAULT,
+        }
+)
 public class OpenFlowControllerImpl implements OpenFlowController {
     private static final String APP_ID = "org.onosproject.openflow-base";
-    private static final String DEFAULT_OFPORT = "6633,6653";
-    private static final int DEFAULT_WORKER_THREADS = 0;
     protected static final String SCHEME = "of";
 
     private static final Logger log =
@@ -117,31 +127,31 @@ public class OpenFlowControllerImpl implements OpenFlowController {
 
     //@Property(name = "openflowPorts", value = DEFAULT_OFPORT,
     //        label = "Port numbers (comma separated) used by OpenFlow protocol; default is 6633,6653")
-    private String openflowPorts = DEFAULT_OFPORT;
+    //private String openflowPortsValue = OFPORTS_DEFAULT;
 
     //@Property(name = "workerThreads", intValue = DEFAULT_WORKER_THREADS,
     //        label = "Number of controller worker threads")
-    private int workerThreads = DEFAULT_WORKER_THREADS;
+    //private int workerThreads = DEFAULT_WORKER_THREADS;
 
     //@Property(name = "tlsMode", value = "",
     //          label = "TLS mode for OpenFlow channel; options are: disabled [default], enabled, strict")
-    private String tlsModeString;
+    //private String tlsModeString;
 
     //@Property(name = "keyStore", value = "",
     //        label = "File path to key store for TLS connections")
-    private String keyStore;
+    //private String keyStore;
 
     //@Property(name = "keyStorePassword", value = "",
     //        label = "Key store password")
-    private String keyStorePassword;
+    //private String keyStorePassword;
 
     //@Property(name = "trustStore", value = "",
     //        label = "File path to trust store for TLS connections")
-    private String trustStore;
+    //private String trustStore;
 
     //@Property(name = "trustStorePassword", value = "",
     //        label = "Trust store password")
-    private String trustStorePassword;
+    //private String trustStorePassword;
 
     protected ExecutorService executorMsgs =
         Executors.newFixedThreadPool(32, groupedThreads("onos/of", "event-stats-%d", log));
