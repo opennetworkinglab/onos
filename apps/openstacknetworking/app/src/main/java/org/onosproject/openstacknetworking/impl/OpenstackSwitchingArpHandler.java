@@ -277,6 +277,21 @@ public final class OpenstackSwitchingArpHandler {
     private void setFakeGatewayArpRule(Subnet osSubnet, boolean install, OpenstackNode osNode) {
 
         if (ARP_BROADCAST_MODE.equals(getArpMode())) {
+
+            // do not remove fake gateway ARP rules, if there is another gateway
+            // which has the same subnet that to be removed
+            // this only occurs if we have duplicated subnets associated with
+            // different networks
+            if (!install) {
+                long numOfDupGws = osNetworkService.subnets().stream()
+                        .filter(s -> !s.getId().equals(osSubnet.getId()))
+                        .filter(s -> s.getGateway().equals(osSubnet.getGateway()))
+                        .count();
+                if (numOfDupGws > 0) {
+                    return;
+                }
+            }
+
             String gateway = osSubnet.getGateway();
 
             TrafficSelector selector = DefaultTrafficSelector.builder()
