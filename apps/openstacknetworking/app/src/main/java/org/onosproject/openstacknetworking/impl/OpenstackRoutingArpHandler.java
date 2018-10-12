@@ -52,15 +52,16 @@ import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.openstacknetworking.api.Constants;
 import org.onosproject.openstacknetworking.api.InstancePort;
+import org.onosproject.openstacknetworking.api.InstancePortAdminService;
 import org.onosproject.openstacknetworking.api.InstancePortEvent;
 import org.onosproject.openstacknetworking.api.InstancePortListener;
-import org.onosproject.openstacknetworking.api.InstancePortService;
 import org.onosproject.openstacknetworking.api.OpenstackFlowRuleService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkAdminService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.onosproject.openstacknetworking.api.OpenstackRouterEvent;
 import org.onosproject.openstacknetworking.api.OpenstackRouterListener;
 import org.onosproject.openstacknetworking.api.OpenstackRouterService;
+import org.onosproject.openstacknetworking.api.PreCommitPortService;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeEvent;
 import org.onosproject.openstacknode.api.OpenstackNodeListener;
@@ -88,6 +89,7 @@ import static org.onosproject.openstacknetworking.api.Constants.GW_COMMON_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ARP_CONTROL_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ARP_GATEWAY_RULE;
+import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_PORT_PRE_REMOVE;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.associatedFloatingIp;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getGwByComputeDevId;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getGwByInstancePort;
@@ -125,7 +127,7 @@ public class OpenstackRoutingArpHandler {
     protected OpenstackNodeService osNodeService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected InstancePortService instancePortService;
+    protected InstancePortAdminService instancePortService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
@@ -141,6 +143,9 @@ public class OpenstackRoutingArpHandler {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService configService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected PreCommitPortService preCommitPortService;
 
     @Property(name = ARP_MODE, value = DEFAULT_ARP_MODE_STR,
             label = "ARP processing mode, broadcast | proxy (default)")
@@ -434,9 +439,9 @@ public class OpenstackRoutingArpHandler {
                 return;
             }
 
-            if (portId == null || fip.getPortId() == null) {
+            if (portId == null || (install && fip.getPortId() == null)) {
                 log.trace("Unknown target ARP request for {}, ignore it",
-                        fip.getFloatingIpAddress());
+                                                    fip.getFloatingIpAddress());
                 return;
             }
 
@@ -447,6 +452,16 @@ public class OpenstackRoutingArpHandler {
 
             if (gw == null) {
                 return;
+            }
+
+            if (install) {
+                preCommitPortService.subscribePreCommit(instPort.portId(),
+                        OPENSTACK_PORT_PRE_REMOVE, this.getClass().getName());
+                log.info("Subscribed the port {} on listening pre-remove event", instPort.portId());
+            } else {
+                preCommitPortService.unsubscribePreCommit(instPort.portId(),
+                        OPENSTACK_PORT_PRE_REMOVE, instancePortService, this.getClass().getName());
+                log.info("Unsubscribed the port {} on listening pre-remove event", instPort.portId());
             }
 
             setArpRule(fip, targetMac, gw, install);
