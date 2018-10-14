@@ -48,6 +48,9 @@ $ sudo apt-get install software-properties-common -y && \
 
 ### Build ONOS from source
 
+ONOS is built with [Bazel](https://bazel.build/), an open-source build tool developed by Google.
+ONOS supports Bazel 0.15.2 You can download it from official website or package manager (e.g. apt, brew...)
+
 1. Clone the code from ONOS gerrit repository
 ```bash
 $ git clone https://gerrit.onosproject.org/onos
@@ -63,23 +66,18 @@ EOF
 $ . ~/.bash_profile
 ```
 
-3. Build ONOS with Buck
+3. Build ONOS with Bazel
 ```bash
 $ cd $ONOS_ROOT
-$ onos-buck build onos [--show-output]
+$ bazel build onos
 ```
-
-ONOS currently uses a modified version of Buck (`onos-buck`), which has been packaged with ONOS. Please use this version until our changes have been upstreamed and released as part of an official Buck release. 
-
-This will compile all source code assemble the installable onos.tar.gz, which is located in the buck-out directory. Note the --show-output option, which can be omitted, will display the path to this file.
-
 
 ### Start ONOS on local machine
 
 To run ONOS locally on the development machine, simply run the following command:
 
 ```bash
-$ onos-buck run onos-local [-- [clean] [debug]]
+$ bazel run onos-local [-- [clean] [debug]]
 ```
 
 or simplier one:
@@ -110,13 +108,13 @@ $ onos localhost
 To run ONOS unit tests, including code Checkstyle validation, run the following command:
 
 ```bash
-$ onos-buck test
+$ bazel query 'tests(//...)' | xargs bazel test
 ```
 
 Or more specific tests:
 
 ```bash
-$ onos-buck test [buck-test-rule]
+$ bazel test [bazel-test-rule]
 ```
 
 ## Contributing
