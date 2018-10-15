@@ -1,0 +1,44 @@
+{
+  "type": "object",
+  "title": "packet-processors",
+  "required": [
+    "packet-processors"
+  ],
+  "properties": {
+    "packet-processors": {
+      "type": "array",
+      "xml": {
+        "name": "packet-processors",
+        "wrapped": true
+      },
+      "items": {
+        "type": "object",
+        "title": "packet-processors",
+        "required": [
+          "priority",
+          "class",
+          "packets",
+          "avgNanos"
+        ],
+        "properties": {
+          "priority": {
+            "type": "string",
+            "example": "advisor(0)"
+          },
+          "class": {
+            "type": "string",
+            "example": "org.onosproject.provider.host.impl.HostLocationProvider$InternalHostProvider"
+          },
+          "packets": {
+            "type": "integer",
+            "example": 568376
+          },
+          "avgNanos": {
+            "type": "integer",
+            "example": 5683
+          }
+        }
+      }
+    }
+  }
+}

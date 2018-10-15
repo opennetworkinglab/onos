@@ -55,7 +55,8 @@ public class CoreWebApplication extends AbstractWebApplication {
                 DpisWebResource.class,
                 DiagnosticsWebResource.class,
                 UiPreferencesWebResource.class,
-                SystemInfoWebResource.class
+                SystemInfoWebResource.class,
+                PacketProcessorsWebResource.class
         );
     }
 }
