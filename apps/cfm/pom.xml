@@ -14,12 +14,12 @@
     <parent>
         <groupId>org.onosproject</groupId>
         <artifactId>onos-apps</artifactId>
-        <version>1.13.5-SNAPSHOT</version>
+        <version>1.13.5</version>
     </parent>
 
     <artifactId>onos-apps-cfm</artifactId>
     <packaging>pom</packaging>
-    <version>1.13.5-SNAPSHOT</version>
+    <version>1.13.5</version>
 
     <modules>
         <module>api</module>
