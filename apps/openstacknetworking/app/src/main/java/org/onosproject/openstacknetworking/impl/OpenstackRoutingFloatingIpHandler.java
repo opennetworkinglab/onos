@@ -894,8 +894,7 @@ public class OpenstackRoutingFloatingIpHandler {
                     if (fip != null) {
                         instancePortService.updateInstancePort(
                                             instPort.updateState(REMOVE_PENDING));
-                        eventExecutor.execute(() ->
-                                updateFipStore(instancePortService.instancePort(event.port().getId())));
+                        eventExecutor.execute(() -> updateFipStore(event.port().getId()));
                     } else {
                         // FIXME: we have dependency with security group, need to
                         // find a better way to remove this dependency
@@ -909,9 +908,9 @@ public class OpenstackRoutingFloatingIpHandler {
             }
         }
 
-        private void updateFipStore(InstancePort port) {
+        private void updateFipStore(String portId) {
 
-            if (port == null) {
+            if (portId == null) {
                 return;
             }
 
@@ -923,7 +922,7 @@ public class OpenstackRoutingFloatingIpHandler {
                 if (Strings.isNullOrEmpty(fip.getFloatingIpAddress())) {
                     continue;
                 }
-                if (fip.getFixedIpAddress().equals(port.ipAddress().toString())) {
+                if (fip.getPortId().equals(portId)) {
                     NeutronFloatingIP neutronFip = (NeutronFloatingIP) fip;
                     // invalidate bound fixed IP and port
                     neutronFip.setFixedIpAddress(null);
