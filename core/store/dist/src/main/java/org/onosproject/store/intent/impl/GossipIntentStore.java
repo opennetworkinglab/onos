@@ -65,15 +65,22 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onlab.util.Tools.get;
 import static org.onosproject.net.intent.IntentState.PURGE_REQ;
+import static org.onosproject.store.OsgiPropertyConstants.GIS_PERSISTENCE_ENABLED;
+import static org.onosproject.store.OsgiPropertyConstants.GIS_PERSISTENCE_ENABLED_DEFAULT;
 import static org.slf4j.LoggerFactory.getLogger;
-
 /**
  * Manages inventory of Intents in a distributed data store that uses optimistic
  * replication and gossip based techniques.
  */
 //FIXME we should listen for leadership changes. if the local instance has just
 // ...  become a leader, scan the pending map and process those
-@Component(immediate = true, service = IntentStore.class)
+@Component(
+        immediate = true,
+        service = IntentStore.class,
+        property = {
+                GIS_PERSISTENCE_ENABLED + "=" + GIS_PERSISTENCE_ENABLED_DEFAULT
+        }
+)
 public class GossipIntentStore
         extends AbstractStore<IntentEvent, IntentStoreDelegate>
         implements IntentStore {
@@ -117,7 +124,7 @@ public class GossipIntentStore
     // intents on cluster restart
     //@Property(name = "persistenceEnabled", boolValue = PERSIST,
     //        label = "EXPERIMENTAL: Enable intent persistence")
-    private boolean persistenceEnabled;
+    private boolean persistenceEnabled = GIS_PERSISTENCE_ENABLED_DEFAULT;
 
 
     /**

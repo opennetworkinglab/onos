@@ -138,7 +138,7 @@ public class DistributedVirtualFlowRuleStore
     //        label = "Number of threads in the message handler pool")
     private int msgHandlerThreadPoolSize = MESSAGE_HANDLER_THREAD_POOL_SIZE_DEFAULT;
 
-    //@Property(name = "backupPeriod", intValue = DEFAULT_BACKUP_PERIOD_MILLIS,
+    //@Property(name = "backupPeriod", intValue = BACKUP_PERIOD_MILLIS,
     //        label = "Delay in ms between successive backup runs")
     private int backupPeriod = BACKUP_PERIOD_MILLIS_DEFAULT;
     //@Property(name = "persistenceEnabled", boolValue = false,

@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
+package org.onosproject.openflow.controller.impl;
+
 /**
  * Name/Value constants for properties.
  */
-package org.onosproject.openflow.controller.impl;
 
 public final class OsgiPropertyConstants {
 

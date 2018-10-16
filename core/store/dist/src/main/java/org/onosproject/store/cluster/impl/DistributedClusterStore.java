@@ -67,11 +67,23 @@ import static org.onosproject.cluster.ClusterEvent.Type.INSTANCE_ACTIVATED;
 import static org.onosproject.cluster.ClusterEvent.Type.INSTANCE_DEACTIVATED;
 import static org.onosproject.cluster.ClusterEvent.Type.INSTANCE_READY;
 import static org.slf4j.LoggerFactory.getLogger;
-@Component(enabled = false, service = ClusterStore.class)
+import static org.onosproject.store.OsgiPropertyConstants.*;
+
 /**
  * Distributed cluster nodes store that employs an accrual failure
  * detector to identify cluster member up/down status.
  */
+
+@Component(
+        enabled = false,
+        service = ClusterStore.class,
+        property = {
+                HEARTBEAT_INTERVAL + "=" + HEARTBEAT_INTERVAL_DEFAULT,
+                PHI_FAILURE_THRESHOLD + "=" + PHI_FAILURE_THRESHOLD_DEFAULT,
+                MIN_STANDARD_DEVIATION_MILLIS + "=" + MIN_STANDARD_DEVIATION_MILLIS_DEFAULT
+        }
+)
+
 public class DistributedClusterStore
         extends AbstractStore<ClusterEvent, ClusterStoreDelegate>
         implements ClusterStore {
@@ -80,20 +92,17 @@ public class DistributedClusterStore
 
     public static final String HEARTBEAT_MESSAGE = "onos-cluster-heartbeat";
 
-    private static final int DEFAULT_HEARTBEAT_INTERVAL = 100;
     //@Property(name = "heartbeatInterval", intValue = DEFAULT_HEARTBEAT_INTERVAL,
     //        label = "Interval time to send heartbeat to other controller nodes (millisecond)")
-    private int heartbeatInterval = DEFAULT_HEARTBEAT_INTERVAL;
+    private int heartbeatInterval = HEARTBEAT_INTERVAL_DEFAULT;
 
-    private static final int DEFAULT_PHI_FAILURE_THRESHOLD = 10;
     //@Property(name = "phiFailureThreshold", intValue = DEFAULT_PHI_FAILURE_THRESHOLD,
     //        label = "the value of Phi threshold to detect accrual failure")
-    private int phiFailureThreshold = DEFAULT_PHI_FAILURE_THRESHOLD;
+    private int phiFailureThreshold = PHI_FAILURE_THRESHOLD_DEFAULT;
 
-    private static final long DEFAULT_MIN_STANDARD_DEVIATION_MILLIS = 50;
     //@Property(name = "minStandardDeviationMillis", longValue = DEFAULT_MIN_STANDARD_DEVIATION_MILLIS,
     //    label = "The minimum standard deviation to take into account when computing the Phi value")
-    private long minStandardDeviationMillis = DEFAULT_MIN_STANDARD_DEVIATION_MILLIS;
+    private long minStandardDeviationMillis = MIN_STANDARD_DEVIATION_MILLIS_DEFAULT;
 
     private static final Serializer SERIALIZER = Serializer.using(
             KryoNamespace.newBuilder()
@@ -383,11 +392,11 @@ public class DistributedClusterStore
             if ("heartbeatInterval".equals(property.name())) {
                 String s = property.value();
                 if (s == null) {
-                    setHeartbeatInterval(DEFAULT_HEARTBEAT_INTERVAL);
+                    setHeartbeatInterval(HEARTBEAT_INTERVAL_DEFAULT);
                     log.info("Heartbeat interval time is not configured, default value is {}",
-                            DEFAULT_HEARTBEAT_INTERVAL);
+                            HEARTBEAT_INTERVAL_DEFAULT);
                 } else {
-                    int newHeartbeatInterval = isNullOrEmpty(s) ? DEFAULT_HEARTBEAT_INTERVAL
+                    int newHeartbeatInterval = isNullOrEmpty(s) ? HEARTBEAT_INTERVAL_DEFAULT
                             : Integer.parseInt(s.trim());
                     if (newHeartbeatInterval > 0 && heartbeatInterval != newHeartbeatInterval) {
                         heartbeatInterval = newHeartbeatInterval;
@@ -400,11 +409,11 @@ public class DistributedClusterStore
             if ("phiFailureThreshold".equals(property.name())) {
                 String s = property.value();
                 if (s == null) {
-                    setPhiFailureThreshold(DEFAULT_PHI_FAILURE_THRESHOLD);
+                    setPhiFailureThreshold(PHI_FAILURE_THRESHOLD_DEFAULT);
                     log.info("Phi failure threshold is not configured, default value is {}",
-                            DEFAULT_PHI_FAILURE_THRESHOLD);
+                            PHI_FAILURE_THRESHOLD_DEFAULT);
                 } else {
-                    int newPhiFailureThreshold = isNullOrEmpty(s) ? DEFAULT_HEARTBEAT_INTERVAL
+                    int newPhiFailureThreshold = isNullOrEmpty(s) ? HEARTBEAT_INTERVAL_DEFAULT
                             : Integer.parseInt(s.trim());
                     setPhiFailureThreshold(newPhiFailureThreshold);
                     log.info("Configured. Phi failure threshold is configured to {}",
@@ -414,12 +423,12 @@ public class DistributedClusterStore
             if ("minStandardDeviationMillis".equals(property.name())) {
                 String s = property.value();
                 if (s == null) {
-                    setMinStandardDeviationMillis(DEFAULT_MIN_STANDARD_DEVIATION_MILLIS);
+                    setMinStandardDeviationMillis(MIN_STANDARD_DEVIATION_MILLIS_DEFAULT);
                     log.info("Minimum standard deviation is not configured, default value is {}",
-                        DEFAULT_MIN_STANDARD_DEVIATION_MILLIS);
+                            MIN_STANDARD_DEVIATION_MILLIS_DEFAULT);
                 } else {
                     long newMinStandardDeviationMillis = isNullOrEmpty(s)
-                        ? DEFAULT_MIN_STANDARD_DEVIATION_MILLIS
+                        ? MIN_STANDARD_DEVIATION_MILLIS_DEFAULT
                         : Long.parseLong(s.trim());
                     setMinStandardDeviationMillis(newMinStandardDeviationMillis);
                     log.info("Configured. Minimum standard deviation is configured to {}",
@@ -441,7 +450,7 @@ public class DistributedClusterStore
             heartbeatInterval = interval;
         } catch (IllegalArgumentException e) {
             log.warn(e.getMessage());
-            heartbeatInterval = DEFAULT_HEARTBEAT_INTERVAL;
+            heartbeatInterval = HEARTBEAT_INTERVAL_DEFAULT;
         }
     }
 
@@ -466,7 +475,7 @@ public class DistributedClusterStore
             failureDetector = new PhiAccrualFailureDetector(minStandardDeviationMillis);
         } catch (IllegalArgumentException e) {
             log.warn(e.getMessage());
-            this.minStandardDeviationMillis = DEFAULT_MIN_STANDARD_DEVIATION_MILLIS;
+            this.minStandardDeviationMillis = MIN_STANDARD_DEVIATION_MILLIS_DEFAULT;
             failureDetector = new PhiAccrualFailureDetector(this.minStandardDeviationMillis);
         }
     }

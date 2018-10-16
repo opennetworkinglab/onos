@@ -72,6 +72,8 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.isNullOrEmpty;
 import static org.onosproject.net.topology.TopologyEvent.Type.TOPOLOGY_CHANGED;
+import static org.onosproject.store.OsgiPropertyConstants.LINK_WEIGHT_FUNCTION;
+import static org.onosproject.store.OsgiPropertyConstants.LINK_WEIGHT_FUNCTION_DEFAULT;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -81,7 +83,15 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Note: This component is not distributed per-se. It runs on every
  * instance and feeds off of other distributed stores.
  */
-@Component(immediate = true, service = { TopologyStore.class, PathAdminService.class })
+@Component(
+        immediate = true,
+        service = {
+                TopologyStore.class, PathAdminService.class
+        },
+        property = {
+                LINK_WEIGHT_FUNCTION + "=" + LINK_WEIGHT_FUNCTION_DEFAULT
+        }
+)
 public class DistributedTopologyStore
         extends AbstractStore<TopologyEvent, TopologyStoreDelegate>
         implements TopologyStore, PathAdminService {
@@ -115,10 +125,9 @@ public class DistributedTopologyStore
     private static final String LINK_METRIC = "linkMetric";
     private static final String GEO_DISTANCE = "geoDistance";
 
-    private static final String DEFAULT_LINK_WEIGHT_FUNCTION = "hopCount";
     //@Property(name = "linkWeightFunction", value = DEFAULT_LINK_WEIGHT_FUNCTION,
     //        label = "Default link-weight function: hopCount, linkMetric, geoDistance")
-    private String linkWeightFunction = DEFAULT_LINK_WEIGHT_FUNCTION;
+    private String linkWeightFunction = LINK_WEIGHT_FUNCTION_DEFAULT;
 
     // Cluster root to broadcast points bindings to allow convergence to
     // a shared broadcast tree; node that is the master of the cluster root

@@ -59,13 +59,21 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.store.OsgiPropertyConstants.DPS_MESSAGE_HANDLER_THREAD_POOL_SIZE;
+import static org.onosproject.store.OsgiPropertyConstants.DPS_MESSAGE_HANDLER_THREAD_POOL_SIZE_DEFAULT;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Distributed packet store implementation allowing packets to be sent to
  * remote instances.
  */
-@Component(immediate = true, service = PacketStore.class)
+@Component(
+        immediate = true,
+        service = PacketStore.class,
+        property = {
+                DPS_MESSAGE_HANDLER_THREAD_POOL_SIZE + "=" + DPS_MESSAGE_HANDLER_THREAD_POOL_SIZE_DEFAULT
+        }
+)
 public class DistributedPacketStore
         extends AbstractStore<PacketEvent, PacketStoreDelegate>
         implements PacketStore {
@@ -98,10 +106,9 @@ public class DistributedPacketStore
 
     private ExecutorService messageHandlingExecutor;
 
-    private static final int DEFAULT_MESSAGE_HANDLER_THREAD_POOL_SIZE = 4;
     //@Property(name = "messageHandlerThreadPoolSize", intValue = DEFAULT_MESSAGE_HANDLER_THREAD_POOL_SIZE,
     //        label = "Size of thread pool to assign message handler")
-    private static int messageHandlerThreadPoolSize = DEFAULT_MESSAGE_HANDLER_THREAD_POOL_SIZE;
+    private static int messageHandlerThreadPoolSize = DPS_MESSAGE_HANDLER_THREAD_POOL_SIZE_DEFAULT;
 
     private static final int MAX_BACKOFF = 50;
 

@@ -93,22 +93,33 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.store.OsgiPropertyConstants.ALLOW_EXTRANEOUS_GROUPS;
+import static org.onosproject.store.OsgiPropertyConstants.ALLOW_EXTRANEOUS_GROUPS_DEFAULT;
+import static org.onosproject.store.OsgiPropertyConstants.GARBAGE_COLLECT;
+import static org.onosproject.store.OsgiPropertyConstants.GARBAGE_COLLECT_DEFAULT;
+import static org.onosproject.store.OsgiPropertyConstants.GARBAGE_COLLECT_THRESH;
+import static org.onosproject.store.OsgiPropertyConstants.GARBAGE_COLLECT_THRESH_DEFAULT;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Manages inventory of group entries using distributed group stores from the
  * storage service.
  */
-@Component(immediate = true, service = GroupStore.class)
+@Component(
+        immediate = true,
+        service = GroupStore.class,
+        property = {
+                GARBAGE_COLLECT + "=" + GARBAGE_COLLECT_DEFAULT,
+                GARBAGE_COLLECT_THRESH + "=" + GARBAGE_COLLECT_THRESH_DEFAULT,
+                ALLOW_EXTRANEOUS_GROUPS + "=" + ALLOW_EXTRANEOUS_GROUPS_DEFAULT
+        }
+)
 public class DistributedGroupStore
         extends AbstractStore<GroupEvent, GroupStoreDelegate>
         implements GroupStore {
 
     private final Logger log = getLogger(getClass());
 
-    private static final boolean GARBAGE_COLLECT = false;
-    private static final int GC_THRESH = 6;
-    private static final boolean ALLOW_EXTRANEOUS_GROUPS = true;
     private static final int MAX_FAILED_ATTEMPTS = 3;
 
     private final int dummyId = 0xffffffff;
@@ -161,15 +172,15 @@ public class DistributedGroupStore
 
     //@Property(name = "garbageCollect", boolValue = GARBAGE_COLLECT,
     //        label = "Enable group garbage collection")
-    private boolean garbageCollect = GARBAGE_COLLECT;
+    private boolean garbageCollect = GARBAGE_COLLECT_DEFAULT;
 
     //@Property(name = "gcThresh", intValue = GC_THRESH,
     //        label = "Number of rounds for group garbage collection")
-    private int gcThresh = GC_THRESH;
+    private int gcThresh = GARBAGE_COLLECT_THRESH_DEFAULT;
 
     //@Property(name = "allowExtraneousGroups", boolValue = ALLOW_EXTRANEOUS_GROUPS,
     //        label = "Allow groups in switches not installed by ONOS")
-    private boolean allowExtraneousGroups = ALLOW_EXTRANEOUS_GROUPS;
+    private boolean allowExtraneousGroups = ALLOW_EXTRANEOUS_GROUPS_DEFAULT;
 
     @Activate
     public void activate(ComponentContext context) {
@@ -259,17 +270,17 @@ public class DistributedGroupStore
 
         try {
             String s = get(properties, "garbageCollect");
-            garbageCollect = isNullOrEmpty(s) ? GARBAGE_COLLECT : Boolean.parseBoolean(s.trim());
+            garbageCollect = isNullOrEmpty(s) ? GARBAGE_COLLECT_DEFAULT : Boolean.parseBoolean(s.trim());
 
             s = get(properties, "gcThresh");
-            gcThresh = isNullOrEmpty(s) ? GC_THRESH : Integer.parseInt(s.trim());
+            gcThresh = isNullOrEmpty(s) ? GARBAGE_COLLECT_THRESH_DEFAULT : Integer.parseInt(s.trim());
 
             s = get(properties, "allowExtraneousGroups");
-            allowExtraneousGroups = isNullOrEmpty(s) ? ALLOW_EXTRANEOUS_GROUPS : Boolean.parseBoolean(s.trim());
+            allowExtraneousGroups = isNullOrEmpty(s) ? ALLOW_EXTRANEOUS_GROUPS_DEFAULT : Boolean.parseBoolean(s.trim());
         } catch (Exception e) {
-            gcThresh = GC_THRESH;
-            garbageCollect = GARBAGE_COLLECT;
-            allowExtraneousGroups = ALLOW_EXTRANEOUS_GROUPS;
+            gcThresh = GARBAGE_COLLECT_THRESH_DEFAULT;
+            garbageCollect = GARBAGE_COLLECT_DEFAULT;
+            allowExtraneousGroups = ALLOW_EXTRANEOUS_GROUPS_DEFAULT;
         }
     }
 

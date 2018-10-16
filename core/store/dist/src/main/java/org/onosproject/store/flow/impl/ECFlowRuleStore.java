@@ -105,42 +105,49 @@ import static org.onosproject.store.flow.impl.ECFlowRuleStoreMessageSubjects.REM
 import static org.onosproject.store.flow.impl.ECFlowRuleStoreMessageSubjects.REMOVE_FLOW_ENTRY;
 import static org.slf4j.LoggerFactory.getLogger;
 
+import static org.onosproject.store.OsgiPropertyConstants.*;
+
 /**
  * Manages inventory of flow rules using a distributed state management protocol.
  */
-@Component(immediate = true, service = FlowRuleStore.class)
+@Component(
+        immediate = true,
+        service = FlowRuleStore.class,
+        property = {
+                MESSAGE_HANDLER_THREAD_POOL_SIZE + "=" + MESSAGE_HANDLER_THREAD_POOL_SIZE_DEFAULT,
+                BACKUP_PERIOD_MILLIS + "=" + BACKUP_PERIOD_MILLIS_DEFAULT,
+                ANTI_ENTROPY_PERIOD_MILLIS + "=" + ANTI_ENTROPY_PERIOD_MILLIS_DEFAULT,
+                EC_FLOW_RULE_STORE_PERSISTENCE_ENABLED + "=" + EC_FLOW_RULE_STORE_PERSISTENCE_ENABLED_DEFAULT,
+                MAX_BACKUP_COUNT + "=" + MAX_BACKUP_COUNT_DEFAULT
+        }
+)
 public class ECFlowRuleStore
     extends AbstractStore<FlowRuleBatchEvent, FlowRuleStoreDelegate>
     implements FlowRuleStore {
 
     private final Logger log = getLogger(getClass());
 
-    private static final int MESSAGE_HANDLER_THREAD_POOL_SIZE = 8;
-    private static final int DEFAULT_MAX_BACKUP_COUNT = 2;
-    private static final boolean DEFAULT_PERSISTENCE_ENABLED = false;
-    private static final int DEFAULT_BACKUP_PERIOD_MILLIS = 2000;
-    private static final int DEFAULT_ANTI_ENTROPY_PERIOD_MILLIS = 5000;
     private static final long FLOW_RULE_STORE_TIMEOUT_MILLIS = 5000;
 
     //@Property(name = "msgHandlerPoolSize", intValue = MESSAGE_HANDLER_THREAD_POOL_SIZE,
     //    label = "Number of threads in the message handler pool")
-    private int msgHandlerPoolSize = MESSAGE_HANDLER_THREAD_POOL_SIZE;
+    private int msgHandlerPoolSize = MESSAGE_HANDLER_THREAD_POOL_SIZE_DEFAULT;
 
-    //@Property(name = "backupPeriod", intValue = DEFAULT_BACKUP_PERIOD_MILLIS,
+    //@Property(name = "backupPeriod", intValue = BACKUP_PERIOD_MILLIS,
     //    label = "Delay in ms between successive backup runs")
-    private int backupPeriod = DEFAULT_BACKUP_PERIOD_MILLIS;
+    private int backupPeriod = BACKUP_PERIOD_MILLIS_DEFAULT;
 
-    //@Property(name = "antiEntropyPeriod", intValue = DEFAULT_ANTI_ENTROPY_PERIOD_MILLIS,
+    //@Property(name = "antiEntropyPeriod", intValue = ANTI_ENTROPY_PERIOD_MILLIS,
     //    label = "Delay in ms between anti-entropy runs")
-    private int antiEntropyPeriod = DEFAULT_ANTI_ENTROPY_PERIOD_MILLIS;
+    private int antiEntropyPeriod = ANTI_ENTROPY_PERIOD_MILLIS_DEFAULT;
 
     //@Property(name = "persistenceEnabled", boolValue = false,
     //    label = "Indicates whether or not changes in the flow table should be persisted to disk.")
-    private boolean persistenceEnabled = DEFAULT_PERSISTENCE_ENABLED;
+    private boolean persistenceEnabled = EC_FLOW_RULE_STORE_PERSISTENCE_ENABLED_DEFAULT;
 
     //@Property(name = "backupCount", intValue = DEFAULT_MAX_BACKUP_COUNT,
     //    label = "Max number of backup copies for each device")
-    private volatile int backupCount = DEFAULT_MAX_BACKUP_COUNT;
+    private volatile int backupCount = MAX_BACKUP_COUNT_DEFAULT;
 
     private InternalFlowTable flowTable = new InternalFlowTable();
 
@@ -272,10 +279,10 @@ public class ECFlowRuleStore
             s = get(properties, "antiEntropyPeriod");
             newAntiEntropyPeriod = isNullOrEmpty(s) ? antiEntropyPeriod : Integer.parseInt(s.trim());
         } catch (NumberFormatException | ClassCastException e) {
-            newPoolSize = MESSAGE_HANDLER_THREAD_POOL_SIZE;
-            newBackupPeriod = DEFAULT_BACKUP_PERIOD_MILLIS;
-            newBackupCount = DEFAULT_MAX_BACKUP_COUNT;
-            newAntiEntropyPeriod = DEFAULT_ANTI_ENTROPY_PERIOD_MILLIS;
+            newPoolSize = MESSAGE_HANDLER_THREAD_POOL_SIZE_DEFAULT;
+            newBackupPeriod = BACKUP_PERIOD_MILLIS_DEFAULT;
+            newBackupCount = MAX_BACKUP_COUNT_DEFAULT;
+            newAntiEntropyPeriod = ANTI_ENTROPY_PERIOD_MILLIS_DEFAULT;
         }
 
         if (newBackupPeriod != backupPeriod) {

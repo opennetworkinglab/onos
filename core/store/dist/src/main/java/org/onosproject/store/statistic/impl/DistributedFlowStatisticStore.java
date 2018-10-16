@@ -60,13 +60,21 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.store.OsgiPropertyConstants.DFS_MESSAGE_HANDLER_THREAD_POOL_SIZE;
+import static org.onosproject.store.OsgiPropertyConstants.DFS_MESSAGE_HANDLER_THREAD_POOL_SIZE_DEFAULT;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Maintains flow statistics using RPC calls to collect stats from remote instances
  * on demand.
  */
-@Component(immediate = true, service = FlowStatisticStore.class)
+@Component(
+        immediate = true,
+        service = FlowStatisticStore.class,
+        property = {
+                DFS_MESSAGE_HANDLER_THREAD_POOL_SIZE + "=" + DFS_MESSAGE_HANDLER_THREAD_POOL_SIZE_DEFAULT
+        }
+)
 public class DistributedFlowStatisticStore implements FlowStatisticStore {
     private final Logger log = getLogger(getClass());
 
@@ -98,10 +106,9 @@ public class DistributedFlowStatisticStore implements FlowStatisticStore {
     private NodeId local;
     private ExecutorService messageHandlingExecutor;
 
-    private static final int DEFAULT_MESSAGE_HANDLER_THREAD_POOL_SIZE = 4;
     //@Property(name = "messageHandlerThreadPoolSize", intValue = DEFAULT_MESSAGE_HANDLER_THREAD_POOL_SIZE,
     //        label = "Size of thread pool to assign message handler")
-    private static int messageHandlerThreadPoolSize = DEFAULT_MESSAGE_HANDLER_THREAD_POOL_SIZE;
+    private static int messageHandlerThreadPoolSize = DFS_MESSAGE_HANDLER_THREAD_POOL_SIZE_DEFAULT;
 
 
     private static final long STATISTIC_STORE_TIMEOUT_MILLIS = 3000;
