@@ -58,13 +58,19 @@ import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.provider.linkdiscovery.impl.OsgiPropertyDefaults.POLL_DELAY_SECONDS_DEFAULT;
+import static org.onosproject.provider.linkdiscovery.impl.OsgiPropertyDefaults.POLL_FREQUENCY_SECONDS_DEFAULT;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Link provider capable of polling the environment using the device driver
  * {@link LinkDiscovery} behaviour.
  */
-@Component(immediate = true)
+@Component(immediate = true,
+        property = {
+                "linkPollDelaySeconds:Integer=" + POLL_DELAY_SECONDS_DEFAULT,
+                "linkPollFrequencySeconds:Integer=" + POLL_FREQUENCY_SECONDS_DEFAULT,
+        })
 public class LinkDiscoveryProvider extends AbstractProvider
         implements LinkProvider {
 
@@ -72,14 +78,13 @@ public class LinkDiscoveryProvider extends AbstractProvider
     protected static final String SCHEME_NAME = "linkdiscovery";
     private static final String LINK_PROVIDER_PACKAGE = "org.onosproject.provider.linkdiscovery";
     private final Logger log = getLogger(getClass());
-    private static final int DEFAULT_POLL_DELAY_SECONDS = 20;
     //@Property(name = "linkPollDelaySeconds", intValue = DEFAULT_POLL_DELAY_SECONDS,
     //        label = "Initial delay (in seconds) for polling link discovery")
-    protected static int linkPollDelaySeconds = DEFAULT_POLL_DELAY_SECONDS;
-    private static final int DEFAULT_POLL_FREQUENCY_SECONDS = 10;
+    protected static int linkPollDelaySeconds = POLL_DELAY_SECONDS_DEFAULT;
+
     //@Property(name = "linkPollFrequencySeconds", intValue = DEFAULT_POLL_FREQUENCY_SECONDS,
     //        label = "Frequency (in seconds) for polling link discovery")
-    protected static int linkPollFrequencySeconds = DEFAULT_POLL_FREQUENCY_SECONDS;
+    protected static int linkPollFrequencySeconds = POLL_FREQUENCY_SECONDS_DEFAULT;
 
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
@@ -118,7 +123,7 @@ public class LinkDiscoveryProvider extends AbstractProvider
         cfgService.registerProperties(getClass());
 
         if (context == null) {
-            linkPollFrequencySeconds = DEFAULT_POLL_FREQUENCY_SECONDS;
+            linkPollFrequencySeconds = POLL_FREQUENCY_SECONDS_DEFAULT;
             log.info("No component configuration");
         } else {
             Dictionary<?, ?> properties = context.getProperties();
@@ -169,7 +174,7 @@ public class LinkDiscoveryProvider extends AbstractProvider
             String s = get(properties, "linkPollFrequencySeconds");
             newPollFrequency = isNullOrEmpty(s) ? pollFrequency : Integer.parseInt(s.trim());
         } catch (NumberFormatException | ClassCastException e) {
-            newPollFrequency = DEFAULT_POLL_FREQUENCY_SECONDS;
+            newPollFrequency = POLL_FREQUENCY_SECONDS_DEFAULT;
         }
         return newPollFrequency;
     }
@@ -180,7 +185,7 @@ public class LinkDiscoveryProvider extends AbstractProvider
             String s = get(properties, "linkPollDelaySeconds");
             newPollFrequency = isNullOrEmpty(s) ? pollDelay : Integer.parseInt(s.trim());
         } catch (NumberFormatException | ClassCastException e) {
-            newPollFrequency = DEFAULT_POLL_DELAY_SECONDS;
+            newPollFrequency = POLL_DELAY_SECONDS_DEFAULT;
         }
         return newPollFrequency;
     }

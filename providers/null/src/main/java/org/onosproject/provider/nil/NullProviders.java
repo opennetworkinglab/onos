@@ -64,13 +64,23 @@ import static org.onlab.util.Tools.get;
 import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.MastershipRole.MASTER;
 import static org.onosproject.net.MastershipRole.NONE;
+import static org.onosproject.provider.nil.OsgiPropertyDefaults.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provider of a fake network environment, i.e. devices, links, hosts, etc.
  * To be used for benchmarking only.
  */
-@Component(immediate = true, service = NullProviders.class)
+@Component(immediate = true, service = NullProviders.class,
+        property = {
+            "enabled:Boolean=" + false,
+            "topoShape=" + TOPO_SHAPE_DEFAULT,
+            "deviceCount:Integer=" + DEVICE_COUNT_DEFAULT,
+            "hostCount:Integer=" +  HOST_COUNT_DEFAULT,
+            "packetRate:Integer=" +  PACKET_RATE_DEFAULT,
+            "mutationRate:Double=" + MUTATION_RATE_DEFAULT,
+            "mastership=" + MASTERSHIP_DEFAULT,
+        })
 public class NullProviders {
 
     private static final Logger log = getLogger(NullProviders.class);
@@ -81,7 +91,6 @@ public class NullProviders {
     private static final String FORMAT =
             "Settings: enabled={}, topoShape={}, deviceCount={}, " +
                     "hostCount={}, packetRate={}, mutationRate={}";
-
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ClusterService clusterService;
@@ -141,35 +150,29 @@ public class NullProviders {
     //        label = "Enables or disables the provider")
     private boolean enabled = false;
 
-    private static final String DEFAULT_TOPO_SHAPE = "configured";
     //@Property(name = "topoShape", value = DEFAULT_TOPO_SHAPE,
     //        label = "Topology shape: configured, linear, reroute, tree, spineleaf, mesh, grid")
-    private String topoShape = DEFAULT_TOPO_SHAPE;
+    private String topoShape = TOPO_SHAPE_DEFAULT;
 
-    private static final int DEFAULT_DEVICE_COUNT = 10;
     //@Property(name = "deviceCount", intValue = DEFAULT_DEVICE_COUNT,
     //        label = "Number of devices to generate")
-    private int deviceCount = DEFAULT_DEVICE_COUNT;
+    private int deviceCount = DEVICE_COUNT_DEFAULT;
 
-    private static final int DEFAULT_HOST_COUNT = 5;
     //@Property(name = "hostCount", intValue = DEFAULT_HOST_COUNT,
     //        label = "Number of host to generate per device")
-    private int hostCount = DEFAULT_HOST_COUNT;
+    private int hostCount = HOST_COUNT_DEFAULT;
 
-    private static final int DEFAULT_PACKET_RATE = 0;
     //@Property(name = "packetRate", intValue = DEFAULT_PACKET_RATE,
     //        label = "Packet-in/s rate; 0 for no packets")
-    private int packetRate = DEFAULT_PACKET_RATE;
+    private int packetRate = PACKET_RATE_DEFAULT;
 
-    private static final double DEFAULT_MUTATION_RATE = 0;
     //@Property(name = "mutationRate", doubleValue = DEFAULT_MUTATION_RATE,
     //        label = "Link event/s topology mutation rate; 0 for no mutations")
-    private double mutationRate = DEFAULT_MUTATION_RATE;
+    private double mutationRate = MUTATION_RATE_DEFAULT;
 
-    private static final String DEFAULT_MASTERSHIP = "random";
     //@Property(name = "mastership", value = DEFAULT_MASTERSHIP,
     //        label = "Mastership given as 'random' or 'node1=dpid,dpid/node2=dpid,...'")
-    private String mastership = DEFAULT_MASTERSHIP;
+    private String mastership = MASTERSHIP_DEFAULT;
 
 
     @Activate
@@ -407,7 +410,7 @@ public class NullProviders {
 
     // Re-assigns mastership roles.
     private void reassignMastership() {
-        if (mastership.equals(DEFAULT_MASTERSHIP)) {
+        if (mastership.equals(MASTERSHIP_DEFAULT)) {
             mastershipService.balanceRoles();
         } else {
             NodeId localNode = clusterService.getLocalNode().id();

@@ -87,12 +87,19 @@ import static org.onosproject.net.Link.Type.DIRECT;
 import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FACTORY;
 import static org.onosproject.net.config.basics.SubjectFactories.CONNECT_POINT_SUBJECT_FACTORY;
 import static org.onosproject.net.config.basics.SubjectFactories.DEVICE_SUBJECT_FACTORY;
+import static org.onosproject.provider.lldp.impl.OsgiPropertyConstants.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provider which uses LLDP and BDDP packets to detect network infrastructure links.
  */
-@Component(immediate = true)
+@Component(immediate = true,
+        property = {
+                PROP_ENABLED + ":Boolean=" + ENABLED_DEFAULT,
+                PROP_USE_BDDP + ":Boolean=" + USE_BDDP_DEFAULT,
+                PROP_PROBE_RATE + ":Integer=" + PROBE_RATE_DEFAULT,
+                PROP_STALE_LINK_AGE + ":Integer=" + STALE_LINK_AGE_DEFAULT,
+        })
 public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProvider {
 
     private static final String PROVIDER_NAME = "org.onosproject.provider.lldp";
@@ -103,9 +110,6 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
 
     // When a Device/Port has this annotation, do not send out LLDP/BDDP
     public static final String NO_LLDP = "no-lldp";
-
-    private static final int MAX_RETRIES = 5;
-    private static final int RETRY_DELAY = 1_000; // millis
 
     private final Logger log = getLogger(getClass());
 
@@ -150,27 +154,21 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
     private static final long DEVICE_SYNC_DELAY = 5;
     private static final long LINK_PRUNER_DELAY = 3;
 
-    private static final String PROP_ENABLED = "enabled";
     //@Property(name = PROP_ENABLED, boolValue = true,
     //        label = "If false, link discovery is disabled")
-    private boolean enabled = false;
+    private boolean enabled = ENABLED_DEFAULT;
 
-    private static final String PROP_USE_BDDP = "useBDDP";
     //@Property(name = PROP_USE_BDDP, boolValue = true,
     //        label = "Use BDDP for link discovery")
-    private boolean useBddp = true;
+    private boolean useBddp = USE_BDDP_DEFAULT;
 
-    private static final String PROP_PROBE_RATE = "probeRate";
-    private static final int DEFAULT_PROBE_RATE = 3000;
     //@Property(name = PROP_PROBE_RATE, intValue = DEFAULT_PROBE_RATE,
     //        label = "LLDP and BDDP probe rate specified in millis")
-    private int probeRate = DEFAULT_PROBE_RATE;
+    private int probeRate = PROBE_RATE_DEFAULT;
 
-    private static final String PROP_STALE_LINK_AGE = "staleLinkAge";
-    private static final int DEFAULT_STALE_LINK_AGE = 10000;
     //@Property(name = PROP_STALE_LINK_AGE, intValue = DEFAULT_STALE_LINK_AGE,
     //        label = "Number of millis beyond which links will be considered stale")
-    private int staleLinkAge = DEFAULT_STALE_LINK_AGE;
+    private int staleLinkAge = STALE_LINK_AGE_DEFAULT;
 
     private final LinkDiscoveryContext context = new InternalDiscoveryContext();
     private final InternalRoleListener roleListener = new InternalRoleListener();

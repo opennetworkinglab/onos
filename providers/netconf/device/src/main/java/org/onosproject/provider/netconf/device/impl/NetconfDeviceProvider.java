@@ -94,12 +94,17 @@ import java.util.function.Supplier;
 
 import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.provider.netconf.device.impl.OsgiPropertyConstants.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provider which uses an NETCONF controller to detect device.
  */
-@Component(immediate = true)
+@Component(immediate = true,
+        property = {
+                POLL_FREQUENCY_SECONDS_DEFAULT + ":Integer=" + POLL_FREQUENCY_SECONDS_DEFAULT,
+                MAX_RETRIES + ":Integer=" + MAX_RETRIES_DEFAULT,
+        })
 public class NetconfDeviceProvider extends AbstractProvider
         implements DeviceProvider {
 
@@ -140,17 +145,15 @@ public class NetconfDeviceProvider extends AbstractProvider
     private static final String PORT = "port";
     private static final int CORE_POOL_SIZE = 10;
 
-    private static final int DEFAULT_POLL_FREQUENCY_SECONDS = 30;
     //@Property(name = "pollFrequency", intValue = DEFAULT_POLL_FREQUENCY_SECONDS,
     //        label = "Configure poll frequency for port status and statistics; " +
     //                "default is 30 sec")
-    private int pollFrequency = DEFAULT_POLL_FREQUENCY_SECONDS;
+    private int pollFrequency = POLL_FREQUENCY_SECONDS_DEFAULT;
 
-    private static final int DEFAULT_MAX_RETRIES = 5;
     //@Property(name = "maxRetries", intValue = DEFAULT_MAX_RETRIES,
     //        label = "Configure maximum allowed number of retries for obtaining list of ports; " +
     //                "default is 5 times")
-    private int maxRetries = DEFAULT_MAX_RETRIES;
+    private int maxRetries = MAX_RETRIES_DEFAULT;
 
     protected ExecutorService executor =
             Executors.newFixedThreadPool(5, groupedThreads("onos/netconfdeviceprovider",
@@ -224,12 +227,11 @@ public class NetconfDeviceProvider extends AbstractProvider
     public void modified(ComponentContext context) {
         if (context != null) {
             Dictionary<?, ?> properties = context.getProperties();
-            pollFrequency = Tools.getIntegerProperty(properties, "pollFrequency",
-                                                     DEFAULT_POLL_FREQUENCY_SECONDS);
+            pollFrequency = Tools.getIntegerProperty(properties, POLL_FREQUENCY_SECONDS,
+                                                     POLL_FREQUENCY_SECONDS_DEFAULT);
             log.info("Configured. Poll frequency is configured to {} seconds", pollFrequency);
 
-            maxRetries = Tools.getIntegerProperty(properties, "maxRetries",
-                    DEFAULT_MAX_RETRIES);
+            maxRetries = Tools.getIntegerProperty(properties, MAX_RETRIES, MAX_RETRIES_DEFAULT);
             log.info("Configured. Number of retries is configured to {} times", maxRetries);
         }
         if (scheduledTask != null) {

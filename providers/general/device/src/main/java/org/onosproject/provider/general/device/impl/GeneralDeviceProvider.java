@@ -106,6 +106,9 @@ import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.device.DeviceEvent.Type;
+import static org.onosproject.provider.general.device.impl.OsgiPropertyDefaults.OP_TIMEOUT_SHORT_DEFAULT;
+import static org.onosproject.provider.general.device.impl.OsgiPropertyDefaults.PROBE_FREQUENCY_DEFAULT;
+import static org.onosproject.provider.general.device.impl.OsgiPropertyDefaults.STATS_POLL_FREQUENCY_DEFAULT;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -114,7 +117,12 @@ import static org.slf4j.LoggerFactory.getLogger;
  * also delegated to the DeviceHandshaker driver.
  */
 @Beta
-@Component(immediate = true)
+@Component(immediate = true,
+        property = {
+            "deviceStatsPollFrequency:Integer=" + STATS_POLL_FREQUENCY_DEFAULT,
+            "deviceProbeFrequency:Integer=" + PROBE_FREQUENCY_DEFAULT,
+            "deviceOperationTimeoutShort:Integer=" + OP_TIMEOUT_SHORT_DEFAULT,
+        })
 public class GeneralDeviceProvider extends AbstractProvider
         implements DeviceProvider {
 
@@ -159,26 +167,23 @@ public class GeneralDeviceProvider extends AbstractProvider
     private PiPipeconfWatchdogService pipeconfWatchdogService;
 
     private static final String STATS_POLL_FREQUENCY = "deviceStatsPollFrequency";
-    private static final int DEFAULT_STATS_POLL_FREQUENCY = 10;
     //@Property(name = STATS_POLL_FREQUENCY, intValue = DEFAULT_STATS_POLL_FREQUENCY,
     //        label = "Configure poll frequency for port status and statistics; " +
     //                "default is 10 sec")
-    private int statsPollFrequency = DEFAULT_STATS_POLL_FREQUENCY;
+    private int statsPollFrequency = STATS_POLL_FREQUENCY_DEFAULT;
 
     private static final String PROBE_FREQUENCY = "deviceProbeFrequency";
-    private static final int DEFAULT_PROBE_FREQUENCY = 10;
     //@Property(name = PROBE_FREQUENCY, intValue = DEFAULT_PROBE_FREQUENCY,
     //        label = "Configure probe frequency for checking device availability; " +
     //                "default is 10 sec")
-    private int probeFrequency = DEFAULT_PROBE_FREQUENCY;
+    private int probeFrequency = PROBE_FREQUENCY_DEFAULT;
 
     private static final String OP_TIMEOUT_SHORT = "deviceOperationTimeoutShort";
-    private static final int DEFAULT_OP_TIMEOUT_SHORT = 10;
     //@Property(name = OP_TIMEOUT_SHORT, intValue = DEFAULT_OP_TIMEOUT_SHORT,
     //        label = "Configure timeout in seconds for device operations " +
     //                "that are supposed to take a short time " +
     //                "(e.g. checking device reachability); default is 10 seconds")
-    private int opTimeoutShort = DEFAULT_OP_TIMEOUT_SHORT;
+    private int opTimeoutShort = OP_TIMEOUT_SHORT_DEFAULT;
 
     //FIXME to be removed when netcfg will issue device events in a bundle or
     //ensures all configuration needed is present
@@ -235,16 +240,16 @@ public class GeneralDeviceProvider extends AbstractProvider
         Dictionary<?, ?> properties = context.getProperties();
         final int oldStatsPollFrequency = statsPollFrequency;
         statsPollFrequency = Tools.getIntegerProperty(
-                properties, STATS_POLL_FREQUENCY, DEFAULT_STATS_POLL_FREQUENCY);
+                properties, STATS_POLL_FREQUENCY, STATS_POLL_FREQUENCY_DEFAULT);
         log.info("Configured. {} is configured to {} seconds",
                  STATS_POLL_FREQUENCY, statsPollFrequency);
         final int oldProbeFrequency = probeFrequency;
         probeFrequency = Tools.getIntegerProperty(
-                properties, PROBE_FREQUENCY, DEFAULT_PROBE_FREQUENCY);
+                properties, PROBE_FREQUENCY, PROBE_FREQUENCY_DEFAULT);
         log.info("Configured. {} is configured to {} seconds",
                  PROBE_FREQUENCY, probeFrequency);
         opTimeoutShort = Tools.getIntegerProperty(
-                properties, OP_TIMEOUT_SHORT, DEFAULT_OP_TIMEOUT_SHORT);
+                properties, OP_TIMEOUT_SHORT, OP_TIMEOUT_SHORT_DEFAULT);
         log.info("Configured. {} is configured to {} seconds",
                  OP_TIMEOUT_SHORT, opTimeoutShort);
 

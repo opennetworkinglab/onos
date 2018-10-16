@@ -109,7 +109,16 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Provider which uses an OpenFlow controller to detect network end-station
  * hosts.
  */
-@Component(immediate = true, service = HostProvider.class)
+@Component(immediate = true, service = HostProvider.class,
+        property = {
+                "hostRemovalEnabled:Boolean=true",
+                "requestArp:Boolean=true",
+                "requestIpv6ND:Boolean=false",
+                "useDhcp:Boolean=false",
+                "useDhcp6:Boolean=false",
+                "requestInterceptsEnabled:Boolean=true",
+                "multihomingEnabled:Boolean=false",
+        })
 public class HostLocationProvider extends AbstractProvider implements HostProvider {
     private final Logger log = getLogger(getClass());
 

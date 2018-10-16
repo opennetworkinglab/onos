@@ -139,13 +139,18 @@ import static org.onosproject.net.optical.device.OmsPortHelper.omsPortDescriptio
 import static org.onosproject.net.optical.device.OtuPortHelper.otuPortDescription;
 import static org.onosproject.openflow.controller.Dpid.dpid;
 import static org.onosproject.openflow.controller.Dpid.uri;
+import static org.onosproject.provider.of.device.impl.OsgiPropertyConstants.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provider which uses an OpenFlow controller to detect network
  * infrastructure devices.
  */
-@Component(immediate = true)
+@Component(immediate = true,
+        property = {
+                POLL_FREQ + ":Integer=" + POLL_FREQ_DEFAULT,
+                PROP_FREQ + ":Boolean=" + PROP_FREQ_DEFAULT,
+        })
 public class OpenFlowDeviceProvider extends AbstractProvider implements DeviceProvider {
 
     private static final Logger LOG = getLogger(OpenFlowDeviceProvider.class);
@@ -448,17 +453,13 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
     private final InternalDeviceProvider listener = new InternalDeviceProvider();
 
-    private static final String POLL_PROP_NAME = "portStatsPollFrequency";
-    private static final int POLL_INTERVAL = 5;
     //@Property(name = POLL_PROP_NAME, intValue = POLL_INTERVAL,
     //label = "Frequency (in seconds) for polling switch Port statistics")
-    private int portStatsPollFrequency = POLL_INTERVAL;
+    private int portStatsPollFrequency = POLL_FREQ_DEFAULT;
 
-    private static final String PROP_FREQ = "propertyFrequency";
-    private static final boolean DEFAULT_PROP_FREQ = true;
     //@Property(name = PROP_FREQ, boolValue = DEFAULT_PROP_FREQ,
     //label = "It indicates frequency must be used instead of wavelength for port tuning.")
-    private static boolean propFreq = DEFAULT_PROP_FREQ;
+    private static boolean propFreq = PROP_FREQ_DEFAULT;
 
     private final Timer timer = new Timer("onos-openflow-portstats-collector");
 
@@ -501,7 +502,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
         Dictionary<?, ?> properties = context != null ? context.getProperties() : new Properties();
         int newPortStatsPollFrequency;
         try {
-            String s = get(properties, POLL_PROP_NAME);
+            String s = get(properties, POLL_FREQ);
             newPortStatsPollFrequency = isNullOrEmpty(s) ? portStatsPollFrequency : Integer.parseInt(s.trim());
 
         } catch (NumberFormatException | ClassCastException e) {

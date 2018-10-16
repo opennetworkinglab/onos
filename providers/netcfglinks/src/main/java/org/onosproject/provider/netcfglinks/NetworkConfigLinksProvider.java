@@ -68,13 +68,18 @@ import java.util.concurrent.ConcurrentHashMap;
 import static org.onlab.packet.Ethernet.TYPE_BSN;
 import static org.onlab.packet.Ethernet.TYPE_LLDP;
 import static org.onosproject.net.PortNumber.portNumber;
+import static org.onosproject.provider.netcfglinks.OsgiPropertyConstants.PROP_PROBE_RATE;
+import static org.onosproject.provider.netcfglinks.OsgiPropertyConstants.PROBE_RATE_DEFAULT;
 
 /**
  * Provider to pre-discover links and devices based on a specified network
  * config.
  */
 
-@Component(immediate = true)
+@Component(immediate = true,
+        property = {
+            PROP_PROBE_RATE + ":Integer=" + PROBE_RATE_DEFAULT,
+        })
 public class NetworkConfigLinksProvider
         extends AbstractProvider
         implements ProbedLinkProvider {
@@ -100,11 +105,9 @@ public class NetworkConfigLinksProvider
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ClusterMetadataService metadataService;
 
-    private static final String PROP_PROBE_RATE = "probeRate";
-    private static final int DEFAULT_PROBE_RATE = 3000;
     //@Property(name = PROP_PROBE_RATE, intValue = DEFAULT_PROBE_RATE,
     //        label = "LLDP and BDDP probe rate specified in millis")
-    private int probeRate = DEFAULT_PROBE_RATE;
+    private int probeRate = PROBE_RATE_DEFAULT;
 
     // Device link discovery helpers.
     protected final Map<DeviceId, LinkDiscovery> discoverers = new ConcurrentHashMap<>();

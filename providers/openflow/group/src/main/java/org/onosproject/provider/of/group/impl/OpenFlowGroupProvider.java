@@ -84,12 +84,17 @@ import java.util.Properties;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.onlab.util.Tools.getIntegerProperty;
+import static org.onosproject.provider.of.group.impl.OsgiPropertyConstants.POLL_FREQUENCY;
+import static org.onosproject.provider.of.group.impl.OsgiPropertyConstants.POLL_FREQUENCY_DEFAULT;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provider which uses an OpenFlow controller to handle Group.
  */
-@Component(immediate = true)
+@Component(immediate = true,
+        property = {
+            POLL_FREQUENCY + ":Integer=" + POLL_FREQUENCY_DEFAULT,
+        })
 public class OpenFlowGroupProvider extends AbstractProvider implements GroupProvider {
 
     private final Logger log = getLogger(getClass());
@@ -114,13 +119,11 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
 
     private GroupProviderService providerService;
 
-    private static final int DEFAULT_POLL_INTERVAL = 10;
     private static final String COMPONENT = "org.onosproject.provider.of.group.impl.OpenFlowGroupProvider";
-    private static final String GROUP_POLL_INTERVAL_CONST = "groupPollInterval";
 
     //@Property(name = "groupPollInterval", intValue = DEFAULT_POLL_INTERVAL,
     //        label = "Frequency (in seconds) for polling group statistics")
-    private int groupPollInterval = DEFAULT_POLL_INTERVAL;
+    private int groupPollInterval = POLL_FREQUENCY_DEFAULT;
 
     private final InternalGroupProvider listener = new InternalGroupProvider();
 
@@ -173,7 +176,7 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
     @Modified
     public void modified(ComponentContext context) {
         Dictionary<?, ?> properties = context != null ? context.getProperties() : new Properties();
-        Integer newGroupPollInterval = getIntegerProperty(properties, GROUP_POLL_INTERVAL_CONST);
+        Integer newGroupPollInterval = getIntegerProperty(properties, POLL_FREQUENCY);
         if (newGroupPollInterval != null && newGroupPollInterval > 0
                 && newGroupPollInterval != groupPollInterval) {
             groupPollInterval = newGroupPollInterval;
@@ -181,7 +184,7 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
         } else if (newGroupPollInterval != null && newGroupPollInterval <= 0) {
             log.warn("groupPollInterval must be greater than 0");
             //If the new value <= 0 reset property with old value.
-            cfgService.setProperty(COMPONENT, GROUP_POLL_INTERVAL_CONST, Integer.toString(groupPollInterval));
+            cfgService.setProperty(COMPONENT, POLL_FREQUENCY, Integer.toString(groupPollInterval));
         }
     }
 

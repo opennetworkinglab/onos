@@ -102,13 +102,18 @@ import java.util.stream.Collectors;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onlab.util.Tools.get;
+import static org.onosproject.provider.of.flow.impl.OsgiPropertyConstants.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provider which uses an OpenFlow controller to detect network end-station
  * hosts.
  */
-@Component(immediate = true)
+@Component(immediate = true,
+        property = {
+                POLL_FREQUENCY + ":Integer=" + POLL_FREQUENCY_DEFAULT,
+                ADAPTIVE_FLOW_SAMPLING + ":Boolean=" + ADAPTIVE_FLOW_SAMPLING_DEFAULT,
+        })
 public class OpenFlowRuleProvider extends AbstractProvider
         implements FlowRuleProvider {
 
@@ -126,18 +131,16 @@ public class OpenFlowRuleProvider extends AbstractProvider
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DriverService driverService;
 
-    private static final int DEFAULT_POLL_FREQUENCY = 5;
     private static final int MIN_EXPECTED_BYTE_LEN = 56;
     private static final int SKIP_BYTES = 4;
-    private static final boolean DEFAULT_ADAPTIVE_FLOW_SAMPLING = false;
 
     //@Property(name = "flowPollFrequency", intValue = DEFAULT_POLL_FREQUENCY,
     //        label = "Frequency (in seconds) for polling flow statistics")
-    private int flowPollFrequency = DEFAULT_POLL_FREQUENCY;
+    private int flowPollFrequency = POLL_FREQUENCY_DEFAULT;
 
     //@Property(name = "adaptiveFlowSampling", boolValue = DEFAULT_ADAPTIVE_FLOW_SAMPLING,
     //        label = "Adaptive Flow Sampling is on or off")
-    private boolean adaptiveFlowSampling = DEFAULT_ADAPTIVE_FLOW_SAMPLING;
+    private boolean adaptiveFlowSampling = ADAPTIVE_FLOW_SAMPLING_DEFAULT;
 
     private FlowRuleProviderService providerService;
 
@@ -194,7 +197,7 @@ public class OpenFlowRuleProvider extends AbstractProvider
         Dictionary<?, ?> properties = context.getProperties();
         int newFlowPollFrequency;
         try {
-            String s = get(properties, "flowPollFrequency");
+            String s = get(properties, POLL_FREQUENCY);
             newFlowPollFrequency = isNullOrEmpty(s) ? flowPollFrequency : Integer.parseInt(s.trim());
 
         } catch (NumberFormatException | ClassCastException e) {
@@ -209,7 +212,7 @@ public class OpenFlowRuleProvider extends AbstractProvider
         log.info("Settings: flowPollFrequency={}", flowPollFrequency);
 
         boolean newAdaptiveFlowSampling;
-        String s = get(properties, "adaptiveFlowSampling");
+        String s = get(properties, ADAPTIVE_FLOW_SAMPLING);
         newAdaptiveFlowSampling = isNullOrEmpty(s) ? adaptiveFlowSampling : Boolean.parseBoolean(s.trim());
 
         if (newAdaptiveFlowSampling != adaptiveFlowSampling) {

@@ -154,6 +154,8 @@ import static org.onosproject.pcep.server.PcepLspSyncAction.REMOVE;
 import static org.onosproject.pcep.server.PcepLspSyncAction.SEND_UPDATE;
 import static org.onosproject.pcepio.protocol.ver1.PcepMetricObjectVer1.IGP_METRIC;
 import static org.onosproject.pcepio.protocol.ver1.PcepMetricObjectVer1.TE_METRIC;
+import static org.onosproject.provider.pcep.tunnel.impl.OsgiPropertyConstants.POLL_FREQUENCY;
+import static org.onosproject.provider.pcep.tunnel.impl.OsgiPropertyConstants.POLL_FREQUENCY_DEFAULT;
 import static org.onosproject.provider.pcep.tunnel.impl.RequestType.CREATE;
 import static org.onosproject.provider.pcep.tunnel.impl.RequestType.DELETE;
 import static org.onosproject.provider.pcep.tunnel.impl.RequestType.LSP_STATE_RPT;
@@ -164,7 +166,10 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Provider which uses an PCEP controller to detect, update, create network
  * tunnels.
  */
-@Component(immediate = true, service = TunnelProvider.class)
+@Component(immediate = true, service = TunnelProvider.class,
+        property = {
+                POLL_FREQUENCY + ":Integer=" + POLL_FREQUENCY_DEFAULT,
+        })
 public class PcepTunnelProvider extends AbstractProvider implements TunnelProvider {
 
     private static final Logger log = getLogger(PcepTunnelProvider.class);
@@ -178,10 +183,9 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
     private static final int WAIT_TIME = 5;
     public static final String LSRID = "lsrId";
 
-    static final int POLL_INTERVAL = 10;
     //@Property(name = "tunnelStatsPollFrequency", intValue = POLL_INTERVAL,
     //        label = "Frequency (in seconds) for polling tunnel statistics")
-    private int tunnelStatsPollFrequency = POLL_INTERVAL;
+    private int tunnelStatsPollFrequency = POLL_FREQUENCY_DEFAULT;
 
     private static final String TUNNLE_NOT_NULL = "Create failed,The given port may be wrong or has been occupied.";
 
@@ -262,7 +266,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
         Dictionary<?, ?> properties = context.getProperties();
         int newTunnelStatsPollFrequency;
         try {
-            String s = get(properties, "tunnelStatsPollFrequency");
+            String s = get(properties, POLL_FREQUENCY);
             newTunnelStatsPollFrequency = isNullOrEmpty(s) ? tunnelStatsPollFrequency : Integer.parseInt(s.trim());
 
         } catch (NumberFormatException | ClassCastException e) {

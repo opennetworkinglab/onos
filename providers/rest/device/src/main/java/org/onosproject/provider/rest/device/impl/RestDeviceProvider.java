@@ -92,12 +92,17 @@ import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.config.NetworkConfigEvent.Type.CONFIG_ADDED;
 import static org.onosproject.net.config.NetworkConfigEvent.Type.CONFIG_REMOVED;
 import static org.onosproject.net.config.NetworkConfigEvent.Type.CONFIG_UPDATED;
+import static org.onosproject.provider.rest.device.impl.OsgiPropertyConstants.POLL_FREQUENCY;
+import static org.onosproject.provider.rest.device.impl.OsgiPropertyConstants.POLL_FREQUENCY_DEFAULT;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provider for devices that use REST as means of configuration communication.
  */
-@Component(immediate = true, service = DeviceProvider.class)
+@Component(immediate = true, service = DeviceProvider.class,
+        property = {
+                POLL_FREQUENCY + ":Integer=" + POLL_FREQUENCY_DEFAULT,
+        })
 public class RestDeviceProvider extends AbstractProvider
         implements DeviceProvider {
     private static final String APP_NAME = "org.onosproject.restsb";
@@ -106,7 +111,6 @@ public class RestDeviceProvider extends AbstractProvider
     private static final String IPADDRESS = "ipaddress";
     private static final String ISNOTNULL = "Rest device is not null";
     private static final String UNKNOWN = "unknown";
-    private static final String POLL_FREQUENCY = "pollFrequency";
     private static final int REST_TIMEOUT_SEC = 5;
     private static final int EXECUTOR_THREAD_POOL_SIZE = 8;
     private final Logger log = getLogger(getClass());
@@ -132,11 +136,10 @@ public class RestDeviceProvider extends AbstractProvider
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DriverService driverService;
 
-    private static final int DEFAULT_POLL_FREQUENCY_SECONDS = 30;
     //@Property(name = POLL_FREQUENCY, intValue = DEFAULT_POLL_FREQUENCY_SECONDS,
     //        label = "Configure poll frequency for port status and statistics; " +
     //                "default is 30 seconds")
-    private int pollFrequency = DEFAULT_POLL_FREQUENCY_SECONDS;
+    private int pollFrequency = POLL_FREQUENCY_DEFAULT;
 
     private DeviceProviderService providerService;
     private ApplicationId appId;
@@ -182,7 +185,7 @@ public class RestDeviceProvider extends AbstractProvider
         if (context != null) {
             Dictionary<?, ?> properties = context.getProperties();
             pollFrequency = Tools.getIntegerProperty(properties, POLL_FREQUENCY,
-                                                     DEFAULT_POLL_FREQUENCY_SECONDS);
+                                                     POLL_FREQUENCY_DEFAULT);
             log.info("Configured. Poll frequency is configured to {} seconds", pollFrequency);
         }
 
