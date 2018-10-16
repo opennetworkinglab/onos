@@ -62,6 +62,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.onosproject.incubator.store.virtual.impl.OsgiPropertyDefaults.PENDING_FUTURE_TIMEOUT_MINUTES_DEFAULT;
 import static org.onosproject.net.flow.FlowRuleEvent.Type.RULE_REMOVED;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -71,7 +72,10 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 //TODO: support distributed flowrule store for virtual networks
 
-@Component(immediate = true, service = VirtualNetworkFlowRuleStore.class)
+@Component(immediate = true, service = VirtualNetworkFlowRuleStore.class,
+        property = {
+                 "pendingFutureTimeoutMinutes:Integer=" + PENDING_FUTURE_TIMEOUT_MINUTES_DEFAULT,
+        })
 public class SimpleVirtualFlowRuleStore
         extends AbstractVirtualStore<FlowRuleBatchEvent, FlowRuleStoreDelegate>
         implements VirtualNetworkFlowRuleStore {
@@ -88,10 +92,9 @@ public class SimpleVirtualFlowRuleStore
 
     private final AtomicInteger localBatchIdGen = new AtomicInteger();
 
-    private static final int DEFAULT_PENDING_FUTURE_TIMEOUT_MINUTES = 5;
     //@Property(name = "pendingFutureTimeoutMinutes", intValue = DEFAULT_PENDING_FUTURE_TIMEOUT_MINUTES,
     //        label = "Expiration time after an entry is created that it should be automatically removed")
-    private int pendingFutureTimeoutMinutes = DEFAULT_PENDING_FUTURE_TIMEOUT_MINUTES;
+    private int pendingFutureTimeoutMinutes = PENDING_FUTURE_TIMEOUT_MINUTES_DEFAULT;
 
     private Cache<Integer, SettableFuture<CompletedBatchOperation>> pendingFutures =
             CacheBuilder.newBuilder()
@@ -136,7 +139,7 @@ public class SimpleVirtualFlowRuleStore
         Integer newPendingFutureTimeoutMinutes =
                 Tools.getIntegerProperty(properties, "pendingFutureTimeoutMinutes");
         if (newPendingFutureTimeoutMinutes == null) {
-            pendingFutureTimeoutMinutes = DEFAULT_PENDING_FUTURE_TIMEOUT_MINUTES;
+            pendingFutureTimeoutMinutes = PENDING_FUTURE_TIMEOUT_MINUTES_DEFAULT;
             log.info("Pending future timeout is not configured, " +
                              "using current value of {}", pendingFutureTimeoutMinutes);
         } else {

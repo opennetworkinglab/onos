@@ -94,6 +94,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.incubator.store.virtual.impl.OsgiPropertyDefaults.*;
 import static org.onosproject.net.flow.FlowRuleEvent.Type.RULE_REMOVED;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -102,7 +103,13 @@ import static org.slf4j.LoggerFactory.getLogger;
  * for virtual networks.
  */
 //TODO: support backup and persistent mechanism
-@Component(immediate = true, enabled = false, service = VirtualNetworkFlowRuleStore.class)
+@Component(immediate = true, enabled = false, service = VirtualNetworkFlowRuleStore.class,
+        property = {
+                "messageHandlerThreadPoolSize:Integer=" + MESSAGE_HANDLER_THREAD_POOL_SIZE_DEFAULT,
+                "pendingFutureTimeoutMinutes:Integer=" + BACKUP_PERIOD_MILLIS_DEFAULT,
+                "persistenceEnabled:Boolean=" + PERSISTENCE_ENABLED_DEFAULT,
+        })
+
 public class DistributedVirtualFlowRuleStore
         extends AbstractVirtualStore<FlowRuleBatchEvent, FlowRuleStoreDelegate>
         implements VirtualNetworkFlowRuleStore {
@@ -111,8 +118,6 @@ public class DistributedVirtualFlowRuleStore
 
     //TODO: confirm this working fine with multiple thread more than 1
     private static final int MESSAGE_HANDLER_THREAD_POOL_SIZE = 1;
-    private static final boolean DEFAULT_PERSISTENCE_ENABLED = false;
-    private static final int DEFAULT_BACKUP_PERIOD_MILLIS = 2000;
     private static final long FLOW_RULE_STORE_TIMEOUT_MILLIS = 5000;
 
     private static final String FLOW_OP_TOPIC = "virtual-flow-ops-ids";
@@ -129,16 +134,16 @@ public class DistributedVirtualFlowRuleStore
     private static final MessageSubject REMOTE_APPLY_COMPLETED
             = new MessageSubject("virtual-peer-apply-completed");
 
-    //@Property(name = "msgHandlerPoolSize", intValue = MESSAGE_HANDLER_THREAD_POOL_SIZE,
+    //@Property(name = "msgHandlerThreadPoolSize", intValue = MESSAGE_HANDLER_THREAD_POOL_SIZE,
     //        label = "Number of threads in the message handler pool")
-    private int msgHandlerPoolSize = MESSAGE_HANDLER_THREAD_POOL_SIZE;
+    private int msgHandlerThreadPoolSize = MESSAGE_HANDLER_THREAD_POOL_SIZE_DEFAULT;
 
     //@Property(name = "backupPeriod", intValue = DEFAULT_BACKUP_PERIOD_MILLIS,
     //        label = "Delay in ms between successive backup runs")
-    private int backupPeriod = DEFAULT_BACKUP_PERIOD_MILLIS;
+    private int backupPeriod = BACKUP_PERIOD_MILLIS_DEFAULT;
     //@Property(name = "persistenceEnabled", boolValue = false,
     //        label = "Indicates whether or not changes in the flow table should be persisted to disk.")
-    private boolean persistenceEnabled = DEFAULT_PERSISTENCE_ENABLED;
+    private boolean persistenceEnabled = PERSISTENCE_ENABLED_DEFAULT;
 
     private InternalFlowTable flowTable = new InternalFlowTable();
 
@@ -195,7 +200,7 @@ public class DistributedVirtualFlowRuleStore
         eventHandler = Executors.newSingleThreadExecutor(
                 groupedThreads("onos/virtual-flow", "event-handler", log));
         messageHandlingExecutor = Executors.newFixedThreadPool(
-                msgHandlerPoolSize, groupedThreads("onos/store/virtual-flow", "message-handlers", log));
+                msgHandlerThreadPoolSize, groupedThreads("onos/store/virtual-flow", "message-handlers", log));
 
         registerMessageHandlers(messageHandlingExecutor);
 
@@ -236,13 +241,13 @@ public class DistributedVirtualFlowRuleStore
         int newBackupPeriod;
         try {
             String s = get(properties, "msgHandlerPoolSize");
-            newPoolSize = isNullOrEmpty(s) ? msgHandlerPoolSize : Integer.parseInt(s.trim());
+            newPoolSize = isNullOrEmpty(s) ? msgHandlerThreadPoolSize : Integer.parseInt(s.trim());
 
             s = get(properties, "backupPeriod");
             newBackupPeriod = isNullOrEmpty(s) ? backupPeriod : Integer.parseInt(s.trim());
         } catch (NumberFormatException | ClassCastException e) {
             newPoolSize = MESSAGE_HANDLER_THREAD_POOL_SIZE;
-            newBackupPeriod = DEFAULT_BACKUP_PERIOD_MILLIS;
+            newBackupPeriod = BACKUP_PERIOD_MILLIS_DEFAULT;
         }
 
         boolean restartBackupTask = false;
@@ -254,11 +259,11 @@ public class DistributedVirtualFlowRuleStore
         if (restartBackupTask) {
             log.warn("Currently, backup tasks are not supported.");
         }
-        if (newPoolSize != msgHandlerPoolSize) {
-            msgHandlerPoolSize = newPoolSize;
+        if (newPoolSize != msgHandlerThreadPoolSize) {
+            msgHandlerThreadPoolSize = newPoolSize;
             ExecutorService oldMsgHandler = messageHandlingExecutor;
             messageHandlingExecutor = Executors.newFixedThreadPool(
-                    msgHandlerPoolSize, groupedThreads("onos/store/virtual-flow", "message-handlers", log));
+                    msgHandlerThreadPoolSize, groupedThreads("onos/store/virtual-flow", "message-handlers", log));
 
             // replace previously registered handlers.
             registerMessageHandlers(messageHandlingExecutor);
@@ -564,7 +569,7 @@ public class DistributedVirtualFlowRuleStore
 
     private void logConfig(String prefix) {
         log.info("{} with msgHandlerPoolSize = {}; backupPeriod = {}",
-                 prefix, msgHandlerPoolSize, backupPeriod);
+                 prefix, msgHandlerThreadPoolSize, backupPeriod);
     }
 
     private void storeBatchInternal(NetworkId networkId, FlowRuleBatchOperation operation) {

@@ -63,6 +63,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.incubator.store.virtual.impl.OsgiPropertyDefaults.MESSAGE_HANDLER_THREAD_POOL_SIZE_DEFAULT;
 import static org.onosproject.net.packet.PacketEvent.Type.EMIT;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -70,7 +71,10 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Distributed virtual packet store implementation allowing packets to be sent to
  * remote instances.  Implementation is based on DistributedPacketStore class.
  */
-@Component(immediate = true, enabled = false, service = VirtualNetworkPacketStore.class)
+@Component(immediate = true, enabled = false, service = VirtualNetworkPacketStore.class,
+        property = {
+                 "messageHandlerThreadPoolSize:Integer=" + MESSAGE_HANDLER_THREAD_POOL_SIZE_DEFAULT,
+        })
 public class DistributedVirtualPacketStore
         extends AbstractVirtualStore<PacketEvent, PacketStoreDelegate>
         implements VirtualNetworkPacketStore {
@@ -103,10 +107,9 @@ public class DistributedVirtualPacketStore
 
     private ExecutorService messageHandlingExecutor;
 
-    private static final int DEFAULT_MESSAGE_HANDLER_THREAD_POOL_SIZE = 4;
     //@Property(name = "messageHandlerThreadPoolSize", intValue = DEFAULT_MESSAGE_HANDLER_THREAD_POOL_SIZE,
     //        label = "Size of thread pool to assign message handler")
-    private static int messageHandlerThreadPoolSize = DEFAULT_MESSAGE_HANDLER_THREAD_POOL_SIZE;
+    private static int messageHandlerThreadPoolSize = MESSAGE_HANDLER_THREAD_POOL_SIZE_DEFAULT;
 
     @Activate
     public void activate(ComponentContext context) {
