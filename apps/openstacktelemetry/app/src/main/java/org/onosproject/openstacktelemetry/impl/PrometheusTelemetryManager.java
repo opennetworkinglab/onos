@@ -15,12 +15,14 @@
  */
 package org.onosproject.openstacktelemetry.impl;
 
+import io.prometheus.client.Gauge;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.packet.TpPort;
 import org.onosproject.openstacktelemetry.api.FlowInfo;
 import org.onosproject.openstacktelemetry.api.OpenstackTelemetryService;
 import org.onosproject.openstacktelemetry.api.PrometheusTelemetryAdminService;
@@ -34,6 +36,8 @@ import io.prometheus.client.exporter.MetricsServlet;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+
+import java.util.Arrays;
 import java.util.Set;
 
 /**
@@ -47,64 +51,87 @@ public class PrometheusTelemetryManager implements PrometheusTelemetryAdminServi
 
     private Server prometheusExporter;
 
-    private static final String BYTE_VM2VM = "byte_vm2vm";
-    private static final String BYTE_DEVICE = "byte_device";
-    private static final String BYTE_SRC_IP = "byte_src_ip";
-    private static final String BYTE_DST_IP = "byte_dst_ip";
+    private static final String FLOW_TYPE = "flowType";
+    private static final String DEVICE_ID = "deviceId";
+    private static final String INPUT_INTERFACE_ID = "inputInterfaceId";
+    private static final String OUTPUT_INTERFACE_ID = "outputInterfaceId";
+    private static final String VLAN_ID = "vlanId";
+    private static final String VXLAN_ID = "vxlanId";
+    private static final String SRC_IP = "srcIp";
+    private static final String DST_IP = "dstIp";
+    private static final String SRC_PORT = "srcPort";
+    private static final String DST_PORT = "dstPort";
+    private static final String PROTOCOL = "protocol";
 
-    private static final String PKT_VM2VM = "pkt_vm2vm";
-    private static final String PKT_DEVICE = "pkt_device";
-    private static final String PKT_SRC_IP = "pkt_src_ip";
-    private static final String PKT_DST_IP = "pkt_dst_ip";
+    private static final String[] LABEL_TAGS = {
+            FLOW_TYPE, DEVICE_ID, INPUT_INTERFACE_ID, OUTPUT_INTERFACE_ID,
+            VLAN_ID, VXLAN_ID, SRC_IP, DST_IP, SRC_PORT, DST_PORT, PROTOCOL
+    };
 
-    private static final String PKT_ERROR = "pkt_error";
-    private static final String PKT_DROP = "pkt_drop";
+    private static final String STAT_NAME_VM2VM_BYTE = "vm2vm_byte";
+    private static final String STAT_NAME_VM2VM_BYTE_PREV = "vm2vm_byte_prev";
+    private static final String STAT_NAME_VM2VM_BYTE_CURR = "vm2vm_byte_curr";
+    private static final String STAT_NAME_VM2VM_PKT = "vm2vm_pkt";
+    private static final String STAT_NAME_VM2VM_PKT_PREV = "vm2vm_pkt_prev";
+    private static final String STAT_NAME_VM2VM_PKT_CURR = "vm2vm_pkt_curr";
+    private static final String STAT_NAME_ERROR_PKT = "error_pkt";
+    private static final String STAT_NAME_DROP_PKT = "drop_pkt";
 
-    private static final String LABEL_IP_5_TUPLE = "IP_5_TUPLE";
-    private static final String LABEL_DEV_ID = "DEVICE_ID";
-    private static final String LABEL_SRC_IP = "SOURCE_IP";
-    private static final String LABEL_DST_IP = "DESTINATION_IP";
+    private static final String HELP_MSG_VM2VM_BYTE =
+                                    "SONA flow bytes statistics for VM to VM";
+    private static final String HELP_MSG_VM2VM_BYTE_PREV =
+                                    HELP_MSG_VM2VM_BYTE + " [Accumulated previous byte]";
+    private static final String HELP_MSG_VM2VM_BYTE_CURR =
+                                    HELP_MSG_VM2VM_BYTE + " [Accumulated current byte]";
+    private static final String HELP_MSG_VM2VM_PKT =
+                                    "SONA flow packets statistics for VM to VM";
+    private static final String HELP_MSG_VM2VM_PKT_PREV =
+                                    HELP_MSG_VM2VM_PKT + " [Accumulated previous pkt]";
+    private static final String HELP_MSG_VM2VM_PKT_CURR =
+                                    HELP_MSG_VM2VM_PKT + " [Accumulated current pkt]";
+    private static final String HELP_MSG_ERROR = "SONA error statistics";
+    private static final String HELP_MSG_DROP = "SONA drop statistics";
 
-    private static final String HELP_MSG = "SONA Flow statistics";
-
-    private static Counter byteVM2VM = Counter.build().name(BYTE_VM2VM)
-                                    .help(HELP_MSG)
-                                    .labelNames(LABEL_IP_5_TUPLE).register();
-
-    private static Counter byteDevice = Counter.build().name(BYTE_DEVICE)
-                                    .help(HELP_MSG)
-                                    .labelNames(LABEL_DEV_ID).register();
-
-    private static Counter byteSrcIp = Counter.build().name(BYTE_SRC_IP)
-                                    .help(HELP_MSG)
-                                    .labelNames(LABEL_SRC_IP).register();
-
-    private static Counter byteDstIp = Counter.build().name(BYTE_DST_IP)
-                                    .help(HELP_MSG)
-                                    .labelNames(LABEL_DST_IP).register();
-
-    private static Counter pktVM2VM = Counter.build().name(PKT_VM2VM)
-                                    .help(HELP_MSG)
-                                    .labelNames(LABEL_IP_5_TUPLE).register();
-
-    private static Counter pktDevice = Counter.build().name(PKT_DEVICE)
-                                    .help(HELP_MSG)
-                                    .labelNames(LABEL_DEV_ID).register();
-
-    private static Counter pktSrcIp = Counter.build().name(PKT_SRC_IP)
-                                    .help(HELP_MSG)
-                                    .labelNames(LABEL_SRC_IP).register();
-
-    private static Counter pktDstIp = Counter.build().name(PKT_DST_IP)
-                                    .help(HELP_MSG)
-                                    .labelNames(LABEL_DST_IP).register();
-
-    private static Counter pktError = Counter.build().name(PKT_ERROR)
-                                    .help(HELP_MSG)
-                                    .register();
-    private static Counter pktDrop = Counter.build().name(PKT_DROP)
-                                    .help(HELP_MSG)
-                                    .register();
+    private static Gauge byteVM2VM = Gauge.build()
+                                            .name(STAT_NAME_VM2VM_BYTE)
+                                            .help(HELP_MSG_VM2VM_BYTE)
+                                            .labelNames(LABEL_TAGS)
+                                            .register();
+    private static Gauge byteVM2VMPrev = Gauge.build()
+                                            .name(STAT_NAME_VM2VM_BYTE_PREV)
+                                            .help(HELP_MSG_VM2VM_BYTE_PREV)
+                                            .labelNames(LABEL_TAGS)
+                                            .register();
+    private static Gauge byteVM2VMCurr = Gauge.build()
+                                            .name(STAT_NAME_VM2VM_BYTE_CURR)
+                                            .help(HELP_MSG_VM2VM_BYTE_CURR)
+                                            .labelNames(LABEL_TAGS)
+                                            .register();
+    private static Gauge pktVM2VM = Gauge.build()
+                                            .name(STAT_NAME_VM2VM_PKT)
+                                            .help(HELP_MSG_VM2VM_PKT)
+                                            .labelNames(LABEL_TAGS)
+                                            .register();
+    private static Gauge pktVM2VMPrev = Gauge.build()
+                                            .name(STAT_NAME_VM2VM_PKT_PREV)
+                                            .help(HELP_MSG_VM2VM_PKT_PREV)
+                                            .labelNames(LABEL_TAGS)
+                                            .register();
+    private static Gauge pktVM2VMCurr = Gauge.build()
+                                            .name(STAT_NAME_VM2VM_PKT_CURR)
+                                            .help(HELP_MSG_VM2VM_PKT_CURR)
+                                            .labelNames(LABEL_TAGS)
+                                            .register();
+    private static Counter pktError = Counter.build()
+                                            .name(STAT_NAME_ERROR_PKT)
+                                            .help(HELP_MSG_ERROR)
+                                            .labelNames(LABEL_TAGS)
+                                            .register();
+    private static Counter pktDrop = Counter.build()
+                                            .name(STAT_NAME_DROP_PKT)
+                                            .help(HELP_MSG_DROP)
+                                            .labelNames(LABEL_TAGS)
+                                            .register();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OpenstackTelemetryService openstackTelemetryService;
@@ -129,15 +156,12 @@ public class PrometheusTelemetryManager implements PrometheusTelemetryAdminServi
         PrometheusTelemetryConfig prometheusConfig = (PrometheusTelemetryConfig) config;
 
         try {
-            // TODO  Offer a 'Authentication'
             prometheusExporter = new Server(prometheusConfig.port());
             ServletContextHandler context = new ServletContextHandler();
             context.setContextPath("/");
             prometheusExporter.setHandler(context);
             context.addServlet(new ServletHolder(new MetricsServlet()), "/metrics");
-
-            log.info("Prometeus server start");
-
+            log.info("Prometeus server start (Server port:{})", prometheusConfig.port());
             prometheusExporter.start();
         } catch (Exception ex) {
             log.warn("Exception: {}", ex.toString());
@@ -169,28 +193,62 @@ public class PrometheusTelemetryManager implements PrometheusTelemetryAdminServi
 
         long flowByte;
         int flowPkt;
+        String[] labelValues;
+
         for (FlowInfo flowInfo: flowInfos) {
             flowByte = flowInfo.statsInfo().currAccBytes() - flowInfo.statsInfo().prevAccBytes();
             flowPkt = flowInfo.statsInfo().currAccPkts() - flowInfo.statsInfo().prevAccPkts();
-
-            byteVM2VM.labels(flowInfo.uniqueFlowInfoKey()).inc(flowByte);
-            byteDevice.labels(flowInfo.deviceId().toString()).inc(flowByte);
-            byteSrcIp.labels(flowInfo.srcIp().toString()).inc(flowByte);
-            byteDstIp.labels(flowInfo.dstIp().toString()).inc(flowByte);
-
-            pktVM2VM.labels(flowInfo.uniqueFlowInfoKey()).inc(flowPkt);
-            pktDevice.labels(flowInfo.deviceId().toString()).inc(flowPkt);
-            pktSrcIp.labels(flowInfo.srcIp().toString()).inc(flowPkt);
-            pktDstIp.labels(flowInfo.dstIp().toString()).inc(flowPkt);
-
-            pktError.inc(flowInfo.statsInfo().errorPkts());
-            pktDrop.inc(flowInfo.statsInfo().dropPkts());
+            labelValues = getLabelValues(flowInfo);
+            byteVM2VM.labels(labelValues).set(flowByte);
+            byteVM2VMPrev.labels(labelValues).set(flowInfo.statsInfo().prevAccBytes());
+            byteVM2VMCurr.labels(labelValues).set(flowInfo.statsInfo().currAccBytes());
+            pktVM2VM.labels(labelValues).set(flowPkt);
+            pktVM2VMPrev.labels(labelValues).set(flowInfo.statsInfo().prevAccPkts());
+            pktVM2VMCurr.labels(labelValues).set(flowInfo.statsInfo().currAccPkts());
+            pktError.labels(labelValues).inc(flowInfo.statsInfo().errorPkts());
+            pktDrop.labels(labelValues).inc(flowInfo.statsInfo().dropPkts());
         }
+    }
+
+    private String[] getLabelValues(FlowInfo flowInfo) {
+        String[] labelValues = new String[LABEL_TAGS.length];
+
+        labelValues[Arrays.asList(LABEL_TAGS).indexOf(FLOW_TYPE)]
+                    = String.valueOf(flowInfo.flowType());
+        labelValues[Arrays.asList(LABEL_TAGS).indexOf(DEVICE_ID)]
+                    = flowInfo.deviceId().toString();
+        labelValues[Arrays.asList(LABEL_TAGS).indexOf(INPUT_INTERFACE_ID)]
+                    = String.valueOf(flowInfo.inputInterfaceId());
+        labelValues[Arrays.asList(LABEL_TAGS).indexOf(OUTPUT_INTERFACE_ID)]
+                    = String.valueOf(flowInfo.outputInterfaceId());
+        labelValues[Arrays.asList(LABEL_TAGS).indexOf(VXLAN_ID)]
+                    = String.valueOf(flowInfo.vxlanId());
+        labelValues[Arrays.asList(LABEL_TAGS).indexOf(SRC_IP)]
+                    = flowInfo.srcIp().toString();
+        labelValues[Arrays.asList(LABEL_TAGS).indexOf(DST_IP)]
+                    = flowInfo.dstIp().toString();
+        labelValues[Arrays.asList(LABEL_TAGS).indexOf(SRC_PORT)]
+                    = getTpPort(flowInfo.srcPort());
+        labelValues[Arrays.asList(LABEL_TAGS).indexOf(DST_PORT)]
+                    = getTpPort(flowInfo.dstPort());
+        labelValues[Arrays.asList(LABEL_TAGS).indexOf(PROTOCOL)]
+                    = String.valueOf(flowInfo.protocol());
+        if (flowInfo.vlanId() != null) {
+            labelValues[Arrays.asList(LABEL_TAGS).indexOf(VLAN_ID)]
+                    = flowInfo.vlanId().toString();
+        }
+        return labelValues;
+    }
+
+    private String getTpPort(TpPort tpPort) {
+        if (tpPort == null) {
+            return "";
+        }
+        return tpPort.toString();
     }
 
     @Override
     public boolean isRunning() {
-        log.info("Prometheus Exporter State: {}", prometheusExporter.isRunning());
         return prometheusExporter.isRunning();
     }
 }

@@ -62,8 +62,6 @@ public interface PrometheusTelemetryConfig extends TelemetryConfig {
          */
         Builder withPort(int port);
 
-        // TODO   add authentication.
-
         /**
          * Sets other prometheus configuration map.
          *

@@ -267,16 +267,6 @@ public class StatsFlowRuleManager implements StatsFlowRuleAdminService {
     }
 
     @Override
-    public void setStatFlowL2Rule(String srcIp, String dstIp, Boolean install) {
-        StatsFlowRule statsFlowRule = DefaultStatsFlowRule.builder()
-                .srcIpPrefix(IpPrefix.valueOf(IpAddress.valueOf(srcIp), ARBITRARY_LENGTH))
-                .dstIpPrefix(IpPrefix.valueOf(IpAddress.valueOf(dstIp), ARBITRARY_LENGTH))
-                .ipProtocol((byte) ARBITRARY_PROTOCOL)
-                .build();
-        setStatFlowRule(statsFlowRule, install);
-    }
-
-    @Override
     public void createStatFlowRule(StatsFlowRule statsFlowRule) {
         setStatFlowRule(statsFlowRule, true);
     }
@@ -442,8 +432,10 @@ public class StatsFlowRuleManager implements StatsFlowRuleAdminService {
 
             stats.forEach(s -> {
                 InstancePort instPort = getInstancePort(d, s.portNumber());
-                flowInfos.add(buildTxFlowInfoFromInstancePort(instPort, s));
-                flowInfos.add(buildRxFlowInfoFromInstancePort(instPort, s));
+                if (instPort != null) {
+                    flowInfos.add(buildTxFlowInfoFromInstancePort(instPort, s));
+                    flowInfos.add(buildRxFlowInfoFromInstancePort(instPort, s));
+                }
             });
         });
 

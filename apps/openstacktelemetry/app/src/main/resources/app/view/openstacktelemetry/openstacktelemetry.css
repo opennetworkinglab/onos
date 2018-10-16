@@ -18,6 +18,40 @@
  ONOS GUI -- OpenstackTelemetry -- CSS file
  */
 
+
+/* --- Topo Telemetry Panel --- */
+#topo-p-telemetry {
+    padding: 16px;
+    top: 190px;
+    left: 20px;
+}
+
+.topo-p td input.number-input {
+    width: 50px;
+}
+
+.topo-p div.footer tbody {
+    float: right;
+}
+
+.topo-p div.footer tbody input.button-input {
+    background-color: #5b99d2;
+    border: 0;
+    border-radius: 3px;
+    color: #fff;
+    height: 25px;
+    width: 60px;
+    padding: 1px 0 0 0;
+}
+
+#telemetry-dialog {
+    padding: 16px;
+    top: 190px;
+    left: 20px;
+}
+
+
+/* --- Chart View --- */
 #ov-openstacktelemetry {
     padding: 20px;
     position: relative;

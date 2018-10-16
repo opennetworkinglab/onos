@@ -25,6 +25,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.onosproject.ui.UiExtension;
 import org.onosproject.ui.UiExtensionService;
 import org.onosproject.ui.UiMessageHandlerFactory;
+import org.onosproject.ui.UiTopoOverlayFactory;
 import org.onosproject.ui.UiView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,11 +59,18 @@ public class OpensteckTelemetryUI {
             new UiView(NETWORK, OPENSTACKTELEMETRY_ID, OPENSTACKTELEMETRY_TEXT)
     );
 
+    // Factory for UI topology overlays
+    private final UiTopoOverlayFactory topoOverlayFactory =
+            () -> ImmutableList.of(
+                    new OpenstackTelemetryUiTopovOverlay()
+            );
+
     // Application UI extension
     private final UiExtension uiExtension =
             new UiExtension.Builder(CL, views)
                     .messageHandlerFactory(messageHandlerFactory)
                     .resourcePath(RESOURCE_PATH)
+                    .topoOverlayFactory(topoOverlayFactory)
                     .build();
 
     @Activate

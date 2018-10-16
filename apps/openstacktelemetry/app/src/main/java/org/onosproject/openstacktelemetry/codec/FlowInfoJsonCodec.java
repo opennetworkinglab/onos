@@ -27,17 +27,13 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.openstacktelemetry.api.FlowInfo;
 import org.onosproject.openstacktelemetry.api.StatsInfo;
 import org.onosproject.openstacktelemetry.impl.DefaultFlowInfo;
-import org.slf4j.Logger;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Openstack telemetry codec used for serializing and de-serializing JSON string.
  */
 public final class FlowInfoJsonCodec extends JsonCodec<FlowInfo> {
-
-    private final Logger log = getLogger(getClass());
 
     private static final String FLOW_TYPE = "flowType";
     private static final String DEVICE_ID = "deviceId";

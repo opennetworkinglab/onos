@@ -47,7 +47,6 @@ public class OpenstackNetworkingUiOverlay extends UiTopoOverlay {
     private static final ButtonId RESET_BUTTON = new ButtonId("reset");
     private static final ButtonId TO_GATEWAY_BUTTON = new ButtonId("toGateway");
     private static final ButtonId TO_EXTERNAL_BUTTON = new ButtonId("toExternal");
-    private static final ButtonId VFLOW_STATS_BUTTON = new ButtonId("FlowStats");
 
     private final HostService hostService = DefaultServiceDirectory.getService(HostService.class);
 
@@ -79,7 +78,6 @@ public class OpenstackNetworkingUiOverlay extends UiTopoOverlay {
                 .addButton(FLOW_TRACE_BUTTON)
                 .addButton(RESET_BUTTON)
                 .addButton(TO_GATEWAY_BUTTON)
-                .addButton(VFLOW_STATS_BUTTON)
                 .addButton(TO_EXTERNAL_BUTTON);
     }
 }

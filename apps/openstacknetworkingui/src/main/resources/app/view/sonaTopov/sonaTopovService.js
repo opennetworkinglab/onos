@@ -38,8 +38,6 @@
     var displayStart = 'openstackNetworkingUiStart',
         displayUpdate = 'openstackNetworkingUiUpdate',
         displayStop = 'openstackNetworkingUiStop',
-        flowStatsAddRequest = 'flowStatsAddRequest',
-        flowStatsRemoveRequest = 'flowStatsRemoveRequest',
         flowTraceRequest = 'flowTraceRequest';
 
     // internal state
@@ -62,24 +60,6 @@
 
     function sendDisplayStop() {
         wss.sendEvent(displayStop);
-    }
-
-    function sendFlowStatsAddRequest(src, dst) {
-        wss.sendEvent(flowStatsAddRequest, {
-            srcIp: src,
-            dstIp: dst,
-        });
-        $log.info('FlowStatsAdd request message is sent.');
-        flash.flash('sendFlowStatsAddRequest called');
-    }
-
-     function sendFlowStatsRemoveRequest(src, dst) {
-        wss.sendEvent(flowStatsRemoveRequest, {
-            srcIp: src,
-            dstIp: dst,
-        });
-        $log.info('FlowStatsRemove request message is sent.');
-        flash.flash('sendFlowStatsRemoveRequest called');
     }
 
     function sendFlowTraceRequest(src, dst, srcDeviceId, dstDeviceId, uplink) {
@@ -125,52 +105,6 @@
 
     function dOk() {
         ds.closeDialog();
-    }
-
-    function openFlowStatsAddResultDialog(data) {
-        $log.info('Addition Result message: ', data);
-        var flowStatsAddResultDialogId = 'flowStatsAddResultDialogId',
-            flowStatsAddResultDialogOpt = {
-                width: 650,
-                edge: 'left',
-                margin: 20,
-                hideMargin: -20
-            }
-        var statsSuccess = data.statsSuccess == true ? "SUCCESS" : "FALSE";
-        ds.openDialog(flowStatsAddResultDialogId, flowStatsAddResultDialogOpt)
-                    .setTitle('Flow Stats Addition Result: ' + statsSuccess)
-                    .addContent(createStatsAddResultInfoDiv(data))
-                    .addOk(dOk, 'Close')
-                    .bindKeys();
-    }
-
-    function createStatsAddResultInfoDiv(data) {
-        var texts = ds.createDiv('flowStatsAddResult');
-        texts.append('p').text('Result of addition: ' + data.statsSuccess);
-        return texts;
-    }
-
-    function openFlowStatsRemoveResultDialog(data) {
-        $log.info('Removal Result message: ', data);
-        var flowStatsRemoveResultDialogId = 'flowStatsRemoveResultDialogId',
-            flowStatsRemoveResultDialogOpt = {
-                width: 650,
-                edge: 'left',
-                margin: 20,
-                hideMargin: -20
-            }
-        var statsSuccess = data.statsSuccess == true ? "SUCCESS" : "FALSE";
-        ds.openDialog(flowStatsRemoveResultDialogId, flowStatsRemoveResultDialogOpt)
-                    .setTitle('Flow Stats Removal Result: ' + statsSuccess)
-                    .addContent(createStatsRemoveResultInfoDiv(data))
-                    .addOk(dOk, 'Close')
-                    .bindKeys();
-    }
-
-    function createStatsRemoveResultInfoDiv(data) {
-        var texts = ds.createDiv('flowStatsRemoveResult');
-        texts.append('p').text('Result of removal: ' + data.statsSuccess);
-        return texts;
     }
 
     function openFlowTraceResultDialog(data) {
@@ -262,21 +196,6 @@
 
     }
 
-    function flowStatsAddResult(data) {
-        flash.flash('flowStatsAddResult called');
-        $log.debug(data);
-
-        openFlowStatsAddResultDialog(data)
-    }
-
-    function flowStatsRemoveResult(data) {
-        flash.flash('flowStatsRemoveResult called');
-        $log.debug(data);
-
-        openFlowStatsRemoveResultDialog(data)
-    }
-
-
     function flowTraceResult(data) {
         flash.flash('flowTraceResult called');
         $log.debug(data);
@@ -302,10 +221,6 @@
                 startDisplay: startDisplay,
                 updateDisplay: updateDisplay,
                 stopDisplay: stopDisplay,
-                flowStatsAddResult: flowStatsAddResult,
-                flowStatsRemoveResult: flowStatsRemoveResult,
-                sendFlowStatsAddRequest: sendFlowStatsAddRequest,
-                sendFlowStatsRemoveRequest: sendFlowStatsRemoveRequest,
                 flowTraceResult: flowTraceResult,
                 sendFlowTraceRequest: sendFlowTraceRequest,
             };

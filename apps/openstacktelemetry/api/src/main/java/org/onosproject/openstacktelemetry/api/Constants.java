@@ -44,7 +44,7 @@ public final class Constants {
 
     // default configuration variables for Promethetus exporter
     public static final String DEFAULT_PROMETHEUS_EXPORTER_IP = "0.0.0.0";
-    public static final int DEFAULT_PROMETHEUS_EXPORTER_PORT = 9501;
+    public static final int DEFAULT_PROMETHEUS_EXPORTER_PORT = 9555;
 
     // default configuration variables for Kafka
     public static final String DEFAULT_KAFKA_SERVER_IP = DEFAULT_SERVER_IP;
