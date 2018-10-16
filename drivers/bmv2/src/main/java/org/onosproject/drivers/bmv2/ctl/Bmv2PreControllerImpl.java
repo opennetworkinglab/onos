@@ -50,18 +50,21 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
+import static org.onosproject.drivers.bmv2.ctl.OsgiPropertyDefaults.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * BMv2 PRE controller implementation.
  */
-@Component(immediate = true, service = Bmv2PreController.class)
+@Component(immediate = true, service = Bmv2PreController.class,
+        property = {
+                "numConnectionRetries:Integer=" + NUM_CONNECTION_RETRIES_DEFAULT,
+                "timeBetweenRetries:Integer=" + TIME_BETWEEN_RETRIES_DEFAULT,
+                "deviceLockWaitingTime:Integer=" + DEVICE_LOCK_WAITING_TIME_IN_SEC_DEFAULT,
+        })
 public class Bmv2PreControllerImpl implements Bmv2PreController {
 
     private static final int DEVICE_LOCK_CACHE_EXPIRE_TIME_IN_MIN = 10;
-    private static final int DEVICE_LOCK_WAITING_TIME_IN_SEC = 60;
-    private static final int DEFAULT_NUM_CONNECTION_RETRIES = 2;
-    private static final int DEFAULT_TIME_BETWEEN_RETRIES = 10;
     private static final String THRIFT_SERVICE_NAME = "simple_pre_lag";
     private final Logger log = getLogger(getClass());
     private final Map<DeviceId, Pair<TTransport, Bmv2DeviceThriftClient>> clients = Maps.newHashMap();
@@ -78,13 +81,13 @@ public class Bmv2PreControllerImpl implements Bmv2PreController {
     protected ComponentConfigService cfgService;
     //@Property(name = "numConnectionRetries", intValue = DEFAULT_NUM_CONNECTION_RETRIES,
     //        label = "Number of connection retries after a network error")
-    private int numConnectionRetries = DEFAULT_NUM_CONNECTION_RETRIES;
+    private int numConnectionRetries = NUM_CONNECTION_RETRIES_DEFAULT;
     //@Property(name = "timeBetweenRetries", intValue = DEFAULT_TIME_BETWEEN_RETRIES,
     //        label = "Time between retries in milliseconds")
-    private int timeBetweenRetries = DEFAULT_TIME_BETWEEN_RETRIES;
+    private int timeBetweenRetries = TIME_BETWEEN_RETRIES_DEFAULT;
     //@Property(name = "deviceLockWaitingTime", intValue = DEVICE_LOCK_WAITING_TIME_IN_SEC,
     //        label = "Waiting time for a read/write lock in seconds")
-    private int deviceLockWaitingTime = DEVICE_LOCK_WAITING_TIME_IN_SEC;
+    private int deviceLockWaitingTime = DEVICE_LOCK_WAITING_TIME_IN_SEC_DEFAULT;
 
     @Activate
     public void activate() {
