@@ -85,6 +85,23 @@ public class CustomTopologySimulator extends TopologySimulator {
     }
 
     /**
+     * Creates simulated device.
+     *
+     * @param id        device identifier
+     * @param name      device name
+     * @param type      device type
+     * @param hw        hardware revision
+     * @param sw        software revision
+     * @param portCount number of device ports
+     */
+    public void createDevice(DeviceId id, String name, Device.Type type,
+                             String hw, String sw, int portCount) {
+        int chassisId = Integer.parseInt(id.uri().getSchemeSpecificPart(), 16);
+        createDevice(id, chassisId, type, hw, sw, portCount);
+        nameToId.put(name, id);
+    }
+
+    /**
      * Creates a simulated host.
      *
      * @param hostId   host identifier

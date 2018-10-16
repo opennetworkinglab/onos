@@ -17,7 +17,9 @@ package org.onosproject.provider.nil.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
+
 import org.onlab.util.Tools;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -61,6 +63,15 @@ public class CreateNullDevice extends CreateNullEntity {
             required = false)
     String locType = GEO;
 
+    @Option(name = "-I", aliases = "--id", description = "Device identifier")
+    String id = null;
+
+    @Option(name = "-H", aliases = "--hw", description = "Hardware version")
+    String hw = "0.1";
+
+    @Option(name = "-S", aliases = "--sw", description = "Software version")
+    String sw = "0.1.2";
+
     @Override
     protected void doExecute() {
         NullProviders service = get(NullProviders.class);
@@ -72,13 +83,14 @@ public class CreateNullDevice extends CreateNullEntity {
         }
 
         CustomTopologySimulator sim = (CustomTopologySimulator) simulator;
-        DeviceId deviceId = sim.nextDeviceId();
+        DeviceId deviceId = id == null ? sim.nextDeviceId() : DeviceId.deviceId(id);
         BasicDeviceConfig cfg = cfgService.addConfig(deviceId, BasicDeviceConfig.class);
         cfg.name(name);
         setUiCoordinates(cfg, locType, latOrY, longOrX);
 
         Tools.delay(10);
-        sim.createDevice(deviceId, name, Device.Type.valueOf(type.toUpperCase()), portCount);
+        sim.createDevice(deviceId, name, Device.Type.valueOf(type.toUpperCase()),
+                         hw, sw, portCount);
     }
 
 }

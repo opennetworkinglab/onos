@@ -28,6 +28,10 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.PasswordAuthentication;
+import java.net.Authenticator;
+import java.net.Proxy;
+import java.net.InetSocketAddress;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
@@ -36,10 +40,13 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 /**
  * Generates a BUCK file from a JSON file containing third-party library
@@ -304,7 +311,31 @@ public class BuckLibGenerator {
                     // fall back to regular download
                 }
             }
-            URLConnection connection = url.openConnection();
+
+            System.setProperty("jdk.http.auth.tunneling.disabledSchemes", "");
+
+            URLConnection connection;
+            String env_http_proxy = System.getenv("HTTP_PROXY");
+            if (env_http_proxy != null) {
+                List<String> proxyHostInfo = getProxyHostInfo(env_http_proxy);
+                Proxy http_proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyHostInfo.get(0),
+                                             Integer.valueOf(proxyHostInfo.get(1))));
+
+                if ((proxyHostInfo.get(2) != null) && (proxyHostInfo.get(3) != null)) {
+                    Authenticator authenticator = new Authenticator() {
+                        public PasswordAuthentication getPasswordAuthentication() {
+                            return (new PasswordAuthentication(proxyHostInfo.get(2), proxyHostInfo.get(3).toCharArray()));
+                        }
+                    };
+
+                    Authenticator.setDefault(authenticator);
+                }
+
+                connection = url.openConnection(http_proxy);
+            } else {
+                connection = url.openConnection();
+            }
+
             connection.connect();
             InputStream stream = connection.getInputStream();
 
@@ -321,6 +352,24 @@ public class BuckLibGenerator {
         } catch (IOException | NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static List<String> getProxyHostInfo(String proxyUrl) {
+        if (proxyUrl == null) {
+            return null;
+        }
+
+        // matching pattern
+        //  http://(host):(port) or http://(user):(pass)@(host):(port)
+        //  https://(host):(port) or https://(user):(pass)@(host):(port)
+        Pattern p = Pattern.compile("^(http|https):\\/\\/(([^:\\@]+):([^\\@]+)\\@)?([^:\\@\\/]+):([0-9]+)\\/?$");
+        Matcher m = p.matcher(proxyUrl);
+        if (!m.find()) {
+            return null;
+        }
+
+        // matcher group 3:user 4:pass 5:host 6:port (null if not set)
+        return Arrays.asList(m.group(5), m.group(6), m.group(3), m.group(4));
     }
 
     private void error(String format, String... args) {

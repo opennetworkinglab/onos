@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.openstacknode.impl;
+package org.onosproject.openstacknode.api;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
-import org.onosproject.openstacknode.api.DpdkConfig;
-import org.onosproject.openstacknode.api.DpdkInterface;
 
 import java.util.ArrayList;
 import java.util.Collection;

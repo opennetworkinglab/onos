@@ -204,9 +204,23 @@ public abstract class TopologySimulator {
      * @param portCount number of device ports
      */
     public void createDevice(DeviceId id, int chassisId, Device.Type type, int portCount) {
+        createDevice(id, chassisId, type, "0.1", "0.1.2", portCount);
+    }
+
+    /**
+     * Creates simulated device.
+     *
+     * @param id        device identifier
+     * @param chassisId chassis identifier number
+     * @param type      device type
+     * @param hw        hardware revision
+     * @param sw        software revision
+     * @param portCount number of device ports
+     */
+    public void createDevice(DeviceId id, int chassisId, Device.Type type,
+                             String hw, String sw, int portCount) {
         DeviceDescription desc =
-                new DefaultDeviceDescription(id.uri(), type,
-                                             "ONF", "0.1", "0.1", "1234",
+                new DefaultDeviceDescription(id.uri(), type, "ONF", hw, sw, "1234",
                                              new ChassisId(chassisId));
         deviceIds.add(id);
         mastershipAdminService.setRoleSync(localNode, id, MASTER);

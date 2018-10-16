@@ -831,6 +831,16 @@ public class DeviceFlowTable {
     }
 
     /**
+     * Purges the flow table.
+     */
+    public void purge() {
+        flowTasks.clear();
+        flowBuckets.values().forEach(bucket -> bucket.purge());
+        lastBackupTimes.clear();
+        inFlightUpdates.clear();
+    }
+
+    /**
      * Closes the device flow table.
      */
     public void close() {

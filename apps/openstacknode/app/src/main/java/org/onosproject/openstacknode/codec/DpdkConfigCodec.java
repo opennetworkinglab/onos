@@ -22,7 +22,7 @@ import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.openstacknode.api.DpdkConfig;
 import org.onosproject.openstacknode.api.DpdkInterface;
-import org.onosproject.openstacknode.impl.DefaultDpdkConfig;
+import org.onosproject.openstacknode.api.DefaultDpdkConfig;
 
 import java.util.ArrayList;
 import java.util.List;
