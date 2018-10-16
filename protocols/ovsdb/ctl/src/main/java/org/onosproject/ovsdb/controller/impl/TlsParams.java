@@ -143,6 +143,7 @@ public class TlsParams {
             while (dis.read(buffer) > 0) {
                 // nothing to do :)
             }
+            is.close();
             return dis.getMessageDigest().digest();
         } catch (NoSuchAlgorithmException e) {
             log.error("Algorithm SHA1 Not found");

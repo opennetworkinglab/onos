@@ -108,6 +108,9 @@
         <command>
             <action class="org.onosproject.cli.NodesListCommand"/>
         </command>
+        <command>
+            <action class="org.onosproject.cli.StorageNodesListCommand"/>
+        </command>
 
         <command>
             <action class="org.onosproject.cli.RolesCommand"/>

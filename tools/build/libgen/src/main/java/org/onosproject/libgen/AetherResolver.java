@@ -26,6 +26,8 @@ import org.eclipse.aether.impl.DefaultServiceLocator;
 import org.eclipse.aether.repository.LocalRepository;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.repository.RepositoryPolicy;
+import org.eclipse.aether.repository.Proxy;
+import org.eclipse.aether.util.repository.AuthenticationBuilder;
 import org.eclipse.aether.resolution.ArtifactRequest;
 import org.eclipse.aether.resolution.ArtifactResult;
 import org.eclipse.aether.resolution.VersionRangeRequest;
@@ -47,6 +49,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 import static org.eclipse.aether.repository.RepositoryPolicy.CHECKSUM_POLICY_WARN;
 import static org.eclipse.aether.repository.RepositoryPolicy.UPDATE_POLICY_ALWAYS;
@@ -59,8 +63,6 @@ public class AetherResolver {
 
     private static RepositorySystem system;
     private static RepositorySystemSession session;
-    private static final RemoteRepository CENTRAL =
-            new RemoteRepository.Builder("central", "default", CENTRAL_URL).build();
 
     private final String repoUrl;
 
@@ -182,18 +184,69 @@ public class AetherResolver {
         return newestVersion.toString();
     }
 
-    public List<RemoteRepository> repositories()
-    {
-        if (repoUrl != null && repoUrl.length() > 0) {
-            RepositoryPolicy policy = new RepositoryPolicy(true,
-                                                           UPDATE_POLICY_ALWAYS,
-                                                           CHECKSUM_POLICY_WARN);
-            RemoteRepository repository =
-                    new RemoteRepository.Builder("temp", "default", repoUrl)
-                            .setSnapshotPolicy(policy).build();
-            return Arrays.asList(CENTRAL, repository);
+    public List<RemoteRepository> repositories() {
+        RemoteRepository.Builder central = new RemoteRepository.Builder("central", "default", CENTRAL_URL);
+
+        // set http_proxy
+        String env_http_proxy = System.getenv("HTTP_PROXY");
+        if (env_http_proxy != null) {
+            List<String> proxyHostInfo = getProxyHostInfo(env_http_proxy);
+
+            // set authentication
+            if ((proxyHostInfo.get(2) != null) && (proxyHostInfo.get(3) != null)) {
+                central.setProxy(
+                    new Proxy(Proxy.TYPE_HTTP, proxyHostInfo.get(0), Integer.valueOf(proxyHostInfo.get(1)),
+                          new AuthenticationBuilder()
+                          .addUsername(proxyHostInfo.get(2)).addPassword(proxyHostInfo.get(3)).build()));
+            } else {
+                central.setProxy(
+                    new Proxy(Proxy.TYPE_HTTP, proxyHostInfo.get(0), Integer.valueOf(proxyHostInfo.get(1))));
+            }
         }
 
-        return Collections.singletonList(CENTRAL);
+        if (repoUrl != null && repoUrl.length() > 0) {
+            RemoteRepository.Builder other =
+                new RemoteRepository.Builder("temp", "default", repoUrl)
+                    .setSnapshotPolicy(new RepositoryPolicy(true, UPDATE_POLICY_ALWAYS, CHECKSUM_POLICY_WARN));
+
+            // set https_proxy
+            String env_https_proxy = System.getenv("HTTPS_PROXY");
+            if (env_https_proxy != null) {
+                List<String> proxyHostInfo = getProxyHostInfo(env_https_proxy);
+
+                // set authentication
+                if ((proxyHostInfo.get(2) != null) && (proxyHostInfo.get(3) != null)) {
+                    other.setProxy(
+                        new Proxy(Proxy.TYPE_HTTPS, proxyHostInfo.get(0), Integer.valueOf(proxyHostInfo.get(1)),
+                            new AuthenticationBuilder()
+                            .addUsername(proxyHostInfo.get(2)).addPassword(proxyHostInfo.get(3)).build()));
+                } else {
+                    other.setProxy(
+                        new Proxy(Proxy.TYPE_HTTPS, proxyHostInfo.get(0), Integer.valueOf(proxyHostInfo.get(1))));
+                }
+            }
+
+            return Arrays.asList(central.build(), other.build());
+        }
+
+        return Collections.singletonList(central.build());
+    }
+
+    private static List<String> getProxyHostInfo(String proxyUrl) {
+        if (proxyUrl == null) {
+            return null;
+        }
+
+        // matching pattern
+        //  http://(host):(port) or http://(user):(pass)@(host):(port)
+        //  https://(host):(port) or https://(user):(pass)@(host):(port)
+        Pattern p = Pattern.compile("^(http|https):\\/\\/(([^:\\@]+):([^\\@]+)\\@)?([^:\\@\\/]+):([0-9]+)\\/?$");
+        Matcher m = p.matcher(proxyUrl);
+        if (!m.find()) {
+            return null;
+        }
+
+        // matcher group 3:user 4:pass 5:host 6:port (null if not set)
+        return Arrays.asList(m.group(5), m.group(6), m.group(3), m.group(4));
     }
 }

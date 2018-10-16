@@ -27,6 +27,7 @@ import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.LeadershipService;
 import org.onosproject.cluster.NodeId;
@@ -85,6 +86,7 @@ import static org.onosproject.openstacknetworking.api.InstancePortEvent.Type.OPE
 import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_PORT_PRE_REMOVE;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.associatedFloatingIp;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getGwByComputeDevId;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getPropertyValueAsBoolean;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.isAssociatedWithVM;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.swapStaleLocation;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.buildExtension;
@@ -101,6 +103,8 @@ public class OpenstackRoutingFloatingIpHandler {
     private static final String ERR_FLOW = "Failed set flows for floating IP %s: ";
     private static final String ERR_UNSUPPORTED_NET_TYPE = "Unsupported network type %s";
 
+    private static final String USE_SECURITY_GROUP = "useSecurityGroup";
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
@@ -112,6 +116,9 @@ public class OpenstackRoutingFloatingIpHandler {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ClusterService clusterService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected ComponentConfigService componentConfigService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected OpenstackNodeService osNodeService;
@@ -879,14 +886,22 @@ public class OpenstackRoutingFloatingIpHandler {
                     NetFloatingIP fip =
                             associatedFloatingIp(instPort, osRouterAdminService.floatingIps());
 
+                    boolean sgFlag = getPropertyValueAsBoolean(
+                            componentConfigService.getProperties(
+                                    OpenstackSecurityGroupHandler.class.getName()),
+                            USE_SECURITY_GROUP);
+
                     if (fip != null) {
-
-                        instancePortService.updateInstancePort(instPort.updateState(REMOVE_PENDING));
-
+                        instancePortService.updateInstancePort(
+                                            instPort.updateState(REMOVE_PENDING));
                         eventExecutor.execute(() ->
                                 updateFipStore(instancePortService.instancePort(event.port().getId())));
                     } else {
-                        instancePortService.removeInstancePort(instPort.portId());
+                        // FIXME: we have dependency with security group, need to
+                        // find a better way to remove this dependency
+                        if (!sgFlag) {
+                            instancePortService.removeInstancePort(instPort.portId());
+                        }
                     }
                     break;
                 default:

@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.openstacknode.impl;
+package org.onosproject.openstacknode.api;
 
 import com.google.common.testing.EqualsTester;
 import org.junit.Test;
-import org.onosproject.openstacknode.api.DefaultOpenstackAuth;
-import org.onosproject.openstacknode.api.OpenstackAuth;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;

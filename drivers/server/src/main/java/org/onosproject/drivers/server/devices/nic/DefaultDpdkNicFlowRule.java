@@ -75,8 +75,7 @@ public class DefaultDpdkNicFlowRule extends DefaultNicFlowRule {
             rule += "ipv4 ";
 
             if (this.ipv4Protocol() > 0) {
-                rule += "proto spec " + Integer.toString(this.ipv4Protocol()) + " ";
-                rule += "proto mask 0x0 ";
+                rule += "proto is " + Integer.toString(this.ipv4Protocol()) + " ";
             }
 
             if (this.ipv4SrcAddress() != null) {
@@ -129,15 +128,16 @@ public class DefaultDpdkNicFlowRule extends DefaultNicFlowRule {
 
                 // No subsequent field
                 if (action.actionField().isEmpty()) {
+                    rule += "/ ";
                     continue;
                 }
 
                 // A subsequent field is associated with a value
                 rule += action.actionField() + " ";
-                rule += Long.toString(action.actionValue()) + " ";
+                rule += Long.toString(action.actionValue()) + " / ";
             }
 
-            rule += "/ end";
+            rule += " end";
         }
 
         return rule;

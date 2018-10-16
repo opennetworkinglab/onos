@@ -167,6 +167,9 @@ public abstract class DefaultNicFlowRule extends DefaultFlowRule implements NicF
                     new NicRuleAction(NicRuleAction.Action.METER, meterInstruction.meterId().id()));
             }
         }
+
+        // This action provides basic rule match counters
+        this.actions.add(new NicRuleAction(NicRuleAction.Action.COUNT));
     }
 
     @Override

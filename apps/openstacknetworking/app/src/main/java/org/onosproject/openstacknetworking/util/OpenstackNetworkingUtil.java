@@ -452,6 +452,20 @@ public final class OpenstackNetworkingUtil {
     }
 
     /**
+     * Obtains the boolean property value with specified property key name.
+     *
+     * @param properties    a collection of properties
+     * @param name          key name
+     * @return mapping value
+     */
+    public static boolean getPropertyValueAsBoolean(Set<ConfigProperty> properties, String name) {
+        Optional<ConfigProperty> property =
+                properties.stream().filter(p -> p.name().equals(name)).findFirst();
+
+        return property.map(ConfigProperty::asBoolean).orElse(false);
+    }
+
+    /**
      * Prints out the JSON string in pretty format.
      *
      * @param mapper        Object mapper

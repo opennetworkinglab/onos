@@ -40,12 +40,12 @@ import org.onosproject.openstacknode.api.OpenstackAuth;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackPhyInterface;
 import org.onosproject.openstacknode.api.OpenstackSshAuth;
-import org.onosproject.openstacknode.impl.DefaultDpdkConfig;
-import org.onosproject.openstacknode.impl.DefaultDpdkInterface;
+import org.onosproject.openstacknode.api.DefaultDpdkConfig;
+import org.onosproject.openstacknode.api.DefaultDpdkInterface;
 import org.onosproject.openstacknode.api.DefaultKeystoneConfig;
 import org.onosproject.openstacknode.api.DefaultNeutronConfig;
-import org.onosproject.openstacknode.impl.DefaultOpenstackPhyInterface;
-import org.onosproject.openstacknode.impl.DefaultOpenstackSshAuth;
+import org.onosproject.openstacknode.api.DefaultOpenstackPhyInterface;
+import org.onosproject.openstacknode.api.DefaultOpenstackSshAuth;
 
 import java.io.IOException;
 import java.io.InputStream;
