@@ -156,19 +156,19 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
 
     //@Property(name = PROP_ENABLED, boolValue = true,
     //        label = "If false, link discovery is disabled")
-    private boolean enabled = ENABLED_DEFAULT;
+    protected boolean enabled = ENABLED_DEFAULT;
 
     //@Property(name = PROP_USE_BDDP, boolValue = true,
     //        label = "Use BDDP for link discovery")
-    private boolean useBddp = USE_BDDP_DEFAULT;
+    protected boolean useBddp = USE_BDDP_DEFAULT;
 
     //@Property(name = PROP_PROBE_RATE, intValue = DEFAULT_PROBE_RATE,
     //        label = "LLDP and BDDP probe rate specified in millis")
-    private int probeRate = PROBE_RATE_DEFAULT;
+    protected int probeRate = PROBE_RATE_DEFAULT;
 
     //@Property(name = PROP_STALE_LINK_AGE, intValue = DEFAULT_STALE_LINK_AGE,
     //        label = "Number of millis beyond which links will be considered stale")
-    private int staleLinkAge = STALE_LINK_AGE_DEFAULT;
+    protected int staleLinkAge = STALE_LINK_AGE_DEFAULT;
 
     private final LinkDiscoveryContext context = new InternalDiscoveryContext();
     private final InternalRoleListener roleListener = new InternalRoleListener();
