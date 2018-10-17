@@ -78,8 +78,8 @@ import static org.slf4j.LoggerFactory.getLogger;
             GroupProviderRegistry.class
         },
         property = {
-            GM_POLL_FREQUENCY + "=" + GM_POLL_FREQUENCY_DEFAULT,
-            GM_PURGE_ON_DISCONNECTION + "=" + GM_PURGE_ON_DISCONNECTION_DEFAULT
+            GM_POLL_FREQUENCY + ":Integer=" + GM_POLL_FREQUENCY_DEFAULT,
+            GM_PURGE_ON_DISCONNECTION + ":Boolean=" + GM_PURGE_ON_DISCONNECTION_DEFAULT
         }
 )
 public class GroupManager

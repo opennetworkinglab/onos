@@ -114,11 +114,11 @@ import static org.onosproject.store.OsgiPropertyConstants.*;
         immediate = true,
         service = FlowRuleStore.class,
         property = {
-                MESSAGE_HANDLER_THREAD_POOL_SIZE + "=" + MESSAGE_HANDLER_THREAD_POOL_SIZE_DEFAULT,
-                BACKUP_PERIOD_MILLIS + "=" + BACKUP_PERIOD_MILLIS_DEFAULT,
-                ANTI_ENTROPY_PERIOD_MILLIS + "=" + ANTI_ENTROPY_PERIOD_MILLIS_DEFAULT,
-                EC_FLOW_RULE_STORE_PERSISTENCE_ENABLED + "=" + EC_FLOW_RULE_STORE_PERSISTENCE_ENABLED_DEFAULT,
-                MAX_BACKUP_COUNT + "=" + MAX_BACKUP_COUNT_DEFAULT
+                MESSAGE_HANDLER_THREAD_POOL_SIZE + ":Integer=" + MESSAGE_HANDLER_THREAD_POOL_SIZE_DEFAULT,
+                BACKUP_PERIOD_MILLIS + ":Integer=" + BACKUP_PERIOD_MILLIS_DEFAULT,
+                ANTI_ENTROPY_PERIOD_MILLIS + ":Integer=" + ANTI_ENTROPY_PERIOD_MILLIS_DEFAULT,
+                EC_FLOW_RULE_STORE_PERSISTENCE_ENABLED + ":Boolean=" + EC_FLOW_RULE_STORE_PERSISTENCE_ENABLED_DEFAULT,
+                MAX_BACKUP_COUNT + ":Integer=" + MAX_BACKUP_COUNT_DEFAULT
         }
 )
 public class ECFlowRuleStore

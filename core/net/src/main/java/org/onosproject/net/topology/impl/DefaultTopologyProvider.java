@@ -72,9 +72,9 @@ import static org.slf4j.LoggerFactory.getLogger;
     immediate = true,
     service = TopologyProvider.class,
     property = {
-        DTP_MAX_EVENTS + "=" + DTP_MAX_EVENTS_DEFAULT,
-        DTP_MAX_IDLE_MS + "=" + DTP_MAX_IDLE_MS_DEFAULT,
-        DTP_MAX_BATCH_MS + "=" + DTP_MAX_BATCH_MS_DEFAULT
+        DTP_MAX_EVENTS + ":Integer=" + DTP_MAX_EVENTS_DEFAULT,
+        DTP_MAX_IDLE_MS + ":Integer=" + DTP_MAX_IDLE_MS_DEFAULT,
+        DTP_MAX_BATCH_MS + ":Integer=" + DTP_MAX_BATCH_MS_DEFAULT
     }
 )
 public class DefaultTopologyProvider extends AbstractProvider

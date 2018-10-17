@@ -80,7 +80,7 @@ import static org.slf4j.LoggerFactory.getLogger;
     immediate = true,
     service = PiPipeconfWatchdogService.class,
     property = {
-        PWM_PROBE_INTERVAL + "=" + PWM_PROBE_INTERVAL_DEFAULT
+        PWM_PROBE_INTERVAL + ":Integer=" + PWM_PROBE_INTERVAL_DEFAULT
     }
 )
 public class PiPipeconfWatchdogManager

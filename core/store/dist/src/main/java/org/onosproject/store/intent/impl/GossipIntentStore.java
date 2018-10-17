@@ -78,7 +78,7 @@ import static org.slf4j.LoggerFactory.getLogger;
         immediate = true,
         service = IntentStore.class,
         property = {
-                GIS_PERSISTENCE_ENABLED + "=" + GIS_PERSISTENCE_ENABLED_DEFAULT
+                GIS_PERSISTENCE_ENABLED + ":Boolean=" + GIS_PERSISTENCE_ENABLED_DEFAULT
         }
 )
 public class GossipIntentStore

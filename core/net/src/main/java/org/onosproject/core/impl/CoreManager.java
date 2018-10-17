@@ -60,9 +60,9 @@ import static org.onosproject.security.AppPermission.Type.APP_WRITE;
         immediate = true,
         service = CoreService.class,
         property = {
-                SHARED_THREAD_POOL_SIZE + "=" + SHARED_THREAD_POOL_SIZE_DEFAULT,
-                MAX_EVENT_TIME_LIMIT + "=" + MAX_EVENT_TIME_LIMIT_DEFAULT,
-                CALCULATE_PERFORMANCE_CHECK + "=" + CALCULATE_PERFORMANCE_CHECK_DEFAULT
+                SHARED_THREAD_POOL_SIZE + ":Integer=" + SHARED_THREAD_POOL_SIZE_DEFAULT,
+                MAX_EVENT_TIME_LIMIT + ":Integer=" + MAX_EVENT_TIME_LIMIT_DEFAULT,
+                CALCULATE_PERFORMANCE_CHECK + ":Boolean=" + CALCULATE_PERFORMANCE_CHECK_DEFAULT
         }
 )
 public class CoreManager implements CoreService {

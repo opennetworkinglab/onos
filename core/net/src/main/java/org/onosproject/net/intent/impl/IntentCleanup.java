@@ -62,9 +62,9 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Component(
     immediate = true,
     property = {
-        ICU_ENABLED + "=" + ICU_ENABLED_DEFAULT,
-        ICU_PERIOD + "=" + ICU_PERIOD_DEFAULT,
-        ICU_RETRY_THRESHOLD + "=" + ICU_RETRY_THRESHOLD_DEFAULT
+        ICU_ENABLED + ":Boolean=" + ICU_ENABLED_DEFAULT,
+        ICU_PERIOD + ":Integer=" + ICU_PERIOD_DEFAULT,
+        ICU_RETRY_THRESHOLD + ":Integer=" + ICU_RETRY_THRESHOLD_DEFAULT
     }
 )
 public class IntentCleanup implements Runnable, IntentListener {

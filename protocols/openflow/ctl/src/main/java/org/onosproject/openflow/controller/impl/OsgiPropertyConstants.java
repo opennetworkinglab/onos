@@ -32,7 +32,7 @@ public final class OsgiPropertyConstants {
 
     //@Property(name = "workerThreads", intValue = DEFAULT_WORKER_THREADS,
     //        label = "Number of controller worker threads")
-    public static final String WORKER_THREADS = "workerThreads:Integer";
+    public static final String WORKER_THREADS = "workerThreads";
     public static final int WORKER_THREADS_DEFAULT = 0;
 
     //@Property(name = "tlsMode", value = "",

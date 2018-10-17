@@ -71,7 +71,7 @@ import static org.slf4j.LoggerFactory.getLogger;
         immediate = true,
         service = PacketStore.class,
         property = {
-                DPS_MESSAGE_HANDLER_THREAD_POOL_SIZE + "=" + DPS_MESSAGE_HANDLER_THREAD_POOL_SIZE_DEFAULT
+                DPS_MESSAGE_HANDLER_THREAD_POOL_SIZE + ":Integer=" + DPS_MESSAGE_HANDLER_THREAD_POOL_SIZE_DEFAULT
         }
 )
 public class DistributedPacketStore

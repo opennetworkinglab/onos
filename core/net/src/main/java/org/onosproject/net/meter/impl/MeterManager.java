@@ -78,8 +78,8 @@ import static org.slf4j.LoggerFactory.getLogger;
         MeterProviderRegistry.class
     },
     property = {
-        MM_NUM_THREADS + "=" + MM_NUM_THREADS_DEFAULT,
-        MM_FALLBACK_METER_POLL_FREQUENCY + "=" + MM_FALLBACK_METER_POLL_FREQUENCY_DEFAULT
+        MM_NUM_THREADS + ":Integer=" + MM_NUM_THREADS_DEFAULT,
+        MM_FALLBACK_METER_POLL_FREQUENCY + ":Integer=" + MM_FALLBACK_METER_POLL_FREQUENCY_DEFAULT
     }
 )
 public class MeterManager

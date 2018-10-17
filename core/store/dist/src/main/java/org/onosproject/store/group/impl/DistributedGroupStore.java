@@ -109,9 +109,9 @@ import static org.slf4j.LoggerFactory.getLogger;
         immediate = true,
         service = GroupStore.class,
         property = {
-                GARBAGE_COLLECT + "=" + GARBAGE_COLLECT_DEFAULT,
-                GARBAGE_COLLECT_THRESH + "=" + GARBAGE_COLLECT_THRESH_DEFAULT,
-                ALLOW_EXTRANEOUS_GROUPS + "=" + ALLOW_EXTRANEOUS_GROUPS_DEFAULT
+                GARBAGE_COLLECT + ":Boolean=" + GARBAGE_COLLECT_DEFAULT,
+                GARBAGE_COLLECT_THRESH + ":Integer=" + GARBAGE_COLLECT_THRESH_DEFAULT,
+                ALLOW_EXTRANEOUS_GROUPS + ":Boolean=" + ALLOW_EXTRANEOUS_GROUPS_DEFAULT
         }
 )
 public class DistributedGroupStore

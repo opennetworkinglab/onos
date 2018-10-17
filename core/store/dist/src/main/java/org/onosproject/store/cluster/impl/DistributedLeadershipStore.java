@@ -64,7 +64,7 @@ import static org.onosproject.store.OsgiPropertyConstants.*;
         immediate = true,
         service = LeadershipStore.class,
         property = {
-                ELECTION_TIMEOUT_MILLIS + "=" + ELECTION_TIMEOUT_MILLIS_DEFAULT
+                ELECTION_TIMEOUT_MILLIS + ":Long=" + ELECTION_TIMEOUT_MILLIS_DEFAULT
         }
 )
 public class DistributedLeadershipStore

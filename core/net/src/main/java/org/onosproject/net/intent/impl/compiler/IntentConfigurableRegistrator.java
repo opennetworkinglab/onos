@@ -54,11 +54,11 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Component(
     service = IntentConfigurableRegistrator.class,
     property = {
-        ICR_USE_FLOW_OBJECTIVES + "=" + ICR_USE_FLOW_OBJECTIVES_DEFAULT,
+        ICR_USE_FLOW_OBJECTIVES + ":Boolean=" + ICR_USE_FLOW_OBJECTIVES_DEFAULT,
         ICR_LABEL_SELECTION + "=" + ICR_LABEL_SELECTION_DEFAULT,
         ICR_OPT_LABEL_SELECTION + "=" + ICR_LABEL_SELECTION_DEFAULT,
-        ICR_FLOW_OPTIMIZATION + "=" + ICR_FLOW_OPTIMIZATION_DEFAULT,
-        ICR_COPY_TTL + "=" + ICR_COPY_TTL_DEFAULT
+        ICR_FLOW_OPTIMIZATION + ":Boolean=" + ICR_FLOW_OPTIMIZATION_DEFAULT,
+        ICR_COPY_TTL + ":Boolean=" + ICR_COPY_TTL_DEFAULT
     }
 )
 public class IntentConfigurableRegistrator {

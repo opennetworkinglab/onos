@@ -98,7 +98,7 @@ import static org.onosproject.openflow.controller.impl.OsgiPropertyConstants.*;
         service = OpenFlowController.class,
         property = {
                 OFPORTS + "=" + OFPORTS_DEFAULT,
-                WORKER_THREADS + "=" + WORKER_THREADS_DEFAULT,
+                WORKER_THREADS + ":Integer=" + WORKER_THREADS_DEFAULT,
                 TLS_MODE + "=" + TLS_MODE_DEFAULT,
                 KEY_STORE + "=" + KEY_STORE_DEFAULT,
                 KEY_STORE_PASSWORD + "=" + KEY_STORE_PASSWORD_DEFAULT,

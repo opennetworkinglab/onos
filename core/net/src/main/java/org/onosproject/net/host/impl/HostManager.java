@@ -86,10 +86,10 @@ import static org.slf4j.LoggerFactory.getLogger;
             HostProviderRegistry.class
         },
         property = {
-            HM_ALLOW_DUPLICATE_IPS + "=" + HM_ALLOW_DUPLICATE_IPS_DEFAULT,
-            HM_MONITOR_HOSTS + "=" + HM_MONITOR_HOSTS_DEFAULT,
-            HM_PROBE_RATE + "=" + HM_PROBE_RATE_DEFAULT,
-            HM_GREEDY_LEARNING_IPV6 + "=" + HM_GREEDY_LEARNING_IPV6_DEFAULT
+            HM_ALLOW_DUPLICATE_IPS + ":Boolean=" + HM_ALLOW_DUPLICATE_IPS_DEFAULT,
+            HM_MONITOR_HOSTS + ":Boolean=" + HM_MONITOR_HOSTS_DEFAULT,
+            HM_PROBE_RATE + ":Integer=" + HM_PROBE_RATE_DEFAULT,
+            HM_GREEDY_LEARNING_IPV6 + ":Boolean=" + HM_GREEDY_LEARNING_IPV6_DEFAULT
         }
 )
 public class HostManager

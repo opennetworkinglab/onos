@@ -102,8 +102,8 @@ import static org.slf4j.LoggerFactory.getLogger;
         IntentInstallCoordinator.class
     },
     property = {
-        IM_SKIP_RELEASE_RESOURCES_ON_WITHDRAWAL + "=" + IM_SKIP_RELEASE_RESOURCES_ON_WITHDRAWAL_DEFAULT,
-        IM_NUM_THREADS + "=" + IM_NUM_THREADS_DEFAULT
+        IM_SKIP_RELEASE_RESOURCES_ON_WITHDRAWAL + ":Boolean=" + IM_SKIP_RELEASE_RESOURCES_ON_WITHDRAWAL_DEFAULT,
+        IM_NUM_THREADS + ":Integer=" + IM_NUM_THREADS_DEFAULT
     }
 )
 public class IntentManager

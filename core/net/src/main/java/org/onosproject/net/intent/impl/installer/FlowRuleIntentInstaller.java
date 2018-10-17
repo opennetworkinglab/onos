@@ -76,7 +76,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Component(
     immediate = true,
     property = {
-        NON_DISRUPTIVE_INSTALLATION_WAITING_TIME + "=" + NON_DISRUPTIVE_INSTALLATION_WAITING_TIME_DEFAULT
+        NON_DISRUPTIVE_INSTALLATION_WAITING_TIME + ":Integer=" + NON_DISRUPTIVE_INSTALLATION_WAITING_TIME_DEFAULT
     }
 )
 public class FlowRuleIntentInstaller implements IntentInstaller<FlowRuleIntent> {

@@ -83,9 +83,9 @@ import static org.onosproject.net.packet.PacketPriority.CONTROL;
     immediate = true,
     service = NeighbourResolutionService.class,
     property = {
-        NRM_ARP_ENABLED + "=" + NRM_ARP_ENABLED_DEFAULT,
-        NRM_NDP_ENABLED + "=" + NRM_NDP_ENABLED,
-        NRM_REQUEST_INTERCEPTS_ENABLED + "=" + NRM_REQUEST_INTERCEPTS_ENABLED_DEFAULT
+        NRM_ARP_ENABLED + ":Boolean=" + NRM_ARP_ENABLED_DEFAULT,
+        NRM_NDP_ENABLED + ":Boolean=" + NRM_NDP_ENABLED,
+        NRM_REQUEST_INTERCEPTS_ENABLED + ":Boolean=" + NRM_REQUEST_INTERCEPTS_ENABLED_DEFAULT
     }
 )
 public class NeighbourResolutionManager implements NeighbourResolutionService {

@@ -72,7 +72,7 @@ import static org.slf4j.LoggerFactory.getLogger;
         immediate = true,
         service = StatisticStore.class,
         property = {
-                DSS_MESSAGE_HANDLER_THREAD_POOL_SIZE + "=" + DSS_MESSAGE_HANDLER_THREAD_POOL_SIZE_DEFAULT
+                DSS_MESSAGE_HANDLER_THREAD_POOL_SIZE + ":Integer=" + DSS_MESSAGE_HANDLER_THREAD_POOL_SIZE_DEFAULT
         }
 )
 public class DistributedStatisticStore implements StatisticStore {

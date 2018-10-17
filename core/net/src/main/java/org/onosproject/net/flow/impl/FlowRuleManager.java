@@ -103,9 +103,9 @@ import static org.slf4j.LoggerFactory.getLogger;
         FlowRuleProviderRegistry.class
     },
     property = {
-        ALLOW_EXTRANEOUS_RULES + "=" + ALLOW_EXTRANEOUS_RULES_DEFAULT,
-        PURGE_ON_DISCONNECTION + "=" + PURGE_ON_DISCONNECTION_DEFAULT,
-        POLL_FREQUENCY + "=" + POLL_FREQUENCY_DEFAULT
+        ALLOW_EXTRANEOUS_RULES + ":Boolean=" + ALLOW_EXTRANEOUS_RULES_DEFAULT,
+        PURGE_ON_DISCONNECTION + ":Boolean=" + PURGE_ON_DISCONNECTION_DEFAULT,
+        POLL_FREQUENCY + ":Integer=" + POLL_FREQUENCY_DEFAULT
     }
 )
 public class FlowRuleManager

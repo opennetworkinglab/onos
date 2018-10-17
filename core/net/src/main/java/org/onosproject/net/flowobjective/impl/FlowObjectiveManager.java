@@ -84,7 +84,7 @@ import static org.onosproject.security.AppPermission.Type.FLOWRULE_WRITE;
     enabled = false,
     service = FlowObjectiveService.class,
     property = {
-        FOM_NUM_THREADS + "=" + FOM_NUM_THREADS_DEFAULT
+        FOM_NUM_THREADS + ":Integer=" + FOM_NUM_THREADS_DEFAULT
     }
 )
 public class FlowObjectiveManager implements FlowObjectiveService {

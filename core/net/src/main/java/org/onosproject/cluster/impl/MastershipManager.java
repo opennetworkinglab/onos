@@ -90,8 +90,8 @@ import static org.onosproject.net.OsgiPropertyConstants.*;
                 MetricsHelper.class
         },
         property = {
-                USE_REGION_FOR_BALANCE_ROLES + "=" + USE_REGION_FOR_BALANCE_ROLES_DEFAULT,
-                REBALANCE_ROLES_ON_UPGRADE + "=" + REBALANCE_ROLES_ON_UPGRADE_DEFAULT
+                USE_REGION_FOR_BALANCE_ROLES + ":Boolean=" + USE_REGION_FOR_BALANCE_ROLES_DEFAULT,
+                REBALANCE_ROLES_ON_UPGRADE + ":Boolean=" + REBALANCE_ROLES_ON_UPGRADE_DEFAULT
         }
 )
 public class MastershipManager
