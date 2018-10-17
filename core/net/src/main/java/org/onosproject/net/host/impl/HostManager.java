@@ -62,6 +62,14 @@ import java.util.Set;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static org.onlab.packet.IPv6.getLinkLocalAddress;
+import static org.onosproject.net.OsgiPropertyConstants.HM_ALLOW_DUPLICATE_IPS;
+import static org.onosproject.net.OsgiPropertyConstants.HM_ALLOW_DUPLICATE_IPS_DEFAULT;
+import static org.onosproject.net.OsgiPropertyConstants.HM_GREEDY_LEARNING_IPV6;
+import static org.onosproject.net.OsgiPropertyConstants.HM_GREEDY_LEARNING_IPV6_DEFAULT;
+import static org.onosproject.net.OsgiPropertyConstants.HM_MONITOR_HOSTS;
+import static org.onosproject.net.OsgiPropertyConstants.HM_MONITOR_HOSTS_DEFAULT;
+import static org.onosproject.net.OsgiPropertyConstants.HM_PROBE_RATE;
+import static org.onosproject.net.OsgiPropertyConstants.HM_PROBE_RATE_DEFAULT;
 import static org.onosproject.security.AppGuard.checkPermission;
 import static org.onosproject.security.AppPermission.Type.HOST_EVENT;
 import static org.onosproject.security.AppPermission.Type.HOST_READ;
@@ -70,7 +78,20 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Provides basic implementation of the host SB &amp; NB APIs.
  */
-@Component(immediate = true, service = {HostService.class, HostAdminService.class, HostProviderRegistry.class })
+@Component(
+        immediate = true,
+        service = {
+            HostService.class,
+            HostAdminService.class,
+            HostProviderRegistry.class
+        },
+        property = {
+            HM_ALLOW_DUPLICATE_IPS + "=" + HM_ALLOW_DUPLICATE_IPS_DEFAULT,
+            HM_MONITOR_HOSTS + "=" + HM_MONITOR_HOSTS_DEFAULT,
+            HM_PROBE_RATE + "=" + HM_PROBE_RATE_DEFAULT,
+            HM_GREEDY_LEARNING_IPV6 + "=" + HM_GREEDY_LEARNING_IPV6_DEFAULT
+        }
+)
 public class HostManager
         extends AbstractListenerProviderRegistry<HostEvent, HostListener, HostProvider, HostProviderService>
         implements HostService, HostAdminService, HostProviderRegistry {
@@ -106,19 +127,19 @@ public class HostManager
 
     //@Property(name = "allowDuplicateIps", boolValue = true,
     //        label = "Enable removal of duplicate ip address")
-    private boolean allowDuplicateIps = true;
+    private boolean allowDuplicateIps = HM_ALLOW_DUPLICATE_IPS_DEFAULT;
 
     //@Property(name = "monitorHosts", boolValue = false,
     //        label = "Enable/Disable monitoring of hosts")
-    private boolean monitorHosts = false;
+    private boolean monitorHosts = HM_MONITOR_HOSTS_DEFAULT;
 
     //@Property(name = "probeRate", longValue = 30000,
     //        label = "Set the probe Rate in milli seconds")
-    private long probeRate = 30000;
+    private long probeRate = HM_PROBE_RATE_DEFAULT;
 
     //@Property(name = "greedyLearningIpv6", boolValue = false,
     //        label = "Enable/Disable greedy learning of IPv6 link local address")
-    private boolean greedyLearningIpv6 = false;
+    private boolean greedyLearningIpv6 = HM_GREEDY_LEARNING_IPV6_DEFAULT;
 
     private HostMonitor monitor;
 

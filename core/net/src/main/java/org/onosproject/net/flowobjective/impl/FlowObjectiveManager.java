@@ -72,13 +72,21 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.AnnotationKeys.DRIVER;
+import static org.onosproject.net.OsgiPropertyConstants.FOM_NUM_THREADS;
+import static org.onosproject.net.OsgiPropertyConstants.FOM_NUM_THREADS_DEFAULT;
 import static org.onosproject.security.AppGuard.checkPermission;
 import static org.onosproject.security.AppPermission.Type.FLOWRULE_WRITE;
 
 /**
  * Provides implementation of the flow objective programming service.
  */
-@Component(enabled = false, service = FlowObjectiveService.class)
+@Component(
+    enabled = false,
+    service = FlowObjectiveService.class,
+    property = {
+        FOM_NUM_THREADS + "=" + FOM_NUM_THREADS_DEFAULT
+    }
+)
 public class FlowObjectiveManager implements FlowObjectiveService {
 
     private static final int INSTALL_RETRY_ATTEMPTS = 5;
@@ -90,11 +98,10 @@ public class FlowObjectiveManager implements FlowObjectiveService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private static final int DEFAULT_NUM_THREADS = 4;
     //@Property(name = NUM_THREAD,
     //         intValue = DEFAULT_NUM_THREADS,
     //         label = "Number of worker threads")
-    private int numThreads = DEFAULT_NUM_THREADS;
+    private int numThreads = FOM_NUM_THREADS_DEFAULT;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DriverService driverService;

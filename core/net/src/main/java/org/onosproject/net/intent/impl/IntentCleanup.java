@@ -42,6 +42,12 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.net.OsgiPropertyConstants.ICU_ENABLED;
+import static org.onosproject.net.OsgiPropertyConstants.ICU_ENABLED_DEFAULT;
+import static org.onosproject.net.OsgiPropertyConstants.ICU_PERIOD;
+import static org.onosproject.net.OsgiPropertyConstants.ICU_PERIOD_DEFAULT;
+import static org.onosproject.net.OsgiPropertyConstants.ICU_RETRY_THRESHOLD;
+import static org.onosproject.net.OsgiPropertyConstants.ICU_RETRY_THRESHOLD_DEFAULT;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -53,7 +59,14 @@ import static org.slf4j.LoggerFactory.getLogger;
  * notifications, which signify errors in processing, and retries.
  * </p>
  */
-@Component(immediate = true)
+@Component(
+    immediate = true,
+    property = {
+        ICU_ENABLED + "=" + ICU_ENABLED_DEFAULT,
+        ICU_PERIOD + "=" + ICU_PERIOD_DEFAULT,
+        ICU_RETRY_THRESHOLD + "=" + ICU_RETRY_THRESHOLD_DEFAULT
+    }
+)
 public class IntentCleanup implements Runnable, IntentListener {
 
     private static final Logger log = getLogger(IntentCleanup.class);
@@ -61,22 +74,22 @@ public class IntentCleanup implements Runnable, IntentListener {
     // Logical timeout for stuck Intents in INSTALLING or WITHDRAWING. The unit is seconds
     private static final int INSTALLING_WITHDRAWING_PERIOD = 120;
 
-    private static final int DEFAULT_PERIOD = 5; //seconds
-    private static final int DEFAULT_THRESHOLD = 5; //tries
+
+
 
     //@Property(name = "enabled", boolValue = true,
     //          label = "Enables/disables the intent cleanup component")
-    private boolean enabled = true;
+    private boolean enabled = ICU_ENABLED_DEFAULT;
 
     //@Property(name = "period", intValue = DEFAULT_PERIOD,
     //          label = "Frequency in ms between cleanup runs")
-    protected int period = DEFAULT_PERIOD;
+    protected int period = ICU_PERIOD_DEFAULT;
     private long periodMs;
     private long periodMsForStuck;
 
     //@Property(name = "retryThreshold", intValue = DEFAULT_THRESHOLD,
     //        label = "Number of times to retry CORRUPT intent without delay")
-    protected int retryThreshold = DEFAULT_THRESHOLD;
+    protected int retryThreshold = ICU_RETRY_THRESHOLD_DEFAULT;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected IntentService service;

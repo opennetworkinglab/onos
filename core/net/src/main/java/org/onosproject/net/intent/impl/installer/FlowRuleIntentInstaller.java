@@ -61,6 +61,8 @@ import java.util.stream.Collectors;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.net.OsgiPropertyConstants.NON_DISRUPTIVE_INSTALLATION_WAITING_TIME;
+import static org.onosproject.net.OsgiPropertyConstants.NON_DISRUPTIVE_INSTALLATION_WAITING_TIME_DEFAULT;
 import static org.onosproject.net.intent.IntentInstaller.Direction.ADD;
 import static org.onosproject.net.intent.IntentInstaller.Direction.REMOVE;
 import static org.onosproject.net.intent.IntentState.INSTALLED;
@@ -71,7 +73,12 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Installer for FlowRuleIntent.
  */
-@Component(immediate = true)
+@Component(
+    immediate = true,
+    property = {
+        NON_DISRUPTIVE_INSTALLATION_WAITING_TIME + "=" + NON_DISRUPTIVE_INSTALLATION_WAITING_TIME_DEFAULT
+    }
+)
 public class FlowRuleIntentInstaller implements IntentInstaller<FlowRuleIntent> {
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected IntentExtensionService intentExtensionService;
@@ -93,11 +100,10 @@ public class FlowRuleIntentInstaller implements IntentInstaller<FlowRuleIntent> 
 
     private ScheduledExecutorService nonDisruptiveIntentInstaller;
 
-    private static final int DEFAULT_NON_DISRUPTIVE_INSTALLATION_WAITING_TIME = 1;
     //@Property(name = "nonDisruptiveInstallationWaitingTime",
     //        intValue = DEFAULT_NON_DISRUPTIVE_INSTALLATION_WAITING_TIME,
     //        label = "Number of seconds to wait during the non-disruptive installation phases")
-    private int nonDisruptiveInstallationWaitingTime = DEFAULT_NON_DISRUPTIVE_INSTALLATION_WAITING_TIME;
+    private int nonDisruptiveInstallationWaitingTime = NON_DISRUPTIVE_INSTALLATION_WAITING_TIME_DEFAULT;
 
     protected final Logger log = getLogger(IntentManager.class);
 
@@ -123,7 +129,7 @@ public class FlowRuleIntentInstaller implements IntentInstaller<FlowRuleIntent> 
     public void modified(ComponentContext context) {
 
         if (context == null) {
-            nonDisruptiveInstallationWaitingTime = DEFAULT_NON_DISRUPTIVE_INSTALLATION_WAITING_TIME;
+            nonDisruptiveInstallationWaitingTime = NON_DISRUPTIVE_INSTALLATION_WAITING_TIME_DEFAULT;
             log.info("Restored default installation time for non-disruptive reallocation (1 sec.)");
             return;
         }

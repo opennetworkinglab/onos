@@ -68,12 +68,26 @@ import static org.onlab.packet.Ethernet.TYPE_IPV6;
 import static org.onlab.packet.ICMP6.NEIGHBOR_ADVERTISEMENT;
 import static org.onlab.packet.ICMP6.NEIGHBOR_SOLICITATION;
 import static org.onlab.packet.IPv6.PROTOCOL_ICMP6;
+import static org.onosproject.net.OsgiPropertyConstants.NRM_ARP_ENABLED;
+import static org.onosproject.net.OsgiPropertyConstants.NRM_ARP_ENABLED_DEFAULT;
+import static org.onosproject.net.OsgiPropertyConstants.NRM_NDP_ENABLED;
+import static org.onosproject.net.OsgiPropertyConstants.NRM_NDP_ENABLED_DEFAULT;
+import static org.onosproject.net.OsgiPropertyConstants.NRM_REQUEST_INTERCEPTS_ENABLED;
+import static org.onosproject.net.OsgiPropertyConstants.NRM_REQUEST_INTERCEPTS_ENABLED_DEFAULT;
 import static org.onosproject.net.packet.PacketPriority.CONTROL;
 
 /**
  * Manages handlers for neighbour messages.
  */
-@Component(immediate = true, service = NeighbourResolutionService.class)
+@Component(
+    immediate = true,
+    service = NeighbourResolutionService.class,
+    property = {
+        NRM_ARP_ENABLED + "=" + NRM_ARP_ENABLED_DEFAULT,
+        NRM_NDP_ENABLED + "=" + NRM_NDP_ENABLED,
+        NRM_REQUEST_INTERCEPTS_ENABLED + "=" + NRM_REQUEST_INTERCEPTS_ENABLED_DEFAULT
+    }
+)
 public class NeighbourResolutionManager implements NeighbourResolutionService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -95,15 +109,15 @@ public class NeighbourResolutionManager implements NeighbourResolutionService {
 
     //@Property(name = "arpEnabled", boolValue = true,
     //        label = "Enable Address resolution protocol")
-    protected boolean arpEnabled = true;
+    protected boolean arpEnabled = NRM_ARP_ENABLED_DEFAULT;
 
     //@Property(name = "ndpEnabled", boolValue = false,
     //        label = "Enable IPv6 neighbour discovery")
-    protected boolean ndpEnabled = false;
+    protected boolean ndpEnabled = NRM_NDP_ENABLED_DEFAULT;
 
     //@Property(name = "requestInterceptsEnabled", boolValue = true,
     //        label = "Enable requesting packet intercepts")
-    private boolean requestInterceptsEnabled = true;
+    private boolean requestInterceptsEnabled = NRM_REQUEST_INTERCEPTS_ENABLED_DEFAULT;
 
     private static final String APP_NAME = "org.onosproject.neighbour";
     private ApplicationId appId;

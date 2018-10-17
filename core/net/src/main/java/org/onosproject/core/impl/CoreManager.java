@@ -43,6 +43,12 @@ import java.util.Dictionary;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.net.OsgiPropertyConstants.CALCULATE_PERFORMANCE_CHECK;
+import static org.onosproject.net.OsgiPropertyConstants.CALCULATE_PERFORMANCE_CHECK_DEFAULT;
+import static org.onosproject.net.OsgiPropertyConstants.MAX_EVENT_TIME_LIMIT;
+import static org.onosproject.net.OsgiPropertyConstants.MAX_EVENT_TIME_LIMIT_DEFAULT;
+import static org.onosproject.net.OsgiPropertyConstants.SHARED_THREAD_POOL_SIZE;
+import static org.onosproject.net.OsgiPropertyConstants.SHARED_THREAD_POOL_SIZE_DEFAULT;
 import static org.onosproject.security.AppGuard.checkPermission;
 import static org.onosproject.security.AppPermission.Type.APP_READ;
 import static org.onosproject.security.AppPermission.Type.APP_WRITE;
@@ -50,7 +56,15 @@ import static org.onosproject.security.AppPermission.Type.APP_WRITE;
 /**
  * Core service implementation.
  */
-@Component(immediate = true, service = CoreService.class)
+@Component(
+        immediate = true,
+        service = CoreService.class,
+        property = {
+                SHARED_THREAD_POOL_SIZE + "=" + SHARED_THREAD_POOL_SIZE_DEFAULT,
+                MAX_EVENT_TIME_LIMIT + "=" + MAX_EVENT_TIME_LIMIT_DEFAULT,
+                CALCULATE_PERFORMANCE_CHECK + "=" + CALCULATE_PERFORMANCE_CHECK_DEFAULT
+        }
+)
 public class CoreManager implements CoreService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -76,20 +90,17 @@ public class CoreManager implements CoreService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected MetricsService metricsService;
 
-    private static final int DEFAULT_POOL_SIZE = 30;
     //@Property(name = "sharedThreadPoolSize", intValue = DEFAULT_POOL_SIZE,
     //        label = "Configure shared pool maximum size ")
-    private int sharedThreadPoolSize = DEFAULT_POOL_SIZE;
+    private int sharedThreadPoolSize = SHARED_THREAD_POOL_SIZE_DEFAULT;
 
-    private static final int DEFAULT_EVENT_TIME = 2000;
     //@Property(name = "maxEventTimeLimit", intValue = DEFAULT_EVENT_TIME,
     //        label = "Maximum number of millis an event sink has to process an event")
-    private int maxEventTimeLimit = DEFAULT_EVENT_TIME;
+    private int maxEventTimeLimit = MAX_EVENT_TIME_LIMIT_DEFAULT;
 
-    private static final boolean DEFAULT_PERFORMANCE_CHECK = false;
     //@Property(name = "sharedThreadPerformanceCheck", boolValue = DEFAULT_PERFORMANCE_CHECK,
     //        label = "Enable queue performance check on shared pool")
-    private boolean calculatePoolPerformance = DEFAULT_PERFORMANCE_CHECK;
+    private boolean calculatePoolPerformance = CALCULATE_PERFORMANCE_CHECK_DEFAULT;
 
 
     @Activate

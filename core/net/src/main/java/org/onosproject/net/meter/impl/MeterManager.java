@@ -62,12 +62,26 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.net.OsgiPropertyConstants.MM_FALLBACK_METER_POLL_FREQUENCY;
+import static org.onosproject.net.OsgiPropertyConstants.MM_FALLBACK_METER_POLL_FREQUENCY_DEFAULT;
+import static org.onosproject.net.OsgiPropertyConstants.MM_NUM_THREADS;
+import static org.onosproject.net.OsgiPropertyConstants.MM_NUM_THREADS_DEFAULT;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provides implementation of the meter service APIs.
  */
-@Component(immediate = true, service = { MeterService.class, MeterProviderRegistry.class })
+@Component(
+    immediate = true,
+    service = {
+        MeterService.class,
+        MeterProviderRegistry.class
+    },
+    property = {
+        MM_NUM_THREADS + "=" + MM_NUM_THREADS_DEFAULT,
+        MM_FALLBACK_METER_POLL_FREQUENCY + "=" + MM_FALLBACK_METER_POLL_FREQUENCY_DEFAULT
+    }
+)
 public class MeterManager
         extends AbstractListenerProviderRegistry<MeterEvent, MeterListener, MeterProvider, MeterProviderService>
         implements MeterService, MeterProviderRegistry {
@@ -80,7 +94,7 @@ public class MeterManager
     //@Property(name = NUM_THREAD,
     //        intValue = DEFAULT_NUM_THREADS,
     //        label = "Number of worker threads")
-    private int numThreads = DEFAULT_NUM_THREADS;
+    private int numThreads = MM_NUM_THREADS_DEFAULT;
 
     private final Logger log = getLogger(getClass());
     private final MeterStoreDelegate delegate = new InternalMeterStoreDelegate();
@@ -100,10 +114,9 @@ public class MeterManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected MastershipService mastershipService;
 
-    private static final int DEFAULT_POLL_FREQUENCY = 30;
     //@Property(name = "fallbackMeterPollFrequency", intValue = DEFAULT_POLL_FREQUENCY,
     //        label = "Frequency (in seconds) for polling meters via fallback provider")
-    private int fallbackMeterPollFrequency = DEFAULT_POLL_FREQUENCY;
+    private int fallbackMeterPollFrequency = MM_FALLBACK_METER_POLL_FREQUENCY_DEFAULT;
 
     private TriConsumer<MeterRequest, MeterStoreResult, Throwable> onComplete;
 
@@ -167,9 +180,10 @@ public class MeterManager
 
         String s = get(properties, "fallbackMeterPollFrequency");
         try {
-            fallbackMeterPollFrequency = isNullOrEmpty(s) ? DEFAULT_POLL_FREQUENCY : Integer.parseInt(s);
+            fallbackMeterPollFrequency = isNullOrEmpty(s) ?
+                MM_FALLBACK_METER_POLL_FREQUENCY_DEFAULT : Integer.parseInt(s);
         } catch (NumberFormatException e) {
-            fallbackMeterPollFrequency = DEFAULT_POLL_FREQUENCY;
+            fallbackMeterPollFrequency = MM_FALLBACK_METER_POLL_FREQUENCY_DEFAULT;
         }
     }
 

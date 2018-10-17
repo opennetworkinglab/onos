@@ -52,6 +52,12 @@ import static java.util.concurrent.Executors.newFixedThreadPool;
 import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.core.CoreService.CORE_PROVIDER_ID;
+import static org.onosproject.net.OsgiPropertyConstants.DTP_MAX_BATCH_MS;
+import static org.onosproject.net.OsgiPropertyConstants.DTP_MAX_BATCH_MS_DEFAULT;
+import static org.onosproject.net.OsgiPropertyConstants.DTP_MAX_EVENTS;
+import static org.onosproject.net.OsgiPropertyConstants.DTP_MAX_EVENTS_DEFAULT;
+import static org.onosproject.net.OsgiPropertyConstants.DTP_MAX_IDLE_MS;
+import static org.onosproject.net.OsgiPropertyConstants.DTP_MAX_IDLE_MS_DEFAULT;
 import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_ADDED;
 import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED;
 import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_REMOVED;
@@ -62,14 +68,19 @@ import static org.slf4j.LoggerFactory.getLogger;
  * device and link subsystem events to trigger assembly and computation of
  * new topology snapshots.
  */
-@Component(immediate = true, service = TopologyProvider.class)
+@Component(
+    immediate = true,
+    service = TopologyProvider.class,
+    property = {
+        DTP_MAX_EVENTS + "=" + DTP_MAX_EVENTS_DEFAULT,
+        DTP_MAX_IDLE_MS + "=" + DTP_MAX_IDLE_MS_DEFAULT,
+        DTP_MAX_BATCH_MS + "=" + DTP_MAX_BATCH_MS_DEFAULT
+    }
+)
 public class DefaultTopologyProvider extends AbstractProvider
         implements TopologyProvider {
 
     private static final int MAX_THREADS = 8;
-    private static final int DEFAULT_MAX_EVENTS = 1000;
-    private static final int DEFAULT_MAX_IDLE_MS = 10;
-    private static final int DEFAULT_MAX_BATCH_MS = 50;
 
     // FIXME: Replace with a system-wide timer instance;
     // TODO: Convert to use HashedWheelTimer or produce a variant of that; then decide which we want to adopt
@@ -77,15 +88,15 @@ public class DefaultTopologyProvider extends AbstractProvider
 
     //@Property(name = "maxEvents", intValue = DEFAULT_MAX_EVENTS,
     //        label = "Maximum number of events to accumulate")
-    private int maxEvents = DEFAULT_MAX_EVENTS;
+    private int maxEvents = DTP_MAX_EVENTS_DEFAULT;
 
     //@Property(name = "maxIdleMs", intValue = DEFAULT_MAX_IDLE_MS,
     //        label = "Maximum number of millis between events")
-    private int maxIdleMs = DEFAULT_MAX_IDLE_MS;
+    private int maxIdleMs = DTP_MAX_IDLE_MS_DEFAULT;
 
     //@Property(name = "maxBatchMs", intValue = DEFAULT_MAX_BATCH_MS,
     //        label = "Maximum number of millis for whole batch")
-    private int maxBatchMs = DEFAULT_MAX_BATCH_MS;
+    private int maxBatchMs = DTP_MAX_BATCH_MS_DEFAULT;
 
     private final Logger log = getLogger(getClass());
 
@@ -172,9 +183,9 @@ public class DefaultTopologyProvider extends AbstractProvider
             newMaxIdleMs = isNullOrEmpty(s) ? maxIdleMs : Integer.parseInt(s.trim());
 
         } catch (NumberFormatException | ClassCastException e) {
-            newMaxEvents = DEFAULT_MAX_EVENTS;
-            newMaxBatchMs = DEFAULT_MAX_BATCH_MS;
-            newMaxIdleMs = DEFAULT_MAX_IDLE_MS;
+            newMaxEvents = DTP_MAX_EVENTS_DEFAULT;
+            newMaxBatchMs = DTP_MAX_BATCH_MS_DEFAULT;
+            newMaxIdleMs = DTP_MAX_IDLE_MS_DEFAULT;
         }
 
         if (newMaxEvents != maxEvents || newMaxBatchMs != maxBatchMs || newMaxIdleMs != maxIdleMs) {

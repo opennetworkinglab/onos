@@ -67,6 +67,8 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Lock;
 
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.net.OsgiPropertyConstants.PWM_PROBE_INTERVAL;
+import static org.onosproject.net.OsgiPropertyConstants.PWM_PROBE_INTERVAL_DEFAULT;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -74,7 +76,13 @@ import static org.slf4j.LoggerFactory.getLogger;
  * pipeline probe task and listens for device events to update the status of the
  * pipeline.
  */
-@Component(immediate = true, service = PiPipeconfWatchdogService.class)
+@Component(
+    immediate = true,
+    service = PiPipeconfWatchdogService.class,
+    property = {
+        PWM_PROBE_INTERVAL + "=" + PWM_PROBE_INTERVAL_DEFAULT
+    }
+)
 public class PiPipeconfWatchdogManager
         extends AbstractListenerManager<PiPipeconfWatchdogEvent, PiPipeconfWatchdogListener>
         implements PiPipeconfWatchdogService {
@@ -104,11 +112,9 @@ public class PiPipeconfWatchdogManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private ComponentConfigService componentConfigService;
 
-    private static final String PROBE_INTERVAL = "probeInterval";
-    private static final int DEFAULT_PROBE_INTERVAL = 15;
     //@Property(name = PROBE_INTERVAL, intValue = DEFAULT_PROBE_INTERVAL,
     //        label = "Configure interval in seconds for device pipeconf probing")
-    private int probeInterval = DEFAULT_PROBE_INTERVAL;
+    private int probeInterval = PWM_PROBE_INTERVAL_DEFAULT;
 
     protected ExecutorService executor = Executors.newFixedThreadPool(
             30, groupedThreads("onos/pipeconf-watchdog", "%d", log));
@@ -155,9 +161,9 @@ public class PiPipeconfWatchdogManager
         Dictionary<?, ?> properties = context.getProperties();
         final int oldProbeInterval = probeInterval;
         probeInterval = Tools.getIntegerProperty(
-                properties, PROBE_INTERVAL, DEFAULT_PROBE_INTERVAL);
+                properties, PWM_PROBE_INTERVAL, PWM_PROBE_INTERVAL_DEFAULT);
         log.info("Configured. {} is configured to {} seconds",
-                 PROBE_INTERVAL, probeInterval);
+                 PWM_PROBE_INTERVAL_DEFAULT, probeInterval);
 
         if (oldProbeInterval != probeInterval) {
             rescheduleProbeTask();

@@ -75,6 +75,10 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.net.OsgiPropertyConstants.IM_NUM_THREADS;
+import static org.onosproject.net.OsgiPropertyConstants.IM_NUM_THREADS_DEFAULT;
+import static org.onosproject.net.OsgiPropertyConstants.IM_SKIP_RELEASE_RESOURCES_ON_WITHDRAWAL;
+import static org.onosproject.net.OsgiPropertyConstants.IM_SKIP_RELEASE_RESOURCES_ON_WITHDRAWAL_DEFAULT;
 import static org.onosproject.net.intent.IntentState.FAILED;
 import static org.onosproject.net.intent.IntentState.INSTALL_REQ;
 import static org.onosproject.net.intent.IntentState.WITHDRAWING;
@@ -90,8 +94,18 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * An implementation of intent service.
  */
-@Component(immediate = true,
-           service = { IntentService.class, IntentExtensionService.class, IntentInstallCoordinator.class })
+@Component(
+    immediate = true,
+    service = {
+        IntentService.class,
+        IntentExtensionService.class,
+        IntentInstallCoordinator.class
+    },
+    property = {
+        IM_SKIP_RELEASE_RESOURCES_ON_WITHDRAWAL + "=" + IM_SKIP_RELEASE_RESOURCES_ON_WITHDRAWAL_DEFAULT,
+        IM_NUM_THREADS + "=" + IM_NUM_THREADS_DEFAULT
+    }
+)
 public class IntentManager
         extends AbstractListenerManager<IntentEvent, IntentListener>
         implements IntentService, IntentExtensionService, IntentInstallCoordinator {
@@ -106,17 +120,15 @@ public class IntentManager
     private static final EnumSet<IntentState> WITHDRAW
             = EnumSet.of(WITHDRAW_REQ, WITHDRAWING, WITHDRAWN);
 
-    private static final boolean DEFAULT_SKIP_RELEASE_RESOURCES_ON_WITHDRAWAL = false;
     //@Property(name = "skipReleaseResourcesOnWithdrawal",
     //        boolValue = DEFAULT_SKIP_RELEASE_RESOURCES_ON_WITHDRAWAL,
     //        label = "Indicates whether skipping resource releases on withdrawal is enabled or not")
-    private boolean skipReleaseResourcesOnWithdrawal = DEFAULT_SKIP_RELEASE_RESOURCES_ON_WITHDRAWAL;
+    private boolean skipReleaseResourcesOnWithdrawal = IM_SKIP_RELEASE_RESOURCES_ON_WITHDRAWAL_DEFAULT;
 
-    private static final int DEFAULT_NUM_THREADS = 12;
     //@Property(name = "numThreads",
     //        intValue = DEFAULT_NUM_THREADS,
     //        label = "Number of worker threads")
-    private int numThreads = DEFAULT_NUM_THREADS;
+    private int numThreads = IM_NUM_THREADS_DEFAULT;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
@@ -201,7 +213,7 @@ public class IntentManager
     @Modified
     public void modified(ComponentContext context) {
         if (context == null) {
-            skipReleaseResourcesOnWithdrawal = DEFAULT_SKIP_RELEASE_RESOURCES_ON_WITHDRAWAL;
+            skipReleaseResourcesOnWithdrawal = IM_SKIP_RELEASE_RESOURCES_ON_WITHDRAWAL_DEFAULT;
             logConfig("Default config");
             return;
         }

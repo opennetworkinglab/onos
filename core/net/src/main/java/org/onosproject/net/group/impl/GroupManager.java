@@ -59,6 +59,10 @@ import java.util.concurrent.Executors;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.net.OsgiPropertyConstants.GM_POLL_FREQUENCY;
+import static org.onosproject.net.OsgiPropertyConstants.GM_POLL_FREQUENCY_DEFAULT;
+import static org.onosproject.net.OsgiPropertyConstants.GM_PURGE_ON_DISCONNECTION;
+import static org.onosproject.net.OsgiPropertyConstants.GM_PURGE_ON_DISCONNECTION_DEFAULT;
 import static org.onosproject.security.AppGuard.checkPermission;
 import static org.onosproject.security.AppPermission.Type.GROUP_READ;
 import static org.onosproject.security.AppPermission.Type.GROUP_WRITE;
@@ -67,7 +71,17 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Provides implementation of the group service APIs.
  */
-@Component(immediate = true, service = { GroupService.class, GroupProviderRegistry.class })
+@Component(
+        immediate = true,
+        service = {
+            GroupService.class,
+            GroupProviderRegistry.class
+        },
+        property = {
+            GM_POLL_FREQUENCY + "=" + GM_POLL_FREQUENCY_DEFAULT,
+            GM_PURGE_ON_DISCONNECTION + "=" + GM_PURGE_ON_DISCONNECTION_DEFAULT
+        }
+)
 public class GroupManager
         extends AbstractListenerProviderRegistry<GroupEvent, GroupListener,
         GroupProvider, GroupProviderService>
@@ -98,14 +112,13 @@ public class GroupManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected MastershipService mastershipService;
 
-    private static final int DEFAULT_POLL_FREQUENCY = 30;
     //@Property(name = "fallbackGroupPollFrequency", intValue = DEFAULT_POLL_FREQUENCY,
     //        label = "Frequency (in seconds) for polling groups via fallback provider")
-    private int fallbackGroupPollFrequency = DEFAULT_POLL_FREQUENCY;
+    private int fallbackGroupPollFrequency = GM_POLL_FREQUENCY_DEFAULT;
 
     //@Property(name = "purgeOnDisconnection", boolValue = false,
     //        label = "Purge entries associated with a device when the device goes offline")
-    private boolean purgeOnDisconnection = false;
+    private boolean purgeOnDisconnection = GM_PURGE_ON_DISCONNECTION_DEFAULT;
 
 
     @Activate
@@ -164,9 +177,9 @@ public class GroupManager
         }
         String s = get(properties, "fallbackGroupPollFrequency");
         try {
-            fallbackGroupPollFrequency = isNullOrEmpty(s) ? DEFAULT_POLL_FREQUENCY : Integer.parseInt(s);
+            fallbackGroupPollFrequency = isNullOrEmpty(s) ? GM_POLL_FREQUENCY_DEFAULT : Integer.parseInt(s);
         } catch (NumberFormatException e) {
-            fallbackGroupPollFrequency = DEFAULT_POLL_FREQUENCY;
+            fallbackGroupPollFrequency = GM_POLL_FREQUENCY_DEFAULT;
         }
     }
 

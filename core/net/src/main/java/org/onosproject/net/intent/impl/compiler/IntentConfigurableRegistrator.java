@@ -35,13 +35,32 @@ import org.slf4j.Logger;
 import java.util.Map;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.onosproject.net.OsgiPropertyConstants.ICR_COPY_TTL;
+import static org.onosproject.net.OsgiPropertyConstants.ICR_COPY_TTL_DEFAULT;
+import static org.onosproject.net.OsgiPropertyConstants.ICR_FLOW_OPTIMIZATION;
+import static org.onosproject.net.OsgiPropertyConstants.ICR_LABEL_SELECTION;
+import static org.onosproject.net.OsgiPropertyConstants.ICR_OPT_LABEL_SELECTION;
+import static org.onosproject.net.OsgiPropertyConstants.ICR_USE_FLOW_OBJECTIVES;
+import static org.onosproject.net.OsgiPropertyConstants.ICR_USE_FLOW_OBJECTIVES_DEFAULT;
+import static org.onosproject.net.OsgiPropertyConstants.ICR_FLOW_OPTIMIZATION_DEFAULT;
+import static org.onosproject.net.OsgiPropertyConstants.ICR_LABEL_SELECTION_DEFAULT;
+import static org.onosproject.net.OsgiPropertyConstants.ICR_OPT_LABEL_SELECTION_DEFAULT;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Auxiliary utility to register either flow-rule compilers or flow-objective
  * compilers.
  */
-@Component(service = IntentConfigurableRegistrator.class)
+@Component(
+    service = IntentConfigurableRegistrator.class,
+    property = {
+        ICR_USE_FLOW_OBJECTIVES + "=" + ICR_USE_FLOW_OBJECTIVES_DEFAULT,
+        ICR_LABEL_SELECTION + "=" + ICR_LABEL_SELECTION_DEFAULT,
+        ICR_OPT_LABEL_SELECTION + "=" + ICR_LABEL_SELECTION_DEFAULT,
+        ICR_FLOW_OPTIMIZATION + "=" + ICR_FLOW_OPTIMIZATION_DEFAULT,
+        ICR_COPY_TTL + "=" + ICR_COPY_TTL_DEFAULT
+    }
+)
 public class IntentConfigurableRegistrator {
 
     private final Logger log = getLogger(getClass());
@@ -52,35 +71,30 @@ public class IntentConfigurableRegistrator {
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService cfgService;
 
-    private static final boolean DEFAULT_FLOW_OBJECTIVES = false;
     //@Property(name = "useFlowObjectives",
     //        boolValue = DEFAULT_FLOW_OBJECTIVES,
     //        label = "Indicates whether or not to use flow objective-based compilers")
-    private boolean useFlowObjectives = DEFAULT_FLOW_OBJECTIVES;
+    private boolean useFlowObjectives = ICR_USE_FLOW_OBJECTIVES_DEFAULT;
 
-    private static final String DEFAULT_LABEL_SELECTION = "RANDOM";
     //@Property(name = "labelSelection",
     //        value = DEFAULT_LABEL_SELECTION,
     //        label = "Defines the label selection algorithm - RANDOM or FIRST_FIT")
-    private String labelSelection = DEFAULT_LABEL_SELECTION;
+    private String labelSelection = ICR_LABEL_SELECTION_DEFAULT;
 
-    private static final String DEFAULT_OPT_LABEL_SELECTION = "NONE";
     //@Property(name = "optLabelSelection",
     //        value = DEFAULT_OPT_LABEL_SELECTION,
     //        label = "Defines the optimization for label selection algorithm - NONE, NO_SWAP, MIN_SWAP")
-    private String optLabelSelection = DEFAULT_OPT_LABEL_SELECTION;
+    private String optLabelSelection = ICR_OPT_LABEL_SELECTION_DEFAULT;
 
-    private static final boolean DEFAULT_FLOW_OPTIMIZATION = false;
     //@Property(name = "optimizeInstructions",
     //        boolValue = DEFAULT_FLOW_OPTIMIZATION,
     //        label = "Indicates whether or not to optimize the flows in the link collection compiler")
-    private boolean optimizeInstructions = DEFAULT_FLOW_OPTIMIZATION;
+    private boolean optimizeInstructions = ICR_FLOW_OPTIMIZATION_DEFAULT;
 
-    private static final boolean DEFAULT_COPY_TTL = false;
     //@Property(name = "useCopyTtl",
     //        boolValue = DEFAULT_COPY_TTL,
     //        label = "Indicates whether or not to use copy ttl in the link collection compiler")
-    private boolean useCopyTtl = DEFAULT_COPY_TTL;
+    private boolean useCopyTtl = ICR_COPY_TTL_DEFAULT;
 
     private final Map<Class<Intent>, IntentCompiler<Intent>> flowRuleBased = Maps.newConcurrentMap();
 

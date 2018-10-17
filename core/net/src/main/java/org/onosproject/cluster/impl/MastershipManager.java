@@ -75,14 +75,25 @@ import static org.onosproject.security.AppGuard.checkPermission;
 import static org.onosproject.security.AppPermission.Type.CLUSTER_READ;
 import static org.onosproject.security.AppPermission.Type.CLUSTER_WRITE;
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.onosproject.net.OsgiPropertyConstants.*;
 
 
 /**
  * Component providing the node-device mastership service.
  */
-@Component(immediate = true,
-           service = {MastershipService.class, MastershipAdminService.class, MastershipTermService.class,
-                      MetricsHelper.class})
+@Component(
+        immediate = true,
+        service = {
+                MastershipService.class,
+                MastershipAdminService.class,
+                MastershipTermService.class,
+                MetricsHelper.class
+        },
+        property = {
+                USE_REGION_FOR_BALANCE_ROLES + "=" + USE_REGION_FOR_BALANCE_ROLES_DEFAULT,
+                REBALANCE_ROLES_ON_UPGRADE + "=" + REBALANCE_ROLES_ON_UPGRADE_DEFAULT
+        }
+)
 public class MastershipManager
         extends AbstractListenerManager<MastershipEvent, MastershipListener>
         implements MastershipService, MastershipAdminService, MastershipTermService,
@@ -118,16 +129,14 @@ public class MastershipManager
     private NodeId localNodeId;
     private Timer requestRoleTimer;
 
-    static final boolean DEFAULT_USE_REGION_FOR_BALANCE_ROLES = false;
     //@Property(name = "useRegionForBalanceRoles", boolValue = DEFAULT_USE_REGION_FOR_BALANCE_ROLES,
     //        label = "Use Regions for balancing roles")
-    protected boolean useRegionForBalanceRoles;
+    protected boolean useRegionForBalanceRoles = USE_REGION_FOR_BALANCE_ROLES_DEFAULT;
 
-    private static final boolean DEFAULT_REBALANCE_ROLES_ON_UPGRADE = true;
     //@Property(name = "rebalanceRolesOnUpgrade",
     //        boolValue = DEFAULT_REBALANCE_ROLES_ON_UPGRADE,
     //        label = "Automatically rebalance roles following an upgrade")
-    protected boolean rebalanceRolesOnUpgrade = DEFAULT_REBALANCE_ROLES_ON_UPGRADE;
+    protected boolean rebalanceRolesOnUpgrade = REBALANCE_ROLES_ON_UPGRADE_DEFAULT;
 
     @Activate
     public void activate() {

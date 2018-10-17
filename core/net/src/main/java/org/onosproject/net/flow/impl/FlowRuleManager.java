@@ -80,6 +80,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.net.OsgiPropertyConstants.ALLOW_EXTRANEOUS_RULES;
+import static org.onosproject.net.OsgiPropertyConstants.ALLOW_EXTRANEOUS_RULES_DEFAULT;
+import static org.onosproject.net.OsgiPropertyConstants.POLL_FREQUENCY;
+import static org.onosproject.net.OsgiPropertyConstants.POLL_FREQUENCY_DEFAULT;
+import static org.onosproject.net.OsgiPropertyConstants.PURGE_ON_DISCONNECTION;
+import static org.onosproject.net.OsgiPropertyConstants.PURGE_ON_DISCONNECTION_DEFAULT;
 import static org.onosproject.net.flow.FlowRuleEvent.Type.RULE_ADD_REQUESTED;
 import static org.onosproject.net.flow.FlowRuleEvent.Type.RULE_REMOVE_REQUESTED;
 import static org.onosproject.security.AppGuard.checkPermission;
@@ -90,7 +96,18 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Provides implementation of the flow NB &amp; SB APIs.
  */
-@Component(immediate = true, service = { FlowRuleService.class, FlowRuleProviderRegistry.class })
+@Component(
+    immediate = true,
+    service = {
+        FlowRuleService.class,
+        FlowRuleProviderRegistry.class
+    },
+    property = {
+        ALLOW_EXTRANEOUS_RULES + "=" + ALLOW_EXTRANEOUS_RULES_DEFAULT,
+        PURGE_ON_DISCONNECTION + "=" + PURGE_ON_DISCONNECTION_DEFAULT,
+        POLL_FREQUENCY + "=" + POLL_FREQUENCY_DEFAULT
+    }
+)
 public class FlowRuleManager
         extends AbstractListenerProviderRegistry<FlowRuleEvent, FlowRuleListener,
                                                  FlowRuleProvider, FlowRuleProviderService>
@@ -100,20 +117,18 @@ public class FlowRuleManager
 
     private static final String DEVICE_ID_NULL = "Device ID cannot be null";
     private static final String FLOW_RULE_NULL = "FlowRule cannot be null";
-    private static final boolean ALLOW_EXTRANEOUS_RULES = false;
 
     //@Property(name = "allowExtraneousRules", boolValue = ALLOW_EXTRANEOUS_RULES,
     //        label = "Allow flow rules in switch not installed by ONOS")
-    private boolean allowExtraneousRules = ALLOW_EXTRANEOUS_RULES;
+    private boolean allowExtraneousRules = ALLOW_EXTRANEOUS_RULES_DEFAULT;
 
     //@Property(name = "purgeOnDisconnection", boolValue = false,
     //        label = "Purge entries associated with a device when the device goes offline")
-    private boolean purgeOnDisconnection = false;
+    private boolean purgeOnDisconnection = PURGE_ON_DISCONNECTION_DEFAULT;
 
-    private static final int DEFAULT_POLL_FREQUENCY = 30;
     //@Property(name = "fallbackFlowPollFrequency", intValue = DEFAULT_POLL_FREQUENCY,
     //        label = "Frequency (in seconds) for polling flow statistics via fallback provider")
-    private int fallbackFlowPollFrequency = DEFAULT_POLL_FREQUENCY;
+    private int fallbackFlowPollFrequency = POLL_FREQUENCY_DEFAULT;
 
     private final FlowRuleStoreDelegate delegate = new InternalStoreDelegate();
     private final DeviceListener deviceListener = new InternalDeviceListener();
