@@ -285,6 +285,7 @@ public final class OpenstackSwitchingArpHandler {
             if (!install) {
                 long numOfDupGws = osNetworkService.subnets().stream()
                         .filter(s -> !s.getId().equals(osSubnet.getId()))
+                        .filter(s -> s.getGateway() != null)
                         .filter(s -> s.getGateway().equals(osSubnet.getGateway()))
                         .count();
                 if (numOfDupGws > 0) {
