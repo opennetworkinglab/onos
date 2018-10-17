@@ -64,6 +64,14 @@ public interface InstancePortService
     InstancePort instancePort(DeviceId deviceId, PortNumber portNumber);
 
     /**
+     * Returns instance ports with the given device identifier.
+     *
+     * @param deviceId device identifier
+     * @return set of instance ports; empty list if no port exists
+     */
+    Set<InstancePort> instancePort(DeviceId deviceId);
+
+    /**
      * Returns all instance ports.
      *
      * @return set of instance ports; empty list if no port exists
