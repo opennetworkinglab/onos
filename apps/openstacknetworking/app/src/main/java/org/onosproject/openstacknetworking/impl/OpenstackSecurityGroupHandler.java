@@ -25,6 +25,7 @@ import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.TpPort;
+import org.onlab.packet.VlanId;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.ClusterService;
@@ -170,6 +171,9 @@ public class OpenstackSecurityGroupHandler {
     private static final String INGRESS = "INGRESS";
     private static final IpPrefix IP_PREFIX_ANY = Ip4Prefix.valueOf("0.0.0.0/0");
 
+    private static final String VXLAN = "VXLAN";
+    private static final String VLAN = "VLAN";
+
     // We expose pipeline structure to SONA application considering removing pipeline soon.
     private static final int GOTO_CONNTRACK_TABLE = CT_TABLE;
     private static final int GOTO_JUMP_TABLE = JUMP_TABLE;
@@ -283,9 +287,9 @@ public class OpenstackSecurityGroupHandler {
         if (sgRule.getRemoteGroupId() != null && !sgRule.getRemoteGroupId().isEmpty()) {
             getRemoteInstPorts(port.getTenantId(), sgRule.getRemoteGroupId())
                     .forEach(rInstPort -> {
-                        populateSecurityGroupRule(sgRule, instPort,
+                        populateSecurityGroupRule(sgRule, instPort, port,
                                 rInstPort.ipAddress().toIpPrefix(), install);
-                        populateSecurityGroupRule(sgRule, rInstPort,
+                        populateSecurityGroupRule(sgRule, rInstPort, port,
                                 instPort.ipAddress().toIpPrefix(), install);
 
                         SecurityGroupRule rSgRule =
@@ -295,13 +299,13 @@ public class OpenstackSecurityGroupHandler {
                                 .direction(sgRule.getDirection().toUpperCase()
                                             .equals(EGRESS) ? INGRESS : EGRESS)
                                 .build();
-                        populateSecurityGroupRule(rSgRule, instPort,
+                        populateSecurityGroupRule(rSgRule, instPort, port,
                                 rInstPort.ipAddress().toIpPrefix(), install);
-                        populateSecurityGroupRule(rSgRule, rInstPort,
+                        populateSecurityGroupRule(rSgRule, rInstPort, port,
                                 instPort.ipAddress().toIpPrefix(), install);
                     });
         } else {
-            populateSecurityGroupRule(sgRule, instPort,
+            populateSecurityGroupRule(sgRule, instPort, port,
                     sgRule.getRemoteIpPrefix() == null ? IP_PREFIX_ANY :
                     IpPrefix.valueOf(sgRule.getRemoteIpPrefix()), install);
         }
@@ -309,9 +313,11 @@ public class OpenstackSecurityGroupHandler {
 
     private void populateSecurityGroupRule(SecurityGroupRule sgRule,
                                            InstancePort instPort,
-                                           IpPrefix remoteIp, boolean install) {
+                                           Port port,
+                                           IpPrefix remoteIp,
+                                           boolean install) {
         Set<TrafficSelector> selectors = buildSelectors(sgRule,
-                Ip4Address.valueOf(instPort.ipAddress().toInetAddress()), remoteIp);
+                Ip4Address.valueOf(instPort.ipAddress().toInetAddress()), remoteIp, port);
         if (selectors == null || selectors.isEmpty()) {
             return;
         }
@@ -417,7 +423,8 @@ public class OpenstackSecurityGroupHandler {
 
     private Set<TrafficSelector> buildSelectors(SecurityGroupRule sgRule,
                                                 Ip4Address vmIp,
-                                                IpPrefix remoteIp) {
+                                                IpPrefix remoteIp,
+                                                Port port) {
         if (remoteIp != null && remoteIp.equals(IpPrefix.valueOf(vmIp, 32))) {
             // do nothing if the remote IP is my IP
             return null;
@@ -426,7 +433,7 @@ public class OpenstackSecurityGroupHandler {
         Set<TrafficSelector> selectorSet = Sets.newHashSet();
 
         TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
-        buildMatches(sBuilder, sgRule, vmIp, remoteIp);
+        buildMatches(sBuilder, sgRule, vmIp, remoteIp, port);
 
         if (sgRule.getPortRangeMax() != null && sgRule.getPortRangeMin() != null &&
                 sgRule.getPortRangeMin() < sgRule.getPortRangeMax()) {
@@ -461,7 +468,8 @@ public class OpenstackSecurityGroupHandler {
 
     private void buildMatches(TrafficSelector.Builder sBuilder,
                               SecurityGroupRule sgRule,
-                              Ip4Address vmIp, IpPrefix remoteIp) {
+                              Ip4Address vmIp, IpPrefix remoteIp, Port port) {
+        buildTunnelId(sBuilder, port);
         buildMatchEthType(sBuilder, sgRule.getEtherType());
         buildMatchDirection(sBuilder, sgRule.getDirection(), vmIp);
         buildMatchProto(sBuilder, sgRule.getProtocol());
@@ -471,6 +479,17 @@ public class OpenstackSecurityGroupHandler {
         buildMatchRemoteIp(sBuilder, remoteIp, sgRule.getDirection());
         if (sgRule.getRemoteGroupId() != null && sgRule.getRemoteGroupId().isEmpty()) {
             buildMatchRemoteIp(sBuilder, remoteIp, sgRule.getDirection());
+        }
+    }
+
+    private void buildTunnelId(TrafficSelector.Builder sBuilder, Port port) {
+        String segId = osNetService.segmentId(port.getNetworkId());
+        String netType = osNetService.networkType(port.getNetworkId());
+
+        if (VLAN.equals(netType)) {
+            sBuilder.matchVlanId(VlanId.vlanId(segId));
+        } else if (VXLAN.equals(netType)) {
+            sBuilder.matchTunnelId(Long.valueOf(segId));
         }
     }
 
@@ -689,8 +708,11 @@ public class OpenstackSecurityGroupHandler {
         public void event(InstancePortEvent event) {
             InstancePort instPort = event.subject();
             switch (event.type()) {
-                case OPENSTACK_INSTANCE_PORT_DETECTED:
                 case OPENSTACK_INSTANCE_PORT_UPDATED:
+                    if (instPort.state() == REMOVE_PENDING) {
+                        break;
+                    }
+                case OPENSTACK_INSTANCE_PORT_DETECTED:
                     log.debug("Instance port detected MAC:{} IP:{}",
                             instPort.macAddress(),
                             instPort.ipAddress());

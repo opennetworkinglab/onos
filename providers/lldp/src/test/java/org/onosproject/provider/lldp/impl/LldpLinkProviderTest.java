@@ -652,9 +652,9 @@ public class LldpLinkProviderTest {
 
         @Override
         public InboundPacket inPacket() {
-            ONOSLLDP lldp = ONOSLLDP.onosLLDP(deviceService.getDevice(DID1).id().toString(),
-                                              device.chassisId(),
-                                              (int) pd1.number().toLong());
+            ONOSLLDP lldp = ONOSLLDP.onosSecureLLDP(deviceService.getDevice(DID1).id().toString(),
+                                                    device.chassisId(),
+                                                    (int) pd1.number().toLong(), "", "test");
 
             Ethernet ethPacket = new Ethernet();
             ethPacket.setEtherType(Ethernet.TYPE_LLDP);

@@ -121,6 +121,7 @@ public class ConfigFileBasedClusterMetadataProvider implements ClusterMetadataPr
                 .stream()
                 .map(this::toPrototype)
                 .collect(Collectors.toSet()));
+        prototype.setClusterSecret(metadata.getClusterSecret());
         return prototype;
     }
 
@@ -276,7 +277,8 @@ public class ConfigFileBasedClusterMetadataProvider implements ClusterMetadataPr
                     metadata.getStorage()
                         .stream()
                         .map(node -> new DefaultControllerNode(getNodeId(node), getNodeHost(node), getNodePort(node)))
-                        .collect(Collectors.toSet())),
+                        .collect(Collectors.toSet()),
+                    metadata.getClusterSecret()),
                 version);
         } catch (IOException e) {
             throw new IllegalArgumentException(e);
@@ -309,6 +311,7 @@ public class ConfigFileBasedClusterMetadataProvider implements ClusterMetadataPr
         private NodePrototype node;
         private Set<NodePrototype> controller = Sets.newHashSet();
         private Set<NodePrototype> storage = Sets.newHashSet();
+        private String clusterSecret;
 
         public String getName() {
             return name;
@@ -340,6 +343,14 @@ public class ConfigFileBasedClusterMetadataProvider implements ClusterMetadataPr
 
         public void setStorage(Set<NodePrototype> storage) {
             this.storage = storage;
+        }
+
+        public void setClusterSecret(String clusterSecret) {
+            this.clusterSecret = clusterSecret;
+        }
+
+        public String getClusterSecret() {
+            return clusterSecret;
         }
     }
 

@@ -31,7 +31,8 @@ public class ClusterMetadataServiceAdapter implements ClusterMetadataService {
                 "test-cluster",
                 new DefaultControllerNode(nid, addr),
                 Sets.newHashSet(),
-                Sets.newHashSet());
+                Sets.newHashSet(),
+                "test-secret");
     }
 
     @Override

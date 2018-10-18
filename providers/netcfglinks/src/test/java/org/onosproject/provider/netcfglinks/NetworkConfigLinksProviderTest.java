@@ -147,9 +147,9 @@ public class NetworkConfigLinksProviderTest {
 
         @Override
         public InboundPacket inPacket() {
-            ONOSLLDP lldp = ONOSLLDP.onosLLDP(src.deviceId().toString(),
-                                              new ChassisId(),
-                                              (int) src.port().toLong());
+            ONOSLLDP lldp = ONOSLLDP.onosSecureLLDP(src.deviceId().toString(),
+                                                    new ChassisId(),
+                                                    (int) src.port().toLong(), "", "test-secret");
 
             Ethernet ethPacket = new Ethernet();
             ethPacket.setEtherType(Ethernet.TYPE_LLDP);

@@ -476,6 +476,7 @@ public class OpenstackRoutingArpHandler {
     private void setArpRule(NetFloatingIP fip, MacAddress targetMac,
                             OpenstackNode gateway, boolean install) {
         TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchInPort(gateway.uplinkPortNum())
                 .matchEthType(EthType.EtherType.ARP.ethType().toShort())
                 .matchArpOp(ARP.OP_REQUEST)
                 .matchArpTpa(Ip4Address.valueOf(fip.getFloatingIpAddress()))
@@ -583,7 +584,8 @@ public class OpenstackRoutingArpHandler {
             // do not allow to proceed without leadership
             NodeId leader = leadershipService.getLeader(appId.name());
             return Objects.equals(localNodeId, leader) &&
-                    DEVICE_OWNER_ROUTER_GW.equals(osPort.getDeviceOwner());
+                    DEVICE_OWNER_ROUTER_GW.equals(osPort.getDeviceOwner()) &&
+                        ARP_BROADCAST_MODE.equals(getArpMode());
         }
 
         @Override

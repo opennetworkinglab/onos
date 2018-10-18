@@ -290,7 +290,7 @@ public class GnmiDeviceDescriptionDiscovery
             case "SPEED_10MB":
                 return 10;
             case "SPEED_100MB":
-                return 10;
+                return 100;
             case "SPEED_1GB":
                 return 1000;
             case "SPEED_10GB":

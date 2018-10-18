@@ -173,6 +173,12 @@ public class LinkDiscovery implements TimerTask {
             } else {
                 lt = eth.getEtherType() == Ethernet.TYPE_LLDP ?
                         Type.DIRECT : Type.INDIRECT;
+
+                /* Verify MAC in LLDP packets */
+                if (!ONOSLLDP.verify(onoslldp, context.lldpSecret(), context.maxDiscoveryDelay())) {
+                    log.warn("LLDP Packet failed to validate!");
+                    return true;
+                }
             }
 
             PortNumber srcPort = portNumber(onoslldp.getPort());
@@ -269,7 +275,8 @@ public class LinkDiscovery implements TimerTask {
     }
 
     private ONOSLLDP getLinkProbe(Long portNumber, String portDesc) {
-        return ONOSLLDP.onosLLDP(device.id().toString(), device.chassisId(), portNumber.intValue(), portDesc);
+        return ONOSLLDP.onosSecureLLDP(device.id().toString(), device.chassisId(), portNumber.intValue(), portDesc,
+                                       context.lldpSecret());
     }
 
     private void sendProbes(Long portNumber, String portDesc) {

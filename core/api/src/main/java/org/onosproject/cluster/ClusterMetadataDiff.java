@@ -37,6 +37,7 @@ public class ClusterMetadataDiff {
     private final ClusterMetadata newValue;
     private final Set<ControllerNode> nodesAdded;
     private final Set<NodeId> nodesRemoved;
+    private final boolean secretChanged;
 
      public ClusterMetadataDiff(ClusterMetadata oldValue, ClusterMetadata newValue) {
          this.oldValue = oldValue;
@@ -51,6 +52,20 @@ public class ClusterMetadataDiff {
                             .stream()
                             .map(ControllerNode::id)
                             .collect(Collectors.toSet());
+
+         boolean haveOldSecret = (oldValue != null && oldValue.getClusterSecret() != null);
+         boolean haveNewSecret = (newValue != null && newValue.getClusterSecret() != null);
+
+         if (!haveOldSecret && haveNewSecret) {
+             secretChanged = true;
+         } else if (haveOldSecret && haveNewSecret &&
+                 !oldValue.getClusterSecret().equals(newValue.getClusterSecret())) {
+             secretChanged = true;
+         } else if (haveOldSecret && !haveNewSecret) {
+             secretChanged = true;
+         } else {
+             secretChanged = false;
+         }
      }
 
     /**
@@ -67,6 +82,14 @@ public class ClusterMetadataDiff {
      */
     public Set<NodeId> nodesRemoved() {
         return nodesRemoved;
+    }
+
+    /**
+     * Returns whether the cluster-wide shared secret changed.
+     * @return  whether the cluster secret changed
+     */
+    public boolean clusterSecretChanged() {
+        return secretChanged;
     }
 
     /**

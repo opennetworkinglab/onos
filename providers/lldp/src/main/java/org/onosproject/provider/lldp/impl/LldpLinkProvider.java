@@ -99,6 +99,7 @@ import static org.slf4j.LoggerFactory.getLogger;
                 PROP_USE_BDDP + ":Boolean=" + USE_BDDP_DEFAULT,
                 PROP_PROBE_RATE + ":Integer=" + PROBE_RATE_DEFAULT,
                 PROP_STALE_LINK_AGE + ":Integer=" + STALE_LINK_AGE_DEFAULT,
+                PROP_DISCOVERY_DELAY + ":Integer=" + DISCOVERY_DELAY_DEFAULT,
         })
 public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProvider {
 
@@ -106,7 +107,7 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
 
     private static final String FORMAT =
             "Settings: enabled={}, useBDDP={}, probeRate={}, " +
-                    "staleLinkAge={}";
+                    "staleLinkAge={}, maxLLDPage={}";
 
     // When a Device/Port has this annotation, do not send out LLDP/BDDP
     public static final String NO_LLDP = "no-lldp";
@@ -169,6 +170,10 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
     //@Property(name = PROP_STALE_LINK_AGE, intValue = DEFAULT_STALE_LINK_AGE,
     //        label = "Number of millis beyond which links will be considered stale")
     protected int staleLinkAge = STALE_LINK_AGE_DEFAULT;
+
+    //@Property(name = PROP_DISCOVERY_DELAY, intValue = DEFAULT_DISCOVERY_DELAY,
+    //        label = "Number of millis beyond which an LLDP packet will not be accepted")
+    private int maxDiscoveryDelayMs = DISCOVERY_DELAY_DEFAULT;
 
     private final LinkDiscoveryContext context = new InternalDiscoveryContext();
     private final InternalRoleListener roleListener = new InternalRoleListener();
@@ -293,7 +298,7 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
         Dictionary<?, ?> properties = context != null ? context.getProperties() : new Properties();
 
         boolean newEnabled, newUseBddp;
-        int newProbeRate, newStaleLinkAge;
+        int newProbeRate, newStaleLinkAge, newDiscoveryDelay;
         try {
             String s = get(properties, PROP_ENABLED);
             newEnabled = isNullOrEmpty(s) || Boolean.parseBoolean(s.trim());
@@ -307,12 +312,16 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
             s = get(properties, PROP_STALE_LINK_AGE);
             newStaleLinkAge = isNullOrEmpty(s) ? staleLinkAge : Integer.parseInt(s.trim());
 
+            s = get(properties, PROP_DISCOVERY_DELAY);
+            newDiscoveryDelay = isNullOrEmpty(s) ? maxDiscoveryDelayMs : Integer.parseInt(s.trim());
+
         } catch (NumberFormatException e) {
             log.warn("Component configuration had invalid values", e);
             newEnabled = enabled;
             newUseBddp = useBddp;
             newProbeRate = probeRate;
             newStaleLinkAge = staleLinkAge;
+            newDiscoveryDelay = maxDiscoveryDelayMs;
         }
 
         boolean wasEnabled = enabled;
@@ -321,6 +330,7 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
         useBddp = newUseBddp;
         probeRate = newProbeRate;
         staleLinkAge = newStaleLinkAge;
+        maxDiscoveryDelayMs = newDiscoveryDelay;
 
         if (!wasEnabled && enabled) {
             enable();
@@ -333,7 +343,7 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
             }
         }
 
-        log.info(FORMAT, enabled, useBddp, probeRate, staleLinkAge);
+        log.info(FORMAT, enabled, useBddp, probeRate, staleLinkAge, maxDiscoveryDelayMs);
     }
 
     /**
@@ -790,6 +800,16 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
         @Override
         public String fingerprint() {
             return buildSrcMac();
+        }
+
+        @Override
+        public String lldpSecret() {
+            return clusterMetadataService.getClusterMetadata().getClusterSecret();
+        }
+
+        @Override
+        public long maxDiscoveryDelay() {
+            return maxDiscoveryDelayMs;
         }
     }
 

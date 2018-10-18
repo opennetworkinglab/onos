@@ -46,6 +46,8 @@ public final class ClusterMetadata implements Provided {
     private final ControllerNode localNode;
     private final Set<ControllerNode> controllerNodes;
     private final Set<Node> storageNodes;
+    private final String clusterSecret;
+
 
     public static final Funnel<ClusterMetadata> HASH_FUNNEL = new Funnel<ClusterMetadata>() {
         @Override
@@ -61,6 +63,30 @@ public final class ClusterMetadata implements Provided {
         localNode = null;
         controllerNodes = null;
         storageNodes = null;
+        clusterSecret = null;
+    }
+
+    /**
+     * @deprecated since 1.15.
+     * @param providerId the provider Id
+     * @param name The cluster Name
+     * @param localNode The local node
+     * @param controllerNodes Set of nodes in cluster
+     * @param storageNodes Set of storage nodes
+     */
+    @Deprecated
+    public ClusterMetadata(
+            ProviderId providerId,
+            String name,
+            ControllerNode localNode,
+            Set<ControllerNode> controllerNodes,
+            Set<Node> storageNodes) {
+        this.providerId = checkNotNull(providerId);
+        this.name = checkNotNull(name);
+        this.localNode = localNode;
+        this.controllerNodes = ImmutableSet.copyOf(checkNotNull(controllerNodes));
+        this.storageNodes = ImmutableSet.copyOf(checkNotNull(storageNodes));
+        this.clusterSecret = "INSECURE!";
     }
 
     public ClusterMetadata(
@@ -68,17 +94,33 @@ public final class ClusterMetadata implements Provided {
         String name,
         ControllerNode localNode,
         Set<ControllerNode> controllerNodes,
-        Set<Node> storageNodes) {
+        Set<Node> storageNodes,
+        String clusterSecret) {
         this.providerId = checkNotNull(providerId);
         this.name = checkNotNull(name);
         this.localNode = localNode;
         this.controllerNodes = ImmutableSet.copyOf(checkNotNull(controllerNodes));
         this.storageNodes = ImmutableSet.copyOf(checkNotNull(storageNodes));
+        this.clusterSecret = clusterSecret;
+    }
+
+    /**
+     * @deprecated since 1.15.
+     * @param name The cluster Name
+     * @param localNode The local node
+     * @param controllerNodes Set of nodes in cluster
+     * @param storageNodes Set of storage nodes
+     */
+    @Deprecated
+    public ClusterMetadata(
+            String name, ControllerNode localNode, Set<ControllerNode> controllerNodes, Set<Node> storageNodes) {
+        this(new ProviderId("none", "none"), name, localNode, controllerNodes, storageNodes, "INSECURE!");
     }
 
     public ClusterMetadata(
-            String name, ControllerNode localNode, Set<ControllerNode> controllerNodes, Set<Node> storageNodes) {
-        this(new ProviderId("none", "none"), name, localNode, controllerNodes, storageNodes);
+            String name, ControllerNode localNode, Set<ControllerNode> controllerNodes, Set<Node> storageNodes,
+            String clusterSecret) {
+        this(new ProviderId("none", "none"), name, localNode, controllerNodes, storageNodes, clusterSecret);
     }
 
     @Override
@@ -138,6 +180,14 @@ public final class ClusterMetadata implements Provided {
     @Deprecated
     public Collection<Partition> getPartitions() {
         return Collections.emptySet();
+    }
+
+    /**
+     * Returns the cluster's shared secret.
+     * @return key.
+     */
+    public String getClusterSecret() {
+        return clusterSecret;
     }
 
     @Override
