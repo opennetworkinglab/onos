@@ -33,7 +33,7 @@
         <behaviour api="org.onosproject.odtn.behaviour.OdtnDeviceDescriptionDiscovery"
                    impl="org.onosproject.drivers.odtn.InfineraOpenConfigDeviceDiscovery"/>
         <behaviour api="org.onosproject.odtn.behaviour.ConfigurableTransceiver"
-                   impl="org.onosproject.odtn.behaviour.PlainTransceiver"/>
+                   impl="org.onosproject.odtn.behaviour.InfineraTransceiver"/>
     </driver>
     <driver name="nokia-1830" manufacturer="nokia" hwVersion="1830" swVersion="R10.1.1">
         <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"

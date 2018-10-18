@@ -677,7 +677,8 @@ module openconfig-terminal-device {
       "Configuration data for logical channels";
 
     leaf index {
-      type uint32;
+      //type uint32;
+      type string;
       description
         "Index of the current logical channel";
     }
