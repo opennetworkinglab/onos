@@ -22,6 +22,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringWriter;
+import java.util.List;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -47,6 +48,7 @@ import org.onosproject.yang.model.ModelObject;
 import org.onosproject.yang.model.ModelObjectData;
 import org.onosproject.yang.model.ResourceData;
 import org.onosproject.yang.model.ResourceId;
+import org.onosproject.yang.runtime.AnnotatedNodeInfo;
 import org.onosproject.yang.runtime.CompositeData;
 import org.onosproject.yang.runtime.CompositeStream;
 import org.onosproject.yang.runtime.DefaultCompositeData;
@@ -265,6 +267,27 @@ public class YangToolUtil {
         builder.resourceData(input);
         // remove, merge, replace, ...
         //builder.addAnnotatedNodeInfo(info)
+
+        return builder.build();
+    }
+
+    /**
+     * Converts ResourceData & AnnotatedNodeInfo into CompositeData.
+     *
+     * @param input ResourceData to convert
+     * @param annotatedNodeInfos AnnotatedNodeInfoList to convert
+     * @return CompositeData
+     */
+    public static CompositeData toCompositeData(
+            ResourceData input,
+            List<AnnotatedNodeInfo> annotatedNodeInfos) {
+        CompositeData.Builder builder =
+                DefaultCompositeData.builder();
+        builder.resourceData(input);
+
+        // Set AnnotationNodeInfo
+        annotatedNodeInfos.stream()
+                .forEach(a -> builder.addAnnotatedNodeInfo(a));
 
         return builder.build();
     }

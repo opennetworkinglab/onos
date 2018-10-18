@@ -15,8 +15,6 @@
  */
 package org.onosproject.odtn.utils.openconfig;
 
-import static org.onosproject.odtn.utils.YangToolUtil.toDataNode;
-
 import java.util.List;
 
 import org.onosproject.yang.gen.v1.openconfigplatform.rev20161222.openconfigplatform.platformcomponenttop.DefaultComponents;
@@ -32,6 +30,8 @@ import org.onosproject.yang.model.DataNode;
 import com.google.common.annotations.Beta;
 import com.google.common.collect.ImmutableList;
 
+import static org.onosproject.odtn.utils.YangToolUtil.toDataNode;
+
 /**
  * Utility methods dealing with OpenConfig transceiver.
  * <p>
@@ -39,27 +39,6 @@ import com.google.common.collect.ImmutableList;
  */
 @Beta
 public abstract class Transceiver {
-
-    public static List<DataNode> enable(String componentName, boolean enable) {
-
-        DefaultComponents components = new DefaultComponents();
-
-        Component component = PlainPlatform.componentWithName(componentName);
-        components.addToComponent(component);
-
-        // augmented 'component' shim
-        DefaultAugmentedOcPlatformComponent tcomponent = new DefaultAugmentedOcPlatformComponent();
-
-        DefaultTransceiver transceiver = new DefaultTransceiver();
-
-        Config configt = new DefaultConfig();
-        configt.enabled(enable); // phase 1.0 flag
-        transceiver.config(configt);
-        tcomponent.transceiver(transceiver);
-        component.addAugmentation(tcomponent);
-
-        return ImmutableList.of(toDataNode(components));
-    }
 
     public static List<DataNode> preconf(String componentName) {
         DefaultComponents components = new DefaultComponents();
