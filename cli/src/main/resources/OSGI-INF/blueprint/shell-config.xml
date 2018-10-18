@@ -718,6 +718,10 @@
         </command>
         -->
 
+        <command>
+            <action class="org.onosproject.cli.net.PipeconfCommand"/>
+        </command>
+
         <!--virtual network commands -->
         <command>
             <action class="org.onosproject.cli.net.vnet.TenantListCommand"/>
