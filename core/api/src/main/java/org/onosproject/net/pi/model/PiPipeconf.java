@@ -100,6 +100,11 @@ public interface PiPipeconf {
         BMV2_JSON,
 
         /**
+         * Mellanox Spectrum configuration binary.
+         */
+        SPECTRUM_BIN,
+
+        /**
          * Barefoot's Tofino configuration binary.
          */
         TOFINO_BIN,

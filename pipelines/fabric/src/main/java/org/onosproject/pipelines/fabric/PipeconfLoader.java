@@ -71,12 +71,14 @@ public class PipeconfLoader {
     private static final String P4C_RES_BASE_PATH = P4C_OUT_PATH + "/%s/%s/%s/";
 
     private static final String SEP = File.separator;
+    private static final String SPECTRUM = "spectrum";
     private static final String TOFINO = "tofino";
     private static final String BMV2 = "bmv2";
     private static final String DEFAULT_PLATFORM = "default";
     private static final String BMV2_JSON = "bmv2.json";
     private static final String P4INFO_TXT = "p4info.txt";
     private static final String CPU_PORT_TXT = "cpu_port.txt";
+    private static final String SPECTRUM_BIN = "spectrum.bin";
     private static final String TOFINO_BIN = "tofino.bin";
     private static final String TOFINO_CTX_JSON = "context.json";
     private static final String INT_PROFILE_SUFFIX = "-int";
@@ -133,6 +135,9 @@ public class PipeconfLoader {
                 case BMV2:
                     pipeconfBuilder = bmv2Pipeconf(profile, platform);
                     break;
+                case SPECTRUM:
+                    pipeconfBuilder = spectrumPipeconf(profile, platform);
+                    break;
                 case TOFINO:
                     pipeconfBuilder = tofinoPipeconf(profile, platform);
                     break;
@@ -175,6 +180,28 @@ public class PipeconfLoader {
                 .addBehaviour(PortStatisticsDiscovery.class,
                               FabricPortStatisticsDiscovery.class)
                 .addExtension(ExtensionType.BMV2_JSON, bmv2JsonUrl);
+    }
+
+    private static DefaultPiPipeconf.Builder  spectrumPipeconf(String profile, String platform)
+            throws FileNotFoundException {
+        final URL spectrumBinUrl = PipeconfLoader.class.getResource(format(
+                P4C_RES_BASE_PATH + SPECTRUM_BIN, profile, SPECTRUM, platform));
+        final URL p4InfoUrl = PipeconfLoader.class.getResource(format(
+                P4C_RES_BASE_PATH + P4INFO_TXT, profile, SPECTRUM, platform));
+        final URL cpuPortUrl = PipeconfLoader.class.getResource(format(
+                P4C_RES_BASE_PATH + CPU_PORT_TXT, profile, SPECTRUM, platform));
+        if (spectrumBinUrl == null) {
+            throw new FileNotFoundException(SPECTRUM_BIN);
+        }
+        if (p4InfoUrl == null) {
+            throw new FileNotFoundException(P4INFO_TXT);
+        }
+        if (cpuPortUrl == null) {
+            throw new FileNotFoundException(CPU_PORT_TXT);
+        }
+        return basePipeconfBuilder(
+                profile, platform, p4InfoUrl, cpuPortUrl)
+                .addExtension(ExtensionType.SPECTRUM_BIN, spectrumBinUrl);
     }
 
     private static DefaultPiPipeconf.Builder tofinoPipeconf(
