@@ -82,11 +82,6 @@ fi
 cd $ONOS_DIR
 export ONOS_HOME=$PWD
 
-# FIXME
-#export HOME=/Users/tom
-cp $HOME/Downloads/reflectasm-1.11.7.jar \
-    $ONOS_DIR/apache-karaf-4.2.1/system/com/esotericsoftware/reflectasm/1.11.7/reflectasm-1.11.7.jar
-
 # Start ONOS as a server, but include any specified options
 ./bin/onos-service server "$@" &>onos.log &
 echo "$!" > /tmp/onos.pid
