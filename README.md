@@ -66,7 +66,7 @@ $ . ~/.bash_profile
 3. Build ONOS with Buck
 ```bash
 $ cd $ONOS_ROOT
-$ bazel build onos
+$ onos-buck build onos [--show-output]
 ```
 
 ONOS currently uses a modified version of Buck (`onos-buck`), which has been packaged with ONOS. Please use this version until our changes have been upstreamed and released as part of an official Buck release. 
@@ -79,10 +79,10 @@ This will compile all source code assemble the installable onos.tar.gz, which is
 To run ONOS locally on the development machine, simply run the following command:
 
 ```bash
-$ bazel run onos-local [-- [clean] [debug]]
+$ onos-buck run onos-local [-- [clean] [debug]]
 ```
 
-or simpler one:
+or simplier one:
 
 ```bash
 $ ok [clean] [debug]
@@ -107,16 +107,16 @@ $ onos localhost
 
 ### Unit Tests
 
-To run ONOS unit tests, run the following command:
+To run ONOS unit tests, including code Checkstyle validation, run the following command:
 
 ```bash
-$ bazel query '\''tests(//...)'\'' | xargs bazel test
+$ onos-buck test
 ```
 
-Or better yet, to run code Checkstyle and all unit tests use the following convenience alias:
+Or more specific tests:
 
 ```bash
-$ ot
+$ onos-buck test [buck-test-rule]
 ```
 
 ## Contributing
