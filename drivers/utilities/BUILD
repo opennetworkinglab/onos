@@ -1,4 +1,4 @@
-COMPILE_DEPS = CORE_DEPS
+COMPILE_DEPS = CORE_DEPS + JAXB
 
 osgi_jar_with_tests(
     resources = glob(["src/main/resources/**"]),

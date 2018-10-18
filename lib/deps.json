@@ -27,6 +27,12 @@
       "//utils/misc:onlab-misc",
       "//utils/osgi:onlab-osgi"
     ],
+    "JAXB": [
+      "jaxb-api",
+      "jaxb-core",
+      "jaxb-impl",
+      "javax.activation"
+    ],
     "TEST": [
       "junit",
       "easymock",
@@ -201,6 +207,10 @@
 
     "javax.inject": "mvn:org.glassfish.hk2.external:javax.inject:2.5.0-b42",
     "javax.ws.rs-api": "mvn:javax.ws.rs:javax.ws.rs-api:2.1",
+    "javax.activation": "mvn:javax.activation:activation:1.1.1",
+    "jaxb-api": "mvn:javax.xml.bind:jaxb-api:2.3.1",
+    "jaxb-core": "mvn:com.sun.xml.bind:jaxb-core:2.3.0.1",
+    "jaxb-impl": "mvn:com.sun.xml.bind:jaxb-impl:2.3.0.1",
     "jersey-client": "mvn:org.glassfish.jersey.core:jersey-client:2.26",
     "jersey-security": "mvn:org.glassfish.jersey.security:oauth2-client:jar:2.26",
     "jersey-common": "mvn:org.glassfish.jersey.core:jersey-common:2.26",

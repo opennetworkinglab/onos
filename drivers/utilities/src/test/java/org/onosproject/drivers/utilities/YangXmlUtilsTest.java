@@ -66,6 +66,18 @@ public class YangXmlUtilsTest {
 
     }
 
+    private String canonicalXml(String s) {
+        String[] lines = s.split("\n");
+        StringBuilder xml = new StringBuilder();
+        for (String line : lines) {
+            if (line.contains("<")) {
+                xml.append(line);
+                xml.append("\n");
+            }
+        }
+        return xml.toString().trim();
+    }
+
     /**
      * Tests getting a single object configuration via passing the path and the map of the desired values.
      *
@@ -85,8 +97,8 @@ public class YangXmlUtilsTest {
         assertEquals("Wrong configuaration", IteratorUtils.toList(testCreateConfig.getKeys()),
                      IteratorUtils.toList(cfg.getKeys()));
 
-        assertEquals("Wrong string configuaration", utils.getString(testCreateConfig),
-                     utils.getString(cfg));
+        assertEquals("Wrong string configuaration", canonicalXml(utils.getString(testCreateConfig)),
+                     canonicalXml(utils.getString(cfg)));
     }
 
     /**
@@ -115,8 +127,8 @@ public class YangXmlUtilsTest {
                                              .getXmlConfiguration(OF_CONFIG_XML_PATH, elements));
         assertEquals("Wrong configuaration", IteratorUtils.toList(testCreateConfig.getKeys()),
                      IteratorUtils.toList(cfg.getKeys()));
-        assertEquals("Wrong string configuaration", utils.getString(testCreateConfig),
-                     utils.getString(cfg));
+        assertEquals("Wrong string configuaration", canonicalXml(utils.getString(testCreateConfig)),
+                     canonicalXml(utils.getString(cfg)));
     }
 
     /**
