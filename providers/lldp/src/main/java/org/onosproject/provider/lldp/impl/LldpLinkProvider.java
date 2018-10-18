@@ -156,7 +156,7 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
 
     //@Property(name = PROP_ENABLED, boolValue = true,
     //        label = "If false, link discovery is disabled")
-    protected boolean enabled = ENABLED_DEFAULT;
+    protected boolean enabled = false;
 
     //@Property(name = PROP_USE_BDDP, boolValue = true,
     //        label = "Use BDDP for link discovery")
