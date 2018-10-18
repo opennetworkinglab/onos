@@ -220,7 +220,7 @@ public final class OpenstackSwitchingArpHandler {
 
         IpAddress targetIp = Ip4Address.valueOf(arpPacket.getTargetProtocolAddress());
 
-        MacAddress replyMac = gatewayIp(targetIp) ? MacAddress.valueOf(gatewayMac) :
+        MacAddress replyMac = isGatewayIp(targetIp) ? MacAddress.valueOf(gatewayMac) :
                 getMacFromHostOpenstack(targetIp, srcInstPort.networkId());
         if (replyMac == MacAddress.NONE) {
             log.trace("Failed to find MAC address for {}", targetIp);
@@ -242,8 +242,16 @@ public final class OpenstackSwitchingArpHandler {
                 ByteBuffer.wrap(ethReply.serialize())));
     }
 
-    private boolean gatewayIp(IpAddress targetIp) {
+    /**
+     * Denotes whether the given target IP is gateway IP.
+     *
+     * @param targetIp target IP address
+     * @return true if the given targetIP is gateway IP, false otherwise.
+     */
+    private boolean isGatewayIp(IpAddress targetIp) {
         return osNetworkService.subnets().stream()
+                .filter(Objects::nonNull)
+                .filter(subnet -> subnet.getGateway() != null)
                 .anyMatch(subnet -> subnet.getGateway().equals(targetIp.toString()));
     }
 
