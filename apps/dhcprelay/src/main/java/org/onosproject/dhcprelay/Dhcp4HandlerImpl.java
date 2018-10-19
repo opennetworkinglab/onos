@@ -884,7 +884,11 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
                     // Sets relay agent IP
                     int effectiveRelayAgentIp = relayAgentIp != null ?
                             relayAgentIp.toInt() : clientInterfaceIp.toInt();
+                    Ip4Address effectiveRealRealyAgentIP = relayAgentIp != null ?
+                            relayAgentIp : clientInterfaceIp;
                     dhcpPacket.setGatewayIPAddress(effectiveRelayAgentIp);
+                    ipv4Packet.setSourceAddress(effectiveRealRealyAgentIP.toInt());
+                    log.debug("Source IP address set as relay agent IP with value: {}", effectiveRealRealyAgentIP);
                 }
             }
 
