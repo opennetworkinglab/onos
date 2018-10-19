@@ -126,7 +126,7 @@ public class XconnectManager implements XconnectService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     public MastershipService mastershipService;
 
-    @Reference(cardinality = ReferenceCardinality.OPTIONAL_UNARY)
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     public SegmentRoutingService srService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
