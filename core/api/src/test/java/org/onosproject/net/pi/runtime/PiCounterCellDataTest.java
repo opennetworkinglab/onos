@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-present Open Networking Foundation
+ * Copyright 2018-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,48 +18,25 @@ package org.onosproject.net.pi.runtime;
 
 import com.google.common.testing.EqualsTester;
 import org.junit.Test;
-import org.onosproject.net.pi.model.PiActionId;
-import org.onosproject.net.pi.model.PiTableId;
 
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
-import static org.onosproject.net.pi.runtime.PiConstantsTest.DROP;
 
 /**
- * Unit tests for PiCounterCellData class.
+ * Unit tests for PiCounterData class.
  */
 public class PiCounterCellDataTest {
-
-    private static final PiTableEntry PI_TABLE_ENTRY_1 = PiTableEntry.builder()
-            .forTable(PiTableId.of("T10"))
-            .withCookie(0xac)
-            .withPriority(10)
-            .withAction(PiAction.builder().withId(PiActionId.of(DROP)).build())
-            .withTimeout(100)
-            .build();
-    private static final PiTableEntry PI_TABLE_ENTRY_2 = PiTableEntry.builder()
-            .forTable(PiTableId.of("T20"))
-            .withCookie(0xac)
-            .withPriority(10)
-            .withAction(PiAction.builder().withId(PiActionId.of(DROP)).build())
-            .withTimeout(1000)
-            .build();
-
-    private static final PiCounterCellId PI_COUNTER_CELL_ID_1 =
-            PiCounterCellId.ofDirect(PI_TABLE_ENTRY_1);
-    private static final PiCounterCellId PI_COUNTER_CELL_ID_2 =
-            PiCounterCellId.ofDirect(PI_TABLE_ENTRY_2);
 
     private static final long PACKETS_1 = 10;
     private static final long PACKETS_2 = 20;
     private static final long BYTES_1 = 100;
     private static final long BYTES_2 = 200;
 
-    private static final PiCounterCellData PI_COUNTER_CELL_DATA_1 =
-            new PiCounterCellData(PI_COUNTER_CELL_ID_1, PACKETS_1, BYTES_1);
-    private static final PiCounterCellData SAME_AS_PI_COUNTER_CELL_DATA_1 =
-            new PiCounterCellData(PI_COUNTER_CELL_ID_1, PACKETS_1, BYTES_1);
-    private static final PiCounterCellData PI_COUNTER_CELL_DATA_2 =
-            new PiCounterCellData(PI_COUNTER_CELL_ID_2, PACKETS_2, BYTES_2);
+    private static final PiCounterCellData PI_COUNTER_DATA_1 =
+            new PiCounterCellData(PACKETS_1, BYTES_1);
+    private static final PiCounterCellData SAME_AS_PI_COUNTER_DATA_1 =
+            new PiCounterCellData(PACKETS_1, BYTES_1);
+    private static final PiCounterCellData PI_COUNTER_DATA_2 =
+            new PiCounterCellData(PACKETS_2, BYTES_2);
 
     /**
      * Checks that the PiCounterCellData class is immutable.
@@ -75,8 +52,8 @@ public class PiCounterCellDataTest {
     @Test
     public void testEquals() {
         new EqualsTester()
-                .addEqualityGroup(PI_COUNTER_CELL_DATA_1, SAME_AS_PI_COUNTER_CELL_DATA_1)
-                .addEqualityGroup(PI_COUNTER_CELL_DATA_2)
+                .addEqualityGroup(PI_COUNTER_DATA_1, SAME_AS_PI_COUNTER_DATA_1)
+                .addEqualityGroup(PI_COUNTER_DATA_2)
                 .testEquals();
     }
 }

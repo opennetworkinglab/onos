@@ -31,6 +31,7 @@ import org.onosproject.net.pi.model.PiPipelineInterpreter;
 import org.onosproject.net.pi.model.PiPipelineModel;
 import org.onosproject.net.pi.model.PiTableId;
 import org.onosproject.net.pi.model.PiTableModel;
+import org.onosproject.net.pi.runtime.PiCounterCell;
 import org.onosproject.net.pi.runtime.PiCounterCellData;
 import org.onosproject.net.pi.runtime.PiCounterCellId;
 import org.onosproject.net.pi.runtime.PiTableEntry;
@@ -89,11 +90,11 @@ public class P4RuntimeFlowRuleProgrammable
     private static final String SUPPORT_TABLE_COUNTERS = "supportTableCounters";
     private static final boolean DEFAULT_SUPPORT_TABLE_COUNTERS = true;
 
-    // If true, we read all direct counters of a table with one request.
-    // Otherwise, we send as many requests as the number of table entries.
-    private static final String READ_ALL_DIRECT_COUNTERS = "tableReadAllDirectCounters";
-    // FIXME: set to true as soon as the feature is implemented in P4Runtime.
-    private static final boolean DEFAULT_READ_ALL_DIRECT_COUNTERS = false;
+    // If true, assumes that the device returns table entry message populated
+    // with direct counter values. If false, we issue a second P4Runtime request
+    // to read the direct counter values.
+    private static final String READ_COUNTERS_WITH_TABLE_ENTRIES = "tableReadCountersWithTableEntries";
+    private static final boolean DEFAULT_READ_COUNTERS_WITH_TABLE_ENTRIES = true;
 
     // For default entries, P4Runtime mandates that only MODIFY messages are
     // allowed. If true, treats default entries as normal table entries,
@@ -153,7 +154,6 @@ public class P4RuntimeFlowRuleProgrammable
 
         // Synchronize mirror with the device state.
         syncMirror(deviceEntries);
-        // TODO: ONOS-7596 read counters with table entries
         final Map<PiTableEntry, PiCounterCellData> counterCellMap =
                 readEntryCounters(deviceEntries);
         // Forge flow entries with counter values.
@@ -461,25 +461,22 @@ public class P4RuntimeFlowRuleProgrammable
             return Collections.emptyMap();
         }
 
-        Collection<PiCounterCellData> cellDatas;
-
-        if (driverBoolProperty(READ_ALL_DIRECT_COUNTERS,
-                               DEFAULT_READ_ALL_DIRECT_COUNTERS)) {
-            // FIXME: read counters when dumping table entries ONOS-7596
-            cellDatas = Collections.emptyList();
+        if (driverBoolProperty(READ_COUNTERS_WITH_TABLE_ENTRIES,
+                               DEFAULT_READ_COUNTERS_WITH_TABLE_ENTRIES)) {
+            return tableEntries.stream().collect(Collectors.toMap(c -> c, PiTableEntry::counter));
         } else {
+            Collection<PiCounterCell> cells;
             Set<PiCounterCellId> cellIds = tableEntries.stream()
                     // Ignore counter for default entry.
                     .filter(e -> !e.isDefaultAction())
                     .filter(e -> tableHasCounter(e.table()))
                     .map(PiCounterCellId::ofDirect)
                     .collect(Collectors.toSet());
-            cellDatas = getFutureWithDeadline(client.readCounterCells(cellIds, pipeconf),
+            cells = getFutureWithDeadline(client.readCounterCells(cellIds, pipeconf),
                                               "reading table counters", Collections.emptyList());
+            return cells.stream()
+                    .collect(Collectors.toMap(c -> c.cellId().tableEntry(), PiCounterCell::data));
         }
-        return cellDatas.stream()
-                .collect(Collectors.toMap(c -> c.cellId().tableEntry(), c -> c));
-
     }
 
     private boolean tableHasCounter(PiTableId tableId) {

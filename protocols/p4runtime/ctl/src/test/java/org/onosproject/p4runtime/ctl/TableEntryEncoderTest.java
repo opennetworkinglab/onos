@@ -32,11 +32,13 @@ import org.onosproject.net.pi.model.PiTableId;
 import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiActionGroupId;
 import org.onosproject.net.pi.runtime.PiActionParam;
+import org.onosproject.net.pi.runtime.PiCounterCellData;
 import org.onosproject.net.pi.runtime.PiExactFieldMatch;
 import org.onosproject.net.pi.runtime.PiMatchKey;
 import org.onosproject.net.pi.runtime.PiTableEntry;
 import org.onosproject.net.pi.runtime.PiTernaryFieldMatch;
 import p4.v1.P4RuntimeOuterClass.Action;
+import p4.v1.P4RuntimeOuterClass.CounterData;
 import p4.v1.P4RuntimeOuterClass.TableEntry;
 
 import java.net.URL;
@@ -72,6 +74,9 @@ public class TableEntryEncoderTest {
     private static final String ETHER_TYPE = "etherType";
     private static final String ECMP_GROUP_ID = "ecmp_group_id";
 
+    private static final long PACKETS = 10;
+    private static final long BYTES = 100;
+
     private final Random rand = new Random();
     private final URL p4InfoUrl = this.getClass().getResource("/test.p4info");
 
@@ -94,6 +99,7 @@ public class TableEntryEncoderTest {
     private final PiActionId outActionId = PiActionId.of(SET_EGRESS_PORT);
     private final PiTableId tableId = PiTableId.of(TABLE_0);
     private final PiTableId ecmpTableId = PiTableId.of(TABLE_ECMP);
+    private final PiCounterCellData counterCellData = new PiCounterCellData(PACKETS, BYTES);
 
     private final PiTableEntry piTableEntry = PiTableEntry
             .builder()
@@ -111,6 +117,7 @@ public class TableEntryEncoderTest {
                                 .build())
             .withPriority(1)
             .withCookie(2)
+            .withCounterCellData(counterCellData)
             .build();
 
     private final PiTableEntry piTableEntryWithoutAction = PiTableEntry
@@ -124,6 +131,7 @@ public class TableEntryEncoderTest {
                                   .build())
             .withPriority(1)
             .withCookie(2)
+            .withCounterCellData(counterCellData)
             .build();
 
     private final PiTableEntry piTableEntryWithGroupAction = PiTableEntry
@@ -135,6 +143,7 @@ public class TableEntryEncoderTest {
             .withAction(PiActionGroupId.of(1))
             .withPriority(1)
             .withCookie(2)
+            .withCounterCellData(counterCellData)
             .build();
 
     public TableEntryEncoderTest() throws ImmutableByteSequence.ByteSequenceTrimException {
@@ -198,6 +207,12 @@ public class TableEntryEncoderTest {
         byte[] encodedActionParam = actionMsg.getParams(0).getValue().toByteArray();
         assertThat(encodedActionParam, is(portValue.asArray()));
 
+        // Counter
+        CounterData counterData = tableEntryMsg.getCounterData();
+        PiCounterCellData encodedCounterData = new PiCounterCellData(counterData.getPacketCount(),
+                                                                     counterData.getByteCount());
+        assertThat(encodedCounterData, is(counterCellData));
+
         // TODO: improve, assert other field match types (ternary, LPM)
     }
 
@@ -256,6 +271,12 @@ public class TableEntryEncoderTest {
 
         // no action
         assertThat(tableEntryMsg.hasAction(), is(false));
+
+        // Counter
+        CounterData counterData = tableEntryMsg.getCounterData();
+        PiCounterCellData encodedCounterData = new PiCounterCellData(counterData.getPacketCount(),
+                                                                     counterData.getByteCount());
+        assertThat(encodedCounterData, is(counterCellData));
 
         // TODO: improve, assert other field match types (ternary, LPM)
     }

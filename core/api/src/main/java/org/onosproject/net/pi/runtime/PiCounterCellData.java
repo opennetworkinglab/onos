@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-present Open Networking Foundation
+ * Copyright 2018-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,37 +23,26 @@ import com.google.common.base.Objects;
 /**
  * Data of a counter cell of a protocol-independent pipeline.
  */
+
 @Beta
 public final class PiCounterCellData {
 
-    private final PiCounterCellId cellId;
     private final long packets;
     private final long bytes;
 
     /**
-     * Creates a new counter cell data for the given cell identifier, number of packets and bytes.
+     * Creates a new counter cell data for the given number of packets and bytes.
      *
-     * @param cellId  counter cell identifier
-     * @param packets number of packets
-     * @param bytes   number of bytes
+     * @param packets  number of packets
+     * @param bytes  number of bytes
      */
-    public PiCounterCellData(PiCounterCellId cellId, long packets, long bytes) {
-        this.cellId = cellId;
+    public PiCounterCellData(long packets, long bytes) {
         this.packets = packets;
         this.bytes = bytes;
     }
 
     /**
-     * Returns the cell identifier.
-     *
-     * @return cell identifier
-     */
-    public PiCounterCellId cellId() {
-        return cellId;
-    }
-
-    /**
-     * Returns the packet count value contained by this cell.
+     * Returns the packet count value contained by this counter data.
      *
      * @return number of packets
      */
@@ -62,7 +51,7 @@ public final class PiCounterCellData {
     }
 
     /**
-     * Returns the byte count value contained by this cell.
+     * Returns the byte count value contained by this counter data.
      *
      * @return number of bytes
      */
@@ -80,19 +69,17 @@ public final class PiCounterCellData {
         }
         PiCounterCellData that = (PiCounterCellData) o;
         return packets == that.packets &&
-                bytes == that.bytes &&
-                Objects.equal(cellId, that.cellId);
+                bytes == that.bytes;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(cellId, packets, bytes);
+        return Objects.hashCode(packets, bytes);
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
-                .add("cellId", cellId)
                 .add("packets", packets)
                 .add("bytes", bytes)
                 .toString();
