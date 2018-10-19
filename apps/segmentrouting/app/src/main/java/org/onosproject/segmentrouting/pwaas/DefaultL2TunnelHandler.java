@@ -495,7 +495,7 @@ public class DefaultL2TunnelHandler implements L2TunnelHandler {
             // get path here, need to use the same for fwd and rev direction
             List<Link> path = getPath(pw.l2TunnelPolicy().cP1(),
                                       pw.l2TunnelPolicy().cP2());
-            if (path == null) {
+            if (path == null || path.isEmpty()) {
                 log.error("Deploying process : No path between the connection points for pseudowire {}", l2TunnelId);
                 return PATH_NOT_FOUND.appendError("No path between the connection points for pseudowire!");
             }
