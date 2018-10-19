@@ -18,7 +18,7 @@
  */
 package ${api.package};
 
-import org.apache.felix.scr.annotations.Component;
+import org.osgi.service.component.annotations.Component;
 import org.onosproject.rest.AbstractApiDocRegistrator;
 import org.onosproject.rest.ApiDocProvider;
 

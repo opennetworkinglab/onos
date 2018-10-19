@@ -169,6 +169,45 @@ _bnd = rule(
 )
 
 """
+    Implementation of the rule to generate cfgdef files from java class source
+"""
+
+def _cfgdef_impl(ctx):
+    output_jar = ctx.outputs.cfgdef_jar.path
+
+    # call swagger generator to make the swagger JSON and java files
+    arguments = [
+        output_jar,
+        ctx.files.srcs,
+    ]
+
+    ctx.actions.run(
+        inputs = ctx.files.srcs,
+        outputs = [ctx.outputs.cfgdef_jar],
+        arguments = arguments,
+        progress_message = "Running cfgdef generator on: %s" % ctx.attr.name,
+        executable = ctx.executable._cfgdef_generator_exe,
+    )
+
+"""
+    Rule definition to call cfgdef generator to create the *.cfgdef files from java sources
+"""
+_cfgdef = rule(
+    attrs = {
+        "srcs": attr.label_list(allow_files = True),
+        "_cfgdef_generator_exe": attr.label(
+            executable = True,
+            cfg = "host",
+            allow_files = True,
+            default = Label("//tools/build/cfgdef:cfgdef_generator"),
+        ),
+        "cfgdef_jar": attr.output(),
+    },
+    fragments = ["java"],
+    implementation = _cfgdef_impl,
+)
+
+"""
     Implementation of the rule to call swagger generator to create the registrator java class source
 """
 
@@ -414,7 +453,15 @@ def osgi_jar_with_tests(
 
     native_srcs = srcs
     native_resources = resources
-    if web_context != None and api_title != "" and len(resources) != 0 and 1 == 0:
+
+    #    _cfgdef(
+    #        name = name + "_cfgdef",
+    #        srcs = native_srcs,
+    #        visibility = visibility,
+    #    )
+    #    native_resources.append(name + "_cfgdef_jar")
+
+    if web_context != None and api_title != "" and len(resources) != 0:
         # generate Swagger files if needed
         _swagger_java(
             name = name + "_swagger_java",
