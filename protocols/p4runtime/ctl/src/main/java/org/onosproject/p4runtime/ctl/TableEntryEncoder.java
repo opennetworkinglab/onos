@@ -29,6 +29,7 @@ import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiActionGroupId;
 import org.onosproject.net.pi.runtime.PiActionGroupMemberId;
 import org.onosproject.net.pi.runtime.PiActionParam;
+import org.onosproject.net.pi.runtime.PiCounterCellData;
 import org.onosproject.net.pi.runtime.PiExactFieldMatch;
 import org.onosproject.net.pi.runtime.PiFieldMatch;
 import org.onosproject.net.pi.runtime.PiLpmFieldMatch;
@@ -40,6 +41,7 @@ import org.onosproject.net.pi.runtime.PiTernaryFieldMatch;
 import org.slf4j.Logger;
 import p4.config.v1.P4InfoOuterClass;
 import p4.v1.P4RuntimeOuterClass.Action;
+import p4.v1.P4RuntimeOuterClass.CounterData;
 import p4.v1.P4RuntimeOuterClass.FieldMatch;
 import p4.v1.P4RuntimeOuterClass.TableAction;
 import p4.v1.P4RuntimeOuterClass.TableEntry;
@@ -249,6 +251,11 @@ final class TableEntryEncoder {
             }
         }
 
+        // Counter.
+        if (piTableEntry.counter() != null) {
+            tableEntryMsgBuilder.setCounterData(encodeCounter(piTableEntry.counter()));
+        }
+
         return tableEntryMsgBuilder.build();
     }
 
@@ -280,6 +287,9 @@ final class TableEntryEncoder {
 
         // Match key for field matches.
         piTableEntryBuilder.withMatchKey(decodeFieldMatchMsgs(tableEntryMsg.getMatchList(), tableInfo, browser));
+
+        // Counter.
+        piTableEntryBuilder.withCounterCellData(decodeCounter(tableEntryMsg.getCounterData()));
 
         return piTableEntryBuilder.build();
     }
@@ -504,5 +514,14 @@ final class TableEntryEncoder {
             params.add(new PiActionParam(PiActionParamId.of(paramName), value));
         }
         return PiAction.builder().withId(id).withParameters(params).build();
+    }
+
+    static CounterData encodeCounter(PiCounterCellData piCounterCellData) {
+        return CounterData.newBuilder().setPacketCount(piCounterCellData.packets())
+                .setByteCount(piCounterCellData.bytes()).build();
+    }
+
+    static PiCounterCellData decodeCounter(CounterData counterData) {
+        return new PiCounterCellData(counterData.getPacketCount(), counterData.getByteCount());
     }
 }

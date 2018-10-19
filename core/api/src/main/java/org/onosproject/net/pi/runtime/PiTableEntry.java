@@ -42,10 +42,11 @@ public final class PiTableEntry implements PiEntity {
     private final long cookie;
     private final int priority;
     private final double timeout;
+    private final PiCounterCellData counterData;
 
     private PiTableEntry(PiTableId tableId, PiMatchKey matchKey,
                          PiTableAction tableAction, boolean isDefaultAction,
-                         long cookie, int priority, double timeout) {
+                         long cookie, int priority, double timeout, PiCounterCellData data) {
         this.tableId = tableId;
         this.matchKey = matchKey;
         this.tableAction = tableAction;
@@ -53,6 +54,7 @@ public final class PiTableEntry implements PiEntity {
         this.cookie = cookie;
         this.priority = priority;
         this.timeout = timeout;
+        this.counterData = data;
     }
 
     /**
@@ -123,6 +125,18 @@ public final class PiTableEntry implements PiEntity {
      */
     public Optional<Double> timeout() {
         return timeout == NO_TIMEOUT ? Optional.empty() : Optional.of(timeout);
+    }
+
+    /**
+     * Returns the data of the counter cell associated with this table entry.
+     * This method is meaningful only if the table entry was read from the
+     * infrastructure device and the table has direct counters, otherwise
+     * returns null.
+     *
+     * @return counter cell data
+     */
+    public PiCounterCellData counter() {
+        return counterData;
     }
 
     @Override
@@ -197,6 +211,7 @@ public final class PiTableEntry implements PiEntity {
         private long cookie = 0;
         private int priority = NO_PRIORITY;
         private double timeout = NO_TIMEOUT;
+        private PiCounterCellData counterData;
 
         private Builder() {
             // Hides constructor.
@@ -272,6 +287,17 @@ public final class PiTableEntry implements PiEntity {
         }
 
         /**
+         * Sets the counter cell data of this table entry.
+         *
+         * @param data counter cell data
+         * @return this
+         */
+        public Builder withCounterCellData(PiCounterCellData data) {
+            this.counterData = checkNotNull(data, "Counter cell data cannot be null");
+            return this;
+        }
+
+        /**
          * Builds the table entry.
          *
          * @return a new table entry
@@ -281,7 +307,7 @@ public final class PiTableEntry implements PiEntity {
             checkNotNull(matchKey);
             final boolean isDefaultAction = matchKey.equals(PiMatchKey.EMPTY);
             return new PiTableEntry(tableId, matchKey, tableAction,
-                                    isDefaultAction, cookie, priority, timeout);
+                                    isDefaultAction, cookie, priority, timeout, counterData);
         }
     }
 }

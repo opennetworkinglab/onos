@@ -43,7 +43,7 @@ import org.onosproject.net.pi.model.PiTableId;
 import org.onosproject.net.pi.runtime.PiActionGroup;
 import org.onosproject.net.pi.runtime.PiActionGroupMember;
 import org.onosproject.net.pi.runtime.PiActionGroupMemberId;
-import org.onosproject.net.pi.runtime.PiCounterCellData;
+import org.onosproject.net.pi.runtime.PiCounterCell;
 import org.onosproject.net.pi.runtime.PiCounterCellId;
 import org.onosproject.net.pi.runtime.PiMeterCellConfig;
 import org.onosproject.net.pi.runtime.PiMeterCellId;
@@ -281,15 +281,15 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
     }
 
     @Override
-    public CompletableFuture<List<PiCounterCellData>> readCounterCells(Set<PiCounterCellId> cellIds,
-                                                                       PiPipeconf pipeconf) {
+    public CompletableFuture<List<PiCounterCell>> readCounterCells(Set<PiCounterCellId> cellIds,
+                                                                   PiPipeconf pipeconf) {
         return supplyInContext(() -> doReadCounterCells(Lists.newArrayList(cellIds), pipeconf),
                                "readCounterCells-" + cellIds.hashCode());
     }
 
     @Override
-    public CompletableFuture<List<PiCounterCellData>> readAllCounterCells(Set<PiCounterId> counterIds,
-                                                                          PiPipeconf pipeconf) {
+    public CompletableFuture<List<PiCounterCell>> readAllCounterCells(Set<PiCounterId> counterIds,
+                                                                      PiPipeconf pipeconf) {
         return supplyInContext(() -> doReadAllCounterCells(Lists.newArrayList(counterIds), pipeconf),
                                "readAllCounterCells-" + counterIds.hashCode());
     }
@@ -559,6 +559,7 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
                                 TableEntry.newBuilder()
                                         .setTableId(tableId)
                                         .setIsDefaultAction(defaultEntries)
+                                        .setCounterData(P4RuntimeOuterClass.CounterData.getDefaultInstance())
                                         .build())
                         .build())
                 .build());
@@ -651,21 +652,21 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
         isClientMaster.set(isMaster);
     }
 
-    private List<PiCounterCellData> doReadAllCounterCells(
+    private List<PiCounterCell> doReadAllCounterCells(
             List<PiCounterId> counterIds, PiPipeconf pipeconf) {
         return doReadCounterEntities(
                 CounterEntryCodec.readAllCellsEntities(counterIds, pipeconf),
                 pipeconf);
     }
 
-    private List<PiCounterCellData> doReadCounterCells(
+    private List<PiCounterCell> doReadCounterCells(
             List<PiCounterCellId> cellIds, PiPipeconf pipeconf) {
         return doReadCounterEntities(
                 CounterEntryCodec.encodePiCounterCellIds(cellIds, pipeconf),
                 pipeconf);
     }
 
-    private List<PiCounterCellData> doReadCounterEntities(
+    private List<PiCounterCell> doReadCounterEntities(
             List<Entity> counterEntities, PiPipeconf pipeconf) {
 
         if (counterEntities.size() == 0) {

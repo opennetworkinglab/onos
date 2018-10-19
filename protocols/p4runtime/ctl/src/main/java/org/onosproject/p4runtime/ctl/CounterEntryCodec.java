@@ -20,7 +20,7 @@ import org.onosproject.net.pi.model.PiCounterId;
 import org.onosproject.net.pi.model.PiCounterType;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiTableId;
-import org.onosproject.net.pi.runtime.PiCounterCellData;
+import org.onosproject.net.pi.runtime.PiCounterCell;
 import org.onosproject.net.pi.runtime.PiCounterCellId;
 import org.onosproject.net.pi.runtime.PiTableEntry;
 import org.slf4j.Logger;
@@ -135,8 +135,8 @@ final class CounterEntryCodec {
      * @param pipeconf pipeconf
      * @return collection of PI counter cell data
      */
-    static List<PiCounterCellData> decodeCounterEntities(List<Entity> entities,
-                                                         PiPipeconf pipeconf) {
+    static List<PiCounterCell> decodeCounterEntities(List<Entity> entities,
+                                                     PiPipeconf pipeconf) {
 
         final P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(pipeconf);
 
@@ -248,9 +248,9 @@ final class CounterEntryCodec {
         }
     }
 
-    private static PiCounterCellData decodeCounterEntity(Entity entity,
-                                                         PiPipeconf pipeconf,
-                                                         P4InfoBrowser browser)
+    private static PiCounterCell decodeCounterEntity(Entity entity,
+                                                     PiPipeconf pipeconf,
+                                                     P4InfoBrowser browser)
             throws EncodeException, P4InfoBrowser.NotFoundException {
 
         CounterData counterData;
@@ -276,8 +276,8 @@ final class CounterEntryCodec {
                     entity.getEntityCase().name()));
         }
 
-        return new PiCounterCellData(piCellId,
-                                     counterData.getPacketCount(),
-                                     counterData.getByteCount());
+        return new PiCounterCell(piCellId,
+                                 counterData.getPacketCount(),
+                                 counterData.getByteCount());
     }
 }
