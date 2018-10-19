@@ -68,6 +68,11 @@ public class OvsOfdpaGroupHandler extends Ofdpa2GroupHandler {
     }
 
     @Override
+    protected boolean requireAllowVlanTransition() {
+        return false;
+    }
+
+    @Override
     protected GroupInfo createL2L3Chain(TrafficTreatment treatment, int nextId,
                                         ApplicationId appId, boolean mpls,
                                         TrafficSelector meta) {
@@ -238,7 +243,7 @@ public class OvsOfdpaGroupHandler extends Ofdpa2GroupHandler {
      * @param nextObjective the hashed next objective to support.
      */
     @Override
-    protected void processHashedNextObjective(NextObjective nextObjective) {
+    protected void processEcmpHashedNextObjective(NextObjective nextObjective) {
         // The case for MPLS-ECMP. For now, we try to create a MPLS-ECMP for
         // the transport of a VPWS. The necessary info are contained in the
         // meta selector. In particular we are looking for the case of BoS==False;
@@ -247,7 +252,7 @@ public class OvsOfdpaGroupHandler extends Ofdpa2GroupHandler {
             // storage for all group keys in the chain of groups created
             List<Deque<GroupKey>> allGroupKeys = new ArrayList<>();
             List<GroupInfo> unsentGroups = new ArrayList<>();
-            createHashBucketChains(nextObjective, allGroupKeys, unsentGroups);
+            createEcmpHashBucketChains(nextObjective, allGroupKeys, unsentGroups);
             // now we can create the outermost MPLS ECMP group
             List<GroupBucket> mplsEcmpGroupBuckets = new ArrayList<>();
             for (GroupInfo gi : unsentGroups) {
@@ -297,7 +302,7 @@ public class OvsOfdpaGroupHandler extends Ofdpa2GroupHandler {
             }
             return;
         }
-        super.processHashedNextObjective(nextObjective);
+        super.processEcmpHashedNextObjective(nextObjective);
     }
 
     /**
