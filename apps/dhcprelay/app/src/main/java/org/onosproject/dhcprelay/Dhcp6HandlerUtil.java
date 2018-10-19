@@ -568,12 +568,15 @@ public final class Dhcp6HandlerUtil {
                 ipv6Packet.setDestinationAddress(serverInfo.getDhcpServerIp6().get().toOctets());
             }
             if (isRelayAgentIpFromCfgEmpty(serverInfo, receivedFromDevice)) {
-                dhcp6Relay.setLinkAddress(relayAgentIp.toOctets());
                 log.debug("indirect connection: relayAgentIp NOT availale from config file! Use dynamic. {}",
                         HexString.toHexString(relayAgentIp.toOctets(), ":"));
+                serverIpFacing = relayAgentIp;
             } else {
-                dhcp6Relay.setLinkAddress(serverInfo.getRelayAgentIp6(receivedFromDevice).get().toOctets());
+                serverIpFacing = serverInfo.getRelayAgentIp6(receivedFromDevice).get();
             }
+            log.debug("Source IP address set as relay agent IP with value: {}", serverIpFacing);
+            dhcp6Relay.setLinkAddress(serverIpFacing.toOctets());
+            ipv6Packet.setSourceAddress(serverIpFacing.toOctets());
         }
         // peer address: address of the client or relay agent from which the message to be relayed was received.
         dhcp6Relay.setPeerAddress(peerAddress);
