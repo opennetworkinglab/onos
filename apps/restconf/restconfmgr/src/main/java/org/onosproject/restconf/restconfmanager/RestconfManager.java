@@ -140,6 +140,10 @@ public class RestconfManager implements RestconfService {
         ResourceData receivedData = convertJsonToDataNode(rl.uriForYangRuntime(), rootNode);
         ResourceId rid = receivedData.resourceId();
         List<DataNode> dataNodeList = receivedData.dataNodes();
+        if (dataNodeList == null || dataNodeList.isEmpty()) {
+            log.warn("There is no one Data Node can be proceed.");
+            return;
+        }
         if (dataNodeList.size() > 1) {
             log.warn("There are more than one Data Node can be proceed: {}", dataNodeList.size());
         }
@@ -175,6 +179,10 @@ public class RestconfManager implements RestconfService {
         DataResourceLocator rl = DataResourceLocator.newInstance(uri);
         ResourceData receivedData = convertJsonToDataNode(rmLastPathSegment(rl.uriForYangRuntime()), rootNode);
         List<DataNode> dataNodeList = receivedData.dataNodes();
+        if (dataNodeList == null || dataNodeList.isEmpty()) {
+            log.warn("There is no one Data Node can be proceed.");
+            return;
+        }
         if (dataNodeList.size() > 1) {
             log.warn("There are more than one Data Node can be proceed: {}", dataNodeList.size());
         }
