@@ -55,13 +55,13 @@ public class TableStatisticsCommand extends AbstractShellCommand {
     String uri = null;
 
     private static final String FORMAT =
-            "   table=%s, active=%s, lookedup=%s, matched=%s";
+            "   table=%s, active=%s, lookedup=%s, matched=%s, maxsize=%s";
+    private static final String NA = "N/A";
 
     @Override
     protected void execute() {
         FlowRuleService flowService = get(FlowRuleService.class);
         DeviceService deviceService = get(DeviceService.class);
-
         SortedMap<Device, List<TableStatisticsEntry>> deviceTableStats =
                 getSortedTableStats(deviceService, flowService);
 
@@ -115,8 +115,9 @@ public class TableStatisticsCommand extends AbstractShellCommand {
         print("deviceId=%s, tableCount=%d", d.id(), empty ? 0 : tableStats.size());
         if (!empty) {
             for (TableStatisticsEntry t : tableStats) {
-                print(FORMAT, t.tableId(), t.activeFlowEntries(),
-                      t.packetsLookedup(), t.packetsMatched());
+                print(FORMAT, t.table(), t.activeFlowEntries(),
+                        t.hasPacketsLookedup() ? t.packetsLookedup() : NA, t.packetsMatched(),
+                        t.hasMaxSize() ? t.maxSize() : NA);
             }
         }
     }
@@ -129,7 +130,7 @@ public class TableStatisticsCommand extends AbstractShellCommand {
      * @return sorted table statistics list
      */
     protected SortedMap<Device, List<TableStatisticsEntry>> getSortedTableStats(DeviceService deviceService,
-                                                          FlowRuleService flowService) {
+                                                                                FlowRuleService flowService) {
         SortedMap<Device, List<TableStatisticsEntry>> deviceTableStats = new TreeMap<>(Comparators.ELEMENT_COMPARATOR);
         List<TableStatisticsEntry> tableStatsList;
         Iterable<Device> devices = uri == null ? deviceService.getDevices() :

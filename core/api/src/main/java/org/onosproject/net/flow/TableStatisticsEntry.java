@@ -30,11 +30,19 @@ public interface TableStatisticsEntry {
     DeviceId  deviceId();
 
     /**
-     * Returns the table number.
+     * Returns the integer table id.
      *
-     * @return table number
+     * @return integer table id
      */
+    @Deprecated
     int  tableId();
+
+    /**
+     * Returns the table id.
+     *
+     * @return table id
+     */
+    TableId table();
 
     /**
      * Returns the number of active flow entries in this table.
@@ -56,4 +64,26 @@ public interface TableStatisticsEntry {
      * @return the number of packets that successfully matched in the table
      */
     long packetsMatched();
+
+    /**
+     * Returns the maximum size of this table.
+     *
+     * @return the maximum size of this table
+     */
+    long maxSize();
+
+    /**
+     * To check whether packetLookedUp is present in this TableStatisticsEntry.
+     *
+     * @return true if packetLookedUp is present, otherwise false;
+     */
+    boolean hasPacketsLookedup();
+
+    /**
+     * To check whether maxSize is present in this TableStatisticsEntry.
+     *
+     * @return true if maxSize is present, otherwise false;
+     */
+    boolean hasMaxSize();
+
 }
