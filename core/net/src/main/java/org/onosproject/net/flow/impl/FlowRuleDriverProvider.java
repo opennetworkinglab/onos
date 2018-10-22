@@ -16,6 +16,7 @@
 
 package org.onosproject.net.flow.impl;
 
+import static com.google.common.collect.Lists.newArrayList;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
@@ -25,6 +26,7 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.behaviour.TableStatisticsDiscovery;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
@@ -35,6 +37,7 @@ import org.onosproject.net.flow.oldbatch.FlowRuleBatchOperation;
 import org.onosproject.net.flow.FlowRuleProgrammable;
 import org.onosproject.net.flow.FlowRuleProvider;
 import org.onosproject.net.flow.FlowRuleProviderService;
+import org.onosproject.net.flow.TableStatisticsEntry;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.slf4j.Logger;
@@ -45,6 +48,7 @@ import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.List;
 
 import static com.google.common.collect.ImmutableSet.copyOf;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
@@ -196,11 +200,24 @@ class FlowRuleDriverProvider extends AbstractProvider implements FlowRuleProvide
         }
     }
 
+    private void pollTableStatistics(Device device) {
+        try {
+            List<TableStatisticsEntry> tableStatsList = newArrayList(device.as(TableStatisticsDiscovery.class)
+                    .getTableStatistics());
+            providerService.pushTableStatistics(device.id(), tableStatsList);
+        } catch (Exception e) {
+            log.warn("Exception thrown while polling table statistics for {}", device.id(), e);
+        }
+    }
+
     private void pollFlowEntries() {
         try {
             deviceService.getAvailableDevices().forEach(device -> {
                 if (mastershipService.isLocalMaster(device.id()) && device.is(FlowRuleProgrammable.class)) {
                     pollDeviceFlowEntries(device);
+                }
+                if (mastershipService.isLocalMaster(device.id()) && device.is(TableStatisticsDiscovery.class)) {
+                    pollTableStatistics(device);
                 }
             });
         } catch (Exception e) {
