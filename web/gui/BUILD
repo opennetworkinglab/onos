@@ -194,7 +194,7 @@ genrule(
 """
 
 osgi_jar_with_tests(
-    name = "_onos-gui-base-jar",
+    name = "onos-gui-jar",
     exclude_tests = [
         "org.onosproject.ui.impl.AbstractUiImplTest",
         "org.onosproject.ui.impl.topo.model.AbstractTopoModelTest",
@@ -227,7 +227,7 @@ genrule(
     name = "onos-gui",
     srcs = [
         ":_onos-gui-npm-build",
-        ":_onos-gui-base-jar",
+        ":onos-gui-jar",
         ":_root_level_files",
         ":_web_inf_classes_files",
         ":_raw_classes_files",
@@ -243,7 +243,7 @@ genrule(
           " for i in $(locations :_web_inf_classes_files); do cp $$ROOT/$$i ./WEB-INF/classes/; done &&" +
           " mkdir ./WEB-INF/classes/raw && " +
           " for i in $(locations :_raw_classes_files); do cp $$ROOT/$$i ./WEB-INF/classes/raw/; done &&" +
-          " jar xf $$ROOT/$(location :_onos-gui-base-jar) &&" +
+          " jar xf $$ROOT/$(location :onos-gui-jar) &&" +
           " find . -type f -exec touch -t 201806280000 {} \; &&" +
           " jar cmf META-INF/MANIFEST.MF $$ROOT/$@ .",
     output_to_bindir = 1,

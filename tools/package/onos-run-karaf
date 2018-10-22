@@ -10,7 +10,7 @@ ONOS_TAR=
 
 function killServer() {
     echo "Killing ONOS server..."
-    ps -e | grep apache.karaf.main.Main | grep -v grep | cut -d\  -f1 | xargs kill -9 &>/dev/null
+    ps -e | grep apache.karaf.main.Main | grep -v grep | cut -c1-6 | xargs kill -9 &>/dev/null
 }
 
 # Kill any running instances

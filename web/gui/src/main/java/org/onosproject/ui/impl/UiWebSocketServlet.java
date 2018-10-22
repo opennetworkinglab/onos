@@ -124,7 +124,7 @@ public class UiWebSocketServlet extends WebSocketServlet {
     }
 
     // FIXME: This should not be necessary
-    private static final String FAKE_USERNAME = "UI-user";
+    private static final String FAKE_USERNAME = "unknown";
 
     public class UiWebSocketCreator implements WebSocketCreator {
         @Override
@@ -136,6 +136,7 @@ public class UiWebSocketServlet extends WebSocketServlet {
 
                 UiWebSocket socket = new UiWebSocket(directory, userName);
                 sockets.add(socket);
+                return socket;
             }
             return null;
         }
