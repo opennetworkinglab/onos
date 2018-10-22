@@ -24,10 +24,36 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public final class DefaultTableStatisticsEntry implements TableStatisticsEntry {
 
     private final DeviceId deviceId;
-    private final int tableId;
+    private final TableId tableId;
     private final long activeFlowEntries;
     private final long packetsLookedupCount;
     private final long packetsMatchedCount;
+    private final long maxSize;
+    private static final Long NOT_PRESENT = (long) -1;
+
+    /**
+     * Default table statistics constructor.
+     *
+     * @param deviceId device identifier
+     * @param tableId index table identifier
+     * @param activeFlowEntries number of active flow entries in the table
+     * @param packetsLookedupCount number of packets looked up in table
+     * @param packetsMatchedCount number of packets that hit table
+     * @deprecated since 1.15, suggest using the Builder class.
+     */
+    @Deprecated
+    public DefaultTableStatisticsEntry(DeviceId deviceId,
+                                       int  tableId,
+                                       long activeFlowEntries,
+                                       long packetsLookedupCount,
+                                       long packetsMatchedCount) {
+        this.deviceId = checkNotNull(deviceId);
+        this.tableId = IndexTableId.of(tableId);
+        this.activeFlowEntries = activeFlowEntries;
+        this.packetsLookedupCount = packetsLookedupCount;
+        this.packetsMatchedCount = packetsMatchedCount;
+        this.maxSize = NOT_PRESENT;
+    }
 
     /**
      * Default table statistics constructor.
@@ -37,17 +63,20 @@ public final class DefaultTableStatisticsEntry implements TableStatisticsEntry {
      * @param activeFlowEntries number of active flow entries in the table
      * @param packetsLookedupCount number of packets looked up in table
      * @param packetsMatchedCount number of packets that hit table
+     * @param maxSize maximum size of this table
      */
-    public DefaultTableStatisticsEntry(DeviceId deviceId,
-                                  int  tableId,
-                                  long activeFlowEntries,
-                                  long packetsLookedupCount,
-                                  long packetsMatchedCount) {
+    private DefaultTableStatisticsEntry(DeviceId deviceId,
+                                       TableId  tableId,
+                                       long activeFlowEntries,
+                                       long packetsLookedupCount,
+                                       long packetsMatchedCount,
+                                       long maxSize) {
         this.deviceId = checkNotNull(deviceId);
         this.tableId = tableId;
         this.activeFlowEntries = activeFlowEntries;
         this.packetsLookedupCount = packetsLookedupCount;
         this.packetsMatchedCount = packetsMatchedCount;
+        this.maxSize = maxSize;
     }
 
     @Override
@@ -61,6 +90,12 @@ public final class DefaultTableStatisticsEntry implements TableStatisticsEntry {
 
     @Override
     public int tableId() {
+        return tableId.type() == TableId.Type.INDEX ? ((IndexTableId) tableId).id() : tableId.hashCode();
+    }
+
+    @Override
+    public TableId table() {
+        //TODO: this is a temporary method, should implement tableId() like this method.
         return tableId;
     }
 
@@ -83,4 +118,73 @@ public final class DefaultTableStatisticsEntry implements TableStatisticsEntry {
     public DeviceId deviceId() {
         return deviceId;
     }
+
+    @Override
+    public long maxSize() {
+        return maxSize;
+    }
+
+    @Override
+    public boolean hasPacketsLookedup() {
+        return packetsLookedupCount == NOT_PRESENT ? false : true;
+    }
+
+    @Override
+    public boolean hasMaxSize() {
+        return maxSize == NOT_PRESENT ? false : true;
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static final class Builder {
+        private DeviceId deviceId;
+        private TableId tableId;
+        private Long activeFlowEntries;
+        private Long packetsMatchedCount;
+        private Long packetsLookedUpCount = NOT_PRESENT;
+        private Long maxSize = NOT_PRESENT;
+
+        public Builder withDeviceId(DeviceId deviceId) {
+            this.deviceId = deviceId;
+            return this;
+        }
+
+        public Builder withTableId(TableId tableId) {
+            this.tableId = tableId;
+            return this;
+        }
+
+        public Builder withActiveFlowEntries(long activeFlowEntries) {
+            this.activeFlowEntries = activeFlowEntries;
+            return this;
+        }
+
+        public Builder withPacketsLookedUpCount(long packetsLookedUpCount) {
+            this.packetsLookedUpCount = packetsLookedUpCount;
+            return this;
+        }
+
+        public Builder withPacketsMatchedCount(long packetsMatchedCount) {
+            this.packetsMatchedCount = packetsMatchedCount;
+            return this;
+        }
+
+        public Builder withMaxSize(long maxSize) {
+            this.maxSize = maxSize;
+            return this;
+        }
+
+        public TableStatisticsEntry build() {
+            checkNotNull(deviceId, "DeviceId cannot be null");
+            checkNotNull(tableId, "TableId cannot be null");
+            checkNotNull(activeFlowEntries, "ActiveFlowEntries cannot be null");
+            checkNotNull(packetsMatchedCount, "PacketsMatchedCount cannot be null");
+
+            return new DefaultTableStatisticsEntry(deviceId, tableId, activeFlowEntries, packetsLookedUpCount,
+                    packetsMatchedCount, maxSize);
+        }
+    }
+
 }

@@ -52,6 +52,7 @@ import org.onosproject.net.flow.FlowRuleProvider;
 import org.onosproject.net.flow.FlowRuleProviderRegistry;
 import org.onosproject.net.flow.FlowRuleProviderService;
 import org.onosproject.net.flow.TableStatisticsEntry;
+import org.onosproject.net.flow.IndexTableId;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.statistic.DefaultLoad;
@@ -709,11 +710,25 @@ public class OpenFlowRuleProvider extends AbstractProvider
                                                           OFTableStatsEntry ofEntry) {
             TableStatisticsEntry entry = null;
             if (ofEntry != null) {
-                entry = new DefaultTableStatisticsEntry(deviceId,
-                                                        ofEntry.getTableId().getValue(),
-                                                        ofEntry.getActiveCount(),
-                                                        ofEntry.getLookupCount().getValue(),
-                                                        ofEntry.getMatchedCount().getValue());
+                IndexTableId tid = IndexTableId.of(ofEntry.getTableId().getValue());
+
+                try {
+                    entry = DefaultTableStatisticsEntry.builder()
+                            .withDeviceId(deviceId)
+                            .withTableId(tid)
+                            .withActiveFlowEntries(ofEntry.getActiveCount())
+                            .withPacketsLookedUpCount(ofEntry.getLookupCount().getValue())
+                            .withPacketsMatchedCount(ofEntry.getMatchedCount().getValue())
+                            .withMaxSize(ofEntry.getMaxEntries()).build();
+                } catch (UnsupportedOperationException e) {
+                    // The exception "UnsupportedOperationException" is thrown by "getMaxEntries()".
+                    entry = DefaultTableStatisticsEntry.builder()
+                            .withDeviceId(deviceId)
+                            .withTableId(tid)
+                            .withActiveFlowEntries(ofEntry.getActiveCount())
+                            .withPacketsLookedUpCount(ofEntry.getLookupCount().getValue())
+                            .withPacketsMatchedCount(ofEntry.getMatchedCount().getValue()).build();
+                }
             }
 
             return entry;

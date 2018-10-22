@@ -33,7 +33,7 @@ public final class TableStatisticsEntryCodec extends JsonCodec<TableStatisticsEn
         checkNotNull(entry, "Table Statistics entry cannot be null");
 
         final ObjectNode result = context.mapper().createObjectNode()
-                .put("tableId", entry.tableId())
+                .put("tableId", entry.table().toString())
                 .put("deviceId", entry.deviceId().toString())
                 .put("activeEntries", entry.activeFlowEntries())
                 .put("packetsLookedUp", entry.packetsLookedup())
@@ -43,4 +43,3 @@ public final class TableStatisticsEntryCodec extends JsonCodec<TableStatisticsEn
     }
 
 }
-
