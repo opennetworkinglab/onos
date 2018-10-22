@@ -24,6 +24,7 @@ import com.thoughtworks.qdox.model.expression.Add;
 import com.thoughtworks.qdox.model.expression.AnnotationValue;
 import com.thoughtworks.qdox.model.expression.AnnotationValueList;
 import com.thoughtworks.qdox.model.expression.FieldRef;
+import com.thoughtworks.qdox.parser.ParseException;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -45,8 +46,10 @@ public class CfgDefGenerator {
     private static final String PROPERTY = "property";
     private static final String SEP = "|";
     private static final String UTF_8 = "UTF-8";
+    private static final String JAVA = ".java";
     private static final String EXT = ".cfgdef";
     private static final String STRING = "STRING";
+    private static final String NO_DESCRIPTION = "no description provided";
 
     private final File resourceJar;
     private final JavaProjectBuilder builder;
@@ -68,7 +71,10 @@ public class CfgDefGenerator {
         this.builder = new JavaProjectBuilder();
         Arrays.stream(sourceFilePaths).forEach(filename -> {
             try {
+                if (filename.endsWith(JAVA))
                 builder.addSource(new File(filename));
+            } catch (ParseException e) {
+                // When unable to parse, skip the source; leave it to javac to fail.
             } catch (IOException e) {
                 throw new IllegalArgumentException("Unable to open file", e);
             }
@@ -127,19 +133,19 @@ public class CfgDefGenerator {
 
             String line = name + SEP + type + SEP + def + SEP + desc + "\n";
             lines.add(line);
-            System.err.print(line);
         }
     }
 
-    // Retrieve description from a comment preceeding the field named the same
+    // Retrieve description from a comment preceding the field named the same
     // as the property or
     // TODO: from an annotated comment.
     private String description(JavaClass javaClass, String name) {
         JavaField field = javaClass.getFieldByName(name);
         if (field != null) {
-            return field.getComment();
+            String comment = field.getComment();
+            return comment != null ? comment : NO_DESCRIPTION;
         }
-        return "no description provided";
+        return NO_DESCRIPTION;
     }
 
     private String elaborate(AnnotationValue value) {
@@ -147,8 +153,10 @@ public class CfgDefGenerator {
             return elaborate(((Add) value).getLeft()) + elaborate(((Add) value).getRight());
         } else if (value instanceof FieldRef) {
             return stripped(constants.get(((FieldRef) value).getName()));
-        } else {
+        } else if (value != null) {
             return stripped(value.toString());
+        } else {
+            return "";
         }
     }
 

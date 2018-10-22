@@ -175,11 +175,12 @@ _bnd = rule(
 def _cfgdef_impl(ctx):
     output_jar = ctx.outputs.cfgdef_jar.path
 
-    # call swagger generator to make the swagger JSON and java files
     arguments = [
         output_jar,
-        ctx.files.srcs,
     ]
+
+    for src in ctx.files.srcs:
+        arguments.append(src.path)
 
     ctx.actions.run(
         inputs = ctx.files.srcs,
@@ -225,11 +226,9 @@ def _swagger_java_impl(ctx):
 
     srcs_arg = ""
     resources_arg = ""
-    input_dependencies = []
 
     for file in ctx.files.srcs:
         srcs_arg += file.path + ","
-        input_dependencies.append(file)
 
     for resource in resources_arg:
         resources_arg += resource.path + ","
@@ -275,11 +274,9 @@ def _swagger_json_impl(ctx):
 
     srcs_arg = ""
     resources_arg = ""
-    input_dependencies = []
 
     for file in ctx.files.srcs:
         srcs_arg += file.path + ","
-        input_dependencies.append(file)
 
     for resource in resources_arg:
         resources_arg += resource.path + ","
@@ -454,13 +451,6 @@ def osgi_jar_with_tests(
     native_srcs = srcs
     native_resources = resources
 
-    #    _cfgdef(
-    #        name = name + "_cfgdef",
-    #        srcs = native_srcs,
-    #        visibility = visibility,
-    #    )
-    #    native_resources.append(name + "_cfgdef_jar")
-
     if web_context != None and api_title != "" and len(resources) != 0:
         # generate Swagger files if needed
         _swagger_java(
@@ -496,12 +486,19 @@ def osgi_jar_with_tests(
 
     javacopts = ["-XepDisableAllChecks"] if suppress_errorprone else []
 
+    _cfgdef(
+        name = name + "_cfgdef_jar",
+        srcs = native_srcs,
+        visibility = visibility,
+        cfgdef_jar = name + "_cfgdef.jar",
+    )
+
     # compile the Java code
     if len(resource_jars) > 0:
         native.java_library(
             name = name + "-native",
             srcs = native_srcs,
-            resource_jars = resource_jars,
+            resource_jars = resource_jars + [name + "_cfgdef_jar"],
             deps = deps,
             visibility = visibility,
             javacopts = javacopts,
@@ -510,6 +507,7 @@ def osgi_jar_with_tests(
         native.java_library(
             name = name + "-native",
             srcs = native_srcs,
+            resource_jars = [name + "_cfgdef_jar"],
             resources = native_resources,
             deps = deps,
             visibility = visibility,
