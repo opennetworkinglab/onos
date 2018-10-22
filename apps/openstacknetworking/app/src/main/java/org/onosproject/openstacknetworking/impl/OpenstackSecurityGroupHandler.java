@@ -102,6 +102,7 @@ import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ACL_RUL
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_CT_DROP_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_CT_HOOK_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_CT_RULE;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.swapStaleLocation;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.computeCtMaskFlag;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.computeCtStateFlag;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.niciraConnTrackTreatmentBuilder;
@@ -761,6 +762,12 @@ public class OpenstackSecurityGroupHandler {
                             setSecurityGroupRules(instPort, osPort, false)
                     );
                     removedOsPortStore.remove(instPort.portId());
+                    break;
+                case OPENSTACK_INSTANCE_MIGRATION_ENDED:
+                    InstancePort revisedInstPort = swapStaleLocation(instPort);
+                    Port port = osNetService.port(instPort.portId());
+                    eventExecutor.execute(() ->
+                            setSecurityGroupRules(revisedInstPort, port, false));
                     break;
                 default:
                     break;
