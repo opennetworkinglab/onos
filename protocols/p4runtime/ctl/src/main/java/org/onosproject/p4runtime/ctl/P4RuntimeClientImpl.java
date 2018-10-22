@@ -80,7 +80,6 @@ import p4.v1.P4RuntimeOuterClass.WriteRequest;
 import java.math.BigInteger;
 import java.net.ConnectException;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -411,7 +410,7 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
 
         ForwardingPipelineConfig.Cookie pipeconfCookie = ForwardingPipelineConfig.Cookie
                 .newBuilder()
-                .setCookie(generateCookie(p4Info, deviceData))
+                .setCookie(pipeconf.fingerprint())
                 .build();
 
         // FIXME: This is specific to PI P4Runtime implementation.
@@ -454,10 +453,6 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
             }
             return false;
         }
-
-        long expectedConfigCookie = generateCookie(
-                PipeconfHelper.getP4Info(pipeconf), deviceData);
-
         if (!resp.getConfig().hasCookie()) {
             log.warn("{} returned GetForwardingPipelineConfigResponse " +
                              "with 'cookie' field unset",
@@ -465,7 +460,7 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
             return false;
         }
 
-        return resp.getConfig().getCookie().getCookie() == expectedConfigCookie;
+        return resp.getConfig().getCookie().getCookie() == pipeconf.fingerprint();
     }
 
     private boolean doSetPipelineConfig(PiPipeconf pipeconf, ByteBuffer deviceData) {
@@ -1302,15 +1297,6 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
                 .setHigh(bb.getLong())
                 .setLow(bb.getLong())
                 .build();
-    }
-
-    /**
-     * A function to generate cookie based on P4Info and target-specific binary
-     * data.
-     * Moreover, the method to generate cookie can be replaced.
-     */
-    private long generateCookie(P4Info p4Info, ByteBuffer deviceData) {
-        return Objects.hash(p4Info, Arrays.hashCode(deviceData.array()));
     }
 
     private BigInteger uint128ToBigInteger(Uint128 value) {
