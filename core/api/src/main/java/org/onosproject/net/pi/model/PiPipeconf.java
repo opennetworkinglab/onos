@@ -45,6 +45,13 @@ public interface PiPipeconf {
     PiPipelineModel pipelineModel();
 
     /**
+     * Returns the fingerprint of pipeconf.
+     *
+     * @return a fingerprint
+     */
+    long fingerprint();
+
+    /**
      * Returns all pipeline-specific behaviour interfaces defined by this configuration.
      *
      * @return a collection of behaviours
