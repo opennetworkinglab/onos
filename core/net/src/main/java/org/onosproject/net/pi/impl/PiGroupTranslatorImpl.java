@@ -109,6 +109,9 @@ final class PiGroupTranslatorImpl {
 
             final PiTableAction tableAction = translateTreatment(bucket.treatment(), interpreter, groupKey.tableId(),
                                                                  pipeconf.pipelineModel());
+            if (tableAction == null) {
+                throw new PiTranslationException("The PI table action returned by the interpreter is null");
+            }
 
             if (tableAction.type() != ACTION) {
                 throw new PiTranslationException(format(
