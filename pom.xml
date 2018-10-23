@@ -22,14 +22,14 @@
     <parent>
         <groupId>org.onosproject</groupId>
         <artifactId>onos-dependencies</artifactId>
-        <version>1.14.1</version>
+        <version>1.14.2-SNAPSHOT</version>
         <relativePath>lib/pom.xml</relativePath>
     </parent>
 
     <groupId>org.onosproject</groupId>
     <artifactId>onos</artifactId>
     <packaging>pom</packaging>
-    <version>1.14.1</version>
+    <version>1.14.2-SNAPSHOT</version>
 
     <name>${project.artifactId}</name>
     <description>Open Network Operating System root project</description>
