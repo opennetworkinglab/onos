@@ -21,7 +21,7 @@ cat <<EOF >$output
 package $package;
 
 import org.onosproject.yang.AbstractYangModelRegistrator;
-import org.apache.felix.scr.annotations.Component;
+import org.osgi.service.component.annotations.Component;
 
 @Component(immediate = true)
 public class YangModelRegistrator extends AbstractYangModelRegistrator {
