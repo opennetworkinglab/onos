@@ -22,7 +22,7 @@
     <parent>
         <artifactId>onos-apps-inbandtelemetry</artifactId>
         <groupId>org.onosproject</groupId>
-        <version>1.14.1-SNAPSHOT</version>
+        <version>1.14.1</version>
     </parent>
 
     <artifactId>onos-apps-inbandtelemetry-api</artifactId>
