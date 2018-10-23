@@ -188,7 +188,7 @@ public class MeterManager
 
     @Override
     public Meter submit(MeterRequest request) {
-
+        checkNotNull(request, "request cannot be null.");
         MeterId id = allocateMeterId(request.deviceId());
 
         Meter.Builder mBuilder = DefaultMeter.builder()
@@ -210,6 +210,7 @@ public class MeterManager
 
     @Override
     public void withdraw(MeterRequest request, MeterId meterId) {
+        checkNotNull(request, "request cannot be null.");
         Meter.Builder mBuilder = DefaultMeter.builder()
                 .forDevice(request.deviceId())
                 .fromApp(request.appId())
