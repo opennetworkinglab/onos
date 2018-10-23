@@ -183,7 +183,11 @@ public class MetersWebResource extends AbstractWebResource {
         final Meter tmpMeter = meterService.getMeter(did, mid);
         if (tmpMeter != null) {
             final MeterRequest meterRequest = meterToMeterRequest(tmpMeter, "REMOVE");
-            meterService.withdraw(meterRequest, tmpMeter.id());
+            if (meterRequest != null) {
+                meterService.withdraw(meterRequest, tmpMeter.id());
+            }
+        } else {
+            log.warn("Meter {}, is not present", tmpMeter);
         }
         return Response.noContent().build();
     }
