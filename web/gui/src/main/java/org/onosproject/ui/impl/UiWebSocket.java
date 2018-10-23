@@ -19,10 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.eclipse.jetty.websocket.api.Session;
-import org.eclipse.jetty.websocket.api.annotations.OnWebSocketClose;
-import org.eclipse.jetty.websocket.api.annotations.OnWebSocketConnect;
-import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
-import org.eclipse.jetty.websocket.api.annotations.WebSocket;
+import org.eclipse.jetty.websocket.api.WebSocketAdapter;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.ServiceNotFoundException;
 import org.onosproject.cluster.ClusterService;
@@ -51,16 +48,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+
+import static org.onosproject.ui.impl.UiWebSocketServlet.PING_DELAY_MS;
 
 /**
  * Web socket capable of interacting with the Web UI.
  */
 
-@WebSocket
-public class UiWebSocket implements UiConnection {
+public class UiWebSocket extends WebSocketAdapter implements UiConnection {
 
     private static final Logger log = LoggerFactory.getLogger(UiWebSocket.class);
 
@@ -87,12 +86,13 @@ public class UiWebSocket implements UiConnection {
 
     private static final long MAX_AGE_MS = 30_000;
 
+    private static final byte[] PING_DATA = new byte[]{(byte) 0xde, (byte) 0xad};
+    private static final ByteBuffer PING = ByteBuffer.wrap(PING_DATA);
+
     private final ObjectMapper mapper = new ObjectMapper();
     private final ServiceDirectory directory;
     private final UiTopoSession topoSession;
 
-    private Session session;
-    //private FrameConnection control;
     private String userName;
     private String currentView;
 
@@ -172,10 +172,10 @@ public class UiWebSocket implements UiConnection {
     /**
      * Issues a close on the connection.
      */
-    synchronized void close() {
+    void close() {
         destroyHandlersAndOverlays();
-        if (session.isOpen()) {
-            session.close();
+        if (isConnected()) {
+            getSession().close();
         }
     }
 
@@ -184,43 +184,43 @@ public class UiWebSocket implements UiConnection {
      *
      * @return true if idle or closed
      */
-    synchronized boolean isIdle() {
+    boolean isIdle() {
         long quietFor = System.currentTimeMillis() - lastActive;
         boolean idle = quietFor > MAX_AGE_MS;
-        if (idle || (session != null && !session.isOpen())) {
+        if (idle || isNotConnected()) {
             log.debug("IDLE (or closed) websocket [{} ms]", quietFor);
             return true;
-        //} else if (session != null) {
-        //    try {
-        //        control.sendControl(PING, PING_DATA, 0, PING_DATA.length);
-        //    } catch (IOException e) {
-        //        log.warn("Unable to send ping message due to: ", e);
-        //    }
+
+        } else if (isConnected() && quietFor > PING_DELAY_MS) {
+            try {
+                getRemote().sendPing(PING);
+                lastActive = System.currentTimeMillis();
+            } catch (IOException e) {
+                log.warn("Unable to send ping message due to: ", e);
+            }
         }
         return false;
     }
 
-    @OnWebSocketConnect
-    public synchronized void onOpen(Session session) {
-        this.session = session;
-        //this.control = (FrameConnection) connection;
+    @Override
+    public void onWebSocketConnect(Session session) {
+        super.onWebSocketConnect(session);
         try {
             topoSession.init();
             createHandlersAndOverlays();
             sendBootstrapData();
             sendUberLionBundle();
+            lastActive = System.currentTimeMillis();
             log.info("GUI client connected -- user <{}>", userName);
 
         } catch (ServiceNotFoundException e) {
             log.warn("Unable to open GUI connection; services have been shut-down", e);
-            this.session.close();
-            this.session = null;
-            //this.control = null;
+            getSession().close();
         }
     }
 
-    @OnWebSocketClose
-    public synchronized void onClose(int closeCode, String message) {
+    @Override
+    public void onWebSocketClose(int closeCode, String reason) {
         try {
             try {
                 tokenService().revokeToken(sessionToken);
@@ -235,12 +235,13 @@ public class UiWebSocket implements UiConnection {
         } catch (Exception e) {
             log.warn("Unexpected error", e);
         }
+        super.onWebSocketClose(closeCode, reason);
         log.info("GUI client disconnected [close-code={}, message={}]",
-                 closeCode, message);
+                 closeCode, reason);
     }
 
-    @OnWebSocketMessage
-    public void onText(Session session, String data) {
+    @Override
+    public void onWebSocketText(String data) {
         lastActive = System.currentTimeMillis();
         try {
             ObjectNode message = (ObjectNode) mapper.reader().readTree(data);
@@ -265,10 +266,16 @@ public class UiWebSocket implements UiConnection {
     }
 
     @Override
+    public void onWebSocketBinary(byte[] payload, int offset, int length) {
+        lastActive = System.currentTimeMillis();
+        log.warn("Binary messages are currently not supported");
+    }
+
+    @Override
     public synchronized void sendMessage(ObjectNode message) {
         try {
-            if (session.isOpen()) {
-                session.getRemote().sendString(message.toString());
+            if (isConnected()) {
+                getRemote().sendString(message.toString());
                 log.debug("TX message: {}", message);
             }
         } catch (IOException e) {

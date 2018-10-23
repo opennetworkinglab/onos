@@ -37,8 +37,7 @@ import java.util.TimerTask;
  */
 public class UiWebSocketServlet extends WebSocketServlet {
 
-    private static final long PING_DELAY_MS = 5000;
-    private static final long IDLE_TIMEOUT_MS = 10000;
+    static final long PING_DELAY_MS = 5000;
 
     private static UiWebSocketServlet instance;
     private static final Object INSTANCE_LOCK = new Object();
@@ -53,7 +52,7 @@ public class UiWebSocketServlet extends WebSocketServlet {
 
     @Override
     public void configure(WebSocketServletFactory webSocketServletFactory) {
-        webSocketServletFactory.getPolicy().setIdleTimeout(IDLE_TIMEOUT_MS);
+        webSocketServletFactory.getPolicy().setIdleTimeout(Long.MAX_VALUE);
         webSocketServletFactory.setCreator(new UiWebSocketCreator());
     }
 
