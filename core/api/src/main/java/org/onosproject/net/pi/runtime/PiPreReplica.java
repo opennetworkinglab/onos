@@ -32,7 +32,7 @@ import static java.lang.String.format;
 public class PiPreReplica {
 
     private final PortNumber egressPort;
-    private final long instanceId;
+    private final int instanceId;
 
     /**
      * Returns a new PRE packet replica for the given egress port and instance
@@ -41,7 +41,7 @@ public class PiPreReplica {
      * @param egressPort egress port
      * @param instanceId instance ID
      */
-    public PiPreReplica(PortNumber egressPort, long instanceId) {
+    public PiPreReplica(PortNumber egressPort, int instanceId) {
         this.egressPort = checkNotNull(egressPort);
         this.instanceId = instanceId;
     }
@@ -60,7 +60,7 @@ public class PiPreReplica {
      *
      * @return instance ID
      */
-    public long instanceId() {
+    public int instanceId() {
         return instanceId;
     }
 

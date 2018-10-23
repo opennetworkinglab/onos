@@ -560,7 +560,9 @@ public class ApplicationArchive
                 // assume that we can always fallback to default icon
                 iconStream = ApplicationArchive.class.getResourceAsStream("/" + APP_PNG);
             }
-            return ByteStreams.toByteArray(iconStream);
+            byte[] icon = ByteStreams.toByteArray(iconStream);
+            iconStream.close();
+            return icon;
         } catch (IOException e) {
             log.warn("Unable to read app icon for app {}", appName, e);
         }

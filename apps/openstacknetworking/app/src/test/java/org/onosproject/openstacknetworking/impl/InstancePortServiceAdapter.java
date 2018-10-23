@@ -51,6 +51,11 @@ public class InstancePortServiceAdapter implements InstancePortService {
     }
 
     @Override
+    public Set<InstancePort> instancePort(DeviceId deviceId) {
+        return ImmutableSet.of();
+    }
+
+    @Override
     public Set<InstancePort> instancePorts() {
         return ImmutableSet.of();
     }

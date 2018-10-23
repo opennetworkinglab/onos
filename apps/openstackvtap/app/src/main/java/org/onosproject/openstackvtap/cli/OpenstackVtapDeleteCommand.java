@@ -23,26 +23,26 @@ import org.onosproject.openstackvtap.api.OpenstackVtapAdminService;
 import org.onosproject.openstackvtap.api.OpenstackVtapId;
 
 /**
- * Command line interface for removing openstack vTap rule.
+ * Delete a openstack vtap rule from the existing vtaps.
  */
 @Service
 @Command(scope = "onos", name = "openstack-vtap-del",
         description = "OpenstackVtap deactivate")
 public class OpenstackVtapDeleteCommand extends AbstractShellCommand {
 
-    private final OpenstackVtapAdminService vTapService = get(OpenstackVtapAdminService.class);
+    private final OpenstackVtapAdminService vtapService = get(OpenstackVtapAdminService.class);
 
-    @Argument(index = 0, name = "id", description = "vTap ID",
+    @Argument(index = 0, name = "id", description = "vtap ID",
             required = true, multiValued = false)
-    String vTapId = "";
+    String vtapId = "";
 
     @Override
     protected void doExecute() {
-        OpenstackVtap vTap = vTapService.removeVtap(OpenstackVtapId.vTapId(vTapId));
-        if (vTap != null) {
-            print("Removed OpenstackVtap with id { %s }", vTap.id().toString());
+        OpenstackVtap vtap = vtapService.removeVtap(OpenstackVtapId.vtapId(vtapId));
+        if (vtap != null) {
+            print("Removed OpenstackVtap with id { %s }", vtap.id().toString());
         } else {
-            print("Failed to remove OpenstackVtap with id { %s }", vTapId);
+            print("Failed to remove OpenstackVtap with id { %s }", vtapId);
         }
     }
 }

@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable, Inject } from '@angular/core';
-import { ActivatedRoute, Router} from '@angular/router';
-import { LogService } from '../log.service';
+import {Inject, Injectable} from '@angular/core';
+import {ActivatedRoute} from '@angular/router';
+import {LogService} from '../log.service';
+import {Trie, TrieOp} from './trie';
 
 // Angular>=2 workaround for missing definition
 declare const InstallTrigger: any;
@@ -39,112 +40,6 @@ export interface Match {
     full: string;
     name: string;
 }
-
-// TODO Move all this trie stuff to its own class
-// Angular>=2 Tightened up on types to avoid compiler errors
-interface TrieC {
-    p: any;
-    s: string[];
-}
-// trie operation
-function _trieOp(op: string, trie, word: string, data) {
-    const p = trie;
-    const w: string = word.toUpperCase();
-    const s: Array<string> = w.split('');
-    let c: TrieC = { p: p, s: s };
-    let t = [];
-    let  x = 0;
-    const f1 = op === '+' ? add : probe;
-    const f2 = op === '+' ? insert : remove;
-
-    function add(cAdded): TrieC {
-        const q = cAdded.s.shift();
-        let np = cAdded.p[q];
-
-        if (!np) {
-            cAdded.p[q] = {};
-            np = cAdded.p[q];
-            x = 1;
-        }
-        return { p: np, s: cAdded.s };
-    }
-
-    function probe(cProbed): TrieC {
-        const q = cProbed.s.shift();
-        const k: number = Object.keys(cProbed.p).length;
-        const np = cProbed.p[q];
-
-        t.push({ q: q, k: k, p: cProbed.p });
-        if (!np) {
-            t = [];
-            return { p: [], s: [] };
-        }
-        return { p: np, s: cProbed.s };
-    }
-
-    function insert() {
-        c.p._data = data;
-        return x ? 'added' : 'updated';
-    }
-
-    function remove() {
-        if (t.length) {
-            t = t.reverse();
-            while (t.length) {
-                const d = t.shift();
-                delete d.p[d.q];
-                if (d.k > 1) {
-                    t = [];
-                }
-            }
-            return 'removed';
-        }
-        return 'absent';
-    }
-
-    while (c.s.length) {
-        c = f1(c);
-    }
-    return f2();
-}
-
-// add word to trie (word will be converted to uppercase)
-// data associated with the word
-// returns 'added' or 'updated'
-function addToTrie(trie, word, data) {
-    return _trieOp('+', trie, word, data);
-}
-
-// remove word from trie (word will be converted to uppercase)
-// returns 'removed' or 'absent'
-// Angular>=2 added in quotes for data. error TS2554: Expected 4 arguments, but got 3.
-function removeFromTrie(trie, word) {
-    return _trieOp('-', trie, word, '');
-}
-
-// lookup word (converted to uppercase) in trie
-// returns:
-//    undefined if the word is not in the trie
-//    -1 for a partial match (word is a prefix to an existing word)
-//    data for the word for an exact match
-function trieLookup(trie, word) {
-    const s = word.toUpperCase().split('');
-    let p = trie;
-    let n;
-
-    while (s.length) {
-        n = s.shift();
-        p = p[n];
-        if (!p) {
-            return undefined;
-        }
-    }
-    if (p._data) {
-        return p._data;
-    }
-    return -1;
-}
-
 
 /**
  * ONOS GUI -- Util -- General Purpose Functions
@@ -559,6 +454,48 @@ export class FnService {
         // TODO: consider encoding HTML entities, e.g. '&' -> '&amp;'
 
         return html;
+    }
+
+    /**
+     * add word to trie (word will be converted to uppercase)
+     * data associated with the word
+     * returns 'added' or 'updated'
+     */
+    addToTrie(trie, word, data) {
+        return new Trie(TrieOp.PLUS, trie, word, data);
+    }
+
+    /**
+     * remove word from trie (word will be converted to uppercase)
+     * returns 'removed' or 'absent'
+     */
+    removeFromTrie(trie, word) {
+        return new Trie(TrieOp.MINUS, trie, word);
+    }
+
+    /**
+     * lookup word (converted to uppercase) in trie
+     * returns:
+     *    undefined if the word is not in the trie
+     *    -1 for a partial match (word is a prefix to an existing word)
+     *    data for the word for an exact match
+     */
+    trieLookup(trie, word) {
+        const s = word.toUpperCase().split('');
+        let p = trie;
+        let n;
+
+        while (s.length) {
+            n = s.shift();
+            p = p[n];
+            if (!p) {
+                return undefined;
+            }
+        }
+        if (p._data) {
+            return p._data;
+        }
+        return -1;
     }
 
 }

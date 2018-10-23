@@ -15,60 +15,24 @@
  */
 package org.onosproject.openstackvtap.api;
 
-import org.onlab.packet.VlanId;
-import org.onosproject.net.DeviceId;
-import org.onosproject.net.PortNumber;
-
 /**
- * Service for administering the inventory of vTap.
+ * Service for administering the inventory of openstack vtap.
  */
 public interface OpenstackVtapAdminService extends OpenstackVtapService {
 
     /**
-     * Creates a new vTap based on the specified description.
-     *
-     * @param type                  vTap type
-     * @param vTapCriterion         criterion of a vTap
-     * @return created vTap object or null if error occurred
+     * Initializes the flow rules and group tables, tunneling interface for all completed compute nodes.
      */
-    OpenstackVtap createVtap(OpenstackVtap.Type type, OpenstackVtapCriterion vTapCriterion);
+    void initVtap();
 
     /**
-     * Updates the existing vTap based on the given vTap instance.
-     *
-     * @param vTapId             vTap identifier
-     * @param vTap               vTap instance to be modified
-     * @return updated vTap object or null if error occurred
+     * Clears the flow rules and group tables, tunneling interfaces for all compute nodes.
      */
-    OpenstackVtap updateVtap(OpenstackVtapId vTapId, OpenstackVtap vTap);
+    void clearVtap();
 
     /**
-     * Removes the specified vTap with given vTap identifier.
-     *
-     * @param vTapId             vTap identifier
-     * @return removed vTap object or null if error occurred
+     * Purges all flow rules and group tables, tunneling interface for openstack vtap.
      */
-    OpenstackVtap removeVtap(OpenstackVtapId vTapId);
+    void purgeVtap();
 
-    /**
-     * Sets output port and VLAN tag for vTap.
-     *
-     * @param deviceId           device identifier
-     * @param type               vTap type
-     * @param portNumber         port number
-     * @param vlanId             VLAN tag
-     */
-    void setVtapOutput(DeviceId deviceId, OpenstackVtap.Type type,
-                       PortNumber portNumber, VlanId vlanId);
-
-    /**
-     * Sets output port and VNI for vTap.
-     *
-     * @param deviceId          device identifier
-     * @param type              vTap type
-     * @param portNumber        port number
-     * @param vni               virtual network index (VNI) of VxLAN
-     */
-    void setVtapOutput(DeviceId deviceId, OpenstackVtap.Type type,
-                       PortNumber portNumber, int vni);
 }

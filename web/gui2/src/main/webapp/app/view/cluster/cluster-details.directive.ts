@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-present Open Networking Foundation
+ * Copyright 2018-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,10 +72,14 @@ function addDeviceRow(tbody, device) {
     });
 }
 
+
+/**
+ * This should not be a directive - this should be a component, like all of the other details views
+ * Change it when time allows
+ */
 @Directive({
     selector: '[onosClusterDetails]',
 })
-
 export class ClusterDetailsDirective extends DetailsPanelBaseImpl implements OnInit, OnDestroy, OnChanges {
     @Input() id: string;
     @Output() closeEvent = new EventEmitter<string>();

@@ -224,6 +224,15 @@ public class InstancePortManager
     }
 
     @Override
+    public Set<InstancePort> instancePort(DeviceId deviceId) {
+        Set<InstancePort> ports = instancePortStore.instancePorts().stream()
+                .filter(port -> port.deviceId().equals(deviceId))
+                .collect(Collectors.toSet());
+
+        return ImmutableSet.copyOf(ports);
+    }
+
+    @Override
     public Set<InstancePort> instancePorts() {
         Set<InstancePort> ports = instancePortStore.instancePorts();
 

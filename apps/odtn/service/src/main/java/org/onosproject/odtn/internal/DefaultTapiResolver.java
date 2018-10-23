@@ -96,7 +96,7 @@ public class DefaultTapiResolver implements TapiResolver {
     public boolean hasNepRef(String sipId) {
         updateCache();
         return tapiNepRefList.stream()
-                .anyMatch(nep -> nep.getSipId().equals(sipId));
+                .anyMatch(nep -> nep.getSipId() != null && nep.getSipId().equals(sipId));
     }
 
     @Override

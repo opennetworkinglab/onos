@@ -24,16 +24,15 @@ import org.onosproject.openstackvtap.api.OpenstackVtapCriterion;
 import static com.google.common.base.Preconditions.checkArgument;
 
 /**
- * Default implementation of an immutable openstack vTap criterion.
+ * Default implementation of an immutable openstack vtap criterion.
  */
 public final class DefaultOpenstackVtapCriterion implements OpenstackVtapCriterion {
+
     private final IpPrefix srcIpPrefix;
     private final IpPrefix dstIpPrefix;
-    private final byte     ipProtocol;
+    private final byte ipProtocol;
     private final TpPort srcTpPort;
-    private final TpPort   dstTpPort;
-
-    private static final String NOT_NULL_MSG = "Element % cannot be null";
+    private final TpPort dstTpPort;
 
     // private constructor not intended to use from external
     private DefaultOpenstackVtapCriterion(IpPrefix srcIpPrefix,
@@ -107,18 +106,20 @@ public final class DefaultOpenstackVtapCriterion implements OpenstackVtapCriteri
     }
 
     /**
-     * Creates a new default openstack vTap criterion builder.
+     * Creates a new default openstack vtap criterion builder.
      *
-     * @return default openstack vTap criterion builder
+     * @return default openstack vtap criterion builder
      */
     public static Builder builder() {
         return new Builder();
     }
 
     /**
-     * A builder class for openstack vTap criterion builder.
+     * A builder class for openstack vtap criterion builder.
      */
     public static final class Builder implements OpenstackVtapCriterion.Builder {
+        private static final String NOT_NULL_MSG = "OpenstackVtapCriterion % cannot be null";
+
         private IpPrefix srcIpPrefix;
         private IpPrefix dstIpPrefix;
         private byte     ipProtocol;
@@ -168,4 +169,5 @@ public final class DefaultOpenstackVtapCriterion implements OpenstackVtapCriteri
             return this;
         }
     }
+
 }

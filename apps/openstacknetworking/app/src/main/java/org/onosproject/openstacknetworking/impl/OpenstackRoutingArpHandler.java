@@ -44,6 +44,7 @@ import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.openstacknetworking.api.Constants;
+import org.onosproject.openstacknetworking.api.ExternalPeerRouter;
 import org.onosproject.openstacknetworking.api.InstancePort;
 import org.onosproject.openstacknetworking.api.InstancePortAdminService;
 import org.onosproject.openstacknetworking.api.InstancePortEvent;
@@ -53,10 +54,11 @@ import org.onosproject.openstacknetworking.api.OpenstackNetworkAdminService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkEvent;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkListener;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
+import org.onosproject.openstacknetworking.api.OpenstackRouterAdminService;
 import org.onosproject.openstacknetworking.api.OpenstackRouterEvent;
 import org.onosproject.openstacknetworking.api.OpenstackRouterListener;
-import org.onosproject.openstacknetworking.api.OpenstackRouterService;
 import org.onosproject.openstacknetworking.api.PreCommitPortService;
+import org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeEvent;
 import org.onosproject.openstacknode.api.OpenstackNodeListener;
@@ -64,6 +66,7 @@ import org.onosproject.openstacknode.api.OpenstackNodeService;
 import org.openstack4j.model.network.ExternalGateway;
 import org.openstack4j.model.network.IP;
 import org.openstack4j.model.network.NetFloatingIP;
+import org.openstack4j.model.network.Network;
 import org.openstack4j.model.network.Port;
 import org.openstack4j.model.network.Router;
 import org.osgi.service.component.ComponentContext;
@@ -97,7 +100,9 @@ import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.g
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getGwByInstancePort;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getPropertyValue;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.isAssociatedWithVM;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.processGratuitousArpPacketForFloatingIp;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.swapStaleLocation;
+import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -123,7 +128,7 @@ public class OpenstackRoutingArpHandler {
     protected OpenstackNetworkAdminService osNetworkAdminService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    protected OpenstackRouterService osRouterService;
+    protected OpenstackRouterAdminService osRouterAdminService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected OpenstackNodeService osNodeService;
@@ -173,7 +178,7 @@ public class OpenstackRoutingArpHandler {
         appId = coreService.registerApplication(OPENSTACK_NETWORKING_APP_ID);
         configService.registerProperties(getClass());
         localNodeId = clusterService.getLocalNode().id();
-        osRouterService.addListener(osRouterListener);
+        osRouterAdminService.addListener(osRouterListener);
         osNodeService.addListener(osNodeListener);
         osNetworkService.addListener(osNetworkListener);
         instancePortService.addListener(instPortListener);
@@ -186,7 +191,7 @@ public class OpenstackRoutingArpHandler {
     protected void deactivate() {
         packetService.removeProcessor(packetProcessor);
         instancePortService.removeListener(instPortListener);
-        osRouterService.removeListener(osRouterListener);
+        osRouterAdminService.removeListener(osRouterListener);
         osNodeService.removeListener(osNodeListener);
         osNetworkService.removeListener(osNetworkListener);
         instancePortService.removeListener(instPortListener);
@@ -220,7 +225,7 @@ public class OpenstackRoutingArpHandler {
 
             MacAddress targetMac = null;
 
-            NetFloatingIP floatingIP = osRouterService.floatingIps().stream()
+            NetFloatingIP floatingIP = osRouterAdminService.floatingIps().stream()
                     .filter(ip -> ip.getFloatingIpAddress().equals(targetIp.toString()))
                     .findAny().orElse(null);
 
@@ -358,14 +363,14 @@ public class OpenstackRoutingArpHandler {
                 if (completedGws.contains(gateway)) {
                     if (completedGws.size() > 1) {
                         finalGws.remove(gateway);
-                        osRouterService.floatingIps().forEach(fip -> {
+                        osRouterAdminService.floatingIps().forEach(fip -> {
                             if (fip.getPortId() != null) {
                                 setFloatingIpArpRule(fip, fip.getPortId(), finalGws, false);
                                 finalGws.add(gateway);
                             }
                         });
                     }
-                    osRouterService.floatingIps().forEach(fip -> {
+                    osRouterAdminService.floatingIps().forEach(fip -> {
                         if (fip.getPortId() != null) {
                             setFloatingIpArpRule(fip, fip.getPortId(), finalGws, true);
                         }
@@ -376,14 +381,14 @@ public class OpenstackRoutingArpHandler {
             } else {
                 if (!completedGws.contains(gateway)) {
                     finalGws.add(gateway);
-                    osRouterService.floatingIps().forEach(fip -> {
+                    osRouterAdminService.floatingIps().forEach(fip -> {
                         if (fip.getPortId() != null) {
                             setFloatingIpArpRule(fip, fip.getPortId(), finalGws, false);
                         }
                     });
                     finalGws.remove(gateway);
                     if (completedGws.size() >= 1) {
-                        osRouterService.floatingIps().forEach(fip -> {
+                        osRouterAdminService.floatingIps().forEach(fip -> {
                             if (fip.getPortId() != null) {
                                 setFloatingIpArpRule(fip, fip.getPortId(), finalGws, true);
                             }
@@ -729,14 +734,14 @@ public class OpenstackRoutingArpHandler {
         public void event(InstancePortEvent event) {
             InstancePort instPort = event.subject();
 
-            Set<NetFloatingIP> ips = osRouterService.floatingIps();
+            Set<NetFloatingIP> ips = osRouterAdminService.floatingIps();
             NetFloatingIP fip = associatedFloatingIp(instPort, ips);
             Set<OpenstackNode> gateways = osNodeService.completeNodes(GATEWAY);
 
             switch (event.type()) {
                 case OPENSTACK_INSTANCE_PORT_DETECTED:
 
-                    osRouterService.floatingIps().stream()
+                    osRouterAdminService.floatingIps().stream()
                             .filter(f -> f.getPortId() != null)
                             .filter(f -> f.getPortId().equals(instPort.portId()))
                             .forEach(f -> setFloatingIpArpRule(f, instPort.portId(), gateways, true));
@@ -802,14 +807,66 @@ public class OpenstackRoutingArpHandler {
                 case OPENSTACK_NODE_COMPLETE:
                     setDefaultArpRule(osNode, true);
                     setFloatingIpArpRuleForGateway(osNode, true);
+                    sendGratuitousArpToSwitch(event.subject(), true);
                     break;
                 case OPENSTACK_NODE_INCOMPLETE:
                     setDefaultArpRule(osNode, false);
                     setFloatingIpArpRuleForGateway(osNode, false);
+                    sendGratuitousArpToSwitch(event.subject(), false);
                     break;
+                case OPENSTACK_NODE_REMOVED:
+                    sendGratuitousArpToSwitch(event.subject(), false);
+                    break;
+
                 default:
                     break;
             }
+        }
+
+        private void sendGratuitousArpToSwitch(OpenstackNode gatewayNode, boolean isCompleteCase) {
+            Set<OpenstackNode> completeGws = ImmutableSet.copyOf(osNodeService.completeNodes(GATEWAY));
+
+            if (isCompleteCase) {
+                osNodeService.completeNodes(COMPUTE)
+                        .stream()
+                        .filter(node -> isGwSelectedByComputeNode(completeGws, node, gatewayNode))
+                        .forEach(node -> processGratuitousArpPacketForComputeNode(node, gatewayNode));
+
+            } else {
+                Set<OpenstackNode> oldCompleteGws = Sets.newConcurrentHashSet();
+                oldCompleteGws.addAll(ImmutableSet.copyOf(osNodeService.completeNodes(GATEWAY)));
+                oldCompleteGws.add(gatewayNode);
+
+                osNodeService.completeNodes(COMPUTE)
+                        .stream()
+                        .filter(node -> isGwSelectedByComputeNode(oldCompleteGws, node, gatewayNode))
+                        .forEach(node -> {
+                            OpenstackNode newSelectedGatewayNode = getGwByComputeDevId(completeGws, node.intgBridge());
+                            processGratuitousArpPacketForComputeNode(node, newSelectedGatewayNode);
+                        });
+            }
+        }
+
+        private boolean isGwSelectedByComputeNode(Set<OpenstackNode> gws,
+                                                  OpenstackNode computeNode,
+                                                  OpenstackNode gwNode) {
+            return OpenstackNetworkingUtil
+                    .getGwByComputeDevId(gws, computeNode.intgBridge())
+                    .intgBridge().equals(gwNode.intgBridge());
+        }
+
+        private void processGratuitousArpPacketForComputeNode(OpenstackNode computeNode, OpenstackNode gatewayNode) {
+            instancePortService.instancePort(computeNode.intgBridge()).forEach(instancePort -> {
+                NetFloatingIP floatingIP = OpenstackNetworkingUtil.floatingIpByInstancePort(instancePort,
+                        osRouterAdminService);
+                Network network = osNetworkService.network(instancePort.networkId());
+                ExternalPeerRouter externalPeerRouter = OpenstackNetworkingUtil.externalPeerRouterForNetwork(network,
+                        osNetworkService, osRouterAdminService);
+                if (floatingIP != null && externalPeerRouter != null) {
+                    processGratuitousArpPacketForFloatingIp(
+                            floatingIP, instancePort, externalPeerRouter.vlanId(), gatewayNode, packetService);
+                }
+            });
         }
 
         private void setDefaultArpRule(OpenstackNode osNode, boolean install) {
@@ -870,7 +927,7 @@ public class OpenstackRoutingArpHandler {
                     install
             );
 
-            osRouterService.routers().stream()
+            osRouterAdminService.routers().stream()
                     .filter(router -> router.getExternalGatewayInfo() != null)
                     .forEach(router -> setFakeGatewayArpRuleByRouter(router, install));
         }

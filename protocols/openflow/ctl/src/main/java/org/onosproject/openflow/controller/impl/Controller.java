@@ -321,7 +321,8 @@ public class Controller {
                 while (dis.read(buffer) > 0) {
                     // nothing to do :)
                 }
-                dis.getMessageDigest().digest();
+                is.close();
+                return dis.getMessageDigest().digest();
             } catch (NoSuchAlgorithmException ignored) {
             } catch (IOException e) {
                 log.info("Error reading file file: {}", filepath);

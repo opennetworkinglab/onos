@@ -15,6 +15,6 @@
  */
 
 /**
- * Openstack vTap utility package.
+ * Utility package that used in openstack vtap app.
  */
 package org.onosproject.openstackvtap.util;

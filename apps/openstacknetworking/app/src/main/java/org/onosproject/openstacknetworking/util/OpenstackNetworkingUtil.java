@@ -42,11 +42,21 @@ import org.apache.sshd.client.channel.ClientChannelEvent;
 import org.apache.sshd.client.future.OpenFuture;
 import org.apache.sshd.client.session.ClientSession;
 import org.apache.sshd.common.util.io.NoCloseInputStream;
+import org.onlab.packet.ARP;
+import org.onlab.packet.Ethernet;
+import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 import org.onosproject.cfg.ConfigProperty;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.flow.DefaultTrafficTreatment;
+import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.packet.DefaultOutboundPacket;
+import org.onosproject.net.packet.PacketService;
 import org.onosproject.openstacknetworking.api.Constants.VnicType;
+import org.onosproject.openstacknetworking.api.ExternalPeerRouter;
 import org.onosproject.openstacknetworking.api.InstancePort;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.onosproject.openstacknetworking.api.OpenstackRouterAdminService;
@@ -63,10 +73,13 @@ import org.openstack4j.core.transport.Config;
 import org.openstack4j.core.transport.ObjectMapperSingleton;
 import org.openstack4j.model.ModelEntity;
 import org.openstack4j.model.common.Identifier;
+import org.openstack4j.model.network.ExternalGateway;
 import org.openstack4j.model.network.NetFloatingIP;
 import org.openstack4j.model.network.Network;
 import org.openstack4j.model.network.Port;
+import org.openstack4j.model.network.Router;
 import org.openstack4j.model.network.RouterInterface;
+import org.openstack4j.model.network.Subnet;
 import org.openstack4j.openstack.OSFactory;
 import org.openstack4j.openstack.networking.domain.NeutronRouterInterface;
 import org.slf4j.Logger;
@@ -84,6 +97,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.HashMap;
@@ -846,8 +860,123 @@ public final class OpenstackNetworkingUtil {
         return traceResult;
     }
 
+    /**
+     * Returns the floating ip with supplied instance port.
+     *
+     * @param instancePort instance port
+     * @param osRouterAdminService openstack router admin service
+     * @return floating ip
+     */
+    public static NetFloatingIP floatingIpByInstancePort(InstancePort instancePort,
+                                                         OpenstackRouterAdminService osRouterAdminService) {
+        return osRouterAdminService.floatingIps().stream()
+                .filter(netFloatingIP -> netFloatingIP.getPortId() != null)
+                .filter(netFloatingIP -> netFloatingIP.getPortId().equals(instancePort.portId()))
+                .findAny().orElse(null);
+    }
+
+    /**
+     * Sends GARP packet with supplied floating ip information.
+     *
+     * @param floatingIP floating ip
+     * @param instancePort instance port
+     * @param vlanId vlain id
+     * @param gatewayNode gateway node
+     * @param packetService packet service
+     */
+    public static void processGratuitousArpPacketForFloatingIp(NetFloatingIP floatingIP,
+                                                               InstancePort instancePort,
+                                                               VlanId vlanId,
+                                                               OpenstackNode gatewayNode,
+                                                               PacketService packetService) {
+        Ethernet ethernet = buildGratuitousArpPacket(floatingIP, instancePort, vlanId);
+
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .setOutput(gatewayNode.uplinkPortNum()).build();
+
+        packetService.emit(new DefaultOutboundPacket(gatewayNode.intgBridge(), treatment,
+                ByteBuffer.wrap(ethernet.serialize())));
+    }
+
+    /**
+     * Returns the external peer router with supplied network information.
+     *
+     * @param network network
+     * @param osNetworkService openstack network service
+     * @param osRouterAdminService openstack router admin service
+     * @return external peer router
+     */
+    public static ExternalPeerRouter externalPeerRouterForNetwork(Network network,
+                                                                  OpenstackNetworkService osNetworkService,
+                                                                  OpenstackRouterAdminService osRouterAdminService) {
+        if (network == null) {
+            return null;
+        }
+
+        Subnet subnet = osNetworkService.subnets(network.getId()).stream().findAny().orElse(null);
+
+        if (subnet == null) {
+            return null;
+        }
+
+        RouterInterface osRouterIface = osRouterAdminService.routerInterfaces().stream()
+                .filter(i -> Objects.equals(i.getSubnetId(), subnet.getId()))
+                .findAny().orElse(null);
+        if (osRouterIface == null) {
+            return null;
+        }
+
+        Router osRouter = osRouterAdminService.router(osRouterIface.getId());
+        if (osRouter == null) {
+            return null;
+        }
+        if (osRouter.getExternalGatewayInfo() == null) {
+            return null;
+        }
+
+        ExternalGateway exGatewayInfo = osRouter.getExternalGatewayInfo();
+        return osNetworkService.externalPeerRouter(exGatewayInfo);
+
+    }
+
     private static boolean isDirectPort(String portName) {
         return portNamePrefixMap().values().stream().anyMatch(p -> portName.startsWith(p));
+    }
+
+    /**
+     * Returns GARP packet with supplied floating ip and instance port information.
+     *
+     * @param floatingIP floating ip
+     * @param instancePort instance port
+     * @param vlanId vlan id
+     * @return GARP packet
+     */
+    private static Ethernet buildGratuitousArpPacket(NetFloatingIP floatingIP,
+                                                     InstancePort instancePort,
+                                                     VlanId vlanId) {
+        Ethernet ethernet = new Ethernet();
+        ethernet.setDestinationMACAddress(MacAddress.BROADCAST);
+        ethernet.setSourceMACAddress(instancePort.macAddress());
+        ethernet.setEtherType(Ethernet.TYPE_ARP);
+        ethernet.setVlanID(vlanId.id());
+
+        ARP arp = new ARP();
+        arp.setOpCode(ARP.OP_REPLY);
+        arp.setProtocolType(ARP.PROTO_TYPE_IP);
+        arp.setHardwareType(ARP.HW_TYPE_ETHERNET);
+
+        arp.setProtocolAddressLength((byte) Ip4Address.BYTE_LENGTH);
+        arp.setHardwareAddressLength((byte) Ethernet.DATALAYER_ADDRESS_LENGTH);
+
+        arp.setSenderHardwareAddress(instancePort.macAddress().toBytes());
+        arp.setTargetHardwareAddress(MacAddress.BROADCAST.toBytes());
+
+        arp.setSenderProtocolAddress(Ip4Address.valueOf(floatingIP.getFloatingIpAddress()).toInt());
+        arp.setTargetProtocolAddress(Ip4Address.valueOf(floatingIP.getFloatingIpAddress()).toInt());
+
+        ethernet.setPayload(arp);
+
+        return ethernet;
     }
 
     /**

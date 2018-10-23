@@ -18,7 +18,7 @@
          xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
          xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
          id="ONOS" version="2.5">
-    <display-name>Openstack vTap REST API v1.0</display-name>
+    <display-name>Openstack Vtap REST API v1.0</display-name>
 
     <security-constraint>
         <web-resource-collection>

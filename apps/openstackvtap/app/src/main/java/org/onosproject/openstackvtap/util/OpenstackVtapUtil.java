@@ -16,15 +16,31 @@
 package org.onosproject.openstackvtap.util;
 
 import org.onlab.packet.IPv4;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
+import org.onosproject.net.Host;
+import org.onosproject.net.behaviour.TunnelDescription;
 import org.onosproject.net.group.DefaultGroupKey;
 import org.onosproject.net.group.GroupKey;
 import org.onosproject.openstackvtap.api.OpenstackVtap;
+import org.onosproject.openstackvtap.api.OpenstackVtapCriterion;
+import org.onosproject.openstackvtap.api.OpenstackVtapNetwork;
+import org.slf4j.Logger;
+
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
+
+import static org.onosproject.openstacknetworking.api.Constants.ANNOTATION_NETWORK_ID;
+import static org.onosproject.openstacknetworking.api.Constants.ANNOTATION_PORT_ID;
 
 /**
- * An utility that used in openstack vTap app.
+ * An utilities that used in openstack vtap app.
  */
 public final class OpenstackVtapUtil {
 
+    private static final String VTAP_TUNNEL_GRE = "vtap_gre";
+    private static final String VTAP_TUNNEL_VXLAN = "vtap_vxlan";
     private static final String VTAP_GROUP_KEY = "VTAP_GROUP_KEY";
 
     /**
@@ -34,31 +50,10 @@ public final class OpenstackVtapUtil {
     }
 
     /**
-     * Obtains vTap type from the given string.
-     *
-     * @param str string
-     * @return vTap type
-     */
-    public static OpenstackVtap.Type getVtapTypeFromString(String str) {
-        switch (str) {
-            case "all":
-                return OpenstackVtap.Type.VTAP_ALL;
-            case "tx":
-                return OpenstackVtap.Type.VTAP_TX;
-            case "rx":
-                return OpenstackVtap.Type.VTAP_RX;
-            case "none":
-                return OpenstackVtap.Type.VTAP_NONE;
-            default:
-                throw new IllegalArgumentException("Invalid vTap type string");
-        }
-    }
-
-    /**
      * Obtains IP protocol type from the given string.
      *
-     * @param str string
-     * @return vTap type
+     * @param str protocol string
+     * @return IP protocol number
      */
     public static byte getProtocolTypeFromString(String str) {
         switch (str) {
@@ -68,12 +63,132 @@ public final class OpenstackVtapUtil {
                 return IPv4.PROTOCOL_UDP;
             case "icmp":
                 return IPv4.PROTOCOL_ICMP;
-            default:
+            case "any":
                 return 0;
+            default:
+                throw new IllegalArgumentException("Invalid vtap protocol string");
         }
     }
 
+    /**
+     * Obtains openstack vtap type from the given string.
+     *
+     * @param str vtap type string
+     * @return vtap type
+     */
+    public static OpenstackVtap.Type getVtapTypeFromString(String str) {
+        switch (str) {
+            case "all":
+                return OpenstackVtap.Type.VTAP_ALL;
+            case "rx":
+                return OpenstackVtap.Type.VTAP_RX;
+            case "tx":
+                return OpenstackVtap.Type.VTAP_TX;
+            case "any":
+                return OpenstackVtap.Type.VTAP_ANY;
+            default:
+                throw new IllegalArgumentException("Invalid vtap type string");
+        }
+    }
+
+    /**
+     * Checks whether the given IP address is included in vtap criterion with
+     * TX and RX directions by given vtap type.
+     *
+     * @param type      vtap type
+     * @param criterion vtap criterion
+     * @param ip        IP address to check
+     * @return true on match address, false otherwise
+     */
+    public static boolean containsIp(OpenstackVtap.Type type, OpenstackVtapCriterion criterion, IpAddress ip) {
+        boolean isTxEdge = type.isValid(OpenstackVtap.Type.VTAP_TX) &&
+                criterion.srcIpPrefix().contains(ip);
+        boolean isRxEdge = type.isValid(OpenstackVtap.Type.VTAP_RX) &&
+                criterion.dstIpPrefix().contains(ip);
+        return isTxEdge || isRxEdge;
+    }
+
+    /**
+     * Checks the host validation from annotation information.
+     *
+     * @param host host to check
+     * @return true on validate, false otherwise
+     */
+    public static boolean isValidHost(Host host) {
+        return !host.ipAddresses().isEmpty() &&
+                host.annotations().value(ANNOTATION_NETWORK_ID) != null &&
+                host.annotations().value(ANNOTATION_PORT_ID) != null;
+    }
+
+    /**
+     * Checks whether the given IP prefix is contained in the first host rather
+     * than in the second host.
+     *
+     * @param host1     first host instance
+     * @param host2     second host instance
+     * @param ipPrefix  IP prefix to be looked up
+     * @return a negative integer, zero, or a positive integer as the
+     *         first argument is less than, equal to, or greater than the
+     *         second.
+     */
+    public static int hostCompareIp(Host host1, Host host2, IpPrefix ipPrefix) {
+        if ((host1 == null || host1.ipAddresses().stream().noneMatch(ipPrefix::contains)) &&
+                (host2 != null || host2.ipAddresses().stream().anyMatch(ipPrefix::contains))) {
+            return -1;
+        } else if ((host1 != null && host1.ipAddresses().stream().anyMatch(ipPrefix::contains)) &&
+                (host2 == null || host2.ipAddresses().stream().noneMatch(ipPrefix::contains))) {
+            return 1;
+        }
+        return 0;
+    }
+
+    /**
+     * Obtains flow group key from the given id.
+     *
+     * @param groupId flow group identifier
+     * @return flow group key
+     */
     public static GroupKey getGroupKey(int groupId) {
         return new DefaultGroupKey((VTAP_GROUP_KEY + Integer.toString(groupId)).getBytes());
     }
+
+    /**
+     * Obtains tunnel interface name from the given openstack vtap network mode.
+     *
+     * @param mode vtap network mode
+     * @return tunnel interface name
+     */
+    public static String getTunnelName(OpenstackVtapNetwork.Mode mode) {
+        switch (mode) {
+            case GRE:
+                return VTAP_TUNNEL_GRE;
+            case VXLAN:
+                return VTAP_TUNNEL_VXLAN;
+            default:
+                return null;
+        }
+    }
+
+    /**
+     * Obtains tunnel description type from the given openstack vtap network mode.
+     *
+     * @param mode vtap network mode
+     * @return tunnel description type
+     */
+    public static TunnelDescription.Type getTunnelType(OpenstackVtapNetwork.Mode mode) {
+        return TunnelDescription.Type.valueOf(mode.toString());
+    }
+
+    /**
+     * Print stack trace of given exception.
+     *
+     * @param log logger for using print
+     * @param e   exception to print
+     */
+    public static void dumpStackTrace(Logger log, Exception e) {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        e.printStackTrace(new PrintStream(outputStream));
+        log.error("\n{}", new String(outputStream.toByteArray(), StandardCharsets.UTF_8));
+    }
+
 }

@@ -20,11 +20,12 @@ import org.onlab.rest.AbstractWebApplication;
 import java.util.Set;
 
 /**
- * Openstack vTap REST APIs web application.
+ * Openstack vtap REST APIs web application.
  */
 public class OpenstackVtapWebApplication extends AbstractWebApplication {
     @Override
     public Set<Class<?>> getClasses() {
-        return getClasses(OpenstackVtapWebResource.class);
+        return getClasses(OpenstackVtapWebResource.class,
+                OpenstackVtapNetworkWebResource.class);
     }
 }

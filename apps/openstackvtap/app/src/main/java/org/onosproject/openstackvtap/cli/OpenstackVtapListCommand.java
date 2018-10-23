@@ -15,48 +15,68 @@
  */
 package org.onosproject.openstackvtap.cli;
 
+import com.google.common.collect.ImmutableSet;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.net.DeviceId;
+import org.onosproject.openstacknode.api.OpenstackNode;
+import org.onosproject.openstacknode.api.OpenstackNodeService;
 import org.onosproject.openstackvtap.api.OpenstackVtap;
 import org.onosproject.openstackvtap.api.OpenstackVtapService;
 
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.onosproject.openstackvtap.util.OpenstackVtapUtil.getVtapTypeFromString;
 
 /**
- * Command line interface for listing openstack vTap rules.
+ * Lists openstack vtap rules.
  */
 @Service
 @Command(scope = "onos", name = "openstack-vtap-list",
         description = "OpenstackVtap list")
 public class OpenstackVtapListCommand extends AbstractShellCommand {
 
-    private final OpenstackVtapService vTapService = get(OpenstackVtapService.class);
+    private final OpenstackVtapService vtapService = get(OpenstackVtapService.class);
+    private final OpenstackNodeService osNodeService = get(OpenstackNodeService.class);
 
     @Argument(index = 0, name = "type",
-            description = "vTap type [all|tx|rx]",
+            description = "vtap type [any|all|rx|tx]",
             required = false, multiValued = false)
-    String vTapType = "none";
+    String vtapType = "any";
 
     private static final String FORMAT = "ID { %s }: type [%s], srcIP [%s], dstIP [%s]";
-    private static final String FORMAT_TX_DEVICES  = "   tx devices: %s";
-    private static final String FORMAT_RX_DEVICES  = "   rx devices: %s";
+    private static final String FORMAT_TX_NODES = "   tx openstack nodes: %s";
+    private static final String FORMAT_RX_NODES = "   rx openstack nodes: %s";
 
     @Override
     protected void doExecute() {
-        OpenstackVtap.Type type = getVtapTypeFromString(vTapType);
-        Set<OpenstackVtap> openstackVtaps = vTapService.getVtaps(type);
-        for (OpenstackVtap vTap : openstackVtaps) {
+        OpenstackVtap.Type type = getVtapTypeFromString(vtapType);
+        Set<OpenstackVtap> openstackVtaps = vtapService.getVtaps(type);
+        for (OpenstackVtap vtap : openstackVtaps) {
             print(FORMAT,
-                    vTap.id().toString(),
-                    vTap.type().toString(),
-                    vTap.vTapCriterion().srcIpPrefix().toString(),
-                    vTap.vTapCriterion().dstIpPrefix().toString());
-            print(FORMAT_TX_DEVICES, vTap.txDeviceIds());
-            print(FORMAT_RX_DEVICES, vTap.rxDeviceIds());
+                    vtap.id().toString(),
+                    vtap.type().toString(),
+                    vtap.vtapCriterion().srcIpPrefix().toString(),
+                    vtap.vtapCriterion().dstIpPrefix().toString());
+            print(FORMAT_TX_NODES, osNodeNames(vtap.txDeviceIds()));
+            print(FORMAT_RX_NODES, osNodeNames(vtap.rxDeviceIds()));
         }
     }
+
+    private Set<String> osNodeNames(Set<DeviceId> deviceIds) {
+        if (deviceIds == null) {
+            return ImmutableSet.of();
+        } else {
+            return deviceIds.parallelStream()
+                    .map(osNodeService::node)
+                    .filter(Objects::nonNull)
+                    .map(OpenstackNode::hostname)
+                    .collect(Collectors.toSet());
+        }
+    }
+
 }

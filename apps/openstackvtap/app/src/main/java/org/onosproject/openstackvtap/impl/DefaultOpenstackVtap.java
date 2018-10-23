@@ -15,9 +15,7 @@
  */
 package org.onosproject.openstackvtap.impl;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import org.onosproject.net.AbstractDescription;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DeviceId;
@@ -26,33 +24,47 @@ import org.onosproject.openstackvtap.api.OpenstackVtap;
 import org.onosproject.openstackvtap.api.OpenstackVtapCriterion;
 import org.onosproject.openstackvtap.api.OpenstackVtapId;
 
+import java.util.Objects;
 import java.util.Set;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
-import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Default implementation of an immutable openstack vTap.
+ * Default implementation of an immutable OpenstackVtap.
  */
 public final class DefaultOpenstackVtap extends AbstractDescription implements OpenstackVtap {
 
     private final OpenstackVtapId id;
     private final Type type;
-    private final OpenstackVtapCriterion vTapCriterion;
+    private final OpenstackVtapCriterion vtapCriterion;
     private final Set<DeviceId> txDeviceIds;
     private final Set<DeviceId> rxDeviceIds;
 
-    // private constructor not intended to use from external
-    private DefaultOpenstackVtap(OpenstackVtapId id, Type type,
-                                 OpenstackVtapCriterion vTapCriterion,
-                                 Set<DeviceId> txDeviceIds, Set<DeviceId> rxDeviceIds,
+    /**
+     * Creates an DefaultOpenstackVtap using the supplied information.
+     *
+     * @param id            vtap identifier
+     * @param type          type of vtap (all,rx,tx)
+     * @param vtapCriterion criterion of vtap
+     * @param txDeviceIds   device identifiers applied by vtap tx
+     * @param rxDeviceIds   device identifiers applied by vtap rx
+     * @param annotations   optional key/value annotations
+     */
+    private DefaultOpenstackVtap(OpenstackVtapId id,
+                                 Type type,
+                                 OpenstackVtapCriterion vtapCriterion,
+                                 Set<DeviceId> txDeviceIds,
+                                 Set<DeviceId> rxDeviceIds,
                                  SparseAnnotations... annotations) {
         super(annotations);
-        this.id = id;
-        this.type = type;
-        this.vTapCriterion = vTapCriterion;
-        this.txDeviceIds = txDeviceIds;
-        this.rxDeviceIds = rxDeviceIds;
+        this.id = checkNotNull(id);
+        this.type = checkNotNull(type);
+        this.vtapCriterion = checkNotNull(vtapCriterion);
+        this.txDeviceIds = Objects.nonNull(txDeviceIds) ?
+                ImmutableSet.copyOf(txDeviceIds) : ImmutableSet.of();
+        this.rxDeviceIds = Objects.nonNull(rxDeviceIds) ?
+                ImmutableSet.copyOf(rxDeviceIds) : ImmutableSet.of();
     }
 
     @Override
@@ -66,129 +78,184 @@ public final class DefaultOpenstackVtap extends AbstractDescription implements O
     }
 
     @Override
-    public OpenstackVtapCriterion vTapCriterion() {
-        return vTapCriterion;
+    public OpenstackVtapCriterion vtapCriterion() {
+        return vtapCriterion;
     }
 
     @Override
     public Set<DeviceId> txDeviceIds() {
-        return ImmutableSet.copyOf(txDeviceIds);
+        return txDeviceIds;
     }
 
     @Override
     public Set<DeviceId> rxDeviceIds() {
-        return ImmutableSet.copyOf(rxDeviceIds);
+        return rxDeviceIds;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, type, vtapCriterion, txDeviceIds, rxDeviceIds);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj instanceof DefaultOpenstackVtap) {
+            final DefaultOpenstackVtap other = (DefaultOpenstackVtap) obj;
+            return Objects.equals(this.id, other.id) &&
+                    Objects.equals(this.type, other.type) &&
+                    Objects.equals(this.vtapCriterion, other.vtapCriterion) &&
+                    Objects.equals(this.txDeviceIds(), other.txDeviceIds()) &&
+                    Objects.equals(this.rxDeviceIds(), other.rxDeviceIds()) &&
+                    Objects.equals(this.annotations(), other.annotations());
+        }
+        return false;
     }
 
     @Override
     public String toString() {
         return toStringHelper(this)
-                .add("id", id)
-                .add("type", type)
-                .add("vTapCriterion", vTapCriterion)
-                .add("txDeviceIds", txDeviceIds)
-                .add("rxDeviceIds", rxDeviceIds)
+                .add("id", id())
+                .add("type", type())
+                .add("vtapCriterion", vtapCriterion())
+                .add("txDeviceIds", txDeviceIds())
+                .add("rxDeviceIds", rxDeviceIds())
+                .add("annotations", annotations())
                 .toString();
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(id, type, vTapCriterion, txDeviceIds, rxDeviceIds);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        DefaultOpenstackVtap that = (DefaultOpenstackVtap) o;
-        return Objects.equal(this.id, that.id)
-                    && Objects.equal(this.type, that.type)
-                    && Objects.equal(this.vTapCriterion, that.vTapCriterion)
-                    && Objects.equal(this.txDeviceIds, that.txDeviceIds)
-                    && Objects.equal(this.rxDeviceIds, that.rxDeviceIds);
-    }
-
     /**
-     * Creates a new default openstack vTap builder.
+     * Creates OpenstackVtap builder with default parameters.
      *
-     * @return default openstack vTap builder
+     * @return builder
      */
     public static Builder builder() {
         return new Builder();
     }
 
     /**
+     * Creates OpenstackVtap builder inheriting with default parameters,
+     * from specified OpenstackVtap.
+     *
+     * @param vtap to inherit default from
+     * @return builder
+     */
+    public static Builder builder(OpenstackVtap vtap) {
+        return new Builder(vtap);
+    }
+
+    /**
      * Builder for DefaultOpenstackVtap object.
      */
     public static class Builder implements OpenstackVtap.Builder {
-        private static final SparseAnnotations EMPTY = DefaultAnnotations.builder().build();
-
         private OpenstackVtapId id;
-        private Type type;
-        private OpenstackVtapCriterion vTapCriterion;
+        private Type type = Type.VTAP_ALL;
+        private OpenstackVtapCriterion vtapCriterion;
         private Set<DeviceId> txDeviceIds;
         private Set<DeviceId> rxDeviceIds;
-        private SparseAnnotations annotations = EMPTY;
+        private SparseAnnotations annotations = DefaultAnnotations.EMPTY;
 
-        // private constructor not intended to use from external
+        // Private constructor not intended to use from external
         Builder() {
         }
 
+        Builder(OpenstackVtap description) {
+            this.id = description.id();
+            this.type = description.type();
+            this.vtapCriterion = description.vtapCriterion();
+            this.type = description.type();
+            this.txDeviceIds = description.txDeviceIds();
+            this.rxDeviceIds = description.rxDeviceIds();
+            this.annotations  = (SparseAnnotations) description.annotations();
+        }
+
+        /**
+         * Sets mandatory field id.
+         *
+         * @param id to set
+         * @return self
+         */
         @Override
         public Builder id(OpenstackVtapId id) {
             this.id = id;
             return this;
         }
 
+        /**
+         * Sets mandatory field type.
+         *
+         * @param type of the vtap
+         * @return self
+         */
         @Override
         public Builder type(Type type) {
             this.type = type;
             return this;
         }
 
+        /**
+         * Sets mandatory field criterion.
+         *
+         * @param vtapCriterion for the vtap
+         * @return self
+         */
         @Override
-        public Builder vTapCriterion(OpenstackVtapCriterion vTapCriterion) {
-            this.vTapCriterion = vTapCriterion;
+        public Builder vtapCriterion(OpenstackVtapCriterion vtapCriterion) {
+            this.vtapCriterion = vtapCriterion;
             return this;
         }
 
+        /**
+         * Sets a tx deviceId set.
+         *
+         * @param txDeviceIds deviceId set for tx
+         * @return builder
+         */
         @Override
         public Builder txDeviceIds(Set<DeviceId> txDeviceIds) {
-            if (txDeviceIds != null) {
-                this.txDeviceIds = ImmutableSet.copyOf(txDeviceIds);
-            } else {
-                this.txDeviceIds = Sets.newHashSet();
-            }
+            this.txDeviceIds = txDeviceIds;
             return this;
         }
 
+        /**
+         * Sets a rx deviceId set.
+         *
+         * @param rxDeviceIds deviceId set for rx
+         * @return builder
+         */
         @Override
         public Builder rxDeviceIds(Set<DeviceId> rxDeviceIds) {
-            if (rxDeviceIds != null) {
-                this.rxDeviceIds = ImmutableSet.copyOf(rxDeviceIds);
-            } else {
-                this.rxDeviceIds = Sets.newHashSet();
-            }
+            this.rxDeviceIds = rxDeviceIds;
             return this;
         }
 
+        /**
+         * Sets annotations.
+         *
+         * @param annotations of the vtap
+         * @return self
+         */
         @Override
-        public Builder annotations(SparseAnnotations... annotations) {
-            checkArgument(annotations.length <= 1,
-                    "Only one set of annotations is expected");
-            this.annotations = annotations.length == 1 ? annotations[0] : EMPTY;
+        public Builder annotations(SparseAnnotations annotations) {
+            this.annotations = annotations;
             return this;
         }
 
+        /**
+         * Builds a DefaultOpenstackVtap instance.
+         *
+         * @return DefaultOpenstackVtap
+         */
         @Override
         public DefaultOpenstackVtap build() {
-            return new DefaultOpenstackVtap(id, type, vTapCriterion,
-                                            txDeviceIds, rxDeviceIds, annotations);
+            return new DefaultOpenstackVtap(checkNotNull(id),
+                    checkNotNull(type),
+                    checkNotNull(vtapCriterion),
+                    txDeviceIds,
+                    rxDeviceIds,
+                    checkNotNull(annotations));
         }
     }
 

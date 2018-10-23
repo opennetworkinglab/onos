@@ -220,18 +220,20 @@ public class OdtnManualTestCommand extends AbstractShellCommand {
 
         for (CharSequence node : nodes) {
             Document ldoc = toDocument(CharSource.wrap(node));
-            Element cfgRoot = ldoc.getDocumentElement();
+            if (ldoc != null) {
+                Element cfgRoot = ldoc.getDocumentElement();
 
-            // is everything as merge, ok?
-            cfgRoot.setAttribute("xc:operation", "merge");
+                // is everything as merge, ok?
+                cfgRoot.setAttribute("xc:operation", "merge");
 
-            // move (or copy) node to another Document
-            config.appendChild(Optional.ofNullable(doc.adoptNode(cfgRoot))
-                                  .orElseGet(() -> doc.importNode(cfgRoot, true)));
+                // move (or copy) node to another Document
+                config.appendChild(Optional.ofNullable(doc.adoptNode(cfgRoot))
+                                           .orElseGet(() -> doc.importNode(cfgRoot, true)));
 
-            // don't have good use for JSON for now
-            //JsonNode json = toJsonNode(toJsonCompositeStream(toCompositeData(toResourceData(resourceId, node))));
-            //printlog("JSON:\n{}", toCharSequence(json));
+                // don't have good use for JSON for now
+                //JsonNode json = toJsonNode(toJsonCompositeStream(toCompositeData(toResourceData(resourceId, node))));
+                //printlog("JSON:\n{}", toCharSequence(json));
+            }
         }
 
         printlog("XML:\n{}", XmlString.prettifyXml(toCharSequence(doc)));

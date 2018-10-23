@@ -15,6 +15,6 @@
  */
 
 /**
- * Console commands for OpenStack vtap.
+ * Console commands for openstack vtap.
  */
 package org.onosproject.openstackvtap.cli;

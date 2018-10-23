@@ -269,6 +269,7 @@ public class OnosAppMojo extends AbstractMojo {
                     .map(cfg -> expand(cfg.getRootNode().getValue().toString()))
                     .collect(Collectors.toList());
 
+            stream.close();
         } catch (ConfigurationException e) {
             throw new MojoExecutionException("Unable to parse app.xml file", e);
         } catch (FileNotFoundException e) {

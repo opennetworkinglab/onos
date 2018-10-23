@@ -1,0 +1,132 @@
+<!--
+~ Copyright 2018-present Open Networking Foundation
+~
+~ Licensed under the Apache License, Version 2.0 (the "License");
+~ you may not use this file except in compliance with the License.
+~ You may obtain a copy of the License at
+~
+~     http://www.apache.org/licenses/LICENSE-2.0
+~
+~ Unless required by applicable law or agreed to in writing, software
+~ distributed under the License is distributed on an "AS IS" BASIS,
+~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+~ See the License for the specific language governing permissions and
+~ limitations under the License.
+-->
+<div id="toolbar-topo2-toolbar" class="floatpanel toolbar"
+     style="opacity: 1; left: 0px; width: 261px; top: auto; bottom: 10px;">
+    <div class="tbar-arrow">
+        <svg class="embeddedIcon" width="10" height="10" viewBox="0 0 50 50">
+            <g class="icon" transform="translate(0 50) rotate(-90)">
+                <rect width="50" height="50" rx="5"></rect>
+                <use width="50" height="50" class="glyph" xlink:href="#triangleUp"></use>
+            </g>
+        </svg>
+    </div>
+    <div class="tbar-row">
+        <div class="toggleButton selected" id="toolbar-topo2-toolbar-topo2-instance-tog">
+            <svg class="embeddedIcon" width="25" height="25" viewBox="0 0 50 50">
+                <g class="icon">
+                    <rect width="50" height="50" rx="5"></rect>
+                    <use width="50" height="50" class="glyph" xlink:href="#m_uiAttached"></use>
+                </g>
+            </svg>
+        </div>
+        <div class="toggleButton selected" id="toolbar-topo2-toolbar-topo2-summary-tog">
+            <svg class="embeddedIcon" width="25" height="25" viewBox="0 0 50 50">
+                <g class="icon">
+                    <rect width="50" height="50" rx="5"></rect>
+                    <use width="50" height="50" class="glyph" xlink:href="#m_summary"></use>
+                </g>
+            </svg>
+        </div>
+        <div class="toggleButton selected" id="toolbar-topo2-toolbar-details-tog">
+            <svg class="embeddedIcon" width="25" height="25" viewBox="0 0 50 50">
+                <g class="icon">
+                    <rect width="50" height="50" rx="5"></rect>
+                    <use width="50" height="50" class="glyph" xlink:href="#m_details"></use>
+                </g>
+            </svg>
+        </div>
+        <div class="separator"></div>
+        <div class="toggleButton" id="toolbar-topo2-toolbar-hosts-tog">
+            <svg class="embeddedIcon" width="25" height="25" viewBox="0 0 50 50">
+                <g class="icon">
+                    <rect width="50" height="50" rx="5"></rect>
+                    <use width="50" height="50" class="glyph" xlink:href="#m_endstation"></use>
+                </g>
+            </svg>
+        </div>
+        <div class="toggleButton selected" id="toolbar-topo2-toolbar-offline-tog">
+            <svg class="embeddedIcon" width="25" height="25" viewBox="0 0 50 50">
+                <g class="icon">
+                    <rect width="50" height="50" rx="5"></rect>
+                    <use width="50" height="50" class="glyph" xlink:href="#m_switch"></use>
+                </g>
+            </svg>
+        </div>
+        <div class="toggleButton selected" id="toolbar-topo2-toolbar-topo2-ports-tog">
+            <svg class="embeddedIcon" width="25" height="25" viewBox="0 0 50 50">
+                <g class="icon">
+                    <rect width="50" height="50" rx="5"></rect>
+                    <use width="50" height="50" class="glyph" xlink:href="#m_ports"></use>
+                </g>
+            </svg>
+        </div>
+        <div class="toggleButton selected" id="toolbar-topo2-toolbar-topo2-bkgrnd-tog">
+            <svg class="embeddedIcon" width="25" height="25" viewBox="0 0 50 50">
+                <g class="icon">
+                    <rect width="50" height="50" rx="5"></rect>
+                    <use width="50" height="50" class="glyph" xlink:href="#m_map"></use>
+                </g>
+            </svg>
+        </div>
+    </div>
+    <br>
+    <div class="tbar-row">
+        <div class="button" id="toolbar-topo2-toolbar-topo2-cycleLabels-btn">
+            <svg class="embeddedIcon" width="25" height="25" viewBox="0 0 50 50">
+                <g class="icon">
+                    <rect width="50" height="50" rx="5"></rect>
+                    <use width="50" height="50" class="glyph" xlink:href="#m_cycleLabels"></use>
+                </g>
+            </svg>
+        </div>
+        <div class="button" id="toolbar-topo2-toolbar-topo2-resetZoom-btn">
+            <svg class="embeddedIcon" width="25" height="25" viewBox="0 0 50 50">
+                <g class="icon">
+                    <rect width="50" height="50" rx="5"></rect>
+                    <use width="50" height="50" class="glyph" xlink:href="#m_resetZoom"></use>
+                </g>
+            </svg>
+        </div>
+        <div class="separator"></div>
+        <div class="button" id="toolbar-topo2-toolbar-topo2-eqMaster-btn">
+            <svg class="embeddedIcon" width="25" height="25" viewBox="0 0 50 50">
+                <g class="icon">
+                    <rect width="50" height="50" rx="5"></rect>
+                    <use width="50" height="50" class="glyph" xlink:href="#m_eqMaster"></use>
+                </g>
+            </svg>
+        </div>
+        <div class="separator"></div>
+        <div class="radioSet" id="toolbar-topo2-toolbar-topo-overlays">
+            <div class="radioButton selected" id="toolbar-topo2-toolbar-topo-overlays-0">
+                <svg class="embeddedIcon" width="25" height="25" viewBox="0 0 50 50">
+                    <g class="icon">
+                        <rect width="50" height="50" rx="5"></rect>
+                        <use width="50" height="50" class="glyph" xlink:href="#m_unknown"></use>
+                    </g>
+                </svg>
+            </div>
+            <div class="radioButton" id="toolbar-topo2-toolbar-topo-overlays-1">
+                <svg class="embeddedIcon" width="25" height="25" viewBox="0 0 50 50">
+                    <g class="icon">
+                        <rect width="50" height="50" rx="5"></rect>
+                        <use width="50" height="50" class="glyph" xlink:href="#m_allTraffic"></use>
+                    </g>
+                </svg>
+            </div>
+        </div>
+    </div>
+</div>

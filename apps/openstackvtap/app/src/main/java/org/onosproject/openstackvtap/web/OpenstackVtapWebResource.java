@@ -36,8 +36,6 @@ public class OpenstackVtapWebResource extends AbstractWebResource {
      * OpenstackVtapServiceImpl method.
      *
      * @return 200 OK
-     *
-     * @onos.rsModel dummy
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)

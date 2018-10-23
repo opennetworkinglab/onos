@@ -29,14 +29,14 @@ import static org.onosproject.openstackvtap.util.OpenstackVtapUtil.getProtocolTy
 import static org.onosproject.openstackvtap.util.OpenstackVtapUtil.getVtapTypeFromString;
 
 /**
- * Command line interface for adding openstack vTap rule.
+ * Adds a openstack vtap rule.
  */
 @Service
 @Command(scope = "onos", name = "openstack-vtap-add",
         description = "OpenstackVtap activate")
 public class OpenstackVtapAddCommand extends AbstractShellCommand {
 
-    private final OpenstackVtapAdminService vTapService =
+    private final OpenstackVtapAdminService vtapService =
                                             get(OpenstackVtapAdminService.class);
 
     @Argument(index = 0, name = "srcIp",
@@ -50,9 +50,9 @@ public class OpenstackVtapAddCommand extends AbstractShellCommand {
     String dstIp = "";
 
     @Argument(index = 2, name = "ipProto",
-            description = "IP protocol [tcp|udp|icmp|none]",
+            description = "IP protocol [any|tcp|udp|icmp]",
             required = false, multiValued = false)
-    String ipProto = "";
+    String ipProto = "any";
 
     @Argument(index = 3, name = "srcTpPort",
             description = "source transport layer port (0 is skip)",
@@ -65,43 +65,43 @@ public class OpenstackVtapAddCommand extends AbstractShellCommand {
     int dstTpPort = 0;
 
     @Argument(index = 5, name = "type",
-            description = "vTap type [all|tx|rx]",
+            description = "vtap type [all|rx|tx]",
             required = false, multiValued = false)
-    String vTapTypeStr = "all";
+    String vtapTypeStr = "all";
 
     @Override
     protected void doExecute() {
-        DefaultOpenstackVtapCriterion.Builder
-                    defaultVtapCriterionBuilder = DefaultOpenstackVtapCriterion.builder();
-        if (makeCriterion(defaultVtapCriterionBuilder)) {
-            OpenstackVtap.Type type = getVtapTypeFromString(vTapTypeStr);
+        DefaultOpenstackVtapCriterion.Builder vtapCriterionBuilder = DefaultOpenstackVtapCriterion.builder();
+        if (makeCriterion(vtapCriterionBuilder)) {
+            OpenstackVtap.Type type = getVtapTypeFromString(vtapTypeStr);
+
             if (type == null) {
-                print("Invalid vTap type");
+                print("Invalid vtap type");
                 return;
             }
 
-            OpenstackVtap vTap = vTapService.createVtap(type, defaultVtapCriterionBuilder.build());
-            if (vTap != null) {
-                print("Created OpenstackVtap with id { %s }", vTap.id().toString());
+            OpenstackVtap vtap = vtapService.createVtap(type, vtapCriterionBuilder.build());
+            if (vtap != null) {
+                print("Created OpenstackVtap with id { %s }", vtap.id().toString());
             } else {
                 print("Failed to create OpenstackVtap");
             }
         }
     }
 
-    private boolean makeCriterion(DefaultOpenstackVtapCriterion.Builder vTapCriterionBuilder) {
+    private boolean makeCriterion(DefaultOpenstackVtapCriterion.Builder vtapCriterionBuilder) {
         try {
-            vTapCriterionBuilder.srcIpPrefix(IpPrefix.valueOf(srcIp));
-            vTapCriterionBuilder.dstIpPrefix(IpPrefix.valueOf(dstIp));
+            vtapCriterionBuilder.srcIpPrefix(IpPrefix.valueOf(srcIp));
+            vtapCriterionBuilder.dstIpPrefix(IpPrefix.valueOf(dstIp));
         } catch (Exception e) {
             print("Inputted valid source IP & destination IP in CIDR (e.g., \"10.1.0.4/32\")");
             return false;
         }
 
-        vTapCriterionBuilder.ipProtocol(getProtocolTypeFromString(ipProto.toLowerCase()));
+        vtapCriterionBuilder.ipProtocol(getProtocolTypeFromString(ipProto.toLowerCase()));
 
-        vTapCriterionBuilder.srcTpPort(TpPort.tpPort(srcTpPort));
-        vTapCriterionBuilder.dstTpPort(TpPort.tpPort(dstTpPort));
+        vtapCriterionBuilder.srcTpPort(TpPort.tpPort(srcTpPort));
+        vtapCriterionBuilder.dstTpPort(TpPort.tpPort(dstTpPort));
 
         return true;
     }
