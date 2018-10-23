@@ -31,8 +31,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.onosproject.cli.app.ApplicationCommandCompleter;
-import org.onosproject.cli.app.ApplicationNameCompleter;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
@@ -59,12 +57,12 @@ public class ComponentConfigCommand extends AbstractShellCommand {
     @Argument(index = 0, name = "command",
             description = "Command name (get|set|preset)",
             required = false, multiValued = false)
-    @Completion(ApplicationCommandCompleter.class)
+    @Completion(ComponentConfigCommandCompleter.class)
     String command = null;
 
     @Argument(index = 1, name = "component", description = "Component name",
             required = false, multiValued = false)
-    @Completion(ApplicationNameCompleter.class)
+    @Completion(ComponentNameCompleter.class)
     String component = null;
 
     @Argument(index = 2, name = "name", description = "Property name",
