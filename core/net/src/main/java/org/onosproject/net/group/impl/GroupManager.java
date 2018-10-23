@@ -436,9 +436,9 @@ public class GroupManager
                 case DEVICE_AVAILABILITY_CHANGED:
                     DeviceId deviceId = event.subject().id();
                     if (!deviceService.isAvailable(deviceId)) {
-                        log.debug("Device {} became unavailable; clearing initial audit status",
-                                event.type(), event.subject().id());
-                        store.deviceInitialAuditCompleted(event.subject().id(), false);
+                        log.debug("Device {} became unavailable for {}; clearing initial audit status",
+                                deviceId, event.type());
+                        store.deviceInitialAuditCompleted(deviceId, false);
 
                         if (purgeOnDisconnection) {
                             store.purgeGroupEntry(deviceId);
