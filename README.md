@@ -80,7 +80,7 @@ To run ONOS locally on the development machine, simply run the following command
 $ bazel run onos-local [-- [clean] [debug]]
 ```
 
-or simplier one:
+or simpler one:
 
 ```bash
 $ ok [clean] [debug]
@@ -111,17 +111,17 @@ To run ONOS unit tests, including code Checkstyle validation, run the following 
 $ bazel query 'tests(//...)' | xargs bazel test
 ```
 
-Or more specific tests:
+Or better yet, to run code Checkstyle and all unit tests use the following convenience alias:
 
 ```bash
-$ bazel test [bazel-test-rule]
+$ ot
 ```
 
 ## Contributing
 
 ONOS code is hosted and maintained using [Gerrit](https://gerrit.onosproject.org/).
 
-Code on GitHub is only a mirror. The ONOS project does **NOT** accept code through pull requests on GitHub. 
+Code on GitHub is only a mirror. The ONOS project does **NOT** accept code through pull requests on GitHub.
 
 To contribute to ONOS, please refer to [Sample Gerrit Workflow](https://wiki.onosproject.org/display/ONOS/Sample+Gerrit+Workflow). It should includes most of the things you'll need to get your contribution started!
 
