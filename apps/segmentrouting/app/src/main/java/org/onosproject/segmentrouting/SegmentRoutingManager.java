@@ -157,11 +157,34 @@ import static org.onlab.packet.Ethernet.TYPE_ARP;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.config.NetworkConfigEvent.Type.CONFIG_REGISTERED;
 import static org.onosproject.net.config.NetworkConfigEvent.Type.CONFIG_UNREGISTERED;
+import static org.onosproject.segmentrouting.OsgiPropertyConstants.ACTIVE_PROBING_DEFAULT;
+import static org.onosproject.segmentrouting.OsgiPropertyConstants.DEFAULT_INTERNAL_VLAN_DEFAULT;
+import static org.onosproject.segmentrouting.OsgiPropertyConstants.PROP_ACTIVE_PROBING;
+import static org.onosproject.segmentrouting.OsgiPropertyConstants.PROP_DEFAULT_INTERNAL_VLAN;
+import static org.onosproject.segmentrouting.OsgiPropertyConstants.PROP_PW_TRANSPORT_VLAN;
+import static org.onosproject.segmentrouting.OsgiPropertyConstants.PROP_RESPOND_TO_UNKNOWN_HOSTS;
+import static org.onosproject.segmentrouting.OsgiPropertyConstants.PROP_ROUTE_DOUBLE_TAGGED_HOSTS;
+import static org.onosproject.segmentrouting.OsgiPropertyConstants.PROP_SINGLE_HOMED_DOWN;
+import static org.onosproject.segmentrouting.OsgiPropertyConstants.PW_TRANSPORT_VLAN_DEFAULT;
+import static org.onosproject.segmentrouting.OsgiPropertyConstants.RESPOND_TO_UNKNOWN_HOSTS_DEFAULT;
+import static org.onosproject.segmentrouting.OsgiPropertyConstants.ROUTE_DOUBLE_TAGGED_HOSTS_DEFAULT;
+import static org.onosproject.segmentrouting.OsgiPropertyConstants.SINGLE_HOMED_DOWN_DEFAULT;
 
 /**
  * Segment routing manager.
  */
-@Component(immediate = true, service = SegmentRoutingService.class)
+@Component(
+    immediate = true,
+    service = SegmentRoutingService.class,
+    property = {
+        PROP_ACTIVE_PROBING + ":Boolean=" + ACTIVE_PROBING_DEFAULT,
+        PROP_SINGLE_HOMED_DOWN + ":Boolean=" + SINGLE_HOMED_DOWN_DEFAULT,
+        PROP_RESPOND_TO_UNKNOWN_HOSTS + ":Boolean=" + RESPOND_TO_UNKNOWN_HOSTS_DEFAULT,
+        PROP_ROUTE_DOUBLE_TAGGED_HOSTS + ":Boolean=" + ROUTE_DOUBLE_TAGGED_HOSTS_DEFAULT,
+        PROP_DEFAULT_INTERNAL_VLAN + ":Integer=" + DEFAULT_INTERNAL_VLAN_DEFAULT,
+        PROP_PW_TRANSPORT_VLAN + ":Integer=" + PW_TRANSPORT_VLAN_DEFAULT,
+    }
+)
 public class SegmentRoutingManager implements SegmentRoutingService {
 
     private static Logger log = LoggerFactory.getLogger(SegmentRoutingManager.class);
@@ -230,32 +253,23 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     @Reference(cardinality = ReferenceCardinality.OPTIONAL)
     public XconnectService xconnectService;
 
-    //@Property(name = "activeProbing", boolValue = true,
-    //        label = "Enable active probing to discover dual-homed hosts.")
-    boolean activeProbing = true;
+    /** Enable active probing to discover dual-homed hosts. */
+    boolean activeProbing = ACTIVE_PROBING_DEFAULT;
 
-    //@Property(name = "singleHomedDown", boolValue = false,
-    //        label = "Enable administratively taking down single-homed hosts "
-    //                + "when all uplinks are gone")
-    boolean singleHomedDown = false;
+    /** Enable administratively taking down single-homed hosts. */
+    boolean singleHomedDown = SINGLE_HOMED_DOWN_DEFAULT;
 
-    //@Property(name = "respondToUnknownHosts", boolValue = true,
-    //        label = "Enable this to respond to ARP/NDP requests from unknown hosts.")
-    boolean respondToUnknownHosts = true;
+    /** Enable this to respond to ARP/NDP requests from unknown hosts. */
+    boolean respondToUnknownHosts = RESPOND_TO_UNKNOWN_HOSTS_DEFAULT;
 
-    //@Property(name = "routeDoubleTaggedHosts", boolValue = false,
-    //        label = "Program flows and groups to pop and route double tagged hosts")
-    boolean routeDoubleTaggedHosts = false;
+    /** Program flows and groups to pop and route double tagged hosts. */
+    boolean routeDoubleTaggedHosts = ROUTE_DOUBLE_TAGGED_HOSTS_DEFAULT;
 
-    private static final int DEFAULT_INTERNAL_VLAN = 4094;
-    //@Property(name = "defaultInternalVlan", intValue = DEFAULT_INTERNAL_VLAN,
-    //        label = "internal vlan assigned by default to unconfigured ports")
-    private int defaultInternalVlan = DEFAULT_INTERNAL_VLAN;
+    /** internal vlan assigned by default to unconfigured ports. */
+    private int defaultInternalVlan = DEFAULT_INTERNAL_VLAN_DEFAULT;
 
-    private static final int PW_TRANSPORT_VLAN = 4090;
-    //@Property(name = "pwTransportVlan", intValue = PW_TRANSPORT_VLAN,
-    //        label = "vlan used for transport of pseudowires between switches")
-    private int pwTransportVlan = PW_TRANSPORT_VLAN;
+    /** vlan used for transport of pseudowires between switches. */
+    private int pwTransportVlan = PW_TRANSPORT_VLAN_DEFAULT;
 
     ArpHandler arpHandler = null;
     IcmpHandler icmpHandler = null;
