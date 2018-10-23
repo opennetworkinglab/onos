@@ -7,7 +7,7 @@ aux=/tmp/stc/stc-$$.log
 trap "rm -f $aux 2>/dev/null" EXIT
 
 for attempt in {1..30}; do
-    onos ${1:-$OCI} scr:list > $aux
+    onos ${1:-$OCI} onos:scr-list > $aux
 
     if grep -q UNSATISFIED $aux; then
         sleep 1

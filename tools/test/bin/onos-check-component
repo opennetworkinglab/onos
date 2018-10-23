@@ -11,7 +11,7 @@ component=$2
 state=$3
 
 for attempt in {1..30}; do
-    onos ${node:-$OCI} scr:list  | grep $component > $aux
+    onos ${node:-$OCI} onos:scr-list  | grep $component > $aux
 
     if grep $state $aux; then
         exit 0
