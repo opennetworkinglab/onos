@@ -21,7 +21,7 @@
     <parent>
         <artifactId>onos-apps-segmentrouting</artifactId>
         <groupId>org.onosproject</groupId>
-        <version>1.13.6</version>
+        <version>1.13.7-SNAPSHOT</version>
     </parent>
 
     <artifactId>onos-apps-segmentrouting-app</artifactId>

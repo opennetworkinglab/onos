@@ -24,7 +24,7 @@
     <parent>
         <groupId>org.onosproject</groupId>
         <artifactId>onos-apps-mcast</artifactId>
-        <version>1.13.6</version>
+        <version>1.13.7-SNAPSHOT</version>
     </parent>
 
     <artifactId>onos-apps-mcast-cli</artifactId>
