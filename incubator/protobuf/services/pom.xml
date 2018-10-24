@@ -19,7 +19,7 @@
     <parent>
         <artifactId>onos-incubator-protobuf</artifactId>
         <groupId>org.onosproject</groupId>
-        <version>1.13.6-SNAPSHOT</version>
+        <version>1.13.6</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 

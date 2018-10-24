@@ -20,7 +20,7 @@
     <parent>
         <artifactId>onos-apps</artifactId>
         <groupId>org.onosproject</groupId>
-        <version>1.13.6-SNAPSHOT</version>
+        <version>1.13.6</version>
     </parent>
 
     <artifactId>onos-apps-configsync-netconf</artifactId>

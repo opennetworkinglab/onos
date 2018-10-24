@@ -28,7 +28,7 @@
 
     <groupId>org.onosproject</groupId>
     <artifactId>onos-archetypes</artifactId>
-    <version>1.13.6-SNAPSHOT</version>
+    <version>1.13.6</version>
     <packaging>pom</packaging>
 
     <description>ONOS archetypes project</description>
