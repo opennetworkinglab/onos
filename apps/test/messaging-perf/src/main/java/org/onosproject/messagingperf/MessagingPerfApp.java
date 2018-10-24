@@ -55,13 +55,30 @@ import java.util.stream.IntStream;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.messagingperf.OsgiPropertyConstants.RECEIVER_THREAD_POOL_SIZE;
+import static org.onosproject.messagingperf.OsgiPropertyConstants.RECEIVER_THREAD_POOL_SIZE_DEFAULT;
+import static org.onosproject.messagingperf.OsgiPropertyConstants.RECEIVE_ON_IO_LOOP_THREAD;
+import static org.onosproject.messagingperf.OsgiPropertyConstants.RECEIVE_ON_IO_LOOP_THREAD_DEFAULT;
+import static org.onosproject.messagingperf.OsgiPropertyConstants.SENDER_THREAD_POOL_SIZE;
+import static org.onosproject.messagingperf.OsgiPropertyConstants.SENDER_THREAD_POOL_SIZE_DEFAULT;
+import static org.onosproject.messagingperf.OsgiPropertyConstants.SERIALIZATION_ON;
+import static org.onosproject.messagingperf.OsgiPropertyConstants.SERIALIZATION_ON_DEFAULT;
 import static org.osgi.service.component.annotations.ReferenceCardinality.MANDATORY;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Application for measuring cluster messaging performance.
  */
-@Component(immediate = true, service = MessagingPerfApp.class)
+@Component(
+    immediate = true,
+    service = MessagingPerfApp.class,
+    property = {
+        SENDER_THREAD_POOL_SIZE + ":Integer=" + SENDER_THREAD_POOL_SIZE_DEFAULT,
+        RECEIVER_THREAD_POOL_SIZE + ":Integer=" + RECEIVER_THREAD_POOL_SIZE_DEFAULT,
+        SERIALIZATION_ON + ":Boolean=" + SERIALIZATION_ON_DEFAULT,
+        RECEIVE_ON_IO_LOOP_THREAD + ":Boolean=" + RECEIVE_ON_IO_LOOP_THREAD_DEFAULT
+    }
+)
 public class MessagingPerfApp {
     private final Logger log = getLogger(getClass());
 
@@ -83,26 +100,19 @@ public class MessagingPerfApp {
     private static final MessageSubject TEST_REQUEST_REPLY_TOPIC =
             new MessageSubject("net-perf-rr-message");
 
-    private static final int DEFAULT_SENDER_THREAD_POOL_SIZE = 2;
-    private static final int DEFAULT_RECEIVER_THREAD_POOL_SIZE = 2;
+    /** Number of sender threads. */
+    private int totalSenderThreads = SENDER_THREAD_POOL_SIZE_DEFAULT;
 
-    //@Property(name = "totalSenderThreads", intValue = DEFAULT_SENDER_THREAD_POOL_SIZE,
-    //        label = "Number of sender threads")
-    protected int totalSenderThreads = DEFAULT_SENDER_THREAD_POOL_SIZE;
+    /** Number of receiver threads. */
+    private int totalReceiverThreads = RECEIVER_THREAD_POOL_SIZE_DEFAULT;
 
-    //@Property(name = "totalReceiverThreads", intValue = DEFAULT_RECEIVER_THREAD_POOL_SIZE,
-    //        label = "Number of receiver threads")
-    protected int totalReceiverThreads = DEFAULT_RECEIVER_THREAD_POOL_SIZE;
+    /** Turn serialization on/off. */
+    private boolean serializationOn = SERIALIZATION_ON_DEFAULT;
 
-    //@Property(name = "serializationOn", boolValue = true,
-    //        label = "Turn serialization on/off")
-    private boolean serializationOn = true;
+    /** Set this to true to handle message on IO thread. */
+    private boolean receiveOnIOLoopThread = RECEIVE_ON_IO_LOOP_THREAD_DEFAULT;
 
-    //@Property(name = "receiveOnIOLoopThread", boolValue = false,
-    //        label = "Set this to true to handle message on IO thread")
-    private boolean receiveOnIOLoopThread = false;
-
-    protected int reportIntervalSeconds = 1;
+    private int reportIntervalSeconds = 1;
 
     private Executor messageReceivingExecutor;
 
@@ -167,8 +177,8 @@ public class MessagingPerfApp {
     @Modified
     public void modified(ComponentContext context) {
         if (context == null) {
-            totalSenderThreads = DEFAULT_SENDER_THREAD_POOL_SIZE;
-            totalReceiverThreads = DEFAULT_RECEIVER_THREAD_POOL_SIZE;
+            totalSenderThreads = SENDER_THREAD_POOL_SIZE_DEFAULT;
+            totalReceiverThreads = RECEIVER_THREAD_POOL_SIZE_DEFAULT;
             serializationOn = true;
             receiveOnIOLoopThread = false;
             return;
@@ -181,19 +191,19 @@ public class MessagingPerfApp {
         boolean newSerializationOn = serializationOn;
         boolean newReceiveOnIOLoopThread = receiveOnIOLoopThread;
         try {
-            String s = get(properties, "totalSenderThreads");
+            String s = get(properties, SENDER_THREAD_POOL_SIZE);
             newTotalSenderThreads = isNullOrEmpty(s)
                     ? totalSenderThreads : Integer.parseInt(s.trim());
 
-            s = get(properties, "totalReceiverThreads");
+            s = get(properties, RECEIVER_THREAD_POOL_SIZE);
             newTotalReceiverThreads = isNullOrEmpty(s)
                     ? totalReceiverThreads : Integer.parseInt(s.trim());
 
-            s = get(properties, "serializationOn");
+            s = get(properties, SERIALIZATION_ON);
             newSerializationOn = isNullOrEmpty(s)
                     ? serializationOn : Boolean.parseBoolean(s.trim());
 
-            s = get(properties, "receiveOnIOLoopThread");
+            s = get(properties, RECEIVE_ON_IO_LOOP_THREAD);
             newReceiveOnIOLoopThread = isNullOrEmpty(s)
                     ? receiveOnIOLoopThread : Boolean.parseBoolean(s.trim());
 

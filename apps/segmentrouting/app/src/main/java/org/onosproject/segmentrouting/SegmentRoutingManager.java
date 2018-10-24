@@ -618,14 +618,14 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             return;
         }
 
-        String strActiveProbing = Tools.get(properties, "activeProbing");
+        String strActiveProbing = Tools.get(properties, PROP_ACTIVE_PROBING);
         boolean expectActiveProbing = Boolean.parseBoolean(strActiveProbing);
         if (expectActiveProbing != activeProbing) {
             activeProbing = expectActiveProbing;
             log.info("{} active probing", activeProbing ? "Enabling" : "Disabling");
         }
 
-        String strSingleHomedDown = Tools.get(properties, "singleHomedDown");
+        String strSingleHomedDown = Tools.get(properties, PROP_SINGLE_HOMED_DOWN);
         boolean expectSingleHomedDown = Boolean.parseBoolean(strSingleHomedDown);
         if (expectSingleHomedDown != singleHomedDown) {
             singleHomedDown = expectSingleHomedDown;
@@ -644,14 +644,14 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             }
         }
 
-        String strRespondToUnknownHosts = Tools.get(properties, "respondToUnknownHosts");
+        String strRespondToUnknownHosts = Tools.get(properties, PROP_RESPOND_TO_UNKNOWN_HOSTS);
         boolean expectRespondToUnknownHosts = Boolean.parseBoolean(strRespondToUnknownHosts);
         if (expectRespondToUnknownHosts != respondToUnknownHosts) {
             respondToUnknownHosts = expectRespondToUnknownHosts;
             log.info("{} responding to ARPs/NDPs from unknown hosts", respondToUnknownHosts ? "Enabling" : "Disabling");
         }
 
-        String strRouteDoubleTaggedHosts = Tools.get(properties, "routeDoubleTaggedHosts");
+        String strRouteDoubleTaggedHosts = Tools.get(properties, PROP_ROUTE_DOUBLE_TAGGED_HOSTS);
         boolean expectRouteDoubleTaggedHosts = Boolean.parseBoolean(strRouteDoubleTaggedHosts);
         if (expectRouteDoubleTaggedHosts != routeDoubleTaggedHosts) {
             routeDoubleTaggedHosts = expectRouteDoubleTaggedHosts;
@@ -664,7 +664,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             }
         }
 
-        String strDefaultInternalVlan = Tools.get(properties, "defaultInternalVlan");
+        String strDefaultInternalVlan = Tools.get(properties, PROP_DEFAULT_INTERNAL_VLAN);
         int defIntVlan = Integer.parseInt(strDefaultInternalVlan);
         if (defIntVlan != defaultInternalVlan) {
             if (canUseVlanId(defIntVlan)) {
@@ -682,7 +682,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             }
         }
 
-        String strPwTxpVlan = Tools.get(properties, "pwTransportVlan");
+        String strPwTxpVlan = Tools.get(properties, PROP_PW_TRANSPORT_VLAN);
         int pwTxpVlan = Integer.parseInt(strPwTxpVlan);
         if (pwTxpVlan != pwTransportVlan) {
             if (canUseVlanId(pwTxpVlan)) {

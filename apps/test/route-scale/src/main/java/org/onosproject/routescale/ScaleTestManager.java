@@ -61,8 +61,19 @@ import java.util.Random;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onlab.util.Tools.get;
+import static org.onosproject.routescale.OsgiPropertyConstants.FLOW_COUNT;
+import static org.onosproject.routescale.OsgiPropertyConstants.FLOW_COUNT_DEFAULT;
+import static org.onosproject.routescale.OsgiPropertyConstants.ROUTE_COUNT;
+import static org.onosproject.routescale.OsgiPropertyConstants.ROUTE_COUNT_DEFAULT;
 
-@Component(immediate = true, service = ScaleTestManager.class)
+@Component(
+    immediate = true,
+    service = ScaleTestManager.class,
+    property = {
+        FLOW_COUNT + ":Integer=" + FLOW_COUNT_DEFAULT,
+        ROUTE_COUNT + ":Integer=" + ROUTE_COUNT_DEFAULT,
+    }
+)
 public class ScaleTestManager {
 
     private Logger log = LoggerFactory.getLogger(getClass());
@@ -88,13 +99,11 @@ public class ScaleTestManager {
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService componentConfigService;
 
-    //@Property(name = "flowCount", intValue = 0,
-    //        label = "Number of flows to be maintained in the system")
-    private int flowCount = 0;
+    /** Number of flows to be maintained in the system. */
+    private int flowCount = FLOW_COUNT_DEFAULT;
 
-    //@Property(name = "routeCount", intValue = 0,
-    //        label = "Number of routes to be maintained in the system")
-    private int routeCount = 0;
+    /** Number of routes to be maintained in the system. */
+    private int routeCount = ROUTE_COUNT_DEFAULT;
 
     private final Random random = new Random(System.currentTimeMillis());
 
@@ -123,10 +132,10 @@ public class ScaleTestManager {
 
         Dictionary<?, ?> properties = context.getProperties();
         try {
-            String s = get(properties, "flowCount");
+            String s = get(properties, FLOW_COUNT);
             flowCount = isNullOrEmpty(s) ? flowCount : Integer.parseInt(s.trim());
 
-            s = get(properties, "routeCount");
+            s = get(properties, ROUTE_COUNT);
             routeCount = isNullOrEmpty(s) ? routeCount : Integer.parseInt(s.trim());
 
             log.info("Reconfigured; flowCount={}; routeCount={}", flowCount, routeCount);

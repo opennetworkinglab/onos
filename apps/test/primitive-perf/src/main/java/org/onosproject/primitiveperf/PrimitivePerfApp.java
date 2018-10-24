@@ -51,78 +51,73 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.lang.System.currentTimeMillis;
 import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.primitiveperf.OsgiPropertyConstants.DETERMINISTIC;
+import static org.onosproject.primitiveperf.OsgiPropertyConstants.DETERMINISTIC_DEFAULT;
+import static org.onosproject.primitiveperf.OsgiPropertyConstants.INCLUDE_EVENTS;
+import static org.onosproject.primitiveperf.OsgiPropertyConstants.INCLUDE_EVENTS_DEFAULT;
+import static org.onosproject.primitiveperf.OsgiPropertyConstants.KEY_LENGTH;
+import static org.onosproject.primitiveperf.OsgiPropertyConstants.KEY_LENGTH_DEFAULT;
+import static org.onosproject.primitiveperf.OsgiPropertyConstants.NUM_CLIENTS;
+import static org.onosproject.primitiveperf.OsgiPropertyConstants.NUM_CLIENTS_DEFAULT;
+import static org.onosproject.primitiveperf.OsgiPropertyConstants.NUM_KEYS;
+import static org.onosproject.primitiveperf.OsgiPropertyConstants.NUM_KEYS_DEFAULT;
+import static org.onosproject.primitiveperf.OsgiPropertyConstants.NUM_UNIQUE_VALUES;
+import static org.onosproject.primitiveperf.OsgiPropertyConstants.NUM_UNIQUE_VALUES_DEFAULT;
+import static org.onosproject.primitiveperf.OsgiPropertyConstants.VALUE_LENGTH;
+import static org.onosproject.primitiveperf.OsgiPropertyConstants.VALUE_LENGTH_DEFAULT;
+import static org.onosproject.primitiveperf.OsgiPropertyConstants.WRITE_PERCENTAGE;
+import static org.onosproject.primitiveperf.OsgiPropertyConstants.WRITE_PERCENTAGE_DEFAULT;
 import static org.osgi.service.component.annotations.ReferenceCardinality.MANDATORY;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Application to test sustained primitive throughput.
  */
-@Component(immediate = true, service = PrimitivePerfApp.class)
+@Component(
+    immediate = true,
+    service = PrimitivePerfApp.class,
+    property = {
+        NUM_CLIENTS + ":Integer=" + NUM_CLIENTS_DEFAULT,
+        WRITE_PERCENTAGE + ":Integer=" + WRITE_PERCENTAGE_DEFAULT,
+        NUM_KEYS + ":Integer=" + NUM_KEYS_DEFAULT,
+        KEY_LENGTH + ":Integer=" + KEY_LENGTH_DEFAULT,
+        NUM_UNIQUE_VALUES + ":Integer=" + NUM_UNIQUE_VALUES_DEFAULT,
+        VALUE_LENGTH + ":Integer=" + VALUE_LENGTH_DEFAULT,
+        INCLUDE_EVENTS + ":Boolean=" + INCLUDE_EVENTS_DEFAULT,
+        DETERMINISTIC + ":Boolean=" + DETERMINISTIC_DEFAULT,
+    }
+)
 public class PrimitivePerfApp {
 
     private final Logger log = getLogger(getClass());
-
-    private static final int DEFAULT_NUM_CLIENTS = 8;
-    private static final int DEFAULT_WRITE_PERCENTAGE = 100;
-
-    private static final int DEFAULT_NUM_KEYS = 100_000;
-    private static final int DEFAULT_KEY_LENGTH = 32;
-    private static final int DEFAULT_NUM_UNIQUE_VALUES = 100;
-    private static final int DEFAULT_VALUE_LENGTH = 1024;
-    private static final boolean DEFAULT_INCLUDE_EVENTS = false;
-    private static final boolean DEFAULT_DETERMINISTIC = true;
 
     private static final int REPORT_PERIOD = 1_000; //ms
 
     private static final char[] CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".toCharArray();
 
-    //@Property(
-    //    name = "numClients",
-    //    intValue = DEFAULT_NUM_CLIENTS,
-    //    label = "Number of clients to use to submit writes")
-    private int numClients = DEFAULT_NUM_CLIENTS;
+    /** Number of clients to use to submit writes. */
+    private int numClients = NUM_CLIENTS_DEFAULT;
 
-    //@Property(
-    //    name = "writePercentage",
-    //    intValue = DEFAULT_WRITE_PERCENTAGE,
-    //    label = "Percentage of operations to perform as writes")
-    private int writePercentage = DEFAULT_WRITE_PERCENTAGE;
+    /** Percentage of operations to perform as writes. */
+    private int writePercentage = WRITE_PERCENTAGE_DEFAULT;
 
-    //@Property(
-    //    name = "numKeys",
-    //    intValue = DEFAULT_NUM_KEYS,
-    //    label = "Number of unique keys to write")
-    private int numKeys = DEFAULT_NUM_KEYS;
+    /** Number of unique keys to write. */
+    private int numKeys = NUM_KEYS_DEFAULT;
 
-    //@Property(
-    //    name = "keyLength",
-    //    intValue = DEFAULT_KEY_LENGTH,
-    //    label = "Key length")
-    private int keyLength = DEFAULT_KEY_LENGTH;
+    /** Key length. */
+    private int keyLength = KEY_LENGTH_DEFAULT;
 
-    //@Property(
-    //    name = "numValues",
-    //    intValue = DEFAULT_NUM_UNIQUE_VALUES,
-    //    label = "Number of unique values to write")
-    private int numValues = DEFAULT_NUM_UNIQUE_VALUES;
+    /** Number of unique values to write. */
+    private int numValues = NUM_UNIQUE_VALUES_DEFAULT;
 
-    //@Property(
-    //    name = "valueLength",
-    //    intValue = DEFAULT_VALUE_LENGTH,
-    //    label = "Value length")
-    private int valueLength = DEFAULT_VALUE_LENGTH;
+    /** Value length. */
+    private int valueLength = VALUE_LENGTH_DEFAULT;
 
-    //@Property(
-    //    name = "includeEvents",
-    //    boolValue = DEFAULT_INCLUDE_EVENTS,
-    //    label = "Whether to include events in test")
-    private boolean includeEvents = DEFAULT_INCLUDE_EVENTS;
+    /** Whether to include events in test. */
+    private boolean includeEvents = INCLUDE_EVENTS_DEFAULT;
 
-    //@Property(
-    //    name = "deterministic",
-    //    boolValue = DEFAULT_DETERMINISTIC,
-    //    label = "Whether to deterministically populate entries")
-    private boolean deterministic = DEFAULT_DETERMINISTIC;
+    /** Whether to deterministically populate entries. */
+    private boolean deterministic = DETERMINISTIC_DEFAULT;
 
     @Reference(cardinality = MANDATORY)
     protected ClusterService clusterService;
@@ -216,19 +211,19 @@ public class PrimitivePerfApp {
         }
 
         Dictionary<?, ?> properties = context.getProperties();
-        int newNumClients = parseInt(properties, "numClients", numClients, DEFAULT_NUM_CLIENTS);
-        int newWritePercentage = parseInt(properties, "writePercentage", writePercentage, DEFAULT_WRITE_PERCENTAGE);
-        int newNumKeys = parseInt(properties, "numKeys", numKeys, DEFAULT_NUM_KEYS);
-        int newKeyLength = parseInt(properties, "keyLength", keyLength, DEFAULT_KEY_LENGTH);
-        int newNumValues = parseInt(properties, "numValues", numValues, DEFAULT_NUM_UNIQUE_VALUES);
-        int newValueLength = parseInt(properties, "valueLength", valueLength, DEFAULT_VALUE_LENGTH);
+        int newNumClients = parseInt(properties, NUM_CLIENTS, numClients, NUM_CLIENTS_DEFAULT);
+        int newWritePercentage = parseInt(properties, WRITE_PERCENTAGE, writePercentage, WRITE_PERCENTAGE_DEFAULT);
+        int newNumKeys = parseInt(properties, NUM_KEYS, numKeys, NUM_KEYS_DEFAULT);
+        int newKeyLength = parseInt(properties, KEY_LENGTH, keyLength, KEY_LENGTH_DEFAULT);
+        int newNumValues = parseInt(properties, NUM_UNIQUE_VALUES, numValues, NUM_UNIQUE_VALUES_DEFAULT);
+        int newValueLength = parseInt(properties, VALUE_LENGTH, valueLength, VALUE_LENGTH_DEFAULT);
 
-        String includeEventsString = get(properties, "includeEvents");
+        String includeEventsString = get(properties, INCLUDE_EVENTS);
         boolean newIncludeEvents = isNullOrEmpty(includeEventsString)
             ? includeEvents
             : Boolean.parseBoolean(includeEventsString.trim());
 
-        String deterministicString = get(properties, "deterministic");
+        String deterministicString = get(properties, DETERMINISTIC);
         boolean newDeterministic = isNullOrEmpty(deterministicString)
             ? includeEvents
             : Boolean.parseBoolean(deterministicString.trim());

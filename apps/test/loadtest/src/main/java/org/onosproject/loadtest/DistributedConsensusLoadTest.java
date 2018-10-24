@@ -46,6 +46,8 @@ import java.util.stream.Collectors;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onlab.util.Tools.get;
+import static org.onosproject.loadtest.OsgiPropertyConstants.RATE;
+import static org.onosproject.loadtest.OsgiPropertyConstants.RATE_DEFAULT;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -53,7 +55,13 @@ import static org.slf4j.LoggerFactory.getLogger;
  * <p>
  * This application simply increments as {@link AsyncAtomicCounter} at a configurable rate.
  */
-@Component(immediate = true, service = DistributedConsensusLoadTest.class)
+@Component(
+    immediate = true,
+    service = DistributedConsensusLoadTest.class,
+    property = {
+        RATE + ":Integer=" + RATE_DEFAULT
+    }
+)
 public class DistributedConsensusLoadTest {
 
     private final Logger log = getLogger(getClass());
@@ -71,12 +79,10 @@ public class DistributedConsensusLoadTest {
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
-    private static final int DEFAULT_RATE = 100;
     private static final int TOTAL_COUNTERS = 50;
 
-    //@Property(name = "rate", intValue = DEFAULT_RATE,
-    //        label = "Total number of increments per second to the atomic counter")
-    protected int rate = 0;
+    /** Total number of increments per second to the atomic counter. */
+    protected int rate = RATE_DEFAULT;
 
     private final AtomicLong previousReportTime = new AtomicLong(0);
     private final AtomicLong previousCount = new AtomicLong(0);
@@ -145,11 +151,11 @@ public class DistributedConsensusLoadTest {
 
     @Modified
     public void modified(ComponentContext context) {
-        int newRate = DEFAULT_RATE;
+        int newRate = RATE_DEFAULT;
         if (context != null) {
             Dictionary properties = context.getProperties();
             try {
-                String s = get(properties, "rate");
+                String s = get(properties, RATE);
                 newRate = isNullOrEmpty(s)
                         ? rate : Integer.parseInt(s.trim());
             } catch (Exception e) {

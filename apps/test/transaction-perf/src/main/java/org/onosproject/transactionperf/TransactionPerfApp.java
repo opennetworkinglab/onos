@@ -44,13 +44,36 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.transactionperf.OsgiPropertyConstants.MAP_NAME;
+import static org.onosproject.transactionperf.OsgiPropertyConstants.MAP_NAME_DEFAULT;
+import static org.onosproject.transactionperf.OsgiPropertyConstants.READ_PERCENTAGE;
+import static org.onosproject.transactionperf.OsgiPropertyConstants.READ_PERCENTAGE_DEFAULT;
+import static org.onosproject.transactionperf.OsgiPropertyConstants.REPORT_INTERVAL_SECONDS;
+import static org.onosproject.transactionperf.OsgiPropertyConstants.REPORT_INTERVAL_SECONDS_DEFAULT;
+import static org.onosproject.transactionperf.OsgiPropertyConstants.TOTAL_OPERATIONS;
+import static org.onosproject.transactionperf.OsgiPropertyConstants.TOTAL_OPERATIONS_DEFAULT;
+import static org.onosproject.transactionperf.OsgiPropertyConstants.WITH_CONTENTION;
+import static org.onosproject.transactionperf.OsgiPropertyConstants.WITH_CONTENTION_DEFAULT;
+import static org.onosproject.transactionperf.OsgiPropertyConstants.WITH_RETRIES;
+import static org.onosproject.transactionperf.OsgiPropertyConstants.WITH_RETRIES_DEFAULT;
 import static org.osgi.service.component.annotations.ReferenceCardinality.MANDATORY;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Application for measuring transaction performance.
  */
-@Component(immediate = true, service = TransactionPerfApp.class)
+@Component(
+    immediate = true,
+    service = TransactionPerfApp.class,
+    property = {
+        MAP_NAME_DEFAULT + "=" + MAP_NAME,
+        READ_PERCENTAGE + ":Double=" + READ_PERCENTAGE_DEFAULT,
+        TOTAL_OPERATIONS + ":Integer=" + TOTAL_OPERATIONS_DEFAULT,
+        WITH_CONTENTION + ":Boolean=" + WITH_CONTENTION_DEFAULT,
+        WITH_RETRIES + ":Boolean=" + WITH_RETRIES_DEFAULT,
+        REPORT_INTERVAL_SECONDS + ":Integer=" + REPORT_INTERVAL_SECONDS_DEFAULT
+    }
+)
 public class TransactionPerfApp {
     private final Logger log = getLogger(getClass());
 
@@ -63,37 +86,25 @@ public class TransactionPerfApp {
     @Reference(cardinality = MANDATORY)
     protected ComponentConfigService configService;
 
-    private static final String DEFAULT_MAP_NAME = "transaction-perf";
-    private static final double DEFAULT_READ_PERCENTAGE = .9;
-    private static final int DEFAULT_TOTAL_OPERATIONS = 1000;
-    private static final boolean DEFAULT_WITH_CONTENTION = false;
-    private static final boolean DEFAULT_WITH_RETRIES = false;
-    private static final int DEFAULT_REPORT_INTERVAL_SECONDS = 1;
     private static final String KEY_PREFIX = "key";
 
-    //@Property(name = "mapName", value = DEFAULT_MAP_NAME,
-    //        label = "The name of the map to use for testing")
-    protected String mapName = DEFAULT_MAP_NAME;
+    /** The name of the map to use for testing. */
+    protected String mapName = MAP_NAME_DEFAULT;
 
-    //@Property(name = "readPercentage", doubleValue = DEFAULT_READ_PERCENTAGE,
-    //        label = "Percentage of reads to perform")
-    protected double readPercentage = DEFAULT_READ_PERCENTAGE;
+    /** Percentage of reads to perform. */
+    protected double readPercentage = READ_PERCENTAGE_DEFAULT;
 
-    //@Property(name = "totalOperationsPerTransaction", intValue = DEFAULT_TOTAL_OPERATIONS,
-    //        label = "Number of operations to perform within each transaction")
-    protected int totalOperationsPerTransaction = DEFAULT_TOTAL_OPERATIONS;
+    /** Number of operations to perform within each transaction. */
+    protected int totalOperationsPerTransaction = TOTAL_OPERATIONS_DEFAULT;
 
-    //@Property(name = "withContention", boolValue = DEFAULT_WITH_CONTENTION,
-    //        label = "Whether to test transactions with contention from all nodes")
-    protected boolean withContention = DEFAULT_WITH_CONTENTION;
+    /** Whether to test transactions with contention from all nodes. */
+    protected boolean withContention = WITH_CONTENTION_DEFAULT;
 
-    //@Property(name = "withRetries", boolValue = DEFAULT_WITH_RETRIES,
-    //        label = "Whether to retry transactions until success")
-    protected boolean withRetries = DEFAULT_WITH_RETRIES;
+    /** Whether to retry transactions until success. */
+    protected boolean withRetries = WITH_RETRIES_DEFAULT;
 
-    //@Property(name = "reportIntervalSeconds", intValue = DEFAULT_REPORT_INTERVAL_SECONDS,
-    //        label = "The frequency with which to report performance in seconds")
-    protected int reportIntervalSeconds = 1;
+    /** The frequency with which to report performance in seconds. */
+    protected int reportIntervalSeconds = REPORT_INTERVAL_SECONDS_DEFAULT;
 
     private ExecutorService testRunner =
             Executors.newSingleThreadExecutor(Tools.groupedThreads("app/transaction-perf-test-runner", ""));
@@ -124,12 +135,12 @@ public class TransactionPerfApp {
     @Modified
     public void modified(ComponentContext context) {
         if (context == null) {
-            mapName = DEFAULT_MAP_NAME;
-            readPercentage = DEFAULT_READ_PERCENTAGE;
-            totalOperationsPerTransaction = DEFAULT_TOTAL_OPERATIONS;
-            withContention = DEFAULT_WITH_CONTENTION;
-            withRetries = DEFAULT_WITH_RETRIES;
-            reportIntervalSeconds = DEFAULT_REPORT_INTERVAL_SECONDS;
+            mapName = MAP_NAME_DEFAULT;
+            readPercentage = READ_PERCENTAGE_DEFAULT;
+            totalOperationsPerTransaction = TOTAL_OPERATIONS_DEFAULT;
+            withContention = WITH_CONTENTION_DEFAULT;
+            withRetries = WITH_RETRIES_DEFAULT;
+            reportIntervalSeconds = REPORT_INTERVAL_SECONDS_DEFAULT;
             return;
         }
 
@@ -145,32 +156,32 @@ public class TransactionPerfApp {
         try {
             String s;
 
-            s = get(properties, "mapName");
+            s = get(properties, MAP_NAME);
             if (!isNullOrEmpty(s)) {
                 newMapName = s;
             }
 
-            s = get(properties, "readPercentage");
+            s = get(properties, READ_PERCENTAGE);
             if (!isNullOrEmpty(s)) {
                 newReadPercentage = Double.parseDouble(s);
             }
 
-            s = get(properties, "totalOperationsPerTransaction");
+            s = get(properties, TOTAL_OPERATIONS);
             if (!isNullOrEmpty(s)) {
                 newTotalOperationsPerTransaction = Integer.parseInt(s);
             }
 
-            s = get(properties, "withContention");
+            s = get(properties, WITH_CONTENTION);
             if (!isNullOrEmpty(s)) {
                 newWithContention = Boolean.parseBoolean(s);
             }
 
-            s = get(properties, "withRetries");
+            s = get(properties, WITH_RETRIES);
             if (!isNullOrEmpty(s)) {
                 newWithRetries = Boolean.parseBoolean(s);
             }
 
-            s = get(properties, "reportIntervalSeconds");
+            s = get(properties, REPORT_INTERVAL_SECONDS);
             if (!isNullOrEmpty(s)) {
                 newReportIntervalSeconds = Integer.parseInt(s);
             }
