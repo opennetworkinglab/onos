@@ -24,10 +24,9 @@ import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.connector.basic.BasicRepositoryConnectorFactory;
 import org.eclipse.aether.impl.DefaultServiceLocator;
 import org.eclipse.aether.repository.LocalRepository;
+import org.eclipse.aether.repository.Proxy;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.repository.RepositoryPolicy;
-import org.eclipse.aether.repository.Proxy;
-import org.eclipse.aether.util.repository.AuthenticationBuilder;
 import org.eclipse.aether.resolution.ArtifactRequest;
 import org.eclipse.aether.resolution.ArtifactResult;
 import org.eclipse.aether.resolution.VersionRangeRequest;
@@ -37,6 +36,7 @@ import org.eclipse.aether.spi.connector.RepositoryConnectorFactory;
 import org.eclipse.aether.spi.connector.transport.TransporterFactory;
 import org.eclipse.aether.transport.file.FileTransporterFactory;
 import org.eclipse.aether.transport.http.HttpTransporterFactory;
+import org.eclipse.aether.util.repository.AuthenticationBuilder;
 import org.eclipse.aether.version.Version;
 
 import java.io.BufferedReader;
@@ -49,8 +49,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
-import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.eclipse.aether.repository.RepositoryPolicy.CHECKSUM_POLICY_WARN;
 import static org.eclipse.aether.repository.RepositoryPolicy.UPDATE_POLICY_ALWAYS;
@@ -68,40 +68,38 @@ public class AetherResolver {
 
     static {
         DefaultServiceLocator locator = MavenRepositorySystemUtils.newServiceLocator();
-        locator.addService(RepositoryConnectorFactory.class, BasicRepositoryConnectorFactory.class );
-        locator.addService(TransporterFactory.class, FileTransporterFactory.class );
-        locator.addService(TransporterFactory.class, HttpTransporterFactory.class );
+        locator.addService(RepositoryConnectorFactory.class, BasicRepositoryConnectorFactory.class);
+        locator.addService(TransporterFactory.class, FileTransporterFactory.class);
+        locator.addService(TransporterFactory.class, HttpTransporterFactory.class);
 
-        locator.setErrorHandler( new DefaultServiceLocator.ErrorHandler()
-        {
+        locator.setErrorHandler(new DefaultServiceLocator.ErrorHandler() {
             @Override
-            public void serviceCreationFailed( Class<?> type, Class<?> impl, Throwable exception )
-            {
+            public void serviceCreationFailed(Class<?> type, Class<?> impl, Throwable exception) {
                 exception.printStackTrace();
             }
-        } );
+        });
 
-        AetherResolver.system = locator.getService( RepositorySystem.class );
+        AetherResolver.system = locator.getService(RepositorySystem.class);
 
         DefaultRepositorySystemSession session = MavenRepositorySystemUtils.newSession();
 
-        LocalRepository localRepo = new LocalRepository("target/local-repo" );
-        session.setLocalRepositoryManager( system.newLocalRepositoryManager( session, localRepo ) );
+        LocalRepository localRepo = new LocalRepository("target/local-repo");
+        session.setLocalRepositoryManager(system.newLocalRepositoryManager(session, localRepo));
 
         //session.setTransferListener( new ConsoleTransferListener() );
         //session.setRepositoryListener( new ConsoleRepositoryListener() );
         AetherResolver.session = session;
     }
 
-    public static BuckArtifact getArtifact(String name, String uri, String repo, boolean generateForBazel) {
-        return new AetherResolver(repo).build(name, uri, generateForBazel);
+    public static BazelArtifact getArtifact(String name, String uri, String repo) {
+        return new AetherResolver(repo).build(name, uri);
     }
 
     private AetherResolver(String repoUrl) {
         this.repoUrl = repoUrl;
     }
 
-    private BuckArtifact build(String name, String uri, boolean generateForBazel) {
+    private BazelArtifact build(String name, String uri) {
         uri = uri.replaceFirst("mvn:", "");
         Artifact artifact = new DefaultArtifact(uri);
         String originalVersion = artifact.getVersion();
@@ -113,20 +111,20 @@ public class AetherResolver {
 
             if (originalVersion.endsWith("-SNAPSHOT")) {
                 String url = String.format("%s/%s/%s/%s/%s-%s.%s",
-                                            repoUrl,
-                                            artifact.getGroupId().replace('.', '/'),
-                                            artifact.getArtifactId(),
-                                            originalVersion,
-                                            artifact.getArtifactId(),
-                                            artifact.getVersion(),
-                                            artifact.getExtension());
+                                           repoUrl,
+                                           artifact.getGroupId().replace('.', '/'),
+                                           artifact.getArtifactId(),
+                                           originalVersion,
+                                           artifact.getArtifactId(),
+                                           artifact.getVersion(),
+                                           artifact.getExtension());
                 String mavenCoords = String.format("%s:%s:%s",
                                                    artifact.getGroupId(),
                                                    artifact.getArtifactId(),
                                                    originalVersion);
-                return BuckArtifact.getArtifact(name, url, sha, mavenCoords, osgiReady, generateForBazel);
+                return BazelArtifact.getArtifact(name, url, sha, mavenCoords, osgiReady);
             }
-            return BuckArtifact.getArtifact(name, artifact, sha, repoUrl, osgiReady, generateForBazel);
+            return BazelArtifact.getArtifact(name, artifact, sha, repoUrl, osgiReady);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -157,13 +155,13 @@ public class AetherResolver {
 
         // artifactId-version[-classifier].version.sha1
         file.append(artifact.getArtifactId())
-            .append('-').append(artifact.getVersion());
+                .append('-').append(artifact.getVersion());
 
         if (!artifact.getClassifier().isEmpty()) {
             file.append('-').append(artifact.getClassifier());
         }
         file.append('.').append(artifact.getExtension())
-            .append(".sha1");
+                .append(".sha1");
 
         String shaPath = Paths.get(directory, file.toString()).toString();
 
@@ -177,7 +175,7 @@ public class AetherResolver {
         rangeRequest.setArtifact(artifact);
         rangeRequest.setRepositories(repositories());
 
-        VersionRangeResult rangeResult = system.resolveVersionRange(session, rangeRequest );
+        VersionRangeResult rangeResult = system.resolveVersionRange(session, rangeRequest);
 
         Version newestVersion = rangeResult.getHighestVersion();
 
@@ -195,19 +193,19 @@ public class AetherResolver {
             // set authentication
             if ((proxyHostInfo.get(2) != null) && (proxyHostInfo.get(3) != null)) {
                 central.setProxy(
-                    new Proxy(Proxy.TYPE_HTTP, proxyHostInfo.get(0), Integer.valueOf(proxyHostInfo.get(1)),
-                          new AuthenticationBuilder()
-                          .addUsername(proxyHostInfo.get(2)).addPassword(proxyHostInfo.get(3)).build()));
+                        new Proxy(Proxy.TYPE_HTTP, proxyHostInfo.get(0), Integer.valueOf(proxyHostInfo.get(1)),
+                                  new AuthenticationBuilder()
+                                          .addUsername(proxyHostInfo.get(2)).addPassword(proxyHostInfo.get(3)).build()));
             } else {
                 central.setProxy(
-                    new Proxy(Proxy.TYPE_HTTP, proxyHostInfo.get(0), Integer.valueOf(proxyHostInfo.get(1))));
+                        new Proxy(Proxy.TYPE_HTTP, proxyHostInfo.get(0), Integer.valueOf(proxyHostInfo.get(1))));
             }
         }
 
         if (repoUrl != null && repoUrl.length() > 0) {
             RemoteRepository.Builder other =
-                new RemoteRepository.Builder("temp", "default", repoUrl)
-                    .setSnapshotPolicy(new RepositoryPolicy(true, UPDATE_POLICY_ALWAYS, CHECKSUM_POLICY_WARN));
+                    new RemoteRepository.Builder("temp", "default", repoUrl)
+                            .setSnapshotPolicy(new RepositoryPolicy(true, UPDATE_POLICY_ALWAYS, CHECKSUM_POLICY_WARN));
 
             // set https_proxy
             String env_https_proxy = System.getenv("HTTPS_PROXY");
@@ -217,12 +215,12 @@ public class AetherResolver {
                 // set authentication
                 if ((proxyHostInfo.get(2) != null) && (proxyHostInfo.get(3) != null)) {
                     other.setProxy(
-                        new Proxy(Proxy.TYPE_HTTPS, proxyHostInfo.get(0), Integer.valueOf(proxyHostInfo.get(1)),
-                            new AuthenticationBuilder()
-                            .addUsername(proxyHostInfo.get(2)).addPassword(proxyHostInfo.get(3)).build()));
+                            new Proxy(Proxy.TYPE_HTTPS, proxyHostInfo.get(0), Integer.valueOf(proxyHostInfo.get(1)),
+                                      new AuthenticationBuilder()
+                                              .addUsername(proxyHostInfo.get(2)).addPassword(proxyHostInfo.get(3)).build()));
                 } else {
                     other.setProxy(
-                        new Proxy(Proxy.TYPE_HTTPS, proxyHostInfo.get(0), Integer.valueOf(proxyHostInfo.get(1))));
+                            new Proxy(Proxy.TYPE_HTTPS, proxyHostInfo.get(0), Integer.valueOf(proxyHostInfo.get(1))));
                 }
             }
 

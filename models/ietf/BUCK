@@ -1,7 +1,0 @@
-
-yang_model (
-  app_name = 'org.onosproject.models.ietf',
-  title = 'IETF YANG Models',
-  custom_registrator = False,
-  deps = [ '//lib:CORE_DEPS' ]
-)

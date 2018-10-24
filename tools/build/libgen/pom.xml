@@ -31,7 +31,7 @@
     <packaging>jar</packaging>
     <version>1.6-SNAPSHOT</version>
 
-    <description>Third-party library generator for Buck and Bazel workspaces</description>
+    <description>Third-party library generator for ONOS Bazel workspace</description>
     <url>http://onosproject.org/</url>
 
     <scm>
@@ -116,7 +116,7 @@
                     <transformers>
                         <transformer
                                 implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                            <mainClass>org.onosproject.libgen.BuckLibGenerator</mainClass>
+                            <mainClass>org.onosproject.libgen.BazelLibGenerator</mainClass>
                         </transformer>
                     </transformers>
                     <filters>

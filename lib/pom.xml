@@ -555,71 +555,15 @@
             <artifactId>commons-pool</artifactId>
         </dependency>
 
-<!-- transitive Kryo dependency.
-        <dependency>
-            <groupId>org.objenesis</groupId>
-            <artifactId>objenesis</artifactId>
-        </dependency>
- -->
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
         </dependency>
 
-<!-- Fix buck? everyone depending on netty doesn't sound right.
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-buffer</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-common</artifactId>
-        </dependency>
- -->
-
         <dependency>
             <groupId>com.eclipsesource.minimal-json</groupId>
             <artifactId>minimal-json</artifactId>
         </dependency>
-
-<!-- Fix buck? Kryo and transitive dependency.
-        <dependency>
-            <groupId>com.esotericsoftware</groupId>
-            <artifactId>kryo</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.esotericsoftware</groupId>
-            <artifactId>reflectasm</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.ow2.asm</groupId>
-            <artifactId>asm</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.esotericsoftware</groupId>
-            <artifactId>minlog</artifactId>
-        </dependency>
- -->
-<!-- Fix buck? everyone depending on metrics doesn't sound right.
-        <dependency>
-            <groupId>io.dropwizard.metrics</groupId>
-            <artifactId>metrics-core</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>io.dropwizard.metrics</groupId>
-            <artifactId>metrics-json</artifactId>
-        </dependency>
- -->
 
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -670,8 +614,6 @@
             <groupId>org.apache.karaf.system</groupId>
             <artifactId>org.apache.karaf.system.core</artifactId>
         </dependency>
-
-        <!-- YANG stuff here? Fix buck?-->
 
         <!-- TEST -->
         <dependency>
