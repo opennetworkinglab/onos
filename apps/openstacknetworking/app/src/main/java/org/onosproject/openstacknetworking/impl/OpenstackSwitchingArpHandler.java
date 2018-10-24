@@ -75,8 +75,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.openstacknetworking.api.Constants.ARP_BROADCAST_MODE;
 import static org.onosproject.openstacknetworking.api.Constants.ARP_PROXY_MODE;
 import static org.onosproject.openstacknetworking.api.Constants.ARP_TABLE;
-import static org.onosproject.openstacknetworking.api.Constants.DEFAULT_ARP_MODE_STR;
-import static org.onosproject.openstacknetworking.api.Constants.DEFAULT_GATEWAY_MAC_STR;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ARP_CONTROL_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ARP_FLOOD_RULE;
@@ -84,6 +82,10 @@ import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ARP_GAT
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ARP_REPLY_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ARP_REQUEST_RULE;
 import static org.onosproject.openstacknetworking.api.InstancePort.State.ACTIVE;
+import static org.onosproject.openstacknetworking.impl.OsgiPropertyConstants.ARP_MODE;
+import static org.onosproject.openstacknetworking.impl.OsgiPropertyConstants.ARP_MODE_DEFAULT;
+import static org.onosproject.openstacknetworking.impl.OsgiPropertyConstants.GATEWAY_MAC;
+import static org.onosproject.openstacknetworking.impl.OsgiPropertyConstants.GATEWAY_MAC_DEFAULT;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getPropertyValue;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.swapStaleLocation;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.buildExtension;
@@ -92,13 +94,16 @@ import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
 /**
  * Handles ARP packet from VMs.
  */
-@Component(immediate = true)
+@Component(
+    immediate = true,
+    property = {
+        GATEWAY_MAC + "=" + GATEWAY_MAC_DEFAULT,
+        ARP_MODE + "=" + ARP_MODE_DEFAULT,
+    }
+)
 public final class OpenstackSwitchingArpHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-
-    private static final String GATEWAY_MAC = "gatewayMac";
-    private static final String ARP_MODE = "arpMode";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     CoreService coreService;
@@ -133,13 +138,11 @@ public final class OpenstackSwitchingArpHandler {
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected OpenstackNodeService osNodeService;
 
-    //@Property(name = GATEWAY_MAC, value = DEFAULT_GATEWAY_MAC_STR,
-    //        label = "Fake MAC address for virtual network subnet gateway")
-    private String gatewayMac = DEFAULT_GATEWAY_MAC_STR;
+    /** Fake MAC address for virtual network subnet gateway. */
+    private String gatewayMac = GATEWAY_MAC_DEFAULT;
 
-    //@Property(name = ARP_MODE, value = DEFAULT_ARP_MODE_STR,
-    //        label = "ARP processing mode, broadcast | proxy (default)")
-    protected String arpMode = DEFAULT_ARP_MODE_STR;
+    /** ARP processing mode, broadcast | proxy (default). */
+    protected String arpMode = ARP_MODE_DEFAULT;
 
     private final InternalPacketProcessor packetProcessor = new InternalPacketProcessor();
     private final InternalOpenstackNetworkListener osNetworkListener =
@@ -519,7 +522,7 @@ public final class OpenstackSwitchingArpHandler {
         Dictionary<?, ?> properties = context.getProperties();
 
         String updatedMac = Tools.get(properties, GATEWAY_MAC);
-        gatewayMac = updatedMac != null ? updatedMac : DEFAULT_GATEWAY_MAC_STR;
+        gatewayMac = updatedMac != null ? updatedMac : GATEWAY_MAC_DEFAULT;
         log.info("Configured. Gateway MAC is {}", gatewayMac);
     }
 

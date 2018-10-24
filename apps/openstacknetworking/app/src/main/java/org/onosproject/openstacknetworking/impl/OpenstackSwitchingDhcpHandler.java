@@ -84,20 +84,25 @@ import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_RouterAddress;
 import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_SubnetMask;
 import static org.onlab.packet.DHCP.MsgType.DHCPACK;
 import static org.onlab.packet.DHCP.MsgType.DHCPOFFER;
-import static org.onosproject.openstacknetworking.api.Constants.DEFAULT_GATEWAY_MAC_STR;
 import static org.onosproject.openstacknetworking.api.Constants.DHCP_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_DHCP_RULE;
+import static org.onosproject.openstacknetworking.impl.OsgiPropertyConstants.DHCP_SERVER_MAC;
+import static org.onosproject.openstacknetworking.impl.OsgiPropertyConstants.DHCP_SERVER_MAC_DEFAULT;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Handles DHCP requests for the virtual instances.
  */
-@Component(immediate = true)
+@Component(
+    immediate = true,
+    property = {
+        DHCP_SERVER_MAC + "=" + DHCP_SERVER_MAC_DEFAULT
+    }
+)
 public class OpenstackSwitchingDhcpHandler {
     protected final Logger log = getLogger(getClass());
 
-    private static final String DHCP_SERVER_MAC = "dhcpServerMac";
     private static final Ip4Address DEFAULT_PRIMARY_DNS = Ip4Address.valueOf("8.8.8.8");
     private static final Ip4Address DEFAULT_SECONDARY_DNS = Ip4Address.valueOf("8.8.4.4");
     private static final byte PACKET_TTL = (byte) 127;
@@ -140,9 +145,8 @@ public class OpenstackSwitchingDhcpHandler {
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected LeadershipService leadershipService;
 
-    //@Property(name = DHCP_SERVER_MAC, value = DEFAULT_GATEWAY_MAC_STR,
-    //        label = "Fake MAC address for virtual network subnet gateway")
-    private String dhcpServerMac = DEFAULT_GATEWAY_MAC_STR;
+    /** Fake MAC address for virtual network subnet gateway. */
+    private String dhcpServerMac = DHCP_SERVER_MAC_DEFAULT;
 
     private int dhcpDataMtu = DHCP_DATA_MTU_DEFAULT;
 

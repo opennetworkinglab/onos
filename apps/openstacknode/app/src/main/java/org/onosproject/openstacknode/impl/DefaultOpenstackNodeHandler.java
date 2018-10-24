@@ -90,6 +90,10 @@ import static org.onosproject.openstacknode.api.NodeState.INIT;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.CONTROLLER;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
 import static org.onosproject.openstacknode.api.OpenstackNodeService.APP_ID;
+import static org.onosproject.openstacknode.impl.OsgiPropertyConstants.AUTO_RECOVERY;
+import static org.onosproject.openstacknode.impl.OsgiPropertyConstants.AUTO_RECOVERY_DEFAULT;
+import static org.onosproject.openstacknode.impl.OsgiPropertyConstants.OVSDB_PORT;
+import static org.onosproject.openstacknode.impl.OsgiPropertyConstants.OVSDB_PORT_NUM_DEFAULT;
 import static org.onosproject.openstacknode.util.OpenstackNodeUtil.addOrRemoveDpdkInterface;
 import static org.onosproject.openstacknode.util.OpenstackNodeUtil.addOrRemoveSystemInterface;
 import static org.onosproject.openstacknode.util.OpenstackNodeUtil.getBooleanProperty;
@@ -101,17 +105,18 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Service bootstraps openstack node based on its type.
  */
-@Component(immediate = true)
+@Component(immediate = true,
+    property = {
+        OVSDB_PORT + ":Integer=" + OVSDB_PORT_NUM_DEFAULT,
+        AUTO_RECOVERY + ":Boolean=" + AUTO_RECOVERY_DEFAULT
+    }
+)
 public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
 
     private final Logger log = getLogger(getClass());
 
-    private static final String OVSDB_PORT = "ovsdbPortNum";
-    private static final String AUTO_RECOVERY = "autoRecovery";
     private static final String DEFAULT_OF_PROTO = "tcp";
-    private static final int DEFAULT_OVSDB_PORT = 6640;
     private static final int DEFAULT_OFPORT = 6653;
-    private static final boolean DEFAULT_AUTO_RECOVERY = true;
     private static final int DPID_BEGIN = 3;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
@@ -141,14 +146,11 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService componentConfigService;
 
-    //@Property(name = OVSDB_PORT, intValue = DEFAULT_OVSDB_PORT,
-    //        label = "OVSDB server listen port")
-    private int ovsdbPort = DEFAULT_OVSDB_PORT;
+    /** OVSDB server listen port. */
+    private int ovsdbPortNum = OVSDB_PORT_NUM_DEFAULT;
 
-    //@Property(name = AUTO_RECOVERY, boolValue = DEFAULT_AUTO_RECOVERY,
-    //        label = "A flag which indicates whether auto-recover openstack " +
-    //                "node status at the receiving of switch reconnecting event.")
-    private boolean autoRecovery = DEFAULT_AUTO_RECOVERY;
+    /** A flag which indicates whether auto-recover openstack node status on switch reconnecting event. */
+    private boolean autoRecovery = AUTO_RECOVERY_DEFAULT;
 
     private final ExecutorService eventExecutor = newSingleThreadExecutor(
             groupedThreads(this.getClass().getSimpleName(), "event-handler", log));
@@ -195,8 +197,8 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
 
     @Override
     public void processInitState(OpenstackNode osNode) {
-        if (!isOvsdbConnected(osNode, ovsdbPort, ovsdbController, deviceService)) {
-            ovsdbController.connect(osNode.managementIp(), tpPort(ovsdbPort));
+        if (!isOvsdbConnected(osNode, ovsdbPortNum, ovsdbController, deviceService)) {
+            ovsdbController.connect(osNode.managementIp(), tpPort(ovsdbPortNum));
             return;
         }
         if (!deviceService.isAvailable(osNode.intgBridge())) {
@@ -210,8 +212,8 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
     @Override
     public void processDeviceCreatedState(OpenstackNode osNode) {
         try {
-            if (!isOvsdbConnected(osNode, ovsdbPort, ovsdbController, deviceService)) {
-                ovsdbController.connect(osNode.managementIp(), tpPort(ovsdbPort));
+            if (!isOvsdbConnected(osNode, ovsdbPortNum, ovsdbController, deviceService)) {
+                ovsdbController.connect(osNode.managementIp(), tpPort(ovsdbPortNum));
                 return;
             }
 
@@ -229,12 +231,12 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                 osNode.dpdkConfig().dpdkIntfs().stream()
                         .filter(dpdkInterface -> dpdkInterface.deviceName().equals(TUNNEL_BRIDGE))
                         .forEach(dpdkInterface -> addOrRemoveDpdkInterface(
-                                osNode, dpdkInterface, ovsdbPort, ovsdbController, true));
+                                osNode, dpdkInterface, ovsdbPortNum, ovsdbController, true));
 
                 osNode.dpdkConfig().dpdkIntfs().stream()
                         .filter(dpdkInterface -> dpdkInterface.deviceName().equals(INTEGRATION_BRIDGE))
                         .forEach(dpdkInterface -> addOrRemoveDpdkInterface(
-                                osNode, dpdkInterface, ovsdbPort, ovsdbController, true));
+                                osNode, dpdkInterface, ovsdbPortNum, ovsdbController, true));
             }
 
             osNode.phyIntfs().forEach(i -> {
@@ -274,7 +276,7 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
 
     private boolean dpdkTunnelBridgeCreated(OpenstackNode osNode) {
 
-        OvsdbClientService client = getOvsdbClient(osNode, ovsdbPort, ovsdbController);
+        OvsdbClientService client = getOvsdbClient(osNode, ovsdbPortNum, ovsdbController);
         if (client == null) {
             log.info("Failed to get ovsdb client");
             return false;
@@ -388,7 +390,7 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
     private boolean isCurrentStateDone(OpenstackNode osNode) {
         switch (osNode.state()) {
             case INIT:
-                if (!isOvsdbConnected(osNode, ovsdbPort, ovsdbController, deviceService)) {
+                if (!isOvsdbConnected(osNode, ovsdbPortNum, ovsdbController, deviceService)) {
                     return false;
                 }
 
@@ -434,7 +436,7 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
     }
 
     private boolean isDpdkIntfsCreated(OpenstackNode osNode, Collection<DpdkInterface> dpdkInterfaces) {
-        OvsdbClientService client = getOvsdbClient(osNode, ovsdbPort, ovsdbController);
+        OvsdbClientService client = getOvsdbClient(osNode, ovsdbPortNum, ovsdbController);
         if (client == null) {
             log.info("Failed to get ovsdb client");
             return false;
@@ -537,7 +539,7 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                                       String intfName,
                                       Optional<DpdkInterface> dpdkInterface) {
         if (dpdkInterface.isPresent()) {
-            addOrRemoveDpdkInterface(osNode, dpdkInterface.get(), ovsdbPort,
+            addOrRemoveDpdkInterface(osNode, dpdkInterface.get(), ovsdbPortNum,
                     ovsdbController, false);
         } else {
             addOrRemoveSystemInterface(osNode, INTEGRATION_BRIDGE, intfName, deviceService,
@@ -546,7 +548,7 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
     }
 
     private void processOpenstackNodeRemoved(OpenstackNode osNode) {
-        OvsdbClientService client = getOvsdbClient(osNode, ovsdbPort, ovsdbController);
+        OvsdbClientService client = getOvsdbClient(osNode, ovsdbPortNum, ovsdbController);
         if (client == null) {
             log.info("Failed to get ovsdb client");
             return;
@@ -562,7 +564,7 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
         if (osNode.dpdkConfig() != null) {
             osNode.dpdkConfig().dpdkIntfs().forEach(dpdkInterface -> {
                 if (isDpdkIntfsCreated(osNode, Lists.newArrayList(dpdkInterface))) {
-                    addOrRemoveDpdkInterface(osNode, dpdkInterface, ovsdbPort, ovsdbController, false);
+                    addOrRemoveDpdkInterface(osNode, dpdkInterface, ovsdbPortNum, ovsdbController, false);
                 }
             });
         }
@@ -611,17 +613,17 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
 
         Integer ovsdbPortConfigured = Tools.getIntegerProperty(properties, OVSDB_PORT);
         if (ovsdbPortConfigured == null) {
-            ovsdbPort = DEFAULT_OVSDB_PORT;
-            log.info("OVSDB port is NOT configured, default value is {}", ovsdbPort);
+            ovsdbPortNum = OVSDB_PORT_NUM_DEFAULT;
+            log.info("OVSDB port is NOT configured, default value is {}", ovsdbPortNum);
         } else {
-            ovsdbPort = ovsdbPortConfigured;
-            log.info("Configured. OVSDB port is {}", ovsdbPort);
+            ovsdbPortNum = ovsdbPortConfigured;
+            log.info("Configured. OVSDB port is {}", ovsdbPortNum);
         }
 
         Boolean autoRecoveryConfigured =
                 getBooleanProperty(properties, AUTO_RECOVERY);
         if (autoRecoveryConfigured == null) {
-            autoRecovery = DEFAULT_AUTO_RECOVERY;
+            autoRecovery = AUTO_RECOVERY_DEFAULT;
             log.info("Auto recovery flag is NOT " +
                     "configured, default value is {}", autoRecovery);
         } else {

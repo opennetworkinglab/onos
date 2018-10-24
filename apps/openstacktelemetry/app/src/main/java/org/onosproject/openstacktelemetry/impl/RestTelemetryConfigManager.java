@@ -33,31 +33,42 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Dictionary;
 
-import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_DISABLE;
-import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_REST_ENDPOINT;
-import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_REST_METHOD;
-import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_REST_REQUEST_MEDIA_TYPE;
-import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_REST_RESPONSE_MEDIA_TYPE;
-import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_REST_SERVER_IP;
-import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_REST_SERVER_PORT;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_REST_SERVER_ADDRESS;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_REST_ENABLE_SERVICE;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_REST_ENABLE_SERVICE_DEFAULT;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_REST_ENDPOINT;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_REST_METHOD;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_REST_SERVER_PORT;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_REST_REQUEST_MEDIA_TYPE;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_REST_RESPONSE_MEDIA_TYPE;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_REST_ENDPOINT_DEFAULT;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_REST_METHOD_DEFAULT;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_REST_REQUEST_MEDIA_TYPE_DEFAULT;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_REST_RESPONSE_MEDIA_TYPE_DEFAULT;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_REST_SERVER_ADDRESS_DEFAULT;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_REST_SERVER_PORT_DEFAULT;
 import static org.onosproject.openstacktelemetry.util.OpenstackTelemetryUtil.getBooleanProperty;
 import static org.onosproject.openstacktelemetry.util.OpenstackTelemetryUtil.initTelemetryService;
 
 /**
  * REST server configuration manager for publishing openstack telemetry.
  */
-@Component(immediate = true, service = RestTelemetryConfigService.class)
+@Component(
+    immediate = true,
+    service = RestTelemetryConfigService.class,
+    property = {
+        PROP_REST_ENABLE_SERVICE + ":Boolean=" + PROP_REST_ENABLE_SERVICE_DEFAULT,
+        PROP_REST_SERVER_ADDRESS + "=" + PROP_REST_SERVER_ADDRESS_DEFAULT,
+        PROP_REST_SERVER_PORT + ":Integer=" + PROP_REST_SERVER_PORT_DEFAULT,
+        PROP_REST_ENDPOINT + "=" + PROP_REST_ENDPOINT_DEFAULT,
+        PROP_REST_METHOD + "=" + PROP_REST_METHOD_DEFAULT,
+        PROP_REST_REQUEST_MEDIA_TYPE + "=" + PROP_REST_REQUEST_MEDIA_TYPE_DEFAULT,
+        PROP_REST_RESPONSE_MEDIA_TYPE + "=" + PROP_REST_RESPONSE_MEDIA_TYPE_DEFAULT
+    }
+)
 public class RestTelemetryConfigManager implements RestTelemetryConfigService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-
-    private static final String ENABLE_SERVICE = "enableService";
-    private static final String ADDRESS = "address";
-    private static final String PORT = "port";
-    private static final String ENDPOINT = "endpoint";
-    private static final String METHOD = "method";
-    private static final String REQUEST_MEDIA_TYPE = "requestMediaType";
-    private static final String RESPONSE_MEDIA_TYPE = "responseMediaType";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService componentConfigService;
@@ -65,33 +76,26 @@ public class RestTelemetryConfigManager implements RestTelemetryConfigService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected RestTelemetryAdminService restTelemetryAdminService;
 
-    //@Property(name = ADDRESS, value = DEFAULT_REST_SERVER_IP,
-    //        label = "Default IP address to establish initial connection to REST server")
-    protected String address = DEFAULT_REST_SERVER_IP;
+    /** Default IP address to establish initial connection to REST server. */
+    protected String address = PROP_REST_SERVER_ADDRESS_DEFAULT;
 
-    //@Property(name = PORT, intValue = DEFAULT_REST_SERVER_PORT,
-    //        label = "Default port number to establish initial connection to REST server")
-    protected Integer port = DEFAULT_REST_SERVER_PORT;
+    /** Default port number to establish initial connection to REST server. */
+    protected Integer port = PROP_REST_SERVER_PORT_DEFAULT;
 
-    //@Property(name = ENDPOINT, value = DEFAULT_REST_ENDPOINT,
-    //        label = "Endpoint of REST server")
-    protected String endpoint = DEFAULT_REST_ENDPOINT;
+    /** Endpoint of REST server. */
+    protected String endpoint = PROP_REST_ENDPOINT_DEFAULT;
 
-    //@Property(name = METHOD, value = DEFAULT_REST_METHOD,
-    //        label = "HTTP method of REST server")
-    protected String method = DEFAULT_REST_METHOD;
+    /** HTTP method of REST server. */
+    protected String method = PROP_REST_METHOD_DEFAULT;
 
-    //@Property(name = REQUEST_MEDIA_TYPE, value = DEFAULT_REST_REQUEST_MEDIA_TYPE,
-    //        label = "Request media type of REST server")
-    protected String requestMediaType = DEFAULT_REST_REQUEST_MEDIA_TYPE;
+    /** Request media type of REST server. */
+    protected String requestMediaType = PROP_REST_REQUEST_MEDIA_TYPE_DEFAULT;
 
-    //@Property(name = RESPONSE_MEDIA_TYPE, value = DEFAULT_REST_RESPONSE_MEDIA_TYPE,
-    //        label = "Response media type of REST server")
-    protected String responseMediaType = DEFAULT_REST_RESPONSE_MEDIA_TYPE;
+    /** Response media type of REST server. */
+    protected String responseMediaType = PROP_REST_RESPONSE_MEDIA_TYPE_DEFAULT;
 
-    //@Property(name = ENABLE_SERVICE, boolValue = DEFAULT_DISABLE,
-    //        label = "Specify the default behavior of telemetry service")
-    protected Boolean enableService = DEFAULT_DISABLE;
+    /** Specify the default behavior of telemetry service. */
+    protected Boolean enableService = PROP_REST_ENABLE_SERVICE_DEFAULT;
 
     @Activate
     protected void activate(ComponentContext context) {
@@ -140,41 +144,41 @@ public class RestTelemetryConfigManager implements RestTelemetryConfigService {
     private void readComponentConfiguration(ComponentContext context) {
         Dictionary<?, ?> properties = context.getProperties();
 
-        String addressStr = Tools.get(properties, ADDRESS);
-        address = addressStr != null ? addressStr : DEFAULT_REST_SERVER_IP;
+        String addressStr = Tools.get(properties, PROP_REST_SERVER_ADDRESS);
+        address = addressStr != null ? addressStr : PROP_REST_SERVER_ADDRESS_DEFAULT;
         log.info("Configured. REST server address is {}", address);
 
-        Integer portConfigured = Tools.getIntegerProperty(properties, PORT);
+        Integer portConfigured = Tools.getIntegerProperty(properties, PROP_REST_SERVER_PORT);
         if (portConfigured == null) {
-            port = DEFAULT_REST_SERVER_PORT;
+            port = PROP_REST_SERVER_PORT_DEFAULT;
             log.info("REST server port is NOT configured, default value is {}", port);
         } else {
             port = portConfigured;
             log.info("Configured. REST server port is {}", port);
         }
 
-        String endpointStr = Tools.get(properties, ENDPOINT);
-        endpoint = endpointStr != null ? endpointStr : DEFAULT_REST_ENDPOINT;
+        String endpointStr = Tools.get(properties, PROP_REST_ENDPOINT);
+        endpoint = endpointStr != null ? endpointStr : PROP_REST_ENDPOINT_DEFAULT;
         log.info("Configured. REST server endpoint is {}", endpoint);
 
-        String methodStr = Tools.get(properties, METHOD);
-        method = methodStr != null ? methodStr : DEFAULT_REST_METHOD;
+        String methodStr = Tools.get(properties, PROP_REST_METHOD);
+        method = methodStr != null ? methodStr : PROP_REST_METHOD_DEFAULT;
         log.info("Configured. REST server default HTTP method is {}", method);
 
-        String requestMediaTypeStr = Tools.get(properties, REQUEST_MEDIA_TYPE);
+        String requestMediaTypeStr = Tools.get(properties, PROP_REST_REQUEST_MEDIA_TYPE);
         requestMediaType = requestMediaTypeStr != null ?
-                requestMediaTypeStr : DEFAULT_REST_REQUEST_MEDIA_TYPE;
+                requestMediaTypeStr : PROP_REST_REQUEST_MEDIA_TYPE_DEFAULT;
         log.info("Configured. REST server request media type is {}", requestMediaType);
 
-        String responseMediaTypeStr = Tools.get(properties, RESPONSE_MEDIA_TYPE);
+        String responseMediaTypeStr = Tools.get(properties, PROP_REST_RESPONSE_MEDIA_TYPE);
         responseMediaType = responseMediaTypeStr != null ?
-                responseMediaTypeStr : DEFAULT_REST_RESPONSE_MEDIA_TYPE;
+                responseMediaTypeStr : PROP_REST_RESPONSE_MEDIA_TYPE_DEFAULT;
         log.info("Configured. REST server response media type is {}", responseMediaType);
 
         Boolean enableServiceConfigured =
-                getBooleanProperty(properties, ENABLE_SERVICE);
+                getBooleanProperty(properties, PROP_REST_ENABLE_SERVICE);
         if (enableServiceConfigured == null) {
-            enableService = DEFAULT_DISABLE;
+            enableService = PROP_REST_ENABLE_SERVICE_DEFAULT;
             log.info("REST service enable flag is NOT " +
                     "configured, default value is {}", enableService);
         } else {

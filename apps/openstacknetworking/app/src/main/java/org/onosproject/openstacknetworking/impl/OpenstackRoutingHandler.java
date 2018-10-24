@@ -97,6 +97,8 @@ import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_SWITCHI
 import static org.onosproject.openstacknetworking.api.Constants.ROUTING_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.STAT_OUTBOUND_TABLE;
 import static org.onosproject.openstacknetworking.api.InstancePort.State.ACTIVE;
+import static org.onosproject.openstacknetworking.impl.OsgiPropertyConstants.USE_STATEFUL_SNAT;
+import static org.onosproject.openstacknetworking.impl.OsgiPropertyConstants.USE_STATEFUL_SNAT_DEFAULT;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.buildExtension;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
@@ -104,7 +106,12 @@ import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
 /**
  * Handles OpenStack router events.
  */
-@Component(immediate = true)
+@Component(
+    immediate = true,
+    property = {
+        USE_STATEFUL_SNAT + ":Boolean=" + USE_STATEFUL_SNAT_DEFAULT
+    }
+)
 public class OpenstackRoutingHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -112,11 +119,9 @@ public class OpenstackRoutingHandler {
     private static final String MSG_ENABLED = "Enabled ";
     private static final String MSG_DISABLED = "Disabled ";
     private static final String ERR_UNSUPPORTED_NET_TYPE = "Unsupported network type";
-    private static final boolean USE_STATEFUL_SNAT = false;
 
-    //@Property(name = "useStatefulSnat", boolValue = USE_STATEFUL_SNAT,
-    //        label = "Use Stateful SNAT for source NATing")
-    private boolean useStatefulSnat = USE_STATEFUL_SNAT;
+    /** Use Stateful SNAT for source NATing. */
+    private boolean useStatefulSnat = USE_STATEFUL_SNAT_DEFAULT;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
@@ -193,7 +198,7 @@ public class OpenstackRoutingHandler {
         Dictionary<?, ?> properties = context.getProperties();
         Boolean flag;
 
-        flag = Tools.isPropertyEnabled(properties, "useStatefulSnat");
+        flag = Tools.isPropertyEnabled(properties, USE_STATEFUL_SNAT);
         if (flag == null) {
             log.info("useStatefulSnat is not configured, " +
                     "using current value of {}", useStatefulSnat);

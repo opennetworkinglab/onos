@@ -95,11 +95,28 @@ import java.util.stream.Collectors;
 
 import static java.util.concurrent.Executors.newCachedThreadPool;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.routing.fpm.OsgiPropertyConstants.CLEAR_ROUTES;
+import static org.onosproject.routing.fpm.OsgiPropertyConstants.CLEAR_ROUTES_DEFAULT;
+import static org.onosproject.routing.fpm.OsgiPropertyConstants.PD_PUSH_ENABLED;
+import static org.onosproject.routing.fpm.OsgiPropertyConstants.PD_PUSH_ENABLED_DEFAULT;
+import static org.onosproject.routing.fpm.OsgiPropertyConstants.PD_PUSH_NEXT_HOP_IPV4;
+import static org.onosproject.routing.fpm.OsgiPropertyConstants.PD_PUSH_NEXT_HOP_IPV4_DEFAULT;
+import static org.onosproject.routing.fpm.OsgiPropertyConstants.PD_PUSH_NEXT_HOP_IPV6;
+import static org.onosproject.routing.fpm.OsgiPropertyConstants.PD_PUSH_NEXT_HOP_IPV6_DEFAULT;
 
 /**
  * Forwarding Plane Manager (FPM) route source.
  */
-@Component(immediate = true, service = FpmInfoService.class)
+@Component(
+       immediate = true,
+       service = FpmInfoService.class,
+       property = {
+           CLEAR_ROUTES + ":Boolean=" + CLEAR_ROUTES_DEFAULT,
+           PD_PUSH_ENABLED + ":Boolean=" + PD_PUSH_ENABLED_DEFAULT,
+           PD_PUSH_NEXT_HOP_IPV4 + "=" + PD_PUSH_NEXT_HOP_IPV4_DEFAULT,
+           PD_PUSH_NEXT_HOP_IPV6 + "=" + PD_PUSH_NEXT_HOP_IPV6_DEFAULT,
+       }
+)
 public class FpmManager implements FpmInfoService {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -159,20 +176,16 @@ public class FpmManager implements FpmInfoService {
     //Local cache for peers to be used in case of cluster partition.
     private Map<FpmPeer, Set<FpmConnectionInfo>> localPeers = new ConcurrentHashMap<>();
 
-    //@Property(name = "clearRoutes", boolValue = true,
-    //        label = "Whether to clear routes when the FPM connection goes down")
-    private boolean clearRoutes = true;
+    /** Whether to clear routes when the FPM connection goes down. */
+    private boolean clearRoutes = CLEAR_ROUTES_DEFAULT;
 
-    //@Property(name = "pdPushEnabled", boolValue = false,
-    //        label = "Whether to push prefixes to Quagga over fpm connection")
-    private boolean pdPushEnabled = false;
+    /** Whether to push prefixes to Quagga over fpm connection. */
+    private boolean pdPushEnabled = PD_PUSH_ENABLED_DEFAULT;
 
-    //@Property(name = "pdPushNextHopIPv4", value = "",
-    //        label = "IPv4 next-hop address for PD Pushing.")
+    /** IPv4 next-hop address for PD Pushing. */
     private List<Ip4Address> pdPushNextHopIPv4 = null;
 
-    //@Property(name = "pdPushNextHopIPv6", value = "",
-    //        label = "IPv6 next-hop address for PD Pushing.")
+    /** IPv6 next-hop address for PD Pushing. */
     private List<Ip6Address> pdPushNextHopIPv6 = null;
 
     protected void bindRipStore(FpmPrefixStore store) {
@@ -265,13 +278,13 @@ public class FpmManager implements FpmInfoService {
         if (properties == null) {
             return;
         }
-        String strClearRoutes = Tools.get(properties, "clearRoutes");
+        String strClearRoutes = Tools.get(properties, CLEAR_ROUTES);
         if (strClearRoutes != null) {
             clearRoutes = Boolean.parseBoolean(strClearRoutes);
             log.info("clearRoutes is {}", clearRoutes);
         }
 
-        String strPdPushEnabled = Tools.get(properties, "pdPushEnabled");
+        String strPdPushEnabled = Tools.get(properties, PD_PUSH_ENABLED);
         if (strPdPushEnabled != null) {
             boolean oldValue = pdPushEnabled;
             pdPushEnabled = Boolean.parseBoolean(strPdPushEnabled);
@@ -280,7 +293,7 @@ public class FpmManager implements FpmInfoService {
                 pdPushNextHopIPv4 = new ArrayList<Ip4Address>();
                 pdPushNextHopIPv6 = new ArrayList<Ip6Address>();
 
-                String strPdPushNextHopIPv4 = Tools.get(properties, "pdPushNextHopIPv4");
+                String strPdPushNextHopIPv4 = Tools.get(properties, PD_PUSH_NEXT_HOP_IPV4);
                 if (strPdPushNextHopIPv4 != null) {
                     List<String> strPdPushNextHopIPv4List = Arrays.asList(strPdPushNextHopIPv4.split(","));
                     for (String nextHop : strPdPushNextHopIPv4List) {
@@ -288,7 +301,7 @@ public class FpmManager implements FpmInfoService {
                         pdPushNextHopIPv4.add(Ip4Address.valueOf(nextHop));
                     }
                 }
-                String strPdPushNextHopIPv6 = Tools.get(properties, "pdPushNextHopIPv6");
+                String strPdPushNextHopIPv6 = Tools.get(properties, PD_PUSH_NEXT_HOP_IPV6);
                 if (strPdPushNextHopIPv6 != null) {
                     List<String> strPdPushNextHopIPv6List = Arrays.asList(strPdPushNextHopIPv6.split(","));
                     for (String nextHop : strPdPushNextHopIPv6List) {

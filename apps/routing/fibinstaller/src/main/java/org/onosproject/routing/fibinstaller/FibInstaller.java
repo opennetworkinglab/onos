@@ -81,10 +81,18 @@ import java.util.Dictionary;
 import java.util.Map;
 import java.util.Set;
 
+import static org.onosproject.routing.fibinstaller.OsgiPropertyConstants.ROUTE_TO_NEXT_HOP;
+import static org.onosproject.routing.fibinstaller.OsgiPropertyConstants.ROUTE_TO_NEXT_HOP_DEFAULT;
+
 /**
  * Programs routes to a single OpenFlow switch.
  */
-@Component(immediate = true)
+@Component(
+    immediate = true,
+    property = {
+        ROUTE_TO_NEXT_HOP + ":Boolean=  " + ROUTE_TO_NEXT_HOP_DEFAULT
+    }
+)
 public class FibInstaller {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -124,9 +132,8 @@ public class FibInstaller {
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ApplicationService applicationService;
 
-    //@Property(name = "routeToNextHop", boolValue = false,
-    //        label = "Install a /32 or /128 route to each next hop")
-    private boolean routeToNextHop = false;
+    /** Install a /32 or /128 route to each next hop. */
+    private boolean routeToNextHop = ROUTE_TO_NEXT_HOP_DEFAULT;
 
     // Device id of data-plane switch - should be learned from config
     private DeviceId deviceId;

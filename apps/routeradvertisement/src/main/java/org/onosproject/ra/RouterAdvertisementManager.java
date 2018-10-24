@@ -89,26 +89,37 @@ import java.util.stream.IntStream;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.ra.OsgiPropertyConstants.RA_FLAG_MBIT_STATUS;
+import static org.onosproject.ra.OsgiPropertyConstants.RA_FLAG_MBIT_STATUS_DEFAULT;
+import static org.onosproject.ra.OsgiPropertyConstants.RA_FLAG_OBIT_STATUS;
+import static org.onosproject.ra.OsgiPropertyConstants.RA_FLAG_OBIT_STATUS_DEFAULT;
+import static org.onosproject.ra.OsgiPropertyConstants.RA_GLOBAL_PREFIX_CONF_STATUS;
+import static org.onosproject.ra.OsgiPropertyConstants.RA_GLOBAL_PREFIX_CONF_STATUS_DEFAULT;
+import static org.onosproject.ra.OsgiPropertyConstants.RA_OPTION_PREFIX_STATUS;
+import static org.onosproject.ra.OsgiPropertyConstants.RA_OPTION_PREFIX_STATUS_DEFAULT;
+import static org.onosproject.ra.OsgiPropertyConstants.RA_THREADS_DELAY;
+import static org.onosproject.ra.OsgiPropertyConstants.RA_THREADS_DELAY_DEFAULT;
+import static org.onosproject.ra.OsgiPropertyConstants.RA_THREADS_POOL;
+import static org.onosproject.ra.OsgiPropertyConstants.RA_THREADS_POOL_SIZE_DEFAULT;
 
 /**
  * Manages IPv6 Router Advertisements.
  */
-@Component(immediate = true, service = RoutingAdvertisementService.class)
+@Component(
+    immediate = true,
+    service = RoutingAdvertisementService.class,
+    property = {
+        RA_THREADS_POOL + ":Integer=" + RA_THREADS_POOL_SIZE_DEFAULT,
+        RA_THREADS_DELAY + ":Integer=" + RA_THREADS_DELAY_DEFAULT,
+        RA_FLAG_MBIT_STATUS + ":Boolean=" + RA_FLAG_MBIT_STATUS_DEFAULT,
+        RA_FLAG_OBIT_STATUS + ":Boolean=" + RA_FLAG_OBIT_STATUS_DEFAULT,
+        RA_OPTION_PREFIX_STATUS + ":Boolean=" + RA_OPTION_PREFIX_STATUS_DEFAULT,
+        RA_GLOBAL_PREFIX_CONF_STATUS  + ":Boolean=" + RA_GLOBAL_PREFIX_CONF_STATUS_DEFAULT
+    }
+)
 public class RouterAdvertisementManager implements RoutingAdvertisementService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-    private static final String PROP_RA_THREADS_POOL = "raPoolSize";
-    private static final int DEFAULT_RA_THREADS_POOL_SIZE = 10;
-    private static final String PROP_RA_THREADS_DELAY = "raThreadDelay";
-    private static final int DEFAULT_RA_THREADS_DELAY = 5;
-    private static final String PROP_RA_FLAG_MBIT_STATUS = "raFlagMbitStatus";
-    private static final boolean DEFAULT_RA_FLAG_MBIT_STATUS = false;
-    private static final String PROP_RA_FLAG_OBIT_STATUS = "raFlagObitStatus";
-    private static final boolean DEFAULT_RA_FLAG_OBIT_STATUS = false;
-    private static final String PROP_RA_OPTION_PREFIX_STATUS = "raOptionPrefixStatus";
-    private static final boolean DEFAULT_RA_OPTION_PREFIX_STATUS = false;
-    private static final String PROP_RA_GLOBAL_PREFIX_CONF_STATUS = "raGlobalPrefixConfStatus";
-    private static final boolean DEFAULT_RA_GLOBAL_PREFIX_CONF_STATUS = true;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
@@ -131,29 +142,23 @@ public class RouterAdvertisementManager implements RoutingAdvertisementService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DeviceService deviceService;
 
-    //@Property(name = PROP_RA_THREADS_POOL, intValue = DEFAULT_RA_THREADS_POOL_SIZE,
-    //        label = "Thread pool capacity")
-    protected int raPoolSize = DEFAULT_RA_THREADS_POOL_SIZE;
+    /** Thread pool capacity. */
+    protected int raPoolSize = RA_THREADS_POOL_SIZE_DEFAULT;
 
-    //@Property(name = PROP_RA_THREADS_DELAY, intValue = DEFAULT_RA_THREADS_DELAY,
-    //        label = "Thread delay in seconds")
-    protected int raThreadDelay = DEFAULT_RA_THREADS_DELAY;
+    /** Thread delay in seconds. */
+    protected int raThreadDelay = RA_THREADS_DELAY_DEFAULT;
 
-    //@Property(name = PROP_RA_FLAG_MBIT_STATUS, boolValue = DEFAULT_RA_FLAG_MBIT_STATUS,
-    //        label = "Turn M-bit flag on/off")
-    protected boolean raFlagMbitStatus = DEFAULT_RA_FLAG_MBIT_STATUS;
+    /** Turn M-bit flag on/off. */
+    protected boolean raFlagMbitStatus = RA_FLAG_MBIT_STATUS_DEFAULT;
 
-    //@Property(name = PROP_RA_FLAG_OBIT_STATUS, boolValue = DEFAULT_RA_FLAG_OBIT_STATUS,
-    //        label = "Turn O-bit flag on/off")
-    protected boolean raFlagObitStatus = DEFAULT_RA_FLAG_OBIT_STATUS;
+    /** Turn O-bit flag on/off. */
+    protected boolean raFlagObitStatus = RA_FLAG_OBIT_STATUS_DEFAULT;
 
-    //@Property(name = PROP_RA_OPTION_PREFIX_STATUS, boolValue = DEFAULT_RA_OPTION_PREFIX_STATUS,
-    //        label = "Prefix option support needed or not")
-    protected boolean raOptionPrefixStatus = DEFAULT_RA_OPTION_PREFIX_STATUS;
+    /** Prefix option support needed or not. */
+    protected boolean raOptionPrefixStatus = RA_OPTION_PREFIX_STATUS_DEFAULT;
 
-    //@Property(name = PROP_RA_GLOBAL_PREFIX_CONF_STATUS, boolValue = DEFAULT_RA_GLOBAL_PREFIX_CONF_STATUS,
-    //        label = "Global prefix configuration support on/off")
-    protected boolean raGlobalConfigStatus = DEFAULT_RA_GLOBAL_PREFIX_CONF_STATUS;
+    /** Global prefix configuration support on/off. */
+    protected boolean raGlobalPrefixConfStatus = RA_GLOBAL_PREFIX_CONF_STATUS_DEFAULT;
 
     @GuardedBy(value = "this")
     private final Map<ConnectPoint, Map.Entry<ScheduledFuture<?>, List<InterfaceIpAddress>>> transmitters =
@@ -173,7 +178,7 @@ public class RouterAdvertisementManager implements RoutingAdvertisementService {
     private Function<Interface, Map.Entry<ConnectPoint, List<InterfaceIpAddress>>> prefixGenerator =
             i -> {
                 Map.Entry<ConnectPoint, List<InterfaceIpAddress>> prefixEntry;
-                if (raGlobalConfigStatus && globalPrefixes.containsKey(i.connectPoint().deviceId())) {
+                if (raGlobalPrefixConfStatus && globalPrefixes.containsKey(i.connectPoint().deviceId())) {
                     prefixEntry = new AbstractMap.SimpleEntry<>(i.connectPoint(),
                             globalPrefixes.get(i.connectPoint().deviceId()));
                 } else {
@@ -427,9 +432,9 @@ public class RouterAdvertisementManager implements RoutingAdvertisementService {
             Dictionary<?, ?> properties = context.getProperties();
             try {
                 // Handle change in pool size
-                String s = get(properties, PROP_RA_THREADS_POOL);
+                String s = get(properties, RA_THREADS_POOL);
                 newRaPoolSize = isNullOrEmpty(s) ?
-                        DEFAULT_RA_THREADS_POOL_SIZE : Integer.parseInt(s.trim());
+                        RA_THREADS_POOL_SIZE_DEFAULT : Integer.parseInt(s.trim());
                 if (newRaPoolSize != raPoolSize) {
                     raPoolSize = newRaPoolSize;
                     clearPoolAndTxWorkers();
@@ -438,9 +443,9 @@ public class RouterAdvertisementManager implements RoutingAdvertisementService {
                 }
 
                 // Handle change in thread delay
-                s = get(properties, PROP_RA_THREADS_DELAY);
+                s = get(properties, RA_THREADS_DELAY);
                 newRaThreadDelay = isNullOrEmpty(s) ?
-                        DEFAULT_RA_THREADS_DELAY : Integer.parseInt(s.trim());
+                        RA_THREADS_DELAY_DEFAULT : Integer.parseInt(s.trim());
                 if (newRaThreadDelay != raThreadDelay) {
                     raThreadDelay = newRaThreadDelay;
                     clearTxWorkers();
@@ -449,30 +454,30 @@ public class RouterAdvertisementManager implements RoutingAdvertisementService {
                 }
 
                 // Handle M-flag changes
-                s = get(properties, PROP_RA_FLAG_MBIT_STATUS);
+                s = get(properties, RA_FLAG_MBIT_STATUS);
                 if (!isNullOrEmpty(s)) {
                     raFlagMbitStatus = Boolean.parseBoolean(s.trim());
                     log.info("RA M-flag set {}", s);
                 }
 
                 // Handle O-flag changes
-                s = get(properties, PROP_RA_FLAG_OBIT_STATUS);
+                s = get(properties, RA_FLAG_OBIT_STATUS);
                 if (!isNullOrEmpty(s)) {
                     raFlagObitStatus = Boolean.parseBoolean(s.trim());
                     log.info("RA O-flag set {}", s);
                 }
 
                 // Handle prefix option configuration
-                s = get(properties, PROP_RA_OPTION_PREFIX_STATUS);
+                s = get(properties, RA_OPTION_PREFIX_STATUS);
                 if (!isNullOrEmpty(s)) {
                     raOptionPrefixStatus = Boolean.parseBoolean(s.trim());
                     String status = raOptionPrefixStatus ? "enabled" : "disabled";
                     log.info("RA prefix option {}", status);
                 }
 
-                s = get(properties, PROP_RA_GLOBAL_PREFIX_CONF_STATUS);
+                s = get(properties, RA_GLOBAL_PREFIX_CONF_STATUS);
                 if (!isNullOrEmpty(s)) {
-                    raGlobalConfigStatus = Boolean.parseBoolean(s.trim());
+                    raGlobalPrefixConfStatus = Boolean.parseBoolean(s.trim());
                     clearTxWorkers();
                     setupTxWorkers();
                     String status = raOptionPrefixStatus ? "enabled" : "disabled";

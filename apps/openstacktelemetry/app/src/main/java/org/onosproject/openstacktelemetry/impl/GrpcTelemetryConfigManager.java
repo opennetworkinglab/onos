@@ -35,27 +35,36 @@ import java.util.Dictionary;
 
 import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.getIntegerProperty;
-import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_DISABLE;
-import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_GRPC_MAX_INBOUND_MSG_SIZE;
-import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_GRPC_SERVER_IP;
-import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_GRPC_SERVER_PORT;
-import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_GRPC_USE_PLAINTEXT;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.GRPC_ENABLE_SERVICE_DEFAULT;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.GRPC_MAX_INBOUND_MSG_SIZE_DEFAULT;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.GRPC_SERVER_ADDRESS_DEFAULT;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.GRPC_SERVER_PORT_DEFAULT;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.GRPC_USE_PLAINTEXT_DEFAULT;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_GRPC_ENABLE_SERVICE;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_GRPC_MAX_INBOUND_MSG_SIZE;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_GRPC_SERVER_ADDRESS;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_GRPC_SERVER_PORT;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_GRPC_USE_PLAINTEXT;
 import static org.onosproject.openstacktelemetry.util.OpenstackTelemetryUtil.getBooleanProperty;
 import static org.onosproject.openstacktelemetry.util.OpenstackTelemetryUtil.initTelemetryService;
 
 /**
  * gRPC server configuration manager for publishing openstack telemetry.
  */
-@Component(immediate = true, service = GrpcTelemetryConfigService.class)
+@Component(
+    immediate = true,
+    service = GrpcTelemetryConfigService.class,
+    property = {
+        PROP_GRPC_ENABLE_SERVICE + ":Boolean=" + GRPC_ENABLE_SERVICE_DEFAULT,
+        PROP_GRPC_SERVER_ADDRESS  + "=" + GRPC_SERVER_ADDRESS_DEFAULT,
+        PROP_GRPC_SERVER_PORT + ":Integer=" + GRPC_SERVER_PORT_DEFAULT,
+        PROP_GRPC_USE_PLAINTEXT + ":Boolean=" + GRPC_USE_PLAINTEXT_DEFAULT,
+        PROP_GRPC_MAX_INBOUND_MSG_SIZE + ":Integer=" + GRPC_MAX_INBOUND_MSG_SIZE_DEFAULT
+    }
+)
 public class GrpcTelemetryConfigManager implements GrpcTelemetryConfigService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-
-    private static final String ENABLE_SERVICE = "enableService";
-    private static final String ADDRESS = "address";
-    private static final String PORT = "port";
-    private static final String USE_PLAINTEXT = "usePlaintext";
-    private static final String MAX_INBOUND_MSG_SIZE = "maxInboundMsgSize";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService componentConfigService;
@@ -63,25 +72,20 @@ public class GrpcTelemetryConfigManager implements GrpcTelemetryConfigService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected GrpcTelemetryAdminService grpcTelemetryAdminService;
 
-    //@Property(name = ADDRESS, value = DEFAULT_GRPC_SERVER_IP,
-    //        label = "Default IP address to establish initial connection to gRPC server")
-    protected String address = DEFAULT_GRPC_SERVER_IP;
+    /** Default IP address to establish initial connection to gRPC server. */
+    protected String address = GRPC_SERVER_ADDRESS_DEFAULT;
 
-    //@Property(name = PORT, intValue = DEFAULT_GRPC_SERVER_PORT,
-    //        label = "Default port number to establish initial connection to gRPC server")
-    protected Integer port = DEFAULT_GRPC_SERVER_PORT;
+    /** Default port number to establish initial connection to gRPC server. */
+    protected Integer port = GRPC_SERVER_PORT_DEFAULT;
 
-    //@Property(name = USE_PLAINTEXT, boolValue = DEFAULT_GRPC_USE_PLAINTEXT,
-    //        label = "UsePlaintext flag value used for connecting to gRPC server")
-    protected Boolean usePlaintext = DEFAULT_GRPC_USE_PLAINTEXT;
+    /** UsePlaintext flag value used for connecting to gRPC server. */
+    protected Boolean usePlaintext = GRPC_USE_PLAINTEXT_DEFAULT;
 
-    //@Property(name = MAX_INBOUND_MSG_SIZE, intValue = DEFAULT_GRPC_MAX_INBOUND_MSG_SIZE,
-    //        label = "Maximum inbound message size used for communicating with gRPC server")
-    protected Integer maxInboundMsgSize = DEFAULT_GRPC_MAX_INBOUND_MSG_SIZE;
+    /** Maximum inbound message size used for communicating with gRPC server. */
+    protected Integer maxInboundMsgSize = GRPC_MAX_INBOUND_MSG_SIZE_DEFAULT;
 
-    //@Property(name = ENABLE_SERVICE, boolValue = DEFAULT_DISABLE,
-    //        label = "Specify the default behavior of telemetry service")
-    protected Boolean enableService = DEFAULT_DISABLE;
+    /** Specify the default behavior of telemetry service. */
+    protected Boolean enableService = GRPC_ENABLE_SERVICE_DEFAULT;
 
     @Activate
     protected void activate(ComponentContext context) {
@@ -128,13 +132,13 @@ public class GrpcTelemetryConfigManager implements GrpcTelemetryConfigService {
     private void readComponentConfiguration(ComponentContext context) {
         Dictionary<?, ?> properties = context.getProperties();
 
-        String addressStr = get(properties, ADDRESS);
-        address = addressStr != null ? addressStr : DEFAULT_GRPC_SERVER_IP;
+        String addressStr = get(properties, PROP_GRPC_SERVER_ADDRESS);
+        address = addressStr != null ? addressStr : GRPC_SERVER_ADDRESS_DEFAULT;
         log.info("Configured. gRPC server address is {}", address);
 
-        Integer portConfigured = Tools.getIntegerProperty(properties, PORT);
+        Integer portConfigured = Tools.getIntegerProperty(properties, PROP_GRPC_SERVER_PORT);
         if (portConfigured == null) {
-            port = DEFAULT_GRPC_SERVER_PORT;
+            port = GRPC_SERVER_PORT_DEFAULT;
             log.info("gRPC server port is NOT configured, default value is {}", port);
         } else {
             port = portConfigured;
@@ -142,9 +146,9 @@ public class GrpcTelemetryConfigManager implements GrpcTelemetryConfigService {
         }
 
         Boolean usePlaintextConfigured =
-                getBooleanProperty(properties, USE_PLAINTEXT);
+                getBooleanProperty(properties, PROP_GRPC_USE_PLAINTEXT);
         if (usePlaintextConfigured == null) {
-            usePlaintext = DEFAULT_GRPC_USE_PLAINTEXT;
+            usePlaintext = GRPC_USE_PLAINTEXT_DEFAULT;
             log.info("gRPC server use plaintext flag is NOT " +
                     "configured, default value is {}", usePlaintext);
         } else {
@@ -153,9 +157,9 @@ public class GrpcTelemetryConfigManager implements GrpcTelemetryConfigService {
         }
 
         Integer maxInboundMsgSizeConfigured =
-                getIntegerProperty(properties, MAX_INBOUND_MSG_SIZE);
+                getIntegerProperty(properties, PROP_GRPC_MAX_INBOUND_MSG_SIZE);
         if (maxInboundMsgSizeConfigured == null) {
-            maxInboundMsgSize = DEFAULT_GRPC_MAX_INBOUND_MSG_SIZE;
+            maxInboundMsgSize = GRPC_MAX_INBOUND_MSG_SIZE_DEFAULT;
             log.info("gRPC server max inbound message size is NOT " +
                     "configured, default value is {}", maxInboundMsgSize);
         } else {
@@ -164,9 +168,9 @@ public class GrpcTelemetryConfigManager implements GrpcTelemetryConfigService {
         }
 
         Boolean enableServiceConfigured =
-                getBooleanProperty(properties, ENABLE_SERVICE);
+                getBooleanProperty(properties, PROP_GRPC_ENABLE_SERVICE);
         if (enableServiceConfigured == null) {
-            enableService = DEFAULT_DISABLE;
+            enableService = GRPC_ENABLE_SERVICE_DEFAULT;
             log.info("gRPC service enable flag is NOT " +
                     "configured, default value is {}", enableService);
         } else {

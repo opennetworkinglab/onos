@@ -101,6 +101,8 @@ import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ACL_RUL
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_CT_DROP_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_CT_HOOK_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_CT_RULE;
+import static org.onosproject.openstacknetworking.impl.OsgiPropertyConstants.USE_SECURITY_GROUP;
+import static org.onosproject.openstacknetworking.impl.OsgiPropertyConstants.USE_SECURITY_GROUP_DEFAULT;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.swapStaleLocation;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.computeCtMaskFlag;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.computeCtStateFlag;
@@ -111,16 +113,18 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Populates flow rules to handle OpenStack SecurityGroups.
  */
-@Component(immediate = true)
+@Component(
+    immediate = true,
+    property = {
+        USE_SECURITY_GROUP + ":Boolean=" + USE_SECURITY_GROUP_DEFAULT
+    }
+)
 public class OpenstackSecurityGroupHandler {
 
     private final Logger log = getLogger(getClass());
 
-    private static final boolean USE_SECURITY_GROUP = false;
-
-    //@Property(name = "useSecurityGroup", boolValue = USE_SECURITY_GROUP,
-    //        label = "Apply OpenStack security group rule for VM traffic")
-    private boolean useSecurityGroup = USE_SECURITY_GROUP;
+    /** Apply OpenStack security group rule for VM traffic. */
+    private boolean useSecurityGroup = USE_SECURITY_GROUP_DEFAULT;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
@@ -247,7 +251,7 @@ public class OpenstackSecurityGroupHandler {
         Dictionary<?, ?> properties = context.getProperties();
         Boolean flag;
 
-        flag = Tools.isPropertyEnabled(properties, "useSecurityGroup");
+        flag = Tools.isPropertyEnabled(properties, USE_SECURITY_GROUP);
         if (flag == null) {
             log.info("useSecurityGroup is not configured, " +
                     "using current value of {}", useSecurityGroup);

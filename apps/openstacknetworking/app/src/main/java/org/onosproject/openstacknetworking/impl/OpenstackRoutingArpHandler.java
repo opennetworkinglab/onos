@@ -88,13 +88,14 @@ import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.openstacknetworking.api.Constants.ARP_BROADCAST_MODE;
 import static org.onosproject.openstacknetworking.api.Constants.ARP_PROXY_MODE;
-import static org.onosproject.openstacknetworking.api.Constants.DEFAULT_ARP_MODE_STR;
-import static org.onosproject.openstacknetworking.api.Constants.DEFAULT_GATEWAY_MAC_STR;
 import static org.onosproject.openstacknetworking.api.Constants.GW_COMMON_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ARP_CONTROL_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ARP_GATEWAY_RULE;
 import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_PORT_PRE_REMOVE;
+import static org.onosproject.openstacknetworking.impl.OsgiPropertyConstants.ARP_MODE;
+import static org.onosproject.openstacknetworking.impl.OsgiPropertyConstants.ARP_MODE_DEFAULT;
+import static org.onosproject.openstacknetworking.impl.OsgiPropertyConstants.GATEWAY_MAC_DEFAULT;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.associatedFloatingIp;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getGwByComputeDevId;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getGwByInstancePort;
@@ -109,7 +110,12 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Handle ARP requests from gateway nodes.
  */
-@Component(immediate = true)
+@Component(
+    immediate = true,
+    property = {
+        ARP_MODE + "=" + ARP_MODE_DEFAULT
+    }
+)
 public class OpenstackRoutingArpHandler {
 
     private final Logger log = getLogger(getClass());
@@ -154,11 +160,10 @@ public class OpenstackRoutingArpHandler {
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected PreCommitPortService preCommitPortService;
 
-    //@Property(name = ARP_MODE, value = DEFAULT_ARP_MODE_STR,
-    //        label = "ARP processing mode, broadcast | proxy (default)")
-    protected String arpMode = DEFAULT_ARP_MODE_STR;
+    /** ARP processing mode, broadcast | proxy (default). **/
+    protected String arpMode = ARP_MODE_DEFAULT;
 
-    protected String gatewayMac = DEFAULT_GATEWAY_MAC_STR;
+    protected String gatewayMac = GATEWAY_MAC_DEFAULT;
 
     private final OpenstackRouterListener osRouterListener = new InternalRouterEventListener();
     private final OpenstackNodeListener osNodeListener = new InternalNodeEventListener();

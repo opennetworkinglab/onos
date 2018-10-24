@@ -108,12 +108,32 @@ import static org.onosproject.openstacktelemetry.api.Constants.FLAT;
 import static org.onosproject.openstacktelemetry.api.Constants.OPENSTACK_TELEMETRY_APP_ID;
 import static org.onosproject.openstacktelemetry.api.Constants.VLAN;
 import static org.onosproject.openstacktelemetry.api.Constants.VXLAN;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_EGRESS_STATS;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_EGRESS_STATS_DEFAULT;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_MONITOR_OVERLAY;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_MONITOR_OVERLAY_DEFAULT;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_MONITOR_UNDERLAY;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_MONITOR_UNDERLAY_DEFAULT;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_PORT_STATS;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_PORT_STATS_DEFAULT;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_REVERSE_PATH_STATS;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_REVERSE_PATH_STATS_DEFAULT;
 import static org.onosproject.openstacktelemetry.util.OpenstackTelemetryUtil.getBooleanProperty;
 
 /**
  * Flow rule manager for network statistics of a VM.
  */
-@Component(immediate = true, service = StatsFlowRuleAdminService.class)
+@Component(
+    immediate = true,
+    service = StatsFlowRuleAdminService.class,
+    property = {
+        PROP_REVERSE_PATH_STATS + ":Boolean=" + PROP_REVERSE_PATH_STATS_DEFAULT,
+        PROP_EGRESS_STATS  + ":Boolean=" + PROP_EGRESS_STATS_DEFAULT,
+        PROP_PORT_STATS + ":Boolean=" + PROP_PORT_STATS_DEFAULT,
+        PROP_MONITOR_OVERLAY  + ":Boolean=" + PROP_MONITOR_OVERLAY_DEFAULT,
+        PROP_MONITOR_UNDERLAY  + ":Boolean=" + PROP_MONITOR_UNDERLAY_DEFAULT
+    }
+)
 public class StatsFlowRuleManager implements StatsFlowRuleAdminService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -125,21 +145,7 @@ public class StatsFlowRuleManager implements StatsFlowRuleAdminService {
     private static final long REFRESH_INTERVAL = 5L;
     private static final TimeUnit TIME_UNIT_SECOND = TimeUnit.SECONDS;
 
-    private static final String REVERSE_PATH_STATS = "reversePathStats";
-    private static final String EGRESS_STATS = "egressStats";
-    private static final String PORT_STATS = "portStats";
-
-    private static final String MONITOR_OVERLAY = "monitorOverlay";
-    private static final String MONITOR_UNDERLAY = "monitorUnderlay";
-
     private static final String OVS_DRIVER_NAME = "ovs";
-
-    private static final boolean DEFAULT_REVERSE_PATH_STATS = false;
-    private static final boolean DEFAULT_EGRESS_STATS = false;
-    private static final boolean DEFAULT_PORT_STATS = true;
-
-    private static final boolean DEFAULT_MONITOR_OVERLAY = true;
-    private static final boolean DEFAULT_MONITOR_UNDERLAY = true;
 
     private static final String ARBITRARY_IP = "0.0.0.0/32";
     private static final int ARBITRARY_PROTOCOL = 0x0;
@@ -185,27 +191,20 @@ public class StatsFlowRuleManager implements StatsFlowRuleAdminService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected OpenstackTelemetryService telemetryService;
 
-    //@Property(name = REVERSE_PATH_STATS, boolValue = DEFAULT_REVERSE_PATH_STATS,
-    //        label = "A flag which indicates whether to install the rules for " +
-    //                "collecting the flow-based stats for reversed path.")
-    private boolean reversePathStats = DEFAULT_REVERSE_PATH_STATS;
+    /** A flag which indicates whether to install the rules for collecting the flow-based stats for reversed path. */
+    private boolean reversePathStats = PROP_REVERSE_PATH_STATS_DEFAULT;
 
-    //@Property(name = EGRESS_STATS, boolValue = DEFAULT_EGRESS_STATS,
-    //        label = "A flag which indicates whether to install the rules for " +
-    //                "collecting the flow-based stats for egress port.")
-    private boolean egressStats = DEFAULT_EGRESS_STATS;
+    /** A flag which indicates whether to install the rules for collecting the flow-based stats for egress port. */
+    private boolean egressStats = PROP_EGRESS_STATS_DEFAULT;
 
-    //@Property(name = PORT_STATS, boolValue = DEFAULT_PORT_STATS,
-    //        label = "A flag which indicates whether to collect port TX & RX stats.")
-    private boolean portStats = DEFAULT_PORT_STATS;
+    /** A flag which indicates whether to collect port TX & RX stats. */
+    private boolean portStats = PROP_PORT_STATS_DEFAULT;
 
-    //@Property(name = MONITOR_OVERLAY, boolValue = DEFAULT_MONITOR_OVERLAY,
-    //        label = "A flag which indicates whether to monitor overlay network port stats.")
-    private boolean monitorOverlay = DEFAULT_MONITOR_OVERLAY;
+    /** A flag which indicates whether to monitor overlay network port stats. */
+    private boolean monitorOverlay = PROP_MONITOR_OVERLAY_DEFAULT;
 
-    //@Property(name = MONITOR_UNDERLAY, boolValue = DEFAULT_MONITOR_UNDERLAY,
-    //        label = "A flag which indicates whether to monitor underlay network port stats.")
-    private boolean monitorUnderlay = DEFAULT_MONITOR_UNDERLAY;
+    /** A flag which indicates whether to monitor underlay network port stats. */
+    private boolean monitorUnderlay = PROP_MONITOR_UNDERLAY_DEFAULT;
 
     private ApplicationId telemetryAppId;
     private TelemetryCollector collector;
@@ -986,9 +985,9 @@ public class StatsFlowRuleManager implements StatsFlowRuleAdminService {
         Dictionary<?, ?> properties = context.getProperties();
 
         Boolean reversePathStatsConfigured =
-                            getBooleanProperty(properties, REVERSE_PATH_STATS);
+                            getBooleanProperty(properties, PROP_REVERSE_PATH_STATS);
         if (reversePathStatsConfigured == null) {
-            reversePathStats = DEFAULT_REVERSE_PATH_STATS;
+            reversePathStats = PROP_REVERSE_PATH_STATS_DEFAULT;
             log.info("Reversed path stats flag is NOT " +
                      "configured, default value is {}", reversePathStats);
         } else {
@@ -996,9 +995,9 @@ public class StatsFlowRuleManager implements StatsFlowRuleAdminService {
             log.info("Configured. Reversed path stats flag is {}", reversePathStats);
         }
 
-        Boolean egressStatsConfigured = getBooleanProperty(properties, EGRESS_STATS);
+        Boolean egressStatsConfigured = getBooleanProperty(properties, PROP_EGRESS_STATS);
         if (egressStatsConfigured == null) {
-            egressStats = DEFAULT_EGRESS_STATS;
+            egressStats = PROP_EGRESS_STATS_DEFAULT;
             log.info("Egress stats flag is NOT " +
                      "configured, default value is {}", egressStats);
         } else {
@@ -1006,9 +1005,9 @@ public class StatsFlowRuleManager implements StatsFlowRuleAdminService {
             log.info("Configured. Egress stats flag is {}", egressStats);
         }
 
-        Boolean portStatsConfigured = getBooleanProperty(properties, PORT_STATS);
+        Boolean portStatsConfigured = getBooleanProperty(properties, PROP_PORT_STATS);
         if (portStatsConfigured == null) {
-            portStats = DEFAULT_PORT_STATS;
+            portStats = PROP_PORT_STATS_DEFAULT;
             log.info("Port stats flag is NOT " +
                     "configured, default value is {}", portStats);
         } else {
@@ -1016,9 +1015,9 @@ public class StatsFlowRuleManager implements StatsFlowRuleAdminService {
             log.info("Configured. Port stats flag is {}", portStats);
         }
 
-        Boolean monitorOverlayConfigured = getBooleanProperty(properties, MONITOR_OVERLAY);
+        Boolean monitorOverlayConfigured = getBooleanProperty(properties, PROP_MONITOR_OVERLAY);
         if (monitorOverlayConfigured == null) {
-            monitorOverlay = DEFAULT_MONITOR_OVERLAY;
+            monitorOverlay = PROP_MONITOR_OVERLAY_DEFAULT;
             log.info("Monitor overlay flag is NOT " +
                     "configured, default value is {}", monitorOverlay);
         } else {
@@ -1026,9 +1025,9 @@ public class StatsFlowRuleManager implements StatsFlowRuleAdminService {
             log.info("Configured. Monitor overlay flag is {}", monitorOverlay);
         }
 
-        Boolean monitorUnderlayConfigured = getBooleanProperty(properties, MONITOR_UNDERLAY);
+        Boolean monitorUnderlayConfigured = getBooleanProperty(properties, PROP_MONITOR_UNDERLAY);
         if (monitorUnderlayConfigured == null) {
-            monitorUnderlay = DEFAULT_MONITOR_UNDERLAY;
+            monitorUnderlay = PROP_MONITOR_UNDERLAY_DEFAULT;
             log.info("Monitor underlay flag is NOT " +
                     "configured, default value is {}", monitorUnderlay);
         } else {

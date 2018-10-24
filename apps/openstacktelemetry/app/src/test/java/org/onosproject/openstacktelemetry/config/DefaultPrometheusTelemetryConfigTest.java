@@ -26,19 +26,19 @@ import java.util.Map;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
-import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_PROMETHEUS_EXPORTER_IP;
-import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_PROMETHEUS_EXPORTER_PORT;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROMETHEUS_EXPORTER_PORT_DEFAULT;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROMETHEUS_EXPORTER_ADDRESS_DEFAULT;
 
 /**
  * Unit tests for DefaultPrometheusTelemetryConfig class.
  */
 public class DefaultPrometheusTelemetryConfigTest {
 
-    private static final String IP_ADDRESS_1 = DEFAULT_PROMETHEUS_EXPORTER_IP;
+    private static final String IP_ADDRESS_1 = PROMETHEUS_EXPORTER_ADDRESS_DEFAULT;
     private static final String IP_ADDRESS_2 = "10.10.1.2";
 
-    private static final int PORT_1 = DEFAULT_PROMETHEUS_EXPORTER_PORT;
-    private static final int PORT_2 = DEFAULT_PROMETHEUS_EXPORTER_PORT + 1;
+    private static final int PORT_1 = PROMETHEUS_EXPORTER_PORT_DEFAULT;
+    private static final int PORT_2 = PROMETHEUS_EXPORTER_PORT_DEFAULT + 1;
 
     private static final Map<String, Object> CONFIG_MAP_1 =
             ImmutableMap.of("key1", "value1");

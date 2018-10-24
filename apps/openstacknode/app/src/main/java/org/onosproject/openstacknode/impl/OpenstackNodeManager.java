@@ -61,6 +61,8 @@ import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 import static org.onosproject.openstacknode.api.Constants.INTEGRATION_BRIDGE;
 import static org.onosproject.openstacknode.api.NodeState.COMPLETE;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.CONTROLLER;
+import static org.onosproject.openstacknode.impl.OsgiPropertyConstants.OVSDB_PORT;
+import static org.onosproject.openstacknode.impl.OsgiPropertyConstants.OVSDB_PORT_NUM_DEFAULT;
 import static org.onosproject.openstacknode.util.OpenstackNodeUtil.addOrRemoveSystemInterface;
 import static org.onosproject.openstacknode.util.OpenstackNodeUtil.genDpid;
 import static org.onosproject.openstacknode.util.OpenstackNodeUtil.isOvsdbConnected;
@@ -69,7 +71,13 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Service administering the inventory of openstack nodes.
  */
-@Component(immediate = true, service = { OpenstackNodeService.class, OpenstackNodeAdminService.class })
+@Component(
+    immediate = true,
+    service = { OpenstackNodeService.class, OpenstackNodeAdminService.class },
+    property = {
+        OVSDB_PORT + ":Integer=" + OVSDB_PORT_NUM_DEFAULT
+    }
+)
 public class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEvent, OpenstackNodeListener>
         implements OpenstackNodeService, OpenstackNodeAdminService {
 
@@ -79,8 +87,6 @@ public class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEvent, O
     private static final String MSG_CREATED = "created";
     private static final String MSG_UPDATED = "updated";
     private static final String MSG_REMOVED = "removed";
-    private static final String OVSDB_PORT = "ovsdbPortNum";
-    private static final int DEFAULT_OVSDB_PORT = 6640;
 
     private static final String DEVICE_ID_COUNTER_NAME = "device-id-counter";
 
@@ -111,9 +117,8 @@ public class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEvent, O
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DeviceService deviceService;
 
-    //@Property(name = OVSDB_PORT, intValue = DEFAULT_OVSDB_PORT,
-    //        label = "OVSDB server listen port")
-    private int ovsdbPort = DEFAULT_OVSDB_PORT;
+    /** OVSDB server listen port. */
+    private int ovsdbPortNum = OVSDB_PORT_NUM_DEFAULT;
 
     private final ExecutorService eventExecutor = newSingleThreadExecutor(
             groupedThreads(this.getClass().getSimpleName(), "event-handler", log));
@@ -150,8 +155,8 @@ public class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEvent, O
     protected void modified(ComponentContext context) {
         Dictionary<?, ?> properties = context.getProperties();
         int updatedOvsdbPort = Tools.getIntegerProperty(properties, OVSDB_PORT);
-        if (!Objects.equals(updatedOvsdbPort, ovsdbPort)) {
-            ovsdbPort = updatedOvsdbPort;
+        if (!Objects.equals(updatedOvsdbPort, ovsdbPortNum)) {
+            ovsdbPortNum = updatedOvsdbPort;
         }
 
         log.info("Modified");
@@ -336,11 +341,11 @@ public class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEvent, O
     }
 
     private void connectSwitch(OpenstackNode osNode) {
-        if (!isOvsdbConnected(osNode, ovsdbPort, ovsdbController, deviceService)) {
+        if (!isOvsdbConnected(osNode, ovsdbPortNum, ovsdbController, deviceService)) {
             log.warn("There's no ovsdb connection with the device {}. Try to connect the device...",
                     osNode.ovsdb().toString());
             try {
-                ovsdbController.connect(osNode.managementIp(), tpPort(ovsdbPort));
+                ovsdbController.connect(osNode.managementIp(), tpPort(ovsdbPortNum));
             } catch (Exception e) {
                 log.error("Failed to connect to the openstackNode via ovsdb protocol because of exception {}",
                         e.toString());

@@ -33,37 +33,51 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Dictionary;
 
-import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_DISABLE;
-import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_KAFKA_BATCH_SIZE;
-import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_KAFKA_KEY_SERIALIZER;
-import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_KAFKA_LINGER_MS;
-import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_KAFKA_MEMORY_BUFFER;
-import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_KAFKA_REQUIRED_ACKS;
-import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_KAFKA_RETRIES;
-import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_KAFKA_SERVER_IP;
-import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_KAFKA_SERVER_PORT;
-import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_KAFKA_VALUE_SERIALIZER;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_KAFKA_ADDRESS;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_KAFKA_ADDRESS_DEFAULT;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_KAFKA_BATCH_SIZE;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_KAFKA_BATCH_SIZE_DEFAULT;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_KAFKA_ENABLE_SERVICE;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_KAFKA_ENABLE_SERVICE_DEFAULT;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_KAFKA_KEY_SERIALIZER;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_KAFKA_KEY_SERIALIZER_DEFAULT;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_KAFKA_LINGER_MS;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_KAFKA_LINGER_MS_DEFAULT;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_KAFKA_MEMORY_BUFFER;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_KAFKA_MEMORY_BUFFER_DEFAULT;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_KAFKA_PORT;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_KAFKA_PORT_DEFAULT;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_KAFKA_REQUIRED_ACKS;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_KAFKA_REQUIRED_ACKS_DEFAULT;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_KAFKA_RETRIES;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_KAFKA_RETRIES_DEFAULT;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_KAFKA_VALUE_SERIALIZER;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_KAFKA_VALUE_SERIALIZER_DEFAULT;
 import static org.onosproject.openstacktelemetry.util.OpenstackTelemetryUtil.getBooleanProperty;
 import static org.onosproject.openstacktelemetry.util.OpenstackTelemetryUtil.initTelemetryService;
 
 /**
  * Kafka server configuration manager for publishing openstack telemetry.
  */
-@Component(immediate = true, service = KafkaTelemetryConfigService.class)
+@Component(
+    immediate = true,
+    service = KafkaTelemetryConfigService.class,
+    property = {
+        PROP_KAFKA_ADDRESS + "=" + PROP_KAFKA_ADDRESS_DEFAULT,
+        PROP_KAFKA_PORT + ":Integer=" + PROP_KAFKA_PORT_DEFAULT,
+        PROP_KAFKA_RETRIES + ":Integer=" + PROP_KAFKA_RETRIES_DEFAULT,
+        PROP_KAFKA_REQUIRED_ACKS + "=" + PROP_KAFKA_REQUIRED_ACKS_DEFAULT,
+        PROP_KAFKA_BATCH_SIZE + ":Integer=" + PROP_KAFKA_BATCH_SIZE_DEFAULT,
+        PROP_KAFKA_LINGER_MS + ":Integer=" + PROP_KAFKA_LINGER_MS_DEFAULT,
+        PROP_KAFKA_MEMORY_BUFFER + ":Integer=" + PROP_KAFKA_MEMORY_BUFFER_DEFAULT,
+        PROP_KAFKA_KEY_SERIALIZER + "=" + PROP_KAFKA_KEY_SERIALIZER_DEFAULT,
+        PROP_KAFKA_VALUE_SERIALIZER + "=" + PROP_KAFKA_VALUE_SERIALIZER_DEFAULT,
+        PROP_KAFKA_ENABLE_SERVICE + ":Boolean=" + PROP_KAFKA_ENABLE_SERVICE_DEFAULT
+    }
+)
 public class KafkaTelemetryConfigManager implements KafkaTelemetryConfigService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-
-    private static final String ENABLE_SERVICE = "enableService";
-    private static final String ADDRESS = "address";
-    private static final String PORT = "port";
-    private static final String RETRIES = "retries";
-    private static final String REQUIRED_ACKS = "requiredAcks";
-    private static final String BATCH_SIZE = "batchSize";
-    private static final String LINGER_MS = "lingerMs";
-    private static final String MEMORY_BUFFER = "memoryBuffer";
-    private static final String KEY_SERIALIZER = "keySerializer";
-    private static final String VALUE_SERIALIZER = "valueSerializer";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService componentConfigService;
@@ -71,46 +85,35 @@ public class KafkaTelemetryConfigManager implements KafkaTelemetryConfigService 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected KafkaTelemetryAdminService kafkaTelemetryAdminService;
 
-    //@Property(name = ADDRESS, value = DEFAULT_KAFKA_SERVER_IP,
-    //        label = "Default IP address to establish initial connection to Kafka server")
-    protected String address = DEFAULT_KAFKA_SERVER_IP;
+    /** Default IP address to establish initial connection to Kafka server. */
+    protected String address = PROP_KAFKA_ADDRESS_DEFAULT;
 
-    //@Property(name = PORT, intValue = DEFAULT_KAFKA_SERVER_PORT,
-    //        label = "Default port number to establish initial connection to Kafka server")
-    protected Integer port = DEFAULT_KAFKA_SERVER_PORT;
+    /** Default port number to establish initial connection to Kafka server. */
+    protected Integer port = PROP_KAFKA_PORT_DEFAULT;
 
-    //@Property(name = RETRIES, intValue = DEFAULT_KAFKA_RETRIES,
-    //        label = "Number of times the producer can retry to send after first failure")
-    protected int retries = DEFAULT_KAFKA_RETRIES;
+    /** Number of times the producer can retry to send after first failure. */
+    protected int retries = PROP_KAFKA_RETRIES_DEFAULT;
 
-    //@Property(name = REQUIRED_ACKS, value = DEFAULT_KAFKA_REQUIRED_ACKS,
-    //        label = "Producer will get an acknowledgement after the leader has replicated the data")
-    protected String requiredAcks = DEFAULT_KAFKA_REQUIRED_ACKS;
+    /** Producer will get an acknowledgement after the leader has replicated the data. */
+    protected String requiredAcks = PROP_KAFKA_REQUIRED_ACKS_DEFAULT;
 
-    //@Property(name = BATCH_SIZE, intValue = DEFAULT_KAFKA_BATCH_SIZE,
-    //        label = "The largest record batch size allowed by Kafka")
-    protected Integer batchSize = DEFAULT_KAFKA_BATCH_SIZE;
+    /** The largest record batch size allowed by Kafka. */
+    protected Integer batchSize = PROP_KAFKA_BATCH_SIZE_DEFAULT;
 
-    //@Property(name = LINGER_MS, intValue = DEFAULT_KAFKA_LINGER_MS,
-    //        label = "The producer groups together any records that arrive in " +
-    //                "between request transmissions into a single batched request")
-    protected Integer lingerMs = DEFAULT_KAFKA_LINGER_MS;
+    /** The producer groups together any records that arrive between request transmissions into a single batch. */
+    protected Integer lingerMs = PROP_KAFKA_LINGER_MS_DEFAULT;
 
-    //@Property(name = MEMORY_BUFFER, intValue = DEFAULT_KAFKA_MEMORY_BUFFER,
-    //        label = "The total memory used for log cleaner I/O buffers across all cleaner threads")
-    protected Integer memoryBuffer = DEFAULT_KAFKA_MEMORY_BUFFER;
+    /** The total memory used for log cleaner I/O buffers across all cleaner threads. */
+    protected Integer memoryBuffer = PROP_KAFKA_MEMORY_BUFFER_DEFAULT;
 
-    //@Property(name = KEY_SERIALIZER, value = DEFAULT_KAFKA_KEY_SERIALIZER,
-    //        label = "Serializer class for key that implements the Serializer interface")
-    protected String keySerializer = DEFAULT_KAFKA_KEY_SERIALIZER;
+    /** Serializer class for key that implements the Serializer interface. */
+    protected String keySerializer = PROP_KAFKA_KEY_SERIALIZER_DEFAULT;
 
-    //@Property(name = VALUE_SERIALIZER, value = DEFAULT_KAFKA_VALUE_SERIALIZER,
-    //        label = "Serializer class for value that implements the Serializer interface")
-    protected String valueSerializer = DEFAULT_KAFKA_VALUE_SERIALIZER;
+    /** Serializer class for value that implements the Serializer interface. */
+    protected String valueSerializer = PROP_KAFKA_VALUE_SERIALIZER_DEFAULT;
 
-    //@Property(name = ENABLE_SERVICE, boolValue = DEFAULT_DISABLE,
-    //        label = "Specify the default behavior of telemetry service")
-    protected Boolean enableService = DEFAULT_DISABLE;
+    /** Specify the default behavior of telemetry service. */
+    protected Boolean enableService = PROP_KAFKA_ENABLE_SERVICE_DEFAULT;
 
     @Activate
     protected void activate(ComponentContext context) {
@@ -162,71 +165,71 @@ public class KafkaTelemetryConfigManager implements KafkaTelemetryConfigService 
     private void readComponentConfiguration(ComponentContext context) {
         Dictionary<?, ?> properties = context.getProperties();
 
-        String addressStr = Tools.get(properties, ADDRESS);
-        address = addressStr != null ? addressStr : DEFAULT_KAFKA_SERVER_IP;
+        String addressStr = Tools.get(properties, PROP_KAFKA_ADDRESS);
+        address = addressStr != null ? addressStr : PROP_KAFKA_ADDRESS_DEFAULT;
         log.info("Configured. Kafka server address is {}", address);
 
-        Integer portConfigured = Tools.getIntegerProperty(properties, PORT);
+        Integer portConfigured = Tools.getIntegerProperty(properties, PROP_KAFKA_PORT);
         if (portConfigured == null) {
-            port = DEFAULT_KAFKA_SERVER_PORT;
+            port = PROP_KAFKA_PORT_DEFAULT;
             log.info("Kafka server port is NOT configured, default value is {}", port);
         } else {
             port = portConfigured;
             log.info("Configured. Kafka server port is {}", port);
         }
 
-        Integer retriesConfigured = Tools.getIntegerProperty(properties, RETRIES);
+        Integer retriesConfigured = Tools.getIntegerProperty(properties, PROP_KAFKA_RETRIES);
         if (retriesConfigured == null) {
-            retries = DEFAULT_KAFKA_RETRIES;
+            retries = PROP_KAFKA_RETRIES_DEFAULT;
             log.info("Kafka number of retries property is NOT configured, default value is {}", retries);
         } else {
             retries = retriesConfigured;
             log.info("Configured. Kafka number of retries is {}", retries);
         }
 
-        String requiredAcksStr = Tools.get(properties, REQUIRED_ACKS);
-        requiredAcks = requiredAcksStr != null ? requiredAcksStr : DEFAULT_KAFKA_REQUIRED_ACKS;
+        String requiredAcksStr = Tools.get(properties, PROP_KAFKA_REQUIRED_ACKS);
+        requiredAcks = requiredAcksStr != null ? requiredAcksStr : PROP_KAFKA_REQUIRED_ACKS_DEFAULT;
         log.info("Configured, Kafka required acknowledgement is {}", requiredAcks);
 
-        Integer batchSizeConfigured = Tools.getIntegerProperty(properties, BATCH_SIZE);
+        Integer batchSizeConfigured = Tools.getIntegerProperty(properties, PROP_KAFKA_BATCH_SIZE);
         if (batchSizeConfigured == null) {
-            batchSize = DEFAULT_KAFKA_BATCH_SIZE;
+            batchSize = PROP_KAFKA_BATCH_SIZE_DEFAULT;
             log.info("Kafka batch size property is NOT configured, default value is {}", batchSize);
         } else {
             batchSize = batchSizeConfigured;
             log.info("Configured. Kafka batch size is {}", batchSize);
         }
 
-        Integer lingerMsConfigured = Tools.getIntegerProperty(properties, LINGER_MS);
+        Integer lingerMsConfigured = Tools.getIntegerProperty(properties, PROP_KAFKA_LINGER_MS);
         if (lingerMsConfigured == null) {
-            lingerMs = DEFAULT_KAFKA_LINGER_MS;
+            lingerMs = PROP_KAFKA_LINGER_MS_DEFAULT;
             log.info("Kafka lingerMs property is NOT configured, default value is {}", lingerMs);
         } else {
             lingerMs = lingerMsConfigured;
             log.info("Configured. Kafka lingerMs is {}", lingerMs);
         }
 
-        Integer memoryBufferConfigured = Tools.getIntegerProperty(properties, MEMORY_BUFFER);
+        Integer memoryBufferConfigured = Tools.getIntegerProperty(properties, PROP_KAFKA_MEMORY_BUFFER);
         if (memoryBufferConfigured == null) {
-            memoryBuffer = DEFAULT_KAFKA_MEMORY_BUFFER;
+            memoryBuffer = PROP_KAFKA_MEMORY_BUFFER_DEFAULT;
             log.info("Kafka memory buffer property is NOT configured, default value is {}", memoryBuffer);
         } else {
             memoryBuffer = memoryBufferConfigured;
             log.info("Configured. Kafka memory buffer is {}", memoryBuffer);
         }
 
-        String keySerializerStr = Tools.get(properties, KEY_SERIALIZER);
-        keySerializer = keySerializerStr != null ? keySerializerStr : DEFAULT_KAFKA_KEY_SERIALIZER;
+        String keySerializerStr = Tools.get(properties, PROP_KAFKA_KEY_SERIALIZER);
+        keySerializer = keySerializerStr != null ? keySerializerStr : PROP_KAFKA_KEY_SERIALIZER_DEFAULT;
         log.info("Configured, Kafka key serializer is {}", keySerializer);
 
-        String valueSerializerStr = Tools.get(properties, VALUE_SERIALIZER);
-        valueSerializer = valueSerializerStr != null ? valueSerializerStr : DEFAULT_KAFKA_VALUE_SERIALIZER;
+        String valueSerializerStr = Tools.get(properties, PROP_KAFKA_VALUE_SERIALIZER);
+        valueSerializer = valueSerializerStr != null ? valueSerializerStr : PROP_KAFKA_VALUE_SERIALIZER_DEFAULT;
         log.info("Configured, Kafka value serializer is {}", valueSerializer);
 
         Boolean enableServiceConfigured =
-                getBooleanProperty(properties, ENABLE_SERVICE);
+                getBooleanProperty(properties, PROP_KAFKA_ENABLE_SERVICE);
         if (enableServiceConfigured == null) {
-            enableService = DEFAULT_DISABLE;
+            enableService = PROP_KAFKA_ENABLE_SERVICE_DEFAULT;
             log.info("Kafka service enable flag is NOT " +
                     "configured, default value is {}", enableService);
         } else {

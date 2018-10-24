@@ -14,12 +14,7 @@
  * limitations under the License.
  */
 package org.onosproject.openstacktelemetry.impl;
-import org.osgi.service.component.annotations.Activate;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Deactivate;
-import org.osgi.service.component.annotations.Modified;
-import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
+
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.openstacktelemetry.api.PrometheusTelemetryAdminService;
@@ -27,29 +22,41 @@ import org.onosproject.openstacktelemetry.api.PrometheusTelemetryConfigService;
 import org.onosproject.openstacktelemetry.api.config.TelemetryConfig;
 import org.onosproject.openstacktelemetry.config.DefaultPrometheusTelemetryConfig;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Dictionary;
 
-import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_DISABLE;
-import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_ENABLE;
-import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_PROMETHEUS_EXPORTER_IP;
-import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_PROMETHEUS_EXPORTER_PORT;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROMETHEUS_ENABLE_SERVICE_DEFAULT;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROMETHEUS_EXPORTER_ADDRESS_DEFAULT;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROMETHEUS_EXPORTER_PORT_DEFAULT;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_PROMETHEUS_ENABLE_SERVICE;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_PROMETHEUS_EXPORTER_ADDRESS;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_PROMETHEUS_EXPORTER_PORT;
 import static org.onosproject.openstacktelemetry.util.OpenstackTelemetryUtil.getBooleanProperty;
 import static org.onosproject.openstacktelemetry.util.OpenstackTelemetryUtil.initTelemetryService;
 
 /**
  * Prometheus exporter configuration manager for publishing openstack telemetry.
  */
-@Component(immediate = true, service = PrometheusTelemetryConfigService.class)
+@Component(
+    immediate = true,
+    service = PrometheusTelemetryConfigService.class,
+    property = {
+        PROP_PROMETHEUS_ENABLE_SERVICE + ":Boolean=" + PROMETHEUS_ENABLE_SERVICE_DEFAULT,
+        PROP_PROMETHEUS_EXPORTER_ADDRESS + "=" + PROMETHEUS_EXPORTER_ADDRESS_DEFAULT,
+        PROP_PROMETHEUS_EXPORTER_PORT + ":Integer=" + PROMETHEUS_EXPORTER_PORT_DEFAULT
+    }
+)
 public class PrometheusTelemetryConfigManager implements PrometheusTelemetryConfigService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-
-    private static final String ENABLE_SERVICE = "enableService";
-    private static final String ADDRESS = "address";
-    private static final String PORT = "port";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService componentConfigService;
@@ -57,17 +64,14 @@ public class PrometheusTelemetryConfigManager implements PrometheusTelemetryConf
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected PrometheusTelemetryAdminService prometheusTelemetryAdminService;
 
-    //@Property(name = ADDRESS, value = DEFAULT_PROMETHEUS_EXPORTER_IP,
-    //        label = "Default IP address of prometheus exporter")
-    protected String address = DEFAULT_PROMETHEUS_EXPORTER_IP;
+    /** Default IP address of prometheus exporter. */
+    protected String address = PROMETHEUS_EXPORTER_ADDRESS_DEFAULT;
 
-    //@Property(name = PORT, intValue = DEFAULT_PROMETHEUS_EXPORTER_PORT,
-    //        label = "Default port number of prometheus exporter")
-    protected Integer port = DEFAULT_PROMETHEUS_EXPORTER_PORT;
+    /** Default port number of prometheus exporter. */
+    protected Integer port = PROMETHEUS_EXPORTER_PORT_DEFAULT;
 
-    //@Property(name = ENABLE_SERVICE, boolValue = DEFAULT_ENABLE,
-    //        label = "Specify the default behavior of telemetry service")
-    protected Boolean enableService = DEFAULT_ENABLE;
+    /** Specify the default behavior of telemetry service. */
+    protected Boolean enableService = PROMETHEUS_ENABLE_SERVICE_DEFAULT;
 
     @Activate
     protected void activate(ComponentContext context) {
@@ -110,22 +114,22 @@ public class PrometheusTelemetryConfigManager implements PrometheusTelemetryConf
     private void readComponentConfiguration(ComponentContext context) {
         Dictionary<?, ?> properties = context.getProperties();
 
-        String addressStr = Tools.get(properties, ADDRESS);
-        address = addressStr != null ? addressStr : DEFAULT_PROMETHEUS_EXPORTER_IP;
+        String addressStr = Tools.get(properties, PROP_PROMETHEUS_EXPORTER_ADDRESS);
+        address = addressStr != null ? addressStr : PROMETHEUS_EXPORTER_ADDRESS_DEFAULT;
         log.info("Configured. Prometheus exporter address is {}", address);
 
-        Integer portConfigured = Tools.getIntegerProperty(properties, PORT);
+        Integer portConfigured = Tools.getIntegerProperty(properties, PROP_PROMETHEUS_EXPORTER_PORT);
         if (portConfigured == null) {
-            port = DEFAULT_PROMETHEUS_EXPORTER_PORT;
+            port = PROMETHEUS_EXPORTER_PORT_DEFAULT;
             log.info("Prometheus exporter port is NOT configured, default value is {}", port);
         } else {
             port = portConfigured;
             log.info("Configured. Prometheus exporter port is {}", port);
         }
 
-        Boolean enableServiceConfigured = getBooleanProperty(properties, ENABLE_SERVICE);
+        Boolean enableServiceConfigured = getBooleanProperty(properties, PROP_PROMETHEUS_ENABLE_SERVICE);
         if (enableServiceConfigured == null) {
-            enableService = DEFAULT_DISABLE;
+            enableService = PROMETHEUS_ENABLE_SERVICE_DEFAULT;
             log.info("Prometheus service enable flag is NOT " +
                              "configured, default value is {}", enableService);
         } else {

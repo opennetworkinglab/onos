@@ -45,7 +45,6 @@ public final class Constants {
     public static final String ARP_PROXY_MODE = "proxy";
 
     public static final String DEFAULT_GATEWAY_MAC_STR = "fe:00:00:00:00:02";
-    public static final String DEFAULT_ARP_MODE_STR = ARP_PROXY_MODE;
     public static final MacAddress DEFAULT_GATEWAY_MAC = MacAddress.valueOf(DEFAULT_GATEWAY_MAC_STR);
     public static final MacAddress DEFAULT_EXTERNAL_ROUTER_MAC = MacAddress.valueOf("fe:00:00:00:00:01");
 
