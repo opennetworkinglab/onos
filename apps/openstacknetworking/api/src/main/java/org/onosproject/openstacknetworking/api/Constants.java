@@ -84,6 +84,7 @@ public final class Constants {
     public static final int PRIORITY_ARP_CONTROL_RULE = 40000;
     public static final int PRIORITY_ARP_REPLY_RULE = 40000;
     public static final int PRIORITY_ARP_REQUEST_RULE = 40000;
+    public static final int PRIORITY_ARP_FLOOD_RULE = 39000;
     public static final int PRIORITY_FORCED_ACL_RULE = 50000;
     public static final int PRIORITY_ICMP_PROBE_RULE = 50000;
 
@@ -94,9 +95,10 @@ public final class Constants {
     public static final int STAT_FLAT_OUTBOUND_TABLE = 10;
     public static final int VTAP_FLAT_OUTBOUND_TABLE = 11;
     public static final int VTAP_FLAT_OUTBOUND_MIRROR_TABLE = 12;
-    public static final int DHCP_ARP_TABLE = 5;
+    public static final int DHCP_TABLE = 5;
     public static final int FLAT_TABLE = 20;
     public static final int VTAG_TABLE = 30;
+    public static final int ARP_TABLE = 35;
     public static final int ACL_TABLE = 40;
     public static final int CT_TABLE = 41;
     public static final int JUMP_TABLE = 50;

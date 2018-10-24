@@ -24,6 +24,8 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.VlanId;
+import org.onosproject.cfg.ComponentConfigService;
+import org.onosproject.cfg.ConfigProperty;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.LeadershipService;
 import org.onosproject.cluster.NodeId;
@@ -56,12 +58,15 @@ import org.openstack4j.model.network.Port;
 import org.slf4j.Logger;
 
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.openstacknetworking.api.Constants.ACL_TABLE;
-import static org.onosproject.openstacknetworking.api.Constants.DHCP_ARP_TABLE;
+import static org.onosproject.openstacknetworking.api.Constants.ARP_BROADCAST_MODE;
+import static org.onosproject.openstacknetworking.api.Constants.ARP_TABLE;
+import static org.onosproject.openstacknetworking.api.Constants.DHCP_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.FLAT_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.FORWARDING_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
@@ -74,6 +79,7 @@ import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_SWITCHI
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_TUNNEL_TAG_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.STAT_FLAT_OUTBOUND_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.VTAG_TABLE;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getPropertyValue;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.swapStaleLocation;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.buildExtension;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
@@ -89,6 +95,7 @@ public final class OpenstackSwitchingHandler {
 
     private final Logger log = getLogger(getClass());
 
+    private static final String ARP_MODE = "arpMode";
     private static final String ERR_SET_FLOWS_VNI = "Failed to set flows for %s: Failed to get VNI for %s";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -105,6 +112,9 @@ public final class OpenstackSwitchingHandler {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ComponentConfigService configService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected LeadershipService leadershipService;
@@ -162,12 +172,22 @@ public final class OpenstackSwitchingHandler {
         NetworkType type = osNetworkService.network(instPort.networkId()).getNetworkType();
         switch (type) {
             case VXLAN:
-                setTunnelTagFlowRules(instPort, install);
+                setTunnelTagIpFlowRules(instPort, install);
                 setForwardingRulesForVxlan(instPort, install);
+
+                if (ARP_BROADCAST_MODE.equals(getArpMode())) {
+                    setTunnelTagArpFlowRules(instPort, install);
+                }
+
                 break;
             case VLAN:
-                setVlanTagFlowRules(instPort, install);
+                setVlanTagIpFlowRules(instPort, install);
                 setForwardingRulesForVlan(instPort, install);
+
+                if (ARP_BROADCAST_MODE.equals(getArpMode())) {
+                    setVlanTagArpFlowRules(instPort, install);
+                }
+
                 break;
             case FLAT:
                 setFlatJumpRules(instPort, install);
@@ -190,10 +210,20 @@ public final class OpenstackSwitchingHandler {
 
         switch (type) {
             case VXLAN:
-                setTunnelTagFlowRules(instPort, false);
+                setTunnelTagIpFlowRules(instPort, false);
+
+                if (ARP_BROADCAST_MODE.equals(getArpMode())) {
+                    setTunnelTagArpFlowRules(instPort, false);
+                }
+
                 break;
             case VLAN:
-                setVlanTagFlowRules(instPort, false);
+                setVlanTagIpFlowRules(instPort, false);
+
+                if (ARP_BROADCAST_MODE.equals(getArpMode())) {
+                    setVlanTagArpFlowRules(instPort, false);
+                }
+
                 break;
             case FLAT:
                 setFlatJumpRules(instPort, false);
@@ -219,7 +249,7 @@ public final class OpenstackSwitchingHandler {
                 selector.build(),
                 treatment.build(),
                 PRIORITY_FLAT_JUMP_UPSTREAM_RULE,
-                DHCP_ARP_TABLE,
+                DHCP_TABLE,
                 install);
 
         Network network = osNetworkService.network(port.networkId());
@@ -247,7 +277,7 @@ public final class OpenstackSwitchingHandler {
                 selector.build(),
                 treatment.build(),
                 PRIORITY_FLAT_JUMP_DOWNSTREAM_RULE,
-                DHCP_ARP_TABLE,
+                DHCP_TABLE,
                 install);
 
         selector = DefaultTrafficSelector.builder();
@@ -261,7 +291,7 @@ public final class OpenstackSwitchingHandler {
                 selector.build(),
                 treatment.build(),
                 PRIORITY_FLAT_JUMP_DOWNSTREAM_RULE,
-                DHCP_ARP_TABLE,
+                DHCP_TABLE,
                 install);
     }
 
@@ -446,18 +476,27 @@ public final class OpenstackSwitchingHandler {
                 });
     }
 
+    private void setTunnelTagArpFlowRules(InstancePort instPort, boolean install) {
+        setTunnelTagFlowRules(instPort, Ethernet.TYPE_ARP, install);
+    }
+
+    private void setTunnelTagIpFlowRules(InstancePort instPort, boolean install) {
+        setTunnelTagFlowRules(instPort, Ethernet.TYPE_IPV4, install);
+    }
+
     /**
      * Configures the flow rule which is for using VXLAN to tag the packet
      * based on the in_port number of a virtual instance.
-     * Note that this rule will be inserted in VNI table (table 0).
+     * Note that this rule will be inserted in vTag table.
      *
      * @param instPort instance port object
      * @param install install flag, add the rule if true, remove it otherwise
      */
-    private void setTunnelTagFlowRules(InstancePort instPort, boolean install) {
+    private void setTunnelTagFlowRules(InstancePort instPort,
+                                       short ethType,
+                                       boolean install) {
         TrafficSelector selector = DefaultTrafficSelector.builder()
-                // TODO: need to handle IPv6 in near future
-                .matchEthType(Ethernet.TYPE_IPV4)
+                .matchEthType(ethType)
                 .matchInPort(instPort.portNumber())
                 .build();
 
@@ -469,9 +508,9 @@ public final class OpenstackSwitchingHandler {
 
         TrafficTreatment.Builder tb = DefaultTrafficTreatment.builder()
                 .setTunnelId(getVni(instPort))
-                .transition(ACL_TABLE);
+                .transition(ARP_TABLE);
 
-        if (securityGroupService.isSecurityGroupEnabled()) {
+        if (securityGroupService.isSecurityGroupEnabled() && ethType == Ethernet.TYPE_IPV4) {
             tb.extension(ctTreatment, instPort.deviceId());
         }
 
@@ -485,18 +524,27 @@ public final class OpenstackSwitchingHandler {
                 install);
     }
 
+    private void setVlanTagIpFlowRules(InstancePort instPort, boolean install) {
+        setVlanTagFlowRules(instPort, Ethernet.TYPE_IPV4, install);
+    }
+
+    private void setVlanTagArpFlowRules(InstancePort instPort, boolean install) {
+        setVlanTagFlowRules(instPort, Ethernet.TYPE_ARP, install);
+    }
+
     /**
      * Configures the flow rule which is for using VLAN to tag the packet
      * based on the in_port number of a virtual instance.
-     * Note that this rule will be inserted in VNI table (table 0).
+     * Note that this rule will be inserted in vTag table.
      *
      * @param instPort instance port object
      * @param install install flag, add the rule if true, remove it otherwise
      */
-    private void setVlanTagFlowRules(InstancePort instPort, boolean install) {
+    private void setVlanTagFlowRules(InstancePort instPort,
+                                     short ethType,
+                                     boolean install) {
         TrafficSelector selector = DefaultTrafficSelector.builder()
-                // TODO: need to handle IPv6 in near future
-                .matchEthType(Ethernet.TYPE_IPV4)
+                .matchEthType(ethType)
                 .matchInPort(instPort.portNumber())
                 .build();
 
@@ -635,6 +683,11 @@ public final class OpenstackSwitchingHandler {
             throw new IllegalStateException(error);
         }
         return Long.valueOf(osNet.getProviderSegID());
+    }
+
+    private String getArpMode() {
+        Set<ConfigProperty> properties = configService.getProperties(OpenstackSwitchingArpHandler.class.getName());
+        return getPropertyValue(properties, ARP_MODE);
     }
 
     /**

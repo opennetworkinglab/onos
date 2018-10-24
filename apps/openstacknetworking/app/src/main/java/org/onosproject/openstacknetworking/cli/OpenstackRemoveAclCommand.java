@@ -34,7 +34,7 @@ import org.onosproject.openstacknetworking.api.OpenstackFlowRuleService;
 
 import java.util.Optional;
 
-import static org.onosproject.openstacknetworking.api.Constants.DHCP_ARP_TABLE;
+import static org.onosproject.openstacknetworking.api.Constants.DHCP_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_FORCED_ACL_RULE;
 
@@ -116,7 +116,7 @@ public class OpenstackRemoveAclCommand extends AbstractShellCommand {
                 sBuilder.build(),
                 treatment,
                 PRIORITY_FORCED_ACL_RULE,
-                DHCP_ARP_TABLE,
+                DHCP_TABLE,
                 false);
     }
 }

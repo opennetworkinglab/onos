@@ -45,7 +45,8 @@ import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.onosproject.openstacknetworking.api.Constants.ACL_TABLE;
-import static org.onosproject.openstacknetworking.api.Constants.DHCP_ARP_TABLE;
+import static org.onosproject.openstacknetworking.api.Constants.ARP_TABLE;
+import static org.onosproject.openstacknetworking.api.Constants.DHCP_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.FLAT_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.FORWARDING_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.JUMP_TABLE;
@@ -187,13 +188,14 @@ public class OpenstackFlowRuleManagerTest {
         fros = Sets.newConcurrentHashSet();
 
         target.initializePipeline(DEVICE_ID);
-        assertEquals("Flow Rule size was not match", 11, fros.size());
+        assertEquals("Flow Rule size was not match", 12, fros.size());
 
         Map<Integer, Integer> fromToTableMap = Maps.newConcurrentMap();
         fromToTableMap.put(STAT_INBOUND_TABLE, VTAP_INBOUND_TABLE);
-        fromToTableMap.put(VTAP_INBOUND_TABLE, DHCP_ARP_TABLE);
-        fromToTableMap.put(DHCP_ARP_TABLE, VTAG_TABLE);
-        fromToTableMap.put(VTAG_TABLE, ACL_TABLE);
+        fromToTableMap.put(VTAP_INBOUND_TABLE, DHCP_TABLE);
+        fromToTableMap.put(DHCP_TABLE, VTAG_TABLE);
+        fromToTableMap.put(VTAG_TABLE, ARP_TABLE);
+        fromToTableMap.put(ARP_TABLE, ACL_TABLE);
         fromToTableMap.put(ACL_TABLE, JUMP_TABLE);
         fromToTableMap.put(STAT_OUTBOUND_TABLE, VTAP_OUTBOUND_TABLE);
         fromToTableMap.put(VTAP_OUTBOUND_TABLE, FORWARDING_TABLE);
