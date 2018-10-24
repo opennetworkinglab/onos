@@ -13,10 +13,16 @@ target
 dependency-reduced-pom.xml
 .idea
 *.DS_Store
+.buckd
+buck-out
+.buckconfig.local
+.buckjavaargs*
+bucklets/plugins/
 .watchmanconfig
 .vscode
 *.fxs
 
+/bin/
 lib/yang
 /tools/gui/bin
 /tools/gui/node_modules
