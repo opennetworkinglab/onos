@@ -692,6 +692,7 @@ public class Ofdpa2GroupHandler {
         MacAddress dstMac = readEthDstFromSelector(nextObj.meta());
         if (dstMac != null && dstMac.isMulticast()) {
             processL2MulticastNextObjective(nextObj);
+            return;
         }
 
         List<GroupInfo> groupInfos = prepareL2InterfaceGroup(nextObj, assignedVlan);
