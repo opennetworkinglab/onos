@@ -213,7 +213,6 @@ public class AtomixClusterStore extends AbstractStore<ClusterEvent, ClusterStore
     @Override
     public void markFullyStarted(boolean started) {
         ControllerNode.State state = started ? ControllerNode.State.READY : ControllerNode.State.ACTIVE;
-        states.put(localNode.id(), state);
         membershipService.getLocalMember().properties().setProperty(STATE_KEY, state.name());
     }
 
