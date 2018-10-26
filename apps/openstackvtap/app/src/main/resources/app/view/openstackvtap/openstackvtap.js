@@ -219,68 +219,6 @@
         return div;
     }
 
-    function addInput(tbody, type, id, label, value) {
-        var tr = tbody.append('tr'),
-            lab;
-        if (typeof label === 'string') {
-            lab = label.replace(/_/g, ' ');
-        } else {
-            lab = label;
-        }
-
-        tr.append('td').attr('class', 'label').text(lab + ' :');
-
-        if (type == 'radio') {
-            var td = tr.append('td');
-            for(var index in value) {
-                if(index == 0) {
-                    td.append('input').classed( type + '-input', true)
-                                          .attr('type', type)
-                                          .attr('value', value[index])
-                                          .attr('name', label)
-                                          .attr('id', id)
-                                          .attr('checked', 'true');
-                } else {
-                    td.append('input').classed( type + '-input', true)
-                                          .attr('type', type)
-                                          .attr('name', label)
-                                          .attr('id', id)
-                                          .attr('value', value[index]);
-                }
-                td.append('span').text(value[index]);
-            }
-        } else {
-            tr.append('td').append('input').classed(type + '-input', true).attr('type', type)
-                .attr('id', id).attr('value', value);
-        }
-    }
-
-    function addButton(tr, callback, value) {
-        tr.append('td').append('input').classed('button-input', true).attr('type', 'button')
-                        .attr('value', value).on('click', callback);
-    }
-
-    function makeButton(callback, text, keyName) {
-        var cb = fs.isF(callback),
-            key = fs.isS(keyName);
-
-        function invoke() {
-            cb && cb();
-        }
-
-        return createDiv('vtap-button')
-            .text(text)
-            .on('click', invoke);
-    }
-
-    function createDiv(cls) {
-        var div = d3.select(document.createElement('div'));
-        if (cls) {
-            div.classed(cls, true);
-        }
-        return div;
-    }
-
     function displayVtap() {
         $log.debug("sendEvent openstackVtapIsActivatedRequest: ", selectedItem);
         wss.sendEvent(osvIsActReq, selectedItem);
