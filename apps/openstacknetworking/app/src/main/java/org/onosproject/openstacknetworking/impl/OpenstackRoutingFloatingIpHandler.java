@@ -788,9 +788,9 @@ public class OpenstackRoutingFloatingIpHandler {
                     break;
                 case OPENSTACK_INSTANCE_MIGRATION_ENDED:
 
-                    InstancePort revisedInstPort = swapStaleLocation(event.subject());
+                    InstancePort oldInstPort = swapStaleLocation(event.subject());
 
-                    fip = associatedFloatingIp(revisedInstPort, ips);
+                    fip = associatedFloatingIp(oldInstPort, ips);
 
                     if (fip == null) {
                         return;
@@ -805,7 +805,13 @@ public class OpenstackRoutingFloatingIpHandler {
                         throw new IllegalStateException(errorFormat);
                     }
 
-                    // If we only have one gateway, we simply do not remove any
+                    eventExecutor.execute(() -> {
+                        // We need to remove the old ComputeNodeToGateway rules from
+                        // original compute node
+                        setComputeNodeToGatewayHelper(oldInstPort, osNet, gateways, false);
+                    });
+
+                        // If we only have one gateway, we simply do not remove any
                     // flow rules from either gateway or compute node
                     if (gateways.size() == 1) {
                         return;
@@ -817,7 +823,7 @@ public class OpenstackRoutingFloatingIpHandler {
                     // it has been overwritten at port detention event
                     // if it is false, we will remove the rules
                     DeviceId newDeviceId = event.subject().deviceId();
-                    DeviceId oldDeviceId = revisedInstPort.deviceId();
+                    DeviceId oldDeviceId = oldInstPort.deviceId();
 
                     OpenstackNode oldGateway = getGwByComputeDevId(gateways, oldDeviceId);
                     OpenstackNode newGateway = getGwByComputeDevId(gateways, newDeviceId);
@@ -827,15 +833,10 @@ public class OpenstackRoutingFloatingIpHandler {
                     }
 
                     eventExecutor.execute(() -> {
-
-                        // We need to remove the old ComputeNodeToGateway rules from
-                        // original compute node
-                        setComputeNodeToGatewayHelper(revisedInstPort, osNet, gateways, false);
-
                         // Since DownstreamExternal rules should only be placed in
                         // corresponding gateway node, we need to remove old rule from
                         // the corresponding gateway node
-                        setDownstreamExternalRulesHelper(fip, osNet, revisedInstPort,
+                        setDownstreamExternalRulesHelper(fip, osNet, oldInstPort,
                                 externalPeerRouter, gateways, false);
                     });
                     break;
