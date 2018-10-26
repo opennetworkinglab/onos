@@ -306,8 +306,9 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
     @Override
     public CompletableFuture<Boolean> writeActionGroup(PiActionGroup group,
                                                        WriteOperationType opType,
-                                                       PiPipeconf pipeconf) {
-        return supplyInContext(() -> doWriteActionGroup(group, opType, pipeconf),
+                                                       PiPipeconf pipeconf,
+                                                       int maxMemberSize) {
+        return supplyInContext(() -> doWriteActionGroup(group, opType, pipeconf, maxMemberSize),
                                "writeActionGroup-" + opType.name());
     }
 
@@ -950,10 +951,15 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
                 "action profile members");
     }
 
-    private boolean doWriteActionGroup(PiActionGroup group, WriteOperationType opType, PiPipeconf pipeconf) {
+    private boolean doWriteActionGroup(PiActionGroup group, WriteOperationType opType, PiPipeconf pipeconf,
+                                       int maxMemberSize) {
         final ActionProfileGroup actionProfileGroup;
+        if (opType == P4RuntimeClient.WriteOperationType.INSERT && maxMemberSize < group.members().size()) {
+            log.warn("Unable to encode group, since group member larger than maximum member size");
+            return false;
+        }
         try {
-            actionProfileGroup = ActionProfileGroupEncoder.encode(group, pipeconf);
+            actionProfileGroup = ActionProfileGroupEncoder.encode(group, pipeconf, maxMemberSize);
         } catch (EncodeException | P4InfoBrowser.NotFoundException e) {
             log.warn("Unable to encode group, aborting {} operation: {}", e.getMessage(), opType.name());
             return false;

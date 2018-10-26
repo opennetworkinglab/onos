@@ -212,10 +212,13 @@ public interface P4RuntimeClient {
      * @param group    the action group
      * @param opType   write operation type
      * @param pipeconf the pipeconf currently deployed on the device
+     * @param maxMemberSize the maximum number of members that can be added to the group.
+     *                      This is meaningful only if it's an INSERT operation, otherwise
+     *                      its value should be 0
      * @return true if the operation was successful, false otherwise
      */
     CompletableFuture<Boolean> writeActionGroup(
-            PiActionGroup group, WriteOperationType opType, PiPipeconf pipeconf);
+            PiActionGroup group, WriteOperationType opType, PiPipeconf pipeconf, int maxMemberSize);
 
     /**
      * Dumps all groups currently installed for the given action profile.
