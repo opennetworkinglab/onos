@@ -17,6 +17,7 @@
 package org.onosproject.drivers.p4runtime.mirror;
 
 import com.google.common.annotations.Beta;
+import org.onosproject.net.Annotations;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.pi.runtime.PiEntity;
 import org.onosproject.net.pi.runtime.PiHandle;
@@ -72,6 +73,23 @@ public interface P4RuntimeMirror
      * @param handle handle
      */
     void remove(H handle);
+
+    /**
+     * Stores the given annotations associating it to the given handle.
+     *
+     * @param handle handle
+     * @param annotations  entry
+     */
+    void putAnnotations(H handle, Annotations annotations);
+
+    /**
+     * Returns annotations associated to the given handle, if present, otherwise
+     * null.
+     *
+     * @param handle handle
+     * @return PI table annotations
+     */
+    Annotations annotations(H handle);
 
     /**
      * Synchronizes the state of the given device ID with the given handle map.

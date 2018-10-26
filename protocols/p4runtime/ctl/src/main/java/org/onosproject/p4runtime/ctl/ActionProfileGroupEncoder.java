@@ -36,8 +36,6 @@ import static java.lang.String.format;
  */
 final class ActionProfileGroupEncoder {
 
-    private static final int GROUP_SIZE_ADDITIONAL_MEMBERS = 10;
-
     private ActionProfileGroupEncoder() {
         // hide default constructor
     }
@@ -47,13 +45,14 @@ final class ActionProfileGroupEncoder {
      *
      * @param piActionGroup the action profile group
      * @param pipeconf      the pipeconf
+     * @param maxMemberSize the max member size of action group
      * @return a action profile group encoded from PI action group
      * @throws P4InfoBrowser.NotFoundException if can't find action profile from
      *                                         P4Info browser
      * @throws EncodeException                 if can't find P4Info from
      *                                         pipeconf
      */
-    static ActionProfileGroup encode(PiActionGroup piActionGroup, PiPipeconf pipeconf)
+    static ActionProfileGroup encode(PiActionGroup piActionGroup, PiPipeconf pipeconf, int maxMemberSize)
             throws P4InfoBrowser.NotFoundException, EncodeException {
         P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(pipeconf);
 
@@ -78,15 +77,9 @@ final class ActionProfileGroupEncoder {
             actionProfileGroupBuilder.addMembers(member);
         });
 
-        // FIXME: ONOS-7797 Make this configurable, or find a different way of
-        // supporting group modify. In P4Runtime, group size cannot be modified
-        // once the group is created. To allow adding members to an existing
-        // group we set max_size to support an additional number of members
-        // other than the one already defined in the PI group. Clearly, this
-        // will break if we try to add more than GROUP_SIZE_ADDITIONAL_MEMBERS
-        // to the same group.
-        actionProfileGroupBuilder.setMaxSize(
-                piActionGroup.members().size() + GROUP_SIZE_ADDITIONAL_MEMBERS);
+        if (maxMemberSize > 0) {
+            actionProfileGroupBuilder.setMaxSize(maxMemberSize);
+        }
 
         return actionProfileGroupBuilder.build();
     }
