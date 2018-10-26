@@ -28,7 +28,7 @@ import org.onosproject.net.device.PortStatisticsDiscovery;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.pi.model.PiCounterId;
 import org.onosproject.net.pi.model.PiPipeconf;
-import org.onosproject.net.pi.runtime.PiCounterCellData;
+import org.onosproject.net.pi.runtime.PiCounterCell;
 import org.onosproject.net.pi.runtime.PiCounterCellId;
 import org.onosproject.net.pi.service.PiPipeconfService;
 import org.onosproject.p4runtime.api.P4RuntimeClient;
@@ -112,7 +112,7 @@ public class PortStatisticsDiscoveryImpl extends AbstractHandlerBehaviour implem
             counterCellIds.add(PiCounterCellId.ofIndirect(egressCounterId(), p));
         });
 
-        Collection<PiCounterCellData> counterEntryResponse;
+        Collection<PiCounterCell> counterEntryResponse;
         try {
             counterEntryResponse = client.readCounterCells(counterCellIds, pipeconf).get();
         } catch (InterruptedException | ExecutionException e) {
@@ -121,25 +121,25 @@ public class PortStatisticsDiscoveryImpl extends AbstractHandlerBehaviour implem
             return Collections.emptyList();
         }
 
-        counterEntryResponse.forEach(counterData -> {
-            if (counterData.cellId().counterType() != INDIRECT) {
-                log.warn("Invalid counter data type {}, skipping", counterData.cellId().counterType());
+        counterEntryResponse.forEach(counterCell -> {
+            if (counterCell.cellId().counterType() != INDIRECT) {
+                log.warn("Invalid counter data type {}, skipping", counterCell.cellId().counterType());
                 return;
             }
-            PiCounterCellId indCellId = counterData.cellId();
+            PiCounterCellId indCellId = counterCell.cellId();
             if (!portStatBuilders.containsKey(indCellId.index())) {
-                log.warn("Unrecognized counter index {}, skipping", counterData);
+                log.warn("Unrecognized counter index {}, skipping", counterCell);
                 return;
             }
             DefaultPortStatistics.Builder statsBuilder = portStatBuilders.get(indCellId.index());
-            if (counterData.cellId().counterId().equals(ingressCounterId())) {
-                statsBuilder.setPacketsReceived(counterData.packets());
-                statsBuilder.setBytesReceived(counterData.bytes());
-            } else if (counterData.cellId().counterId().equals(egressCounterId())) {
-                statsBuilder.setPacketsSent(counterData.packets());
-                statsBuilder.setBytesSent(counterData.bytes());
+            if (counterCell.cellId().counterId().equals(ingressCounterId())) {
+                statsBuilder.setPacketsReceived(counterCell.data().packets());
+                statsBuilder.setBytesReceived(counterCell.data().bytes());
+            } else if (counterCell.cellId().counterId().equals(egressCounterId())) {
+                statsBuilder.setPacketsSent(counterCell.data().packets());
+                statsBuilder.setBytesSent(counterCell.data().bytes());
             } else {
-                log.warn("Unrecognized counter ID {}, skipping", counterData);
+                log.warn("Unrecognized counter ID {}, skipping", counterCell);
             }
 
         });

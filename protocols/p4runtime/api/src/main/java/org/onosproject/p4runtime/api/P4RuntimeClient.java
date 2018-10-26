@@ -25,7 +25,7 @@ import org.onosproject.net.pi.model.PiTableId;
 import org.onosproject.net.pi.runtime.PiActionGroup;
 import org.onosproject.net.pi.runtime.PiActionGroupMember;
 import org.onosproject.net.pi.runtime.PiActionGroupMemberId;
-import org.onosproject.net.pi.runtime.PiCounterCellData;
+import org.onosproject.net.pi.runtime.PiCounterCell;
 import org.onosproject.net.pi.runtime.PiCounterCellId;
 import org.onosproject.net.pi.runtime.PiMeterCellConfig;
 import org.onosproject.net.pi.runtime.PiMeterCellId;
@@ -178,7 +178,7 @@ public interface P4RuntimeClient {
      * @param pipeconf   pipeconf
      * @return list of counter data
      */
-    CompletableFuture<List<PiCounterCellData>> readAllCounterCells(
+    CompletableFuture<List<PiCounterCell>> readAllCounterCells(
             Set<PiCounterId> counterIds, PiPipeconf pipeconf);
 
     /**
@@ -189,7 +189,7 @@ public interface P4RuntimeClient {
      * @param pipeconf pipeconf
      * @return list of counter data
      */
-    CompletableFuture<List<PiCounterCellData>> readCounterCells(
+    CompletableFuture<List<PiCounterCell>> readCounterCells(
             Set<PiCounterCellId> cellIds, PiPipeconf pipeconf);
 
     /**

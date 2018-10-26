@@ -546,6 +546,12 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
     }
 
     private void processOpenstackNodeRemoved(OpenstackNode osNode) {
+        OvsdbClientService client = getOvsdbClient(osNode, ovsdbPort, ovsdbController);
+        if (client == null) {
+            log.info("Failed to get ovsdb client");
+            return;
+        }
+
         //delete physical interfaces from the node
         removePhysicalInterface(osNode);
 
@@ -560,6 +566,17 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                 }
             });
         }
+
+        //delete tunnel bridge from the node
+        if (hasDpdkTunnelBridge(osNode)) {
+            client.dropBridge(TUNNEL_BRIDGE);
+        }
+
+        //delete integration bridge from the node
+        client.dropBridge(INTEGRATION_BRIDGE);
+
+        //disconnect ovsdb
+        client.disconnect();
     }
 
     /**

@@ -108,7 +108,7 @@ import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_RESUBMIT_TABLE;
 import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_TUNNEL_DST;
-import static org.onosproject.openstacknetworking.api.Constants.DHCP_ARP_TABLE;
+import static org.onosproject.openstacknetworking.api.Constants.DHCP_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.FLAT_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.FORWARDING_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.VTAP_FLAT_OUTBOUND_GROUP_TABLE;
@@ -185,7 +185,7 @@ public class OpenstackVtapManager
     private static final int PRIORITY_VTAP_OUTPUT_RULE = 1000;
     private static final int PRIORITY_VTAP_OUTPUT_DROP = 0;
 
-    private static final int INBOUND_NEXT_TABLE = DHCP_ARP_TABLE;
+    private static final int INBOUND_NEXT_TABLE = DHCP_TABLE;
     private static final int FLAT_OUTBOUND_NEXT_TABLE = FLAT_TABLE;
     private static final int OUTBOUND_NEXT_TABLE = FORWARDING_TABLE;
 

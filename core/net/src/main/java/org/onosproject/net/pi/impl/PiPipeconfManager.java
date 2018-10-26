@@ -186,7 +186,7 @@ public class PiPipeconfManager implements PiPipeconfService {
                 deviceId, BasicDeviceConfig.class);
         if (basicDeviceConfig == null) {
             log.warn("Unable to get basic device config for {}, " +
-                             "aborting pipeconf driver merge");
+                             "aborting pipeconf driver merge", deviceId);
             return null;
         }
         String baseDriverName = basicDeviceConfig.driver();

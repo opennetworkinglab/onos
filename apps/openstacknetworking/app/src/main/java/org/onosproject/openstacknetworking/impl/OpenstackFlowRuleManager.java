@@ -198,11 +198,18 @@ public class OpenstackFlowRuleManager implements OpenstackFlowRuleService {
     protected void initializePipeline(DeviceId deviceId) {
         // for inbound table transition
         connectTables(deviceId, Constants.STAT_INBOUND_TABLE, Constants.VTAP_INBOUND_TABLE);
-        connectTables(deviceId, Constants.VTAP_INBOUND_TABLE, Constants.DHCP_ARP_TABLE);
+        connectTables(deviceId, Constants.VTAP_INBOUND_TABLE, Constants.DHCP_TABLE);
 
-        // for vTag and ACL table transition
-        connectTables(deviceId, Constants.DHCP_ARP_TABLE, Constants.VTAG_TABLE);
-        connectTables(deviceId, Constants.VTAG_TABLE, Constants.ACL_TABLE);
+        // for DHCP and vTag table transition
+        connectTables(deviceId, Constants.DHCP_TABLE, Constants.VTAG_TABLE);
+
+        // for vTag and ARP table transition
+        connectTables(deviceId, Constants.VTAG_TABLE, Constants.ARP_TABLE);
+
+        // for ARP and ACL table transition
+        connectTables(deviceId, Constants.ARP_TABLE, Constants.ACL_TABLE);
+
+        // for ACL and JUMP table transition
         connectTables(deviceId, Constants.ACL_TABLE, Constants.JUMP_TABLE);
 
         // for JUMP table transition

@@ -242,6 +242,9 @@ public class FabricPipeliner  extends AbstractHandlerBehaviour implements Pipeli
         }
 
         FlowRuleOperations ops = buildFlowRuleOps(objective, flowRules);
+        if (ops == null) {
+            return;
+        }
         flowRuleService.apply(ops);
 
         flowRules.forEach(flow -> {

@@ -43,7 +43,7 @@ import org.onosproject.net.pi.model.PiTableId;
 import org.onosproject.net.pi.runtime.PiActionGroup;
 import org.onosproject.net.pi.runtime.PiActionGroupMember;
 import org.onosproject.net.pi.runtime.PiActionGroupMemberId;
-import org.onosproject.net.pi.runtime.PiCounterCellData;
+import org.onosproject.net.pi.runtime.PiCounterCell;
 import org.onosproject.net.pi.runtime.PiCounterCellId;
 import org.onosproject.net.pi.runtime.PiMeterCellConfig;
 import org.onosproject.net.pi.runtime.PiMeterCellId;
@@ -281,15 +281,15 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
     }
 
     @Override
-    public CompletableFuture<List<PiCounterCellData>> readCounterCells(Set<PiCounterCellId> cellIds,
-                                                                       PiPipeconf pipeconf) {
+    public CompletableFuture<List<PiCounterCell>> readCounterCells(Set<PiCounterCellId> cellIds,
+                                                                   PiPipeconf pipeconf) {
         return supplyInContext(() -> doReadCounterCells(Lists.newArrayList(cellIds), pipeconf),
                                "readCounterCells-" + cellIds.hashCode());
     }
 
     @Override
-    public CompletableFuture<List<PiCounterCellData>> readAllCounterCells(Set<PiCounterId> counterIds,
-                                                                          PiPipeconf pipeconf) {
+    public CompletableFuture<List<PiCounterCell>> readAllCounterCells(Set<PiCounterId> counterIds,
+                                                                      PiPipeconf pipeconf) {
         return supplyInContext(() -> doReadAllCounterCells(Lists.newArrayList(counterIds), pipeconf),
                                "readAllCounterCells-" + counterIds.hashCode());
     }
@@ -408,6 +408,11 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
             return null;
         }
 
+        ForwardingPipelineConfig.Cookie pipeconfCookie = ForwardingPipelineConfig.Cookie
+                .newBuilder()
+                .setCookie(pipeconf.fingerprint())
+                .build();
+
         // FIXME: This is specific to PI P4Runtime implementation.
         P4Config.P4DeviceConfig p4DeviceConfigMsg = P4Config.P4DeviceConfig
                 .newBuilder()
@@ -420,6 +425,7 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
                 .newBuilder()
                 .setP4Info(p4Info)
                 .setP4DeviceConfig(p4DeviceConfigMsg.toByteString())
+                .setCookie(pipeconfCookie)
                 .build();
     }
 
@@ -428,6 +434,8 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
         GetForwardingPipelineConfigRequest request = GetForwardingPipelineConfigRequest
                 .newBuilder()
                 .setDeviceId(p4DeviceId)
+                .setResponseType(GetForwardingPipelineConfigRequest
+                                         .ResponseType.COOKIE_ONLY)
                 .build();
 
         GetForwardingPipelineConfigResponse resp;
@@ -445,33 +453,14 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
             }
             return false;
         }
-
-        ForwardingPipelineConfig expectedConfig = getPipelineConfig(
-                pipeconf, deviceData);
-
-        if (expectedConfig == null) {
-            return false;
-        }
-        if (!resp.hasConfig()) {
+        if (!resp.getConfig().hasCookie()) {
             log.warn("{} returned GetForwardingPipelineConfigResponse " +
-                             "with 'config' field unset",
+                             "with 'cookie' field unset",
                      deviceId);
             return false;
         }
-        if (resp.getConfig().getP4DeviceConfig().isEmpty()
-                && !expectedConfig.getP4DeviceConfig().isEmpty()) {
-            // Don't bother with a warn or error since we don't really allow
-            // updating the pipeline to a different one. So the P4Info should be
-            // enough for us.
-            log.debug("{} returned GetForwardingPipelineConfigResponse " +
-                              "with empty 'p4_device_config' field, " +
-                              "equality will be based only on P4Info",
-                      deviceId);
-            return resp.getConfig().getP4Info().equals(
-                    expectedConfig.getP4Info());
-        } else {
-            return resp.getConfig().equals(expectedConfig);
-        }
+
+        return resp.getConfig().getCookie().getCookie() == pipeconf.fingerprint();
     }
 
     private boolean doSetPipelineConfig(PiPipeconf pipeconf, ByteBuffer deviceData) {
@@ -570,6 +559,7 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
                                 TableEntry.newBuilder()
                                         .setTableId(tableId)
                                         .setIsDefaultAction(defaultEntries)
+                                        .setCounterData(P4RuntimeOuterClass.CounterData.getDefaultInstance())
                                         .build())
                         .build())
                 .build());
@@ -662,21 +652,21 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
         isClientMaster.set(isMaster);
     }
 
-    private List<PiCounterCellData> doReadAllCounterCells(
+    private List<PiCounterCell> doReadAllCounterCells(
             List<PiCounterId> counterIds, PiPipeconf pipeconf) {
         return doReadCounterEntities(
                 CounterEntryCodec.readAllCellsEntities(counterIds, pipeconf),
                 pipeconf);
     }
 
-    private List<PiCounterCellData> doReadCounterCells(
+    private List<PiCounterCell> doReadCounterCells(
             List<PiCounterCellId> cellIds, PiPipeconf pipeconf) {
         return doReadCounterEntities(
                 CounterEntryCodec.encodePiCounterCellIds(cellIds, pipeconf),
                 pipeconf);
     }
 
-    private List<PiCounterCellData> doReadCounterEntities(
+    private List<PiCounterCell> doReadCounterEntities(
             List<Entity> counterEntities, PiPipeconf pipeconf) {
 
         if (counterEntities.size() == 0) {

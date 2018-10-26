@@ -77,7 +77,7 @@ import java.nio.ByteBuffer;
 import java.util.Objects;
 import java.util.Set;
 
-import static org.onosproject.openstacknetworking.api.Constants.DHCP_ARP_TABLE;
+import static org.onosproject.openstacknetworking.api.Constants.DHCP_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_DHCP_RULE;
 import static org.onosproject.openstacknetworking.impl.OpenstackMetadataProxyHandler.Http.Type.RESPONSE;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.hmacEncrypt;
@@ -572,7 +572,7 @@ public class OpenstackMetadataProxyHandler {
                     selector,
                     treatment,
                     PRIORITY_DHCP_RULE,
-                    DHCP_ARP_TABLE,
+                    DHCP_TABLE,
                     install);
         }
     }

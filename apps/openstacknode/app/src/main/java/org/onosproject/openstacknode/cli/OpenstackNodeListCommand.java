@@ -28,6 +28,7 @@ import org.onosproject.openstacknode.api.OpenstackNodeService;
 import java.util.Comparator;
 import java.util.List;
 
+import static org.onosproject.openstacknode.util.OpenstackNodeUtil.getGwByComputeNode;
 import static org.onosproject.openstacknode.util.OpenstackNodeUtil.prettyJson;
 
 /**
@@ -38,7 +39,7 @@ import static org.onosproject.openstacknode.util.OpenstackNodeUtil.prettyJson;
         description = "Lists all nodes registered in OpenStack node service")
 public class OpenstackNodeListCommand extends AbstractShellCommand {
 
-    private static final String FORMAT = "%-20s%-15s%-24s%-24s%-20s%-20s%-15s%s";
+    private static final String FORMAT = "%-20s%-15s%-24s%-24s%-20s%-20s%-15s%-15s%-15s";
 
     @Override
     protected void doExecute() {
@@ -50,7 +51,7 @@ public class OpenstackNodeListCommand extends AbstractShellCommand {
             print("%s", json(osNodes));
         } else {
             print(FORMAT, "Hostname", "Type", "Integration Bridge",
-                    "Management IP", "Data IP", "VLAN Intf", "Uplink Port", "State");
+                    "Management IP", "Data IP", "VLAN Intf", "Uplink Port", "State", "SelectedGw");
             for (OpenstackNode osNode : osNodes) {
                 print(FORMAT,
                         osNode.hostname(),
@@ -60,7 +61,8 @@ public class OpenstackNodeListCommand extends AbstractShellCommand {
                         osNode.dataIp() != null ? osNode.dataIp() : "",
                         osNode.vlanIntf() != null ? osNode.vlanIntf() : "",
                         osNode.uplinkPort() != null ? osNode.uplinkPort() : "",
-                        osNode.state());
+                        osNode.state(),
+                        getGwByComputeNode(osNodeService.completeNodes(OpenstackNode.NodeType.GATEWAY), osNode));
             }
             print("Total %s nodes", osNodeService.nodes().size());
         }

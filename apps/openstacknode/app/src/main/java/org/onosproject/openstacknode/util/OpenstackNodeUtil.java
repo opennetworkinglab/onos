@@ -48,7 +48,11 @@ import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
 import java.security.cert.X509Certificate;
 import java.util.Dictionary;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 import static org.onlab.util.Tools.get;
 
@@ -69,6 +73,7 @@ public final class OpenstackNodeUtil {
     private static final String ZERO = "0";
 
     private static final String DPDK_DEVARGS = "dpdk-devargs";
+    private static final String NOT_AVAILABLE = "N/A";
 
     /**
      * Prevents object installation from external.
@@ -287,6 +292,56 @@ public final class OpenstackNodeUtil {
         } else {
             client.dropInterface(dpdkInterface.intf());
         }
+    }
+
+    /**
+     * Obtains the gateway node by openstack node. Note that the gateway
+     * node is determined by device's device identifier.
+     *
+     * @param gws                a collection of gateway nodes
+     * @param openstackNode      device identifier
+     * @return the hostname of selected gateway node
+     */
+    public static String getGwByComputeNode(Set<OpenstackNode> gws, OpenstackNode openstackNode) {
+        int numOfGw = gws.size();
+
+        if (numOfGw == 0) {
+            return NOT_AVAILABLE;
+        }
+
+        if (!openstackNode.type().equals(OpenstackNode.NodeType.COMPUTE)) {
+            return NOT_AVAILABLE;
+        }
+
+        int gwIndex = Math.abs(openstackNode.intgBridge().hashCode()) % numOfGw;
+
+        return getGwByIndex(gws, gwIndex).hostname();
+    }
+
+    /**
+     * Obtains gateway instance by giving index number.
+     *
+     * @param gws       a collection of gateway nodes
+     * @param index     index number
+     * @return gateway instance
+     */
+    private static OpenstackNode getGwByIndex(Set<OpenstackNode> gws, int index) {
+        Map<String, OpenstackNode> hashMap = new HashMap<>();
+        gws.forEach(gw -> hashMap.put(gw.hostname(), gw));
+        TreeMap<String, OpenstackNode> treeMap = new TreeMap<>(hashMap);
+        Iterator<String> iteratorKey = treeMap.keySet().iterator();
+
+        int intIndex = 0;
+        OpenstackNode gw = null;
+        while (iteratorKey.hasNext()) {
+            String key = iteratorKey.next();
+
+            if (intIndex == index) {
+                gw = treeMap.get(key);
+            }
+            intIndex++;
+        }
+        return gw;
     }
 
     /**

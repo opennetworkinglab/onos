@@ -113,6 +113,7 @@ public class RestDeviceProvider extends AbstractProvider
     private static final String UNKNOWN = "unknown";
     private static final int REST_TIMEOUT_SEC = 5;
     private static final int EXECUTOR_THREAD_POOL_SIZE = 8;
+    private static final int DEVICE_POLL_SEC = 30;
     private final Logger log = getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
@@ -148,6 +149,9 @@ public class RestDeviceProvider extends AbstractProvider
     private final SharedScheduledExecutorService portStatisticsExecutor =
             SharedScheduledExecutors.getPoolThreadExecutor();
 
+    private final SharedScheduledExecutorService deviceConnectionExecutor =
+            SharedScheduledExecutors.getPoolThreadExecutor();
+    private ScheduledFuture<?> devicePollTask;
     private final List<ConfigFactory> factories = ImmutableList.of(
             new ConfigFactory<DeviceId, RestDeviceConfig>(SubjectFactories.DEVICE_SUBJECT_FACTORY,
                                                           RestDeviceConfig.class,
@@ -175,6 +179,7 @@ public class RestDeviceProvider extends AbstractProvider
         netCfgService.addListener(configListener);
         executor.execute(RestDeviceProvider.this::createAndConnectDevices);
         scheduledTask = schedulePolling();
+        devicePollTask = scheduleDevicePolling();
         log.info("Started");
     }
 
@@ -206,6 +211,7 @@ public class RestDeviceProvider extends AbstractProvider
         factories.forEach(netCfgService::unregisterConfigFactory);
         scheduledTask.cancel(true);
         executor.shutdown();
+        devicePollTask.cancel(true);
         log.info("Stopped");
     }
 
@@ -221,23 +227,91 @@ public class RestDeviceProvider extends AbstractProvider
 
     @Override
     public void roleChanged(DeviceId deviceId, MastershipRole newRole) {
-        // TODO: This will be implemented later.
+        log.debug("Received role {} request for device {}", newRole, deviceId);
+        RestSBDevice device = controller.getDevice(deviceId);
+        if (device != null && testDeviceConnection(device)) {
+            providerService.receivedRoleReply(deviceId, newRole, newRole);
+        } else {
+            log.warn("Device not present or available {}", deviceId);
+            providerService.receivedRoleReply(deviceId, newRole, MastershipRole.NONE);
+        }
     }
 
     @Override
     public boolean isReachable(DeviceId deviceId) {
         RestSBDevice restDevice = controller.getDevice(deviceId);
-        if (restDevice == null) {
-            restDevice = controller.getProxySBDevice(deviceId);
-            if (restDevice == null) {
-                log.debug("the requested device id: " +
-                                  deviceId.toString() +
-                                  "  is not associated to any REST or REST " +
-                                  "proxy Device");
-                return false;
+        return restDevice != null ? restDevice.isActive() : false;
+    }
+
+    private ScheduledFuture scheduleDevicePolling() {
+        return deviceConnectionExecutor.scheduleWithFixedDelay(() -> {
+            try {
+                controller.getDevices().values().stream().forEach(restSBDevice -> {
+                            DeviceId deviceId = restSBDevice.deviceId();
+                            if (deviceService.getDevice(deviceId) != null) {
+                                boolean connected = testDeviceConnection(restSBDevice);
+                                restSBDevice.setActive(connected);
+                                if (deviceService.isAvailable(deviceId) && (!connected)) {
+                                    providerService.deviceDisconnected(deviceId);
+                                } else if (!deviceService.isAvailable(deviceId) && connected) {
+                                    DeviceDescription devDesc = getDesc(restSBDevice);
+                                    checkNotNull(devDesc, "deviceDescription cannot be null");
+                                    providerService.deviceConnected(
+                                            deviceId, mergeAnn(deviceId, devDesc));
+                                }
+                            }
+                        }
+                );
+            } catch (Exception e) {
+                log.error("Exception at schedule Device polling", e);
+            }
+        }, 1, DEVICE_POLL_SEC, TimeUnit.SECONDS);
+    }
+
+    private DeviceDescription getDesc(RestSBDevice restSBDev) {
+        DeviceId deviceId = restSBDev.deviceId();
+        if (restSBDev.isProxy()) {
+            Driver driver = driverService.getDriver(restSBDev.manufacturer().get(),
+                    restSBDev.hwVersion().get(),
+                    restSBDev.swVersion().get());
+
+            if (driver != null && driver.hasBehaviour(DevicesDiscovery.class)) {
+
+                //Creates the driver to communicate with the server
+                DevicesDiscovery devicesDiscovery =
+                        devicesDiscovery(restSBDev, driver);
+                return devicesDiscovery.deviceDetails(deviceId);
+            } else {
+                log.warn("Driver not found for {}", restSBDev);
+                return null;
             }
         }
-        return restDevice.isActive();
+        ChassisId cid = new ChassisId();
+        String ipAddress = restSBDev.ip().toString();
+        SparseAnnotations annotations = DefaultAnnotations.builder()
+                .set(IPADDRESS, ipAddress)
+                .set(AnnotationKeys.PROTOCOL, REST.toUpperCase())
+                .build();
+        String manufacturer = UNKNOWN;
+        String hwVersion = UNKNOWN;
+        String swVersion = UNKNOWN;
+        String serialNumber = UNKNOWN;
+
+        Device device = deviceService.getDevice(deviceId);
+        if (device != null) {
+            manufacturer = device.manufacturer();
+            hwVersion = device.hwVersion();
+            swVersion = device.swVersion();
+            serialNumber = device.serialNumber();
+        }
+
+        return new DefaultDeviceDescription(
+                deviceId.uri(),
+                Device.Type.SWITCH,
+                manufacturer, hwVersion,
+                swVersion, serialNumber,
+                cid,
+                annotations);
     }
 
     private void deviceAdded(RestSBDevice restSBDev) {
@@ -272,6 +346,7 @@ public class RestDeviceProvider extends AbstractProvider
             }
         } else {
             DeviceId deviceId = restSBDev.deviceId();
+
             if (driver != null && driver.hasBehaviour(DevicesDiscovery.class)) {
                 restSBDev.setActive(true);
                 DevicesDiscovery devicesDiscovery = devicesDiscovery(restSBDev, driver);
@@ -285,23 +360,10 @@ public class RestDeviceProvider extends AbstractProvider
                     providerService.updatePorts(deviceId, deviceDiscovery.discoverPortDetails());
                 }
             } else {
-                ChassisId cid = new ChassisId();
-                String ipAddress = restSBDev.ip().toString();
-                SparseAnnotations annotations = DefaultAnnotations.builder()
-                        .set(IPADDRESS, ipAddress)
-                        .set(AnnotationKeys.PROTOCOL, REST.toUpperCase())
-                        .build();
-                DeviceDescription deviceDescription = new DefaultDeviceDescription(
-                        deviceId.uri(),
-                        Device.Type.SWITCH,
-                        UNKNOWN, UNKNOWN,
-                        UNKNOWN, UNKNOWN,
-                        cid,
-                        annotations);
+                DeviceDescription deviceDescription = getDesc(restSBDev);
                 restSBDev.setActive(true);
                 providerService.deviceConnected(deviceId, deviceDescription);
             }
-
             checkAndUpdateDevice(deviceId);
         }
     }
@@ -371,6 +433,7 @@ public class RestDeviceProvider extends AbstractProvider
 
     private void deviceRemoved(DeviceId deviceId) {
         checkNotNull(deviceId, ISNOTNULL);
+        log.debug("Device removed called for {}", deviceId);
         providerService.deviceDisconnected(deviceId);
         controller.getProxiedDevices(deviceId).forEach(device -> {
             controller.removeProxiedDevice(device);
@@ -383,6 +446,8 @@ public class RestDeviceProvider extends AbstractProvider
     private void createAndConnectDevices() {
         Set<DeviceId> deviceSubjects =
                 netCfgService.getSubjects(DeviceId.class, RestDeviceConfig.class);
+        log.debug("Connecting and configuring devices with received configuration:{}",
+                deviceSubjects);
         connectDevices(deviceSubjects.stream()
                 .filter(deviceId -> deviceService.getDevice(deviceId) == null)
                 .map(deviceId -> {
@@ -510,10 +575,14 @@ public class RestDeviceProvider extends AbstractProvider
 
             ExecutorService bg = SharedExecutors.getSingleThreadExecutor();
             if (event.type() == CONFIG_REMOVED) {
+                log.debug("Config {} event for rest device provider for {}",
+                        event.type(), event.prevConfig().get().subject());
                 DeviceId did = (DeviceId) event.subject();
                 bg.execute(() -> deviceRemoved(did));
             } else {
-                // CONFIG_ADDED or CONFIG_UPDATED
+                //CONFIG_ADDED or CONFIG_UPDATED
+                log.debug("Config {} event for rest device provider for {}",
+                        event.type(), event.config().get().subject());
                 RestDeviceConfig cfg = (RestDeviceConfig) event.config().get();
                 RestSBDevice restSBDevice = toInactiveRestSBDevice(cfg);
                 bg.execute(() -> connectDevice(restSBDevice));
