@@ -263,7 +263,9 @@ control FabricDeparser(packet_out packet, in parsed_headers_t hdr) {
         packet.emit(hdr.int_q_congestion);
         packet.emit(hdr.int_egress_tx_util);
 #endif // WITH_INT_TRANSIT
+#ifdef WITH_INT_SINK
         packet.emit(hdr.int_data);
+#endif // WITH_INT_SINK
         packet.emit(hdr.intl4_tail);
 #endif // WITH_INT
     }

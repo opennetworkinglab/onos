@@ -209,7 +209,9 @@ struct parsed_headers_t {
     int_egress_tstamp_t int_egress_tstamp;
     int_q_congestion_t int_q_congestion;
     int_egress_port_tx_util_t int_egress_tx_util;
+#ifdef WITH_INT_SINK
     int_data_t int_data;
+#endif // WITH_INT_SINK
     intl4_tail_t intl4_tail;
 #endif //WITH_INT
 }
