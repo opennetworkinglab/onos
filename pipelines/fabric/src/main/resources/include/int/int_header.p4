@@ -62,11 +62,13 @@ header intl4_tail_t {
     bit<6> dscp;
 }
 
+#ifdef WITH_INT_SINK
 header int_data_t {
     // Maximum int metadata stack size in bits:
     // (0xFF -4) * 32 (excluding INT shim header, tail header and INT header)
     varbit<8032> data;
 }
+#endif // WITH_INT_SINK
 
 #ifdef WITH_INT_TRANSIT
 // INT meta-value headers - 4 bytes each
