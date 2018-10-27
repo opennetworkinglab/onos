@@ -352,7 +352,7 @@ public class ServerDevicesDiscovery extends BasicServerDriver
         RestServerSBDevice dev = new DefaultRestServerSBDevice(
             device.ip(), device.port(), device.username(),
             device.password(), device.protocol(), device.url(),
-            device.isActive(), device.testUrl().toString(),
+            device.isActive(), device.testUrl().orElse(""),
             vendor, hw, sw, AuthenticationScheme.BASIC, "",
             cpuSet, nicSet
         );
