@@ -16,6 +16,7 @@
 
 package org.onosproject.driver.extensions;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -35,7 +36,9 @@ public class NiciraMatchCtMark extends AbstractExtension implements ExtensionSel
     private long ctMark;
     private long ctMarkMask;
 
-    private final KryoNamespace appKryo = new KryoNamespace.Builder().build();
+    private final KryoNamespace appKryo = new KryoNamespace.Builder()
+                                                    .register(HashMap.class)
+                                                    .build();
 
     /**
      * Creates a new conntrack mark selector.
