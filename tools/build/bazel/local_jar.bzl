@@ -13,13 +13,28 @@
 # limitations under the License.
 
 def _local_jar_impl(repository_ctx):
-    repository_ctx.symlink(repository_ctx.attr.path, "jar/%s.jar" % repository_ctx.attr.name)
-    repository_ctx.file("jar/BUILD", content = """
+    file = repository_ctx.attr.path.split("/")[-1]
+    repository_ctx.symlink(repository_ctx.attr.path, "%s" % file)
+    repository_ctx.file("BUILD", content = """
 # DO NOT EDIT: automatically generated BUILD file for local_jar rule
 java_import(
-    name = "jar",
-    jars = ["%s.jar"],
+    name = "%s",
+    jars = ["%s"],
     visibility = ['//visibility:public']
+)
+    """ % (repository_ctx.attr.name, file))
+    repository_ctx.file("WORKSPACE", content = """
+# DO NOT EDIT: automatically generated BUILD file for local_jar rule
+workspace(name = "%s")
+    """ % repository_ctx.attr.name)
+    repository_ctx.file("jar/BUILD", content = """
+# DO NOT EDIT: automatically generated BUILD file for local_jar rule
+
+package(default_visibility = ["//visibility:public"])
+
+alias(
+    name = "jar",
+    actual = "@%s",
 )
     """ % repository_ctx.attr.name)
 
