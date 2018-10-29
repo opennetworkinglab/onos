@@ -152,12 +152,22 @@ public class CfgDefGenerator {
         if (value instanceof Add) {
             return elaborate(((Add) value).getLeft()) + elaborate(((Add) value).getRight());
         } else if (value instanceof FieldRef) {
-            return stripped(constants.get(((FieldRef) value).getName()));
+            return elaborate((FieldRef) value);
         } else if (value != null) {
             return stripped(value.toString());
         } else {
             return "";
         }
+    }
+
+    private String elaborate(FieldRef field) {
+        String name = field.getName();
+        String value = constants.get(name);
+        if (value != null) {
+            return stripped(value);
+        }
+        throw new IllegalStateException("Constant " + name + " cannot be elaborated;" +
+                                                " value not in the same compilation context");
     }
 
     private String stripped(String s) {
