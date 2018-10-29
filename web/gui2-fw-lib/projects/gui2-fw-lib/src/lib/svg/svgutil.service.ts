@@ -18,6 +18,34 @@ import { FnService } from '../util/fn.service';
 import { LogService } from '../log.service';
 import * as d3 from 'd3';
 
+
+// --- Ordinal scales for 7 values.
+// TODO: migrate these colors to the theme service.
+
+// Colors per Mojo-Design's color palette.. (version one)
+//               blue       red        dk grey    steel      lt blue    lt red     lt grey
+// var lightNorm = ['#5b99d2', '#d05a55', '#716b6b', '#7e9aa8', '#66cef6', '#db7773', '#aeada8' ],
+//     lightMute = ['#a8cceb', '#f1a7a7', '#b9b5b5', '#bdcdd5', '#a8e9fd', '#f8c9c9', '#d7d6d4' ],
+
+// Colors per Mojo-Design's color palette.. (version two)
+//               blue       lt blue    red        green      brown      teal       lime
+const lightNorm: string[] = ['#5b99d2', '#66cef6', '#d05a55', '#0f9d58', '#ba7941', '#3dc0bf', '#56af00'];
+const lightMute: string[] = ['#9ebedf', '#abdef5', '#d79a96', '#7cbe99', '#cdab8d', '#96d5d5', '#a0c96d'];
+
+const darkNorm: string[] = ['#5b99d2', '#66cef6', '#d05a55', '#0f9d58', '#ba7941', '#3dc0bf', '#56af00'];
+const darkMute: string[] = ['#9ebedf', '#abdef5', '#d79a96', '#7cbe99', '#cdab8d', '#96d5d5', '#a0c96d'];
+
+const colors = {
+    light: {
+        norm: d3.scaleOrdinal().range(lightNorm),
+        mute: d3.scaleOrdinal().range(lightMute),
+    },
+    dark: {
+        norm: d3.scaleOrdinal().range(darkNorm),
+        mute: d3.scaleOrdinal().range(darkMute),
+    },
+};
+
 /**
  * ONOS GUI -- SVG -- Util Service
  *
@@ -27,44 +55,13 @@ import * as d3 from 'd3';
     providedIn: 'root',
 })
 export class SvgUtilService {
-    lightNorm: string[];
-    lightMute: string[];
-    darkNorm: string[];
-    darkMute: string[];
-    colors: any;
 
     constructor(
         private fs: FnService,
         private log: LogService
     ) {
 
-        // --- Ordinal scales for 7 values.
-        // TODO: migrate these colors to the theme service.
 
-        // Colors per Mojo-Design's color palette.. (version one)
-        //               blue       red        dk grey    steel      lt blue    lt red     lt grey
-        // var lightNorm = ['#5b99d2', '#d05a55', '#716b6b', '#7e9aa8', '#66cef6', '#db7773', '#aeada8' ],
-        //     lightMute = ['#a8cceb', '#f1a7a7', '#b9b5b5', '#bdcdd5', '#a8e9fd', '#f8c9c9', '#d7d6d4' ],
-
-        // Colors per Mojo-Design's color palette.. (version two)
-        //               blue       lt blue    red        green      brown      teal       lime
-        this.lightNorm = ['#5b99d2', '#66cef6', '#d05a55', '#0f9d58', '#ba7941', '#3dc0bf', '#56af00'];
-        this.lightMute = ['#9ebedf', '#abdef5', '#d79a96', '#7cbe99', '#cdab8d', '#96d5d5', '#a0c96d'];
-
-        this.darkNorm = ['#5b99d2', '#66cef6', '#d05a55', '#0f9d58', '#ba7941', '#3dc0bf', '#56af00'];
-        this.darkMute = ['#9ebedf', '#abdef5', '#d79a96', '#7cbe99', '#cdab8d', '#96d5d5', '#a0c96d'];
-
-
-        this.colors = {
-            light: {
-                norm: d3.scaleOrdinal().range(this.lightNorm),
-                mute: d3.scaleOrdinal().range(this.lightMute),
-            },
-            dark: {
-                norm: d3.scaleOrdinal().range(this.darkNorm),
-                mute: d3.scaleOrdinal().range(this.darkMute),
-            },
-        };
 
         this.log.debug('SvgUtilService constructed');
     }
@@ -95,10 +92,10 @@ export class SvgUtilService {
             // NOTE: since we are lazily assigning domain ids, we need to
             //       get the color from all 4 scales, to keep the domains
             //       in sync.
-            const ln = this.colors.light.norm(id);
-            const lm = this.colors.light.mute(id);
-            const dn = this.colors.dark.norm(id);
-            const dm = this.colors.dark.mute(id);
+            const ln = colors.light.norm(id);
+            const lm = colors.light.mute(id);
+            const dn = colors.dark.norm(id);
+            const dm = colors.dark.mute(id);
             if (theme === 'dark') {
                 return muted ? dm : dn;
             } else {
@@ -126,32 +123,27 @@ export class SvgUtilService {
                     muted = k % 2;
                     what = muted ? ' muted' : ' normal';
                     theme = k < 2 ? 'light' : 'dark';
-                    dom.forEach(function (id, i) {
+                    dom.forEach((id, i) => {
                         const x = i * 20;
                         const y = k * 20;
-                        const f = getColor(id, muted, theme);
-                        g.append('circle').attr({
-                            cx: x,
-                            cy: y,
-                            r: 5,
-                            fill: f,
-                        });
+                        g.append('circle')
+                            .attr('cx', x)
+                            .attr('cy', y)
+                            .attr('r', 5)
+                            .attr('fill', getColor(id, muted, theme));
                     });
-                    g.append('rect').attr({
-                        x: 140,
-                        y: k * 20 - 5,
-                        width: 32,
-                        height: 10,
-                        rx: 2,
-                        fill: '#888',
-                    });
+                    g.append('rect')
+                        .attr('x', 140)
+                        .attr('y', k * 20 - 5)
+                        .attr('width', 32)
+                        .attr('height', 10)
+                        .attr('rx', 2)
+                        .attr('fill', '#888');
                     g.append('text').text(theme + what)
-                        .attr({
-                            x: 142,
-                            y: k * 20 + 2,
-                            fill: 'white',
-                        })
-                        .style('font-size', '4pt');
+                        .attr('x', 142)
+                        .attr('y', k * 20 + 2)
+                        .attr('fill', 'white');
+                        // .style('font-size', '4pt');
                 }
             }
         }

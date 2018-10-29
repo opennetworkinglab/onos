@@ -21,11 +21,12 @@
 <onos-details #details></onos-details>
 
 <div id="ov-topo2">
-    <svg viewBox="0 0 1000 1000" id="topo2"
-        resize offset-height="56" offset-width="12"
-        notifier="notifyResize()">
+    <svg viewBox="0 0 1000 1000" id="topo2">
         <svg:g onos-nodeviceconnected />
-        <svg:g onos-zoomlayer />
+        <svg:g id="topo-zoomlayer">
+            <svg:g onos-backgroundsvg/>
+            <svg:g onos-forcesvg/>
+        </svg:g>
     </svg>
 </div>
 

@@ -91,13 +91,13 @@ export abstract class TableBaseImpl {
     autoRefresh: boolean = true;
     autoRefreshTip: string = 'Toggle auto refresh'; // TODO: get LION string
 
-    private root: string;
-    private req: string;
-    private resp: string;
+    readonly root: string;
+    readonly req: string;
+    readonly resp: string;
     private refreshPromise: any = null;
     private handlers: string[] = [];
 
-    constructor(
+    protected constructor(
         protected fs: FnService,
         protected ls: LoadingService,
         protected log: LogService,

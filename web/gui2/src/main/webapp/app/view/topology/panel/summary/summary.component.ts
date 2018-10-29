@@ -13,15 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
+import {Component, OnDestroy, OnInit, ViewEncapsulation} from '@angular/core';
 import { animate, state, style, transition, trigger } from '@angular/animations';
+import * as d3 from 'd3';
+import { TopoPanelBaseImpl } from '../topopanel.base';
 import {
     LogService,
     LoadingService,
     FnService,
-    PanelBaseImpl
+    WebSocketService,
+    GlyphService
 } from 'gui2-fw-lib';
 
+export interface SummaryResponse {
+    title: string;
+}
 /*
  ONOS GUI -- Topology Summary Module.
  Defines modeling of ONOS Summary Panel.
@@ -31,9 +37,10 @@ import {
     templateUrl: './summary.component.html',
     styleUrls: [
         './summary.component.css',
-        '../../topology.common.css',
+        '../../topology.common.css', '../../topology.theme.css',
         '../../../../fw/widget/panel.css', '../../../../fw/widget/panel-theme.css'
     ],
+    encapsulation: ViewEncapsulation.None,
     animations: [
         trigger('summaryPanelState', [
             state('true', style({
@@ -49,19 +56,62 @@ import {
         ])
     ]
 })
-export class SummaryComponent extends PanelBaseImpl implements OnInit {
+export class SummaryComponent extends TopoPanelBaseImpl implements OnInit, OnDestroy {
+    private handlers: string[] = [];
+    private resp: string = 'showSummary';
+    private summaryData: SummaryResponse;
 
     constructor(
         protected fs: FnService,
         protected log: LogService,
         protected ls: LoadingService,
+        protected wss: WebSocketService,
+        protected gs: GlyphService
     ) {
-        super(fs, ls, log);
+        super(fs, ls, log, 'summary');
+        this.summaryData = <SummaryResponse>{};
         this.log.debug('SummaryComponent constructed');
     }
 
 
     ngOnInit() {
+        this.wss.bindHandlers(new Map<string, (data) => void>([
+            [this.resp, (data) => this.handleSummaryData(data)]
+        ]));
+        this.handlers.push(this.resp);
+
+        this.init(d3.select('#topo2-p-summary'));
+        this.on = true;
+
+        this.wss.sendEvent('requestSummary', {});
     }
 
+    ngOnDestroy() {
+        this.wss.sendEvent('cancelSummary', {});
+        this.wss.unbindHandlers(this.handlers);
+    }
+
+    handleSummaryData(data: SummaryResponse) {
+        this.summaryData = data;
+        this.render();
+        this.log.debug('Summary', data);
+    }
+
+    private render() {
+        let endedWithSeparator;
+
+        this.emptyRegions();
+
+        const svg = this.appendToHeader('div')
+                .classed('icon', true)
+                .append('svg');
+        const title = this.appendToHeader('h2');
+        const table = this.appendToBody('table');
+        const tbody = table.append('tbody');
+
+        title.text(this.summaryData.title);
+        this.gs.addGlyph(svg, 'bird', 24, 0, [1, 1]);
+        endedWithSeparator = this.listProps(tbody, this.summaryData);
+        // TODO : review whether we need to use/store end-with-sep state
+    }
 }

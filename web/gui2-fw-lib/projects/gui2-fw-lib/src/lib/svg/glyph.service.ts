@@ -190,19 +190,22 @@ export class GlyphService {
     }
 
     addGlyph(elem: any, glyphId: string, size: number, overlay: any, trans: any) {
-        const sz = size || 40,
-            ovr = !!overlay,
-            xns = this.fs.isA(trans),
-            atr = {
-                width: sz,
-                height: sz,
-                'class': 'glyph',
-                'xlink:href': '#' + glyphId,
-            };
+        const sz = size || 40;
+        const ovr = !!overlay;
+        const xns = this.fs.isA(trans);
+
+        const glyphUse = elem
+            .append('use')
+            .attr('width', sz)
+            .attr('height', sz)
+            .attr('class', 'glyph')
+            .attr('xlink:href', '#' + glyphId)
+            .classed('overlay', ovr);
 
         if (xns) {
-            atr.class = this.sus.translate(trans);
+            glyphUse.attr('transform', this.sus.translate(trans));
         }
-        return elem.append('use').attr(atr).classed('overlay', ovr);
+
+        return glyphUse;
     }
 }

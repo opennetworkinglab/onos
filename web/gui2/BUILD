@@ -93,7 +93,7 @@ filegroup(
             ":src/main/webapp/login.html",
             ":src/main/webapp/nav.html",
             ":src/main/webapp/not-ready.html",
-            ":src/main/webapp/onos.theme.css",
+            ":src/main/webapp/onos.global.css",
         ],
 )
 

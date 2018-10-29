@@ -37,10 +37,10 @@ export abstract class PanelBaseImpl implements PanelBase {
 
     on: boolean;
 
-    constructor(
+    protected constructor(
         protected fs: FnService,
         protected ls: LoadingService,
-        protected log: LogService,
+        protected log: LogService
     ) {
 //        this.log.debug('Panel base class constructed');
     }

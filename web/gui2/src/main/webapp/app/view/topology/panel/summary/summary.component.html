@@ -14,63 +14,7 @@
 ~ limitations under the License.
 -->
 <div id="topo2-p-summary" class="floatpanel topo2-p"
-     style="opacity: 1; right: 20px; width: 260px;" [@summaryPanelState]="!on">
-    <div class="header">
-        <div class="icon">
-            <svg>
-                <use width="24" height="24" class="glyph" xlink:href="#bird"
-                     transform="translate(1,1)"></use>
-            </svg>
-        </div>
-        <h2>ONOS Summary</h2>
-    </div>
-    <div class="body">
-        <table>
-            <tbody>
-            <tr>
-                <td class="label">Version :</td>
-                <td class="value">1.15.0.a18e6e1</td>
-            </tr>
-            <tr>
-                <td colspan="2">
-                    <hr>
-                </td>
-            </tr>
-            <tr>
-                <td class="label">Devices :</td>
-                <td class="value">2</td>
-            </tr>
-            <tr>
-                <td class="label">Links :</td>
-                <td class="value">0</td>
-            </tr>
-            <tr>
-                <td class="label">Hosts :</td>
-                <td class="value">0</td>
-            </tr>
-            <tr>
-                <td class="label">Topology SCCs :</td>
-                <td class="value">2</td>
-            </tr>
-            <tr>
-                <td colspan="2">
-                    <hr>
-                </td>
-            </tr>
-            <tr>
-                <td class="label">Intents :</td>
-                <td class="value">0</td>
-            </tr>
-            <tr>
-                <td class="label">Tunnels :</td>
-                <td class="value">0</td>
-            </tr>
-            <tr>
-                <td class="label">Flows :</td>
-                <td class="value">8</td>
-            </tr>
-            </tbody>
-        </table>
-    </div>
-    <div class="footer"></div>
+     style="opacity: 1; right: 20px; width: 260px;" [@summaryPanelState]="on">
+    <!-- everything else is filled in dynamically by listProps() and the
+    response showSummary received from the server -->
 </div>
