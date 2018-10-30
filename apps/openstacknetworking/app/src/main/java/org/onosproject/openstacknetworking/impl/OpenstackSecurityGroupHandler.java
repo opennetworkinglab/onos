@@ -61,7 +61,6 @@ import org.onosproject.openstacknetworking.api.OpenstackSecurityGroupEvent;
 import org.onosproject.openstacknetworking.api.OpenstackSecurityGroupListener;
 import org.onosproject.openstacknetworking.api.OpenstackSecurityGroupService;
 import org.onosproject.openstacknetworking.util.RulePopulatorUtil;
-import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeEvent;
 import org.onosproject.openstacknode.api.OpenstackNodeListener;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
@@ -611,23 +610,21 @@ public class OpenstackSecurityGroupHandler {
     private void resetSecurityGroupRules() {
 
         if (useSecurityGroup) {
-            osNodeService.completeNodes(OpenstackNode.NodeType.COMPUTE)
-                    .forEach(node -> osFlowRuleService
-                            .setUpTableMissEntry(node.intgBridge(), ACL_TABLE));
+            osNodeService.completeNodes(COMPUTE).forEach(node -> {
+                osFlowRuleService.setUpTableMissEntry(node.intgBridge(), ACL_TABLE);
+                initializeConnTrackTable(node.intgBridge(), true);
+            });
+
             securityGroupService.securityGroups().forEach(securityGroup ->
                     securityGroup.getRules().forEach(this::securityGroupRuleAdded));
-            osNodeService.nodes().stream()
-                    .filter(node -> node.type().equals(OpenstackNode.NodeType.COMPUTE))
-                    .forEach(node -> initializeConnTrackTable(node .intgBridge(), true));
         } else {
-            osNodeService.completeNodes(OpenstackNode.NodeType.COMPUTE)
-                    .forEach(node -> osFlowRuleService
-                            .connectTables(node.intgBridge(), ACL_TABLE, JUMP_TABLE));
+            osNodeService.completeNodes(COMPUTE).forEach(node -> {
+                osFlowRuleService.connectTables(node.intgBridge(), ACL_TABLE, JUMP_TABLE);
+                initializeConnTrackTable(node.intgBridge(), false);
+            });
+
             securityGroupService.securityGroups().forEach(securityGroup ->
                     securityGroup.getRules().forEach(this::securityGroupRuleRemoved));
-            osNodeService.nodes().stream()
-                    .filter(node -> node.type().equals(OpenstackNode.NodeType.COMPUTE))
-                    .forEach(node -> initializeConnTrackTable(node.intgBridge(), false));
         }
 
         log.info("Reset security group info " +
@@ -933,22 +930,9 @@ public class OpenstackSecurityGroupHandler {
 
         @Override
         public void event(OpenstackNodeEvent event) {
-            OpenstackNode osNode = event.subject();
-
             switch (event.type()) {
                 case OPENSTACK_NODE_COMPLETE:
-                    eventExecutor.execute(() -> {
-                        try {
-                            if (useSecurityGroup) {
-                                initializeConnTrackTable(osNode.intgBridge(), true);
-                                log.info("SG table initialization : {} is done",
-                                                            osNode.intgBridge());
-                            }
-                        } catch (IllegalArgumentException e) {
-                            log.error("ACL table initialization error : {}",
-                                                            e.getMessage());
-                        }
-                    });
+                    resetSecurityGroupRules();
                     break;
                 case OPENSTACK_NODE_CREATED:
                 case OPENSTACK_NODE_REMOVED:

@@ -478,15 +478,15 @@ public class OpenstackRoutingHandler {
     private void setInternalRoutes(Router osRouter, Subnet updatedSubnet, boolean install) {
         Network updatedNetwork = osNetworkAdminService.network(updatedSubnet.getNetworkId());
         Set<Subnet> routableSubnets = routableSubnets(osRouter, updatedSubnet.getId());
-        String updatedSegmendId = getSegmentId(updatedSubnet);
+        String updatedSegmentId = getSegmentId(updatedSubnet);
 
         // installs rule from/to my subnet intentionally to fix ICMP failure
         // to my subnet gateway if no external gateway added to the router
         osNodeService.completeNodes(COMPUTE).forEach(cNode -> {
             setInternalRouterRules(
                     cNode.intgBridge(),
-                    updatedSegmendId,
-                    updatedSegmendId,
+                    updatedSegmentId,
+                    updatedSegmentId,
                     IpPrefix.valueOf(updatedSubnet.getCidr()),
                     IpPrefix.valueOf(updatedSubnet.getCidr()),
                     updatedNetwork.getNetworkType(),
@@ -496,7 +496,7 @@ public class OpenstackRoutingHandler {
             routableSubnets.forEach(subnet -> {
                 setInternalRouterRules(
                         cNode.intgBridge(),
-                        updatedSegmendId,
+                        updatedSegmentId,
                         getSegmentId(subnet),
                         IpPrefix.valueOf(updatedSubnet.getCidr()),
                         IpPrefix.valueOf(subnet.getCidr()),
@@ -506,7 +506,7 @@ public class OpenstackRoutingHandler {
                 setInternalRouterRules(
                         cNode.intgBridge(),
                         getSegmentId(subnet),
-                        updatedSegmendId,
+                        updatedSegmentId,
                         IpPrefix.valueOf(subnet.getCidr()),
                         IpPrefix.valueOf(updatedSubnet.getCidr()),
                         updatedNetwork.getNetworkType(),
