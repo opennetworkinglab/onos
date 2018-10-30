@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package org.onosproject.drivers.bmv2.ctl;
+package org.onosproject.xmpp.core.ctl;
 
 /**
  * Constants for default values of configurable properties.
  */
-public final class OsgiPropertyDefaults {
+public final class OsgiPropertyConstants {
 
-    private OsgiPropertyDefaults() {}
+    private OsgiPropertyConstants() {}
 
-    public static final int DEVICE_LOCK_WAITING_TIME_IN_SEC_DEFAULT = 60;
-    public static final int NUM_CONNECTION_RETRIES_DEFAULT = 2;
-    public static final int TIME_BETWEEN_RETRIES_DEFAULT = 10;
+    public static final String XMPP_PORT = "xmppPort";
+    public static final String XMPP_PORT_DEFAULT = "5269";
+
 }

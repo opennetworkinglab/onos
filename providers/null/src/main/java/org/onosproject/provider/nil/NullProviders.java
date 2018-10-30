@@ -64,7 +64,7 @@ import static org.onlab.util.Tools.get;
 import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.MastershipRole.MASTER;
 import static org.onosproject.net.MastershipRole.NONE;
-import static org.onosproject.provider.nil.OsgiPropertyDefaults.*;
+import static org.onosproject.provider.nil.OsgiPropertyConstants.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -73,13 +73,13 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 @Component(immediate = true, service = NullProviders.class,
         property = {
-            "enabled:Boolean=" + false,
-            "topoShape=" + TOPO_SHAPE_DEFAULT,
-            "deviceCount:Integer=" + DEVICE_COUNT_DEFAULT,
-            "hostCount:Integer=" +  HOST_COUNT_DEFAULT,
-            "packetRate:Integer=" +  PACKET_RATE_DEFAULT,
-            "mutationRate:Double=" + MUTATION_RATE_DEFAULT,
-            "mastership=" + MASTERSHIP_DEFAULT,
+            ENABLED + ":Boolean=" + ENABLED_DEFAULT,
+            TOPO_SHAPE + "=" + TOPO_SHAPE_DEFAULT,
+            DEVICE_COUNT + ":Integer=" + DEVICE_COUNT_DEFAULT,
+            HOST_COUNT + ":Integer=" +  HOST_COUNT_DEFAULT,
+            PACKET_RATE + ":Integer=" +  PACKET_RATE_DEFAULT,
+            MUTATION_RATE + ":Double=" + MUTATION_RATE_DEFAULT,
+            MASTERSHIP + "=" + MASTERSHIP_DEFAULT,
         })
 public class NullProviders {
 
@@ -109,7 +109,6 @@ public class NullProviders {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected LinkService linkService;
-
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DeviceProviderRegistry deviceProviderRegistry;
@@ -146,32 +145,25 @@ public class NullProviders {
 
     private TopologySimulator simulator;
 
-    //@Property(name = "enabled", boolValue = false,
-    //        label = "Enables or disables the provider")
+    /** Enables or disables the provider. */
     private boolean enabled = false;
 
-    //@Property(name = "topoShape", value = DEFAULT_TOPO_SHAPE,
-    //        label = "Topology shape: configured, linear, reroute, tree, spineleaf, mesh, grid")
+    /** Topology shape: configured, linear, reroute, tree, spineleaf, mesh, grid. */
     private String topoShape = TOPO_SHAPE_DEFAULT;
 
-    //@Property(name = "deviceCount", intValue = DEFAULT_DEVICE_COUNT,
-    //        label = "Number of devices to generate")
+    /** Number of devices to generate. */
     private int deviceCount = DEVICE_COUNT_DEFAULT;
 
-    //@Property(name = "hostCount", intValue = DEFAULT_HOST_COUNT,
-    //        label = "Number of host to generate per device")
+    /** Number of host to generate per device. */
     private int hostCount = HOST_COUNT_DEFAULT;
 
-    //@Property(name = "packetRate", intValue = DEFAULT_PACKET_RATE,
-    //        label = "Packet-in/s rate; 0 for no packets")
+    /** Packet-in/s rate; 0 for no packets. */
     private int packetRate = PACKET_RATE_DEFAULT;
 
-    //@Property(name = "mutationRate", doubleValue = DEFAULT_MUTATION_RATE,
-    //        label = "Link event/s topology mutation rate; 0 for no mutations")
+    /** Link event/s topology mutation rate; 0 for no mutations. */
     private double mutationRate = MUTATION_RATE_DEFAULT;
 
-    //@Property(name = "mastership", value = DEFAULT_MASTERSHIP,
-    //        label = "Mastership given as 'random' or 'node1=dpid,dpid/node2=dpid,...'")
+    /** Mastership given as 'random' or 'node1=dpid,dpid/node2=dpid,...'. */
     private String mastership = MASTERSHIP_DEFAULT;
 
 
@@ -219,22 +211,22 @@ public class NullProviders {
         double newMutationRate;
         String newTopoShape, newMastership;
         try {
-            String s = get(properties, "enabled");
+            String s = get(properties, ENABLED);
             newEnabled = isNullOrEmpty(s) ? enabled : Boolean.parseBoolean(s.trim());
 
-            newTopoShape = get(properties, "topoShape");
-            newMastership = get(properties, "mastership");
+            newTopoShape = get(properties, TOPO_SHAPE);
+            newMastership = get(properties, MASTERSHIP);
 
-            s = get(properties, "deviceCount");
+            s = get(properties, DEVICE_COUNT);
             newDeviceCount = isNullOrEmpty(s) ? deviceCount : Integer.parseInt(s.trim());
 
-            s = get(properties, "hostCount");
+            s = get(properties, HOST_COUNT);
             newHostCount = isNullOrEmpty(s) ? hostCount : Integer.parseInt(s.trim());
 
-            s = get(properties, "packetRate");
+            s = get(properties, PACKET_RATE);
             newPacketRate = isNullOrEmpty(s) ? packetRate : Integer.parseInt(s.trim());
 
-            s = get(properties, "mutationRate");
+            s = get(properties, MUTATION_RATE);
             newMutationRate = isNullOrEmpty(s) ? mutationRate : Double.parseDouble(s.trim());
 
         } catch (NumberFormatException e) {

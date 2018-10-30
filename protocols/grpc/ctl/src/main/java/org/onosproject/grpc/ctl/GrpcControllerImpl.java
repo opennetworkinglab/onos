@@ -60,11 +60,16 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.grpc.ctl.OsgiPropertyConstants.ENABLE_MESSAGE_LOG;
+import static org.onosproject.grpc.ctl.OsgiPropertyConstants.ENABLE_MESSAGE_LOG_DEFAULT;
 
 /**
  * Default implementation of the GrpcController.
  */
-@Component(immediate = true, service = GrpcController.class)
+@Component(immediate = true, service = GrpcController.class,
+        property = {
+            ENABLE_MESSAGE_LOG + ":Boolean=" + ENABLE_MESSAGE_LOG_DEFAULT,
+        })
 public class GrpcControllerImpl implements GrpcController {
 
     private  static final String SET_FORWARDING_PIPELINE_CONFIG_METHOD = "p4.P4Runtime/SetForwardingPipelineConfig";
@@ -75,8 +80,8 @@ public class GrpcControllerImpl implements GrpcController {
     // Hint: set to true to log all gRPC messages received/sent on all channels
     // Does not enable log on existing channels
     private static final boolean DEFAULT_LOG_LEVEL = false;
-    //@Property(name = "enableMessageLog", boolValue =  DEFAULT_LOG_LEVEL,
-    //        label = "Indicates whether to log all gRPC messages sent and received on all channels")
+
+    /** Indicates whether to log all gRPC messages sent and received on all channels. */
     public static boolean enableMessageLog = DEFAULT_LOG_LEVEL;
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -95,7 +100,7 @@ public class GrpcControllerImpl implements GrpcController {
     public void modified(ComponentContext context) {
         if (context != null) {
             Dictionary<?, ?> properties = context.getProperties();
-            enableMessageLog = Tools.isPropertyEnabled(properties, "enableMessageLog",
+            enableMessageLog = Tools.isPropertyEnabled(properties, ENABLE_MESSAGE_LOG,
                     DEFAULT_LOG_LEVEL);
             log.info("Configured. Log of gRPC messages is {}", enableMessageLog ? "enabled" : "disabled");
         }

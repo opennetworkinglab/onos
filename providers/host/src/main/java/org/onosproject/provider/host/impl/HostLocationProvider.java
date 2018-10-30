@@ -103,6 +103,7 @@ import java.util.stream.Stream;
 
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.provider.host.impl.OsgiPropertyConstants.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -111,13 +112,13 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 @Component(immediate = true, service = HostProvider.class,
         property = {
-                "hostRemovalEnabled:Boolean=true",
-                "requestArp:Boolean=true",
-                "requestIpv6ND:Boolean=false",
-                "useDhcp:Boolean=false",
-                "useDhcp6:Boolean=false",
-                "requestInterceptsEnabled:Boolean=true",
-                "multihomingEnabled:Boolean=false",
+                HOST_REMOVAL_ENABLED + ":Boolean=" + HOST_REMOVAL_ENABLED_DEFAULT,
+                REQUEST_ARP + ":Boolean=" + REQUEST_ARP_DEFAULT,
+                REQUEST_NDP + ":Boolean=" + REQUEST_NDP_DEFAULT,
+                USE_DHCP + ":Boolean=" + USE_DHCP_DEFAULT,
+                USE_DHCP6 + ":Boolean=" + USE_DHCP6_DEFAULT,
+                REQUEST_INTERCEPTS_ENABLED + ":Boolean=" + REQUEST_INTERCEPTS_ENABLED_DEFAULT,
+                MULTIHOMING_ENABLED + ":Boolean=" + MULTIHOMING_ENABLED_DEFAULT,
         })
 public class HostLocationProvider extends AbstractProvider implements HostProvider {
     private final Logger log = getLogger(getClass());
@@ -155,34 +156,25 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
 
     private ApplicationId appId;
 
-    //@Property(name = "hostRemovalEnabled", boolValue = true,
-    //        label = "Enable host removal on port/device down events")
+    /** Enable host removal on port/device down events. */
     private boolean hostRemovalEnabled = true;
 
-    //@Property(name = "requestArp", boolValue = true,
-    //        label = "Request ARP packets for neighbor discovery by the " +
-    //                "Host Location Provider; default is true")
+    /** Request ARP packets for neighbor discovery by the Host Location Provider; default is true. */
     private boolean requestArp = true;
 
-    //@Property(name = "requestIpv6ND", boolValue = false,
-    //        label = "Requests IPv6 Neighbor Discovery by the " +
-    //                "Host Location Provider; default is false")
+    /** Requests IPv6 Neighbor Discovery by the Host Location Provider; default is false. */
     private boolean requestIpv6ND = false;
 
-    //@Property(name = "useDhcp", boolValue = false,
-    //        label = "Use DHCP to update IP address of the host; default is false")
+    /** Use DHCP to update IP address of the host; default is false. */
     private boolean useDhcp = false;
 
-    //@Property(name = "useDhcp6", boolValue = false,
-    //        label = "Use DHCPv6 to update IP address of the host; default is false")
+    /** Use DHCPv6 to update IP address of the host; default is false. */
     private boolean useDhcp6 = false;
 
-    //@Property(name = "requestInterceptsEnabled", boolValue = true,
-    //        label = "Enable requesting packet intercepts")
+    /** Enable requesting packet intercepts. */
     private boolean requestInterceptsEnabled = true;
 
-    //@Property(name = "multihomingEnabled", boolValue = false,
-    //        label = "Allow hosts to be multihomed")
+    /** Allow hosts to be multihomed. */
     private boolean multihomingEnabled = false;
 
     private HostProviderService providerService;
@@ -322,7 +314,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
         Dictionary<?, ?> properties = context.getProperties();
         Boolean flag;
 
-        flag = Tools.isPropertyEnabled(properties, "hostRemovalEnabled");
+        flag = Tools.isPropertyEnabled(properties, HOST_REMOVAL_ENABLED);
         if (flag == null) {
             log.info("Host removal on port/device down events is not configured, " +
                      "using current value of {}", hostRemovalEnabled);
@@ -332,7 +324,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                      hostRemovalEnabled ? "enabled" : "disabled");
         }
 
-        flag = Tools.isPropertyEnabled(properties, "requestArp");
+        flag = Tools.isPropertyEnabled(properties, REQUEST_ARP);
         if (flag == null) {
             log.info("Using ARP is not configured, " +
                      "using current value of {}", requestArp);
@@ -342,7 +334,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                      requestArp ? "enabled" : "disabled");
         }
 
-        flag = Tools.isPropertyEnabled(properties, "requestIpv6ND");
+        flag = Tools.isPropertyEnabled(properties, REQUEST_NDP);
         if (flag == null) {
             log.info("Using IPv6 Neighbor Discovery is not configured, " +
                              "using current value of {}", requestIpv6ND);
@@ -352,7 +344,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                      requestIpv6ND ? "enabled" : "disabled");
         }
 
-        flag = Tools.isPropertyEnabled(properties, "useDhcp");
+        flag = Tools.isPropertyEnabled(properties, USE_DHCP);
         if (flag == null) {
             log.info("Using DHCP is not configured, " +
                      "using current value of {}", useDhcp);
@@ -362,7 +354,17 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                      useDhcp ? "enabled" : "disabled");
         }
 
-        flag = Tools.isPropertyEnabled(properties, "requestInterceptsEnabled");
+        flag = Tools.isPropertyEnabled(properties, USE_DHCP6);
+        if (flag == null) {
+            log.info("Using DHCP6 is not configured, " +
+                             "using current value of {}", useDhcp6);
+        } else {
+            useDhcp6 = flag;
+            log.info("Configured. Using DHCP6 is {}",
+                     useDhcp6 ? "enabled" : "disabled");
+        }
+
+        flag = Tools.isPropertyEnabled(properties, REQUEST_INTERCEPTS_ENABLED);
         if (flag == null) {
             log.info("Request intercepts is not configured, " +
                      "using current value of {}", requestInterceptsEnabled);
@@ -372,7 +374,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                      requestInterceptsEnabled ? "enabled" : "disabled");
         }
 
-        flag = Tools.isPropertyEnabled(properties, "multihomingEnabled");
+        flag = Tools.isPropertyEnabled(properties, MULTIHOMING_ENABLED);
         if (flag == null) {
             log.info("Multihoming is not configured, " +
                     "using current value of {}", multihomingEnabled);

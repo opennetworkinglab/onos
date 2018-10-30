@@ -50,7 +50,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
-import static org.onosproject.drivers.bmv2.ctl.OsgiPropertyDefaults.*;
+import static org.onosproject.drivers.bmv2.ctl.OsgiPropertyConstants.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -58,9 +58,9 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 @Component(immediate = true, service = Bmv2PreController.class,
         property = {
-                "numConnectionRetries:Integer=" + NUM_CONNECTION_RETRIES_DEFAULT,
-                "timeBetweenRetries:Integer=" + TIME_BETWEEN_RETRIES_DEFAULT,
-                "deviceLockWaitingTime:Integer=" + DEVICE_LOCK_WAITING_TIME_IN_SEC_DEFAULT,
+                 NUM_CONNECTION_RETRIES + ":Integer=" + NUM_CONNECTION_RETRIES_DEFAULT,
+                TIME_BETWEEN_RETRIES + ":Integer=" + TIME_BETWEEN_RETRIES_DEFAULT,
+                DEVICE_LOCK_WAITING_TIME_IN_SEC + ":Integer=" + DEVICE_LOCK_WAITING_TIME_IN_SEC_DEFAULT,
         })
 public class Bmv2PreControllerImpl implements Bmv2PreController {
 
@@ -79,14 +79,14 @@ public class Bmv2PreControllerImpl implements Bmv2PreController {
             });
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService cfgService;
-    //@Property(name = "numConnectionRetries", intValue = DEFAULT_NUM_CONNECTION_RETRIES,
-    //        label = "Number of connection retries after a network error")
+
+    /** Number of connection retries after a network error. */
     private int numConnectionRetries = NUM_CONNECTION_RETRIES_DEFAULT;
-    //@Property(name = "timeBetweenRetries", intValue = DEFAULT_TIME_BETWEEN_RETRIES,
-    //        label = "Time between retries in milliseconds")
+
+    /** Time between retries in milliseconds. */
     private int timeBetweenRetries = TIME_BETWEEN_RETRIES_DEFAULT;
-    //@Property(name = "deviceLockWaitingTime", intValue = DEVICE_LOCK_WAITING_TIME_IN_SEC,
-    //        label = "Waiting time for a read/write lock in seconds")
+
+    /** Waiting time for a read/write lock in seconds. */
     private int deviceLockWaitingTime = DEVICE_LOCK_WAITING_TIME_IN_SEC_DEFAULT;
 
     @Activate

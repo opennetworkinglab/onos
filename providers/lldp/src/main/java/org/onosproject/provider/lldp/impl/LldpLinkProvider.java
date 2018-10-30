@@ -155,28 +155,19 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
     private static final long DEVICE_SYNC_DELAY = 5;
     private static final long LINK_PRUNER_DELAY = 3;
 
-    //@Property(name = PROP_ENABLED, boolValue = true,
-    //        label = "If false, link discovery is disabled")
     /** If false, link discovery is disabled. */
     protected boolean enabled = false;
 
-    //@Property(name = PROP_USE_BDDP, boolValue = true,
-    //        label = "Use BDDP for link discovery")
     /** Use BDDP for link discovery. */
     protected boolean useBddp = USE_BDDP_DEFAULT;
 
-    //@Property(name = PROP_PROBE_RATE, intValue = DEFAULT_PROBE_RATE,
-    //        label = "LLDP and BDDP probe rate specified in millis")
     /** LLDP and BDDP probe rate specified in millis. */
     protected int probeRate = PROBE_RATE_DEFAULT;
 
-    //@Property(name = PROP_STALE_LINK_AGE, intValue = DEFAULT_STALE_LINK_AGE,
-    //        label = "Number of millis beyond which links will be considered stale")
     /** Number of millis beyond which links will be considered stale. */
     protected int staleLinkAge = STALE_LINK_AGE_DEFAULT;
 
-    //@Property(name = PROP_DISCOVERY_DELAY, intValue = DEFAULT_DISCOVERY_DELAY,
-    //        label = "Number of millis beyond which an LLDP packet will not be accepted")
+    /** Number of millis beyond which an LLDP packet will not be accepted. */
     private int maxDiscoveryDelayMs = DISCOVERY_DELAY_DEFAULT;
 
     private final LinkDiscoveryContext context = new InternalDiscoveryContext();

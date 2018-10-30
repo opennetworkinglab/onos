@@ -127,9 +127,4 @@ public final class OvsdbConstant {
 
     public static final boolean OVSDB_TLS_FLAG = false;
 
-    //TODO CONFIG_DIR is duplicated from ConfigFileBasedClusterMetadataProvider
-    public static final String CONFIG_DIR = "../config/";
-    public static final String KS_FILE_NAME = "onos.jks";
-    public static final String DEFAULT_KS_FILE = CONFIG_DIR + KS_FILE_NAME;
-    public static final String DEFAULT_KS_PASSWORD = "222222";
 }

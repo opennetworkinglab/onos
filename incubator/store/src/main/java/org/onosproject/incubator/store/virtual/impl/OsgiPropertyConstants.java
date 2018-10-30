@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.provider.lldp.impl;
+package org.onosproject.incubator.store.virtual.impl;
 
 /**
  * Constants for default values of configurable properties.
@@ -23,19 +23,16 @@ public final class OsgiPropertyConstants {
 
     private OsgiPropertyConstants() {}
 
-    public static final String PROP_ENABLED = "enabled";
-    public static final boolean ENABLED_DEFAULT = true;
+    public static final String MESSAGE_HANDLER_THREAD_POOL_SIZE = "messageHandlerThreadPoolSize";
+    public static final int MESSAGE_HANDLER_THREAD_POOL_SIZE_DEFAULT = 4;
 
-    public static final String PROP_USE_BDDP = "useBDDP";
-    public static final boolean USE_BDDP_DEFAULT = true;
+    public static final String BACKUP_PERIOD_MILLIS = "backupPeriod";
+    public static final int BACKUP_PERIOD_MILLIS_DEFAULT = 2000;
 
-    public static final String PROP_PROBE_RATE = "probeRate";
-    public static final int PROBE_RATE_DEFAULT = 3000;
+    public static final String PERSISTENCE_ENABLED = "persistenceEnabled";
+    public static final boolean PERSISTENCE_ENABLED_DEFAULT = false;
 
-    public static final String PROP_STALE_LINK_AGE = "staleLinkAge";
-    public static final int STALE_LINK_AGE_DEFAULT = 10000;
-
-    public static final String PROP_DISCOVERY_DELAY = "maxDiscoveryDelayMs";
-    public static final int DISCOVERY_DELAY_DEFAULT = 1000;
+    public static final String PENDING_FUTURE_TIMEOUT_MINUTES = "pendingFutureTimeoutMinutes";
+    public static final int PENDING_FUTURE_TIMEOUT_MINUTES_DEFAULT = 5;
 
 }

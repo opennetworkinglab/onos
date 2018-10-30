@@ -145,14 +145,10 @@ public class NetconfDeviceProvider extends AbstractProvider
     private static final String PORT = "port";
     private static final int CORE_POOL_SIZE = 10;
 
-    //@Property(name = "pollFrequency", intValue = DEFAULT_POLL_FREQUENCY_SECONDS,
-    //        label = "Configure poll frequency for port status and statistics; " +
-    //                "default is 30 sec")
+    /** Configure poll frequency for port status and statistics; default is 30 sec. */
     private int pollFrequency = POLL_FREQUENCY_SECONDS_DEFAULT;
 
-    //@Property(name = "maxRetries", intValue = DEFAULT_MAX_RETRIES,
-    //        label = "Configure maximum allowed number of retries for obtaining list of ports; " +
-    //                "default is 5 times")
+    /** Configure maximum allowed number of retries for obtaining list of ports; default is 5 times. */
     private int maxRetries = MAX_RETRIES_DEFAULT;
 
     protected ExecutorService executor =

@@ -14,16 +14,24 @@
  * limitations under the License.
  */
 
-package org.onosproject.provider.linkdiscovery.impl;
+package org.onosproject.netconf.ctl.impl;
 
 /**
  * Constants for default values of configurable properties.
  */
-public final class OsgiPropertyDefaults {
+public final class OsgiPropertyConstants {
 
-    private OsgiPropertyDefaults() {}
+    private OsgiPropertyConstants() {}
 
-    public static final int POLL_DELAY_SECONDS_DEFAULT = 20;
-    public static final int POLL_FREQUENCY_SECONDS_DEFAULT = 10;
+    public static final String NETCONF_CONNECT_TIMEOUT = "netconfConnectTimeout";
+    public static final int NETCONF_CONNECT_TIMEOUT_DEFAULT = 5;
 
+    public static final String NETCONF_REPLY_TIMEOUT = "netconfReplyTimeout";
+    public static final int NETCONF_REPLY_TIMEOUT_DEFAULT = 5;
+
+    public static final String NETCONF_IDLE_TIMEOUT = "netconfIdleTimeout";
+    public static final int NETCONF_IDLE_TIMEOUT_DEFAULT = 300;
+
+    public static final String SSH_LIBRARY = "sshLibrary";
+    public static final String SSH_LIBRARY_DEFAULT = "apache-mina";
 }

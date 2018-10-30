@@ -14,20 +14,21 @@
  * limitations under the License.
  */
 
-package org.onosproject.provider.nil;
+package org.onosproject.drivers.bmv2.ctl;
 
 /**
  * Constants for default values of configurable properties.
  */
-public final class OsgiPropertyDefaults {
+public final class OsgiPropertyConstants {
 
-    private OsgiPropertyDefaults() {}
+    private OsgiPropertyConstants() {}
 
-    public static final String TOPO_SHAPE_DEFAULT = "configured";
-    public static final int DEVICE_COUNT_DEFAULT = 10;
-    public static final int HOST_COUNT_DEFAULT = 5;
-    public static final int PACKET_RATE_DEFAULT = 0;
-    public static final double MUTATION_RATE_DEFAULT = 0;
-    public static final String MASTERSHIP_DEFAULT = "random";
+    public static final String DEVICE_LOCK_WAITING_TIME_IN_SEC = "deviceLockWaitingTime";
+    public static final int DEVICE_LOCK_WAITING_TIME_IN_SEC_DEFAULT = 60;
 
+    public static final String NUM_CONNECTION_RETRIES = "numConnectionRetries";
+    public static final int NUM_CONNECTION_RETRIES_DEFAULT = 2;
+
+    public static final String TIME_BETWEEN_RETRIES = "timeBetweenRetries";
+    public static final int TIME_BETWEEN_RETRIES_DEFAULT = 2;
 }

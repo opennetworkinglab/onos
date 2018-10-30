@@ -65,8 +65,7 @@ public class GrpcServiceRegistryImpl implements GrpcServiceRegistry {
     clients of nonstandard port usage as there is no mechanism available to
     discover the port hosting gRPC services.
      */
-    @Property(name = PORT_PROPERTY_NAME, intValue = DEFAULT_SERVER_PORT,
-             label = "The port number which ONOS will use to host gRPC services.")
+    /** The port number which ONOS will use to host gRPC services. */
     private int listeningPort = DEFAULT_SERVER_PORT;
 
     @Activate

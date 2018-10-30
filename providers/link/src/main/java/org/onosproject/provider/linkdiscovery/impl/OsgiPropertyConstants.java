@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-package org.onosproject.incubator.store.virtual.impl;
+package org.onosproject.provider.linkdiscovery.impl;
 
 /**
  * Constants for default values of configurable properties.
  */
-public final class OsgiPropertyDefaults {
+public final class OsgiPropertyConstants {
 
-    private OsgiPropertyDefaults() {}
+    private OsgiPropertyConstants() {}
 
-    public static final int MESSAGE_HANDLER_THREAD_POOL_SIZE_DEFAULT = 4;
-    public static final int BACKUP_PERIOD_MILLIS_DEFAULT = 2000;
-    public static final boolean PERSISTENCE_ENABLED_DEFAULT = false;
-    public static final int PENDING_FUTURE_TIMEOUT_MINUTES_DEFAULT = 5;
+    public static final String POLL_DELAY_SECONDS = "linkPollDelaySeconds";
+    public static final int POLL_DELAY_SECONDS_DEFAULT = 20;
+
+    public static final String POLL_FREQUENCY_SECONDS = "linkPollFrequencySeconds";
+    public static final int POLL_FREQUENCY_SECONDS_DEFAULT = 10;
 
 }

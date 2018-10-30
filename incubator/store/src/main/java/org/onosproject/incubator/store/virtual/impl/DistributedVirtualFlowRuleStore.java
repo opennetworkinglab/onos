@@ -94,7 +94,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.incubator.store.virtual.impl.OsgiPropertyDefaults.*;
+import static org.onosproject.incubator.store.virtual.impl.OsgiPropertyConstants.*;
 import static org.onosproject.net.flow.FlowRuleEvent.Type.RULE_REMOVED;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -105,9 +105,9 @@ import static org.slf4j.LoggerFactory.getLogger;
 //TODO: support backup and persistent mechanism
 @Component(immediate = true, enabled = false, service = VirtualNetworkFlowRuleStore.class,
         property = {
-                "messageHandlerThreadPoolSize:Integer=" + MESSAGE_HANDLER_THREAD_POOL_SIZE_DEFAULT,
-                "pendingFutureTimeoutMinutes:Integer=" + BACKUP_PERIOD_MILLIS_DEFAULT,
-                "persistenceEnabled:Boolean=" + PERSISTENCE_ENABLED_DEFAULT,
+                MESSAGE_HANDLER_THREAD_POOL_SIZE + ":Integer=" + MESSAGE_HANDLER_THREAD_POOL_SIZE_DEFAULT,
+                BACKUP_PERIOD_MILLIS + ":Integer=" + BACKUP_PERIOD_MILLIS_DEFAULT,
+                PERSISTENCE_ENABLED + ":Boolean=" + PERSISTENCE_ENABLED_DEFAULT,
         })
 
 public class DistributedVirtualFlowRuleStore
@@ -117,7 +117,6 @@ public class DistributedVirtualFlowRuleStore
     private final Logger log = getLogger(getClass());
 
     //TODO: confirm this working fine with multiple thread more than 1
-    private static final int MESSAGE_HANDLER_THREAD_POOL_SIZE = 1;
     private static final long FLOW_RULE_STORE_TIMEOUT_MILLIS = 5000;
 
     private static final String FLOW_OP_TOPIC = "virtual-flow-ops-ids";
@@ -134,15 +133,13 @@ public class DistributedVirtualFlowRuleStore
     private static final MessageSubject REMOTE_APPLY_COMPLETED
             = new MessageSubject("virtual-peer-apply-completed");
 
-    //@Property(name = "msgHandlerThreadPoolSize", intValue = MESSAGE_HANDLER_THREAD_POOL_SIZE,
-    //        label = "Number of threads in the message handler pool")
+    /** Number of threads in the message handler pool. */
     private int msgHandlerThreadPoolSize = MESSAGE_HANDLER_THREAD_POOL_SIZE_DEFAULT;
 
-    //@Property(name = "backupPeriod", intValue = BACKUP_PERIOD_MILLIS,
-    //        label = "Delay in ms between successive backup runs")
+    /** Delay in ms between successive backup runs. */
     private int backupPeriod = BACKUP_PERIOD_MILLIS_DEFAULT;
-    //@Property(name = "persistenceEnabled", boolValue = false,
-    //        label = "Indicates whether or not changes in the flow table should be persisted to disk.")
+
+    /** Indicates whether or not changes in the flow table should be persisted to disk.. */
     private boolean persistenceEnabled = PERSISTENCE_ENABLED_DEFAULT;
 
     private InternalFlowTable flowTable = new InternalFlowTable();
@@ -240,13 +237,13 @@ public class DistributedVirtualFlowRuleStore
         int newPoolSize;
         int newBackupPeriod;
         try {
-            String s = get(properties, "msgHandlerPoolSize");
+            String s = get(properties, MESSAGE_HANDLER_THREAD_POOL_SIZE);
             newPoolSize = isNullOrEmpty(s) ? msgHandlerThreadPoolSize : Integer.parseInt(s.trim());
 
-            s = get(properties, "backupPeriod");
+            s = get(properties, BACKUP_PERIOD_MILLIS);
             newBackupPeriod = isNullOrEmpty(s) ? backupPeriod : Integer.parseInt(s.trim());
         } catch (NumberFormatException | ClassCastException e) {
-            newPoolSize = MESSAGE_HANDLER_THREAD_POOL_SIZE;
+            newPoolSize = MESSAGE_HANDLER_THREAD_POOL_SIZE_DEFAULT;
             newBackupPeriod = BACKUP_PERIOD_MILLIS_DEFAULT;
         }
 

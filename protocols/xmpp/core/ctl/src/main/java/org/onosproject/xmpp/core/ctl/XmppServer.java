@@ -35,6 +35,7 @@ import java.net.InetSocketAddress;
 import java.util.Dictionary;
 
 import static org.onlab.util.Tools.get;
+import static org.onosproject.xmpp.core.ctl.OsgiPropertyConstants.XMPP_PORT;
 
 /**
  *  The XMPP server class. Starts XMPP server and listens to new XMPP device TCP connections.
@@ -124,7 +125,7 @@ public class XmppServer {
      * @param properties properties to be set
      */
     public void setConfiguration(Dictionary<?, ?> properties) {
-        String port = get(properties, "xmppPort");
+        String port = get(properties, XMPP_PORT);
         if (!Strings.isNullOrEmpty(port)) {
             this.port = Integer.parseInt(port);
         }

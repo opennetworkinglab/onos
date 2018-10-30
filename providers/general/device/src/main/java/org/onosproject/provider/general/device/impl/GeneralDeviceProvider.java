@@ -106,9 +106,7 @@ import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.device.DeviceEvent.Type;
-import static org.onosproject.provider.general.device.impl.OsgiPropertyDefaults.OP_TIMEOUT_SHORT_DEFAULT;
-import static org.onosproject.provider.general.device.impl.OsgiPropertyDefaults.PROBE_FREQUENCY_DEFAULT;
-import static org.onosproject.provider.general.device.impl.OsgiPropertyDefaults.STATS_POLL_FREQUENCY_DEFAULT;
+import static org.onosproject.provider.general.device.impl.OsgiPropertyConstants.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -119,9 +117,9 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Beta
 @Component(immediate = true,
         property = {
-            "deviceStatsPollFrequency:Integer=" + STATS_POLL_FREQUENCY_DEFAULT,
-            "deviceProbeFrequency:Integer=" + PROBE_FREQUENCY_DEFAULT,
-            "deviceOperationTimeoutShort:Integer=" + OP_TIMEOUT_SHORT_DEFAULT,
+                STATS_POLL_FREQUENCY + ":Integer=" + STATS_POLL_FREQUENCY_DEFAULT,
+                PROBE_FREQUENCY + ":Integer=" + PROBE_FREQUENCY_DEFAULT,
+                OP_TIMEOUT_SHORT + ":Integer=" + OP_TIMEOUT_SHORT_DEFAULT,
         })
 public class GeneralDeviceProvider extends AbstractProvider
         implements DeviceProvider {
@@ -166,23 +164,20 @@ public class GeneralDeviceProvider extends AbstractProvider
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private PiPipeconfWatchdogService pipeconfWatchdogService;
 
-    private static final String STATS_POLL_FREQUENCY = "deviceStatsPollFrequency";
-    //@Property(name = STATS_POLL_FREQUENCY, intValue = DEFAULT_STATS_POLL_FREQUENCY,
-    //        label = "Configure poll frequency for port status and statistics; " +
-    //                "default is 10 sec")
+    /**
+     * Configure poll frequency for port status and statistics; default is 10 sec.
+     */
     private int statsPollFrequency = STATS_POLL_FREQUENCY_DEFAULT;
 
-    private static final String PROBE_FREQUENCY = "deviceProbeFrequency";
-    //@Property(name = PROBE_FREQUENCY, intValue = DEFAULT_PROBE_FREQUENCY,
-    //        label = "Configure probe frequency for checking device availability; " +
-    //                "default is 10 sec")
+    /**
+     * Configure probe frequency for checking device availability; default is 10 sec.
+     */
     private int probeFrequency = PROBE_FREQUENCY_DEFAULT;
 
-    private static final String OP_TIMEOUT_SHORT = "deviceOperationTimeoutShort";
-    //@Property(name = OP_TIMEOUT_SHORT, intValue = DEFAULT_OP_TIMEOUT_SHORT,
-    //        label = "Configure timeout in seconds for device operations " +
-    //                "that are supposed to take a short time " +
-    //                "(e.g. checking device reachability); default is 10 seconds")
+    /**
+     * Configure timeout in seconds for device operations that are supposed to take a short time
+     * (e.g. checking device reachability); default is 10 seconds.
+     */
     private int opTimeoutShort = OP_TIMEOUT_SHORT_DEFAULT;
 
     //FIXME to be removed when netcfg will issue device events in a bundle or

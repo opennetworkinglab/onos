@@ -121,8 +121,7 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
 
     private static final String COMPONENT = "org.onosproject.provider.of.group.impl.OpenFlowGroupProvider";
 
-    //@Property(name = "groupPollInterval", intValue = DEFAULT_POLL_INTERVAL,
-    //        label = "Frequency (in seconds) for polling group statistics")
+    /** Frequency (in seconds) for polling group statistics. */
     private int groupPollInterval = POLL_FREQUENCY_DEFAULT;
 
     private final InternalGroupProvider listener = new InternalGroupProvider();

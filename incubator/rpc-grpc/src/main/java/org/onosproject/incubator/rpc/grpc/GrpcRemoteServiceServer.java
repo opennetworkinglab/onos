@@ -99,9 +99,7 @@ public class GrpcRemoteServiceServer {
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected LinkProviderRegistry linkProviderRegistry;
 
-
-    @Property(name = "listenPort", intValue = DEFAULT_LISTEN_PORT,
-            label = "Port to listen on")
+    /** Port to listen on */
     protected int listenPort = DEFAULT_LISTEN_PORT;
 
     private Server server;

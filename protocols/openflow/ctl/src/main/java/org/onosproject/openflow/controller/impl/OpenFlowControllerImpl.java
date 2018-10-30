@@ -125,33 +125,26 @@ public class OpenFlowControllerImpl implements OpenFlowController {
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected NetworkConfigRegistry netCfgService;
 
-    //@Property(name = "openflowPorts", value = DEFAULT_OFPORT,
-    //        label = "Port numbers (comma separated) used by OpenFlow protocol; default is 6633,6653")
-    //private String openflowPortsValue = OFPORTS_DEFAULT;
+    /** Port numbers (comma separated) used by OpenFlow protocol; default is 6633,6653. */
+    private String openflowPortsValue = OFPORTS_DEFAULT;
 
-    //@Property(name = "workerThreads", intValue = DEFAULT_WORKER_THREADS,
-    //        label = "Number of controller worker threads")
-    //private int workerThreads = DEFAULT_WORKER_THREADS;
+    /** Number of controller worker threads. */
+    private int workerThreads = WORKER_THREADS_DEFAULT;
 
-    //@Property(name = "tlsMode", value = "",
-    //          label = "TLS mode for OpenFlow channel; options are: disabled [default], enabled, strict")
-    //private String tlsModeString;
+      /** TLS mode for OpenFlow channel; options are: disabled [default], enabled, strict. */
+    private String tlsModeString;
 
-    //@Property(name = "keyStore", value = "",
-    //        label = "File path to key store for TLS connections")
-    //private String keyStore;
+    /** File path to key store for TLS connections. */
+    private String keyStore;
 
-    //@Property(name = "keyStorePassword", value = "",
-    //        label = "Key store password")
-    //private String keyStorePassword;
+    /** Key store password. */
+    private String keyStorePassword;
 
-    //@Property(name = "trustStore", value = "",
-    //        label = "File path to trust store for TLS connections")
-    //private String trustStore;
+    /** File path to trust store for TLS connections. */
+    private String trustStore;
 
-    //@Property(name = "trustStorePassword", value = "",
-    //        label = "Trust store password")
-    //private String trustStorePassword;
+    /** Trust store password. */
+    private String trustStorePassword;
 
     protected ExecutorService executorMsgs =
         Executors.newFixedThreadPool(32, groupedThreads("onos/of", "event-stats-%d", log));

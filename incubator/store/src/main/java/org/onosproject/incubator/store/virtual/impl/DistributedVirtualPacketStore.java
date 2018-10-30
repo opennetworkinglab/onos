@@ -63,7 +63,8 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.incubator.store.virtual.impl.OsgiPropertyDefaults.MESSAGE_HANDLER_THREAD_POOL_SIZE_DEFAULT;
+import static org.onosproject.incubator.store.virtual.impl.OsgiPropertyConstants.MESSAGE_HANDLER_THREAD_POOL_SIZE;
+import static org.onosproject.incubator.store.virtual.impl.OsgiPropertyConstants.MESSAGE_HANDLER_THREAD_POOL_SIZE_DEFAULT;
 import static org.onosproject.net.packet.PacketEvent.Type.EMIT;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -73,7 +74,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 @Component(immediate = true, enabled = false, service = VirtualNetworkPacketStore.class,
         property = {
-                 "messageHandlerThreadPoolSize:Integer=" + MESSAGE_HANDLER_THREAD_POOL_SIZE_DEFAULT,
+                 MESSAGE_HANDLER_THREAD_POOL_SIZE + ":Integer=" + MESSAGE_HANDLER_THREAD_POOL_SIZE_DEFAULT,
         })
 public class DistributedVirtualPacketStore
         extends AbstractVirtualStore<PacketEvent, PacketStoreDelegate>
@@ -107,8 +108,7 @@ public class DistributedVirtualPacketStore
 
     private ExecutorService messageHandlingExecutor;
 
-    //@Property(name = "messageHandlerThreadPoolSize", intValue = DEFAULT_MESSAGE_HANDLER_THREAD_POOL_SIZE,
-    //        label = "Size of thread pool to assign message handler")
+    /** Size of thread pool to assign message handler. */
     private static int messageHandlerThreadPoolSize = MESSAGE_HANDLER_THREAD_POOL_SIZE_DEFAULT;
 
     @Activate
@@ -149,7 +149,7 @@ public class DistributedVirtualPacketStore
         int newMessageHandlerThreadPoolSize;
 
         try {
-            String s = get(properties, "messageHandlerThreadPoolSize");
+            String s = get(properties, MESSAGE_HANDLER_THREAD_POOL_SIZE);
 
             newMessageHandlerThreadPoolSize =
                     isNullOrEmpty(s) ? messageHandlerThreadPoolSize : Integer.parseInt(s.trim());

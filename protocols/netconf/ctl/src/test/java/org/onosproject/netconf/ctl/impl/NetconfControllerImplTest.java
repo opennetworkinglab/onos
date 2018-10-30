@@ -58,6 +58,9 @@ import java.util.Set;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
+import static org.onosproject.netconf.ctl.impl.OsgiPropertyConstants.NETCONF_CONNECT_TIMEOUT_DEFAULT;
+import static org.onosproject.netconf.ctl.impl.OsgiPropertyConstants.NETCONF_IDLE_TIMEOUT_DEFAULT;
+import static org.onosproject.netconf.ctl.impl.OsgiPropertyConstants.NETCONF_REPLY_TIMEOUT_DEFAULT;
 
 /**
  * Unit tests for the Netconf controller implementation test.
@@ -125,9 +128,9 @@ public class NetconfControllerImplTest {
         ctrl.deviceService = deviceService;
         ctrl.deviceKeyService = deviceKeyService;
         ctrl.netCfgService = netCfgService;
-        NetconfControllerImpl.netconfConnectTimeout = NetconfControllerImpl.DEFAULT_CONNECT_TIMEOUT_SECONDS;
-        NetconfControllerImpl.netconfIdleTimeout = NetconfControllerImpl.DEFAULT_IDLE_TIMEOUT_SECONDS;
-        NetconfControllerImpl.netconfReplyTimeout = NetconfControllerImpl.DEFAULT_REPLY_TIMEOUT_SECONDS;
+        NetconfControllerImpl.netconfConnectTimeout = NETCONF_CONNECT_TIMEOUT_DEFAULT;
+        NetconfControllerImpl.netconfIdleTimeout = NETCONF_IDLE_TIMEOUT_DEFAULT;
+        NetconfControllerImpl.netconfReplyTimeout = NETCONF_REPLY_TIMEOUT_DEFAULT;
 
         //Creating mock devices
         deviceInfo1 = new NetconfDeviceInfo("device1", "001", IpAddress.valueOf(DEVICE_1_IP), DEVICE_1_PORT);
@@ -183,9 +186,9 @@ public class NetconfControllerImplTest {
     public void tearDown() {
         ctrl.deactivate();
         // resetting static variables..
-        NetconfControllerImpl.netconfConnectTimeout = NetconfControllerImpl.DEFAULT_CONNECT_TIMEOUT_SECONDS;
-        NetconfControllerImpl.netconfIdleTimeout = NetconfControllerImpl.DEFAULT_IDLE_TIMEOUT_SECONDS;
-        NetconfControllerImpl.netconfReplyTimeout = NetconfControllerImpl.DEFAULT_REPLY_TIMEOUT_SECONDS;
+        NetconfControllerImpl.netconfConnectTimeout = NETCONF_CONNECT_TIMEOUT_DEFAULT;
+        NetconfControllerImpl.netconfIdleTimeout = NETCONF_IDLE_TIMEOUT_DEFAULT;
+        NetconfControllerImpl.netconfReplyTimeout = NETCONF_REPLY_TIMEOUT_DEFAULT;
     }
 
     /**

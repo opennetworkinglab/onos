@@ -49,6 +49,9 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
+import static org.onosproject.xmpp.core.ctl.OsgiPropertyConstants.XMPP_PORT;
+import static org.onosproject.xmpp.core.ctl.OsgiPropertyConstants.XMPP_PORT_DEFAULT;
+
 
 /**
  * The main class (bundle) of XMPP protocol.
@@ -58,11 +61,13 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * 3. Configuration parameters initialization.
  * 4. Notifing listeners about XMPP events/packets.
  */
-@Component(immediate = true, service = XmppController.class)
+@Component(immediate = true, service = XmppController.class,
+        property = {
+                XMPP_PORT + "=" + XMPP_PORT_DEFAULT,
+        })
 public class XmppControllerImpl implements XmppController {
 
     private static final String APP_ID = "org.onosproject.xmpp";
-    private static final String XMPP_PORT = "5269";
 
     private static final Logger log =
             LoggerFactory.getLogger(XmppControllerImpl.class);
@@ -75,10 +80,8 @@ public class XmppControllerImpl implements XmppController {
     protected ComponentConfigService cfgService;
 
     // configuration properties definition
-    //@Property(name = "xmppPort", value = XMPP_PORT,
-    //        label = "Port number used by XMPP protocol; default is 5269")
-    private String xmppPort = XMPP_PORT;
-
+    /** Port number used by XMPP protocol; default is 5269. */
+    private String xmppPort = XMPP_PORT_DEFAULT;
 
     // listener declaration
     protected Set<XmppDeviceListener> xmppDeviceListeners = new CopyOnWriteArraySet<XmppDeviceListener>();

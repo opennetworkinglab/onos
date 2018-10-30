@@ -108,12 +108,10 @@ public class NetworkConfigLinksProvider
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ClusterMetadataService metadataService;
 
-    //@Property(name = PROP_PROBE_RATE, intValue = DEFAULT_PROBE_RATE,
-    //        label = "LLDP and BDDP probe rate specified in millis")
+    /** LLDP and BDDP probe rate specified in millis. */
     private int probeRate = PROBE_RATE_DEFAULT;
 
-    //@Property(name = PROP_DISCOVERY_DELAY, intValue = DEFAULT_DISCOVERY_DELAY,
-    //        label = "Number of millis beyond which an LLDP packet will not be accepted")
+    /** Number of millis beyond which an LLDP packet will not be accepted. */
     private int maxDiscoveryDelayMs = DISCOVERY_DELAY_DEFAULT;
 
     // Device link discovery helpers.

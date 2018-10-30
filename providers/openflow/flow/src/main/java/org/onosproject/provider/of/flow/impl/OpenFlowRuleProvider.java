@@ -135,12 +135,10 @@ public class OpenFlowRuleProvider extends AbstractProvider
     private static final int MIN_EXPECTED_BYTE_LEN = 56;
     private static final int SKIP_BYTES = 4;
 
-    //@Property(name = "flowPollFrequency", intValue = DEFAULT_POLL_FREQUENCY,
-    //        label = "Frequency (in seconds) for polling flow statistics")
+    /** Frequency (in seconds) for polling flow statistics. */
     private int flowPollFrequency = POLL_FREQUENCY_DEFAULT;
 
-    //@Property(name = "adaptiveFlowSampling", boolValue = DEFAULT_ADAPTIVE_FLOW_SAMPLING,
-    //        label = "Adaptive Flow Sampling is on or off")
+    /** Adaptive Flow Sampling is on or off. */
     private boolean adaptiveFlowSampling = ADAPTIVE_FLOW_SAMPLING_DEFAULT;
 
     private FlowRuleProviderService providerService;

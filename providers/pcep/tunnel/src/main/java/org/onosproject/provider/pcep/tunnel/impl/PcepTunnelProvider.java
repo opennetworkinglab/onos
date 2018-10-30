@@ -183,8 +183,7 @@ public class PcepTunnelProvider extends AbstractProvider implements TunnelProvid
     private static final int WAIT_TIME = 5;
     public static final String LSRID = "lsrId";
 
-    //@Property(name = "tunnelStatsPollFrequency", intValue = POLL_INTERVAL,
-    //        label = "Frequency (in seconds) for polling tunnel statistics")
+    /** Frequency (in seconds) for polling tunnel statistics. */
     private int tunnelStatsPollFrequency = POLL_FREQUENCY_DEFAULT;
 
     private static final String TUNNLE_NOT_NULL = "Create failed,The given port may be wrong or has been occupied.";

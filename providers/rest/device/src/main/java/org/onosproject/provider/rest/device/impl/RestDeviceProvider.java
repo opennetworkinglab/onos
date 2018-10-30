@@ -137,9 +137,7 @@ public class RestDeviceProvider extends AbstractProvider
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DriverService driverService;
 
-    //@Property(name = POLL_FREQUENCY, intValue = DEFAULT_POLL_FREQUENCY_SECONDS,
-    //        label = "Configure poll frequency for port status and statistics; " +
-    //                "default is 30 seconds")
+    /** Configure poll frequency for port status and statistics; default is 30 seconds. */
     private int pollFrequency = POLL_FREQUENCY_DEFAULT;
 
     private DeviceProviderService providerService;

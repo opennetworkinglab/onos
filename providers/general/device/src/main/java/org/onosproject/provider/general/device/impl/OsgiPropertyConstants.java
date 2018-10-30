@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.provider.lldp.impl;
+package org.onosproject.provider.general.device.impl;
 
 /**
  * Constants for default values of configurable properties.
@@ -23,19 +23,13 @@ public final class OsgiPropertyConstants {
 
     private OsgiPropertyConstants() {}
 
-    public static final String PROP_ENABLED = "enabled";
-    public static final boolean ENABLED_DEFAULT = true;
+    public static final String STATS_POLL_FREQUENCY = "deviceStatsPollFrequency";
+    public static final int STATS_POLL_FREQUENCY_DEFAULT = 10;
 
-    public static final String PROP_USE_BDDP = "useBDDP";
-    public static final boolean USE_BDDP_DEFAULT = true;
+    public static final String PROBE_FREQUENCY = "deviceProbeFrequency";
+    public static final int PROBE_FREQUENCY_DEFAULT = 10;
 
-    public static final String PROP_PROBE_RATE = "probeRate";
-    public static final int PROBE_RATE_DEFAULT = 3000;
-
-    public static final String PROP_STALE_LINK_AGE = "staleLinkAge";
-    public static final int STALE_LINK_AGE_DEFAULT = 10000;
-
-    public static final String PROP_DISCOVERY_DELAY = "maxDiscoveryDelayMs";
-    public static final int DISCOVERY_DELAY_DEFAULT = 1000;
+    public static final String OP_TIMEOUT_SHORT = "deviceOperationTimeoutShort";
+    public static final int OP_TIMEOUT_SHORT_DEFAULT = 10;
 
 }

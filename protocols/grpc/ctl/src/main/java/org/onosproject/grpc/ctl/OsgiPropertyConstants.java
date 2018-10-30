@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package org.onosproject.provider.general.device.impl;
+package org.onosproject.grpc.ctl;
 
 /**
  * Constants for default values of configurable properties.
  */
-public final class OsgiPropertyDefaults {
+public final class OsgiPropertyConstants {
 
-    private OsgiPropertyDefaults() {}
+    private OsgiPropertyConstants() {}
 
-    public static final int STATS_POLL_FREQUENCY_DEFAULT = 10;
-    public static final int PROBE_FREQUENCY_DEFAULT = 10;
-    public static final int OP_TIMEOUT_SHORT_DEFAULT = 10;
+    public static final String ENABLE_MESSAGE_LOG = "enableMessageLog";
+    public static final boolean ENABLE_MESSAGE_LOG_DEFAULT = false;
 
 }

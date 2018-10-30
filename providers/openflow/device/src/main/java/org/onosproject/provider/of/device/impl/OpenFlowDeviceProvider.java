@@ -453,12 +453,10 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
 
     private final InternalDeviceProvider listener = new InternalDeviceProvider();
 
-    //@Property(name = POLL_PROP_NAME, intValue = POLL_INTERVAL,
-    //label = "Frequency (in seconds) for polling switch Port statistics")
+    /** Frequency (in seconds) for polling switch Port statistics. */
     private int portStatsPollFrequency = POLL_FREQ_DEFAULT;
 
-    //@Property(name = PROP_FREQ, boolValue = DEFAULT_PROP_FREQ,
-    //label = "It indicates frequency must be used instead of wavelength for port tuning.")
+    /** It indicates frequency must be used instead of wavelength for port tuning. */
     private static boolean propFreq = PROP_FREQ_DEFAULT;
 
     private final Timer timer = new Timer("onos-openflow-portstats-collector");
