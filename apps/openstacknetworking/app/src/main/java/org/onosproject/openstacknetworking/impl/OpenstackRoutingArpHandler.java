@@ -76,6 +76,7 @@ import org.openstack4j.model.network.NetFloatingIP;
 import org.openstack4j.model.network.Network;
 import org.openstack4j.model.network.Port;
 import org.openstack4j.model.network.Router;
+import org.openstack4j.model.network.RouterInterface;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
@@ -515,27 +516,33 @@ public class OpenstackRoutingArpHandler {
     }
 
     private void setFakeGatewayArpRuleByRouter(Router router, boolean install) {
-        setFakeGatewayArpRuleByGateway(router.getExternalGatewayInfo(), install);
+        setFakeGatewayArpRuleByGateway(router.getId(), router.getExternalGatewayInfo(), install);
     }
 
-    private Set<IP> getExternalGatewaySnatIps(ExternalGateway extGw) {
-        return osNetworkAdminService.ports().stream()
-                .filter(port ->
-                        Objects.equals(port.getNetworkId(), extGw.getNetworkId()))
-                .filter(port ->
-                        Objects.equals(port.getDeviceOwner(), DEVICE_OWNER_ROUTER_GW))
-                .flatMap(port -> port.getFixedIps().stream())
+    private Set<IP> getExternalGatewaySnatIps(String routerId, ExternalGateway extGw) {
+        if (routerId == null) {
+            return ImmutableSet.of();
+        }
+
+        Set<String> portIds = osRouterAdminService.routerInterfaces(routerId).stream()
+                .map(RouterInterface::getPortId)
+                .collect(Collectors.toSet());
+
+        return portIds.stream()
+                .map(pid -> osNetworkAdminService.port(pid))
+                .filter(p -> Objects.equals(p.getDeviceOwner(), DEVICE_OWNER_ROUTER_GW))
+                .flatMap(p -> p.getFixedIps().stream())
                 .collect(Collectors.toSet());
     }
 
-    private void setFakeGatewayArpRuleByGateway(ExternalGateway extGw, boolean install) {
+    private void setFakeGatewayArpRuleByGateway(String routerId, ExternalGateway extGw, boolean install) {
         if (ARP_BROADCAST_MODE.equals(getArpMode())) {
 
             if (extGw == null) {
                 return;
             }
 
-            setFakeGatewayArpRuleByIps(getExternalGatewaySnatIps(extGw), install);
+            setFakeGatewayArpRuleByIps(getExternalGatewaySnatIps(routerId, extGw), install);
         }
     }
 
@@ -649,13 +656,15 @@ public class OpenstackRoutingArpHandler {
                 case OPENSTACK_ROUTER_GATEWAY_ADDED:
                     eventExecutor.execute(() ->
                         // add a gateway manually after adding a router
-                        setFakeGatewayArpRuleByGateway(event.externalGateway(), true)
+                        setFakeGatewayArpRuleByGateway(event.subject().getId(),
+                                                        event.externalGateway(), true)
                     );
                     break;
                 case OPENSTACK_ROUTER_GATEWAY_REMOVED:
                     eventExecutor.execute(() ->
                         // remove a gateway from an existing router
-                        setFakeGatewayArpRuleByGateway(event.externalGateway(), false)
+                        setFakeGatewayArpRuleByGateway(event.subject().getId(),
+                                                        event.externalGateway(), false)
                     );
                     break;
                 case OPENSTACK_FLOATING_IP_ASSOCIATED:

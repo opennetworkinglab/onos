@@ -39,7 +39,6 @@ import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.net.flow.instructions.ExtensionTreatment;
 import org.onosproject.openstacknetworking.api.InstancePort;
 import org.onosproject.openstacknetworking.api.InstancePortEvent;
 import org.onosproject.openstacknetworking.api.InstancePortListener;
@@ -49,7 +48,6 @@ import org.onosproject.openstacknetworking.api.OpenstackNetworkEvent;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkListener;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.onosproject.openstacknetworking.api.OpenstackSecurityGroupService;
-import org.onosproject.openstacknetworking.util.RulePopulatorUtil;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
 import org.openstack4j.model.network.Network;
@@ -500,25 +498,21 @@ public final class OpenstackSwitchingHandler {
                 .matchInPort(instPort.portNumber())
                 .build();
 
-        // XXX All egress traffic needs to go through connection tracking module,
-        // which might hurt its performance.
-        ExtensionTreatment ctTreatment =
-                RulePopulatorUtil.niciraConnTrackTreatmentBuilder(driverService, instPort.deviceId())
-                        .commit(true).build();
+        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
+                .setTunnelId(getVni(instPort));
 
-        TrafficTreatment.Builder tb = DefaultTrafficTreatment.builder()
-                .setTunnelId(getVni(instPort))
-                .transition(ARP_TABLE);
 
-        if (securityGroupService.isSecurityGroupEnabled() && ethType == Ethernet.TYPE_IPV4) {
-            tb.extension(ctTreatment, instPort.deviceId());
+        if (ethType == Ethernet.TYPE_ARP) {
+            tBuilder.transition(ARP_TABLE);
+        } else if (ethType == Ethernet.TYPE_IPV4) {
+            tBuilder.transition(ACL_TABLE);
         }
 
         osFlowRuleService.setRule(
                 appId,
                 instPort.deviceId(),
                 selector,
-                tb.build(),
+                tBuilder.build(),
                 PRIORITY_TUNNEL_TAG_RULE,
                 VTAG_TABLE,
                 install);

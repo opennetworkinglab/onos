@@ -850,7 +850,6 @@ public class OpenstackRoutingHandler {
                 .matchIPSrc(srcSubnet)
                 .matchEthDst(Constants.DEFAULT_GATEWAY_MAC);
 
-
         switch (networkType) {
             case VXLAN:
                 sBuilder.matchTunnelId(Long.parseLong(segmentId));
@@ -882,7 +881,14 @@ public class OpenstackRoutingHandler {
                 GW_COMMON_TABLE,
                 install);
 
+        // TODO: we do not remove the IcmpReplyMatchRules with false installation flag
+        // need to find a better way to remove this rule
+        if (install) {
+            setIcmpReplyRules(deviceId, install);
+        }
+    }
 
+    private void setIcmpReplyRules(DeviceId deviceId, boolean install) {
         // Sends ICMP response to controller for SNATing ingress traffic
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
