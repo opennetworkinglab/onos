@@ -41,13 +41,14 @@ SSH_OPTIONS=" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
 if [ ! -z "$ATOMIX_ROOT" ]; then
   echo "Pushing to $node from $ATOMIX_ROOT"
   ATOMIX_TAR=$ATOMIX_ROOT/dist/target/atomix.tar.gz
-elif [ -e $ATOMIX_MAVEN ]; then
+elif [ -e "$ATOMIX_MAVEN" ]; then
   echo "Pushing to $node from $ATOMIX_MAVEN"
   ATOMIX_TAR=$ATOMIX_MAVEN
 else
   echo "Pushing to $node from $ATOMIX_LOCAL"
-  rm -f $ATOMIX_LOCAL
-  wget -O $ATOMIX_LOCAL $ATOMIX_REMOTE
+  if [ ! -f "$ATOMIX_LOCAL" ]; then
+      wget -O $ATOMIX_LOCAL $ATOMIX_REMOTE
+  fi
   ATOMIX_TAR=$ATOMIX_LOCAL
 fi
 

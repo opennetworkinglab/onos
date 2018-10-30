@@ -26,8 +26,6 @@ _EOF_
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
 
-onos-check-bits
-
 while getopts fnvm: o; do
     case "$o" in
         f) uninstall=true;;
@@ -42,6 +40,8 @@ shift $OPC
 
 node=${1:-$OCI}
 remote=$ONOS_USER@$node
+
+$(dirname $0)/atomix-push-bits $node
 
 ssh -tt $remote "
     [ -f $ATOMIX_INSTALL_DIR/bin/atomix-agent ] && echo \"Atomix is already installed\" && exit 1
