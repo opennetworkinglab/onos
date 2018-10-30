@@ -29,22 +29,35 @@ import org.slf4j.Logger;
 
 import java.util.Dictionary;
 
+import static org.onosproject.influxdbmetrics.OsgiPropertyConstants.ADDRESS;
+import static org.onosproject.influxdbmetrics.OsgiPropertyConstants.ADDRESS_DEFAULT;
+import static org.onosproject.influxdbmetrics.OsgiPropertyConstants.DATABASE;
+import static org.onosproject.influxdbmetrics.OsgiPropertyConstants.DATABASE_DEFAULT;
+import static org.onosproject.influxdbmetrics.OsgiPropertyConstants.PASSWORD;
+import static org.onosproject.influxdbmetrics.OsgiPropertyConstants.PASSWORD_DEFAULT;
+import static org.onosproject.influxdbmetrics.OsgiPropertyConstants.PORT;
+import static org.onosproject.influxdbmetrics.OsgiPropertyConstants.PORT_DEFAULT;
+import static org.onosproject.influxdbmetrics.OsgiPropertyConstants.USERNAME;
+import static org.onosproject.influxdbmetrics.OsgiPropertyConstants.USERNAME_DEFAULT;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * A configuration service for InfluxDB metrics.
  * Both InfluxDbMetrics Reporter and Retriever rely on this configuration service.
  */
-@Component(immediate = true)
+@Component(
+    immediate = true,
+    property = {
+        ADDRESS + "=" + ADDRESS_DEFAULT,
+        PORT + ":Integer=" + PORT_DEFAULT,
+        DATABASE + "=" + DATABASE_DEFAULT,
+        USERNAME + "=" + USERNAME_DEFAULT,
+        PASSWORD + "=" + PASSWORD_DEFAULT
+    }
+)
 public class InfluxDbMetricsConfig {
 
     private final Logger log = getLogger(getClass());
-
-    private static final String DEFAULT_ADDRESS = "localhost";
-    private static final int DEFAULT_PORT = 8086;
-    private static final String DEFAULT_DATABASE = "onos";
-    private static final String DEFAULT_USERNAME = "onos";
-    private static final String DEFAULT_PASSWORD = "onos.password";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
@@ -58,25 +71,20 @@ public class InfluxDbMetricsConfig {
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService cfgService;
 
-    //@Property(name = "address", value = DEFAULT_ADDRESS,
-    //        label = "IP address of influxDB server; default is localhost")
-    protected String address = DEFAULT_ADDRESS;
+    /** IP address of influxDB server; default is localhost. */
+    protected String address = ADDRESS_DEFAULT;
 
-    //@Property(name = "port", intValue = DEFAULT_PORT,
-    //        label = "Port number of influxDB server; default is 8086")
-    protected int port = DEFAULT_PORT;
+    /** Port number of influxDB server; default is 8086. */
+    protected int port = PORT_DEFAULT;
 
-    //@Property(name = "database", value = DEFAULT_DATABASE,
-    //        label = "Database name of influxDB server; default is onos")
-    protected String database = DEFAULT_DATABASE;
+    /** Database name of influxDB server; default is onos. */
+    protected String database = DATABASE_DEFAULT;
 
-    //@Property(name = "username", value = DEFAULT_USERNAME,
-    //        label = "Username of influxDB server; default is onos")
-    protected String username = DEFAULT_USERNAME;
+    /** Username of influxDB server; default is onos. */
+    protected String username = USERNAME_DEFAULT;
 
-    //@Property(name = "password", value = DEFAULT_PASSWORD,
-    //        label = "Password of influxDB server; default is onos.password")
-    protected String password = DEFAULT_PASSWORD;
+    /** Password of influxDB server; default is onos.password. */
+    protected String password = PASSWORD_DEFAULT;
 
     @Activate
     public void activate() {
@@ -123,25 +131,25 @@ public class InfluxDbMetricsConfig {
     private void readComponentConfiguration(ComponentContext context) {
         Dictionary<?, ?> properties = context.getProperties();
 
-        String addressStr = Tools.get(properties, "address");
-        address = addressStr != null ? addressStr : DEFAULT_ADDRESS;
+        String addressStr = Tools.get(properties, ADDRESS);
+        address = addressStr != null ? addressStr : ADDRESS_DEFAULT;
         log.info("Configured. InfluxDB server address is {}", address);
 
-        String databaseStr = Tools.get(properties, "database");
-        database = databaseStr != null ? databaseStr : DEFAULT_DATABASE;
+        String databaseStr = Tools.get(properties, DATABASE);
+        database = databaseStr != null ? databaseStr : DATABASE_DEFAULT;
         log.info("Configured. InfluxDB server database is {}", database);
 
-        String usernameStr = Tools.get(properties, "username");
-        username = usernameStr != null ? usernameStr : DEFAULT_USERNAME;
+        String usernameStr = Tools.get(properties, USERNAME);
+        username = usernameStr != null ? usernameStr : USERNAME_DEFAULT;
         log.info("Configured. InfluxDB server username is {}", username);
 
-        String passwordStr = Tools.get(properties, "password");
-        password = passwordStr != null ? passwordStr : DEFAULT_PASSWORD;
+        String passwordStr = Tools.get(properties, PASSWORD);
+        password = passwordStr != null ? passwordStr : PASSWORD_DEFAULT;
         log.info("Configured. InfluxDB server password is {}", password);
 
-        Integer portConfigured = Tools.getIntegerProperty(properties, "port");
+        Integer portConfigured = Tools.getIntegerProperty(properties, PORT);
         if (portConfigured == null) {
-            port = DEFAULT_PORT;
+            port = PORT_DEFAULT;
             log.info("InfluxDB port is not configured, default value is {}", port);
         } else {
             port = portConfigured;
