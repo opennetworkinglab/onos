@@ -46,7 +46,7 @@ elif [ -e $ATOMIX_MAVEN ]; then
   ATOMIX_TAR=$ATOMIX_MAVEN
 else
   echo "Pushing to $node from $ATOMIX_LOCAL"
-  rm $ATOMIX_LOCAL
+  rm -f $ATOMIX_LOCAL
   wget -O $ATOMIX_LOCAL $ATOMIX_REMOTE
   ATOMIX_TAR=$ATOMIX_LOCAL
 fi
@@ -59,6 +59,6 @@ remHash=$(ssh $remote cksum /tmp/atomix.tar.gz 2>/dev/null | cut -d' ' -f1,2)
 if [ -n "$locHash" ] && [ "$locHash" = "$remHash" ]; then
   echo "Atomix bits /tmp/atomix.tar.gz already up-to-date on $node..."
 else
-  ssh $remote rm -f $ATOMIX_TAR
+  ssh $remote rm -f /tmp/atomix.tar.gz
   scp -q $ATOMIX_TAR $remote_with_bracket:/tmp/atomix.tar.gz
 fi
