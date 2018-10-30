@@ -163,6 +163,9 @@ public class DistributedApplicationStore extends ApplicationArchive
                     try {
                         log.info("Sending bits for application {}", name);
                         return toByteArray(getApplicationInputStream(name));
+                    } catch (ApplicationException e) {
+                        log.warn("Bits for application {} are not available on this node yet", name);
+                        return null;
                     } catch (IOException e) {
                         throw new StorageException(e);
                     }
