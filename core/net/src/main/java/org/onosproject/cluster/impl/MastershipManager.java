@@ -129,13 +129,10 @@ public class MastershipManager
     private NodeId localNodeId;
     private Timer requestRoleTimer;
 
-    //@Property(name = "useRegionForBalanceRoles", boolValue = DEFAULT_USE_REGION_FOR_BALANCE_ROLES,
-    //        label = "Use Regions for balancing roles")
+    /** Use Regions for balancing roles. */
     protected boolean useRegionForBalanceRoles = USE_REGION_FOR_BALANCE_ROLES_DEFAULT;
 
-    //@Property(name = "rebalanceRolesOnUpgrade",
-    //        boolValue = DEFAULT_REBALANCE_ROLES_ON_UPGRADE,
-    //        label = "Automatically rebalance roles following an upgrade")
+    /** Automatically rebalance roles following an upgrade. */
     protected boolean rebalanceRolesOnUpgrade = REBALANCE_ROLES_ON_UPGRADE_DEFAULT;
 
     @Activate
@@ -156,8 +153,10 @@ public class MastershipManager
         Set<ConfigProperty> configProperties = cfgService.getProperties(getClass().getCanonicalName());
         if (configProperties != null) {
             for (ConfigProperty property : configProperties) {
-                if ("useRegionForBalanceRoles".equals(property.name())) {
+                if (USE_REGION_FOR_BALANCE_ROLES.equals(property.name())) {
                     useRegionForBalanceRoles = property.asBoolean();
+                } else if (REBALANCE_ROLES_ON_UPGRADE.equals(property.name())) {
+                    rebalanceRolesOnUpgrade = property.asBoolean();
                 }
             }
         }

@@ -107,16 +107,13 @@ public class NeighbourResolutionManager implements NeighbourResolutionService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService componentConfigService;
 
-    //@Property(name = "arpEnabled", boolValue = true,
-    //        label = "Enable Address resolution protocol")
+    /** Enable Address resolution protocol. */
     protected boolean arpEnabled = NRM_ARP_ENABLED_DEFAULT;
 
-    //@Property(name = "ndpEnabled", boolValue = false,
-    //        label = "Enable IPv6 neighbour discovery")
+    /** Enable IPv6 neighbour discovery. */
     protected boolean ndpEnabled = NRM_NDP_ENABLED_DEFAULT;
 
-    //@Property(name = "requestInterceptsEnabled", boolValue = true,
-    //        label = "Enable requesting packet intercepts")
+    /** Enable requesting packet intercepts. */
     private boolean requestInterceptsEnabled = NRM_REQUEST_INTERCEPTS_ENABLED_DEFAULT;
 
     private static final String APP_NAME = "org.onosproject.neighbour";
@@ -152,21 +149,21 @@ public class NeighbourResolutionManager implements NeighbourResolutionService {
         Dictionary<?, ?> properties = context.getProperties();
         Boolean flag;
 
-        flag = Tools.isPropertyEnabled(properties, "ndpEnabled");
+        flag = Tools.isPropertyEnabled(properties, NRM_NDP_ENABLED);
         if (flag != null) {
             ndpEnabled = flag;
             log.info("IPv6 neighbor discovery is {}",
                     ndpEnabled ? "enabled" : "disabled");
         }
 
-        flag = Tools.isPropertyEnabled(properties, "arpEnabled");
+        flag = Tools.isPropertyEnabled(properties, NRM_ARP_ENABLED);
         if (flag != null) {
             arpEnabled = flag;
             log.info("Address resolution protocol is {}",
                      arpEnabled ? "enabled" : "disabled");
         }
 
-        flag = Tools.isPropertyEnabled(properties, "requestInterceptsEnabled");
+        flag = Tools.isPropertyEnabled(properties, NRM_REQUEST_INTERCEPTS_ENABLED);
         if (flag == null) {
             log.info("Request intercepts is not configured, " +
                              "using current value of {}", requestInterceptsEnabled);

@@ -120,14 +120,10 @@ public class IntentManager
     private static final EnumSet<IntentState> WITHDRAW
             = EnumSet.of(WITHDRAW_REQ, WITHDRAWING, WITHDRAWN);
 
-    //@Property(name = "skipReleaseResourcesOnWithdrawal",
-    //        boolValue = DEFAULT_SKIP_RELEASE_RESOURCES_ON_WITHDRAWAL,
-    //        label = "Indicates whether skipping resource releases on withdrawal is enabled or not")
+    /** Indicates whether skipping resource releases on withdrawal is enabled or not. */
     private boolean skipReleaseResourcesOnWithdrawal = IM_SKIP_RELEASE_RESOURCES_ON_WITHDRAWAL_DEFAULT;
 
-    //@Property(name = "numThreads",
-    //        intValue = DEFAULT_NUM_THREADS,
-    //        label = "Number of worker threads")
+    /** Number of worker threads. */
     private int numThreads = IM_NUM_THREADS_DEFAULT;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
@@ -218,7 +214,7 @@ public class IntentManager
             return;
         }
 
-        String s = Tools.get(context.getProperties(), "skipReleaseResourcesOnWithdrawal");
+        String s = Tools.get(context.getProperties(), IM_SKIP_RELEASE_RESOURCES_ON_WITHDRAWAL);
         boolean newTestEnabled = isNullOrEmpty(s) ? skipReleaseResourcesOnWithdrawal : Boolean.parseBoolean(s.trim());
         if (skipReleaseResourcesOnWithdrawal && !newTestEnabled) {
             store.unsetDelegate(testOnlyDelegate);
@@ -232,7 +228,7 @@ public class IntentManager
             logConfig("Reconfigured skip release resources on withdrawal");
         }
 
-        s = Tools.get(context.getProperties(), "numThreads");
+        s = Tools.get(context.getProperties(), IM_NUM_THREADS);
         int newNumThreads = isNullOrEmpty(s) ? numThreads : Integer.parseInt(s);
         if (newNumThreads != numThreads) {
             numThreads = newNumThreads;

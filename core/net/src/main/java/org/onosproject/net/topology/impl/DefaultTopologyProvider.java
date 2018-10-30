@@ -86,16 +86,13 @@ public class DefaultTopologyProvider extends AbstractProvider
     // TODO: Convert to use HashedWheelTimer or produce a variant of that; then decide which we want to adopt
     private static final Timer TIMER = new Timer("onos-topo-event-batching");
 
-    //@Property(name = "maxEvents", intValue = DEFAULT_MAX_EVENTS,
-    //        label = "Maximum number of events to accumulate")
+    /** Maximum number of events to accumulate. */
     private int maxEvents = DTP_MAX_EVENTS_DEFAULT;
 
-    //@Property(name = "maxIdleMs", intValue = DEFAULT_MAX_IDLE_MS,
-    //        label = "Maximum number of millis between events")
+    /** Maximum number of millis between events. */
     private int maxIdleMs = DTP_MAX_IDLE_MS_DEFAULT;
 
-    //@Property(name = "maxBatchMs", intValue = DEFAULT_MAX_BATCH_MS,
-    //        label = "Maximum number of millis for whole batch")
+    /** Maximum number of millis for whole batch. */
     private int maxBatchMs = DTP_MAX_BATCH_MS_DEFAULT;
 
     private final Logger log = getLogger(getClass());
@@ -173,13 +170,13 @@ public class DefaultTopologyProvider extends AbstractProvider
         Dictionary<?, ?> properties = context.getProperties();
         int newMaxEvents, newMaxBatchMs, newMaxIdleMs;
         try {
-            String s = get(properties, "maxEvents");
+            String s = get(properties, DTP_MAX_EVENTS);
             newMaxEvents = isNullOrEmpty(s) ? maxEvents : Integer.parseInt(s.trim());
 
-            s = get(properties, "maxBatchMs");
+            s = get(properties, DTP_MAX_BATCH_MS);
             newMaxBatchMs = isNullOrEmpty(s) ? maxBatchMs : Integer.parseInt(s.trim());
 
-            s = get(properties, "maxIdleMs");
+            s = get(properties, DTP_MAX_IDLE_MS);
             newMaxIdleMs = isNullOrEmpty(s) ? maxIdleMs : Integer.parseInt(s.trim());
 
         } catch (NumberFormatException | ClassCastException e) {

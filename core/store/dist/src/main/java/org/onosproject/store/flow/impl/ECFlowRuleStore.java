@@ -129,24 +129,19 @@ public class ECFlowRuleStore
 
     private static final long FLOW_RULE_STORE_TIMEOUT_MILLIS = 5000;
 
-    //@Property(name = "msgHandlerPoolSize", intValue = MESSAGE_HANDLER_THREAD_POOL_SIZE,
-    //    label = "Number of threads in the message handler pool")
+    /** Number of threads in the message handler pool. */
     private int msgHandlerPoolSize = MESSAGE_HANDLER_THREAD_POOL_SIZE_DEFAULT;
 
-    //@Property(name = "backupPeriod", intValue = BACKUP_PERIOD_MILLIS,
-    //    label = "Delay in ms between successive backup runs")
+    /** Delay in ms between successive backup runs. */
     private int backupPeriod = BACKUP_PERIOD_MILLIS_DEFAULT;
 
-    //@Property(name = "antiEntropyPeriod", intValue = ANTI_ENTROPY_PERIOD_MILLIS,
-    //    label = "Delay in ms between anti-entropy runs")
+    /** Delay in ms between anti-entropy runs. */
     private int antiEntropyPeriod = ANTI_ENTROPY_PERIOD_MILLIS_DEFAULT;
 
-    //@Property(name = "persistenceEnabled", boolValue = false,
-    //    label = "Indicates whether or not changes in the flow table should be persisted to disk.")
+    /** Indicates whether or not changes in the flow table should be persisted to disk. */
     private boolean persistenceEnabled = EC_FLOW_RULE_STORE_PERSISTENCE_ENABLED_DEFAULT;
 
-    //@Property(name = "backupCount", intValue = DEFAULT_MAX_BACKUP_COUNT,
-    //    label = "Max number of backup copies for each device")
+    /** Max number of backup copies for each device. */
     private volatile int backupCount = MAX_BACKUP_COUNT_DEFAULT;
 
     private InternalFlowTable flowTable = new InternalFlowTable();
@@ -270,13 +265,13 @@ public class ECFlowRuleStore
             String s = get(properties, "msgHandlerPoolSize");
             newPoolSize = isNullOrEmpty(s) ? msgHandlerPoolSize : Integer.parseInt(s.trim());
 
-            s = get(properties, "backupPeriod");
+            s = get(properties, BACKUP_PERIOD_MILLIS);
             newBackupPeriod = isNullOrEmpty(s) ? backupPeriod : Integer.parseInt(s.trim());
 
-            s = get(properties, "backupCount");
+            s = get(properties, MAX_BACKUP_COUNT);
             newBackupCount = isNullOrEmpty(s) ? backupCount : Integer.parseInt(s.trim());
 
-            s = get(properties, "antiEntropyPeriod");
+            s = get(properties, ANTI_ENTROPY_PERIOD_MILLIS);
             newAntiEntropyPeriod = isNullOrEmpty(s) ? antiEntropyPeriod : Integer.parseInt(s.trim());
         } catch (NumberFormatException | ClassCastException e) {
             newPoolSize = MESSAGE_HANDLER_THREAD_POOL_SIZE_DEFAULT;

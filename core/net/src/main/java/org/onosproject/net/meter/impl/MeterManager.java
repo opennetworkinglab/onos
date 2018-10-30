@@ -86,15 +86,8 @@ public class MeterManager
         extends AbstractListenerProviderRegistry<MeterEvent, MeterListener, MeterProvider, MeterProviderService>
         implements MeterService, MeterProviderRegistry {
 
-    private static final String NUM_THREAD = "numThreads";
     private static final String WORKER_PATTERN = "installer-%d";
     private static final String GROUP_THREAD_NAME = "onos/meter";
-
-    private static final int DEFAULT_NUM_THREADS = 4;
-    //@Property(name = NUM_THREAD,
-    //        intValue = DEFAULT_NUM_THREADS,
-    //        label = "Number of worker threads")
-    private int numThreads = MM_NUM_THREADS_DEFAULT;
 
     private final Logger log = getLogger(getClass());
     private final MeterStoreDelegate delegate = new InternalMeterStoreDelegate();
@@ -114,8 +107,10 @@ public class MeterManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected MastershipService mastershipService;
 
-    //@Property(name = "fallbackMeterPollFrequency", intValue = DEFAULT_POLL_FREQUENCY,
-    //        label = "Frequency (in seconds) for polling meters via fallback provider")
+    /** Number of worker threads. */
+    private int numThreads = MM_NUM_THREADS_DEFAULT;
+
+    /** Frequency (in seconds) for polling meters via fallback provider. */
     private int fallbackMeterPollFrequency = MM_FALLBACK_METER_POLL_FREQUENCY_DEFAULT;
 
     private TriConsumer<MeterRequest, MeterStoreResult, Throwable> onComplete;
@@ -145,9 +140,9 @@ public class MeterManager
 
         };
 
+        modified(context);
         executorService = newFixedThreadPool(numThreads,
                                              groupedThreads(GROUP_THREAD_NAME, WORKER_PATTERN, log));
-        modified(context);
         log.info("Started");
     }
 
@@ -178,12 +173,19 @@ public class MeterManager
     private void readComponentConfiguration(ComponentContext context) {
         Dictionary<?, ?> properties = context.getProperties();
 
-        String s = get(properties, "fallbackMeterPollFrequency");
+        String s = get(properties, MM_FALLBACK_METER_POLL_FREQUENCY);
         try {
             fallbackMeterPollFrequency = isNullOrEmpty(s) ?
                 MM_FALLBACK_METER_POLL_FREQUENCY_DEFAULT : Integer.parseInt(s);
         } catch (NumberFormatException e) {
             fallbackMeterPollFrequency = MM_FALLBACK_METER_POLL_FREQUENCY_DEFAULT;
+        }
+
+        s = get(properties, MM_NUM_THREADS);
+        try {
+            numThreads = isNullOrEmpty(s) ? MM_NUM_THREADS_DEFAULT : Integer.parseInt(s);
+        } catch (NumberFormatException e) {
+            numThreads = MM_NUM_THREADS_DEFAULT;
         }
     }
 

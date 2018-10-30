@@ -109,8 +109,7 @@ public class DistributedStatisticStore implements StatisticStore {
 
     private ExecutorService messageHandlingExecutor;
 
-    //@Property(name = "messageHandlerThreadPoolSize", intValue = DEFAULT_MESSAGE_HANDLER_THREAD_POOL_SIZE,
-    //        label = "Size of thread pool to assign message handler")
+    /** Size of thread pool to assign message handler. */
     private static int messageHandlerThreadPoolSize = DSS_MESSAGE_HANDLER_THREAD_POOL_SIZE_DEFAULT;
 
     private static final long STATISTIC_STORE_TIMEOUT_MILLIS = 3000;
@@ -156,7 +155,7 @@ public class DistributedStatisticStore implements StatisticStore {
         int newMessageHandlerThreadPoolSize;
 
         try {
-            String s = get(properties, "messageHandlerThreadPoolSize");
+            String s = get(properties, DSS_MESSAGE_HANDLER_THREAD_POOL_SIZE);
 
             newMessageHandlerThreadPoolSize =
                     isNullOrEmpty(s) ? messageHandlerThreadPoolSize : Integer.parseInt(s.trim());

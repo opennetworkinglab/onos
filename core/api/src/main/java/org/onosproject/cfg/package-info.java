@@ -18,7 +18,7 @@
  * Set of abstractions for centrally managing component configurations.
  * Configuration properties are registered for a component resource which is
  * auto-generated during the build process based on information specified in
- * the @Property annotations. This provides an overall inventory of all
- * supported component configurations.
+ * the @Component property annotations. This provides an overall inventory of
+ * all supported component configurations.
  */
 package org.onosproject.cfg;

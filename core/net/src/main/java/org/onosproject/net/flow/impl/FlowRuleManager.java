@@ -118,16 +118,13 @@ public class FlowRuleManager
     private static final String DEVICE_ID_NULL = "Device ID cannot be null";
     private static final String FLOW_RULE_NULL = "FlowRule cannot be null";
 
-    //@Property(name = "allowExtraneousRules", boolValue = ALLOW_EXTRANEOUS_RULES,
-    //        label = "Allow flow rules in switch not installed by ONOS")
+    /** Allow flow rules in switch not installed by ONOS. */
     private boolean allowExtraneousRules = ALLOW_EXTRANEOUS_RULES_DEFAULT;
 
-    //@Property(name = "purgeOnDisconnection", boolValue = false,
-    //        label = "Purge entries associated with a device when the device goes offline")
+    /** Purge entries associated with a device when the device goes offline. */
     private boolean purgeOnDisconnection = PURGE_ON_DISCONNECTION_DEFAULT;
 
-    //@Property(name = "fallbackFlowPollFrequency", intValue = DEFAULT_POLL_FREQUENCY,
-    //        label = "Frequency (in seconds) for polling flow statistics via fallback provider")
+    /** Frequency (in seconds) for polling flow statistics via fallback provider. */
     private int fallbackFlowPollFrequency = POLL_FREQUENCY_DEFAULT;
 
     private final FlowRuleStoreDelegate delegate = new InternalStoreDelegate();
@@ -209,7 +206,7 @@ public class FlowRuleManager
         Dictionary<?, ?> properties = context.getProperties();
         Boolean flag;
 
-        flag = Tools.isPropertyEnabled(properties, "allowExtraneousRules");
+        flag = Tools.isPropertyEnabled(properties, ALLOW_EXTRANEOUS_RULES);
         if (flag == null) {
             log.info("AllowExtraneousRules is not configured, " +
                     "using current value of {}", allowExtraneousRules);
@@ -219,7 +216,7 @@ public class FlowRuleManager
                     allowExtraneousRules ? "enabled" : "disabled");
         }
 
-        flag = Tools.isPropertyEnabled(properties, "purgeOnDisconnection");
+        flag = Tools.isPropertyEnabled(properties, PURGE_ON_DISCONNECTION);
         if (flag == null) {
             log.info("PurgeOnDisconnection is not configured, " +
                     "using current value of {}", purgeOnDisconnection);
@@ -229,7 +226,7 @@ public class FlowRuleManager
                     purgeOnDisconnection ? "enabled" : "disabled");
         }
 
-        String s = get(properties, "fallbackFlowPollFrequency");
+        String s = get(properties, POLL_FREQUENCY);
         if (isNullOrEmpty(s)) {
             log.info("fallbackFlowPollFrequency is not configured, " +
                              "using current value of {} seconds",

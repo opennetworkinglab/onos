@@ -74,21 +74,16 @@ public class IntentCleanup implements Runnable, IntentListener {
     // Logical timeout for stuck Intents in INSTALLING or WITHDRAWING. The unit is seconds
     private static final int INSTALLING_WITHDRAWING_PERIOD = 120;
 
-
-
-
-    //@Property(name = "enabled", boolValue = true,
-    //          label = "Enables/disables the intent cleanup component")
-    private boolean enabled = ICU_ENABLED_DEFAULT;
-
-    //@Property(name = "period", intValue = DEFAULT_PERIOD,
-    //          label = "Frequency in ms between cleanup runs")
-    protected int period = ICU_PERIOD_DEFAULT;
     private long periodMs;
     private long periodMsForStuck;
 
-    //@Property(name = "retryThreshold", intValue = DEFAULT_THRESHOLD,
-    //        label = "Number of times to retry CORRUPT intent without delay")
+    /** Enables/disables the intent cleanup component. */
+    private boolean enabled = ICU_ENABLED_DEFAULT;
+
+    /** Frequency in ms between cleanup runs. */
+    protected int period = ICU_PERIOD_DEFAULT;
+
+    /** Number of times to retry CORRUPT intent without delay. */
     protected int retryThreshold = ICU_RETRY_THRESHOLD_DEFAULT;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
@@ -131,13 +126,13 @@ public class IntentCleanup implements Runnable, IntentListener {
         int newPeriod;
         boolean newEnabled;
         try {
-            String s = get(properties, "period");
+            String s = get(properties, ICU_PERIOD);
             newPeriod = isNullOrEmpty(s) ? period : Integer.parseInt(s.trim());
 
-            s = get(properties, "retryThreshold");
+            s = get(properties, ICU_RETRY_THRESHOLD);
             retryThreshold = isNullOrEmpty(s) ? retryThreshold : Integer.parseInt(s.trim());
 
-            s = get(properties, "enabled");
+            s = get(properties, ICU_ENABLED);
             newEnabled = isNullOrEmpty(s) ? enabled : Boolean.parseBoolean(s.trim());
         } catch (NumberFormatException e) {
             log.warn(e.getMessage());

@@ -90,8 +90,7 @@ public class DistributedLeadershipStore
     @Reference(cardinality = MANDATORY)
     protected UpgradeService upgradeService;
 
-    //@Property(name = "electionTimeoutMillis", longValue = DEFAULT_ELECTION_TIMEOUT_MILLIS,
-    //        label = "the leader election timeout in milliseconds")
+    /** Leader election timeout in milliseconds. */
     private long electionTimeoutMillis = ELECTION_TIMEOUT_MILLIS_DEFAULT;
 
     private ExecutorService statusChangeHandler;
@@ -192,7 +191,7 @@ public class DistributedLeadershipStore
         Dictionary<?, ?> properties = context.getProperties();
         long newElectionTimeoutMillis;
         try {
-            String s = get(properties, "electionTimeoutMillis");
+            String s = get(properties, ELECTION_TIMEOUT_MILLIS);
             newElectionTimeoutMillis = isNullOrEmpty(s) ? electionTimeoutMillis : Long.parseLong(s.trim());
         } catch (NumberFormatException | ClassCastException e) {
             log.warn("Malformed configuration detected; using defaults", e);

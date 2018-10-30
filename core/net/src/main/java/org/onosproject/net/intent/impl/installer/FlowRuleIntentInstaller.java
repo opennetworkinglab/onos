@@ -100,9 +100,7 @@ public class FlowRuleIntentInstaller implements IntentInstaller<FlowRuleIntent> 
 
     private ScheduledExecutorService nonDisruptiveIntentInstaller;
 
-    //@Property(name = "nonDisruptiveInstallationWaitingTime",
-    //        intValue = DEFAULT_NON_DISRUPTIVE_INSTALLATION_WAITING_TIME,
-    //        label = "Number of seconds to wait during the non-disruptive installation phases")
+    /** Number of seconds to wait during the non-disruptive installation phases. */
     private int nonDisruptiveInstallationWaitingTime = NON_DISRUPTIVE_INSTALLATION_WAITING_TIME_DEFAULT;
 
     protected final Logger log = getLogger(IntentManager.class);
@@ -134,7 +132,7 @@ public class FlowRuleIntentInstaller implements IntentInstaller<FlowRuleIntent> 
             return;
         }
 
-        String s = Tools.get(context.getProperties(), "nonDisruptiveInstallationWaitingTime");
+        String s = Tools.get(context.getProperties(), NON_DISRUPTIVE_INSTALLATION_WAITING_TIME);
         int nonDisruptiveTime = isNullOrEmpty(s) ? nonDisruptiveInstallationWaitingTime : Integer.parseInt(s);
         if (nonDisruptiveTime != nonDisruptiveInstallationWaitingTime) {
             nonDisruptiveInstallationWaitingTime = nonDisruptiveTime;

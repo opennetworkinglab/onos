@@ -112,8 +112,7 @@ public class PiPipeconfWatchdogManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private ComponentConfigService componentConfigService;
 
-    //@Property(name = PROBE_INTERVAL, intValue = DEFAULT_PROBE_INTERVAL,
-    //        label = "Configure interval in seconds for device pipeconf probing")
+    /** Configure interval in seconds for device pipeconf probing. */
     private int probeInterval = PWM_PROBE_INTERVAL_DEFAULT;
 
     protected ExecutorService executor = Executors.newFixedThreadPool(

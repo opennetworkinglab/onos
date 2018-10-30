@@ -106,8 +106,7 @@ public class DistributedFlowStatisticStore implements FlowStatisticStore {
     private NodeId local;
     private ExecutorService messageHandlingExecutor;
 
-    //@Property(name = "messageHandlerThreadPoolSize", intValue = DEFAULT_MESSAGE_HANDLER_THREAD_POOL_SIZE,
-    //        label = "Size of thread pool to assign message handler")
+    /** Size of thread pool to assign message handler. */
     private static int messageHandlerThreadPoolSize = DFS_MESSAGE_HANDLER_THREAD_POOL_SIZE_DEFAULT;
 
 
@@ -152,7 +151,7 @@ public class DistributedFlowStatisticStore implements FlowStatisticStore {
         int newMessageHandlerThreadPoolSize;
 
         try {
-            String s = get(properties, "messageHandlerThreadPoolSize");
+            String s = get(properties, DFS_MESSAGE_HANDLER_THREAD_POOL_SIZE);
 
             newMessageHandlerThreadPoolSize =
                     isNullOrEmpty(s) ? messageHandlerThreadPoolSize : Integer.parseInt(s.trim());

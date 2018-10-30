@@ -59,10 +59,7 @@ import java.util.concurrent.Executors;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.net.OsgiPropertyConstants.GM_POLL_FREQUENCY;
-import static org.onosproject.net.OsgiPropertyConstants.GM_POLL_FREQUENCY_DEFAULT;
-import static org.onosproject.net.OsgiPropertyConstants.GM_PURGE_ON_DISCONNECTION;
-import static org.onosproject.net.OsgiPropertyConstants.GM_PURGE_ON_DISCONNECTION_DEFAULT;
+import static org.onosproject.net.OsgiPropertyConstants.*;
 import static org.onosproject.security.AppGuard.checkPermission;
 import static org.onosproject.security.AppPermission.Type.GROUP_READ;
 import static org.onosproject.security.AppPermission.Type.GROUP_WRITE;
@@ -112,12 +109,10 @@ public class GroupManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected MastershipService mastershipService;
 
-    //@Property(name = "fallbackGroupPollFrequency", intValue = DEFAULT_POLL_FREQUENCY,
-    //        label = "Frequency (in seconds) for polling groups via fallback provider")
+    /** Frequency (in seconds) for polling groups via fallback provider. */
     private int fallbackGroupPollFrequency = GM_POLL_FREQUENCY_DEFAULT;
 
-    //@Property(name = "purgeOnDisconnection", boolValue = false,
-    //        label = "Purge entries associated with a device when the device goes offline")
+    /** Purge entries associated with a device when the device goes offline. */
     private boolean purgeOnDisconnection = GM_PURGE_ON_DISCONNECTION_DEFAULT;
 
 
@@ -166,7 +161,7 @@ public class GroupManager
         Dictionary<?, ?> properties = context.getProperties();
         Boolean flag;
 
-        flag = Tools.isPropertyEnabled(properties, "purgeOnDisconnection");
+        flag = Tools.isPropertyEnabled(properties, GM_PURGE_ON_DISCONNECTION);
         if (flag == null) {
             log.info("PurgeOnDisconnection is not configured, " +
                     "using current value of {}", purgeOnDisconnection);
@@ -175,7 +170,7 @@ public class GroupManager
             log.info("Configured. PurgeOnDisconnection is {}",
                     purgeOnDisconnection ? "enabled" : "disabled");
         }
-        String s = get(properties, "fallbackGroupPollFrequency");
+        String s = get(properties, GM_POLL_FREQUENCY);
         try {
             fallbackGroupPollFrequency = isNullOrEmpty(s) ? GM_POLL_FREQUENCY_DEFAULT : Integer.parseInt(s);
         } catch (NumberFormatException e) {

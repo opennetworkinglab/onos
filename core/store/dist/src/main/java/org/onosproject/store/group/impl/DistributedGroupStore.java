@@ -170,16 +170,13 @@ public class DistributedGroupStore
 
     private static Topic<GroupStoreMessage> groupTopic;
 
-    //@Property(name = "garbageCollect", boolValue = GARBAGE_COLLECT,
-    //        label = "Enable group garbage collection")
+    /** Enable group garbage collection. */
     private boolean garbageCollect = GARBAGE_COLLECT_DEFAULT;
 
-    //@Property(name = "gcThresh", intValue = GC_THRESH,
-    //        label = "Number of rounds for group garbage collection")
+    /** Number of rounds for group garbage collection. */
     private int gcThresh = GARBAGE_COLLECT_THRESH_DEFAULT;
 
-    //@Property(name = "allowExtraneousGroups", boolValue = ALLOW_EXTRANEOUS_GROUPS,
-    //        label = "Allow groups in switches not installed by ONOS")
+    /** Allow groups in switches not installed by ONOS. */
     private boolean allowExtraneousGroups = ALLOW_EXTRANEOUS_GROUPS_DEFAULT;
 
     @Activate
@@ -269,13 +266,13 @@ public class DistributedGroupStore
         Dictionary<?, ?> properties = context != null ? context.getProperties() : new Properties();
 
         try {
-            String s = get(properties, "garbageCollect");
+            String s = get(properties, GARBAGE_COLLECT);
             garbageCollect = isNullOrEmpty(s) ? GARBAGE_COLLECT_DEFAULT : Boolean.parseBoolean(s.trim());
 
-            s = get(properties, "gcThresh");
+            s = get(properties, GARBAGE_COLLECT_THRESH);
             gcThresh = isNullOrEmpty(s) ? GARBAGE_COLLECT_THRESH_DEFAULT : Integer.parseInt(s.trim());
 
-            s = get(properties, "allowExtraneousGroups");
+            s = get(properties, ALLOW_EXTRANEOUS_GROUPS);
             allowExtraneousGroups = isNullOrEmpty(s) ? ALLOW_EXTRANEOUS_GROUPS_DEFAULT : Boolean.parseBoolean(s.trim());
         } catch (Exception e) {
             gcThresh = GARBAGE_COLLECT_THRESH_DEFAULT;

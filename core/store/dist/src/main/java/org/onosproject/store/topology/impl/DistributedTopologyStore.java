@@ -125,8 +125,7 @@ public class DistributedTopologyStore
     private static final String LINK_METRIC = "linkMetric";
     private static final String GEO_DISTANCE = "geoDistance";
 
-    //@Property(name = "linkWeightFunction", value = DEFAULT_LINK_WEIGHT_FUNCTION,
-    //        label = "Default link-weight function: hopCount, linkMetric, geoDistance")
+    /** Default link-weight function: hopCount, linkMetric, geoDistance. */
     private String linkWeightFunction = LINK_WEIGHT_FUNCTION_DEFAULT;
 
     // Cluster root to broadcast points bindings to allow convergence to
@@ -165,7 +164,7 @@ public class DistributedTopologyStore
     protected void modified(ComponentContext context) {
         Dictionary<?, ?> properties = context.getProperties();
 
-        String newLinkWeightFunction = get(properties, "linkWeightFunction");
+        String newLinkWeightFunction = get(properties, LINK_WEIGHT_FUNCTION);
         if (newLinkWeightFunction != null &&
                 !Objects.equals(newLinkWeightFunction, linkWeightFunction)) {
             linkWeightFunction = newLinkWeightFunction;

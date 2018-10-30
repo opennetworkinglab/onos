@@ -106,8 +106,7 @@ public class DistributedPacketStore
 
     private ExecutorService messageHandlingExecutor;
 
-    //@Property(name = "messageHandlerThreadPoolSize", intValue = DEFAULT_MESSAGE_HANDLER_THREAD_POOL_SIZE,
-    //        label = "Size of thread pool to assign message handler")
+    /** Size of thread pool to assign message handler. */
     private static int messageHandlerThreadPoolSize = DPS_MESSAGE_HANDLER_THREAD_POOL_SIZE_DEFAULT;
 
     private static final int MAX_BACKOFF = 50;
@@ -148,7 +147,7 @@ public class DistributedPacketStore
         int newMessageHandlerThreadPoolSize;
 
         try {
-            String s = get(properties, "messageHandlerThreadPoolSize");
+            String s = get(properties, DPS_MESSAGE_HANDLER_THREAD_POOL_SIZE);
 
             newMessageHandlerThreadPoolSize =
                     isNullOrEmpty(s) ? messageHandlerThreadPoolSize : Integer.parseInt(s.trim());

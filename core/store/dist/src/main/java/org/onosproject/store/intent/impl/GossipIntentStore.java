@@ -119,11 +119,11 @@ public class GossipIntentStore
     private boolean initiallyPersistent = false;
 
     //TODO this is currently an experimental feature used for performance
-    // evalutaion, enabling persistence with persist the intents but they will
+    // evaluation, enabling persistence with persist the intents but they will
     // not be reinstalled and network state will not be consistent with the
     // intents on cluster restart
-    //@Property(name = "persistenceEnabled", boolValue = PERSIST,
-    //        label = "EXPERIMENTAL: Enable intent persistence")
+
+    /** EXPERIMENTAL: Enable intent persistence. */
     private boolean persistenceEnabled = GIS_PERSISTENCE_ENABLED_DEFAULT;
 
 
@@ -218,7 +218,7 @@ public class GossipIntentStore
         Dictionary<?, ?> properties = context != null ? context.getProperties()
                 : new Properties();
         try {
-            String s = get(properties, "persistenceEnabled");
+            String s = get(properties, GIS_PERSISTENCE_ENABLED);
             persistenceEnabled =  isNullOrEmpty(s) ? PERSIST :
                     Boolean.parseBoolean(s.trim());
         } catch (Exception e) {

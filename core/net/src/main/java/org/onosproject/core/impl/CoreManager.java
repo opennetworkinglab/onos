@@ -90,16 +90,13 @@ public class CoreManager implements CoreService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected MetricsService metricsService;
 
-    //@Property(name = "sharedThreadPoolSize", intValue = DEFAULT_POOL_SIZE,
-    //        label = "Configure shared pool maximum size ")
+    /** Configure shared pool maximum size. */
     private int sharedThreadPoolSize = SHARED_THREAD_POOL_SIZE_DEFAULT;
 
-    //@Property(name = "maxEventTimeLimit", intValue = DEFAULT_EVENT_TIME,
-    //        label = "Maximum number of millis an event sink has to process an event")
+    /** Maximum number of millis an event sink has to process an event. */
     private int maxEventTimeLimit = MAX_EVENT_TIME_LIMIT_DEFAULT;
 
-    //@Property(name = "sharedThreadPerformanceCheck", boolValue = DEFAULT_PERFORMANCE_CHECK,
-    //        label = "Enable queue performance check on shared pool")
+    /** Enable queue performance check on shared pool. */
     private boolean calculatePoolPerformance = CALCULATE_PERFORMANCE_CHECK_DEFAULT;
 
 
@@ -165,7 +162,7 @@ public class CoreManager implements CoreService {
     @Modified
     protected void modified(ComponentContext context) {
         Dictionary<?, ?> properties = context.getProperties();
-        Integer poolSize = Tools.getIntegerProperty(properties, "sharedThreadPoolSize");
+        Integer poolSize = Tools.getIntegerProperty(properties, SHARED_THREAD_POOL_SIZE);
 
         if (poolSize != null && poolSize > 1) {
             sharedThreadPoolSize = poolSize;
@@ -174,7 +171,7 @@ public class CoreManager implements CoreService {
             log.warn("sharedThreadPoolSize must be greater than 1");
         }
 
-        Integer timeLimit = Tools.getIntegerProperty(properties, "maxEventTimeLimit");
+        Integer timeLimit = Tools.getIntegerProperty(properties, MAX_EVENT_TIME_LIMIT);
         if (timeLimit != null && timeLimit >= 0) {
             maxEventTimeLimit = timeLimit;
             eventDeliveryService.setDispatchTimeLimit(maxEventTimeLimit);
@@ -182,7 +179,7 @@ public class CoreManager implements CoreService {
             log.warn("maxEventTimeLimit must be greater than or equal to 0");
         }
 
-        Boolean performanceCheck = Tools.isPropertyEnabled(properties, "sharedThreadPerformanceCheck");
+        Boolean performanceCheck = Tools.isPropertyEnabled(properties, CALCULATE_PERFORMANCE_CHECK);
         if (performanceCheck != null) {
             calculatePoolPerformance = performanceCheck;
             SharedExecutors.setMetricsService(calculatePoolPerformance ? metricsService : null);

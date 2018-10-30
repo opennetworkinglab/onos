@@ -125,20 +125,16 @@ public class HostManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService cfgService;
 
-    //@Property(name = "allowDuplicateIps", boolValue = true,
-    //        label = "Enable removal of duplicate ip address")
+    /** Enable removal of duplicate ip address. */
     private boolean allowDuplicateIps = HM_ALLOW_DUPLICATE_IPS_DEFAULT;
 
-    //@Property(name = "monitorHosts", boolValue = false,
-    //        label = "Enable/Disable monitoring of hosts")
+    /** Enable/Disable monitoring of hosts. */
     private boolean monitorHosts = HM_MONITOR_HOSTS_DEFAULT;
 
-    //@Property(name = "probeRate", longValue = 30000,
-    //        label = "Set the probe Rate in milli seconds")
+    /** Set the probe Rate in milli seconds. */
     private long probeRate = HM_PROBE_RATE_DEFAULT;
 
-    //@Property(name = "greedyLearningIpv6", boolValue = false,
-    //        label = "Enable/Disable greedy learning of IPv6 link local address")
+    /** Enable/Disable greedy learning of IPv6 link local address. */
     private boolean greedyLearningIpv6 = HM_GREEDY_LEARNING_IPV6_DEFAULT;
 
     private HostMonitor monitor;
@@ -175,7 +171,7 @@ public class HostManager
         if (probeRate > 0) {
             monitor.setProbeRate(probeRate);
         } else {
-            log.warn("probeRate cannot be lessthan 0");
+            log.warn("ProbeRate cannot be less than 0");
         }
 
         if (oldValue != monitorHosts) {
@@ -196,7 +192,7 @@ public class HostManager
         Dictionary<?, ?> properties = context.getProperties();
         Boolean flag;
 
-        flag = Tools.isPropertyEnabled(properties, "monitorHosts");
+        flag = Tools.isPropertyEnabled(properties, HM_MONITOR_HOSTS);
         if (flag == null) {
             log.info("monitorHosts is not enabled " +
                              "using current value of {}", monitorHosts);
@@ -206,7 +202,7 @@ public class HostManager
                      monitorHosts ? "enabled" : "disabled");
         }
 
-        Long longValue = Tools.getLongProperty(properties, "probeRate");
+        Long longValue = Tools.getLongProperty(properties, HM_PROBE_RATE);
         if (longValue == null || longValue == 0) {
             log.info("probeRate is not set sing default value of {}", probeRate);
         } else {
@@ -214,7 +210,7 @@ public class HostManager
             log.info("Configured. probeRate {}", probeRate);
         }
 
-        flag = Tools.isPropertyEnabled(properties, "allowDuplicateIps");
+        flag = Tools.isPropertyEnabled(properties, HM_ALLOW_DUPLICATE_IPS);
         if (flag == null) {
             log.info("Removal of duplicate ip address is not configured");
         } else {
@@ -223,7 +219,7 @@ public class HostManager
                      allowDuplicateIps ? "disabled" : "enabled");
         }
 
-        flag = Tools.isPropertyEnabled(properties, "greedyLearningIpv6");
+        flag = Tools.isPropertyEnabled(properties, HM_GREEDY_LEARNING_IPV6);
         if (flag == null) {
             log.info("greedy learning is not enabled " +
                              "using current value of {}", greedyLearningIpv6);

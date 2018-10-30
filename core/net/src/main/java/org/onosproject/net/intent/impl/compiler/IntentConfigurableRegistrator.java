@@ -71,29 +71,19 @@ public class IntentConfigurableRegistrator {
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService cfgService;
 
-    //@Property(name = "useFlowObjectives",
-    //        boolValue = DEFAULT_FLOW_OBJECTIVES,
-    //        label = "Indicates whether or not to use flow objective-based compilers")
+    /** Indicates whether or not to use flow objective-based compilers. */
     private boolean useFlowObjectives = ICR_USE_FLOW_OBJECTIVES_DEFAULT;
 
-    //@Property(name = "labelSelection",
-    //        value = DEFAULT_LABEL_SELECTION,
-    //        label = "Defines the label selection algorithm - RANDOM or FIRST_FIT")
+    /** Defines the label selection algorithm - RANDOM or FIRST_FIT. */
     private String labelSelection = ICR_LABEL_SELECTION_DEFAULT;
 
-    //@Property(name = "optLabelSelection",
-    //        value = DEFAULT_OPT_LABEL_SELECTION,
-    //        label = "Defines the optimization for label selection algorithm - NONE, NO_SWAP, MIN_SWAP")
+    /** Defines the optimization for label selection algorithm - NONE, NO_SWAP, MIN_SWAP. */
     private String optLabelSelection = ICR_OPT_LABEL_SELECTION_DEFAULT;
 
-    //@Property(name = "optimizeInstructions",
-    //        boolValue = DEFAULT_FLOW_OPTIMIZATION,
-    //        label = "Indicates whether or not to optimize the flows in the link collection compiler")
+    /** Indicates whether or not to optimize the flows in the link collection compiler. */
     private boolean optimizeInstructions = ICR_FLOW_OPTIMIZATION_DEFAULT;
 
-    //@Property(name = "useCopyTtl",
-    //        boolValue = DEFAULT_COPY_TTL,
-    //        label = "Indicates whether or not to use copy ttl in the link collection compiler")
+    /** Indicates whether or not to use copy ttl in the link collection compiler. */
     private boolean useCopyTtl = ICR_COPY_TTL_DEFAULT;
 
     private final Map<Class<Intent>, IntentCompiler<Intent>> flowRuleBased = Maps.newConcurrentMap();
@@ -127,7 +117,7 @@ public class IntentConfigurableRegistrator {
 
         boolean newFlowObjectives;
         try {
-            String s = Tools.get(context.getProperties(), "useFlowObjectives");
+            String s = Tools.get(context.getProperties(), ICR_USE_FLOW_OBJECTIVES);
             newFlowObjectives = isNullOrEmpty(s) ? useFlowObjectives : Boolean.parseBoolean(s.trim());
         } catch (ClassCastException e) {
             newFlowObjectives = useFlowObjectives;
@@ -141,7 +131,7 @@ public class IntentConfigurableRegistrator {
 
         String newLabelSelection;
         try {
-            String s = Tools.get(context.getProperties(), "labelSelection");
+            String s = Tools.get(context.getProperties(), ICR_LABEL_SELECTION);
             newLabelSelection = isNullOrEmpty(s) ? labelSelection : s.trim();
         } catch (ClassCastException e) {
             newLabelSelection = labelSelection;
@@ -156,7 +146,7 @@ public class IntentConfigurableRegistrator {
         String newOptLabelSelection;
         try {
             // The optimization behavior provided by the user
-            String optLabelSelected = Tools.get(context.getProperties(), "optLabelSelection");
+            String optLabelSelected = Tools.get(context.getProperties(), ICR_OPT_LABEL_SELECTION);
             // Parse the content of the string
             newOptLabelSelection = isNullOrEmpty(optLabelSelected) ? optLabelSelection : optLabelSelected.trim();
         } catch (ClassCastException e) {
@@ -171,7 +161,7 @@ public class IntentConfigurableRegistrator {
 
         boolean newFlowOptimization;
         try {
-            String s = Tools.get(context.getProperties(), "useFlowOptimization");
+            String s = Tools.get(context.getProperties(), ICR_FLOW_OPTIMIZATION);
             newFlowOptimization = isNullOrEmpty(s) ? optimizeInstructions : Boolean.parseBoolean(s.trim());
         } catch (ClassCastException e) {
             newFlowOptimization = optimizeInstructions;
@@ -185,7 +175,7 @@ public class IntentConfigurableRegistrator {
 
         boolean newCopyTtl;
         try {
-            String s = Tools.get(context.getProperties(), "useCopyTtl");
+            String s = Tools.get(context.getProperties(), ICR_COPY_TTL);
             newCopyTtl = isNullOrEmpty(s) ? useCopyTtl : Boolean.parseBoolean(s.trim());
         } catch (ClassCastException e) {
             newCopyTtl = useCopyTtl;
