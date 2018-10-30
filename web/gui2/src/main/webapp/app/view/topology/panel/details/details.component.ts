@@ -63,6 +63,7 @@ export class DetailsComponent extends DetailsPanelBaseImpl implements OnInit {
     }
 
     ngOnInit() {
+        this.on = false;
     }
 
 }

@@ -19,9 +19,9 @@ package org.onosproject.odtn.utils.tapi;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20180307.tapiconnectivity.createconnectivityservice.CreateConnectivityServiceInput;
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20180307.tapiconnectivity.createconnectivityservice.DefaultCreateConnectivityServiceInput;
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20180307.tapiconnectivity.createconnectivityservice.createconnectivityserviceinput.EndPoint;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.createconnectivityservice.CreateConnectivityServiceInput;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.createconnectivityservice.DefaultCreateConnectivityServiceInput;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.createconnectivityservice.createconnectivityserviceinput.EndPoint;
 
 /**
  * Utility class to deal with TAPI RPC input with DCS.
@@ -39,7 +39,7 @@ public final class TapiCreateConnectivityInputHandler
 
     public List<String> getSips() {
         return getEndPoints().stream()
-                .map(ep -> ep.serviceInterfacePoint().serviceInterfacePointId().toString())
+                .map(ep -> ep.serviceInterfacePoint().serviceInterfacePointUuid().toString())
                 .collect(Collectors.toList());
     }
 

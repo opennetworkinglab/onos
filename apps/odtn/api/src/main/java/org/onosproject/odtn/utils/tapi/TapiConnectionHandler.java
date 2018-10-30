@@ -19,15 +19,16 @@ package org.onosproject.odtn.utils.tapi;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.DefaultContext;
-import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.Uuid;
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20180307.tapiconnectivity.connection.ConnectionEndPoint;
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20180307.tapiconnectivity.connection.DefaultConnectionEndPoint;
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20180307.tapiconnectivity.connection.DefaultLowerConnection;
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20180307.tapiconnectivity.connection.DefaultRoute;
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20180307.tapiconnectivity.connection.LowerConnection;
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20180307.tapiconnectivity.connectivitycontext.ConnectionKeys;
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20180307.tapiconnectivity.connectivitycontext.DefaultConnection;
+import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.DefaultContext;
+import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.Uuid;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.connection.ConnectionEndPoint;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.connection.DefaultConnectionEndPoint;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.connection.DefaultLowerConnection;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.connection.DefaultRoute;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.connection.LowerConnection;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.connectivitycontext.ConnectionKeys;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.connectivitycontext.DefaultConnection;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.context.augmentedtapicommoncontext.DefaultConnectivityContext;
 import org.onosproject.yang.model.DefaultModelObjectData;
 import org.onosproject.yang.model.ModelObjectData;
 import org.onosproject.yang.model.ModelObjectId;
@@ -61,7 +62,10 @@ public final class TapiConnectionHandler extends TapiObjectHandler<DefaultConnec
 
     @Override
     public ModelObjectId getParentModelObjectId() {
-        return ModelObjectId.builder().addChild(DefaultContext.class).build();
+        return ModelObjectId.builder()
+                .addChild(DefaultContext.class)
+                .addChild(DefaultConnectivityContext.class)
+                .build();
     }
 
     @Override
@@ -74,6 +78,7 @@ public final class TapiConnectionHandler extends TapiObjectHandler<DefaultConnec
 
         ModelObjectId mId = ModelObjectId.builder()
                 .addChild(DefaultContext.class)
+                .addChild(DefaultConnectivityContext.class)
                 .addChild(DefaultConnection.class, key)
                 .build();
 
@@ -90,7 +95,7 @@ public final class TapiConnectionHandler extends TapiObjectHandler<DefaultConnec
 
     public TapiConnectionHandler addLowerConnection(DefaultConnection connection) {
         DefaultLowerConnection lowerConnection = new DefaultLowerConnection();
-        lowerConnection.connectionId(connection.uuid());
+        lowerConnection.connectionUuid(connection.uuid());
         obj.addToLowerConnection(lowerConnection);
         return this;
     }
@@ -108,7 +113,7 @@ public final class TapiConnectionHandler extends TapiObjectHandler<DefaultConnec
 
         try {
             return obj.lowerConnection().stream()
-                    .map(LowerConnection::connectionId)
+                    .map(LowerConnection::connectionUuid)
                     .map(id -> {
                         TapiConnectionHandler handler = new TapiConnectionHandler();
                         handler.setId(Uuid.fromString(id.toString()));

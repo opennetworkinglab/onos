@@ -26,6 +26,7 @@ import org.onlab.util.SharedExecutors;
 import org.onosproject.drivers.p4runtime.mirror.P4RuntimeActionProfileMemberMirror;
 import org.onosproject.drivers.p4runtime.mirror.P4RuntimeGroupMirror;
 import org.onosproject.drivers.p4runtime.mirror.TimedEntry;
+import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.group.DefaultGroup;
 import org.onosproject.net.group.DefaultGroupDescription;
@@ -76,6 +77,7 @@ public class P4RuntimeActionGroupProgrammable
     // the ONOS store.
     private static final String READ_ACTION_GROUPS_FROM_MIRROR = "actionGroupReadFromMirror";
     private static final boolean DEFAULT_READ_ACTION_GROUPS_FROM_MIRROR = false;
+    private static final String MAX_MEM_SIZE = "maxMemSize";
 
     protected GroupStore groupStore;
     private P4RuntimeGroupMirror groupMirror;
@@ -84,6 +86,7 @@ public class P4RuntimeActionGroupProgrammable
 
     // Needed to synchronize operations over the same group.
     private static final Striped<Lock> STRIPED_LOCKS = Striped.lock(30);
+    private static final int GROUP_MEMBERS_BUFFER_SIZE = 3;
 
     @Override
     protected boolean setupBehaviour() {
@@ -342,20 +345,40 @@ public class P4RuntimeActionGroupProgrammable
     }
 
     private boolean applyGroup(PiActionGroup group, PiActionGroupHandle handle) {
-        final P4RuntimeClient.WriteOperationType opType =
+        final int currentMemberSize = group.members().size();
+        if (groupMirror.get(handle) != null) {
+            String maxMemSize = "";
+            if (groupMirror.annotations(handle) != null &&
+                    groupMirror.annotations(handle).value(MAX_MEM_SIZE) != null) {
+                maxMemSize = groupMirror.annotations(handle).value(MAX_MEM_SIZE);
+            }
+            if (maxMemSize == "" || currentMemberSize > Integer.parseInt(maxMemSize)) {
+                deleteGroup(group, handle);
+            }
+        }
+
+        P4RuntimeClient.WriteOperationType opType =
                 groupMirror.get(handle) == null ? INSERT : MODIFY;
+        int currentMaxMemberSize = opType == INSERT ? (currentMemberSize + GROUP_MEMBERS_BUFFER_SIZE) : 0;
+
         final boolean success = getFutureWithDeadline(
-                client.writeActionGroup(group, opType, pipeconf),
+                client.writeActionGroup(group, opType, pipeconf, currentMaxMemberSize),
                 "performing action profile group " + opType, false);
         if (success) {
             groupMirror.put(handle, group);
+            if (opType == INSERT) {
+                groupMirror.putAnnotations(handle, DefaultAnnotations
+                        .builder()
+                        .set(MAX_MEM_SIZE, Integer.toString(currentMaxMemberSize))
+                        .build());
+            }
         }
         return success;
     }
 
     private boolean deleteGroup(PiActionGroup group, PiActionGroupHandle handle) {
         final boolean success = getFutureWithDeadline(
-                client.writeActionGroup(group, DELETE, pipeconf),
+                client.writeActionGroup(group, DELETE, pipeconf, 0),
                 "performing action profile group " + DELETE, false);
         if (success) {
             groupMirror.remove(handle);

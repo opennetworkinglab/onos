@@ -1,56 +1,229 @@
 {
-
-  "devices":{
-    "of:0000000000000011":{ "basic":{ "name":"LS1", "latitude":35, "longitude":-100 } },
-    "of:0000000000000012":{ "basic":{ "name":"LS2", "latitude":35, "longitude":-90  } },
-    "of:0000000000000021":{ "basic":{ "name":"SS1", "latitude":40, "longitude":-100 } },
-    "of:0000000000000022":{ "basic":{ "name":"SS2", "latitude":40, "longitude":-90  } }
+  "devices": {
+    "of:0000000000000011": {
+      "basic": {
+        "name": "LS1",
+        "latitude": 35,
+        "longitude": -100
+      }
+    },
+    "of:0000000000000012": {
+      "basic": {
+        "name": "LS2",
+        "latitude": 35,
+        "longitude": -90
+      }
+    },
+    "of:0000000000000021": {
+      "basic": {
+        "name": "SS1",
+        "latitude": 40,
+        "longitude": -100
+      }
+    },
+    "of:0000000000000022": {
+      "basic": {
+        "name": "SS2",
+        "latitude": 40,
+        "longitude": -90
+      }
+    }
   },
-
-  "ports" : {
-    "of:0000000000000011/1" : { "interfaces" : [ { "name" : "h11" } ] },
-    "of:0000000000000011/2" : { "interfaces" : [ { "name" : "h12" } ] },
-    "of:0000000000000011/3" : { "interfaces" : [ { "name" : "h13" } ] },
-    "of:0000000000000011/4" : { "interfaces" : [ { "name" : "h14" } ] },
-    "of:0000000000000011/5" : { "interfaces" : [ { "name" : "d11" } ] },
-    "of:0000000000000011/6" : { "interfaces" : [ { "name" : "d12" } ] },
-    "of:0000000000000011/7" : { "interfaces" : [ { "name" : "LS1_SS1" } ] },
-    "of:0000000000000011/8" : { "interfaces" : [ { "name" : "LS1_SS2" } ] },
-
-    "of:0000000000000012/1" : { "interfaces" : [ { "name" : "h21" } ] } ,
-    "of:0000000000000012/2" : { "interfaces" : [ { "name" : "h22" } ] },
-    "of:0000000000000012/3" : { "interfaces" : [ { "name" : "h23" } ] },
-    "of:0000000000000012/4" : { "interfaces" : [ { "name" : "h24" } ] },
-    "of:0000000000000012/5" : { "interfaces" : [ { "name" : "d21" } ] },
-    "of:0000000000000012/6" : { "interfaces" : [ { "name" : "d22" } ] },
-    "of:0000000000000012/7" : { "interfaces" : [ { "name" : "LS2_SS1" } ] },
-    "of:0000000000000012/8" : { "interfaces" : [ { "name" : "LS2_SS2" } ] },
-
-    "of:0000000000000021/1" : { "interfaces" : [ { "name" : "SS1_LS1" } ] },
-    "of:0000000000000021/2" : { "interfaces" : [ { "name" : "SS1_LS2" } ] },
-
-    "of:0000000000000022/1" : { "interfaces" : [ { "name" : "SS2_LS1" } ] },
-    "of:0000000000000022/2" : { "interfaces" : [ { "name" : "SS2_LS2" } ] }
-
+  "ports": {
+    "of:0000000000000011/1": {
+      "interfaces": [
+        {
+          "name": "h11"
+        }
+      ]
+    },
+    "of:0000000000000011/2": {
+      "interfaces": [
+        {
+          "name": "h12"
+        }
+      ]
+    },
+    "of:0000000000000011/3": {
+      "interfaces": [
+        {
+          "name": "h13"
+        }
+      ]
+    },
+    "of:0000000000000011/4": {
+      "interfaces": [
+        {
+          "name": "h14"
+        }
+      ]
+    },
+    "of:0000000000000011/5": {
+      "interfaces": [
+        {
+          "name": "d11"
+        }
+      ]
+    },
+    "of:0000000000000011/6": {
+      "interfaces": [
+        {
+          "name": "d12"
+        }
+      ]
+    },
+    "of:0000000000000011/7": {
+      "interfaces": [
+        {
+          "name": "LS1_SS1"
+        }
+      ]
+    },
+    "of:0000000000000011/8": {
+      "interfaces": [
+        {
+          "name": "LS1_SS2"
+        }
+      ]
+    },
+    "of:0000000000000012/1": {
+      "interfaces": [
+        {
+          "name": "h21"
+        }
+      ]
+    },
+    "of:0000000000000012/2": {
+      "interfaces": [
+        {
+          "name": "h22"
+        }
+      ]
+    },
+    "of:0000000000000012/3": {
+      "interfaces": [
+        {
+          "name": "h23"
+        }
+      ]
+    },
+    "of:0000000000000012/4": {
+      "interfaces": [
+        {
+          "name": "h24"
+        }
+      ]
+    },
+    "of:0000000000000012/5": {
+      "interfaces": [
+        {
+          "name": "d21"
+        }
+      ]
+    },
+    "of:0000000000000012/6": {
+      "interfaces": [
+        {
+          "name": "d22"
+        }
+      ]
+    },
+    "of:0000000000000012/7": {
+      "interfaces": [
+        {
+          "name": "LS2_SS1"
+        }
+      ]
+    },
+    "of:0000000000000012/8": {
+      "interfaces": [
+        {
+          "name": "LS2_SS2"
+        }
+      ]
+    },
+    "of:0000000000000021/1": {
+      "interfaces": [
+        {
+          "name": "SS1_LS1"
+        }
+      ]
+    },
+    "of:0000000000000021/2": {
+      "interfaces": [
+        {
+          "name": "SS1_LS2"
+        }
+      ]
+    },
+    "of:0000000000000022/1": {
+      "interfaces": [
+        {
+          "name": "SS2_LS1"
+        }
+      ]
+    },
+    "of:0000000000000022/2": {
+      "interfaces": [
+        {
+          "name": "SS2_LS2"
+        }
+      ]
+    }
   },
-
-  "apps" : {
-    "org.onosproject.simplefabric" : {
-      "simpleFabric" : {
-        "l2Networks" : [
-          { "name" : "LEAF1", "interfaces" : ["h11", "h12", "h13", "h14", "d11", "d12" ], "l2Forward" : true, "l2Broadcast" : true },
-          { "name" : "LEAF2", "interfaces" : ["h21", "h22", "h23", "h24", "d21", "d22" ], "l2Forward" : true, "l2Broadcast" : true }
+  "apps": {
+    "org.onosproject.simplefabric": {
+      "simpleFabric": {
+        "fabricNetworks": [
+          {
+            "name": "LEAF1",
+            "interfaces": [
+              "h11",
+              "h12",
+              "h13",
+              "h14",
+              "d11",
+              "d12"
+            ],
+            "isForward": true,
+            "isBroadcast": true
+          },
+          {
+            "name": "LEAF2",
+            "interfaces": [
+              "h21",
+              "h22",
+              "h23",
+              "h24",
+              "d21",
+              "d22"
+            ],
+            "isForward": true,
+            "isBroadcast": true
+          }
         ],
-        "ipSubnets" : [
-           { "ipPrefix" : "10.0.1.0/24", "gatewayIp" : "10.0.1.1", "gatewayMac" : "00:00:10:00:01:01", "l2NetworkName" : "LEAF1" },
-           { "ipPrefix" : "10.0.2.0/24", "gatewayIp" : "10.0.2.1", "gatewayMac" : "00:00:10:00:02:01", "l2NetworkName" : "LEAF2" }
+        "fabricSubnets": [
+          {
+            "prefix": "10.0.1.0/24",
+            "gatewayIp": "10.0.1.1",
+            "gatewayMac": "00:00:10:00:01:01",
+            "networkName": "LEAF1"
+          },
+          {
+            "prefix": "10.0.2.0/24",
+            "gatewayIp": "10.0.2.1",
+            "gatewayMac": "00:00:10:00:02:01",
+            "networkName": "LEAF2"
+          }
         ],
-        "borderRoutes" : [
-           { "ipPrefix" : "0.0.0.0/0", "nextHop" : "10.0.1.2" }
+        "fabricRoutes": [
+          {
+            "prefix": "0.0.0.0/0",
+            "nextHop": "10.0.1.2"
+          }
         ]
       }
     }
   }
-
 }
 

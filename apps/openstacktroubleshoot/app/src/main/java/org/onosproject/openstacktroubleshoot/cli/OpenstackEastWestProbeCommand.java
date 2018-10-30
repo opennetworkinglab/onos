@@ -34,8 +34,11 @@ import org.onosproject.openstacktroubleshoot.api.Reachability;
 
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
+import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
+import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.openstacknetworking.api.InstancePort.State.ACTIVE;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
 
@@ -60,6 +63,9 @@ public class OpenstackEastWestProbeCommand extends AbstractShellCommand {
     @Argument(index = 0, name = "vmIps", description = "VMs' IP addresses",
             required = false, multiValued = true)
     private String[] vmIps = null;
+
+    private final ExecutorService probeExecutor = newSingleThreadScheduledExecutor(
+            groupedThreads(this.getClass().getSimpleName(), "probe-handler", log));
 
     @Override
     protected void doExecute() {
@@ -144,7 +150,8 @@ public class OpenstackEastWestProbeCommand extends AbstractShellCommand {
             dstIps.stream()
                     .filter(ip -> instPort(instPortService, ip) != null)
                     .map(ip -> instPort(instPortService, ip))
-                    .forEach(port -> printReachability(tsService.probeEastWest(srcPort, port)));
+                    .forEach(port -> probeExecutor.execute(() ->
+                            printReachability(tsService.probeEastWest(srcPort, port))));
         }
     }
 

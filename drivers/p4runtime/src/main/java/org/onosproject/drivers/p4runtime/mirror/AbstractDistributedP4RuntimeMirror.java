@@ -26,6 +26,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 
 import org.onlab.util.KryoNamespace;
 import org.onlab.util.SharedExecutors;
+import org.onosproject.net.Annotations;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.pi.runtime.PiEntity;
 import org.onosproject.net.pi.runtime.PiHandle;
@@ -70,6 +71,8 @@ public abstract class AbstractDistributedP4RuntimeMirror
 
     private EventuallyConsistentMap<H, TimedEntry<E>> mirrorMap;
 
+    private EventuallyConsistentMap<H, Annotations> annotationsMap;
+
     private final PiPipeconfWatchdogListener pipeconfListener =
             new InternalPipeconfWatchdogListener();
 
@@ -81,6 +84,14 @@ public abstract class AbstractDistributedP4RuntimeMirror
                 .withSerializer(storeSerializer())
                 .withTimestampProvider((k, v) -> new WallClockTimestamp())
                 .build();
+
+        annotationsMap = storageService
+                .<H, Annotations>eventuallyConsistentMapBuilder()
+                .withName(mapName() + "-annotations")
+                .withSerializer(storeSerializer())
+                .withTimestampProvider((k, v) -> new WallClockTimestamp())
+                .build();
+
         pipeconfWatchdogService.addListener(pipeconfListener);
         log.info("Started");
     }
@@ -133,6 +144,20 @@ public abstract class AbstractDistributedP4RuntimeMirror
     public void remove(H handle) {
         checkNotNull(handle);
         mirrorMap.remove(handle);
+        annotationsMap.remove(handle);
+    }
+
+    @Override
+    public void putAnnotations(H handle, Annotations annotations) {
+        checkNotNull(handle);
+        checkNotNull(annotations);
+        annotationsMap.put(handle, annotations);
+    }
+
+    @Override
+    public Annotations annotations(H handle) {
+        checkNotNull(handle);
+        return annotationsMap.get(handle);
     }
 
     @Override
@@ -191,7 +216,7 @@ public abstract class AbstractDistributedP4RuntimeMirror
     private void removeAll(DeviceId deviceId) {
         checkNotNull(deviceId);
         Collection<H> handles = getHandlesForDevice(deviceId);
-        handles.forEach(mirrorMap::remove);
+        handles.forEach(this::remove);
     }
 
     public class InternalPipeconfWatchdogListener implements PiPipeconfWatchdogListener {

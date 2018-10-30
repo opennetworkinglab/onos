@@ -5,79 +5,30 @@
             {
                 "layer-protocol-name" : "DSR",
                 "service-interface-point": {
-                    "service-interface-point-id" : "00000000-0000-4200-0001-110000000000"
+                    "service-interface-point-uuid" : "00000001-0000-0000-0000-000000000001"
                 },
                 "capacity" : {
                 },
                 "direction" : "BIDIRECTIONAL",
                 "role" : "UNKNOWN",
-                "protection-role" : "WORK",
-                "local-id": "00000000-0000-4100-0001-110000000000",
-                "name" : [
-                        {
-                            "value-name" : "port",
-                            "value" : "1"
-                        },
-                        {
-                            "value-name" : "transponder",
-                            "value" : "TRNP_A"
-                        },
-                        {
-                            "value-name" : "onos-index",
-                            "value" : "1"
-                        },
-                        {
-                            "value-name" : "test-driver",
-                            "value" : "driver"
-                        }
-                ],
-                "administrative-state" : "UNLOCKED",
-                "operational-state" : "ENABLED",
-                "lifecycle-state" : "INSTALLED"
+                "protection-role" : "WORK"
             }
             ,
             {
                 "layer-protocol-name" : "DSR",
                 "service-interface-point": {
-                    "service-interface-point-id" : "00000000-0000-4200-0001-210000000000"
+                    "service-interface-point-uuid" : "00000001-0000-0000-0000-000000000002"
                 },
                 "capacity" : {
                 },
                 "direction" : "BIDIRECTIONAL",
                 "role" : "UNKNOWN",
-                "protection-role" : "WORK",
-                "local-id": "00000000-0000-4100-0001-210000000000",
-                "name" : [
-                        {
-                            "value-name" : "port",
-                            "value" : "1"
-                        },
-                        {
-                            "value-name" : "transponder",
-                            "value" : "TRNP_B"
-                        },
-                        {
-                            "value-name" : "onos-index",
-                            "value" : "1"
-                        },
-                        {
-                            "value-name" : "test-driver",
-                            "value" : "driver"
-                        }
-                ],
-                "administrative-state" : "UNLOCKED",
-                "operational-state" : "ENABLED",
-                "lifecycle-state" : "INSTALLED"
+                "protection-role" : "WORK"
             }
         ],
-
         "conn-constraint" : {},
-
         "topo-constraint" : {},
-
-        "resilience-constraint" : [ ],
-
-        "state" : "operational-state"
+        "resilience-constraint" : [ ]
     }
 }
 

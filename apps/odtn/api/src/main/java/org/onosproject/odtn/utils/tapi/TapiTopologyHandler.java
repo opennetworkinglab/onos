@@ -19,10 +19,10 @@ package org.onosproject.odtn.utils.tapi;
 import static org.onosproject.odtn.utils.tapi.TapiGlobalClassUtil.getUuid;
 import static org.onosproject.odtn.utils.tapi.TapiGlobalClassUtil.setUuid;
 
-import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.DefaultContext;
-import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.Uuid;
-import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.context.DefaultAugmentedTapiCommonContext;
-import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.topologycontext.DefaultTopology;
+import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.DefaultContext;
+import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.Uuid;
+import org.onosproject.yang.gen.v1.tapitopology.rev20181016.tapitopology.context.augmentedtapicommoncontext.DefaultTopologyContext;
+import org.onosproject.yang.gen.v1.tapitopology.rev20181016.tapitopology.topologycontext.DefaultTopology;
 import org.onosproject.yang.model.ModelObjectId;
 
 /**
@@ -51,9 +51,10 @@ public final class TapiTopologyHandler extends TapiObjectHandler<DefaultTopology
 
     @Override
     public ModelObjectId getParentModelObjectId() {
-        DefaultAugmentedTapiCommonContext topologyContext = new DefaultAugmentedTapiCommonContext();
-        topologyContext.addToTopology(obj);
 
-        return ModelObjectId.builder().addChild(DefaultContext.class).build();
+        return ModelObjectId.builder()
+                .addChild(DefaultContext.class)
+                .addChild(DefaultTopologyContext.class)
+                .build();
     }
 }

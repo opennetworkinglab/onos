@@ -1,0 +1,714 @@
+module tapi-topology {
+    namespace "urn:onf:otcc:yang:tapi-topology";
+    prefix tapi-topology;
+    import tapi-common {
+        prefix tapi-common;
+    }
+    organization "ONF OTCC (Open Transport Configuration & Control) Project";
+    contact "
+         Project Web: <https://wiki.opennetworking.org/display/OTCC/TAPI>
+         Project List: <mailto:transport-api@opennetworking.org>
+         Editor: Karthik Sethuraman
+                 <mailto:karthik.sethuraman@necam.com>";
+    description "
+        This module contains TAPI Topology Model definitions.
+        Source: TapiTopology.uml
+        Copyright (c) 2018 Open Networking Foundation (ONF). All rights reserved.
+        License: This module is distributed under the Apache License 2.0";
+    revision 2018-10-16 {
+        description "ONF Transport API version 2.1.0.
+          - The TAPI YANG models included in this TAPI release (v2.1.0) are a *normative* part of the TAPI SDK.
+          - The YANG specifications have been generated from the corresponding UML model using the [ONF EAGLE UML2YANG mapping tool]
+            <https://github.com/OpenNetworkingFoundation/EagleUmlYang>
+            and further edited manually to comply with the [ONF IISOMI UML2YANG mapping guidelines]
+            <https://wiki.opennetworking.org/display/OIMT/UML+-+YANG+Guidelines>
+          - Status of YANG model artifacts can be determined by referring to the corresponding UML artifacts.
+            As described in the UML models, some artifacts are considered *experimental*, and thus the corresponding YANG artifacts.
+          - The ONF TAPI release process does not guarantee backward compatibility of YANG models across major versions of TAPI releases.
+            The YANG model backward compatibility criteria are outlined in section 11 of <https://tools.ietf.org/html/rfc7950>.
+            YANG models included in this release are not backward compatible with previous TAPI releases.
+          - Changes included in this TAPI release (v2.1.0) are listed in
+            <https://github.com/OpenNetworkingFoundation/TAPI/blob/develop/CHANGE_LOG/change-log.2.1.0.md>";
+        reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 7950, RFC 6087 and ONF TAPI UML model
+                  <https://github.com/OpenNetworkingFoundation/TAPI/tree/v2.1.0/UML>";
+    }
+    revision 2018-03-07 {
+        description "ONF Transport API version 2.0.2
+        This YANG module has been generated from the TAPI UML Model using the IISOMI-Eagle xmi2yang mapping tool.
+        Changes in this revision: <https://github.com/OpenNetworkingFoundation/TAPI/blob/develop/CHANGE_LOG/change-log.2.0.2.md>";
+        reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 6020, RFC 6087 and ONF TAPI UML model
+                  <https://github.com/OpenNetworkingFoundation/TAPI/tree/v2.0.2/UML>";
+    }
+    revision 2018-02-16 {
+        description "ONF Transport API version 2.0.1
+        This YANG module has been generated from the TAPI UML Model using the IISOMI-Eagle xmi2yang mapping tool.
+        Changes in this revision: <https://github.com/OpenNetworkingFoundation/TAPI/blob/develop/CHANGE_LOG/change-log.2.0.1.md>";
+        reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 6020, RFC 6087 and ONF TAPI UML model
+                  <https://github.com/OpenNetworkingFoundation/TAPI/tree/v2.0.1/UML>";
+    }
+    revision 2018-01-02 {
+        description "ONF Transport API version 2.0.0
+        This YANG module has been generated from the TAPI UML Model using the IISOMI-Eagle xmi2yang mapping tool.
+        Changes in this revision: <https://github.com/OpenNetworkingFoundation/TAPI/blob/develop/CHANGE_LOG/change-log.2.0.0.md>";
+        reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 6020, RFC 6087 and ONF TAPI UML model
+                  <https://github.com/OpenNetworkingFoundation/TAPI/tree/v2.0.0/UML>";
+    }
+    augment "/tapi-common:context" {
+        container topology-context {
+            uses topology-context;
+            description "Augments the base TAPI Context with TopologyService information";
+        }
+        description "Augments the base TAPI Context with TopologyService information";
+    }
+
+    /*************************
+    * definitions of refrences
+    *************************/
+
+    grouping topology-ref {
+        leaf topology-uuid {
+            type leafref {
+                path '/tapi-common:context/tapi-topology:topology-context/tapi-topology:topology/tapi-topology:uuid';
+            }
+            description "none";
+        }
+        description "none";
+    }
+
+    grouping link-ref {
+        uses topology-ref;
+        leaf link-uuid {
+            type leafref {
+                path '/tapi-common:context/tapi-topology:topology-context/tapi-topology:topology/tapi-topology:link/tapi-topology:uuid';
+            }
+            description "none";
+        }
+        description "none";
+    }
+
+    grouping node-ref {
+        uses topology-ref;
+        leaf node-uuid {
+            type leafref {
+                path '/tapi-common:context/tapi-topology:topology-context/tapi-topology:topology/tapi-topology:node/tapi-topology:uuid';
+            }
+            description "none";
+        }
+        description "none";
+    }
+
+    grouping node-edge-point-ref {
+        uses node-ref;
+        leaf node-edge-point-uuid {
+            type leafref {
+                path '/tapi-common:context/tapi-topology:topology-context/tapi-topology:topology/tapi-topology:node/tapi-topology:owned-node-edge-point/tapi-topology:uuid';
+            }
+            description "none";
+        }
+        description "none";
+    }
+
+    grouping node-rule-group-ref {
+        uses node-ref;
+        leaf node-rule-group-uuid {
+            type leafref {
+                path '/tapi-common:context/tapi-topology:topology-context/tapi-topology:topology/tapi-topology:node/tapi-topology:node-rule-group/tapi-topology:uuid';
+            }
+            description "none";
+        }
+        description "none";
+    }
+
+    /***********************
+    * package object-classes
+    **********************/ 
+        grouping link {
+            list node-edge-point {
+                uses node-edge-point-ref;
+                key 'topology-uuid node-uuid node-edge-point-uuid';
+                config false;
+                min-elements 2;
+                description "none";
+            }
+            leaf-list layer-protocol-name {
+                type tapi-common:layer-protocol-name;
+                config false;
+                min-elements 1;
+                description "none";
+            }
+            leaf direction {
+                type tapi-common:forwarding-direction;
+                config false;
+                description "The directionality of the Link. 
+                    Is applicable to simple Links where all LinkEnds are BIDIRECTIONAL (the Link will be BIDIRECTIONAL) or UNIDIRECTIONAL (the Link will be UNIDIRECTIONAL). 
+                    Is not present in more complex cases.";
+            }
+            container resilience-type {
+                uses resilience-type;
+                description "none";
+            }
+            uses tapi-common:resource-spec;
+            uses tapi-common:admin-state-pac;
+            uses tapi-common:capacity-pac;
+            uses transfer-cost-pac;
+            uses transfer-integrity-pac;
+            uses transfer-timing-pac;
+            uses risk-parameter-pac;
+            uses validation-pac;
+            uses layer-protocol-transition-pac;
+            description "The Link object class models effective adjacency between two or more ForwardingDomains (FD). ";
+        }
+        grouping node {
+            list owned-node-edge-point {
+                key 'uuid';
+                config false;
+                uses node-edge-point;
+                description "none";
+            }
+            list aggregated-node-edge-point {
+            	uses node-edge-point-ref;
+                key 'topology-uuid node-uuid node-edge-point-uuid';
+                config false;
+                description "none";
+            }
+            list node-rule-group {
+                key 'uuid';
+                uses node-rule-group;
+                description "none";
+            }
+            container encap-topology {
+                uses topology-ref;
+                config false;
+                description "none";
+            }
+            leaf-list layer-protocol-name {
+                type tapi-common:layer-protocol-name;
+                config false;
+                min-elements 1;
+                description "none";
+            }
+            uses tapi-common:resource-spec;
+            uses tapi-common:admin-state-pac;
+            uses tapi-common:capacity-pac;
+            uses transfer-cost-pac;
+            uses transfer-integrity-pac;
+            uses transfer-timing-pac;
+            description "The ForwardingDomain (FD) object class models the ForwardingDomain topological component which is used to effect forwarding of transport characteristic information and offers the potential to enable forwarding. 
+                At the lowest level of recursion, an FD (within a network element (NE)) represents a switch matrix (i.e., a fabric). Note that an NE can encompass multiple switch matrices (FDs). ";
+        }
+        grouping topology {
+            list node {
+                key 'uuid';
+                config false;
+                uses node;
+                description "none";
+            }
+            list link {
+                key 'uuid';
+                config false;
+                uses link;
+                description "none";
+            }
+            leaf-list layer-protocol-name {
+                type tapi-common:layer-protocol-name;
+                config false;
+                min-elements 1;
+                description "none";
+            }
+            uses tapi-common:resource-spec;
+            description "The ForwardingDomain (FD) object class models the ForwardingDomain topological component which is used to effect forwarding of transport characteristic information and offers the potential to enable forwarding. 
+                At the lowest level of recursion, an FD (within a network element (NE)) represents a switch matrix (i.e., a fabric). Note that an NE can encompass multiple switch matrices (FDs). ";
+        }
+        grouping layer-protocol-transition-pac {
+            leaf-list transitioned-layer-protocol-name {
+                type string;
+                min-elements 2;
+                description "Provides the ordered structure of layer protocol transitions encapsulated in the TopologicalEntity. The ordering relates to the LinkPort role.";
+            }
+            description "Relevant for a Link that is formed by abstracting one or more LTPs (in a stack) to focus on the flow and deemphasize the protocol transformation. 
+                This abstraction is relevant when considering multi-layer routing. 
+                The layer protocols of the LTP and the order of their application to the signal is still relevant and need to be accounted for. This is derived from the LTP spec details.
+                This Pac provides the relevant abstractions of the LTPs and provides the necessary association to the LTPs involved.
+                Links that included details in this Pac are often referred to as Transitional Links.";
+        }
+        grouping node-edge-point {
+            leaf layer-protocol-name {
+                type tapi-common:layer-protocol-name;
+                config false;
+                description "none";
+            }
+            leaf-list supported-cep-layer-protocol-qualifier {
+                type tapi-common:layer-protocol-qualifier;
+                min-elements 1;
+                description "none";
+            }
+            list aggregated-node-edge-point {
+            	uses node-edge-point-ref;
+                key 'topology-uuid node-uuid node-edge-point-uuid';
+                config false;
+                description "none";
+            }
+            list mapped-service-interface-point {
+                uses tapi-common:service-interface-point-ref;
+                key 'service-interface-point-uuid';
+                config false;
+                description "NodeEdgePoint mapped to more than ServiceInterfacePoint (slicing/virtualizing) or a ServiceInterfacePoint mapped to more than one NodeEdgePoint (load balancing/Resilience) should be considered experimental";
+            }
+            leaf link-port-direction {
+                type tapi-common:port-direction;
+                config false;
+                description "The orientation of defined flow at the LinkEnd.";
+            }
+            leaf link-port-role {
+                type tapi-common:port-role;
+                config false;
+                description "Each LinkEnd of the Link has a role (e.g., symmetric, hub, spoke, leaf, root)  in the context of the Link with respect to the Link function. ";
+            }
+            uses tapi-common:resource-spec;
+            uses tapi-common:admin-state-pac;
+            uses tapi-common:termination-pac;
+            uses tapi-common:capacity-pac;
+            description "The LogicalTerminationPoint (LTP) object class encapsulates the termination and adaptation functions of one or more transport layers. 
+                The structure of LTP supports all transport protocols including circuit and packet forms.";
+        }
+        grouping risk-parameter-pac {
+            list risk-characteristic {
+                key 'risk-characteristic-name';
+                config false;
+                min-elements 1;
+                uses risk-characteristic;
+                description "A list of risk characteristics for consideration in an analysis of shared risk. Each element of the list represents a specific risk consideration.";
+            }
+            description "The risk characteristics of a TopologicalEntity come directly from the underlying physical realization. 
+                The risk characteristics propagate from the physical realization to the client and from the server layer to the client layer, this propagation may be modified by protection.
+                A TopologicalEntity may suffer degradation or failure as a result of a problem in a part of the underlying realization.
+                The realization can be partitioned into segments which have some relevant common failure modes.
+                There is a risk of failure/degradation of each segment of the underlying realization.
+                Each segment is a part of a larger physical/geographical unit that behaves as one with respect to failure (i.e. a failure will have a high probability of impacting the whole unit (e.g. all cables in the same duct).
+                Disruptions to that larger physical/geographical unit will impact (cause failure/errors to) all TopologicalEntities that use any part of that larger physical/geographical entity.
+                Any TopologicalEntity that uses any part of that larger physical/geographical unit will suffer impact and hence each TopologicalEntity shares risk.
+                The identifier of each physical/geographical unit that is involved in the realization of each segment of a Topological entity can be listed in the RiskParameter_Pac of that TopologicalEntity.
+                A segment has one or more risk characteristic.
+                Shared risk between two TopologicalEntities compromises the integrity of any solution that use one of those TopologicalEntity as a backup for the other.
+                Where two TopologicalEntities have a common risk characteristic they have an elevated probability of failing simultaneously compared to two TopologicalEntities that do not share risk characteristics.";
+        }
+        grouping transfer-cost-pac {
+            list cost-characteristic {
+                key 'cost-name';
+                config false;
+                min-elements 1;
+                uses cost-characteristic;
+                description "The list of costs where each cost relates to some aspect of the TopologicalEntity.";
+            }
+            description "The cost characteristics of a TopologicalEntity not necessarily correlated to the cost of the underlying physical realization. 
+                They may be quite specific to the individual TopologicalEntity e.g. opportunity cost. Relates to layer capacity
+                There may be many perspectives from which cost may be considered  for a particular TopologicalEntity and hence many specific costs and potentially cost algorithms. 
+                Using an entity will incur a cost. ";
+        }
+        grouping transfer-integrity-pac {
+            leaf error-characteristic {
+                type string;
+                config false;
+                description "Describes the degree to which the signal propagated can be errored. 
+                    Applies to TDM systems as the errored signal will be propagated and not packet as errored packets will be discarded.";
+            }
+            leaf loss-characteristic {
+                type string;
+                config false;
+                description "Describes the acceptable characteristic of lost packets where loss may result from discard due to errors or overflow.
+                    Applies to packet systems and not TDM (as for TDM errored signals are propagated unless grossly errored and overflow/underflow turns into timing slips).";
+            }
+            leaf repeat-delivery-characteristic {
+                type string;
+                config false;
+                description "Primarily applies to packet systems where a packet may be delivered more than once (in fault recovery for example). 
+                    It can also apply to TDM where several frames may be received twice due to switching in a system with a large differential propagation delay.";
+            }
+            leaf delivery-order-characteristic {
+                type string;
+                config false;
+                description "Describes the degree to which packets will be delivered out of sequence.
+                    Does not apply to TDM as the TDM protocols maintain strict order.";
+            }
+            leaf unavailable-time-characteristic {
+                type string;
+                config false;
+                description "Describes the duration for which there may be no valid signal propagated.";
+            }
+            leaf server-integrity-process-characteristic {
+                type string;
+                config false;
+                description "Describes the effect of any server integrity enhancement process on the characteristics of the TopologicalEntity.";
+            }
+            description "Transfer intergrity characteristic covers expected/specified/acceptable characteristic of degradation of the transfered signal.
+                It includes all aspects of possible degradation of signal content as well as any damage of any form to the total TopologicalEntity and to the carried signals.
+                Note that the statement is of total impact to the TopologicalEntity so any partial usage of the TopologicalEntity (e.g. a signal that does not use full capacity) will only suffer its portion of the impact.";
+        }
+        grouping transfer-timing-pac {
+            list latency-characteristic {
+                key 'traffic-property-name';
+                config false;
+                min-elements 1;
+                uses latency-characteristic;
+                description "The effect on the latency of a queuing process. This only has significant effect for packet based systems and has a complex characteristic.";
+            }
+            description "A TopologicalEntity will suffer effects from the underlying physical realization related to the timing of the information passed by the TopologicalEntity.";
+        }
+        grouping validation-pac {
+            list validation-mechanism {
+                key 'validation-mechanism';
+                config false;
+                min-elements 1;
+                uses validation-mechanism;
+                description "Provides details of the specific validation mechanism(s) used to confirm the presence of an intended topologicalEntity.";
+            }
+            description "Validation covers the various adjacenct discovery and reachability verification protocols. Also may cover Information source and degree of integrity.";
+        }
+        grouping network-topology-service {
+            list topology {
+                uses topology-ref;
+                key 'topology-uuid';
+                config false;
+                description "none";
+            }
+            uses tapi-common:service-spec;
+            description "none";
+        }
+        grouping topology-context {
+            container nw-topology-service {
+                config false;
+                uses network-topology-service;
+                description "none";
+            }
+            list topology {
+                key 'uuid';
+                config false;
+                uses topology;
+                description "none";
+            }
+            description "none";
+        }
+        grouping inter-rule-group {
+            list rule {
+                key 'local-id';
+                min-elements 1;
+                uses rule;
+                description "none";
+            }
+            list associated-node-rule-group {
+                uses node-rule-group-ref;
+                key 'topology-uuid node-uuid node-rule-group-uuid';
+                min-elements 2;
+                description "none";
+            }
+            uses tapi-common:resource-spec;
+            uses tapi-common:capacity-pac;
+            uses transfer-cost-pac;
+            uses transfer-timing-pac;
+            uses risk-parameter-pac;
+            description "none";
+        }
+        grouping node-rule-group {
+            list rule {
+                key 'local-id';
+                min-elements 1;
+                uses rule;
+                description "none";
+            }
+            list node-edge-point {
+            	uses node-edge-point-ref;
+                key 'topology-uuid node-uuid node-edge-point-uuid';
+                min-elements 1;
+                description "none";
+            }
+            list composed-rule-group {
+                uses node-rule-group-ref;
+                key 'topology-uuid node-uuid node-rule-group-uuid';
+                description "none";
+            }
+            list inter-rule-group {
+                key 'uuid';
+                uses inter-rule-group;
+                description "none";
+            }
+            uses tapi-common:resource-spec;
+            uses tapi-common:capacity-pac;
+            uses transfer-cost-pac;
+            uses transfer-timing-pac;
+            uses risk-parameter-pac;
+            description "none";
+        }
+        grouping rule {
+            leaf rule-type {
+                type rule-type;
+                description "none";
+            }
+            leaf forwarding-rule {
+                type forwarding-rule;
+                description "none";
+            }
+            leaf override-priority {
+                type uint64;
+                description "none";
+            }
+            uses tapi-common:local-class;
+            description "none";
+        }
+
+    /***********************
+    * package type-definitions
+    **********************/ 
+        grouping cost-characteristic {
+            leaf cost-name {
+                type string;
+                description "The cost characteristic will related to some aspect of the TopologicalEntity (e.g. $ cost, routing weight). This aspect will be conveyed by the costName.";
+            }
+            leaf cost-value {
+                type string;
+                description "The specific cost.";
+            }
+            leaf cost-algorithm {
+                type string;
+                description "The cost may vary based upon some properties of the TopologicalEntity. The rules for the variation are conveyed by the costAlgorithm.";
+            }
+            description "The information for a particular cost characteristic.";
+        }
+        grouping latency-characteristic {
+            leaf traffic-property-name {
+                type string;
+                description "The identifier of the specific traffic property to which the queuing latency applies.";
+            }
+            leaf fixed-latency-characteristic {
+                type string;
+                config false;
+                description "A TopologicalEntity suffers delay caused by the realization of the servers (e.g. distance related; FEC encoding etc.) along with some client specific processing. This is the total average latency effect of the TopologicalEntity";
+            }
+            leaf queing-latency-characteristic {
+                type string;
+                description "The specific queuing latency for the traffic property.";
+            }
+            leaf jitter-characteristic {
+                type string;
+                config false;
+                description "High frequency deviation from true periodicity of a signal and therefore a small high rate of change of transfer latency.
+                    Applies to TDM systems (and not packet).";
+            }
+            leaf wander-characteristic {
+                type string;
+                config false;
+                description "Low frequency deviation from true periodicity of a signal and therefore a small low rate of change of transfer latency.
+                    Applies to TDM systems (and not packet).";
+            }
+            description "Provides information on latency characteristic for a particular stated trafficProperty.";
+        }
+        grouping risk-characteristic {
+            leaf risk-characteristic-name {
+                type string;
+                description "The name of the risk characteristic. The characteristic may be related to a specific degree of closeness. 
+                    For example a particular characteristic may apply to failures that are localized (e.g. to one side of a road) where as another characteristic may relate to failures that have a broader impact (e.g. both sides of a road that crosses a bridge).
+                    Depending upon the importance of the traffic being routed different risk characteristics will be evaluated.";
+            }
+            leaf-list risk-identifier-list {
+                type string;
+                min-elements 1;
+                description "A list of the identifiers of each physical/geographic unit (with the specific risk characteristic) that is related to a segment of the TopologicalEntity.";
+            }
+            description "The information for a particular risk characteristic where there is a list of risk identifiers related to that characteristic.";
+        }
+        grouping validation-mechanism {
+            leaf validation-mechanism {
+                type string;
+                description "Name of mechanism used to validate adjacency";
+            }
+            leaf layer-protocol-adjacency-validated {
+                type string;
+                description "State of validatiion";
+            }
+            leaf validation-robustness {
+                type string;
+                description "Quality of validation (i.e. how likely is the stated validation to be invalid)";
+            }
+            description "Identifies the validation mechanism and describes the characteristics of that mechanism";
+        }
+        typedef forwarding-rule {
+            type enumeration {
+                enum MAY_FORWARD_ACROSS_GROUP {
+                    description "none";
+                }
+                enum MUST_FORWARD_ACROSS_GROUP {
+                    description "none";
+                }
+                enum CANNOT_FORWARD_ACROSS_GROUP {
+                    description "none";
+                }
+                enum NO_STATEMENT_ON_FORWARDING {
+                    description "none";
+                }
+            }
+            description "none";
+        }
+        typedef rule-type {
+            type enumeration {
+                enum FORWARDING {
+                    description "none";
+                }
+                enum CAPACITY {
+                    description "none";
+                }
+                enum COST {
+                    description "none";
+                }
+                enum TIMING {
+                    description "none";
+                }
+                enum RISK {
+                    description "none";
+                }
+                enum GROUPING {
+                    description "none";
+                }
+            }
+            description "none";
+        }
+        grouping resilience-type {
+            leaf restoration-policy {
+                type restoration-policy;
+                description "none";
+            }
+            leaf protection-type {
+                type protection-type;
+                description "none";
+            }
+            description "none";
+        }
+        typedef restoration-policy {
+            type enumeration {
+                enum PER_DOMAIN_RESTORATION {
+                    description "none";
+                }
+                enum END_TO_END_RESTORATION {
+                    description "none";
+                }
+                enum NA {
+                    description "none";
+                }
+            }
+            description "none";
+        }
+        typedef protection-type {
+            type enumeration {
+                enum NO_PROTECTON {
+                    description "none";
+                }
+                enum ONE_PLUS_ONE_PROTECTION {
+                    description "none";
+                }
+                enum ONE_PLUS_ONE_PROTECTION_WITH_DYNAMIC_RESTORATION {
+                    description "none";
+                }
+                enum PERMANENT_ONE_PLUS_ONE_PROTECTION {
+                    description "none";
+                }
+                enum ONE_FOR_ONE_PROTECTION {
+                    description "none";
+                }
+                enum DYNAMIC_RESTORATION {
+                    description "none";
+                }
+                enum PRE_COMPUTED_RESTORATION {
+                    description "none";
+                }
+            }
+            description "none";
+        }
+
+    /***********************
+    * package interfaces
+    **********************/ 
+        rpc get-topology-details {
+            description "none";
+            input {
+                leaf topology-id-or-name {
+                    type string;
+                    description "none";
+                }
+            }
+            output {
+                container topology {
+                    uses topology;
+                    description "none";
+                }
+            }
+        }
+        rpc get-node-details {
+            description "none";
+            input {
+                leaf topology-id-or-name {
+                    type string;
+                    description "none";
+                }
+                leaf node-id-or-name {
+                    type string;
+                    description "none";
+                }
+            }
+            output {
+                container node {
+                    uses node;
+                    description "none";
+                }
+            }
+        }
+        rpc get-node-edge-point-details {
+            description "none";
+            input {
+                leaf topology-id-or-name {
+                    type string;
+                    description "none";
+                }
+                leaf node-id-or-name {
+                    type string;
+                    description "none";
+                }
+                leaf ep-id-or-name {
+                    type string;
+                    description "none";
+                }
+            }
+            output {
+                container node-edge-point {
+                    uses node-edge-point;
+                    description "none";
+                }
+            }
+        }
+        rpc get-link-details {
+            description "none";
+            input {
+                leaf topology-id-or-name {
+                    type string;
+                    description "none";
+                }
+                leaf link-id-or-name {
+                    type string;
+                    description "none";
+                }
+            }
+            output {
+                container link {
+                    uses link;
+                    description "none";
+                }
+            }
+        }
+        rpc get-topology-list {
+            description "none";
+            output {
+                list topology {
+                    uses topology;
+                    description "none";
+                }
+            }
+        }
+
+}

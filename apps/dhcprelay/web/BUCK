@@ -1,0 +1,23 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:JACKSON',
+    '//lib:KRYO',
+    '//lib:org.apache.karaf.shell.console',
+    '//cli:onos-cli',
+    '//utils/rest:onlab-rest',
+    '//lib:javax.ws.rs-api',
+    '//lib:jersey-server',
+    '//core/store/serializers:onos-core-serializers',
+    '//apps/route-service/api:onos-apps-route-service-api',
+    '//apps/dhcprelay/app:onos-apps-dhcprelay-app',
+    '//apps/routing/fpm/api:onos-apps-routing-fpm-api',
+]
+
+osgi_jar (
+   deps = COMPILE_DEPS,
+   web_context = '/onos/v1/dhcprelay',
+   api_title = 'DHCPRelay App',
+   api_version = '1.0',
+   api_description = 'REST API for DHCPRelay',
+   api_package = 'org.onosproject.dhcprelay.rest',
+)

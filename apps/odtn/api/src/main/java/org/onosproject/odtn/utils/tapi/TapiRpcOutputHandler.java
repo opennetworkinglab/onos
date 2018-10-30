@@ -16,7 +16,7 @@
 
 package org.onosproject.odtn.utils.tapi;
 
-import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.Uuid;
+import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.Uuid;
 import org.onosproject.yang.model.ModelObject;
 import org.onosproject.yang.model.ModelObjectId;
 

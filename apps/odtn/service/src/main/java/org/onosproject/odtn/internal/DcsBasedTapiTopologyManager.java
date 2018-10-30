@@ -24,6 +24,7 @@ import org.onosproject.net.Link;
 import org.onosproject.net.Port;
 import org.onosproject.odtn.TapiResolver;
 import org.onosproject.odtn.TapiTopologyManager;
+import org.onosproject.odtn.utils.tapi.TapiConnectivityContextHandler;
 import org.onosproject.odtn.utils.tapi.TapiCepHandler;
 import org.onosproject.odtn.utils.tapi.TapiContextHandler;
 import org.onosproject.odtn.utils.tapi.TapiLinkHandler;
@@ -32,10 +33,11 @@ import org.onosproject.odtn.utils.tapi.TapiNepRef;
 import org.onosproject.odtn.utils.tapi.TapiNodeHandler;
 import org.onosproject.odtn.utils.tapi.TapiNodeRef;
 import org.onosproject.odtn.utils.tapi.TapiSipHandler;
+import org.onosproject.odtn.utils.tapi.TapiTopologyContextHandler;
 import org.onosproject.odtn.utils.tapi.TapiTopologyHandler;
-import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.DefaultContext;
-import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.Uuid;
-import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.topologycontext.DefaultTopology;
+import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.DefaultContext;
+import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.Uuid;
+import org.onosproject.yang.gen.v1.tapitopology.rev20181016.tapitopology.topologycontext.DefaultTopology;
 import org.onosproject.yang.model.ModelConverter;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -70,6 +72,7 @@ public class DcsBasedTapiTopologyManager implements TapiTopologyManager {
     public void activate() {
         initDcsTapiContext();
         initDcsTapiTopology();
+        initDcsTapiConnectivityContext();
         log.info("Started");
     }
 
@@ -167,13 +170,26 @@ public class DcsBasedTapiTopologyManager implements TapiTopologyManager {
     }
 
     /**
-     * Add Tapi Topology to Dcs store.
+     * Add Tapi TopologyContext and Topology to Dcs store.
      *
      * Assumed there is only one topology for ODTN Phase 1.0
      */
     private void initDcsTapiTopology() {
+        TapiTopologyContextHandler topologyContextHandler = TapiTopologyContextHandler.create();
+        topologyContextHandler.add();
         TapiTopologyHandler topologyHandler = TapiTopologyHandler.create();
-        topology = topologyHandler.getModelObject();
         topologyHandler.add();
+        topology = topologyHandler.getModelObject();
     }
+
+    /**
+     * Add Tapi ConnectivityContext to Dcs store.
+     *
+     * Assumed there is only one topology for ODTN Phase 1.0
+     */
+    private void initDcsTapiConnectivityContext() {
+        TapiConnectivityContextHandler connectivityContextHandler = TapiConnectivityContextHandler.create();
+        connectivityContextHandler.add();
+    }
+
 }

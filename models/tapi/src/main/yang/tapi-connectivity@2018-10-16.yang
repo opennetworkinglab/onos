@@ -1,0 +1,734 @@
+module tapi-connectivity {
+    namespace "urn:onf:otcc:yang:tapi-connectivity";
+    prefix tapi-connectivity;
+    import tapi-common {
+        prefix tapi-common;
+    }
+    import tapi-topology {
+        prefix tapi-topology;
+    }
+    import tapi-path-computation {
+        prefix tapi-path-computation;
+    }
+    organization "ONF OTCC (Open Transport Configuration & Control) Project";
+    contact "
+         Project Web: <https://wiki.opennetworking.org/display/OTCC/TAPI>
+         Project List: <mailto:transport-api@opennetworking.org>
+         Editor: Karthik Sethuraman
+                 <mailto:karthik.sethuraman@necam.com>";
+    description "
+        This module contains TAPI Connectivity Model definitions.
+        Source: TapiConnectivity.uml
+        Copyright (c) 2018 Open Networking Foundation (ONF). All rights reserved.
+        License: This module is distributed under the Apache License 2.0";
+    revision 2018-10-16 {
+        description "ONF Transport API version 2.1.0.
+          - The TAPI YANG models included in this TAPI release (v2.1.0) are a *normative* part of the TAPI SDK.
+          - The YANG specifications have been generated from the corresponding UML model using the [ONF EAGLE UML2YANG mapping tool]
+            <https://github.com/OpenNetworkingFoundation/EagleUmlYang>
+            and further edited manually to comply with the [ONF IISOMI UML2YANG mapping guidelines]
+            <https://wiki.opennetworking.org/display/OIMT/UML+-+YANG+Guidelines>
+          - Status of YANG model artifacts can be determined by referring to the corresponding UML artifacts.
+            As described in the UML models, some artifacts are considered *experimental*, and thus the corresponding YANG artifacts.
+          - The ONF TAPI release process does not guarantee backward compatibility of YANG models across major versions of TAPI releases.
+            The YANG model backward compatibility criteria are outlined in section 11 of <https://tools.ietf.org/html/rfc7950>.
+            YANG models included in this release are not backward compatible with previous TAPI releases.
+          - Changes included in this TAPI release (v2.1.0) are listed in
+            <https://github.com/OpenNetworkingFoundation/TAPI/blob/develop/CHANGE_LOG/change-log.2.1.0.md>";
+        reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 7950, RFC 6087 and ONF TAPI UML model
+                  <https://github.com/OpenNetworkingFoundation/TAPI/tree/v2.1.0/UML>";
+    }
+    revision 2018-03-07 {
+        description "ONF Transport API version 2.0.2
+        This YANG module has been generated from the TAPI UML Model using the IISOMI-Eagle xmi2yang mapping tool.
+        Changes in this revision: <https://github.com/OpenNetworkingFoundation/TAPI/blob/develop/CHANGE_LOG/change-log.2.0.2.md>";
+        reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 6020, RFC 6087 and ONF TAPI UML model
+                  <https://github.com/OpenNetworkingFoundation/TAPI/tree/v2.0.2/UML>";
+    }
+    revision 2018-02-16 {
+        description "ONF Transport API version 2.0.1
+        This YANG module has been generated from the TAPI UML Model using the IISOMI-Eagle xmi2yang mapping tool.
+        Changes in this revision: <https://github.com/OpenNetworkingFoundation/TAPI/blob/develop/CHANGE_LOG/change-log.2.0.1.md>";
+        reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 6020, RFC 6087 and ONF TAPI UML model
+                  <https://github.com/OpenNetworkingFoundation/TAPI/tree/v2.0.1/UML>";
+    }
+    revision 2018-01-02 {
+        description "ONF Transport API version 2.0.0
+        This YANG module has been generated from the TAPI UML Model using the IISOMI-Eagle xmi2yang mapping tool.
+        Changes in this revision: <https://github.com/OpenNetworkingFoundation/TAPI/blob/develop/CHANGE_LOG/change-log.2.0.0.md>";
+        reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 6020, RFC 6087 and ONF TAPI UML model
+                  <https://github.com/OpenNetworkingFoundation/TAPI/tree/v2.0.0/UML>";
+    }
+    augment "/tapi-common:context" {
+        container connectivity-context {
+            uses connectivity-context;
+            description "Augments the base TAPI Context with ConnectivityService information";
+        }
+        description "Augments the base TAPI Context with ConnectivityService information";
+    }
+    augment "/tapi-common:context/tapi-topology:topology-context/tapi-topology:topology/tapi-topology:node/tapi-topology:owned-node-edge-point" {
+    	container cep-list {
+            uses cep-list;
+            description "none";
+        }
+        description "none";
+    }
+
+    /*************************
+    * definitions of references
+    *************************/
+    grouping connectivity-service-ref {
+        leaf connectivity-service-uuid {
+            type leafref {
+                path '/tapi-common:context/tapi-connectivity:connectivity-context/tapi-connectivity:connectivity-service/tapi-connectivity:uuid';
+            }
+            description "none";
+        }
+        description "none";
+    }
+
+    grouping connectivity-service-end-point-ref {
+    	uses connectivity-service-ref;
+    	leaf connectivity-service-end-point-local-id {
+	    	type leafref {
+	            path '/tapi-common:context/tapi-connectivity:connectivity-context/tapi-connectivity:connectivity-service/tapi-connectivity:end-point/tapi-connectivity:local-id';
+	        }
+	    	description "none";
+    	}
+    	description "none";
+    }
+    grouping connection-end-point-ref {
+        uses tapi-topology:node-edge-point-ref;
+        leaf connection-end-point-uuid {
+            type leafref {
+                path '/tapi-common:context/tapi-topology:topology-context/tapi-topology:topology/tapi-topology:node/tapi-topology:owned-node-edge-point/tapi-connectivity:cep-list/tapi-connectivity:connection-end-point/tapi-connectivity:uuid';
+            }
+            description "none";
+        }
+        description "none";
+    }
+
+    grouping connection-ref {
+        leaf connection-uuid {
+            type leafref {
+                path '/tapi-common:context/tapi-connectivity:connectivity-context/tapi-connectivity:connection/tapi-connectivity:uuid';
+            }
+            description "none";
+        }
+        description "none";
+    }
+
+    grouping switch-control-ref {
+        uses connection-ref;
+        leaf switch-control-uuid {
+            type leafref {
+                path '/tapi-common:context/tapi-connectivity:connectivity-context/tapi-connectivity:connection/tapi-connectivity:switch-control/tapi-connectivity:uuid';
+            }
+            description "none";
+        }
+        description "none";
+    }
+    
+    grouping route-ref {
+    	uses connection-ref;
+        leaf route-local-id {
+            type leafref {
+                path '/tapi-common:context/tapi-connectivity:connectivity-context/tapi-connectivity:connection/tapi-connectivity:route/tapi-connectivity:local-id';
+            }
+            description "none";
+        }
+        description "none";
+    }
+
+    /***********************
+    * package object-classes
+    **********************/ 
+        grouping connection {
+            list connection-end-point {
+                uses connection-end-point-ref;
+                key 'topology-uuid node-uuid node-edge-point-uuid connection-end-point-uuid';
+                config false;
+                min-elements 2;
+                description "none";
+            }
+            list lower-connection {
+                uses connection-ref;
+                key 'connection-uuid';
+                config false;
+                description "An Connection object supports a recursive aggregation relationship such that the internal construction of an Connection can be exposed as multiple lower level Connection objects (partitioning).
+                    Aggregation is used as for the Node/Topology  to allow changes in hierarchy. 
+                    Connection aggregation reflects Node/Topology aggregation. 
+                    The FC represents a Cross-Connection in an NE. The Cross-Connection in an NE is not necessarily the lowest level of FC partitioning.";
+            }
+            list supported-client-link {
+            	uses tapi-topology:link-ref;
+                key 'topology-uuid link-uuid';
+                config false;
+                description "none";
+            }
+            list route {
+                key 'local-id';
+                config false;
+                uses route;
+                description "none";
+            }
+            list switch-control {
+                key 'uuid';
+                config false;
+                uses switch-control;
+                description "none";
+            }
+            leaf direction {
+                type tapi-common:forwarding-direction;
+                config false;
+                description "none";
+            }
+            leaf layer-protocol-name {
+                type tapi-common:layer-protocol-name;
+                config false;
+                description "none";
+            }
+            uses tapi-common:resource-spec;
+            uses tapi-common:operational-state-pac;
+            description "The ForwardingConstruct (FC) object class models enabled potential for forwarding between two or more LTPs and like the LTP supports any transport protocol including all circuit and packet forms.
+                At the lowest level of recursion, a FC represents a cross-connection within an NE.";
+        }
+        grouping connection-end-point {
+            leaf layer-protocol-name {
+                type tapi-common:layer-protocol-name;
+                config false;
+                description "none";
+            }
+            leaf layer-protocol-qualifier {
+                type tapi-common:layer-protocol-qualifier;
+                config false;
+                description "none";
+            }
+            container parent-node-edge-point {
+            	uses tapi-topology:node-edge-point-ref;
+                config false;
+                description "none";
+            }
+            list client-node-edge-point {
+                uses tapi-topology:node-edge-point-ref;
+                key 'topology-uuid node-uuid node-edge-point-uuid';
+                config false;
+                description "none";
+            }
+            list aggregated-connection-end-point {
+                uses connection-end-point-ref;
+                key 'topology-uuid node-uuid node-edge-point-uuid connection-end-point-uuid';
+                config false;
+                description "none";
+            }
+            leaf connection-port-direction {
+                type tapi-common:port-direction;
+                config false;
+                description "The orientation of defined flow at the EndPoint.";
+            }
+            leaf connection-port-role {
+                type tapi-common:port-role;
+                config false;
+                description "Each EP of the FC has a role (e.g., working, protection, protected, symmetric, hub, spoke, leaf, root)  in the context of the FC with respect to the FC function. ";
+            }
+            uses tapi-common:resource-spec;
+            uses tapi-common:operational-state-pac;
+            uses tapi-common:termination-pac;
+            description "The LogicalTerminationPoint (LTP) object class encapsulates the termination and adaptation functions of one or more transport layers. 
+                The structure of LTP supports all transport protocols including circuit and packet forms.";
+        }
+        grouping connectivity-constraint {
+            leaf service-layer {
+                type tapi-common:layer-protocol-name;
+                description "none";
+            }
+            leaf service-type {
+                type service-type;
+                description "none";
+            }
+            leaf service-level {
+                type string;
+                description "An abstract value the meaning of which is mutually agreed – typically represents metrics such as - Class of service, priority, resiliency, availability";
+            }
+            container requested-capacity {
+                uses tapi-common:capacity;
+                description "none";
+            }
+            leaf connectivity-direction {
+                type tapi-common:forwarding-direction;
+                description "none";
+            }
+            container schedule {
+                uses tapi-common:time-range;
+                description "none";
+            }
+            container coroute-inclusion {
+            	uses connectivity-service-ref;
+                description "none";
+            }
+            list diversity-exclusion {
+            	uses connectivity-service-ref;
+                key 'connectivity-service-uuid';
+                description "none";
+            }
+            description "none";
+        }
+        grouping connectivity-service {
+            list end-point {
+                key 'local-id';
+                min-elements 2;
+                uses connectivity-service-end-point;
+                description "none";
+            }
+            list connection {
+                uses connection-ref;
+                key 'connection-uuid';
+                config false;
+                description "none";
+            }
+            uses tapi-common:service-spec;
+            uses connectivity-constraint;
+            uses tapi-path-computation:routing-constraint;
+            uses tapi-path-computation:topology-constraint;
+            uses resilience-constraint;
+            uses tapi-common:admin-state-pac;
+            description "The ForwardingConstruct (FC) object class models enabled potential for forwarding between two or more LTPs and like the LTP supports any transport protocol including all circuit and packet forms.
+                At the lowest level of recursion, a FC represents a cross-connection within an NE.";
+        }
+        grouping connectivity-service-end-point {
+            leaf layer-protocol-name {
+                type tapi-common:layer-protocol-name;
+                description "none";
+            }
+            leaf layer-protocol-qualifier {
+                type tapi-common:layer-protocol-qualifier;
+                description "none";
+            }
+            container service-interface-point {
+                uses tapi-common:service-interface-point-ref;
+                description "none";
+            }
+            list connection-end-point {
+            	uses connection-end-point-ref;
+                key 'topology-uuid node-uuid node-edge-point-uuid connection-end-point-uuid';
+                config false;
+                description "none";
+            }
+            container capacity {
+                uses tapi-common:capacity;
+                description "none";
+            }
+            leaf direction {
+                type tapi-common:port-direction;
+                description "The orientation of defined flow at the EndPoint.";
+            }
+            leaf role {
+                type tapi-common:port-role;
+                description "Each EP of the FC has a role (e.g., working, protection, protected, symmetric, hub, spoke, leaf, root)  in the context of the FC with respect to the FC function. ";
+            }
+            leaf protection-role {
+                type protection-role;
+                description "To specify the protection role of this Port when create or update ConnectivityService.";
+            }
+            uses tapi-common:local-class;
+            uses tapi-common:admin-state-pac;
+            description "The association of the FC to LTPs is made via EndPoints.
+                The EndPoint (EP) object class models the access to the FC function. 
+                The traffic forwarding between the associated EPs of the FC depends upon the type of FC and may be associated with FcSwitch object instances.  
+                In cases where there is resilience the EndPoint may convey the resilience role of the access to the FC. 
+                It can represent a protected (resilient/reliable) point or a protecting (unreliable working or protection) point.
+                The EP replaces the Protection Unit of a traditional protection model. 
+                The ForwadingConstruct can be considered as a component and the EndPoint as a Port on that component";
+        }
+        grouping route {
+            list connection-end-point {
+                uses connection-end-point-ref;
+                key 'topology-uuid node-uuid node-edge-point-uuid connection-end-point-uuid';
+                config false;
+                min-elements 2;
+                description "none";
+            }
+            uses tapi-common:local-class;
+            description "The FC Route (FcRoute) object class models the individual routes of an FC. 
+                The route of an FC object is represented by a list of FCs at a lower level. 
+                Note that depending on the service supported by an FC, an the FC can have multiple routes.";
+        }
+        grouping connectivity-context {
+            list connectivity-service {
+                key 'uuid';
+                uses connectivity-service;
+                description "none";
+            }
+            list connection {
+                key 'uuid';
+                config false;
+                uses connection;
+                description "none";
+            }
+            description "none";
+        }
+        grouping switch {
+            list selected-connection-end-point {
+                uses connection-end-point-ref;
+                key 'topology-uuid node-uuid node-edge-point-uuid connection-end-point-uuid';
+                min-elements 1;
+                description "none";
+            }
+            list selected-route {
+                uses route-ref;
+                key 'connection-uuid route-local-id';
+                min-elements 1;
+                description "none";
+            }
+            leaf selection-control {
+                type selection-control;
+                description "Degree of administrative control applied to the switch selection.";
+            }
+            leaf selection-reason {
+                type selection-reason;
+                config false;
+                description "The reason for the current switch selection.";
+            }
+            leaf switch-direction {
+                type tapi-common:port-direction;
+                description "Indicates whether the switch selects from ingress to the FC or to egress of the FC, or both.";
+            }
+            uses tapi-common:local-class;
+            description "The class models the switched forwarding of traffic (traffic flow) between FcPorts (ConnectionEndPoints) and is present where there is protection functionality in the FC (Connection). 
+                If an FC exposes protection (having two or more FcPorts that provide alternative identical inputs/outputs), the FC will have one or more associated FcSwitch objects to represent the alternative flow choices visible at the edge of the FC.
+                The FC switch represents and defines a protection switch structure encapsulated in the FC. 
+                Essentially performs one of the functions of the Protection Group in a traditional model. It associates to 2 or more FcPorts each playing the role of a Protection Unit. 
+                One or more protection, i.e. standby/backup, FcPorts provide protection for one or more working (i.e. regular/main/preferred) FcPorts where either protection or working can feed one or more protected FcPort.
+                The switch may be used in revertive or non-revertive (symmetric) mode. When in revertive mode it may define a waitToRestore time.
+                It may be used in one of several modes including source switch, destination switched, source and destination switched etc (covering cases such as 1+1 and 1:1).
+                It may be locked out (prevented from switching), force switched or manual switched.
+                It will indicate switch state and change of state.
+                The switch can be switched away from all sources such that it becomes open and hence two coordinated switches can both feed the same LTP so long as at least one of the two is switched away from all sources (is 'open').
+                The ability for a Switch to be 'high impedance' allows bidirectional ForwardingConstructs to be overlaid on the same bidirectional LTP where the appropriate control is enabled to prevent signal conflict.
+                This ability allows multiple alternate routes to be present that otherwise would be in conflict.";
+        }
+        grouping switch-control {
+            list sub-switch-control {
+                uses switch-control-ref;
+                key 'connection-uuid switch-control-uuid';
+                description "none";
+            }
+            list switch {
+                key 'local-id';
+                uses switch;
+                description "none";
+            }
+            uses tapi-common:resource-spec;
+            uses resilience-constraint;
+            description "Represents the capability to control and coordinate switches, to add/delete/modify FCs and to add/delete/modify LTPs/LPs so as to realize a protection scheme.";
+        }
+        grouping resilience-constraint {
+            container resilience-type {
+                uses tapi-topology:resilience-type;
+                description "none";
+            }
+            leaf restoration-coordinate-type {
+                type coordinate-type;
+                description " The coordination mechanism between multi-layers.";
+            }
+            leaf restore-priority {
+                type uint64;
+                description "none";
+            }
+            leaf reversion-mode {
+                type reversion-mode;
+                description "Indcates whether the protection scheme is revertive or non-revertive.";
+            }
+            leaf wait-to-revert-time {
+                type uint64;
+                default "15";
+                description "If the protection system is revertive, this attribute specifies the time, in minutes, to wait after a fault clears on a higher priority (preferred) resource before reverting to the preferred resource.";
+            }
+            leaf hold-off-time {
+                type uint64;
+                description "This attribute indicates the time, in milliseconds, between declaration of signal degrade or signal fail, and the initialization of the protection switching algorithm.";
+            }
+            leaf is-lock-out {
+                type boolean;
+                description "The resource is configured to temporarily not be available for use in the protection scheme(s) it is part of.
+                    This overrides all other protection control states including forced.
+                    If the item is locked out then it cannot be used under any circumstances.
+                    Note: Only relevant when part of a protection scheme.";
+            }
+            leaf is-frozen {
+                type boolean;
+                description "Temporarily prevents any switch action to be taken and, as such, freezes the current state. 
+                    Until the freeze is cleared, additional near-end external commands are rejected and fault condition changes and received APS messages are ignored.
+                    All administrative controls of any aspect of protection are rejected.";
+            }
+            leaf is-coordinated-switching-both-ends {
+                type boolean;
+                description "Is operating such that switching at both ends of each flow acorss the FC is coordinated at both ingress and egress ends.";
+            }
+            leaf max-switch-times {
+                type uint64;
+                description "Used to limit the maximum swtich times. When work fault disappears , and traffic return to the original work path, switch counter reset.";
+            }
+            leaf-list preferred-restoration-layer {
+                type tapi-common:layer-protocol-name;
+                description "Indicate which layer this resilience parameters package configured for.";
+            }
+            description "A list of control parameters to apply to a switch.";
+        }
+        grouping cep-list {
+            list connection-end-point {
+                key 'uuid';
+                uses connection-end-point;
+                description "none";
+            }
+            description "none";
+        }
+
+    /***********************
+    * package type-definitions
+    **********************/ 
+        typedef service-type {
+            type enumeration {
+                enum POINT_TO_POINT_CONNECTIVITY {
+                    description "none";
+                }
+                enum POINT_TO_MULTIPOINT_CONNECTIVITY {
+                    description "none";
+                }
+                enum MULTIPOINT_CONNECTIVITY {
+                    description "none";
+                }
+                enum ROOTED_MULTIPOINT_CONNECTIVITY {
+                    description "none";
+                }
+            }
+            description "none";
+        }
+        typedef reversion-mode {
+            type enumeration {
+                enum REVERTIVE {
+                    description "An FC switched to a lower priority (non-preferred) resource will revert to a higher priority (preferred) resource when that recovers (potentially after some hold-off time).";
+                }
+                enum NON-REVERTIVE {
+                    description "An FC switched to a lower priority (non-preferred) resource will not revert to a higher priority (preferred) resource when that recovers.";
+                }
+            }
+            description "The reversion mode associated with protection.";
+        }
+        typedef selection-control {
+            type enumeration {
+                enum LOCK_OUT {
+                    description "The resource is configured to temporarily not be available for use in the protection scheme(s) it is part of.
+                        This overrides all other protection control states including forced.
+                        If the item is locked out then it cannot be used under any circumstances.
+                        Note: Only relevant when part of a protection scheme.";
+                }
+                enum NORMAL {
+                    description "none";
+                }
+                enum MANUAL {
+                    description "none";
+                }
+                enum FORCED {
+                    description "none";
+                }
+            }
+            description "Possible degrees of administrative control applied to the Route selection.";
+        }
+        typedef selection-reason {
+            type enumeration {
+                enum LOCKOUT {
+                    description "none";
+                }
+                enum NORMAL {
+                    description "none";
+                }
+                enum MANUAL {
+                    description "none";
+                }
+                enum FORCED {
+                    description "none";
+                }
+                enum WAIT_TO_REVERT {
+                    description "none";
+                }
+                enum SIGNAL_DEGRADE {
+                    description "none";
+                }
+                enum SIGNAL_FAIL {
+                    description "none";
+                }
+            }
+            description "The cause of the current route selection.";
+        }
+        typedef coordinate-type {
+            type enumeration {
+                enum NO_COORDINATE {
+                    description "none";
+                }
+                enum HOLD_OFF_TIME {
+                    description "none";
+                }
+                enum WAIT_FOR_NOTIFICATION {
+                    description "none";
+                }
+            }
+            description "none";
+        }
+        typedef protection-role {
+            type enumeration {
+                enum WORK {
+                    description "none";
+                }
+                enum PROTECT {
+                    description "none";
+                }
+                enum PROTECTED {
+                    description "none";
+                }
+                enum NA {
+                    description "none";
+                }
+                enum WORK_RESTORE {
+                    description "none";
+                }
+                enum PROTECT_RESTORE {
+                    description "none";
+                }
+            }
+            description "none";
+        }
+
+    /***********************
+    * package interfaces
+    **********************/ 
+        rpc get-connection-details {
+            description "none";
+            input {
+                leaf service-id-or-name {
+                    type string;
+                    description "none";
+                }
+                leaf connection-id-or-name {
+                    type string;
+                    description "none";
+                }
+            }
+            output {
+                container connection {
+                    uses connection;
+                    description "none";
+                }
+            }
+        }
+        rpc get-connectivity-service-list {
+            description "none";
+            output {
+                list service {
+                    uses connectivity-service;
+                    description "none";
+                }
+            }
+        }
+        rpc get-connectivity-service-details {
+            description "none";
+            input {
+                leaf service-id-or-name {
+                    type string;
+                    description "none";
+                }
+            }
+            output {
+                container service {
+                    uses connectivity-service;
+                    description "none";
+                }
+            }
+        }
+        rpc create-connectivity-service {
+            description "none";
+            input {
+                list end-point {
+                    key 'local-id';
+                    min-elements 2;
+                    uses connectivity-service-end-point;
+                    description "none";
+                }
+                container connectivity-constraint {
+                    uses connectivity-constraint;
+                    description "none";
+                }
+                container routing-constraint {
+                    uses tapi-path-computation:routing-constraint;
+                    description "none";
+                }
+                container topology-constraint {
+                    uses tapi-path-computation:topology-constraint;
+                    description "none";
+                }
+                list resilience-constraint {
+                    uses resilience-constraint;
+                    description "none";
+                }
+                leaf state {
+                    type string;
+                    description "none";
+                }
+            }
+            output {
+                container service {
+                    uses connectivity-service;
+                    description "none";
+                }
+            }
+        }
+        rpc update-connectivity-service {
+            description "none";
+            input {
+                leaf service-id-or-name {
+                    type string;
+                    description "none";
+                }
+                container end-point {
+                    uses connectivity-service-end-point;
+                    description "none";
+                }
+                container connectivity-constraint {
+                    uses connectivity-constraint;
+                    description "none";
+                }
+                container routing-constraint {
+                    uses tapi-path-computation:routing-constraint;
+                    description "none";
+                }
+                container topology-constraint {
+                    uses tapi-path-computation:topology-constraint;
+                    description "none";
+                }
+                list resilience-constraint {
+                    uses resilience-constraint;
+                    description "none";
+                }
+                leaf state {
+                    type string;
+                    description "none";
+                }
+            }
+            output {
+                container service {
+                    uses connectivity-service;
+                    description "none";
+                }
+            }
+        }
+        rpc delete-connectivity-service {
+            description "none";
+            input {
+                leaf service-id-or-name {
+                    type string;
+                    description "none";
+                }
+            }
+        }
+
+}

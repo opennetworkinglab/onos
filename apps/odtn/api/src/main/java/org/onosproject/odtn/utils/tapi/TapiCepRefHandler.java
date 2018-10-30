@@ -16,10 +16,10 @@
 
 package org.onosproject.odtn.utils.tapi;
 
-import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.Uuid;
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20180307.tapiconnectivity.ceplist.ConnectionEndPoint;
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20180307.tapiconnectivity.connection.DefaultConnectionEndPoint;
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20180307.tapiconnectivity.connectionendpoint.ParentNodeEdgePoint;
+import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.Uuid;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.ceplist.ConnectionEndPoint;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.connection.DefaultConnectionEndPoint;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.connectionendpoint.ParentNodeEdgePoint;
 import org.onosproject.yang.model.ModelObjectId;
 
 /**
@@ -37,7 +37,7 @@ public final class TapiCepRefHandler extends TapiObjectHandler<DefaultConnection
 
     @Override
     protected Uuid getIdDetail() {
-        return (Uuid) obj.connectionEndPointId();
+        return (Uuid) obj.connectionEndPointUuid();
     }
 
     @Override
@@ -49,19 +49,19 @@ public final class TapiCepRefHandler extends TapiObjectHandler<DefaultConnection
     }
 
     public TapiCepRefHandler setCep(TapiCepRef cepRef) {
-        obj.topologyId(cepRef.getTopologyId());
-        obj.nodeId(cepRef.getNodeId());
-        obj.ownedNodeEdgePointId(cepRef.getNepId());
-        obj.connectionEndPointId(cepRef.getCepId());
+        obj.topologyUuid(cepRef.getTopologyId());
+        obj.nodeUuid(cepRef.getNodeId());
+        obj.nodeEdgePointUuid(cepRef.getNepId());
+        obj.connectionEndPointUuid(cepRef.getCepId());
         return this;
     }
 
     public TapiCepRefHandler setCep(ConnectionEndPoint cep) {
-        obj.connectionEndPointId(cep.uuid());
-        ParentNodeEdgePoint parentNep = cep.parentNodeEdgePoint().get(0);
-        obj.topologyId(parentNep.topologyId());
-        obj.nodeId(parentNep.nodeId());
-        obj.ownedNodeEdgePointId(parentNep.ownedNodeEdgePointId());
+        obj.connectionEndPointUuid(cep.uuid());
+        ParentNodeEdgePoint parentNep = cep.parentNodeEdgePoint();
+        obj.topologyUuid(parentNep.topologyUuid());
+        obj.nodeUuid(parentNep.nodeUuid());
+        obj.nodeEdgePointUuid(parentNep.nodeEdgePointUuid());
         return this;
     }
 }

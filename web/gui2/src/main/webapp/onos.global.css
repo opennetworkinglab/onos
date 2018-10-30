@@ -1,0 +1,219 @@
+/*
+ * Copyright 2016-present Open Networking Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
+ ONOS GUI -- core (theme) -- CSS file
+ */
+
+/**
+ * Offline cache - see
+ * https://google-webfonts-helper.herokuapp.com/fonts/open-sans?subsets=latin
+ */
+/* open-sans-300 - latin */
+@font-face {
+    font-family: 'Open Sans';
+    font-style: normal;
+    font-weight: 300;
+    src: local('Open Sans Light'), local('OpenSans-Light'),
+    url('./fonts/open-sans-v15-latin-300.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
+    url('./fonts/open-sans-v15-latin-300.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+}
+
+/* open-sans-600 - latin */
+@font-face {
+    font-family: 'Open Sans';
+    font-style: normal;
+    font-weight: 600;
+    src: local('Open Sans SemiBold'), local('OpenSans-SemiBold'),
+    url('./fonts/open-sans-v15-latin-600.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
+    url('./fonts/open-sans-v15-latin-600.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+}
+
+/* open-sans-700 - latin */
+@font-face {
+    font-family: 'Open Sans';
+    font-style: normal;
+    font-weight: 700;
+    src: local('Open Sans Bold'), local('OpenSans-Bold'),
+    url('./fonts/open-sans-v15-latin-700.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
+    url('./fonts/open-sans-v15-latin-700.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+}
+
+
+
+body {
+    background-color: white;
+}
+
+html {
+    font-family: 'Open Sans', normal;
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    height: 100%;
+}
+
+/*
+   overflow hidden is to ensure that the body does not expand to account
+   for any flyout panes, that are positioned "off screen".
+ */
+body {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+}
+
+#view h2 {
+    color: #3c3a3a;
+    /*margin: 32px 0 4px 16px;*/
+    padding: 0;
+    font-size: 18pt;
+    font-weight: lighter;
+}
+
+a {
+    color: #009fdb;
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}
+a:visited {
+    color: #7fabdb;
+    text-decoration: none;
+}
+
+/* ========== DARK Theme ========== */
+
+body.dark {
+    background-color: #282528;
+}
+
+.dark #view h2 {
+    color: #6a6e6a;
+}
+
+.dark a {
+    color: #007ca6;
+}
+.dark a:visited {
+    color: #4f6e90;
+}
+
+.dark input {
+    color: #dddddd;
+    background-color: #222222;
+    border: 1px solid #666666;
+}
+
+.dark select {
+    color: #dddddd;
+    background-color: #222222;
+}
+
+.floatpanel {
+    background-color: white;
+    color: #3c3a3a;
+    border: 1px solid #c7c7c0;
+}
+
+#details-panel .floatpanel a {
+    font-weight: bold;
+}
+
+#details-panel .container {
+    padding: 8px 12px;
+
+}
+
+#details-panel .container .bottom {
+    /*overflow-y: scroll;*/
+}
+
+#details-panel .close-btn {
+    position: absolute;
+    right:5px;
+    width: 20px;
+    height: 20px;
+    top: 5px;
+    cursor: pointer;
+}
+
+#details-panel .dev-icon {
+    display: inline-block;
+    padding: 0 6px 0 0;
+    vertical-align: middle;
+}
+
+#details-panel h2 {
+    display: inline-block;
+    margin: 8px 0;
+    font-weight: bold;
+    font-size: 16pt;
+}
+
+#details-panel h2 input {
+    font-size: 0.90em;
+}
+
+#details-panel .actionBtns div {
+    padding: 12px 6px;
+}
+
+#details-panel hr {
+    margin: 2px auto;
+}
+
+#details-panel td.label {
+    font-weight: bold;
+    text-align: right;
+    padding-right: 6px;
+}
+
+#details-panel .bottom table {
+    border-spacing: 0;
+    table-layout:fixed;
+    /*overflow: auto;*/
+    display: block;
+}
+
+#details-panel .bottom th {
+    letter-spacing: 0.02em;
+}
+
+#details-panel .bottom th,
+#details-panel .bottom td {
+    padding: 6px 12px;
+    text-align: center;
+}
+
+#details-panel .bottom thead tr {
+    background-color: #e5e5e6;
+}
+
+svg.embeddedIcon g.icon .glyph {
+    fill: #0071bd;
+    stroke: none;
+    fill-rule: evenodd;
+}
+
+div.close-btn svg.embeddedIcon g.icon .glyph {
+    fill: #333333;
+}
+
+svg.embeddedIcon g.icon rect {
+    stroke: none;
+    fill: none;
+}

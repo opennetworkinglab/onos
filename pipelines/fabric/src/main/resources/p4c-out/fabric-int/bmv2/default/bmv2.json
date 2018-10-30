@@ -257,16 +257,8 @@
       ]
     },
     {
-      "name" : "int_data_t",
-      "id" : 22,
-      "fields" : [
-        ["data", "*"]
-      ],
-      "max_length" : 1004
-    },
-    {
       "name" : "intl4_tail_t",
-      "id" : 23,
+      "id" : 22,
       "fields" : [
         ["next_proto", 8, false],
         ["dest_port", 16, false],
@@ -276,7 +268,7 @@
     },
     {
       "name" : "int_metadata_t",
-      "id" : 24,
+      "id" : 23,
       "fields" : [
         ["source", 1, 0],
         ["transit", 1, 0],
@@ -446,22 +438,15 @@
       "pi_omit" : true
     },
     {
-      "name" : "int_data",
-      "id" : 22,
-      "header_type" : "int_data_t",
-      "metadata" : false,
-      "pi_omit" : true
-    },
-    {
       "name" : "intl4_tail",
-      "id" : 23,
+      "id" : 22,
       "header_type" : "intl4_tail_t",
       "metadata" : false,
       "pi_omit" : true
     },
     {
       "name" : "userMetadata.int_meta",
-      "id" : 24,
+      "id" : 23,
       "header_type" : "int_metadata_t",
       "metadata" : true,
       "pi_omit" : true
@@ -1017,7 +1002,7 @@
         "column" : 8,
         "source_fragment" : "FabricDeparser"
       },
-      "order" : ["packet_in", "ethernet", "vlan_tag", "mpls", "arp", "ipv4", "tcp", "udp", "icmp", "intl4_shim", "int_header", "int_switch_id", "int_port_ids", "int_hop_latency", "int_q_occupancy", "int_ingress_tstamp", "int_egress_tstamp", "int_q_congestion", "int_egress_tx_util", "int_data", "intl4_tail"]
+      "order" : ["packet_in", "ethernet", "vlan_tag", "mpls", "arp", "ipv4", "tcp", "udp", "icmp", "intl4_shim", "int_header", "int_switch_id", "int_port_ids", "int_hop_latency", "int_q_occupancy", "int_ingress_tstamp", "int_egress_tstamp", "int_q_congestion", "int_egress_tx_util", "intl4_tail"]
     }
   ],
   "meter_arrays" : [],

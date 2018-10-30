@@ -16,9 +16,9 @@
 
 package org.onosproject.odtn.utils.tapi;
 
-import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.Uuid;
-import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.globalclass.DefaultName;
-import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.globalclass.Name;
+import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.Uuid;
+import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.globalclass.DefaultName;
+import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.globalclass.Name;
 import org.onosproject.yang.model.ModelObject;
 
 import java.lang.reflect.InvocationTargetException;

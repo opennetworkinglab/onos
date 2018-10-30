@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 import { Component, OnInit, ViewChild } from '@angular/core';
+import * as d3 from 'd3';
 import {
     FnService,
     KeysService, KeysToken,
     LogService, PrefsService,
-    SvgUtilService, WebSocketService
+    SvgUtilService, WebSocketService, Zoomer, ZoomOpts, ZoomService
 } from 'gui2-fw-lib';
 import {InstanceComponent} from '../panel/instance/instance.component';
 import {SummaryComponent} from '../panel/summary/summary.component';
@@ -60,8 +61,10 @@ export class TopologyComponent implements OnInit {
 
     flashMsg: string = '';
     prefsState = {};
-    svg: any;
     hostLabelIdx: number = 1;
+
+    zoomer: Zoomer;
+    zoomEventListeners: any[];
 
     constructor(
         protected log: LogService,
@@ -69,7 +72,8 @@ export class TopologyComponent implements OnInit {
         protected ks: KeysService,
         protected sus: SvgUtilService,
         protected ps: PrefsService,
-        protected wss: WebSocketService
+        protected wss: WebSocketService,
+        protected zs: ZoomService
     ) {
 
         this.log.debug('Topology component constructed');
@@ -77,6 +81,15 @@ export class TopologyComponent implements OnInit {
 
     ngOnInit() {
         this.bindCommands();
+        this.zoomer = this.createZoomer(<ZoomOpts>{
+            svg: d3.select('svg#topo2'),
+            zoomLayer: d3.select('g#topo-zoomlayer'),
+            zoomEnabled: () => true,
+            zoomMin: 0.25,
+            zoomMax: 10.0,
+            zoomCallback: (() => { return; })
+        });
+        this.zoomEventListeners = [];
         this.log.debug('Topology component initialized');
     }
 
@@ -88,6 +101,8 @@ export class TopologyComponent implements OnInit {
             I: [(token) => {this.toggleInstancePanel(token); }, 'Toggle ONOS Instance Panel'],
             O: [() => {this.toggleSummary(); }, 'Toggle the Summary Panel'],
             R: [() => {this.resetZoom(); }, 'Reset pan / zoom'],
+            'shift-Z': [() => {this.panAndZoom([0, 0], this.zoomer.scale() * 2); }, 'Zoom x2'],
+            'alt-Z': [() => {this.panAndZoom([0, 0], this.zoomer.scale() / 2); }, 'Zoom x0.5'],
             P: [(token) => {this.togglePorts(token); }, 'Toggle Port Highlighting'],
             E: [() => {this.equalizeMasters(); }, 'Equalize mastership roles'],
             X: [() => {this.resetNodeLocation(); }, 'Reset Node Location'],
@@ -98,8 +113,8 @@ export class TopologyComponent implements OnInit {
             'shift-L': [() => {this.cycleHostLabels(); }, 'Cycle host labels'],
 
             // -- instance color palette debug
-            9: function () {
-                this.sus.cat7().testCard(this.svg);
+            9: () => {
+                this.sus.cat7().testCard(d3.select('svg#topo2'));
             },
 
             esc: this.handleEscape,
@@ -249,6 +264,7 @@ export class TopologyComponent implements OnInit {
     }
 
     protected resetZoom() {
+        this.zoomer.reset();
         this.log.debug('resetting zoom');
         // TODO: Reinstate with components
         // t2bgs.resetZoom();
@@ -330,6 +346,67 @@ export class TopologyComponent implements OnInit {
             return null;
         }
         return this.fs.isA(entry) || [entry, ''];
+    }
+
+
+
+    protected createZoomer(options: ZoomOpts) {
+        // need to wrap the original zoom callback to extend its behavior
+        const origCallback = this.fs.isF(options.zoomCallback) ? options.zoomCallback : () => {};
+
+        options.zoomCallback = () => {
+            origCallback([0, 0], 1);
+
+            this.zoomEventListeners.forEach((ev) => ev(this.zoomer));
+        };
+
+        return this.zs.createZoomer(options);
+    }
+
+    getZoomer() {
+        return this.zoomer;
+    }
+
+    findZoomEventListener(ev) {
+        for (let i = 0, len = this.zoomEventListeners.length; i < len; i++) {
+            if (this.zoomEventListeners[i] === ev) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    addZoomEventListener(callback) {
+        this.zoomEventListeners.push(callback);
+    }
+
+    removeZoomEventListener(callback) {
+        const evIndex = this.findZoomEventListener(callback);
+
+        if (evIndex !== -1) {
+            this.zoomEventListeners.splice(evIndex);
+        }
+    }
+
+    adjustmentScale(min: number, max: number): number {
+        let _scale = 1;
+        const size = (min + max) / 2;
+
+        if (size * this.scale() < max) {
+            _scale = min / (size * this.scale());
+        } else if (size * this.scale() > max) {
+            _scale = min / (size * this.scale());
+        }
+
+        return _scale;
+    }
+
+    scale(): number {
+        return this.zoomer.scale();
+    }
+
+    panAndZoom(translate: number[], scale: number, transition?: number) {
+        this.zoomer.panZoom(translate, scale, transition);
     }
 
 }

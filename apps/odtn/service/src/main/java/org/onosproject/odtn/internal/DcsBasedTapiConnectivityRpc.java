@@ -27,16 +27,15 @@ import org.onosproject.odtn.utils.tapi.TapiContextHandler;
 import org.onosproject.odtn.utils.tapi.TapiCreateConnectivityInputHandler;
 import org.onosproject.odtn.utils.tapi.TapiCreateConnectivityOutputHandler;
 import org.onosproject.odtn.utils.tapi.TapiDeleteConnectivityInputHandler;
-import org.onosproject.odtn.utils.tapi.TapiDeleteConnectivityOutputHandler;
 import org.onosproject.odtn.utils.tapi.TapiGetConnectivityDetailsInputHandler;
 import org.onosproject.odtn.utils.tapi.TapiGetConnectivityDetailsOutputHandler;
 import org.onosproject.odtn.utils.tapi.TapiGetConnectivityListOutputHandler;
 import org.onosproject.odtn.utils.tapi.TapiNepRef;
 import org.onosproject.odtn.utils.tapi.TapiObjectHandler;
 import org.onosproject.odtn.utils.tapi.TapiSepHandler;
-import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.Uuid;
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20180307.TapiConnectivityService;
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20180307.tapiconnectivity.connectivitycontext.DefaultConnectivityService;
+import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.Uuid;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.TapiConnectivityService;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.connectivitycontext.DefaultConnectivityService;
 import org.onosproject.yang.model.ModelConverter;
 import org.onosproject.yang.model.RpcInput;
 import org.onosproject.yang.model.RpcOutput;
@@ -139,17 +138,14 @@ public class DcsBasedTapiConnectivityRpc implements TapiConnectivityService {
 
             service.connection().stream().forEach(connection -> {
                 TapiConnectionHandler connectionHandler = TapiConnectionHandler.create();
-                connectionHandler.setId(Uuid.fromString(connection.connectionId().toString()));
+                connectionHandler.setId(Uuid.fromString(connection.connectionUuid().toString()));
                 DcsBasedTapiConnectionManager manager = DcsBasedTapiConnectionManager.create();
                 manager.deleteConnection(connectionHandler);
                 manager.apply();
             });
             serviceHandler.remove();
 
-            TapiDeleteConnectivityOutputHandler output = TapiDeleteConnectivityOutputHandler.create()
-                    .addService(serviceHandler.getModelObject());
-
-            return new RpcOutput(RpcOutput.Status.RPC_SUCCESS, output.getDataNode());
+            return new RpcOutput(RpcOutput.Status.RPC_SUCCESS, null);
         } catch (Throwable e) {
             log.error("Error:", e);
             return new RpcOutput(RpcOutput.Status.RPC_FAILURE, null);

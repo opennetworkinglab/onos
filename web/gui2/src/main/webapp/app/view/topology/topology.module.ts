@@ -19,7 +19,6 @@ import { TopologyRoutingModule } from './topology-routing.module';
 import { TopologyComponent } from './topology/topology.component';
 import { NoDeviceConnectedSvgComponent } from './layer/nodeviceconnectedsvg/nodeviceconnectedsvg.component';
 import { LayoutComponent } from './layer/layout/layout.component';
-import { ZoomLayerSvgComponent } from './layer/zoomlayersvg/zoomlayersvg.component';
 import { InstanceComponent } from './panel/instance/instance.component';
 import { SummaryComponent } from './panel/summary/summary.component';
 import { ToolbarComponent } from './panel/toolbar/toolbar.component';
@@ -45,7 +44,6 @@ import { MapSvgComponent } from './layer/mapsvg/mapsvg.component';
         TopologyComponent,
         NoDeviceConnectedSvgComponent,
         LayoutComponent,
-        ZoomLayerSvgComponent,
         InstanceComponent,
         SummaryComponent,
         ToolbarComponent,

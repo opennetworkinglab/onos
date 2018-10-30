@@ -1,0 +1,771 @@
+module tapi-photonic-media {
+    namespace "urn:onf:otcc:yang:tapi-photonic-media";
+    prefix tapi-photonic-media;
+    import tapi-common {
+        prefix tapi-common;
+    }
+    import tapi-connectivity {
+        prefix tapi-connectivity;
+    }
+    import tapi-topology {
+        prefix tapi-topology;
+    }
+    organization "ONF OTCC (Open Transport Configuration & Control) Project";
+    contact "
+         Project Web: <https://wiki.opennetworking.org/display/OTCC/TAPI>
+         Project List: <mailto:transport-api@opennetworking.org>
+         Editor: Karthik Sethuraman
+                 <mailto:karthik.sethuraman@necam.com>";
+    description "
+        This module contains TAPI PhotonicMedia Model definitions.
+        Source: TapiPhotonicMedia.uml
+        Copyright (c) 2018 Open Networking Foundation (ONF). All rights reserved.
+        License: This module is distributed under the Apache License 2.0";
+    revision 2018-10-16 {
+        description "ONF Transport API version 2.1.0.
+          - The TAPI YANG models included in this TAPI release (v2.1.0) are a *normative* part of the TAPI SDK.
+          - The YANG specifications have been generated from the corresponding UML model using the [ONF EAGLE UML2YANG mapping tool]
+            <https://github.com/OpenNetworkingFoundation/EagleUmlYang>
+            and further edited manually to comply with the [ONF IISOMI UML2YANG mapping guidelines]
+            <https://wiki.opennetworking.org/display/OIMT/UML+-+YANG+Guidelines>
+          - Status of YANG model artifacts can be determined by referring to the corresponding UML artifacts.
+            As described in the UML models, some artifacts are considered *experimental*, and thus the corresponding YANG artifacts.
+          - The ONF TAPI release process does not guarantee backward compatibility of YANG models across major versions of TAPI releases.
+            The YANG model backward compatibility criteria are outlined in section 11 of <https://tools.ietf.org/html/rfc7950>.
+            YANG models included in this release are not backward compatible with previous TAPI releases.
+          - Changes included in this TAPI release (v2.1.0) are listed in
+            <https://github.com/OpenNetworkingFoundation/TAPI/blob/develop/CHANGE_LOG/change-log.2.1.0.md>";
+        reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 7950, RFC 6087 and ONF TAPI UML model
+                  <https://github.com/OpenNetworkingFoundation/TAPI/tree/v2.1.0/UML>";
+    }
+    revision 2018-03-07 {
+        description "ONF Transport API version 2.0.2
+        This YANG module has been generated from the TAPI UML Model using the IISOMI-Eagle xmi2yang mapping tool.
+        Changes in this revision: <https://github.com/OpenNetworkingFoundation/TAPI/blob/develop/CHANGE_LOG/change-log.2.0.2.md>";
+        reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 6020, RFC 6087 and ONF TAPI UML model
+                  <https://github.com/OpenNetworkingFoundation/TAPI/tree/v2.0.2/UML>";
+    }
+    revision 2018-02-16 {
+        description "ONF Transport API version 2.0.1
+        This YANG module has been generated from the TAPI UML Model using the IISOMI-Eagle xmi2yang mapping tool.
+        Changes in this revision: <https://github.com/OpenNetworkingFoundation/TAPI/blob/develop/CHANGE_LOG/change-log.2.0.1.md>";
+        reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 6020, RFC 6087 and ONF TAPI UML model
+                  <https://github.com/OpenNetworkingFoundation/TAPI/tree/v2.0.1/UML>";
+    }
+    revision 2018-01-02 {
+        description "ONF Transport API version 2.0.0
+        This YANG module has been generated from the TAPI UML Model using the IISOMI-Eagle xmi2yang mapping tool.
+        Changes in this revision: <https://github.com/OpenNetworkingFoundation/TAPI/blob/develop/CHANGE_LOG/change-log.2.0.0.md>";
+        reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 6020, RFC 6087 and ONF TAPI UML model
+                  <https://github.com/OpenNetworkingFoundation/TAPI/tree/v2.0.0/UML>";
+    }
+    augment "/tapi-common:context/tapi-topology:topology-context/tapi-topology:topology/tapi-topology:node/tapi-topology:owned-node-edge-point/tapi-connectivity:cep-list/tapi-connectivity:connection-end-point" {
+        container otsi-connection-end-point-spec {
+            uses otsi-connection-end-point-spec;
+            description "Augments the base LayerProtocol information in ConnectionEndPoint with OCH-specific information";
+        }
+        description "Augments the base LayerProtocol information in ConnectionEndPoint with OCH-specific information";
+    }
+    augment "/tapi-common:context/tapi-topology:topology-context/tapi-topology:topology/tapi-topology:node/tapi-topology:owned-node-edge-point" {
+        container media-channel-node-edge-point-spec {
+            uses media-channel-node-edge-point-spec;
+            description "Augments the base LayerProtocol information in NodeEdgePoint with OCH-specific information";
+        }
+        description "Augments the base LayerProtocol information in NodeEdgePoint with OCH-specific information";
+    }
+    augment "/tapi-common:context/tapi-topology:topology-context/tapi-topology:topology/tapi-topology:node/tapi-topology:owned-node-edge-point/tapi-connectivity:cep-list/tapi-connectivity:connection-end-point" {
+        container otsi-assembly-connection-end-point-spec {
+            uses otsi-assembly-connection-end-point-spec;
+            description "none";
+        }
+        description "none";
+    }
+    augment "/tapi-common:context/tapi-common:service-interface-point" {
+        container otsi-service-interface-point-spec {
+            uses otsi-service-interface-point-spec;
+            description "none";
+        }
+        description "none";
+    }
+    augment "/tapi-common:context/tapi-connectivity:connectivity-context/tapi-connectivity:connectivity-service/tapi-connectivity:end-point" {
+        container otsi-connectivity-service-end-point-spec {
+            uses otsi-connectivity-service-end-point-spec;
+            description "none";
+        }
+        description "none";
+    }
+    augment "/tapi-common:context/tapi-common:service-interface-point" {
+        container media-channel-service-interface-point-spec {
+            uses media-channel-service-interface-point-spec;
+            description "none";
+        }
+        description "none";
+    }
+    augment "/tapi-common:context/tapi-connectivity:connectivity-context/tapi-connectivity:connectivity-service/tapi-connectivity:end-point" {
+        container media-channel-service-interface-point-spec {
+            uses media-channel-service-interface-point-spec;
+            description "none";
+        }
+        description "none";
+    }
+    augment "/tapi-common:context/tapi-topology:topology-context/tapi-topology:topology/tapi-topology:node/tapi-topology:owned-node-edge-point/tapi-connectivity:cep-list/tapi-connectivity:connection-end-point" {
+        container media-channel-connection-end-point-spec {
+            uses media-channel-connection-end-point-spec;
+            description "none";
+        }
+        description "none";
+    }
+    augment "/tapi-common:context/tapi-topology:topology-context/tapi-topology:topology/tapi-topology:node/tapi-topology:owned-node-edge-point/tapi-connectivity:cep-list/tapi-connectivity:connection-end-point" {
+        container ots-connection-end-point-spec {
+            uses ots-connection-end-point-spec;
+            description "none";
+        }
+        description "none";
+    }
+    augment "/tapi-common:context/tapi-topology:topology-context/tapi-topology:topology/tapi-topology:node/tapi-topology:owned-node-edge-point/tapi-connectivity:cep-list/tapi-connectivity:connection-end-point" {
+        container media-channel-assembly-spec {
+            uses media-channel-assembly-spec;
+            description "none";
+        }
+        description "none";
+    }
+    /***********************
+    * package object-classes
+    **********************/ 
+        grouping otsi-gserver-adaptation-pac {
+            leaf number-of-otsi {
+                type uint64;
+                config false;
+                description "none";
+            }
+            description "none";
+        }
+        grouping otsi-connection-end-point-spec {
+            container otsi-termination {
+                config false;
+                uses otsi-termination-pac;
+                description "none";
+            }
+            description "none";
+        }
+        grouping otsi-termination-pac {
+            container selected-central-frequency {
+                config false;
+                uses central-frequency;
+                description "none";
+            }
+            container selected-application-identifier {
+                config false;
+                uses application-identifier;
+                description "This attribute indicates the selected Application Identifier that is used by the OCh trail termination function. The syntax of ApplicationIdentifier is a pair {ApplicationIdentifierType, PrintableString}. The value of ApplicationIdentifierType is either STANDARD or PROPRIETARY. The value of PrintableString represents the standard application code as defined in the ITU-T Recommendations or a vendor-specific proprietary code. If the ApplicationIdentifierType is STANDARD the value of PrintableString represents a standard application code as defined in the ITU-T Recommendations. If the ApplicationIdentifierType is PROPRIETARY, the first six characters of the PrintableString must contain the Hexadecimal representation of an OUI assigned to the vendor whose implementation generated the Application Identifier; the remaining octets of the PrintableString are unspecified. The value of this attribute of an object instance has to be one of the values identified in the attribute SupportableApplicationIdentifierList of the same object instance. The values and value ranges of the optical interface parameters of a standard application code must be consistent with those values specified in the ITU-T Recommendation for that application code.";
+            }
+            leaf selected-modulation {
+                type modulation-technique;
+                default "UNDEFINED";
+                config false;
+                description "This parameter defines the modulation used at the source";
+            }
+            container selected-spectrum {
+                config false;
+                uses spectrum-band;
+                description "none";
+            }
+            container transmited-power {
+                config false;
+                uses power-properties-pac;
+                description "Measured power at the Transmitter.";
+            }
+            container received-power {
+                uses power-properties-pac;
+                description "none";
+            }
+            container laser-properties {
+                config false;
+                uses laser-properties-pac;
+                description "Laser properties.";
+            }
+            description "Provides status information only.";
+        }
+        grouping media-channel-pool-capability-pac {
+            list supportable-spectrum {
+                config false;
+                uses spectrum-band;
+                description "none";
+            }
+            list available-spectrum {
+                config false;
+                uses spectrum-band;
+                description "none";
+            }
+            list occupied-spectrum {
+                config false;
+                uses spectrum-band;
+                description "none";
+            }
+            description "none";
+        }
+        grouping media-channel-node-edge-point-spec {
+            container mc-pool {
+                config false;
+                uses media-channel-pool-capability-pac;
+                description "none";
+            }
+            description "none";
+        }
+        grouping otsi-routing-spec {
+            leaf optical-routing-strategy {
+                type optical-routing-strategy;
+                description "none";
+            }
+            description "none";
+        }
+        grouping media-channel-properties-pac {
+            container occupied-spectrum {
+                config false;
+                uses spectrum-band;
+                description "none";
+            }
+            container measured-power-ingress {
+                config false;
+                uses power-properties-pac;
+                description "none";
+            }
+            container measured-power-egress {
+                uses power-properties-pac;
+                description "none";
+            }
+            description "none";
+        }
+        grouping otsi-assembly-connection-end-point-spec {
+            container otsi-adapter {
+                config false;
+                uses otsi-gserver-adaptation-pac;
+                description "none";
+            }
+            container fec-parameters {
+                config false;
+                uses fec-properties-pac;
+                description "none";
+            }
+            description "none";
+        }
+        grouping otsi-capability-pac {
+            list supportable-lower-central-frequency {
+                config false;
+                uses central-frequency;
+                description "The lower frequency of the channel spectrum";
+            }
+            list supportable-upper-central-frequency {
+                config false;
+                uses central-frequency;
+                description "The Upper frequency of the channel spectrum";
+            }
+            list supportable-application-identifier {
+                config false;
+                uses application-identifier;
+                description "The list of supportable ApplicationIdentifiers.";
+            }
+            leaf-list supportable-modulation {
+                type modulation-technique;
+                config false;
+                description "This parameter defines the modulation used at the source";
+            }
+            container total-power-warn-threshold {
+                config false;
+                uses total-power-threshold-pac;
+                description "none";
+            }
+            description "Can read the status of the warning for the upper value that the power can reach.";
+        }
+        grouping otsi-service-interface-point-spec {
+            container otsi-capability {
+                config false;
+                uses otsi-capability-pac;
+                description "none";
+            }
+            description "none";
+        }
+        grouping otsi-connectivity-service-end-point-spec {
+            container otsi-config {
+                uses otsi-termination-config-pac;
+                description "none";
+            }
+            description "none";
+        }
+        grouping otsi-termination-config-pac {
+            container central-frequency {
+                uses central-frequency;
+                description "The central frequency of the laser. It is the oscillation frequency of the corresponding electromagnetic wave";
+            }
+            container spectrum {
+                uses spectrum-band;
+                description "none";
+            }
+            container application-identifier {
+                uses application-identifier;
+                description "This attribute indicates the selected Application Identifier.";
+            }
+            leaf modulation {
+                type modulation-technique;
+                description "The modulation techniqu selected at the source.";
+            }
+            leaf laser-control {
+                type laser-control-type;
+                description "Laser control can be FORCED-ON, FORCED-OFF or LASER-SHUTDOWN";
+            }
+            container transmit-power {
+                uses power-properties-pac;
+                description "Transmit power as requested.";
+            }
+            leaf total-power-warn-threshold-upper {
+                type decimal64 {
+                    fraction-digits 7;
+                }
+                description "Allows to configure the Upper power threshold which is expected to be different from Default, but within the Min and Max values specified as OTSi SIP capability.";
+            }
+            leaf total-power-warn-threshold-lower {
+                type decimal64 {
+                    fraction-digits 7;
+                }
+                description "Allows to configure the Lowerpower threshold which is expected to be different from Default, but within the Min and Max values specified as OTSi SIP capability.";
+            }
+            description "none";
+        }
+        grouping fec-properties-pac {
+            leaf pre-fec-ber {
+                type uint64;
+                config false;
+                description "counter: bit error rate before correction by FEC";
+            }
+            leaf post-fec-ber {
+                type uint64;
+                config false;
+                description "counter: bit error rate after correction by FEC";
+            }
+            leaf corrected-bytes {
+                type uint64;
+                config false;
+                description "Bytes corrected between those that were received corrupted";
+            }
+            leaf corrected-bits {
+                type uint64;
+                config false;
+                description "Bits corrected between those that were received corrupted";
+            }
+            leaf uncorrectable-bytes {
+                type uint64;
+                config false;
+                description "Bytes that could not be corrected by FEC";
+            }
+            leaf uncorrectable-bits {
+                type uint64;
+                config false;
+                description "Bits that could not be corrected by FEC";
+            }
+            description "none";
+        }
+        grouping media-channel-service-interface-point-spec {
+            container mc-pool {
+                config false;
+                uses media-channel-pool-capability-pac;
+                description "none";
+            }
+            description "none";
+        }
+        grouping media-channel-connectivity-service-end-point-spec {
+            container mc-config {
+                uses media-channel-config-pac;
+                description "none";
+            }
+            description "none";
+        }
+        grouping media-channel-config-pac {
+            container spectrum {
+                uses spectrum-band;
+                description "none";
+            }
+            description "none";
+        }
+        grouping media-channel-connection-end-point-spec {
+            container media-channel {
+                config false;
+                uses media-channel-properties-pac;
+                description "none";
+            }
+            description "none";
+        }
+        grouping ots-connection-end-point-spec {
+            container ots-media-channel {
+                config false;
+                uses media-channel-properties-pac;
+                description "none";
+            }
+            description "none";
+        }
+        grouping media-channel-assembly-spec {
+            description "none";
+        }
+        grouping laser-properties-pac {
+            leaf laser-status {
+                type laser-control-status-type;
+                config false;
+                description "none";
+            }
+            leaf laser-application-type {
+                type laser-type;
+                config false;
+                description "The type of laser, its operational wavelengths, and its applications. String size 255.";
+            }
+            leaf laser-bias-current {
+                type decimal64 {
+                    fraction-digits 7;
+                }
+                config false;
+                description "The Bias current of the laser that is the medium polarization current of the laser.";
+            }
+            leaf laser-temperature {
+                type decimal64 {
+                    fraction-digits 7;
+                }
+                config false;
+                description "The temperature of the laser";
+            }
+            description "none";
+        }
+        grouping power-properties-pac {
+            leaf total-power {
+                type decimal64 {
+                    fraction-digits 7;
+                }
+                description "The total power at any point in a channel specified in dBm.";
+            }
+            leaf power-spectral-density {
+                type decimal64 {
+                    fraction-digits 7;
+                }
+                config false;
+                description "This describes how power of a signal  is distributed over frequency specified in nW/MHz";
+            }
+            description "Indication with severity warning raised when a total power value measured is above the threshold.";
+        }
+        grouping total-power-threshold-pac {
+            leaf total-power-upper-warn-threshold-default {
+                type decimal64 {
+                    fraction-digits 7;
+                }
+                description "Can read the value of the default  threshold that was set";
+            }
+            leaf total-power-upper-warn-threshold-min {
+                type decimal64 {
+                    fraction-digits 7;
+                }
+                description "Can read the value of the lower threshold that was set";
+            }
+            leaf total-power-upper-warn-threshold-max {
+                type decimal64 {
+                    fraction-digits 7;
+                }
+                description "Can  read the value of the upper threshold that was set";
+            }
+            leaf total-power-lower-warn-threshold-default {
+                type decimal64 {
+                    fraction-digits 7;
+                }
+                description "Can read the value of the default  threshold that was set";
+            }
+            leaf total-power-lower-warn-threshold-max {
+                type decimal64 {
+                    fraction-digits 7;
+                }
+                description "Can  read the value of the upper threshold that was set";
+            }
+            leaf total-power-lower-warn-threshold-min {
+                type decimal64 {
+                    fraction-digits 7;
+                }
+                description "Can read the value of the lower threshold that was set";
+            }
+            description "none";
+        }
+
+    /***********************
+    * package type-definitions
+    **********************/ 
+        identity PHOTONIC_LAYER_QUALIFIER {
+        	base tapi-common:LAYER_PROTOCOL_QUALIFIER;
+            description "none";
+        }
+        identity PHOTONIC_LAYER_QUALIFIER_OTSi {
+            base PHOTONIC_LAYER_QUALIFIER;
+            description "none";
+        }
+        identity PHOTONIC_LAYER_QUALIFIER_OTSiA {
+            base PHOTONIC_LAYER_QUALIFIER;
+            description "none";
+        }
+        identity PHOTONIC_LAYER_QUALIFIER_OTSiG {
+            base PHOTONIC_LAYER_QUALIFIER;
+            description "none";
+        }
+        identity PHOTONIC_LAYER_QUALIFIER_NMC {
+            base PHOTONIC_LAYER_QUALIFIER;
+            description "none";
+        }
+        identity PHOTONIC_LAYER_QUALIFIER_NMCA {
+            base PHOTONIC_LAYER_QUALIFIER;
+            description "none";
+        }
+        identity PHOTONIC_LAYER_QUALIFIER_SMC {
+            base PHOTONIC_LAYER_QUALIFIER;
+            description "none";
+        }
+        identity PHOTONIC_LAYER_QUALIFIER_SMCA {
+            base PHOTONIC_LAYER_QUALIFIER;
+            description "none";
+        }
+        identity PHOTONIC_LAYER_QUALIFIER_OCH {
+            base PHOTONIC_LAYER_QUALIFIER;
+            description "none";
+        }
+        identity PHOTONIC_LAYER_QUALIFIER_OMS {
+            base PHOTONIC_LAYER_QUALIFIER;
+            description "none";
+        }
+        identity PHOTONIC_LAYER_QUALIFIER_OTS {
+            base PHOTONIC_LAYER_QUALIFIER;
+            description "none";
+        }
+        grouping application-identifier {
+            leaf application-identifier-type {
+                type application-identifier-type;
+                description "The ITU-T recommendation which defines the application code format.";
+            }
+            leaf application-code {
+                type string;
+                description "none";
+            }
+            description "The syntax of ApplicationIdentifier is a pair {ApplicationIdentifierType, PrintableString}. The value of ApplicationIdentifierType is either STANDARD or PROPRIETARY. The value of PrintableString represents the standard application code as defined in the ITU-T Recommendations or a vendor-specific proprietary code. If the ApplicationIdentifierType is STANDARD the value of PrintableString represents a standard application code as defined in the ITU-T Recommendations. If the ApplicationIdentifierType is PROPRIETARY, the first six characters of the PrintableString must contain the Hexadecimal representation of an OUI assigned to the vendor whose implementation generated the Application Identifier; the remaining octets of the PrintableString are unspecified. The value of this attribute of an object instance has to be one of the values identified in the attribute SupportableApplicationIdentifierList of the same object instance. The values and value ranges of the optical interface parameters of a standard application code must be consistent with those values specified in the ITU-T Recommendation for that application code.";
+        }
+        grouping central-frequency {
+            container frequency-constraint {
+                uses frequency-constraint;
+                description "none";
+            }
+            leaf central-frequency {
+                type uint64;
+                description "The central frequency of the laser specified in MHz. It is the oscillation frequency of the corresponding electromagnetic wave. ";
+            }
+            description "This data-type holds the central frequency information as well frequency constraints in terms of GridType ( FIXED grid (DWDM or CWDM) or FLEX grid) and AdjustmentGranularity.";
+        }
+        typedef optical-routing-strategy {
+            type enumeration {
+                enum OPTIMAL_OSNR {
+                    description "none";
+                }
+                enum NO_RELAY {
+                    description "none";
+                }
+                enum MIN_RELAY {
+                    description "none";
+                }
+                enum PREFERRED_NO_CHANGE_WAVELENGTH_AS_RESTORE {
+                    description "none";
+                }
+                enum PREFERRED_NO_SKIPPING_WAVELENGTH {
+                    description "none";
+                }
+            }
+            description "none";
+        }
+        typedef application-identifier-type {
+            type enumeration {
+                enum PROPRIETARY {
+                    description "none";
+                }
+                enum ITUT_G959_1 {
+                    description "none";
+                }
+                enum ITUT_G698_1 {
+                    description "none";
+                }
+                enum ITUT_G698_2 {
+                    description "none";
+                }
+                enum ITUT_G696_1 {
+                    description "none";
+                }
+                enum ITUT_G695 {
+                    description "none";
+                }
+            }
+            description "none";
+        }
+        typedef grid-type {
+            type enumeration {
+                enum DWDM {
+                    description "Fixed frequency grid in C & L bands as specified in ITU-T G.694.1
+                        ";
+                }
+                enum CWDM {
+                    description "Fixed frequency grid as specified in ITU-T G.694.2";
+                }
+                enum FLEX {
+                    description "Flexible frequency grid as specified in ITU-T G.694.1. In this case,
+                        - the allowed frequency slots have a nominal central frequency (in THz) defined by:
+                        193.1 + n × 0.00625 where n is a positive or negative integer including 0 and 0.00625 is the nominal central frequency granularity in THz
+                        - and a slot width defined by:
+                        12.5 × m where m is a positive integer and 12.5 is the slot width granularity in GHz.
+                        Any combination of frequency slots is allowed as long as no two frequency slots overlap.";
+                }
+                enum GRIDLESS {
+                    description "none";
+                }
+                enum UNSPECIFIED {
+                    description "Unspecified/proprietary frequency grid";
+                }
+            }
+            description "The frequency grid standard that specify reference set of frequencies used to denote allowed nominal central frequencies that may be used for defining applications.";
+        }
+        typedef adjustment-granularity {
+            type enumeration {
+                enum G_100GHZ {
+                    description "100000 MHz";
+                }
+                enum G_50GHZ {
+                    description "50000 MHz";
+                }
+                enum G_25GHZ {
+                    description "25000 MHz";
+                }
+                enum G_12_5GHZ {
+                    description "12500 MHz";
+                }
+                enum G_6_25GHZ {
+                    description "6250 MHz";
+                }
+                enum G_3_125GHZ {
+                    description "3125 MHz";
+                }
+                enum UNCONSTRAINED {
+                    description "none";
+                }
+            }
+            description "Adjustment granularity in Gigahertz. As per ITU-T G.694.1, it is used to calculate nominal central frequency";
+        }
+        grouping spectrum-band {
+            leaf upper-frequency {
+                type uint64;
+                description "The upper frequency bound of the media channel spectrum specified in MHz";
+            }
+            leaf lower-frequency {
+                type uint64;
+                description "The lower frequency bound of the media channel spectrum specified in MHz";
+            }
+            container frequency-constraint {
+                uses frequency-constraint;
+                description "none";
+            }
+            description "This data-type holds the spectrum information in termsof upper/lower frequency directly or optionally the information to determin this in terms of the nominal central frequency and spectral width for a FIXED grid (DWDM or CWDM) and FLEX grid type systems.";
+        }
+        typedef modulation-technique {
+            type enumeration {
+                enum RZ {
+                    description "none";
+                }
+                enum NRZ {
+                    description "none";
+                }
+                enum BPSK {
+                    description "none";
+                }
+                enum DPSK {
+                    description "none";
+                }
+                enum QPSK {
+                    description "none";
+                }
+                enum 8QAM {
+                    description "none";
+                }
+                enum 16QAM {
+                    description "none";
+                }
+                enum PAM4 {
+                    description "none";
+                }
+                enum PAM8 {
+                    description "none";
+                }
+                enum UNDEFINED {
+                    description "none";
+                }
+            }
+            description "none";
+        }
+        typedef laser-type {
+            type enumeration {
+                enum PUMP {
+                    description "none";
+                }
+                enum MODULATED {
+                    description "none";
+                }
+                enum PULSE {
+                    description "none";
+                }
+            }
+            description "none";
+        }
+        typedef photonic-layer-qualifier {
+            type identityref {
+                base PHOTONIC_LAYER_QUALIFIER;
+            }
+            description "none";
+        }
+        typedef laser-control-type {
+            type enumeration {
+                enum FORCED-ON {
+                    description "none";
+                }
+                enum FORCED-OFF {
+                    description "none";
+                }
+                enum AUTOMATIC-LASER-SHUTDOWN {
+                    description "none";
+                }
+                enum UNDEFINED {
+                    description "none";
+                }
+            }
+            description "none";
+        }
+        typedef laser-control-status-type {
+            type enumeration {
+                enum ON {
+                    description "none";
+                }
+                enum OFF {
+                    description "none";
+                }
+                enum PULSING {
+                    description "none";
+                }
+                enum UNDEFINED {
+                    description "none";
+                }
+            }
+            description "none";
+        }
+        grouping frequency-constraint {
+            leaf adjustment-granularity {
+                type adjustment-granularity;
+                description "Adjustment granularity in Gigahertz. As per ITU-T G.694.1, it is used to calculate nominal central frequency (in THz)";
+            }
+            leaf grid-type {
+                type grid-type;
+                description "Specifies the frequency grid standard used to determine the nominal central frequency and frequency slot width";
+            }
+            description "This data-type holds the frequency constraint information in terms of GridType ( FIXED grid (DWDM or CWDM) or FLEX grid) and AdjustmentGranularity.";
+        }
+
+}

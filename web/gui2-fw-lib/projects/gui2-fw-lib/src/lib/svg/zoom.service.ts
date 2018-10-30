@@ -117,7 +117,7 @@ export class ZoomService {
 */
         // Remove zoom on double click (prevents a
         // false zoom navigating regions)
-        this.settings.svg.on('dblclick.zoom', null);
+        // this.settings.svg.on('dblclick.zoom', null);
 
         return this.zoomer;
     }

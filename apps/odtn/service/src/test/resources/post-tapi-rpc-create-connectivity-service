@@ -1,0 +1,1 @@
+curl -X POST http://localhost:8181/onos/restconf/operations/tapi-connectivity:create-connectivity-service -H 'cache-control: no-cache' -H 'content-type: application/json' -H 'Basic a2FyYWY6a2FyYWY=' -d @create-connectivity.json

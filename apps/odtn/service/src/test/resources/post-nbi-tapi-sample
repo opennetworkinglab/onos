@@ -1,2 +1,0 @@
-curl -X POST http://localhost:8181/onos/restconf/data -H 'cache-control: no-cache' -H 'content-type: application/json' -d @nbi-tapi-sample.json
-

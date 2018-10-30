@@ -1,0 +1,27 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Remotely pushes Atomix bits to all remote nodes in preparation for install.
+# -----------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+OCT=${OCT:-$OCI}
+node=${1:-$OCT}
+remote=$ONOS_USER@$node
+shift
+
+echo "Pushing to proxy $node..."
+atomix-push-bits $node
+
+others=$(env | sort | egrep "^OCC[0-9]+" | cut -d= -f2 | grep -vE "^$OCT\$")
+
+ssh $remote "
+  for other in ${others//$'\n'/ } ; do
+    echo \"Pushing to \$other ...\";
+    ssh -o StrictHostKeyChecking=no $ONOS_USER@\$other rm -rf /tmp/atomix.tar.gz &&
+    scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+        /tmp/atomix.tar.gz \
+        $ONOS_USER@[\$other]:/tmp/atomix.tar.gz
+  done
+"

@@ -34,6 +34,10 @@
             <action class="org.onosproject.odtn.cli.impl.OdtnDcsModelCheckCommand"/>
         </command>
 
+        <command>
+            <action class="org.onosproject.odtn.cli.impl.OdtnTapiHandlersTestCommand"/>
+        </command>
+
     </command-bundle>
 
     <bean id="deviceIdCompleter" class="org.onosproject.cli.net.DeviceIdCompleter"/>

@@ -16,13 +16,14 @@
 
 package org.onosproject.odtn.utils.tapi;
 
-import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.DefaultContext;
-import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.Uuid;
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20180307.tapiconnectivity.connection.DefaultRoute;
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20180307.tapiconnectivity.connectivitycontext.ConnectionKeys;
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20180307.tapiconnectivity.connectivitycontext.DefaultConnection;
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20180307.tapiconnectivity.route.ConnectionEndPoint;
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20180307.tapiconnectivity.route.DefaultConnectionEndPoint;
+import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.DefaultContext;
+import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.Uuid;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.connection.DefaultRoute;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.connectivitycontext.ConnectionKeys;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.connectivitycontext.DefaultConnection;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.context.augmentedtapicommoncontext.DefaultConnectivityContext;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.route.ConnectionEndPoint;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.route.DefaultConnectionEndPoint;
 import org.onosproject.yang.model.ModelObjectId;
 
 import static org.onosproject.odtn.utils.tapi.TapiLocalClassUtil.getLocalId;
@@ -61,16 +62,17 @@ public final class TapiRouteHandler extends TapiObjectHandler<DefaultRoute> {
 
         return ModelObjectId.builder()
                 .addChild(DefaultContext.class)
+                .addChild(DefaultConnectivityContext.class)
                 .addChild(DefaultConnection.class, connectionKeys)
                 .build();
     }
 
     public TapiRouteHandler addCep(TapiCepRef cepRef) {
         DefaultConnectionEndPoint cep = new DefaultConnectionEndPoint();
-        cep.topologyId(cepRef.getTopologyId());
-        cep.nodeId(cepRef.getNodeId());
-        cep.ownedNodeEdgePointId(cepRef.getNepId());
-        cep.connectionEndPointId(cepRef.getCepId());
+        cep.topologyUuid(cepRef.getTopologyId());
+        cep.nodeUuid(cepRef.getNodeId());
+        cep.nodeEdgePointUuid(cepRef.getNepId());
+        cep.connectionEndPointUuid(cepRef.getCepId());
 
         obj.addToConnectionEndPoint(cep);
         return this;
@@ -78,14 +80,14 @@ public final class TapiRouteHandler extends TapiObjectHandler<DefaultRoute> {
 
     public TapiCepRef getRouteStart() {
         ConnectionEndPoint cep = obj.connectionEndPoint().get(0);
-        return TapiCepRef.create(cep.topologyId().toString(), cep.nodeId().toString(),
-                cep.ownedNodeEdgePointId().toString(), cep.connectionEndPointId().toString());
+        return TapiCepRef.create(cep.topologyUuid().toString(), cep.nodeUuid().toString(),
+                cep.nodeEdgePointUuid().toString(), cep.connectionEndPointUuid().toString());
     }
 
     public TapiCepRef getRouteEnd() {
         ConnectionEndPoint cep = obj.connectionEndPoint().get(obj.connectionEndPoint().size() - 1);
-        return TapiCepRef.create(cep.topologyId().toString(), cep.nodeId().toString(),
-                cep.ownedNodeEdgePointId().toString(), cep.connectionEndPointId().toString());
+        return TapiCepRef.create(cep.topologyUuid().toString(), cep.nodeUuid().toString(),
+                cep.nodeEdgePointUuid().toString(), cep.connectionEndPointUuid().toString());
     }
 
     public TapiRouteHandler setConnectionId(Uuid connectionId) {

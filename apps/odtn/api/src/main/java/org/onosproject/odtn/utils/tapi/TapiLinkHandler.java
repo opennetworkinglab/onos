@@ -16,12 +16,13 @@
 
 package org.onosproject.odtn.utils.tapi;
 
-import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.DefaultContext;
-import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.Uuid;
-import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.link.DefaultNodeEdgePoint;
-import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.topology.DefaultLink;
-import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.topologycontext.DefaultTopology;
-import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.topologycontext.TopologyKeys;
+import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.DefaultContext;
+import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.Uuid;
+import org.onosproject.yang.gen.v1.tapitopology.rev20181016.tapitopology.context.augmentedtapicommoncontext.DefaultTopologyContext;
+import org.onosproject.yang.gen.v1.tapitopology.rev20181016.tapitopology.link.DefaultNodeEdgePoint;
+import org.onosproject.yang.gen.v1.tapitopology.rev20181016.tapitopology.topology.DefaultLink;
+import org.onosproject.yang.gen.v1.tapitopology.rev20181016.tapitopology.topologycontext.DefaultTopology;
+import org.onosproject.yang.gen.v1.tapitopology.rev20181016.tapitopology.topologycontext.TopologyKeys;
 import org.onosproject.yang.model.ModelObjectId;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -62,6 +63,7 @@ public final class TapiLinkHandler extends TapiObjectHandler<DefaultLink> {
         topologyKey.uuid(topologyUuid);
         return ModelObjectId.builder()
                 .addChild(DefaultContext.class)
+                .addChild(DefaultTopologyContext.class)
                 .addChild(DefaultTopology.class, topologyKey)
                 .build();
     }
@@ -73,9 +75,9 @@ public final class TapiLinkHandler extends TapiObjectHandler<DefaultLink> {
 
     public TapiLinkHandler addNep(TapiNepRef nepRef) {
         DefaultNodeEdgePoint nep = new DefaultNodeEdgePoint();
-        nep.topologyId(nepRef.getTopologyId());
-        nep.nodeId(nepRef.getNodeId());
-        nep.ownedNodeEdgePointId(nepRef.getNepId());
+        nep.topologyUuid(nepRef.getTopologyId());
+        nep.nodeUuid(nepRef.getNodeId());
+        nep.nodeEdgePointUuid(nepRef.getNepId());
         obj.addToNodeEdgePoint(nep);
         return this;
     }

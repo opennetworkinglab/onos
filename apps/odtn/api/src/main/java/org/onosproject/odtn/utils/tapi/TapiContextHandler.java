@@ -19,11 +19,11 @@ package org.onosproject.odtn.utils.tapi;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.DefaultContext;
-import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.Uuid;
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20180307.tapiconnectivity.connectivitycontext.DefaultConnectivityService;
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20180307.tapiconnectivity.context.DefaultAugmentedTapiCommonContext;
-import org.onosproject.yang.gen.v1.tapitopology.rev20180307.tapitopology.topologycontext.DefaultTopology;
+import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.DefaultContext;
+import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.Uuid;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.connectivitycontext.DefaultConnectivityService;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.context.DefaultAugmentedTapiCommonContext;
+import org.onosproject.yang.gen.v1.tapitopology.rev20181016.tapitopology.topologycontext.DefaultTopology;
 import org.onosproject.yang.model.DefaultModelObjectData;
 import org.onosproject.yang.model.ModelObjectData;
 import org.onosproject.yang.model.ModelObjectId;
@@ -43,11 +43,13 @@ public final class TapiContextHandler extends TapiObjectHandler<DefaultContext> 
 
     @Override
     protected Uuid getIdDetail() {
+        // The target yang object of this class is container, so no need to handle Id.
         return null;
     }
 
     @Override
     protected void setIdDetail(Uuid uuid) {
+        // The target yang object of this class is container, so no need to handle Id.
     }
 
     @Override
@@ -74,7 +76,7 @@ public final class TapiContextHandler extends TapiObjectHandler<DefaultContext> 
 
         DefaultAugmentedTapiCommonContext augmentedContext = obj.augmentation(DefaultAugmentedTapiCommonContext.class);
         try {
-            return augmentedContext.connectivityService().stream()
+            return augmentedContext.connectivityContext().connectivityService().stream()
                     .map(connectivityService -> {
                         TapiConnectivityServiceHandler handler = TapiConnectivityServiceHandler.create();
                         handler.setModelObject((DefaultConnectivityService) connectivityService);

@@ -1,0 +1,64 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Remotely pushes bits to a remote node in preparation for install.
+# -----------------------------------------------------------------------------
+function _usage () {
+cat << _EOF_
+usage:
+ $(basename $0) [node]
+
+options:
+- [node] : the target node to prime for installation
+
+summary:
+ Remotely pushes Atomix bits to a remote node in preparation for install.
+
+ $(basename $0) is invoked as part of 'atomix-install', and shouldn't be
+ directly invoked for the most part.
+
+_EOF_
+}
+
+[ $# -gt 1 ] || [ "$1" = "-h" ] && _usage && exit 0
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT isn't set correctly" >&2 && exit 1
+
+set -e
+
+. $ONOS_ROOT/tools/build/envDefaults
+
+ATOMIX_VERSION=${ATOMIX_VERSION:-3.0.7}
+ATOMIX_MAVEN=~/.m2/repository/io/atomix/atomix-dist/$ATOMIX_VERSION/atomix-dist-$ATOMIX_VERSION.tar.gz
+ATOMIX_LOCAL=/tmp/atomix-$ATOMIX_VERSION.tar.gz
+ATOMIX_REMOTE=https://oss.sonatype.org/content/repositories/releases/io/atomix/atomix-dist/$ATOMIX_VERSION/atomix-dist-$ATOMIX_VERSION.tar.gz
+
+node=${1:-$OCI}
+remote=$ONOS_USER@$node
+remote_with_bracket=$ONOS_USER@[$node]
+SSH_OPTIONS=" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+ -o ControlMaster=auto -o ControlPath=~/.ssh/mux-%r@%h:%p \
+ -o ControlPersist=300 "
+
+if [ ! -z "$ATOMIX_ROOT" ]; then
+  echo "Pushing to $node from $ATOMIX_ROOT"
+  ATOMIX_TAR=$ATOMIX_ROOT/dist/target/atomix.tar.gz
+elif [ -e $ATOMIX_MAVEN ]; then
+  echo "Pushing to $node from $ATOMIX_MAVEN"
+  ATOMIX_TAR=$ATOMIX_MAVEN
+else
+  echo "Pushing to $node from $ATOMIX_LOCAL"
+  rm $ATOMIX_LOCAL
+  wget -O $ATOMIX_LOCAL $ATOMIX_REMOTE
+  ATOMIX_TAR=$ATOMIX_LOCAL
+fi
+
+echo "Using scp"
+
+locHash=$(cksum $ATOMIX_TAR | cut -d' ' -f1,2)
+remHash=$(ssh $remote cksum /tmp/atomix.tar.gz 2>/dev/null | cut -d' ' -f1,2)
+
+if [ -n "$locHash" ] && [ "$locHash" = "$remHash" ]; then
+  echo "Atomix bits /tmp/atomix.tar.gz already up-to-date on $node..."
+else
+  ssh $remote rm -f $ATOMIX_TAR
+  scp -q $ATOMIX_TAR $remote_with_bracket:/tmp/atomix.tar.gz
+fi

@@ -15,30 +15,19 @@
  */
 package org.onosproject.rest.resources;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.onosproject.cluster.ClusterAdminService;
-import org.onosproject.cluster.ClusterService;
-import org.onosproject.cluster.ControllerNode;
-import org.onosproject.cluster.NodeId;
-import org.onosproject.codec.JsonCodec;
-import org.onosproject.rest.AbstractWebResource;
-
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashSet;
-import java.util.List;
+
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.ControllerNode;
+import org.onosproject.cluster.NodeId;
+import org.onosproject.rest.AbstractWebResource;
 
 import static org.onlab.util.Tools.nullIsNotFound;
-import static org.onlab.util.Tools.readTreeFromStream;
 
 /**
  * Manage cluster of ONOS instances.
@@ -77,36 +66,5 @@ public class ClusterWebResource extends AbstractWebResource {
         ControllerNode node = nullIsNotFound(get(ClusterService.class).getNode(new NodeId(id)),
                                              NODE_NOT_FOUND);
         return ok(codec(ControllerNode.class).encode(node, this)).build();
-    }
-
-    /**
-     * Forms cluster of ONOS instances.
-     * Forms ONOS cluster using the uploaded JSON definition.
-     *
-     * @param config cluster definition
-     * @return 200 OK
-     * @throws IOException to signify bad request
-     * @onos.rsModel ClusterPost
-     */
-    @POST
-    @Path("configuration")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response formCluster(InputStream config) throws IOException {
-        JsonCodec<ControllerNode> codec = codec(ControllerNode.class);
-        ObjectNode root = readTreeFromStream(mapper(), config);
-
-        List<ControllerNode> nodes = codec.decode((ArrayNode) root.path("nodes"), this);
-        JsonNode partitionSizeNode = root.get("partitionSize");
-        if (partitionSizeNode != null) {
-            int partitionSize = partitionSizeNode.asInt();
-            if (partitionSize == 0) {
-                return Response.notAcceptable(null).build();
-            }
-            get(ClusterAdminService.class).formCluster(new HashSet<>(nodes), partitionSize);
-        } else {
-            get(ClusterAdminService.class).formCluster(new HashSet<>(nodes));
-        }
-
-        return Response.ok().build();
     }
 }

@@ -111,7 +111,7 @@ public class CoreEventDispatcher extends DefaultEventSinkRegistry
     public void activate() {
 
         if (maxProcessMillis != 0) {
-            dispatchers.forEach(DispatchLoop::startWatchdog);
+            dispatchers.forEach(DispatchLoop::start);
         }
 
         log.info("Started");
@@ -163,7 +163,6 @@ public class CoreEventDispatcher extends DefaultEventSinkRegistry
                     groupedThreads("onos/event",
                     "dispatch-" + name + "%d", log));
             eventsQueue = new LinkedBlockingQueue<>();
-            dispatchFuture = executor.submit(this);
         }
 
         public boolean add(Event event) {
@@ -172,7 +171,6 @@ public class CoreEventDispatcher extends DefaultEventSinkRegistry
 
         @Override
         public void run() {
-            stopped = false;
             log.info("Dispatch loop({}) initiated", name);
             while (!stopped) {
                 try {
@@ -208,11 +206,16 @@ public class CoreEventDispatcher extends DefaultEventSinkRegistry
         void stop() {
             stopped = true;
             add(KILL_PILL);
+            if (null != dispatchFuture) {
+                dispatchFuture.cancel(true);
+            }
+            stopWatchdog();
         }
 
-        void restart() {
-            dispatchFuture.cancel(true);
+        void start() {
+            stopped = false;
             dispatchFuture = executor.submit(this);
+            startWatchdog();
         }
 
         // Monitors event sinks to make sure none take too long to execute.
@@ -232,7 +235,7 @@ public class CoreEventDispatcher extends DefaultEventSinkRegistry
                     // Cancel the old dispatch loop and submit a new one.
 
                     stop();
-                    restart();
+                    start();
                 }
             }
         }

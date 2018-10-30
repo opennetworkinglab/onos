@@ -15,14 +15,16 @@
   -->
 <scenario name="setup" description="ONOS cluster setup">
     <group name="Setup">
-        <step name="Push-Bits" exec="onos-push-bits-through-proxy" if="${OCT}"/>
+        <step name="Push-Atomix-Bits" exec="atomix-push-bits-through-proxy" if="${OCT}"/>
+        <step name="Push-ONOS-Bits" exec="onos-push-bits-through-proxy" if="${OCT}"/>
+
         <step name="Enable-Flow-Objective-Intents" if="${ONOS_USE_FOI}"
               exec="onos ${OC1} cfg set org.onosproject.net.intent.impl.compiler.IntentConfigurableRegistrator useFlowObjectives true"/>
 
         <group name="Cleanup">
             <group name="Cleanup-ONOS">
                 <parallel var="${OC#}">
-                    <step name="Push-Bits-${#}" exec="onos-push-bits ${OC#}"
+                    <step name="Push-ONOS-Bits-${#}" exec="onos-push-bits ${OC#}"
                           unless="${OCT}"/>
                     <step name="Uninstall-${#}" exec="onos-uninstall ${OC#}"/>
                     <step name="Kill-${#}" env="~" exec="onos-kill ${OC#}"
@@ -31,6 +33,8 @@
             </group>
             <group name="Cleanup-Atomix-OC" unless="${OCC1}">
                 <parallel var="${OC#}">
+                    <step name="Push-Atomix-Bits-${#}" exec="atomix-push-bits ${OC#}"
+                          unless="${OCT}"/>
                     <step name="Atomix-Kill-${#}"
                           env="~"
                           exec="atomix-kill ${OC#}"/>
@@ -41,6 +45,8 @@
             </group>
             <group name="Cleanup-Atomix-OCC" if="${OCC1}">
                 <parallel var="${OCC#}">
+                    <step name="Push-Atomix-Bits-${#}" exec="atomix-push-bits ${OC#}"
+                          unless="${OCT}"/>
                     <step name="Atomix-Kill-${#}"
                           env="~"
                           exec="atomix-kill ${OCC#}"/>
@@ -58,7 +64,7 @@
                 <group name="Parallel-Install-Atomix">
                     <parallel var="${OC#}">
                         <step name="Parallel-Install-Atomix-${#}" exec="atomix-install ${OC#}"
-                              requires="Generate-Cluster-Key,Push-Bits-${#},Push-Bits,Cleanup"/>
+                              requires="Generate-Cluster-Key,Push-Atomix-Bits-${#},Push-Atomix-Bits,Cleanup"/>
                     </parallel>
                 </group>
             </group>
@@ -67,7 +73,7 @@
                 <group name="Parallel-Install-Atomix">
                     <parallel var="${OCC#}">
                         <step name="Parallel-Install-Atomix-${#}" exec="atomix-install ${OCC#}"
-                              requires="Generate-Cluster-Key,Push-Bits-${#},Push-Bits,Cleanup"/>
+                              requires="Generate-Cluster-Key,Push-Atomix-Bits-${#},Push-Atomix-Bits,Cleanup"/>
                     </parallel>
                 </group>
             </group>
@@ -79,14 +85,14 @@
                             starts="Sequential-Install-${#}"
                             ends="Sequential-Install-${#-1}">
                     <step name="Sequential-Install-${#}" exec="onos-install ${OC#}"
-                          requires="Generate-Cluster-Key,Push-Bits-${#},Push-Bits,Cleanup,Install-Atomix"/>
+                          requires="Generate-Cluster-Key,Push-ONOS-Bits-${#},Push-ONOS-Bits,Cleanup,Install-Atomix"/>
                 </sequential>
             </group>
 
             <group name="Parallel-Install-ONOS" unless="${ONOS_STC_SEQ_START}">
                 <parallel var="${OC#}">
                     <step name="Parallel-Install-${#}" exec="onos-install ${OC#}"
-                          requires="Generate-Cluster-Key,Push-Bits-${#},Push-Bits,Cleanup,Install-Atomix"/>
+                          requires="Generate-Cluster-Key,Push-ONOS-Bits-${#},Push-ONOS-Bits,Cleanup,Install-Atomix"/>
                 </parallel>
             </group>
         </group>

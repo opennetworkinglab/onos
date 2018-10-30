@@ -27,7 +27,7 @@ import static org.onosproject.odtn.utils.YangToolUtil.toCharSequence;
 import static org.onosproject.odtn.utils.YangToolUtil.toCompositeData;
 import static org.onosproject.odtn.utils.YangToolUtil.toResourceData;
 import static org.onosproject.odtn.utils.YangToolUtil.toXmlCompositeStream;
-import org.onosproject.yang.gen.v1.tapicommon.rev20180307.tapicommon.DefaultContext;
+import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.DefaultContext;
 import org.onosproject.yang.model.DataNode;
 import org.onosproject.yang.model.DefaultModelObjectData;
 import org.onosproject.yang.model.InnerModelObject;

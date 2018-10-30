@@ -20,7 +20,7 @@
               "src/main/webapp/data",
               "src/main/webapp/app/fw/layer/loading.service.css"
             ],
-            "styles": ["src/main/webapp/onos.theme.css"],
+            "styles": ["src/main/webapp/onos.global.css"],
             "scripts": []
           },
           "configurations": {

@@ -24,6 +24,7 @@ import org.onosproject.net.flow.instructions.ExtensionTreatment;
 import org.onosproject.net.flow.instructions.ExtensionTreatmentType;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -39,7 +40,11 @@ public class NiciraCt extends AbstractExtension implements ExtensionTreatment {
     private short recircTable;
     private int alg;
     private List<ExtensionTreatment> nestedActions;
-    private final KryoNamespace appKryo = new KryoNamespace.Builder().build();
+    private final KryoNamespace appKryo = new KryoNamespace.Builder()
+                                                .register(HashMap.class)
+                                                .register(ArrayList.class)
+                                                .register(ExtensionTreatment.class)
+                                                .build();
 
     /**
      * Creates a new nicicra ct instruction.

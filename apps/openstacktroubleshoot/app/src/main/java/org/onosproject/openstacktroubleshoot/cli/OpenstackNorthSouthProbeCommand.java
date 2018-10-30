@@ -32,7 +32,10 @@ import org.onosproject.openstacktroubleshoot.api.OpenstackTroubleshootService;
 import org.onosproject.openstacktroubleshoot.api.Reachability;
 
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 
+import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
+import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.openstacknetworking.api.InstancePort.State.ACTIVE;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
 
@@ -57,6 +60,9 @@ public class OpenstackNorthSouthProbeCommand extends AbstractShellCommand {
     @Argument(index = 0, name = "vmIps", description = "VMs' IP addresses",
             required = false, multiValued = true)
     private String[] vmIps = null;
+
+    private final ExecutorService probeExecutor = newSingleThreadScheduledExecutor(
+            groupedThreads(this.getClass().getSimpleName(), "probe-handler", log));
 
     @Override
     protected void doExecute() {
@@ -108,7 +114,8 @@ public class OpenstackNorthSouthProbeCommand extends AbstractShellCommand {
             }
 
             printHeader();
-            ports.forEach(port -> printReachability(tsService.probeNorthSouth(port)));
+            ports.forEach(port -> probeExecutor.execute(() ->
+                    printReachability(tsService.probeNorthSouth(port))));
         }
     }
 

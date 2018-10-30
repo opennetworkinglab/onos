@@ -1,0 +1,676 @@
+module tapi-common {
+    namespace "urn:onf:otcc:yang:tapi-common";
+    prefix tapi-common;
+    organization "ONF OTCC (Open Transport Configuration & Control) Project";
+    contact "
+         Project Web: <https://wiki.opennetworking.org/display/OTCC/TAPI>
+         Project List: <mailto:transport-api@opennetworking.org>
+         Editor: Karthik Sethuraman
+                 <mailto:karthik.sethuraman@necam.com>";
+    description "
+        This module contains TAPI Common Model definitions.
+        Source: TapiCommon.uml
+        Copyright (c) 2018 Open Networking Foundation (ONF). All rights reserved.
+        License: This module is distributed under the Apache License 2.0
+        ";
+    revision 2018-10-16 {
+        description "ONF Transport API version 2.1.0.
+          - The TAPI YANG models included in this TAPI release (v2.1.0) are a *normative* part of the TAPI SDK.
+          - The YANG specifications have been generated from the corresponding UML model using the [ONF EAGLE UML2YANG mapping tool]
+            <https://github.com/OpenNetworkingFoundation/EagleUmlYang>
+            and further edited manually to comply with the [ONF IISOMI UML2YANG mapping guidelines]
+            <https://wiki.opennetworking.org/display/OIMT/UML+-+YANG+Guidelines>
+          - Status of YANG model artifacts can be determined by referring to the corresponding UML artifacts.
+            As described in the UML models, some artifacts are considered *experimental*, and thus the corresponding YANG artifacts.
+          - The ONF TAPI release process does not guarantee backward compatibility of YANG models across major versions of TAPI releases.
+            The YANG model backward compatibility criteria are outlined in section 11 of <https://tools.ietf.org/html/rfc7950>.
+            YANG models included in this release are not backward compatible with previous TAPI releases.
+          - Changes included in this TAPI release (v2.1.0) are listed in
+            <https://github.com/OpenNetworkingFoundation/TAPI/blob/develop/CHANGE_LOG/change-log.2.1.0.md>";
+        reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 7950, RFC 6087 and ONF TAPI UML model
+                  <https://github.com/OpenNetworkingFoundation/TAPI/tree/v2.1.0/UML>";
+    }
+    revision 2018-03-07 {
+        description "ONF Transport API version 2.0.2
+        This YANG module has been generated from the TAPI UML Model using the IISOMI-Eagle xmi2yang mapping tool.
+        Changes in this revision: <https://github.com/OpenNetworkingFoundation/TAPI/blob/develop/CHANGE_LOG/change-log.2.0.2.md>";
+        reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 6020, RFC 6087 and ONF TAPI UML model
+                  <https://github.com/OpenNetworkingFoundation/TAPI/tree/v2.0.2/UML>";
+    }
+    revision 2018-02-16 {
+        description "ONF Transport API version 2.0.1
+        This YANG module has been generated from the TAPI UML Model using the IISOMI-Eagle xmi2yang mapping tool.
+        Changes in this revision: <https://github.com/OpenNetworkingFoundation/TAPI/blob/develop/CHANGE_LOG/change-log.2.0.1.md>";
+        reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 6020, RFC 6087 and ONF TAPI UML model
+                  <https://github.com/OpenNetworkingFoundation/TAPI/tree/v2.0.1/UML>";
+    }
+    revision 2018-01-02 {
+        description "ONF Transport API version 2.0.0
+        This YANG module has been generated from the TAPI UML Model using the IISOMI-Eagle xmi2yang mapping tool.
+        Changes in this revision: <https://github.com/OpenNetworkingFoundation/TAPI/blob/develop/CHANGE_LOG/change-log.2.0.0.md>";
+        reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 6020, RFC 6087 and ONF TAPI UML model
+                  <https://github.com/OpenNetworkingFoundation/TAPI/tree/v2.0.0/UML>";
+    }
+
+    /*************************
+    * definitions of refrences
+    *************************/
+    grouping service-interface-point-ref {
+        leaf service-interface-point-uuid {
+            type leafref {
+                path '/tapi-common:context/tapi-common:service-interface-point/tapi-common:uuid';
+            }
+            description "none";
+        }
+        description "none";
+    }
+
+    /***********************
+    * package object-classes
+    **********************/ 
+        grouping admin-state-pac {
+            leaf administrative-state {
+                type administrative-state;
+                description "none";
+            }
+            leaf operational-state {
+                type operational-state;
+                config false;
+                description "none";
+            }
+            leaf lifecycle-state {
+                type lifecycle-state;
+                config false;
+                description "none";
+            }
+            description "Provides state attributes that are applicable to an entity that can be administered. Such an entity also has operational and lifecycle aspects.";
+        }
+        grouping global-class {
+            leaf uuid {
+                type uuid;
+                description "UUID: An identifier that is universally unique within an identifier space, where the identifier space is itself globally unique, and immutable. An UUID carries no semantics with respect to the purpose or state of the entity.
+                    UUID here uses string representation as defined in RFC 4122.  The canonical representation uses lowercase characters.
+                    Pattern: [0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-' + '[0-9a-fA-F]{4}-[0-9a-fA-F]{12} 
+                    Example of a UUID in string representation: f81d4fae-7dec-11d0-a765-00a0c91e6bf6";
+            }
+            list name {
+                key 'value-name';
+                uses name-and-value;
+                description "List of names. A property of an entity with a value that is unique in some namespace but may change during the life of the entity. A name carries no semantics with respect to the purpose of the entity.";
+            }
+            description "The TAPI GlobalComponent serves as the super class for all TAPI entities that can be directly retrieved by their ID. As such, these are first class entities and their ID is expected to be globally unique. ";
+        }
+        grouping lifecycle-state-pac {
+            leaf lifecycle-state {
+                type lifecycle-state;
+                config false;
+                description "none";
+            }
+            description "Provides state attributes for an entity that has lifeccycle aspects only.";
+        }
+        grouping local-class {
+            leaf local-id {
+                type string;
+                description "none";
+            }
+            list name {
+                key 'value-name';
+                uses name-and-value;
+                description "List of names. A property of an entity with a value that is unique in some namespace but may change during the life of the entity. A name carries no semantics with respect to the purpose of the entity.";
+            }
+            description "The TAPI GlobalComponent serves as the super class for all TAPI entities that can be directly retrieved by their ID. As such, these are first class entities and their ID is expected to be globally unique. ";
+        }
+        grouping operational-state-pac {
+            leaf operational-state {
+                type operational-state;
+                config false;
+                description "none";
+            }
+            leaf lifecycle-state {
+                type lifecycle-state;
+                config false;
+                description "none";
+            }
+            description "Provides state attributes that are applicable to an entity that reflects operational aspects. Such an entity is expected to also have lifecycle aspects.";
+        }
+        container context {
+            uses tapi-context;
+            presence "Root container for all TAPI interaction";
+            description "none";
+        }
+        grouping tapi-context {
+            list service-interface-point {
+                key 'uuid';
+                uses service-interface-point;
+                description "none";
+            }
+            uses global-class;
+            description "The Network Control Domain (NCD) object class represents the scope of control that a particular SDN controller has with respect to a particular network, (i.e., encompassing a designated set of interconnected (virtual) network elements).";
+        }
+        grouping resource-spec {
+            uses global-class;
+            description "none";
+        }
+        grouping service-spec {
+            uses global-class;
+            description "none";
+        }
+        grouping service-interface-point {
+            leaf layer-protocol-name {
+                type layer-protocol-name;
+                config false;
+                description "Usage of layerProtocolName [>1]  in the ServiceInterfacePoint should be considered experimental";
+            }
+            leaf-list supported-layer-protocol-qualifier {
+                type layer-protocol-qualifier;
+                config false;
+                min-elements 1;
+                description "none";
+            }
+            uses resource-spec;
+            uses admin-state-pac;
+            uses capacity-pac;
+            description "The LogicalTerminationPoint (LTP) object class encapsulates the termination and adaptation functions of one or more transport layers. 
+                The structure of LTP supports all transport protocols including circuit and packet forms.";
+        }
+        grouping capacity-pac {
+            container total-potential-capacity {
+                config false;
+                uses capacity;
+                description "An optimistic view of the capacity of the TopologicalEntity assuming that any shared capacity is available to be taken.";
+            }
+            container available-capacity {
+                config false;
+                uses capacity;
+                description "Capacity available to be assigned.";
+            }
+            description "The TopologicalEntity derives capacity from the underlying realization. 
+                A TopologicalEntity may be an abstraction and virtualization of a subset of the underlying capability offered in a view or may be directly reflecting the underlying realization.
+                A TopologicalEntity may be directly used in the view or may be assigned to another view for use.
+                The clients supported by a multi-layer TopologicalEntity may interact such that the resources used by one client may impact those available to another. This is derived from the LTP spec details.
+                Represents the capacity available to user (client) along with client interaction and usage. 
+                A TopologicalEntity may reflect one or more client protocols and one or more members for each profile.";
+        }
+        grouping termination-pac {
+            leaf termination-direction {
+                type termination-direction;
+                config false;
+                description "The overall directionality of the LP. 
+                    - A BIDIRECTIONAL LP will have some SINK and/or SOURCE flowss.
+                    - A SINK LP can only contain elements with SINK flows or CONTRA_DIRECTION_SOURCE flows
+                    - A SOURCE LP can only contain SOURCE flows or CONTRA_DIRECTION_SINK flows";
+            }
+            leaf termination-state {
+                type termination-state;
+                config false;
+                description "Indicates whether the layer is terminated and if so how.";
+            }
+            description "Each transport layer is represented by a LayerProtocol (LP) instance. The LayerProtocol instances it can be used for controlling termination and monitoring functionality. 
+                It can also be used for controlling the adaptation (i.e. encapsulation and/or multiplexing of client signal), tandem connection monitoring, traffic conditioning and/or shaping functionality at an intermediate point along a connection. 
+                Where the client – server relationship is fixed 1:1 and immutable, the layers can be encapsulated in a single LTP instance. Where the is a n:1 relationship between client and server, the layers must be split over two separate instances of LTP. ";
+        }
+
+    /***********************
+    * package type-definitions
+    **********************/ 
+        identity LAYER_PROTOCOL_QUALIFIER {
+            description "none";
+        }
+        typedef administrative-state {
+            type enumeration {
+                enum LOCKED {
+                    description "Users are administratively prohibited from making use of the resource.";
+                }
+                enum UNLOCKED {
+                    description "Users are allowed to use the resource";
+                }
+            }
+            description "The possible values of the administrativeState.";
+        }
+        typedef date-and-time {
+            type string;
+            description "This primitive type defines the date and time according to the following structure:
+                yyyyMMddhhmmss.s[Z|{+|-}HHMm] where:
+                yyyy    0000..9999    year
+                MM    01..12            month
+                dd        01..31            day
+                hh        00..23            hour
+                mm    00..59            minute
+                ss        00..59            second
+                s        .0...9            tenth of second (set to .0 if EMS or NE cannot support this granularity)
+                Z        Z                indicates UTC (rather than local time)
+                {+|-}    + or -            delta from UTC
+                HH        00..23            time zone difference in hours
+                Mm    00..59            time zone difference in minutes.";
+        }
+        typedef directive-value {
+            type enumeration {
+                enum MINIMIZE {
+                    description "none";
+                }
+                enum MAXIMIZE {
+                    description "none";
+                }
+                enum ALLOW {
+                    description "none";
+                }
+                enum DISALLOW {
+                    description "none";
+                }
+                enum DONT_CARE {
+                    description "none";
+                }
+            }
+            description "none";
+        }
+        typedef forwarding-direction {
+            type enumeration {
+                enum BIDIRECTIONAL {
+                    description "The Fowarding entity supports both BIDIRECTIONAL flows at all Ports (i.e. all Ports have both an INPUT flow and an OUTPUT flow defined)";
+                }
+                enum UNIDIRECTIONAL {
+                    description "The Forwarding entity has Ports that are either INPUT or OUTPUT. It has no BIDIRECTIONAL Ports.";
+                }
+                enum UNDEFINED_OR_UNKNOWN {
+                    description "Not a normal state. The system is unable to determine the correct value.";
+                }
+            }
+            description "The directionality of a Forwarding entity.";
+        }
+        typedef layer-protocol-name {
+            type enumeration {
+                enum ODU {
+                    description "Models the ODU layer as per ITU-T G.872";
+                }
+                enum ETH {
+                    description "Models the ETH layer as per ITU-T G.8010";
+                }
+                enum DSR {
+                    description "Models a Digital Signal of an unspecified rate. This value can be used when the intent is to respresent an generic digital layer signal without making any statement on its format or overhead (processing) capabilities.";
+                }
+                enum PHOTONIC_MEDIA {
+                    description "Models the OCH, OTSi, OTSiA, OTSiG, OMS, OTS and Media channels as per ITU-T G.872 (2017) version 4";
+                }
+            }
+            description "Provides a controlled list of layer protocol names and indicates the naming authority.
+                Note that it is expected that attributes will be added to this structure to convey the naming authority name, the name of the layer protocol using a human readable string and any particular standard reference.
+                Layer protocol names include:
+                -    Layer 1 (L1): OTU, ODU
+                -    Layer 2 (L2): Carrier Grade Ethernet (ETY, ETH), MPLS-TP (MT)
+                ";
+        }
+        typedef lifecycle-state {
+            type enumeration {
+                enum PLANNED {
+                    description "The resource is planned but is not present in the network.";
+                }
+                enum POTENTIAL_AVAILABLE {
+                    description "The supporting resources are present in the network but are shared with other clients; or require further configuration before they can be used; or both.
+                        o    When a potential resource is configured and allocated to a client it is moved to the installed state for that client.
+                        o    If the potential resource has been consumed (e.g. allocated to another client) it is moved to the planned state for all other clients.";
+                }
+                enum POTENTIAL_BUSY {
+                    description "The supporting resources are present in the network but are shared with other clients; or require further configuration before they can be used; or both.
+                        o    When a potential resource is configured and allocated to a client it is moved to the installed state for that client.
+                        o    If the potential resource has been consumed (e.g. allocated to another client) it is moved to the planned state for all other clients.";
+                }
+                enum INSTALLED {
+                    description "The resource is present in the network and is capable of providing the service expected.";
+                }
+                enum PENDING_REMOVAL {
+                    description "The resource has been marked for removal";
+                }
+            }
+            description "The possible values of the lifecycleState.";
+        }
+        grouping name-and-value {
+            leaf value-name {
+                type string;
+                description "The name of the value. The value need not have a name.";
+            }
+            leaf value {
+                type string;
+                description "The value";
+            }
+            description "A scoped name-value pair";
+        }
+        typedef operational-state {
+            type enumeration {
+                enum DISABLED {
+                    description "The resource is unable to meet the SLA of the user of the resource. If no (explicit) SLA is defined the resource is disabled if it is totally inoperable and unable to provide service to the user.";
+                }
+                enum ENABLED {
+                    description "The resource is partially or fully operable and available for use";
+                }
+            }
+            description "The possible values of the operationalState.";
+        }
+        typedef port-direction {
+            type enumeration {
+                enum BIDIRECTIONAL {
+                    description "The Port has both an INPUT flow and an OUTPUT flow defined.";
+                }
+                enum INPUT {
+                    description "The Port only has definition for a flow into the Forwarding entity (i.e. an ingress flow).";
+                }
+                enum OUTPUT {
+                    description "The Port only has definition for a flow out of the Forwarding entity (i.e. an egress flow).";
+                }
+                enum UNIDENTIFIED_OR_UNKNOWN {
+                    description "Not a normal state. The system is unable to determine the correct value.";
+                }
+            }
+            description "The orientation of flow at the Port of a Forwarding entity";
+        }
+        typedef port-role {
+            type enumeration {
+                enum SYMMETRIC {
+                    description "none";
+                }
+                enum ROOT {
+                    description "none";
+                }
+                enum LEAF {
+                    description "none";
+                }
+                enum TRUNK {
+                    description "none";
+                }
+                enum UNKNOWN {
+                    description "none";
+                }
+            }
+            description "The role of an end in the context of the function of the forwarding entity that it bounds";
+        }
+        typedef termination-direction {
+            type enumeration {
+                enum BIDIRECTIONAL {
+                    description "A Termination with both SINK and SOURCE flows.";
+                }
+                enum SINK {
+                    description "The flow is up the layer stack from the server side to the client side. 
+                        Considering an example of a Termination function within the termination entity, a SINK flow:
+                        - will arrive at at the base of the termination function (the server side) where it is essentially at an INPUT to the termination component
+                        - then will be decoded and deconstructed 
+                        - then relevant parts of the flow will be sent out of the termination function (the client side) where it is essentially at an OUTPUT from the termination component
+                        A SINK termination is one that only supports a SINK flow.
+                        A SINK termiation can be bound to an OUTPUT Port of a Forwarding entity";
+                }
+                enum SOURCE {
+                    description "The flow is down the layer stack from the server side to the client side. 
+                        Considering an example of a Termination function within the termination entity, a SOURCE flow:
+                        - will arrive at at the top of the termination function (the client side) where it is essentially at an INPUT to the termination component
+                        - then will be assembled with various overheads etc and will be coded 
+                        - then coded form of the assembly of flow will be sent out of the termination function (the server side) where it is essentially at an OUTPUT from the termination component
+                        A SOURCE termination is one that only supports a SOURCE flow.
+                        A SOURCE termiation can be bound to an INPUT Port of a Forwarding entity";
+                }
+                enum UNDEFINED_OR_UNKNOWN {
+                    description "Not a normal state. The system is unable to determine the correct value.";
+                }
+            }
+            description "The directionality of a termination entity";
+        }
+        typedef termination-state {
+            type enumeration {
+                enum LP_CAN_NEVER_TERMINATE {
+                    description "A non-flexible case that can never be terminated.";
+                }
+                enum LT_NOT_TERMINATED {
+                    description "A flexible termination that can terminate but is currently not terminated.";
+                }
+                enum TERMINATED_SERVER_TO_CLIENT_FLOW {
+                    description "A flexible termination that is currently terminated for server to client flow only.";
+                }
+                enum TERMINATED_CLIENT_TO_SERVER_FLOW {
+                    description "A flexible termination that is currently terminated for client to server flow only.";
+                }
+                enum TERMINATED_BIDIRECTIONAL {
+                    description "A flexible termination that is currently terminated in both directions of flow.";
+                }
+                enum LT_PERMENANTLY_TERMINATED {
+                    description "A non-flexible termination that is always terminated (in both directions of flow for a bidirectional case and in the one direction of flow for both unidirectional cases).";
+                }
+                enum TERMINATION_STATE_UNKNOWN {
+                    description "There TerminationState cannot be determined.";
+                }
+            }
+            description "Provides support for the range of behaviours and specific states that an LP can take with respect to termination of the signal.
+                Indicates to what degree the LayerTermination is terminated.";
+        }
+        typedef uuid {
+            type string;
+            description "The univeral ID value where the mechanism for generation is defned by some authority not directly referenced in the structure.
+                UUID here uses string representation as defined in RFC 4122.  The canonical representation uses lowercase characters.
+                Pattern: [0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-' + '[0-9a-fA-F]{4}-[0-9a-fA-F]{12} 
+                Example of a UUID in string representation: f81d4fae-7dec-11d0-a765-00a0c91e6bf6";
+        }
+        grouping capacity {
+            container total-size {
+                uses capacity-value;
+                description "Total capacity of the TopologicalEntity in MB/s. In case of bandwidthProfile, this is expected to same as the committedInformationRate.";
+            }
+            container bandwidth-profile {
+                uses bandwidth-profile;
+                description "none";
+            }
+            description "Information on capacity of a particular TopologicalEntity.";
+        }
+        grouping bandwidth-profile {
+            leaf bw-profile-type {
+                type bandwidth-profile-type;
+                description "none";
+            }
+            container committed-information-rate {
+                uses capacity-value;
+                description "none";
+            }
+            container committed-burst-size {
+                uses capacity-value;
+                description "none";
+            }
+            container peak-information-rate {
+                uses capacity-value;
+                description "none";
+            }
+            container peak-burst-size {
+                uses capacity-value;
+                description "none";
+            }
+            leaf color-aware {
+                type boolean;
+                description "none";
+            }
+            leaf coupling-flag {
+                type boolean;
+                description "none";
+            }
+            description "none";
+        }
+        grouping capacity-value {
+            leaf value {
+                type uint64;
+                description "none";
+            }
+            leaf unit {
+                type capacity-unit;
+                description "none";
+            }
+            description "The Capacity (Bandwidth) values that are applicable for digital layers.";
+        }
+        typedef capacity-unit {
+            type enumeration {
+                enum TB {
+                    description "Indicates that the integer CapacityValue is in TeraBytes";
+                }
+                enum TBPS {
+                    description "Indicates that the integer CapacityValue is in Terabit-per-second";
+                }
+                enum GB {
+                    description "Indicates that the integer CapacityValue is in GigaBytes";
+                }
+                enum GBPS {
+                    description "Indicates that the integer CapacityValue is in Gigabit-per-second";
+                }
+                enum MB {
+                    description "Indicates that the integer CapacityValue is in MegaBytes";
+                }
+                enum MBPS {
+                    description "Indicates that the integer CapacityValue is in Megabit-per-second";
+                }
+                enum KB {
+                    description "Indicates that the integer CapacityValue is in KiloBytes";
+                }
+                enum KBPS {
+                    description "Indicates that the integer CapacityValue is in Kilobit-per-second";
+                }
+                enum GHz {
+                    description "none";
+                }
+                enum MHz {
+                    description "none";
+                }
+            }
+            description "none";
+        }
+        typedef bandwidth-profile-type {
+            type enumeration {
+                enum MEF_10.x {
+                    description "none";
+                }
+                enum RFC_2697 {
+                    description "none";
+                }
+                enum RFC_2698 {
+                    description "none";
+                }
+                enum RFC_4115 {
+                    description "none";
+                }
+            }
+            description "none";
+        }
+        grouping time-range {
+            leaf end-time {
+                type date-and-time;
+                description "none";
+            }
+            leaf start-time {
+                type date-and-time;
+                description "none";
+            }
+            description "none";
+        }
+        grouping time-period {
+            leaf value {
+                type uint64;
+                description "none";
+            }
+            leaf unit {
+                type time-unit;
+                description "none";
+            }
+            description "none";
+        }
+        typedef time-unit {
+            type enumeration {
+                enum YEARS {
+                    description "none";
+                }
+                enum MONTHS {
+                    description "none";
+                }
+                enum DAYS {
+                    description "none";
+                }
+                enum HOURS {
+                    description "none";
+                }
+                enum MINUTES {
+                    description "none";
+                }
+                enum SECONDS {
+                    description "none";
+                }
+                enum MILLISECONDS {
+                    description "none";
+                }
+                enum MICROSECONDS {
+                    description "none";
+                }
+                enum NANOSECONDS {
+                    description "none";
+                }
+                enum PICOSECONDS {
+                    description "none";
+                }
+            }
+            description "none";
+        }
+        grouping time-interval {
+            list period {
+                min-elements 1;
+                max-elements 5;
+                uses time-period;
+                description "none";
+            }
+            description "none";
+        }
+        typedef layer-protocol-qualifier {
+            type identityref {
+                base LAYER_PROTOCOL_QUALIFIER;
+            }
+            description "This enumeration is used to qualify the sub-layers (if applicable) for a specific LayerProtocol.
+                This extensible enumeration is intentionally empty in the common module and will be augmented with layer-specific values in the respective technology-specific modules.
+                Examples:
+                - LayerProtocolName := OPTICAL_DATA_UNIT
+                LayerProtocolQualifier := 'ODU_FLEX', 'ODU_0', 'ODU_1', 'ODU_2', 'ODU_2E', 'ODU_3', 'ODU_4'', 'ODU_CBR'', 'ODU_GFP'', 'ODU_GFP_HAO', etc
+                - LayerProtocolName := DIGITAL_SIGNAL_RATE
+                LayerProtocolQualifier := 'GBE', '10_GBE_WAN', '10_GBE_LAN', '100_GBE', 'FC_100', 'FC_200', 'FC_400', 'FC_800', 'FC_1200', 'FC_1600', 'FC_3200', 'STM_1', 'STM_4', 'STM_16', 'STM_64', 'STM_256', 'OC_3', 'OC_12', 'OC_48', 'OC_192', 'OC_768', 'OTU_1', 'OTU_2', 'OTU_2E', 'OTU_3', 'OTU_4', 'GPON', 'XGPON', 'IB_SDR', 'IB_DDR', 'IB_QDR', 'SBCON_ESCON', 'DVB_ASI', 'SDI', 'SDI_1G5', 'SDI_3G', etc
+                - LayerProtocolName := PHOTONIC_MEDIA
+                LayerProtocolQualifier := OCH, OTSi, OTSiA, NMC, NMCA, SMC, SMCA, OMS, OTS
+                ";
+        }
+
+    /***********************
+    * package interfaces
+    **********************/ 
+        rpc get-service-interface-point-details {
+            description "none";
+            input {
+                leaf sip-id-or-name {
+                    type string;
+                    description "none";
+                }
+            }
+            output {
+                container sip {
+                    uses service-interface-point;
+                    description "none";
+                }
+            }
+        }
+        rpc get-service-interface-point-list {
+            description "none";
+            output {
+                list sip {
+                    uses service-interface-point;
+                    description "none";
+                }
+            }
+        }
+        rpc update-service-interface-point {
+            description "none";
+            input {
+                leaf sip-id-or-name {
+                    type string;
+                    description "none";
+                }
+                leaf state {
+                    type administrative-state;
+                    description "none";
+                }
+            }
+        }
+
+}
