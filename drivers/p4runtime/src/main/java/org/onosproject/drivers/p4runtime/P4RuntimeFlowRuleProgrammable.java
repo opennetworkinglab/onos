@@ -118,7 +118,7 @@ public class P4RuntimeFlowRuleProgrammable
 
         pipelineModel = pipeconf.pipelineModel();
         tableMirror = handler().get(P4RuntimeTableMirror.class);
-        translator = piTranslationService.flowRuleTranslator();
+        translator = translationService.flowRuleTranslator();
         return true;
     }
 

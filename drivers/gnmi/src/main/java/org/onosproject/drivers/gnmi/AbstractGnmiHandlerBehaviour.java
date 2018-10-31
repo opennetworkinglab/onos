@@ -41,9 +41,8 @@ public class AbstractGnmiHandlerBehaviour extends AbstractHandlerBehaviour {
     private static final String DEVICE_REQ_TIMEOUT = "deviceRequestTimeout";
     private static final int DEFAULT_DEVICE_REQ_TIMEOUT = 60;
 
-    public static final String GNMI_SERVER_ADDR_KEY = "gnmi_ip";
-    public static final String GNMI_SERVER_PORT_KEY = "gnmi_port";
-    private static final String GNMI_SERVICE_NAME = "gnmi";
+    private static final String GNMI_SERVER_ADDR_KEY = "gnmi_ip";
+    private static final String GNMI_SERVER_PORT_KEY = "gnmi_port";
 
     protected final Logger log = LoggerFactory.getLogger(getClass());
     protected DeviceId deviceId;
@@ -66,7 +65,7 @@ public class AbstractGnmiHandlerBehaviour extends AbstractHandlerBehaviour {
         return true;
     }
 
-    protected GnmiClient createClient() {
+    GnmiClient createClient() {
         deviceId = handler().data().deviceId();
         controller = handler().get(GnmiController.class);
 
@@ -74,7 +73,7 @@ public class AbstractGnmiHandlerBehaviour extends AbstractHandlerBehaviour {
         final String serverPortString = this.data().value(GNMI_SERVER_PORT_KEY);
 
         if (serverAddr == null || serverPortString == null) {
-            log.warn("Unable to create client for {}, missing driver data key (required is {}, {}, and {})",
+            log.warn("Unable to create client for {}, missing driver data key (required is {} and {})",
                     deviceId, GNMI_SERVER_ADDR_KEY, GNMI_SERVER_PORT_KEY);
             return null;
         }
@@ -83,11 +82,10 @@ public class AbstractGnmiHandlerBehaviour extends AbstractHandlerBehaviour {
         try {
             serverPort = Integer.parseUnsignedInt(serverPortString);
         } catch (NumberFormatException e) {
-            log.error("{} is not a valid gNMI port number", serverPortString);
+            log.error("{} is not a valid port number", serverPortString);
             return null;
         }
-        GnmiClientKey clientKey =
-                new GnmiClientKey(GNMI_SERVICE_NAME, deviceId, serverAddr, serverPort);
+        GnmiClientKey clientKey = new GnmiClientKey(deviceId, serverAddr, serverPort);
         if (!controller.createClient(clientKey)) {
             log.warn("Unable to create client for {}, aborting operation", deviceId);
             return null;

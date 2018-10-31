@@ -17,10 +17,9 @@
 package org.onosproject.gnmi.api;
 
 import com.google.common.annotations.Beta;
-
 import gnmi.Gnmi.CapabilityResponse;
-import gnmi.Gnmi.GetResponse;
 import gnmi.Gnmi.GetRequest;
+import gnmi.Gnmi.GetResponse;
 import gnmi.Gnmi.SetRequest;
 import gnmi.Gnmi.SetResponse;
 import org.onosproject.grpc.api.GrpcClient;
@@ -34,15 +33,14 @@ import java.util.concurrent.CompletableFuture;
 public interface GnmiClient extends GrpcClient {
 
     /**
-     * Gets capability from a target. This allows device driver behavior
-     * to validate the service version and models which gNMI device supported.
+     * Gets capability from a target.
      *
      * @return the capability response
      */
     CompletableFuture<CapabilityResponse> capability();
 
     /**
-     * Retrieve a snapshot of data from the device.
+     * Retrieves a snapshot of data from the device.
      *
      * @param request the get request
      * @return the snapshot of data from the device

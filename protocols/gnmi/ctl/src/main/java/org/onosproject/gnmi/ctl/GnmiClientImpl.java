@@ -27,10 +27,10 @@ import gnmi.gNMIGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
+import org.onosproject.gnmi.api.GnmiClient;
 import org.onosproject.gnmi.api.GnmiClientKey;
 import org.onosproject.grpc.ctl.AbstractGrpcClient;
 import org.slf4j.Logger;
-import org.onosproject.gnmi.api.GnmiClient;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -46,8 +46,8 @@ public class GnmiClientImpl extends AbstractGrpcClient implements GnmiClient {
     private final Logger log = getLogger(getClass());
     private final gNMIGrpc.gNMIBlockingStub blockingStub;
 
-    public GnmiClientImpl(GnmiClientKey clientKey, ManagedChannel managedChannel) {
-        super(clientKey, managedChannel);
+    GnmiClientImpl(GnmiClientKey clientKey, ManagedChannel managedChannel) {
+        super(clientKey);
         this.blockingStub = gNMIGrpc.newBlockingStub(managedChannel);
     }
 
@@ -101,8 +101,7 @@ public class GnmiClientImpl extends AbstractGrpcClient implements GnmiClient {
 
     private boolean doServiceAvailable() {
         try {
-            blockingStub.get(DUMMY_REQUEST);
-            return true;
+            return blockingStub.get(DUMMY_REQUEST) != null;
         } catch (StatusRuntimeException e) {
             // This gRPC call should throw INVALID_ARGUMENT status exception
             // since "/onos-gnmi-test" path does not exists in any config model

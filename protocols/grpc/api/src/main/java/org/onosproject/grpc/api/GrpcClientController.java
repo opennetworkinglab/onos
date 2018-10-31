@@ -20,8 +20,8 @@ import com.google.common.annotations.Beta;
 import org.onosproject.net.DeviceId;
 
 /**
- * Abstraction of a gRPC controller which controls specific gRPC
- * client {@link C} with specific client key {@link K}.
+ * Abstraction of a gRPC controller which controls specific gRPC client {@link
+ * C} with specific client key {@link K}.
  *
  * @param <K> the gRPC client key
  * @param <C> the gRPC client type
@@ -30,19 +30,19 @@ import org.onosproject.net.DeviceId;
 public interface GrpcClientController<K extends GrpcClientKey, C extends GrpcClient> {
 
     /**
-     * Instantiates a new client to operate on a gRPC server identified by
-     * the given information. As a result of this method, a client can be later
+     * Instantiates a new client to operate on a gRPC server identified by the
+     * given information. As a result of this method, a client can be later
      * obtained by invoking {@link #getClient(DeviceId)}.
-     *
-     * Only one client can exist for the same device ID. Calls to this method are
-     * idempotent fot the same client key, i.e. returns true
-     * if such client already exists but a new one is not created.
-     * If there exists a client with same device ID but different address and port,
-     * removes old one and recreate new one.
+     * <p>
+     * Only one client can exist for the same device ID. Calls to this method
+     * are idempotent fot the same client key, i.e. returns true if such client
+     * already exists but a new one is not created. If there exists a client
+     * with same device ID but different address and port, removes old one and
+     * recreate new one.
      *
      * @param clientKey the client key
-     * @return true if the client was created and the channel to the server is open;
-     *         false otherwise
+     * @return true if the client was created and the channel to the server is
+     * open; false otherwise
      */
     boolean createClient(K clientKey);
 
@@ -55,8 +55,8 @@ public interface GrpcClientController<K extends GrpcClientKey, C extends GrpcCli
     C getClient(DeviceId deviceId);
 
     /**
-     * Removes the gRPC client for the given device. If no client
-     * exists for the given device, the result is a no-op.
+     * Removes the gRPC client for the given device. If no client exists for the
+     * given device, the result is a no-op.
      *
      * @param deviceId the device identifier
      */
@@ -64,15 +64,15 @@ public interface GrpcClientController<K extends GrpcClientKey, C extends GrpcCli
 
     /**
      * Check reachability of the gRPC server running on the given device.
-     * Reachability can be tested only if a client is previously created
-     * using {@link #createClient(GrpcClientKey)}.
-     * Note that this only checks the reachability instead of checking service
-     * availability, different gRPC client checks service availability with
+     * Reachability can be tested only if a client is previously created using
+     * {@link #createClient(GrpcClientKey)}. Note that this only checks the
+     * reachability instead of checking service availability, different
+     * service-specific gRPC clients might check service availability in a
      * different way.
      *
      * @param deviceId the device identifier
-     * @return true if client was created and is able to contact the gNMI server;
-     *         false otherwise
+     * @return true if client was created and is able to contact the gNMI
+     * server; false otherwise
      */
     boolean isReachable(DeviceId deviceId);
 }

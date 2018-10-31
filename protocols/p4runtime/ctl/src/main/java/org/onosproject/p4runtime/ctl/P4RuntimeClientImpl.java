@@ -138,7 +138,7 @@ final class P4RuntimeClientImpl extends AbstractGrpcClient implements P4RuntimeC
     P4RuntimeClientImpl(P4RuntimeClientKey clientKey, ManagedChannel channel,
                         P4RuntimeControllerImpl controller) {
 
-        super(clientKey, channel);
+        super(clientKey);
         this.p4DeviceId = clientKey.p4DeviceId();
         this.controller = controller;
 

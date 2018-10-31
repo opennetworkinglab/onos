@@ -114,6 +114,7 @@ ONOS_DRIVERS = [
     "//drivers/polatis/netconf:onos-drivers-polatis-netconf-oar",
     "//drivers/polatis/openflow:onos-drivers-polatis-openflow-oar",
     "//drivers/odtn-driver:onos-drivers-odtn-driver-oar",
+    "//drivers/stratum:onos-drivers-stratum-oar",
 ]
 
 ONOS_PROVIDERS = [
