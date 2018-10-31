@@ -74,7 +74,7 @@ public class P4RuntimeMeterProgrammable extends AbstractP4RuntimeHandlerBehaviou
             return false;
         }
 
-        translator = piTranslationService.meterTranslator();
+        translator = translationService.meterTranslator();
         meterMirror = handler().get(P4RuntimeMeterMirror.class);
         pipelineModel = pipeconf.pipelineModel();
         return true;

@@ -96,7 +96,7 @@ public class P4RuntimeActionGroupProgrammable
         groupMirror = this.handler().get(P4RuntimeGroupMirror.class);
         memberMirror = this.handler().get(P4RuntimeActionProfileMemberMirror.class);
         groupStore = handler().get(GroupStore.class);
-        groupTranslator = piTranslationService.groupTranslator();
+        groupTranslator = translationService.groupTranslator();
         return true;
     }
 

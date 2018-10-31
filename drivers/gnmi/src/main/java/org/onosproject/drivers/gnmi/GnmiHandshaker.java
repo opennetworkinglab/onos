@@ -77,7 +77,9 @@ public class GnmiHandshaker extends AbstractGnmiHandlerBehaviour implements Devi
             return false;
         }
 
-        return getFutureWithDeadline(client.isServiceAvailable(), "getting availability", false);
+        return getFutureWithDeadline(
+                client.isServiceAvailable(),
+                "checking if gNMI service is available", false);
     }
 
     @Override

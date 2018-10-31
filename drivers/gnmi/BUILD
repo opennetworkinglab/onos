@@ -28,7 +28,6 @@ onos_app(
     included_bundles = BUNDLES,
     required_apps = [
         "org.onosproject.generaldeviceprovider",
-        "org.onosproject.protocols.grpc",
         "org.onosproject.protocols.gnmi",
     ],
     title = "gNMI Drivers",

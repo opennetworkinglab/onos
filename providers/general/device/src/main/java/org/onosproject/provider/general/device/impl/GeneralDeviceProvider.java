@@ -106,7 +106,12 @@ import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.device.DeviceEvent.Type;
-import static org.onosproject.provider.general.device.impl.OsgiPropertyConstants.*;
+import static org.onosproject.provider.general.device.impl.OsgiPropertyConstants.OP_TIMEOUT_SHORT;
+import static org.onosproject.provider.general.device.impl.OsgiPropertyConstants.OP_TIMEOUT_SHORT_DEFAULT;
+import static org.onosproject.provider.general.device.impl.OsgiPropertyConstants.PROBE_FREQUENCY;
+import static org.onosproject.provider.general.device.impl.OsgiPropertyConstants.PROBE_FREQUENCY_DEFAULT;
+import static org.onosproject.provider.general.device.impl.OsgiPropertyConstants.STATS_POLL_FREQUENCY;
+import static org.onosproject.provider.general.device.impl.OsgiPropertyConstants.STATS_POLL_FREQUENCY_DEFAULT;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -498,13 +503,16 @@ public class GeneralDeviceProvider extends AbstractProvider
         // Get one from driver or forge.
         final DeviceDescriptionDiscovery deviceDiscovery = getBehaviour(
                 deviceId, DeviceDescriptionDiscovery.class);
-        if (deviceDiscovery != null) {
-            // Enforce defaultAvailable flag over the one obtained from driver.
-            final DeviceDescription d = deviceDiscovery.discoverDeviceDetails();
-            return new DefaultDeviceDescription(d, defaultAvailable, d.annotations());
-        } else {
+        if (deviceDiscovery == null) {
             return forgeDeviceDescription(deviceId, defaultAvailable);
         }
+
+        final DeviceDescription d = deviceDiscovery.discoverDeviceDetails();
+        if (d == null) {
+            return forgeDeviceDescription(deviceId, defaultAvailable);
+        }
+        // Enforce defaultAvailable flag over the one obtained from driver.
+        return new DefaultDeviceDescription(d, defaultAvailable, d.annotations());
     }
 
     private List<PortDescription> getPortDetails(DeviceId deviceId) {

@@ -26,15 +26,16 @@ import org.onosproject.net.DeviceId;
 @Beta
 public class GnmiClientKey extends GrpcClientKey {
 
+    private static final String GNMI = "gnmi";
+
     /**
      * Creates a new gNMI client key.
      *
-     * @param serviceName gNMI service name of the client
      * @param deviceId    ONOS device ID
      * @param serverAddr  gNMI server address
      * @param serverPort  gNMI server port
      */
-    public GnmiClientKey(String serviceName, DeviceId deviceId, String serverAddr, int serverPort) {
-        super(serviceName, deviceId, serverAddr, serverPort);
+    public GnmiClientKey(DeviceId deviceId, String serverAddr, int serverPort) {
+        super(GNMI, deviceId, serverAddr, serverPort);
     }
 }

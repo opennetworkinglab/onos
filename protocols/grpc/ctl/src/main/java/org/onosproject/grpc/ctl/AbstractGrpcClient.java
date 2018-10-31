@@ -17,14 +17,12 @@
 package org.onosproject.grpc.ctl;
 
 import io.grpc.Context;
-import io.grpc.ManagedChannel;
 import io.grpc.StatusRuntimeException;
 import org.onlab.util.SharedExecutors;
 import org.onosproject.grpc.api.GrpcClient;
 import org.onosproject.grpc.api.GrpcClientKey;
 import org.onosproject.net.DeviceId;
 import org.slf4j.Logger;
-
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -45,26 +43,24 @@ import static org.slf4j.LoggerFactory.getLogger;
 public abstract class AbstractGrpcClient implements GrpcClient {
 
     // Timeout in seconds to obtain the request lock.
-    protected static final int LOCK_TIMEOUT = 60;
+    private static final int LOCK_TIMEOUT = 60;
     private static final int DEFAULT_THREAD_POOL_SIZE = 10;
 
     protected final Logger log = getLogger(getClass());
 
-    protected final Lock requestLock = new ReentrantLock();
-    protected final Context.CancellableContext cancellableContext =
+    private final Lock requestLock = new ReentrantLock();
+    private final Context.CancellableContext cancellableContext =
             Context.current().withCancellation();
+    private final Executor contextExecutor;
+
     protected final ExecutorService executorService;
-    protected final Executor contextExecutor;
+    protected final DeviceId deviceId;
 
-    protected ManagedChannel channel;
-    protected DeviceId deviceId;
-
-    protected AbstractGrpcClient(GrpcClientKey clientKey, ManagedChannel channel) {
+    protected AbstractGrpcClient(GrpcClientKey clientKey) {
         this.deviceId = clientKey.deviceId();
         this.executorService = Executors.newFixedThreadPool(DEFAULT_THREAD_POOL_SIZE, groupedThreads(
                 "onos-grpc-" + clientKey.serviceName() + "-client-" + deviceId.toString(), "%d"));
         this.contextExecutor = this.cancellableContext.fixedContextExecutor(executorService);
-        this.channel = channel;
     }
 
     @Override
@@ -112,7 +108,7 @@ public abstract class AbstractGrpcClient implements GrpcClient {
      * @param executor the executor to execute this supplier
      * @return CompletableFuture includes the result of supplier
      */
-    protected <U> CompletableFuture<U> supplyWithExecutor(
+    private <U> CompletableFuture<U> supplyWithExecutor(
             Supplier<U> supplier, String opDescription, Executor executor) {
         return CompletableFuture.supplyAsync(() -> {
             // TODO: explore a more relaxed locking strategy.

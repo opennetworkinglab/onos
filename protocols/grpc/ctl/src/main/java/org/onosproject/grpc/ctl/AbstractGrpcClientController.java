@@ -21,7 +21,6 @@ import com.google.common.util.concurrent.Striped;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.netty.NettyChannelBuilder;
-
 import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.event.Event;
 import org.onosproject.event.EventListener;
@@ -152,7 +151,7 @@ public abstract class AbstractGrpcClientController
         return withDeviceLock(() -> doGetClient(deviceId), deviceId);
     }
 
-    protected C doGetClient(DeviceId deviceId) {
+    private C doGetClient(DeviceId deviceId) {
         if (!clientKeys.containsKey(deviceId)) {
             return null;
         }
@@ -183,7 +182,7 @@ public abstract class AbstractGrpcClientController
         return withDeviceLock(() -> doIsReachable(deviceId), deviceId);
     }
 
-    protected boolean doIsReachable(DeviceId deviceId) {
+    private boolean doIsReachable(DeviceId deviceId) {
         // Default behaviour checks only the gRPC channel, should
         // check according to different gRPC service
         if (!clientKeys.containsKey(deviceId)) {
