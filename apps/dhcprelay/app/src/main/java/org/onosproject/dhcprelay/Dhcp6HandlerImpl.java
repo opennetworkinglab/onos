@@ -120,18 +120,25 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.dhcprelay.OsgiPropertyConstants.LEARN_ROUTE_FROM_LEASE_QUERY;
+import static org.onosproject.dhcprelay.OsgiPropertyConstants.LEARN_ROUTE_FROM_LEASE_QUERY_DEFAULT;
 import static org.onosproject.net.flowobjective.Objective.Operation.ADD;
 import static org.onosproject.net.flowobjective.Objective.Operation.REMOVE;
 import java.util.concurrent.Semaphore;
 
-@Component(service = { DhcpHandler.class, HostProvider.class })
-//@Property(name = "version", value = "6")
+@Component(
+    service = { DhcpHandler.class, HostProvider.class },
+    property = {
+        "version:Integer=6",
+        LEARN_ROUTE_FROM_LEASE_QUERY + ":Boolean=" + LEARN_ROUTE_FROM_LEASE_QUERY_DEFAULT
+    }
+)
+
 public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
     public static final String DHCP_V6_RELAY_APP = "org.onosproject.Dhcp6HandlerImpl";
     public static final ProviderId PROVIDER_ID = new ProviderId("dhcp6", DHCP_V6_RELAY_APP);
     private static final int IGNORE_CONTROL_PRIORITY = PacketPriority.CONTROL.priorityValue() + 1000;
     private String gCount = "global";
-    private static final String LQ_ROUTE_PROPERTY_NAME = "learnRouteFromLeasequery";
     private static final TrafficSelector CLIENT_SERVER_SELECTOR = DefaultTrafficSelector.builder()
             .matchEthType(Ethernet.TYPE_IPV6)
             .matchIPProtocol(IPv6.PROTOCOL_UDP)
@@ -197,9 +204,8 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService cfgService;
 
-    //@Property(name = Dhcp6HandlerImpl.LQ_ROUTE_PROPERTY_NAME, boolValue = false,
-    //        label = "Enable learning routing information from LQ")
-    private Boolean learnRouteFromLeasequery = Boolean.TRUE;
+    /** Enable learning routing information from LQ. */
+    private Boolean learnRouteFromLeasequery = LEARN_ROUTE_FROM_LEASE_QUERY_DEFAULT;
 
     protected HostProviderService providerService;
     protected ApplicationId appId;
@@ -267,7 +273,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
     protected void modified(ComponentContext context) {
         Dictionary<?, ?> properties = context.getProperties();
         Boolean flag;
-        flag = Tools.isPropertyEnabled(properties, Dhcp6HandlerImpl.LQ_ROUTE_PROPERTY_NAME);
+        flag = Tools.isPropertyEnabled(properties, LEARN_ROUTE_FROM_LEASE_QUERY);
         if (flag != null) {
             learnRouteFromLeasequery = flag;
             log.info("Learning routes from DHCP leasequery is {}",

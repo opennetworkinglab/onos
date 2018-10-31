@@ -96,12 +96,26 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.dhcprelay.OsgiPropertyConstants.ARP_ENABLED;
+import static org.onosproject.dhcprelay.OsgiPropertyConstants.ARP_ENABLED_DEFAULT;
+import static org.onosproject.dhcprelay.OsgiPropertyConstants.DHCP_FPM_ENABLED;
+import static org.onosproject.dhcprelay.OsgiPropertyConstants.DHCP_FPM_ENABLED_DEFAULT;
+import static org.onosproject.dhcprelay.OsgiPropertyConstants.DHCP_POLL_INTERVAL;
+import static org.onosproject.dhcprelay.OsgiPropertyConstants.DHCP_POLL_INTERVAL_DEFAULT;
 import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FACTORY;
 
 /**
  * DHCP Relay Agent Application Component.
  */
-@Component(immediate = true, service = DhcpRelayService.class)
+@Component(
+    immediate = true,
+    service = DhcpRelayService.class,
+    property = {
+        ARP_ENABLED + ":Boolean=" + ARP_ENABLED_DEFAULT,
+        DHCP_POLL_INTERVAL + ":Integer=" + DHCP_POLL_INTERVAL_DEFAULT,
+        DHCP_FPM_ENABLED + ":Boolean=" + DHCP_FPM_ENABLED_DEFAULT
+    }
+)
 public class DhcpRelayManager implements DhcpRelayService {
     public static final String DHCP_RELAY_APP = "org.onosproject.dhcprelay";
     public static final String ROUTE_STORE_IMPL =
@@ -188,17 +202,14 @@ public class DhcpRelayManager implements DhcpRelayService {
             target = "(version=6)")
     protected DhcpHandler v6Handler;
 
-    //@Property(name = "arpEnabled", boolValue = true,
-    //        label = "Enable Address resolution protocol")
-    protected boolean arpEnabled = true;
+    /** Enable Address resolution protocol. */
+    protected boolean arpEnabled = ARP_ENABLED_DEFAULT;
 
-    //@Property(name = "dhcpPollInterval", intValue = 24 * 3600,
-    //        label = "dhcp relay poll interval")
-    protected int dhcpPollInterval = 24 * 3600;
+    /** dhcp relay poll interval. */
+    protected int dhcpPollInterval = DHCP_POLL_INTERVAL_DEFAULT;
 
-    //@Property(name = "dhcpFpmEnabled", boolValue = false,
-    //        label = "Enable DhcpRelay Fpm")
-    protected boolean dhcpFpmEnabled = false;
+    /** Enable DhcpRelay Fpm. */
+    protected boolean dhcpFpmEnabled = DHCP_FPM_ENABLED_DEFAULT;
 
     private ScheduledExecutorService timerExecutor;
 
@@ -269,7 +280,7 @@ public class DhcpRelayManager implements DhcpRelayService {
         Dictionary<?, ?> properties = context.getProperties();
         Boolean flag;
 
-        flag = Tools.isPropertyEnabled(properties, "arpEnabled");
+        flag = Tools.isPropertyEnabled(properties, ARP_ENABLED);
         if (flag != null) {
             arpEnabled = flag;
             log.info("Address resolution protocol is {}",
@@ -282,7 +293,7 @@ public class DhcpRelayManager implements DhcpRelayService {
             cancelArpPackets();
         }
 
-        int intervalVal = Tools.getIntegerProperty(properties, "dhcpPollInterval");
+        int intervalVal = Tools.getIntegerProperty(properties, DHCP_POLL_INTERVAL);
         log.info("DhcpRelay poll interval new {} old {}", intervalVal, dhcpPollInterval);
         if (intervalVal !=  dhcpPollInterval) {
             timerExecutor.shutdown();
@@ -297,7 +308,7 @@ public class DhcpRelayManager implements DhcpRelayService {
             v6Handler.setDhcp6PollInterval(dhcpPollInterval);
         }
 
-        flag = Tools.isPropertyEnabled(properties, "dhcpFpmEnabled");
+        flag = Tools.isPropertyEnabled(properties, DHCP_FPM_ENABLED);
         if (flag != null) {
             boolean oldValue = dhcpFpmEnabled;
             dhcpFpmEnabled = flag;

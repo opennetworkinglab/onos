@@ -43,8 +43,13 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Persistent Fpm Prefix Store with Listener.
  */
-@Component(immediate = true, service = DhcpFpmPrefixStore.class)
-//@Property(name = "fpm_type", value = "DHCP")
+@Component(
+    immediate = true,
+    service = DhcpFpmPrefixStore.class,
+    property = {
+        "fpm_type=DHCP"
+    }
+)
 public class DistributedFpmPrefixStore implements DhcpFpmPrefixStore {
 
     private static final KryoNamespace APP_KRYO = KryoNamespace.newBuilder()
