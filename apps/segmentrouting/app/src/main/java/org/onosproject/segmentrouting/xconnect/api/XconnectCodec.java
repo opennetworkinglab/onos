@@ -23,7 +23,6 @@ import org.onlab.packet.VlanId;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.PortNumber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,10 +51,10 @@ public class XconnectCodec extends JsonCodec<XconnectDesc> {
         DeviceId deviceId = DeviceId.deviceId(json.path(DEVICE_ID).asText());
         VlanId vlanId = VlanId.vlanId(json.path(VLAN_ID).asText());
 
-        Set<PortNumber> ports = Sets.newHashSet();
+        Set<String> ports = Sets.newHashSet();
         JsonNode portNodes = json.get(PORTS);
         if (portNodes != null) {
-            portNodes.forEach(portNode -> ports.add(PortNumber.portNumber(portNode.asInt())));
+            portNodes.forEach(portNode -> ports.add(portNode.asText()));
         }
 
         XconnectKey key = new XconnectKey(deviceId, vlanId);

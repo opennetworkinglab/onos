@@ -4,6 +4,7 @@ COMPILE_DEPS = CORE_DEPS + JACKSON + KRYO + CLI + [
     "//apps/route-service/api:onos-apps-route-service-api",
     "//apps/mcast/api:onos-apps-mcast-api",
     "//apps/mcast/cli:onos-apps-mcast-cli",
+    "//apps/l2lb:onos-apps-l2lb",
 ]
 
 TEST_DEPS = TEST_ADAPTERS + [
