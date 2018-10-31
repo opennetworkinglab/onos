@@ -16,7 +16,6 @@
 package org.onosproject.segmentrouting.xconnect.api;
 
 import com.google.common.base.MoreObjects;
-import org.onosproject.net.PortNumber;
 
 import java.util.Objects;
 import java.util.Set;
@@ -26,7 +25,7 @@ import java.util.Set;
  */
 public class XconnectDesc {
     private XconnectKey key;
-    private Set<PortNumber> ports;
+    private Set<String> ports;
 
     /**
      * Constructs new Xconnect description with given device ID and VLAN ID.
@@ -34,7 +33,7 @@ public class XconnectDesc {
      * @param key Xconnect key
      * @param ports set of ports
      */
-    public XconnectDesc(XconnectKey key, Set<PortNumber> ports) {
+    public XconnectDesc(XconnectKey key, Set<String> ports) {
         this.key = key;
         this.ports = ports;
     }
@@ -53,7 +52,7 @@ public class XconnectDesc {
      *
      * @return set of ports
      */
-    public Set<PortNumber> ports() {
+    public Set<String> ports() {
         return ports;
     }
 
