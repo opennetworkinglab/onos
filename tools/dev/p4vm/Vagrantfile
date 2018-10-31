@@ -2,7 +2,7 @@ P4_VM_TYPE = ENV['P4_VM_TYPE'] || "dev"
 
 Vagrant.configure(2) do |config|
   if P4_VM_TYPE == "tutorial"
-    config.vm.box = "fso/xenial64-desktop"
+    config.vm.box = "lasp/ubuntu16.04-desktop"
   else
     config.vm.box = "bento/ubuntu-16.04"
   end
