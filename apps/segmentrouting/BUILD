@@ -10,6 +10,7 @@ onos_app(
     required_apps = [
         "org.onosproject.route-service",
         "org.onosproject.mcast",
+        "org.onosproject.l2lb",
     ],
     title = "Segment Routing",
     url = "http://onosproject.org",
