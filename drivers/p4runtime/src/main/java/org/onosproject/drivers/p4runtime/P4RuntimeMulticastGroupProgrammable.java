@@ -66,7 +66,7 @@ public class P4RuntimeMulticastGroupProgrammable
         }
         mcGroupMirror = this.handler().get(P4RuntimeMulticastGroupMirror.class);
         groupStore = handler().get(GroupStore.class);
-        mcGroupTranslator = piTranslationService.multicastGroupTranslator();
+        mcGroupTranslator = translationService.multicastGroupTranslator();
         return true;
     }
 

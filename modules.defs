@@ -231,7 +231,7 @@ ONOS_APPS = [
     '//apps/l3vpn:onos-apps-l3vpn-oar',
     '//apps/openroadm:onos-apps-openroadm-oar',
     '//apps/artemis:onos-apps-artemis-oar',
-    '//apps/pi-demo/ecmp:onos-apps-pi-demo-ecmp-oar',
+    #'//apps/pi-demo/ecmp:onos-apps-pi-demo-ecmp-oar',
     '//apps/gluon:onos-apps-gluon-oar',
     '//apps/evpnopenflow:onos-apps-evpnopenflow-oar',
     '//apps/route-service:onos-apps-route-service-oar',
@@ -256,7 +256,7 @@ ONOS_APPS = [
     '//apps/mcast:onos-apps-mcast-oar',
     '//apps/layout:onos-apps-layout-oar',
     '//apps/imr:onos-apps-imr-oar',
-    '//apps/inbandtelemetry/app:onos-apps-inbandtelemetry-app-oar',
+    #'//apps/inbandtelemetry/app:onos-apps-inbandtelemetry-app-oar',
     # nodemetrics application
     '//apps/nodemetrics:onos-apps-nodemetrics-oar',
     '//web/gui2:onos-web-gui2-oar',
@@ -265,7 +265,7 @@ ONOS_APPS = [
 PROTOCOL_APPS = [
     # '//protocols/grpc:onos-protocols-grpc-oar',
     # '//protocols/p4runtime:onos-protocols-p4runtime-oar',
-    '//protocols/gnmi:onos-protocols-gnmi-oar',
+    #'//protocols/gnmi:onos-protocols-gnmi-oar',
     '//protocols/xmpp/core:onos-protocols-xmpp-core-oar',
     '//protocols/xmpp/pubsub:onos-protocols-xmpp-pubsub-oar',
 ]

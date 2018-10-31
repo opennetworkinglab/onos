@@ -499,13 +499,16 @@ public class GeneralDeviceProvider extends AbstractProvider
         // Get one from driver or forge.
         final DeviceDescriptionDiscovery deviceDiscovery = getBehaviour(
                 deviceId, DeviceDescriptionDiscovery.class);
-        if (deviceDiscovery != null) {
-            // Enforce defaultAvailable flag over the one obtained from driver.
-            final DeviceDescription d = deviceDiscovery.discoverDeviceDetails();
-            return new DefaultDeviceDescription(d, defaultAvailable, d.annotations());
-        } else {
+        if (deviceDiscovery == null) {
             return forgeDeviceDescription(deviceId, defaultAvailable);
         }
+
+        final DeviceDescription d = deviceDiscovery.discoverDeviceDetails();
+        if (d == null) {
+            return forgeDeviceDescription(deviceId, defaultAvailable);
+        }
+        // Enforce defaultAvailable flag over the one obtained from driver.
+        return new DefaultDeviceDescription(d, defaultAvailable, d.annotations());
     }
 
     private List<PortDescription> getPortDetails(DeviceId deviceId) {

@@ -4,8 +4,8 @@ COMPILE_DEPS = CORE_DEPS + KRYO + [
     "@io_grpc_grpc_java//netty",
     "@io_grpc_grpc_java//stub",
     "//core/store/serializers:onos-core-serializers",
-    "//protocols/gnmi/stub:gnmi_java_grpc",
-    "//protocols/gnmi/stub:gnmi_java_proto",
+    "//protocols/gnmi/stub:onos-protocols-gnmi-stub",
+    "//protocols/gnmi/api:onos-protocols-gnmi-api",
     "//protocols/grpc/api:onos-protocols-grpc-api",
     "//protocols/grpc/proto:onos-protocols-grpc-proto",
 ]
@@ -28,7 +28,6 @@ onos_app(
     included_bundles = BUNDLES,
     required_apps = [
         "org.onosproject.generaldeviceprovider",
-        "org.onosproject.protocols.grpc",
         "org.onosproject.protocols.gnmi",
     ],
     title = "gNMI Drivers",

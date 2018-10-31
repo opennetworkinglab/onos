@@ -1,0 +1,17 @@
+proto_library(
+    name = "gnmi_proto",
+    srcs = ["gnmi/gnmi.proto"],
+    deps = [
+        ":gnmi_ext_proto",
+        "@com_google_protobuf//:descriptor_proto",
+        "@com_google_protobuf//:any_proto",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+
+proto_library(
+    name = "gnmi_ext_proto",
+    srcs = ["gnmi_ext/gnmi_ext.proto"],
+    visibility = ["//visibility:public"],
+)

@@ -27,6 +27,7 @@ import org.onosproject.net.pi.model.PiPipelineInterpreter;
 import org.onosproject.net.pi.service.PiPipeconfService;
 import org.onosproject.net.pi.service.PiTranslationService;
 import org.onosproject.p4runtime.api.P4RuntimeClient;
+import org.onosproject.p4runtime.api.P4RuntimeClientKey;
 import org.onosproject.p4runtime.api.P4RuntimeController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,9 +48,9 @@ public class AbstractP4RuntimeHandlerBehaviour extends AbstractHandlerBehaviour 
     private static final String DEVICE_REQ_TIMEOUT = "deviceRequestTimeout";
     private static final int DEFAULT_DEVICE_REQ_TIMEOUT = 60;
 
-    public static final String P4RUNTIME_SERVER_ADDR_KEY = "p4runtime_ip";
-    public static final String P4RUNTIME_SERVER_PORT_KEY = "p4runtime_port";
-    public static final String P4RUNTIME_DEVICE_ID_KEY = "p4runtime_deviceId";
+    private static final String P4RUNTIME_SERVER_ADDR_KEY = "p4runtime_ip";
+    private static final String P4RUNTIME_SERVER_PORT_KEY = "p4runtime_port";
+    private static final String P4RUNTIME_DEVICE_ID_KEY = "p4runtime_deviceId";
 
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -60,7 +61,7 @@ public class AbstractP4RuntimeHandlerBehaviour extends AbstractHandlerBehaviour 
     protected P4RuntimeController controller;
     protected PiPipeconf pipeconf;
     protected P4RuntimeClient client;
-    protected PiTranslationService piTranslationService;
+    protected PiTranslationService translationService;
 
     /**
      * Initializes this behaviour attributes. Returns true if the operation was
@@ -101,7 +102,7 @@ public class AbstractP4RuntimeHandlerBehaviour extends AbstractHandlerBehaviour 
         }
         pipeconf = piPipeconfService.getPipeconf(pipeconfId).get();
 
-        piTranslationService = handler().get(PiTranslationService.class);
+        translationService = handler().get(PiTranslationService.class);
 
         return true;
     }
@@ -157,7 +158,9 @@ public class AbstractP4RuntimeHandlerBehaviour extends AbstractHandlerBehaviour 
             return null;
         }
 
-        if (!controller.createClient(deviceId, serverAddr, serverPort, p4DeviceId)) {
+        final P4RuntimeClientKey clientKey = new P4RuntimeClientKey(
+                deviceId, serverAddr, serverPort, p4DeviceId);
+        if (!controller.createClient(clientKey)) {
             log.warn("Unable to create client for {}, aborting operation", deviceId);
             return null;
         }
@@ -173,7 +176,7 @@ public class AbstractP4RuntimeHandlerBehaviour extends AbstractHandlerBehaviour 
      * @param defaultVal default value
      * @return boolean
      */
-    protected boolean driverBoolProperty(String propName, boolean defaultVal) {
+    boolean driverBoolProperty(String propName, boolean defaultVal) {
         checkNotNull(propName);
         if (handler().driver().getProperty(propName) == null) {
             return defaultVal;

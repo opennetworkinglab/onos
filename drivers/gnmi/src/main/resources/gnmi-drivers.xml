@@ -17,7 +17,9 @@
 <drivers>
     <driver name="gnmi" manufacturer="gnmi" hwVersion="master" swVersion="master">
         <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
-                   impl="org.onosproject.drivers.gnmi.GnmiDeviceDescriptionDiscovery"/>
+                   impl="org.onosproject.drivers.gnmi.OpenConfigGnmiDeviceDescriptionDiscovery"/>
+        <behaviour api="org.onosproject.net.device.DeviceHandshaker"
+                   impl="org.onosproject.drivers.gnmi.GnmiHandshaker"/>
     </driver>
 </drivers>
 

@@ -1,12 +1,13 @@
 BUNDLES = [
-    "//protocols/gnmi/stub:gnmi_java_grpc",
-    "//protocols/gnmi/stub:gnmi_java_proto",
+    "//protocols/gnmi/stub:onos-protocols-gnmi-stub",
+    "//protocols/gnmi/ctl:onos-protocols-gnmi-ctl",
+    "//protocols/gnmi/api:onos-protocols-gnmi-api",
 ]
 
 onos_app(
     app_name = "org.onosproject.protocols.gnmi",
     category = "Protocol",
-    description = "ONOS gNMI protocol subsystem",
+    description = "gNMI protocol subsystem",
     included_bundles = BUNDLES,
     required_apps = [
         "org.onosproject.protocols.grpc",

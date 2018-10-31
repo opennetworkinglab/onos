@@ -41,8 +41,8 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
+import org.onosproject.grpc.api.GrpcChannelController;
 import org.onosproject.grpc.api.GrpcChannelId;
-import org.onosproject.grpc.api.GrpcController;
 import org.onosproject.grpc.proto.dummy.Dummy;
 import org.onosproject.grpc.proto.dummy.DummyServiceGrpc;
 import org.onosproject.net.DeviceId;
@@ -64,12 +64,13 @@ import java.util.concurrent.locks.Lock;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Default implementation of the GrpcController.
+ * Default implementation of the GrpcChannelController.
  */
 @Component(immediate = true)
 @Service
-public class GrpcControllerImpl implements GrpcController {
+public class GrpcChannelControllerImpl implements GrpcChannelController {
 
+    // FIXME: Should use message size to determine whether it needs to log the message or not.
     private  static final String SET_FORWARDING_PIPELINE_CONFIG_METHOD = "p4.P4Runtime/SetForwardingPipelineConfig";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
