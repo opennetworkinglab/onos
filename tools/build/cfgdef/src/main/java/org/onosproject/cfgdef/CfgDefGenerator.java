@@ -131,8 +131,10 @@ public class CfgDefGenerator {
             String def = pex[1];
             String desc = description(javaClass, name);
 
-            String line = name + SEP + type + SEP + def + SEP + desc + "\n";
-            lines.add(line);
+            if (desc != null) {
+                String line = name + SEP + type + SEP + def + SEP + desc + "\n";
+                lines.add(line);
+            }
         }
     }
 
@@ -145,7 +147,7 @@ public class CfgDefGenerator {
             String comment = field.getComment();
             return comment != null ? comment : NO_DESCRIPTION;
         }
-        return NO_DESCRIPTION;
+        return null;
     }
 
     private String elaborate(AnnotationValue value) {
