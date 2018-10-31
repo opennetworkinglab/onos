@@ -37,24 +37,39 @@ import java.net.InetSocketAddress;
 import java.util.Dictionary;
 import java.util.concurrent.TimeUnit;
 
+import static org.onosproject.graphitemetrics.OsgiPropertyConstants.ADDRESS;
+import static org.onosproject.graphitemetrics.OsgiPropertyConstants.ADDRESS_DEFAULT;
+import static org.onosproject.graphitemetrics.OsgiPropertyConstants.METRIC_NAMES;
+import static org.onosproject.graphitemetrics.OsgiPropertyConstants.METRIC_NAMES_DEFAULT;
+import static org.onosproject.graphitemetrics.OsgiPropertyConstants.METRIC_NAME_PREFIX;
+import static org.onosproject.graphitemetrics.OsgiPropertyConstants.METRIC_NAME_PREFIX_DEFAULT;
+import static org.onosproject.graphitemetrics.OsgiPropertyConstants.MONITOR_ALL;
+import static org.onosproject.graphitemetrics.OsgiPropertyConstants.MONITOR_ALL_DEFAULT;
+import static org.onosproject.graphitemetrics.OsgiPropertyConstants.PORT;
+import static org.onosproject.graphitemetrics.OsgiPropertyConstants.PORT_DEFAULT;
+import static org.onosproject.graphitemetrics.OsgiPropertyConstants.REPORT_PERIOD;
+import static org.onosproject.graphitemetrics.OsgiPropertyConstants.REPORT_PERIOD_DEFAULT;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * A metric report that reports all metrics value to graphite monitoring server.
  */
-@Component(immediate = true)
+@Component(
+    immediate = true,
+    property = {
+        MONITOR_ALL + ":Boolean=" + MONITOR_ALL_DEFAULT,
+        METRIC_NAMES + "=" + METRIC_NAMES_DEFAULT,
+        ADDRESS + "=" + ADDRESS_DEFAULT,
+        PORT + ":Integer=" + PORT_DEFAULT,
+        REPORT_PERIOD + ":Integer=" + REPORT_PERIOD_DEFAULT,
+        METRIC_NAME_PREFIX + "=" + METRIC_NAME_PREFIX_DEFAULT
+    }
+)
 public class DefaultGraphiteMetricsReporter implements GraphiteMetricsReporter {
 
     private final Logger log = getLogger(getClass());
 
     private static final TimeUnit REPORT_TIME_UNIT = TimeUnit.MINUTES;
-    private static final int DEFAULT_REPORT_PERIOD = 1;
-
-    private static final String DEFAULT_METRIC_NAMES = "default";
-    private static final String DEFAULT_ADDRESS = "localhost";
-    private static final int DEFAULT_PORT = 2003;
-    private static final String DEFAULT_METRIC_NAME_PREFIX = "onos";
-
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
@@ -65,29 +80,23 @@ public class DefaultGraphiteMetricsReporter implements GraphiteMetricsReporter {
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService cfgService;
 
-    //@Property(name = "monitorAll", boolValue = true,
-    //        label = "Enable to monitor all of metrics stored in metric registry default is true")
-    protected boolean monitorAll = true;
+    /** Enable to monitor all of metrics stored in metric registry default is true. */
+    protected boolean monitorAll = MONITOR_ALL_DEFAULT;
 
-    //@Property(name = "metricNames", value = DEFAULT_METRIC_NAMES,
-    //        label = "Names of metric to be monitored; default metric names are 'default'")
-    protected String metricNames = DEFAULT_METRIC_NAMES;
+    /** Names of metric to be monitored; default metric names are 'default'. */
+    protected String metricNames = METRIC_NAMES_DEFAULT;
 
-    //@Property(name = "address", value = DEFAULT_ADDRESS,
-    //        label = "IP address of graphite monitoring server; default is localhost")
-    protected String address = DEFAULT_ADDRESS;
+    /** IP address of graphite monitoring server; default is localhost. */
+    protected String address = ADDRESS_DEFAULT;
 
-    //@Property(name = "port", intValue = DEFAULT_PORT,
-    //        label = "Port number of graphite monitoring server; default is 2003")
-    protected int port = DEFAULT_PORT;
+    /** Port number of graphite monitoring server; default is 2003. */
+    protected int port = PORT_DEFAULT;
 
-    //@Property(name = "reportPeriod", intValue = DEFAULT_REPORT_PERIOD,
-    //        label = "Reporting period of graphite monitoring server; default is 1")
-    protected int reportPeriod = DEFAULT_REPORT_PERIOD;
+    /** Reporting period of graphite monitoring server; default is 1. */
+    protected int reportPeriod = REPORT_PERIOD_DEFAULT;
 
-    //@Property(name = "metricNamePrefix", value = DEFAULT_METRIC_NAME_PREFIX,
-    //        label = "Prefix of metric name for graphite back-end server; default is 'onos'")
-    protected String metricNamePrefix = DEFAULT_METRIC_NAME_PREFIX;
+    /** Prefix of metric name for graphite back-end server; default is 'onos'. */
+    protected String metricNamePrefix = METRIC_NAME_PREFIX_DEFAULT;
 
     private Graphite graphite;
     private GraphiteReporter graphiteReporter;
@@ -205,7 +214,7 @@ public class DefaultGraphiteMetricsReporter implements GraphiteMetricsReporter {
     private void readComponentConfiguration(ComponentContext context) {
         Dictionary<?, ?> properties = context.getProperties();
 
-        Boolean newMonitorAll = Tools.isPropertyEnabled(properties, "monitorAll");
+        Boolean newMonitorAll = Tools.isPropertyEnabled(properties, MONITOR_ALL);
         if (newMonitorAll == null) {
             log.info("Monitor all metrics is not configured, " +
                     "using current value of {}", monitorAll);
@@ -215,26 +224,26 @@ public class DefaultGraphiteMetricsReporter implements GraphiteMetricsReporter {
                     monitorAll ? "enabled" : "disabled");
         }
 
-        String newMetricNames = Tools.get(properties, "metricNames");
-        metricNames = newMetricNames != null ? newMetricNames : DEFAULT_METRIC_NAMES;
+        String newMetricNames = Tools.get(properties, METRIC_NAMES);
+        metricNames = newMetricNames != null ? newMetricNames : METRIC_NAMES_DEFAULT;
         log.info("Configured. Metric name is {}", metricNames);
 
-        String newAddress = Tools.get(properties, "address");
-        address = newAddress != null ? newAddress : DEFAULT_ADDRESS;
+        String newAddress = Tools.get(properties, ADDRESS);
+        address = newAddress != null ? newAddress : ADDRESS_DEFAULT;
         log.info("Configured. Graphite monitoring server address is {}", address);
 
-        Integer newPort = Tools.getIntegerProperty(properties, "port");
+        Integer newPort = Tools.getIntegerProperty(properties, PORT);
         if (newPort == null) {
-            port = DEFAULT_PORT;
+            port = PORT_DEFAULT;
             log.info("Graphite port is not configured, default value is {}", port);
         } else {
             port = newPort;
             log.info("Configured. Graphite port is configured to {}", port);
         }
 
-        Integer newReportPeriod = Tools.getIntegerProperty(properties, "reportPeriod");
+        Integer newReportPeriod = Tools.getIntegerProperty(properties, REPORT_PERIOD);
         if (newReportPeriod == null) {
-            reportPeriod = DEFAULT_REPORT_PERIOD;
+            reportPeriod = REPORT_PERIOD_DEFAULT;
             log.info("Report period of graphite server is not configured, " +
                     "default value is {}", reportPeriod);
         } else {
@@ -243,9 +252,9 @@ public class DefaultGraphiteMetricsReporter implements GraphiteMetricsReporter {
                     " is configured to {}", reportPeriod);
         }
 
-        String newMetricNamePrefix = Tools.get(properties, "metricNamePrefix");
+        String newMetricNamePrefix = Tools.get(properties, METRIC_NAME_PREFIX);
         metricNamePrefix = newMetricNamePrefix != null ?
-                newMetricNamePrefix : DEFAULT_METRIC_NAME_PREFIX;
+                newMetricNamePrefix : METRIC_NAME_PREFIX_DEFAULT;
 
     }
 
