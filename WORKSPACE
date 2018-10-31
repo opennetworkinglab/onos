@@ -68,6 +68,10 @@ load("//tools/build/bazel:p4lang_workspace.bzl", "generate_p4lang")
 
 generate_p4lang()
 
+load("//tools/build/bazel:gnmi_workspace.bzl", "generate_gnmi")
+
+generate_gnmi()
+
 git_repository(
     name = "build_bazel_rules_nodejs",
     remote = "https://github.com/bazelbuild/rules_nodejs.git",

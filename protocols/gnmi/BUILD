@@ -1,6 +1,5 @@
 BUNDLES = [
-    "//protocols/gnmi/stub:gnmi_java_grpc",
-    "//protocols/gnmi/stub:gnmi_java_proto",
+    "//protocols/gnmi/stub:onos-protocols-gnmi-stub",
 ]
 
 onos_app(
