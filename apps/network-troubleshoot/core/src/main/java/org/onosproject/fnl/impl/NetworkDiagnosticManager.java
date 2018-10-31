@@ -44,13 +44,21 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.fnl.impl.OsgiPropertyConstants.AUTO_REGISTER_DEFAULT_DIAGNOSTICS;
+import static org.onosproject.fnl.impl.OsgiPropertyConstants.AUTO_REGISTER_DEFAULT_DIAGNOSTICS_DEFAULT;
 
 /**
  * Default implementation of the Network Troubleshooting Core Service.
  *
  * It is simply modularized at present.
  */
-@Component(immediate = true, service = NetworkDiagnosticService.class)
+@Component(
+    immediate = true,
+    service = NetworkDiagnosticService.class,
+    property = {
+        AUTO_REGISTER_DEFAULT_DIAGNOSTICS + ":Boolean=" + AUTO_REGISTER_DEFAULT_DIAGNOSTICS_DEFAULT
+    }
+)
 public class NetworkDiagnosticManager implements NetworkDiagnosticService {
 
     /**
@@ -58,9 +66,6 @@ public class NetworkDiagnosticManager implements NetworkDiagnosticService {
      */
     public static final String NTS_APP_NAME =
             "org.onosproject.FNL.Network-Troubleshoot";
-
-    private static final String PROPERTY_AUTO_REGISTER_DIAG =
-            "autoRegisterDefaultDiagnostics";
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -86,9 +91,8 @@ public class NetworkDiagnosticManager implements NetworkDiagnosticService {
     protected LinkService ls;
 
 
-    //@Property(name = PROPERTY_AUTO_REGISTER_DIAG, boolValue = true,
-    //        label = "Automatically register all of default diagnostic modules.")
-    private boolean autoRegister = true;
+    /** Automatically register all of default diagnostic modules. */
+    private boolean autoRegisterDefaultDiagnostics = AUTO_REGISTER_DEFAULT_DIAGNOSTICS_DEFAULT;
 
 
     private ApplicationId appId;
@@ -132,19 +136,19 @@ public class NetworkDiagnosticManager implements NetworkDiagnosticService {
         Dictionary<?, ?> properties =  context.getProperties();
 
         Boolean autoRegisterEnabled =
-                Tools.isPropertyEnabled(properties, PROPERTY_AUTO_REGISTER_DIAG);
+                Tools.isPropertyEnabled(properties, AUTO_REGISTER_DEFAULT_DIAGNOSTICS);
         if (autoRegisterEnabled == null) {
             log.warn("Auto Register is not configured, " +
-                    "using current value of {}", autoRegister);
+                    "using current value of {}", autoRegisterDefaultDiagnostics);
         } else {
-            autoRegister = autoRegisterEnabled;
+            autoRegisterDefaultDiagnostics = autoRegisterEnabled;
             log.info("Configured. Auto Register is {}",
-                    autoRegister ? "enabled" : "disabled");
+                    autoRegisterDefaultDiagnostics ? "enabled" : "disabled");
         }
     }
 
     private void autoRegisterDiagnostics() {
-        if (!autoRegister) {
+        if (!autoRegisterDefaultDiagnostics) {
             return;
         }
 

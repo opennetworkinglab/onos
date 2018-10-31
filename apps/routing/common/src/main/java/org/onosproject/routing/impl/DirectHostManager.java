@@ -64,12 +64,20 @@ import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.packet.IpAddress.Version.INET6;
+import static org.onosproject.routing.impl.OsgiPropertyConstants.ENABLED;
+import static org.onosproject.routing.impl.OsgiPropertyConstants.ENABLED_DEFAULT;
 
 /**
  * Reactively handles sending packets to hosts that are directly connected to
  * router interfaces.
  */
-@Component(immediate = true, enabled = false)
+@Component(
+    immediate = true,
+    enabled = false,
+    property = {
+        ENABLED + ":Boolean=" + ENABLED_DEFAULT
+    }
+)
 public class DirectHostManager {
 
     private Logger log = LoggerFactory.getLogger(getClass());
@@ -89,11 +97,8 @@ public class DirectHostManager {
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService componentConfigService;
 
-    private static final boolean DEFAULT_ENABLED = false;
-
-    //@Property(name = "enabled", boolValue = DEFAULT_ENABLED,
-    //        label = "Enable reactive directly-connected host processing")
-    private volatile boolean enabled = DEFAULT_ENABLED;
+    /** Enable reactive directly-connected host processing. */
+    private volatile boolean enabled = ENABLED_DEFAULT;
 
     private static final String APP_NAME = "org.onosproject.directhost";
 
@@ -120,7 +125,7 @@ public class DirectHostManager {
 
     @Modified
     private void modified(ComponentContext context) {
-        Boolean boolEnabled = Tools.isPropertyEnabled(context.getProperties(), "enabled");
+        Boolean boolEnabled = Tools.isPropertyEnabled(context.getProperties(), ENABLED);
         if (boolEnabled != null) {
             if (enabled && !boolEnabled) {
                 enabled = false;

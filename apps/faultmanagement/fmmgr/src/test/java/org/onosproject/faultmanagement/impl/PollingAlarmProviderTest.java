@@ -307,7 +307,7 @@ public class PollingAlarmProviderTest {
 
         @Override
         public Object get(Object key) {
-            if ("pollFrequency".equals(key)) {
+            if (OsgiPropertyConstants.POLL_FREQUENCY_SECONDS.equals(key)) {
                 return "1";
             }
             return null;

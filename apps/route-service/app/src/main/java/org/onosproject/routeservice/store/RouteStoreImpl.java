@@ -42,11 +42,19 @@ import java.util.Collection;
 import java.util.Dictionary;
 import java.util.Set;
 
+import static org.onosproject.routeservice.store.OsgiPropertyConstants.DISTRIBUTED;
+import static org.onosproject.routeservice.store.OsgiPropertyConstants.DISTRIBUTED_DEFAULT;
+
 /**
  * An implementation of RouteStore that is backed by either LocalRouteStore or
  * DistributedRouteStore according to configuration.
  */
-@Component(service = RouteStore.class)
+@Component(
+    service = RouteStore.class,
+    property = {
+        DISTRIBUTED + ":Boolean=" + DISTRIBUTED_DEFAULT
+    }
+)
 public class RouteStoreImpl extends AbstractStore<InternalRouteEvent, RouteStoreDelegate>
         implements RouteStore {
 
@@ -56,8 +64,7 @@ public class RouteStoreImpl extends AbstractStore<InternalRouteEvent, RouteStore
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     public StorageService storageService;
 
-    //@Property(name = "distributed", boolValue = false,
-    //        label = "Enable distributed route store")
+    /** Enable distributed route store. */
     private boolean distributed;
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -92,7 +99,7 @@ public class RouteStoreImpl extends AbstractStore<InternalRouteEvent, RouteStore
             return;
         }
 
-        String strDistributed = Tools.get(properties, "distributed");
+        String strDistributed = Tools.get(properties, DISTRIBUTED);
         boolean expectDistributed = Boolean.parseBoolean(strDistributed);
 
         // Start route store during first start or config change

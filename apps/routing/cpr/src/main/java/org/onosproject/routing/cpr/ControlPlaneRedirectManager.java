@@ -79,13 +79,20 @@ import static org.onlab.packet.ICMP6.NEIGHBOR_SOLICITATION;
 import static org.onlab.packet.IPv6.PROTOCOL_ICMP6;
 import static org.onlab.packet.IPv6.getLinkLocalAddress;
 import static org.onlab.packet.IPv6.getSolicitNodeAddress;
+import static org.onosproject.routing.cpr.OsgiPropertyConstants.FORCE_UNPROVISION;
+import static org.onosproject.routing.cpr.OsgiPropertyConstants.FORCE_UNPROVISION_DEFAULT;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Manages connectivity between peers redirecting control traffic to a routing
  * control plane available on the dataplane.
  */
-@Component(immediate = true)
+@Component(
+    immediate = true,
+    property = {
+        FORCE_UNPROVISION + ":Boolean=" + FORCE_UNPROVISION_DEFAULT
+    }
+)
 public class ControlPlaneRedirectManager {
 
     private final Logger log = getLogger(getClass());
@@ -125,9 +132,8 @@ public class ControlPlaneRedirectManager {
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService cfgService;
 
-    //@Property(name = "forceUnprovision", boolValue = false,
-    //        label = "Force unprovision when the device goes offline")
-    private boolean forceUnprovision = false;
+    /** Force unprovision when the device goes offline. */
+    private boolean forceUnprovision = FORCE_UNPROVISION_DEFAULT;
 
     private static final String APP_NAME = "org.onosproject.cpr";
     private ApplicationId appId;
@@ -175,7 +181,7 @@ public class ControlPlaneRedirectManager {
         Dictionary<?, ?> properties = context.getProperties();
         Boolean flag;
 
-        flag = Tools.isPropertyEnabled(properties, "forceUnprovision");
+        flag = Tools.isPropertyEnabled(properties, FORCE_UNPROVISION);
         if (flag == null) {
             log.info("ForceUnprovision is not configured, " +
                     "using current value of {}", forceUnprovision);

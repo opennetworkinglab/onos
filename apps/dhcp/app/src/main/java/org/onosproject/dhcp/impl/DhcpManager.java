@@ -88,17 +88,23 @@ import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_RequestedIP;
 import static org.onlab.packet.MacAddress.valueOf;
 import static org.onosproject.dhcp.IpAssignment.AssignmentStatus.Option_RangeNotEnforced;
 import static org.onosproject.dhcp.IpAssignment.AssignmentStatus.Option_Requested;
+import static org.onosproject.dhcp.impl.OsgiPropertyConstants.ALLOW_HOST_DISCOVERY;
+import static org.onosproject.dhcp.impl.OsgiPropertyConstants.ALLOW_HOST_DISCOVERY_DEFAULT;
 import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FACTORY;
 
 /**
  * Skeletal ONOS DHCP Server application.
  */
-@Component(immediate = true, service = DhcpService.class)
+@Component(
+    immediate = true,
+    service = DhcpService.class,
+    property = {
+        ALLOW_HOST_DISCOVERY + "=" + ALLOW_HOST_DISCOVERY_DEFAULT
+    }
+)
 public class DhcpManager implements DhcpService {
 
     private static final ProviderId PID = new ProviderId("of", "org.onosproject.dhcp", true);
-    private static final String ALLOW_HOST_DISCOVERY = "allowHostDiscovery";
-    private static final boolean DEFAULT_ALLOW_HOST_DISCOVERY = false;
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -134,9 +140,8 @@ public class DhcpManager implements DhcpService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService componentConfigService;
 
-    //@Property(name = ALLOW_HOST_DISCOVERY, boolValue = DEFAULT_ALLOW_HOST_DISCOVERY,
-    //        label = "Allow host discovery from DHCP request")
-    private boolean allowHostDiscovery = DEFAULT_ALLOW_HOST_DISCOVERY;
+    /** Allow host discovery from DHCP request. */
+    private boolean allowHostDiscovery = ALLOW_HOST_DISCOVERY_DEFAULT;
 
     protected HostProviderService hostProviderService;
     private final HostProvider hostProvider = new InternalHostProvider();

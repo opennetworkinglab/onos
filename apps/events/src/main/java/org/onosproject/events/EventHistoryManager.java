@@ -47,11 +47,22 @@ import java.util.concurrent.TimeUnit;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onlab.util.Tools.minPriority;
+import static org.onosproject.events.OsgiPropertyConstants.EXCLUDE_STATS_EVENT;
+import static org.onosproject.events.OsgiPropertyConstants.EXCLUDE_STATS_EVENT_DEFAULT;
+import static org.onosproject.events.OsgiPropertyConstants.SIZE_LIMIT;
+import static org.onosproject.events.OsgiPropertyConstants.SIZE_LIMIT_DEFAULT;
 
 /**
  * Application to store history of instance local ONOS Events.
  */
-@Component(immediate = true, service = EventHistoryService.class)
+@Component(
+    immediate = true,
+    service = EventHistoryService.class,
+    property = {
+        EXCLUDE_STATS_EVENT + "=" + EXCLUDE_STATS_EVENT_DEFAULT,
+        SIZE_LIMIT + "=" + SIZE_LIMIT_DEFAULT
+    }
+)
 public class EventHistoryManager
     implements EventHistoryService {
 
@@ -87,13 +98,11 @@ public class EventHistoryManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected NetworkConfigService netcfgService;
 
-    //@Property(name = "excludeStatsEvent", boolValue = true,
-    //          label = "Exclude stats related events")
-    private boolean excludeStatsEvent = true;
+    /** Exclude stats related events. */
+    private boolean excludeStatsEvent = EXCLUDE_STATS_EVENT_DEFAULT;
 
-    //@Property(name = "sizeLimit", intValue = 10_000,
-    //          label = "Number of event history to store")
-    private int sizeLimit = 10_000;
+    /** Number of event history to store. */
+    private int sizeLimit = SIZE_LIMIT_DEFAULT;
 
     private ApplicationId appId;
 

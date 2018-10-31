@@ -34,4 +34,10 @@ public final class OsgiPropertyConstants {
 
     static final String PASSWORD = "password";
     static final String PASSWORD_DEFAULT = "onos.password";
+
+    static final String MONITOR_ALL = "monitorAll";
+    static final boolean MONITOR_ALL_DEFAULT = true;
+
+    static final String METRIC_NAMES = "metricNames";
+    static final String METRIC_NAMES_DEFAULT = "default";
 }

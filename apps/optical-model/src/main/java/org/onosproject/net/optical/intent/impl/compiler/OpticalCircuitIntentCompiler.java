@@ -82,21 +82,24 @@ import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.onosproject.net.optical.device.OpticalDeviceServiceView.opticalView;
+import static org.onosproject.net.optical.intent.impl.compiler.OsgiPropertyConstants.MAX_CAPACITY;
+import static org.onosproject.net.optical.intent.impl.compiler.OsgiPropertyConstants.MAX_CAPACITY_DEFAULT;
 
 /**
  * An intent compiler for {@link org.onosproject.net.intent.OpticalCircuitIntent}.
  */
-@Component(immediate = true)
+@Component(
+    immediate = true,
+    property = {
+        MAX_CAPACITY + ":Integer=" + MAX_CAPACITY_DEFAULT
+    }
+)
 public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircuitIntent> {
 
     private static final Logger log = LoggerFactory.getLogger(OpticalCircuitIntentCompiler.class);
 
-    private static final int DEFAULT_MAX_CAPACITY = 10;
-
-    //@Property(name = "maxCapacity", intValue = DEFAULT_MAX_CAPACITY,
-    //        label = "Maximum utilization of an optical connection.")
-
-    private int maxCapacity = DEFAULT_MAX_CAPACITY;
+    /** Maximum utilization of an optical connection. */
+    private int maxCapacity = MAX_CAPACITY_DEFAULT;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService cfgService;
@@ -133,7 +136,7 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
         Dictionary properties = context.getProperties();
 
         //TODO for reduction check if the new capacity is smaller than the size of the current mapping
-        String propertyString = Tools.get(properties, "maxCapacity");
+        String propertyString = Tools.get(properties, MAX_CAPACITY);
 
         //Ignore if propertyString is empty or null
         if (!Strings.isNullOrEmpty(propertyString)) {

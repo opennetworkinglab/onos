@@ -48,6 +48,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.mlb.OsgiPropertyConstants.SCHEDULE_PERIOD;
+import static org.onosproject.mlb.OsgiPropertyConstants.SCHEDULE_PERIOD_DEFAULT;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -56,15 +58,18 @@ import static org.slf4j.LoggerFactory.getLogger;
  * thread executor that must only have one thread due to issues that can occur is multiple balancing events occur in
  * parallel.
  */
-@Component(immediate = true)
+@Component(
+    immediate = true,
+    property = {
+        SCHEDULE_PERIOD + ":Integer=" + SCHEDULE_PERIOD_DEFAULT
+    }
+)
 public class MastershipLoadBalancer {
 
     private final Logger log = getLogger(getClass());
 
-    private static final int DEFAULT_SCHEDULE_PERIOD = 30;
-    //@Property(name = "schedulePeriod", intValue = DEFAULT_SCHEDULE_PERIOD,
-    //        label = "Period to schedule balancing the mastership to be shared as evenly as by all online instances.")
-    private int schedulePeriod = DEFAULT_SCHEDULE_PERIOD;
+    /** Period to schedule balancing the mastership to be shared as evenly as by all online instances. */
+    private int schedulePeriod = SCHEDULE_PERIOD_DEFAULT;
 
     private static final String REBALANCE_MASTERSHIP = "rebalance/mastership";
 
@@ -200,11 +205,11 @@ public class MastershipLoadBalancer {
         Dictionary<?, ?> properties = context.getProperties();
 
         Integer newSchedulePeriod = Tools.getIntegerProperty(properties,
-                                                             "schedulePeriod");
+                                                             SCHEDULE_PERIOD);
         if (newSchedulePeriod == null) {
-            schedulePeriod = DEFAULT_SCHEDULE_PERIOD;
+            schedulePeriod = SCHEDULE_PERIOD_DEFAULT;
             log.info("Schedule period is not configured, default value is {}",
-                     DEFAULT_SCHEDULE_PERIOD);
+                     SCHEDULE_PERIOD_DEFAULT);
         } else {
             schedulePeriod = newSchedulePeriod;
             log.info("Configured. Schedule period is configured to {}", schedulePeriod);

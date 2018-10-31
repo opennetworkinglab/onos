@@ -56,11 +56,19 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.onlab.util.Tools.getIntegerProperty;
+import static org.onosproject.nodemetrics.impl.OsgiPropertyConstants.METRIC_POLL_FREQUENCY_SECONDS;
+import static org.onosproject.nodemetrics.impl.OsgiPropertyConstants.METRIC_POLL_FREQUENCY_SECONDS_DEFAULT;
 
 
-@Component(immediate = true, service = NodeMetricsService.class)
+@Component(
+    immediate = true,
+    service = NodeMetricsService.class,
+    property = {
+        METRIC_POLL_FREQUENCY_SECONDS + ":Integer=" + METRIC_POLL_FREQUENCY_SECONDS_DEFAULT
+    }
+)
 public class NodeMetricsManager implements NodeMetricsService {
-    private static final int DEFAULT_POLL_FREQUENCY_SECONDS = 15;
+
     private static final String SLASH = "/";
     private static final Double PERCENTAGE_MULTIPLIER = 100.0;
     private final Logger log = LoggerFactory
@@ -93,9 +101,8 @@ public class NodeMetricsManager implements NodeMetricsService {
 
     private Sigar sigar;
 
-    //@Property(name = "metricPollFrequencySeconds", intValue = DEFAULT_POLL_FREQUENCY_SECONDS,
-    //        label = "Frequency (in seconds) for polling controller metrics")
-    protected int metricPollFrequencySeconds = DEFAULT_POLL_FREQUENCY_SECONDS;
+    /** Frequency (in seconds) for polling controller metrics. */
+    protected int metricPollFrequencySeconds = METRIC_POLL_FREQUENCY_SECONDS_DEFAULT;
 
     @Activate
     public void activate(ComponentContext context) {
@@ -206,11 +213,11 @@ public class NodeMetricsManager implements NodeMetricsService {
     private int getNewPollFrequency(Dictionary<?, ?> properties) {
         int newPollFrequency;
         try {
-            newPollFrequency = getIntegerProperty(properties, "metricPollFrequencySeconds");
+            newPollFrequency = getIntegerProperty(properties, METRIC_POLL_FREQUENCY_SECONDS);
             //String s = getIntegerProperty(properties, "metricPollFrequencySeconds");
             //newPollFrequency = isNullOrEmpty(s) ? pollFrequency : Integer.parseInt(s.trim());
         } catch (NumberFormatException | ClassCastException e) {
-            newPollFrequency = DEFAULT_POLL_FREQUENCY_SECONDS;
+            newPollFrequency = METRIC_POLL_FREQUENCY_SECONDS_DEFAULT;
         }
         return newPollFrequency;
     }
