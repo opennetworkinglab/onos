@@ -41,6 +41,10 @@ public class RouteRemoveCommand extends AbstractShellCommand {
             required = true)
     String nextHopString = null;
 
+    @Argument(index = 2, name = "source", description = "Source type of the route",
+            required = false)
+    String source = null;
+
     @Override
     protected void execute() {
         RouteAdminService service = AbstractShellCommand.get(RouteAdminService.class);
@@ -48,7 +52,14 @@ public class RouteRemoveCommand extends AbstractShellCommand {
         IpPrefix prefix = IpPrefix.valueOf(prefixString);
         IpAddress nextHop = IpAddress.valueOf(nextHopString);
 
-        service.withdraw(Collections.singleton(new Route(Route.Source.STATIC, prefix, nextHop)));
+        // Routes through cli without mentioning source then it is created as STATIC,
+        // otherwise routes are created with corresponding source.
+
+        Route route = source == null ?
+                new Route(Route.Source.STATIC, prefix, nextHop) :
+                new Route(Route.Source.valueOf(source), prefix, nextHop);
+
+        service.withdraw(Collections.singleton(route));
     }
 
 }
