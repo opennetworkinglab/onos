@@ -73,8 +73,17 @@ public interface NextObjective extends Objective {
      * The collection of treatments that need to be applied to a set of traffic.
      *
      * @return a collection of traffic treatments
+     * @deprecated in 1.14.2, replaced by {@link #nextTreatments}
      */
+    @Deprecated
     Collection<TrafficTreatment> next();
+
+    /**
+     * The collection of next treatments that need to be applied to a set of traffic.
+     *
+     * @return a collection of next treatments
+     */
+    Collection<NextTreatment> nextTreatments();
 
     /**
      * The type of operation that will be applied to the traffic using the collection
@@ -128,8 +137,18 @@ public interface NextObjective extends Objective {
          *
          * @param treatment a traffic treatment
          * @return a next step builder
+         * @deprecated in 1.14.2, replaced by {@link #addTreatment(NextTreatment)}
          */
+        @Deprecated
         Builder addTreatment(TrafficTreatment treatment);
+
+        /**
+         * Adds a next treatment to this next step.
+         *
+         * @param nextTreatment a next treatment
+         * @return a next step builder
+         */
+        Builder addTreatment(NextTreatment nextTreatment);
 
         /**
          * Specifies the application which applied the filter.

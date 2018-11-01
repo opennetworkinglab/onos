@@ -25,6 +25,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
@@ -36,7 +37,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Beta
 public final class DefaultNextObjective implements NextObjective {
 
-    private final List<TrafficTreatment> treatments;
+    private final List<NextTreatment> treatments;
     private final ApplicationId appId;
     private final Type type;
     private final Integer id;
@@ -56,6 +57,14 @@ public final class DefaultNextObjective implements NextObjective {
 
     @Override
     public Collection<TrafficTreatment> next() {
+        return treatments.stream()
+                .filter(t -> t.type() == NextTreatment.Type.TREATMENT)
+                .map(t -> ((DefaultNextTreatment) t).treatment())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public Collection<NextTreatment> nextTreatments() {
         return treatments;
     }
 
@@ -133,7 +142,7 @@ public final class DefaultNextObjective implements NextObjective {
                 .add("type", type())
                 .add("op", op())
                 .add("priority", priority())
-                .add("next", next())
+                .add("nextTreatments", nextTreatments())
                 .add("meta", meta())
                 .add("appId", appId())
                 .add("permanent", permanent())
@@ -160,12 +169,12 @@ public final class DefaultNextObjective implements NextObjective {
         private ApplicationId appId;
         private Type type;
         private Integer id;
-        private List<TrafficTreatment> treatments;
+        private List<NextTreatment> treatments;
         private Operation op;
         private ObjectiveContext context;
         private TrafficSelector meta;
 
-        private final ImmutableList.Builder<TrafficTreatment> listBuilder
+        private final ImmutableList.Builder<NextTreatment> listBuilder
                 = ImmutableList.builder();
 
         // Creates an empty builder
@@ -176,8 +185,8 @@ public final class DefaultNextObjective implements NextObjective {
         private Builder(NextObjective objective) {
             this.type = objective.type();
             this.id = objective.id();
-            this.treatments = ImmutableList.copyOf(objective.next());
-            this.listBuilder.addAll(objective.next());
+            this.treatments = ImmutableList.copyOf(objective.nextTreatments());
+            this.listBuilder.addAll(objective.nextTreatments());
             this.meta = objective.meta();
             this.appId = objective.appId();
             this.op = objective.op();
@@ -197,7 +206,13 @@ public final class DefaultNextObjective implements NextObjective {
 
         @Override
         public Builder addTreatment(TrafficTreatment treatment) {
-            listBuilder.add(treatment);
+            listBuilder.add(DefaultNextTreatment.of(treatment));
+            return this;
+        }
+
+        @Override
+        public Builder addTreatment(NextTreatment nextTreatment) {
+            listBuilder.add(nextTreatment);
             return this;
         }
 
