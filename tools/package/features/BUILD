@@ -1,5 +1,5 @@
 load("//tools/build/bazel:osgi_features.bzl", "osgi_feature", "osgi_feature_repo")
-load("//:modules.bzl", "FEATURES")
+load("//tools/build/bazel:modules.bzl", "FEATURES")
 
 osgi_feature_repo(
     name = "onos-features",
