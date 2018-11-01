@@ -13,7 +13,7 @@
     //core/store/persistence:onos-core-persistence
     //core/store/serializers:onos-core-serializers
     //drivers/utilities:onos-drivers-utilities
-    //drivers/nettconf:onos-drivers-netconf
+    //drivers/netconf:onos-drivers-netconf
     //incubator/api:onos-incubator-api
     //incubator/net:onos-incubator-net
     //incubator/rpc:onos-incubator-rpc
