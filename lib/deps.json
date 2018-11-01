@@ -292,7 +292,7 @@
     "typesafe-config": "mvn:com.typesafe:config:1.3.2",
     "validation-api": "mvn:javax.validation:validation-api:1.1.0.Final",
     "checkstyle": "mvn:com.puppycrawl.tools:checkstyle:8.10",
-    "apache-karaf": "http://repo1.maven.org/maven2/org/onosproject/apache-karaf-offline/4.2.1-20181024/apache-karaf-offline-4.2.1-20181024.tar.gz",
+    "apache-karaf": "http://repo1.maven.org/maven2/org/onosproject/apache-karaf-offline/4.2.1-offline-20181102/apache-karaf-offline-4.2.1-offline-20181102.tar.gz",
     "bndlib": "mvn:biz.aQute.bnd:biz.aQute.bndlib:jar:4.0.0",
     "bndexe": "mvn:biz.aQute.bnd:biz.aQute.bnd:4.0.0",
     "libthrift": "mvn:org.apache.thrift:libthrift:0.11.0",
