@@ -27,7 +27,7 @@
             requires="Install-App" delay="5" >
             <parallel var="${OC#}">
                 <step name="Verify-App-${#}"
-                      exec="onos ${OC#} scr:details org.test.app.AppComponent"/>
+                      exec="onos ${OC#} scr:info org.test.app.AppComponent"/>
             </parallel>
         </group>
 
