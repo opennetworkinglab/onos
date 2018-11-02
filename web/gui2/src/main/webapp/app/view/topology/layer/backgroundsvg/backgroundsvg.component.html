@@ -14,3 +14,9 @@
 ~ limitations under the License.
 -->
 <svg:g onos-mapsvg />
+<svg:g>
+    <svg:text>Layout: {{ layoutData.id }} {{ layoutData.bgDesc }}</svg:text>
+    <svg:text>Region: {{ layoutData.region }} {{ layoutData.regionName }}</svg:text>
+    <svg:text>Parent {{ layoutData.parent }}</svg:text>
+    <svg:text *ngFor="let crumb of layoutData.crumbs">{{ crumb.id }} {{ crumb.name }}</svg:text>
+</svg:g>

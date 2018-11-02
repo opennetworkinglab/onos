@@ -20,10 +20,14 @@ import { HttpClient } from '@angular/common/http';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { TopologyComponent } from './topology.component';
-import { InstanceComponent } from '../panel/instance/instance.component';
+import {
+    Instance,
+    InstanceComponent
+} from '../panel/instance/instance.component';
 import { SummaryComponent } from '../panel/summary/summary.component';
 import { ToolbarComponent } from '../panel/toolbar/toolbar.component';
 import { DetailsComponent } from '../panel/details/details.component';
+import { TopologyService } from '../topology.service';
 
 import {
     FlashComponent,
@@ -40,6 +44,32 @@ class MockActivatedRoute extends ActivatedRoute {
 }
 
 class MockHttpClient {}
+
+class MockTopologyService {
+    init(instance: InstanceComponent) {
+        instance.onosInstances = [
+            <Instance>{
+                'id': 'inst1',
+                'ip': '127.0.0.1',
+                'reachable': true,
+                'online': true,
+                'ready': true,
+                'switches': 4,
+                'uiAttached': true
+            },
+            <Instance>{
+                'id': 'inst1',
+                'ip': '127.0.0.2',
+                'reachable': true,
+                'online': true,
+                'ready': true,
+                'switches': 3,
+                'uiAttached': false
+            }
+        ];
+    }
+    destroy() {}
+}
 
 /**
  * ONOS GUI -- Topology View -- Unit Tests
@@ -84,6 +114,7 @@ describe('TopologyComponent', () => {
                 { provide: LogService, useValue: logSpy },
                 { provide: 'Window', useValue: windowMock },
                 { provide: HttpClient, useClass: MockHttpClient },
+                { provide: TopologyService, useClass: MockTopologyService }
             ]
         }).compileComponents();
         logServiceSpy = TestBed.get(LogService);

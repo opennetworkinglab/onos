@@ -94,7 +94,6 @@ export class SummaryComponent extends TopoPanelBaseImpl implements OnInit, OnDes
     handleSummaryData(data: SummaryResponse) {
         this.summaryData = data;
         this.render();
-        this.log.debug('Summary', data);
     }
 
     private render() {

@@ -54,6 +54,7 @@ export const glyphMapping = new Map<string, string>([
     ['downArrow', 'triangleDown'],
 
     ['appInactive', 'unknown'],
+    ['uiAttached', 'uiAttached'],
 
     ['node', 'node'],
     ['devIcon_SWITCH', 'switch'],

@@ -79,7 +79,7 @@ const onosRoutes: Routes = [
         loadChildren: 'app/view/meter/meter.module#MeterModule'
     },
     {
-        path: 'topo',
+        path: 'topo2',
         loadChildren: 'app/view/topology/topology.module#TopologyModule'
     },
 /*  Comment out below section for running locally with 'ng serve' when developing */

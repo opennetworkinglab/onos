@@ -13,17 +13,28 @@
 ~ See the License for the specific language governing permissions and
 ~ limitations under the License.
 -->
-<div id="topo-p-instance" class="floatpanel" style="left: 20px; width: 170px; height: 85px;" [@instancePanelState]="!on">
-    <div class="onosInst online ready mastership affinity">
+<div id="topo-p-instance" class="floatpanel" [ngStyle]="{'left': '20px', 'top':divTopPx+'px', 'width': (onosInstances.length * 170)+'px', 'height': '85px'}" [@instancePanelState]="!on">
+    <div *ngFor="let inst of onosInstances | keyvalue ; let i=index"
+         [ngClass]="['onosInst', inst.value.online?'online':'', inst.value.ready? 'ready': '', mastership?'mastership':'', 'affinity']"
+            (click)="chooseMastership(inst.value.id)">
         <svg width="170" height="85" viewBox="0 0 170 85">
-            <rect x="5" y="5" width="160" height="30" style="fill: rgb(91, 153, 210);"></rect>
+            <!-- The following blue-glow effect is applied (through CSS) when mastership style is activated on a rectangle -->
+            <filter x="-50%" y="-50%" width="200%" height="200%" id="blue-glow">
+                <feColorMatrix type="matrix" values="0 0 0 0  0 0 0 0 0  0 0 0 0 0  0.7 0 0 0 1  0 "></feColorMatrix>
+                <feGaussianBlur stdDeviation="3" result="coloredBlur"></feGaussianBlur>
+                <feMerge>
+                    <feMergeNode in="coloredBlur"></feMergeNode>
+                    <feMergeNode in="SourceGraphic"></feMergeNode>
+                </feMerge>
+            </filter>
+            <rect x="5" y="5" width="160" height="30" [ngStyle]="{ 'fill': panelColour(i)}"></rect>
+            <text class="instTitle" x="48" y="27">{{ inst.value.id }}</text>
             <rect x="5" y="35" width="160" height="45"></rect>
+            <text class="instLabel ip" x="48" y="55">{{ inst.value.ip }}</text>
             <use width="20" height="20" class="glyph badgeIcon bird" xlink:href="#bird" transform="translate(15,10)"></use>
-            <use width="16" height="16" class="glyph overlay badgeIcon readyBadge" xlink:href="#checkMark" transform="translate(18,40)"></use>
-            <text class="instTitle" x="48" y="27">127.0.0.1</text>
-            <text class="instLabel ip" x="48" y="55">127.0.0.1</text>
-            <text class="instLabel ns" x="48" y="73">Devices: 0</text>
-            <use width="24" height="24" class="glyph overlay badgeIcon uiBadge" xlink:href="#uiAttached" transform="translate(14,54)"></use>
+            <use *ngIf="inst.value.ready" width="16" height="16" class="glyph overlay badgeIcon readyBadge" xlink:href="#checkMark" transform="translate(18,40)"></use>
+            <text class="instLabel ns" x="48" y="73">Devices: {{ inst.value.switches }}</text>
+            <use *ngIf="inst.value.uiAttached" width="24" height="24" class="glyph overlay badgeIcon uiBadge" xlink:href="#uiAttached" transform="translate(14,54)"></use>
         </svg>
     </div>
 </div>

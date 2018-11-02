@@ -15,7 +15,7 @@
 -->
 <onos-flash id="topoMsgFlash" message="{{ flashMsg }}" (closed)="flashMsg = ''"></onos-flash>
 
-<onos-instance #instance></onos-instance>
+<onos-instance #instance [divTopPx]="80" (mastershipEvent)="force.onosInstMastership = $event"></onos-instance>
 <onos-summary #summary></onos-summary>
 <onos-toolbar #toolbar></onos-toolbar>
 <onos-details #details></onos-details>
@@ -24,8 +24,8 @@
     <svg viewBox="0 0 1000 1000" id="topo2">
         <svg:g onos-nodeviceconnected />
         <svg:g id="topo-zoomlayer">
-            <svg:g onos-backgroundsvg/>
-            <svg:g onos-forcesvg/>
+            <svg:g #background onos-backgroundsvg/>
+            <svg:g #force onos-forcesvg/>
         </svg:g>
     </svg>
 </div>

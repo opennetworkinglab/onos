@@ -14,23 +14,61 @@
  * limitations under the License.
  */
 import { TestBed, inject } from '@angular/core/testing';
-import { LogService, ConsoleLoggerService } from 'gui2-fw-lib';
+import { ActivatedRoute, Params } from '@angular/router';
+import {of} from 'rxjs';
+
 import { TopologyService } from './topology.service';
+import {
+    LogService,
+    FnService
+} from 'gui2-fw-lib';
+
+class MockActivatedRoute extends ActivatedRoute {
+    constructor(params: Params) {
+        super();
+        this.queryParams = of(params);
+    }
+}
 
 /**
  * ONOS GUI -- Topology Service - Unit Tests
  */
 describe('TopologyService', () => {
-    let log: LogService;
+    let logServiceSpy: jasmine.SpyObj<LogService>;
+    let ar: ActivatedRoute;
+    let fs: FnService;
+    let mockWindow: Window;
 
     beforeEach(() => {
-        log = new ConsoleLoggerService();
+        const logSpy = jasmine.createSpyObj('LogService', ['debug', 'warn', 'info']);
+        ar = new MockActivatedRoute({'debug': 'TestService'});
+        mockWindow = <any>{
+            innerWidth: 400,
+            innerHeight: 200,
+            navigator: {
+                userAgent: 'defaultUA'
+            },
+            location: <any>{
+                hostname: 'foo',
+                host: 'foo',
+                port: '80',
+                protocol: 'http',
+                search: { debug: 'true' },
+                href: 'ws://foo:123/onos/ui/websock/path',
+                absUrl: 'ws://foo:123/onos/ui/websock/path'
+            }
+        };
+        fs = new FnService(ar, logSpy, mockWindow);
 
         TestBed.configureTestingModule({
             providers: [TopologyService,
-                { provide: LogService, useValue: log },
+                { provide: FnService, useValue: fs},
+                { provide: LogService, useValue: logSpy },
+                { provide: ActivatedRoute, useValue: ar },
+                { provide: 'Window', useFactory: (() => mockWindow ) }
             ]
         });
+        logServiceSpy = TestBed.get(LogService);
     });
 
     it('should be created', inject([TopologyService], (service: TopologyService) => {

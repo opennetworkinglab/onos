@@ -13,18 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit, Input } from '@angular/core';
+import {
+    Component,
+    Input,
+    Output,
+    EventEmitter
+} from '@angular/core';
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import {
     LogService,
     LoadingService,
     FnService,
-    PanelBaseImpl
+    PanelBaseImpl,
+    IconService,
+    SvgUtilService
 } from 'gui2-fw-lib';
 
-/*
- ONOS GUI -- Topology Instances Panel.
- Displays ONOS instances.
+/**
+ * A model of instance information that drives each panel
+ */
+export interface Instance {
+    id: string;
+    ip: string;
+    online: boolean;
+    ready: boolean;
+    switches: number;
+    uiAttached: boolean;
+}
+
+/**
+ * ONOS GUI -- Topology Instances Panel.
+ * Displays ONOS instances. The onosInstances Array gets updated by topology.service
+ * whenever a topo2AllInstances update arrives back on the WebSocket
+ *
+ * This emits a mastership event when the user clicks on an instance, to
+ * see the devices that it has mastership of.
  */
 @Component({
     selector: 'onos-instance',
@@ -38,29 +61,57 @@ import {
         trigger('instancePanelState', [
             state('true', style({
                 transform: 'translateX(0%)',
-                opacity: '100'
+                opacity: '1.0'
             })),
             state('false', style({
                 transform: 'translateX(-100%)',
-                opacity: '0'
+                opacity: '0.0'
             })),
             transition('0 => 1', animate('100ms ease-in')),
             transition('1 => 0', animate('100ms ease-out'))
         ])
     ]
 })
-export class InstanceComponent extends PanelBaseImpl implements OnInit {
+export class InstanceComponent extends PanelBaseImpl {
+    @Input() divTopPx: number = 100;
+    @Output() mastershipEvent = new EventEmitter<string>();
+    public onosInstances: Array<Instance>;
+    protected mastership: string;
 
     constructor(
         protected fs: FnService,
         protected log: LogService,
         protected ls: LoadingService,
+        protected is: IconService,
+        protected sus: SvgUtilService
     ) {
         super(fs, ls, log);
+        this.onosInstances = <Array<Instance>>[];
+        this.is.loadIconDef('active');
+        this.is.loadIconDef('uiAttached');
         this.log.debug('InstanceComponent constructed');
     }
 
-    ngOnInit() {
+    /**
+     * Get a colour for the banner of the nth panel
+     * @param idx The index of the panel (0-6)
+     */
+    panelColour(idx: number): string {
+        return this.sus.cat7().getColor(idx, false, '');
     }
 
+    /**
+     * Toggle the display of mastership
+     * If the same instance is clicked a second time then cancel display of mastership
+     * @param instId The instance to display mastership for
+     */
+    chooseMastership(instId: string): void {
+        if (this.mastership === instId) {
+            this.mastership = '';
+        } else {
+            this.mastership = instId;
+        }
+        this.mastershipEvent.emit(this.mastership);
+        this.log.debug('Instance', this.mastership, 'chosen on GUI');
+    }
 }

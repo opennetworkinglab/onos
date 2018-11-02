@@ -35,3 +35,118 @@
 .dark #topo-p-instance .online svg .glyph.overlay {
     fill: #fff;
 }
+
+/* offline */
+#topo-p-instance svg .badgeIcon {
+    opacity: 0.4;
+    fill: #939598;
+}
+
+/* online */
+#topo-p-instance .online svg .badgeIcon {
+    opacity: 1.0;
+    fill: #939598;
+}
+#topo-p-instance .online svg .badgeIcon.bird {
+    fill: #ffffff;
+}
+
+#topo-p-instance svg .readyBadge {
+    visibility: hidden;
+}
+#topo-p-instance .ready svg .readyBadge {
+    visibility: visible;
+}
+
+#topo-p-instance svg text {
+    text-anchor: start;
+    opacity: 0.5;
+    fill: #3c3a3a;
+}
+
+#topo-p-instance .online svg text {
+    opacity: 1.0;
+    fill: #3c3a3a;
+}
+
+#topo-p-instance .onosInst.mastership {
+    opacity: 0.3;
+}
+#topo-p-instance .onosInst.mastership.affinity {
+    opacity: 1.0;
+}
+#topo-p-instance .onosInst.mastership.affinity svg rect {
+    filter: url(#blue-glow);
+}
+
+.firefox #topo-p-instance .onosInst.mastership.affinity svg rect {
+    filter: url(#blue-glow);
+}
+
+.dark #topo-p-instance {
+    background-color: #2f313c;
+    color: #c2c2b7;
+    border: 1px solid #364144;
+
+}
+
+.dark #topo-p-instance svg rect {
+    stroke-width: 0;
+    fill: #525660;
+}
+
+/* body of an instance */
+.dark #topo-p-instance .online svg rect {
+    opacity: 1;
+    fill: #838992;
+}
+
+.dark #topo-p-instance svg .glyph {
+    fill: #ddd;
+}
+.dark #topo-p-instance .online svg .glyph {
+    fill: #fff;
+}
+.dark #topo-p-instance .online svg .glyph.overlay {
+    fill: #c7c7c7;
+}
+
+/* offline */
+.dark #topo-p-instance svg .badgeIcon {
+    opacity: 0.4;
+    fill: #939598;
+}
+
+/* online */
+.dark #topo-p-instance .online svg .badgeIcon {
+    opacity: 1.0;
+    fill: #939598;
+}
+.dark #topo-p-instance .online svg .badgeIcon.bird {
+    fill: #ffffff;
+}
+
+.dark #topo-p-instance svg text {
+    text-anchor: start;
+    opacity: 0.5;
+    fill: #aaa;
+}
+
+.dark #topo-p-instance .online svg text {
+    opacity: 1.0;
+    fill: #fff;
+}
+
+.dark #topo-p-instance .onosInst.mastership {
+    opacity: 0.3;
+}
+.dark #topo-p-instance .onosInst.mastership.affinity {
+    opacity: 1.0;
+}
+.dark #topo-p-instance .onosInst.mastership.affinity svg rect {
+    filter: url(#blue-glow);
+}
+
+.dark.firefox #topo-p-instance .onosInst.mastership.affinity svg rect {
+    filter: url(#blue-glow);
+}

@@ -1,21 +1,54 @@
-# Migrating ONOS GUI
-Code written for Angular 1.x can be converted to Angular 5, through a line by line migration process (aka a hard slog)
+# Migrating ONOS GUI to GUI2
 
-* It is important to know that Angular 5 code is written in TypeScript and all files end in .ts
+# Introduction
+## Why is a migration needed?
+Since the introduction of ES6 version of the EcmaScript language many new language
+features have been introduced that allow a lot of new capabilities that were very
+hard to acheieve with the older version of the ECMAScript language.
+
+Google have taken advantage of this and totally renewed the Angular framework to
+take full advantage of these improvements. The new Angular is so different they
+have renamed old angular to Angular JS and the new one is known as Angular 7.
+
+Along with this Microsoft have introduced TypeScript which is a strongly typed
+superset of ES6. Its big advantage is that type safety can be ensured at compile
+time and the code readability and testability has been greatly improved.
+
+In addition to all of this Google has introduced a new framework tool __Angular
+CLI__ that bundles together several JS frameworks together that make creation,
+building and testing much more consistent and automated.
+
+The reason for this migration of the ONOS GUI code then is to take advantage of
+all of these new technologies. As it was in early 2018 based on Angular JS (1.3.5)
+the development of the GUI code had come to a halt, and it was at risk of becoming
+obsolete and left behind by developers because of its complexity. Anyone wanting
+to develop or extend it had a huge learning curve.
+
+The purpose of this migration therefore is to make the code more up to date and
+accessible to developers, and to ensure that it provides an open framework that
+can be built upon by future developers. The simple goal is that anyone experienced
+in the most recent Angular framework should find it very easy to navigate around
+the ONOS GUI2 code base.
+
+# Technical challenges
+Code written for Angular 1.x can be converted to Angular 7, through a line by line migration process (aka a hard slog)
+
+* It is important to know that Angular 7 code is written in TypeScript and all files end in .ts
 * In tsconfig.json this app is set to be compiled as ES6 (ES2015)
   * See this [Compatibility Table](http://kangax.github.io/compat-table/es6/) for supported browsers
   * All modern browsers are supported
   * See https://webapplog.com/es6/ for a list of things that ES6 brings
-* Each item (Service, Component, Directive, Pipe or Module) gets its own file ending with this type e.g. function.service.ts 
+* Each item (Angular 'schematic' e.g. Service, Component, Directive, Pipe or Module)
+gets its own file ending with this type e.g. function.service.ts
 * Each test file is the name of the item with .spec.ts e.g. function.service.spec.ts
     * It is considered best practice to put the Unit test of a component or service
-   right next to it in the folder - some new unit tests have been placed in a
-   tests folder, but they will have to come back out from there in to the 
-   individual folders.
+   right next to it in the folder.
 * Modules are used to group together services, components, directives etc
 * When starting any new component use the `ng generate ..` This will create the associated test too
+* This migration takes advantage of libraries. The 'fw' section has now been
+separated out in to its own library 'gui2-fw-lib'
 
-
+# Migration approach
 Migration the existing ONOS Gui can be done through a process of taking an existing JavaScript file and looking at its 
 angular.module statement.
 Note:
@@ -51,7 +84,7 @@ There is clearly a module (onosApp) here containing a controller (OnosCtrl) and 
   * The function in the controller becomes the constructor of the component
   * The parameters to the function are injected services to the constructor 
   * It includes a html file and a CSS file through the templateUrl and styleURLs
-* The 'detectBrowser' directive becomes __onos/web/gui2/src/main/webapp/app/detectbrowser.directive.ts__
+* The 'detectBrowser' directive becomes __onos/web/gui2-fw-lib/src/main/webapp/app/detectbrowser.directive.ts__
   * It can be referenced in the onos.component.html template by its selector `onosDetectBrowser`
 
 If documentation has been created (using `npm run compodoc`) this module can be inspected at
@@ -69,7 +102,8 @@ The ONOS GUI can be run using the
 
 `ng serve`
 
-command and can be left running as code changes are made. 
+command and can be left running as code changes are made. Please see README.md for notes
+on how to run this.
 Once this is running a browser attached to [http://localhost:4200](http://localhost:4200) 
 will display the application and any changes made to the code will 
 be visible immediately as the page will refresh
@@ -78,7 +112,7 @@ Watch out for any errors thrown in 'ng serve' - they usually point to something 
 bad in your code. 
 
 Another place to look is in the browsers own console
-`Ctrl-Shift-I` usually brings this up.
+`Ctrl-Shift-I` or `F12` usually brings this up.
 
 # Migrating the code
 This is where things get really interesting. A good place to start is on a 
@@ -86,52 +120,66 @@ Service which does not have dependencies on other services.
 
 Two services have been setup in the onos.module.ts that are new to this migration
 * LogService - this replaces $log that was inserted in to the old code
-* WindowService - this replaces $window and $location in the old code
+* FunctionService - this replaces fn.js in the old code
 
 There is a fair bit of refactoring has to take place. An important thing to understand
-is that DOM manipulations from inside JavaScript code is not the Angular 6
+is that DOM manipulations from inside JavaScript code is not the Angular 7
 way of doing things - there was a lot of this in the old ONOS GUI, using d3.append(..)
 and so on.
-The Angular 6 way of doing things is to define DOM objects (elements) in the 
+The Angular 7 way of doing things is to define DOM objects (elements) in the
 html template of a component, and use the Component Java Script code as a base
 for logic that can influence the display of these objects in the template.
 What this means is that what were previously defined as services (e.g. VeilService or
-LoadingService) should now become Components in Angular 6 (e.g. VeilComponent or
-LoadingComponent). 
+LoadingService) should now become Components in Angular 7 (e.g. VeilComponent or
+LoadingComponent).
 
 Similarly a directive might be trying to do DOM manipulation and have a CSS - this 
 should be made in to a component instead (see IconComponent)
 
 ### How do I know whether a Service or Directive should be made a Component in this new GUI?
 The general rule to follow is _"if a service in the old GUI has an associated CSS 
-file or two then is should be a component in the new GUI"_. 
+file or two then it should be a component in the new GUI2"_.
 
 The implication of this is that all of the d3 DOM Manipulations that happened in 
 the old service should now be represented in the template of this new component.
 If it's not clear to you what the template should look like, then run the old GUI
 and inspect the element and its children to see the structure.
 
+### Scope of components and services
 Components (unlike services) have limited scope (that's the magic of them really -
 no more DOM is loaded at any time than is necessary). This means that they are
 self contained modules, and any CSS associated with them is private to that 
 component and not accessible globally.
 
+Services on the other hand have 2 different options for scope - they can be in the
+'root' scope or in the scope of a component that injects them. Most services have
+been given root scope - by using __@Injectable ({providedIn: 'root',})__. There
+are a few exceptions like TopologyService that is only relevant to TopologyComponent
+and so is loaded only in this scope.
+
 ### Do not inject components in to services
-Components are graphical elements and should not be injected in to Services. 
+Components are graphical elements and should not be injected in to Services.
 Services should be injected in to components, but not the other way round.
-Components can be added in to other components by putting the selector of 
+Components can be added in to other components by putting the selector of
 the child component e.g. <onos-icon> in to the html template of the parent.
 
-Take for instance the WebSocketService - this should remain a service, but I want 
-to display the LoadingComponent while it's waiting and the VeilComponent if it
-disconnects. I should not go injecting these in to WebSocketService - instead
-there is a setLoadingDelegate() and a setVeilDelegate() function on WSS that I 
-can pass in a reference to these two components. When they need to be displayed
-a method call is made on the delegate and the component gets enabled and displays.
-Also note inside WSS any time we call a method on this LoadingComponent delegate 
+If some function on this child component needs to be referred to in the parent
+component code, the child can be given a name tag and then referred to by this
+with a @ViewChild declaration in the parent TS file. See TopologyComponent for
+an example of this, where a reference to the SummaryComponent is given the tag
+__#summary__.
+
+In terms of injecting services, take for instance the WebSocketService - this
+should remain a service, but I want to display the LoadingComponent while it's
+waiting and the VeilComponent if it disconnects.
+I should not go injecting these in to WebSocketService - instead there is a
+setLoadingDelegate() and a setVeilDelegate() function on WSS that I can pass in
+a reference to these two components. When they need to be displayed a method call
+is made on the delegate and the component gets enabled and displays.
+Also note inside WSS any time we call a method on this LoadingComponent delegate
 we check that it the delegate had actually been set. 
 
-The WSS was passed in to the LoadingComponent and VeilComponent to set the 
+The WSS was passed in to the LoadingComponent and VeilComponent to set the
 delegate on it.
 
 Any component that needs to use WSS for data should inject the WSS service __AND__
@@ -148,14 +196,15 @@ Also sometimes directive are always used together e.g. icon directive and toolti
 directive and they can be merged in to one
 
 ## fw/remote/wsock.service
-Taking for a really simple example the fw/remote/WSockService, this was originally defined in 
-the __app/fw/remote/wsock.js__ file and is now redefined in 
-__onos/web/gui2/src/main/webapp/app/fw/remote/wsock.service.ts__.
+Taking for a really simple example the fw/remote/WSockService, this was originally defined in
+the __/onos/web/gui/src/main/webapp/app/fw/remote/wsock.js__ file and is now redefined in
+__onos/web/gui2-fw-lib/projects/gui2-fw-lib/src/lib/remote/wsock.service.ts__.
 
 First of all this should remain a Service, since it does not do any DOM
 manipulation and does not have an associated CSS.
 
-This has one method that's called to establish the WebSocketService
+This is a wrapper around the ES6 class WebSocket. It has one method newWebSocket()
+that's called to establish the WebSocketService
 
 ```javascript
  1 (function () {
@@ -182,21 +231,21 @@ This has one method that's called to establish the WebSocketService
 
 ```
 
-Converting this to TypeScript requires a total change in mindset away 
+Converting this to TypeScript requires a total change in mindset away
 from functions and towards more object oriented programming. This file is
-located in __onos/web/gui2/src/main/webapp/app/fw/remote/wsock.service.ts__
+located in __onos/web/gui2-fw-lib/projects/gui2-fw-lib/src/lib/remote/wsock.service.ts__
 
 ```typescript
 101 import { Injectable } from '@angular/core';
 102 import { LogService } from '../../log.service';
 103 
-104 @Injectable()
+104 @Injectable({ providedIn: 'root' })
 105 export class WSock {
 106 
 107  constructor(
-108    private log: LogService,
+108      private log: LogService,
 109  ) {
-110    this.log.debug('WSockService constructed');
+110      this.log.debug('WSockService constructed');
 111  }
 112
 113  newWebSocket(url: string): WebSocket {
@@ -212,11 +261,12 @@ located in __onos/web/gui2/src/main/webapp/app/fw/remote/wsock.service.ts__
 ```
 
 There are several things worth noting here:
-* The module is no longer given in the file - 
-    the corresponding RemoteModule in ./remote.module.ts lists this 
-    service as one of its providers
+* The module is no longer given in the file - the onosRemote module is now part of
+    the corresponding Gui2FwLibModule in ../gui2-fw-lib.module.ts. It could be
+    listed in this module file as one of its providers, but it doesn't have to
+    since it's already injected as root (line 104)
 * factory is replaced by the @Injectable annotation
-* This WSock is expressed as a class rather than a function.
+* This WSock is expressed as a class rather than a function (line 105)
 * Note on line 105 - the more usual convention used elsewhere is to call name the class
     WSockService, but for the sake of compatibility with the existing file at line 5
     we keep the same name.  
@@ -227,8 +277,9 @@ There are several things worth noting here:
 * Anything belonging to the class has to be prefixed with 'this.'
 * The calling of the 'debug' service (line 110) on the log service is an example
 * The function newWebSocket (line 7) is now replaced by the method newWebSocket()
-* Because if TypeScript we can assign types to the method signature.
-    e.g. url is a string, and the function returns a WebSocket. This helps
+    - this is automatically public, but could be made protected or private
+* Because it's TypeScript, we can assign types to the method signature.
+    e.g. url is a string, and the function returns a WebSocket object. This helps
     a lot with code readability and static checking
 * The __let__ keyword (e.g. line 114) is used in TypeScript instead of __var__ (line 8)
  
@@ -238,15 +289,17 @@ There are several things worth noting here:
 * $timeout can be replaced by setTimeout()
 * $timeout.cancel can be replaced by clearTimeout()
 * (d3 object).append(..).attr values should be listed individually (see icon.service for example)
-* Please try do avoid d3 DOM manipulations in ONOS GUI 2, as this is not the Angular 6 way of 
-  doing things
+* Please try do avoid d3 DOM manipulations in ONOS GUI 2, as this is not the
+    Angular way of doing things
 * $interval should be replaced by 
     task = setInterval(() => functionname_or_body, speed);
 * To cancel the timer clearInterval(task)
+* If a function is to be called then the format () => {} should be used. This is
+  so that the enclosing context can be passed in to the lambda
 
 
-# Progress so far - 18 Jun 2018
-The following services are partially migrated:
+# Progress so far - Nov 2018
+The following services are most migrated:
 * fw/util/FnService - full migrated with Unit tests
 * fw/svg/GlyphDataService - mostly migrated. Values are stored in maps as constants
 * fw/svg/GlyphService - partly implemented - enough to support the icon service
@@ -272,7 +325,7 @@ to a plain interface and class - any table views should extend this
   base for AppsDetailsComponent and DeviceDetailsComponent
 
 
-# Devices View
+## Devices View
 This is now a Component, whose class extends the TableBase - this is where it gets
 most of its functionality. As before all data comes from the WebSocket.
 There is still a bit of work to go on this - scrolling of long lists, device details 
@@ -289,9 +342,59 @@ The Details Panel is made visible when a row is selected - it is a component, an
 embedded in to the repeated row. There are base classes for common details panel 
 behaviour 
 
-# Apps View
+## Apps View
 This is a Component too, again extending TableBase. Apps view has much more functionality 
 though because it has controls for upload and download of applications.
 
+## All other tabular views
+About 20 tabular views have now been migrated
 
-  
+## Faultmanagement Alarms view
+Because it is important to be able to integrate external applications in to the
+ONOS GUI2, an approach was needed to make them work in the new world of Angular CLI.
+
+To make this happen this GUI view was made in to a library (fm-gui2-lib), in
+* onos/apps/faultmanagement/fm-gui2-lib/projects/fm-gui2-lib/src/lib
+
+that
+contains 2 components:
+* AlarmTableComponent
+* AlarmDetailsComponent
+
+These depend on some of the functions defined in the gui2-fw-lib - but that's no
+problem  this is imported just like any other NPM library.
+
+The fm-gui2-lib then can just be listed as one of the dependencies of the main
+application in onos/web/gui2 and can be navigated to through the Nav menu as 'alarmTable'
+See onos/web/gui2/src/main/webapp/app/onos-routing.module.ts line 87.
+
+When the underlying application is stopped in Karaf (ONOS CLI), the option to
+navigate to this Alarm GUI disappears from the Nav menu.
+
+## Yang GUI
+No migration has been done on this yet. Because it's and external application
+the approach will be similar to FM GUI, where it's created as a library.
+
+## Topology View
+This is one of the main goals of the migration - bringing together the Topology(1)
+and the Topology2 views of the old GUI together in to one new Topology view.
+
+Topology2 project was never really finished and several features from Topology1
+are missing from it. Topology2 introduced the Regions and hierarchial navigation.
+
+In the new GUI2 implementation, care has been taken to separate the structure out
+in to components that will hopefully be reusable elsewhere. Also the components
+have been logically grouped - all of the __panel__ components are together, as
+are the __layout__ components. In addition some are SVG components that are
+designed to extend an SVG element tree, rather than a HTML one.
+
+All of this will ultimately lead to a framework that can support other paradigms
+especially ones like tiles background maps, such as this from Google and other
+providers.
+
+There is still quite a way to go to finish this consolidated Topology view (as of
+Nov '18), as there are updated vesions of the D3 Force library and the D3 Zoom
+library to migrate to.
+
+The Topology view will eventually be broken out in to its own library, to promote
+reuse.

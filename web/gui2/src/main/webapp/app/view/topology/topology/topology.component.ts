@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit, ViewChild } from '@angular/core';
+import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import * as d3 from 'd3';
 import {
     FnService,
@@ -21,9 +21,12 @@ import {
     LogService, PrefsService,
     SvgUtilService, WebSocketService, Zoomer, ZoomOpts, ZoomService
 } from 'gui2-fw-lib';
-import {InstanceComponent} from '../panel/instance/instance.component';
-import {SummaryComponent} from '../panel/summary/summary.component';
-import {DetailsComponent} from '../panel/details/details.component';
+import { InstanceComponent } from '../panel/instance/instance.component';
+import { SummaryComponent } from '../panel/summary/summary.component';
+import { DetailsComponent } from '../panel/details/details.component';
+import { BackgroundSvgComponent } from '../layer/backgroundsvg/backgroundsvg.component';
+import { ForceSvgComponent } from '../layer/forcesvg/forcesvg.component';
+import { TopologyService } from '../topology.service';
 
 /**
  * ONOS GUI Topology View
@@ -54,10 +57,13 @@ import {DetailsComponent} from '../panel/details/details.component';
   templateUrl: './topology.component.html',
   styleUrls: ['./topology.component.css']
 })
-export class TopologyComponent implements OnInit {
+export class TopologyComponent implements OnInit, OnDestroy {
+    // These are references to the components inserted in the template
     @ViewChild(InstanceComponent) instance: InstanceComponent;
     @ViewChild(SummaryComponent) summary: SummaryComponent;
     @ViewChild(DetailsComponent) details: DetailsComponent;
+    @ViewChild(BackgroundSvgComponent) background: BackgroundSvgComponent;
+    @ViewChild(ForceSvgComponent) force: ForceSvgComponent;
 
     flashMsg: string = '';
     prefsState = {};
@@ -73,7 +79,8 @@ export class TopologyComponent implements OnInit {
         protected sus: SvgUtilService,
         protected ps: PrefsService,
         protected wss: WebSocketService,
-        protected zs: ZoomService
+        protected zs: ZoomService,
+        protected ts: TopologyService,
     ) {
 
         this.log.debug('Topology component constructed');
@@ -90,7 +97,17 @@ export class TopologyComponent implements OnInit {
             zoomCallback: (() => { return; })
         });
         this.zoomEventListeners = [];
+        // The components from the template are handed over to TopologyService here
+        // so that WebSocket responses can be passed back in to them
+        // The handling of the WebSocket call is delegated out to the Topology
+        // Service just to compartmentalize things a bit
+        this.ts.init(this.instance, this.background, this.force);
         this.log.debug('Topology component initialized');
+    }
+
+    ngOnDestroy() {
+        this.ts.destroy();
+        this.log.debug('Topology component destroyed');
     }
 
     actionMap() {

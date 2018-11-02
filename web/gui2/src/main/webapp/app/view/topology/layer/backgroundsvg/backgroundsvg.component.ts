@@ -16,6 +16,57 @@
 import { Component, OnInit } from '@angular/core';
 
 /**
+ * model of the topo2CurrentLayout attrs from BgZoom below
+ */
+export interface BgZoomAttrs {
+    offsetX: number;
+    offsetY: number;
+    scale: number;
+}
+
+/**
+ * model of the topo2CurrentLayout background zoom attrs from Layout below
+ */
+export interface BgZoom {
+    cfg: BgZoomAttrs;
+    usr?: BgZoomAttrs;
+}
+
+/**
+ * model of the topo2CurrentLayout breadcrumb from Layout below
+ */
+export interface LayoutCrumb {
+    id: string;
+    name: string;
+}
+
+/**
+ * Enum of the topo2CurrentRegion location type from Location below
+ */
+export enum LocationType {
+    GEO = 'geo',
+    GRID = 'grid'
+}
+
+/**
+ * model of the topo2CurrentLayout WebSocket response
+ */
+export interface Layout {
+    id: string;
+    bgDefaultScale: number;
+    bgDesc: string;
+    bgFilePath: string;
+    bgId: string;
+    bgType: LocationType;
+    bgWarn: string;
+    bgZoom: BgZoom;
+    crumbs: LayoutCrumb[];
+    parent: string;
+    region: string;
+    regionName: string;
+}
+
+/**
  * ONOS GUI -- Topology Background Layer View.
  */
 @Component({
@@ -25,9 +76,13 @@ import { Component, OnInit } from '@angular/core';
 })
 export class BackgroundSvgComponent implements OnInit {
 
+    layoutData: Layout = <Layout>{};
+
     constructor() { }
 
     ngOnInit() {
     }
+
+
 
 }

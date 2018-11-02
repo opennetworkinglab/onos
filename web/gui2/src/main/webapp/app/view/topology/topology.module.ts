@@ -27,6 +27,7 @@ import { Gui2FwLibModule } from 'gui2-fw-lib';
 import { BackgroundSvgComponent } from './layer/backgroundsvg/backgroundsvg.component';
 import { ForceSvgComponent } from './layer/forcesvg/forcesvg.component';
 import { MapSvgComponent } from './layer/mapsvg/mapsvg.component';
+import { TopologyService } from './topology.service';
 
 /**
  * ONOS GUI -- Topology View Module
@@ -51,6 +52,9 @@ import { MapSvgComponent } from './layer/mapsvg/mapsvg.component';
         BackgroundSvgComponent,
         ForceSvgComponent,
         MapSvgComponent
+    ],
+    providers: [
+        TopologyService
     ]
 })
 export class TopologyModule { }

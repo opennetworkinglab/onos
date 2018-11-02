@@ -73,7 +73,9 @@ export class NavService {
                 if (uiView.cat === 'PLATFORM') {
                     this.uiPlatformViews.push(uiView);
                 } else if (uiView.cat === 'NETWORK') {
-                    this.uiNetworkViews.push(uiView);
+                    if ( uiView.id !== 'topo') {
+                        this.uiNetworkViews.push(uiView);
+                    }
                 } else if (uiView.cat === 'HIDDEN') {
                     this.uiHiddenViews.push(uiView);
                 } else {

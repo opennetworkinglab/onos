@@ -15,11 +15,6 @@
  */
 /* --- Topo Instance Panel --- */
 
-#topo-p-instance {
-    height: 85px;
-    padding: 10px;
-}
-
 #topo-p-instance div.onosInst {
     display: inline-block;
     width: 170px;
