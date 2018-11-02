@@ -65,7 +65,8 @@ public class DefaultGroupDescription implements GroupDescription {
         if (this.type == GroupDescription.Type.INDIRECT) {
             checkArgument(buckets.buckets().size() == 1, "Indirect group " +
                     "should have only one action bucket");
-       }
+        }
+        checkArgument(buckets.buckets().stream().allMatch(b -> b.type() == type), "Inconsistent bucket type");
         this.appCookie = appCookie;
         this.givenGroupId = groupId;
         this.appId = appId;
