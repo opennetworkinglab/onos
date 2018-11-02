@@ -13,11 +13,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-import { Injectable } from '@angular/core';
+import {Inject, Injectable} from '@angular/core';
 import { FnService } from '../util/fn.service';
 import { LogService } from '../log.service';
 import { ThemeService } from '../util/theme.service';
-import { WebSocketService } from '../remote/websocket.service';
 import * as d3 from 'd3';
 
 const id = 'loading-anim';
@@ -48,7 +47,7 @@ export class LoadingService {
         private fs: FnService,
         private log: LogService,
         private ts: ThemeService,
-        private wss: WebSocketService
+        @Inject('Window') private w: any
     ) {
         this.preloadImages();
         this.log.debug('LoadingService constructed');
@@ -115,7 +114,7 @@ export class LoadingService {
     // schedule function to start animation in the future
     start() {
         this.dbg('start (schedule)');
-        this.wait = setTimeout(this.startAnim(), waitDelay);
+        this.wait = this.w.setTimeout(this.startAnim(), waitDelay);
     }
 
     // cancel future start, if any; stop the animation

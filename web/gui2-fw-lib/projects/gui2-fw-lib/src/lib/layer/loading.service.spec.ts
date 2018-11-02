@@ -29,23 +29,30 @@ class MockFnService {
 
 class MockThemeService {}
 
-class MockWebSocketService {}
-
 /**
  * ONOS GUI -- Layer -- Loading Service - Unit Tests
  */
 describe('LoadingService', () => {
     let log: LogService;
+    let mockWindow: Window;
 
     beforeEach(() => {
         log = new ConsoleLoggerService();
+
+        mockWindow = <any>{
+            innerWidth: 400,
+            innerHeight: 200,
+            navigator: {
+                userAgent: 'defaultUA'
+            }
+        };
 
         TestBed.configureTestingModule({
             providers: [LoadingService,
                 { provide: LogService, useValue: log },
                 { provide: FnService, useClass: MockFnService },
                 { provide: ThemeService, useClass: MockThemeService },
-                { provide: WebSocketService, useClass: MockWebSocketService },
+                { provide: 'Window', useFactory: (() => mockWindow ) }
             ]
         });
     });
