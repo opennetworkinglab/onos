@@ -26,6 +26,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.EthType;
 import org.onlab.packet.IPv4;
+import org.onlab.packet.IPv6;
 import org.onlab.packet.VlanId;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
@@ -204,19 +205,48 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
                 UdpPortCriterion udpDstPort = (UdpPortCriterion)
                         filterForCriterion(filter.conditions(), Criterion.Type.UDP_DST);
 
-                if (udpSrcPort.udpPort().toInt() != 68 || udpDstPort.udpPort().toInt() != 67) {
-                    log.warn("OLT can only filter DHCP, wrong UDP Src or Dst Port");
+                if ((udpSrcPort.udpPort().toInt() == 67 && udpDstPort.udpPort().toInt() == 68) ||
+                    (udpSrcPort.udpPort().toInt() == 68 && udpDstPort.udpPort().toInt() == 67)) {
+                    provisionDhcp(filter, ethType, ipProto, udpSrcPort, udpDstPort, output);
+                } else {
+                    log.warn("Filtering rule with unsupported UDP src {} or dst {} port", udpSrcPort, udpDstPort);
                     fail(filter, ObjectiveError.UNSUPPORTED);
                 }
-                provisionDhcp(filter, ethType, ipProto, udpSrcPort, udpDstPort, output);
             } else {
-                log.warn("OLT can only filter IGMP and DHCP");
+                log.warn("Currently supporting only IGMP and DHCP filters for IPv4 packets");
+                fail(filter, ObjectiveError.UNSUPPORTED);
+            }
+        } else if (ethType.ethType().equals(EthType.EtherType.IPV6.ethType())) {
+            IPProtocolCriterion ipProto = (IPProtocolCriterion)
+                    filterForCriterion(filter.conditions(), Criterion.Type.IP_PROTO);
+            if (ipProto == null) {
+                log.warn("OLT can only filter DHCP");
+                fail(filter, ObjectiveError.UNSUPPORTED);
+                return;
+            }
+            if (ipProto.protocol() == IPv6.PROTOCOL_UDP) {
+                UdpPortCriterion udpSrcPort = (UdpPortCriterion)
+                        filterForCriterion(filter.conditions(), Criterion.Type.UDP_SRC);
+
+                UdpPortCriterion udpDstPort = (UdpPortCriterion)
+                        filterForCriterion(filter.conditions(), Criterion.Type.UDP_DST);
+
+                if ((udpSrcPort.udpPort().toInt() == 546 && udpDstPort.udpPort().toInt() == 547) ||
+                    (udpSrcPort.udpPort().toInt() == 547 && udpDstPort.udpPort().toInt() == 546)) {
+                    provisionDhcp(filter, ethType, ipProto, udpSrcPort, udpDstPort, output);
+                } else {
+                    log.warn("Filtering rule with unsupported UDP src {} or dst {} port", udpSrcPort, udpDstPort);
+                    fail(filter, ObjectiveError.UNSUPPORTED);
+                }
+            } else {
+                log.warn("Currently supporting only DHCP filters for IPv6 packets");
                 fail(filter, ObjectiveError.UNSUPPORTED);
             }
         } else {
             log.warn("\nOnly the following are Supported in OLT for filter ->\n"
                     + "ETH TYPE : EAPOL, LLDP and IPV4\n"
-                    + "IPV4 TYPE: IGMP and UDP (for DHCP)");
+                    + "IPV4 TYPE: IGMP and UDP (for DHCP)"
+                    + "IPV6 TYPE: UDP (for DHCP)");
             fail(filter, ObjectiveError.UNSUPPORTED);
         }
 
