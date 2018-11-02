@@ -129,8 +129,7 @@ public class ComparatorsTest {
     private final ConnectPoint cp =
             new ConnectPoint(DeviceId.deviceId("of:00001"), PortNumber.portNumber(100));
     private final GroupBucket testBucket =
-            DefaultGroupBucket.createSelectGroupBucket(
-                    DefaultTrafficTreatment.emptyTreatment());
+            DefaultGroupBucket.createAllGroupBucket(DefaultTrafficTreatment.emptyTreatment());
     private final GroupBuckets groupBuckets =
             new GroupBuckets(ImmutableList.of(testBucket));
     private final GroupDescription groupDesc1 =

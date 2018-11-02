@@ -61,11 +61,11 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.onosproject.net.NetTestTools.APP_ID;
 import static org.onosproject.net.NetTestTools.did;
 import static org.onosproject.net.group.GroupDescription.Type.ALL;
 import static org.onosproject.net.group.GroupDescription.Type.INDIRECT;
-import static org.onosproject.net.group.GroupDescription.Type.SELECT;
 import static org.onosproject.net.group.GroupStore.UpdateType.ADD;
 import static org.onosproject.net.group.GroupStore.UpdateType.SET;
 /**
@@ -73,49 +73,49 @@ import static org.onosproject.net.group.GroupStore.UpdateType.SET;
  */
 public class DistributedGroupStoreTest {
 
-    DeviceId deviceId1 = did("dev1");
-    DeviceId deviceId2 = did("dev2");
-    GroupId groupId1 = new GroupId(1);
-    GroupId groupId2 = new GroupId(2);
-    GroupId groupId3 = new GroupId(3);
-    GroupKey groupKey1 = new DefaultGroupKey("abc".getBytes());
-    GroupKey groupKey2 = new DefaultGroupKey("def".getBytes());
-    GroupKey groupKey3 = new DefaultGroupKey("ghi".getBytes());
+    private final DeviceId deviceId1 = did("dev1");
+    private final DeviceId deviceId2 = did("dev2");
+    private final GroupId groupId1 = new GroupId(1);
+    private final GroupId groupId2 = new GroupId(2);
+    private final GroupId groupId3 = new GroupId(3);
+    private final GroupKey groupKey1 = new DefaultGroupKey("abc".getBytes());
+    private final GroupKey groupKey2 = new DefaultGroupKey("def".getBytes());
+    private final GroupKey groupKey3 = new DefaultGroupKey("ghi".getBytes());
 
-    TrafficTreatment treatment =
-            DefaultTrafficTreatment.emptyTreatment();
-    GroupBucket selectGroupBucket =
-            DefaultGroupBucket.createSelectGroupBucket(treatment);
-    GroupBucket failoverGroupBucket =
-            DefaultGroupBucket.createFailoverGroupBucket(treatment,
-                    PortNumber.IN_PORT, groupId1);
+    private final TrafficTreatment treatment = DefaultTrafficTreatment.emptyTreatment();
+    private final TrafficTreatment treatment2 = DefaultTrafficTreatment.builder()
+            .setOutput(PortNumber.portNumber(2)).build();
+    private final GroupBucket allGroupBucket = DefaultGroupBucket.createAllGroupBucket(treatment);
+    private final GroupBucket allGroupBucket2 = DefaultGroupBucket.createAllGroupBucket(treatment2);
+    private final GroupBuckets allGroupBuckets = new GroupBuckets(ImmutableList.of(allGroupBucket));
+    private final GroupBucket indirectGroupBucket = DefaultGroupBucket.createIndirectGroupBucket(treatment);
+    private final GroupBuckets indirectGroupBuckets = new GroupBuckets(ImmutableList.of(indirectGroupBucket));
 
-    GroupBuckets buckets = new GroupBuckets(ImmutableList.of(selectGroupBucket));
-    GroupDescription groupDescription1 = new DefaultGroupDescription(
+    private final GroupDescription groupDescription1 = new DefaultGroupDescription(
             deviceId1,
             ALL,
-            buckets,
+            allGroupBuckets,
             groupKey1,
             groupId1.id(),
             APP_ID);
-    GroupDescription groupDescription2 = new DefaultGroupDescription(
+    private final GroupDescription groupDescription2 = new DefaultGroupDescription(
             deviceId2,
             INDIRECT,
-            buckets,
+            indirectGroupBuckets,
             groupKey2,
             groupId2.id(),
             APP_ID);
-    GroupDescription groupDescription3 = new DefaultGroupDescription(
+    private final GroupDescription groupDescription3 = new DefaultGroupDescription(
             deviceId2,
             INDIRECT,
-            buckets,
+            indirectGroupBuckets,
             groupKey3,
             groupId3.id(),
             APP_ID);
 
-    DistributedGroupStore groupStoreImpl;
-    GroupStore groupStore;
-    ConsistentMap auditPendingReqQueue;
+    private DistributedGroupStore groupStoreImpl;
+    private GroupStore groupStore;
+    private ConsistentMap auditPendingReqQueue;
 
     static class MasterOfAll extends MastershipServiceAdapter {
         @Override
@@ -285,8 +285,8 @@ public class DistributedGroupStoreTest {
 
         GroupDescription groupDescription3 = new DefaultGroupDescription(
                 deviceId1,
-                SELECT,
-                buckets,
+                ALL,
+                allGroupBuckets,
                 new DefaultGroupKey("aaa".getBytes()),
                 null,
                 APP_ID);
@@ -347,7 +347,7 @@ public class DistributedGroupStoreTest {
         GroupOperation opAdd =
                 GroupOperation.createAddGroupOperation(groupId1,
                         INDIRECT,
-                        buckets);
+                        indirectGroupBuckets);
         groupStore.groupOperationFailed(deviceId1, opAdd);
 
         List<GroupEvent> eventsAfterAddFailed = delegate.eventsSeen();
@@ -361,7 +361,7 @@ public class DistributedGroupStoreTest {
         GroupOperation opModify =
                 GroupOperation.createModifyGroupOperation(groupId2,
                         INDIRECT,
-                        buckets);
+                        indirectGroupBuckets);
         groupStore.groupOperationFailed(deviceId2, opModify);
         List<GroupEvent> eventsAfterModifyFailed = delegate.eventsSeen();
         assertThat(eventsAfterModifyFailed, hasSize(1));
@@ -400,7 +400,7 @@ public class DistributedGroupStoreTest {
 
         // test group exists
         GroupOperation opAdd = GroupOperation
-                .createAddGroupOperation(groupId1, INDIRECT, buckets);
+                .createAddGroupOperation(groupId1, ALL, allGroupBuckets);
         GroupOperation addFailedExists = GroupOperation
                 .createFailedGroupOperation(opAdd, GroupMsgErrorCode.GROUP_EXISTS);
         groupStore.groupOperationFailed(deviceId1, addFailedExists);
@@ -420,7 +420,7 @@ public class DistributedGroupStoreTest {
         assertEquals(0, g2.failedRetryCount());
         assertEquals(GroupState.PENDING_ADD, g2.state());
         GroupOperation opAdd1 = GroupOperation
-                .createAddGroupOperation(groupId2, INDIRECT, buckets);
+                .createAddGroupOperation(groupId2, INDIRECT, indirectGroupBuckets);
         GroupOperation addFailedInvalid = GroupOperation
                 .createFailedGroupOperation(opAdd1, GroupMsgErrorCode.INVALID_GROUP);
 
@@ -487,9 +487,7 @@ public class DistributedGroupStoreTest {
      */
     @Test
     public void testUpdateGroupDescription() {
-
-        GroupBuckets buckets =
-                new GroupBuckets(ImmutableList.of(failoverGroupBucket, selectGroupBucket));
+        GroupBuckets buckets = new GroupBuckets(ImmutableList.of(allGroupBucket2));
 
         groupStore.deviceInitialAuditCompleted(deviceId1, true);
         groupStore.storeGroupDescription(groupDescription1);
@@ -504,40 +502,31 @@ public class DistributedGroupStoreTest {
         assertThat(group1.appCookie(), is(newKey));
         assertThat(group1.buckets().buckets(), hasSize(2));
 
-        short weight = 5;
-        GroupBucket selectGroupBucketWithWeight =
-                DefaultGroupBucket.createSelectGroupBucket(treatment, weight);
-        buckets = new GroupBuckets(ImmutableList.of(failoverGroupBucket,
-                selectGroupBucketWithWeight));
-
+        buckets = new GroupBuckets(ImmutableList.of(allGroupBucket, allGroupBucket2));
         groupStore.updateGroupDescription(deviceId1,
                 newKey,
                 ADD,
                 buckets,
                 newKey);
-
         group1 = groupStore.getGroup(deviceId1, groupId1);
         assertThat(group1.appCookie(), is(newKey));
         assertThat(group1.buckets().buckets(), hasSize(2));
         for (GroupBucket bucket : group1.buckets().buckets()) {
-            if (bucket.type() == SELECT) {
-                assertEquals(weight, bucket.weight());
-            }
+            assertTrue(bucket.treatment().equals(treatment) ||
+                    bucket.treatment().equals(treatment2));
         }
 
-        buckets = new GroupBuckets(ImmutableList.of(selectGroupBucketWithWeight));
-
+        buckets = new GroupBuckets(ImmutableList.of(allGroupBucket2));
         groupStore.updateGroupDescription(deviceId1,
                 newKey,
                 SET,
                 buckets,
                 newKey);
-
         group1 = groupStore.getGroup(deviceId1, groupId1);
         assertThat(group1.appCookie(), is(newKey));
         assertThat(group1.buckets().buckets(), hasSize(1));
         GroupBucket onlyBucket = group1.buckets().buckets().iterator().next();
-        assertEquals(weight, onlyBucket.weight());
+        assertEquals(treatment2, onlyBucket.treatment());
     }
 
     @Test
