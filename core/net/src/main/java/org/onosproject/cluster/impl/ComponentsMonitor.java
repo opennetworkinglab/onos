@@ -29,6 +29,7 @@ import org.onosproject.cluster.ClusterAdminService;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.runtime.dto.ComponentConfigurationDTO;
 import org.osgi.service.component.runtime.dto.ComponentDescriptionDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -113,8 +114,12 @@ public class ComponentsMonitor {
 
     private boolean isFullyStarted(Bundle bundle) {
         for (ComponentDescriptionDTO component : scrService.getComponentDescriptionDTOs(bundle)) {
-            if (!scrService.isComponentEnabled(component)) {
-                return false;
+            if (scrService.isComponentEnabled(component)) {
+                for (ComponentConfigurationDTO config : scrService.getComponentConfigurationDTOs(component)) {
+                    if (config.state != ComponentConfigurationDTO.ACTIVE) {
+                        return false;
+                    }
+                }
             }
         }
         return true;
