@@ -19,7 +19,7 @@ done
 
 ssh -t -t $remote "
     # Wait until ApplicationManager is available
-    for i in {1..10}; do
+    for i in {1..30}; do
         grep -q \" ApplicationManager .* Started\" \
             $ONOS_INSTALL_DIR/log/karaf.log* && break || sleep 1
     done

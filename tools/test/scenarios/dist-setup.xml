@@ -22,6 +22,9 @@
             <step name="Distributed-Primitives-Setup.Check-Apps-${#}"
                   requires="Distributed-Primitives-Setup.Activate-Distributed-Primitives-Test-App"
                   exec="onos-check-apps ${OC#} distributedprimitives includes"/>
+            <step name="Distributed-Primitives-Setup.Wait-Apps-Cli-${#}"
+                  requires="Distributed-Primitives-Setup.Check-Apps-${#}"
+                  exec="onos-wait-for-command ${#} onos:set-test-get"/>
         </parallel>
     </group>
 </scenario>

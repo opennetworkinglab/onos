@@ -1,0 +1,21 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Waits for a CLI command to be runnable.
+# -----------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+. $ONOS_ROOT/tools/test/bin/find-node.sh
+
+node=$(find_node ${1})
+cmd="$2"
+
+remote=$ONOS_USER@$node
+
+for i in {1..10}; do
+    $ONOS_ROOT/tools/test/bin/onos $node  ${cmd} 2>/dev/null | \
+        grep -q -v 'Command not found:' && exit 0 || sleep 3
+done
+
+exit 1
+
