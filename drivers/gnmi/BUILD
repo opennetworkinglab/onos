@@ -5,6 +5,7 @@ COMPILE_DEPS = CORE_DEPS + KRYO + [
     "@io_grpc_grpc_java//stub",
     "//core/store/serializers:onos-core-serializers",
     "//protocols/gnmi/stub:onos-protocols-gnmi-stub",
+    "//protocols/gnmi/api:onos-protocols-gnmi-api",
     "//protocols/grpc/api:onos-protocols-grpc-api",
     "//protocols/grpc/proto:onos-protocols-grpc-proto",
 ]
