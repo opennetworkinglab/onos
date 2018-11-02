@@ -7,6 +7,7 @@ COMPILE_DEPS = [
     '//utils/rest:onlab-rest',
     '//lib:javax.ws.rs-api',
     '//lib:jersey-server',
+    '//lib:jackson-databind',
     '//core/store/serializers:onos-core-serializers',
     '//apps/route-service/api:onos-apps-route-service-api',
     '//apps/dhcprelay/app:onos-apps-dhcprelay-app',
