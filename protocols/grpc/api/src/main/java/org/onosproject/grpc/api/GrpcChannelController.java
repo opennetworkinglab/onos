@@ -30,7 +30,7 @@ import java.util.Optional;
  * Abstraction of a gRPC controller that stores and manages gRPC channels.
  */
 @Beta
-public interface GrpcController {
+public interface GrpcChannelController {
 
     int CONNECTION_TIMEOUT_SECONDS = 20;
 

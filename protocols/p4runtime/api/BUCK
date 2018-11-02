@@ -3,6 +3,7 @@ GRPC_VER = '1.3.1'
 COMPILE_DEPS = [
     '//lib:CORE_DEPS',
     '//incubator/grpc-dependencies:grpc-core-repkg-' + GRPC_VER,
+    '//protocols/grpc/api:onos-protocols-grpc-api',
 ]
 
 TEST_DEPS = [

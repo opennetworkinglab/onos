@@ -23,7 +23,6 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
-import io.grpc.Context;
 import io.grpc.ManagedChannel;
 import io.grpc.Metadata;
 import io.grpc.Status;
@@ -32,9 +31,8 @@ import io.grpc.protobuf.lite.ProtoLiteUtils;
 import io.grpc.stub.ClientCallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import org.onlab.osgi.DefaultServiceDirectory;
-import org.onlab.util.SharedExecutors;
 import org.onlab.util.Tools;
-import org.onosproject.net.DeviceId;
+import org.onosproject.grpc.ctl.AbstractGrpcClient;
 import org.onosproject.net.pi.model.PiActionProfileId;
 import org.onosproject.net.pi.model.PiCounterId;
 import org.onosproject.net.pi.model.PiMeterId;
@@ -52,8 +50,8 @@ import org.onosproject.net.pi.runtime.PiPacketOperation;
 import org.onosproject.net.pi.runtime.PiTableEntry;
 import org.onosproject.net.pi.service.PiPipeconfService;
 import org.onosproject.p4runtime.api.P4RuntimeClient;
+import org.onosproject.p4runtime.api.P4RuntimeClientKey;
 import org.onosproject.p4runtime.api.P4RuntimeEvent;
-import org.slf4j.Logger;
 import p4.config.v1.P4InfoOuterClass.P4Info;
 import p4.tmp.P4Config;
 import p4.v1.P4RuntimeGrpc;
@@ -87,22 +85,13 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
 import static java.util.Collections.singletonList;
-import static org.onlab.util.Tools.groupedThreads;
-import static org.slf4j.LoggerFactory.getLogger;
 import static p4.v1.P4RuntimeOuterClass.Entity.EntityCase.ACTION_PROFILE_GROUP;
 import static p4.v1.P4RuntimeOuterClass.Entity.EntityCase.ACTION_PROFILE_MEMBER;
 import static p4.v1.P4RuntimeOuterClass.Entity.EntityCase.PACKET_REPLICATION_ENGINE_ENTRY;
@@ -115,10 +104,7 @@ import static p4.v1.P4RuntimeOuterClass.SetForwardingPipelineConfigRequest.Actio
 /**
  * Implementation of a P4Runtime client.
  */
-final class P4RuntimeClientImpl implements P4RuntimeClient {
-
-    // Timeout in seconds to obtain the request lock.
-    private static final int LOCK_TIMEOUT = 60;
+final class P4RuntimeClientImpl extends AbstractGrpcClient implements P4RuntimeClient {
 
     private static final Metadata.Key<com.google.rpc.Status> STATUS_DETAILS_KEY =
             Metadata.Key.of("grpc-status-details-bin",
@@ -132,18 +118,9 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
             WriteOperationType.DELETE, Update.Type.DELETE
     );
 
-    private final Logger log = getLogger(getClass());
-
-    private final Lock requestLock = new ReentrantLock();
-    private final Context.CancellableContext cancellableContext =
-            Context.current().withCancellation();
-
-    private final DeviceId deviceId;
     private final long p4DeviceId;
     private final P4RuntimeControllerImpl controller;
     private final P4RuntimeGrpc.P4RuntimeBlockingStub blockingStub;
-    private final ExecutorService executorService;
-    private final Executor contextExecutor;
     private StreamChannelManager streamChannelManager;
 
     // Used by this client for write requests.
@@ -154,80 +131,26 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
     /**
      * Default constructor.
      *
-     * @param deviceId   the ONOS device id
-     * @param p4DeviceId the P4 device id
+     * @param clientKey  the client key of this client
      * @param channel    gRPC channel
      * @param controller runtime client controller
      */
-    P4RuntimeClientImpl(DeviceId deviceId, long p4DeviceId, ManagedChannel channel,
+    P4RuntimeClientImpl(P4RuntimeClientKey clientKey, ManagedChannel channel,
                         P4RuntimeControllerImpl controller) {
-        this.deviceId = deviceId;
-        this.p4DeviceId = p4DeviceId;
+
+        super(clientKey, channel);
+        this.p4DeviceId = clientKey.p4DeviceId();
         this.controller = controller;
-        this.executorService = Executors.newFixedThreadPool(15, groupedThreads(
-                "onos-p4runtime-client-" + deviceId.toString(), "%d"));
-        this.contextExecutor = this.cancellableContext.fixedContextExecutor(executorService);
+
         //TODO Investigate use of stub deadlines instead of timeout in supplyInContext
         this.blockingStub = P4RuntimeGrpc.newBlockingStub(channel);
         this.streamChannelManager = new StreamChannelManager(channel);
-    }
-
-    /**
-     * Submits a task for async execution via the given executor. All tasks
-     * submitted with this method will be executed sequentially.
-     */
-    private <U> CompletableFuture<U> supplyWithExecutor(
-            Supplier<U> supplier, String opDescription, Executor executor) {
-        return CompletableFuture.supplyAsync(() -> {
-            // TODO: explore a more relaxed locking strategy.
-            try {
-                if (!requestLock.tryLock(LOCK_TIMEOUT, TimeUnit.SECONDS)) {
-                    log.error("LOCK TIMEOUT! This is likely a deadlock, "
-                                      + "please debug (executing {})",
-                              opDescription);
-                    throw new IllegalThreadStateException("Lock timeout");
-                }
-            } catch (InterruptedException e) {
-                log.warn("Thread interrupted while waiting for lock (executing {})",
-                         opDescription);
-                throw new IllegalStateException(e);
-            }
-            try {
-                return supplier.get();
-            } catch (StatusRuntimeException ex) {
-                log.warn("Unable to execute {} on {}: {}",
-                         opDescription, deviceId, ex.toString());
-                throw ex;
-            } catch (Throwable ex) {
-                log.error("Exception in client of {}, executing {}",
-                          deviceId, opDescription, ex);
-                throw ex;
-            } finally {
-                requestLock.unlock();
-            }
-        }, executor);
-    }
-
-    /**
-     * Equivalent of supplyWithExecutor using the gRPC context executor of this
-     * client, such that if the context is cancelled (e.g. client shutdown) the
-     * RPC is automatically cancelled.
-     */
-    private <U> CompletableFuture<U> supplyInContext(
-            Supplier<U> supplier, String opDescription) {
-        return supplyWithExecutor(supplier, opDescription, contextExecutor);
     }
 
     @Override
     public CompletableFuture<Boolean> startStreamChannel() {
         return supplyInContext(() -> sendMasterArbitrationUpdate(false),
                                "start-initStreamChannel");
-    }
-
-    @Override
-    public CompletableFuture<Void> shutdown() {
-        return supplyWithExecutor(this::doShutdown, "shutdown",
-                                  SharedExecutors.getPoolThreadExecutor());
     }
 
     @Override
@@ -1154,19 +1077,9 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
                 .build();
     }
 
-    private Void doShutdown() {
-        log.debug("Shutting down client for {}...", deviceId);
+    protected Void doShutdown() {
         streamChannelManager.complete();
-        cancellableContext.cancel(new InterruptedException(
-                "Requested client shutdown"));
-        this.executorService.shutdownNow();
-        try {
-            executorService.awaitTermination(5, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            log.warn("Executor service didn't shutdown in time.");
-            Thread.currentThread().interrupt();
-        }
-        return null;
+        return super.doShutdown();
     }
 
     // Returns the collection of succesfully write entities.

@@ -24,8 +24,8 @@ import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.netty.NettyChannelBuilder;
 import io.grpc.stub.StreamObserver;
+import org.onosproject.grpc.api.GrpcChannelController;
 import org.onosproject.grpc.api.GrpcChannelId;
-import org.onosproject.grpc.api.GrpcController;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
@@ -139,7 +139,7 @@ public class GnmiDeviceDescriptionDiscovery
 
         DeviceId deviceId = handler().data().deviceId();
 
-        GrpcController controller = handler().get(GrpcController.class);
+        GrpcChannelController controller = handler().get(GrpcChannelController.class);
         ManagedChannel channel = null;
 
         //FIXME can be optimized

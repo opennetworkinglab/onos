@@ -5,6 +5,7 @@ COMPILE_DEPS = [
     '//protocols/p4runtime/model:onos-protocols-p4runtime-model',
     '//protocols/p4runtime/api:onos-protocols-p4runtime-api',
     '//apps/inbandtelemetry/api:onos-apps-inbandtelemetry-api',
+    '//protocols/grpc/api:onos-protocols-grpc-api',
 ]
 
 BUNDLES = [

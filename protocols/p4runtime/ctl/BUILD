@@ -1,6 +1,7 @@
 COMPILE_DEPS = CORE_DEPS + KRYO + [
     "//core/store/serializers:onos-core-serializers",
     "//protocols/grpc/api:onos-protocols-grpc-api",
+    "//protocols/grpc/ctl:onos-protocols-grpc-ctl",
     "//protocols/p4runtime/api:onos-protocols-p4runtime-api",
     "//protocols/p4runtime/proto:onos-protocols-p4runtime-proto",
     "@com_google_protobuf//:protobuf_java",

@@ -27,6 +27,7 @@ import org.onosproject.net.pi.model.PiPipelineInterpreter;
 import org.onosproject.net.pi.service.PiPipeconfService;
 import org.onosproject.net.pi.service.PiTranslationService;
 import org.onosproject.p4runtime.api.P4RuntimeClient;
+import org.onosproject.p4runtime.api.P4RuntimeClientKey;
 import org.onosproject.p4runtime.api.P4RuntimeController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -157,7 +158,9 @@ public class AbstractP4RuntimeHandlerBehaviour extends AbstractHandlerBehaviour 
             return null;
         }
 
-        if (!controller.createClient(deviceId, serverAddr, serverPort, p4DeviceId)) {
+        P4RuntimeClientKey clientKey = new
+                P4RuntimeClientKey(deviceId, serverAddr, serverPort, p4DeviceId);
+        if (!controller.createClient(clientKey)) {
             log.warn("Unable to create client for {}, aborting operation", deviceId);
             return null;
         }

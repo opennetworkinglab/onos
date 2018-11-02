@@ -17,6 +17,7 @@
 package org.onosproject.p4runtime.api;
 
 import com.google.common.annotations.Beta;
+import org.onosproject.grpc.api.GrpcClient;
 import org.onosproject.net.pi.model.PiActionProfileId;
 import org.onosproject.net.pi.model.PiCounterId;
 import org.onosproject.net.pi.model.PiMeterId;
@@ -42,7 +43,7 @@ import java.util.concurrent.CompletableFuture;
  * Client to control a P4Runtime device.
  */
 @Beta
-public interface P4RuntimeClient {
+public interface P4RuntimeClient extends GrpcClient {
 
     /**
      * Type of write operation.
@@ -68,15 +69,6 @@ public interface P4RuntimeClient {
      * @return boolean
      */
     boolean isStreamChannelOpen();
-
-    /**
-     * Shutdowns the client by terminating any active RPC such as the Stream
-     * one.
-     *
-     * @return a completable future to signal the completion of the shutdown
-     * procedure
-     */
-    CompletableFuture<Void> shutdown();
 
     /**
      * Sends a master arbitration update to the device with a new election ID
