@@ -233,6 +233,10 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             label = "Enable active probing to discover dual-homed hosts.")
     boolean activeProbing = true;
 
+    @Property(name = "symmetricProbing", boolValue = false,
+            label = "Enable active probing to discover dual-homed hosts.")
+    boolean symmetricProbing = false;
+
     @Property(name = "singleHomedDown", boolValue = false,
             label = "Enable administratively taking down single-homed hosts "
                     + "when all uplinks are gone")
@@ -570,6 +574,13 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         if (expectActiveProbing != activeProbing) {
             activeProbing = expectActiveProbing;
             log.info("{} active probing", activeProbing ? "Enabling" : "Disabling");
+        }
+
+        String strSymmetricProving = Tools.get(properties, "symmetricProbing");
+        boolean expectSymmetricProbing = Boolean.parseBoolean(strSymmetricProving);
+        if (expectSymmetricProbing != symmetricProbing) {
+            symmetricProbing = expectSymmetricProbing;
+            log.info("{} symmetric probing", symmetricProbing ? "Enabling" : "Disabling");
         }
 
         String strSingleHomedDown = Tools.get(properties, "singleHomedDown");

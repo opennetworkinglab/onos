@@ -254,7 +254,6 @@ public class HostHandler {
             // Majorly for the 2nd step of [1A/x, 1B/x] -> [1A/x, 1B/y] -> [1A/y, 1B/y]
             // But will also cover [1A/x] -> [1A/y] -> [1A/y, 1B/y]
             if (srManager.activeProbing) {
-
                 srManager.getPairDeviceId(newLocation.deviceId()).ifPresent(pairDeviceId ->
                         srManager.getPairLocalPort(pairDeviceId).ifPresent(pairRemotePort ->
                                 probe(host, newLocation, pairDeviceId, pairRemotePort)
@@ -388,18 +387,36 @@ public class HostHandler {
      * @param pairRemotePort pair remote port
      */
     private void probe(Host host, ConnectPoint location, DeviceId pairDeviceId, PortNumber pairRemotePort) {
+        //Check if the host still exists in the host store
+        if (hostService.getHost(host.id()) == null) {
+            log.debug("Host entry for host {} no more present. Aborting hostprobe discover for this host", host.id());
+            return;
+        }
         VlanId vlanToProbe = host.vlan().equals(VlanId.NONE) ?
                 srManager.getInternalVlanId(location) : host.vlan();
-        srManager.interfaceService.getInterfaces().stream()
-                .filter(i -> i.vlanTagged().contains(vlanToProbe) ||
-                        i.vlanUntagged().equals(vlanToProbe) ||
-                        i.vlanNative().equals(vlanToProbe))
-                .filter(i -> i.connectPoint().deviceId().equals(pairDeviceId))
-                .filter(i -> !i.connectPoint().port().equals(pairRemotePort))
-                .forEach(i -> {
-                    log.debug("Probing host {} on pair device {}", host.id(), i.connectPoint());
-                    srManager.probingService.probeHost(host, i.connectPoint(), ProbeMode.DISCOVER);
-                });
+        if (srManager.symmetricProbing) {
+            srManager.interfaceService.getInterfaces().stream()
+                    .filter(i -> i.vlanTagged().contains(vlanToProbe) ||
+                            i.vlanUntagged().equals(vlanToProbe) ||
+                            i.vlanNative().equals(vlanToProbe))
+                    .filter(i -> i.connectPoint().deviceId().equals(pairDeviceId))
+                    .filter(i -> i.connectPoint().port().equals(location.port()))
+                    .forEach(i -> {
+                        log.debug("Probing host {} on pair device {}", host.id(), i.connectPoint());
+                        srManager.probingService.probeHost(host, i.connectPoint(), ProbeMode.DISCOVER);
+                    });
+        } else {
+            srManager.interfaceService.getInterfaces().stream()
+                    .filter(i -> i.vlanTagged().contains(vlanToProbe) ||
+                            i.vlanUntagged().equals(vlanToProbe) ||
+                            i.vlanNative().equals(vlanToProbe))
+                    .filter(i -> i.connectPoint().deviceId().equals(pairDeviceId))
+                    .filter(i -> !i.connectPoint().port().equals(pairRemotePort))
+                    .forEach(i -> {
+                        log.debug("Probing host {} on pair device {}", host.id(), i.connectPoint());
+                        srManager.probingService.probeHost(host, i.connectPoint(), ProbeMode.DISCOVER);
+                    });
+        }
     }
 
     /**
