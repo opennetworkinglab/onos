@@ -76,23 +76,22 @@ public class GroupCodecTest {
 
     @Test
     public void codecEncodeTest() {
-        GroupBucket bucket1 = DefaultGroupBucket
-                .createSelectGroupBucket(DefaultTrafficTreatment.emptyTreatment());
-        GroupBucket bucket2 = DefaultGroupBucket
-                .createIndirectGroupBucket(DefaultTrafficTreatment.emptyTreatment());
-        GroupBuckets buckets = new GroupBuckets(ImmutableList.of(bucket1, bucket2));
-        GroupBuckets bucketsIndirect = new GroupBuckets(ImmutableList.of(bucket2));
+        GroupBucket bucket1 = DefaultGroupBucket.createAllGroupBucket(DefaultTrafficTreatment.emptyTreatment());
+        GroupBucket bucket2 = DefaultGroupBucket.createAllGroupBucket(DefaultTrafficTreatment.emptyTreatment());
+        GroupBucket bucket3 = DefaultGroupBucket.createIndirectGroupBucket(DefaultTrafficTreatment.emptyTreatment());
+        GroupBuckets allBuckets = new GroupBuckets(ImmutableList.of(bucket1, bucket2));
+        GroupBuckets indirectBuckets = new GroupBuckets(ImmutableList.of(bucket3));
 
         DefaultGroup group = new DefaultGroup(
                 new GroupId(1),
                 NetTestTools.did("d1"),
                 ALL,
-                buckets);
+                allBuckets);
         DefaultGroup group1 = new DefaultGroup(
                 new GroupId(2),
                 NetTestTools.did("d2"),
                 INDIRECT,
-                bucketsIndirect);
+                indirectBuckets);
 
         MockCodecContext context = new MockCodecContext();
         GroupCodec codec = new GroupCodec();

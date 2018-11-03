@@ -165,10 +165,12 @@ import static org.onosproject.segmentrouting.OsgiPropertyConstants.PROP_PW_TRANS
 import static org.onosproject.segmentrouting.OsgiPropertyConstants.PROP_RESPOND_TO_UNKNOWN_HOSTS;
 import static org.onosproject.segmentrouting.OsgiPropertyConstants.PROP_ROUTE_DOUBLE_TAGGED_HOSTS;
 import static org.onosproject.segmentrouting.OsgiPropertyConstants.PROP_SINGLE_HOMED_DOWN;
+import static org.onosproject.segmentrouting.OsgiPropertyConstants.PROP_SYMMETRIC_PROBING;
 import static org.onosproject.segmentrouting.OsgiPropertyConstants.PW_TRANSPORT_VLAN_DEFAULT;
 import static org.onosproject.segmentrouting.OsgiPropertyConstants.RESPOND_TO_UNKNOWN_HOSTS_DEFAULT;
 import static org.onosproject.segmentrouting.OsgiPropertyConstants.ROUTE_DOUBLE_TAGGED_HOSTS_DEFAULT;
 import static org.onosproject.segmentrouting.OsgiPropertyConstants.SINGLE_HOMED_DOWN_DEFAULT;
+import static org.onosproject.segmentrouting.OsgiPropertyConstants.SYMMETRIC_PROBING_DEFAULT;
 
 /**
  * Segment routing manager.
@@ -183,6 +185,7 @@ import static org.onosproject.segmentrouting.OsgiPropertyConstants.SINGLE_HOMED_
         PROP_ROUTE_DOUBLE_TAGGED_HOSTS + ":Boolean=" + ROUTE_DOUBLE_TAGGED_HOSTS_DEFAULT,
         PROP_DEFAULT_INTERNAL_VLAN + ":Integer=" + DEFAULT_INTERNAL_VLAN_DEFAULT,
         PROP_PW_TRANSPORT_VLAN + ":Integer=" + PW_TRANSPORT_VLAN_DEFAULT,
+        PROP_SYMMETRIC_PROBING + ":Boolean=" + SYMMETRIC_PROBING_DEFAULT
     }
 )
 public class SegmentRoutingManager implements SegmentRoutingService {
@@ -255,6 +258,9 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
     /** Enable active probing to discover dual-homed hosts. */
     boolean activeProbing = ACTIVE_PROBING_DEFAULT;
+
+    /** Enable only send probe on the same port number of the pair device. */
+    boolean symmetricProbing = SYMMETRIC_PROBING_DEFAULT;
 
     /** Enable administratively taking down single-homed hosts. */
     boolean singleHomedDown = SINGLE_HOMED_DOWN_DEFAULT;
@@ -623,6 +629,14 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         if (expectActiveProbing != activeProbing) {
             activeProbing = expectActiveProbing;
             log.info("{} active probing", activeProbing ? "Enabling" : "Disabling");
+        }
+
+
+        String strSymmetricProbing = Tools.get(properties, PROP_SYMMETRIC_PROBING);
+        boolean expectSymmetricProbing = Boolean.parseBoolean(strSymmetricProbing);
+        if (expectSymmetricProbing != symmetricProbing) {
+            symmetricProbing = expectSymmetricProbing;
+            log.info("{} symmetric probing", symmetricProbing ? "Enabling" : "Disabling");
         }
 
         String strSingleHomedDown = Tools.get(properties, PROP_SINGLE_HOMED_DOWN);

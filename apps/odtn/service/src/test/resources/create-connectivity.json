@@ -26,8 +26,8 @@
                 "protection-role" : "WORK"
             }
         ],
-        "conn-constraint" : {},
-        "topo-constraint" : {},
+        "connectivity-constraint" : {},
+        "topology-constraint" : {},
         "resilience-constraint" : [ ]
     }
 }

@@ -16,6 +16,8 @@
 package org.onosproject.net.group;
 
 import org.junit.Test;
+import org.onosproject.core.GroupId;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficTreatment;
 
@@ -32,28 +34,31 @@ import static org.onosproject.net.NetTestTools.did;
  * Default group description unit tests.
  */
 public class DefaultGroupDescriptionTest {
-    byte[] keyData = "abcdefg".getBytes();
+    private final byte[] keyData = "abcdefg".getBytes();
     private final GroupKey key = new DefaultGroupKey(keyData);
-    private final TrafficTreatment treatment =
-            DefaultTrafficTreatment.emptyTreatment();
-    private final GroupBucket bucket =
-            DefaultGroupBucket.createSelectGroupBucket(treatment);
-    private final GroupBuckets groupBuckets =
-            new GroupBuckets(ImmutableList.of(bucket));
+    private final GroupId groupId1 = new GroupId(1);
+    private final TrafficTreatment treatment = DefaultTrafficTreatment.emptyTreatment();
+
+    private final GroupBucket failoverGroupBucket =
+            DefaultGroupBucket.createFailoverGroupBucket(treatment, PortNumber.IN_PORT, groupId1);
+    private final GroupBuckets failoverGroupBuckets = new GroupBuckets(ImmutableList.of(failoverGroupBucket));
+    private final GroupBucket indirectGroupBucket =
+            DefaultGroupBucket.createIndirectGroupBucket(treatment);
+    private final GroupBuckets indirectGroupBuckets = new GroupBuckets(ImmutableList.of(indirectGroupBucket));
+
     private final DefaultGroupDescription d1 =
             new DefaultGroupDescription(did("2"),
                     GroupDescription.Type.FAILOVER,
-                    groupBuckets);
-    private final DefaultGroupDescription sameAsD1 =
-            new DefaultGroupDescription(d1);
+                    failoverGroupBuckets);
+    private final DefaultGroupDescription sameAsD1 = new DefaultGroupDescription(d1);
     private final DefaultGroupDescription d2 =
             new DefaultGroupDescription(did("2"),
                     GroupDescription.Type.INDIRECT,
-                    groupBuckets);
+                    indirectGroupBuckets);
     private final DefaultGroupDescription d3 =
             new DefaultGroupDescription(did("3"),
                     GroupDescription.Type.FAILOVER,
-                    groupBuckets,
+                    failoverGroupBuckets,
                     key,
                     711,
                     APP_ID);
@@ -86,7 +91,7 @@ public class DefaultGroupDescriptionTest {
     public void testConstruction() {
         assertThat(d3.deviceId(), is(did("3")));
         assertThat(d3.type(), is(GroupDescription.Type.FAILOVER));
-        assertThat(d3.buckets(), is(groupBuckets));
+        assertThat(d3.buckets(), is(failoverGroupBuckets));
         assertThat(d3.appId(), is(APP_ID));
         assertThat(d3.givenGroupId(), is(711));
         assertThat(key.key(), is(keyData));

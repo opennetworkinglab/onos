@@ -18,6 +18,7 @@ package org.onosproject.net.group;
 import org.junit.Test;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.NetTestTools;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 
 import com.google.common.collect.ImmutableList;
@@ -35,24 +36,20 @@ public class DefaultGroupTest {
     private final GroupId id2 = new GroupId(7);
     private final GroupId id3 = new GroupId(1234);
 
-    private final GroupBucket bucket =
-            DefaultGroupBucket.createSelectGroupBucket(
-                    DefaultTrafficTreatment.emptyTreatment());
-    private final GroupBuckets groupBuckets =
-            new GroupBuckets(ImmutableList.of(bucket));
-    private final GroupDescription groupDesc1 =
-            new DefaultGroupDescription(did("1"),
-                    GroupDescription.Type.FAILOVER,
-                    groupBuckets);
-    private final GroupDescription groupDesc2 =
-            new DefaultGroupDescription(did("2"),
-                    GroupDescription.Type.FAILOVER,
-                    groupBuckets);
+    private final GroupBucket failoverBucket = DefaultGroupBucket.createFailoverGroupBucket(
+            DefaultTrafficTreatment.emptyTreatment(), PortNumber.IN_PORT, id1);
+    private final GroupBuckets failoverGroupBuckets = new GroupBuckets(ImmutableList.of(failoverBucket));
 
-     private final GroupDescription groupDesc3 =
-            new DefaultGroupDescription(did("3"),
-                    GroupDescription.Type.INDIRECT,
-                    groupBuckets);
+    private final GroupBucket indirectBucket =
+            DefaultGroupBucket.createIndirectGroupBucket(DefaultTrafficTreatment.emptyTreatment());
+    private final GroupBuckets indirectGroupBuckets = new GroupBuckets(ImmutableList.of(indirectBucket));
+
+    private final GroupDescription groupDesc1 =
+            new DefaultGroupDescription(did("1"), GroupDescription.Type.FAILOVER, failoverGroupBuckets);
+    private final GroupDescription groupDesc2 =
+            new DefaultGroupDescription(did("2"), GroupDescription.Type.FAILOVER, failoverGroupBuckets);
+    private final GroupDescription groupDesc3 =
+            new DefaultGroupDescription(did("3"), GroupDescription.Type.INDIRECT, indirectGroupBuckets);
 
     DefaultGroup group1 = new DefaultGroup(id1, groupDesc1);
     DefaultGroup sameAsGroup1 = new DefaultGroup(id1, groupDesc1);
@@ -83,7 +80,7 @@ public class DefaultGroupTest {
         assertThat(group1.life(), is(0L));
         assertThat(group1.packets(), is(0L));
         assertThat(group1.referenceCount(), is(0L));
-        assertThat(group1.buckets(), is(groupBuckets));
+        assertThat(group1.buckets(), is(failoverGroupBuckets));
         assertThat(group1.state(), is(Group.GroupState.PENDING_ADD));
         assertThat(group1.failedRetryCount(), is(0));
     }
@@ -94,14 +91,14 @@ public class DefaultGroupTest {
     @Test
     public void checkConstructionWithDid() {
         DefaultGroup group = new DefaultGroup(id2, NetTestTools.did("1"),
-                GroupDescription.Type.ALL, groupBuckets);
+                GroupDescription.Type.FAILOVER, failoverGroupBuckets);
         assertThat(group.id(), is(id2));
         assertThat(group.bytes(), is(0L));
         assertThat(group.life(), is(0L));
         assertThat(group.packets(), is(0L));
         assertThat(group.referenceCount(), is(0L));
         assertThat(group.deviceId(), is(NetTestTools.did("1")));
-        assertThat(group.buckets(), is(groupBuckets));
+        assertThat(group.buckets(), is(failoverGroupBuckets));
         assertThat(group.failedRetryCount(), is(0));
     }
 

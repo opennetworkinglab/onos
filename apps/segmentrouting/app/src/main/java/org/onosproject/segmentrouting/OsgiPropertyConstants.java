@@ -41,4 +41,7 @@ public final class OsgiPropertyConstants {
     public static final String PROP_PW_TRANSPORT_VLAN = "pwTransportVlan";
     public static final int PW_TRANSPORT_VLAN_DEFAULT = 4090;
 
+    static final String PROP_SYMMETRIC_PROBING = "symmetricProbing";
+    static final boolean SYMMETRIC_PROBING_DEFAULT = false;
+
 }

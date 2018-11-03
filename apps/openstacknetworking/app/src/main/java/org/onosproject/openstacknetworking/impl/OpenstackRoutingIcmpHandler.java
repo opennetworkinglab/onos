@@ -93,6 +93,9 @@ public class OpenstackRoutingIcmpHandler {
     private static final String ERR_REQ = "Failed to handle ICMP request: ";
     private static final String ERR_DUPLICATE = " already exists";
 
+    private static final String VXLAN = "VXLAN";
+    private static final String VLAN = "VLAN";
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
@@ -407,13 +410,26 @@ public class OpenstackRoutingIcmpHandler {
     }
 
     private void sendReply(Ethernet icmpReply, InstancePort instPort) {
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .setOutput(instPort.portNumber())
-                .build();
+        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
+                .setOutput(instPort.portNumber());
+
+        String netId = instPort.networkId();
+        String segId = osNetworkService.segmentId(netId);
+
+        switch (osNetworkService.networkType(netId)) {
+            case VXLAN:
+                tBuilder.setTunnelId(Long.valueOf(segId));
+                break;
+            case VLAN:
+                tBuilder.setVlanId(VlanId.vlanId(segId));
+                break;
+            default:
+                break;
+        }
 
         OutboundPacket packet = new DefaultOutboundPacket(
                 instPort.deviceId(),
-                treatment,
+                tBuilder.build(),
                 ByteBuffer.wrap(icmpReply.serialize()));
 
         packetService.emit(packet);
@@ -435,7 +451,8 @@ public class OpenstackRoutingIcmpHandler {
                 return;
             }
 
-            if (!gateways.isEmpty() && !gateways.contains(context.inPacket().receivedFrom().deviceId())) {
+            if (!gateways.isEmpty() &&
+                    !gateways.contains(context.inPacket().receivedFrom().deviceId())) {
                 return;
             }
 
