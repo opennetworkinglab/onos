@@ -173,13 +173,13 @@ public class OpenstackSecurityGroupHandler {
             .build();
 
     private final InstancePortListener instancePortListener =
-            new InternalInstancePortListener();
+                                            new InternalInstancePortListener();
     private final OpenstackNetworkListener osNetworkListener =
-            new InternalOpenstackNetworkListener();
+                                            new InternalOpenstackNetworkListener();
     private final OpenstackNetworkListener osPortListener =
-            new InternalOpenstackPortListener();
+                                            new InternalOpenstackPortListener();
     private final OpenstackSecurityGroupListener securityGroupListener =
-            new InternalSecurityGroupListener();
+                                            new InternalSecurityGroupListener();
     private final OpenstackNodeListener osNodeListener = new InternalNodeListener();
 
     private ConsistentMap<String, Port> removedOsPortStore;
@@ -322,7 +322,7 @@ public class OpenstackSecurityGroupHandler {
         }
 
         if (sgRule.getRemoteGroupId() != null && !sgRule.getRemoteGroupId().isEmpty()) {
-            getRemoteInstPorts(port.getTenantId(), sgRule.getRemoteGroupId(), install)
+            getRemoteInstPorts(port, sgRule.getRemoteGroupId(), install)
                     .forEach(rInstPort -> {
                         populateSecurityGroupRule(sgRule, instPort, port,
                                 rInstPort.ipAddress().toIpPrefix(), install);
@@ -456,11 +456,11 @@ public class OpenstackSecurityGroupHandler {
      * Returns a set of host IP addresses engaged with supplied security group ID.
      * It only searches a VM in the same tenant boundary.
      *
-     * @param tenantId tenant id
+     * @param srcPort openstack port
      * @param sgId security group id
      * @return set of ip addresses
      */
-    private Set<InstancePort> getRemoteInstPorts(String tenantId,
+    private Set<InstancePort> getRemoteInstPorts(Port srcPort,
                                                  String sgId, boolean install) {
         Set<InstancePort> remoteInstPorts;
 
@@ -471,8 +471,10 @@ public class OpenstackSecurityGroupHandler {
         }
 
         remoteInstPorts = Sets.union(osNetService.ports(), removedPorts).stream()
-                .filter(port -> port.getTenantId().equals(tenantId))
+                .filter(port -> !port.getId().equals(srcPort.getId()))
+                .filter(port -> port.getTenantId().equals(srcPort.getTenantId()))
                 .filter(port -> port.getSecurityGroups().contains(sgId))
+                .filter(port -> port.getNetworkId().equals(srcPort.getNetworkId()))
                 .map(port -> instancePortService.instancePort(port.getId()))
                 .filter(instPort -> instPort != null && instPort.ipAddress() != null)
                 .collect(Collectors.toSet());
