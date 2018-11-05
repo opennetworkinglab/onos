@@ -178,8 +178,8 @@ genrule(
           "   echo -e $$MSG > ../../../$(location fm-gui2-lib-test.log);" +
           "   exit 0;" +
           " fi;" +
-          " ng test --preserve-symlinks --code-coverage --browsers=ChromeHeadless" +
-          "     --watch=false fm-gui2-lib > ../../../$(location fm-gui2-lib-test.log) 2>&1 ||" +
+          " ng test fm-gui2-lib --preserve-symlinks --code-coverage --browsers=ChromeHeadless" +
+          "     --watch=false > ../../../$(location fm-gui2-lib-test.log) 2>&1 ||" +
           " if [ $$? -eq 0 ]; then echo 'Successfully ran tests';" +
           " else " +
           "   echo 'Error running \'ng test fm-gui2-lib\' on \'//apps/faultmanagement/fm-gui2-lib:_fm-gui2-lib-test-genrule\'. \\\n" +

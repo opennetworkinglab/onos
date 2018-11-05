@@ -17,9 +17,9 @@
 """
     Rules to build the ONOS GUI 2 FW Lib
 
-    The GUI2 Angular 6 elements are built here with Angular CLI 'ng'
+    The GUI2 Angular 7 elements are built here with Angular CLI 'ng'
     Some work is being done in the Bazel community to integrate Bazel and
-    Angular 6, (Angular Buildtools Convergence -
+    Angular 7, (Angular Buildtools Convergence -
     https://docs.google.com/document/d/1OlyiUnoTirUj4gecGxJeZBcjHcFr36RvLsvpBl2mxA8/preview)
     but it is in the very early stages (Aug'18) and not yet fit
     for production and at present it works as a replacement for Angular CLI
@@ -227,7 +227,7 @@ genrule(
           " export PATH=$$ROOT/$$(dirname $${NODE}):$$ROOT/web/gui2-fw-lib/node_modules/@angular/cli/bin:$$PATH &&" +
           " node -v > ../../$(location gui2-fw-ng-build-prod.log) &&" +
           " npm -v >> ../../$(location gui2-fw-ng-build-prod.log) &&" +
-          " ng -v >> ../../$(location gui2-fw-ng-build-prod.log);" +
+          " ng version >> ../../$(location gui2-fw-ng-build-prod.log);" +
           " ng build --prod gui2-fw-lib >> $$ROOT/$(location gui2-fw-ng-build-prod.log) 2>&1 ||" +
           " if [ $$? -eq 0 ]; then echo 'Successfully built GUI FW library';" +
           " else " +
@@ -281,7 +281,7 @@ genrule(
           " export PATH=$$ROOT/$$(dirname $${NODE}):$$ROOT/web/gui2-fw-lib/node_modules/@angular/cli/bin:$$PATH &&" +
           " node -v > ../../$(location onos-gui2-fw-ng-ver.log) &&" +
           " npm -v >> ../../$(location onos-gui2-fw-ng-ver.log) &&" +
-          " ng -v >> ../../$(location onos-gui2-fw-ng-ver.log) &&" +
+          " ng version >> ../../$(location onos-gui2-fw-ng-ver.log) &&" +
           " ng lint gui2-fw-lib > ../../$(location onos-gui2-fw-ng-lint.log);" +
           " if [ -f /usr/bin/chromium-browser ]; then " +  # Add to this for Mac and Chrome
           "   export CHROME_BIN=/usr/bin/chromium-browser; " +
@@ -295,8 +295,8 @@ genrule(
           "   echo -e $$MSG > ../../$(location onos-gui2-fw-ng-test.log);" +
           "   exit 0;" +
           " fi;" +
-          " ng test --preserve-symlinks --code-coverage --browsers=ChromeHeadless" +
-          "     --watch=false gui2-fw-lib > ../../$(location onos-gui2-fw-ng-test.log) 2>&1 ||" +
+          " ng test gui2-fw-lib --preserve-symlinks --code-coverage --browsers=ChromeHeadless" +
+          "     --watch=false > ../../$(location onos-gui2-fw-ng-test.log) 2>&1 ||" +
           " if [ $$? -eq 0 ]; then echo 'Successfully ran tests';" +
           " else " +
           "   echo 'Error running \'ng test\' on \'//web/gui2-fw-lib:onos-gui2-fw-ng-test\'. \\\n" +

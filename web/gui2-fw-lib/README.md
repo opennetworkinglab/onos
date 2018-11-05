@@ -8,9 +8,9 @@ The reason this has been separated out in to a separate library is to allow
 external applications e.g. YangGUI to use it, without bringing along the
 whole of GUI 2
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 6.0.0.
+This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 7.0.4.
 
-A couple of good articles on the creation and use of __libraries__ in Angular 6 is given in
+A couple of good articles on the creation and use of __libraries__ in Angular 7 is given in
 
 [The Angular Library Series - Creating a Library with the Angular CLI](https://blog.angularindepth.com/creating-a-library-in-angular-6-87799552e7e5)
 

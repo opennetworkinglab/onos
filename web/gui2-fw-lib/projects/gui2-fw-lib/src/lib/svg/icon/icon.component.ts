@@ -23,7 +23,7 @@ import { LogService } from '../../log.service';
  * Note: This is an alternative to the Icon Directive from ONOS 1.0.0
  * It has been implemented as a Component because it was inadvertently adding
  * in a template through d3 DOM manipulations - it's better to make it a Comp
- * and build a template the Angular 6 way
+ * and build a template the Angular 7 way
  *
  * Remember: The CSS files applied here only apply to this component
  */
@@ -55,7 +55,6 @@ export class IconComponent implements OnInit, OnChanges {
 
     /**
      * Icons are loaded in to the DOM under iconDefs
-     * TODO: Change this to use more standard Angular 6 mechanism
      */
     ngOnInit() {
         this.is.loadIconDef(this.iconId);

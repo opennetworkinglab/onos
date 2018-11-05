@@ -320,7 +320,8 @@ export class KeysService {
 
     // returns true if we 'consumed' the ESC keypress, false otherwise
     protected escapeKey(view, key, code, ev) {
-        return this.ns.hideNav() || this.qhs.hideQuickHelp();
+        return this.ns.hideNav();
+        // TODO - also hide this.qhs.hideQuickHelp();
     }
 
     protected toggleTheme(view, key, code, ev) {
