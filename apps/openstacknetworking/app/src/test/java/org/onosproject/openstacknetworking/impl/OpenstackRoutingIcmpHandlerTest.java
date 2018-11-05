@@ -30,6 +30,8 @@ import org.onlab.packet.IPv4;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
+import org.onosproject.cluster.ClusterServiceAdapter;
+import org.onosproject.cluster.LeadershipServiceAdapter;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreServiceAdapter;
 import org.onosproject.core.DefaultApplicationId;
@@ -117,6 +119,10 @@ public class OpenstackRoutingIcmpHandlerTest {
         icmpHandler.instancePortService = new TestInstancePortService();
         icmpHandler.osNetworkService = new TestOpenstackNetworkService();
         icmpHandler.osRouterService = new TestOpenstackRouterService();
+        icmpHandler.leadershipService = new TestLeadershipService();
+        icmpHandler.osFlowRuleService = new TestOpenstackFlowRuleService();
+        icmpHandler.clusterService = new TestClusterService();
+
         TestUtils.setField(icmpHandler, "eventExecutor", MoreExecutors.newDirectExecutorService());
         icmpHandler.activate();
 
@@ -510,5 +516,23 @@ public class OpenstackRoutingIcmpHandlerTest {
         public PortNumber uplinkPortNum() {
             return PortNumber.portNumber(1);
         }
+    }
+
+    /**
+     * Mocks the LeadershipService.
+     */
+    private class TestLeadershipService extends LeadershipServiceAdapter {
+    }
+
+    /**
+     * Mocks the OpenstackFlowRuleService.
+     */
+    private class TestOpenstackFlowRuleService extends OpenstackFlowRuleServiceAdapter {
+    }
+
+    /**
+     * Mocks the ClusterService.
+     */
+    private class TestClusterService extends ClusterServiceAdapter {
     }
 }

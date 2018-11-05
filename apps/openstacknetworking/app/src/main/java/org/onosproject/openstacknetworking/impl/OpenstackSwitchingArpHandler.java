@@ -302,6 +302,9 @@ public final class OpenstackSwitchingArpHandler {
             }
 
             String gateway = osSubnet.getGateway();
+            if (gateway == null) {
+                return;
+            }
 
             TrafficSelector selector = DefaultTrafficSelector.builder()
                     .matchEthType(EthType.EtherType.ARP.ethType().toShort())
