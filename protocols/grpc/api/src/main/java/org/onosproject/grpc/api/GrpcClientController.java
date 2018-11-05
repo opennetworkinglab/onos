@@ -66,11 +66,12 @@ public interface GrpcClientController<K extends GrpcClientKey, C extends GrpcCli
      * Check reachability of the gRPC server running on the given device.
      * Reachability can be tested only if a client is previously created
      * using {@link #createClient(GrpcClientKey)}.
-     * Different gRPC service may have different ways to test if it is
-     * reachable or not.
+     * Note that this only checks the reachability instead of checking service
+     * availability, different gRPC client checks service availability with
+     * different way.
      *
      * @param deviceId the device identifier
-     * @return true of client was created and is able to contact the gNMI server;
+     * @return true if client was created and is able to contact the gNMI server;
      *         false otherwise
      */
     boolean isReachable(DeviceId deviceId);
