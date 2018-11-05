@@ -20,6 +20,7 @@ import com.google.common.collect.Maps;
 import io.netty.util.Timeout;
 import io.netty.util.TimerTask;
 import io.netty.util.internal.StringUtil;
+import org.onlab.packet.ChassisId;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.ONOSLLDP;
@@ -243,7 +244,8 @@ public class LinkDiscovery implements TimerTask {
         if (portNumber == null) {
             return null;
         }
-        ONOSLLDP lldp = getLinkProbe(portNumber, portDesc);
+        ONOSLLDP lldp = getLinkProbe(context.deviceService().getDevice(device.id()).chassisId(),
+                portNumber, portDesc);
         ethPacket.setSourceMACAddress(context.fingerprint()).setPayload(lldp);
         return new DefaultOutboundPacket(device.id(),
                                          builder().setOutput(portNumber(portNumber)).build(),
@@ -261,15 +263,16 @@ public class LinkDiscovery implements TimerTask {
         if (portNumber == null) {
             return null;
         }
-        ONOSLLDP lldp = getLinkProbe(portNumber, portDesc);
+        ONOSLLDP lldp = getLinkProbe(context.deviceService().getDevice(device.id()).chassisId(),
+                portNumber, portDesc);
         bddpEth.setSourceMACAddress(context.fingerprint()).setPayload(lldp);
         return new DefaultOutboundPacket(device.id(),
                                          builder().setOutput(portNumber(portNumber)).build(),
                                          ByteBuffer.wrap(bddpEth.serialize()));
     }
 
-    private ONOSLLDP getLinkProbe(Long portNumber, String portDesc) {
-        return ONOSLLDP.onosLLDP(device.id().toString(), device.chassisId(), portNumber.intValue(), portDesc);
+    private ONOSLLDP getLinkProbe(ChassisId chassisId, Long portNumber, String portDesc) {
+        return ONOSLLDP.onosLLDP(device.id().toString(), chassisId, portNumber.intValue(), portDesc);
     }
 
     private void sendProbes(Long portNumber, String portDesc) {
