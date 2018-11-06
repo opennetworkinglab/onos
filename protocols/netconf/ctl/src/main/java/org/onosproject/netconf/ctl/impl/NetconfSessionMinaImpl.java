@@ -153,6 +153,8 @@ public class NetconfSessionMinaImpl extends AbstractNetconfSession {
     private ClientSession session = null;
     private SshClient client = null;
 
+    private boolean disconnected = false;
+
     public NetconfSessionMinaImpl(NetconfDeviceInfo deviceInfo) throws NetconfException {
         this.deviceInfo = deviceInfo;
         replies = new ConcurrentHashMap<>();
@@ -211,7 +213,8 @@ public class NetconfSessionMinaImpl extends AbstractNetconfSession {
 
         try {
             startClient();
-        } catch (IOException e) {
+        } catch (Exception e) {
+            stopClient();
             throw new NetconfException("Failed to establish SSH with device " + deviceInfo, e);
         }
     }
@@ -228,6 +231,8 @@ public class NetconfSessionMinaImpl extends AbstractNetconfSession {
         client.start();
         client.setKeyPairProvider(new SimpleGeneratorHostKeyProvider());
         startSession();
+
+        disconnected = false;
     }
 
     //TODO: Remove the default methods already implemented in NetconfSession
@@ -385,6 +390,34 @@ public class NetconfSessionMinaImpl extends AbstractNetconfSession {
         }
     }
 
+    private void stopClient() {
+        if (session != null) {
+            try {
+                session.close();
+            } catch (IOException ex) {
+                log.warn("Cannot close session {} {}", sessionID, deviceInfo, ex);
+            }
+        }
+
+        if (channel != null) {
+            try {
+                channel.close();
+            } catch (IOException ex) {
+                log.warn("Cannot close channel {} {}", sessionID, deviceInfo, ex);
+            }
+        }
+
+        if (client != null) {
+            try {
+                client.close();
+            } catch (IOException ex) {
+                log.warn("Cannot close client {} {}", sessionID, deviceInfo, ex);
+            }
+
+            client.stop();
+        }
+    }
+
     private void sendHello() throws NetconfException {
         String serverHelloResponse = sendRequest(createHelloString(), true);
         Matcher capabilityMatcher = CAPABILITY_REGEX_PATTERN.matcher(serverHelloResponse);
@@ -421,6 +454,11 @@ public class NetconfSessionMinaImpl extends AbstractNetconfSession {
 
     @Override
     public void checkAndReestablish() throws NetconfException {
+        if (disconnected) {
+            log.warn("Can't reopen connection for device because of disconnected {}", deviceInfo.getDeviceId());
+            throw new NetconfException("Can't reopen connection for device because of disconnected " + deviceInfo);
+        }
+
         try {
             if (client.isClosed() || client.isClosing()) {
                 log.debug("Trying to restart the whole SSH connection with {}", deviceInfo.getDeviceId());
@@ -601,13 +639,7 @@ public class NetconfSessionMinaImpl extends AbstractNetconfSession {
                     request + " after " + replyTimeout + " sec.", e);
         } catch (ExecutionException e) {
             log.warn("Closing session {} for {} due to unexpected Error", sessionID, deviceInfo, e);
-            try {
-                session.close();
-                channel.close(); //Closes the socket which should interrupt NetconfStreamThread
-                client.close();
-            } catch (IOException ioe) {
-                log.warn("Error closing session {} on {}", sessionID, deviceInfo, ioe);
-            }
+            stopClient();
             NetconfDeviceOutputEvent event = new NetconfDeviceOutputEvent(
                     NetconfDeviceOutputEvent.Type.SESSION_CLOSED,
                     null, "Closed due to unexpected error " + e.getCause(),
@@ -719,17 +751,16 @@ public class NetconfSessionMinaImpl extends AbstractNetconfSession {
     @Override
     public boolean close() throws NetconfException {
         try {
+            if (client != null && (client.isClosed() || client.isClosing())) {
+                return true;
+            }
+
             return super.close();
         } catch (IOException ioe) {
             throw new NetconfException(ioe.getMessage());
         } finally {
-            try {
-                session.close();
-                channel.close();
-                client.close();
-            } catch (IOException ioe) {
-                log.warn("Error closing session {} on {}", sessionID, deviceInfo, ioe);
-            }
+            disconnected = true;
+            stopClient();
         }
     }
 
