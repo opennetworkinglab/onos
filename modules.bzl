@@ -77,7 +77,8 @@ CORE = UTILS + API + [
     "//web/api:onos-rest",
     "//web/gui2:onos-gui2",
     "//web/gui:onos-gui",
-    # "//incubator/protobuf/models:onos-incubator-protobuf-models",
+    "//incubator/protobuf/models/proto:onos-incubator-protobuf-models-proto",
+    "//incubator/protobuf/models:onos-incubator-protobuf-models",
     # "//incubator/protobuf/services/nb:onos-incubator-protobuf-services-nb",
 ]
 
@@ -241,7 +242,7 @@ ONOS_APPS = [
     "//apps/powermanagement:onos-apps-powermanagement-oar",
     "//apps/t3:onos-apps-t3-oar",
     "//apps/simplefabric:onos-apps-simplefabric-oar",
-    # "//apps/kafka-integration:onos-apps-kafka-integration-oar",
+    "//apps/kafka-integration:onos-apps-kafka-integration-oar",
     "//apps/rabbitmq:onos-apps-rabbitmq-oar",
     "//apps/odtn/api:onos-apps-odtn-api-oar",
     "//apps/odtn/service:onos-apps-odtn-service-oar",
@@ -298,7 +299,7 @@ APP_JARS = [
     "//apps/vtn/vtnmgr:onos-apps-vtn-vtnmgr",
     "//apps/vtn/vtnweb:onos-apps-vtn-vtnweb",
     "//apps/kafka-integration/api:onos-apps-kafka-integration-api",
-    # "//apps/kafka-integration/app:onos-apps-kafka-integration-app",
+    "//apps/kafka-integration/app:onos-apps-kafka-integration-app",
 ]
 
 FEATURES = [

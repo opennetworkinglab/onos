@@ -83,8 +83,8 @@ CORE = UTILS + API + [
     # '//web/gui2:onos-gui2',
     '//web/gui:onos-gui',
 
-    '//incubator/protobuf/models:onos-incubator-protobuf-models',
-    '//incubator/protobuf/services/nb:onos-incubator-protobuf-services-nb',
+    #'//incubator/protobuf/models:onos-incubator-protobuf-models',
+    #'//incubator/protobuf/services/nb:onos-incubator-protobuf-services-nb',
 ]
 
 ONOS_DRIVERS = [
@@ -236,8 +236,8 @@ ONOS_APPS = [
     '//apps/evpnopenflow:onos-apps-evpnopenflow-oar',
     '//apps/route-service:onos-apps-route-service-oar',
     '//apps/evpn-route-service:onos-apps-evpn-route-service-oar',
-    '//incubator/protobuf/registry:onos-incubator-protobuf-registry-oar',
-    '//incubator/protobuf/services/nb:onos-incubator-protobuf-services-nb-oar',
+    #'//incubator/protobuf/registry:onos-incubator-protobuf-registry-oar',
+    #'//incubator/protobuf/services/nb:onos-incubator-protobuf-services-nb-oar',
     '//apps/openstacknetworkingui:onos-apps-openstacknetworkingui-oar',
     '//apps/openstacktelemetry:onos-apps-openstacktelemetry-oar',
     '//apps/openstacktroubleshoot:onos-apps-openstacktroubleshoot-oar',
@@ -249,7 +249,7 @@ ONOS_APPS = [
     '//apps/powermanagement:onos-apps-powermanagement-oar',
     '//apps/t3:onos-apps-t3-oar',
     '//apps/simplefabric:onos-apps-simplefabric-oar',
-    '//apps/kafka-integration:onos-apps-kafka-integration-oar',
+    #'//apps/kafka-integration:onos-apps-kafka-integration-oar',
     '//apps/rabbitmq:onos-apps-rabbitmq-oar',
     '//apps/odtn/api:onos-apps-odtn-api-oar',
     '//apps/odtn/service:onos-apps-odtn-service-oar',
@@ -305,8 +305,8 @@ APP_JARS = [
     '//apps/vtn/sfcmgr:onos-apps-vtn-sfcmgr',
     '//apps/vtn/vtnmgr:onos-apps-vtn-vtnmgr',
     '//apps/vtn/vtnweb:onos-apps-vtn-vtnweb',
-    '//apps/kafka-integration/api:onos-apps-kafka-integration-api',
-    '//apps/kafka-integration/app:onos-apps-kafka-integration-app',
+    #'//apps/kafka-integration/api:onos-apps-kafka-integration-api',
+    #'//apps/kafka-integration/app:onos-apps-kafka-integration-app',
 ]
 
 FEATURES = [
@@ -314,7 +314,7 @@ FEATURES = [
   '//tools/package/features:onos-thirdparty-web',
   '//tools/package/features:onos-api',
   '//tools/package/features:onos-core',
-  '//tools/package/features:onos-incubator',
+  #'//tools/package/features:onos-incubator',
   '//tools/package/features:onos-rest',
   '//tools/package/features:onos-gui',
   #'//tools/package/features:onos-gui2',
