@@ -44,6 +44,7 @@ import org.onosproject.net.pi.runtime.PiActionGroupId;
 import org.onosproject.net.pi.runtime.PiActionGroupMember;
 import org.onosproject.net.pi.runtime.PiActionGroupMemberId;
 import org.onosproject.net.pi.runtime.PiActionParam;
+import org.onosproject.p4runtime.api.P4RuntimeClientKey;
 import p4.v1.P4RuntimeOuterClass.ActionProfileGroup;
 import p4.v1.P4RuntimeOuterClass.ActionProfileMember;
 import p4.v1.P4RuntimeOuterClass.Entity;
@@ -100,6 +101,8 @@ public class P4RuntimeGroupTest {
     private static final String GRPC_SERVER_NAME = "P4RuntimeGroupTest";
     private static final long DEFAULT_TIMEOUT_TIME = 10;
     private static final Uint128 DEFAULT_ELECTION_ID = Uint128.newBuilder().setLow(1).build();
+    private static final String P4R_IP = "127.0.0.1";
+    private static final int P4R_PORT = 50010;
 
     private P4RuntimeClientImpl client;
     private P4RuntimeControllerImpl controller;
@@ -152,9 +155,8 @@ public class P4RuntimeGroupTest {
     @Before
     public void setup() {
         controller = niceMock(P4RuntimeControllerImpl.class);
-        client = new P4RuntimeClientImpl(DEVICE_ID, P4_DEVICE_ID,
-                                         grpcChannel,
-                                         controller);
+        P4RuntimeClientKey clientKey = new P4RuntimeClientKey(DEVICE_ID, P4R_IP, P4R_PORT, P4_DEVICE_ID);
+        client = new P4RuntimeClientImpl(clientKey, grpcChannel, controller);
         client.becomeMaster();
     }
 

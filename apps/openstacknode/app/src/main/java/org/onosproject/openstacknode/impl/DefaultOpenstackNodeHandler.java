@@ -643,20 +643,23 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
         public boolean isRelevant(DeviceEvent event) {
             NodeId leader = leadershipService.getLeader(appId.name());
             return Objects.equals(localNode, leader) &&
-                    event.subject().type() == Device.Type.CONTROLLER &&
-                    osNodeService.node(event.subject().id()) != null &&
-                    osNodeService.node(event.subject().id()).type() != CONTROLLER;
+                    event.subject().type() == Device.Type.CONTROLLER;
         }
 
         @Override
         public void event(DeviceEvent event) {
             Device device = event.subject();
-            OpenstackNode osNode = osNodeService.node(device.id());
 
             switch (event.type()) {
                 case DEVICE_AVAILABILITY_CHANGED:
                 case DEVICE_ADDED:
                     eventExecutor.execute(() -> {
+                        OpenstackNode osNode = osNodeService.node(device.id());
+
+                        if (osNode == null || osNode.type() == CONTROLLER) {
+                            return;
+                        }
+
                         if (deviceService.isAvailable(device.id())) {
                             log.debug("OVSDB {} detected", device.id());
                             bootstrapNode(osNode);
@@ -685,20 +688,23 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
         public boolean isRelevant(DeviceEvent event) {
             NodeId leader = leadershipService.getLeader(appId.name());
             return Objects.equals(localNode, leader) &&
-                    event.subject().type() == Device.Type.SWITCH &&
-                    osNodeService.node(event.subject().id()) != null &&
-                    osNodeService.node(event.subject().id()).type() != CONTROLLER;
+                    event.subject().type() == Device.Type.SWITCH;
         }
 
         @Override
         public void event(DeviceEvent event) {
             Device device = event.subject();
-            OpenstackNode osNode = osNodeService.node(device.id());
 
             switch (event.type()) {
                 case DEVICE_AVAILABILITY_CHANGED:
                 case DEVICE_ADDED:
                     eventExecutor.execute(() -> {
+                        OpenstackNode osNode = osNodeService.node(device.id());
+
+                        if (osNode == null || osNode.type() == CONTROLLER) {
+                            return;
+                        }
+
                         if (deviceService.isAvailable(device.id())) {
                             log.debug("Integration bridge created on {}", osNode.hostname());
                             bootstrapNode(osNode);
@@ -720,6 +726,12 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                 case PORT_UPDATED:
                 case PORT_ADDED:
                     eventExecutor.execute(() -> {
+                        OpenstackNode osNode = osNodeService.node(device.id());
+
+                        if (osNode == null || osNode.type() == CONTROLLER) {
+                            return;
+                        }
+
                         Port port = event.port();
                         String portName = port.annotations().value(PORT_NAME);
                         if (osNode.state() == DEVICE_CREATED && (
@@ -736,6 +748,12 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                     break;
                 case PORT_REMOVED:
                     eventExecutor.execute(() -> {
+                        OpenstackNode osNode = osNodeService.node(device.id());
+
+                        if (osNode == null || osNode.type() == CONTROLLER) {
+                            return;
+                        }
+
                         Port port = event.port();
                         String portName = port.annotations().value(PORT_NAME);
                         if (osNode.state() == COMPLETE && (

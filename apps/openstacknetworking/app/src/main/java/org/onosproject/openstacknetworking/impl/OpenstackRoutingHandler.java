@@ -19,7 +19,6 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.onlab.packet.Ethernet;
-import org.onlab.packet.ICMP;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
@@ -882,34 +881,6 @@ public class OpenstackRoutingHandler {
                 sBuilder.build(),
                 tBuilder.build(),
                 PRIORITY_EXTERNAL_ROUTING_RULE,
-                GW_COMMON_TABLE,
-                install);
-
-        // TODO: we do not remove the IcmpReplyMatchRules with false installation flag
-        // need to find a better way to remove this rule
-        if (install) {
-            setIcmpReplyRules(deviceId, install);
-        }
-    }
-
-    private void setIcmpReplyRules(DeviceId deviceId, boolean install) {
-        // Sends ICMP response to controller for SNATing ingress traffic
-        TrafficSelector selector = DefaultTrafficSelector.builder()
-                .matchEthType(Ethernet.TYPE_IPV4)
-                .matchIPProtocol(IPv4.PROTOCOL_ICMP)
-                .matchIcmpType(ICMP.TYPE_ECHO_REPLY)
-                .build();
-
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .punt()
-                .build();
-
-        osFlowRuleService.setRule(
-                appId,
-                deviceId,
-                selector,
-                treatment,
-                PRIORITY_INTERNAL_ROUTING_RULE,
                 GW_COMMON_TABLE,
                 install);
     }

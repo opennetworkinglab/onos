@@ -29,10 +29,15 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onlab.util.KryoNamespace;
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.LeadershipService;
+import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
+import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.InboundPacket;
@@ -44,9 +49,12 @@ import org.onosproject.openstacknetworking.api.Constants;
 import org.onosproject.openstacknetworking.api.ExternalPeerRouter;
 import org.onosproject.openstacknetworking.api.InstancePort;
 import org.onosproject.openstacknetworking.api.InstancePortService;
+import org.onosproject.openstacknetworking.api.OpenstackFlowRuleService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.onosproject.openstacknetworking.api.OpenstackRouterService;
 import org.onosproject.openstacknode.api.OpenstackNode;
+import org.onosproject.openstacknode.api.OpenstackNodeEvent;
+import org.onosproject.openstacknode.api.OpenstackNodeListener;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
@@ -74,7 +82,9 @@ import static org.onlab.packet.ICMP.TYPE_ECHO_REPLY;
 import static org.onlab.packet.ICMP.TYPE_ECHO_REQUEST;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.openstacknetworking.api.Constants.DEFAULT_GATEWAY_MAC;
+import static org.onosproject.openstacknetworking.api.Constants.GW_COMMON_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
+import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_INTERNAL_ROUTING_RULE;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -117,10 +127,20 @@ public class OpenstackRoutingIcmpHandler {
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected OpenstackRouterService osRouterService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected LeadershipService leadershipService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected OpenstackFlowRuleService osFlowRuleService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected ClusterService clusterService;
+
     private final ExecutorService eventExecutor = newSingleThreadExecutor(
             groupedThreads(this.getClass().getSimpleName(), "event-handler", log));
     private final InternalPacketProcessor packetProcessor = new InternalPacketProcessor();
     private ConsistentMap<String, InstancePort> icmpInfoMap;
+    private final OpenstackNodeListener osNodeListener = new InternalNodeEventListener();
 
     private static final KryoNamespace SERIALIZER_ICMP_MAP = KryoNamespace.newBuilder()
             .register(KryoNamespaces.API)
@@ -130,11 +150,15 @@ public class OpenstackRoutingIcmpHandler {
             .build();
 
     private ApplicationId appId;
+    private NodeId localNodeId;
 
     @Activate
     protected void activate() {
         appId = coreService.registerApplication(OPENSTACK_NETWORKING_APP_ID);
         packetService.addProcessor(packetProcessor, PacketProcessor.director(1));
+        localNodeId = clusterService.getLocalNode().id();
+        leadershipService.runForLeadership(appId.name());
+        osNodeService.addListener(osNodeListener);
 
         icmpInfoMap = storageService.<String, InstancePort>consistentMapBuilder()
                 .withSerializer(Serializer.using(SERIALIZER_ICMP_MAP))
@@ -149,6 +173,8 @@ public class OpenstackRoutingIcmpHandler {
     protected void deactivate() {
         packetService.removeProcessor(packetProcessor);
         eventExecutor.shutdown();
+        leadershipService.withdraw(appId.name());
+        osNodeService.removeListener(osNodeListener);
 
         log.info("Stopped");
     }
@@ -495,6 +521,52 @@ public class OpenstackRoutingIcmpHandler {
                 default:
                     break;
             }
+        }
+    }
+
+    private class InternalNodeEventListener implements OpenstackNodeListener {
+        @Override
+        public boolean isRelevant(OpenstackNodeEvent event) {
+            // do not allow to proceed without leadership
+            NodeId leader = leadershipService.getLeader(appId.name());
+            return Objects.equals(localNodeId, leader) && event.subject().type() == GATEWAY;
+        }
+
+        @Override
+        public void event(OpenstackNodeEvent event) {
+            OpenstackNode osNode = event.subject();
+            switch (event.type()) {
+                case OPENSTACK_NODE_COMPLETE:
+                    eventExecutor.execute(() -> setIcmpReplyRules(osNode.intgBridge(), true));
+                    break;
+                case OPENSTACK_NODE_INCOMPLETE:
+                    eventExecutor.execute(() -> setIcmpReplyRules(osNode.intgBridge(), false));
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private void setIcmpReplyRules(DeviceId deviceId, boolean install) {
+            // Sends ICMP response to controller for SNATing ingress traffic
+            TrafficSelector selector = DefaultTrafficSelector.builder()
+                    .matchEthType(Ethernet.TYPE_IPV4)
+                    .matchIPProtocol(IPv4.PROTOCOL_ICMP)
+                    .matchIcmpType(ICMP.TYPE_ECHO_REPLY)
+                    .build();
+
+            TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                    .punt()
+                    .build();
+
+            osFlowRuleService.setRule(
+                    appId,
+                    deviceId,
+                    selector,
+                    treatment,
+                    PRIORITY_INTERNAL_ROUTING_RULE,
+                    GW_COMMON_TABLE,
+                    install);
         }
     }
 }

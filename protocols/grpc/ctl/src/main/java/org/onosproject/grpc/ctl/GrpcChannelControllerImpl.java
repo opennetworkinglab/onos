@@ -33,8 +33,8 @@ import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
+import org.onosproject.grpc.api.GrpcChannelController;
 import org.onosproject.grpc.api.GrpcChannelId;
-import org.onosproject.grpc.api.GrpcController;
 import org.onosproject.grpc.proto.dummy.Dummy;
 import org.onosproject.grpc.proto.dummy.DummyServiceGrpc;
 import org.onosproject.net.DeviceId;
@@ -64,14 +64,15 @@ import static org.onosproject.grpc.ctl.OsgiPropertyConstants.ENABLE_MESSAGE_LOG;
 import static org.onosproject.grpc.ctl.OsgiPropertyConstants.ENABLE_MESSAGE_LOG_DEFAULT;
 
 /**
- * Default implementation of the GrpcController.
+ * Default implementation of the GrpcChannelController.
  */
-@Component(immediate = true, service = GrpcController.class,
+@Component(immediate = true, service = GrpcChannelController.class,
         property = {
             ENABLE_MESSAGE_LOG + ":Boolean=" + ENABLE_MESSAGE_LOG_DEFAULT,
         })
-public class GrpcControllerImpl implements GrpcController {
+public class GrpcChannelControllerImpl implements GrpcChannelController {
 
+    // FIXME: Should use message size to determine whether it needs to log the message or not.
     private  static final String SET_FORWARDING_PIPELINE_CONFIG_METHOD = "p4.P4Runtime/SetForwardingPipelineConfig";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
