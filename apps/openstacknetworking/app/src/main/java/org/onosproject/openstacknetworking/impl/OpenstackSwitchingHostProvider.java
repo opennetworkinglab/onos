@@ -306,11 +306,11 @@ public final class OpenstackSwitchingHostProvider
 
         @Override
         public boolean isRelevant(DeviceEvent event) {
-            Device device = event.subject();
-            if (!mastershipService.isLocalMaster(device.id())) {
+            if (!mastershipService.isLocalMaster(event.subject().id())) {
                 // do not allow to proceed without mastership
                 return false;
             }
+
             Port port = event.port();
             if (port == null) {
                 return false;
@@ -390,8 +390,10 @@ public final class OpenstackSwitchingHostProvider
 
         private void processCompleteNode(OpenstackNode osNode) {
             deviceService.getPorts(osNode.intgBridge()).stream()
-                    .filter(port -> vnicType(port.annotations().value(PORT_NAME)).equals(Constants.VnicType.NORMAL) ||
-                            vnicType(port.annotations().value(PORT_NAME)).equals(Constants.VnicType.DIRECT))
+                    .filter(port -> vnicType(port.annotations().value(PORT_NAME))
+                                    .equals(Constants.VnicType.NORMAL) ||
+                            vnicType(port.annotations().value(PORT_NAME))
+                                    .equals(Constants.VnicType.DIRECT))
                     .filter(Port::isEnabled)
                     .forEach(port -> {
                         log.debug("Instance port {} is detected from {}",

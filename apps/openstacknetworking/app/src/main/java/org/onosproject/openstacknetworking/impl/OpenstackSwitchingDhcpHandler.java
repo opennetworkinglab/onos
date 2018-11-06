@@ -72,8 +72,10 @@ import java.nio.ByteBuffer;
 import java.util.Dictionary;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_BroadcastAddress;
 import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_Classless_Static_Route;
 import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_DHCPServerIp;
@@ -85,6 +87,7 @@ import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_RouterAddress;
 import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_SubnetMask;
 import static org.onlab.packet.DHCP.MsgType.DHCPACK;
 import static org.onlab.packet.DHCP.MsgType.DHCPOFFER;
+import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.openstacknetworking.api.Constants.DEFAULT_GATEWAY_MAC_STR;
 import static org.onosproject.openstacknetworking.api.Constants.DHCP_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_DHCP_RULE;
@@ -150,6 +153,9 @@ public class OpenstackSwitchingDhcpHandler {
     private final PacketProcessor packetProcessor = new InternalPacketProcessor();
     private final OpenstackNodeListener osNodeListener = new InternalNodeEventListener();
 
+    private final ExecutorService eventExecutor = newSingleThreadExecutor(
+            groupedThreads(this.getClass().getSimpleName(), "event-handler"));
+
     private ApplicationId appId;
     private NodeId localNodeId;
 
@@ -171,6 +177,7 @@ public class OpenstackSwitchingDhcpHandler {
         osNodeService.removeListener(osNodeListener);
         configService.unregisterProperties(getClass(), false);
         leadershipService.withdraw(appId.name());
+        eventExecutor.shutdown();
 
         log.info("Stopped");
     }
@@ -212,7 +219,8 @@ public class OpenstackSwitchingDhcpHandler {
             }
 
             DHCP dhcpPacket = (DHCP) udpPacket.getPayload();
-            processDhcp(context, dhcpPacket);
+
+            eventExecutor.execute(() -> processDhcp(context, dhcpPacket));
         }
 
         private void processDhcp(PacketContext context, DHCP dhcpPacket) {
@@ -547,10 +555,10 @@ public class OpenstackSwitchingDhcpHandler {
             OpenstackNode osNode = event.subject();
             switch (event.type()) {
                 case OPENSTACK_NODE_COMPLETE:
-                    setDhcpRule(osNode, true);
+                    eventExecutor.execute(() -> setDhcpRule(osNode, true));
                     break;
                 case OPENSTACK_NODE_INCOMPLETE:
-                    setDhcpRule(osNode, false);
+                    eventExecutor.execute(() -> setDhcpRule(osNode, false));
                     break;
                 case OPENSTACK_NODE_CREATED:
                 case OPENSTACK_NODE_UPDATED:

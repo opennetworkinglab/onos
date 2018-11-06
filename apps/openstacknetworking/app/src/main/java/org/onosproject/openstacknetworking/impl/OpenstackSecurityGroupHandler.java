@@ -767,20 +767,22 @@ public class OpenstackSecurityGroupHandler {
                 case OPENSTACK_INSTANCE_PORT_UPDATED:
                 case OPENSTACK_INSTANCE_PORT_DETECTED:
                 case OPENSTACK_INSTANCE_MIGRATION_STARTED:
-                    installSecurityGroupRules(event, instPort);
+                    eventExecutor.execute(() ->
+                                    installSecurityGroupRules(event, instPort));
                     break;
                 case OPENSTACK_INSTANCE_PORT_VANISHED:
-                    Port osPort = removedOsPortStore.asJavaMap().get(instPort.portId());
-                    eventExecutor.execute(() ->
-                            setSecurityGroupRules(instPort, osPort, false)
-                    );
-                    removedOsPortStore.remove(instPort.portId());
+                    eventExecutor.execute(() -> {
+                        Port osPort = removedOsPortStore.asJavaMap().get(instPort.portId());
+                        setSecurityGroupRules(instPort, osPort, false);
+                        removedOsPortStore.remove(instPort.portId());
+                    });
                     break;
                 case OPENSTACK_INSTANCE_MIGRATION_ENDED:
-                    InstancePort revisedInstPort = swapStaleLocation(instPort);
-                    Port port = osNetService.port(instPort.portId());
-                    eventExecutor.execute(() ->
-                            setSecurityGroupRules(revisedInstPort, port, false));
+                    eventExecutor.execute(() -> {
+                        InstancePort revisedInstPort = swapStaleLocation(instPort);
+                        Port port = osNetService.port(instPort.portId());
+                        setSecurityGroupRules(revisedInstPort, port, false);
+                    });
                     break;
                 default:
                     break;
@@ -822,7 +824,8 @@ public class OpenstackSecurityGroupHandler {
 
             switch (event.type()) {
                 case OPENSTACK_PORT_PRE_REMOVE:
-                    removedOsPortStore.put(osPort.getId(), osPort);
+                    eventExecutor.execute(() ->
+                                removedOsPortStore.put(osPort.getId(), osPort));
                     break;
                 default:
                     // do nothing for the other events
@@ -945,7 +948,8 @@ public class OpenstackSecurityGroupHandler {
         public void event(OpenstackNodeEvent event) {
             switch (event.type()) {
                 case OPENSTACK_NODE_COMPLETE:
-                    resetSecurityGroupRules();
+                    eventExecutor.execute(OpenstackSecurityGroupHandler.this::
+                                                        resetSecurityGroupRules);
                     break;
                 case OPENSTACK_NODE_CREATED:
                 case OPENSTACK_NODE_REMOVED:

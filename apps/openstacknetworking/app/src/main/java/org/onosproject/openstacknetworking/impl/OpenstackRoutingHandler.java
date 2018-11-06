@@ -100,6 +100,7 @@ import static org.onosproject.openstacknetworking.api.InstancePort.State.ACTIVE;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.buildExtension;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
+import static org.openstack4j.model.network.NetworkType.FLAT;
 
 /**
  * Handles OpenStack router events.
@@ -332,7 +333,7 @@ public class OpenstackRoutingHandler {
         Subnet osSubnet = osNetworkAdminService.subnet(routerIface.getSubnetId());
         Network osNet = osNetworkAdminService.network(osSubnet.getNetworkId());
 
-        if (osNet.getNetworkType() == NetworkType.FLAT) {
+        if (osNet.getNetworkType() == FLAT) {
             return;
         }
 
@@ -996,10 +997,12 @@ public class OpenstackRoutingHandler {
                             event.routerIface()));
                     break;
                 case OPENSTACK_ROUTER_GATEWAY_ADDED:
-                    log.debug("Router external gateway {} added", event.externalGateway().getNetworkId());
+                    log.debug("Router external gateway {} added",
+                                        event.externalGateway().getNetworkId());
                     break;
                 case OPENSTACK_ROUTER_GATEWAY_REMOVED:
-                    log.debug("Router external gateway {} removed", event.externalGateway().getNetworkId());
+                    log.debug("Router external gateway {} removed",
+                                        event.externalGateway().getNetworkId());
                     break;
                 case OPENSTACK_FLOATING_IP_CREATED:
                 case OPENSTACK_FLOATING_IP_UPDATED:
@@ -1104,7 +1107,7 @@ public class OpenstackRoutingHandler {
         }
 
         private void instPortDetected(InstancePort instPort) {
-            if (osNetworkAdminService.network(instPort.networkId()).getNetworkType() == NetworkType.FLAT) {
+            if (osNetworkAdminService.network(instPort.networkId()).getNetworkType() == FLAT) {
                 return;
             }
 
@@ -1120,7 +1123,7 @@ public class OpenstackRoutingHandler {
         }
 
         private void instPortRemoved(InstancePort instPort) {
-            if (osNetworkAdminService.network(instPort.networkId()).getNetworkType() == NetworkType.FLAT) {
+            if (osNetworkAdminService.network(instPort.networkId()).getNetworkType() == FLAT) {
                 return;
             }
 

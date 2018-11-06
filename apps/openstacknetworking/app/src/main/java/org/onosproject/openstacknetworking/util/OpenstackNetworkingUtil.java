@@ -884,11 +884,11 @@ public final class OpenstackNetworkingUtil {
      * @param gatewayNode gateway node
      * @param packetService packet service
      */
-    public static void processGratuitousArpPacketForFloatingIp(NetFloatingIP floatingIP,
-                                                               InstancePort instancePort,
-                                                               VlanId vlanId,
-                                                               OpenstackNode gatewayNode,
-                                                               PacketService packetService) {
+    public static void processGarpPacketForFloatingIp(NetFloatingIP floatingIP,
+                                                      InstancePort instancePort,
+                                                      VlanId vlanId,
+                                                      OpenstackNode gatewayNode,
+                                                      PacketService packetService) {
         Ethernet ethernet = buildGratuitousArpPacket(floatingIP, instancePort, vlanId);
 
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
