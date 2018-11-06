@@ -127,7 +127,7 @@ def updateNodeIPs( env, nodes ):
     return env
 
 
-tarDefaultPath = 'buck-out/gen/tools/package/onos-package/onos.tar.gz'
+tarDefaultPath = "bazel-out/k8-fastbuild/bin/onos.tar.gz"
 
 def unpackONOS( destDir='/tmp', run=quietRun ):
     "Unpack ONOS and return its location"
@@ -280,7 +280,7 @@ class ONOSNode( Controller ):
         self.cmd( 'export PATH=%s:%s:$PATH' % ( onosbin, karafbin ) )
         self.cmd( 'cd', self.ONOS_HOME )
         self.ucmd( 'mkdir -p config && '
-                   'onos-gen-partitions config/cluster.json',
+                   'onos-gen-default-cluster  config/cluster.json --nodes ',
                    ' '.join( node.IP() for node in nodes ) )
 
     def intfsDown( self ):
@@ -397,6 +397,11 @@ class ONOSNode( Controller ):
                       ( self.IP(), self.IP(), CopycatPort )
             if nodeStr in result:
                 break
+
+			# just break if state is active 
+            if "state=ACTIVE" in result:
+                break
+
             info( '.' )
             self.sanityCheck()
             time.sleep( 1 )
