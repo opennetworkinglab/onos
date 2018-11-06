@@ -268,11 +268,11 @@ public class RestDeviceProvider extends AbstractProvider
 
     private DeviceDescription getDesc(RestSBDevice restSBDev) {
         DeviceId deviceId = restSBDev.deviceId();
-        if (restSBDev.isProxy()) {
-            Driver driver = driverService.getDriver(restSBDev.manufacturer().get(),
-                    restSBDev.hwVersion().get(),
-                    restSBDev.swVersion().get());
+        Driver driver = driverService.getDriver(restSBDev.manufacturer().get(),
+                restSBDev.hwVersion().get(),
+                restSBDev.swVersion().get());
 
+        if (restSBDev.isProxy()) {
             if (driver != null && driver.hasBehaviour(DevicesDiscovery.class)) {
 
                 //Creates the driver to communicate with the server
@@ -283,6 +283,10 @@ public class RestDeviceProvider extends AbstractProvider
                 log.warn("Driver not found for {}", restSBDev);
                 return null;
             }
+        } else if (driver != null && driver.hasBehaviour(DeviceDescriptionDiscovery.class)) {
+            DriverHandler h = driverService.createHandler(deviceId);
+            DeviceDescriptionDiscovery deviceDiscovery = h.behaviour(DeviceDescriptionDiscovery.class);
+            return deviceDiscovery.discoverDeviceDetails();
         }
         ChassisId cid = new ChassisId();
         String ipAddress = restSBDev.ip().toString();
