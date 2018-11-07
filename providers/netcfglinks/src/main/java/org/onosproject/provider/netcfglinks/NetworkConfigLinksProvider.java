@@ -191,7 +191,7 @@ public class NetworkConfigLinksProvider
         }
 
         LinkDiscovery ld = discoverers.computeIfAbsent(device.id(),
-                did -> new LinkDiscovery(device, context));
+                did -> new LinkDiscovery(device.id(), context));
         if (ld.isStopped()) {
             ld.start();
         }
