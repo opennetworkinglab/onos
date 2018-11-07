@@ -3,7 +3,6 @@ load("//tools/build/bazel:osgi_java_library.bzl", "wrapped_osgi_jar")
 BUNDLES = [
     "@kafka_clients//jar",
     "@influxdb_java//jar",
-    "@commons_codec//jar",
     "@retrofit//jar",
     "@okhttp//jar",
     "@logging_interceptor//jar",

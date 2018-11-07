@@ -3,7 +3,6 @@ BUNDLES = [
     "//apps/openstacknetworking/app:onos-apps-openstacknetworking-app",
     "@httpclient_osgi//jar",
     "@httpcore_osgi//jar",
-    "@commons_codec//jar",
     "@sshd_core//jar",
 ]
 

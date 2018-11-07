@@ -14,6 +14,7 @@ osgi_feature(
         "@commons_lang//jar",
         "@commons_lang3//jar",
         "@commons_text//jar",
+        "@commons_codec//jar",
         "@commons_configuration//jar",
         "@com_google_guava_guava//jar",
         "@io_netty_netty//jar",

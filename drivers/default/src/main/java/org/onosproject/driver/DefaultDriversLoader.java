@@ -23,7 +23,7 @@ import org.osgi.service.component.annotations.Component;
 /**
  * Loader for default device drivers.
  */
-@Component(immediate = true, service = DefaultDriversLoader.class)
+@Component(immediate = true, service = {DefaultDriversLoader.class, DefaultDriverProviderService.class})
 public class DefaultDriversLoader extends AbstractIndependentDriverLoader
         implements DefaultDriverProviderService {
     public DefaultDriversLoader() {
