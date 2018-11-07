@@ -457,8 +457,9 @@ public class NetconfDeviceProvider extends AbstractProvider
         if (isReachable && deviceService.isAvailable(deviceId) &&
                 mastershipService.isLocalMaster(deviceId)) {
             //if ports are not discovered, retry the discovery
+            AtomicInteger count = retriedPortDiscoveryMap.get(deviceId);
             if (deviceService.getPorts(deviceId).isEmpty() &&
-                    retriedPortDiscoveryMap.get(deviceId).getAndIncrement() < maxRetries) {
+                    count != null && count.getAndIncrement() < maxRetries) {
                 discoverPorts(deviceId);
             }
             updatePortStatistics(device);
