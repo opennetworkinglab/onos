@@ -216,6 +216,11 @@ public final class AnnotationKeys {
     public static final String SSHKEY = "sshkey";
 
     /**
+     * Annotation key for the protocol layer.
+     */
+    public static final String LAYER = "layer";
+
+    /**
      * Returns the value annotated object for the specified annotation key.
      * The annotated value is expected to be String that can be parsed as double.
      * If parsing fails, the returned value will be {@value #DEFAULT_VALUE}.

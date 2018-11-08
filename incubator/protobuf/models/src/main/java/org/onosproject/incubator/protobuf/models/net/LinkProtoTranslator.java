@@ -15,8 +15,8 @@
  */
 package org.onosproject.incubator.protobuf.models.net;
 
-import org.onosproject.grpc.net.models.LinkProtoOuterClass;
 import org.onosproject.incubator.protobuf.models.net.link.LinkEnumsProtoTranslator;
+import org.onosproject.grpc.net.models.LinkProtoOuterClass;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;

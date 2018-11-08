@@ -381,7 +381,7 @@ public class FlowRuleJuniperImpl extends AbstractHandlerBehaviour
         DeviceService deviceService = this.handler().get(DeviceService.class);
         //Using only links with adjacency discovered by the LLDP protocol (see LinkDiscoveryJuniperImpl)
         Map<DeviceId, Port> dstPorts = links.stream().filter(l ->
-                IP_STRING.toUpperCase().equals(l.annotations().value("layer")))
+                IP_STRING.toUpperCase().equals(l.annotations().value(AnnotationKeys.LAYER)))
                 .collect(Collectors.toMap(
                         l -> l.dst().deviceId(),
                         l -> deviceService.getPort(l.dst().deviceId(), l.dst().port())));

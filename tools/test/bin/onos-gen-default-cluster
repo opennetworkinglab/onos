@@ -1,0 +1,94 @@
+#!/usr/bin/env python
+"""
+usage: onos-gen-default-cluster [-h] [-s PARTITION_SIZE] [-n NUM_PARTITIONS]
+                            [filename] [node_ip [node_ip ...]]
+
+Generate the partitions json file given a list of IPs or from the $OCC*
+environment variables.
+
+positional arguments:
+  filename              File to write output to. If none is provided, output
+                        is written to stdout.
+  node_ip               IP Address(es) of the node(s) in the cluster. If no
+                        IPs are given, will use the $OC* environment
+                        variables. NOTE: these arguments are only processed
+                        after the filename argument.
+
+optional arguments:
+  -h, --help            show this help message and exit
+"""
+
+from os import environ
+import argparse
+import re
+import json
+
+convert = lambda text: int(text) if text.isdigit() else text.lower()
+alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
+
+
+def get_vars_by_type(type):
+    vars = []
+    for var in environ:
+        if re.match(r"{}[0-9]+".format(type), var):
+            vars.append(var)
+    return sorted(vars, key=alphanum_key)
+
+
+def get_vars():
+    vars = get_vars_by_type('OCC')
+    if len(vars) == 0:
+        vars = get_vars_by_type('OC')
+    return vars
+
+
+def get_nodes(ips=None, default_port=9876):
+    node = lambda id, ip, port: {'id': id, 'ip': ip, 'port': port}
+    result = []
+    if not ips:
+        ips = [environ[v] for v in get_vars()]
+    i = 1
+    for ip_string in ips:
+        address_tuple = ip_string.split(":")
+        if len(address_tuple) == 3:
+            id = address_tuple[0]
+            ip = address_tuple[1]
+            port = int(address_tuple[2])
+        else:
+            i += 1
+            ip = ip_string
+            id = ip
+            port = default_port
+        result.append(node(id, ip, port))
+    return result
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+        description="Generate the partitions json file given a list of IPs or from environment variables.")
+   
+    parser.add_argument(
+        'filename', metavar='filename', type=str, nargs='?',
+        help='File to write output to. If none is provided, output is written to stdout.')
+
+    parser.add_argument(
+        '--nodes', '-n', metavar='node_ip', type=str, nargs='+',
+        help='IP Address(es) of the storage nodes. If no IPs are given, ' +
+             'will use the $OCC* or $OC* environment variables. NOTE: these arguments' +
+             ' are only processed after the filename argument.')
+
+    args = parser.parse_args()
+    filename = args.filename
+    nodes = get_nodes(args.nodes)
+
+    data = {
+        'name': 'onos',
+        'controller': nodes
+    }
+    output = json.dumps(data, indent=4)
+
+    if filename:
+        with open(filename, 'w') as f:
+            f.write(output)
+    else:
+        print output

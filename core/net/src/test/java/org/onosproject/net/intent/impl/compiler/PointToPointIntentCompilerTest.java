@@ -25,6 +25,7 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.FilteredConnectPoint;
 import org.onosproject.net.Link;
+import org.onosproject.net.NetTestTools;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.ResourceGroup;
 import org.onosproject.net.flow.TrafficSelector;
@@ -200,6 +201,54 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
     }
 
     /**
+     * Creates a PointToPoint intent based on ingress and egress deviceIds
+     * and a suggested path.
+     * @param ingress           the ingress connect point
+     * @param egress            the egress connect point
+     * @param suggestedPath     the suggested path
+     * @return the PointToPointIntent connecting the two connect points with
+     * the suggested path (if available)
+     */
+    private PointToPointIntent makeIntentSuggestedPath(ConnectPoint ingress,
+                                                       ConnectPoint egress,
+                                                       List<Link> suggestedPath) {
+        return PointToPointIntent.builder()
+                .appId(APPID)
+                .selector(selector)
+                .treatment(treatment)
+                .filteredIngressPoint(new FilteredConnectPoint(ingress))
+                .filteredEgressPoint(new FilteredConnectPoint(egress))
+                .suggestedPath(suggestedPath)
+                .build();
+    }
+
+    /**
+     * Creates a PointToPoint intent based on ingress and egress deviceIds and
+     * constraints with a suggested path.
+     *
+     * @param ingress         the ingress connect point
+     * @param egress          the egress connect point
+     * @param suggestedPath   the suggested path
+     * @param constraints     constraints
+     * @return the PointToPointIntent connecting the two connect points with
+     * constraints and a suggested path
+     */
+    private PointToPointIntent makeIntentSuggestedPath(ConnectPoint ingress,
+                                          ConnectPoint egress,
+                                          List<Link> suggestedPath,
+                                          List<Constraint> constraints) {
+        return PointToPointIntent.builder()
+                .appId(APPID)
+                .selector(selector)
+                .treatment(treatment)
+                .filteredIngressPoint(new FilteredConnectPoint(ingress))
+                .filteredEgressPoint(new FilteredConnectPoint(egress))
+                .constraints(constraints)
+                .suggestedPath(suggestedPath)
+                .build();
+    }
+
+    /**
      * Creates a compiler for HostToHost intents.
      *
      * @param hops string array describing the path hops to use when compiling
@@ -207,6 +256,41 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
      */
     private PointToPointIntentCompiler makeCompiler(String[] hops) {
         return makeCompiler(hops, null);
+    }
+
+    /**
+     * Creates a compiler for PointToPoint intents with suggested paths.
+     *
+     * @param paths all the possible paths in the network
+     * @return PointToPoint intent compiler
+     */
+    private PointToPointIntentCompiler makeCompilerSuggestedPath(String[][] paths) {
+        final PointToPointIntentCompiler compiler = new PointToPointIntentCompiler();
+        compiler.pathService = new IntentTestsMocks.MockMultiplePathService(paths);
+        compiler.linkService = new IntentTestsMocks.MockLinkService(paths);
+        return compiler;
+    }
+
+    /**
+     * Creates a point to point intent compiler for suggested path case.
+     *
+     * @param paths             all the possible paths in the network
+     * @param resourceService   service to use for resource allocation requests
+     * @return point to point compiler
+     */
+    private PointToPointIntentCompiler makeCompilerSuggestedPath(String[][] paths,
+                                                    ResourceService resourceService) {
+        final PointToPointIntentCompiler compiler = new PointToPointIntentCompiler();
+        compiler.pathService = new IntentTestsMocks.MockMultiplePathService(paths);
+        compiler.linkService = new IntentTestsMocks.MockLinkService(paths);
+
+        if (resourceService == null) {
+            compiler.resourceService = new MockResourceService();
+        } else {
+            compiler.resourceService = resourceService;
+        }
+
+        return compiler;
     }
 
     /**
@@ -581,5 +665,152 @@ public class PointToPointIntentCompilerTest extends AbstractIntentTest {
 
         assertThat(resourceAllocations, hasSize(6));
         assertEquals(expectedresourceAllocations, resourceAllocations);
+    }
+
+    /**
+     * Test if a suggested path is correctly applied.
+     */
+    @Test
+    public void testSuggestedPath() {
+        String[] suggestedPathHops = {S1, S3, S4, S5, S6, S8};
+        List<Link> suggestedPath = NetTestTools.createPath(suggestedPathHops).links();
+
+        PointToPointIntent intent = makeIntentSuggestedPath(new ConnectPoint(DID_1, PORT_1),
+                                                            new ConnectPoint(DID_8, PORT_2),
+                                                            suggestedPath);
+
+        String[][] paths = {{S1, S2, S8}, suggestedPathHops};
+        PointToPointIntentCompiler compiler = makeCompilerSuggestedPath(paths);
+
+        List<Intent> result = compiler.compile(intent, null);
+        assertThat(result, is(Matchers.notNullValue()));
+        assertThat(result, hasSize(1));
+        Intent resultIntent = result.get(0);
+        assertThat(resultIntent instanceof LinkCollectionIntent, is(true));
+
+        if (resultIntent instanceof LinkCollectionIntent) {
+            LinkCollectionIntent resultLinkIntent = (LinkCollectionIntent) resultIntent;
+            FilteredConnectPoint ingressPoint = new FilteredConnectPoint(new ConnectPoint(DID_1, PORT_1));
+            FilteredConnectPoint egressPoint = new FilteredConnectPoint(new ConnectPoint(DID_8, PORT_2));
+            // 5 links for the hops, plus one default link on ingress and egress
+            assertThat(resultLinkIntent.links(), hasSize(suggestedPathHops.length - 1));
+            assertThat(resultLinkIntent.links(), linksHasPath(S1, S3));
+            assertThat(resultLinkIntent.links(), linksHasPath(S3, S4));
+            assertThat(resultLinkIntent.links(), linksHasPath(S4, S5));
+            assertThat(resultLinkIntent.links(), linksHasPath(S5, S6));
+            assertThat(resultLinkIntent.links(), linksHasPath(S6, S8));
+            assertThat(resultLinkIntent.filteredIngressPoints(), is(ImmutableSet.of(ingressPoint)));
+            assertThat(resultLinkIntent.filteredEgressPoints(), is(ImmutableSet.of(egressPoint)));
+        }
+        assertThat("key is inherited", resultIntent.key(), is(intent.key()));
+    }
+
+    /**
+     * Test that if a suggested path isn't available it applies another available path.
+     */
+    @Test
+    public void testSuggestedPathNotAvailable() {
+        String[] suggestedPathHops = {S1, S3, S8};
+        String[] shortestPath = {S1, S2, S8};
+        List<Link> suggestedPath = NetTestTools.createPath(suggestedPathHops).links();
+
+        PointToPointIntent intent = makeIntentSuggestedPath(new ConnectPoint(DID_1, PORT_1),
+                                                            new ConnectPoint(DID_8, PORT_2),
+                                                            suggestedPath);
+
+        String[][] path = {shortestPath};
+        PointToPointIntentCompiler compiler = makeCompilerSuggestedPath(path);
+
+        List<Intent> result = compiler.compile(intent, null);
+        assertThat(result, is(Matchers.notNullValue()));
+        assertThat(result, hasSize(1));
+        Intent resultIntent = result.get(0);
+        assertThat(resultIntent instanceof LinkCollectionIntent, is(true));
+
+        if (resultIntent instanceof LinkCollectionIntent) {
+            LinkCollectionIntent resultLinkIntent = (LinkCollectionIntent) resultIntent;
+            FilteredConnectPoint ingressPoint = new FilteredConnectPoint(new ConnectPoint(DID_1, PORT_1));
+            FilteredConnectPoint egressPoint = new FilteredConnectPoint(new ConnectPoint(DID_8, PORT_2));
+            // 5 links for the hops, plus one default link on ingress and egress
+            assertThat(resultLinkIntent.links(), hasSize(shortestPath.length - 1));
+            assertThat(resultLinkIntent.links(), linksHasPath(S1, S2));
+            assertThat(resultLinkIntent.links(), linksHasPath(S2, S8));
+            assertThat(resultLinkIntent.filteredIngressPoints(), is(ImmutableSet.of(ingressPoint)));
+            assertThat(resultLinkIntent.filteredEgressPoints(), is(ImmutableSet.of(egressPoint)));
+        }
+        assertThat("key is inherited", resultIntent.key(), is(intent.key()));
+    }
+
+    /**
+     * Tests that requests with suggested path
+     * and with sufficient available bandwidth succeed.
+     */
+    @Test
+    public void testSuggestedPathBandwidthConstrainedIntentSuccess() {
+        final double bpsTotal = 1000.0;
+        final double bpsToReserve = 100.0;
+
+        final ResourceService resourceService =
+                MockResourceService.makeCustomBandwidthResourceService(bpsTotal);
+        final List<Constraint> constraints =
+                Collections.singletonList(new BandwidthConstraint(Bandwidth.bps(bpsToReserve)));
+
+        String[] suggestedPathHops = {S1, S4, S5, S3};
+        List<Link> suggestedPath = NetTestTools.createPath(suggestedPathHops).links();
+
+        final PointToPointIntent intent = makeIntentSuggestedPath(
+                new ConnectPoint(DID_1, PORT_1),
+                new ConnectPoint(DID_3, PORT_2),
+                suggestedPath,
+                constraints);
+
+        String[][] hops = {{S1, S2, S3}, suggestedPathHops};
+        final PointToPointIntentCompiler compiler = makeCompilerSuggestedPath(hops,
+                                                                 resourceService);
+
+        final List<Intent> compiledIntents = compiler.compile(intent, null);
+
+        assertThat(compiledIntents, Matchers.notNullValue());
+        assertThat(compiledIntents, hasSize(1));
+
+        assertThat("key is inherited",
+                   compiledIntents.stream().map(Intent::key).collect(Collectors.toList()),
+                   everyItem(is(intent.key())));
+
+    }
+
+    /**
+     * Tests that requests with insufficient available bandwidth fail.
+     */
+    @Test
+    public void testSuggestedPathBandwidthConstrainedIntentFailure() {
+        final double bpsTotal = 10.0;
+
+        final ResourceService resourceService =
+                MockResourceService.makeCustomBandwidthResourceService(bpsTotal);
+        final List<Constraint> constraints =
+                Collections.singletonList(new BandwidthConstraint(Bandwidth.bps(BPS_TO_RESERVE)));
+
+        String[] suggestedPathHops = {S1, S4, S5, S3};
+        List<Link> suggestedPath = NetTestTools.createPath(suggestedPathHops).links();
+
+        try {
+            final PointToPointIntent intent = makeIntentSuggestedPath(
+                    new ConnectPoint(DID_1, PORT_1),
+                    new ConnectPoint(DID_3, PORT_2),
+                    suggestedPath,
+                    constraints);
+
+            String[][] paths = {{S1, S2, S3}, suggestedPathHops};
+            final PointToPointIntentCompiler compiler = makeCompilerSuggestedPath(paths,
+                                                                     resourceService);
+
+            compiler.compile(intent, null);
+
+            fail("Point to Point compilation with insufficient bandwidth does "
+                         + "not throw exception.");
+        } catch (PathNotFoundException noPath) {
+            assertThat(noPath.getMessage(), containsString("No path"));
+        }
     }
 }

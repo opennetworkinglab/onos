@@ -318,13 +318,17 @@ public class InOrderFlowObjectiveManager extends FlowObjectiveManager {
 
         if (obj instanceof FilteringObjective) {
             FilteringObjQueueKey k = new FilteringObjQueueKey(deviceId, priority, ((FilteringObjective) obj).key());
-            filtObjQueueHead.invalidate(k);
+            if (!ObjectiveError.INSTALLATIONTIMEOUT.equals(error)) {
+                filtObjQueueHead.invalidate(k);
+            }
             filtObjQueue.remove(k, obj);
             remaining = filtObjQueue.get(k);
         } else if (obj instanceof ForwardingObjective) {
             ForwardingObjQueueKey k =
                     new ForwardingObjQueueKey(deviceId, priority, ((ForwardingObjective) obj).selector());
-            fwdObjQueueHead.invalidate(k);
+            if (!ObjectiveError.INSTALLATIONTIMEOUT.equals(error)) {
+                fwdObjQueueHead.invalidate(k);
+            }
             fwdObjQueue.remove(k, obj);
             remaining = fwdObjQueue.get(k);
         } else if (obj instanceof NextObjective) {
@@ -345,7 +349,9 @@ public class InOrderFlowObjectiveManager extends FlowObjectiveManager {
                 }
             }
             NextObjQueueKey k = new NextObjQueueKey(deviceId, obj.id());
-            nextObjQueueHead.invalidate(k);
+            if (!ObjectiveError.INSTALLATIONTIMEOUT.equals(error)) {
+                nextObjQueueHead.invalidate(k);
+            }
             nextObjQueue.remove(k, obj);
             remaining = nextObjQueue.get(k);
         } else {

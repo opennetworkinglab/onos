@@ -47,7 +47,6 @@ import org.onosproject.openstacknetworking.api.OpenstackFlowRuleService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkEvent;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkListener;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
-import org.onosproject.openstacknetworking.api.OpenstackSecurityGroupService;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
 import org.openstack4j.model.network.Network;
@@ -129,9 +128,6 @@ public final class OpenstackSwitchingHandler {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected OpenstackNodeService osNodeService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    protected OpenstackSecurityGroupService securityGroupService;
 
     private final ExecutorService eventExecutor = newSingleThreadExecutor(
             groupedThreads(this.getClass().getSimpleName(), "event-handler"));
@@ -798,7 +794,7 @@ public final class OpenstackSwitchingHandler {
             boolean isNwAdminStateUp = event.subject().isAdminStateUp();
             boolean isPortAdminStateUp = event.port().isAdminStateUp();
 
-            InstancePort instPort = instancePortService.instancePort(event.port().getId());
+            String portId = event.port().getId();
 
             switch (event.type()) {
                 case OPENSTACK_NETWORK_CREATED:
@@ -813,20 +809,20 @@ public final class OpenstackSwitchingHandler {
                     break;
                 case OPENSTACK_PORT_CREATED:
                 case OPENSTACK_PORT_UPDATED:
-
-                    if (instPort != null) {
-                        eventExecutor.execute(() ->
-                                setPortBlockRules(instPort, !isPortAdminStateUp));
-                    }
-
+                    eventExecutor.execute(() -> {
+                        InstancePort instPort = instancePortService.instancePort(portId);
+                        if (instPort != null) {
+                            setPortBlockRules(instPort, !isPortAdminStateUp);
+                        }
+                    });
                     break;
                 case OPENSTACK_PORT_REMOVED:
-
-                    if (instPort != null) {
-                        eventExecutor.execute(() ->
-                                setPortBlockRules(instPort, false));
-                    }
-
+                    eventExecutor.execute(() -> {
+                        InstancePort instPort = instancePortService.instancePort(portId);
+                        if (instPort != null) {
+                            setPortBlockRules(instPort, false);
+                        }
+                    });
                     break;
                 default:
                     break;

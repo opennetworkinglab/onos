@@ -76,6 +76,14 @@ public interface LinkDiscoveryContext {
     void touchLink(LinkKey key);
 
     /**
+     * Set the TTL to the link identified by the given key to indicate that it's active.
+     *
+     * @param key link key
+     * @param ttl ttl value(seconds)
+     */
+    void setTtl(LinkKey key, short ttl);
+
+    /**
      * Returns the cluster-wide unique identifier.
      *
      * @return the cluster identifier

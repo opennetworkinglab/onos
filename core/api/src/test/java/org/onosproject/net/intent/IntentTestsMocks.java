@@ -20,6 +20,8 @@ import com.google.common.collect.Sets;
 import org.onlab.graph.ScalarWeight;
 import org.onlab.graph.Weight;
 import org.onosproject.core.GroupId;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DefaultLink;
 import org.onosproject.net.DefaultPath;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.ElementId;
@@ -41,6 +43,7 @@ import org.onosproject.net.flow.criteria.Criterion.Type;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.Instructions.MetadataInstruction;
+import org.onosproject.net.link.LinkServiceAdapter;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.topology.DefaultTopologyEdge;
 import org.onosproject.net.topology.DefaultTopologyVertex;
@@ -58,7 +61,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
+import static org.onosproject.net.Link.Type.DIRECT;
 import static org.onosproject.net.NetTestTools.*;
 
 /**
@@ -189,6 +195,71 @@ public class IntentTestsMocks {
     }
 
     /**
+     * Mock path service for creating paths within the test with multiple possible paths.
+     */
+    public static class MockMultiplePathService extends PathServiceAdapter {
+
+        final String[][] pathsHops;
+
+        /**
+         * Constructor that provides a set of hops to mock.
+         *
+         * @param pathHops multiple path hops to mock
+         */
+        public MockMultiplePathService(String[][] pathHops) {
+            this.pathsHops = pathHops;
+        }
+
+        @Override
+        public Set<Path> getPaths(ElementId src, ElementId dst) {
+
+            //Extracts all the paths that goes from src to dst
+            Set<Path> allPaths = new HashSet<>();
+            allPaths.addAll(IntStream.range(0, pathsHops.length)
+                    .filter(i -> src.toString().endsWith(pathsHops[i][0])
+                            && dst.toString().endsWith(pathsHops[i][pathsHops[i].length - 1]))
+                    .mapToObj(i -> createPath(src instanceof HostId,
+                                              dst instanceof HostId,
+                                              pathsHops[i]))
+                    .collect(Collectors.toSet()));
+
+            // Maintain only the shortest paths
+            int minPathLength = allPaths.stream()
+                    .mapToInt(o -> o.links().size())
+                    .min()
+                    .orElse(Integer.MAX_VALUE);
+            Set<Path> shortestPaths = allPaths.stream()
+                    .filter(path -> path.links().size() <= minPathLength)
+                    .collect(Collectors.toSet());
+
+            return shortestPaths;
+        }
+
+
+        @Override
+        public Set<Path> getPaths(ElementId src, ElementId dst, LinkWeigher weigher) {
+            Set<Path> paths = getPaths(src, dst);
+
+            for (Path path : paths) {
+                DeviceId srcDevice = path.src().elementId() instanceof DeviceId ? path.src().deviceId() : null;
+                DeviceId dstDevice = path.dst().elementId() instanceof DeviceId ? path.dst().deviceId() : null;
+                if (srcDevice != null && dstDevice != null) {
+                    TopologyVertex srcVertex = new DefaultTopologyVertex(srcDevice);
+                    TopologyVertex dstVertex = new DefaultTopologyVertex(dstDevice);
+                    Link link = link(src.toString(), 1, dst.toString(), 1);
+
+                    Weight weightValue = weigher.weight(new DefaultTopologyEdge(srcVertex, dstVertex, link));
+                    if (weightValue.isNegative()) {
+                        return new HashSet<>();
+                    }
+                }
+            }
+            return paths;
+        }
+    }
+
+
+    /**
      * Mock path service for creating paths within the test.
      *
      */
@@ -245,6 +316,22 @@ public class IntentTestsMocks {
                 }
             }
             return paths;
+        }
+    }
+
+    /**
+     * Mock active and direct link.
+     */
+    public static class FakeLink extends DefaultLink {
+
+        /**
+         * Constructor that provides source and destination of the fake link.
+         *
+         * @param src Source connect point of the fake link
+         * @param dst Destination connect point of the fake link
+         */
+        public FakeLink(ConnectPoint src, ConnectPoint dst) {
+            super(null, src, dst, DIRECT, Link.State.ACTIVE);
         }
     }
 
@@ -316,6 +403,38 @@ public class IntentTestsMocks {
                 }
             }
             return paths;
+        }
+    }
+
+    /**
+     * Mock link service for getting links to check path availability
+     * when a suggested path is submitted.
+     */
+    public static class MockLinkService extends LinkServiceAdapter {
+        final String[][] linksHops;
+
+        /**
+         * Constructor that provides a set of links (as a list of hops).
+         *
+         * @param linksHops links to to mock (link as a set of hops)
+         */
+        public MockLinkService(String[][] linksHops) {
+            this.linksHops = linksHops;
+        }
+
+        @Override
+        public Set<Link> getLinks() {
+            return Arrays.asList(linksHops).stream()
+                    .map(path -> createPath(path).links())
+                    .flatMap(List::stream)
+                    .collect(Collectors.toSet());
+        }
+        @Override
+        public Set<Link> getLinks(ConnectPoint connectPoint) {
+            return getLinks().stream()
+                    .filter(link -> link.src().deviceId().equals(connectPoint.deviceId())
+                    || link.dst().deviceId().equals(connectPoint.deviceId()))
+                    .collect(Collectors.toSet());
         }
     }
 

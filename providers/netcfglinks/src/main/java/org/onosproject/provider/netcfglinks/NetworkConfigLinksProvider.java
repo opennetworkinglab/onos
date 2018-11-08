@@ -264,6 +264,10 @@ public class NetworkConfigLinksProvider
         }
 
         @Override
+        public void setTtl(LinkKey key, short ttl) {
+        }
+
+        @Override
         public String fingerprint() {
             return buildSrcMac();
         }

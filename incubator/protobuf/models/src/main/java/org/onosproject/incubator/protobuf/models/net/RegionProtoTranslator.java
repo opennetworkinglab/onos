@@ -16,9 +16,9 @@
 package org.onosproject.incubator.protobuf.models.net;
 
 import com.google.common.base.Strings;
+import org.onosproject.incubator.protobuf.models.net.region.RegionEnumsProtoTranslator;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.grpc.net.models.RegionProtoOuterClass;
-import org.onosproject.incubator.protobuf.models.net.region.RegionEnumsProtoTranslator;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.region.DefaultRegion;
 import org.onosproject.net.region.Region;

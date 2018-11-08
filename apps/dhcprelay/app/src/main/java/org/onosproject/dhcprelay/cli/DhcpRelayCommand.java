@@ -199,7 +199,13 @@ public class DhcpRelayCommand extends AbstractShellCommand {
         });
     }
 
-    private String ip4State(DhcpRecord record) {
+    /**
+     * To return ipv4state.
+     *
+     * @param record DhcpRecord object
+     * @return ipState type String
+     */
+    public String ip4State(DhcpRecord record) {
         String nextHopIp = findNextHopIp(IpAddress::isIp4,
                                          record.nextHop().orElse(null),
                                          record.vlanId());
@@ -209,7 +215,14 @@ public class DhcpRelayCommand extends AbstractShellCommand {
                        nextHopIp);
     }
 
-    private String ip6State(DhcpRecord record) {
+    /**
+     * To return ipv6state.
+     *
+     * @param record DhcpRecord object
+     * @return ipState type String
+     */
+
+    public String ip6State(DhcpRecord record) {
         String nextHopIp = findNextHopIp6(IpAddress::isIp6,
                                          record.nextHop().orElse(null),
                                          record.vlanId());

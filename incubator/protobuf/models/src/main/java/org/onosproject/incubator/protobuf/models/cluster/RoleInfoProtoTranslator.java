@@ -38,7 +38,7 @@ public final class RoleInfoProtoTranslator {
         NodeId master = NodeIdProtoTranslator.translate(roleInfo.getMaster());
 
         List<NodeId> backups = Lists.newArrayList();
-        roleInfo.getBackupsList().stream().map(r ->
+        backups = roleInfo.getBackupsList().stream().map(r ->
                 NodeIdProtoTranslator.translate(r)).collect(Collectors.toList());
         return new RoleInfo(master, backups);
     }
