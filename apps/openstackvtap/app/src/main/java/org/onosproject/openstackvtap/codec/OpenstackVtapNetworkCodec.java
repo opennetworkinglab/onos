@@ -37,7 +37,6 @@ public final class OpenstackVtapNetworkCodec extends JsonCodec<OpenstackVtapNetw
     private static final String MODE = "mode";
     private static final String NETWORK_ID = "networkId";
     private static final String SERVER_IP = "serverIp";
-    private static final String NODES = "nodes";
 
     private static final String JSON_NULL_MESSAGE = "% cannot be null";
     private static final String JSON_MISSING_MESSAGE = "% is required";
