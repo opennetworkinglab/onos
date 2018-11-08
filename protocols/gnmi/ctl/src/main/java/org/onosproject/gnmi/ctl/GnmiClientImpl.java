@@ -19,10 +19,13 @@ import gnmi.Gnmi.CapabilityRequest;
 import gnmi.Gnmi.CapabilityResponse;
 import gnmi.Gnmi.GetRequest;
 import gnmi.Gnmi.GetResponse;
+import gnmi.Gnmi.Path;
+import gnmi.Gnmi.PathElem;
 import gnmi.Gnmi.SetRequest;
 import gnmi.Gnmi.SetResponse;
 import gnmi.gNMIGrpc;
 import io.grpc.ManagedChannel;
+import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import org.onosproject.gnmi.api.GnmiClientKey;
 import org.onosproject.grpc.ctl.AbstractGrpcClient;
@@ -37,6 +40,9 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Implementation of gNMI client.
  */
 public class GnmiClientImpl extends AbstractGrpcClient implements GnmiClient {
+    private static final PathElem DUMMY_PATH_ELEM = PathElem.newBuilder().setName("onos-gnmi-test").build();
+    private static final Path DUMMY_PATH = Path.newBuilder().addElem(DUMMY_PATH_ELEM).build();
+    private static final GetRequest DUMMY_REQUEST = GetRequest.newBuilder().addPath(DUMMY_PATH).build();
     private final Logger log = getLogger(getClass());
     private final gNMIGrpc.gNMIBlockingStub blockingStub;
 
@@ -58,6 +64,11 @@ public class GnmiClientImpl extends AbstractGrpcClient implements GnmiClient {
     @Override
     public CompletableFuture<SetResponse> set(SetRequest request) {
         return supplyInContext(() -> doSet(request), "set");
+    }
+
+    @Override
+    public CompletableFuture<Boolean> isServiceAvailable() {
+        return supplyInContext(this::doServiceAvailable, "isServiceAvailable");
     }
 
     private CapabilityResponse doCapability() {
@@ -85,6 +96,19 @@ public class GnmiClientImpl extends AbstractGrpcClient implements GnmiClient {
         } catch (StatusRuntimeException e) {
             log.warn("Unable to set data to {}: {}", deviceId, e.getMessage());
             return null;
+        }
+    }
+
+    private boolean doServiceAvailable() {
+        try {
+            blockingStub.get(DUMMY_REQUEST);
+            return true;
+        } catch (StatusRuntimeException e) {
+            // This gRPC call should throw INVALID_ARGUMENT status exception
+            // since "/onos-gnmi-test" path does not exists in any config model
+            // For other status code such as UNIMPLEMENT, means the gNMI
+            // service is not available on the device.
+            return e.getStatus().getCode().equals(Status.Code.INVALID_ARGUMENT);
         }
     }
 }

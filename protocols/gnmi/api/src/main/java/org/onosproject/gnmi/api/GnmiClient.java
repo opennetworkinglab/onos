@@ -57,5 +57,13 @@ public interface GnmiClient extends GrpcClient {
      */
     CompletableFuture<SetResponse> set(SetRequest request);
 
+    /**
+     * Check weather the gNMI service is available or not by sending a
+     * dummy get request message.
+     *
+     * @return true if gNMI service available; false otherwise
+     */
+    CompletableFuture<Boolean> isServiceAvailable();
+
     // TODO: Support gNMI subscription
 }
