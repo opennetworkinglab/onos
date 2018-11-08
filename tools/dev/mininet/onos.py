@@ -398,7 +398,7 @@ class ONOSNode( Controller ):
             if nodeStr in result:
                 break
 
-			# just break if state is active 
+            # just break if state is active
             if "state=ACTIVE" in result:
                 break
 
