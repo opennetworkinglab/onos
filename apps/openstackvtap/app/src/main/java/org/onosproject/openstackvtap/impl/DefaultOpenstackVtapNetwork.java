@@ -29,7 +29,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Default implementation of an immutable OpenstackVtapNetwork.
  */
-public class DefaultOpenstackVtapNetwork extends AbstractDescription implements OpenstackVtapNetwork {
+public final class DefaultOpenstackVtapNetwork extends AbstractDescription implements OpenstackVtapNetwork {
 
     private final Mode mode;
     private final Integer networkId;
