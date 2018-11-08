@@ -229,7 +229,7 @@ public class OpenstackVtapManager
     private static final int INTERFACE_MANIPULATION_RETRY = 10;     // 10 times (totally 10sec)
 
     @Activate
-    public void activate(ComponentContext context) {
+    public void activate() {
         appId = coreService.registerApplication(APP_ID);
         localNodeId = clusterService.getLocalNode().id();
         leadershipService.runForLeadership(appId.name());
@@ -509,6 +509,10 @@ public class OpenstackVtapManager
      * @return a collection of device identifiers
      */
     private Set<DeviceId> getEdgeDevice(Type type, OpenstackVtapCriterion criterion) {
+        if (hostService.getHosts() == null) {
+            return ImmutableSet.of();
+        }
+
         Set<DeviceId> deviceIds = Sets.newConcurrentHashSet();
         StreamSupport.stream(hostService.getHosts().spliterator(), true)
                 .filter(host -> isValidHost(host) &&

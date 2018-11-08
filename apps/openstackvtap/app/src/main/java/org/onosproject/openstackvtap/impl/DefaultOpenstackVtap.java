@@ -165,7 +165,6 @@ public final class DefaultOpenstackVtap extends AbstractDescription implements O
             this.id = description.id();
             this.type = description.type();
             this.vtapCriterion = description.vtapCriterion();
-            this.type = description.type();
             this.txDeviceIds = description.txDeviceIds();
             this.rxDeviceIds = description.rxDeviceIds();
             this.annotations  = (SparseAnnotations) description.annotations();

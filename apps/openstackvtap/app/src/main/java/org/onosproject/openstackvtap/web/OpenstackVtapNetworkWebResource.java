@@ -17,8 +17,8 @@ package org.onosproject.openstackvtap.web;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.onosproject.openstackvtap.api.OpenstackVtapAdminService;
 import org.onosproject.openstackvtap.api.OpenstackVtapNetwork;
+import org.onosproject.openstackvtap.api.OpenstackVtapService;
 import org.onosproject.rest.AbstractWebResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,15 +55,15 @@ public class OpenstackVtapNetworkWebResource extends AbstractWebResource {
 
     private static final String NETWORK = "network";
 
-    private final OpenstackVtapAdminService vtapAdminService = get(OpenstackVtapAdminService.class);
+    private final OpenstackVtapService vtapService = get(OpenstackVtapService.class);
 
     /**
      * Creates a openstack vtap network from the JSON input stream.
      *
      * @param input openstack vtap network JSON input stream
-     * @return 200 OK if the JSON is correct
+     * @return 200 OK on creating success
      *         400 BAD_REQUEST if the JSON is malformed
-     *         409 CONFLICT if already the vtap network exists
+     *         409 CONFLICT if already the openstack vtap network exists
      * @onos.rsModel OpenstackVtapNetwork
      */
     @POST
@@ -76,7 +76,7 @@ public class OpenstackVtapNetworkWebResource extends AbstractWebResource {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
 
-        if (vtapAdminService.createVtapNetwork(vtapNetwork.mode(),
+        if (vtapService.createVtapNetwork(vtapNetwork.mode(),
                 vtapNetwork.networkId(), vtapNetwork.serverIp()) == null) {
             log.warn(ERROR_DUPLICATE, vtapNetwork);
             return Response.status(Response.Status.CONFLICT).build();
@@ -88,9 +88,9 @@ public class OpenstackVtapNetworkWebResource extends AbstractWebResource {
      * Updates openstack vtap network from the JSON input stream.
      *
      * @param input openstack vtap network JSON input stream
-     * @return 200 OK if the JSON is correct
+     * @return 200 OK on updating success
      *         400 BAD_REQUEST if the JSON is malformed
-     *         404 NOT_FOUND if vtap network is not exists
+     *         404 NOT_FOUND if openstack vtap network is not exists
      * @onos.rsModel OpenstackVtapNetwork
      */
     @PUT
@@ -103,7 +103,7 @@ public class OpenstackVtapNetworkWebResource extends AbstractWebResource {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
 
-        if (vtapAdminService.updateVtapNetwork(vtapNetwork) == null) {
+        if (vtapService.updateVtapNetwork(vtapNetwork) == null) {
             log.warn(ERROR_NOTFOUND, vtapNetwork);
             return Response.status(Response.Status.NOT_FOUND).build();
         }
@@ -111,10 +111,29 @@ public class OpenstackVtapNetworkWebResource extends AbstractWebResource {
     }
 
     /**
+     * Removes openstack network.
+     *
+     * @return 200 OK on removing success
+     *         404 NOT_FOUND if openstack vtap network is not exists
+     * @onos.rsModel OpenstackVtapNetwork
+     */
+    @DELETE
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response deleteNetwork() {
+        log.info(MESSAGE_NETWORK, DELETE);
+
+        if (vtapService.removeVtapNetwork() == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+
+        return Response.ok().build();
+    }
+
+    /**
      * Get openstack vtap network.
      *
      * @return 200 OK with openstack vtap network
-     *         404 NOT_FOUND if openstackvtap network is not exists
+     *         404 NOT_FOUND if openstack vtap network is not exists
      * @onos.rsModel OpenstackVtapNetwork
      */
     @GET
@@ -123,32 +142,13 @@ public class OpenstackVtapNetworkWebResource extends AbstractWebResource {
     public Response getNetwork() {
         log.info(MESSAGE_NETWORK, READ);
 
-        OpenstackVtapNetwork vtapNetwork = vtapAdminService.getVtapNetwork();
+        OpenstackVtapNetwork vtapNetwork = vtapService.getVtapNetwork();
         if (vtapNetwork == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
 
         JsonNode jsonNode = codec(OpenstackVtapNetwork.class).encode(vtapNetwork, this);
         return Response.ok(jsonNode, MediaType.APPLICATION_JSON_TYPE).build();
-    }
-
-    /**
-     * Removes openstack network.
-     *
-     * @return 200 OK on removing success
-     *         404 NOT_FOUND if openstackvtap network is not exists
-     * @onos.rsModel OpenstackVtapNetwork
-     */
-    @DELETE
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response deleteNetwork() {
-        log.info(MESSAGE_NETWORK, DELETE);
-
-        if (vtapAdminService.removeVtapNetwork() == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-
-        return Response.ok().build();
     }
 
     private OpenstackVtapNetwork readNetworkConfiguration(InputStream input) {
