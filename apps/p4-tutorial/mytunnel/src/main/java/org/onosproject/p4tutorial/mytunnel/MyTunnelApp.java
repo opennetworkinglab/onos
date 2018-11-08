@@ -255,9 +255,9 @@ public class MyTunnelApp {
              * PiActionId object. When creating the PiAction object, remember to
              * add all action parameters as defined in the P4 program.
              *
-             * Hint: the code will be similar to the case when isEgress = false.
+             * Hint: the code will be similar to the case when isEgress is true.
              */
-            action = null;
+            action = null; // Replace null with your solution.
         }
 
         log.info("Inserting {} rule on switch {}: table={}, match={}, action={}",
