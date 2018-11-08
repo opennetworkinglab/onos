@@ -242,7 +242,7 @@ ONOS_APPS = [
     "//apps/powermanagement:onos-apps-powermanagement-oar",
     "//apps/t3:onos-apps-t3-oar",
     "//apps/simplefabric:onos-apps-simplefabric-oar",
-    #"//apps/kafka-integration:onos-apps-kafka-integration-oar",
+    "//apps/kafka-integration:onos-apps-kafka-integration-oar",
     "//apps/rabbitmq:onos-apps-rabbitmq-oar",
     "//apps/odtn/api:onos-apps-odtn-api-oar",
     "//apps/odtn/service:onos-apps-odtn-service-oar",
@@ -298,8 +298,8 @@ APP_JARS = [
     "//apps/vtn/sfcmgr:onos-apps-vtn-sfcmgr",
     "//apps/vtn/vtnmgr:onos-apps-vtn-vtnmgr",
     "//apps/vtn/vtnweb:onos-apps-vtn-vtnweb",
-    #"//apps/kafka-integration/api:onos-apps-kafka-integration-api",
-    #"//apps/kafka-integration/app:onos-apps-kafka-integration-app",
+    "//apps/kafka-integration/api:onos-apps-kafka-integration-api",
+    "//apps/kafka-integration/app:onos-apps-kafka-integration-app",
 ]
 
 FEATURES = [
