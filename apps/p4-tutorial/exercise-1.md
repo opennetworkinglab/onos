@@ -144,7 +144,7 @@ by executing the following command:
         startup process**, to view them (on a separate terminal window):
 
         ```
-        $ ls /tmp
+        $ ls /tmp/bmv2-*
         ```
 
     3. You will **find ONOS netcfg JSON files in this folder** for each BMv2
@@ -236,10 +236,10 @@ by executing the following command:
 
         These flow rules appear to be installed on table "0". This is a logical
         table number mapped by the pipeconf's interpreter to the P4 table named
-        `t_l2_fwd` in [mytunnel.p4 (line 191)](./pipeconf/src/main/resources/mytunnel.p4#L191).
+        `t_l2_fwd` in [mytunnel.p4 (line 191)](pipeconf/src/main/resources/mytunnel.p4#L191).
 
         This mapping is defined in
-        [PipelineInterpreterImpl.java (line 103)](./pipeconf/src/main/java/org/onosproject/p4tutorial/pipeconf/PipelineInterpreterImpl.java#L103)
+        [PipelineInterpreterImpl.java (line 103)](pipeconf/src/main/java/org/onosproject/p4tutorial/pipeconf/PipelineInterpreterImpl.java#L103)
 
     6. **Compare ONOS flow rules to the table entries installed on the BMv2
         switch**.
@@ -327,15 +327,18 @@ by executing the following command:
 
 5. Congratulations, you completed the first exercise of the ONOS+P4 tutorial!
 
-    To kill ONOS, press `ctrl-c` in the ONOS log terminal window. To kill
-    Mininet, press `ctrl-d` in the Mininet CLI or type `exit`.
-
 ## Bonus exercise
 
-As a bonus exercise, you can re-run Mininet with a larger topology to see how
-Exercise 1 works with a more complex topology.
+As a bonus exercise, you can re-run Mininet with more switches and hosts to see
+how Exercise 1 works with a more complex topology.
 
-1. Rerun the steps in Exercise 1, replacing step 3.i. with the following:
+1. Quit the current Mininet topology. In the Mininet CLI type:
+
+    ```
+    mininet> exit
+    ```
+
+2. Start a new Mininet topology with the following command:
 
     ```
     $ sudo -E mn --custom $BMV2_MN_PY --switch onosbmv2,pipeconf=p4-tutorial-pipeconf --topo tree,3 --controller remote,ip=127.0.0.1
@@ -349,10 +352,10 @@ Exercise 1 works with a more complex topology.
     correctly on the switch (showing state `PENDING_ADD` when using ONOS command
     `flows`). In this case, ONOS provides an automatic reconciliation mechanism
     that tries to re-install the failed entries. To force ONOS to perform this
-    process more often, **make sure to apply step 2.v before starting Mininet**.
+    process more often, **make sure to apply step 2.v**.
 
-2. After you activate the Reactive Forwarding app as in step 4.ii.,
-    you can ping all hosts in the network using the following Mininet command:
+3. If the Reactive Forwarding app is still running (see step 4.ii),
+   you can ping all hosts in the network using the following Mininet command:
 
     ```
     mininet> pingall
@@ -361,7 +364,7 @@ Exercise 1 works with a more complex topology.
     If everything went well, ping should work for every host pair in the
     network.
 
-3. You can visualize the topology using the ONOS web UI.
+4. You can visualize the topology using the ONOS web UI.
 
     Open a browser from within the tutorial VM (e.g. Firefox) to
     <http://127.0.0.1:8181/onos/ui/>. When asked, use the username `onos`
@@ -370,3 +373,8 @@ Exercise 1 works with a more complex topology.
     While here, feel free to interact with and discover the ONOS UI. For more
     information on how to use the ONOS web UI please refer to this guide:
     <https://wiki.onosproject.org/x/OYMg>
+
+    To show or hide hosts, press the `H` key on your keyboard.
+
+5. Once done, to kill ONOS, press `ctrl-c` in the ONOS log terminal window. To
+   quit Mininet, press `ctrl-d` in the Mininet CLI or type `exit`.

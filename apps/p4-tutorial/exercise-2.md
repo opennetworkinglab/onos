@@ -6,15 +6,15 @@ protocols.
 
 ## Overview
 
-Similarly to exercise 1, in this example we want to provide connectivity between
-hosts of a network when using switches programmed with the `mytunnel.p4`
-program. Differently from exercise 1, forwarding between hosts will be provided
-by the MyTunnel app, instead of Reactive Forwarding. The MyTunnel app provides
+Similarly to exercise 1, here we want to provide connectivity between hosts of a
+network when using switches programmed with the `mytunnel.p4` program.
+Differently from exercise 1, forwarding between hosts will be provided by the
+MyTunnel app, instead of Reactive Forwarding. The MyTunnel app provides
 connectivity by programming the data plane to forward packets using the MyTunnel
 protocol.
 
-Before starting, we suggest to open the `onos/apps/p4-tutorial` directory in
-your editor of choice for an easier access to the different files of this
+Before starting, we suggest to open the `$ONOS_ROOT/apps/p4-tutorial` directory in
+your editor of choice for easier access to the different files of this
 exercise. For example, if using the Atom editor:
 
 ```
@@ -38,17 +38,17 @@ header my_tunnel_t {
 A switch implementing the MyTunnel protocol can forward packets using three
 different forwarding behaviors.
 
-1. **Ingress**: for IPv4 packets received at a edge switch, i.e. the first node
-in the tunnel path, the MyTunnel header is applied with an arbitrary tunnel
-identifier decided by the control plane.
+1. **Ingress**: for IPv4 packets received at an edge switch, i.e., the first
+   node in the tunnel path, the MyTunnel header is applied with an arbitrary
+   tunnel identifier decided by the control plane.
 
 2. **Transit**: for packets with the MyTunnel header processed by an
-intermediate node in the tunnel path. When operating in this mode, the switch
-simply forwards the packet by looking at the tunnel ID field.
+   intermediate node in the tunnel path. When operating in this mode, the switch
+   forwards the packet by simply looking at the tunnel ID field.
 
 3. **Egress**: for packets with the MyTunnel header processed by the last node
-in the path, the switch removes the MyTunnel header before forwarding the packet
-to the output port.
+   in the path, the switch removes the MyTunnel header before forwarding the
+   packet to the output port.
 
 ## MyTunnel pipeline overview
 
@@ -70,8 +70,7 @@ header before setting the output port.
 
 ## MyTunnel app overview
 
-To begin, open
-[MyTunnelApp.java](./mytunnel/src/main/java/org/onosproject/p4tutorial/mytunnel/MyTunnelApp.java)
+To begin, open [MyTunnelApp.java](mytunnel/src/main/java/org/onosproject/p4tutorial/mytunnel/MyTunnelApp.java)
 in your editor of choice, and familiarize with the app implementation.
 
 For example, if using the Atom editor:
@@ -83,14 +82,14 @@ $ atom $ONOS_ROOT/apps/p4-tutorial/mytunnel/src/main/java/org/onosproject/p4tuto
 The MyTunnel app works by registering an event listener with the ONOS Host
 Service (`class InternalHostListener` at line 308). This listener is used to
 notify the MyTunnel app every time a new host is discovered. Host discovery is
-performed by means of two ONOS core services: Host Location Provider and
-Proxy-ARP app. Each time an ARP request is received (via packet-in), ONOS learns
-the location of the sender of the ARP request, before generating an ARP reply or
+performed using two ONOS core services: Host Location Provider and Proxy-ARP
+app. Each time an ARP request is received (via packet-in), ONOS learns the
+location of the sender of the ARP request, before generating an ARP reply or
 forwarding the requests to other hosts. When learning the location of a new
 host, ONOS informs all apps that have registered a listener with an `HOST_ADDED`
 event.
 
-Once an `HOST_ADDED` event is notified to the MyTunnel app, this creates two
+Once a `HOST_ADDED` event is notified to the MyTunnel app, this creates two
 unidirectional tunnels between that host and any other host previously
 discovered. For each tunnel, the app computes the shortest path between the two
 hosts (method `provisionTunnel` at line 128), and for each switch in the path it
@@ -104,7 +103,7 @@ egress behaviors.
 
 1. **Complete the implementation of the MyTunnel app**:
 
-    1. Open [MyTunnelApp.java](./mytunnel/src/main/java/org/onosproject/p4tutorial/mytunnel/MyTunnelApp.java) in your editor of choice.
+    1. Open [MyTunnelApp.java](mytunnel/src/main/java/org/onosproject/p4tutorial/mytunnel/MyTunnelApp.java) in your editor of choice.
 
     2. Look for the `insertTunnelForwardRule` method (line 219).
 
@@ -112,10 +111,18 @@ egress behaviors.
     comment at line 251).
 
         **Spoiler alert:** There is a reference solution in the same directory
-        as MyTunnelApp.java. Feel free to compare your implementation to the
+        as `MyTunnelApp.java`. Feel free to compare your implementation to the
         reference one.
 
-2. **Start ONOS with and all the apps**.
+2. **Start ONOS with all the apps required**.
+
+    0. If ONOS is still running from the previous exercise, stop it by pressing
+       `ctrl-c` in the ONOS log terminal window.
+
+       This is required since we need to re-build ONOS to reflect the
+       `MyTunnelApp.java` changes you just implemented. There is a way to build
+       just the app and upload that to ONOS at runtime, but this functionality
+       is not covered in this tutorial.
 
     1. On a first terminal window, start ONOS:
 
@@ -124,13 +131,21 @@ egress behaviors.
         $ ONOS_APPS=proxyarp,hostprovider,lldpprovider ok clean
         ```
 
-    2. On a second terminal window to **access the ONOS CLI**:
+        This command will automatically trigger a new build before starting ONOS.
+
+        **Important!** Remember to save your changes to `MytunnelApp.java`
+        before building and starting ONOS.
+
+    2. On a second terminal window, use the ONOS CLI to activate the MyTunnel
+       pipeconf and app.
+
+        To access the ONOS CLI:
 
         ```
         $ onos localhost
         ```
 
-    2. **Activate the BMv2 drivers, pipeconf, and MyTunnel app**:
+        **Activate the BMv2 drivers, pipeconf, and MyTunnel app**:
 
         ```
         onos> app activate org.onosproject.drivers.bmv2
@@ -174,14 +189,14 @@ egress behaviors.
         ```
 
     4. (optional) **Change flow rule polling interval**. Run the following
-    command in the ONOS CLI:
+       command in the ONOS CLI:
 
         ```
         onos> cfg set org.onosproject.net.flow.impl.FlowRuleManager fallbackFlowPollFrequency 5
         ```
 
-3. **Run Mininet to set up a tree topology of BMv2 devices**, on a new terminal
-window type:
+3. **Run Mininet to set up a tree topology of BMv2 switches**, on a new terminal
+   window type:
 
     ```
     $ sudo -E mn --custom $BMV2_MN_PY --switch onosbmv2,pipeconf=p4-tutorial-pipeconf --topo tree,3 --controller remote,ip=127.0.0.1
@@ -199,8 +214,8 @@ window type:
 
         You should see 7 devices in total. Please note the driver that has been
         assigned to this device `bmv2:p4-tutorial-pipeconf`. It means that the
-        device is being controlled using the driver behaviors provided the BMv2
-        device driver (which uses P4Runtime) and the pipeconf.
+        device is being controlled using the "behaviors" provided by the BMv2
+        driver (which uses P4Runtime) plus the pipeconf ones.
 
     2. Check the links:
 
@@ -226,20 +241,80 @@ window type:
     mininet> h1 ping h7
     ```
 
-    If the implementation of MyTunnelApp.java has been completed correctly,
+    If the implementation of `MyTunnelApp.java` has been completed correctly,
     ping should work. If not, check the ONOS log for possible errors in the
     MyTunnel app. As a last resort, please check the reference solution in
-    the same directory as MyTunnelApp.java and compare that to yours.
+    the same directory as `MyTunnelApp.java` and compare that to yours.
 
-6. **Look around**.
+    There are 7 hosts, in the network from `h1` to `h8`. You should be able to
+    get ping working between all pairs of hosts.
+
+6. **Look around**:
 
     1. Repeat step 3.v and 3.vi from exercise one to check the
-flow rules in ONOS and on BMv2.
+       flow rules in ONOS and on BMv2.
 
-    2. Check the hosts in ONOS:
+    2. Verify that hosts have been discovered by ONOS:
 
         ```
         onos> hosts -s
         ```
 
-        You should see 2 hosts, h1 and h7.
+        You should see all the hosts that you pinged so far.
+
+7. **Use Wireshark to dump packets with MyTunnel header**:
+
+    1. Using the ONOS web UI, find the port number of any switch that forwards
+       packets with the MyTunnel header applied. This will be a port of any
+       link connecting two switches.
+
+        * Open the ONOS UI at <http://127.0.0.1:8181/onos/ui/>. To log in, use
+          username `onos` and password `rocks`.
+
+        * To show/hide switch names, press the `L` key on your keyboard.
+
+        * To see the switch port number for a particular link, position the
+          mouse over the link, you should see two numbers at the two link
+          endpoints. This will be your port number.
+ 
+         * For example, an internal-facing port carrying packets with the
+          MyTunnel header applied is port `3` of device `s3`.
+
+    2. Open Wireshark using the icon located in the desktop, or by typing
+       `sudo wireshark` in a terminal window.
+ 
+     3. Start packet capture on the switch port you identified. Mininet uses the
+       naming `[switch_name]-eth[port_number]` for the emulated switch ports.
+       For example, for port `3` of switch `s3`, the interface name will be
+       `s3-eth3`.
+
+    4. Start a ping in Mininet between any two hosts which path uses the
+       identified link/port.
+
+        * In the ONOS UI, to show/hide hosts, press the `H` key on your keyboard.
+
+        * For example, the path between `h1` (10.0.0.1) and `h4` (10.0.0.4)
+          uses port `3` of switch `s3`.
+
+        * Start ping in Mininet:
+
+            ```
+            mininet> h1 ping h4
+            ```
+
+    5. Analyze the captured packets in Wireshark.
+
+        * Packets with protocol `LLDP` and `0x8942` (EtherType) are generated by
+          ONOS using P4Runtime "packet-out" and are used for link discovery.
+
+        * Packets with EtherType `0x1212` are ping packets encapsulated with the
+          MyTunnel header! Indeed, since this is not a standard protocol,
+          Wireshark doesn't know how to parse the Ethernet payload and shows
+          them as general Ethernet packets.
+
+8. **Congratulations, you have completed the exercise!**
+
+    Hopefully, it should be a bit more clear by now how to use P4 to implement
+    custom header processing (like the `MyTunnel` header), and how to write ONOS
+    apps that control the match-action tables of switches to forward packets
+    across the network using such non-standard headers (like MyTunnelApp).

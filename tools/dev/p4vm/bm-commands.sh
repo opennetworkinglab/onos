@@ -7,7 +7,7 @@ bm-cli () {
     fi
     tport=$(head -n 1 /tmp/bmv2-$1-thrift-port)
     echo "Starting CLI for BMv2 instance $1 (Thrift port $tport)..."
-    sudo bm_CLI --thrift-port ${tport} --pre SimplePreLAG ${@:2}
+    bm_CLI --thrift-port ${tport} --pre SimplePreLAG ${@:2}
 }
 
 bm-dbg () {
