@@ -179,351 +179,6 @@ public class OpenstackRoutingIcmpHandler {
         log.info("Stopped");
     }
 
-    private boolean handleEchoRequest(DeviceId srcDevice, MacAddress srcMac, IPv4 ipPacket,
-                                   ICMP icmp) {
-        InstancePort instPort = instancePortService.instancePort(srcMac);
-        if (instPort == null) {
-            log.warn(ERR_REQ + "unknown source host(MAC:{})", srcMac);
-            return false;
-        }
-
-        IpAddress srcIp = IpAddress.valueOf(ipPacket.getSourceAddress());
-        IpAddress dstIp = IpAddress.valueOf(ipPacket.getDestinationAddress());
-
-        Subnet srcSubnet = getSourceSubnet(instPort, srcIp);
-        if (srcSubnet == null) {
-            log.warn(ERR_REQ + "unknown source subnet(IP:{})", srcIp);
-            return false;
-        }
-
-        if (Strings.isNullOrEmpty(srcSubnet.getGateway())) {
-            log.warn(ERR_REQ + "source subnet(ID:{}, CIDR:{}) has no gateway",
-                    srcSubnet.getId(), srcSubnet.getCidr());
-            return false;
-        }
-
-        if (isForSubnetGateway(IpAddress.valueOf(ipPacket.getDestinationAddress()),
-                srcSubnet)) {
-            // this is a request for the subnet gateway
-            log.trace("Icmp request to gateway {} from {}", dstIp, srcIp);
-            processRequestForGateway(ipPacket, instPort);
-        } else {
-            // this is a request for the external network
-            log.trace("Icmp request to external {} from {}", dstIp, srcIp);
-
-            RouterInterface routerInterface = routerInterface(srcSubnet);
-            if (routerInterface == null) {
-                log.warn(ERR_REQ + "failed to get router interface");
-                return false;
-            }
-
-            ExternalGateway externalGateway = externalGateway(routerInterface);
-            if (externalGateway == null) {
-                log.warn(ERR_REQ + "failed to get external gateway");
-                return false;
-            }
-
-            ExternalPeerRouter externalPeerRouter = osNetworkService.externalPeerRouter(externalGateway);
-            if (externalPeerRouter == null) {
-                log.warn(ERR_REQ + "failed to get external peer router");
-                return false;
-            }
-
-            IpAddress externalIp = getExternalIp(externalGateway, routerInterface);
-            if (externalIp == null) {
-                log.warn(ERR_REQ + "failed to get external ip");
-                return false;
-            }
-
-            sendRequestForExternal(ipPacket, srcDevice, externalIp, externalPeerRouter);
-
-            String icmpInfoKey = icmpInfoKey(icmp,
-                    externalIp.toString(),
-                    IPv4.fromIPv4Address(ipPacket.getDestinationAddress()));
-            log.trace("Created icmpInfo key is {}", icmpInfoKey);
-
-            try {
-                icmpInfoMap.compute(icmpInfoKey, (id, existing) -> {
-                    checkArgument(existing == null, ERR_DUPLICATE);
-                    return instPort;
-                });
-            } catch (IllegalArgumentException e) {
-                log.warn("IllegalArgumentException occurred because of {}", e.toString());
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private String icmpInfoKey(ICMP icmp, String srcIp, String dstIp) {
-        return String.valueOf(getIcmpId(icmp))
-                .concat(srcIp)
-                .concat(dstIp);
-    }
-    private RouterInterface routerInterface(Subnet subnet) {
-        checkNotNull(subnet);
-        return osRouterService.routerInterfaces().stream()
-                .filter(i -> Objects.equals(i.getSubnetId(), subnet.getId()))
-                .findAny().orElse(null);
-    }
-
-    private ExternalGateway externalGateway(RouterInterface osRouterIface) {
-        checkNotNull(osRouterIface);
-        Router osRouter = osRouterService.router(osRouterIface.getId());
-        if (osRouter == null) {
-            return null;
-        }
-        if (osRouter.getExternalGatewayInfo() == null) {
-            return null;
-        }
-        return osRouter.getExternalGatewayInfo();
-    }
-
-    private boolean handleEchoReply(IPv4 ipPacket, ICMP icmp) {
-        String icmpInfoKey = icmpInfoKey(icmp,
-                IPv4.fromIPv4Address(ipPacket.getDestinationAddress()),
-                IPv4.fromIPv4Address(ipPacket.getSourceAddress()));
-        log.trace("Retrieved icmpInfo key is {}", icmpInfoKey);
-
-        if (icmpInfoMap.get(icmpInfoKey) != null) {
-            processReplyFromExternal(ipPacket, icmpInfoMap.get(icmpInfoKey).value());
-            icmpInfoMap.remove(icmpInfoKey);
-            return true;
-        } else {
-            log.debug("No ICMP Info for ICMP packet");
-            return false;
-        }
-    }
-
-    private Subnet getSourceSubnet(InstancePort instance, IpAddress srcIp) {
-        checkNotNull(instance);
-        checkNotNull(srcIp);
-
-        Port osPort = osNetworkService.port(instance.portId());
-        return osNetworkService.subnets(osPort.getNetworkId())
-                                        .stream().findAny().orElse(null);
-    }
-
-    private boolean isForSubnetGateway(IpAddress dstIp, Subnet srcSubnet) {
-        RouterInterface osRouterIface = osRouterService.routerInterfaces().stream()
-                .filter(i -> Objects.equals(i.getSubnetId(), srcSubnet.getId()))
-                .findAny().orElse(null);
-        if (osRouterIface == null) {
-            log.trace(ERR_REQ + "source subnet(ID:{}, CIDR:{}) has no router",
-                    srcSubnet.getId(), srcSubnet.getCidr());
-            return false;
-        }
-
-        Router osRouter = osRouterService.router(osRouterIface.getId());
-        Set<IpAddress> routableGateways = osRouterService.routerInterfaces(osRouter.getId())
-                .stream()
-                .map(iface -> osNetworkService.subnet(iface.getSubnetId()).getGateway())
-                .map(IpAddress::valueOf)
-                .collect(Collectors.toSet());
-
-        return routableGateways.contains(dstIp);
-    }
-
-    private IpAddress getExternalIp(ExternalGateway externalGateway, RouterInterface osRouterIface) {
-        checkNotNull(externalGateway);
-        checkNotNull(osRouterIface);
-
-        Router osRouter = osRouterService.router(osRouterIface.getId());
-        if (osRouter == null) {
-            return null;
-        }
-
-        Port exGatewayPort = osNetworkService.ports(externalGateway.getNetworkId())
-                .stream()
-                .filter(port -> Objects.equals(port.getDeviceId(), osRouter.getId()))
-                .findAny().orElse(null);
-        if (exGatewayPort == null) {
-            final String error = String.format(ERR_REQ +
-                            "no external gateway port for router (ID:%s, name:%s)",
-                    osRouter.getId(), osRouter.getName());
-            throw new IllegalStateException(error);
-        }
-        Optional<NeutronIP> externalIpAddress = (Optional<NeutronIP>) exGatewayPort.getFixedIps().stream().findFirst();
-        if (!externalIpAddress.isPresent() || externalIpAddress.get().getIpAddress() == null) {
-            final String error = String.format(ERR_REQ +
-                            "no external gateway IP address for router (ID:%s, name:%s)",
-                    osRouter.getId(), osRouter.getName());
-            log.warn(error);
-            return null;
-        }
-
-        return IpAddress.valueOf(externalIpAddress.get().getIpAddress());
-    }
-
-    private void processRequestForGateway(IPv4 ipPacket, InstancePort instPort) {
-        ICMP icmpReq = (ICMP) ipPacket.getPayload();
-        icmpReq.setChecksum((short) 0);
-        icmpReq.setIcmpType(TYPE_ECHO_REPLY);
-
-        int destinationAddress = ipPacket.getSourceAddress();
-
-        ipPacket.setSourceAddress(ipPacket.getDestinationAddress())
-                .setDestinationAddress(destinationAddress)
-                .resetChecksum();
-
-        ipPacket.setPayload(icmpReq);
-        Ethernet icmpReply = new Ethernet();
-        icmpReply.setEtherType(Ethernet.TYPE_IPV4)
-                .setSourceMACAddress(Constants.DEFAULT_GATEWAY_MAC)
-                .setDestinationMACAddress(instPort.macAddress())
-                .setPayload(ipPacket);
-
-        sendReply(icmpReply, instPort);
-    }
-
-    private void sendRequestForExternal(IPv4 ipPacket, DeviceId srcDevice,
-                                        IpAddress srcNatIp, ExternalPeerRouter externalPeerRouter) {
-        ICMP icmpReq = (ICMP) ipPacket.getPayload();
-        icmpReq.resetChecksum();
-        ipPacket.setSourceAddress(srcNatIp.getIp4Address().toInt()).resetChecksum();
-        ipPacket.setPayload(icmpReq);
-
-        Ethernet icmpRequestEth = new Ethernet();
-        icmpRequestEth.setEtherType(Ethernet.TYPE_IPV4)
-                .setSourceMACAddress(DEFAULT_GATEWAY_MAC)
-                .setDestinationMACAddress(externalPeerRouter.macAddress());
-
-        if (!externalPeerRouter.vlanId().equals(VlanId.NONE)) {
-            icmpRequestEth.setVlanID(externalPeerRouter.vlanId().toShort());
-        }
-
-        icmpRequestEth.setPayload(ipPacket);
-
-        OpenstackNode osNode = osNodeService.node(srcDevice);
-        if (osNode == null) {
-            final String error = String.format("Cannot find openstack node for %s",
-                    srcDevice);
-            throw new IllegalStateException(error);
-        }
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .setOutput(osNode.uplinkPortNum())
-                .build();
-
-        OutboundPacket packet = new DefaultOutboundPacket(
-                srcDevice,
-                treatment,
-                ByteBuffer.wrap(icmpRequestEth.serialize()));
-
-        packetService.emit(packet);
-    }
-
-    private void processReplyFromExternal(IPv4 ipPacket, InstancePort instPort) {
-
-        if (instPort.networkId() == null) {
-            return;
-        }
-
-        ICMP icmpReply = (ICMP) ipPacket.getPayload();
-
-        icmpReply.resetChecksum();
-
-        ipPacket.setDestinationAddress(instPort.ipAddress().getIp4Address().toInt())
-                .resetChecksum();
-        ipPacket.setPayload(icmpReply);
-
-        Ethernet icmpResponseEth = new Ethernet();
-        icmpResponseEth.setEtherType(Ethernet.TYPE_IPV4)
-                .setSourceMACAddress(Constants.DEFAULT_GATEWAY_MAC)
-                .setDestinationMACAddress(instPort.macAddress())
-                .setPayload(ipPacket);
-
-        sendReply(icmpResponseEth, instPort);
-    }
-
-    private void sendReply(Ethernet icmpReply, InstancePort instPort) {
-        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
-                .setOutput(instPort.portNumber());
-
-        String netId = instPort.networkId();
-        String segId = osNetworkService.segmentId(netId);
-
-        switch (osNetworkService.networkType(netId)) {
-            case VXLAN:
-                tBuilder.setTunnelId(Long.valueOf(segId));
-                break;
-            case VLAN:
-                tBuilder.setVlanId(VlanId.vlanId(segId));
-                break;
-            default:
-                break;
-        }
-
-        OutboundPacket packet = new DefaultOutboundPacket(
-                instPort.deviceId(),
-                tBuilder.build(),
-                ByteBuffer.wrap(icmpReply.serialize()));
-
-        packetService.emit(packet);
-    }
-
-    private short getIcmpId(ICMP icmp) {
-        return ((ICMPEcho) icmp.getPayload()).getIdentifier();
-    }
-
-    private class InternalPacketProcessor implements PacketProcessor {
-
-        @Override
-        public void process(PacketContext context) {
-            Set<DeviceId> gateways = osNodeService.completeNodes(GATEWAY)
-                    .stream().map(OpenstackNode::intgBridge)
-                    .collect(Collectors.toSet());
-
-            if (context.isHandled()) {
-                return;
-            }
-
-            if (!gateways.isEmpty() &&
-                    !gateways.contains(context.inPacket().receivedFrom().deviceId())) {
-                return;
-            }
-
-            InboundPacket pkt = context.inPacket();
-            Ethernet ethernet = pkt.parsed();
-            if (ethernet == null || ethernet.getEtherType() != Ethernet.TYPE_IPV4) {
-                return;
-            }
-
-            IPv4 iPacket = (IPv4) ethernet.getPayload();
-            if (iPacket.getProtocol() == IPv4.PROTOCOL_ICMP) {
-                eventExecutor.execute(() -> processIcmpPacket(context, ethernet));
-            }
-        }
-
-        private void processIcmpPacket(PacketContext context, Ethernet ethernet) {
-            IPv4 ipPacket = (IPv4) ethernet.getPayload();
-            ICMP icmp = (ICMP) ipPacket.getPayload();
-            log.trace("Processing ICMP packet source MAC:{}, source IP:{}," +
-                            "dest MAC:{}, dest IP:{}",
-                    ethernet.getSourceMAC(),
-                    IpAddress.valueOf(ipPacket.getSourceAddress()),
-                    ethernet.getDestinationMAC(),
-                    IpAddress.valueOf(ipPacket.getDestinationAddress()));
-
-            switch (icmp.getIcmpType()) {
-                case TYPE_ECHO_REQUEST:
-                    if (handleEchoRequest(context.inPacket().receivedFrom().deviceId(),
-                            ethernet.getSourceMAC(),
-                            ipPacket,
-                            icmp)) {
-                        context.block();
-                    }
-                    break;
-                case TYPE_ECHO_REPLY:
-                    if (handleEchoReply(ipPacket, icmp)) {
-                        context.block();
-                    }
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
-
     private class InternalNodeEventListener implements OpenstackNodeListener {
         @Override
         public boolean isRelevant(OpenstackNodeEvent event) {
@@ -567,6 +222,356 @@ public class OpenstackRoutingIcmpHandler {
                     PRIORITY_INTERNAL_ROUTING_RULE,
                     GW_COMMON_TABLE,
                     install);
+        }
+    }
+
+    private class InternalPacketProcessor implements PacketProcessor {
+
+        @Override
+        public void process(PacketContext context) {
+            if (context.isHandled()) {
+                return;
+            }
+
+            eventExecutor.execute(() -> {
+                Set<DeviceId> gateways = osNodeService.completeNodes(GATEWAY)
+                        .stream().map(OpenstackNode::intgBridge)
+                        .collect(Collectors.toSet());
+
+                if (!gateways.isEmpty() &&
+                        !gateways.contains(context.inPacket().receivedFrom().deviceId())) {
+                    return;
+                }
+
+                InboundPacket pkt = context.inPacket();
+                Ethernet ethernet = pkt.parsed();
+                if (ethernet == null || ethernet.getEtherType() != Ethernet.TYPE_IPV4) {
+                    return;
+                }
+
+                IPv4 iPacket = (IPv4) ethernet.getPayload();
+
+                if (iPacket.getProtocol() == IPv4.PROTOCOL_ICMP) {
+                    processIcmpPacket(context, ethernet);
+                }
+            });
+        }
+
+        private void processIcmpPacket(PacketContext context, Ethernet ethernet) {
+            IPv4 ipPacket = (IPv4) ethernet.getPayload();
+            ICMP icmp = (ICMP) ipPacket.getPayload();
+            log.trace("Processing ICMP packet source MAC:{}, source IP:{}," +
+                            "dest MAC:{}, dest IP:{}",
+                    ethernet.getSourceMAC(),
+                    IpAddress.valueOf(ipPacket.getSourceAddress()),
+                    ethernet.getDestinationMAC(),
+                    IpAddress.valueOf(ipPacket.getDestinationAddress()));
+
+            switch (icmp.getIcmpType()) {
+                case TYPE_ECHO_REQUEST:
+                    if (handleEchoRequest(context.inPacket().receivedFrom().deviceId(),
+                            ethernet.getSourceMAC(),
+                            ipPacket,
+                            icmp)) {
+                        context.block();
+                    }
+                    break;
+                case TYPE_ECHO_REPLY:
+                    if (handleEchoReply(ipPacket, icmp)) {
+                        context.block();
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private boolean handleEchoRequest(DeviceId srcDevice, MacAddress srcMac, IPv4 ipPacket,
+                                          ICMP icmp) {
+            //We only handles a request from an instance port
+            //In case of ehco request to SNAT ip address from an external router, we intentionally ignore it
+            InstancePort instPort = instancePortService.instancePort(srcMac);
+            if (instPort == null) {
+                log.warn(ERR_REQ + "unknown source host(MAC:{})", srcMac);
+                return false;
+            }
+
+            IpAddress srcIp = IpAddress.valueOf(ipPacket.getSourceAddress());
+            IpAddress dstIp = IpAddress.valueOf(ipPacket.getDestinationAddress());
+
+            Subnet srcSubnet = getSourceSubnet(instPort);
+            if (srcSubnet == null) {
+                log.warn(ERR_REQ + "unknown source subnet(IP:{})", srcIp);
+                return false;
+            }
+
+            if (Strings.isNullOrEmpty(srcSubnet.getGateway())) {
+                log.warn(ERR_REQ + "source subnet(ID:{}, CIDR:{}) has no gateway",
+                        srcSubnet.getId(), srcSubnet.getCidr());
+                return false;
+            }
+
+            if (isForSubnetGateway(IpAddress.valueOf(ipPacket.getDestinationAddress()),
+                    srcSubnet)) {
+                // this is a request to a subnet gateway
+                log.trace("Icmp request to gateway {} from {}", dstIp, srcIp);
+                processRequestForGateway(ipPacket, instPort);
+            } else {
+                // this is a request to an external network
+                log.trace("Icmp request to external {} from {}", dstIp, srcIp);
+
+                RouterInterface routerInterface = routerInterface(srcSubnet);
+                if (routerInterface == null) {
+                    log.warn(ERR_REQ + "failed to get router interface");
+                    return false;
+                }
+
+                ExternalGateway externalGateway = externalGateway(routerInterface);
+                if (externalGateway == null) {
+                    log.warn(ERR_REQ + "failed to get external gateway");
+                    return false;
+                }
+
+                ExternalPeerRouter externalPeerRouter = osNetworkService.externalPeerRouter(externalGateway);
+                if (externalPeerRouter == null) {
+                    log.warn(ERR_REQ + "failed to get external peer router");
+                    return false;
+                }
+
+                IpAddress externalIp = getExternalIp(externalGateway, routerInterface);
+                if (externalIp == null) {
+                    log.warn(ERR_REQ + "failed to get external ip");
+                    return false;
+                }
+
+                String icmpInfoKey = icmpInfoKey(icmp,
+                        externalIp.toString(),
+                        IPv4.fromIPv4Address(ipPacket.getDestinationAddress()));
+                log.trace("Created icmpInfo key is {}", icmpInfoKey);
+
+                sendRequestForExternal(ipPacket, srcDevice, externalIp, externalPeerRouter);
+
+                try {
+                    icmpInfoMap.compute(icmpInfoKey, (id, existing) -> {
+                        checkArgument(existing == null, ERR_DUPLICATE);
+                        return instPort;
+                    });
+                } catch (IllegalArgumentException e) {
+                    log.warn("IllegalArgumentException occurred because of {}", e.toString());
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private String icmpInfoKey(ICMP icmp, String srcIp, String dstIp) {
+            return String.valueOf(getIcmpId(icmp))
+                    .concat(srcIp)
+                    .concat(dstIp);
+        }
+        private RouterInterface routerInterface(Subnet subnet) {
+            checkNotNull(subnet);
+            return osRouterService.routerInterfaces().stream()
+                    .filter(i -> Objects.equals(i.getSubnetId(), subnet.getId()))
+                    .findAny().orElse(null);
+        }
+
+        private ExternalGateway externalGateway(RouterInterface osRouterIface) {
+            checkNotNull(osRouterIface);
+            Router osRouter = osRouterService.router(osRouterIface.getId());
+            if (osRouter == null) {
+                return null;
+            }
+            if (osRouter.getExternalGatewayInfo() == null) {
+                return null;
+            }
+            return osRouter.getExternalGatewayInfo();
+        }
+
+        private boolean handleEchoReply(IPv4 ipPacket, ICMP icmp) {
+            String icmpInfoKey = icmpInfoKey(icmp,
+                    IPv4.fromIPv4Address(ipPacket.getDestinationAddress()),
+                    IPv4.fromIPv4Address(ipPacket.getSourceAddress()));
+            log.trace("Retrieved icmpInfo key is {}", icmpInfoKey);
+
+            if (icmpInfoMap.get(icmpInfoKey) != null) {
+                processReplyFromExternal(ipPacket, icmpInfoMap.get(icmpInfoKey).value());
+                icmpInfoMap.remove(icmpInfoKey);
+                return true;
+            } else {
+                log.debug("No ICMP Info for ICMP packet");
+                return false;
+            }
+        }
+
+        private Subnet getSourceSubnet(InstancePort instance) {
+            checkNotNull(instance);
+
+            Port osPort = osNetworkService.port(instance.portId());
+            return osNetworkService.subnets(osPort.getNetworkId())
+                    .stream().findAny().orElse(null);
+        }
+
+        private boolean isForSubnetGateway(IpAddress dstIp, Subnet srcSubnet) {
+            RouterInterface osRouterIface = osRouterService.routerInterfaces().stream()
+                    .filter(i -> Objects.equals(i.getSubnetId(), srcSubnet.getId()))
+                    .findAny().orElse(null);
+            if (osRouterIface == null) {
+                log.trace(ERR_REQ + "source subnet(ID:{}, CIDR:{}) has no router",
+                        srcSubnet.getId(), srcSubnet.getCidr());
+                return false;
+            }
+
+            Router osRouter = osRouterService.router(osRouterIface.getId());
+            Set<IpAddress> routableGateways = osRouterService.routerInterfaces(osRouter.getId())
+                    .stream()
+                    .map(iface -> osNetworkService.subnet(iface.getSubnetId()).getGateway())
+                    .map(IpAddress::valueOf)
+                    .collect(Collectors.toSet());
+
+            return routableGateways.contains(dstIp);
+        }
+
+        private IpAddress getExternalIp(ExternalGateway externalGateway, RouterInterface osRouterIface) {
+            checkNotNull(externalGateway);
+            checkNotNull(osRouterIface);
+
+            Router osRouter = osRouterService.router(osRouterIface.getId());
+            if (osRouter == null) {
+                return null;
+            }
+
+            Port exGatewayPort = osNetworkService.ports(externalGateway.getNetworkId())
+                    .stream()
+                    .filter(port -> Objects.equals(port.getDeviceId(), osRouter.getId()))
+                    .findAny().orElse(null);
+            if (exGatewayPort == null) {
+                final String error = String.format(ERR_REQ +
+                                "no external gateway port for router (ID:%s, name:%s)",
+                        osRouter.getId(), osRouter.getName());
+                throw new IllegalStateException(error);
+            }
+            Optional<NeutronIP> externalIpAddress =
+                    (Optional<NeutronIP>) exGatewayPort.getFixedIps().stream().findFirst();
+            if (!externalIpAddress.isPresent() || externalIpAddress.get().getIpAddress() == null) {
+                final String error = String.format(ERR_REQ +
+                                "no external gateway IP address for router (ID:%s, name:%s)",
+                        osRouter.getId(), osRouter.getName());
+                log.warn(error);
+                return null;
+            }
+
+            return IpAddress.valueOf(externalIpAddress.get().getIpAddress());
+        }
+
+        private void processRequestForGateway(IPv4 ipPacket, InstancePort instPort) {
+            ICMP icmpReq = (ICMP) ipPacket.getPayload();
+            icmpReq.setChecksum((short) 0);
+            icmpReq.setIcmpType(TYPE_ECHO_REPLY);
+
+            int destinationAddress = ipPacket.getSourceAddress();
+
+            ipPacket.setSourceAddress(ipPacket.getDestinationAddress())
+                    .setDestinationAddress(destinationAddress)
+                    .resetChecksum();
+
+            ipPacket.setPayload(icmpReq);
+            Ethernet icmpReply = new Ethernet();
+            icmpReply.setEtherType(Ethernet.TYPE_IPV4)
+                    .setSourceMACAddress(Constants.DEFAULT_GATEWAY_MAC)
+                    .setDestinationMACAddress(instPort.macAddress())
+                    .setPayload(ipPacket);
+
+            sendReply(icmpReply, instPort);
+        }
+
+        private void sendRequestForExternal(IPv4 ipPacket, DeviceId srcDevice,
+                                            IpAddress srcNatIp, ExternalPeerRouter externalPeerRouter) {
+            ICMP icmpReq = (ICMP) ipPacket.getPayload();
+            icmpReq.resetChecksum();
+            ipPacket.setSourceAddress(srcNatIp.getIp4Address().toInt()).resetChecksum();
+            ipPacket.setPayload(icmpReq);
+
+            Ethernet icmpRequestEth = new Ethernet();
+            icmpRequestEth.setEtherType(Ethernet.TYPE_IPV4)
+                    .setSourceMACAddress(DEFAULT_GATEWAY_MAC)
+                    .setDestinationMACAddress(externalPeerRouter.macAddress());
+
+            if (!externalPeerRouter.vlanId().equals(VlanId.NONE)) {
+                icmpRequestEth.setVlanID(externalPeerRouter.vlanId().toShort());
+            }
+
+            icmpRequestEth.setPayload(ipPacket);
+
+            OpenstackNode osNode = osNodeService.node(srcDevice);
+            if (osNode == null) {
+                final String error = String.format("Cannot find openstack node for %s",
+                        srcDevice);
+                throw new IllegalStateException(error);
+            }
+            TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                    .setOutput(osNode.uplinkPortNum())
+                    .build();
+
+            OutboundPacket packet = new DefaultOutboundPacket(
+                    srcDevice,
+                    treatment,
+                    ByteBuffer.wrap(icmpRequestEth.serialize()));
+
+            packetService.emit(packet);
+        }
+
+        private void processReplyFromExternal(IPv4 ipPacket, InstancePort instPort) {
+
+            if (instPort.networkId() == null) {
+                return;
+            }
+
+            ICMP icmpReply = (ICMP) ipPacket.getPayload();
+
+            icmpReply.resetChecksum();
+
+            ipPacket.setDestinationAddress(instPort.ipAddress().getIp4Address().toInt())
+                    .resetChecksum();
+            ipPacket.setPayload(icmpReply);
+
+            Ethernet icmpResponseEth = new Ethernet();
+            icmpResponseEth.setEtherType(Ethernet.TYPE_IPV4)
+                    .setSourceMACAddress(Constants.DEFAULT_GATEWAY_MAC)
+                    .setDestinationMACAddress(instPort.macAddress())
+                    .setPayload(ipPacket);
+
+            sendReply(icmpResponseEth, instPort);
+        }
+
+        private void sendReply(Ethernet icmpReply, InstancePort instPort) {
+            TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
+                    .setOutput(instPort.portNumber());
+
+            String netId = instPort.networkId();
+            String segId = osNetworkService.segmentId(netId);
+
+            switch (osNetworkService.networkType(netId)) {
+                case VXLAN:
+                    tBuilder.setTunnelId(Long.valueOf(segId));
+                    break;
+                case VLAN:
+                    tBuilder.setVlanId(VlanId.vlanId(segId));
+                    break;
+                default:
+                    break;
+            }
+
+            OutboundPacket packet = new DefaultOutboundPacket(
+                    instPort.deviceId(),
+                    tBuilder.build(),
+                    ByteBuffer.wrap(icmpReply.serialize()));
+
+            packetService.emit(packet);
+        }
+
+        private short getIcmpId(ICMP icmp) {
+            return ((ICMPEcho) icmp.getPayload()).getIdentifier();
         }
     }
 }
