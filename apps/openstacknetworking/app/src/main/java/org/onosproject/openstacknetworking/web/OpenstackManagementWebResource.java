@@ -48,7 +48,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -81,6 +83,9 @@ public class OpenstackManagementWebResource extends AbstractWebResource {
 
     private static final String SECURITY_GROUP_FLAG_REQUIRED = "Security Group flag is not specified";
 
+    private static final String HTTP_HEADER_ACCEPT = "accept";
+    private static final String HTTP_HEADER_VALUE_JSON = "application/json";
+
     private final ObjectNode root = mapper().createObjectNode();
     private final ArrayNode floatingipsNode = root.putArray(FLOATINGIPS);
 
@@ -105,6 +110,9 @@ public class OpenstackManagementWebResource extends AbstractWebResource {
     @Path("sync/states")
     public Response syncStates() {
 
+        Map<String, String> headerMap = new HashMap();
+        headerMap.put(HTTP_HEADER_ACCEPT, HTTP_HEADER_VALUE_JSON);
+
         Optional<OpenstackNode> node = osNodeAdminService.nodes(CONTROLLER).stream().findFirst();
         if (!node.isPresent()) {
             throw new ItemNotFoundException("Auth info is not found");
@@ -116,7 +124,7 @@ public class OpenstackManagementWebResource extends AbstractWebResource {
             throw new ItemNotFoundException("Auth info is not correct");
         }
 
-        osClient.networking().securitygroup().list().forEach(osSg -> {
+        osClient.headers(headerMap).networking().securitygroup().list().forEach(osSg -> {
             if (osSgAdminService.securityGroup(osSg.getId()) != null) {
                 osSgAdminService.updateSecurityGroup(osSg);
             } else {
@@ -124,7 +132,7 @@ public class OpenstackManagementWebResource extends AbstractWebResource {
             }
         });
 
-        osClient.networking().network().list().forEach(osNet -> {
+        osClient.headers(headerMap).networking().network().list().forEach(osNet -> {
             if (osNetAdminService.network(osNet.getId()) != null) {
                 osNetAdminService.updateNetwork(osNet);
             } else {
@@ -132,7 +140,7 @@ public class OpenstackManagementWebResource extends AbstractWebResource {
             }
         });
 
-        osClient.networking().subnet().list().forEach(osSubnet -> {
+        osClient.headers(headerMap).networking().subnet().list().forEach(osSubnet -> {
             if (osNetAdminService.subnet(osSubnet.getId()) != null) {
                 osNetAdminService.updateSubnet(osSubnet);
             } else {
@@ -140,7 +148,7 @@ public class OpenstackManagementWebResource extends AbstractWebResource {
             }
         });
 
-        osClient.networking().port().list().forEach(osPort -> {
+        osClient.headers(headerMap).networking().port().list().forEach(osPort -> {
             if (osNetAdminService.port(osPort.getId()) != null) {
                 osNetAdminService.updatePort(osPort);
             } else {
@@ -148,7 +156,7 @@ public class OpenstackManagementWebResource extends AbstractWebResource {
             }
         });
 
-        osClient.networking().router().list().forEach(osRouter -> {
+        osClient.headers(headerMap).networking().router().list().forEach(osRouter -> {
             if (osRouterAdminService.router(osRouter.getId()) != null) {
                 osRouterAdminService.updateRouter(osRouter);
             } else {
@@ -161,7 +169,7 @@ public class OpenstackManagementWebResource extends AbstractWebResource {
                     .forEach(osPort -> addRouterIface(osPort, osRouterAdminService));
         });
 
-        osClient.networking().floatingip().list().forEach(osFloating -> {
+        osClient.headers(headerMap).networking().floatingip().list().forEach(osFloating -> {
             if (osRouterAdminService.floatingIp(osFloating.getId()) != null) {
                 osRouterAdminService.updateFloatingIp(osFloating);
             } else {
