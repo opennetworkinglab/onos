@@ -1,6 +1,5 @@
 COMPILE_DEPS = CORE_DEPS + NETTY + JACKSON + [
     "@io_netty_netty//jar",
-    "//incubator/api:onos-incubator-api",
     "//protocols/ovsdb/api:onos-protocols-ovsdb-api",
     "//protocols/ovsdb/rfc:onos-protocols-ovsdb-rfc",
     "//apps/pcep-api:onos-apps-pcep-api",

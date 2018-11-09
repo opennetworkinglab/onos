@@ -27,8 +27,6 @@ import org.onosproject.cluster.ClusterEvent;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.core.CoreService;
-import org.onosproject.incubator.net.tunnel.OpticalTunnelEndPoint;
-import org.onosproject.incubator.net.tunnel.Tunnel;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.ConnectPoint;
@@ -36,7 +34,6 @@ import org.onosproject.net.DefaultEdgeLink;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.EdgeLink;
-import org.onosproject.net.ElementId;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
@@ -60,12 +57,10 @@ import org.onosproject.ui.topo.PropertyPanel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -461,7 +456,6 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
                 .addProp(TOPOLOGY_SSCS, lion.getSafe(TOPOLOGY_SSCS), topology.clusterCount())
                 .addSeparator()
                 .addProp(INTENTS, lion.getSafe(INTENTS), services.intent().getIntentCount())
-                .addProp(TUNNELS, lion.getSafe(TUNNELS), services.tunnel().tunnelCount())
                 .addProp(FLOWS, lion.getSafe(FLOWS), services.flow().getFlowRuleCount());
     }
 
@@ -548,28 +542,9 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         return services.flow().getFlowRuleCount(deviceId);
     }
 
+    @Deprecated
     protected int getTunnelCount(DeviceId deviceId) {
-        int count = 0;
-        Collection<Tunnel> tunnels = services.tunnel().queryAllTunnels();
-        for (Tunnel tunnel : tunnels) {
-            //Only OpticalTunnelEndPoint has a device
-            if (!(tunnel.src() instanceof OpticalTunnelEndPoint) ||
-                    !(tunnel.dst() instanceof OpticalTunnelEndPoint)) {
-                continue;
-            }
-
-            Optional<ElementId> srcElementId = ((OpticalTunnelEndPoint) tunnel.src()).elementId();
-            Optional<ElementId> dstElementId = ((OpticalTunnelEndPoint) tunnel.dst()).elementId();
-            if (!srcElementId.isPresent() || !dstElementId.isPresent()) {
-                continue;
-            }
-            DeviceId srcDeviceId = (DeviceId) srcElementId.get();
-            DeviceId dstDeviceId = (DeviceId) dstElementId.get();
-            if (srcDeviceId.equals(deviceId) || dstDeviceId.equals(deviceId)) {
-                count++;
-            }
-        }
-        return count;
+        return 0;
     }
 
     private boolean useDefaultName(String annotName) {

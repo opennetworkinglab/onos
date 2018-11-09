@@ -17,7 +17,7 @@ package org.onosproject.net.config.impl;
 
 import com.google.common.collect.ImmutableSet;
 import org.onosproject.core.CoreService;
-import org.onosproject.incubator.net.config.basics.PortDescriptionsConfig;
+import org.onosproject.net.config.basics.PortDescriptionsConfig;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.HostId;

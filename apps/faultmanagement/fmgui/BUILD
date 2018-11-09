@@ -1,5 +1,4 @@
 COMPILE_DEPS = CORE_DEPS + JACKSON + CLI + [
-    "//incubator/api:onos-incubator-api",
     "//apps/faultmanagement/fmmgr:onos-apps-faultmanagement-fmmgr",
 ]
 

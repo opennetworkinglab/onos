@@ -1,6 +1,5 @@
 COMPILE_DEPS = CORE_DEPS + JACKSON + [
     "@javax_ws_rs_api//jar",
-    "//incubator/api:onos-incubator-api",
     "//utils/rest:onlab-rest",
     "//drivers/utilities:onos-drivers-utilities",
     "//drivers/netconf:onos-drivers-netconf",

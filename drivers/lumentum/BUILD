@@ -4,7 +4,6 @@ COMPILE_DEPS = CORE_DEPS + [
     "//protocols/snmp/api:onos-protocols-snmp-api",
     "//protocols/tl1/api:onos-protocols-tl1-api",
     "//protocols/netconf/api:onos-protocols-netconf-api",
-    "//incubator/api:onos-incubator-api",
     "//apps/optical-model:onos-apps-optical-model",
     "//drivers/optical:onos-drivers-optical",
 ]

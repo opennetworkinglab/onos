@@ -1,5 +1,4 @@
 COMPILE_DEPS = CORE_DEPS + CLI + [
-    "//incubator/api:onos-incubator-api",
     "//providers/bgp/cfg:onos-providers-bgp-cfg",
     "//providers/bgp/topology:onos-providers-bgp-topology",
     "//protocols/bgp/api:onos-protocols-bgp-api",

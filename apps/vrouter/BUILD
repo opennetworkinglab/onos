@@ -1,6 +1,4 @@
-COMPILE_DEPS = CORE_DEPS + [
-    "//incubator/api:onos-incubator-api",
-]
+COMPILE_DEPS = CORE_DEPS
 
 BUNDLES = [
     "//apps/routing-api:onos-apps-routing-api",

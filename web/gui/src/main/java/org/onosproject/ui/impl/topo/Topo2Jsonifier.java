@@ -26,8 +26,7 @@ import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
-import org.onosproject.incubator.net.PortStatisticsService;
-import org.onosproject.incubator.net.tunnel.TunnelService;
+import org.onosproject.net.statistic.PortStatisticsService;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.Annotated;
 import org.onosproject.net.Annotations;
@@ -128,7 +127,6 @@ public class Topo2Jsonifier {
     private StatisticService flowStatsService;
     private PortStatisticsService portStatsService;
     private TopologyService topologyService;
-    private TunnelService tunnelService;
     private UiExtensionService uiextService;
     private UiPreferencesService prefService;
 
@@ -160,7 +158,6 @@ public class Topo2Jsonifier {
         flowStatsService = directory.get(StatisticService.class);
         portStatsService = directory.get(PortStatisticsService.class);
         topologyService = directory.get(TopologyService.class);
-        tunnelService = directory.get(TunnelService.class);
         uiextService = directory.get(UiExtensionService.class);
         prefService = directory.get(UiPreferencesService.class);
     }

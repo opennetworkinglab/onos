@@ -5,7 +5,7 @@ COMPILE_DEPS = CORE_DEPS + NETTY + JACKSON + KRYO + CLI + REST + [
     "@openflowj//jar",
     "//core/store/serializers:onos-core-serializers",
     "//core/common:onos-core-common",
-    "//incubator/api:onos-incubator-api",
+    "//apps/virtual/api:onos-apps-virtual-api",
     "//providers/openflow/flow:onos-providers-openflow-flow",
     "//protocols/openflow/api:onos-protocols-openflow-api",
 ]
@@ -39,6 +39,9 @@ onos_app(
     category = "Traffic Engineering",
     description = "OpenFlow agent application for virtualization subsystem.",
     included_bundles = BUNDLES,
+    required_apps = [
+        "org.onosproject.virtual",
+    ],
     title = "OpenFlow Agent",
     url = "http://onosproject.org",
 )

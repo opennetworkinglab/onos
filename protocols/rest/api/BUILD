@@ -9,7 +9,6 @@ COMPILE_DEPS = CORE_DEPS + [
     "@hk2_api//jar",
     "@aopalliance_repackaged//jar",
     "@javax_inject//jar",
-    "//incubator/api:onos-incubator-api",
     "//utils/rest:onlab-rest",
 ]
 

@@ -1,6 +1,5 @@
 COMPILE_DEPS = CORE_DEPS + JACKSON + KRYO + REST + [
     "//core/store/serializers:onos-core-serializers",
-    "//incubator/api:onos-incubator-api",
     "//apps/routing-api:onos-apps-routing-api",
     "//apps/intentsync:onos-apps-intentsync",
 ]
@@ -12,7 +11,6 @@ BUNDLES = [
 ]
 
 TEST_DEPS = TEST_ADAPTERS + [
-    "//incubator/api:onos-incubator-api-tests",
     "//apps/routing-api:onos-apps-routing-api-tests",
 ]
 

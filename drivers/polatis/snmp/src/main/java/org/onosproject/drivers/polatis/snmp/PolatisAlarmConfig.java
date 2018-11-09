@@ -18,10 +18,10 @@ package org.onosproject.drivers.polatis.snmp;
 
 import org.onlab.packet.IpAddress;
 
-import org.onosproject.incubator.net.faultmanagement.alarm.Alarm;
-import org.onosproject.incubator.net.faultmanagement.alarm.AlarmId;
-import org.onosproject.incubator.net.faultmanagement.alarm.DefaultAlarm;
-import org.onosproject.incubator.net.faultmanagement.alarm.DeviceAlarmConfig;
+import org.onosproject.alarm.Alarm;
+import org.onosproject.alarm.AlarmId;
+import org.onosproject.alarm.DefaultAlarm;
+import org.onosproject.alarm.DeviceAlarmConfig;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 
@@ -35,7 +35,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.onosproject.incubator.net.faultmanagement.alarm.Alarm.SeverityLevel;
+import static org.onosproject.alarm.Alarm.SeverityLevel;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**

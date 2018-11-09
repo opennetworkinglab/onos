@@ -1,11 +1,9 @@
 COMPILE_DEPS = CORE_DEPS + KRYO + [
-    "//incubator/api:onos-incubator-api",
     "//core/store/serializers:onos-core-serializers",
 ]
 
 TEST_DEPS = TEST_ADAPTERS + [
     "//utils/osgi:onlab-osgi-tests",
-    "//incubator/api:onos-incubator-api-tests",
 ]
 
 osgi_jar_with_tests(

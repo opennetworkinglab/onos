@@ -3,7 +3,6 @@ COMPILE_DEPS = CORE_DEPS + JACKSON + [
     #"//protocols/ovsdb/api:onos-protocols-ovsdb-api",
     #"//protocols/ovsdb/rfc:onos-protocols-ovsdb-rfc",
     #"//apps/pcep-api:onos-apps-pcep-api",
-    "//incubator/api:onos-incubator-api",
     "//protocols/rest/api:onos-protocols-rest-api",
 ]
 

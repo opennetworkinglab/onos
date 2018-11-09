@@ -22,8 +22,7 @@ import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.RoleInfo;
 import org.onosproject.event.AbstractListenerManager;
-import org.onosproject.incubator.net.PortStatisticsService;
-import org.onosproject.incubator.net.tunnel.TunnelService;
+import org.onosproject.net.statistic.PortStatisticsService;
 import org.onosproject.mastership.MastershipEvent;
 import org.onosproject.mastership.MastershipListener;
 import org.onosproject.mastership.MastershipService;
@@ -117,8 +116,6 @@ public final class UiSharedTopologyModel
     private PortStatisticsService portStatsService;
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private TopologyService topologyService;
-    @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    private TunnelService tunnelService;
 
     private final ClusterEventListener clusterListener =
             new InternalClusterListener();

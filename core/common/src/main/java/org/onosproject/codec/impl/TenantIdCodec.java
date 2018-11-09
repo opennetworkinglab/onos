@@ -18,7 +18,7 @@ package org.onosproject.codec.impl;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
-import org.onosproject.incubator.net.virtual.TenantId;
+import org.onosproject.net.TenantId;
 
 
 import static com.google.common.base.Preconditions.checkNotNull;

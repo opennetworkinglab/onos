@@ -1,6 +1,4 @@
-COMPILE_DEPS = CORE_DEPS + KRYO + [
-    "//incubator/api:onos-incubator-api",
-]
+COMPILE_DEPS = CORE_DEPS + KRYO
 
 TEST_DEPS = TEST
 

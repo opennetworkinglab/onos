@@ -1,5 +1,4 @@
 COMPILE_DEPS = CORE_DEPS + [
-    "//incubator/api:onos-incubator-api",
     "//protocols/netconf/api:onos-protocols-netconf-api",
     "//protocols/netconf/ctl:onos-protocols-netconf-ctl",
 ]

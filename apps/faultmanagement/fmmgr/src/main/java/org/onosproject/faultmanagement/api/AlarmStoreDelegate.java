@@ -16,7 +16,7 @@
 
 package org.onosproject.faultmanagement.api;
 
-import org.onosproject.incubator.net.faultmanagement.alarm.AlarmEvent;
+import org.onosproject.alarm.AlarmEvent;
 import org.onosproject.store.StoreDelegate;
 
 /**

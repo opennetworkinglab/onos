@@ -1,4 +1,5 @@
 BUNDLES = [
+    "//apps/tunnel/api:onos-apps-tunnel-api",
     "//apps/tetunnel/api:onos-apps-tetunnel-api",
     "//apps/tetunnel/app:onos-apps-tetunnel-app",
 ]

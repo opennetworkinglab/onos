@@ -14,10 +14,6 @@
     //core/store/serializers:onos-core-serializers
     //drivers/utilities:onos-drivers-utilities
     //drivers/netconf:onos-drivers-netconf
-    //incubator/api:onos-incubator-api
-    //incubator/net:onos-incubator-net
-    //incubator/rpc:onos-incubator-rpc
-    //incubator/store:onos-incubator-store
     //protocols/bgp/api:onos-protocols-bgp-api
     //protocols/bgp/bgpio:onos-protocols-bgp-bgpio
     //protocols/grpc/api:onos-protocols-grpc-api

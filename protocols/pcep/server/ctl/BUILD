@@ -1,6 +1,6 @@
 COMPILE_DEPS = CORE_DEPS + NETTY + JACKSON + KRYO + [
     "@io_netty_netty//jar",
-    "//incubator/api:onos-incubator-api",
+    "//apps/tunnel/api:onos-apps-tunnel-api",
     "//protocols/pcep/pcepio:onos-protocols-pcep-pcepio",
     "//protocols/pcep/server/api:onos-protocols-pcep-server-api",
     "//core/store/serializers:onos-core-serializers",
@@ -9,7 +9,7 @@ COMPILE_DEPS = CORE_DEPS + NETTY + JACKSON + KRYO + [
 
 TEST_DEPS = TEST_ADAPTERS + [
     "//protocols/pcep/server/api:onos-protocols-pcep-server-api-tests",
-    "//incubator/api:onos-incubator-api-tests",
+    "//apps/tunnel/api:onos-apps-tunnel-api-tests",
 ]
 
 osgi_jar_with_tests(

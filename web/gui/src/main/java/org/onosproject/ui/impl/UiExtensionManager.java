@@ -210,8 +210,7 @@ public class UiExtensionManager
 
                 mkView(NETWORK, "link", "nav_links"),
                 mkView(NETWORK, "host", "nav_hosts"),
-                mkView(NETWORK, "intent", "nav_intents"),
-                mkView(NETWORK, "tunnel", "nav_tunnels")
+                mkView(NETWORK, "intent", "nav_intents")
         );
 
         UiMessageHandlerFactory messageHandlerFactory =
@@ -233,7 +232,6 @@ public class UiExtensionManager
                         new SettingsViewMessageHandler(),
                         new ClusterViewMessageHandler(),
                         new ProcessorViewMessageHandler(),
-                        new TunnelViewMessageHandler(),
                         new PartitionViewMessageHandler(),
                         new PipeconfViewMessageHandler()
                 );

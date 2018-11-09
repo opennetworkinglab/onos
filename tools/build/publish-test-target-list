@@ -1,7 +1,6 @@
 # Targets placed in this list will be published as Maven test artifacts
     //apps/route-service/api:onos-apps-route-service-api-tests
     //apps/routing-api:onos-apps-routing-api-tests
-    //incubator/api:onos-incubator-api-tests
     //utils/osgi:onlab-osgi-tests
     //utils/junit:onlab-junit-tests
     //utils/misc:onlab-misc-tests

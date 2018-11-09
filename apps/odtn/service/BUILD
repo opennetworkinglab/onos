@@ -4,7 +4,6 @@ COMPILE_DEPS = CORE_DEPS + ONOS_YANG + CLI + JACKSON + [
     "//models/tapi:onos-models-tapi",
     "//models/openconfig:onos-models-openconfig",
     "//apps/yang:onos-apps-yang",
-    "//incubator/api:onos-incubator-api",
     "//protocols/netconf/api:onos-protocols-netconf-api",
 ]
 

@@ -1,6 +1,4 @@
 COMPILE_DEPS = CORE_DEPS + NETTY + [
-    "//incubator/store:onos-incubator-store",
-    "//incubator/api:onos-incubator-api",
     "//core/common:onos-core-common",
     "@openflowj//jar",
     "@io_netty_netty_transport//jar",

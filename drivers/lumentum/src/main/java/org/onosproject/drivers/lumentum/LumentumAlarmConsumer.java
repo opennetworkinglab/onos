@@ -17,10 +17,10 @@
 package org.onosproject.drivers.lumentum;
 
 import com.google.common.collect.ImmutableList;
-import org.onosproject.incubator.net.faultmanagement.alarm.Alarm;
-import org.onosproject.incubator.net.faultmanagement.alarm.AlarmConsumer;
-import org.onosproject.incubator.net.faultmanagement.alarm.AlarmId;
-import org.onosproject.incubator.net.faultmanagement.alarm.DefaultAlarm;
+import org.onosproject.alarm.Alarm;
+import org.onosproject.alarm.AlarmConsumer;
+import org.onosproject.alarm.AlarmId;
+import org.onosproject.alarm.DefaultAlarm;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.snmp.SnmpController;
@@ -35,7 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onosproject.incubator.net.faultmanagement.alarm.Alarm.SeverityLevel;
+import static org.onosproject.alarm.Alarm.SeverityLevel;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**

@@ -18,7 +18,7 @@ package org.onosproject.faultmanagement.alarms.gui;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
-import org.onosproject.incubator.net.faultmanagement.alarm.Alarm;
+import org.onosproject.alarm.Alarm;
 import org.onosproject.net.DeviceId;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiMessageHandler;
@@ -32,7 +32,7 @@ import java.time.Instant;
 import java.util.Collection;
 import java.util.Set;
 
-import static org.onosproject.incubator.net.faultmanagement.alarm.AlarmId.alarmId;
+import static org.onosproject.alarm.AlarmId.alarmId;
 
 /**
  * Skeletal ONOS UI Table-View message handler.

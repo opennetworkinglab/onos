@@ -16,8 +16,8 @@
 
 package org.onosproject.drivers.ciena.waveserver.rest;
 
-import org.onosproject.incubator.net.faultmanagement.alarm.Alarm;
-import org.onosproject.incubator.net.faultmanagement.alarm.AlarmConsumer;
+import org.onosproject.alarm.Alarm;
+import org.onosproject.alarm.AlarmConsumer;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.slf4j.Logger;
 

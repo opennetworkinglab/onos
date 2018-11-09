@@ -18,9 +18,9 @@ package org.onosproject.faultmanagement.alarms.gui;
 import java.util.Map;
 import java.util.Set;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.incubator.net.faultmanagement.alarm.Alarm;
-import org.onosproject.incubator.net.faultmanagement.alarm.AlarmId;
-import org.onosproject.incubator.net.faultmanagement.alarm.AlarmService;
+import org.onosproject.alarm.Alarm;
+import org.onosproject.alarm.AlarmId;
+import org.onosproject.alarm.AlarmService;
 import org.onosproject.net.DeviceId;
 
 /**

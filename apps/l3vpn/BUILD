@@ -4,7 +4,7 @@ COMPILE_DEPS = CORE_DEPS + KRYO + ONOS_YANG + [
     "//core/store/serializers:onos-core-serializers",
     "//apps/yang:onos-apps-yang",
     "//apps/pce/app:onos-apps-pce-app",
-    "//incubator/api:onos-incubator-api",
+    "//apps/tunnel/api:onos-apps-tunnel-api",
     "//models/common:onos-models-common",
 ]
 
@@ -18,6 +18,7 @@ APPS = [
     "org.onosproject.config",
     "org.onosproject.restconf",
     "org.onosproject.protocols.restconfserver",
+    "org.onosproject.tunnel",
     "org.onosproject.netconf",
     "org.onosproject.netconfsb",
     "org.onosproject.models.common",

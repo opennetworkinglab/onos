@@ -1,6 +1,4 @@
-COMPILE_DEPS = CORE_DEPS + JACKSON + [
-    "//incubator/api:onos-incubator-api",
-]
+COMPILE_DEPS = CORE_DEPS + JACKSON
 
 osgi_jar_with_tests(
     deps = COMPILE_DEPS,

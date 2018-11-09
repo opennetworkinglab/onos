@@ -23,8 +23,6 @@ import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
-import org.onosproject.incubator.net.virtual.NetworkId;
-import org.onosproject.incubator.net.virtual.VirtualNetworkIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentData;
 import org.onosproject.net.intent.IntentEvent;
@@ -68,6 +66,7 @@ import static org.onosproject.net.intent.IntentState.PURGE_REQ;
 import static org.onosproject.store.OsgiPropertyConstants.GIS_PERSISTENCE_ENABLED;
 import static org.onosproject.store.OsgiPropertyConstants.GIS_PERSISTENCE_ENABLED_DEFAULT;
 import static org.slf4j.LoggerFactory.getLogger;
+
 /**
  * Manages inventory of Intents in a distributed data store that uses optimistic
  * replication and gossip based techniques.
@@ -158,8 +157,6 @@ public class GossipIntentStore
         KryoNamespace.Builder intentSerializer = KryoNamespace.newBuilder()
                 .register(KryoNamespaces.API)
                 .register(IntentData.class)
-                .register(VirtualNetworkIntent.class)
-                .register(NetworkId.class)
                 .register(MultiValuedTimestamp.class);
 
         EventuallyConsistentMapBuilder currentECMapBuilder =

@@ -1,6 +1,5 @@
 COMPILE_DEPS = CORE_DEPS + JACKSON + KRYO + [
     "@javax_ws_rs_api//jar",
-    "//incubator/api:onos-incubator-api",
     "//apps/faultmanagement/fmmgr:onos-apps-faultmanagement-fmmgr",
     "//utils/rest:onlab-rest",
 ]
@@ -10,7 +9,6 @@ TEST_DEPS = TEST_ADAPTERS + [
     "@jersey_test_framework_jetty//jar",
     "//utils/osgi:onlab-osgi-tests",
     "//web/api:onos-rest-tests",
-    "//incubator/api:onos-incubator-api-tests",
 ]
 
 osgi_jar_with_tests(

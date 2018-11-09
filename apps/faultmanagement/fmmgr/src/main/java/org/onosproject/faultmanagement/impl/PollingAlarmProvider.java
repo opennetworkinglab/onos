@@ -16,10 +16,10 @@
 package org.onosproject.faultmanagement.impl;
 
 import org.onosproject.cfg.ComponentConfigService;
-import org.onosproject.incubator.net.faultmanagement.alarm.AlarmConsumer;
-import org.onosproject.incubator.net.faultmanagement.alarm.AlarmProvider;
-import org.onosproject.incubator.net.faultmanagement.alarm.AlarmProviderRegistry;
-import org.onosproject.incubator.net.faultmanagement.alarm.AlarmProviderService;
+import org.onosproject.alarm.AlarmConsumer;
+import org.onosproject.alarm.AlarmProvider;
+import org.onosproject.alarm.AlarmProviderRegistry;
+import org.onosproject.alarm.AlarmProviderService;
 import org.onosproject.mastership.MastershipEvent;
 import org.onosproject.mastership.MastershipListener;
 import org.onosproject.mastership.MastershipService;

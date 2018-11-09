@@ -18,7 +18,7 @@ package org.onosproject.faultmanagement.web;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
-import org.onosproject.incubator.net.faultmanagement.alarm.Alarm;
+import org.onosproject.alarm.Alarm;
 
 /**
  * Hamcrest matcher for alarms.

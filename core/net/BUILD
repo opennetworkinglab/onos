@@ -1,9 +1,6 @@
 COMPILE_DEPS = CORE_DEPS + JACKSON + METRICS + KRYO + [
     "//core/common:onos-core-common",
-    "//incubator/api:onos-incubator-api",
     "//utils/rest:onlab-rest",
-    "//incubator/net:onos-incubator-net",
-    "//incubator/store:onos-incubator-store",
     "//core/store/serializers:onos-core-serializers",
     "//core/store/primitives:onos-core-primitives",
     "@org_osgi_service_cm//jar",

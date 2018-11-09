@@ -3,7 +3,6 @@ COMPILE_DEPS = CORE_DEPS + ONOS_YANG + [
     "//drivers/utilities:onos-drivers-utilities",
     "//protocols/netconf/api:onos-protocols-netconf-api",
     "//apps/optical-model:onos-apps-optical-model",
-    "//incubator/api:onos-incubator-api",
 ]
 
 APPS = [

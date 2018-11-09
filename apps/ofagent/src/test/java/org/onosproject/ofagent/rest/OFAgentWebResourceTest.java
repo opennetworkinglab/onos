@@ -28,7 +28,7 @@ import org.onlab.osgi.TestServiceDirectory;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.TpPort;
 import org.onosproject.incubator.net.virtual.NetworkId;
-import org.onosproject.incubator.net.virtual.TenantId;
+import org.onosproject.net.TenantId;
 import org.onosproject.ofagent.api.OFAgent;
 import org.onosproject.ofagent.api.OFAgentAdminService;
 import org.onosproject.ofagent.api.OFAgentService;

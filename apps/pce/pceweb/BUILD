@@ -1,6 +1,6 @@
 COMPILE_DEPS = CORE_DEPS + JACKSON + CLI + [
     "//apps/pce/app:onos-apps-pce-app",
-    "//incubator/api:onos-incubator-api",
+    "//apps/tunnel/api:onos-apps-tunnel-api",
 ]
 
 osgi_jar_with_tests(

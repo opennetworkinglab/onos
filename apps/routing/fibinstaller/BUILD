@@ -1,11 +1,9 @@
 COMPILE_DEPS = CORE_DEPS + [
-    "//incubator/api:onos-incubator-api",
     "//apps/routing-api:onos-apps-routing-api",
     "//apps/route-service/api:onos-apps-route-service-api",
 ]
 
 TEST_DEPS = TEST_ADAPTERS + [
-    "//incubator/api:onos-incubator-api-tests",
     "//apps/routing-api:onos-apps-routing-api-tests",
     "//apps/route-service/api:onos-apps-route-service-api-tests",
 ]

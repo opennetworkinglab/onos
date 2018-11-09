@@ -52,9 +52,6 @@ import static org.onosproject.utils.Comparators.NODE_COMPARATOR;
 import static org.onosproject.utils.Comparators.PORT_COMPARATOR;
 import static org.onosproject.utils.Comparators.REGION_COMPARATOR;
 import static org.onosproject.utils.Comparators.TENANT_ID_COMPARATOR;
-import static org.onosproject.utils.Comparators.VIRTUAL_DEVICE_COMPARATOR;
-import static org.onosproject.utils.Comparators.VIRTUAL_NETWORK_COMPARATOR;
-import static org.onosproject.utils.Comparators.VIRTUAL_PORT_COMPARATOR;
 
 import java.util.Optional;
 
@@ -70,14 +67,7 @@ import org.onosproject.core.DefaultApplication;
 import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.intf.Interface;
-import org.onosproject.incubator.net.virtual.DefaultVirtualDevice;
-import org.onosproject.incubator.net.virtual.DefaultVirtualNetwork;
-import org.onosproject.incubator.net.virtual.DefaultVirtualPort;
-import org.onosproject.incubator.net.virtual.NetworkId;
-import org.onosproject.incubator.net.virtual.TenantId;
-import org.onosproject.incubator.net.virtual.VirtualDevice;
-import org.onosproject.incubator.net.virtual.VirtualNetwork;
-import org.onosproject.incubator.net.virtual.VirtualPort;
+import org.onosproject.net.TenantId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DefaultDevice;
@@ -117,12 +107,8 @@ import com.google.common.collect.ImmutableList;
 
 
 public class ComparatorsTest {
-    private static final ProviderId PID = new ProviderId("of", "foo");
-    private static final DeviceId DID = deviceId("of:foo");
     private static final String MFR = "whitebox";
-    private static final String HW = "1.1.x";
     private static final String HW1 = "2.2.x";
-    private static final String SW = "3.9.1";
     private static final String SW1 = "4.0.0";
     private static final String SN = "43311-12345";
     private static final ChassisId CID = new ChassisId();
@@ -346,41 +332,6 @@ public class ComparatorsTest {
         return TenantId.tenantId(id);
     }
 
-    @Test
-    public void testVirtualNetworkComparator() {
-        assertNotEquals(0, VIRTUAL_NETWORK_COMPARATOR.compare(network(10, "tenantID"), network(10, "tenantID1")));
-        assertNotEquals(0, VIRTUAL_NETWORK_COMPARATOR.compare(network(10, "tenantID"), network(15, "tenantID1")));
-        assertNotEquals(0, VIRTUAL_NETWORK_COMPARATOR.compare(network(15, "tenantID1"), network(10, "tenantID1")));
-        assertNotEquals(0, VIRTUAL_NETWORK_COMPARATOR.compare(network(15, "tenantID"), network(10, "tenantID1")));
-    }
-
-    private VirtualNetwork network(int networkID, String tenantID) {
-        return new DefaultVirtualNetwork(NetworkId.networkId(networkID), TenantId.tenantId(tenantID));
-    }
-
-    @Test
-    public void testVirtualDeviceComparator() {
-        assertEquals(0, VIRTUAL_DEVICE_COMPARATOR.compare(vd(0, "of:foo"), vd(0, "of:foo")));
-        assertEquals(0, VIRTUAL_DEVICE_COMPARATOR.compare(vd(3, "of:foo"), vd(0, "of:foo")));
-        assertNotEquals(0, VIRTUAL_DEVICE_COMPARATOR.compare(vd(0, "of:bar"), vd(0, "of:foo")));
-        assertNotEquals(0, VIRTUAL_DEVICE_COMPARATOR.compare(vd(3, "of:bar"), vd(0, "of:foo")));
-    }
-
-    private VirtualDevice vd(int netID, String devID) {
-        return new DefaultVirtualDevice(NetworkId.networkId(netID), DeviceId.deviceId(devID));
-    }
-
-    @Test
-    public void testVirtualPortComparator() {
-        assertEquals(0, VIRTUAL_PORT_COMPARATOR.compare(vPort(2), vPort(2)));
-        assertEquals(4, VIRTUAL_PORT_COMPARATOR.compare(vPort(900), vPort(5)));
-        assertEquals(-8, VIRTUAL_PORT_COMPARATOR.compare(vPort(0), vPort(8)));
-    }
-
-    private VirtualPort vPort(int portNumber) {
-        return new DefaultVirtualPort(NetworkId.networkId(20), new DefaultDevice(PID, DID, null, MFR, HW, SW, SN, CID),
-                PortNumber.portNumber(portNumber), new ConnectPoint(DID, PortNumber.portNumber(900)));
-    }
 }
 
 

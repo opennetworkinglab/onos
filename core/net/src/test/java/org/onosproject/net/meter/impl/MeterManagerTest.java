@@ -33,7 +33,6 @@ import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.DefaultControllerNode;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.common.event.impl.TestEventDispatcher;
-import org.onosproject.incubator.store.meter.impl.DistributedMeterStore;
 import org.onosproject.mastership.MastershipServiceAdapter;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.DefaultAnnotations;
@@ -71,6 +70,7 @@ import org.onosproject.net.meter.MeterState;
 import org.onosproject.net.pi.PiPipeconfServiceAdapter;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
+import org.onosproject.store.meter.impl.DistributedMeterStore;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.TestStorageService;
 

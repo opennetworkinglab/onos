@@ -1,6 +1,5 @@
 COMPILE_DEPS = CORE_DEPS + JACKSON + KRYO + REST + CLI + [
     "@jersey_client//jar",
-    "//incubator/api:onos-incubator-api",
     "//core/store/serializers:onos-core-serializers",
 ]
 

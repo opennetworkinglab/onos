@@ -16,9 +16,9 @@
 
 package org.onosproject.faultmanagement.api;
 
-import org.onosproject.incubator.net.faultmanagement.alarm.Alarm;
-import org.onosproject.incubator.net.faultmanagement.alarm.AlarmEvent;
-import org.onosproject.incubator.net.faultmanagement.alarm.AlarmId;
+import org.onosproject.alarm.Alarm;
+import org.onosproject.alarm.AlarmEvent;
+import org.onosproject.alarm.AlarmId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.store.Store;
 

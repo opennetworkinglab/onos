@@ -21,7 +21,7 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.onosproject.codec.CodecService;
-import org.onosproject.incubator.net.faultmanagement.alarm.Alarm;
+import org.onosproject.alarm.Alarm;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

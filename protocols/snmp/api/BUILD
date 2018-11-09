@@ -3,7 +3,6 @@ COMPILE_DEPS = CORE_DEPS + JACKSON + [
     "@snmp_core//jar",
     "@mibs_net_snmp//jar",
     "@mibs_rfc//jar",
-    "//incubator/api:onos-incubator-api",
 ]
 
 osgi_jar_with_tests(

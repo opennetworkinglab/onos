@@ -53,7 +53,6 @@ import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.core.GroupId;
 import org.onosproject.core.Version;
 import org.onosproject.event.Change;
-import org.onosproject.incubator.net.domain.IntentDomainId;
 import org.onosproject.mastership.MastershipTerm;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.ChannelSpacing;
@@ -586,7 +585,6 @@ public final class KryoNamespaces {
                     DefaultAnnotations.class,
                     PortStatistics.class,
                     DefaultPortStatistics.class,
-                    IntentDomainId.class,
                     TableStatisticsEntry.class,
                     DefaultTableStatisticsEntry.class,
                     EncapsulationConstraint.class,

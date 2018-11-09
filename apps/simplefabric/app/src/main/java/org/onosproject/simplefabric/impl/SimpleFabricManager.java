@@ -81,6 +81,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import static org.onosproject.routeservice.RouteTools.createBinaryString;
 import static org.onosproject.simplefabric.api.Constants.ALLOW_ETH_ADDRESS_SELECTOR;
 import static org.onosproject.simplefabric.api.Constants.ALLOW_IPV6;
 import static org.onosproject.simplefabric.api.Constants.APP_ID;
@@ -89,7 +90,6 @@ import static org.onosproject.simplefabric.api.Constants.REACTIVE_ALLOW_LINK_CP;
 import static org.onosproject.simplefabric.api.Constants.REACTIVE_HASHED_PATH_SELECTION;
 import static org.onosproject.simplefabric.api.Constants.REACTIVE_MATCH_IP_PROTO;
 import static org.onosproject.simplefabric.api.Constants.REACTIVE_SINGLE_TO_SINGLE;
-import static org.onosproject.simplefabric.util.RouteTools.createBinaryString;
 
 
 /**

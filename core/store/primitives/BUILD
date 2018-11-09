@@ -1,7 +1,6 @@
 COMPILE_DEPS = CORE_DEPS + KRYO + ATOMIX + [
     "//core/common:onos-core-common",
     "//core/store/serializers:onos-core-serializers",
-    "//incubator/api:onos-incubator-api",
 ]
 
 TEST_DEPS = TEST + [

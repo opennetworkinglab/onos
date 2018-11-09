@@ -94,7 +94,6 @@ osgi_feature(
         "//utils/osgi:onlab-osgi",
         "//utils/rest:onlab-rest",
         "//core/api:onos-api",
-        "//incubator/api:onos-incubator-api",
     ],
     required_features = [
         "scr",
@@ -116,18 +115,6 @@ osgi_feature(
         "//core/store/serializers:onos-core-serializers",
     ],
     required_features = ["onos-api"],
-    visibility = ["//visibility:public"],
-)
-
-osgi_feature(
-    name = "onos-incubator",
-    description = "ONOS core incubator components",
-    included_bundles = [
-        "//incubator/net:onos-incubator-net",
-        "//incubator/store:onos-incubator-store",
-        "//incubator/rpc:onos-incubator-rpc",
-    ],
-    required_features = ["onos-core"],
     visibility = ["//visibility:public"],
 )
 

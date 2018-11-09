@@ -16,8 +16,8 @@
 
 package org.onosproject.faultmanagement.alarms.gui;
 
-import org.onosproject.incubator.net.faultmanagement.alarm.AlarmEvent;
-import org.onosproject.incubator.net.faultmanagement.alarm.AlarmListener;
+import org.onosproject.alarm.AlarmEvent;
+import org.onosproject.alarm.AlarmListener;
 
 /**
  * Encapsulates the behavior of monitoring when new alarms are stored.

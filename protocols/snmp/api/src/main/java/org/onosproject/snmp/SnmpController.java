@@ -19,7 +19,7 @@ package org.onosproject.snmp;
 import com.btisystems.pronx.ems.core.snmp.ISnmpSession;
 import com.google.common.annotations.Beta;
 
-import org.onosproject.incubator.net.faultmanagement.alarm.DefaultAlarm;
+import org.onosproject.alarm.DefaultAlarm;
 import org.onosproject.net.DeviceId;
 
 import java.io.IOException;

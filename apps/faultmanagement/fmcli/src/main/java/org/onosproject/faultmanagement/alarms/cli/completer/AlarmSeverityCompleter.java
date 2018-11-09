@@ -17,7 +17,7 @@
 package org.onosproject.faultmanagement.alarms.cli.completer;
 
 import org.onosproject.cli.AbstractChoicesCompleter;
-import org.onosproject.incubator.net.faultmanagement.alarm.Alarm;
+import org.onosproject.alarm.Alarm;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;

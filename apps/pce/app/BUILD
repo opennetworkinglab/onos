@@ -1,12 +1,12 @@
 COMPILE_DEPS = CORE_DEPS + JACKSON + KRYO + CLI + REST + [
     "//core/store/serializers:onos-core-serializers",
-    "//incubator/api:onos-incubator-api",
+    "//apps/tunnel/api:onos-apps-tunnel-api",
     "//apps/pcep-api:onos-apps-pcep-api",
     "//apps/pce/bandwidthmgmt:onos-apps-pce-bandwidthmgmt",
 ]
 
 TEST_DEPS = TEST_REST + [
-    "//incubator/api:onos-incubator-api-tests",
+    "//apps/tunnel/api:onos-apps-tunnel-api-tests",
 ]
 
 osgi_jar_with_tests(

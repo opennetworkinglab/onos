@@ -16,7 +16,7 @@
 package org.onosproject.faultmanagement.alarms.gui;
 
 import java.util.Map;
-import org.onosproject.incubator.net.faultmanagement.alarm.Alarm;
+import org.onosproject.alarm.Alarm;
 import org.onosproject.net.DeviceId;
 import org.onosproject.ui.UiTopoOverlay;
 import org.onosproject.ui.topo.ButtonId;

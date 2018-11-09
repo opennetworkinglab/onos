@@ -38,7 +38,7 @@ import org.onosproject.ui.topo.TopoJson;
 import org.onosproject.net.resource.DiscreteResourceId;
 import org.onosproject.net.resource.Resources;
 import org.onosproject.net.resource.ResourceQueryService;
-import org.onosproject.incubator.net.PortStatisticsService;
+import org.onosproject.net.statistic.PortStatisticsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

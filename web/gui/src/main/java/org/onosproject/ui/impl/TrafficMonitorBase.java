@@ -17,7 +17,7 @@
 
 package org.onosproject.ui.impl;
 
-import org.onosproject.incubator.net.PortStatisticsService.MetricType;
+import org.onosproject.net.statistic.PortStatisticsService.MetricType;
 import org.onosproject.net.DefaultEdgeLink;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
@@ -36,8 +36,8 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import static org.onosproject.incubator.net.PortStatisticsService.MetricType.BYTES;
-import static org.onosproject.incubator.net.PortStatisticsService.MetricType.PACKETS;
+import static org.onosproject.net.statistic.PortStatisticsService.MetricType.BYTES;
+import static org.onosproject.net.statistic.PortStatisticsService.MetricType.PACKETS;
 import static org.onosproject.net.DefaultEdgeLink.createEdgeLinks;
 import static org.onosproject.ui.impl.TrafficMonitorBase.Mode.IDLE;
 

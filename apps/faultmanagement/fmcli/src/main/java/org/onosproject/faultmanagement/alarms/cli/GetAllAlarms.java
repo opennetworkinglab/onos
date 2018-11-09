@@ -24,8 +24,8 @@ import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.cli.net.DeviceIdCompleter;
-import org.onosproject.incubator.net.faultmanagement.alarm.Alarm;
-import org.onosproject.incubator.net.faultmanagement.alarm.AlarmService;
+import org.onosproject.alarm.Alarm;
+import org.onosproject.alarm.AlarmService;
 import org.onosproject.net.DeviceId;
 
 import java.util.Set;

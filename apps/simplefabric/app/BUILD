@@ -1,5 +1,6 @@
 COMPILE_DEPS = CORE_DEPS + JACKSON + CLI + REST + [
     "//apps/simplefabric/api:onos-apps-simplefabric-api",
+    "//apps/route-service/api:onos-apps-route-service-api",
     "@concurrent_trees//jar",
 ]
 

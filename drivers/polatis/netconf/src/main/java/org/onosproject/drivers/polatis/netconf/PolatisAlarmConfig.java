@@ -18,11 +18,11 @@ package org.onosproject.drivers.polatis.netconf;
 
 import org.onlab.packet.IpAddress;
 
-import org.onosproject.incubator.net.faultmanagement.alarm.Alarm;
-import org.onosproject.incubator.net.faultmanagement.alarm.AlarmId;
-import org.onosproject.incubator.net.faultmanagement.alarm.DefaultAlarm;
-import org.onosproject.incubator.net.faultmanagement.alarm.DeviceAlarmConfig;
-import org.onosproject.incubator.net.faultmanagement.alarm.XmlEventParser;
+import org.onosproject.alarm.Alarm;
+import org.onosproject.alarm.AlarmId;
+import org.onosproject.alarm.DefaultAlarm;
+import org.onosproject.alarm.DeviceAlarmConfig;
+import org.onosproject.alarm.XmlEventParser;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.netconf.NetconfDeviceOutputEvent;

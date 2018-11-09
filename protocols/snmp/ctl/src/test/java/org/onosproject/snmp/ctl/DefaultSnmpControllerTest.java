@@ -22,9 +22,9 @@ import com.btisystems.pronx.ems.core.snmp.ISnmpSession;
 import com.btisystems.pronx.ems.core.snmp.ISnmpSessionFactory;
 import org.junit.Before;
 import org.junit.Test;
-import org.onosproject.incubator.net.faultmanagement.alarm.Alarm;
-import org.onosproject.incubator.net.faultmanagement.alarm.AlarmId;
-import org.onosproject.incubator.net.faultmanagement.alarm.DefaultAlarm;
+import org.onosproject.alarm.Alarm;
+import org.onosproject.alarm.AlarmId;
+import org.onosproject.alarm.DefaultAlarm;
 
 import java.io.IOException;
 

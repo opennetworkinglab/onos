@@ -3,7 +3,6 @@ COMPILE_DEPS = CORE_DEPS + CLI + [
     "//protocols/netconf/api:onos-protocols-netconf-api",
     "//protocols/netconf/ctl:onos-protocols-netconf-ctl",
     "//apps/optical-model:onos-apps-optical-model",
-    "//incubator/api:onos-incubator-api",
 ]
 
 BUNDLES = [

@@ -18,11 +18,11 @@ package org.onosproject.drivers.polatis.netconf;
 
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.configuration.HierarchicalConfiguration;
-import org.onosproject.incubator.net.faultmanagement.alarm.Alarm;
-import org.onosproject.incubator.net.faultmanagement.alarm.AlarmConsumer;
-import org.onosproject.incubator.net.faultmanagement.alarm.AlarmId;
-import org.onosproject.incubator.net.faultmanagement.alarm.DefaultAlarm;
-import org.onosproject.incubator.net.faultmanagement.alarm.XmlEventParser;
+import org.onosproject.alarm.Alarm;
+import org.onosproject.alarm.AlarmConsumer;
+import org.onosproject.alarm.AlarmId;
+import org.onosproject.alarm.DefaultAlarm;
+import org.onosproject.alarm.XmlEventParser;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.driver.DriverHandler;
@@ -35,7 +35,7 @@ import org.slf4j.Logger;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.onosproject.incubator.net.faultmanagement.alarm.Alarm.SeverityLevel;
+import static org.onosproject.alarm.Alarm.SeverityLevel;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.configsAt;
 import static org.onosproject.drivers.polatis.netconf.PolatisNetconfUtility.xmlEmpty;

@@ -8,7 +8,6 @@ UTILS = [
 
 API = [
     "//core/api:onos-api",
-    "//incubator/api:onos-incubator-api",
 ]
 
 CORE = UTILS + API + [
@@ -19,9 +18,6 @@ CORE = UTILS + API + [
     "//core/store/dist:onos-core-dist",
     #"//core/security:onos-security",
     "//core/store/persistence:onos-core-persistence",
-    "//incubator/net:onos-incubator-net",
-    "//incubator/store:onos-incubator-store",
-    "//incubator/rpc:onos-incubator-rpc",
     "//cli:onos-cli",
     "//protocols/rest/api:onos-protocols-rest-api",
     "//protocols/rest/ctl:onos-protocols-rest-ctl",
@@ -77,9 +73,8 @@ CORE = UTILS + API + [
     "//web/api:onos-rest",
     "//web/gui2:onos-gui2",
     "//web/gui:onos-gui",
-    "//incubator/protobuf/models/proto:onos-incubator-protobuf-models-proto",
-    "//incubator/protobuf/models:onos-incubator-protobuf-models",
-    # "//incubator/protobuf/services/nb:onos-incubator-protobuf-services-nb",
+    "//core/protobuf/models/proto:onos-core-protobuf-models-proto",
+    "//core/protobuf/models:onos-core-protobuf-models",
 ]
 
 ONOS_DRIVERS = [
@@ -214,6 +209,8 @@ ONOS_APPS = [
     "//apps/configsync:onos-apps-configsync-oar",
     "//apps/configsync-netconf:onos-apps-configsync-netconf-oar",
     "//apps/netconf/client:onos-apps-netconf-client-oar",
+    "//apps/tunnel:onos-apps-tunnel-oar",
+    "//apps/virtual:onos-apps-virtual-oar",
     "//apps/tetopology:onos-apps-tetopology-oar",
     "//apps/tetunnel:onos-apps-tetunnel-oar",
     # "//apps/tenbi/yangmodel:onos-apps-tenbi-yangmodel-feature",
@@ -233,8 +230,6 @@ ONOS_APPS = [
     "//apps/evpnopenflow:onos-apps-evpnopenflow-oar",
     "//apps/route-service:onos-apps-route-service-oar",
     "//apps/evpn-route-service:onos-apps-evpn-route-service-oar",
-    # "//incubator/protobuf/registry:onos-incubator-protobuf-registry-oar",
-    # "//incubator/protobuf/services/nb:onos-incubator-protobuf-services-nb-oar",
     "//apps/p4-tutorial/pipeconf:onos-apps-p4-tutorial-pipeconf-oar",
     "//apps/p4-tutorial/mytunnel:onos-apps-p4-tutorial-mytunnel-oar",
     "//apps/cfm:onos-apps-cfm-oar",
@@ -307,7 +302,6 @@ FEATURES = [
     "//tools/package/features:onos-thirdparty-web",
     "//tools/package/features:onos-api",
     "//tools/package/features:onos-core",
-    "//tools/package/features:onos-incubator",
     "//tools/package/features:onos-cli",
     "//tools/package/features:onos-rest",
     "//tools/package/features:onos-gui",

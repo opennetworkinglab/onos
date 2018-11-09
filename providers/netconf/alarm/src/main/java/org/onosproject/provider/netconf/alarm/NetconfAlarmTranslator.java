@@ -17,11 +17,11 @@
 package org.onosproject.provider.netconf.alarm;
 
 import com.google.common.collect.ImmutableSet;
-import org.onosproject.incubator.net.faultmanagement.alarm.Alarm;
-import org.onosproject.incubator.net.faultmanagement.alarm.AlarmId;
-import org.onosproject.incubator.net.faultmanagement.alarm.AlarmTranslator;
-import org.onosproject.incubator.net.faultmanagement.alarm.DefaultAlarm;
-import org.onosproject.incubator.net.faultmanagement.alarm.XmlEventParser;
+import org.onosproject.alarm.Alarm;
+import org.onosproject.alarm.AlarmId;
+import org.onosproject.alarm.AlarmTranslator;
+import org.onosproject.alarm.DefaultAlarm;
+import org.onosproject.alarm.XmlEventParser;
 import org.onosproject.net.DeviceId;
 import org.slf4j.Logger;
 import org.w3c.dom.Document;

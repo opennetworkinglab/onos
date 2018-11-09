@@ -16,7 +16,7 @@
 package org.onosproject.ofagent.api;
 
 import org.onosproject.incubator.net.virtual.NetworkId;
-import org.onosproject.incubator.net.virtual.TenantId;
+import org.onosproject.net.TenantId;
 
 import java.util.Set;
 

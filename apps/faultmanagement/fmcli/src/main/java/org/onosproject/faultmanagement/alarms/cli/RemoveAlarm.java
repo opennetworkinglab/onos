@@ -20,7 +20,7 @@ import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.faultmanagement.api.AlarmStore;
-import org.onosproject.incubator.net.faultmanagement.alarm.AlarmId;
+import org.onosproject.alarm.AlarmId;
 
 /**
  * Remove an alarm from the Alarm Store.
