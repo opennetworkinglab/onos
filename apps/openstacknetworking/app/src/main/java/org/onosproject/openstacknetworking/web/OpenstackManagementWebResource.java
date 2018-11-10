@@ -54,8 +54,13 @@ import java.util.Optional;
 
 import static java.lang.Thread.sleep;
 import static org.onlab.util.Tools.nullIsIllegal;
-import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.*;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.addRouterIface;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.checkActivationFlag;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.checkArpMode;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getPropertyValue;
+import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.CONTROLLER;
+import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
 
 /**
  * REST interface for synchronizing openstack network states and rules.
@@ -317,22 +322,27 @@ public class OpenstackManagementWebResource extends AbstractWebResource {
     }
 
     private void syncRulesBase() {
-        osNodeAdminService.completeNodes().forEach(osNode -> {
-            OpenstackNode updated = osNode.updateState(NodeState.INIT);
-            osNodeAdminService.updateNode(updated);
+        // we first initialize the COMPUTE node, in order to feed all instance ports
+        // by referring to ports' information obtained from neutron server
+        osNodeAdminService.completeNodes(COMPUTE).forEach(this::syncRulesBaseForNode);
+        osNodeAdminService.completeNodes(GATEWAY).forEach(this::syncRulesBaseForNode);
+    }
 
-            try {
-                sleep(SLEEP_MS);
-            } catch (InterruptedException e) {
-                log.error("Exception caused during node synchronization...");
-            }
+    private void syncRulesBaseForNode(OpenstackNode osNode) {
+        OpenstackNode updated = osNode.updateState(NodeState.INIT);
+        osNodeAdminService.updateNode(updated);
 
-            if (osNodeAdminService.node(osNode.hostname()).state() == NodeState.COMPLETE) {
-                log.info("Finished sync rules for node {}", osNode.hostname());
-            } else {
-                log.info("Failed to sync rules for node {}", osNode.hostname());
-            }
-        });
+        try {
+            sleep(SLEEP_MS);
+        } catch (InterruptedException e) {
+            log.error("Exception caused during node synchronization...");
+        }
+
+        if (osNodeAdminService.node(osNode.hostname()).state() == NodeState.COMPLETE) {
+            log.info("Finished sync rules for node {}", osNode.hostname());
+        } else {
+            log.info("Failed to sync rules for node {}", osNode.hostname());
+        }
     }
 
     private void purgeRulesBase() {
