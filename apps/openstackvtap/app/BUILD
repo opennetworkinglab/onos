@@ -16,6 +16,7 @@ osgi_jar_with_tests(
     api_package = "org.onosproject.openstackvtap.web",
     api_title = "Openstack Vtap REST API",
     api_version = "1.0",
+    karaf_command_packages = ["org.onosproject.openstackvtap.cli"],
     test_deps = TEST_DEPS,
     web_context = "/onos/openstackvtap",
     deps = COMPILE_DEPS,

@@ -31,6 +31,7 @@ osgi_jar_with_tests(
     api_package = "org.onosproject.openstacktelemetry.web",
     api_title = "OpenStack Network Telemetry REST API",
     api_version = "1.0",
+    karaf_command_packages = ["org.onosproject.openstacktelemetry.cli"],
     test_deps = TEST_DEPS,
     web_context = "/onos/openstacktelemetry",
     deps = COMPILE_DEPS,

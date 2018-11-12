@@ -16,6 +16,7 @@ osgi_jar_with_tests(
     api_package = "org.onosproject.openstacktroubleshoot.web",
     api_title = "OpenStack Troubleshoot API",
     api_version = "1.0",
+    karaf_command_packages = ["org.onosproject.openstacktroubleshoot.cli"],
     test_deps = TEST_DEPS,
     web_context = "/onos/openstacktroubleshoot",
     deps = COMPILE_DEPS,
