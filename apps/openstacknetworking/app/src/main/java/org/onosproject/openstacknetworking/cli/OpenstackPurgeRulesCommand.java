@@ -22,6 +22,10 @@ import org.onosproject.core.CoreService;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.openstacknetworking.api.Constants;
 
+import java.util.stream.Stream;
+
+import static java.util.stream.StreamSupport.stream;
+
 /**
  * Purges all existing network states.
  */
@@ -39,6 +43,15 @@ public class OpenstackPurgeRulesCommand extends AbstractShellCommand {
             return;
         }
         flowRuleService.removeFlowRulesById(appId);
+
+        // we make sure all flow rules are removed from the store
+        while (true) {
+            Stream stream = stream(flowRuleService.getFlowEntriesById(appId).spliterator(), false);
+            if (stream.count() == 0) {
+                break;
+            }
+        }
+
         print("Successfully purged flow rules installed by OpenStack networking application.");
     }
 }

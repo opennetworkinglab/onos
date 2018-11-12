@@ -53,8 +53,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static java.lang.Thread.sleep;
+import static java.util.stream.StreamSupport.stream;
 import static org.onlab.util.Tools.nullIsIllegal;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.addRouterIface;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.checkActivationFlag;
@@ -359,6 +361,14 @@ public class OpenstackManagementWebResource extends AbstractWebResource {
             throw new ItemNotFoundException("application not found");
         }
         flowRuleService.removeFlowRulesById(appId);
+
+        // we make sure all flow rules are removed from the store
+        while (true) {
+            Stream stream = stream(flowRuleService.getFlowEntriesById(appId).spliterator(), false);
+            if (stream.count() == 0) {
+                break;
+            }
+        }
     }
 
     private void configArpModeBase(String arpMode) {
