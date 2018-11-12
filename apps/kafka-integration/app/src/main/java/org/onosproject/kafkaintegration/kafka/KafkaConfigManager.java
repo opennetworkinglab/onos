@@ -71,7 +71,7 @@ public class KafkaConfigManager implements KafkaConfigService {
     protected String keySerializer = KEY_SERIALIZER_DEFAULT;
 
     /** Serializer class for value that implements the Serializer interface. */
-    protected String valueSerializer = VALUE_SERIALIZER;
+    protected String valueSerializer = VALUE_SERIALIZER_DEFAULT;
 
     @Activate
     protected void activate(ComponentContext context) {
