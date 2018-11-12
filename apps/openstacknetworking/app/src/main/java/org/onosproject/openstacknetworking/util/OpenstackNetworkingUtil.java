@@ -60,6 +60,7 @@ import org.onosproject.openstacknetworking.api.ExternalPeerRouter;
 import org.onosproject.openstacknetworking.api.InstancePort;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.onosproject.openstacknetworking.api.OpenstackRouterAdminService;
+import org.onosproject.openstacknetworking.api.OpenstackRouterService;
 import org.onosproject.openstacknetworking.impl.DefaultInstancePort;
 import org.onosproject.openstacknode.api.OpenstackAuth;
 import org.onosproject.openstacknode.api.OpenstackAuth.Perspective;
@@ -937,6 +938,98 @@ public final class OpenstackNetworkingUtil {
         ExternalGateway exGatewayInfo = osRouter.getExternalGatewayInfo();
         return osNetworkService.externalPeerRouter(exGatewayInfo);
 
+    }
+
+
+    /**
+     * Returns the external peer router with specified subnet information.
+     *
+     * @param subnet openstack subnet
+     * @param osRouterService openstack router service
+     * @param osNetworkService openstack network service
+     * @return external peer router
+     */
+    public static ExternalPeerRouter externalPeerRouterFromSubnet(Subnet subnet, OpenstackRouterService osRouterService,
+                                                           OpenstackNetworkService osNetworkService) {
+        Router osRouter = getRouterFromSubnet(subnet, osRouterService);
+        if (osRouter == null) {
+            return null;
+        }
+        if (osRouter.getExternalGatewayInfo() == null) {
+            // this router does not have external connectivity
+            log.trace("router({}) has no external gateway",
+                    osRouter.getName());
+            return null;
+        }
+
+        return osNetworkService.externalPeerRouter(osRouter.getExternalGatewayInfo());
+    }
+
+    /**
+     * Returns the external ip address with specified router information.
+     *
+     * @param srcSubnet source subnet
+     * @param osRouterService openstack router service
+     * @param osNetworkService openstack network service
+     * @return external ip address
+     */
+    public static IpAddress getExternalIpFromSubnet(Subnet srcSubnet, OpenstackRouterService osRouterService,
+                                                 OpenstackNetworkService osNetworkService) {
+
+        Router osRouter = getRouterFromSubnet(srcSubnet, osRouterService);
+
+        if (osRouter.getExternalGatewayInfo() == null) {
+            // this router does not have external connectivity
+            log.trace("router({}) has no external gateway",
+                    osRouter.getName());
+            return null;
+        }
+
+        return getExternalIp(osRouter, osNetworkService);
+    }
+
+    /**
+     * Returns the external ip address with specified router information.
+     *
+     * @param router openstack router
+     * @param osNetworkService openstack network service
+     * @return external ip address
+     */
+    public static IpAddress getExternalIp(Router router, OpenstackNetworkService osNetworkService) {
+        if (router == null) {
+            return null;
+        }
+
+        ExternalGateway externalGateway = router.getExternalGatewayInfo();
+        if (externalGateway == null || !externalGateway.isEnableSnat()) {
+            log.trace("Failed to get externalIp for router {} because externalGateway is null or SNAT is disabled",
+                    router.getId());
+            return null;
+        }
+
+        // TODO fix openstack4j for ExternalGateway provides external fixed IP list
+        Port exGatewayPort = osNetworkService.ports(externalGateway.getNetworkId())
+                .stream()
+                .filter(port -> Objects.equals(port.getDeviceId(), router.getId()))
+                .findAny().orElse(null);
+
+        if (exGatewayPort == null) {
+            return null;
+        }
+
+        return IpAddress.valueOf(exGatewayPort.getFixedIps().stream()
+                .findAny().get().getIpAddress());
+    }
+
+    private static Router getRouterFromSubnet(Subnet subnet, OpenstackRouterService osRouterService) {
+        RouterInterface osRouterIface = osRouterService.routerInterfaces().stream()
+                .filter(i -> Objects.equals(i.getSubnetId(), subnet.getId()))
+                .findAny().orElse(null);
+        if (osRouterIface == null) {
+            return null;
+        }
+
+        return osRouterService.router(osRouterIface.getId());
     }
 
     private static boolean isDirectPort(String portName) {

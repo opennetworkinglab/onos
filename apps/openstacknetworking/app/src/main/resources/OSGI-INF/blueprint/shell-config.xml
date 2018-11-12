@@ -110,6 +110,9 @@
                 <ref component-id="instanceIpAddressCompleter"/>
             </completers>
         </command>
+        <command>
+            <action class="org.onosproject.openstacknetworking.cli.OpenstackRouterInterfaceListCommand" />
+        </command>
     </command-bundle>
 
     <bean id="ipAddressCompleter" class="org.onosproject.openstacknetworking.cli.IpAddressCompleter"/>

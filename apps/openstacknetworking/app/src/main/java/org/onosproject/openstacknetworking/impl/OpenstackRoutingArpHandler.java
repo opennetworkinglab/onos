@@ -65,17 +65,14 @@ import org.onosproject.openstacknetworking.api.OpenstackRouterAdminService;
 import org.onosproject.openstacknetworking.api.OpenstackRouterEvent;
 import org.onosproject.openstacknetworking.api.OpenstackRouterListener;
 import org.onosproject.openstacknetworking.api.PreCommitPortService;
-import org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeEvent;
 import org.onosproject.openstacknode.api.OpenstackNodeListener;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
-import org.openstack4j.model.network.IP;
 import org.openstack4j.model.network.NetFloatingIP;
 import org.openstack4j.model.network.Network;
 import org.openstack4j.model.network.Port;
 import org.openstack4j.model.network.Router;
-import org.openstack4j.model.network.RouterInterface;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
@@ -99,6 +96,7 @@ import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.associatedFloatingIp;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.externalPeerRouterForNetwork;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.floatingIpByInstancePort;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getExternalIp;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getGwByComputeDevId;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getGwByInstancePort;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getPropertyValue;
@@ -526,65 +524,43 @@ public class OpenstackRoutingArpHandler {
     }
 
     private void setFakeGatewayArpRuleByRouter(Router router, boolean install) {
-        setFakeGatewayArpRuleByGateway(router.getId(), install);
-    }
-
-    private Set<IP> getExternalGatewaySnatIps(String routerId) {
-        if (routerId == null) {
-            return ImmutableSet.of();
-        }
-
-        Set<String> portIds = osRouterAdminService.routerInterfaces(routerId)
-                .stream()
-                .map(RouterInterface::getPortId)
-                .collect(Collectors.toSet());
-
-        return portIds.stream()
-                .map(pid -> osNetworkAdminService.port(pid))
-                .filter(p -> Objects.equals(p.getDeviceOwner(), DEVICE_OWNER_ROUTER_GW))
-                .flatMap(p -> p.getFixedIps().stream())
-                .collect(Collectors.toSet());
-    }
-
-    private void setFakeGatewayArpRuleByGateway(String routerId, boolean install) {
         if (ARP_BROADCAST_MODE.equals(getArpMode())) {
-            setFakeGatewayArpRuleByIps(getExternalGatewaySnatIps(routerId), install);
+            setFakeGatewayArpRuleByExternalIp(getExternalIp(router, osNetworkService), install);
         }
     }
 
-    private void setFakeGatewayArpRuleByIps(Set<IP> ips, boolean install) {
-        ips.forEach(ip -> {
-            TrafficSelector selector = DefaultTrafficSelector.builder()
-                    .matchEthType(EthType.EtherType.ARP.ethType().toShort())
-                    .matchArpOp(ARP.OP_REQUEST)
-                    .matchArpTpa(Ip4Address.valueOf(ip.getIpAddress()))
-                    .build();
+    private void setFakeGatewayArpRuleByExternalIp(IpAddress ipAddress, boolean install) {
 
-            TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                    .setArpOp(ARP.OP_REPLY)
-                    .setArpSha(MacAddress.valueOf(gatewayMac))
-                    .setArpSpa(Ip4Address.valueOf(ip.getIpAddress()))
-                    .setOutput(PortNumber.IN_PORT)
-                    .build();
+        TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchEthType(EthType.EtherType.ARP.ethType().toShort())
+                .matchArpOp(ARP.OP_REQUEST)
+                .matchArpTpa(ipAddress.getIp4Address())
+                .build();
 
-            osNodeService.completeNodes(GATEWAY).forEach(n ->
-                    osFlowRuleService.setRule(
-                            appId,
-                            n.intgBridge(),
-                            selector,
-                            treatment,
-                            PRIORITY_ARP_GATEWAY_RULE,
-                            GW_COMMON_TABLE,
-                            install
-                    )
-            );
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .setArpOp(ARP.OP_REPLY)
+                .setArpSha(MacAddress.valueOf(gatewayMac))
+                .setArpSpa(ipAddress.getIp4Address())
+                .setOutput(PortNumber.IN_PORT)
+                .build();
 
-            if (install) {
-                log.info("Install ARP Rule for Gateway Snat {}", ip.getIpAddress());
-            } else {
-                log.info("Uninstall ARP Rule for Gateway Snat {}", ip.getIpAddress());
-            }
-        });
+        osNodeService.completeNodes(GATEWAY).forEach(n ->
+                osFlowRuleService.setRule(
+                        appId,
+                        n.intgBridge(),
+                        selector,
+                        treatment,
+                        PRIORITY_ARP_GATEWAY_RULE,
+                        GW_COMMON_TABLE,
+                        install
+                )
+        );
+
+        if (install) {
+            log.info("Install ARP Rule for Gateway Snat {}", ipAddress);
+        } else {
+            log.info("Uninstall ARP Rule for Gateway Snat {}", ipAddress);
+        }
     }
 
     /**
@@ -613,14 +589,16 @@ public class OpenstackRoutingArpHandler {
                 case OPENSTACK_PORT_CREATED:
                 case OPENSTACK_PORT_UPDATED:
                     eventExecutor.execute(() ->
-                        setFakeGatewayArpRuleByIps(
-                                (Set<IP>) event.port().getFixedIps(), true)
+                        setFakeGatewayArpRuleByExternalIp(
+                                IpAddress.valueOf(event.port().getFixedIps().stream().findAny().get().getIpAddress()),
+                                true)
                     );
                     break;
                 case OPENSTACK_PORT_REMOVED:
                     eventExecutor.execute(() ->
-                        setFakeGatewayArpRuleByIps(
-                                (Set<IP>) event.port().getFixedIps(), false)
+                        setFakeGatewayArpRuleByExternalIp(
+                                IpAddress.valueOf(event.port().getFixedIps().stream().findAny().get().getIpAddress()),
+                                false)
                     );
                     break;
                 default:
@@ -650,27 +628,20 @@ public class OpenstackRoutingArpHandler {
 
             switch (event.type()) {
                 case OPENSTACK_ROUTER_CREATED:
+                    // add a router with external gateway
+                case OPENSTACK_ROUTER_GATEWAY_ADDED:
+                    // add a gateway manually after adding a router
                     eventExecutor.execute(() ->
                         // add a router with external gateway
                         setFakeGatewayArpRuleByRouter(event.subject(), true)
                     );
                     break;
                 case OPENSTACK_ROUTER_REMOVED:
-                    eventExecutor.execute(() ->
-                        // remove a router with external gateway
-                        setFakeGatewayArpRuleByRouter(event.subject(), false)
-                    );
-                    break;
-                case OPENSTACK_ROUTER_GATEWAY_ADDED:
-                    eventExecutor.execute(() ->
-                        // add a gateway manually after adding a router
-                        setFakeGatewayArpRuleByGateway(event.subject().getId(), true)
-                    );
-                    break;
+                    // remove a router with external gateway
                 case OPENSTACK_ROUTER_GATEWAY_REMOVED:
+                    // remove a gateway from an existing router
                     eventExecutor.execute(() ->
-                        // remove a gateway from an existing router
-                        setFakeGatewayArpRuleByGateway(event.subject().getId(), false)
+                        setFakeGatewayArpRuleByRouter(event.subject(), false)
                     );
                     break;
                 case OPENSTACK_FLOATING_IP_ASSOCIATED:
@@ -880,8 +851,7 @@ public class OpenstackRoutingArpHandler {
         private boolean isGwSelectedByComputeNode(Set<OpenstackNode> gws,
                                                   OpenstackNode computeNode,
                                                   OpenstackNode gwNode) {
-            return OpenstackNetworkingUtil
-                    .getGwByComputeDevId(gws, computeNode.intgBridge())
+            return getGwByComputeDevId(gws, computeNode.intgBridge())
                     .intgBridge().equals(gwNode.intgBridge());
         }
 
@@ -908,6 +878,7 @@ public class OpenstackRoutingArpHandler {
             if (getArpMode() == null) {
                 return;
             }
+            log.info("ARP mode is {}", getArpMode());
 
             switch (getArpMode()) {
                 case ARP_PROXY_MODE:
@@ -968,6 +939,7 @@ public class OpenstackRoutingArpHandler {
                     install
             );
 
+            log.info("calling setFakeGatewayArpRuleByRouter.. ");
             osRouterAdminService.routers().stream()
                     .filter(router -> router.getExternalGatewayInfo() != null)
                     .forEach(router -> setFakeGatewayArpRuleByRouter(router, install));

@@ -56,18 +56,14 @@ import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.DistributedSet;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
-import org.openstack4j.model.network.ExternalGateway;
 import org.openstack4j.model.network.IP;
 import org.openstack4j.model.network.Network;
 import org.openstack4j.model.network.NetworkType;
 import org.openstack4j.model.network.Port;
-import org.openstack4j.model.network.Router;
-import org.openstack4j.model.network.RouterInterface;
 import org.openstack4j.model.network.Subnet;
 import org.slf4j.Logger;
 
 import java.nio.ByteBuffer;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
@@ -78,6 +74,8 @@ import static org.onosproject.openstacknetworking.api.Constants.DEFAULT_GATEWAY_
 import static org.onosproject.openstacknetworking.api.Constants.GW_COMMON_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_SNAT_RULE;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.externalPeerRouterFromSubnet;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getExternalIpFromSubnet;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -187,13 +185,14 @@ public class OpenstackRoutingSnatHandler {
 
         IpAddress srcIp = IpAddress.valueOf(iPacket.getSourceAddress());
         Subnet srcSubnet = getSourceSubnet(srcInstPort, srcIp);
-        IpAddress externalGatewayIp = getExternalIp(srcSubnet);
+        IpAddress externalGatewayIp = getExternalIpFromSubnet(srcSubnet, osRouterService, osNetworkService);
 
         if (externalGatewayIp == null) {
             return;
         }
 
-        ExternalPeerRouter externalPeerRouter = externalPeerRouter(srcSubnet);
+        ExternalPeerRouter externalPeerRouter =
+                externalPeerRouterFromSubnet(srcSubnet, osRouterService, osNetworkService);
         if (externalPeerRouter == null) {
             return;
         }
@@ -210,26 +209,6 @@ public class OpenstackRoutingSnatHandler {
                 externalGatewayIp, externalPeerRouter);
     }
 
-    private ExternalPeerRouter externalPeerRouter(Subnet subnet) {
-        RouterInterface osRouterIface = osRouterService.routerInterfaces().stream()
-                .filter(i -> Objects.equals(i.getSubnetId(), subnet.getId()))
-                .findAny().orElse(null);
-        if (osRouterIface == null) {
-            return null;
-        }
-
-        Router osRouter = osRouterService.router(osRouterIface.getId());
-        if (osRouter == null) {
-            return null;
-        }
-        if (osRouter.getExternalGatewayInfo() == null) {
-            return null;
-        }
-
-        ExternalGateway exGatewayInfo = osRouter.getExternalGatewayInfo();
-        return osNetworkService.externalPeerRouter(exGatewayInfo);
-    }
-
     private Subnet getSourceSubnet(InstancePort instance, IpAddress srcIp) {
         Port osPort = osNetworkService.port(instance.portId());
         IP fixedIp = osPort.getFixedIps().stream()
@@ -239,47 +218,6 @@ public class OpenstackRoutingSnatHandler {
             return null;
         }
         return osNetworkService.subnet(fixedIp.getSubnetId());
-    }
-
-    private IpAddress getExternalIp(Subnet srcSubnet) {
-        RouterInterface osRouterIface = osRouterService.routerInterfaces().stream()
-                .filter(i -> Objects.equals(i.getSubnetId(), srcSubnet.getId()))
-                .findAny().orElse(null);
-        if (osRouterIface == null) {
-            // this subnet is not connected to the router
-            log.trace(ERR_PACKETIN + "source subnet(ID:{}, CIDR:{}) has no router",
-                    srcSubnet.getId(), srcSubnet.getCidr());
-            return null;
-        }
-
-        Router osRouter = osRouterService.router(osRouterIface.getId());
-        if (osRouter.getExternalGatewayInfo() == null) {
-            // this router does not have external connectivity
-            log.trace(ERR_PACKETIN + "router({}) has no external gateway",
-                    osRouter.getName());
-            return null;
-        }
-
-        ExternalGateway exGatewayInfo = osRouter.getExternalGatewayInfo();
-        if (!exGatewayInfo.isEnableSnat()) {
-            // SNAT is disabled in this router
-            log.trace(ERR_PACKETIN + "router({}) SNAT is disabled", osRouter.getName());
-            return null;
-        }
-
-        // TODO fix openstack4j for ExternalGateway provides external fixed IP list
-        Port exGatewayPort = osNetworkService.ports(exGatewayInfo.getNetworkId())
-                .stream()
-                .filter(port -> Objects.equals(port.getDeviceId(), osRouter.getId()))
-                .findAny().orElse(null);
-        if (exGatewayPort == null) {
-            log.trace(ERR_PACKETIN + "no external gateway port for router({})",
-                    osRouter.getName());
-            return null;
-        }
-
-        return IpAddress.valueOf(exGatewayPort.getFixedIps().stream()
-                .findFirst().get().getIpAddress());
     }
 
     private void populateSnatFlowRules(InboundPacket packetIn, InstancePort srcInstPort,
