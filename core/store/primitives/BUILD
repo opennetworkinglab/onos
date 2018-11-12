@@ -42,6 +42,12 @@ _protocol_package_names = [
     "backup",
 ]
 
+# A list of all cluster protocol packages for dynamic class loading
+CLUSTER_PACKAGES = ",".join([
+    "io.atomix.cluster.discovery",
+    "io.atomix.cluster.protocol",
+])
+
 # A list of all core protocol packages for dynamic class loading
 PROTOCOL_PACKAGES = ",".join(["io.atomix.primitive.partition.impl"] + ["io.atomix.protocols.{protocol},io.atomix.protocols.{protocol}.partition".format(protocol = protocol) for protocol in _protocol_package_names] + ["io.atomix.protocols.gossip"])
 
@@ -53,6 +59,7 @@ CORE_PACKAGES = ",".join([
 
 # A list of all dynamically loadable Atomix packages
 INCLUDE_PACKAGES = ",".join([
+    CLUSTER_PACKAGES,
     PRIMITIVE_PACKAGES,
     PROTOCOL_PACKAGES,
     CORE_PACKAGES,

@@ -6,15 +6,18 @@
 aux=/tmp/stc/stc-$$.log
 trap "rm -f $aux $aux.1 $aux.2 2>/dev/null" EXIT
 
-onos ${1:-$OCI} "onos:nodes" > $aux
-cat $aux
+for attempt in {1..5}; do
+    onos ${1:-$OCI} "onos:nodes" > $aux
+    cat $aux
 
-# Normalize the nodes
-cut -d= -f3 $aux | cut -d: -f1 | sort > $aux.1
+    # Normalize the nodes
+    cut -d= -f3 $aux | cut -d: -f1 | sort > $aux.1
 
-# Normalize the expected nodes
-nodes=${2:-$ONOS_INSTANCES}
-(for node in $nodes; do echo $node; done) | sort > $aux.2
+    # Normalize the expected nodes
+    nodes=${2:-$ONOS_INSTANCES}
+    (for node in $nodes; do echo $node; done) | sort > $aux.2
 
-# Check for differences
-diff $aux.1 $aux.2
+    # Check for differences
+    diff $aux.1 $aux.2 && exit 0
+    sleep 1
+done
