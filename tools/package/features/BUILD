@@ -43,6 +43,7 @@ osgi_feature(
         "@commons_collections//jar",
         "@concurrent_trees//jar",
         "@commons_io//jar",
+        "@commons_jxpath//jar",
         "@mapdb//jar",
         "@bcpkix_jdk15on//jar",
         "@bcprov_jdk15on//jar",
