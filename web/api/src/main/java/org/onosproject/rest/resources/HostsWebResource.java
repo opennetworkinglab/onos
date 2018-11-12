@@ -138,12 +138,12 @@ public class HostsWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response createAndAddHost(InputStream stream) {
         URI location;
+        HostProviderRegistry hostProviderRegistry = get(HostProviderRegistry.class);
+        InternalHostProvider hostProvider = new InternalHostProvider();
         try {
             // Parse the input stream
             ObjectNode root = readTreeFromStream(mapper(), stream);
 
-            HostProviderRegistry hostProviderRegistry = get(HostProviderRegistry.class);
-            InternalHostProvider hostProvider = new InternalHostProvider();
             HostProviderService hostProviderService = hostProviderRegistry.register(hostProvider);
             hostProvider.setHostProviderService(hostProviderService);
             HostId hostId = hostProvider.parseHost(root);
@@ -153,11 +153,12 @@ public class HostsWebResource extends AbstractWebResource {
                     .path(hostId.mac().toString())
                     .path(hostId.vlanId().toString());
             location = locationBuilder.build();
-            hostProviderRegistry.unregister(hostProvider);
-
         } catch (IOException ex) {
             throw new IllegalArgumentException(ex);
+        } finally {
+            hostProviderRegistry.unregister(hostProvider);
         }
+
         return Response
                 .created(location)
                 .build();
@@ -221,6 +222,10 @@ public class HostsWebResource extends AbstractWebResource {
             MacAddress mac = MacAddress.valueOf(node.get("mac").asText());
             VlanId vlanId = VlanId.vlanId((short) node.get("vlan").asInt(VlanId.UNTAGGED));
 
+            if (null == node.get("locations")) {
+                throw new IllegalArgumentException("location isn't specified");
+            }
+
             Iterator<JsonNode> locationNodes = node.get("locations").elements();
             Set<HostLocation> locations = new HashSet<>();
             while (locationNodes.hasNext()) {
@@ -229,6 +234,10 @@ public class HostsWebResource extends AbstractWebResource {
                         locationNode.get("port").asText();
                 HostLocation hostLocation = new HostLocation(ConnectPoint.deviceConnectPoint(deviceAndPort), 0);
                 locations.add(hostLocation);
+            }
+
+            if (null == node.get("ipAddresses")) {
+                throw new IllegalArgumentException("ipAddress isn't specified");
             }
 
             Iterator<JsonNode> ipNodes = node.get("ipAddresses").elements();
