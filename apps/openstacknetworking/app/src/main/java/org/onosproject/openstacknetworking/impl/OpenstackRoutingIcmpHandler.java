@@ -55,12 +55,10 @@ import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
-import org.openstack4j.model.network.ExternalGateway;
 import org.openstack4j.model.network.Port;
 import org.openstack4j.model.network.Router;
 import org.openstack4j.model.network.RouterInterface;
 import org.openstack4j.model.network.Subnet;
-import org.openstack4j.openstack.networking.domain.NeutronIP;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -70,7 +68,6 @@ import org.slf4j.Logger;
 
 import java.nio.ByteBuffer;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
@@ -85,6 +82,8 @@ import static org.onosproject.openstacknetworking.api.Constants.DEFAULT_GATEWAY_
 import static org.onosproject.openstacknetworking.api.Constants.GW_COMMON_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_INTERNAL_ROUTING_RULE;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.externalIpFromSubnet;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.externalPeerRouterFromSubnet;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -320,27 +319,16 @@ public class OpenstackRoutingIcmpHandler {
                 // this is a request to an external network
                 log.trace("Icmp request to external {} from {}", dstIp, srcIp);
 
-                RouterInterface routerInterface = routerInterface(srcSubnet);
-                if (routerInterface == null) {
-                    log.warn(ERR_REQ + "failed to get router interface");
-                    return false;
-                }
-
-                ExternalGateway externalGateway = externalGateway(routerInterface);
-                if (externalGateway == null) {
-                    log.warn(ERR_REQ + "failed to get external gateway");
-                    return false;
-                }
-
-                ExternalPeerRouter externalPeerRouter = osNetworkService.externalPeerRouter(externalGateway);
-                if (externalPeerRouter == null) {
-                    log.warn(ERR_REQ + "failed to get external peer router");
-                    return false;
-                }
-
-                IpAddress externalIp = getExternalIp(externalGateway, routerInterface);
+                IpAddress externalIp = externalIpFromSubnet(srcSubnet, osRouterService, osNetworkService);
                 if (externalIp == null) {
                     log.warn(ERR_REQ + "failed to get external ip");
+                    return false;
+                }
+
+                ExternalPeerRouter externalPeerRouter =
+                        externalPeerRouterFromSubnet(srcSubnet, osRouterService, osNetworkService);
+                if (externalPeerRouter == null) {
+                    log.warn(ERR_REQ + "failed to get external peer router");
                     return false;
                 }
 
@@ -368,24 +356,6 @@ public class OpenstackRoutingIcmpHandler {
             return String.valueOf(getIcmpId(icmp))
                     .concat(srcIp)
                     .concat(dstIp);
-        }
-        private RouterInterface routerInterface(Subnet subnet) {
-            checkNotNull(subnet);
-            return osRouterService.routerInterfaces().stream()
-                    .filter(i -> Objects.equals(i.getSubnetId(), subnet.getId()))
-                    .findAny().orElse(null);
-        }
-
-        private ExternalGateway externalGateway(RouterInterface osRouterIface) {
-            checkNotNull(osRouterIface);
-            Router osRouter = osRouterService.router(osRouterIface.getId());
-            if (osRouter == null) {
-                return null;
-            }
-            if (osRouter.getExternalGatewayInfo() == null) {
-                return null;
-            }
-            return osRouter.getExternalGatewayInfo();
         }
 
         private boolean handleEchoReply(IPv4 ipPacket, ICMP icmp) {
@@ -430,38 +400,6 @@ public class OpenstackRoutingIcmpHandler {
                     .collect(Collectors.toSet());
 
             return routableGateways.contains(dstIp);
-        }
-
-        private IpAddress getExternalIp(ExternalGateway externalGateway, RouterInterface osRouterIface) {
-            checkNotNull(externalGateway);
-            checkNotNull(osRouterIface);
-
-            Router osRouter = osRouterService.router(osRouterIface.getId());
-            if (osRouter == null) {
-                return null;
-            }
-
-            Port exGatewayPort = osNetworkService.ports(externalGateway.getNetworkId())
-                    .stream()
-                    .filter(port -> Objects.equals(port.getDeviceId(), osRouter.getId()))
-                    .findAny().orElse(null);
-            if (exGatewayPort == null) {
-                final String error = String.format(ERR_REQ +
-                                "no external gateway port for router (ID:%s, name:%s)",
-                        osRouter.getId(), osRouter.getName());
-                throw new IllegalStateException(error);
-            }
-            Optional<NeutronIP> externalIpAddress =
-                    (Optional<NeutronIP>) exGatewayPort.getFixedIps().stream().findFirst();
-            if (!externalIpAddress.isPresent() || externalIpAddress.get().getIpAddress() == null) {
-                final String error = String.format(ERR_REQ +
-                                "no external gateway IP address for router (ID:%s, name:%s)",
-                        osRouter.getId(), osRouter.getName());
-                log.warn(error);
-                return null;
-            }
-
-            return IpAddress.valueOf(externalIpAddress.get().getIpAddress());
         }
 
         private void processRequestForGateway(IPv4 ipPacket, InstancePort instPort) {
