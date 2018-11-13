@@ -130,14 +130,21 @@ public class IntProgrammableImpl extends AbstractHandlerBehaviour implements Int
                     .put(15, IntConstants.ACT_INT_SET_HEADER_0407_I15_ID)
                     .build();
 
-    @Override
-    public boolean init() {
+    private boolean setupBehaviour() {
         deviceId = this.data().deviceId();
         flowRuleService = handler().get(FlowRuleService.class);
         coreService = handler().get(CoreService.class);
         appId = coreService.getAppId(PIPELINE_APP_NAME);
         if (appId == null) {
-            log.warn("Application ID is null. Cannot initialize INT-pipeline.");
+            log.warn("Application ID is null. Cannot initialize behaviour.");
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean init() {
+        if (!setupBehaviour()) {
             return false;
         }
 
@@ -186,6 +193,10 @@ public class IntProgrammableImpl extends AbstractHandlerBehaviour implements Int
 
     @Override
     public boolean setSourcePort(PortNumber port) {
+        if (!setupBehaviour()) {
+            return false;
+        }
+
         // process_set_source_sink.tb_set_source for each host-facing port
         PiCriterion ingressCriterion = PiCriterion.builder()
                 .matchExact(BasicConstants.HDR_IN_PORT_ID, port.toLong())
@@ -214,6 +225,10 @@ public class IntProgrammableImpl extends AbstractHandlerBehaviour implements Int
 
     @Override
     public boolean setSinkPort(PortNumber port) {
+        if (!setupBehaviour()) {
+            return false;
+        }
+
         // process_set_source_sink.tb_set_sink
         PiCriterion egressCriterion = PiCriterion.builder()
                 .matchExact(IntConstants.HDR_OUT_PORT_ID, port.toLong())
@@ -259,6 +274,10 @@ public class IntProgrammableImpl extends AbstractHandlerBehaviour implements Int
 
     @Override
     public void cleanup() {
+        if (!setupBehaviour()) {
+            return;
+        }
+
         StreamSupport.stream(flowRuleService.getFlowEntries(
                 data().deviceId()).spliterator(), false)
                 .filter(f -> f.table().type() == TableId.Type.PIPELINE_INDEPENDENT)
@@ -308,12 +327,6 @@ public class IntProgrammableImpl extends AbstractHandlerBehaviour implements Int
     }
 
     private FlowRule buildWatchlistEntry(IntObjective obj) {
-        coreService = handler().get(CoreService.class);
-        appId = coreService.getAppId(PIPELINE_APP_NAME);
-        if (appId == null) {
-            log.warn("Application ID is null. Cannot initialize INT-pipeline.");
-            return null;
-        }
         int instructionBitmap = buildInstructionBitmap(obj.metadataTypes());
         PiActionParam maxHopParam = new PiActionParam(
                 IntConstants.ACT_PRM_MAX_HOP_ID,
@@ -444,8 +457,9 @@ public class IntProgrammableImpl extends AbstractHandlerBehaviour implements Int
     }
 
     private boolean processIntObjective(IntObjective obj, boolean install) {
-        flowRuleService = handler().get(FlowRuleService.class);
-        deviceId = this.data().deviceId();
+        if (!setupBehaviour()) {
+            return false;
+        }
         if (install && !unsupportedSelectors(obj.selector()).isEmpty()) {
             log.warn("Device {} does not support criteria {} for INT.",
                      deviceId, unsupportedSelectors(obj.selector()));
@@ -470,7 +484,9 @@ public class IntProgrammableImpl extends AbstractHandlerBehaviour implements Int
     }
 
     private boolean setupIntReportInternal(IntConfig cfg) {
-        flowRuleService = handler().get(FlowRuleService.class);
+        if (!setupBehaviour()) {
+            return false;
+        }
 
         FlowRule reportRule = buildReportEntry(cfg, PKT_INSTANCE_TYPE_INGRESS_CLONE);
         if (reportRule != null) {
@@ -484,13 +500,6 @@ public class IntProgrammableImpl extends AbstractHandlerBehaviour implements Int
     }
 
     private FlowRule buildReportEntry(IntConfig cfg, int type) {
-        coreService = handler().get(CoreService.class);
-        appId = coreService.getAppId(PIPELINE_APP_NAME);
-        if (appId == null) {
-            log.warn("Application ID is null. Cannot build report entry.");
-            return null;
-        }
-
         PiCriterion instTypeCriterion = PiCriterion.builder()
                 .matchExact(IntConstants.STD_META_INSTANCE_TYPE_ID, type)
                 .build();
