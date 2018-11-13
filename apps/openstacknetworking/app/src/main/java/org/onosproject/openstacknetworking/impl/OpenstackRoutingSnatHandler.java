@@ -482,13 +482,8 @@ public class OpenstackRoutingSnatHandler {
 
         @Override
         public void process(PacketContext context) {
-            Set<DeviceId> gateways = osNodeService.completeNodes(OpenstackNode.NodeType.GATEWAY)
-                    .stream().map(OpenstackNode::intgBridge)
-                    .collect(Collectors.toSet());
+
             if (context.isHandled()) {
-                return;
-            } else if (!gateways.contains(context.inPacket().receivedFrom().deviceId())) {
-                // return if the packet is not from gateway nodes
                 return;
             }
 
@@ -510,9 +505,24 @@ public class OpenstackRoutingSnatHandler {
                         break;
                     }
                 default:
-                    eventExecutor.execute(() -> processSnatPacket(context, eth));
+                    eventExecutor.execute(() -> {
+
+                        if (!isRelevantHelper(context)) {
+                            return;
+                        }
+
+                        processSnatPacket(context, eth);
+                    });
                     break;
             }
+        }
+
+        private boolean isRelevantHelper(PacketContext context) {
+            Set<DeviceId> gateways = osNodeService.completeNodes(GATEWAY)
+                    .stream().map(OpenstackNode::intgBridge)
+                    .collect(Collectors.toSet());
+
+            return gateways.contains(context.inPacket().receivedFrom().deviceId());
         }
     }
 }

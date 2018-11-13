@@ -20,6 +20,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.LeadershipService;
 import org.onosproject.cluster.NodeId;
@@ -47,9 +48,12 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import static java.lang.Thread.sleep;
+import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.openstacknetworking.api.Constants.DIRECT;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
 import static org.onosproject.openstacknetworking.api.Constants.UNSUPPORTED_VENDOR;
@@ -90,6 +94,8 @@ public final class OpenStackSwitchingDirectPortProvider {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MastershipService mastershipService;
 
+    private final ExecutorService executor =
+            Executors.newSingleThreadExecutor(groupedThreads(this.getClass().getSimpleName(), "direct-port-event"));
     private final OpenstackNetworkListener openstackNetworkListener = new InternalOpenstackNetworkListener();
     private final InternalOpenstackNodeListener internalNodeListener = new InternalOpenstackNodeListener();
 
@@ -112,6 +118,7 @@ public final class OpenStackSwitchingDirectPortProvider {
         leadershipService.withdraw(appId.name());
         osNetworkService.removeListener(openstackNetworkListener);
         osNodeService.removeListener(internalNodeListener);
+        executor.shutdown();
 
         log.info("Stopped");
     }
@@ -206,28 +213,40 @@ public final class OpenStackSwitchingDirectPortProvider {
     }
 
     private class InternalOpenstackNetworkListener implements OpenstackNetworkListener {
-        @Override
-        public boolean isRelevant(OpenstackNetworkEvent event) {
-            // do not allow to proceed without leadership
-            NodeId leader = leadershipService.getLeader(appId.name());
-            if (!Objects.equals(localNodeId, leader)) {
-                return false;
-            }
-            return true;
+        private boolean isRelevantHelper() {
+            return Objects.equals(localNodeId, leadershipService.getLeader(appId.name()));
         }
 
         @Override
         public void event(OpenstackNetworkEvent event) {
             switch (event.type()) {
                 case OPENSTACK_PORT_UPDATED:
-                    if (event.port().getState() == State.DOWN) {
-                        processPortRemoved(event.port());
-                    } else {
-                        processPortAdded(event.port());
-                    }
+
+                    executor.execute(() -> {
+
+                        if (!isRelevantHelper()) {
+                            return;
+                        }
+
+                        if (event.port().getState() == State.DOWN) {
+                            processPortRemoved(event.port());
+                        } else {
+                            processPortAdded(event.port());
+                        }
+                    });
+
                     break;
                 case OPENSTACK_PORT_REMOVED:
-                    processPortRemoved(event.port());
+
+                    executor.execute(() -> {
+
+                        if (!isRelevantHelper()) {
+                            return;
+                        }
+
+                        processPortRemoved(event.port());
+                    });
+
                     break;
                 default:
                     break;
@@ -240,10 +259,10 @@ public final class OpenStackSwitchingDirectPortProvider {
 
         @Override
         public boolean isRelevant(OpenstackNodeEvent event) {
+            return event.subject().type() != CONTROLLER;
+        }
 
-            if (event.subject().type() == CONTROLLER) {
-                return false;
-            }
+        private boolean isRelevantHelper(OpenstackNodeEvent event) {
             // do not allow to proceed without mastership
             Device device = deviceService.getDevice(event.subject().intgBridge());
             if (device == null) {
@@ -259,7 +278,15 @@ public final class OpenStackSwitchingDirectPortProvider {
             switch (event.type()) {
                 case OPENSTACK_NODE_COMPLETE:
                     log.info("COMPLETE node {} is detected", osNode.hostname());
-                    processComputeState(event.subject());
+
+                    executor.execute(() -> {
+
+                        if (!isRelevantHelper(event)) {
+                            return;
+                        }
+
+                        processComputeState(event.subject());
+                    });
 
                     break;
                 case OPENSTACK_NODE_INCOMPLETE:
@@ -280,9 +307,7 @@ public final class OpenStackSwitchingDirectPortProvider {
                     .filter(port -> port.getHostId().equals(node.hostname()))
                     .collect(Collectors.toList());
 
-            ports.forEach(port -> {
-                addIntfToDevice(node, port);
-            });
+            ports.forEach(port -> addIntfToDevice(node, port));
         }
 
         private void addIntfToDevice(OpenstackNode node, Port port) {

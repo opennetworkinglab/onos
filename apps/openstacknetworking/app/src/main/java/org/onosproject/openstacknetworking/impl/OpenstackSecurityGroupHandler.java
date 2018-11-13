@@ -756,8 +756,11 @@ public class OpenstackSecurityGroupHandler {
 
         @Override
         public boolean isRelevant(InstancePortEvent event) {
-            return useSecurityGroup &&
-                    mastershipService.isLocalMaster(event.subject().deviceId());
+            return useSecurityGroup;
+        }
+
+        private boolean isRelevantHelper(InstancePortEvent event) {
+            return mastershipService.isLocalMaster(event.subject().deviceId());
         }
 
         @Override
@@ -767,11 +770,22 @@ public class OpenstackSecurityGroupHandler {
                 case OPENSTACK_INSTANCE_PORT_UPDATED:
                 case OPENSTACK_INSTANCE_PORT_DETECTED:
                 case OPENSTACK_INSTANCE_MIGRATION_STARTED:
-                    eventExecutor.execute(() ->
-                                    installSecurityGroupRules(event, instPort));
+                    eventExecutor.execute(() -> {
+
+                        if (!isRelevantHelper(event)) {
+                            return;
+                        }
+
+                        installSecurityGroupRules(event, instPort);
+                    });
                     break;
                 case OPENSTACK_INSTANCE_PORT_VANISHED:
                     eventExecutor.execute(() -> {
+
+                        if (!isRelevantHelper(event)) {
+                            return;
+                        }
+
                         Port osPort = removedOsPortStore.asJavaMap().get(instPort.portId());
                         setSecurityGroupRules(instPort, osPort, false);
                         removedOsPortStore.remove(instPort.portId());
@@ -779,6 +793,11 @@ public class OpenstackSecurityGroupHandler {
                     break;
                 case OPENSTACK_INSTANCE_MIGRATION_ENDED:
                     eventExecutor.execute(() -> {
+
+                        if (!isRelevantHelper(event)) {
+                            return;
+                        }
+
                         InstancePort revisedInstPort = swapStaleLocation(instPort);
                         Port port = osNetService.port(instPort.portId());
                         setSecurityGroupRules(revisedInstPort, port, false);
@@ -808,13 +827,17 @@ public class OpenstackSecurityGroupHandler {
                 return false;
             }
 
+            return useSecurityGroup;
+        }
+
+        private boolean isRelevantHelper(OpenstackNetworkEvent event) {
             InstancePort instPort = instancePortService.instancePort(event.port().getId());
 
             if (instPort == null) {
                 return false;
             }
 
-            return useSecurityGroup && mastershipService.isLocalMaster(instPort.deviceId());
+            return mastershipService.isLocalMaster(instPort.deviceId());
         }
 
         @Override
@@ -824,8 +847,14 @@ public class OpenstackSecurityGroupHandler {
 
             switch (event.type()) {
                 case OPENSTACK_PORT_PRE_REMOVE:
-                    eventExecutor.execute(() ->
-                                removedOsPortStore.put(osPort.getId(), osPort));
+                    eventExecutor.execute(() -> {
+
+                        if (!isRelevantHelper(event)) {
+                            return;
+                        }
+
+                        removedOsPortStore.put(osPort.getId(), osPort);
+                    });
                     break;
                 default:
                     // do nothing for the other events
@@ -834,8 +863,7 @@ public class OpenstackSecurityGroupHandler {
         }
     }
 
-    private class InternalOpenstackNetworkListener
-            implements OpenstackNetworkListener {
+    private class InternalOpenstackNetworkListener implements OpenstackNetworkListener {
 
         @Override
         public boolean isRelevant(OpenstackNetworkEvent event) {
@@ -843,6 +871,10 @@ public class OpenstackSecurityGroupHandler {
                 return false;
             }
 
+            return useSecurityGroup;
+        }
+
+        private boolean isRelevantHelper(OpenstackNetworkEvent event) {
             if (event.securityGroupId() == null ||
                     securityGroupService.securityGroup(event.securityGroupId()) == null) {
                 return false;
@@ -854,19 +886,25 @@ public class OpenstackSecurityGroupHandler {
                 return false;
             }
 
-            return useSecurityGroup && mastershipService.isLocalMaster(instPort.deviceId());
+            return mastershipService.isLocalMaster(instPort.deviceId());
         }
 
         @Override
         public void event(OpenstackNetworkEvent event) {
             log.debug("security group event received {}", event);
             Port osPort = event.port();
-            InstancePort instPort = instancePortService.instancePort(osPort.getId());
-            SecurityGroup osSg = securityGroupService.securityGroup(event.securityGroupId());
 
             switch (event.type()) {
                 case OPENSTACK_PORT_SECURITY_GROUP_ADDED:
                     eventExecutor.execute(() -> {
+
+                        if (!isRelevantHelper(event)) {
+                            return;
+                        }
+
+                        InstancePort instPort = instancePortService.instancePort(osPort.getId());
+                        SecurityGroup osSg = securityGroupService.securityGroup(event.securityGroupId());
+
                         osSg.getRules().forEach(sgRule -> {
                             updateSecurityGroupRule(instPort, osPort, sgRule, true);
                         });
@@ -876,6 +914,14 @@ public class OpenstackSecurityGroupHandler {
                     break;
                 case OPENSTACK_PORT_SECURITY_GROUP_REMOVED:
                     eventExecutor.execute(() -> {
+
+                        if (!isRelevantHelper(event)) {
+                            return;
+                        }
+
+                        InstancePort instPort = instancePortService.instancePort(osPort.getId());
+                        SecurityGroup osSg = securityGroupService.securityGroup(event.securityGroupId());
+
                         osSg.getRules().forEach(sgRule -> {
                             updateSecurityGroupRule(instPort, osPort, sgRule, false);
                         });
@@ -890,17 +936,15 @@ public class OpenstackSecurityGroupHandler {
         }
     }
 
-    private class InternalSecurityGroupListener
-            implements OpenstackSecurityGroupListener {
+    private class InternalSecurityGroupListener implements OpenstackSecurityGroupListener {
 
         @Override
         public boolean isRelevant(OpenstackSecurityGroupEvent event) {
-            // do not allow to proceed without leadership
-            NodeId leader = leadershipService.getLeader(appId.name());
-            if (!Objects.equals(localNodeId, leader)) {
-                return false;
-            }
             return useSecurityGroup;
+        }
+
+        private boolean isRelevantHelper() {
+            return Objects.equals(localNodeId, leadershipService.getLeader(appId.name()));
         }
 
         @Override
@@ -909,6 +953,11 @@ public class OpenstackSecurityGroupHandler {
                 case OPENSTACK_SECURITY_GROUP_RULE_CREATED:
                     SecurityGroupRule sgRuleToAdd = event.securityGroupRule();
                     eventExecutor.execute(() -> {
+
+                        if (!isRelevantHelper()) {
+                            return;
+                        }
+
                         securityGroupRuleAdded(sgRuleToAdd);
                         log.info("Applied new security group rule {} to ports",
                                 sgRuleToAdd.getId());
@@ -918,6 +967,11 @@ public class OpenstackSecurityGroupHandler {
                 case OPENSTACK_SECURITY_GROUP_RULE_REMOVED:
                     SecurityGroupRule sgRuleToRemove = event.securityGroupRule();
                     eventExecutor.execute(() -> {
+
+                        if (!isRelevantHelper()) {
+                            return;
+                        }
+
                         securityGroupRuleRemoved(sgRuleToRemove);
                         log.info("Removed security group rule {} from ports",
                                 sgRuleToRemove.getId());
@@ -936,20 +990,25 @@ public class OpenstackSecurityGroupHandler {
 
         @Override
         public boolean isRelevant(OpenstackNodeEvent event) {
-            // do not allow to proceed without leadership
-            NodeId leader = leadershipService.getLeader(appId.name());
-            if (!Objects.equals(localNodeId, leader)) {
-                return false;
-            }
             return event.subject().type() == COMPUTE;
+        }
+
+        private boolean isRelevantHelper() {
+            return Objects.equals(localNodeId, leadershipService.getLeader(appId.name()));
         }
 
         @Override
         public void event(OpenstackNodeEvent event) {
             switch (event.type()) {
                 case OPENSTACK_NODE_COMPLETE:
-                    eventExecutor.execute(OpenstackSecurityGroupHandler.this::
-                                                        resetSecurityGroupRules);
+                    eventExecutor.execute(() -> {
+
+                        if (!isRelevantHelper()) {
+                            return;
+                        }
+
+                        OpenstackSecurityGroupHandler.this.resetSecurityGroupRules();
+                    });
                     break;
                 case OPENSTACK_NODE_CREATED:
                 case OPENSTACK_NODE_REMOVED:

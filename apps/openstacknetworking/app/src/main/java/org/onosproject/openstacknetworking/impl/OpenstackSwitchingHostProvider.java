@@ -306,21 +306,21 @@ public final class OpenstackSwitchingHostProvider
 
         @Override
         public boolean isRelevant(DeviceEvent event) {
-            if (!mastershipService.isLocalMaster(event.subject().id())) {
-                // do not allow to proceed without mastership
-                return false;
-            }
-
             Port port = event.port();
             if (port == null) {
                 return false;
             }
+
             String portName = port.annotations().value(PORT_NAME);
 
             return !Strings.isNullOrEmpty(portName) &&
                     (portName.startsWith(PORT_NAME_PREFIX_VM) ||
                             isDirectPort(portName) ||
                             portName.startsWith(PORT_NAME_VHOST_USER_PREFIX_VM));
+        }
+
+        private boolean isRelevantHelper(DeviceEvent event) {
+            return mastershipService.isLocalMaster(event.subject().id());
         }
 
         private boolean isDirectPort(String portName) {
@@ -332,17 +332,38 @@ public final class OpenstackSwitchingHostProvider
             log.info("Device event occurred with type {}", event.type());
             switch (event.type()) {
                 case PORT_UPDATED:
-                    if (!event.port().isEnabled()) {
-                        executor.execute(() -> portRemovedHelper(event));
-                    } else if (event.port().isEnabled()) {
-                        executor.execute(() -> portAddedHelper(event));
-                    }
+                    executor.execute(() -> {
+                        if (!isRelevantHelper(event)) {
+                            return;
+                        }
+
+                        if (!event.port().isEnabled()) {
+                            portRemovedHelper(event);
+                        } else if (event.port().isEnabled()) {
+                            portAddedHelper(event);
+                        }
+                    });
+
                     break;
                 case PORT_ADDED:
-                    executor.execute(() -> portAddedHelper(event));
+                    executor.execute(() -> {
+
+                        if (!isRelevantHelper(event)) {
+                            return;
+                        }
+
+                        portAddedHelper(event);
+                    });
                     break;
                 case PORT_REMOVED:
-                    executor.execute(() -> portRemovedHelper(event));
+                    executor.execute(() -> {
+
+                        if (!isRelevantHelper(event)) {
+                            return;
+                        }
+
+                        portRemovedHelper(event);
+                    });
                     break;
                 default:
                     break;
@@ -354,10 +375,10 @@ public final class OpenstackSwitchingHostProvider
 
         @Override
         public boolean isRelevant(OpenstackNodeEvent event) {
+            return event.subject().type() != CONTROLLER;
+        }
 
-            if (event.subject().type() == CONTROLLER) {
-                return false;
-            }
+        private boolean isRelevantHelper(OpenstackNodeEvent event) {
             // do not allow to proceed without mastership
             Device device = deviceService.getDevice(event.subject().intgBridge());
             if (device == null) {
@@ -373,7 +394,14 @@ public final class OpenstackSwitchingHostProvider
             switch (event.type()) {
                 case OPENSTACK_NODE_COMPLETE:
                     log.info("COMPLETE node {} is detected", osNode.hostname());
-                    executor.execute(() -> processCompleteNode(event.subject()));
+                    executor.execute(() -> {
+
+                        if (!isRelevantHelper(event)) {
+                            return;
+                        }
+
+                        processCompleteNode(event.subject());
+                    });
                     break;
                 case OPENSTACK_NODE_INCOMPLETE:
                     log.warn("{} is changed to INCOMPLETE state", osNode);
