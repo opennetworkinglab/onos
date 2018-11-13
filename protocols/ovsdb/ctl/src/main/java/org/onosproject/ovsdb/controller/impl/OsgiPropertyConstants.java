@@ -24,7 +24,7 @@ public final class OsgiPropertyConstants {
     private OsgiPropertyConstants() {}
 
     public static final String SERVER_MODE = "";
-    public static final boolean SERVER_MODE_DEFAULT = false;
+    public static final boolean SERVER_MODE_DEFAULT = true;
 
     public static final String OVSDB_TLS_FLAG = "enableOvsdbTls";
     public static final boolean OVSDB_TLS_FLAG_DEFAULT = false;
