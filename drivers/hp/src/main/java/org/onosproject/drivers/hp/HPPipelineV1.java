@@ -19,6 +19,8 @@ package org.onosproject.drivers.hp;
 import org.onlab.packet.Ethernet;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.EthCriterion;
 import org.onosproject.net.flow.criteria.EthTypeCriterion;
@@ -30,7 +32,6 @@ import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction;
 import org.onosproject.net.flowobjective.FilteringObjective;
-import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.slf4j.Logger;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -135,10 +136,10 @@ public class HPPipelineV1 extends AbstractHPPipeline {
 
     //Return TRUE if ForwardingObjective fwd includes unsupported features
     @Override
-    protected boolean checkUnSupportedFeatures(ForwardingObjective fwd) {
+    protected boolean checkUnSupportedFeatures(TrafficSelector selector, TrafficTreatment treatment) {
         boolean unsupportedFeatures = false;
 
-        for (Criterion criterion : fwd.selector().criteria()) {
+        for (Criterion criterion : selector.criteria()) {
             if (this.unsupportedCriteria.contains(criterion.type())) {
                 log.warn("HP V1 Driver - unsupported criteria {}", criterion.type());
 
@@ -146,7 +147,7 @@ public class HPPipelineV1 extends AbstractHPPipeline {
             }
         }
 
-        for (Instruction instruction : fwd.treatment().allInstructions()) {
+        for (Instruction instruction : treatment.allInstructions()) {
             if (this.unsupportedInstructions.contains(instruction.type())) {
                 log.warn("HP V1 Driver - unsupported instruction {}", instruction.type());
 
@@ -176,13 +177,13 @@ public class HPPipelineV1 extends AbstractHPPipeline {
     }
 
     @Override
-    protected int tableIdForForwardingObjective(ForwardingObjective fwd) {
+    protected int tableIdForForwardingObjective(TrafficSelector selector, TrafficTreatment treatment) {
         boolean hardwareProcess = true;
 
         log.debug("HP V1 Driver - Evaluating the ForwardingObjective for proper TableID");
 
         //Check criteria supported in hardware
-        for (Criterion criterion : fwd.selector().criteria()) {
+        for (Criterion criterion : selector.criteria()) {
 
             if (!this.hardwareCriteria.contains(criterion.type())) {
                 log.warn("HP V1 Driver - criterion {} only supported in SOFTWARE", criterion.type());
@@ -206,7 +207,7 @@ public class HPPipelineV1 extends AbstractHPPipeline {
             if (criterion.type() == Criterion.Type.IN_PORT) {
                 hardwareProcess = false;
 
-                for (Criterion requiredCriterion : fwd.selector().criteria()) {
+                for (Criterion requiredCriterion : selector.criteria()) {
                     if (requiredCriterion.type() == Criterion.Type.ETH_TYPE) {
                         hardwareProcess = true;
                     }
@@ -222,7 +223,7 @@ public class HPPipelineV1 extends AbstractHPPipeline {
         }
 
         //Check if a CLEAR action is included
-        if (fwd.treatment().clearedDeferred()) {
+        if (treatment.clearedDeferred()) {
             log.warn("HP V1 Driver - CLEAR action only supported in SOFTWARE");
 
             hardwareProcess = false;
@@ -231,7 +232,7 @@ public class HPPipelineV1 extends AbstractHPPipeline {
         //If criteria can be processed in hardware, then check treatment
         if (hardwareProcess) {
 
-            for (Instruction instruction : fwd.treatment().allInstructions()) {
+            for (Instruction instruction : treatment.allInstructions()) {
 
                 //Check if the instruction type is contained in the hardware instruction
                 if (!this.hardwareInstructions.contains(instruction.type())) {
