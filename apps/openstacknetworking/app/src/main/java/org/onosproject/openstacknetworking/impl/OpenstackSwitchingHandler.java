@@ -17,11 +17,6 @@
 package org.onosproject.openstacknetworking.impl;
 
 import com.google.common.base.Strings;
-import org.osgi.service.component.annotations.Activate;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Deactivate;
-import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.VlanId;
 import org.onosproject.cfg.ComponentConfigService;
@@ -52,6 +47,11 @@ import org.onosproject.openstacknode.api.OpenstackNodeService;
 import org.openstack4j.model.network.Network;
 import org.openstack4j.model.network.NetworkType;
 import org.openstack4j.model.network.Port;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Objects;
@@ -76,6 +76,7 @@ import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_SWITCHI
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_TUNNEL_TAG_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.STAT_FLAT_OUTBOUND_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.VTAG_TABLE;
+import static org.onosproject.openstacknetworking.api.InstancePortEvent.Type.OPENSTACK_INSTANCE_MIGRATION_STARTED;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getPropertyValue;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.swapStaleLocation;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.buildExtension;
@@ -677,7 +678,8 @@ public final class OpenstackSwitchingHandler {
     }
 
     private String getArpMode() {
-        Set<ConfigProperty> properties = configService.getProperties(OpenstackSwitchingArpHandler.class.getName());
+        Set<ConfigProperty> properties =
+                configService.getProperties(OpenstackSwitchingArpHandler.class.getName());
         return getPropertyValue(properties, ARP_MODE);
     }
 
@@ -690,38 +692,58 @@ public final class OpenstackSwitchingHandler {
      */
     private class InternalInstancePortListener implements InstancePortListener {
 
-        @Override
-        public boolean isRelevant(InstancePortEvent event) {
-            InstancePort instPort = event.subject();
-            return mastershipService.isLocalMaster(instPort.deviceId());
+        private boolean isRelevantHelper(InstancePortEvent event) {
+            return mastershipService.isLocalMaster(event.subject().deviceId());
         }
 
         @Override
         public void event(InstancePortEvent event) {
             InstancePort instPort = event.subject();
-            Port osPort = osNetworkService.port(instPort.portId());
 
             switch (event.type()) {
                 case OPENSTACK_INSTANCE_PORT_DETECTED:
                 case OPENSTACK_INSTANCE_PORT_UPDATED:
+                case OPENSTACK_INSTANCE_MIGRATION_STARTED:
                 case OPENSTACK_INSTANCE_RESTARTED:
-                    log.info("SwitchingHandler: Instance port detected MAC:{} IP:{}",
+
+                    if (event.type() == OPENSTACK_INSTANCE_MIGRATION_STARTED) {
+                        log.info("SwitchingHandler: Migration started at MAC:{} IP:{}",
                                                         instPort.macAddress(),
                                                         instPort.ipAddress());
-
-                    eventExecutor.execute(() -> instPortDetected(instPort));
-
-                    if (osPort != null) {
-                        eventExecutor.execute(() ->
-                                setPortBlockRules(instPort, !osPort.isAdminStateUp()));
+                    } else {
+                        log.info("SwitchingHandler: Instance port detected MAC:{} IP:{}",
+                                                        instPort.macAddress(),
+                                                        instPort.ipAddress());
                     }
+
+                    eventExecutor.execute(() -> {
+
+                        if (!isRelevantHelper(event)) {
+                            return;
+                        }
+
+                        instPortDetected(instPort);
+
+                        Port osPort = osNetworkService.port(instPort.portId());
+
+                        if (osPort != null) {
+                            setPortBlockRules(instPort, !osPort.isAdminStateUp());
+                        }
+                    });
 
                     break;
                 case OPENSTACK_INSTANCE_TERMINATED:
                     log.info("SwitchingHandler: Instance port terminated MAC:{} IP:{}",
                                                         instPort.macAddress(),
                                                         instPort.ipAddress());
-                    eventExecutor.execute(() -> removeVportRules(instPort));
+                    eventExecutor.execute(() -> {
+
+                        if (!isRelevantHelper(event)) {
+                            return;
+                        }
+
+                        removeVportRules(instPort);
+                    });
 
                     break;
                 case OPENSTACK_INSTANCE_PORT_VANISHED:
@@ -729,24 +751,20 @@ public final class OpenstackSwitchingHandler {
                                                         instPort.macAddress(),
                                                         instPort.ipAddress());
 
-                    eventExecutor.execute(() -> instPortRemoved(instPort));
+                    eventExecutor.execute(() -> {
 
-                    if (osPort != null) {
-                        setPortBlockRules(instPort, false);
-                    }
+                        if (!isRelevantHelper(event)) {
+                            return;
+                        }
 
-                    break;
-                case OPENSTACK_INSTANCE_MIGRATION_STARTED:
-                    log.info("SwitchingHandler: Migration started for MAC:{} IP:{}",
-                                                        instPort.macAddress(),
-                                                        instPort.ipAddress());
+                        instPortRemoved(instPort);
 
-                    eventExecutor.execute(() -> instPortDetected(instPort));
+                        Port osPort = osNetworkService.port(instPort.portId());
 
-                    if (osPort != null) {
-                        eventExecutor.execute(() ->
-                                setPortBlockRules(instPort, !osPort.isAdminStateUp()));
-                    }
+                        if (osPort != null) {
+                            setPortBlockRules(instPort, false);
+                        }
+                    });
 
                     break;
                 case OPENSTACK_INSTANCE_MIGRATION_ENDED:
@@ -755,7 +773,14 @@ public final class OpenstackSwitchingHandler {
                                                         instPort.ipAddress());
 
                     InstancePort revisedInstPort = swapStaleLocation(instPort);
-                    eventExecutor.execute(() -> removeVportRules(revisedInstPort));
+                    eventExecutor.execute(() -> {
+
+                        if (!isRelevantHelper(event)) {
+                            return;
+                        }
+
+                        removeVportRules(revisedInstPort);
+                    });
 
                     break;
                 default:
@@ -778,18 +803,15 @@ public final class OpenstackSwitchingHandler {
 
         @Override
         public boolean isRelevant(OpenstackNetworkEvent event) {
+            return event.subject() != null && event.port() != null;
+        }
 
-            // do not allow to proceed without leadership
-            NodeId leader = leadershipService.getLeader(appId.name());
-            return Objects.equals(localNodeId, leader);
+        private boolean isRelevantHelper() {
+            return Objects.equals(localNodeId, leadershipService.getLeader(appId.name()));
         }
 
         @Override
         public void event(OpenstackNetworkEvent event) {
-
-            if (event.subject() == null || event.port() == null) {
-                return;
-            }
 
             boolean isNwAdminStateUp = event.subject().isAdminStateUp();
             boolean isPortAdminStateUp = event.port().isAdminStateUp();
@@ -799,17 +821,33 @@ public final class OpenstackSwitchingHandler {
             switch (event.type()) {
                 case OPENSTACK_NETWORK_CREATED:
                 case OPENSTACK_NETWORK_UPDATED:
-                    eventExecutor.execute(() ->
-                            setNetworkBlockRules(event.subject(), !isNwAdminStateUp));
+                    eventExecutor.execute(() -> {
 
+                        if (!isRelevantHelper()) {
+                            return;
+                        }
+
+                        setNetworkBlockRules(event.subject(), !isNwAdminStateUp);
+                    });
                     break;
                 case OPENSTACK_NETWORK_REMOVED:
-                    eventExecutor.execute(() ->
-                            setNetworkBlockRules(event.subject(), false));
+                    eventExecutor.execute(() -> {
+
+                        if (!isRelevantHelper()) {
+                            return;
+                        }
+
+                        setNetworkBlockRules(event.subject(), false);
+                    });
                     break;
                 case OPENSTACK_PORT_CREATED:
                 case OPENSTACK_PORT_UPDATED:
                     eventExecutor.execute(() -> {
+
+                        if (!isRelevantHelper()) {
+                            return;
+                        }
+
                         InstancePort instPort = instancePortService.instancePort(portId);
                         if (instPort != null) {
                             setPortBlockRules(instPort, !isPortAdminStateUp);
@@ -818,6 +856,11 @@ public final class OpenstackSwitchingHandler {
                     break;
                 case OPENSTACK_PORT_REMOVED:
                     eventExecutor.execute(() -> {
+
+                        if (!isRelevantHelper()) {
+                            return;
+                        }
+
                         InstancePort instPort = instancePortService.instancePort(portId);
                         if (instPort != null) {
                             setPortBlockRules(instPort, false);

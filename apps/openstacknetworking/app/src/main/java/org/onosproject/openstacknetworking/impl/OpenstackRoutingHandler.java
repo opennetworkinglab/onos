@@ -950,11 +950,8 @@ public class OpenstackRoutingHandler {
 
     private class InternalRouterEventListener implements OpenstackRouterListener {
 
-        @Override
-        public boolean isRelevant(OpenstackRouterEvent event) {
-            // do not allow to proceed without leadership
-            NodeId leader = leadershipService.getLeader(appId.name());
-            return Objects.equals(localNodeId, leader);
+        private boolean isRelevantHelper() {
+            return Objects.equals(localNodeId, leadershipService.getLeader(appId.name()));
         }
 
         // FIXME only one leader in the cluster should process
@@ -965,27 +962,53 @@ public class OpenstackRoutingHandler {
                     log.debug("Router(name:{}, ID:{}) is created",
                             event.subject().getName(),
                             event.subject().getId());
-                    eventExecutor.execute(() -> routerUpdated(event.subject()));
+                    eventExecutor.execute(() -> {
+
+                        if (!isRelevantHelper()) {
+                            return;
+                        }
+
+                        routerUpdated(event.subject());
+                    });
                     break;
                 case OPENSTACK_ROUTER_UPDATED:
                     log.debug("Router(name:{}, ID:{}) is updated",
                             event.subject().getName(),
                             event.subject().getId());
-                    eventExecutor.execute(() -> routerUpdated(event.subject()));
+                    eventExecutor.execute(() -> {
+
+                        if (!isRelevantHelper()) {
+                            return;
+                        }
+
+                        routerUpdated(event.subject());
+                    });
                     break;
                 case OPENSTACK_ROUTER_REMOVED:
                     log.debug("Router(name:{}, ID:{}) is removed",
                             event.subject().getName(),
                             event.subject().getId());
-                    eventExecutor.execute(() -> routerRemove(event.subject()));
+                    eventExecutor.execute(() -> {
+
+                        if (!isRelevantHelper()) {
+                            return;
+                        }
+
+                        routerRemove(event.subject());
+                    });
                     break;
                 case OPENSTACK_ROUTER_INTERFACE_ADDED:
                     log.debug("Router interface {} added to router {}",
                             event.routerIface().getPortId(),
                             event.routerIface().getId());
-                    eventExecutor.execute(() -> routerIfaceAdded(
-                            event.subject(),
-                            event.routerIface()));
+                    eventExecutor.execute(() -> {
+
+                        if (!isRelevantHelper()) {
+                            return;
+                        }
+
+                        routerIfaceAdded(event.subject(), event.routerIface());
+                    });
                     break;
                 case OPENSTACK_ROUTER_INTERFACE_UPDATED:
                     log.debug("Router interface {} on {} updated",
@@ -996,9 +1019,14 @@ public class OpenstackRoutingHandler {
                     log.debug("Router interface {} removed from router {}",
                             event.routerIface().getPortId(),
                             event.routerIface().getId());
-                    eventExecutor.execute(() -> routerIfaceRemoved(
-                            event.subject(),
-                            event.routerIface()));
+                    eventExecutor.execute(() -> {
+
+                        if (!isRelevantHelper()) {
+                            return;
+                        }
+
+                        routerIfaceRemoved(event.subject(), event.routerIface());
+                    });
                     break;
                 case OPENSTACK_ROUTER_GATEWAY_ADDED:
                     log.debug("Router external gateway {} added",
@@ -1022,11 +1050,8 @@ public class OpenstackRoutingHandler {
 
     private class InternalNodeEventListener implements OpenstackNodeListener {
 
-        @Override
-        public boolean isRelevant(OpenstackNodeEvent event) {
-            // do not allow to proceed without leadership
-            NodeId leader = leadershipService.getLeader(appId.name());
-            return Objects.equals(localNodeId, leader);
+        private boolean isRelevantHelper() {
+            return Objects.equals(localNodeId, leadershipService.getLeader(appId.name()));
         }
 
         @Override
@@ -1040,6 +1065,11 @@ public class OpenstackRoutingHandler {
                 case OPENSTACK_NODE_REMOVED:
                     eventExecutor.execute(() -> {
                         log.info("Reconfigure routers for {}", osNode.hostname());
+
+                        if (!isRelevantHelper()) {
+                            return;
+                        }
+
                         reconfigureRouters();
                     });
                     break;
@@ -1061,10 +1091,8 @@ public class OpenstackRoutingHandler {
 
     private class InternalInstancePortListener implements InstancePortListener {
 
-        @Override
-        public boolean isRelevant(InstancePortEvent event) {
-            InstancePort instPort = event.subject();
-            return mastershipService.isLocalMaster(instPort.deviceId());
+        private boolean isRelevantHelper(InstancePortEvent event) {
+            return mastershipService.isLocalMaster(event.subject().deviceId());
         }
 
         @Override
@@ -1077,7 +1105,14 @@ public class OpenstackRoutingHandler {
                                                             instPort.macAddress(),
                                                             instPort.ipAddress());
 
-                    eventExecutor.execute(() -> instPortDetected(event.subject()));
+                    eventExecutor.execute(() -> {
+
+                        if (!isRelevantHelper(event)) {
+                            return;
+                        }
+
+                        instPortDetected(event.subject());
+                    });
 
                     break;
                 case OPENSTACK_INSTANCE_PORT_VANISHED:
@@ -1085,7 +1120,14 @@ public class OpenstackRoutingHandler {
                                                             instPort.macAddress(),
                                                             instPort.ipAddress());
 
-                    eventExecutor.execute(() -> instPortRemoved(event.subject()));
+                    eventExecutor.execute(() -> {
+
+                        if (!isRelevantHelper(event)) {
+                            return;
+                        }
+
+                        instPortRemoved(event.subject());
+                    });
 
                     break;
                 case OPENSTACK_INSTANCE_MIGRATION_STARTED:
@@ -1093,7 +1135,14 @@ public class OpenstackRoutingHandler {
                                                             instPort.macAddress(),
                                                             instPort.ipAddress());
 
-                    eventExecutor.execute(() -> instPortDetected(instPort));
+                    eventExecutor.execute(() -> {
+
+                        if (!isRelevantHelper(event)) {
+                            return;
+                        }
+
+                        instPortDetected(instPort);
+                    });
 
                     break;
                 case OPENSTACK_INSTANCE_MIGRATION_ENDED:

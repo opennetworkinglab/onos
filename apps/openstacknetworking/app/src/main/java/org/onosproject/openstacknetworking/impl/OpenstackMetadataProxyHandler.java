@@ -18,11 +18,6 @@ package org.onosproject.openstacknetworking.impl;
 
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang.StringUtils;
-import org.osgi.service.component.annotations.Activate;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Deactivate;
-import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.apache.http.Header;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpMessage;
@@ -70,13 +65,21 @@ import org.onosproject.openstacknode.api.OpenstackNodeEvent;
 import org.onosproject.openstacknode.api.OpenstackNodeListener;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
 import org.openstack4j.model.network.Port;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
+import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.openstacknetworking.api.Constants.DHCP_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_DHCP_RULE;
 import static org.onosproject.openstacknetworking.impl.OpenstackMetadataProxyHandler.Http.Type.RESPONSE;
@@ -145,6 +148,8 @@ public class OpenstackMetadataProxyHandler {
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected OpenstackFlowRuleService osFlowRuleService;
 
+    private final ExecutorService eventExecutor = newSingleThreadExecutor(
+            groupedThreads(this.getClass().getSimpleName(), "event-handler", log));
     private final PacketProcessor packetProcessor = new InternalPacketProcessor();
     private final OpenstackNodeListener osNodeListener = new InternalNodeEventListener();
 
@@ -169,6 +174,7 @@ public class OpenstackMetadataProxyHandler {
         packetService.removeProcessor(packetProcessor);
         osNodeService.removeListener(osNodeListener);
         leadershipService.withdraw(appId.name());
+        eventExecutor.shutdown();
 
         log.info("Stopped");
     }
@@ -178,11 +184,12 @@ public class OpenstackMetadataProxyHandler {
         @Override
         public void process(PacketContext context) {
 
-            if (!useMetadataProxy()) {
+            if (context.isHandled()) {
                 return;
             }
 
-            if (context.isHandled()) {
+            // FIXME: need to find a way to spawn a new thread to check metadata proxy mode
+            if (!useMetadataProxy()) {
                 return;
             }
 
@@ -226,41 +233,48 @@ public class OpenstackMetadataProxyHandler {
             byte[] byteData = data.getData();
 
             if (byteData.length != 0) {
-                HttpRequest request = parseHttpRequest(byteData);
-                ConnectPoint cp = context.inPacket().receivedFrom();
-                InstancePort instPort = instancePortService.instancePort(cp.deviceId(), cp.port());
+                eventExecutor.execute(() -> {
+                    processHttpRequest(context, ethPacket, ipv4Packet, tcpPacket, byteData);
+                });
+            }
+        }
 
-                if (instPort == null || request == null) {
-                    log.warn("Cannot send metadata request due to lack of information");
-                    return;
-                }
+        private void processHttpRequest(PacketContext context, Ethernet ethPacket,
+                                        IPv4 ipv4Packet, TCP tcpPacket, byte[] byteData) {
+            HttpRequest request = parseHttpRequest(byteData);
+            ConnectPoint cp = context.inPacket().receivedFrom();
+            InstancePort instPort = instancePortService.instancePort(cp.deviceId(), cp.port());
 
-                // attempt to send HTTP request to the meta-data server (nova-api),
-                // obtain the HTTP response, relay the response to VM through packet-out
-                CloseableHttpResponse proxyResponse = proxyHttpRequest(request, instPort);
+            if (instPort == null || request == null) {
+                log.warn("Cannot send metadata request due to lack of information");
+                return;
+            }
 
-                if (proxyResponse == null) {
-                    log.warn("No response was received from metadata server");
-                    return;
-                }
+            // attempt to send HTTP request to the meta-data server (nova-api),
+            // obtain the HTTP response, relay the response to VM through packet-out
+            CloseableHttpResponse proxyResponse = proxyHttpRequest(request, instPort);
 
-                HttpResponse response = new BasicHttpResponse(proxyResponse.getStatusLine());
-                response.setEntity(proxyResponse.getEntity());
-                response.setHeaders(proxyResponse.getAllHeaders());
+            if (proxyResponse == null) {
+                log.warn("No response was received from metadata server");
+                return;
+            }
 
-                Http httpResponse = new Http();
-                httpResponse.setType(RESPONSE);
-                httpResponse.setMessage(response);
+            HttpResponse response = new BasicHttpResponse(proxyResponse.getStatusLine());
+            response.setEntity(proxyResponse.getEntity());
+            response.setHeaders(proxyResponse.getAllHeaders());
 
-                TCP tcpReply = buildTcpDataPacket(tcpPacket, byteData.length, response);
-                Ethernet ethReply = buildEthFrame(ethPacket, ipv4Packet, tcpReply);
-                sendReply(context, ethReply);
+            Http httpResponse = new Http();
+            httpResponse.setType(RESPONSE);
+            httpResponse.setMessage(response);
 
-                try {
-                    proxyResponse.close();
-                } catch (IOException e) {
-                    log.warn("Failed to close the response connection due to {}", e);
-                }
+            TCP tcpReply = buildTcpDataPacket(tcpPacket, byteData.length, response);
+            Ethernet ethReply = buildEthFrame(ethPacket, ipv4Packet, tcpReply);
+            sendReply(context, ethReply);
+
+            try {
+                proxyResponse.close();
+            } catch (IOException e) {
+                log.warn("Failed to close the response connection due to {}", e);
             }
         }
 
@@ -523,10 +537,12 @@ public class OpenstackMetadataProxyHandler {
     private class InternalNodeEventListener implements OpenstackNodeListener {
         @Override
         public boolean isRelevant(OpenstackNodeEvent event) {
-            // do not allow to proceed without leadership
-            NodeId leader = leadershipService.getLeader(appId.name());
-            return Objects.equals(localNodeId, leader) &&
-                    event.subject().type() == COMPUTE && useMetadataProxy();
+            return event.subject().type() == COMPUTE;
+        }
+
+        private boolean isRelevantHelper() {
+            return Objects.equals(localNodeId, leadershipService.getLeader(appId.name()))
+                    && useMetadataProxy();
         }
 
         @Override
@@ -534,10 +550,28 @@ public class OpenstackMetadataProxyHandler {
             OpenstackNode osNode = event.subject();
             switch (event.type()) {
                 case OPENSTACK_NODE_COMPLETE:
-                    setMetadataRule(osNode, true);
+
+                    eventExecutor.execute(() -> {
+
+                        if (!isRelevantHelper()) {
+                            return;
+                        }
+
+                        setMetadataRule(osNode, true);
+                    });
+
                     break;
                 case OPENSTACK_NODE_INCOMPLETE:
-                    setMetadataRule(osNode, false);
+
+                    eventExecutor.execute(() -> {
+
+                        if (!isRelevantHelper()) {
+                            return;
+                        }
+
+                        setMetadataRule(osNode, false);
+                    });
+
                     break;
                 case OPENSTACK_NODE_CREATED:
                 case OPENSTACK_NODE_UPDATED:

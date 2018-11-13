@@ -181,9 +181,11 @@ public class OpenstackRoutingIcmpHandler {
     private class InternalNodeEventListener implements OpenstackNodeListener {
         @Override
         public boolean isRelevant(OpenstackNodeEvent event) {
-            // do not allow to proceed without leadership
-            NodeId leader = leadershipService.getLeader(appId.name());
-            return Objects.equals(localNodeId, leader) && event.subject().type() == GATEWAY;
+            return event.subject().type() == GATEWAY;
+        }
+
+        private boolean isRelevantHelper() {
+            return Objects.equals(localNodeId, leadershipService.getLeader(appId.name()));
         }
 
         @Override
@@ -191,10 +193,24 @@ public class OpenstackRoutingIcmpHandler {
             OpenstackNode osNode = event.subject();
             switch (event.type()) {
                 case OPENSTACK_NODE_COMPLETE:
-                    eventExecutor.execute(() -> setIcmpReplyRules(osNode.intgBridge(), true));
+                    eventExecutor.execute(() -> {
+
+                        if (!isRelevantHelper()) {
+                            return;
+                        }
+
+                        setIcmpReplyRules(osNode.intgBridge(), true);
+                    });
                     break;
                 case OPENSTACK_NODE_INCOMPLETE:
-                    eventExecutor.execute(() -> setIcmpReplyRules(osNode.intgBridge(), false));
+                    eventExecutor.execute(() -> {
+
+                        if (!isRelevantHelper()) {
+                            return;
+                        }
+
+                        setIcmpReplyRules(osNode.intgBridge(), false);
+                    });
                     break;
                 default:
                     break;
@@ -233,12 +249,8 @@ public class OpenstackRoutingIcmpHandler {
             }
 
             eventExecutor.execute(() -> {
-                Set<DeviceId> gateways = osNodeService.completeNodes(GATEWAY)
-                        .stream().map(OpenstackNode::intgBridge)
-                        .collect(Collectors.toSet());
 
-                if (!gateways.isEmpty() &&
-                        !gateways.contains(context.inPacket().receivedFrom().deviceId())) {
+                if (!isRelevantHelper(context)) {
                     return;
                 }
 
@@ -254,6 +266,14 @@ public class OpenstackRoutingIcmpHandler {
                     processIcmpPacket(context, ethernet);
                 }
             });
+        }
+
+        private boolean isRelevantHelper(PacketContext context) {
+            Set<DeviceId> gateways = osNodeService.completeNodes(GATEWAY)
+                    .stream().map(OpenstackNode::intgBridge)
+                    .collect(Collectors.toSet());
+
+            return gateways.contains(context.inPacket().receivedFrom().deviceId());
         }
 
         private void processIcmpPacket(PacketContext context, Ethernet ethernet) {

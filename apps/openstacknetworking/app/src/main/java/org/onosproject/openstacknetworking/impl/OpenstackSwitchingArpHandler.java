@@ -566,11 +566,10 @@ public final class OpenstackSwitchingArpHandler {
 
         @Override
         public boolean isRelevant(OpenstackNetworkEvent event) {
-            Subnet osSubnet = event.subnet();
-            if (osSubnet == null) {
-                return false;
-            }
+            return event.subnet() != null;
+        }
 
+        private boolean isRelevantHelper(Subnet osSubnet) {
             Network network = osNetworkService.network(osSubnet.getNetworkId());
 
             if (network == null) {
@@ -597,11 +596,21 @@ public final class OpenstackSwitchingArpHandler {
                 case OPENSTACK_SUBNET_CREATED:
                 case OPENSTACK_SUBNET_UPDATED:
                     eventExecutor.execute(() -> {
+
+                        if (!isRelevantHelper(event.subnet())) {
+                            return;
+                        }
+
                         setFakeGatewayArpRule(event.subnet(), true, null);
                     });
                     break;
                 case OPENSTACK_SUBNET_REMOVED:
                     eventExecutor.execute(() -> {
+
+                        if (!isRelevantHelper(event.subnet())) {
+                            return;
+                        }
+
                         setFakeGatewayArpRule(event.subnet(), false, null);
                     });
                     break;
@@ -624,13 +633,8 @@ public final class OpenstackSwitchingArpHandler {
      * default ARP rule to handle ARP request.
      */
     private class InternalNodeEventListener implements OpenstackNodeListener {
-
-        @Override
-        public boolean isRelevant(OpenstackNodeEvent event) {
-
-            // do not allow to proceed without leadership
-            NodeId leader = leadershipService.getLeader(appId.name());
-            return Objects.equals(localNodeId, leader) && event.subject().type() == COMPUTE;
+        private boolean isRelevantHelper() {
+            return Objects.equals(localNodeId, leadershipService.getLeader(appId.name()));
         }
 
         @Override
@@ -639,12 +643,22 @@ public final class OpenstackSwitchingArpHandler {
             switch (event.type()) {
                 case OPENSTACK_NODE_COMPLETE:
                     eventExecutor.execute(() -> {
+
+                        if (!isRelevantHelper()) {
+                            return;
+                        }
+
                         setDefaultArpRule(osNode, true);
                         setAllArpRules(osNode, true);
                     });
                     break;
                 case OPENSTACK_NODE_INCOMPLETE:
                     eventExecutor.execute(() -> {
+
+                        if (!isRelevantHelper()) {
+                            return;
+                        }
+
                         setDefaultArpRule(osNode, false);
                         setAllArpRules(osNode, false);
                     });
@@ -749,13 +763,11 @@ public final class OpenstackSwitchingArpHandler {
 
         @Override
         public boolean isRelevant(InstancePortEvent event) {
+            return ARP_BROADCAST_MODE.equals(getArpMode());
+        }
 
-            if (ARP_PROXY_MODE.equals(getArpMode())) {
-                return false;
-            }
-
-            InstancePort instPort = event.subject();
-            return mastershipService.isLocalMaster(instPort.deviceId());
+        private boolean isRelevantHelper(InstancePortEvent event) {
+            return mastershipService.isLocalMaster(event.subject().deviceId());
         }
 
         @Override
@@ -763,25 +775,35 @@ public final class OpenstackSwitchingArpHandler {
             switch (event.type()) {
                 case OPENSTACK_INSTANCE_PORT_DETECTED:
                 case OPENSTACK_INSTANCE_PORT_UPDATED:
+                case OPENSTACK_INSTANCE_MIGRATION_STARTED:
                     eventExecutor.execute(() -> {
+
+                        if (!isRelevantHelper(event)) {
+                            return;
+                        }
+
                         setArpRequestRule(event.subject(), true);
                         setArpReplyRule(event.subject(), true);
                     });
                     break;
                 case OPENSTACK_INSTANCE_PORT_VANISHED:
                     eventExecutor.execute(() -> {
+
+                        if (!isRelevantHelper(event)) {
+                            return;
+                        }
+
                         setArpRequestRule(event.subject(), false);
                         setArpReplyRule(event.subject(), false);
                     });
                     break;
-                case OPENSTACK_INSTANCE_MIGRATION_STARTED:
-                    eventExecutor.execute(() -> {
-                        setArpRequestRule(event.subject(), true);
-                        setArpReplyRule(event.subject(), true);
-                    });
-                    break;
                 case OPENSTACK_INSTANCE_MIGRATION_ENDED:
                     eventExecutor.execute(() -> {
+
+                        if (!isRelevantHelper(event)) {
+                            return;
+                        }
+
                         InstancePort revisedInstPort = swapStaleLocation(event.subject());
                         setArpRequestRule(revisedInstPort, false);
                     });

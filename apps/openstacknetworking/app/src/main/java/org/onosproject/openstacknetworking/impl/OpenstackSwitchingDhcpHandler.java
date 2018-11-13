@@ -91,7 +91,6 @@ import static org.onosproject.openstacknetworking.api.Constants.DHCP_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_DHCP_RULE;
 import static org.onosproject.openstacknetworking.impl.OsgiPropertyConstants.DHCP_SERVER_MAC;
 import static org.onosproject.openstacknetworking.impl.OsgiPropertyConstants.DHCP_SERVER_MAC_DEFAULT;
-import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -546,11 +545,8 @@ public class OpenstackSwitchingDhcpHandler {
     }
 
     private class InternalNodeEventListener implements OpenstackNodeListener {
-        @Override
-        public boolean isRelevant(OpenstackNodeEvent event) {
-            // do not allow to proceed without leadership
-            NodeId leader = leadershipService.getLeader(appId.name());
-            return Objects.equals(localNodeId, leader) && event.subject().type() == COMPUTE;
+        private boolean isRelevantHelper() {
+            return Objects.equals(localNodeId, leadershipService.getLeader(appId.name()));
         }
 
         @Override
@@ -558,10 +554,24 @@ public class OpenstackSwitchingDhcpHandler {
             OpenstackNode osNode = event.subject();
             switch (event.type()) {
                 case OPENSTACK_NODE_COMPLETE:
-                    eventExecutor.execute(() -> setDhcpRule(osNode, true));
+                    eventExecutor.execute(() -> {
+
+                        if (!isRelevantHelper()) {
+                            return;
+                        }
+
+                        setDhcpRule(osNode, true);
+                    });
                     break;
                 case OPENSTACK_NODE_INCOMPLETE:
-                    eventExecutor.execute(() -> setDhcpRule(osNode, false));
+                    eventExecutor.execute(() -> {
+
+                        if (!isRelevantHelper()) {
+                            return;
+                        }
+
+                        setDhcpRule(osNode, false);
+                    });
                     break;
                 case OPENSTACK_NODE_CREATED:
                 case OPENSTACK_NODE_UPDATED:
