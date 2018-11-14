@@ -47,6 +47,7 @@ import org.slf4j.Logger;
 
 import java.nio.ByteBuffer;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -332,7 +333,8 @@ public class LinkDiscovery implements TimerTask {
                                                 DeviceService deviceService,
                                                 Device remoteDevice) {
         Optional<Port> remotePort = deviceService.getPorts(remoteDevice.id())
-                .stream().filter(port -> remotePortName.equals(port.annotations().value(AnnotationKeys.PORT_NAME)))
+                .stream().filter(port -> Objects.equals(remotePortName,
+                                                        port.annotations().value(AnnotationKeys.PORT_NAME)))
                 .findAny();
 
         if (remotePort.isPresent()) {
