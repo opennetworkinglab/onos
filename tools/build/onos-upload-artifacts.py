@@ -63,22 +63,25 @@ def generate_metadata_files(input_file, dest):
 
     files = []
 
-    # generate the signature file
-    signature_filename = base_metadata_filename + ".asc"
-    call(["gpg", "--armor", "--detach-sig", "--output", signature_filename,  input_file])
-    files.append(signature_filename)
+    if destination_repo_url is not None:
+        # generate maven metadata files: signature, MD5, and SHA
 
-    # generate the md5 checksum file
-    md5_filename = base_metadata_filename + ".md5"
-    md5 = hashlib.md5()
-    hashlib_compute(md5, input_file, md5_filename)
-    files.append(md5_filename)
+        # generate the signature file
+        signature_filename = base_metadata_filename + ".asc"
+        call(["gpg", "--armor", "--detach-sig", "--output", signature_filename,  input_file])
+        files.append(signature_filename)
 
-    # generate the SHA checksum file
-    sha1_filename = base_metadata_filename + ".sha1"
-    sha1 = hashlib.sha1()
-    hashlib_compute(sha1, input_file, sha1_filename)
-    files.append(sha1_filename)
+        # generate the md5 checksum file
+        md5_filename = base_metadata_filename + ".md5"
+        md5 = hashlib.md5()
+        hashlib_compute(md5, input_file, md5_filename)
+        files.append(md5_filename)
+
+        # generate the SHA checksum file
+        sha1_filename = base_metadata_filename + ".sha1"
+        sha1 = hashlib.sha1()
+        hashlib_compute(sha1, input_file, sha1_filename)
+        files.append(sha1_filename)
 
     # generate the base artifact
     base_artifact_filename = base_metadata_filename
