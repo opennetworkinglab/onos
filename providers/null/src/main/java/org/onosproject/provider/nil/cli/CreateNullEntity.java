@@ -17,7 +17,6 @@ package org.onosproject.provider.nil.cli;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Longs;
-import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.util.Tools;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.ConnectPoint;
@@ -34,7 +33,6 @@ import java.util.Objects;
 /**
  * Base command for adding simulated entities to the custom topology simulation.
  */
-@Service
 public abstract class CreateNullEntity extends AbstractShellCommand {
 
     protected static final String GEO = "geo";
