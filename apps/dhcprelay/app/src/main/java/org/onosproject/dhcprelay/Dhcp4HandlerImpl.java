@@ -120,7 +120,6 @@ import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.flowobjective.Objective.Operation.ADD;
 import static org.onosproject.net.flowobjective.Objective.Operation.REMOVE;
 
-
 @Component
 @Service
 @Property(name = "version", value = "4")
@@ -1183,19 +1182,40 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
             etherReply.setDestinationMACAddress(dhcpPayload.getClientHardwareAddress());
         }
 
-        // we leave the srcMac from the original packet
-        // figure out the relay agent IP corresponding to the original request
         Ip4Address ipFacingClient = getFirstIpFromInterface(clientInterface);
-        if (ipFacingClient == null) {
-            log.warn("Cannot determine relay agent interface Ipv4 addr for host {}/{}. "
-                             + "Aborting relay for dhcp packet from server {}",
-                     etherReply.getDestinationMAC(), clientInterface.vlan(),
-                     ethernetPacket);
-            return null;
+        if (directlyConnected(dhcpPayload)) {
+            // we leave the srcMac from the original packet
+            // figure out the relay agent IP corresponding to the original request
+            if (ipFacingClient == null) {
+                log.warn("Cannot determine relay agent interface Ipv4 addr for host {}/{}. "
+                                + "Aborting relay for dhcp packet from server {}",
+                        etherReply.getDestinationMAC(), clientInterface.vlan(),
+                        ethernetPacket);
+                return null;
+            }
+            // SRC_IP: IP facing client
+            ipv4Packet.setSourceAddress(ipFacingClient.toInt());
+        } else {
+            // Get the IP address of the relay agent
+            Ip4Address relayAgentIp = foundServerInfo
+                .getRelayAgentIp4(clientInterface.connectPoint().deviceId()).orElse(null);
+            if (relayAgentIp == null) {
+                if (ipFacingClient == null) {
+                    log.warn("Cannot determine relay agent interface Ipv4 addr for host {}/{}. "
+                                    + "Aborting relay for dhcp packet from server for indirect host {}",
+                            etherReply.getDestinationMAC(), clientInterface.vlan(),
+                            ethernetPacket);
+                    return null;
+               } else {
+                    // SRC_IP: IP facing client
+                    ipv4Packet.setSourceAddress(ipFacingClient.toInt());
+                }
+            } else {
+                // SRC_IP: relay agent IP
+                ipv4Packet.setSourceAddress(relayAgentIp.toInt());
+            }
         }
-        // SRC_IP: relay agent IP
         // DST_IP: offered IP
-        ipv4Packet.setSourceAddress(ipFacingClient.toInt());
         if (((int) dhcpPayload.getFlags() & 0x8000) == 0x0000) {
             ipv4Packet.setDestinationAddress(dhcpPayload.getYourIPAddress());
         } else {
@@ -1520,7 +1540,6 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
             log.debug("Invalid circuit {}, use information from dhcp payload",
                       circuitIdSubOption.getData());
         }
-
         // Use Vlan Id from DHCP server if DHCP relay circuit id was not
         // sent by ONOS or circuit Id can't be parsed
         // TODO: remove relay store from this method
@@ -1531,7 +1550,6 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
             log.debug("not find the matching DHCP record for mac: {} and vlan: {}", dstMac, originalPacketVlanId);
             return Optional.empty();
         }
-
         Optional<DhcpRecord> dhcpRecord = dhcpRelayStore.getDhcpRecord(HostId.hostId(dstMac, filteredVlanId));
         ConnectPoint clientConnectPoint = dhcpRecord
                 .map(DhcpRecord::locations)
@@ -1591,8 +1609,6 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
         return null;
 
     }
-
-
 
     /**
      * Send the response DHCP to the requester host.
@@ -1866,7 +1882,6 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
         return validServerInfo;
     }
 
-
     private boolean checkDhcpServerConnPt(boolean directConnFlag,
                                           DhcpServerInfo serverInfo) {
         if (serverInfo.getDhcpServerConnectPoint() == null) {
@@ -1967,7 +1982,6 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
             packetService.emit(o);
         }
     }
-
 
     private DhcpServerInfo findServerInfoFromServer(boolean directConnFlag, ConnectPoint inPort) {
         List<DhcpServerInfo> validServerInfoList = findValidServerInfo(directConnFlag);
