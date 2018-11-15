@@ -19,8 +19,15 @@ import org.osgi.service.component.annotations.Component;
 import org.onosproject.net.driver.AbstractDriverLoader;
 import org.onosproject.odtn.behaviour.ConfigurableTransceiver;
 
+
+import org.onosproject.net.optical.OpticalDevice;
+
 @Component(immediate = true)
 public class OdtnDriversLoader extends AbstractDriverLoader {
+
+    // OSGI: help bundle plugin discover runtime package dependency.
+    @SuppressWarnings("unused")
+    private OpticalDevice optical;
 
     // for injecting package dependencies for OSGi/BND
     ConfigurableTransceiver transceiver;

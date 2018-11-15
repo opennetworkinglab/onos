@@ -176,8 +176,9 @@ public class ServiceApplicationComponent {
                 case PORT_REMOVED:
                     tapiTopologyManager.removePort(event.port());
                     break;
+                // TODO: Process device / port updated events
                 default:
-                    log.warn("Unknown Event", event.type());
+                    log.warn("Unprocessed Event {}", event.type());
                     break;
             }
 
@@ -206,7 +207,7 @@ public class ServiceApplicationComponent {
                     tapiTopologyManager.removeLink(link);
                     break;
                 default:
-                    log.warn("Unknown Event", event.type());
+                    log.warn("Unknown Event {}", event.type());
                     break;
             }
         }

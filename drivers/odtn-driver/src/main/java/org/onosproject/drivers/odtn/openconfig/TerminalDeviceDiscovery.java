@@ -32,6 +32,7 @@ import java.util.concurrent.CompletableFuture;
 
 import org.onlab.packet.ChassisId;
 
+
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.configuration.tree.xpath.XPathExpressionEngine;
@@ -54,6 +55,10 @@ import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.Port.Type;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.OchSignal;
+import org.onosproject.net.optical.device.OchPortHelper;
+import org.onosproject.net.OduSignalType;
+import org.onosproject.net.ChannelSpacing;
 
 import org.onosproject.netconf.NetconfController;
 import org.onosproject.netconf.NetconfDevice;
@@ -189,33 +194,6 @@ public class TerminalDeviceDiscovery
         filter.append(" </component>");
         filter.append("</components>");
         return filteredGetBuilder(filter.toString());
-        /* I am not sure the alternative method is more efficient
-           try {
-           DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-           DocumentBuilder db = dbf.newDocumentBuilder();
-           Document doc = db.newDocument();
-           Element rpc = doc.createElementNS("urn:ietf:params:xml:ns:netconf:base:1.0", "rpc");
-           Element get = doc.createElement("get");
-           Element rpc = doc.createElement("rpc");
-           Element components = doc.createElementNS("http://openconfig.net/yang/platform", "components");
-           Element component = doc.createElement("component");
-           Element state = doc.createElement("state");
-           Element type  = doc.createElement("type");
-           type.setAttributeNS("http://www.w3.org/2000/xmlns/",
-           "xmlns:oc-platform-types", "http://openconfig.net/yang/platform-types");
-           type.appendChild(doc.createTextNode("oc-platform-types:OPERATING_SYSTEM"));
-           state.appendChild(type);
-           component.appendChild(state);
-           components.appendChild(component);
-           rpc.appendChild(components);
-           get.appendChild(rpc);
-           rpc.appendChild(get);
-           doc.appendChild(rpc);
-           return NetconfRpcParserUtil.toString(doc);
-           } catch (Exception e) {
-           throw new IllegalStateException(new NetconfException("Exception in getDeviceDetailsBuilder", e));
-           }
-         */
     }
 
 
@@ -226,7 +204,8 @@ public class TerminalDeviceDiscovery
      *    /components/
      */
     private String getDeviceComponentsBuilder() {
-        return filteredGetBuilder("<components xmlns='http://openconfig.net/yang/platform'/>");
+        return filteredGetBuilder(
+            "<components xmlns='http://openconfig.net/yang/platform'/>");
     }
 
 
@@ -282,8 +261,8 @@ public class TerminalDeviceDiscovery
 
         // Some defaults
         String vendor       = "NOVENDOR";
-        String hwVersion    = "0.1.1";
-        String swVersion    = "0.1.1";
+        String hwVersion    = "0.2.1";
+        String swVersion    = "0.2.1";
         String serialNumber = "0xCAFEBEEF";
         String chassisId    = "128";
 
@@ -312,9 +291,9 @@ public class TerminalDeviceDiscovery
         log.info("CHASSISID {}", chassisId);
         ChassisId cid = new ChassisId(Long.valueOf(chassisId, 10));
         return new DefaultDeviceDescription(did().uri(),
-                type, vendor, hwVersion, swVersion, serialNumber,
-                cid, defaultAvailable, annotations);
-    }
+                    type, vendor, hwVersion, swVersion, serialNumber,
+                    cid, defaultAvailable, annotations);
+        }
 
 
 
@@ -343,22 +322,8 @@ public class TerminalDeviceDiscovery
     @Override
     public List<PortDescription> discoverPortDetails() {
         try {
+            XPathExpressionEngine xpe = new XPathExpressionEngine();
             NetconfSession session = getNetconfSession(did());
-            /*
-            Note: the method may get called before the netconf session is established
-            2018-05-24 14:01:43,607 | INFO
-            event NetworkConfigEvent{time=2018-05-24T14:01:43.602Z, type=CONFIG_ADDED, ....
-            configClass=class org.onosproject.netconf.config.NetconfDeviceConfig
-
-            2018-05-24 14:01:43,623 | INFO  | vice-installer-2 | TerminalDeviceDiscovery
-            TerminalDeviceDiscovery::discoverPortDetails netconf:127.0.0.1:830
-
-            2018-05-24 14:01:43,624 | ERROR | vice-installer-2 | TerminalDeviceDiscovery
-            org.onosproject.onos-drivers-metrohaul - 1.14.0.SNAPSHOT | Exception discoverPortDetails()
-
-            2018-05-24 14:01:43,631 | INFO  | vice-installer-1 | NetconfControllerImpl
-            Creating NETCONF session to netconf:127.0.0.1:830 with apache-mina
-             */
             if (session == null) {
                 log.error("discoverPortDetails called with null session for {}", did());
                 return ImmutableList.of();
@@ -368,7 +333,7 @@ public class TerminalDeviceDiscovery
             String rpcReply = fut.get();
 
             XMLConfiguration xconf = (XMLConfiguration) XmlConfigParser.loadXmlString(rpcReply);
-            xconf.setExpressionEngine(new XPathExpressionEngine());
+            xconf.setExpressionEngine(xpe);
 
             HierarchicalConfiguration components = xconf.configurationAt("data/components");
             return parsePorts(components);
@@ -402,10 +367,8 @@ public class TerminalDeviceDiscovery
         return components.configurationsAt("component")
             .stream()
             .filter(component -> {
-                    return !component.getString("name", "unknown")
-                            .equals("unknown") &&
-                        component.getString("state/type", "unknown")
-                            .equals(OC_PLATFORM_TYPES_PORT);
+                    return !component.getString("name", "unknown").equals("unknown") &&
+                    component.getString("state/type", "unknown").equals(OC_PLATFORM_TYPES_PORT);
                     })
             .map(component -> {
                 try {
@@ -414,7 +377,8 @@ public class TerminalDeviceDiscovery
                 } catch (Exception e) {
                     return null;
                 }
-                })
+            }
+            )
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
     }
@@ -429,19 +393,19 @@ public class TerminalDeviceDiscovery
      *
      * @return true or false
      */
-     private boolean hasSubComponentOfType(
+    private boolean hasSubComponentOfType(
             HierarchicalConfiguration component,
             HierarchicalConfiguration components,
             String type) {
         long count = component.configurationsAt("subcomponents/subcomponent")
             .stream()
             .filter(subcomponent -> {
-                    String scName = subcomponent.getString("name");
-                    StringBuilder sb = new StringBuilder("component[name='");
-                    sb.append(scName);
-                    sb.append("']/state/type");
-                    String scType = components.getString(sb.toString(), "unknown");
-                    return scType.equals(type);
+                        String scName = subcomponent.getString("name");
+                        StringBuilder sb = new StringBuilder("component[name='");
+                        sb.append(scName);
+                        sb.append("']/state/type");
+                        String scType = components.getString(sb.toString(), "unknown");
+                        return scType.equals(type);
                     })
             .count();
         return (count > 0);
@@ -457,88 +421,101 @@ public class TerminalDeviceDiscovery
      *
      * @return true or false
      */
-     private boolean hasOpticalChannelSubComponent(
-             HierarchicalConfiguration component,
-             HierarchicalConfiguration components) {
-         return hasSubComponentOfType(component, components,
-                 OC_TRANSPORT_TYPES_OPTICAL_CHANNEL);
-     }
+    private boolean hasOpticalChannelSubComponent(
+            HierarchicalConfiguration component,
+            HierarchicalConfiguration components) {
+        return hasSubComponentOfType(component, components,
+                OC_TRANSPORT_TYPES_OPTICAL_CHANNEL);
+    }
 
 
-     /**
-      *  Checks if a given component has a subcomponent of type TRANSCEIVER.
-      *
-      * @param component subtree to parse
-      * @param components the full components tree, to cross-ref in
-      *  case we need to check transceivers or optical channels.
-      *
-      * @return true or false
-      */
-     private boolean hasTransceiverSubComponent(
-             HierarchicalConfiguration component,
-             HierarchicalConfiguration components) {
-         return hasSubComponentOfType(component, components,
-                 OC_PLATFORM_TYPES_TRANSCEIVER);
-     }
+    /**
+     *  Checks if a given component has a subcomponent of type TRANSCEIVER.
+     *
+     * @param component subtree to parse
+     * @param components the full components tree, to cross-ref in
+     *  case we need to check transceivers or optical channels.
+     *
+     * @return true or false
+     */
+    private boolean hasTransceiverSubComponent(
+            HierarchicalConfiguration component,
+            HierarchicalConfiguration components) {
+        return hasSubComponentOfType(component, components,
+                OC_PLATFORM_TYPES_TRANSCEIVER);
+    }
 
 
-     /**
-      * Parses a component XML doc into a PortDescription.
-      *
-      * @param component subtree to parse. It must be a component ot type PORT.
-      * @param components the full components tree, to cross-ref in
-      *  case we need to check transceivers or optical channels.
-      *
-      * @return PortDescription or null if component does not have onos-index
-      */
-     private PortDescription parsePortComponent(
-             HierarchicalConfiguration component,
-             HierarchicalConfiguration components) {
-         Map<String, String> annotations = new HashMap<>();
-         String name = component.getString("name");
-         String type = component.getString("state/type");
-         log.info("Parsing Component {} type {}", name, type);
-         annotations.put(OdtnDeviceDescriptionDiscovery.OC_NAME, name);
-         annotations.put(OdtnDeviceDescriptionDiscovery.OC_TYPE, type);
+    /**
+     * Parses a component XML doc into a PortDescription.
+     *
+     * @param component subtree to parse. It must be a component ot type PORT.
+     * @param components the full components tree, to cross-ref in
+     *  case we need to check transceivers or optical channels.
+     *
+     * @return PortDescription or null if component does not have onos-index
+     */
+    private PortDescription parsePortComponent(
+            HierarchicalConfiguration component,
+            HierarchicalConfiguration components) {
+        Map<String, String> annotations = new HashMap<>();
+        String name = component.getString("name");
+        String type = component.getString("state/type");
+        log.info("Parsing Component {} type {}", name, type);
+        annotations.put(OdtnDeviceDescriptionDiscovery.OC_NAME, name);
+        annotations.put(OdtnDeviceDescriptionDiscovery.OC_TYPE, type);
+        // Store all properties as port properties
+        component.configurationsAt("properties/property")
+            .forEach(property -> {
+                    String pn = property.getString("name");
+                    String pv = property.getString("state/value");
+                    annotations.put(pn, pv);
+                    });
 
-         // Store all properties as port properties
-         component.configurationsAt("properties/property")
-             .forEach(property -> {
-                     String pn = property.getString("name");
-                     String pv = property.getString("state/value");
-                     annotations.put(pn, pv);
-                     });
+        // Assing an ONOS port number
+        PortNumber portNum;
+        if (annotations.containsKey(ONOS_PORT_INDEX)) {
+            portNum = PortNumber.portNumber(Long.parseLong(annotations.get(ONOS_PORT_INDEX)));
+        } else {
+            log.warn("PORT {} does not include onos-index, hashing...", name);
+            portNum = PortNumber.portNumber(name.hashCode());
+        }
+        log.debug("PORT {} number {}", name, portNum);
 
-         if (!annotations.containsKey(ONOS_PORT_INDEX)) {
-             log.warn("DEBUG: PORT {} does not include onos-index, skipping", name);
-             return null;
-         }
+        // The heuristic to know if it is client or line side
+        if (!annotations.containsKey(PORT_TYPE)) {
+            if (hasTransceiverSubComponent(component, components)) {
+                annotations.put(PORT_TYPE, OdtnPortType.CLIENT.value());
+            } else if (hasOpticalChannelSubComponent(component, components)) {
+                annotations.put(PORT_TYPE, OdtnPortType.LINE.value());
+            }
+        }
 
-         // The heuristic to know if it is client or line side
-         if (!annotations.containsKey(PORT_TYPE)) {
-             if (hasTransceiverSubComponent(component, components)) {
-                 annotations.put(PORT_TYPE, OdtnPortType.CLIENT.value());
-             } else if (hasOpticalChannelSubComponent(component, components)) {
-                 annotations.put(PORT_TYPE, OdtnPortType.LINE.value());
-             }
-         }
-
-         // Build the port
-         Builder builder = DefaultPortDescription.builder();
-         builder.withPortNumber(PortNumber.portNumber(
-                     Long.parseLong(annotations.get(ONOS_PORT_INDEX)), name));
-         if (annotations.get(PORT_TYPE)
-                 .equals(OdtnPortType.CLIENT.value())) {
-             log.info("Adding CLIENT port");
-             builder.type(Type.PACKET);
-         } else if (annotations.get(PORT_TYPE)
-                 .equals(OdtnPortType.LINE.value())) {
-             log.info("Adding LINE port");
-             builder.type(Type.OCH);
-         } else {
-             log.info("Unknown port added as CLIENT port");
-         }
-         builder.annotations(DefaultAnnotations.builder().putAll(annotations).build());
-         return builder.build();
-     }
+        // Build the port
+        // NOTE: using portNumber(id, name) breaks things. Intent parsing, port resorce management, etc. There seems
+        // to be an issue with resource mapping
+        if (annotations.get(PORT_TYPE)
+                .equals(OdtnPortType.CLIENT.value())) {
+            log.debug("Adding CLIENT port");
+            Builder builder = DefaultPortDescription.builder();
+            builder.type(Type.PACKET);
+            builder.withPortNumber(portNum);
+            builder.annotations(DefaultAnnotations.builder().putAll(annotations).build());
+            return builder.build();
+        }
+        if (annotations.get(PORT_TYPE)
+                .equals(OdtnPortType.LINE.value())) {
+            log.debug("Adding LINE port");
+            // TODO: To be configured
+            OchSignal signalId = OchSignal.newDwdmSlot(ChannelSpacing.CHL_50GHZ, 1);
+            return OchPortHelper.ochPortDescription(
+                    portNum, true,
+                    OduSignalType.ODU4, // TODO Client signal to be discovered
+                    true,
+                    signalId,
+                    DefaultAnnotations.builder().putAll(annotations).build());
+        }
+        log.error("Unknown port type");
+        return null;
+    }
 }

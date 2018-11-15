@@ -3,6 +3,8 @@ COMPILE_DEPS = CORE_DEPS + [
     "//drivers/utilities:onos-drivers-utilities",
     "//protocols/netconf/api:onos-protocols-netconf-api",
     "//apps/odtn/api:onos-apps-odtn-api",
+    "//apps/optical-model:onos-apps-optical-model",
+    "//drivers/optical:onos-drivers-optical",
 ]
 
 TEST_DEPS = TEST_ADAPTERS + [
@@ -31,6 +33,9 @@ onos_app(
         "org.onosproject.netconf",
         "org.onosproject.config",
         "org.onosproject.odtn-api",
+        "org.onosproject.drivers.netconf",
+        "org.onosproject.drivers.optical",
+        "org.onosproject.optical-model",
     ],
     title = "ODTN Driver",
     url = "https://wiki.onosproject.org/display/ODTN/ODTN",
