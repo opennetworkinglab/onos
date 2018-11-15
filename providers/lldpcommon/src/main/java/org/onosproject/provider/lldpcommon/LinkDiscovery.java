@@ -332,6 +332,9 @@ public class LinkDiscovery implements TimerTask {
     private Optional<Port> findSourcePortByName(String remotePortName,
                                                 DeviceService deviceService,
                                                 Device remoteDevice) {
+        if (remotePortName == null) {
+            return Optional.empty();
+        }
         Optional<Port> remotePort = deviceService.getPorts(remoteDevice.id())
                 .stream().filter(port -> Objects.equals(remotePortName,
                                                         port.annotations().value(AnnotationKeys.PORT_NAME)))
