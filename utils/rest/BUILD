@@ -3,6 +3,7 @@ COMPILE_DEPS = COMPILE + JACKSON + [
     "//utils/misc:onlab-misc",
     "@javax_ws_rs_api//jar",
     "@jersey_server//jar",
+    "@jersey_hk2//jar",
 ]
 
 osgi_jar(

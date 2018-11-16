@@ -44,6 +44,7 @@ COMPILE_DEPS = CORE_DEPS + JACKSON + KRYO + [
     "@jetty_util//jar",
     "@jersey_media_multipart//jar",
     "@jersey_server//jar",
+    "@jersey_hk2//jar",
     "//utils/rest:onlab-rest",
     "//core/store/serializers:onos-core-serializers",
 ]
