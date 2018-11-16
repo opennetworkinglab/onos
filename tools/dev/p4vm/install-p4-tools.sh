@@ -3,7 +3,7 @@
 # Builds and installs all tools needed for developing and testing P4 support in
 # ONOS.
 #
-# Tested on Ubuntu 14.04 and 16.04.
+# Tested on Ubuntu 14.04, 16.04 and 18.04.
 #
 # Recommended minimum system requirements:
 # 4 GB of RAM
@@ -75,12 +75,9 @@ function do_requirements {
         libjudy-dev \
         libpcap-dev \
         libpcre3-dev \
-        libreadline6 \
-        libreadline6-dev \
         libssl-dev \
         libtool \
         make \
-        mktemp \
         pkg-config \
         protobuf-c-compiler \
         python2.7 \
@@ -102,7 +99,10 @@ function do_requirements_1404 {
         g++-4.9 \
         gcc-4.9 \
         cmake \
-        libbz2-dev
+        libbz2-dev \
+        libreadline6 \
+        libreadline6-dev \
+        mktemp
 
     # Needed for p4c.
     sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.9 50
@@ -119,6 +119,22 @@ function do_requirements_1604 {
         ca-certificates \
         g++ \
         libboost-iostreams1.58-dev \
+        libprotobuf-c-dev \
+        libreadline6 \
+        libreadline6-dev \
+        mktemp
+}
+
+function do_requirements_1804 {
+    sudo apt-get update
+    sudo apt-get install -y --no-install-recommends \
+        ca-certificates \
+        g++ \
+        libboost1.65-dev \
+        libboost-regex1.65-dev \
+        libboost-iostreams1.65-dev \
+        libreadline-dev \
+        libssl1.0-dev \
         libprotobuf-c-dev
 }
 
@@ -185,7 +201,17 @@ function do_grpc {
     git submodule update --init
 
     export LDFLAGS="-Wl,-s"
-    make -j${NUM_CORES}
+    RELEASE=`lsb_release -rs`
+    if version_ge $RELEASE 18.04; then
+       # Ubuntu 18.04 ships OpenSSL 1.1 by default, which has breaking changes in the API.
+       # Here, we will build grpc with OpenSSL 1.0.
+       # (Reference: https://github.com/grpc/grpc/issues/10589)
+       # Also, set CFLAGS to avoid compilcation error caused by gcc7.
+       # (Reference: https://github.com/grpc/grpc/issues/13854)
+       PKG_CONFIG_PATH=/usr/lib/openssl-1.0/pkgconfig make -j${NUM_CORES} CFLAGS='-Wno-error'
+    else
+       make -j${NUM_CORES}
+    fi
     sudo make install
     sudo ldconfig
     unset LDFLAGS
@@ -389,7 +415,9 @@ function check_and_do {
             # TODO consider other Linux distros; presently this script assumes
             # that it is running on Ubuntu.
             RELEASE=`lsb_release -rs`
-            if version_ge $RELEASE 16.04; then
+            if version_ge $RELEASE 18.04; then
+                do_requirements_1804
+            elif version_ge $RELEASE 16.04; then
                 do_requirements_1604
             elif version_ge $RELEASE 14.04; then
                 do_requirements_1404
