@@ -221,18 +221,18 @@ public class LinkDiscovery implements TimerTask {
 
             String idString = onoslldp.getDeviceString();
             if (!isNullOrEmpty(idString)) {
-                DeviceId srcDeviceId = DeviceId.deviceId(idString);
-                DeviceId dstDeviceId = packetContext.inPacket().receivedFrom().deviceId();
-
-                ConnectPoint src = new ConnectPoint(srcDeviceId, srcPort);
-                ConnectPoint dst = new ConnectPoint(dstDeviceId, dstPort);
-
-                LinkDescription ld = new DefaultLinkDescription(src, dst, lt);
                 try {
+                    DeviceId srcDeviceId = DeviceId.deviceId(idString);
+                    DeviceId dstDeviceId = packetContext.inPacket().receivedFrom().deviceId();
+
+                    ConnectPoint src = new ConnectPoint(srcDeviceId, srcPort);
+                    ConnectPoint dst = new ConnectPoint(dstDeviceId, dstPort);
+
+                    LinkDescription ld = new DefaultLinkDescription(src, dst, lt);
                     context.providerService().linkDetected(ld);
                     context.touchLink(LinkKey.linkKey(src, dst));
-                } catch (IllegalStateException e) {
-                    log.debug("There is a exception during link creation: {}", e);
+                } catch (IllegalStateException | IllegalArgumentException e) {
+                    log.warn("There is a exception during link creation: {}", e.getMessage());
                     return true;
                 }
                 return true;
