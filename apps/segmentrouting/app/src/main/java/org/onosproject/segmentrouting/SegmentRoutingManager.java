@@ -297,6 +297,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     final InternalClusterListener clusterListener = new InternalClusterListener();
     //Completable future for network configuration process to buffer config events handling during activation
     private CompletableFuture<Boolean> networkConfigCompletion = null;
+    private final Object networkConfigCompletionLock = new Object();
     private List<Event> queuedEvents = new CopyOnWriteArrayList<>();
 
     // Handles device, link, topology and network config events
@@ -520,14 +521,16 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         linkHandler.init();
         l2TunnelHandler.init();
 
-        networkConfigCompletion.whenComplete((value, ex) -> {
-            //setting to null for easier fall through
-            networkConfigCompletion = null;
-            //process all queued events
-            queuedEvents.forEach(event -> {
-                mainEventExecutor.execute(new InternalEventHandler(event));
+        synchronized (networkConfigCompletionLock) {
+            networkConfigCompletion.whenComplete((value, ex) -> {
+                //setting to null for easier fall through
+                networkConfigCompletion = null;
+                //process all queued events
+                queuedEvents.forEach(event -> {
+                    mainEventExecutor.execute(new InternalEventHandler(event));
+                });
             });
-        });
+        }
 
         log.info("Started");
     }
@@ -1705,29 +1708,31 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             // The completable future is needed because of the async behaviour of the configureNetwork,
             // listener registration and event arrival
             // Enables us to buffer the events and execute them when the configure network is done.
-            networkConfigCompletion = new CompletableFuture<>();
+            synchronized (networkConfigCompletionLock) {
+                networkConfigCompletion = new CompletableFuture<>();
 
-            // add a small delay to absorb multiple network config added notifications
-            if (!programmingScheduled.get()) {
-                log.info("Buffering config calls for {} secs", PROGRAM_DELAY);
-                programmingScheduled.set(true);
-                mainEventExecutor.schedule(new ConfigChange(), PROGRAM_DELAY, TimeUnit.SECONDS);
+                // add a small delay to absorb multiple network config added notifications
+                if (!programmingScheduled.get()) {
+                    log.info("Buffering config calls for {} secs", PROGRAM_DELAY);
+                    programmingScheduled.set(true);
+                    mainEventExecutor.schedule(new ConfigChange(), PROGRAM_DELAY, TimeUnit.SECONDS);
+                }
+
+                createOrUpdateDeviceConfiguration();
+
+                arpHandler = new ArpHandler(srManager);
+                icmpHandler = new IcmpHandler(srManager);
+                ipHandler = new IpHandler(srManager);
+                routingRulePopulator = new RoutingRulePopulator(srManager);
+                createOrUpdateDefaultRoutingHandler();
+
+                tunnelHandler = new TunnelHandler(linkService, deviceConfiguration,
+                    groupHandlerMap, tunnelStore);
+                policyHandler = new PolicyHandler(appId, deviceConfiguration,
+                    flowObjectiveService,
+                    tunnelHandler, policyStore);
+                networkConfigCompletion.complete(true);
             }
-
-            createOrUpdateDeviceConfiguration();
-
-            arpHandler = new ArpHandler(srManager);
-            icmpHandler = new IcmpHandler(srManager);
-            ipHandler = new IpHandler(srManager);
-            routingRulePopulator = new RoutingRulePopulator(srManager);
-            createOrUpdateDefaultRoutingHandler();
-
-            tunnelHandler = new TunnelHandler(linkService, deviceConfiguration,
-                                              groupHandlerMap, tunnelStore);
-            policyHandler = new PolicyHandler(appId, deviceConfiguration,
-                                              flowObjectiveService,
-                                              tunnelHandler, policyStore);
-            networkConfigCompletion.complete(true);
 
             mcastHandler.init();
 
