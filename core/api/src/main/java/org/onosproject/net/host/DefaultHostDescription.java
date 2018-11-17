@@ -167,6 +167,28 @@ public class DefaultHostDescription extends AbstractDescription
         this.configured = configured;
     }
 
+    /**
+     * Creates a host description using the supplied information.
+     * @param base HostDescription to basic information
+     * @param annotations Annotations to use.
+     */
+    public DefaultHostDescription(HostDescription base, SparseAnnotations annotations) {
+        this(base.hwAddress(), base.vlan(), base.locations(), base.ipAddress(), base.innerVlan(), base.tpid(),
+                base.configured(), annotations);
+    }
+
+    /**
+     * Creates a host description using the supplied information.
+     *
+     * @param base base
+     * @param annotations annotations
+     * @return host description
+     */
+    public static DefaultHostDescription copyReplacingAnnotation(HostDescription base,
+                                                                 SparseAnnotations annotations) {
+        return new DefaultHostDescription(base, annotations);
+    }
+
     @Override
     public MacAddress hwAddress() {
         return mac;

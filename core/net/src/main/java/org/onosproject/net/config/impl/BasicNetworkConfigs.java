@@ -17,7 +17,6 @@ package org.onosproject.net.config.impl;
 
 import com.google.common.collect.ImmutableSet;
 import org.onosproject.core.CoreService;
-import org.onosproject.net.config.basics.PortDescriptionsConfig;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.HostId;
@@ -31,8 +30,10 @@ import org.onosproject.net.config.basics.BasicLinkConfig;
 import org.onosproject.net.config.basics.BasicRegionConfig;
 import org.onosproject.net.config.basics.BasicUiTopoLayoutConfig;
 import org.onosproject.net.config.basics.DeviceAnnotationConfig;
+import org.onosproject.net.config.basics.HostAnnotationConfig;
 import org.onosproject.net.config.basics.InterfaceConfig;
 import org.onosproject.net.config.basics.PortAnnotationConfig;
+import org.onosproject.net.config.basics.PortDescriptionsConfig;
 import org.onosproject.net.config.basics.SubjectFactories;
 import org.onosproject.net.region.RegionId;
 import org.onosproject.ui.model.topo.UiTopoLayoutId;
@@ -137,6 +138,14 @@ public class BasicNetworkConfigs implements BasicNetworkConfigService {
                 @Override
                 public DeviceAnnotationConfig createConfig() {
                     return new DeviceAnnotationConfig();
+                }
+            },
+            new ConfigFactory<HostId, HostAnnotationConfig>(HOST_SUBJECT_FACTORY,
+                    HostAnnotationConfig.class,
+                    HostAnnotationConfig.CONFIG_KEY) {
+                @Override
+                public HostAnnotationConfig createConfig() {
+                    return new HostAnnotationConfig();
                 }
             }
 

@@ -26,10 +26,12 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
+import org.onosproject.net.config.Config;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.config.basics.BasicHostConfig;
+import org.onosproject.net.config.basics.HostAnnotationConfig;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.edge.EdgePortService;
 import org.onosproject.net.host.HostAdminService;
@@ -57,6 +59,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Dictionary;
+import java.util.Optional;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -138,10 +141,12 @@ public class HostManager
     private boolean greedyLearningIpv6 = HM_GREEDY_LEARNING_IPV6_DEFAULT;
 
     private HostMonitor monitor;
+    private HostAnnotationOperator hostAnnotationOperator;
 
 
     @Activate
     public void activate(ComponentContext context) {
+        hostAnnotationOperator = new HostAnnotationOperator(networkConfigService);
         store.setDelegate(delegate);
         eventDispatcher.addSink(HostEvent.class, listenerRegistry);
         cfgService.registerProperties(getClass());
@@ -352,6 +357,19 @@ public class HostManager
             if (!allowDuplicateIps) {
                 removeDuplicates(hostId, hostDescription);
             }
+
+            BasicHostConfig cfg = networkConfigService.getConfig(hostId, BasicHostConfig.class);
+            if (!isAllowed(cfg)) {
+                log.warn("Host {} is not allowed to be added into the contol domain", hostId);
+                return;
+            }
+
+            hostDescription = BasicHostOperator.combine(cfg, hostDescription);
+            HostAnnotationConfig annoConfig = networkConfigService.getConfig(hostId, HostAnnotationConfig.class);
+            if (annoConfig != null) {
+                hostDescription = hostAnnotationOperator.combine(hostId, hostDescription, Optional.of(annoConfig));
+            }
+
             store.createOrUpdateHost(provider().id(), hostId,
                                      hostDescription, replaceIps);
 
@@ -507,7 +525,8 @@ public class HostManager
         public boolean isRelevant(NetworkConfigEvent event) {
             return (event.type() == NetworkConfigEvent.Type.CONFIG_ADDED
                     || event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED)
-                    && (event.configClass().equals(BasicHostConfig.class));
+                    && (event.configClass().equals(BasicHostConfig.class)
+                    || event.configClass().equals(HostAnnotationConfig.class));
         }
 
         @Override
@@ -521,13 +540,27 @@ public class HostManager
 
             if (!isAllowed(cfg)) {
                 kickOutBadHost(hostId);
-            } else {
+            } else if (event.configClass().equals(BasicHostConfig.class)) {
                 Host host = getHost(hostId);
                 HostDescription desc =
                         (host == null) ? null : BasicHostOperator.descriptionOf(host);
                 desc = BasicHostOperator.combine(cfg, desc);
                 if (desc != null) {
                     he = store.createOrUpdateHost(host.providerId(), hostId, desc, false);
+                }
+            } else if (event.configClass().equals(HostAnnotationConfig.class)) {
+                Host host = getHost(hostId);
+                HostProvider hp = getProvider(host.providerId());
+                HostDescription desc = (host == null) ? null : BasicHostOperator.descriptionOf(host);
+                Optional<Config> prevConfig = event.prevConfig();
+                log.debug("Host annotations: {} prevconfig {} desc {}", hostId, prevConfig, desc);
+                desc = hostAnnotationOperator.combine(hostId, desc, prevConfig);
+                if (desc != null && hp != null) {
+                    log.debug("Host annotations update - updated host description :{}", desc.toString());
+                    he = store.createOrUpdateHost(hp.id(), hostId, desc, false);
+                    if (he != null && he.subject() != null) {
+                        log.debug("Host annotations update - Host Event : {}", he.subject().annotations());
+                    }
                 }
             }
 
