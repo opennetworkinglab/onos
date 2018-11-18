@@ -55,6 +55,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import static java.lang.Thread.sleep;
+import static java.util.stream.StreamSupport.stream;
 import static org.onlab.util.Tools.nullIsIllegal;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.addRouterIface;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.checkActivationFlag;
@@ -76,6 +77,7 @@ public class OpenstackManagementWebResource extends AbstractWebResource {
     private static final String USE_SECURITY_GROUP_NAME = "useSecurityGroup";
 
     private static final long SLEEP_MS = 3000; // we wait 3s for init each node
+    private static final long TIMEOUT_MS = 10000; // we wait 10s
 
     private static final String DEVICE_OWNER_IFACE = "network:router_interface";
 
@@ -221,8 +223,11 @@ public class OpenstackManagementWebResource extends AbstractWebResource {
     @Path("purge/rules")
     public Response purgeRules() {
 
-        purgeRulesBase();
-        return ok(mapper().createObjectNode()).build();
+        if (purgeRulesBase()) {
+            return ok(mapper().createObjectNode()).build();
+        } else {
+            return Response.serverError().build();
+        }
     }
 
     /**
@@ -353,12 +358,50 @@ public class OpenstackManagementWebResource extends AbstractWebResource {
         }
     }
 
-    private void purgeRulesBase() {
+    private boolean purgeRulesBase() {
         ApplicationId appId = coreService.getAppId(Constants.OPENSTACK_NETWORKING_APP_ID);
         if (appId == null) {
             throw new ItemNotFoundException("application not found");
         }
+
         flowRuleService.removeFlowRulesById(appId);
+
+        boolean result = true;
+        long timeoutExpiredMs = System.currentTimeMillis() + TIMEOUT_MS;
+
+        // we make sure all flow rules are removed from the store
+        while (stream(flowRuleService.getFlowEntriesById(appId)
+                                     .spliterator(), false).count() > 0) {
+
+            long  waitMs = timeoutExpiredMs - System.currentTimeMillis();
+
+            try {
+                sleep(SLEEP_MS);
+            } catch (InterruptedException e) {
+                log.error("Exception caused during rule purging...");
+            }
+
+            if (stream(flowRuleService.getFlowEntriesById(appId)
+                                      .spliterator(), false).count() == 0) {
+                break;
+            } else {
+                flowRuleService.removeFlowRulesById(appId);
+                log.info("Failed to purging flow rules, retrying rule purging...");
+            }
+
+            if (waitMs <= 0) {
+                result = false;
+                break;
+            }
+        }
+
+        if (result) {
+            log.info("Successfully purged flow rules!");
+        } else {
+            log.warn("Failed to purge flow rules.");
+        }
+
+        return result;
     }
 
     private void configArpModeBase(String arpMode) {
