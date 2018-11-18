@@ -73,9 +73,9 @@ library - it has to be there for Angular CLI to work.
 
 If you make any changes here or are using it for the first time it will need to be built
 ```text
-cd ~/onos/web/gui2-fw-lib && \
+pushd ~/onos/web/gui2-fw-lib && \
 ng build gui2-fw-lib && \
-pushd dist/gui2-fw-lib && \
+cd dist/gui2-fw-lib && \
 npm pack && \
 popd
 ```

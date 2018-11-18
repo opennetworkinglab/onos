@@ -17,7 +17,7 @@
     <div *ngFor="let inst of onosInstances | keyvalue ; let i=index"
          [ngClass]="['onosInst', inst.value.online?'online':'', inst.value.ready? 'ready': '', mastership?'mastership':'', 'affinity']"
             (click)="chooseMastership(inst.value.id)">
-        <svg width="170" height="85" viewBox="0 0 170 85">
+        <svg xmlns="http://www.w3.org/2000/svg" width="170" height="85" viewBox="0 0 170 85">
             <!-- The following blue-glow effect is applied (through CSS) when mastership style is activated on a rectangle -->
             <filter x="-50%" y="-50%" width="200%" height="200%" id="blue-glow">
                 <feColorMatrix type="matrix" values="0 0 0 0  0 0 0 0 0  0 0 0 0 0  0.7 0 0 0 1  0 "></feColorMatrix>

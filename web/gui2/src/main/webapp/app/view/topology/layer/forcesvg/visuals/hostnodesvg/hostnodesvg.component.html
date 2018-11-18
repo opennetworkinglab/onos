@@ -13,9 +13,11 @@
 ~ See the License for the specific language governing permissions and
 ~ limitations under the License.
 -->
-<svg:g xmlns:svg="http://www.w3.org/2000/svg" id="topo-noDevsLayer" transform="translate(500,500)" style="visibility: visible;">
-    <svg:g id="reposition" #reposition [attr.transform]="centre(reposition.getBBox())">
-        <svg:use width="100" height="100" class="noDevsBird" href="#bird"></svg:use>
-        <svg:text x="120" y="80">No Devices Are Connected</svg:text>
-    </svg:g>
+<svg:g  xmlns:svg="http://www.w3.org/2000/svg" [attr.transform]="'translate(' + host?.x + ',' + host?.y + ')'">>
+  <svg:circle
+          cx="0"
+          cy="0"
+          r="5">
+  </svg:circle>
+  <svg:text>{{host?.id}}</svg:text>
 </svg:g>

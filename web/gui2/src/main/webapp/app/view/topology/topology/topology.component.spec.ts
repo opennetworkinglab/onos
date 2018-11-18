@@ -34,6 +34,7 @@ import {
     FnService,
     LogService
 } from 'gui2-fw-lib';
+import {ZoomableDirective} from '../layer/zoomable.directive';
 
 
 class MockActivatedRoute extends ActivatedRoute {
@@ -107,14 +108,15 @@ describe('TopologyComponent', () => {
                 SummaryComponent,
                 ToolbarComponent,
                 DetailsComponent,
-                FlashComponent
+                FlashComponent,
+                ZoomableDirective
             ],
             providers: [
                 { provide: FnService, useValue: fs },
                 { provide: LogService, useValue: logSpy },
                 { provide: 'Window', useValue: windowMock },
                 { provide: HttpClient, useClass: MockHttpClient },
-                { provide: TopologyService, useClass: MockTopologyService }
+                { provide: TopologyService, useClass: MockTopologyService },
             ]
         }).compileComponents();
         logServiceSpy = TestBed.get(LogService);

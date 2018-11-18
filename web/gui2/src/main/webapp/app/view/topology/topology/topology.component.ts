@@ -13,20 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {
+    Component,
+    OnDestroy,
+    OnInit,
+    ViewChild
+} from '@angular/core';
 import * as d3 from 'd3';
 import {
     FnService,
-    KeysService, KeysToken,
-    LogService, PrefsService,
-    SvgUtilService, WebSocketService, Zoomer, ZoomOpts, ZoomService
+    KeysService,
+    KeysToken,
+    LogService,
+    PrefsService,
+    SvgUtilService,
+    WebSocketService,
+    Zoomer,
+    ZoomOpts,
+    ZoomService
 } from 'gui2-fw-lib';
-import { InstanceComponent } from '../panel/instance/instance.component';
-import { SummaryComponent } from '../panel/summary/summary.component';
-import { DetailsComponent } from '../panel/details/details.component';
-import { BackgroundSvgComponent } from '../layer/backgroundsvg/backgroundsvg.component';
-import { ForceSvgComponent } from '../layer/forcesvg/forcesvg.component';
-import { TopologyService } from '../topology.service';
+import {InstanceComponent} from '../panel/instance/instance.component';
+import {SummaryComponent} from '../panel/summary/summary.component';
+import {DetailsComponent} from '../panel/details/details.component';
+import {BackgroundSvgComponent} from '../layer/backgroundsvg/backgroundsvg.component';
+import {ForceSvgComponent} from '../layer/forcesvg/forcesvg.component';
+import {TopologyService} from '../topology.service';
+import {Node} from '../layer/forcesvg/models';
 
 /**
  * ONOS GUI Topology View
@@ -236,6 +248,7 @@ export class TopologyComponent implements OnInit, OnDestroy {
     protected cycleDeviceLabels() {
         this.log.debug('Cycling device labels');
         // TODO: Reinstate with components
+        this.force.updateDeviceLabelToggle();
         // let deviceLabelIndex = t2ps.get('dlbls') + 1;
         // let newDeviceLabelIndex = deviceLabelIndex % 3;
         //
@@ -262,9 +275,12 @@ export class TopologyComponent implements OnInit, OnDestroy {
     }
 
     protected toggleDetails(token: KeysToken) {
-        this.flashMsg = 'Toggling details';
-        this.details.togglePanel(() => {});
-        this.log.debug('Toggling details', token);
+        if (this.details.selectedNode) {
+            this.flashMsg = 'Toggling details';
+            this.details.togglePanel(() => {
+            });
+            this.log.debug('Toggling details', token);
+        }
     }
 
     protected toggleInstancePanel(token: KeysToken) {
@@ -424,6 +440,11 @@ export class TopologyComponent implements OnInit, OnDestroy {
 
     panAndZoom(translate: number[], scale: number, transition?: number) {
         this.zoomer.panZoom(translate, scale, transition);
+    }
+
+    nodeSelected(node: Node) {
+        this.details.selectedNode = node;
+        this.details.on = Boolean(node);
     }
 
 }

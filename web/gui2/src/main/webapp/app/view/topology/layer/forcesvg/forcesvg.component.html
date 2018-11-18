@@ -13,10 +13,40 @@
 ~ See the License for the specific language governing permissions and
 ~ limitations under the License.
 -->
-<svg:g class="topo2-force">
-    <svg:g class="topo2-links" />
-    <svg:g class="topo2-linkLabels" />
-    <svg:g class="topo2-numLinkLabels" />
-    <svg:g class="topo2-nodes" />
-    <svg:g class="topo2-portLabels" />
+<svg:g class="topo2-force" xmlns:svg="http://www.w3.org/2000/svg">
+    <svg:g id="new-zoom-layer">
+        <svg:g class="topo2-links">
+            <svg:g onos-linkvisual [link]="link" *ngFor="let link of regionData.links">
+            </svg:g>
+        </svg:g>
+        <svg:g class="topo2-linkLabels" />
+        <svg:g class="topo2-numLinkLabels" />
+        <svg:g class="topo2-nodes">
+            <svg:g onos-devicenodesvg [device]="device"
+                   *ngFor="let device of regionData.devices[visibleLayerIdx()]"
+                   onosDraggableNode [draggableNode]="device" [draggableInGraph]="graph"
+                   (selectedEvent)="updateSelected($event)">
+            </svg:g>
+            <svg:g onos-hostnodesvg [host]="host"
+                   *ngFor="let host of regionData.hosts[visibleLayerIdx()]"
+                   onosDraggableNode [draggableNode]="host" [draggableInGraph]="graph">
+            </svg:g>
+            <svg:g onos-subregionnodesvg [subRegion]="subRegion"
+                   *ngFor="let subRegion of regionData.subregions"
+                   onosDraggableNode [draggableNode]="host" [draggableInGraph]="graph">
+            </svg:g>
+        </svg:g>
+    </svg:g>
+    <!--<svg:g class="topo2-portLabels">-->
+        <!--&lt;!&ndash;TODO make each of these in to a component that can be inserted &ndash;&gt;-->
+        <!--<svg:g *ngIf="selectedLink !== null" id="topo-port-src" class="portLabel" opacity="1">-->
+            <!--<rect x="0" y="0" width="1" height="1" [ngStyle]="{'transform': 'scale(1)'}"></rect>-->
+            <!--<text dy="0.3em" [ngStyle]="{'transform': 'scale(1)'}">{{ selectedLink.portA }}</text>-->
+        <!--</svg:g>-->
+
+        <!--<svg:g *ngIf="selectedLink !== null" id="topo-port-tgt" class="portLabel" opacity="1">-->
+            <!--<rect x="0" y="0" width="1" height="1" [ngStyle]="{'transform': 'scale(1)'}"></rect>-->
+            <!--<text dy="0.3em" [ngStyle]="{'transform': 'scale(1)'}">{{ selectedLink.portA }}</text>-->
+        <!--</svg:g>-->
+    <!--</svg:g>-->
 </svg:g>

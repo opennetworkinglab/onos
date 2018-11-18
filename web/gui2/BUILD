@@ -17,9 +17,9 @@
 """
     Rules to build the ONOS GUI 2
 
-    The GUI2 Angular 6 elements are built here with Angular CLI 'ng'
+    The GUI2 Angular 7 elements are built here with Angular CLI 'ng'
     Some work is being done in the Bazel community to integrate Bazel and
-    Angular 6, (Angular Buildtools Convergence -
+    Angular 7, (Angular Buildtools Convergence -
     https://docs.google.com/document/d/1OlyiUnoTirUj4gecGxJeZBcjHcFr36RvLsvpBl2mxA8/preview)
     but it is in the very early stages (Aug'18) and not yet fit
     for production and at present it works as a replacement for Angular CLI
@@ -103,7 +103,7 @@ filegroup(
     See bazel-genfiles/web/gui2/onos-gui2-ng-build-prod.log for details of the Angular CLI output
 
     To avoid the overhead of having several "npm install" invocations, we just do
-    it once in the //web/gui2-fw-lib which is really the core for the whole Angular 6
+    it once in the //web/gui2-fw-lib which is really the core for the whole Angular 7
     structure in ONOS. This copies files in to node_modules, but because the gui2-fw-lib
     has not been generated at that time we copy it in separately below with the 'tar' cmd
     and then 'mv'
@@ -151,9 +151,8 @@ genrule(
           " export PATH=$$ROOT/$$(dirname $${NODE}):$$ROOT/web/gui2/node_modules/@angular/cli/bin:$$PATH &&" +
           " node -v > ../../$(location onos-gui2-ng-build-prod.log) &&" +
           " npm -v >> ../../$(location onos-gui2-ng-build-prod.log) &&" +
-          " ng -v >> ../../$(location onos-gui2-ng-build-prod.log) &&" +
-          # Build it in production mode - optimization is turned off because of Angular CLI 6.0.x bug https://github.com/angular/angular-cli/issues/7799
-          " ng build --extract-css --prod --optimization=false --preserve-symlinks" +
+          " ng version >> ../../$(location onos-gui2-ng-build-prod.log) &&" +
+          " ng build --extract-css --prod --preserve-symlinks" +
           "   --base-href /onos/ui2/ --deploy-url /onos/ui2/ >> $$ROOT/$(location onos-gui2-ng-build-prod.log) 2>&1 ||" +
           " if [ $$? -eq 0 ]; then echo 'Successfully ran build';" +
           " else " +
@@ -163,7 +162,7 @@ genrule(
           "   exit 1;" +
           " fi;" +
           " cd src/main/webapp/dist && jar Mcf $$ROOT/$(location onos-gui2-ng-build.jar) .",
-    message = "Angular CLI 6 build",
+    message = "Angular CLI 7 build",
 )
 
 """
@@ -213,7 +212,7 @@ genrule(
           " export PATH=$$ROOT/$$(dirname $${NODE}):$$ROOT/web/gui2/node_modules/@angular/cli/bin:$$PATH &&" +
           " node -v > ../../$(location onos-gui2-ng-ver.log) &&" +
           " npm -v >> ../../$(location onos-gui2-ng-ver.log) &&" +
-          " ng -v >> ../../$(location onos-gui2-ng-ver.log) &&" +
+          " ng version >> ../../$(location onos-gui2-ng-ver.log) &&" +
           " ng lint > ../../$(location onos-gui2-ng-lint.log);" +
           " if [ -f /usr/bin/chromium-browser ]; then " +  # Add to this for Mac and Chrome
           "   export CHROME_BIN=/usr/bin/chromium-browser; " +
@@ -236,7 +235,7 @@ genrule(
           #"   tail -n 100 ../../$(location onos-gui2-ng-test.log) >&2;" +
           "   exit 1;" +
           " fi;",
-    message = "Angular CLI 6 lint and test",
+    message = "Angular CLI 7 lint and test",
 )
 
 """

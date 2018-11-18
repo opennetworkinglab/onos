@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
+import {Component, Input, OnInit} from '@angular/core';
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import {
     LogService,
@@ -22,6 +22,7 @@ import {
     DetailsPanelBaseImpl,
     WebSocketService
 } from 'gui2-fw-lib';
+import {Node} from '../../layer/forcesvg/models';
 
 /*
  ONOS GUI -- Topology Details Panel.
@@ -51,6 +52,7 @@ import {
     ]
 })
 export class DetailsComponent extends DetailsPanelBaseImpl implements OnInit {
+    @Input() selectedNode: Node = undefined;
 
     constructor(
         protected fs: FnService,

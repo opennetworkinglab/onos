@@ -21,13 +21,13 @@
 <onos-details #details></onos-details>
 
 <div id="ov-topo2">
-    <svg viewBox="0 0 1000 1000" id="topo2">
+    <svg:svg #svgZoom xmlns:svg="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" id="topo2">
         <svg:g onos-nodeviceconnected />
-        <svg:g id="topo-zoomlayer">
+        <svg:g id="topo-zoomlayer" onosZoomableOf [zoomableOf]="svgZoom">
             <svg:g #background onos-backgroundsvg/>
-            <svg:g #force onos-forcesvg/>
+            <svg:g #force onos-forcesvg (selectedNodeEvent)="nodeSelected($event)"/>
         </svg:g>
-    </svg>
+    </svg:svg>
 </div>
 
 <div id="breadcrumbs"></div>

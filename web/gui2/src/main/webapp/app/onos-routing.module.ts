@@ -89,7 +89,7 @@ const onosRoutes: Routes = [
     },
     {
         path: '',
-        redirectTo: 'device', // Default to devices view - change to topo in future
+        redirectTo: 'topo2', // Default to Topology view
         pathMatch: 'full'
     }
 ];

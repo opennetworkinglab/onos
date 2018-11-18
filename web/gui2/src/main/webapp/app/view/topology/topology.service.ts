@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable } from '@angular/core';
+import {Injectable, SimpleChanges, SimpleChange} from '@angular/core';
 import {
     LogService, WebSocketService,
 } from 'gui2-fw-lib';
 import { InstanceComponent } from './panel/instance/instance.component';
 import { BackgroundSvgComponent } from './layer/backgroundsvg/backgroundsvg.component';
 import { ForceSvgComponent } from './layer/forcesvg/forcesvg.component';
+import {Region} from './layer/forcesvg/models';
 
 /**
  * ONOS GUI -- Topology Service Module.
@@ -54,8 +55,11 @@ export class TopologyService {
                 }
             ],
             ['topo2CurrentRegion', (data) => {
-                    this.log.warn('Add fn for topo2CurrentRegion callback', data);
                     force.regionData = data;
+                    force.ngOnChanges({
+                        'regionData' : new SimpleChange(<Region>{}, data, true)
+                    });
+                    this.log.warn('Add fn for topo2CurrentRegion callback', force.regionData);
                 }
             ],
             ['topo2PeerRegions', (data) => { this.log.warn('Add fn for topo2PeerRegions callback', data); } ],

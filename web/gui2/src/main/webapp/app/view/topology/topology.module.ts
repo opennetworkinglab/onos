@@ -28,6 +28,14 @@ import { BackgroundSvgComponent } from './layer/backgroundsvg/backgroundsvg.comp
 import { ForceSvgComponent } from './layer/forcesvg/forcesvg.component';
 import { MapSvgComponent } from './layer/mapsvg/mapsvg.component';
 import { TopologyService } from './topology.service';
+import { DraggableDirective } from './layer/forcesvg/draggable/draggable.directive';
+import { ZoomableDirective } from './layer/zoomable.directive';
+import {
+    LinkVisualComponent,
+    SubRegionNodeSvgComponent,
+    DeviceNodeSvgComponent,
+    HostNodeSvgComponent,
+} from './layer/forcesvg/visuals';
 
 /**
  * ONOS GUI -- Topology View Module
@@ -51,7 +59,13 @@ import { TopologyService } from './topology.service';
         DetailsComponent,
         BackgroundSvgComponent,
         ForceSvgComponent,
-        MapSvgComponent
+        MapSvgComponent,
+        ZoomableDirective,
+        DraggableDirective,
+        LinkVisualComponent,
+        DeviceNodeSvgComponent,
+        HostNodeSvgComponent,
+        SubRegionNodeSvgComponent
     ],
     providers: [
         TopologyService

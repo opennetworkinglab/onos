@@ -1,0 +1,30 @@
+<!--
+~ Copyright 2018-present Open Networking Foundation
+~
+~ Licensed under the Apache License, Version 2.0 (the "License");
+~ you may not use this file except in compliance with the License.
+~ You may obtain a copy of the License at
+~
+~     http://www.apache.org/licenses/LICENSE-2.0
+~
+~ Unless required by applicable law or agreed to in writing, software
+~ distributed under the License is distributed on an "AS IS" BASIS,
+~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+~ See the License for the specific language governing permissions and
+~ limitations under the License.
+-->
+<svg:g xmlns:svg="http://www.w3.org/2000/svg" #devSvg
+       [attr.transform]="'translate(' + device?.x + ',' + device?.y + '), scale(' + scale + ')'"
+        [ngClass]="['node', 'device', device.online?'online':'', selected?'selected':'']"
+        (click)="toggleSelected()">
+    <svg:rect class="node-container" x="-18" y="-18" width="36" height="36">
+              <!--[attr.width]="devText.getComputedTextLength()+36" -->
+              <!--[@deviceLabelToggle]="{ value: labelToggle, params: {txtWidth: devSvg.getBBox().width+'px' }}">-->
+    </svg:rect>
+    <svg:rect x="-16" y="-16" width="32" height="32" [ngStyle]="{'fill': 'rgb(91, 153, 210)'}">
+    </svg:rect>
+    <svg:text #devText text-anchor="start" y="0.3em" x="22" [ngStyle]="{'transform': 'scale(' + scale + ')'}">
+        {{ labelToggle == 0 ? '': labelToggle == 1 ? device.id:device.props.name }}
+    </svg:text>
+    <svg:use xlink:href="#m_switch" width="36" height="36" x="-18" y="-18"></svg:use>
+</svg:g>

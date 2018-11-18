@@ -44,6 +44,7 @@ export interface LayoutCrumb {
  * Enum of the topo2CurrentRegion location type from Location below
  */
 export enum LocationType {
+    NONE = 'none',
     GEO = 'geo',
     GRID = 'grid'
 }

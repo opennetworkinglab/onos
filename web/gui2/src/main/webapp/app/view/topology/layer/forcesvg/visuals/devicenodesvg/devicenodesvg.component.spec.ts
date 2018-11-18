@@ -15,16 +15,12 @@
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ForceSvgComponent } from './forcesvg.component';
-import {IconService, LogService} from 'gui2-fw-lib';
-import {
-    DeviceNodeSvgComponent,
-    HostNodeSvgComponent, LinkVisualComponent,
-    SubRegionNodeSvgComponent
-} from './visuals';
-import {DraggableDirective} from './draggable/draggable.directive';
+import { DeviceNodeSvgComponent } from './devicenodesvg.component';
+import {LogService} from 'gui2-fw-lib';
 import {ActivatedRoute, Params} from '@angular/router';
 import {of} from 'rxjs';
+import {ChangeDetectorRef} from '@angular/core';
+import {Device} from '../../models';
 
 class MockActivatedRoute extends ActivatedRoute {
     constructor(params: Params) {
@@ -33,45 +29,26 @@ class MockActivatedRoute extends ActivatedRoute {
     }
 }
 
-class MockIconService {
-    loadIconDef() { }
-}
-
-describe('ForceSvgComponent', () => {
-    let ar: MockActivatedRoute;
-    let windowMock: Window;
+describe('DeviceNodeSvgComponent', () => {
     let logServiceSpy: jasmine.SpyObj<LogService>;
-    let component: ForceSvgComponent;
-    let fixture: ComponentFixture<ForceSvgComponent>;
+    let component: DeviceNodeSvgComponent;
+    let fixture: ComponentFixture<DeviceNodeSvgComponent>;
+    let ar: MockActivatedRoute;
+    let testDevice: Device;
+
 
     beforeEach(async(() => {
         const logSpy = jasmine.createSpyObj('LogService', ['info', 'debug', 'warn', 'error']);
         ar = new MockActivatedRoute({ 'debug': 'txrx' });
-
-        windowMock = <any>{
-            location: <any>{
-                hostname: 'foo',
-                host: 'foo',
-                port: '80',
-                protocol: 'http',
-                search: { debug: 'true' },
-                href: 'ws://foo:123/onos/ui/websock/path',
-                absUrl: 'ws://foo:123/onos/ui/websock/path'
-            }
-        };
+        testDevice = new Device('test:1');
+        testDevice.online = true;
 
         TestBed.configureTestingModule({
-            declarations: [
-                ForceSvgComponent,
-                DeviceNodeSvgComponent,
-                HostNodeSvgComponent,
-                SubRegionNodeSvgComponent,
-                LinkVisualComponent,
-                DraggableDirective
-            ],
+            declarations: [ DeviceNodeSvgComponent ],
             providers: [
                 { provide: LogService, useValue: logSpy },
-                { provide: IconService, useClass: MockIconService },
+                { provide: ActivatedRoute, useValue: ar },
+                { provide: ChangeDetectorRef, useClass: ChangeDetectorRef }
             ]
         })
         .compileComponents();
@@ -79,8 +56,9 @@ describe('ForceSvgComponent', () => {
     }));
 
     beforeEach(() => {
-        fixture = TestBed.createComponent(ForceSvgComponent);
-        component = fixture.debugElement.componentInstance;
+        fixture = TestBed.createComponent(DeviceNodeSvgComponent);
+        component = fixture.componentInstance;
+        component.device = testDevice;
         fixture.detectChanges();
     });
 
