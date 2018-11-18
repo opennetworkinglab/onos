@@ -106,6 +106,10 @@ control int_deparser(
     in headers_t hdr) {
     apply {
         packet.emit(hdr.packet_in);
+        packet.emit(hdr.report_ethernet);
+        packet.emit(hdr.report_ipv4);
+        packet.emit(hdr.report_udp);
+        packet.emit(hdr.report_fixed_header);
         packet.emit(hdr.ethernet);
         packet.emit(hdr.ipv4);
         packet.emit(hdr.tcp);

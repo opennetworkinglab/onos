@@ -29,5 +29,8 @@ typedef bit<32> switch_id_t;
 const bit<8> INT_HEADER_LEN_WORD = 4;
 
 const bit<8> CPU_MIRROR_SESSION_ID = 250;
+const bit<32> REPORT_MIRROR_SESSION_ID = 500;
+const bit<6> HW_ID = 1;
+const bit<8> REPORT_HDR_TTL = 64;
 
 #endif

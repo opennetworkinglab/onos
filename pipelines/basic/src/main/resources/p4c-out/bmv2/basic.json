@@ -180,12 +180,12 @@
   "header_union_stacks" : [],
   "field_lists" : [],
   "errors" : [
-    ["NoError", 1],
-    ["PacketTooShort", 2],
-    ["NoMatch", 3],
-    ["StackOutOfBounds", 4],
-    ["HeaderTooShort", 5],
-    ["ParserTimeout", 6]
+    ["NoError", 0],
+    ["PacketTooShort", 1],
+    ["NoMatch", 2],
+    ["StackOutOfBounds", 3],
+    ["HeaderTooShort", 4],
+    ["ParserTimeout", 5]
   ],
   "enums" : [],
   "parsers" : [
@@ -527,7 +527,69 @@
     }
   ],
   "register_arrays" : [],
-  "calculations" : [],
+  "calculations" : [
+    {
+      "name" : "calc",
+      "id" : 0,
+      "source_info" : {
+        "filename" : "include/checksums.p4",
+        "line" : 32,
+        "column" : 8,
+        "source_fragment" : "update_checksum(hdr.ipv4.isValid(), ..."
+      },
+      "algo" : "csum16",
+      "input" : [
+        {
+          "type" : "field",
+          "value" : ["ipv4", "version"]
+        },
+        {
+          "type" : "field",
+          "value" : ["ipv4", "ihl"]
+        },
+        {
+          "type" : "field",
+          "value" : ["ipv4", "dscp"]
+        },
+        {
+          "type" : "field",
+          "value" : ["ipv4", "ecn"]
+        },
+        {
+          "type" : "field",
+          "value" : ["ipv4", "len"]
+        },
+        {
+          "type" : "field",
+          "value" : ["ipv4", "identification"]
+        },
+        {
+          "type" : "field",
+          "value" : ["ipv4", "flags"]
+        },
+        {
+          "type" : "field",
+          "value" : ["ipv4", "frag_offset"]
+        },
+        {
+          "type" : "field",
+          "value" : ["ipv4", "ttl"]
+        },
+        {
+          "type" : "field",
+          "value" : ["ipv4", "protocol"]
+        },
+        {
+          "type" : "field",
+          "value" : ["ipv4", "src_addr"]
+        },
+        {
+          "type" : "field",
+          "value" : ["ipv4", "dst_addr"]
+        }
+      ]
+    }
+  ],
   "learn_lists" : [],
   "actions" : [
     {
@@ -609,7 +671,7 @@
           ],
           "source_info" : {
             "filename" : "include/defines.p4",
-            "line" : 28,
+            "line" : 34,
             "column" : 24,
             "source_fragment" : "255; ..."
           }
@@ -874,7 +936,7 @@
           ],
           "source_info" : {
             "filename" : "include/defines.p4",
-            "line" : 31,
+            "line" : 37,
             "column" : 36,
             "source_fragment" : "8w0; ..."
           }
@@ -1637,7 +1699,32 @@
       ]
     }
   ],
-  "checksums" : [],
+  "checksums" : [
+    {
+      "name" : "cksum",
+      "id" : 0,
+      "source_info" : {
+        "filename" : "include/checksums.p4",
+        "line" : 32,
+        "column" : 8,
+        "source_fragment" : "update_checksum(hdr.ipv4.isValid(), ..."
+      },
+      "target" : ["ipv4", "hdr_checksum"],
+      "type" : "generic",
+      "calculation" : "calc",
+      "if_cond" : {
+        "type" : "expression",
+        "value" : {
+          "op" : "d2b",
+          "left" : null,
+          "right" : {
+            "type" : "field",
+            "value" : ["ipv4", "$valid$"]
+          }
+        }
+      }
+    }
+  ],
   "force_arith" : [],
   "extern_instances" : [],
   "field_aliases" : [

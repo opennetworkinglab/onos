@@ -77,9 +77,55 @@ tables {
 }
 tables {
   preamble {
+    id: 33594678
+    name: "ingress.process_set_source_sink.tb_set_source"
+    alias: "ingress.process_set_source_sink.tb_set_source"
+  }
+  match_fields {
+    id: 1
+    name: "standard_metadata.ingress_port"
+    bitwidth: 9
+    match_type: EXACT
+  }
+  action_refs {
+    id: 16817471
+  }
+  action_refs {
+    id: 16800567
+    annotations: "@defaultonly()"
+  }
+  direct_resource_ids: 318825104
+  size: 256
+  idle_timeout_behavior: NO_TIMEOUT
+}
+tables {
+  preamble {
+    id: 33584156
+    name: "ingress.process_set_source_sink.tb_set_sink"
+    alias: "ingress.process_set_source_sink.tb_set_sink"
+  }
+  match_fields {
+    id: 1
+    name: "standard_metadata.egress_spec"
+    bitwidth: 9
+    match_type: EXACT
+  }
+  action_refs {
+    id: 16800284
+  }
+  action_refs {
+    id: 16800567
+    annotations: "@defaultonly()"
+  }
+  direct_resource_ids: 318775657
+  size: 256
+  idle_timeout_behavior: NO_TIMEOUT
+}
+tables {
+  preamble {
     id: 33578477
     name: "egress.process_set_source_sink.tb_set_source"
-    alias: "tb_set_source"
+    alias: "egress.process_set_source_sink.tb_set_source"
   }
   match_fields {
     id: 1
@@ -102,11 +148,11 @@ tables {
   preamble {
     id: 33575550
     name: "egress.process_set_source_sink.tb_set_sink"
-    alias: "tb_set_sink"
+    alias: "egress.process_set_source_sink.tb_set_sink"
   }
   match_fields {
     id: 1
-    name: "standard_metadata.egress_port"
+    name: "standard_metadata.egress_spec"
     bitwidth: 9
     match_type: EXACT
   }
@@ -315,11 +361,40 @@ tables {
   size: 16
   idle_timeout_behavior: NO_TIMEOUT
 }
+tables {
+  preamble {
+    id: 33565180
+    name: "egress.process_int_report.tb_generate_report"
+    alias: "tb_generate_report"
+  }
+  match_fields {
+    id: 1
+    name: "standard_metadata.instance_type"
+    bitwidth: 32
+    match_type: EXACT
+  }
+  action_refs {
+    id: 16790504
+  }
+  action_refs {
+    id: 16800567
+    annotations: "@defaultonly()"
+  }
+  size: 1024
+  idle_timeout_behavior: NO_TIMEOUT
+}
 actions {
   preamble {
     id: 16784184
     name: "_drop"
     alias: "_drop"
+  }
+}
+actions {
+  preamble {
+    id: 16800567
+    name: "NoAction"
+    alias: "NoAction"
   }
 }
 actions {
@@ -355,23 +430,30 @@ actions {
 }
 actions {
   preamble {
-    id: 16800567
-    name: "NoAction"
-    alias: "NoAction"
+    id: 16817471
+    name: "ingress.process_set_source_sink.int_set_source"
+    alias: "ingress.process_set_source_sink.int_set_source"
+  }
+}
+actions {
+  preamble {
+    id: 16800284
+    name: "ingress.process_set_source_sink.int_set_sink"
+    alias: "ingress.process_set_source_sink.int_set_sink"
   }
 }
 actions {
   preamble {
     id: 16782803
     name: "egress.process_set_source_sink.int_set_source"
-    alias: "int_set_source"
+    alias: "egress.process_set_source_sink.int_set_source"
   }
 }
 actions {
   preamble {
     id: 16798719
     name: "egress.process_set_source_sink.int_set_sink"
-    alias: "int_set_sink"
+    alias: "egress.process_set_source_sink.int_set_sink"
   }
 }
 actions {
@@ -667,6 +749,38 @@ actions {
 }
 actions {
   preamble {
+    id: 16790504
+    name: "egress.process_int_report.do_report_encapsulation"
+    alias: "do_report_encapsulation"
+  }
+  params {
+    id: 1
+    name: "src_mac"
+    bitwidth: 48
+  }
+  params {
+    id: 2
+    name: "mon_mac"
+    bitwidth: 48
+  }
+  params {
+    id: 3
+    name: "src_ip"
+    bitwidth: 32
+  }
+  params {
+    id: 4
+    name: "mon_ip"
+    bitwidth: 32
+  }
+  params {
+    id: 5
+    name: "mon_port"
+    bitwidth: 16
+  }
+}
+actions {
+  preamble {
     id: 16839217
     name: "egress.process_int_sink.restore_header"
     alias: "restore_header"
@@ -714,9 +828,31 @@ direct_counters {
 }
 direct_counters {
   preamble {
+    id: 318825104
+    name: "ingress.process_set_source_sink.counter_set_source"
+    alias: "ingress.process_set_source_sink.counter_set_source"
+  }
+  spec {
+    unit: BOTH
+  }
+  direct_table_id: 33594678
+}
+direct_counters {
+  preamble {
+    id: 318775657
+    name: "ingress.process_set_source_sink.counter_set_sink"
+    alias: "ingress.process_set_source_sink.counter_set_sink"
+  }
+  spec {
+    unit: BOTH
+  }
+  direct_table_id: 33584156
+}
+direct_counters {
+  preamble {
     id: 318829828
     name: "egress.process_set_source_sink.counter_set_source"
-    alias: "counter_set_source"
+    alias: "egress.process_set_source_sink.counter_set_source"
   }
   spec {
     unit: BOTH
@@ -727,7 +863,7 @@ direct_counters {
   preamble {
     id: 318811186
     name: "egress.process_set_source_sink.counter_set_sink"
-    alias: "counter_set_sink"
+    alias: "egress.process_set_source_sink.counter_set_sink"
   }
   spec {
     unit: BOTH

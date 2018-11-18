@@ -20,8 +20,14 @@
 #define ETH_TYPE_IPV4 0x0800
 #define IP_PROTO_TCP 8w6
 #define IP_PROTO_UDP 8w17
+#define IP_VERSION_4 4w4
+#define IPV4_IHL_MIN 4w5
 #define MAX_PORTS 511
 
+
+typedef bit<48> mac_t;
+typedef bit<32> ip_address_t;
+typedef bit<16> l4_port_t;
 typedef bit<9>  port_t;
 typedef bit<16> next_hop_id_t;
 
@@ -31,4 +37,14 @@ typedef bit<8> MeterColor;
 const MeterColor MeterColor_GREEN = 8w0;
 const MeterColor MeterColor_YELLOW = 8w1;
 const MeterColor MeterColor_RED = 8w2;
+
+// FIXME: this works only on BMv2
+#define PKT_INSTANCE_TYPE_NORMAL 0
+#define PKT_INSTANCE_TYPE_INGRESS_CLONE 1
+#define PKT_INSTANCE_TYPE_EGRESS_CLONE 2
+#define PKT_INSTANCE_TYPE_COALESCED 3
+#define PKT_INSTANCE_TYPE_INGRESS_RECIRC 4
+#define PKT_INSTANCE_TYPE_REPLICATION 5
+#define PKT_INSTANCE_TYPE_RESUBMIT 6
+
 #endif

@@ -18,7 +18,11 @@
 #ifndef __CUSTOM_HEADERS__
 #define __CUSTOM_HEADERS__
 
-/* INT headers */
+#ifndef __INT_HEADERS__
+#define __INT_HEADERS__
+#include "telemetry_report_headers.p4"
+
+// INT headers
 header int_header_t {
     bit<2>  ver;
     bit<2>  rep;
@@ -70,14 +74,14 @@ header int_data_t {
     varbit<8032> data;
 }
 
-/* INT shim header for TCP/UDP */
+// INT shim header for TCP/UDP
 header intl4_shim_t {
     bit<8> int_type;
     bit<8> rsvd1;
     bit<8> len;
     bit<8> rsvd2;
 }
-/* INT tail header for TCP/UDP */
+// INT tail header for TCP/UDP
 header intl4_tail_t {
     bit<8> next_proto;
     bit<16> dest_port;
@@ -97,11 +101,18 @@ struct int_metadata_t {
 struct headers_t {
     packet_out_header_t packet_out;
     packet_in_header_t packet_in;
+    // INT Report Encapsulation
+    ethernet_t report_ethernet;
+    ipv4_t report_ipv4;
+    udp_t report_udp;
+    // INT Report Headers
+    report_fixed_header_t report_fixed_header;
+    local_report_t report_local;
+    // Original packet's headers
     ethernet_t ethernet;
     ipv4_t ipv4;
     tcp_t tcp;
     udp_t udp;
-
     // INT specific headers
     intl4_shim_t intl4_shim;
     int_header_t int_header;
@@ -123,6 +134,8 @@ struct local_metadata_t {
     next_hop_id_t next_hop_id;
     bit<16>       selector;
     int_metadata_t int_meta;
+    bool compute_checksum;
 }
 
-#endif
+#endif // __INT_HEADERS__
+#endif // __CUSTOM_HEADERS__

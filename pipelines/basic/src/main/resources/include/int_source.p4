@@ -110,7 +110,7 @@ control process_set_source_sink (
     }
     table tb_set_sink {
         key = {
-            standard_metadata.egress_port: exact;
+            standard_metadata.egress_spec: exact;
         }
         actions = {
             int_set_sink;

@@ -36,6 +36,7 @@ header ethernet_t {
     bit<48> src_addr;
     bit<16> ether_type;
 }
+const bit<8> ETH_HEADER_LEN = 14;
 
 header ipv4_t {
     bit<4>  version;
@@ -52,6 +53,7 @@ header ipv4_t {
     bit<32> src_addr;
     bit<32> dst_addr;
 }
+const bit<8> IPV4_MIN_HEAD_LEN = 20;
 
 header tcp_t {
     bit<16> src_port;
@@ -73,5 +75,6 @@ header udp_t {
     bit<16> length_;
     bit<16> checksum;
 }
+const bit<8> UDP_HEADER_LEN = 8;
 
 #endif

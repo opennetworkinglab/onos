@@ -29,7 +29,47 @@ control verify_checksum_control(inout headers_t hdr,
 control compute_checksum_control(inout headers_t hdr,
                                  inout local_metadata_t local_metadata) {
     apply {
-        // No need to recompute.
+        update_checksum(hdr.ipv4.isValid(),
+            {
+                hdr.ipv4.version,
+                hdr.ipv4.ihl,
+                hdr.ipv4.dscp,
+                hdr.ipv4.ecn,
+                hdr.ipv4.len,
+                hdr.ipv4.identification,
+                hdr.ipv4.flags,
+                hdr.ipv4.frag_offset,
+                hdr.ipv4.ttl,
+                hdr.ipv4.protocol,
+                hdr.ipv4.src_addr,
+                hdr.ipv4.dst_addr
+            },
+            hdr.ipv4.hdr_checksum,
+            HashAlgorithm.csum16
+        );
+
+        // Need to recompute for the cloned packet.
+        //TODO: https://github.com/p4lang/p4app/issues/43#issuecomment-378061934
+        #ifdef __INT_HEADERS__
+        update_checksum(hdr.report_ipv4.isValid(),
+            {
+                hdr.report_ipv4.version,
+                hdr.report_ipv4.ihl,
+                hdr.report_ipv4.dscp,
+                hdr.report_ipv4.ecn,
+                hdr.report_ipv4.len,
+                hdr.report_ipv4.identification,
+                hdr.report_ipv4.flags,
+                hdr.report_ipv4.frag_offset,
+                hdr.report_ipv4.ttl,
+                hdr.report_ipv4.protocol,
+                hdr.report_ipv4.src_addr,
+                hdr.report_ipv4.dst_addr
+            },
+            hdr.report_ipv4.hdr_checksum,
+            HashAlgorithm.csum16
+        );
+        #endif // __INT_HEADERS__
     }
 }
 
