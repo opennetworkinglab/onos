@@ -22,6 +22,7 @@ import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeAdminService;
 
 import static java.lang.Thread.sleep;
+import static org.onosproject.openstacknode.api.NodeState.COMPLETE;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
 
@@ -33,6 +34,7 @@ import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
 public class OpenstackSyncRulesCommand extends AbstractShellCommand {
 
     private static final long SLEEP_MS = 3000; // we wait 3s for init each node
+    private static final long TIMEOUT_MS = 10000; // we wait 10s
 
     @Override
     protected void execute() {
@@ -58,16 +60,36 @@ public class OpenstackSyncRulesCommand extends AbstractShellCommand {
         OpenstackNode updated = osNode.updateState(NodeState.INIT);
         osNodeService.updateNode(updated);
 
-        try {
-            sleep(SLEEP_MS);
-        } catch (InterruptedException e) {
-            log.error("Exception caused during node synchronization...");
+        boolean result = true;
+        long timeoutExpiredMs = System.currentTimeMillis() + TIMEOUT_MS;
+
+        while (osNodeService.node(osNode.hostname()).state() != COMPLETE) {
+
+            long  waitMs = timeoutExpiredMs - System.currentTimeMillis();
+
+            try {
+                sleep(SLEEP_MS);
+            } catch (InterruptedException e) {
+                error("Exception caused during node synchronization...");
+            }
+
+            if (osNodeService.node(osNode.hostname()).state() == COMPLETE) {
+                break;
+            } else {
+                osNodeService.updateNode(updated);
+                print("Failed to synchronize flow rules, retrying...");
+            }
+
+            if (waitMs <= 0) {
+                result = false;
+                break;
+            }
         }
 
-        if (osNodeService.node(osNode.hostname()).state() == NodeState.COMPLETE) {
-            print("Finished sync rules for node %s", osNode.hostname());
+        if (result) {
+            print("Successfully synchronize flow rules for node {}!", osNode.hostname());
         } else {
-            error("Failed to sync rules for node %s", osNode.hostname());
+            error("Failed to synchronize flow rules for node {}.", osNode.hostname());
         }
     }
 }
