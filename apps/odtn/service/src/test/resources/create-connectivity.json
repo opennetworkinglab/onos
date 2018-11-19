@@ -11,7 +11,8 @@
                 },
                 "direction" : "BIDIRECTIONAL",
                 "role" : "UNKNOWN",
-                "protection-role" : "WORK"
+                "protection-role" : "WORK",
+                "local-id": "00000001-0000-0000-0000-000000000001"
             }
             ,
             {
@@ -23,7 +24,8 @@
                 },
                 "direction" : "BIDIRECTIONAL",
                 "role" : "UNKNOWN",
-                "protection-role" : "WORK"
+                "protection-role" : "WORK",
+                "local-id": "00000001-0000-0000-0000-000000000002"
             }
         ],
         "connectivity-constraint" : {},
