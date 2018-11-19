@@ -9,7 +9,7 @@ onos_app(
     category = "Traffic Engineering",
     description = "Provides handling of multicast traffic.",
     included_bundles = BUNDLES,
-    origin = "ONF",
+    origin = "ONOS Community",
     title = "Multicast traffic control",
     url = "https://wiki.onosproject.org/",
 )

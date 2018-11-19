@@ -34,7 +34,7 @@ BUNDLES = [
 
 onos_app(
     app_name = "org.onosproject.protocols.grpc",
-    category = "rotocol",
+    category = "Protocol",
     description = "Exposes APIs to operate with gRPC channels",
     included_bundles = BUNDLES,
     title = "gRPC Protocol Subsystem",
