@@ -540,17 +540,21 @@ public final class OpenstackSwitchingHandler {
                 .matchInPort(instPort.portNumber())
                 .build();
 
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
                 .pushVlan()
-                .setVlanId(getVlanId(instPort))
-                .transition(ACL_TABLE)
-                .build();
+                .setVlanId(getVlanId(instPort));
+
+        if (ethType == Ethernet.TYPE_ARP) {
+            tBuilder.transition(ARP_TABLE);
+        } else if (ethType == Ethernet.TYPE_IPV4) {
+            tBuilder.transition(ACL_TABLE);
+        }
 
         osFlowRuleService.setRule(
                 appId,
                 instPort.deviceId(),
                 selector,
-                treatment,
+                tBuilder.build(),
                 PRIORITY_TUNNEL_TAG_RULE,
                 VTAG_TABLE,
                 install);

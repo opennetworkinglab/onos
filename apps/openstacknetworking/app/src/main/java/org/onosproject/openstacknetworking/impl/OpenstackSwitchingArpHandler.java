@@ -29,6 +29,7 @@ import org.onlab.packet.Ethernet;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cfg.ConfigProperty;
@@ -313,26 +314,32 @@ public final class OpenstackSwitchingArpHandler {
                 return;
             }
 
-            TrafficSelector selector = DefaultTrafficSelector.builder()
-                    .matchEthType(EthType.EtherType.ARP.ethType().toShort())
-                    .matchArpOp(ARP.OP_REQUEST)
-                    .matchArpTpa(Ip4Address.valueOf(gateway))
-                    .build();
+            TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
+            TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
 
-            TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                    .setArpOp(ARP.OP_REPLY)
+            NetworkType type = NetworkType.valueOf(osNetworkService.networkType(osSubnet.getNetworkId()));
+
+            if (type.equals(NetworkType.VLAN)) {
+                sBuilder.matchVlanId(VlanId.vlanId(osNetworkService.segmentId(osSubnet.getNetworkId())));
+                tBuilder.popVlan();
+            }
+
+            sBuilder.matchEthType(EthType.EtherType.ARP.ethType().toShort())
+                    .matchArpOp(ARP.OP_REQUEST)
+                    .matchArpTpa(Ip4Address.valueOf(gateway));
+
+            tBuilder.setArpOp(ARP.OP_REPLY)
                     .setArpSha(MacAddress.valueOf(gatewayMac))
                     .setArpSpa(Ip4Address.valueOf(gateway))
-                    .setOutput(PortNumber.IN_PORT)
-                    .build();
+                    .setOutput(PortNumber.IN_PORT);
 
             if (osNode == null) {
                 osNodeService.completeNodes(COMPUTE).forEach(n ->
                         osFlowRuleService.setRule(
                                 appId,
                                 n.intgBridge(),
-                                selector,
-                                treatment,
+                                sBuilder.build(),
+                                tBuilder.build(),
                                 PRIORITY_ARP_GATEWAY_RULE,
                                 ARP_TABLE,
                                 install
@@ -342,8 +349,8 @@ public final class OpenstackSwitchingArpHandler {
                 osFlowRuleService.setRule(
                         appId,
                         osNode.intgBridge(),
-                        selector,
-                        treatment,
+                        sBuilder.build(),
+                        tBuilder.build(),
                         PRIORITY_ARP_GATEWAY_RULE,
                         ARP_TABLE,
                         install
