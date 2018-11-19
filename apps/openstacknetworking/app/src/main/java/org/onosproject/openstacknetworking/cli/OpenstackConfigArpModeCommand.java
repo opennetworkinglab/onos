@@ -17,6 +17,7 @@ package org.onosproject.openstacknetworking.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cli.AbstractShellCommand;
@@ -48,6 +49,7 @@ public class OpenstackConfigArpModeCommand extends AbstractShellCommand {
     @Argument(index = 0, name = "arpMode",
             description = "ARP mode (proxy | broadcast)",
             required = true, multiValued = false)
+    @Completion(ArpModeCompleter.class)
     String arpMode = null;
 
     @Override

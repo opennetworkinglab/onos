@@ -18,6 +18,7 @@ package org.onosproject.openstackvtap.cli;
 import com.google.common.collect.ImmutableSet;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
@@ -46,6 +47,7 @@ public class OpenstackVtapListCommand extends AbstractShellCommand {
     @Argument(index = 0, name = "type",
             description = "vtap type [any|all|rx|tx]",
             required = false, multiValued = false)
+    @Completion(VtapTypeCompleter.class)
     String vtapType = "any";
 
     private static final String FORMAT = "ID { %s }: type [%s], srcIP [%s], dstIP [%s]";

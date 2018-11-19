@@ -18,6 +18,7 @@ package org.onosproject.openstacktroubleshoot.cli;
 import com.google.common.collect.Sets;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
@@ -59,6 +60,7 @@ public class OpenstackNorthSouthProbeCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "vmIps", description = "VMs' IP addresses",
             required = false, multiValued = true)
+    @Completion(ActiveFloatingIpCompleter.class)
     private String[] vmIps = null;
 
     private final ExecutorService probeExecutor = newSingleThreadScheduledExecutor(

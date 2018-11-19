@@ -18,6 +18,7 @@ package org.onosproject.openstacknetworking.cli;
 import com.google.common.collect.Lists;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.openstacknetworking.api.ExternalPeerRouter;
@@ -34,6 +35,7 @@ import java.util.List;
 public class DeleteExternalPeerRouterCommand extends AbstractShellCommand {
     @Argument(index = 0, name = "ip address", description = "ip address",
             required = true, multiValued = false)
+    @Completion(IpAddressCompleter.class)
     private String ipAddress = null;
 
     private static final String FORMAT = "%-20s%-20s%-20s";

@@ -17,6 +17,7 @@ package org.onosproject.openstacknetworking.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
@@ -45,6 +46,7 @@ public class OpenstackResetPortsCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "portIds", description = "Instance Port IDs",
             required = false, multiValued = true)
+    @Completion(InstancePortIdCompleter.class)
     private String[] portIds = null;
 
     private static final long SLEEP_MS = 1000; // we wait 1s for reset each port

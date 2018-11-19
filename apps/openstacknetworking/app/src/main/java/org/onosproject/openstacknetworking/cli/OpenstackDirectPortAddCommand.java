@@ -17,6 +17,7 @@ package org.onosproject.openstacknetworking.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.device.DeviceService;
@@ -42,6 +43,7 @@ import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
         description = "Manually adds OpenStack direct ports to the device")
 public class OpenstackDirectPortAddCommand extends AbstractShellCommand {
     @Argument(index = 0, name = "port ID", description = "port ID", required = true)
+    @Completion(DirectPortListCompleter.class)
     private String portId = null;
 
     @Override

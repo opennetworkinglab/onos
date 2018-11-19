@@ -17,6 +17,7 @@ package org.onosproject.openstackvtap.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.TpPort;
@@ -42,16 +43,19 @@ public class OpenstackVtapAddCommand extends AbstractShellCommand {
     @Argument(index = 0, name = "srcIp",
             description = "source IP address CIDR (e.g., \"10.1.0.2/32\")",
             required = true, multiValued = false)
+    @Completion(VmIpCompleter.class)
     String srcIp = "";
 
     @Argument(index = 1, name = "dstIp",
             description = "destination IP address CIDR (e.g., \"10.1.0.3/32\")",
             required = true, multiValued = false)
+    @Completion(VmIpCompleter.class)
     String dstIp = "";
 
     @Argument(index = 2, name = "ipProto",
             description = "IP protocol [any|tcp|udp|icmp]",
             required = false, multiValued = false)
+    @Completion(ProtocolTypeCompleter.class)
     String ipProto = "any";
 
     @Argument(index = 3, name = "srcTpPort",
@@ -67,6 +71,7 @@ public class OpenstackVtapAddCommand extends AbstractShellCommand {
     @Argument(index = 5, name = "type",
             description = "vtap type [all|rx|tx]",
             required = false, multiValued = false)
+    @Completion(VtapTypeCompleter.class)
     String vtapTypeStr = "all";
 
     @Override

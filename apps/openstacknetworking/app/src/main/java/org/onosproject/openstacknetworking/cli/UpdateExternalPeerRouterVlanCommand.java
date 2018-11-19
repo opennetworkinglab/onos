@@ -18,6 +18,7 @@ package org.onosproject.openstacknetworking.cli;
 import com.google.common.collect.Lists;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
@@ -41,10 +42,12 @@ import java.util.List;
 public class UpdateExternalPeerRouterVlanCommand extends AbstractShellCommand {
     @Argument(index = 0, name = "ip address", description = "ip address",
             required = true, multiValued = false)
+    @Completion(IpAddressCompleter.class)
     private String ipAddress = null;
 
     @Argument(index = 1, name = "vlan id", description = "vlan id",
             required = true, multiValued = false)
+    @Completion(VlanIdCompleter.class)
     private String vlanId = null;
 
     private static final String FORMAT = "%-20s%-20s%-20s";

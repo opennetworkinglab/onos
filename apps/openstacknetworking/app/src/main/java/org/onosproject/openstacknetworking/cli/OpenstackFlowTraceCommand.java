@@ -17,6 +17,7 @@ package org.onosproject.openstacknetworking.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.openstacknetworking.api.InstancePort;
@@ -40,10 +41,12 @@ public class OpenstackFlowTraceCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "src ip address", description = "src ip address",
             required = true, multiValued = false)
+    @Completion(InstanceIpAddressCompleter.class)
     private String srcIp = null;
 
     @Argument(index = 1, name = "dst ip address", description = "dst ip address",
             required = true, multiValued = false)
+    @Completion(InstanceIpAddressCompleter.class)
     private String dstIp = null;
 
     private static final String NO_ELEMENT = "There's no instance port information with given ip address";

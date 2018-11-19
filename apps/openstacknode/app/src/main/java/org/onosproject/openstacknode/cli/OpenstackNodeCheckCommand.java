@@ -18,6 +18,7 @@ package org.onosproject.openstacknode.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.DeviceId;
@@ -46,6 +47,7 @@ public class OpenstackNodeCheckCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "hostname", description = "Hostname",
             required = true, multiValued = false)
+    @Completion(OpenstackHostnameCompleter.class)
     private String hostname = null;
 
     private static final String MSG_OK = "OK";
