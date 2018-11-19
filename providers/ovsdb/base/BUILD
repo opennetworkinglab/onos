@@ -11,6 +11,7 @@ onos_app(
     category = "Provider",
     description = "ONOS OVSDB provider.",
     included_bundles = BUNDLES,
+    required_apps = ["org.onosproject.tunnel"],
     title = "OVSDB Provider",
     url = "http://onosproject.org",
 )
