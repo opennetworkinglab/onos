@@ -61,6 +61,7 @@ import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.a
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.checkActivationFlag;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.checkArpMode;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getPropertyValue;
+import static org.onosproject.openstacknode.api.NodeState.COMPLETE;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.CONTROLLER;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
@@ -345,16 +346,36 @@ public class OpenstackManagementWebResource extends AbstractWebResource {
         OpenstackNode updated = osNode.updateState(NodeState.INIT);
         osNodeAdminService.updateNode(updated);
 
-        try {
-            sleep(SLEEP_MS);
-        } catch (InterruptedException e) {
-            log.error("Exception caused during node synchronization...");
+        boolean result = true;
+        long timeoutExpiredMs = System.currentTimeMillis() + TIMEOUT_MS;
+
+        while (osNodeAdminService.node(osNode.hostname()).state() != COMPLETE) {
+
+            long  waitMs = timeoutExpiredMs - System.currentTimeMillis();
+
+            try {
+                sleep(SLEEP_MS);
+            } catch (InterruptedException e) {
+                log.error("Exception caused during node synchronization...");
+            }
+
+            if (osNodeAdminService.node(osNode.hostname()).state() == COMPLETE) {
+                break;
+            } else {
+                osNodeAdminService.updateNode(updated);
+                log.info("Failed to synchronize flow rules, retrying...");
+            }
+
+            if (waitMs <= 0) {
+                result = false;
+                break;
+            }
         }
 
-        if (osNodeAdminService.node(osNode.hostname()).state() == NodeState.COMPLETE) {
-            log.info("Finished sync rules for node {}", osNode.hostname());
+        if (result) {
+            log.info("Successfully synchronize flow rules for node {}!", osNode.hostname());
         } else {
-            log.info("Failed to sync rules for node {}", osNode.hostname());
+            log.warn("Failed to synchronize flow rules for node {}.", osNode.hostname());
         }
     }
 
