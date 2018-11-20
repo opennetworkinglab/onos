@@ -18,6 +18,7 @@ package org.onosproject.l2lb.cli;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.core.ApplicationId;
 import org.onosproject.l2lb.api.L2Lb;
 import org.onosproject.l2lb.api.L2LbId;
 import org.onosproject.l2lb.api.L2LbService;
@@ -30,11 +31,19 @@ import java.util.Map;
 @Service
 @Command(scope = "onos", name = "l2lbs", description = "Lists L2 load balancers")
 public class L2LbListCommand extends AbstractShellCommand {
+
+    // Operation constant
+    private static final String AVAILABLE = "Available";
+
     @Override
     public void doExecute() {
         L2LbService service = get(L2LbService.class);
+        // Get l2 load balancers and reservations
         Map<L2LbId, L2Lb> l2LbStore = service.getL2Lbs();
-
-        l2LbStore.forEach((l2LbId, l2Lb) -> print("%s -> %s, %s", l2LbId, l2Lb.ports(), l2Lb.mode()));
+        Map<L2LbId, ApplicationId> l2LbResStore = service.getReservations();
+        // Print id -> ports, mode, reservation
+        l2LbStore.forEach((l2LbId, l2Lb) -> print("%s -> %s, %s, %s", l2LbId, l2Lb.ports(), l2Lb.mode(),
+                                                  l2LbResStore.get(l2LbId) == null ?
+                                                          AVAILABLE : l2LbResStore.get(l2LbId).name()));
     }
 }
