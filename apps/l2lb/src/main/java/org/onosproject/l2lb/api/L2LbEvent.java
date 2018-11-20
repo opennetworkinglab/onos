@@ -22,9 +22,9 @@ import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
-public class L2LbEvent extends AbstractEvent<L2LbEvent.Type, L2Lb> {
+public class L2LbEvent extends AbstractEvent<L2LbEvent.Type, L2LbData> {
 
-    private L2Lb prevSubject;
+    private L2LbData prevSubject;
 
     /**
      * L2 load balancer event type.
@@ -32,7 +32,10 @@ public class L2LbEvent extends AbstractEvent<L2LbEvent.Type, L2Lb> {
     public enum Type {
         ADDED,
         REMOVED,
-        UPDATED
+        UPDATED,
+        INSTALLED,
+        UNINSTALLED,
+        FAILED
     }
 
     /**
@@ -42,7 +45,7 @@ public class L2LbEvent extends AbstractEvent<L2LbEvent.Type, L2Lb> {
      * @param subject current L2 load balancer information
      * @param prevSubject previous L2 load balancer information
      */
-    public L2LbEvent(Type type, L2Lb subject, L2Lb prevSubject) {
+    public L2LbEvent(Type type, L2LbData subject, L2LbData prevSubject) {
         super(type, subject);
         this.prevSubject = prevSubject;
     }
@@ -52,7 +55,7 @@ public class L2LbEvent extends AbstractEvent<L2LbEvent.Type, L2Lb> {
      *
      * @return previous subject
      */
-    public L2Lb prevSubject() {
+    public L2LbData prevSubject() {
         return prevSubject;
     }
 

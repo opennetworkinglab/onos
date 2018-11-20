@@ -18,7 +18,9 @@ package org.onosproject.l2lb.cli;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.l2lb.api.L2Lb;
 import org.onosproject.l2lb.api.L2LbAdminService;
+import org.onosproject.l2lb.api.L2LbId;
 import org.onosproject.net.DeviceId;
 
 /**
@@ -36,12 +38,17 @@ public class L2LbRemoveCommand extends AbstractShellCommand {
             required = true, multiValued = false)
     private String keyStr;
 
+    // Operation constants
+    private static final String EXECUTED = "Executed";
+    private static final String FAILED = "Failed";
+
     @Override
     protected void execute() {
         DeviceId deviceId = DeviceId.deviceId(deviceIdStr);
         int l2LbPort = Integer.parseInt(keyStr);
 
         L2LbAdminService l2LbAdminService = get(L2LbAdminService.class);
-        l2LbAdminService.remove(deviceId, l2LbPort);
+        L2Lb l2Lb = l2LbAdminService.remove(deviceId, l2LbPort);
+        print("Removal of %s %s", new L2LbId(deviceId, l2LbPort), l2Lb != null ? EXECUTED : FAILED);
     }
 }
