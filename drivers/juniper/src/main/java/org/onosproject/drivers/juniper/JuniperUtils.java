@@ -92,10 +92,14 @@ public final class JuniperUtils {
     private static final String IF_PHY = "physical-interface";
 
     private static final String IF_TYPE = "if-type";
+    private static final String IF_MEDIA_TYPE = "if-media-type";
     private static final String SPEED = "speed";
     private static final String NAME = "name";
     private static final String PORT = "port";
     private static final String PROTOCOL = "protocol";
+
+    private static final String FIBER = "fiber";
+    private static final String COPPER = "copper";
 
     private static final String TCP = "tcp";
 
@@ -356,11 +360,12 @@ public final class JuniperUtils {
         annotations.set(AK_ADMIN_STATUS, toUpDown(admUp));
 
         long portSpeed = toMbps(phyIntf.getString(SPEED));
+        Type portType = phyIntf.getString(IF_MEDIA_TYPE, COPPER).equalsIgnoreCase(FIBER) ? Type.FIBER : Type.COPPER;
 
         portDescriptions.add(DefaultPortDescription.builder()
                 .withPortNumber(portNumber)
                 .isEnabled(admUp && opUp)
-                .type(Type.COPPER)
+                .type(portType)
                 .portSpeed(portSpeed)
                 .annotations(annotations.build()).build());
 
@@ -408,7 +413,7 @@ public final class JuniperUtils {
             portDescriptions.add(DefaultPortDescription.builder()
                     .withPortNumber(lPortNumber)
                     .isEnabled(admUp && opUp && lEnabled)
-                    .type(Type.COPPER)
+                    .type(portType)
                     .portSpeed(portSpeed).annotations(lannotations.build())
                     .build());
         }
