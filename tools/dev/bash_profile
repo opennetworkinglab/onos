@@ -229,7 +229,7 @@ function cell {
         clearCell
         aux="/tmp/cell-$$"
         duration=${2:-0}
-        spec=${3:-3+1}
+        spec=${3:-5+3+1}
         spec=${spec//+/%2B}
         user=${4:-$(id -un)}
         hint=${5:-""}
