@@ -65,7 +65,7 @@ public class BazelLibGenerator {
      */
     public static void main(String[] args) throws Exception {
         if (args.length < 2) {
-            System.err.println("sage: onos-lib-gen <input-deps.json> <output-workspace.bzl>");
+            System.err.println("usage: onos-lib-gen <input-deps.json> <output-workspace.bzl>");
             System.exit(5);
         }
 
