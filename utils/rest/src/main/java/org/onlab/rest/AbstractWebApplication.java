@@ -54,6 +54,7 @@ public abstract class AbstractWebApplication extends Application {
                     WebApplicationExceptionMapper.class,
                     IllegalArgumentExceptionMapper.class,
                     IllegalStateExceptionMapper.class,
+                    AuditFilter.class,
                     JsonBodyWriter.class);
         builder.add(classes);
         return builder.build();

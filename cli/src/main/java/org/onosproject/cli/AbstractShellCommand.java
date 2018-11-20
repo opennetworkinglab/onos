@@ -30,7 +30,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.net.DefaultAnnotations;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.Set;
 import java.util.TreeSet;
@@ -39,11 +40,65 @@ import java.util.TreeSet;
  * Base abstraction of Karaf shell commands.
  */
 public abstract class AbstractShellCommand implements Action, CodecContext {
-    protected final Logger log = LoggerFactory.getLogger(this.getClass());
+
+    protected static final Logger log = getLogger(AbstractShellCommand.class);
 
     @Option(name = "-j", aliases = "--json", description = "Output JSON",
             required = false, multiValued = false)
     private boolean json = false;
+
+    private static String auditFile = "all";
+    private static boolean auditEnabled = false;
+
+    /**
+     * To check if CLI Audit is enabled.
+     *
+     * @return true if the CLI Audit is enabled.
+     */
+    private static boolean isEnabled() {
+        return auditEnabled;
+    }
+
+    /**
+     * To enable CLI Audit.
+     */
+    public static void enableAudit() {
+        auditEnabled = true;
+    }
+
+    /**
+     * To disable CLI Audit.
+     */
+    public static void disableAudit() {
+        auditEnabled = false;
+    }
+
+    /**
+     * To set audit file type which CLI Audit logs must be saved.
+     *
+     * @param auditFile file that CLI Audit logs must be saved.
+     */
+    public static void setAuditFile(String auditFile) {
+        AbstractShellCommand.auditFile = auditFile;
+    }
+
+    /**
+     * To save audit logs into the log file.
+     *
+     * @param msg audit message.
+     */
+    private static void saveAuditLog(String msg) {
+        if (isEnabled()) {
+            if (auditFile.equals("all")) {
+                log.info(msg);
+                log.info("AuditLog : " + msg);
+            } else if (auditFile.equals("karaf")) {
+                log.info(msg);
+            } else if (auditFile.equals("audit")) {
+                log.info("AuditLog : " + msg);
+            }
+        }
+    }
 
     /**
      * Returns the reference to the implementation of the specified service.
@@ -54,6 +109,7 @@ public abstract class AbstractShellCommand implements Action, CodecContext {
      * @throws org.onlab.osgi.ServiceNotFoundException if service is unavailable
      */
     public static <T> T get(Class<T> serviceClass) {
+        saveAuditLog("Audit ");
         return DefaultServiceDirectory.getService(serviceClass);
     }
 
@@ -64,7 +120,7 @@ public abstract class AbstractShellCommand implements Action, CodecContext {
      */
     protected ApplicationId appId() {
         return get(CoreService.class)
-               .registerApplication("org.onosproject.cli");
+                .registerApplication("org.onosproject.cli");
     }
 
     /**
@@ -126,7 +182,7 @@ public abstract class AbstractShellCommand implements Action, CodecContext {
     /**
      * Produces a JSON object from the specified key/value annotations.
      *
-     * @param mapper ObjectMapper to use while converting to JSON
+     * @param mapper      ObjectMapper to use while converting to JSON
      * @param annotations key/value annotations
      * @return JSON object
      */
@@ -186,9 +242,9 @@ public abstract class AbstractShellCommand implements Action, CodecContext {
     /**
      * Generates a Json representation of an object.
      *
-     * @param entity object to generate JSON for
+     * @param entity      object to generate JSON for
      * @param entityClass class to format with - this chooses which codec to use
-     * @param <T> Type of the object being formatted
+     * @param <T>         Type of the object being formatted
      * @return JSON object representation
      */
     public <T> ObjectNode jsonForEntity(T entity, Class<T> entityClass) {

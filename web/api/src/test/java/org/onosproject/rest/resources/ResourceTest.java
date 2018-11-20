@@ -24,6 +24,7 @@ import org.glassfish.jersey.test.spi.TestContainerFactory;
 import org.onlab.junit.TestUtils;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.rest.AuthorizationFilter;
+import org.onlab.rest.AuditFilter;
 import org.onlab.rest.BaseResource;
 
 /**
@@ -51,6 +52,7 @@ public class ResourceTest extends JerseyTest {
     private void configureProperties() {
         set(TestProperties.CONTAINER_PORT, 0);
         AuthorizationFilter.disableForTests();
+        AuditFilter.disableForTests();
     }
 
     /**
