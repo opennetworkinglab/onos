@@ -15,32 +15,39 @@
  */
 package org.onosproject.l2lb.api;
 
-import org.onosproject.net.PortNumber;
 
 import java.util.Objects;
-import java.util.Set;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
- * Represents L2 load balancer information.
+ * Represents L2 load balancer event data.
  */
-public class L2Lb {
+public class L2LbData {
+
+    // We exchange only id and nextid in the events
     private L2LbId l2LbId;
-    private Set<PortNumber> ports;
-    private L2LbMode mode;
+    private int nextId;
 
     /**
-     * Constructs a L2 load balancer.
+     * Constructs a L2 load balancer data.
      *
      * @param l2LbId L2 load balancer ID
-     * @param ports Set of member ports
-     * @param mode L2 load balancer mode
      */
-    public L2Lb(L2LbId l2LbId, Set<PortNumber> ports, L2LbMode mode) {
+    public L2LbData(L2LbId l2LbId) {
         this.l2LbId = l2LbId;
-        this.ports = ports;
-        this.mode = mode;
+        this.nextId = -1;
+    }
+
+    /**
+     * Constructs a L2 load balancer data.
+     *
+     * @param l2LbId L2 load balancer ID
+     * @param nextId L2 load balancer next id
+     */
+    public L2LbData(L2LbId l2LbId, int nextId) {
+        this.l2LbId = l2LbId;
+        this.nextId = nextId;
     }
 
     /**
@@ -53,35 +60,26 @@ public class L2Lb {
     }
 
     /**
-     * Gets set of member ports.
+     * Gets L2 load balancer next id.
      *
-     * @return Set of member ports
+     * @return L2 load balancer next id
      */
-    public Set<PortNumber> ports() {
-        return ports;
+    public int nextId() {
+        return nextId;
     }
 
     /**
-     * Gets L2 load balancer mode.
+     * Sets L2 load balancer next id.
      *
-     * @return L2 load balancer mode.
+     * @param nextId L2 load balancer next id
      */
-    public L2LbMode mode() {
-        return mode;
-    }
-
-    /**
-     * Gets L2 load balancer data.
-     *
-     * @return L2 load balancer data
-     */
-    public L2LbData data() {
-        return new L2LbData(l2LbId);
+    public void setNextId(int nextId) {
+        this.nextId = nextId;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(l2LbId, ports, mode);
+        return Objects.hash(l2LbId, nextId);
     }
 
     @Override
@@ -89,22 +87,20 @@ public class L2Lb {
         if (this == obj) {
             return true;
         }
-        if (!(obj instanceof L2Lb)) {
+        if (!(obj instanceof L2LbData)) {
             return false;
         }
-        final L2Lb other = (L2Lb) obj;
+        final L2LbData other = (L2LbData) obj;
 
         return Objects.equals(this.l2LbId, other.l2LbId) &&
-                Objects.equals(this.ports, other.ports) &&
-                this.mode == other.mode;
+                this.nextId == other.nextId;
     }
 
     @Override
     public String toString() {
         return toStringHelper(getClass())
                 .add("l2LbId", l2LbId)
-                .add("ports", ports)
-                .add("mode", mode)
+                .add("nextId", nextId)
                 .toString();
     }
 }

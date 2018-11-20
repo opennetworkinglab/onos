@@ -20,7 +20,9 @@ import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.l2lb.api.L2Lb;
 import org.onosproject.l2lb.api.L2LbAdminService;
+import org.onosproject.l2lb.api.L2LbId;
 import org.onosproject.l2lb.api.L2LbMode;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
@@ -54,6 +56,10 @@ public class L2LbAddCommand extends AbstractShellCommand {
             required = true, multiValued = true)
     private String[] portsStr;
 
+    // Operation constants
+    private static final String CREATE = "Create";
+    private static final String UPDATE = "Update";
+
     @Override
     protected void doExecute() {
         DeviceId deviceId = DeviceId.deviceId(deviceIdStr);
@@ -64,7 +70,8 @@ public class L2LbAddCommand extends AbstractShellCommand {
                 .map(PortNumber::fromString).collect(Collectors.toSet());
 
         L2LbAdminService l2LbAdminService = get(L2LbAdminService.class);
-        l2LbAdminService.createOrUpdate(deviceId, l2LbPort, ports, mode);
+        L2Lb l2Lb = l2LbAdminService.createOrUpdate(deviceId, l2LbPort, ports, mode);
+        print("%s of %s executed", l2Lb == null ? CREATE : UPDATE, new L2LbId(deviceId, l2LbPort));
 
     }
 }

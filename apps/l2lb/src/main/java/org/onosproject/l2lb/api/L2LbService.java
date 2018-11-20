@@ -16,6 +16,7 @@
 
 package org.onosproject.l2lb.api;
 
+import org.onosproject.core.ApplicationId;
 import org.onosproject.event.ListenerService;
 import org.onosproject.net.DeviceId;
 
@@ -56,4 +57,43 @@ public interface L2LbService extends ListenerService<L2LbEvent, L2LbListener> {
      * @return next ID
      */
     int getL2LbNexts(DeviceId deviceId, int key);
+
+    /**
+     * Reserves a l2 load balancer. Only one application
+     * at time can reserve a given l2 load balancer.
+     *
+     * @param l2LbId the l2 load balancer id
+     * @param appId the application id
+     * @return true if reservation was successful false otherwise
+     */
+    boolean reserve(L2LbId l2LbId, ApplicationId appId);
+
+    /**
+     * Releases a l2 load balancer. Once released
+     * by the owner the l2 load balancer is eligible
+     * for removal.
+     *
+     * @param l2LbId the l2 load balancer id
+     * @param appId the application id
+     * @return true if release was successful false otherwise
+     */
+    boolean release(L2LbId l2LbId, ApplicationId appId);
+
+    /**
+     * Gets reservation of a l2 load balancer. Only one application
+     * at time can reserve a given l2 load balancer.
+     *
+     * @param l2LbId the l2 load balancer id
+     * @return the id of the application using the l2 load balancer
+     */
+    ApplicationId getReservation(L2LbId l2LbId);
+
+    /**
+     * Gets l2 load balancer reservations. Only one application
+     * at time can reserve a given l2 load balancer.
+     *
+     * @return reservations of the l2 load balancer resources
+     */
+    Map<L2LbId, ApplicationId> getReservations();
+
 }

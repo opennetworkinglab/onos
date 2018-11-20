@@ -40,7 +40,7 @@ public interface L2LbAdminService {
      *
      * @param deviceId Device ID
      * @param key L2 load balancer key
-     * @return L2 load balancer that is removed
+     * @return L2 load balancer that is removed or null if it was not possible
      */
     L2Lb remove(DeviceId deviceId, int key);
 

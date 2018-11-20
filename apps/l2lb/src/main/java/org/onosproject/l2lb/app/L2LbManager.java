@@ -16,12 +16,15 @@
 
 package org.onosproject.l2lb.app;
 
-
 import com.google.common.collect.Sets;
 import org.onlab.util.KryoNamespace;
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.LeadershipService;
+import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.l2lb.api.L2Lb;
+import org.onosproject.l2lb.api.L2LbData;
 import org.onosproject.l2lb.api.L2LbEvent;
 import org.onosproject.l2lb.api.L2LbAdminService;
 import org.onosproject.l2lb.api.L2LbId;
@@ -31,6 +34,8 @@ import org.onosproject.l2lb.api.L2LbService;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -94,6 +99,12 @@ public class L2LbManager implements L2LbService, L2LbAdminService {
     private MastershipService mastershipService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    private LeadershipService leadershipService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    private ClusterService clusterService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private DeviceService deviceService;
 
     private static final Logger log = getLogger(L2LbManager.class);
@@ -102,22 +113,33 @@ public class L2LbManager implements L2LbService, L2LbAdminService {
     private ApplicationId appId;
     private ConsistentMap<L2LbId, L2Lb> l2LbStore;
     private ConsistentMap<L2LbId, Integer> l2LbNextStore;
+    // TODO Evaluate if ResourceService is a better option
+    private ConsistentMap<L2LbId, ApplicationId> l2LbResStore;
     private Set<L2LbListener> listeners = Sets.newConcurrentHashSet();
 
     private ExecutorService l2LbEventExecutor;
     private ExecutorService l2LbProvExecutor;
+    private ExecutorService deviceEventExecutor;
+
     private MapEventListener<L2LbId, L2Lb> l2LbStoreListener;
     // TODO build CLI to view and clear the next store
     private MapEventListener<L2LbId, Integer> l2LbNextStoreListener;
+    private MapEventListener<L2LbId, ApplicationId> l2LbResStoreListener;
+    private final DeviceListener deviceListener = new InternalDeviceListener();
 
     @Activate
     public void activate() {
         appId = coreService.registerApplication(APP_NAME);
 
-        l2LbEventExecutor = Executors.newSingleThreadExecutor(groupedThreads("l2lb-event", "%d", log));
-        l2LbProvExecutor = Executors.newSingleThreadExecutor(groupedThreads("l2lb-prov", "%d", log));
+        l2LbEventExecutor = Executors.newSingleThreadExecutor(
+                groupedThreads("l2lb-event", "%d", log));
+        l2LbProvExecutor = Executors.newSingleThreadExecutor(
+                groupedThreads("l2lb-prov", "%d", log));
+        deviceEventExecutor = Executors.newSingleThreadScheduledExecutor(
+                groupedThreads("l2lb-dev-event", "%d", log));
         l2LbStoreListener = new L2LbStoreListener();
         l2LbNextStoreListener = new L2LbNextStoreListener();
+        l2LbResStoreListener = new L2LbResStoreListener();
 
         KryoNamespace serializer = KryoNamespace.newBuilder()
                 .register(KryoNamespaces.API)
@@ -137,6 +159,14 @@ public class L2LbManager implements L2LbService, L2LbAdminService {
                 .withSerializer(Serializer.using(serializer))
                 .build();
         l2LbNextStore.addListener(l2LbNextStoreListener);
+        l2LbResStore = storageService.<L2LbId, ApplicationId>consistentMapBuilder()
+                .withName("onos-l2lb-res-store")
+                .withRelaxedReadConsistency()
+                .withSerializer(Serializer.using(serializer))
+                .build();
+        l2LbResStore.addListener(l2LbResStoreListener);
+
+        deviceService.addListener(deviceListener);
 
         log.info("Started");
     }
@@ -147,6 +177,8 @@ public class L2LbManager implements L2LbService, L2LbAdminService {
         l2LbNextStore.removeListener(l2LbNextStoreListener);
 
         l2LbEventExecutor.shutdown();
+        l2LbProvExecutor.shutdown();
+        deviceEventExecutor.shutdown();
 
         log.info("Stopped");
     }
@@ -171,8 +203,15 @@ public class L2LbManager implements L2LbService, L2LbAdminService {
     @Override
     public L2Lb remove(DeviceId deviceId, int key) {
         L2LbId l2LbId = new L2LbId(deviceId, key);
-        log.debug("Removing {} from L2 load balancer store", l2LbId);
-        return Versioned.valueOrNull(l2LbStore.remove(l2LbId));
+        ApplicationId reservation = Versioned.valueOrNull(l2LbResStore.get(l2LbId));
+        // Remove only if it is not used - otherwise it is necessary to release first
+        if (reservation == null) {
+            log.debug("Removing {} from L2 load balancer store", l2LbId);
+            return Versioned.valueOrNull(l2LbStore.remove(l2LbId));
+        }
+        log.warn("Removal {} from L2 load balancer store was not possible " +
+                          "due to a previous reservation", l2LbId);
+        return null;
     }
 
     @Override
@@ -195,23 +234,62 @@ public class L2LbManager implements L2LbService, L2LbAdminService {
         return Versioned.valueOrNull(l2LbNextStore.get(new L2LbId(deviceId, key)));
     }
 
+    @Override
+    public boolean reserve(L2LbId l2LbId, ApplicationId appId) {
+        // Check if the resource is available
+        ApplicationId reservation = Versioned.valueOrNull(l2LbResStore.get(l2LbId));
+        L2Lb l2Lb = Versioned.valueOrNull(l2LbStore.get(l2LbId));
+        if (reservation == null && l2Lb != null) {
+            log.debug("Reserving {} -> {} into L2 load balancer reservation store", l2LbId, appId);
+            return l2LbResStore.put(l2LbId, appId) == null;
+        } else if (reservation != null && reservation.equals(appId)) {
+            // App try to reserve the resource a second time
+            log.debug("Already reserved {} -> {} skip reservation", l2LbId, appId);
+            return true;
+        }
+        log.warn("Reservation failed {} -> {}", l2LbId, appId);
+        return false;
+    }
+
+    @Override
+    public boolean release(L2LbId l2LbId, ApplicationId appId) {
+        // Check if the resource is reserved
+        ApplicationId reservation = Versioned.valueOrNull(l2LbResStore.get(l2LbId));
+        if (reservation != null && reservation.equals(appId)) {
+            log.debug("Removing {} -> {} from L2 load balancer reservation store", l2LbId, appId);
+            return l2LbResStore.remove(l2LbId) != null;
+        }
+        log.warn("Release failed {} -> {}", l2LbId, appId);
+        return false;
+    }
+
+    @Override
+    public ApplicationId getReservation(L2LbId l2LbId) {
+        return Versioned.valueOrNull(l2LbResStore.get(l2LbId));
+    }
+
+    @Override
+    public Map<L2LbId, ApplicationId> getReservations() {
+        return l2LbResStore.asJavaMap();
+    }
+
     private class L2LbStoreListener implements MapEventListener<L2LbId, L2Lb> {
         public void event(MapEvent<L2LbId, L2Lb> event) {
             switch (event.type()) {
                 case INSERT:
                     log.debug("L2Lb {} insert new={}, old={}", event.key(), event.newValue(), event.oldValue());
-                    post(new L2LbEvent(L2LbEvent.Type.ADDED, event.newValue().value(), null));
+                    post(new L2LbEvent(L2LbEvent.Type.ADDED, event.newValue().value().data(), null));
                     populateL2Lb(event.newValue().value());
                     break;
                 case REMOVE:
                     log.debug("L2Lb {} remove new={}, old={}", event.key(), event.newValue(), event.oldValue());
-                    post(new L2LbEvent(L2LbEvent.Type.REMOVED, null, event.oldValue().value()));
+                    post(new L2LbEvent(L2LbEvent.Type.REMOVED, null, event.oldValue().value().data()));
                     revokeL2Lb(event.oldValue().value());
                     break;
                 case UPDATE:
                     log.debug("L2Lb {} update new={}, old={}", event.key(), event.newValue(), event.oldValue());
-                    post(new L2LbEvent(L2LbEvent.Type.UPDATED, event.newValue().value(),
-                            event.oldValue().value()));
+                    post(new L2LbEvent(L2LbEvent.Type.UPDATED, event.newValue().value().data(),
+                            event.oldValue().value().data()));
                     updateL2Lb(event.newValue().value(), event.oldValue().value());
                     break;
                 default:
@@ -238,67 +316,159 @@ public class L2LbManager implements L2LbService, L2LbAdminService {
         }
     }
 
+    private class L2LbResStoreListener implements MapEventListener<L2LbId, ApplicationId> {
+        public void event(MapEvent<L2LbId, ApplicationId> event) {
+            switch (event.type()) {
+                case INSERT:
+                    log.debug("L2Lb reservation {} insert new={}, old={}", event.key(), event.newValue(),
+                              event.oldValue());
+                    break;
+                case REMOVE:
+                    log.debug("L2Lb reservation {} remove new={}, old={}", event.key(), event.newValue(),
+                              event.oldValue());
+                    break;
+                case UPDATE:
+                    log.debug("L2Lb reservation {} update new={}, old={}", event.key(), event.newValue(),
+                              event.oldValue());
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    private class InternalDeviceListener implements DeviceListener {
+        // We want to manage only a subset of events and if we are the leader
+        @Override
+        public void event(DeviceEvent event) {
+            deviceEventExecutor.execute(() -> {
+                DeviceId deviceId = event.subject().id();
+                if (!isLocalLeader(deviceId)) {
+                    log.debug("Not the leader of {}. Skip event {}", deviceId, event);
+                    return;
+                }
+                // Populate or revoke according to the device availability
+                if (deviceService.isAvailable(deviceId)) {
+                    init(deviceId);
+                } else {
+                    cleanup(deviceId);
+                }
+            });
+        }
+        // Some events related to the devices are skipped
+        @Override
+        public boolean isRelevant(DeviceEvent event) {
+            return event.type() == DeviceEvent.Type.DEVICE_ADDED ||
+                    event.type() == DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED ||
+                    event.type() == DeviceEvent.Type.DEVICE_UPDATED;
+        }
+    }
+
     private void post(L2LbEvent l2LbEvent) {
         l2LbEventExecutor.execute(() -> {
             for (L2LbListener l : listeners) {
-                l.event(l2LbEvent);
+                if (l.isRelevant(l2LbEvent)) {
+                    l.event(l2LbEvent);
+                }
             }
         });
     }
 
-    // TODO repopulate when device reconnect
+    private void init(DeviceId deviceId) {
+        l2LbStore.entrySet().stream()
+                .filter(l2lbentry -> l2lbentry.getKey().deviceId().equals(deviceId))
+                .forEach(l2lbentry -> populateL2Lb(l2lbentry.getValue().value()));
+    }
+
+    private void cleanup(DeviceId deviceId) {
+        l2LbStore.entrySet().stream()
+                .filter(entry -> entry.getKey().deviceId().equals(deviceId))
+                .forEach(entry -> l2LbNextStore.remove(entry.getKey()));
+        log.debug("{} is removed from l2LbNextObjStore", deviceId);
+    }
+
     private void populateL2Lb(L2Lb l2Lb) {
         DeviceId deviceId = l2Lb.l2LbId().deviceId();
-        if (!mastershipService.isLocalMaster(deviceId)) {
-            log.debug("Not the master of {}. Skip populateL2Lb {}", deviceId, l2Lb.l2LbId());
+        if (!isLocalLeader(deviceId)) {
+            log.debug("Not the leader of {}. Skip populateL2Lb {}", deviceId, l2Lb.l2LbId());
             return;
         }
 
         l2LbProvExecutor.execute(() -> {
-            L2LbObjectiveContext context = new L2LbObjectiveContext(l2Lb.l2LbId());
-            NextObjective nextObj = nextObjBuilder(l2Lb.l2LbId(), l2Lb.ports()).add(context);
-
-            flowObjService.next(deviceId, nextObj);
-            l2LbNextStore.put(l2Lb.l2LbId(), nextObj.id());
+            Integer nextid = Versioned.valueOrNull(l2LbNextStore.get(l2Lb.l2LbId()));
+            if (nextid == null) {
+                // Build a new context and new next objective
+                L2LbObjectiveContext context = new L2LbObjectiveContext(l2Lb.l2LbId());
+                NextObjective nextObj = nextObjBuilder(l2Lb.l2LbId(), l2Lb.ports(), nextid).add(context);
+                // Finally submit, store, and register the resource
+                flowObjService.next(deviceId, nextObj);
+                l2LbNextStore.put(l2Lb.l2LbId(), nextObj.id());
+            } else {
+                log.info("NextObj for {} already exists. Skip populateL2Lb", l2Lb.l2LbId());
+            }
         });
     }
 
     private void revokeL2Lb(L2Lb l2Lb) {
         DeviceId deviceId = l2Lb.l2LbId().deviceId();
-        if (!mastershipService.isLocalMaster(deviceId)) {
-            log.debug("Not the master of {}. Skip revokeL2Lb {}", deviceId, l2Lb.l2LbId());
+        if (!isLocalLeader(deviceId)) {
+            log.debug("Not the leader of {}. Skip revokeL2Lb {}", deviceId, l2Lb.l2LbId());
             return;
         }
 
         l2LbProvExecutor.execute(() -> {
-            l2LbNextStore.remove(l2Lb.l2LbId());
-            // NOTE group is not removed and we rely on the garbage collection mechanism
+            Integer nextid = Versioned.valueOrNull(l2LbNextStore.get(l2Lb.l2LbId()));
+            if (nextid != null) {
+                // Build a new context and remove old next objective
+                L2LbObjectiveContext context = new L2LbObjectiveContext(l2Lb.l2LbId());
+                NextObjective nextObj = nextObjBuilder(l2Lb.l2LbId(), l2Lb.ports(), nextid).remove(context);
+                // Finally submit and invalidate the store
+                flowObjService.next(deviceId, nextObj);
+                l2LbNextStore.remove(l2Lb.l2LbId());
+            } else {
+                log.info("NextObj for {} does not exist. Skip revokeL2Lb", l2Lb.l2LbId());
+            }
         });
     }
 
     private void updateL2Lb(L2Lb newL2Lb, L2Lb oldL2Lb) {
         DeviceId deviceId = newL2Lb.l2LbId().deviceId();
-        if (!mastershipService.isLocalMaster(deviceId)) {
-            log.debug("Not the master of {}. Skip updateL2Lb {}", deviceId, newL2Lb.l2LbId());
+        if (!isLocalLeader(deviceId)) {
+            log.debug("Not the leader of {}. Skip updateL2Lb {}", deviceId, newL2Lb.l2LbId());
             return;
         }
 
         l2LbProvExecutor.execute(() -> {
-            L2LbObjectiveContext context = new L2LbObjectiveContext(newL2Lb.l2LbId());
-            Set<PortNumber> portsToBeAdded = Sets.difference(newL2Lb.ports(), oldL2Lb.ports());
-            Set<PortNumber> portsToBeRemoved = Sets.difference(oldL2Lb.ports(), newL2Lb.ports());
+            Integer nextid = Versioned.valueOrNull(l2LbNextStore.get(newL2Lb.l2LbId()));
+            if (nextid != null) {
+                // Compute modifications and context
+                L2LbObjectiveContext context = new L2LbObjectiveContext(newL2Lb.l2LbId());
+                Set<PortNumber> portsToBeAdded = Sets.difference(newL2Lb.ports(), oldL2Lb.ports());
+                Set<PortNumber> portsToBeRemoved = Sets.difference(oldL2Lb.ports(), newL2Lb.ports());
+                // and send them to the flowobj subsystem
+                if (!portsToBeAdded.isEmpty()) {
+                    flowObjService.next(deviceId, nextObjBuilder(newL2Lb.l2LbId(), portsToBeAdded, nextid)
+                            .addToExisting(context));
+                } else {
+                    log.debug("NextObj for {} nothing to add", newL2Lb.l2LbId());
 
-            flowObjService.next(deviceId, nextObjBuilder(newL2Lb.l2LbId(), portsToBeAdded).addToExisting(context));
-            flowObjService.next(deviceId, nextObjBuilder(newL2Lb.l2LbId(), portsToBeRemoved)
-                    .removeFromExisting(context));
+                }
+                if (!portsToBeRemoved.isEmpty()) {
+                    flowObjService.next(deviceId, nextObjBuilder(newL2Lb.l2LbId(), portsToBeRemoved, nextid)
+                            .removeFromExisting(context));
+                } else {
+                    log.debug("NextObj for {} nothing to remove", newL2Lb.l2LbId());
+                }
+            } else {
+                log.info("NextObj for {} does not exist. Skip updateL2Lb", newL2Lb.l2LbId());
+            }
         });
     }
 
-    private NextObjective.Builder nextObjBuilder(L2LbId l2LbId, Set<PortNumber> ports) {
-        return nextObjBuilder(l2LbId, ports, flowObjService.allocateNextId());
-    }
-
-    private NextObjective.Builder nextObjBuilder(L2LbId l2LbId, Set<PortNumber> ports, int nextId) {
+    private NextObjective.Builder nextObjBuilder(L2LbId l2LbId, Set<PortNumber> ports, Integer nextId) {
+        if (nextId == null) {
+            nextId = flowObjService.allocateNextId();
+        }
         // TODO replace logical l2lb port
         TrafficSelector meta = DefaultTrafficSelector.builder()
                 .matchInPort(PortNumber.portNumber(l2LbId.key())).build();
@@ -314,6 +484,22 @@ public class L2LbManager implements L2LbService, L2LbAdminService {
         return nextObjBuilder;
     }
 
+    // Custom-built function, when the device is not available we need a fallback mechanism
+    private boolean isLocalLeader(DeviceId deviceId) {
+        if (!mastershipService.isLocalMaster(deviceId)) {
+            // When the device is available we just check the mastership
+            if (deviceService.isAvailable(deviceId)) {
+                return false;
+            }
+            // Fallback with Leadership service - device id is used as topic
+            NodeId leader = leadershipService.runForLeadership(
+                    deviceId.toString()).leaderNodeId();
+            // Verify if this node is the leader
+            return clusterService.getLocalNode().id().equals(leader);
+        }
+        return true;
+    }
+
     private final class L2LbObjectiveContext implements ObjectiveContext {
         private final L2LbId l2LbId;
 
@@ -324,13 +510,51 @@ public class L2LbManager implements L2LbService, L2LbAdminService {
         @Override
         public void onSuccess(Objective objective) {
             NextObjective nextObj = (NextObjective) objective;
-            log.debug("Added nextobj {} for L2 load balancer {}", nextObj, l2LbId);
+            log.debug("Success {} nextobj {} for L2 load balancer {}", nextObj.op(), nextObj, l2LbId);
+            // Operation done
+            L2LbData oldl2LbData = new L2LbData(l2LbId);
+            L2LbData newl2LbData = new L2LbData(l2LbId);
+            l2LbProvExecutor.execute(() -> {
+                // Other operations will not lead to a generation of an event
+                switch (nextObj.op()) {
+                    case ADD:
+                        newl2LbData.setNextId(nextObj.id());
+                        post(new L2LbEvent(L2LbEvent.Type.INSTALLED, newl2LbData, oldl2LbData));
+                        break;
+                    case REMOVE:
+                        oldl2LbData.setNextId(nextObj.id());
+                        post(new L2LbEvent(L2LbEvent.Type.UNINSTALLED, newl2LbData, oldl2LbData));
+                        break;
+                    default:
+                        break;
+                }
+            });
         }
 
         @Override
         public void onError(Objective objective, ObjectiveError error) {
             NextObjective nextObj = (NextObjective) objective;
-            log.debug("Failed to add nextobj {} for L2 load balancer {}", nextObj, l2LbId);
+            log.debug("Failed {} nextobj {} for L2 load balancer {} due to {}", nextObj.op(), nextObj,
+                      l2LbId, error);
+            l2LbProvExecutor.execute(() -> {
+                // Init the data structure
+                L2LbData l2LbData = new L2LbData(l2LbId);
+                // Update the next id and send the event;
+                switch (nextObj.op()) {
+                    case ADD:
+                        // If ADD is failing apps do not know the next id; let's update the store
+                        l2LbNextStore.remove(l2LbId);
+                        post(new L2LbEvent(L2LbEvent.Type.FAILED, l2LbData, l2LbData));
+                        break;
+                    case REMOVE:
+                        // If REMOVE is failing let's send also the info about the next id; no need to update the store
+                        l2LbData.setNextId(nextObj.id());
+                        post(new L2LbEvent(L2LbEvent.Type.FAILED, l2LbData, l2LbData));
+                        break;
+                    default:
+                        break;
+                }
+            });
         }
 
     }
