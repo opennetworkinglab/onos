@@ -61,6 +61,7 @@ runCmd(["bazel", "build", "onos"])
 
 # Find all onos OSGi jar file rules
 targets = runCmd(["bazel", "query", "kind('_bnd', '//...')"])
+targets = [target for target in targets if not target in black_list]
 # Uncomment this for easier debugging of a single package
 # targets = ['//core/net:onos-core-net']
 
@@ -83,8 +84,6 @@ targets = runCmd(["bazel", "query", "kind('_bnd', '//...')"])
 
 
 def write_module(target, out):
-    if target in black_list:
-        return
     path, module_name = splitTarget(target)
     out.write('%s.sonar.projectBaseDir=%s\n' % (module_name, path))
     out.write('%(name)s.sonar.projectName=%(name)s\n' % {'name': module_name})
