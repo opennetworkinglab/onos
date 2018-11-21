@@ -434,7 +434,8 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
         }
     }
 
-    private boolean isDpdkIntfsCreated(OpenstackNode osNode, Collection<DpdkInterface> dpdkInterfaces) {
+    private boolean isDpdkIntfsCreated(OpenstackNode osNode,
+                                       Collection<DpdkInterface> dpdkInterfaces) {
         OvsdbClientService client = getOvsdbClient(osNode, ovsdbPort, ovsdbController);
         if (client == null) {
             log.info("Failed to get ovsdb client");
@@ -468,7 +469,8 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
 
             if (!mtu.set().contains(dpdkInterface.mtu().intValue()) ||
                     !option.toString().contains(dpdkInterface.pciAddress())) {
-                log.trace("The dpdk interface {} was created but mtu or pci address is different from the config.");
+                log.trace("The dpdk interface {} was created but mtu or " +
+                          "pci address is different from the config.");
                 return false;
             }
         }
@@ -563,7 +565,8 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
         if (osNode.dpdkConfig() != null) {
             osNode.dpdkConfig().dpdkIntfs().forEach(dpdkInterface -> {
                 if (isDpdkIntfsCreated(osNode, Lists.newArrayList(dpdkInterface))) {
-                    addOrRemoveDpdkInterface(osNode, dpdkInterface, ovsdbPort, ovsdbController, false);
+                    addOrRemoveDpdkInterface(osNode, dpdkInterface, ovsdbPort,
+                                                ovsdbController, false);
                 }
             });
         }
@@ -640,9 +643,11 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
 
         @Override
         public boolean isRelevant(DeviceEvent event) {
-            NodeId leader = leadershipService.getLeader(appId.name());
-            return Objects.equals(localNode, leader) &&
-                    event.subject().type() == Device.Type.CONTROLLER;
+            return event.subject().type() == Device.Type.CONTROLLER;
+        }
+
+        private boolean isRelevantHelper() {
+            return Objects.equals(localNode, leadershipService.getLeader(appId.name()));
         }
 
         @Override
@@ -653,6 +658,11 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                 case DEVICE_AVAILABILITY_CHANGED:
                 case DEVICE_ADDED:
                     eventExecutor.execute(() -> {
+
+                        if (!isRelevantHelper()) {
+                            return;
+                        }
+
                         OpenstackNode osNode = osNodeService.node(device.id());
 
                         if (osNode == null || osNode.type() == CONTROLLER) {
@@ -685,9 +695,11 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
 
         @Override
         public boolean isRelevant(DeviceEvent event) {
-            NodeId leader = leadershipService.getLeader(appId.name());
-            return Objects.equals(localNode, leader) &&
-                    event.subject().type() == Device.Type.SWITCH;
+            return event.subject().type() == Device.Type.SWITCH;
+        }
+
+        private boolean isRelevantHelper() {
+            return Objects.equals(localNode, leadershipService.getLeader(appId.name()));
         }
 
         @Override
@@ -698,6 +710,11 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                 case DEVICE_AVAILABILITY_CHANGED:
                 case DEVICE_ADDED:
                     eventExecutor.execute(() -> {
+
+                        if (!isRelevantHelper()) {
+                            return;
+                        }
+
                         OpenstackNode osNode = osNodeService.node(device.id());
 
                         if (osNode == null || osNode.type() == CONTROLLER) {
@@ -725,6 +742,11 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                 case PORT_UPDATED:
                 case PORT_ADDED:
                     eventExecutor.execute(() -> {
+
+                        if (!isRelevantHelper()) {
+                            return;
+                        }
+
                         OpenstackNode osNode = osNodeService.node(device.id());
 
                         if (osNode == null || osNode.type() == CONTROLLER) {
@@ -747,6 +769,11 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                     break;
                 case PORT_REMOVED:
                     eventExecutor.execute(() -> {
+
+                        if (!isRelevantHelper()) {
+                            return;
+                        }
+
                         OpenstackNode osNode = osNodeService.node(device.id());
 
                         if (osNode == null || osNode.type() == CONTROLLER) {
@@ -810,10 +837,8 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
      */
     private class InternalOpenstackNodeListener implements OpenstackNodeListener {
 
-        @Override
-        public boolean isRelevant(OpenstackNodeEvent event) {
-            NodeId leader = leadershipService.getLeader(appId.name());
-            return Objects.equals(localNode, leader);
+        private boolean isRelevantHelper() {
+            return Objects.equals(localNode, leadershipService.getLeader(appId.name()));
         }
 
         @Override
@@ -821,13 +846,26 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
             switch (event.type()) {
                 case OPENSTACK_NODE_CREATED:
                 case OPENSTACK_NODE_UPDATED:
-                    eventExecutor.execute(() -> bootstrapNode(event.subject()));
-                    break;
-                case OPENSTACK_NODE_COMPLETE:
+                    eventExecutor.execute(() -> {
+
+                        if (!isRelevantHelper()) {
+                            return;
+                        }
+
+                        bootstrapNode(event.subject());
+                    });
                     break;
                 case OPENSTACK_NODE_REMOVED:
-                    eventExecutor.execute(() -> processOpenstackNodeRemoved(event.subject()));
+                    eventExecutor.execute(() -> {
+
+                        if (!isRelevantHelper()) {
+                            return;
+                        }
+
+                        processOpenstackNodeRemoved(event.subject());
+                    });
                     break;
+                case OPENSTACK_NODE_COMPLETE:
                 default:
                     break;
             }
