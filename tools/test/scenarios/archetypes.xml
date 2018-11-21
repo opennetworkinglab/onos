@@ -93,15 +93,7 @@
               exec="mvn clean install"/>
         <step name="Install-REST-App" requires="^,~Verify-UI-Topo"
               exec="onos-app ${OCI} reinstall! target/test-app-1.2.3.oar"/>
-        <group name="Check-REST-App" >
-            <parallel var="${OC#}">
-                <step name="Check-REST-Apps-${#}"
-                      requires="Install-REST-App"
-                      exec="onos-check-apps ${OC#} org.foo.app includes"/>
-            </parallel>
-        </group>
-        <group name="Verify-REST"
-            requires="Install-REST-App,Check-REST-App" delay="2" >
+        <group name="Verify-REST" requires="Install-REST-App" delay="2" >
             <parallel var="${OC#}">
                 <step name="Verify-REST-CLI-${#}"
                       exec="onos ${OC#} sample" include="Hello World"/>
