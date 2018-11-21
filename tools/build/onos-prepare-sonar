@@ -12,7 +12,7 @@ from shutil import copy, copytree, rmtree
 from subprocess import call, check_call, check_output
 
 # FIXME pull the version from the Buck version file
-ONOS_VERSION='2.0.0-SNAPSHOT'
+ONOS_VERSION = '2.0.0-SNAPSHOT'
 
 # SonarQube property file name and template
 FILE_NAME = 'sonar-project.properties'
@@ -37,89 +37,96 @@ sonar.modules=%(modules)s
 
 '''
 
-BUCK = 'onos-buck'
+black_list = ["//protocols/grpc:grpc-core-repkg", "//apps/openstacktelemetry:grpc-core-repkg"]
 
 # Change to $ONOS_ROOT
-ONOS_ROOT = os.environ[ 'ONOS_ROOT' ]
+ONOS_ROOT = os.environ['ONOS_ROOT']
 if ONOS_ROOT:
-  os.chdir( ONOS_ROOT )
+    os.chdir(ONOS_ROOT)
+
 
 def splitTarget(target):
-  path, module = target.split(':', 2)
-  path = path.replace('//', '', 1)
-  return path, module
+    path, module = target.split(':', 2)
+    path = path.replace('//', '', 1)
+    return path, module
+
 
 def runCmd(cmd):
-  output = check_output( cmd ).rstrip()
-  return output.split('\n') if output else []
+    output = check_output(cmd).rstrip()
+    return output.split('\n') if output else []
 
-# TODO do we need to start with a clean slate?
-#runCmd([BUCK, 'clean'])
 
-# Find all onos_jar rules
-targets = runCmd([BUCK, 'query', "kind('onos_jar', '//...')"])
-#targets = ['//core/net:onos-core-net']
-print targets
-non_osgi_targets = ['%s#non-osgi' % t for t in targets]
+# build ONOS
+runCmd(["bazel", "build", "onos"])
 
-# Build all targets to fill buck-out/bin
-print runCmd([BUCK, 'build', '--no-cache'] + targets + non_osgi_targets)
+# Find all onos OSGi jar file rules
+targets = runCmd(["bazel", "query", "kind('_bnd', '//...')"])
+# Uncomment this for easier debugging of a single package
+# targets = ['//core/net:onos-core-net']
 
 # Find all tests associated with onos_jar rules
-#FIXME we may want to insert kind('java_test', testsof...)
-output = runCmd([BUCK, 'query', '--json', "testsof('%s')"] + targets)
-test_map = json.loads(output[0])
+# FIXME we may want to insert kind('java_test', testsof...)
+# output = runCmd([BUCK, 'query', '--json', "testsof('%s')"] + targets)
+# test_map = json.loads(output[0])
 
 # Flatten the values in the test target map
-test_targets = [t for ts in test_map.values() for t in ts]
-print test_targets
+# test_targets = [t for ts in test_map.values() for t in ts]
+# print test_targets
 
 # Build run tests
-#print runCmd([BUCK, 'test', '--no-cache', '--code-coverage', '--no-results-cache'] + test_targets)
+# print runCmd([BUCK, 'test', '--no-cache', '--code-coverage', '--no-results-cache'] + test_targets)
 
 # Build the sonar rules for each target
-sonar_files = runCmd([BUCK, 'build', '--show-output'] + ['%s-sonar' % t for t in (targets + test_targets)])
-sonar_files = dict([i.split(' ') for i in sonar_files[1:]]) # drop the first line; it's boilerplate
-print sonar_files
+# sonar_files = runCmd([BUCK, 'build', '--show-output'] + ['%s-sonar' % t for t in (targets + test_targets)])
+# sonar_files = dict([i.split(' ') for i in sonar_files[1:]]) # drop the first line; it's boilerplate
+# print sonar_files
 
 
 def write_module(target, out):
-  path, module_name = splitTarget(target)
-  out.write('%s.sonar.projectBaseDir=%s\n' % ( module_name, path ))
-  out.write('%(name)s.sonar.projectName=%(name)s\n' % {'name': module_name})
+    if target in black_list:
+        return
+    path, module_name = splitTarget(target)
+    out.write('%s.sonar.projectBaseDir=%s\n' % (module_name, path))
+    out.write('%(name)s.sonar.projectName=%(name)s\n' % {'name': module_name})
+    query = 'labels(srcs, "%s-native")' % target
+    sources = runCmd(['bazel', 'query', query])
+    sources = [file for file in sources if "package-info" not in file]
+    sources_csl = ",".join(sources).replace("//", ONOS_ROOT + "/").replace(":", "/")
+    out.write('%s.sonar.sources=%s\n' % (module_name, sources_csl))
 
-  tests = test_map[target] if target in test_map else []
+    # tests = test_map[target] if target in test_map else []
 
-  module_targets = [target] + tests
-  for property in [sonar_files[t+'-sonar'] for t in module_targets]:
-    print property
-    with open(property, 'r') as f:
-      for line in f.readlines():
-        out.write('%s.%s' % (module_name, line))
+    # module_targets = [target] + tests
+    # for property in [sonar_files[t+'-sonar'] for t in module_targets]:
+    #  print property
+    #  with open(property, 'r') as f:
+    #    for line in f.readlines():
+    #      out.write('%s.%s' % (module_name, line))
 
-  if tests:
-    rmtree(path + '/surefire-reports', ignore_errors=True)
-    rmtree('surefire-reports', ignore_errors=True)
-    runCmd([BUCK, 'test',
-            '--no-cache', '--no-results-cache',
-            '--code-coverage',
-            '--no-results-cache',
-            '--surefire-xml', 'surefire-reports'
-            ] + tests)
-    copy('buck-out/gen/jacoco/jacoco.exec', path)
-    #write jacoco.exec path to out; not needed.. this is the default
-    copytree('surefire-reports', path + '/surefire-reports')
-    rmtree('surefire-reports')
+
+#  if tests:
+#    rmtree(path + '/surefire-reports', ignore_errors=True)
+#    rmtree('surefire-reports', ignore_errors=True)
+#    runCmd([BUCK, 'test',
+#            '--no-cache', '--no-results-cache',
+#            '--code-coverage',
+#            '--no-results-cache',
+#            '--surefire-xml', 'surefire-reports'
+#            ] + tests)
+#    copy('buck-out/gen/jacoco/jacoco.exec', path)
+#    #write jacoco.exec path to out; not needed.. this is the default
+#    copytree('surefire-reports', path + '/surefire-reports')
+#    rmtree('surefire-reports')
 
 # Write the sonar properties file
 with open(FILE_NAME, 'w') as out:
-  out.write(ROOT_TEMPLATE % {
-    'name': 'onos',
-    'key': 'org.onosproject:onos',
-    'version': ONOS_VERSION,
-    'jacoco': '%s/buck-out/gen/jacoco/jacoco.exec' % ONOS_ROOT,
-    'modules': ','.join([splitTarget(t)[1] for t in targets])
-  })
-  for target in targets:
-    print target
-    write_module(target, out)
+    out.write(ROOT_TEMPLATE % {
+        'name': 'onos',
+        'key': 'org.onosproject:onos',
+        'version': ONOS_VERSION,
+        'jacoco': '%s/buck-out/gen/jacoco/jacoco.exec' % ONOS_ROOT,
+        'modules': ','.join([splitTarget(t)[1] for t in targets])
+    })
+    for target in targets:
+        print target
+        write_module(target, out)
