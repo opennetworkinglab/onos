@@ -38,7 +38,6 @@ import org.onosproject.net.driver.DriverEvent;
 import org.onosproject.net.driver.DriverListener;
 import org.onosproject.net.driver.DriverProvider;
 import org.osgi.service.component.ComponentContext;
-//import org.osgi.service.metatype.annotations.AttributeDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,7 +59,13 @@ import static org.onosproject.security.AppPermission.Type.DRIVER_READ;
 /**
  * Manages inventory of device drivers.
  */
-@Component(immediate = true, enabled = true, service = {DriverAdminService.class, DriverRegistry.class})
+@Component(
+    immediate = true,
+    service = {
+        DriverAdminService.class,
+        DriverRegistry.class
+    }
+)
 public class DriverRegistryManager extends DefaultDriverProvider implements DriverAdminService {
 
     private static final String DRIVER_COMPONENT = "org.onosproject.net.driver.impl.DriverManager";
@@ -86,12 +91,6 @@ public class DriverRegistryManager extends DefaultDriverProvider implements Driv
 
     private static final String DEFAULT_REQUIRED_DRIVERS = "default";
     private static String requiredDrivers = DEFAULT_REQUIRED_DRIVERS;
-    //@AttributeDefinition(name = "requiredDrivers",
-    //        defaultValue = DEFAULT_REQUIRED_DRIVERS + "AAA",
-    //        description = "Comma-separated list of drivers that must be registered before starting driver subsystem")
-    private String requiredDrivers() {
-        return requiredDrivers;
-    }
     private Set<String> requiredDriverSet;
 
     private Set<DriverProvider> providers = Sets.newConcurrentHashSet();
