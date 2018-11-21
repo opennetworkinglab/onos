@@ -18,6 +18,7 @@ package org.onosproject.dhcprelay.store;
 
 
 import com.google.common.collect.ImmutableSet;
+
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
@@ -70,6 +71,7 @@ public class DhcpRelayCounters {
             countersMap.put(name, 0);
         });
     }
+
     public boolean incrementCounter(String name) {
         boolean counterValid = false;
         if (SUPPORTED_COUNTERS.contains(name)) {
@@ -86,6 +88,7 @@ public class DhcpRelayCounters {
         }
         return counterValid;
     }
+
     public Map<String, Integer> getCounters() {
         return countersMap;
     }
