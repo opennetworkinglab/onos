@@ -28,6 +28,7 @@ import org.onosproject.dhcprelay.api.DhcpServerInfo;
 import org.onosproject.dhcprelay.cli.DhcpRelayCommand;
 import org.onosproject.dhcprelay.store.DhcpRecord;
 import org.onosproject.dhcprelay.store.DhcpRelayCounters;
+import org.onosproject.dhcprelay.store.DhcpRelayCountersStore;
 import org.onosproject.rest.AbstractWebResource;
 import org.onosproject.routeservice.Route;
 import org.onosproject.routeservice.RouteStore;
@@ -36,7 +37,6 @@ import org.slf4j.Logger;
 
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
-import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -44,8 +44,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import java.util.Collection;
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -53,15 +53,21 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * DHCP Relay agent REST API.
  */
-@Path("fpm-delete")
+@Path("dhcp-relay")
 public class DhcpRelayWebResource extends AbstractWebResource {
     private static final Logger LOG = getLogger(DhcpRelayWebResource.class);
     private final ObjectMapper mapper = new ObjectMapper();
     private final DhcpRelayService dhcpDelayService = get(DhcpRelayService.class);
     private static final String NA = "N/A";
+    private static final String HEADER_A_COUNTERS = "DHCP-Relay-Aggregate-Counters";
+    private static final String GCOUNT_KEY = "global";
     List<DhcpServerInfo> defaultDhcpServerInfoList = dhcpDelayService.getDefaultDhcpServerInfoList();
     List<DhcpServerInfo> indirectDhcpServerInfoList = dhcpDelayService.getIndirectDhcpServerInfoList();
     Collection<DhcpRecord> records = dhcpDelayService.getDhcpRecords();
+    DhcpRelayCountersStore counterStore = get(DhcpRelayCountersStore.class);
+    Optional<DhcpRelayCounters> perClassCounters = counterStore.getCounters(GCOUNT_KEY);
+    private static final String DIRECTLY = "[D]";
+    private static final String EMPTY = "";
 
 
     /**
@@ -72,7 +78,7 @@ public class DhcpRelayWebResource extends AbstractWebResource {
      * @return 204 NO CONTENT, 404; 401
      */
     @DELETE
-    @Path("{prefix}")
+    @Path("fpm/{prefix}")
     public Response dhcpFpmDelete(@PathParam("prefix") String prefix) {
         DhcpRelayService dhcpRelayService = get(DhcpRelayService.class);
         RouteStore routeStore = get(RouteStore.class);
@@ -94,6 +100,7 @@ public class DhcpRelayWebResource extends AbstractWebResource {
 
         return Response.noContent().build();
     }
+
     /**
      * Returns the response object with list of dhcp servers without counters.
      *
@@ -101,72 +108,88 @@ public class DhcpRelayWebResource extends AbstractWebResource {
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("dhcp-relay")
-    public Response getDhcpServers() {
-        ObjectNode node = getdhcpRelayJsonOutput(null, null);
+    public Response getDhcpRelayServers() {
+        ObjectNode node = getDhcpRelayServersJsonOutput();
         return Response.status(200).entity(node).build();
     }
 
     /**
-     * Returns dhcp servers details with counters.
+     * Returns dhcp counters details.
      *
-     * @param counter source ip identifier
      * @return 200 OK with component properties of given component and variable
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("dhcp-relay/{counter}")
-    public Response getDhcpRelayCounter(@PathParam("counter") String counter) {
-        ObjectNode node = getdhcpRelayJsonOutput(counter, null);
+    @Path("counters")
+    public Response getDhcpRelayCounters() {
+        ObjectNode node = getDhcpRelayCountersJsonOutput();
         return Response.status(200).entity(node).build();
     }
 
     /**
      * To reset the dhcp relay counters.
      *
-     * @param counter type String
-     * @param reset   type String
      * @return 200 OK with component properties of given component and variable
      */
-    @PUT
+    @DELETE
+    @Path("counters")
+    public Response resetDhcpRelayCounters() {
+        resetDhcpRelayCountersInternal();
+        return Response.status(200).build();
+    }
+
+    /**
+     * Returns results with aggregate of counters.
+     *
+     * @return 200 OK with component properties of given component and variable
+     */
+    @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("dhcp-relay/{counter}/{reset}")
-    public Response resetDhcpRelayCounter(@PathParam("counter") String counter, @PathParam("reset") String reset) {
-        ObjectNode node = getdhcpRelayJsonOutput(counter, reset);
+    @Path("aggregate-counters")
+    public Response getDhcpRelayAggCounters() {
+        ObjectNode node = getDhcpRelayAggCountersJsonOutput();
         return Response.status(200).entity(node).build();
     }
 
+    /**
+     * Reset dhcp relay aggregate counters.
+     *
+     * @return 200 OK with component properties of given component and variable
+     */
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("aggregate-counters")
+    public Response resetDhcpRelayAggCounters() {
+        resetDhcpRelayAggCountersInternal();
+        return Response.status(200).build();
+    }
 
     /**
-     * To create json output.
+     * To create json output of Dhcp Relay servers.
      *
-     * @param counter type String
-     * @param reset  type String
      * @return node type ObjectNode.
      */
-    private ObjectNode getdhcpRelayJsonOutput(String counter, String reset) {
+    private ObjectNode getDhcpRelayServersJsonOutput() {
         ObjectNode node = mapper.createObjectNode();
-        ObjectNode dhcpRelayServerNode = mapper.createObjectNode();
-            if (!defaultDhcpServerInfoList.isEmpty()) {
-                ArrayNode defaultDhcpServers = listServers(defaultDhcpServerInfoList);
-                dhcpRelayServerNode.put("Default-DHCP-Server", defaultDhcpServers);
-            }
-            if (!indirectDhcpServerInfoList.isEmpty()) {
-                ArrayNode indirectDhcpServers = listServers(indirectDhcpServerInfoList);
-                dhcpRelayServerNode.put("Indirect-DHCP-Server", indirectDhcpServers);
-            }
 
-            ArrayNode dhcpRecords = dhcpRelayRecords(records);
-            dhcpRelayServerNode.put("DHCP-Relay-Records([D]:Directly-Connected)", dhcpRecords);
-            if (counter != null && !counter.equals("counter")) {
-                ArrayNode counterArray = dhcpRelayCounters(reset);
-                dhcpRelayServerNode.put("DHCP-Relay-Counter", counterArray);
-            }
-            node.put("Default-DHCP-Servers", dhcpRelayServerNode);
+        if (!defaultDhcpServerInfoList.isEmpty()) {
+            ArrayNode defaultDhcpServers = getDefaultDhcpServers();
+            node.put("Default-DHCP-Servers", defaultDhcpServers);
+        }
+
+        if (!indirectDhcpServerInfoList.isEmpty()) {
+            ArrayNode indirectDhcpServers = getIndirectDhcpServers();
+            node.put("Indirect-DHCP-Servers", indirectDhcpServers);
+        }
+        if (!records.isEmpty()) {
+            ArrayNode dhcpRelayRecords = dhcpRelayRecords();
+            node.put("DHCP-Relay-Records([D]:Directly-Connected)", dhcpRelayRecords);
+        }
 
         return node;
 
     }
+
     /**
      * To get the liset of dhcp servers.
      *
@@ -210,22 +233,23 @@ public class DhcpRelayWebResource extends AbstractWebResource {
             serverNode.put("mac", serverMac);
             servers.add(serverNode);
         });
-       return servers;
-}
+        return servers;
+    }
 
     /**
      * To get the list of dhcp relay records.
      *
-     * @param records type Collections
      * @return dhcpRelayRecords type ArrayNode.
      */
-    private ArrayNode dhcpRelayRecords(Collection<DhcpRecord> records) {
+    private ArrayNode dhcpRelayRecords() {
         DhcpRelayCommand dhcpRelayCommand = new DhcpRelayCommand();
+        ObjectNode node = mapper.createObjectNode();
         ArrayNode dhcpRelayRecords = mapper.createArrayNode();
         records.forEach(record -> {
             ObjectNode dhcpRecord = mapper.createObjectNode();
             dhcpRecord.put("id", record.macAddress() + "/" + record.vlanId());
-            dhcpRecord.put("locations", record.locations().toString());
+            dhcpRecord.put("locations", record.locations().toString()
+                    .concat(record.directlyConnected() ? DIRECTLY : EMPTY));
             dhcpRecord.put("last-seen", Tools.timeAgo(record.lastSeen()));
             dhcpRecord.put("IPv4", dhcpRelayCommand.ip4State(record));
             dhcpRecord.put("IPv6", dhcpRelayCommand.ip6State(record));
@@ -234,30 +258,91 @@ public class DhcpRelayWebResource extends AbstractWebResource {
         return dhcpRelayRecords;
     }
 
-   /**
+    /**
      * To get the details of dhcp relay counters.
      *
-     * @param reset type String
      * @return counterArray type ArrayNode.
      */
-    private ArrayNode dhcpRelayCounters(String reset) {
+    private ObjectNode getDhcpRelayCountersJsonOutput() {
+        ObjectNode node = mapper.createObjectNode();
         ObjectNode counters = mapper.createObjectNode();
-        ObjectNode counterPackets = mapper.createObjectNode();
         ArrayNode counterArray = mapper.createArrayNode();
         records.forEach(record -> {
             DhcpRelayCounters v6Counters = record.getV6Counters();
-            if (reset != null && reset.equals("reset")) {
-                v6Counters.resetCounters();
-            }
             Map<String, Integer> countersMap = v6Counters.getCounters();
+            ObjectNode counterPackets = mapper.createObjectNode();
             countersMap.forEach((name, value) -> {
                 counterPackets.put(name, value);
-
             });
-            counters.put(record.locations().toString(), counterPackets);
-            counterArray.add(counters);
+            counters.put(record.macAddress() + "/" + record.vlanId().toString(), counterPackets);
         });
-        return counterArray;
+        counterArray.add(counters);
+        node.put("v6-DHCP-Relay-Counter", counterArray);
+        return node;
+    }
+
+    /**
+     * To get the list of default dhcp servers.
+     *
+     * @return node type ObjectNode.
+     */
+    private ArrayNode getDefaultDhcpServers() {
+        ObjectNode node = mapper.createObjectNode();
+        ArrayNode defaultDhcpServers = listServers(defaultDhcpServerInfoList);
+        return defaultDhcpServers;
+    }
+
+    /**
+     * To get the list of indirect dhcp servers.
+     *
+     * @return node type ObjectNode.
+     */
+    private ArrayNode getIndirectDhcpServers() {
+        ArrayNode indirectDhcpServers = listServers(indirectDhcpServerInfoList);
+        return indirectDhcpServers;
+    }
+
+    /**
+     * To reset dhcp relay counters.
+     *
+     * @return counterArray type ArrayNode.
+     */
+    private void resetDhcpRelayCountersInternal() {
+        records.forEach(record -> {
+            DhcpRelayCounters v6Counters = record.getV6Counters();
+            v6Counters.resetCounters();
+        });
+    }
+
+    /**
+     * To get dhcp relay aggregate counters.
+     *
+     * @return counterPackets type ObjectNode.
+     */
+    private ObjectNode getDhcpRelayAggCountersJsonOutput() {
+        ObjectNode counterPackets = mapper.createObjectNode();
+        ObjectNode dhcpRelayAggCounterNode = mapper.createObjectNode();
+        if (perClassCounters.isPresent()) {
+            Map<String, Integer> counters = perClassCounters.get().getCounters();
+            if (counters.size() > 0) {
+                counters.forEach((name, value) -> {
+                    counterPackets.put(name, value);
+                });
+            }
+        }
+        dhcpRelayAggCounterNode.put(HEADER_A_COUNTERS, counterPackets);
+        return dhcpRelayAggCounterNode;
+    }
+
+    /**
+     * To reset aggregate counters.
+     *
+     * @return counterPackets type ObjectNode.
+     */
+    private void resetDhcpRelayAggCountersInternal() {
+        if (perClassCounters.isPresent()) {
+            counterStore.resetCounters(GCOUNT_KEY);
+        }
     }
 
 }
