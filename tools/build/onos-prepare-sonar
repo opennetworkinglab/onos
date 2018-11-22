@@ -27,17 +27,14 @@ sonar.java.target = 1.8
 sonar.java.source = 1.8
 sonar.language=java
 
-sonar.junit.reportsPath = surefire-reports
-# global jacoco
-#sonar.jacoco.reportPath = %(jacoco)s
-# local jacoco
-sonar.jacoco.reportPath = jacoco.exec
 
 sonar.modules=%(modules)s
 
 '''
 
-black_list = ["//protocols/grpc:grpc-core-repkg", "//apps/openstacktelemetry:grpc-core-repkg"]
+black_list = ["//protocols/grpc:grpc-core-repkg",
+              "//apps/openstacktelemetry:grpc-core-repkg",
+              "//web/gui2:_onos-gui2-base-jar"]
 
 # Change to $ONOS_ROOT
 ONOS_ROOT = os.environ['ONOS_ROOT']
@@ -89,7 +86,8 @@ def write_module(target, out):
     out.write('%(name)s.sonar.projectName=%(name)s\n' % {'name': module_name})
     query = 'labels(srcs, "%s-native")' % target
     sources = runCmd(['bazel', 'query', query])
-    sources = [file for file in sources if "package-info" not in file]
+    sources = [file for file in sources if "package-info" not in file and ".java" in file]
+    print sources
     sources_csl = ",".join(sources).replace("//", ONOS_ROOT + "/").replace(":", "/")
     out.write('%s.sonar.sources=%s\n' % (module_name, sources_csl))
 
@@ -123,7 +121,7 @@ with open(FILE_NAME, 'w') as out:
         'name': 'onos',
         'key': 'org.onosproject:onos',
         'version': ONOS_VERSION,
-        'jacoco': '%s/buck-out/gen/jacoco/jacoco.exec' % ONOS_ROOT,
+        #'jacoco': '%s/buck-out/gen/jacoco/jacoco.exec' % ONOS_ROOT,
         'modules': ','.join([splitTarget(t)[1] for t in targets])
     })
     for target in targets:
