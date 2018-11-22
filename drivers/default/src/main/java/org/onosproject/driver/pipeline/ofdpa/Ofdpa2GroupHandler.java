@@ -1325,13 +1325,67 @@ public class Ofdpa2GroupHandler {
             return;
         }
         if (nextObjective.type() == NextObjective.Type.HASHED) {
-            addBucketToHashGroup(objectiveToAdd, allActiveKeys);
+            if (isL2Hash(nextObjective)) {
+                addBucketToL2HashGroup(objectiveToAdd, allActiveKeys);
+                return;
+            }
+            addBucketToEcmpHashGroup(objectiveToAdd, allActiveKeys);
         } else if (nextObjective.type() == NextObjective.Type.BROADCAST) {
             addBucketToBroadcastGroup(objectiveToAdd, allActiveKeys);
         }
     }
 
-    private void addBucketToHashGroup(NextObjective nextObjective,
+    private void addBucketToL2HashGroup(NextObjective nextObjective,
+                                          List<Deque<GroupKey>> allActiveKeys) {
+        // storage for all group keys in the chain of groups created
+        List<Deque<GroupKey>> allGroupKeys = new ArrayList<>();
+        List<GroupInfo> unsentGroups = new ArrayList<>();
+        List<GroupBucket> newBuckets;
+        // Prepare the l2 unfiltered groups
+        createL2HashBuckets(nextObjective, allGroupKeys, unsentGroups);
+        // now we can create the buckets to add to the outermost L2 hash group
+        newBuckets = generateNextGroupBuckets(unsentGroups, SELECT);
+        // retrieve the original l2 load balance group
+        Group l2hashGroup = retrieveTopLevelGroup(allActiveKeys, deviceId,
+                                                  groupService, nextObjective.id());
+        if (l2hashGroup == null) {
+            fail(nextObjective, ObjectiveError.GROUPMISSING);
+            return;
+        }
+        GroupKey l2hashGroupKey = l2hashGroup.appCookie();
+        int l2hashGroupId = l2hashGroup.id().id();
+        GroupDescription l2hashGroupDesc = new DefaultGroupDescription(deviceId,
+                                                                       SELECT,
+                                                                       new GroupBuckets(newBuckets),
+                                                                       l2hashGroupKey,
+                                                                       l2hashGroupId,
+                                                                       nextObjective.appId());
+        GroupChainElem l2hashGce = new GroupChainElem(l2hashGroupDesc,
+                                                      unsentGroups.size(),
+                                                      true,
+                                                      deviceId);
+        // update new bucket-chains
+        List<Deque<GroupKey>> addedKeys = new ArrayList<>();
+        for (Deque<GroupKey> newBucketChain : allGroupKeys) {
+            newBucketChain.addFirst(l2hashGroupKey);
+            addedKeys.add(newBucketChain);
+        }
+        updatePendingNextObjective(l2hashGroupKey,
+                                   new OfdpaNextGroup(addedKeys, nextObjective));
+        log.debug("Adding to L2HASH: device:{} gid:{} group key:{} nextId:{}",
+                  deviceId, Integer.toHexString(l2hashGroupId),
+                  l2hashGroupKey, nextObjective.id());
+        unsentGroups.forEach(groupInfo -> {
+            // send the innermost group
+            log.debug("Sending innermost group {} in group chain on device {} ",
+                      Integer.toHexString(groupInfo.innerMostGroupDesc().givenGroupId()),
+                      deviceId);
+            updatePendingGroups(groupInfo.nextGroupDesc().appCookie(), l2hashGce);
+            groupService.addGroup(groupInfo.innerMostGroupDesc());
+        });
+    }
+
+    private void addBucketToEcmpHashGroup(NextObjective nextObjective,
                                       List<Deque<GroupKey>> allActiveKeys) {
         // storage for all group keys in the chain of groups created
         List<Deque<GroupKey>> allGroupKeys = new ArrayList<>();
@@ -1855,7 +1909,11 @@ public class Ofdpa2GroupHandler {
             bucketsToCreate.forEach(nextObjBuilder::addTreatment);
             // According to the next type we call the proper add function
             if (nextObjective.type() == NextObjective.Type.HASHED) {
-                addBucketToHashGroup(nextObjBuilder.addToExisting(), allActiveKeys);
+                if (isL2Hash(nextObjective)) {
+                    addBucketToL2HashGroup(nextObjBuilder.addToExisting(), allActiveKeys);
+                } else {
+                    addBucketToEcmpHashGroup(nextObjBuilder.addToExisting(), allActiveKeys);
+                }
             } else {
                 addBucketToBroadcastGroup(nextObjBuilder.addToExisting(), allActiveKeys);
             }
