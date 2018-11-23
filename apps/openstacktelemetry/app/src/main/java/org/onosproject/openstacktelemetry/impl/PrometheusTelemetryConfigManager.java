@@ -33,9 +33,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Dictionary;
 
-import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROMETHEUS_ENABLE_SERVICE_DEFAULT;
-import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROMETHEUS_EXPORTER_ADDRESS_DEFAULT;
-import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROMETHEUS_EXPORTER_PORT_DEFAULT;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_PROMETHEUS_ENABLE_SERVICE_DEFAULT;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_PROMETHEUS_EXPORTER_ADDRESS_DEFAULT;
+import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_PROMETHEUS_EXPORTER_PORT_DEFAULT;
 import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_PROMETHEUS_ENABLE_SERVICE;
 import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_PROMETHEUS_EXPORTER_ADDRESS;
 import static org.onosproject.openstacktelemetry.impl.OsgiPropertyConstants.PROP_PROMETHEUS_EXPORTER_PORT;
@@ -49,9 +49,9 @@ import static org.onosproject.openstacktelemetry.util.OpenstackTelemetryUtil.ini
     immediate = true,
     service = PrometheusTelemetryConfigService.class,
     property = {
-        PROP_PROMETHEUS_ENABLE_SERVICE + ":Boolean=" + PROMETHEUS_ENABLE_SERVICE_DEFAULT,
-        PROP_PROMETHEUS_EXPORTER_ADDRESS + "=" + PROMETHEUS_EXPORTER_ADDRESS_DEFAULT,
-        PROP_PROMETHEUS_EXPORTER_PORT + ":Integer=" + PROMETHEUS_EXPORTER_PORT_DEFAULT
+        PROP_PROMETHEUS_ENABLE_SERVICE + ":Boolean=" + PROP_PROMETHEUS_ENABLE_SERVICE_DEFAULT,
+        PROP_PROMETHEUS_EXPORTER_ADDRESS + "=" + PROP_PROMETHEUS_EXPORTER_ADDRESS_DEFAULT,
+        PROP_PROMETHEUS_EXPORTER_PORT + ":Integer=" + PROP_PROMETHEUS_EXPORTER_PORT_DEFAULT
     }
 )
 public class PrometheusTelemetryConfigManager implements PrometheusTelemetryConfigService {
@@ -65,13 +65,13 @@ public class PrometheusTelemetryConfigManager implements PrometheusTelemetryConf
     protected PrometheusTelemetryAdminService prometheusTelemetryAdminService;
 
     /** Default IP address of prometheus exporter. */
-    protected String address = PROMETHEUS_EXPORTER_ADDRESS_DEFAULT;
+    protected String address = PROP_PROMETHEUS_EXPORTER_ADDRESS_DEFAULT;
 
     /** Default port number of prometheus exporter. */
-    protected Integer port = PROMETHEUS_EXPORTER_PORT_DEFAULT;
+    protected Integer port = PROP_PROMETHEUS_EXPORTER_PORT_DEFAULT;
 
     /** Specify the default behavior of telemetry service. */
-    protected Boolean enableService = PROMETHEUS_ENABLE_SERVICE_DEFAULT;
+    protected Boolean enableService = PROP_PROMETHEUS_ENABLE_SERVICE_DEFAULT;
 
     @Activate
     protected void activate(ComponentContext context) {
@@ -115,12 +115,12 @@ public class PrometheusTelemetryConfigManager implements PrometheusTelemetryConf
         Dictionary<?, ?> properties = context.getProperties();
 
         String addressStr = Tools.get(properties, PROP_PROMETHEUS_EXPORTER_ADDRESS);
-        address = addressStr != null ? addressStr : PROMETHEUS_EXPORTER_ADDRESS_DEFAULT;
+        address = addressStr != null ? addressStr : PROP_PROMETHEUS_EXPORTER_ADDRESS_DEFAULT;
         log.info("Configured. Prometheus exporter address is {}", address);
 
         Integer portConfigured = Tools.getIntegerProperty(properties, PROP_PROMETHEUS_EXPORTER_PORT);
         if (portConfigured == null) {
-            port = PROMETHEUS_EXPORTER_PORT_DEFAULT;
+            port = PROP_PROMETHEUS_EXPORTER_PORT_DEFAULT;
             log.info("Prometheus exporter port is NOT configured, default value is {}", port);
         } else {
             port = portConfigured;
@@ -129,7 +129,7 @@ public class PrometheusTelemetryConfigManager implements PrometheusTelemetryConf
 
         Boolean enableServiceConfigured = getBooleanProperty(properties, PROP_PROMETHEUS_ENABLE_SERVICE);
         if (enableServiceConfigured == null) {
-            enableService = PROMETHEUS_ENABLE_SERVICE_DEFAULT;
+            enableService = PROP_PROMETHEUS_ENABLE_SERVICE_DEFAULT;
             log.info("Prometheus service enable flag is NOT " +
                              "configured, default value is {}", enableService);
         } else {

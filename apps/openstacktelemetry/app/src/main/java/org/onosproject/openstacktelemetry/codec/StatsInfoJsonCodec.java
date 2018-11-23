@@ -20,17 +20,13 @@ import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.openstacktelemetry.api.StatsInfo;
 import org.onosproject.openstacktelemetry.impl.DefaultStatsInfo;
-import org.slf4j.Logger;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Openstack telemetry codec used for serializing and de-serializing JSON string.
  */
 public final class StatsInfoJsonCodec extends JsonCodec<StatsInfo> {
-
-    private final Logger log = getLogger(getClass());
 
     private static final String STARTUP_TIME = "startupTime";
     private static final String FST_PKT_ARR_TIME = "fstPktArrTime";

@@ -141,11 +141,11 @@ public final class OsgiPropertyConstants {
 
     // Prometheus Telemetry config manager
     static final String PROP_PROMETHEUS_ENABLE_SERVICE = "enableService";
-    static final boolean PROMETHEUS_ENABLE_SERVICE_DEFAULT = false;
+    static final boolean PROP_PROMETHEUS_ENABLE_SERVICE_DEFAULT = true;
 
     static final String PROP_PROMETHEUS_EXPORTER_ADDRESS = "address";
-    public static final String PROMETHEUS_EXPORTER_ADDRESS_DEFAULT = "localhost";
+    public static final String PROP_PROMETHEUS_EXPORTER_ADDRESS_DEFAULT = "localhost";
 
     static final String PROP_PROMETHEUS_EXPORTER_PORT = "port";
-    public static final int PROMETHEUS_EXPORTER_PORT_DEFAULT = 50051;
+    public static final int PROP_PROMETHEUS_EXPORTER_PORT_DEFAULT = 9555;
 }

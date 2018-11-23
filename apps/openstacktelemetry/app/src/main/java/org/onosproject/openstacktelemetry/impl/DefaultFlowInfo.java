@@ -27,6 +27,7 @@ import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.openstacktelemetry.util.OpenstackTelemetryUtil.getProtocolNameFromType;
 
 /**
  * Implementation class of FlowInfo.
@@ -200,7 +201,8 @@ public final class DefaultFlowInfo implements FlowInfo {
                 ((srcPort == null) ? "any" : srcPort.toString()) +
                 " -> " +
                 dstIp.toString() + ":" +
-                ((dstPort == null) ? "any" : dstPort.toString());
+                ((dstPort == null) ? "any" : dstPort.toString()) +
+                " (" + getProtocolNameFromType(protocol) + ")";
     }
 
     @Override

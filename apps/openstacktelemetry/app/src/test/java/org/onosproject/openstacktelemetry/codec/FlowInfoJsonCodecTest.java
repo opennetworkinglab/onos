@@ -17,6 +17,7 @@ package org.onosproject.openstacktelemetry.codec;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.testing.EqualsTester;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.IpAddress;
@@ -59,6 +60,7 @@ public class FlowInfoJsonCodecTest {
     private static final int OUTPUT_INTERFACE_ID = 2;
 
     private static final int VLAN_ID = 1;
+    private static final short VXLAN_ID = 10;
     private static final int PROTOCOL = 1;
     private static final int FLOW_TYPE = 1;
     private static final String DEVICE_ID = "of:00000000000000a1";
@@ -130,6 +132,9 @@ public class FlowInfoJsonCodecTest {
 
         ObjectNode nodeJson = flowInfoCodec.encode(flowInfo, context);
         assertThat(nodeJson, matchesFlowInfo(flowInfo));
+
+        FlowInfo flowInfoDecoded = flowInfoCodec.decode(nodeJson, context);
+        new EqualsTester().addEqualityGroup(flowInfo, flowInfoDecoded).testEquals();
     }
 
     /**

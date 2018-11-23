@@ -29,6 +29,9 @@ public final class OpenstackTelemetryManagerTest {
 
     private static final TelemetryService GRPC_SERVICE = new GrpcTelemetryManager();
     private static final TelemetryService INFLUXDB_SERVICE = new InfluxDbTelemetryManager();
+    private static final TelemetryService KAFKA_SERVICE = new KafkaTelemetryManager();
+    private static final TelemetryService PROMETHEUS_SERVICE = new PrometheusTelemetryManager();
+    private static final TelemetryService REST_SERVICE = new PrometheusTelemetryManager();
 
     private OpenstackTelemetryManager manager;
 
@@ -51,11 +54,11 @@ public final class OpenstackTelemetryManagerTest {
 
         TelemetryService kafkaService = new KafkaTelemetryManager();
 
-        assertEquals(2, manager.telemetryServices().size());
+        assertEquals(5, manager.telemetryServices().size());
 
         manager.addTelemetryService(kafkaService);
 
-        assertEquals(3, manager.telemetryServices().size());
+        assertEquals(6, manager.telemetryServices().size());
     }
 
     /**
@@ -65,11 +68,11 @@ public final class OpenstackTelemetryManagerTest {
     public void testRemoveTelemetryService() {
         addDefaultServices();
 
-        assertEquals(2, manager.telemetryServices().size());
+        assertEquals(5, manager.telemetryServices().size());
 
         manager.removeTelemetryService(GRPC_SERVICE);
 
-        assertEquals(1, manager.telemetryServices().size());
+        assertEquals(4, manager.telemetryServices().size());
     }
 
     /**
@@ -83,5 +86,8 @@ public final class OpenstackTelemetryManagerTest {
     private void addDefaultServices() {
         manager.addTelemetryService(GRPC_SERVICE);
         manager.addTelemetryService(INFLUXDB_SERVICE);
+        manager.addTelemetryService(KAFKA_SERVICE);
+        manager.addTelemetryService(PROMETHEUS_SERVICE);
+        manager.addTelemetryService(REST_SERVICE);
     }
 }

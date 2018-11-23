@@ -21,23 +21,21 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.TpPort;
+import org.onlab.packet.VlanId;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.net.DeviceId;
 import org.onosproject.openstacktelemetry.api.FlowInfo;
 import org.onosproject.openstacktelemetry.api.StatsInfo;
 import org.onosproject.openstacktelemetry.impl.DefaultFlowInfo;
-import org.slf4j.Logger;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.slf4j.LoggerFactory.getLogger;
+import static org.onlab.packet.VlanId.NO_VID;
 
 /**
  * Openstack telemetry codec used for serializing and de-serializing JSON string.
  */
 public final class FlowInfoJsonCodec extends JsonCodec<FlowInfo> {
-
-    private final Logger log = getLogger(getClass());
 
     private static final String FLOW_TYPE = "flowType";
     private static final String DEVICE_ID = "deviceId";
@@ -76,7 +74,6 @@ public final class FlowInfoJsonCodec extends JsonCodec<FlowInfo> {
                 .put(SRC_MAC, info.srcMac().toString())
                 .put(DST_MAC, info.dstMac().toString());
 
-
         if (info.vlanId() != null) {
             result.put(VLAN_ID, info.vlanId().toString());
         } else {
@@ -111,6 +108,21 @@ public final class FlowInfoJsonCodec extends JsonCodec<FlowInfo> {
         String srcMac = json.get(SRC_MAC).asText();
         String dstMac = json.get(DST_MAC).asText();
 
+        VlanId vlanId;
+        short vxlanId = 0;
+        try {
+            if (json.get(VLAN_ID).isNull()) {
+                vlanId = VlanId.vlanId(NO_VID);
+                if (!(json.get(VXLAN_ID).isNull())) {
+                    vxlanId = (short) json.get(VXLAN_ID).asInt();
+                }
+            } else {
+                vlanId = VlanId.vlanId((short) json.get(VLAN_ID).asInt());
+            }
+        } catch (NullPointerException ex) {
+            vlanId = VlanId.vlanId();
+        }
+
         JsonNode statsInfoJson = json.get(STATS_INFO);
 
         JsonCodec<StatsInfo> statsInfoCodec = context.codec(StatsInfo.class);
@@ -128,6 +140,8 @@ public final class FlowInfoJsonCodec extends JsonCodec<FlowInfo> {
                 .withProtocol(Byte.valueOf(protocol))
                 .withSrcMac(MacAddress.valueOf(srcMac))
                 .withDstMac(MacAddress.valueOf(dstMac))
+                .withVlanId(vlanId)
+                .withVxlanId(vxlanId)
                 .withStatsInfo(statsInfo)
                 .build();
     }

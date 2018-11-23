@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import org.onosproject.ui.UiExtension;
 import org.onosproject.ui.UiExtensionService;
 import org.onosproject.ui.UiMessageHandlerFactory;
+import org.onosproject.ui.UiTopoOverlayFactory;
 import org.onosproject.ui.UiView;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -56,11 +57,18 @@ public class OpensteckTelemetryUI {
             new UiView(NETWORK, OPENSTACKTELEMETRY_ID, OPENSTACKTELEMETRY_TEXT)
     );
 
+    // Factory for UI topology overlays
+    private final UiTopoOverlayFactory topoOverlayFactory =
+            () -> ImmutableList.of(
+                    new OpenstackTelemetryUiTopovOverlay()
+            );
+
     // Application UI extension
     private final UiExtension uiExtension =
             new UiExtension.Builder(CL, views)
                     .messageHandlerFactory(messageHandlerFactory)
                     .resourcePath(RESOURCE_PATH)
+                    .topoOverlayFactory(topoOverlayFactory)
                     .build();
 
     @Activate

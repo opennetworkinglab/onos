@@ -3,6 +3,7 @@ load("//tools/build/bazel:osgi_java_library.bzl", "wrapped_osgi_jar")
 BUNDLES = [
     "@kafka_clients//jar",
     "@influxdb_java//jar",
+    "@commons_codec//jar",
     "@retrofit//jar",
     "@okhttp//jar",
     "@logging_interceptor//jar",
@@ -14,14 +15,6 @@ BUNDLES = [
     "@simpleclient_common//jar",
     "@simpleclient_hotspot//jar",
     "@simpleclient_servlet//jar",
-    "@jetty_servlet//jar",
-    "@jetty_http//jar",
-    "@jetty_server//jar",
-    "@jetty_util//jar",
-    "@jetty_security//jar",
-    "@jetty_io//jar",
-    "@jetty_websocket//jar",
-    "@servlet_api//jar",
     # gRPC dependencies (with patched core)
     ":grpc-core-repkg",
     "@runtime_grpc_stub//jar",

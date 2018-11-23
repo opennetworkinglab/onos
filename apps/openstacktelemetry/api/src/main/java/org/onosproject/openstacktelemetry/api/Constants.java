@@ -25,8 +25,6 @@ public final class Constants {
 
     public static final String OPENSTACK_TELEMETRY_APP_ID = "org.onosproject.openstacktelemetry";
 
-    private static final String DEFAULT_SERVER_IP = "localhost";
-
     // default configuration variables for InfluxDB
     public static final String DEFAULT_INFLUXDB_MEASUREMENT = "sonaflow";
 

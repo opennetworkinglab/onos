@@ -24,8 +24,6 @@
     var traceDst = null;
     var srcDeviceId = null;
     var dstDeviceId = null;
-    var flowStatsSrcIp = null;
-    var flowStatsDstIp = null;
 
     var traceInfoDialogId = 'traceInfoDialogId',
         traceInfoDialogOpt =   {
@@ -120,22 +118,6 @@
                     }
                }
             },
-            FlowStats: {
-                gid: 'meterTable',
-                tt: 'Flow Statistics',
-                cb: function (data) {
-                    if (flowStatsSrcIp == null && data.navPath == 'host') {
-                        flowStatsSrcIp = data.propValues.ip;
-                        flash.flash('Source ' + flowStatsSrcIp + ' is selected. Choose a destination IP address');
-                        $log.info('Source VM is selected for Flow Statistics: ', data);
-                    } else if (flowStatsDstIp == null && data.title != flowStatsSrcIp && data.navPath == 'host') {
-                        flowStatsDstIp = data.propValues.ip;
-                        flash.flash('Destination ' + flowStatsDstIp + ' is selected. Press [Request] button !');
-                        openFlowStatsInfoDialog();
-                        $log.info('Destination VM is selected for Flow Statistics: ', data);
-                    }
-                }
-            }
         },
 
         keyBindings: {
@@ -178,60 +160,6 @@
             }
         }
     };
-
-    function openFlowStatsInfoDialog() {
-        ds.openDialog(traceInfoDialogId, traceInfoDialogOpt)
-            .setTitle('VM to VM Flow Statistics Rule Configuration')
-            .addContent(createFlowStatsInfoDiv(flowStatsSrcIp, flowStatsDstIp))
-            .addCancel(dStatsBoxClose, 'Close')
-            .addOk(flowStatsRemoveReqBtn, 'Remove Stats Rule')
-            .addOk(flowStatsAddReqBtn, 'Add Stats Rule')
-            .bindKeys();
-    }
-
-    function createFlowStatsInfoDiv(srcIp, dstIp) {
-        var texts = ds.createDiv('FlowStatsInfo');
-        texts.append('hr');
-        texts.append('table').append('tbody').append('tr');
-
-        var tBodySelection = texts.select('table').select('tbody').select('tr');
-
-        tBodySelection.append('td').text('Source IP: ').attr("class", "label");
-        tBodySelection.append('td').text(srcIp).attr("class", "value");
-
-        texts.select('table').select('tbody').append('tr');
-
-        tBodySelection = texts.select('table').select('tbody').select('tr:nth-child(2)');
-
-        tBodySelection.append('td').text('Destination IP: ').attr("class", "label");
-        tBodySelection.append('td').text(dstIp).attr("class", "value");
-
-        texts.append('hr');
-
-        return texts;
-    }
-
-    function dStatsBoxClose() {
-        $log.info('Dialog Close button clicked (or Esc pressed)');
-        flowStatsSrcIp = null;
-        flowStatsDstIp = null;
-    }
-
-    function flowStatsAddReqBtn() {
-        sts.sendFlowStatsAddRequest(flowStatsSrcIp, flowStatsDstIp);
-        ds.closeDialog();
-        flowStatsSrcIp = null;
-        flowStatsDstIp = null;
-        flash.flash('Send Flow Statistics Addition Request');
-    }
-
-    function flowStatsRemoveReqBtn() {
-        sts.sendFlowStatsRemoveRequest(flowStatsSrcIp, flowStatsDstIp);
-        ds.closeDialog();
-        flowStatsSrcIp = null;
-        flowStatsDstIp = null;
-        flash.flash('Send Flow Statistics Removal Request');
-    }
 
     function openTraceInfoDialog() {
         ds.openDialog(traceInfoDialogId, traceInfoDialogOpt)

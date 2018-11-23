@@ -16,6 +16,7 @@
 package org.onosproject.openstacktelemetry.util;
 
 import com.google.common.base.Strings;
+import org.onlab.packet.IPv4;
 import org.onosproject.cfg.ConfigProperty;
 import org.onosproject.openstacktelemetry.api.TelemetryAdminService;
 import org.onosproject.openstacktelemetry.api.config.TelemetryConfig;
@@ -30,6 +31,11 @@ import static org.onlab.util.Tools.get;
  * An utility that used in openstack telemetry app.
  */
 public final class OpenstackTelemetryUtil {
+
+    private static final String PROTOCOL_NAME_TCP = "tcp";
+    private static final String PROTOCOL_NAME_UDP = "udp";
+    private static final String PROTOCOL_NAME_ANY = "any";
+    private static final int ARBITRARY_PROTOCOL = 0x0;
 
     /**
      * Prevents object instantiation from external.
@@ -69,6 +75,42 @@ public final class OpenstackTelemetryUtil {
                 properties.stream().filter(p -> p.name().equals(name)).findFirst();
 
         return property.map(ConfigProperty::asBoolean).orElse(false);
+    }
+
+    /**
+     * Obtains transport protocol type from the given string.
+     *
+     * @param str transport protocol name
+     * @return transport protocol type
+     */
+    public static byte getProtocolTypeFromString(String str) {
+        switch (str.toLowerCase()) {
+            case PROTOCOL_NAME_TCP:
+                return IPv4.PROTOCOL_TCP;
+            case PROTOCOL_NAME_UDP:
+                return IPv4.PROTOCOL_UDP;
+            default:
+                return ARBITRARY_PROTOCOL;
+        }
+    }
+
+    /**
+     * Obtains protocol name from the protocol type.
+     *
+     * @param type transport protocol type
+     * @return transport protocol name
+     */
+    public static String getProtocolNameFromType(byte type) {
+        switch (type) {
+            case IPv4.PROTOCOL_TCP:
+                return PROTOCOL_NAME_TCP;
+            case IPv4.PROTOCOL_UDP:
+                return PROTOCOL_NAME_UDP;
+            case ARBITRARY_PROTOCOL:
+                return PROTOCOL_NAME_ANY;
+            default:
+                return PROTOCOL_NAME_ANY;
+        }
     }
 
     /**

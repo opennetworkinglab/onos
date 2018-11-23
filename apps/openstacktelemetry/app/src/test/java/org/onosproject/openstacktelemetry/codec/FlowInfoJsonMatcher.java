@@ -86,11 +86,17 @@ public final class FlowInfoJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNod
         }
 
         // check vlan id
-        String jsonVlanId = jsonNode.get(VLAN_ID).asText();
-        String vlanId = flowInfo.vlanId().toString();
-        if (!jsonVlanId.equals(vlanId)) {
-            description.appendText("VLAN id was " + jsonVlanId);
-            return false;
+        try {
+            if (!(jsonNode.get(VLAN_ID).isNull())) {
+                String jsonVlanId = jsonNode.get(VLAN_ID).asText();
+                String vlanId = flowInfo.vlanId().toString();
+                if (!jsonVlanId.equals(vlanId)) {
+                    description.appendText("VLAN id was " + jsonVlanId);
+                    return false;
+                }
+            }
+        } catch (NullPointerException ex) {
+            description.appendText("VLAN id was null");
         }
 
         // check source IP

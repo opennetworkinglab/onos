@@ -34,6 +34,7 @@ import java.nio.ByteBuffer;
  */
 public class TinaFlowInfoByteBufferCodec extends ByteBufferCodec<FlowInfo> {
 
+    private static final int NUM_RADIX = 16;
     private static final int MESSAGE_SIZE = 88;
     private static final String OF_PREFIX = "of:";
 
@@ -46,7 +47,7 @@ public class TinaFlowInfoByteBufferCodec extends ByteBufferCodec<FlowInfo> {
 
         String  deviceId = flowInfo.deviceId().toString();
         short switchId = (short) Integer.parseInt(deviceId.substring(3,
-                                                  deviceId.length()), 16);
+                                      deviceId.length()), NUM_RADIX);
 
         if (flowInfo.srcPort() != null) {
             srcPort = flowInfo.srcPort().toInt();
