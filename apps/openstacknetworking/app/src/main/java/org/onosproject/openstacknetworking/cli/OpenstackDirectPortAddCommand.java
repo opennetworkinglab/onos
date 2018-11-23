@@ -72,7 +72,6 @@ public class OpenstackDirectPortAddCommand extends AbstractShellCommand {
             log.error("Failed to retrieve interface name from a port {}", portId);
             return;
         } else if (intfName.equals(UNSUPPORTED_VENDOR)) {
-            log.warn("Failed to retrieve interface name from a port {} because of unsupported ovs-based sr-iov");
             return;
         }
 

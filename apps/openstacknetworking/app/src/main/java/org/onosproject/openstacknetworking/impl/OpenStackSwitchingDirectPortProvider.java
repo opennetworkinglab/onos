@@ -122,95 +122,6 @@ public final class OpenStackSwitchingDirectPortProvider {
         log.info("Stopped");
     }
 
-    private void processPortAdded(Port port) {
-        if (!port.getvNicType().equals(DIRECT)) {
-            return;
-        } else if (!port.isAdminStateUp() || port.getVifType().equals(UNBOUND)) {
-            log.trace("processPortAdded skipped because of status: {}, adminStateUp: {}, vifType: {}",
-                    port.getState(), port.isAdminStateUp(), port.getVifType());
-            return;
-        } else {
-            Optional<OpenstackNode> osNode = osNodeService.completeNodes(COMPUTE).stream()
-                    .filter(node -> node.hostname().equals(port.getHostId()))
-                    .findAny();
-            if (!osNode.isPresent()) {
-                log.error("processPortAdded failed because openstackNode doesn't exist that matches hostname {}",
-                        port.getHostId());
-                return;
-            }
-            log.trace("Retrieved openstackNode: {}", osNode.get().toString());
-
-            String intfName = getIntfNameFromPciAddress(port);
-            if (intfName == null) {
-                log.error("Failed to execute processPortAdded because of null interface name");
-                return;
-            } else if (intfName.equals(UNSUPPORTED_VENDOR)) {
-                log.warn("Failed to execute processPortAdded because of unsupported vendor for ovs-based sr-iov");
-                return;
-            }
-            log.trace("Retrieved interface name: {}", intfName);
-
-            try {
-                //If a VF port has been already added to the device for some reason, we remove it first,
-                //and the add VF so that other handlers run their logic.
-                if (hasIntfAleadyInDevice(osNode.get().intgBridge(),
-                        intfName, deviceService)) {
-                    log.trace("Device {} has already has VF interface {}, so remove first.",
-                            osNode.get().intgBridge(),
-                            intfName);
-                    osNodeService.removeVfPort(osNode.get(), intfName);
-                    //we wait 3000ms because the ovsdb client can't deal with removal/add at the same time.
-                    sleep(SLEEP_MS);
-                }
-            } catch (InterruptedException e) {
-                log.error("Exception occurred because of {}", e.toString());
-            }
-
-            osNodeService.addVfPort(osNode.get(), intfName);
-        }
-    }
-
-    private void processPortRemoved(Port port) {
-        if (!port.getvNicType().equals(DIRECT)) {
-            return;
-        } else if (instancePortService.instancePort(port.getId()) == null) {
-            log.trace("processPortRemoved skipped because no instance port exist for portId: {}", port.getId());
-            return;
-        } else {
-            InstancePort instancePort = instancePortService.instancePort(port.getId());
-            if (instancePort == null) {
-                return;
-            }
-            DeviceId deviceId = instancePort.deviceId();
-            if (deviceId == null) {
-                return;
-            }
-            OpenstackNode osNode = osNodeService.node(deviceId);
-            if (osNode == null) {
-                return;
-            }
-
-            Optional<org.onosproject.net.Port> removedPort = deviceService.getPorts(deviceId).stream()
-                    .filter(p -> Objects.equals(p.number(), instancePort.portNumber()))
-                    .findAny();
-
-            if (!removedPort.isPresent()) {
-                log.error("Failed to execute processPortAdded because port number doesn't exist");
-                return;
-            }
-
-            String intfName = removedPort.get().annotations().value(PORT_NAME);
-
-            if (intfName == null) {
-                log.error("Failed to execute processPortAdded because of null interface name");
-                return;
-            }
-            log.trace("Retrieved interface name: {}", intfName);
-
-            osNodeService.removeVfPort(osNode, intfName);
-        }
-    }
-
     private class InternalOpenstackNetworkListener implements OpenstackNetworkListener {
         private boolean isRelevantHelper() {
             return Objects.equals(localNodeId, leadershipService.getLeader(appId.name()));
@@ -252,6 +163,95 @@ public final class OpenStackSwitchingDirectPortProvider {
 
             }
         }
+
+        private void processPortAdded(Port port) {
+            if (!port.getvNicType().equals(DIRECT)) {
+                return;
+            } else if (!port.isAdminStateUp() || port.getVifType().equals(UNBOUND)) {
+                log.trace("processPortAdded skipped because of status: {}, adminStateUp: {}, vifType: {}",
+                        port.getState(), port.isAdminStateUp(), port.getVifType());
+                return;
+            } else {
+                Optional<OpenstackNode> osNode = osNodeService.completeNodes(COMPUTE).stream()
+                        .filter(node -> node.hostname().equals(port.getHostId()))
+                        .findAny();
+                if (!osNode.isPresent()) {
+                    log.error("processPortAdded failed because openstackNode doesn't exist that matches hostname {}",
+                            port.getHostId());
+                    return;
+                }
+                log.trace("Retrieved openstackNode: {}", osNode.get().toString());
+
+                String intfName = getIntfNameFromPciAddress(port);
+                if (intfName == null) {
+                    log.error("Failed to execute processPortAdded because of null interface name");
+                    return;
+                } else if (intfName.equals(UNSUPPORTED_VENDOR)) {
+                    return;
+                }
+                log.trace("Retrieved interface name: {}", intfName);
+
+                try {
+                    //If the VF port has been already added to the device for some reason, we remove it first,
+                    //and then add VF so that other handlers run their logic.
+                    if (hasIntfAleadyInDevice(osNode.get().intgBridge(),
+                            intfName, deviceService)) {
+                        log.trace("Device {} has already has VF interface {}, so remove first.",
+                                osNode.get().intgBridge(),
+                                intfName);
+                        osNodeService.removeVfPort(osNode.get(), intfName);
+                        //we wait 3000ms because the ovsdb client can't deal with removal/add at the same time.
+                        sleep(SLEEP_MS);
+                    }
+                } catch (InterruptedException e) {
+                    log.error("Exception occurred because of {}", e.toString());
+                }
+
+                osNodeService.addVfPort(osNode.get(), intfName);
+            }
+        }
+
+        private void processPortRemoved(Port port) {
+            if (!port.getvNicType().equals(DIRECT)) {
+                return;
+            } else if (instancePortService.instancePort(port.getId()) == null) {
+                log.trace("processPortRemoved skipped because no instance port exist for portId: {}", port.getId());
+                return;
+            } else {
+                InstancePort instancePort = instancePortService.instancePort(port.getId());
+                if (instancePort == null) {
+                    return;
+                }
+                DeviceId deviceId = instancePort.deviceId();
+                if (deviceId == null) {
+                    return;
+                }
+                OpenstackNode osNode = osNodeService.node(deviceId);
+                if (osNode == null) {
+                    return;
+                }
+
+                Optional<org.onosproject.net.Port> removedPort = deviceService.getPorts(deviceId).stream()
+                        .filter(p -> Objects.equals(p.number(), instancePort.portNumber()))
+                        .findAny();
+
+                if (!removedPort.isPresent()) {
+                    log.error("Failed to execute processPortAdded because port number doesn't exist");
+                    return;
+                }
+
+                String intfName = removedPort.get().annotations().value(PORT_NAME);
+
+                if (intfName == null) {
+                    log.error("Failed to execute processPortAdded because of null interface name");
+                    return;
+                }
+                log.trace("Retrieved interface name: {}", intfName);
+
+                osNodeService.removeVfPort(osNode, intfName);
+            }
+        }
+
     }
 
     private class InternalOpenstackNodeListener implements OpenstackNodeListener {

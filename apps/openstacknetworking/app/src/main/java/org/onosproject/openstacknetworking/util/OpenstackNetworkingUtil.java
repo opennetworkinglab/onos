@@ -363,6 +363,8 @@ public final class OpenstackNetworkingUtil {
      * @return interface name
      */
     public static String getIntfNameFromPciAddress(Port port) {
+        String intfName;
+
         if (port.getProfile() == null || port.getProfile().isEmpty()) {
             log.error("Port profile is not found");
             return null;
@@ -373,6 +375,15 @@ public final class OpenstackNetworkingUtil {
             log.error("Failed to retrieve the interface name because of no pci_slot information from the port");
             return null;
         }
+
+        String vendorInfoForPort = String.valueOf(port.getProfile().get(PCI_VENDOR_INFO));
+
+        if (!portNamePrefixMap().containsKey(vendorInfoForPort)) {
+            log.debug("{} is an non-smart NIC prefix.", vendorInfoForPort);
+            return UNSUPPORTED_VENDOR;
+        }
+
+        String portNamePrefix = portNamePrefixMap().get(vendorInfoForPort);
 
         String busNumHex = port.getProfile().get(PCISLOT).toString().split(":")[1];
         String busNumDecimal = String.valueOf(Integer.parseInt(busNumHex, HEX_RADIX));
@@ -386,17 +397,6 @@ public final class OpenstackNetworkingUtil {
                 .split(":")[2]
                 .split("\\.")[1];
         String functionNumDecimal = String.valueOf(Integer.parseInt(functionNumHex, HEX_RADIX));
-
-        String intfName;
-
-        String vendorInfoForPort = String.valueOf(port.getProfile().get(PCI_VENDOR_INFO));
-
-        if (!portNamePrefixMap().containsKey(vendorInfoForPort)) {
-            log.warn("Failed to retrieve the interface name because of unsupported prefix for vendor ID {}",
-                    vendorInfoForPort);
-            return UNSUPPORTED_VENDOR;
-        }
-        String portNamePrefix = portNamePrefixMap().get(vendorInfoForPort);
 
         if (functionNumDecimal.equals(ZERO_FUNCTION_NUMBER)) {
             intfName = portNamePrefix + busNumDecimal + PREFIX_DEVICE_NUMBER + deviceNumDecimal;
