@@ -56,7 +56,7 @@ public interface L2LbService extends ListenerService<L2LbEvent, L2LbListener> {
      * @param key L2 load balancer key
      * @return next ID
      */
-    int getL2LbNexts(DeviceId deviceId, int key);
+    int getL2LbNext(DeviceId deviceId, int key);
 
     /**
      * Reserves a l2 load balancer. Only one application
