@@ -230,7 +230,7 @@ public class L2LbManager implements L2LbService, L2LbAdminService {
     }
 
     @Override
-    public int getL2LbNexts(DeviceId deviceId, int key) {
+    public int getL2LbNext(DeviceId deviceId, int key) {
         return Versioned.valueOrNull(l2LbNextStore.get(new L2LbId(deviceId, key)));
     }
 
