@@ -17,12 +17,8 @@
 package org.onosproject.pipelines.fabric.pipeliner;
 
 import com.google.common.collect.ImmutableList;
-import org.easymock.EasyMock;
+import org.junit.Before;
 import org.junit.Test;
-import org.onlab.junit.TestUtils;
-import org.onlab.util.ImmutableByteSequence;
-import org.onosproject.net.behaviour.DefaultNextGroup;
-import org.onosproject.net.behaviour.NextGroup;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -31,9 +27,7 @@ import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.PiCriterion;
 import org.onosproject.net.flowobjective.DefaultNextObjective;
-import org.onosproject.net.flowobjective.FlowObjectiveStore;
 import org.onosproject.net.flowobjective.NextObjective;
-import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.group.DefaultGroupBucket;
 import org.onosproject.net.group.DefaultGroupDescription;
 import org.onosproject.net.group.DefaultGroupKey;
@@ -48,34 +42,44 @@ import org.onosproject.net.pi.runtime.PiGroupKey;
 import org.onosproject.pipelines.fabric.FabricConstants;
 
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.easymock.EasyMock.*;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Test cases for fabric.p4 pipeline next control block.
  */
 public class FabricNextPipelinerTest extends FabricPipelinerTest {
+
+    private NextObjectiveTranslator translatorHashed;
+    private NextObjectiveTranslator translatorSimple;
+
     private FlowRule vlanMetaFlowRule;
 
-    public FabricNextPipelinerTest() {
+    @Before
+    public void setup() {
+        super.doSetup();
+
+        translatorHashed = new NextObjectiveTranslator(DEVICE_ID, capabilitiesHashed);
+        translatorSimple = new NextObjectiveTranslator(DEVICE_ID, capabilitiesSimple);
+
         PiCriterion nextIdCriterion = PiCriterion.builder()
-                .matchExact(FabricConstants.FABRIC_METADATA_NEXT_ID, NEXT_ID_1)
+                .matchExact(FabricConstants.HDR_NEXT_ID, NEXT_ID_1)
                 .build();
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchPi(nextIdCriterion)
                 .build();
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .setVlanId(VLAN_100)
+        PiAction piAction = PiAction.builder()
+                .withId(FabricConstants.FABRIC_INGRESS_NEXT_SET_VLAN)
+                .withParameter(new PiActionParam(FabricConstants.VLAN_ID, VLAN_100.toShort()))
                 .build();
-
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .piTableAction(piAction)
+                .build();
         vlanMetaFlowRule = DefaultFlowRule.builder()
                 .withSelector(selector)
                 .withTreatment(treatment)
-                .forTable(FabricConstants.FABRIC_INGRESS_NEXT_VLAN_META)
+                .forTable(FabricConstants.FABRIC_INGRESS_NEXT_NEXT_VLAN)
                 .makePermanent()
                 // FIXME: currently next objective doesn't support priority, ignore this
                 .withPriority(0)
@@ -88,53 +92,81 @@ public class FabricNextPipelinerTest extends FabricPipelinerTest {
      * Test program output rule for Simple table.
      */
     @Test
-    public void testSimpleOutput() {
+    public void testSimpleOutput() throws FabricPipelinerException {
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                 .setOutput(PORT_1)
                 .build();
-        testSimple(treatment);
+        PiAction piAction = PiAction.builder()
+                .withId(FabricConstants.FABRIC_INGRESS_NEXT_OUTPUT_SIMPLE)
+                .withParameter(new PiActionParam(
+                        FabricConstants.PORT_NUM, PORT_1.toLong()))
+                .build();
+        testSimple(treatment, piAction);
     }
 
     /**
      * Test program set vlan and output rule for Simple table.
      */
     @Test
-    public void testSimpleOutputWithVlanTranslation() {
+    public void testSimpleOutputWithVlanTranslation() throws FabricPipelinerException {
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                 .setVlanId(VLAN_100)
                 .setOutput(PORT_1)
                 .build();
-        testSimple(treatment);
+        PiAction piAction = PiAction.builder()
+                .withId(FabricConstants.FABRIC_INGRESS_NEXT_OUTPUT_SIMPLE)
+                .withParameter(new PiActionParam(
+                        FabricConstants.PORT_NUM, PORT_1.toLong()))
+                .build();
+        testSimple(treatment, piAction);
     }
 
     /**
      * Test program set mac and output rule for Simple table.
      */
     @Test
-    public void testSimpleOutputWithMacTranslation() {
+    public void testSimpleOutputWithMacTranslation() throws FabricPipelinerException {
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                 .setEthSrc(ROUTER_MAC)
                 .setEthDst(HOST_MAC)
                 .setOutput(PORT_1)
                 .build();
-        testSimple(treatment);
+        PiAction piAction = PiAction.builder()
+                .withId(FabricConstants.FABRIC_INGRESS_NEXT_ROUTING_SIMPLE)
+                .withParameter(new PiActionParam(
+                        FabricConstants.SMAC, ROUTER_MAC.toBytes()))
+                .withParameter(new PiActionParam(
+                        FabricConstants.DMAC, HOST_MAC.toBytes()))
+                .withParameter(new PiActionParam(
+                        FabricConstants.PORT_NUM, PORT_1.toLong()))
+                .build();
+        testSimple(treatment, piAction);
     }
 
     /**
      * Test program set mac, set vlan, and output rule for Simple table.
      */
     @Test
-    public void testSimpleOutputWithVlanAndMacTranslation() {
+    public void testSimpleOutputWithVlanAndMacTranslation() throws FabricPipelinerException {
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                 .setEthSrc(ROUTER_MAC)
                 .setEthDst(HOST_MAC)
                 .setVlanId(VLAN_100)
                 .setOutput(PORT_1)
                 .build();
-        testSimple(treatment);
+        PiAction piAction = PiAction.builder()
+                .withId(FabricConstants.FABRIC_INGRESS_NEXT_ROUTING_SIMPLE)
+                .withParameter(new PiActionParam(
+                        FabricConstants.SMAC, ROUTER_MAC.toBytes()))
+                .withParameter(new PiActionParam(
+                        FabricConstants.DMAC, HOST_MAC.toBytes()))
+                .withParameter(new PiActionParam(
+                        FabricConstants.PORT_NUM, PORT_1.toLong()))
+                .build();
+        testSimple(treatment, piAction);
     }
 
-    private void testSimple(TrafficTreatment treatment) {
+    private void testSimple(TrafficTreatment treatment, PiAction piAction) throws FabricPipelinerException {
         NextObjective nextObjective = DefaultNextObjective.builder()
                 .withId(NEXT_ID_1)
                 .withPriority(PRIORITY)
@@ -145,26 +177,15 @@ public class FabricNextPipelinerTest extends FabricPipelinerTest {
                 .fromApp(APP_ID)
                 .add();
 
-        PipelinerTranslationResult result = pipeliner.pipelinerNext.next(nextObjective);
-
-        List<FlowRule> flowRulesInstalled = (List<FlowRule>) result.flowRules();
-        List<GroupDescription> groupsInstalled = (List<GroupDescription>) result.groups();
-        assertEquals(2, flowRulesInstalled.size());
-        assertTrue(groupsInstalled.isEmpty());
+        ObjectiveTranslation actualTranslation = translatorSimple.translate(nextObjective);
 
         // Simple table
         PiCriterion nextIdCriterion = PiCriterion.builder()
-                .matchExact(FabricConstants.FABRIC_METADATA_NEXT_ID, NEXT_ID_1)
+                .matchExact(FabricConstants.HDR_NEXT_ID, NEXT_ID_1)
                 .build();
         TrafficSelector nextIdSelector = DefaultTrafficSelector.builder()
                 .matchPi(nextIdCriterion)
                 .build();
-
-        // VLAN meta table
-        FlowRule actualFlowRule = flowRulesInstalled.get(0);
-        assertTrue(actualFlowRule.exactMatch(vlanMetaFlowRule));
-
-        actualFlowRule = flowRulesInstalled.get(1);
         FlowRule expectedFlowRule = DefaultFlowRule.builder()
                 .forDevice(DEVICE_ID)
                 .fromApp(APP_ID)
@@ -173,9 +194,16 @@ public class FabricNextPipelinerTest extends FabricPipelinerTest {
                 .withPriority(0)
                 .forTable(FabricConstants.FABRIC_INGRESS_NEXT_SIMPLE)
                 .withSelector(nextIdSelector)
-                .withTreatment(treatment)
+                .withTreatment(DefaultTrafficTreatment.builder()
+                                       .piTableAction(piAction).build())
                 .build();
-        assertTrue(expectedFlowRule.exactMatch(actualFlowRule));
+
+        ObjectiveTranslation expectedTranslation = ObjectiveTranslation.builder()
+                .addFlowRule(vlanMetaFlowRule)
+                .addFlowRule(expectedFlowRule)
+                .build();
+
+        assertEquals(expectedTranslation, actualTranslation);
     }
 
     /**
@@ -183,15 +211,29 @@ public class FabricNextPipelinerTest extends FabricPipelinerTest {
      */
     @Test
     public void testHashedOutput() throws Exception {
+        PiAction piAction1 = PiAction.builder()
+                .withId(FabricConstants.FABRIC_INGRESS_NEXT_ROUTING_HASHED)
+                .withParameter(new PiActionParam(
+                        FabricConstants.SMAC, ROUTER_MAC.toBytes()))
+                .withParameter(new PiActionParam(
+                        FabricConstants.DMAC, HOST_MAC.toBytes()))
+                .withParameter(new PiActionParam(
+                        FabricConstants.PORT_NUM, PORT_1.toLong()))
+                .build();
+        PiAction piAction2 = PiAction.builder()
+                .withId(FabricConstants.FABRIC_INGRESS_NEXT_ROUTING_HASHED)
+                .withParameter(new PiActionParam(
+                        FabricConstants.SMAC, ROUTER_MAC.toBytes()))
+                .withParameter(new PiActionParam(
+                        FabricConstants.DMAC, HOST_MAC.toBytes()))
+                .withParameter(new PiActionParam(
+                        FabricConstants.PORT_NUM, PORT_1.toLong()))
+                .build();
         TrafficTreatment treatment1 = DefaultTrafficTreatment.builder()
-                .setEthSrc(ROUTER_MAC)
-                .setEthDst(HOST_MAC)
-                .setOutput(PORT_1)
+                .piTableAction(piAction1)
                 .build();
         TrafficTreatment treatment2 = DefaultTrafficTreatment.builder()
-                .setEthSrc(ROUTER_MAC)
-                .setEthDst(HOST_MAC)
-                .setOutput(PORT_2)
+                .piTableAction(piAction2)
                 .build();
 
         NextObjective nextObjective = DefaultNextObjective.builder()
@@ -205,17 +247,11 @@ public class FabricNextPipelinerTest extends FabricPipelinerTest {
                 .fromApp(APP_ID)
                 .add();
 
-        PipelinerTranslationResult result = pipeliner.pipelinerNext.next(nextObjective);
+        ObjectiveTranslation actualTranslation = translatorHashed.doTranslate(nextObjective);
 
-        // Should generates 2 flows and 1 group
-        List<FlowRule> flowRulesInstalled = (List<FlowRule>) result.flowRules();
-        List<GroupDescription> groupsInstalled = (List<GroupDescription>) result.groups();
-        assertEquals(2, flowRulesInstalled.size());
-        assertEquals(1, groupsInstalled.size());
-
-        // Hashed table
+        // Expected hashed table flow rule.
         PiCriterion nextIdCriterion = PiCriterion.builder()
-                .matchExact(FabricConstants.FABRIC_METADATA_NEXT_ID, NEXT_ID_1)
+                .matchExact(FabricConstants.HDR_NEXT_ID, NEXT_ID_1)
                 .build();
         TrafficSelector nextIdSelector = DefaultTrafficSelector.builder()
                 .matchPi(nextIdCriterion)
@@ -224,12 +260,6 @@ public class FabricNextPipelinerTest extends FabricPipelinerTest {
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                 .piTableAction(actionGroupId)
                 .build();
-
-        // VLAN meta table
-        FlowRule actualFlowRule = flowRulesInstalled.get(0);
-        assertTrue(actualFlowRule.exactMatch(vlanMetaFlowRule));
-
-        actualFlowRule = flowRulesInstalled.get(1);
         FlowRule expectedFlowRule = DefaultFlowRule.builder()
                 .forDevice(DEVICE_ID)
                 .fromApp(APP_ID)
@@ -240,18 +270,15 @@ public class FabricNextPipelinerTest extends FabricPipelinerTest {
                 .withSelector(nextIdSelector)
                 .withTreatment(treatment)
                 .build();
-        assertTrue(expectedFlowRule.exactMatch(actualFlowRule));
 
-        // Group
-        GroupDescription actualGroup = groupsInstalled.get(0);
+        // Expected group
         List<TrafficTreatment> treatments = ImmutableList.of(treatment1, treatment2);
-
         List<GroupBucket> buckets = treatments.stream()
                 .map(DefaultGroupBucket::createSelectGroupBucket)
                 .collect(Collectors.toList());
         GroupBuckets groupBuckets = new GroupBuckets(buckets);
         PiGroupKey groupKey = new PiGroupKey(FabricConstants.FABRIC_INGRESS_NEXT_HASHED,
-                                             FabricConstants.FABRIC_INGRESS_NEXT_ECMP_SELECTOR,
+                                             FabricConstants.FABRIC_INGRESS_NEXT_HASHED_SELECTOR,
                                              NEXT_ID_1);
         GroupDescription expectedGroup = new DefaultGroupDescription(
                 DEVICE_ID,
@@ -261,7 +288,14 @@ public class FabricNextPipelinerTest extends FabricPipelinerTest {
                 NEXT_ID_1,
                 APP_ID
         );
-        assertEquals(expectedGroup, actualGroup);
+
+        ObjectiveTranslation expectedTranslation = ObjectiveTranslation.builder()
+                .addFlowRule(expectedFlowRule)
+                .addFlowRule(vlanMetaFlowRule)
+                .addGroup(expectedGroup)
+                .build();
+
+        assertEquals(expectedTranslation, actualTranslation);
 
     }
 
@@ -269,7 +303,7 @@ public class FabricNextPipelinerTest extends FabricPipelinerTest {
      * Test program output group for Broadcast table.
      */
     @Test
-    public void testBroadcastOutput() {
+    public void testBroadcastOutput() throws FabricPipelinerException {
         TrafficTreatment treatment1 = DefaultTrafficTreatment.builder()
                 .setOutput(PORT_1)
                 .build();
@@ -288,35 +322,31 @@ public class FabricNextPipelinerTest extends FabricPipelinerTest {
                 .fromApp(APP_ID)
                 .add();
 
-        PipelinerTranslationResult result = pipeliner.pipelinerNext.next(nextObjective);
+        ObjectiveTranslation actualTranslation = translatorHashed.doTranslate(nextObjective);
 
-        // Should generate 1 flow, 1 group and 2 buckets in it
-        List<FlowRule> flowRulesInstalled = (List<FlowRule>) result.flowRules();
-        List<GroupDescription> groupsInstalled = (List<GroupDescription>) result.groups();
-        assertEquals(3, flowRulesInstalled.size());
-        assertEquals(1, groupsInstalled.size());
-        // FIXME: expected should be 2
-        // But we are adding an extra bucket to clone the pkt to the CPU
-        assertEquals(3, groupsInstalled.get(0).buckets().buckets().size());
+        // Should generate 3 flows:
+        // - Multicast table flow that matches on next-id and set multicast group (1)
+        // - Egress VLAN pop handling for treatment2 (0)
+        // - Next VLAN flow (2)
+        // And 2 groups:
+        // - Multicast group
 
-        //create the expected flow rule
+        // Expected multicast table flow rule.
         PiCriterion nextIdCriterion = PiCriterion.builder()
-                .matchExact(FabricConstants.FABRIC_METADATA_NEXT_ID, NEXT_ID_1)
+                .matchExact(FabricConstants.HDR_NEXT_ID, NEXT_ID_1)
                 .build();
         TrafficSelector nextIdSelector = DefaultTrafficSelector.builder()
                 .matchPi(nextIdCriterion)
                 .build();
-
-        PiActionParam groupIdParam = new PiActionParam(FabricConstants.GID,
-                                                       ImmutableByteSequence.copyFrom(NEXT_ID_1));
         PiAction setMcGroupAction = PiAction.builder()
-                .withId(FabricConstants.FABRIC_INGRESS_NEXT_SET_MCAST_GROUP)
-                .withParameter(groupIdParam)
+                .withId(FabricConstants.FABRIC_INGRESS_NEXT_SET_MCAST_GROUP_ID)
+                .withParameter(new PiActionParam(
+                        FabricConstants.GROUP_ID, NEXT_ID_1))
                 .build();
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                 .piTableAction(setMcGroupAction)
                 .build();
-        FlowRule expectedFlowRule = DefaultFlowRule.builder()
+        FlowRule expectedHashedFlowRule = DefaultFlowRule.builder()
                 .forDevice(DEVICE_ID)
                 .fromApp(APP_ID)
                 .makePermanent()
@@ -326,24 +356,19 @@ public class FabricNextPipelinerTest extends FabricPipelinerTest {
                 .withTreatment(treatment)
                 .build();
 
-        // VLAN meta table
-        FlowRule vmFlowRule = flowRulesInstalled.get(0);
-        assertTrue(vmFlowRule.exactMatch(vlanMetaFlowRule));
-
-        FlowRule actualFlowRule = flowRulesInstalled.get(1);
-        assertTrue(expectedFlowRule.exactMatch(actualFlowRule));
-
-        //prepare expected egress rule for the egress vlan pipeline
+        // Expected egress VLAN POP flow rule.
         PiCriterion egressVlanTableMatch = PiCriterion.builder()
-                .matchExact(FabricConstants.STANDARD_METADATA_EGRESS_PORT,
-                            (short) PORT_2.toLong())
+                .matchExact(FabricConstants.HDR_EG_PORT, PORT_2.toLong())
                 .build();
         TrafficSelector selectorForEgressVlan = DefaultTrafficSelector.builder()
                 .matchPi(egressVlanTableMatch)
                 .matchVlanId(VLAN_100)
                 .build();
+        PiAction piActionForEgressVlan = PiAction.builder()
+                .withId(FabricConstants.FABRIC_EGRESS_EGRESS_NEXT_POP_VLAN)
+                .build();
         TrafficTreatment treatmentForEgressVlan = DefaultTrafficTreatment.builder()
-                .popVlan()
+                .piTableAction(piActionForEgressVlan)
                 .build();
         FlowRule expectedEgressVlanRule = DefaultFlowRule.builder()
                 .withSelector(selectorForEgressVlan)
@@ -354,78 +379,40 @@ public class FabricNextPipelinerTest extends FabricPipelinerTest {
                 .forDevice(DEVICE_ID)
                 .fromApp(APP_ID)
                 .build();
-        //egress vlan table
-        FlowRule actualEgressVlanFlowRule = flowRulesInstalled.get(2);
-        assertTrue(expectedEgressVlanRule.exactMatch(actualEgressVlanFlowRule));
 
-        //create the expected group
-        GroupDescription actualGroup = groupsInstalled.get(0);
-        TrafficTreatment groupTreatment1 = DefaultTrafficTreatment.builder()
+        // Expected ALL group.
+        TrafficTreatment allGroupTreatment1 = DefaultTrafficTreatment.builder()
                 .setOutput(PORT_1)
                 .build();
-        TrafficTreatment groupTreatment2 = DefaultTrafficTreatment.builder()
+        TrafficTreatment allGroupTreatment2 = DefaultTrafficTreatment.builder()
                 .setOutput(PORT_2)
                 .build();
-        List<TrafficTreatment> treatments = ImmutableList.of(groupTreatment1, groupTreatment2);
-
-        List<GroupBucket> buckets = treatments.stream()
+        List<TrafficTreatment> allTreatments = ImmutableList.of(
+                allGroupTreatment1, allGroupTreatment2);
+        List<GroupBucket> allBuckets = allTreatments.stream()
                 .map(DefaultGroupBucket::createAllGroupBucket)
                 .collect(Collectors.toList());
-
         // FIXME: remove when we implement proper clone to CPU behavior
-        buckets.add(DefaultGroupBucket.createAllGroupBucket(
+        allBuckets.add(DefaultGroupBucket.createAllGroupBucket(
                 DefaultTrafficTreatment.builder().punt().build()));
-
-        GroupBuckets groupBuckets = new GroupBuckets(buckets);
-
-        GroupKey groupKey = new DefaultGroupKey(FabricPipeliner.KRYO.serialize(NEXT_ID_1));
-
-        GroupDescription expectedGroup = new DefaultGroupDescription(
+        GroupBuckets allGroupBuckets = new GroupBuckets(allBuckets);
+        GroupKey allGroupKey = new DefaultGroupKey(FabricPipeliner.KRYO.serialize(NEXT_ID_1));
+        GroupDescription expectedAllGroup = new DefaultGroupDescription(
                 DEVICE_ID,
                 GroupDescription.Type.ALL,
-                groupBuckets,
-                groupKey,
+                allGroupBuckets,
+                allGroupKey,
                 NEXT_ID_1,
                 APP_ID
         );
-        assertEquals(expectedGroup, actualGroup);
-    }
 
-    /**
-     * Test removing next objective, and expect the next objective data will be removed from the store.
-     */
-    @Test
-    public void testRemoveNextObjective() {
-        // Initialize mock objects
-        NextObjective mockNextObjective = DefaultNextObjective.builder()
-                .fromApp(APP_ID)
-                .withId(NEXT_ID_1)
-                .makePermanent()
-                .withPriority(PRIORITY)
-                .withType(NextObjective.Type.SIMPLE)
-                .remove();
-        FlowObjectiveStore mockFlowObjStore = EasyMock.createNiceMock(FlowObjectiveStore.class);
-        FabricNextPipeliner mockNextPipeliner = EasyMock.createNiceMock(FabricNextPipeliner.class);
-        PipelinerTranslationResult mockResult = PipelinerTranslationResult.builder().build(); // empty result
-        NextGroup mockNextGroup = new DefaultNextGroup(null);
-        expect(mockNextPipeliner.next(mockNextObjective)).andReturn(mockResult).once();
-        expect(mockFlowObjStore.getNextGroup(mockNextObjective.id())).andReturn(mockNextGroup).once();
-        expect(mockFlowObjStore.removeNextGroup(mockNextObjective.id())).andReturn(mockNextGroup).once();
-        replay(mockNextPipeliner, mockFlowObjStore);
+        ObjectiveTranslation expectedTranslation = ObjectiveTranslation.builder()
+                .addFlowRule(expectedHashedFlowRule)
+                .addFlowRule(vlanMetaFlowRule)
+                .addFlowRule(expectedEgressVlanRule)
+                .addGroup(expectedAllGroup)
+                .build();
 
-        // Initialize the pipeliner
-        FabricPipeliner thePipeliner = new FabricPipeliner();
-        thePipeliner.pipelinerNext = mockNextPipeliner;
-        TestUtils.setField(thePipeliner, "flowObjectiveStore", mockFlowObjStore);
-        // execute removing process
-        thePipeliner.next(mockNextObjective);
-        Map<Objective, FabricPipeliner.PendingInstallObjective> pios =
-                TestUtils.getField(thePipeliner, "pendingInstallObjectives");
-        FabricPipeliner.PendingInstallObjective pio = pios.get(mockNextObjective);
-        pio.callback.accept(null); // applying successful result
-
-        // "removeNextGroup" method should be called once, or failed if not.
-        verify(mockNextPipeliner, mockFlowObjStore);
-
+        assertEquals(expectedTranslation, actualTranslation);
     }
 }

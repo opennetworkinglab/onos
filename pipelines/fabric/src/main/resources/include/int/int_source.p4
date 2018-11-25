@@ -26,6 +26,7 @@ control process_int_source (
 
     direct_counter(CounterType.packets_and_bytes) counter_int_source;
 
+    @hidden
     action int_source(bit<8> max_hop, bit<5> ins_cnt, bit<4> ins_mask0003, bit<4> ins_mask0407) {
         // Insert INT shim header.
         hdr.intl4_shim.setValid();
@@ -49,7 +50,7 @@ control process_int_source (
         // Insert INT tail header.
         hdr.intl4_tail.setValid();
         hdr.intl4_tail.next_proto = hdr.ipv4.protocol;
-        hdr.intl4_tail.dest_port = fabric_metadata.l4_dst_port;
+        hdr.intl4_tail.dest_port = fabric_metadata.l4_dport;
         hdr.intl4_tail.dscp = hdr.ipv4.dscp;
         // Update IP and UDP (if not valid we don't care) lens (in bytes).
         hdr.ipv4.total_len = hdr.ipv4.total_len + INT_HEADER_LEN_BYTES;
@@ -64,15 +65,17 @@ control process_int_source (
 
     table tb_int_source {
         key = {
-            hdr.ipv4.src_addr: ternary;
-            hdr.ipv4.dst_addr: ternary;
-            fabric_metadata.l4_src_port: ternary;
-            fabric_metadata.l4_dst_port: ternary;
+            hdr.ipv4.src_addr: ternary @name("ipv4_src");
+            hdr.ipv4.dst_addr: ternary @name("ipv4_dst");
+            fabric_metadata.l4_sport: ternary @name("l4_sport");
+            fabric_metadata.l4_dport: ternary @name("l4_dport");
         }
         actions = {
             int_source_dscp;
+            @defaultonly nop();
         }
         counters = counter_int_source;
+        const default_action = nop();
     }
 
     apply {

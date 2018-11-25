@@ -50,8 +50,10 @@ function do_requirements {
         curl \
         flex \
         git \
+        graphviz \
         libavl-dev \
         libboost-dev \
+        libboost-graph-dev \
         libboost-program-options-dev \
         libboost-system-dev \
         libboost-filesystem-dev \

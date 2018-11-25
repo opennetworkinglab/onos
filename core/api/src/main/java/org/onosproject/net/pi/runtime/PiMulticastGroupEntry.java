@@ -92,7 +92,7 @@ public final class PiMulticastGroupEntry implements PiPreEntry {
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
-                .add("groupId", groupId)
+                .add("groupId", "0x" + Integer.toHexString(groupId))
                 .add("replicas", replicas)
                 .toString();
     }

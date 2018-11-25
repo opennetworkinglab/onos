@@ -23,6 +23,7 @@ control process_int_report (
     inout fabric_metadata_t fabric_metadata,
     inout standard_metadata_t standard_metadata) {
 
+    @hidden
     action add_report_fixed_header() {
         /* Device should include its own INT metadata as embedded,
          * we'll not use fabric_report_header for this purpose.
@@ -49,7 +50,7 @@ control process_int_report (
         hdr.report_ethernet.setValid();
         hdr.report_ethernet.dst_addr = mon_mac;
         hdr.report_ethernet.src_addr = src_mac;
-        hdr.report_ethernet.ether_type = ETHERTYPE_IPV4;
+        hdr.report_ethernet.eth_type = ETHERTYPE_IPV4;
 
         //Report IPV4 Header
         hdr.report_ipv4.setValid();
@@ -71,8 +72,8 @@ control process_int_report (
 
         //Report UDP Header
         hdr.report_udp.setValid();
-        hdr.report_udp.src_port = 0;
-        hdr.report_udp.dst_port = mon_port;
+        hdr.report_udp.sport = 0;
+        hdr.report_udp.dport = mon_port;
         hdr.report_udp.len =  (bit<16>) UDP_HEADER_LEN + (bit<16>) REPORT_FIXED_HEADER_LEN +
                                     (bit<16>) ETH_HEADER_LEN + hdr.ipv4.total_len;
 
@@ -87,7 +88,9 @@ control process_int_report (
         }
         actions = {
             do_report_encapsulation;
+            @defaultonly nop();
         }
+        default_action = nop;
     }
 
     apply {

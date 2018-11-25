@@ -393,9 +393,20 @@ public final class ImmutableByteSequence {
         return index;
     }
 
+    /**
+     * Returns a hexadecimal representation of this byte sequence, e.g.
+     * 0xbeef. The length of the returned string is not representative of the
+     * length of the byte sequence, as all padding zeros are removed.
+     *
+     * @return hexadecimal representation
+     */
     @Override
     public String toString() {
-        return HexString.toHexString(value.array());
+        final String hexValue = HexString
+                .toHexString(value.array(), "")
+                // Remove leading zeros, but leave one if string is all zeros.
+                .replaceFirst("^0+(?!$)", "");
+        return "0x" + hexValue;
     }
 
     /**

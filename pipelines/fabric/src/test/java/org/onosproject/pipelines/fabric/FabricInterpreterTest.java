@@ -54,17 +54,17 @@ public class FabricInterpreterTest {
      * Map treatment to push_internal_vlan action.
      */
     @Test
-    public void testFilteringTreatment1() throws Exception {
+    public void testFilteringTreatmentPermitWithInternalVlan() throws Exception {
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                 .pushVlan()
                 .setVlanId(VLAN_100)
                 .build();
         PiAction mappedAction = interpreter.mapTreatment(treatment,
                                                    FabricConstants.FABRIC_INGRESS_FILTERING_INGRESS_PORT_VLAN);
-        PiActionParam param = new PiActionParam(FabricConstants.NEW_VLAN_ID,
+        PiActionParam param = new PiActionParam(FabricConstants.VLAN_ID,
                                                 ImmutableByteSequence.copyFrom(VLAN_100.toShort()));
         PiAction expectedAction = PiAction.builder()
-                .withId(FabricConstants.FABRIC_INGRESS_FILTERING_PUSH_INTERNAL_VLAN)
+                .withId(FabricConstants.FABRIC_INGRESS_FILTERING_PERMIT_WITH_INTERNAL_VLAN)
                 .withParameter(param)
                 .build();
 
@@ -72,35 +72,15 @@ public class FabricInterpreterTest {
     }
 
     /**
-     * Map treatment to set_vlan action.
+     * Map treatment to permit action.
      */
     @Test
-    public void testFilteringTreatment2() throws Exception {
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .setVlanId(VLAN_100)
-                .build();
-        PiAction mappedAction = interpreter.mapTreatment(treatment,
-                                                         FabricConstants.FABRIC_INGRESS_FILTERING_INGRESS_PORT_VLAN);
-        PiActionParam param = new PiActionParam(FabricConstants.NEW_VLAN_ID,
-                                                ImmutableByteSequence.copyFrom(VLAN_100.toShort()));
-        PiAction expectedAction = PiAction.builder()
-                .withId(FabricConstants.FABRIC_INGRESS_FILTERING_SET_VLAN)
-                .withParameter(param)
-                .build();
-
-        assertEquals(expectedAction, mappedAction);
-    }
-
-    /**
-     * Map treatment to nop action.
-     */
-    @Test
-    public void testFilteringTreatment3() throws Exception {
+    public void testFilteringTreatmentPermit() throws Exception {
         TrafficTreatment treatment = DefaultTrafficTreatment.emptyTreatment();
         PiAction mappedAction = interpreter.mapTreatment(treatment,
                                                          FabricConstants.FABRIC_INGRESS_FILTERING_INGRESS_PORT_VLAN);
         PiAction expectedAction = PiAction.builder()
-                .withId(FabricConstants.FABRIC_INGRESS_FILTERING_NOP_INGRESS_PORT_VLAN)
+                .withId(FabricConstants.FABRIC_INGRESS_FILTERING_PERMIT)
                 .build();
 
         assertEquals(expectedAction, mappedAction);
@@ -112,37 +92,43 @@ public class FabricInterpreterTest {
      * Map treatment to duplicate_to_controller action.
      */
     @Test
-    public void testForwardingTreatment1() throws Exception {
+    public void testAclTreatmentCloneToCpu() throws Exception {
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                 .punt()
                 .build();
         PiAction mappedAction = interpreter.mapTreatment(treatment,
-                                                         FabricConstants.FABRIC_INGRESS_FORWARDING_ACL);
+                                                         FabricConstants.FABRIC_INGRESS_ACL_ACL);
         PiAction expectedAction = PiAction.builder()
-                .withId(FabricConstants.FABRIC_INGRESS_FORWARDING_CLONE_TO_CPU)
+                .withId(FabricConstants.FABRIC_INGRESS_ACL_CLONE_TO_CPU)
                 .build();
 
         assertEquals(expectedAction, mappedAction);
     }
 
     /**
-     * Map empty treatment for forwarding block to nop action.
+     * Map empty treatment for routing v4 table.
      */
     @Test
-    public void testEmptyForwardingTreatment() throws Exception {
+    public void testRoutingV4TreatmentEmpty() throws Exception {
         TrafficTreatment treatment = DefaultTrafficTreatment.emptyTreatment();
-
-        PiAction mappedAction = interpreter.mapTreatment(treatment,
-                                                         FabricConstants.FABRIC_INGRESS_FORWARDING_ROUTING_V4);
+        PiAction mappedAction = interpreter.mapTreatment(
+                treatment, FabricConstants.FABRIC_INGRESS_FORWARDING_ROUTING_V4);
         PiAction expectedAction = PiAction.builder()
                 .withId(FabricConstants.FABRIC_INGRESS_FORWARDING_NOP_ROUTING_V4)
                 .build();
         assertEquals(expectedAction, mappedAction);
+    }
 
-        mappedAction = interpreter.mapTreatment(treatment,
-                                                FabricConstants.FABRIC_INGRESS_FORWARDING_ACL);
-        expectedAction = PiAction.builder()
-                .withId(FabricConstants.FABRIC_INGRESS_FORWARDING_NOP_ACL)
+    /**
+     * Map empty treatment for ACL table.
+     */
+    @Test
+    public void testAclTreatmentEmpty() throws Exception {
+        TrafficTreatment treatment = DefaultTrafficTreatment.emptyTreatment();
+        PiAction mappedAction = interpreter.mapTreatment(
+                treatment, FabricConstants.FABRIC_INGRESS_ACL_ACL);
+        PiAction expectedAction = PiAction.builder()
+                .withId(FabricConstants.FABRIC_INGRESS_ACL_NOP_ACL)
                 .build();
         assertEquals(expectedAction, mappedAction);
     }
@@ -153,47 +139,64 @@ public class FabricInterpreterTest {
      * Map treatment to output action.
      */
     @Test
-    public void testNextTreatment1() throws Exception {
+    public void testNextTreatmentSimpleOutput() throws Exception {
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                 .setOutput(PORT_1)
                 .build();
-        PiAction mappedAction = interpreter.mapTreatment(treatment,
-                                                         FabricConstants.FABRIC_INGRESS_NEXT_SIMPLE);
-        short portNumVal = (short) PORT_1.toLong();
-        PiActionParam param = new PiActionParam(FabricConstants.PORT_NUM,
-                                                ImmutableByteSequence.copyFrom(portNumVal));
+        PiAction mappedAction = interpreter.mapTreatment(
+                treatment, FabricConstants.FABRIC_INGRESS_NEXT_SIMPLE);
+        PiActionParam param = new PiActionParam(FabricConstants.PORT_NUM, PORT_1.toLong());
         PiAction expectedAction = PiAction.builder()
                 .withId(FabricConstants.FABRIC_INGRESS_NEXT_OUTPUT_SIMPLE)
                 .withParameter(param)
                 .build();
-
         assertEquals(expectedAction, mappedAction);
     }
 
     /**
-     * Map treatment to output_ecmp action.
+     * Map treatment for hashed table to routing v4 action.
      */
     @Test
-    public void testNextTreatment2() throws Exception {
+    public void testNextTreatmentHashedRoutingV4() throws Exception {
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                 .setEthSrc(SRC_MAC)
                 .setEthDst(DST_MAC)
                 .setOutput(PORT_1)
                 .build();
-        PiAction mappedAction = interpreter.mapTreatment(treatment,
-                                                         FabricConstants.FABRIC_INGRESS_NEXT_HASHED);
-        short portNumVal = (short) PORT_1.toLong();
-        PiActionParam ethSrcParam = new PiActionParam(FabricConstants.SMAC,
-                                                      ImmutableByteSequence.copyFrom(SRC_MAC.toBytes()));
-        PiActionParam ethDstParam = new PiActionParam(FabricConstants.DMAC,
-                                                      ImmutableByteSequence.copyFrom(DST_MAC.toBytes()));
-        PiActionParam portParam = new PiActionParam(FabricConstants.PORT_NUM,
-                                                ImmutableByteSequence.copyFrom(portNumVal));
+        PiAction mappedAction = interpreter.mapTreatment(
+                treatment, FabricConstants.FABRIC_INGRESS_NEXT_HASHED);
+        PiActionParam ethSrcParam = new PiActionParam(FabricConstants.SMAC, SRC_MAC.toBytes());
+        PiActionParam ethDstParam = new PiActionParam(FabricConstants.DMAC, DST_MAC.toBytes());
+        PiActionParam portParam = new PiActionParam(FabricConstants.PORT_NUM, PORT_1.toLong());
         PiAction expectedAction = PiAction.builder()
-                .withId(FabricConstants.FABRIC_INGRESS_NEXT_L3_ROUTING_HASHED)
+                .withId(FabricConstants.FABRIC_INGRESS_NEXT_ROUTING_HASHED)
                 .withParameters(ImmutableList.of(ethSrcParam, ethDstParam, portParam))
                 .build();
+        assertEquals(expectedAction, mappedAction);
+    }
 
+    /**
+     * Map treatment for hashed table to routing v4 action.
+     */
+    @Test
+    public void testNextTreatmentHashedRoutingMpls() throws Exception {
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .setEthSrc(SRC_MAC)
+                .setEthDst(DST_MAC)
+                .setOutput(PORT_1)
+                .pushMpls()
+                .setMpls(MPLS_10)
+                .build();
+        PiAction mappedAction = interpreter.mapTreatment(
+                treatment, FabricConstants.FABRIC_INGRESS_NEXT_HASHED);
+        PiActionParam ethSrcParam = new PiActionParam(FabricConstants.SMAC, SRC_MAC.toBytes());
+        PiActionParam ethDstParam = new PiActionParam(FabricConstants.DMAC, DST_MAC.toBytes());
+        PiActionParam portParam = new PiActionParam(FabricConstants.PORT_NUM, PORT_1.toLong());
+        PiActionParam mplsParam = new PiActionParam(FabricConstants.LABEL, MPLS_10.toInt());
+        PiAction expectedAction = PiAction.builder()
+                .withId(FabricConstants.FABRIC_INGRESS_NEXT_MPLS_ROUTING_HASHED)
+                .withParameters(ImmutableList.of(ethSrcParam, ethDstParam, portParam, mplsParam))
+                .build();
         assertEquals(expectedAction, mappedAction);
     }
 
@@ -204,50 +207,14 @@ public class FabricInterpreterTest {
     public void testNextTreatment3() throws Exception {
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                 .setVlanId(VLAN_100)
-                .setOutput(PORT_1)
                 .build();
-        PiAction mappedAction = interpreter.mapTreatment(treatment,
-                                                         FabricConstants.FABRIC_INGRESS_NEXT_SIMPLE);
-        short portNumVal = (short) PORT_1.toLong();
-        PiActionParam portParam = new PiActionParam(FabricConstants.PORT_NUM,
-                                                    ImmutableByteSequence.copyFrom(portNumVal));
-        short vlanVal = VLAN_100.toShort();
-        PiActionParam vlanParam = new PiActionParam(FabricConstants.NEW_VLAN_ID,
-                                                    ImmutableByteSequence.copyFrom(vlanVal));
-
+        PiAction mappedAction = interpreter.mapTreatment(
+                treatment, FabricConstants.FABRIC_INGRESS_NEXT_NEXT_VLAN);
+        PiActionParam vlanParam = new PiActionParam(
+                FabricConstants.VLAN_ID, VLAN_100.toShort());
         PiAction expectedAction = PiAction.builder()
-                .withId(FabricConstants.FABRIC_INGRESS_NEXT_SET_VLAN_OUTPUT)
-                .withParameters(ImmutableList.of(vlanParam, portParam))
-                .build();
-
-        assertEquals(expectedAction, mappedAction);
-    }
-
-    @Test
-    public void testMplsRoutingTreatment() throws Exception {
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .setEthDst(DST_MAC)
-                .setEthSrc(SRC_MAC)
-                .pushMpls()
-                .copyTtlOut()
-                .setMpls(MPLS_10)
-                .setOutput(PORT_1)
-                .build();
-        PiAction mappedAction = interpreter.mapTreatment(treatment,
-                                                         FabricConstants.FABRIC_INGRESS_NEXT_HASHED);
-        short portNumVal = (short) PORT_1.toLong();
-        PiActionParam ethSrcParam = new PiActionParam(FabricConstants.SMAC,
-                                                      ImmutableByteSequence.copyFrom(SRC_MAC.toBytes()));
-        PiActionParam ethDstParam = new PiActionParam(FabricConstants.DMAC,
-                                                      ImmutableByteSequence.copyFrom(DST_MAC.toBytes()));
-        PiActionParam portParam = new PiActionParam(FabricConstants.PORT_NUM,
-                                                    ImmutableByteSequence.copyFrom(portNumVal));
-        ImmutableByteSequence mplsVal =
-                ImmutableByteSequence.copyFrom(MPLS_10.toInt()).fit(20);
-        PiActionParam mplsParam = new PiActionParam(FabricConstants.LABEL, mplsVal);
-        PiAction expectedAction = PiAction.builder()
-                .withId(FabricConstants.FABRIC_INGRESS_NEXT_MPLS_ROUTING_V4_HASHED)
-                .withParameters(ImmutableList.of(ethSrcParam, ethDstParam, portParam, mplsParam))
+                .withId(FabricConstants.FABRIC_INGRESS_NEXT_SET_VLAN)
+                .withParameter(vlanParam)
                 .build();
         assertEquals(expectedAction, mappedAction);
     }

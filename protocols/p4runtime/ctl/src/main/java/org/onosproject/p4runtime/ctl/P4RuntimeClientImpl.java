@@ -1202,7 +1202,7 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
             }
             return okEntities;
         } else {
-            log.warn("Unable to reconcile error details to updates " +
+            log.warn("Unable to reconcile error details to {} updates " +
                              "(sent {} updates, but device returned {} errors)",
                      entryType, writeEntities.size(), errors.size());
             errors.stream()

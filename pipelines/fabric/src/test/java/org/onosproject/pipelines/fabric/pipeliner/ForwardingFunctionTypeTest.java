@@ -39,6 +39,7 @@ public class ForwardingFunctionTypeTest {
     private static final ApplicationId APP_ID = TestApplicationId.create("ForwardingFunctionTypeTest");
     private static final VlanId VLAN_100 = VlanId.vlanId((short) 100);
     private static final MacAddress MAC_ADDR = MacAddress.valueOf("00:00:00:00:00:01");
+    private static final MacAddress MAC_NONE = MacAddress.NONE;
     private static final IpPrefix IPV4_UNICAST_ADDR = IpPrefix.valueOf("10.0.0.1/32");
     private static final IpPrefix IPV4_MCAST_ADDR = IpPrefix.valueOf("224.0.0.1/32");
     private static final IpPrefix IPV6_UNICAST_ADDR = IpPrefix.valueOf("2000::1/32");
@@ -62,6 +63,15 @@ public class ForwardingFunctionTypeTest {
     public void testL2Broadcast() {
         selector = DefaultTrafficSelector.builder()
                 .matchVlanId(VLAN_100)
+                .build();
+        testFft(selector, ForwardingFunctionType.L2_BROADCAST);
+    }
+
+    @Test
+    public void testL2BroadcastWithMacNone() {
+        selector = DefaultTrafficSelector.builder()
+                .matchVlanId(VLAN_100)
+                .matchEthDst(MAC_NONE)
                 .build();
         testFft(selector, ForwardingFunctionType.L2_BROADCAST);
     }
@@ -112,7 +122,7 @@ public class ForwardingFunctionTypeTest {
                 .matchMplsLabel(MPLS_10)
                 .matchMplsBos(true)
                 .build();
-        testFft(selector, ForwardingFunctionType.MPLS);
+        testFft(selector, ForwardingFunctionType.MPLS_SEGMENT_ROUTING);
     }
 
     private void testFft(TrafficSelector selector, ForwardingFunctionType expectedFft) {

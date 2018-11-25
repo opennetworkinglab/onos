@@ -1,10 +1,9 @@
 #!/usr/bin/env python2.7
 # -*- utf-8 -*-
 import argparse
-import re
 import google.protobuf.text_format as tf
+import re
 from p4.config.v1 import p4info_pb2
-
 
 copyright = '''/*
  * Copyright 2017-present Open Networking Foundation
@@ -74,6 +73,9 @@ PI_ACT_PROF_ID_CST = 'PiActionProfileId.of("%s")'
 PI_PKT_META_ID = 'PiControlMetadataId'
 PI_PKT_META_ID_CST = 'PiControlMetadataId.of("%s")'
 
+HF_VAR_PREFIX = 'HDR_'
+
+
 class ConstantClassGenerator(object):
     headers = set()
     header_fields = set()
@@ -125,6 +127,8 @@ class ConstantClassGenerator(object):
 
     def const_line(self, name, type, constructor):
         var_name = self.convert_camel_to_all_caps(name)
+        if type == PI_HF_FIELD_ID:
+            var_name = HF_VAR_PREFIX + var_name
         val = constructor % (name, )
 
         line = CONST_FMT % (type, var_name, val)

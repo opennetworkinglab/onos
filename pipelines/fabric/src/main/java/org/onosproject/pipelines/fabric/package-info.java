@@ -15,6 +15,6 @@
  */
 
 /**
- * CORD underlay fabric pipeline.
+ * Trellis-compatible reference underlay pipeconf.
  */
 package org.onosproject.pipelines.fabric;
