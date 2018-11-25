@@ -15,6 +15,6 @@
  */
 
 /**
- * Pipeliner for fabric.p4.
+ * Pipeliner implementation classes for fabric.p4.
  */
 package org.onosproject.pipelines.fabric.pipeliner;

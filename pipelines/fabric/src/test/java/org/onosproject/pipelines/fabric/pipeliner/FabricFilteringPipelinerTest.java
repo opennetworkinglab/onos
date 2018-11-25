@@ -16,6 +16,7 @@
 
 package org.onosproject.pipelines.fabric.pipeliner;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.MacAddress;
@@ -33,20 +34,24 @@ import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flowobjective.DefaultFilteringObjective;
 import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.ObjectiveError;
-import org.onosproject.net.group.GroupDescription;
 import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiActionParam;
 import org.onosproject.pipelines.fabric.FabricConstants;
 
-import java.util.List;
-
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Test cases for fabric.p4 pipeline filtering control block.
  */
 public class FabricFilteringPipelinerTest extends FabricPipelinerTest {
+
+    private FilteringObjectiveTranslator translator;
+
+    @Before
+    public void setup() {
+        super.doSetup();
+        translator = new FilteringObjectiveTranslator(DEVICE_ID, capabilitiesHashed);
+    }
 
     /**
      * Creates one rule for ingress_port_vlan table and 3 rules for
@@ -54,50 +59,46 @@ public class FabricFilteringPipelinerTest extends FabricPipelinerTest {
      * the condition is VLAN + MAC.
      */
     @Test
-    public void testRouterMacAndVlanFilter() {
+    public void testRouterMacAndVlanFilter() throws FabricPipelinerException {
         FilteringObjective filteringObjective = buildFilteringObjective(ROUTER_MAC);
-        PipelinerTranslationResult result = pipeliner.pipelinerFilter.filter(filteringObjective);
-
-        List<FlowRule> flowRulesInstalled = (List<FlowRule>) result.flowRules();
-        List<GroupDescription> groupsInstalled = (List<GroupDescription>) result.groups();
-
-        assertTrue(groupsInstalled.isEmpty());
+        ObjectiveTranslation actualTranslation = translator.translate(filteringObjective);
 
         // in port vlan flow rule
-        FlowRule actualFlowRule = flowRulesInstalled.get(0);
-        FlowRule flowRuleExpected =
+        FlowRule inportFlowRuleExpected =
                 buildExpectedVlanInPortRule(PORT_1,
                                             VlanId.NONE,
                                             VLAN_100,
                                             FabricConstants.FABRIC_INGRESS_FILTERING_INGRESS_PORT_VLAN);
-        assertTrue(flowRuleExpected.exactMatch(actualFlowRule));
 
         // forwarding classifier ipv4
-        actualFlowRule = flowRulesInstalled.get(1);
-        flowRuleExpected = buildExpectedFwdClassifierRule(PORT_1,
+        FlowRule classifierV4FlowRuleExpected = buildExpectedFwdClassifierRule(PORT_1,
                                                           ROUTER_MAC,
                                                           null,
                                                           Ethernet.TYPE_IPV4,
-                                                          FabricFilteringPipeliner.FWD_IPV4_ROUTING);
-        assertTrue(flowRuleExpected.exactMatch(actualFlowRule));
+                                                          FilteringObjectiveTranslator.FWD_IPV4_ROUTING);
 
         // forwarding classifier ipv6
-        actualFlowRule = flowRulesInstalled.get(2);
-        flowRuleExpected = buildExpectedFwdClassifierRule(PORT_1,
+        FlowRule classifierV6FlowRuleExpected = buildExpectedFwdClassifierRule(PORT_1,
                                                           ROUTER_MAC,
                                                           null,
                                                           Ethernet.TYPE_IPV6,
-                                                          FabricFilteringPipeliner.FWD_IPV6_ROUTING);
-        assertTrue(flowRuleExpected.exactMatch(actualFlowRule));
+                                                          FilteringObjectiveTranslator.FWD_IPV6_ROUTING);
 
         // forwarding classifier mpls
-        actualFlowRule = flowRulesInstalled.get(3);
-        flowRuleExpected = buildExpectedFwdClassifierRule(PORT_1,
+        FlowRule classifierMplsFlowRuleExpected = buildExpectedFwdClassifierRule(PORT_1,
                                                           ROUTER_MAC,
                                                           null,
                                                           Ethernet.MPLS_UNICAST,
-                                                          FabricFilteringPipeliner.FWD_MPLS);
-        assertTrue(flowRuleExpected.exactMatch(actualFlowRule));
+                                                          FilteringObjectiveTranslator.FWD_MPLS);
+
+        ObjectiveTranslation expectedTranslation = ObjectiveTranslation.builder()
+                .addFlowRule(inportFlowRuleExpected)
+                .addFlowRule(classifierV4FlowRuleExpected)
+                .addFlowRule(classifierV6FlowRuleExpected)
+                .addFlowRule(classifierMplsFlowRuleExpected)
+                .build();
+
+        assertEquals(expectedTranslation, actualTranslation);
     }
 
     /**
@@ -106,7 +107,7 @@ public class FabricFilteringPipelinerTest extends FabricPipelinerTest {
      * multicast mac address.
      */
     @Test
-    public void testIpv4MulticastFwdClass() {
+    public void testIpv4MulticastFwdClass() throws FabricPipelinerException {
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                 .pushVlan()
                 .setVlanId(VLAN_100)
@@ -121,29 +122,28 @@ public class FabricFilteringPipelinerTest extends FabricPipelinerTest {
                 .fromApp(APP_ID)
                 .makePermanent()
                 .add();
-        PipelinerTranslationResult result = pipeliner.pipelinerFilter.filter(filteringObjective);
-        List<FlowRule> flowRulesInstalled = (List<FlowRule>) result.flowRules();
-        List<GroupDescription> groupsInstalled = (List<GroupDescription>) result.groups();
-
-        assertTrue(groupsInstalled.isEmpty());
+        ObjectiveTranslation actualTranslation = translator.translate(filteringObjective);
 
         // in port vlan flow rule
-        FlowRule actualFlowRule = flowRulesInstalled.get(0);
-        FlowRule flowRuleExpected =
+        FlowRule inportFlowRuleExpected =
                 buildExpectedVlanInPortRule(PORT_1,
                                             VlanId.NONE,
                                             VLAN_100,
                                             FabricConstants.FABRIC_INGRESS_FILTERING_INGRESS_PORT_VLAN);
-        assertTrue(flowRuleExpected.exactMatch(actualFlowRule));
 
         // forwarding classifier
-        actualFlowRule = flowRulesInstalled.get(1);
-        flowRuleExpected = buildExpectedFwdClassifierRule(PORT_1,
+        FlowRule classifierFlowRuleExpected = buildExpectedFwdClassifierRule(PORT_1,
                                                           MacAddress.IPV4_MULTICAST,
                                                           MacAddress.IPV4_MULTICAST_MASK,
                                                           Ethernet.TYPE_IPV4,
-                                                          FabricFilteringPipeliner.FWD_IPV4_ROUTING);
-        assertTrue(flowRuleExpected.exactMatch(actualFlowRule));
+                                                          FilteringObjectiveTranslator.FWD_IPV4_ROUTING);
+
+        ObjectiveTranslation expectedTranslation = ObjectiveTranslation.builder()
+                .addFlowRule(inportFlowRuleExpected)
+                .addFlowRule(classifierFlowRuleExpected)
+                .build();
+
+        assertEquals(expectedTranslation, actualTranslation);
     }
 
     /**
@@ -152,7 +152,7 @@ public class FabricFilteringPipelinerTest extends FabricPipelinerTest {
      * multicast mac address.
      */
     @Test
-    public void testIpv6MulticastFwdClass() {
+    public void testIpv6MulticastFwdClass() throws FabricPipelinerException {
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                 .pushVlan()
                 .setVlanId(VLAN_100)
@@ -167,29 +167,27 @@ public class FabricFilteringPipelinerTest extends FabricPipelinerTest {
                 .fromApp(APP_ID)
                 .makePermanent()
                 .add();
-        PipelinerTranslationResult result = pipeliner.pipelinerFilter.filter(filteringObjective);
-        List<FlowRule> flowRulesInstalled = (List<FlowRule>) result.flowRules();
-        List<GroupDescription> groupsInstalled = (List<GroupDescription>) result.groups();
-
-        assertTrue(groupsInstalled.isEmpty());
+        ObjectiveTranslation actualTranslation = translator.translate(filteringObjective);
 
         // in port vlan flow rule
-        FlowRule actualFlowRule = flowRulesInstalled.get(0);
-        FlowRule flowRuleExpected =
+        FlowRule inportFlowRuleExpected =
                 buildExpectedVlanInPortRule(PORT_1,
                                             VlanId.NONE,
                                             VLAN_100,
                                             FabricConstants.FABRIC_INGRESS_FILTERING_INGRESS_PORT_VLAN);
-        assertTrue(flowRuleExpected.exactMatch(actualFlowRule));
 
-        // forwarding classifier
-        actualFlowRule = flowRulesInstalled.get(1);
-        flowRuleExpected = buildExpectedFwdClassifierRule(PORT_1,
+        FlowRule classifierFlowRuleExpected = buildExpectedFwdClassifierRule(PORT_1,
                                                           MacAddress.IPV6_MULTICAST,
                                                           MacAddress.IPV6_MULTICAST_MASK,
                                                           Ethernet.TYPE_IPV6,
-                                                          FabricFilteringPipeliner.FWD_IPV6_ROUTING);
-        assertTrue(flowRuleExpected.exactMatch(actualFlowRule));
+                                                          FilteringObjectiveTranslator.FWD_IPV6_ROUTING);
+
+        ObjectiveTranslation expectedTranslation = ObjectiveTranslation.builder()
+                .addFlowRule(inportFlowRuleExpected)
+                .addFlowRule(classifierFlowRuleExpected)
+                .build();
+
+        assertEquals(expectedTranslation, actualTranslation);
     }
 
     /**
@@ -198,51 +196,65 @@ public class FabricFilteringPipelinerTest extends FabricPipelinerTest {
      * The packet will be handled by bridging table by default.
      */
     @Test
-    public void testFwdBridging() {
+    public void testFwdBridging() throws Exception {
         FilteringObjective filteringObjective = buildFilteringObjective(null);
-        PipelinerTranslationResult result = pipeliner.pipelinerFilter.filter(filteringObjective);
-        List<FlowRule> flowRulesInstalled = (List<FlowRule>) result.flowRules();
-        List<GroupDescription> groupsInstalled = (List<GroupDescription>) result.groups();
-
-        assertTrue(groupsInstalled.isEmpty());
+        ObjectiveTranslation actualTranslation = translator.translate(filteringObjective);
 
         // in port vlan flow rule
-        FlowRule actualFlowRule = flowRulesInstalled.get(0);
         FlowRule flowRuleExpected =
                 buildExpectedVlanInPortRule(PORT_1,
                                             VlanId.NONE,
                                             VLAN_100,
                                             FabricConstants.FABRIC_INGRESS_FILTERING_INGRESS_PORT_VLAN);
-        assertTrue(flowRuleExpected.exactMatch(actualFlowRule));
 
         // No rules in forwarding classifier, will do default action: set fwd type to bridging
+
+        ObjectiveTranslation expectedTranslation = ObjectiveTranslation.builder()
+                .addFlowRule(flowRuleExpected)
+                .build();
+
+        assertEquals(expectedTranslation, actualTranslation);
     }
 
     /**
-     * We supports only PERMIT type of filtering objective.
+     * Test DENY objective.
      */
     @Test
-    public void testUnsupportedObjective() {
+    public void testDenyObjective() throws FabricPipelinerException {
         FilteringObjective filteringObjective = DefaultFilteringObjective.builder()
                 .deny()
                 .withKey(Criteria.matchInPort(PORT_1))
-                .addCondition(Criteria.matchVlanId(VLAN_100))
+                .addCondition(Criteria.matchVlanId(VlanId.NONE))
                 .fromApp(APP_ID)
                 .makePermanent()
+                .withPriority(PRIORITY)
                 .add();
 
-        PipelinerTranslationResult result = pipeliner.pipelinerFilter.filter(filteringObjective);
-        pipeliner.pipelinerFilter.filter(filteringObjective);
+        ObjectiveTranslation actualTranslation = translator.translate(filteringObjective);
 
-        List<FlowRule> flowRulesInstalled = (List<FlowRule>) result.flowRules();
-        List<GroupDescription> groupsInstalled = (List<GroupDescription>) result.groups();
+        TrafficSelector.Builder selector = DefaultTrafficSelector.builder()
+                .matchInPort(PORT_1)
+                .matchPi(VLAN_INVALID);
+        PiAction piAction = PiAction.builder()
+                    .withId(FabricConstants.FABRIC_INGRESS_FILTERING_DENY)
+                    .build();
+        FlowRule expectedFlowRule = DefaultFlowRule.builder()
+                .withPriority(PRIORITY)
+                .withSelector(selector.build())
+                .withTreatment(DefaultTrafficTreatment.builder()
+                                       .piTableAction(piAction).build())
+                .fromApp(APP_ID)
+                .forDevice(DEVICE_ID)
+                .makePermanent()
+                .forTable(FabricConstants.FABRIC_INGRESS_FILTERING_INGRESS_PORT_VLAN)
+                .build();
 
-        assertTrue(flowRulesInstalled.isEmpty());
-        assertTrue(groupsInstalled.isEmpty());
+        ObjectiveTranslation expectedTranslation = ObjectiveTranslation.builder()
+                .addFlowRule(expectedFlowRule)
+                .build();
 
-        assertTrue(result.error().isPresent());
-        ObjectiveError error = result.error().get();
-        assertEquals(ObjectiveError.UNSUPPORTED, error);
+        assertEquals(expectedTranslation, actualTranslation);
+
     }
 
     /**
@@ -258,12 +270,8 @@ public class FabricFilteringPipelinerTest extends FabricPipelinerTest {
                 .makePermanent()
                 .add();
 
-        PipelinerTranslationResult result = pipeliner.pipelinerFilter.filter(filteringObjective);
-        pipeliner.pipelinerFilter.filter(filteringObjective);
-
-        assertTrue(result.error().isPresent());
-        ObjectiveError error = result.error().get();
-        assertEquals(ObjectiveError.BADPARAMS, error);
+        ObjectiveTranslation result1 = translator.translate(filteringObjective);
+        assertError(ObjectiveError.BADPARAMS, result1);
 
         // Filtering objective should use in_port as key
         filteringObjective = DefaultFilteringObjective.builder()
@@ -275,15 +283,16 @@ public class FabricFilteringPipelinerTest extends FabricPipelinerTest {
                 .makePermanent()
                 .add();
 
-        result = pipeliner.pipelinerFilter.filter(filteringObjective);
-        pipeliner.pipelinerFilter.filter(filteringObjective);
-
-        assertTrue(result.error().isPresent());
-        error = result.error().get();
-        assertEquals(ObjectiveError.BADPARAMS, error);
+        ObjectiveTranslation result2 = translator.translate(filteringObjective);
+        assertError(ObjectiveError.BADPARAMS, result2);
     }
 
     /* Utilities */
+
+    private void assertError(ObjectiveError error, ObjectiveTranslation actualTranslation) {
+        ObjectiveTranslation expectedTranslation = ObjectiveTranslation.ofError(error);
+        assertEquals(expectedTranslation, actualTranslation);
+    }
 
     private FilteringObjective buildFilteringObjective(MacAddress dstMac) {
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
@@ -311,20 +320,27 @@ public class FabricFilteringPipelinerTest extends FabricPipelinerTest {
 
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder()
                 .matchInPort(inPort);
-        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
+        PiAction piAction;
         if (vlanId == null || vlanId.equals(VlanId.NONE)) {
             selector.matchPi(VLAN_INVALID);
-            treatment.pushVlan();
-            treatment.setVlanId(internalVlan);
+            piAction = PiAction.builder()
+                    .withId(FabricConstants.FABRIC_INGRESS_FILTERING_PERMIT_WITH_INTERNAL_VLAN)
+                    .withParameter(new PiActionParam(
+                            FabricConstants.VLAN_ID, internalVlan.toShort()))
+                    .build();
         } else {
             selector.matchPi(VLAN_VALID);
             selector.matchVlanId(vlanId);
+            piAction = PiAction.builder()
+                    .withId(FabricConstants.FABRIC_INGRESS_FILTERING_PERMIT)
+                    .build();
         }
 
         return DefaultFlowRule.builder()
                 .withPriority(PRIORITY)
                 .withSelector(selector.build())
-                .withTreatment(treatment.build())
+                .withTreatment(DefaultTrafficTreatment.builder()
+                                       .piTableAction(piAction).build())
                 .fromApp(APP_ID)
                 .forDevice(DEVICE_ID)
                 .makePermanent()
